@@ -1,0 +1,126 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Environment Variables - CRITICAL: Never commit these
+.env
+.env.local
+.env.*.local
+**/.env.development
+**/.env.staging
+**/.env.production
+!**/.env.example
+
+# Build outputs
+dist
+build
+*.tsbuildinfo
+.turbo
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+pnpm-error.log*
+
+# Cache
+.eslintcache
+*.cache
+.metro-cache
+
+# pnpm
+.pnpm-store/
+.pnpm-debug.log
+pnpm-debug.log*
+
+# React Native
+.expo
+.expo-shared
+
+# Android
+*.apk
+*.aab
+**/android/app/build
+**/android/build
+**/android/.gradle
+**/android/local.properties
+
+# Keep Gradle wrapper files (important!)
+!**/android/gradle/wrapper/gradle-wrapper.jar
+!**/android/gradle/wrapper/gradle-wrapper.properties
+!**/android/gradlew
+!**/android/gradlew.bat
+
+# iOS
+**/ios/Pods
+**/ios/build
+*.ipa
+*.dSYM.zip
+
+# Testing
+coverage
+.nyc_output
+
+# Firebase
+firebase-debug.log
+.firebase
+**/firebase-service-account.json
+firebase-service-account.json
+
+# Secrets & Keys
+*.pem
+*.key
+*.keystore
+google-services.json
+GoogleService-Info.plist
+
+# Temporary
+.tmp
+temp
+
+# Executables & Binaries (CRITICAL: Never commit large executables)
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test & Lint Output
+eslint-results.json
+**/eslint-results.json
+*.eslintcache
+
+# Large assets that should use Git LFS or CDN
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
+# Exception: Keep small project images if needed
+!apps/web/public/favicon.ico
+!apps/mobile/android/app/src/main/res/**/*.png
+
+# Security scanning tools
+snyk
+snyk.exe
+snyk-*
+
+# Uploads directory (user-generated content - use S3/CDN instead)
+**/uploads/
+uploads/
+
+# Windows reserved filenames (should never be tracked)
+nul
+NUL

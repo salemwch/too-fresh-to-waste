@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-white text-gray-900;
+  }
+
+  html {
+    @apply scroll-smooth;
+    /* Improve text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Prevent text layout shifts */
+  h1, h2, h3, h4, h5, h6, p {
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1;
+    font-kerning: normal;
+  }
+
+  /* Ensure header stays fixed on mobile browsers */
+  header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: background-color;
+    contain: layout style paint;
+  }
+
+  /* Optimize logo transitions for instant switching */
+  header img {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* Prevent header layout shifts during font loading */
+  header nav {
+    contain: layout;
+  }
+
+  /* Prevent button layout shifts */
+  header a, header button {
+    contain: layout style;
+  }
+
+  /* Fix for iOS Safari fixed positioning */
+  @supports (-webkit-touch-callout: none) {
+    header {
+      position: -webkit-sticky !important;
+      position: sticky !important;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

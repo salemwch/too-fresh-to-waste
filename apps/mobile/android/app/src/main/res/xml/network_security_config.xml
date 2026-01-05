@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network Security Configuration - Enterprise Grade
+  Source: https://developer.android.com/privacy-and-security/security-config
+  OWASP Mobile Top 10 M3: Insecure Communication
+
+  Security Principles:
+  1. HTTPS enforced by default (cleartextTrafficPermitted="false")
+  2. Development exceptions limited to localhost only
+  3. Trust only system certificates (no custom/user certificates)
+  4. No hardcoded IPs (use localhost/emulator aliases only)
+
+  Production builds: HTTPS only, no cleartext exceptions
+  Debug builds: Cleartext allowed for Metro bundler (localhost only)
+-->
+<network-security-config>
+    <!--
+      ============================================================================
+      BASE CONFIGURATION - SECURE BY DEFAULT
+      ============================================================================
+
+      Applied to all network connections unless overridden by domain-config
+
+      Security Features:
+      - cleartextTrafficPermitted="false" → Forces HTTPS for all connections
+      - Trust system certificates only → Prevents MITM via custom certificates
+      - No user-installed certificates → Protects against SSL pinning bypass
+
+      Compliance:
+      - OWASP M3: Insecure Communication ✓
+      - Google Play Data Safety ✓
+      - PCI DSS Requirement 4.1 ✓
+    -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Trust only system-installed certificates -->
+            <certificates src="system" />
+
+            <!--
+              DO NOT add user certificates in production:
+              <certificates src="user" />
+
+              This would allow MITM attacks via user-installed certificates
+              Only enable for debugging SSL issues in debug builds
+            -->
+        </trust-anchors>
+    </base-config>
+
+    <!--
+      ============================================================================
+      DEVELOPMENT CONFIGURATION - LOCALHOST ONLY
+      ============================================================================
+
+      Allows cleartext (HTTP) traffic to localhost for React Native Metro bundler
+
+      IMPORTANT: This domain-config is ONLY active when:
+      - android:usesCleartextTraffic="true" is set in AndroidManifest.xml
+      - Debug builds have this set automatically
+      - Release builds have usesCleartextTraffic="false" (blocks cleartext)
+
+      Security Boundaries:
+      - ✓ Localhost only (127.0.0.1, localhost, 10.0.2.2)
+      - ✗ NO LAN IPs (192.168.x.x) - removed for security
+      - ✗ NO public IPs - never allowed
+      - ✗ NO domain names - localhost aliases only
+
+      Metro Bundler Connection:
+      - Physical device: Use `adb reverse tcp:8081 tcp:8081` instead of LAN IP
+      - Emulator: Use 10.0.2.2 (emulator's localhost alias)
+      - Both methods avoid exposing LAN IP in config
+    -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!--
+          Localhost variations
+          Required for Metro bundler connection in development
+        -->
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+
+        <!--
+          Android emulator host alias
+          10.0.2.2 = Host machine's localhost from emulator's perspective
+          Allows emulator to connect to Metro running on your computer
+        -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
+
+        <!--
+          REMOVED: Hardcoded LAN IP
+
+          Previous config included:
+          <domain includeSubdomains="true">192.168.1.16</domain>
+
+          Security Issues:
+          - Exposes specific network topology
+          - IP may change (DHCP)
+          - Not portable across environments
+          - Broadens attack surface
+
+          SOLUTION: Use ADB reverse instead
+
+          Physical Device Development:
+          $ adb reverse tcp:8081 tcp:8081
+
+          This creates a tunnel from device's localhost:8081 → computer's localhost:8081
+          Metro URL becomes: http://localhost:8081
+
+          Benefits:
+          ✓ No hardcoded IPs
+          ✓ Works on any network
+          ✓ Tighter security boundary
+          ✓ Portable configuration
+        -->
+    </domain-config>
+
+    <!--
+      ============================================================================
+      OPTIONAL: CERTIFICATE PINNING (PRODUCTION HARDENING)
+      ============================================================================
+
+      Uncomment for maximum security in production (requires certificate management)
+
+      Certificate pinning prevents MITM even with compromised system certificates
+      Requires updating app when backend certificates rotate
+
+      Source: https://developer.android.com/privacy-and-security/security-config#CertificatePinning
+
+      <domain-config cleartextTrafficPermitted="false">
+          <domain includeSubdomains="true">api.foodwasteapp.com</domain>
+          <pin-set expiration="2026-01-01">
+              <pin digest="SHA-256">YOUR_BACKEND_CERTIFICATE_SHA256_PIN_HERE</pin>
+              <pin digest="SHA-256">YOUR_BACKUP_CERTIFICATE_SHA256_PIN_HERE</pin>
+          </pin-set>
+      </domain-config>
+
+      How to generate pins:
+      $ openssl s_client -connect api.foodwasteapp.com:443 | \
+        openssl x509 -pubkey -noout | \
+        openssl pkey -pubin -outform der | \
+        openssl dgst -sha256 -binary | \
+        openssl enc -base64
+
+      IMPORTANT: Always pin at least 2 certificates (primary + backup)
+      If primary cert expires and you only pinned one, app cannot connect!
+    -->
+</network-security-config>

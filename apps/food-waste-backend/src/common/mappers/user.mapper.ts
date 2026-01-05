@@ -1,0 +1,100 @@
+import { IUser, IUserStats, IUserListResponse } from '../interfaces/user.interface';
+
+export class UserMapper {
+  static toInterface(document: any): IUser {
+    if (!document) {
+      throw new Error('Document cannot be null or undefined');
+    }
+
+    return {
+      id: document._id?.toString() || document.id,
+      email: document.email,
+      firstName: document.firstName || document.profile?.firstName || '',
+      lastName: document.lastName || document.profile?.lastName || '',
+      phone: document.phone || document.profile?.phone,
+      role: document.role,
+      status: document.status,
+      emailVerified: document.emailVerified || false,
+      phoneVerified: document.phoneVerified || false,
+      avatar: document.avatar || document.profile?.avatar,
+      preferences: {
+        notifications: {
+          email: document.preferences?.notifications?.email ?? true,
+          push: document.preferences?.notifications?.push ?? true,
+          sms: document.preferences?.notifications?.sms ?? false,
+          marketing: document.preferences?.notifications?.marketing ?? true,
+          orderUpdates: document.preferences?.notifications?.orderUpdates ?? true,
+          newOffers: document.preferences?.notifications?.newOffers ?? true,
+        },
+        dietary: {
+          vegetarian: document.preferences?.dietary?.vegetarian || false,
+          vegan: document.preferences?.dietary?.vegan || false,
+          glutenFree: document.preferences?.dietary?.glutenFree || false,
+          halal: document.preferences?.dietary?.halal || false,
+          kosher: document.preferences?.dietary?.kosher || false,
+          allergies: document.preferences?.dietary?.allergies || [],
+        },
+        delivery: {
+          defaultAddress: document.preferences?.delivery?.defaultAddress,
+          preferredTimeSlots: document.preferences?.delivery?.preferredTimeSlots || [],
+          instructions: document.preferences?.delivery?.instructions,
+        },
+        language: document.preferences?.language || 'en',
+        currency: document.preferences?.currency || 'EUR',
+        timezone: document.preferences?.timezone || 'Europe/Paris',
+      },
+      address: document.address ? {
+        street: document.address.street,
+        city: document.address.city,
+        state: document.address.state,
+        postalCode: document.address.postalCode,
+        country: document.address.country,
+        isDefault: document.address.isDefault || false,
+        coordinates: document.address.coordinates ? {
+          latitude: document.address.coordinates.latitude,
+          longitude: document.address.coordinates.longitude,
+        } : undefined,
+      } : undefined,
+      loyaltyPoints: document.loyaltyPoints || 0,
+      totalOrders: document.stats?.totalOrders || 0,
+      totalSpent: document.stats?.totalSpent || 0,
+      averageRating: document.stats?.averageRating,
+      lastLoginAt: document.lastLoginAt,
+      createdAt: document.createdAt || new Date(),
+      updatedAt: document.updatedAt || new Date(),
+    };
+  }
+
+  static toInterfaceArray(documents: any[]): IUser[] {
+    return documents.map(doc => this.toInterface(doc));
+  }
+
+  static toStatsInterface(data: any): IUserStats {
+    return {
+      totalUsers: data.totalUsers || 0,
+      activeUsers: data.activeUsers || 0,
+      newUsersToday: data.newUsersToday || 0,
+      newUsersThisWeek: data.newUsersThisWeek || 0,
+      newUsersThisMonth: data.newUsersThisMonth || 0,
+      averageOrdersPerUser: data.averageOrdersPerUser || 0,
+      topSpenders: data.topSpenders?.map((spender: any) => ({
+        userId: spender.userId || spender._id?.toString(),
+        email: spender.email,
+        firstName: spender.firstName,
+        lastName: spender.lastName,
+        totalSpent: spender.totalSpent || 0,
+        totalOrders: spender.totalOrders || 0,
+      })) || [],
+    };
+  }
+
+  static toListResponse(data: any): IUserListResponse {
+    return {
+      users: this.toInterfaceArray(data.users || []),
+      total: data.total || 0,
+      page: data.page || 1,
+      limit: data.limit || 20,
+      totalPages: data.totalPages || 0,
+    };
+  }
+}

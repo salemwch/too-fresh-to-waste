@@ -1,0 +1,318 @@
+import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
+import { SanitizationUtil } from '../utils/sanitization.util';
+
+/**
+ * Global sanitization middleware for enterprise-grade XSS prevention
+ * Applies to ALL endpoints, runs BEFORE ValidationPipe
+ *
+ * @rationale Defense-in-depth: sanitize before validation to prevent
+ * malicious payloads from reaching business logic
+ *
+ * Order of execution:
+ * 1. GlobalSanitizationMiddleware (this) - sanitizes raw input
+ * 2. ValidationPipe - validates sanitized input
+ * 3. Business logic - processes safe, validated data
+ */
+@Injectable()
+export class GlobalSanitizationMiddleware implements NestMiddleware {
+  private readonly logger = new Logger(GlobalSanitizationMiddleware.name);
+
+  constructor(private readonly sanitizationUtil: SanitizationUtil) {}
+
+  use(req: Request, res: Response, next: NextFunction): void {
+    const startTime = Date.now();
+
+    try {
+      // Skip sanitization for health check and metrics endpoints
+      if (this.isExcludedPath(req.path)) {
+        return next();
+      }
+
+      let sanitizedFields = 0;
+      let suspiciousDetected = false;
+
+      // Sanitize request body
+      if (req.body && typeof req.body === 'object') {
+        const result = this.sanitizeBody(req.body);
+        req.body = result.sanitized;
+        sanitizedFields += result.fieldsModified;
+        suspiciousDetected = suspiciousDetected || result.suspiciousDetected;
+      }
+
+      // Sanitize query parameters
+      if (req.query && typeof req.query === 'object') {
+        const result = this.sanitizeQuery(req.query);
+        // Mutate in place - req.query is read-only (getter only)
+        Object.keys(req.query).forEach(key => delete req.query[key]);
+        Object.assign(req.query, result.sanitized);
+        sanitizedFields += result.fieldsModified;
+        suspiciousDetected = suspiciousDetected || result.suspiciousDetected;
+      }
+
+      // Sanitize URL parameters
+      if (req.params && typeof req.params === 'object') {
+        const result = this.sanitizeParams(req.params);
+        // Mutate in place - req.params is read-only (getter only)
+        Object.keys(req.params).forEach(key => delete req.params[key]);
+        Object.assign(req.params, result.sanitized);
+        sanitizedFields += result.fieldsModified;
+        suspiciousDetected = suspiciousDetected || result.suspiciousDetected;
+      }
+
+      // Log suspicious activity
+      if (suspiciousDetected) {
+        const duration = Date.now() - startTime;
+        this.logger.warn({
+          message: 'Suspicious content sanitized',
+          path: req.path,
+          method: req.method,
+          ip: req.ip,
+          userAgent: req.get('User-Agent'),
+          fieldsModified: sanitizedFields,
+          durationMs: duration,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      // Performance monitoring for slow sanitization
+      const duration = Date.now() - startTime;
+      if (duration > 100) {
+        this.logger.debug({
+          message: 'Slow sanitization detected',
+          path: req.path,
+          durationMs: duration,
+          fieldsModified: sanitizedFields
+        });
+      }
+
+      next();
+    } catch (error) {
+      this.logger.error({
+        message: 'Error in global sanitization middleware',
+        error: error instanceof Error ? error.message : String(error),
+        path: req.path,
+        method: req.method
+      });
+
+      // Continue processing even if sanitization fails
+      // This prevents DoS through sanitization errors
+      next();
+    }
+  }
+
+  /**
+   * Check if path should be excluded from sanitization
+   * Health checks, metrics, and static assets don't need sanitization
+   */
+  private isExcludedPath(path: string): boolean {
+    const excludedPaths = [
+      '/health',
+      '/metrics',
+      '/api/v1/health',
+      '/api/v1/metrics',
+      '/api/v1/api-docs',  // Swagger
+      '/favicon.ico'
+    ];
+
+    return excludedPaths.some(excluded => path.startsWith(excluded));
+  }
+
+  /**
+   * Sanitize request body recursively
+   */
+  private sanitizeBody(body: any): {
+    sanitized: any;
+    fieldsModified: number;
+    suspiciousDetected: boolean;
+  } {
+    let fieldsModified = 0;
+    let suspiciousDetected = false;
+
+    const sanitize = (obj: any): any => {
+      if (obj === null || obj === undefined) {
+        return obj;
+      }
+
+      if (Array.isArray(obj)) {
+        return obj.map(item => sanitize(item));
+      }
+
+      if (typeof obj === 'string') {
+        const original = obj;
+        const sanitized = this.sanitizationUtil.sanitizeText(obj);
+
+        if (original !== sanitized) {
+          fieldsModified++;
+        }
+
+        if (this.sanitizationUtil.containsSuspiciousContent(original)) {
+          suspiciousDetected = true;
+        }
+
+        return sanitized;
+      }
+
+      if (typeof obj === 'object') {
+        const sanitized: any = {};
+
+        for (const [key, value] of Object.entries(obj)) {
+          // Sanitize keys to prevent prototype pollution
+          const sanitizedKey = this.sanitizeKey(key);
+
+          if (sanitizedKey) {
+            sanitized[sanitizedKey] = sanitize(value);
+          } else {
+            // Dangerous key blocked
+            suspiciousDetected = true;
+            fieldsModified++;
+          }
+        }
+
+        return sanitized;
+      }
+
+      return obj;
+    };
+
+    return {
+      sanitized: sanitize(body),
+      fieldsModified,
+      suspiciousDetected
+    };
+  }
+
+  /**
+   * Sanitize query parameters
+   */
+  private sanitizeQuery(query: any): {
+    sanitized: any;
+    fieldsModified: number;
+    suspiciousDetected: boolean;
+  } {
+    const sanitized: any = {};
+    let fieldsModified = 0;
+    let suspiciousDetected = false;
+
+    for (const [key, value] of Object.entries(query)) {
+      const sanitizedKey = this.sanitizeKey(key);
+
+      if (!sanitizedKey) {
+        suspiciousDetected = true;
+        fieldsModified++;
+        continue;
+      }
+
+      if (typeof value === 'string') {
+        const original = value;
+        const sanitizedValue = this.sanitizationUtil.sanitizeText(value);
+
+        if (original !== sanitizedValue) {
+          fieldsModified++;
+        }
+
+        if (this.sanitizationUtil.containsSuspiciousContent(original)) {
+          suspiciousDetected = true;
+        }
+
+        sanitized[sanitizedKey] = sanitizedValue;
+      } else if (Array.isArray(value)) {
+        sanitized[sanitizedKey] = value.map(item => {
+          if (typeof item === 'string') {
+            const original = item;
+            const sanitizedItem = this.sanitizationUtil.sanitizeText(item);
+
+            if (original !== sanitizedItem) {
+              fieldsModified++;
+            }
+
+            if (this.sanitizationUtil.containsSuspiciousContent(original)) {
+              suspiciousDetected = true;
+            }
+
+            return sanitizedItem;
+          }
+          return item;
+        });
+      } else {
+        sanitized[sanitizedKey] = value;
+      }
+    }
+
+    return {
+      sanitized,
+      fieldsModified,
+      suspiciousDetected
+    };
+  }
+
+  /**
+   * Sanitize URL parameters
+   */
+  private sanitizeParams(params: any): {
+    sanitized: any;
+    fieldsModified: number;
+    suspiciousDetected: boolean;
+  } {
+    const sanitized: any = {};
+    let fieldsModified = 0;
+    let suspiciousDetected = false;
+
+    for (const [key, value] of Object.entries(params)) {
+      const sanitizedKey = this.sanitizeKey(key);
+
+      if (!sanitizedKey) {
+        suspiciousDetected = true;
+        fieldsModified++;
+        continue;
+      }
+
+      if (typeof value === 'string') {
+        const original = value;
+        const sanitizedValue = this.sanitizationUtil.sanitizeText(value);
+
+        if (original !== sanitizedValue) {
+          fieldsModified++;
+        }
+
+        if (this.sanitizationUtil.containsSuspiciousContent(original)) {
+          suspiciousDetected = true;
+        }
+
+        sanitized[sanitizedKey] = sanitizedValue;
+      } else {
+        sanitized[sanitizedKey] = value;
+      }
+    }
+
+    return {
+      sanitized,
+      fieldsModified,
+      suspiciousDetected
+    };
+  }
+
+  /**
+   * Sanitize object keys to prevent prototype pollution
+   * @returns Sanitized key or empty string if dangerous
+   */
+  private sanitizeKey(key: string): string {
+    // Block dangerous prototype pollution keys
+    const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
+
+    if (dangerousKeys.includes(key)) {
+      this.logger.warn(`Blocked dangerous object key: ${key}`);
+      return '';
+    }
+
+    // Allow alphanumeric, underscore, hyphen, and dot
+    // More permissive than text sanitization for query params
+    const sanitized = key.replace(/[^a-zA-Z0-9_\-\.]/g, '');
+
+    if (sanitized !== key) {
+      this.logger.debug(`Sanitized key: ${key} -> ${sanitized}`);
+    }
+
+    return sanitized;
+  }
+}

@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Running pre-push checks..."
+
+# Run tests for web app only (we're deploying web, not backend/mobile)
+echo "🧪 Running tests..."
+pnpm --filter @foodwaste/web --filter @foodwaste/shared test:ci
+
+# Build web app only (we're deploying web, not backend/mobile)
+echo "🔨 Building web app..."
+pnpm --filter @foodwaste/web build
+
+echo "✅ Pre-push checks completed!"

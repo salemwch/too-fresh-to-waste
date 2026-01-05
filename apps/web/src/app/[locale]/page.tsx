@@ -1,0 +1,216 @@
+import { useTranslations } from 'next-intl';
+import { setRequestLocale } from 'next-intl/server';
+import { Header } from '@/components/layout';
+import {
+  Section2,
+  Section3Animated,
+  Section4,
+  Section5,
+  InfiniteMarquee,
+} from '@/components/sections';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import type { Locale } from '@/i18n/config';
+
+interface HomePageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function HomePage({ params }: HomePageProps) {
+  const { locale } = await params;
+
+  // Enable static rendering
+  setRequestLocale(locale);
+
+  return (
+    <>
+      <Header />
+
+      <main role='main'>
+        {/* Hero Section with 3D Phone Mockups */}
+        <HeroSection locale={locale as Locale} />
+
+        {/* Section 2: App Introduction with Download Buttons */}
+        <Section2 />
+
+        {/* Section 3: Why Use Too Fresh To Waste - Animated "Cycle of Good" */}
+        <Section3Animated />
+
+        {/* Section 4: How to Use the App & Get Points - Card Carousel */}
+        <Section4 />
+
+        {/* Section 5: FAQ - Frequently Asked Questions */}
+        <Section5 />
+
+        {/* Infinite Marquee - Features Ticker */}
+        <InfiniteMarquee />
+      </main>
+    </>
+  );
+}
+
+// Client component for translations
+function HeroSection({ locale }: { locale: Locale }) {
+  const t = useTranslations('hero');
+  const isRTL = locale === 'ar';
+
+  return (
+    <section
+      id='hero'
+      className='bg-primary-500 flex flex-col items-center justify-center px-4 py-12 md:py-16 relative overflow-hidden'
+      aria-labelledby='hero-heading'
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
+      {/* Language Switcher - Desktop only (positioned top right) */}
+      <div className='hidden lg:block absolute top-4 right-4 z-30'>
+        <LanguageSwitcher />
+      </div>
+
+      {/* 3D Phone Mockup Stack - Positioned Above Title */}
+      <div
+        className='flex items-start justify-center gap-0'
+        style={{
+          perspective: '1500px',
+          perspectiveOrigin: 'center center',
+        }}
+      >
+        {/* Left Phone - Profile (Back Layer) */}
+        <div
+          className='relative transition-all duration-700 ease-out hover:scale-105'
+          style={{
+            transform:
+              'perspective(1500px) rotateY(-20deg) translateX(-40px) translateZ(-100px) scale(0.85)',
+            transformStyle: 'preserve-3d',
+            zIndex: 10,
+          }}
+        >
+          <div className='relative'>
+            <img
+              src='/images/profile.png'
+              alt='Profile Screen'
+              className='w-32 md:w-44 lg:w-52 h-auto opacity-90'
+            />
+            {/* Floor Shadow */}
+            <div
+              className='absolute left-1/2 -translate-x-1/2'
+              style={{
+                bottom: '-15px',
+                width: '80%',
+                height: '12px',
+                background:
+                  'radial-gradient(ellipse, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 80%)',
+                filter: 'blur(8px)',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Center Phone - Get Started (Front Layer - Hero) */}
+        <div
+          className='relative transition-all duration-700 ease-out hover:scale-110 hover:translateZ-[100px]'
+          style={{
+            transform: 'perspective(1500px) rotateY(0deg) translateZ(80px) scale(1)',
+            transformStyle: 'preserve-3d',
+            zIndex: 20,
+          }}
+        >
+          <div className='relative'>
+            <img
+              src='/images/getstarted.png'
+              alt='Get Started Screen'
+              className='w-40 md:w-48 lg:w-48 h-auto'
+            />
+            {/* Enhanced Floor Shadow for Center Phone */}
+            <div
+              className='absolute left-1/2 -translate-x-1/2'
+              style={{
+                bottom: '-18px',
+                width: '85%',
+                height: '16px',
+                background:
+                  'radial-gradient(ellipse, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 80%)',
+                filter: 'blur(10px)',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Right Phone - Login (Back Layer) */}
+        <div
+          className='relative transition-all duration-700 ease-out hover:scale-105'
+          style={{
+            transform:
+              'perspective(1500px) rotateY(20deg) translateX(40px) translateZ(-100px) scale(0.85)',
+            transformStyle: 'preserve-3d',
+            zIndex: 10,
+          }}
+        >
+          <div className='relative'>
+            <img
+              src='/images/login.png'
+              alt='Login Screen'
+              className='w-32 md:w-44 lg:w-52 h-auto opacity-90'
+            />
+            {/* Floor Shadow */}
+            <div
+              className='absolute left-1/2 -translate-x-1/2'
+              style={{
+                bottom: '-15px',
+                width: '80%',
+                height: '12px',
+                background:
+                  'radial-gradient(ellipse, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 80%)',
+                filter: 'blur(8px)',
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Foreground: Text content */}
+      <div className='max-w-5xl w-full text-center font-sans'>
+        <div className='space-y-5'>
+          <h1
+            id='hero-heading'
+            className='text-white/90 drop-shadow-md pt-[15px] md:pt-0'
+            style={{
+              fontSize: 'clamp(1.5rem, 3vw, 1.875rem)',
+              lineHeight: 'calc(1em + 2px)',
+              minHeight: '2.4375rem',
+            }}
+          >
+            {(() => {
+              const tagline = t('tagline');
+              const parts = tagline.split('.');
+              const lastPart = parts[parts.length - 1]?.trim();
+              const firstParts = parts.slice(0, -1).join('.') + '.';
+              return (
+                <>
+                  {firstParts}
+                  {lastPart && <span style={{ color: '#fffb9b' }}> {lastPart}</span>}
+                </>
+              );
+            })()}
+          </h1>
+
+          {/* CTA Buttons */}
+          <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
+            <a
+              href='#app'
+              className='px-8 py-3 border-2 border-white text-white rounded-lg font-bold text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none'
+              aria-label={t('cta.download')}
+            >
+              {t('cta.download')}
+            </a>
+            <a
+              href='#business'
+              className='px-8 py-3 border-2 border-white text-white rounded-lg font-bold text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none'
+              aria-label={t('cta.business')}
+            >
+              {t('cta.business')}
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

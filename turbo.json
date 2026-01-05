@@ -1,0 +1,70 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["package.json", "pnpm-lock.yaml", "tsconfig.base.json"],
+  "globalEnv": ["NODE_ENV", "CI"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "build/**", ".next/**", "android/app/build/outputs/**"],
+      "env": ["NODE_ENV"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "cache": false,
+      "persistent": true
+    },
+    "metro": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "outputs": [".eslintcache"],
+      "dependsOn": []
+    },
+    "lint:fix": {
+      "outputs": [],
+      "cache": false
+    },
+    "type-check": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "env": ["NODE_ENV"]
+    },
+    "test:ci": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "env": ["NODE_ENV", "CI"]
+    },
+    "clean": {
+      "cache": false,
+      "outputs": []
+    },
+    "dev:android": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "dev:ios": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "android": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "ios": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

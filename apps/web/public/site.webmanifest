@@ -1,0 +1,33 @@
+{
+  "name": "Too Fresh To Waste",
+  "short_name": "TFTW",
+  "description": "Reduce food waste and save money with surplus food from local businesses",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9f3f0",
+  "theme_color": "#005250",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

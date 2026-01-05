@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/WFA/**)",
+      "Bash(npx react-native:*)",
+      "Bash(pnpm turbo dev:*)",
+      "Bash(adb:*)",
+      "Bash(pnpm turbo android:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

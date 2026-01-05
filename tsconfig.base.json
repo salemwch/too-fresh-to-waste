@@ -1,0 +1,182 @@
+{
+  "compilerOptions": {
+    /* ========================================================================
+     * LANGUAGE AND ENVIRONMENT
+     * ======================================================================== */
+
+    /**
+     * ECMAScript target version
+     * ES2022 provides modern features while maintaining broad compatibility
+     */
+    "target": "ES2022",
+
+    /**
+     * Library files to include
+     * ES2022: Modern JavaScript features
+     * DOM: Browser APIs (for web compatibility)
+     * DOM.Iterable: Iterator support for DOM collections
+     */
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+
+    /**
+     * JSX syntax support
+     * react-native: Transforms JSX for React Native runtime
+     */
+    "jsx": "react-native",
+
+    /**
+     * Decorator support for NestJS and TypeORM
+     * Required for @Injectable(), @Entity(), etc.
+     */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    /**
+     * Class fields behavior
+     * true: Use define semantics (standard)
+     */
+    "useDefineForClassFields": true,
+
+    /* ========================================================================
+     * MODULE RESOLUTION
+     * ======================================================================== */
+
+    /**
+     * Module system
+     * commonjs: Node.js standard (required for React Native & NestJS)
+     */
+    "module": "commonjs",
+
+    /**
+     * Module resolution strategy
+     * node: Node.js resolution algorithm
+     */
+    "moduleResolution": "node",
+
+    /**
+     * Base directory for relative module paths
+     * All path mappings are relative to this
+     */
+    "baseUrl": ".",
+
+    /**
+     * Path aliases for cleaner imports
+     *
+     * CRITICAL: All paths point to SOURCE files (/src) not build output (/dist)
+     *
+     * Enterprise Strategy: Source-First Development
+     * ==============================================
+     *
+     * Why source files?
+     * ✓ Hot reloading: Changes in shared package reload instantly
+     * ✓ No rebuild step: TypeScript compiles on-the-fly
+     * ✓ Better debugging: Direct access to source with line numbers
+     * ✓ Faster iteration: No build → test → rebuild cycle
+     * ✓ Type safety: Real-time type checking across packages
+     * ✓ Source maps: Accurate stack traces in errors
+     *
+     * Consistency with Metro & Babel:
+     * - Metro config: points to packages/shared/src ✓
+     * - Babel config: points to packages/shared/src ✓
+     * - TypeScript: points to packages/shared/src ✓
+     *
+     * Production builds:
+     * - Webpack/Metro bundles everything from source
+     * - No dependency on pre-built dist files
+     * - Single source of truth
+     */
+    "paths": {
+      /* Workspace packages - MUST use /src for development */
+      "@foodwaste/shared": ["./packages/shared/src"],
+      "@foodwaste/shared/*": ["./packages/shared/src/*"],
+
+      /* Mobile app aliases */
+      "@/*": ["./apps/mobile/src/*"],
+      "@/components/*": ["./apps/mobile/src/components/*"],
+      "@/screens/*": ["./apps/mobile/src/screens/*"],
+      "@/services/*": ["./apps/mobile/src/services/*"],
+      "@/store/*": ["./apps/mobile/src/store/*"],
+      "@/utils/*": ["./apps/mobile/src/utils/*"],
+      "@/types/*": ["./apps/mobile/src/types/*"],
+      "@/config/*": ["./apps/mobile/src/config/*"],
+      "@/assets/*": ["./apps/mobile/src/assets/*"]
+    },
+
+    /**
+     * Allow importing JSON files as modules
+     * Useful for config files and package.json
+     */
+    "resolveJsonModule": true,
+
+    /* JavaScript Support */
+    "allowJs": false,
+    "checkJs": false,
+
+    /* Emit */
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "removeComments": true,
+    "importHelpers": true,
+    "downlevelIteration": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "preserveConstEnums": true,
+    "declarationDir": "./dist/types",
+
+    /* Interop Constraints */
+    "forceConsistentCasingInFileNames": true,
+
+    /* Type Checking - STRICT MODE */
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    /* Completeness */
+    "skipLibCheck": false,
+    "skipDefaultLibCheck": false
+  },
+  "include": ["apps/**/*", "packages/**/*", "types/**/*"],
+  "exclude": [
+    "node_modules",
+    "**/node_modules",
+    "dist",
+    "**/dist",
+    "build",
+    "**/build",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/coverage",
+    "**/.next",
+    "**/android",
+    "**/ios"
+  ],
+  "references": [
+    {
+      "path": "./packages/shared"
+    },
+    {
+      "path": "./apps/mobile"
+    },
+    {
+      "path": "./apps/food-waste-backend"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
+    <!-- Location Permissions (required for Maps and Geolocation) -->
+    <!-- Source: https://github.com/react-native-maps/react-native-maps/blob/master/docs/installation.md -->
+    <!-- Source: https://developer.android.com/develop/sensors-and-location/location/permissions -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- SMS OTP Autofill - SMS Retriever API (Android 8.0+) -->
+    <!-- Note: Modern SMS Retriever API is permission-less, but these are added for backward compatibility -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+
+    <application
+      android:name=".MainApplication"
+      android:label="@string/app_name"
+      android:icon="@mipmap/ic_launcher"
+      android:roundIcon="@mipmap/ic_launcher_round"
+      android:allowBackup="false"
+      android:theme="@style/AppTheme"
+      android:usesCleartextTraffic="${usesCleartextTraffic}"
+      android:networkSecurityConfig="@xml/network_security_config"
+      android:supportsRtl="true">
+
+      <!-- Google Maps API Key -->
+      <meta-data
+          android:name="com.google.android.geo.API_KEY"
+          android:value="@string/GOOGLE_MAPS_API_KEY" />
+      <activity
+        android:name=".MainActivity"
+        android:label="@string/app_name"
+        android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+        android:launchMode="singleTask"
+        android:windowSoftInputMode="adjustResize"
+        android:exported="true">
+        <!-- Main launcher intent -->
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+
+        <!-- Custom URL Scheme: foodwaste:// -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="foodwaste" />
+        </intent-filter>
+
+        <!-- Universal Links / App Links: https://foodwasteapp.com -->
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" android:host="foodwasteapp.com" />
+            <data android:scheme="https" android:host="www.foodwasteapp.com" />
+        </intent-filter>
+      </activity>
+    </application>
+</manifest>

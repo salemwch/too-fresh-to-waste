@@ -1,0 +1,17 @@
+packages:
+  - apps/*
+  - packages/*
+
+onlyBuiltDependencies:
+  - "@firebase/util"
+  - "@nestjs/core"
+  - "@scarf/scarf"
+  - argon2
+  - bcrypt
+  - detox
+  - dtrace-provider
+  - mongodb-memory-server
+  - msgpackr-extract
+  - protobufjs
+  - sharp
+  - unrs-resolver

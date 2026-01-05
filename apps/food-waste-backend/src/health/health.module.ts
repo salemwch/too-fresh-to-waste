@@ -1,0 +1,18 @@
+/**
+ * Health Module
+ *
+ * Provides health check endpoints for monitoring application status.
+ * Integrates with @nestjs/terminus for standardized health checks.
+ */
+
+import { Module } from '@nestjs/common';
+import { TerminusModule } from '@nestjs/terminus';
+import { HealthController } from './health.controller';
+import { RedisHealthIndicator } from './indicators/redis.health';
+
+@Module({
+  imports: [TerminusModule],
+  controllers: [HealthController],
+  providers: [RedisHealthIndicator],
+})
+export class HealthModule {}

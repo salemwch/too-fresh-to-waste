@@ -1,0 +1,129 @@
+'use client';
+
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+
+export default function Newsletter() {
+  const t = useTranslations('newsletter');
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setMessage(null);
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setMessage({ type: 'error', text: t('errors.invalidEmail') });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      // Call server-side API route (secure, API key not exposed)
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: t('success') });
+        setEmail('');
+      } else {
+        // Handle specific error messages from server
+        const errorMessage = data.error || t('errors.general');
+        setMessage({ type: 'error', text: errorMessage });
+      }
+    } catch (error) {
+      console.error('Newsletter subscription error:', error);
+      setMessage({ type: 'error', text: t('errors.general') });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <section
+      className="w-full bg-[#f9f3f0] px-4 sm:px-8 lg:px-12 text-center py-12 sm:py-16 lg:py-20 flex flex-col items-center justify-center"
+      role="region"
+      aria-labelledby="newsletter-heading"
+    >
+      {/* Label */}
+      <p className="text-primary-500 font-medium text-sm sm:text-base">
+        {t('label')}
+      </p>
+
+      {/* Heading */}
+      <h2
+        id="newsletter-heading"
+        className="max-w-3xl font-semibold text-2xl sm:text-3xl lg:text-4xl leading-tight mt-2 px-4"
+        style={{ color: '#005250' }}
+      >
+        {t('heading')}
+      </h2>
+
+      {/* Subscription Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col sm:flex-row items-center justify-center mt-8 sm:mt-10 w-full max-w-md gap-3 sm:gap-0"
+      >
+        <div className="flex items-center justify-center sm:border sm:border-slate-400 focus-within:outline focus-within:outline-2 focus-within:outline-primary-500 text-sm rounded-full h-12 sm:h-14 w-full">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="bg-white sm:bg-transparent border border-slate-400 sm:border-0 outline-none rounded-full px-4 sm:px-4 h-full flex-1 text-slate-900 placeholder:text-slate-500 w-full focus:outline-primary-500 focus:outline focus:outline-2 sm:focus:outline-0"
+            placeholder={t('placeholder')}
+            aria-label={t('placeholder')}
+            required
+            disabled={isSubmitting}
+          />
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="hidden sm:flex bg-primary-500 text-white rounded-full h-11 mr-1 px-6 lg:px-8 items-center justify-center font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-primary-500"
+            aria-label={t('button')}
+          >
+            {isSubmitting ? t('submitting') : t('button')}
+          </button>
+        </div>
+
+        {/* Mobile button (outside the bordered container) */}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="sm:hidden bg-primary-500 text-white rounded-full h-12 px-8 flex items-center justify-center font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-primary-500 w-full"
+          aria-label={t('button')}
+        >
+          {isSubmitting ? t('submitting') : t('button')}
+        </button>
+      </form>
+
+      {/* Status Message */}
+      {message && (
+        <div
+          className={`mt-4 text-sm ${
+            message.type === 'success' ? 'text-green-600' : 'text-red-600'
+          }`}
+          role={message.type === 'error' ? 'alert' : 'status'}
+          aria-live="polite"
+        >
+          {message.text}
+        </div>
+      )}
+
+      {/* Privacy Note */}
+      <p className="text-slate-600 text-xs sm:text-sm mt-4 max-w-md">
+        {t('privacy')}
+      </p>
+    </section>
+  );
+}

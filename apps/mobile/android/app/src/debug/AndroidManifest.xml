@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Debug-only manifest additions
+        These permissions and settings are ONLY included in debug builds
+        They allow development tools like Metro bundler and Chrome DevTools to work
+    -->
+
+    <!-- Allow the app to use cleartext (HTTP) traffic for Metro bundler -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
+    <application
+        android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config">
+    </application>
+
+</manifest>

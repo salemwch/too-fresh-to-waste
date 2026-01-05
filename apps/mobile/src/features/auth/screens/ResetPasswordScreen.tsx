@@ -1,0 +1,689 @@
+/**
+ * Reset Password Screen
+ * Enterprise-grade password reset confirmation with:
+ * - Deep link integration (email + token from URL)
+ * - Real-time password strength validation
+ * - Password confirmation matching
+ * - Comprehensive error handling
+ * - Secure input handling
+ * - Accessibility support
+ */
+
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+
+import { Button, Input, Text, Card, Icon } from '@/design-system/components/atoms';
+import { PasswordStrengthIndicator } from '@/design-system/components/molecules';
+import { useTheme } from '@/design-system/providers';
+
+import { authService } from '../services/authService';
+import { Logger } from '@/utils/logger';
+import { ErrorType } from '@/utils/errorHandler';
+
+import type { ResetPasswordScreenProps } from '@/navigation/types';
+
+/**
+ * Validation rules for password
+ */
+const PASSWORD_MIN_LENGTH = 8;
+
+/**
+ * ResetPasswordScreen Component
+ * Handles password reset confirmation after user clicks email link
+ */
+export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
+  navigation,
+  route,
+}) => {
+  const theme = useTheme();
+
+  // Extract params from deep link
+  const { email, token } = route.params;
+
+  // Form state
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
+  const [passwordReuseError, setPasswordReuseError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // Track confirm password focus/blur state for UX
+  const [isConfirmPasswordFocused, setIsConfirmPasswordFocused] = useState(false);
+  const [hasBlurredConfirmPassword, setHasBlurredConfirmPassword] = useState(false);
+
+  /**
+   * Log screen mount for analytics
+   */
+  useEffect(() => {
+    Logger.info('ResetPasswordScreen mounted', {
+      email: email.substring(0, 3) + '***', // Partial email for privacy
+      hasToken: !!token,
+    });
+
+    // Validate params on mount
+    if (!email || !token) {
+      Logger.error('ResetPasswordScreen: Missing required params', { email: !!email, token: !!token });
+      setError('Invalid reset link. Missing email or token.');
+    }
+
+    return () => {
+      Logger.debug('ResetPasswordScreen unmounted');
+    };
+  }, [email, token]);
+
+  /**
+   * Check if passwords match
+   */
+  const passwordsMatch = useMemo(() => {
+    return password === confirmPassword && confirmPassword.length > 0;
+  }, [password, confirmPassword]);
+
+  /**
+   * Only show mismatch error after user has blurred the field AND passwords don't match
+   */
+  const showPasswordMismatch = useMemo(() => {
+    return (
+      hasBlurredConfirmPassword &&
+      !isConfirmPasswordFocused &&
+      confirmPassword.length > 0 &&
+      !passwordsMatch
+    );
+  }, [hasBlurredConfirmPassword, isConfirmPasswordFocused, confirmPassword, passwordsMatch]);
+
+  /**
+   * Determine if form can be submitted
+   */
+  const canSubmit = useMemo(() => {
+    return isPasswordValid && passwordsMatch && !isLoading && !!email && !!token;
+  }, [isPasswordValid, passwordsMatch, isLoading, email, token]);
+
+  /**
+   * Handle password reset submission
+   */
+  const handleResetPassword = useCallback(async () => {
+    // Clear previous errors
+    setError(null);
+
+    // Validation checks
+    if (!email || !token) {
+      setError('Invalid reset link. Please request a new password reset.');
+      Logger.error('ResetPassword: Missing email or token');
+      return;
+    }
+
+    if (!isPasswordValid) {
+      setError(
+        `Password must be at least ${PASSWORD_MIN_LENGTH} characters and meet strength requirements.`,
+      );
+      Logger.warn('ResetPassword: Weak password attempt');
+      return;
+    }
+
+    if (!passwordsMatch) {
+      setError('Passwords do not match. Please check and try again.');
+      Logger.warn('ResetPassword: Password mismatch');
+      return;
+    }
+
+    setIsLoading(true);
+    Logger.info('Attempting password reset', { email: email.substring(0, 3) + '***' });
+
+    try {
+      await authService.confirmPasswordReset({
+        email: email.trim().toLowerCase(),
+        token: token.trim(),
+        newPassword: password,
+      });
+
+      Logger.info('Password reset successful', { email: email.substring(0, 3) + '***' });
+
+      // Show success screen
+      setIsSuccess(true);
+    } catch (err: any) {
+      Logger.error('Password reset failed', {
+        error: err.message,
+        type: err.type || 'UNKNOWN',
+      });
+
+      const errorMessage = err.message || 'Failed to reset password. Please try again.';
+
+      // Handle specific error types
+      if (
+        errorMessage.toLowerCase().includes('expired') ||
+        errorMessage.toLowerCase().includes('invalid token')
+      ) {
+        setError(
+          'This reset link has expired or is invalid. Please request a new password reset link.',
+        );
+      } else if (
+        errorMessage.toLowerCase().includes('password') &&
+        (errorMessage.toLowerCase().includes('last') ||
+          errorMessage.toLowerCase().includes('used before') ||
+          errorMessage.toLowerCase().includes('reuse'))
+      ) {
+        // Handle password reuse error - show under password field
+        setPasswordReuseError(
+          'You have used this password before, please enter a new password',
+        );
+      } else if (err.type === ErrorType.NETWORK) {
+        setError('Network error. Please check your connection and try again.');
+      } else if (err.type === ErrorType.VALIDATION) {
+        setError(
+          errorMessage || 'Password does not meet security requirements. Please choose a stronger password.',
+        );
+      } else {
+        setError(errorMessage);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [email, token, password, confirmPassword, isPasswordValid, passwordsMatch, navigation]);
+
+  /**
+   * Navigate to forgot password screen for new reset link
+   */
+  const handleRequestNewLink = useCallback(() => {
+    Logger.info('User requested new password reset link');
+    navigation.navigate('ForgotPassword');
+  }, [navigation]);
+
+  /**
+   * Navigate back to login
+   */
+  const handleBackToLogin = useCallback(() => {
+    Logger.info('User navigated back to login');
+    navigation.navigate('Login');
+  }, [navigation]);
+
+  /**
+   * Navigate to login after successful password reset
+   */
+  const handleGoToLogin = useCallback(() => {
+    Logger.info('User proceeding to login after password reset');
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  }, [navigation]);
+
+  /**
+   * Handle password input change
+   */
+  const handlePasswordChange = useCallback((value: string) => {
+    setPassword(value);
+    setError(null);
+    setPasswordReuseError(null);
+  }, []);
+
+  /**
+   * Handle confirm password input change
+   */
+  const handleConfirmPasswordChange = useCallback((value: string) => {
+    setConfirmPassword(value);
+    setError(null);
+  }, []);
+
+  /**
+   * Render error banner if expired/invalid token
+   */
+  const showRequestNewLinkButton = useMemo(() => {
+    return error?.toLowerCase().includes('expired') || error?.toLowerCase().includes('invalid');
+  }, [error]);
+
+  // Success state - password reset complete
+  if (isSuccess) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <Card style={styles.successCard}>
+            {/* Success Icon */}
+            <View style={styles.iconContainer}>
+              <View style={[styles.successIconCircle, { backgroundColor: theme.colors.successContainer }]}>
+                <Icon
+                  name='checkmark-circle'
+                  family='Ionicons'
+                  size={64}
+                  color={theme.colors.success}
+                />
+              </View>
+            </View>
+
+            {/* Success Title */}
+            <Text
+              variant='headline'
+              size='lg'
+              weight='semibold'
+              align='center'
+              style={styles.successTitle}
+            >
+              Password Reset Successful
+            </Text>
+
+            {/* Success Message */}
+            <Text
+              variant='body'
+              size='md'
+              color='secondary'
+              align='center'
+              style={styles.successMessage}
+            >
+              Your password has been changed successfully. You can now log in with your new password.
+            </Text>
+
+            {/* Security Note */}
+            <View style={[styles.securityNote, { backgroundColor: theme.colors.surfaceVariant }]}>
+              <Icon
+                name='shield-checkmark'
+                family='Ionicons'
+                size={20}
+                color={theme.colors.primary}
+              />
+              <Text variant='body' size='sm' color='secondary' style={styles.securityNoteText}>
+                For your security, all other active sessions have been logged out.
+              </Text>
+            </View>
+
+            {/* Go to Login Button */}
+            <Button
+              variant='primary'
+              size='lg'
+              onPress={handleGoToLogin}
+              style={styles.successButton}
+              testID='go-to-login-button'
+            >
+              Go to Login
+            </Button>
+          </Card>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  return (
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps='handled'
+        showsVerticalScrollIndicator={false}
+      >
+        <Card style={styles.formCard}>
+          {/* Icon */}
+          <View style={styles.iconContainer}>
+            <View
+              style={[styles.iconCircle, { backgroundColor: theme.colors.primaryContainer }]}
+            >
+              <Icon name='key' family='Ionicons' size={48} color={theme.colors.primary} />
+            </View>
+          </View>
+
+          {/* Title */}
+          <Text variant='headline' size='lg' weight='semibold' align='center' style={styles.title}>
+            Create New Password
+          </Text>
+
+          {/* Subtitle */}
+          <Text variant='body' size='md' color='secondary' align='center' style={styles.subtitle}>
+            Enter a strong password for your account. Make sure it's at least {PASSWORD_MIN_LENGTH}{' '}
+            characters long.
+          </Text>
+
+          {/* Email Display */}
+          <View
+            style={[
+              styles.emailContainer,
+              { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.outline },
+            ]}
+          >
+            <Icon
+              name='mail-outline'
+              family='Ionicons'
+              size={16}
+              color={theme.colors.onSurfaceVariant}
+            />
+            <View style={styles.emailTextContainer}>
+              <Text variant='body' size='xs' color='secondary'>
+                Resetting password for:
+              </Text>
+              <Text variant='body' size='sm' weight='semibold' style={styles.emailText}>
+                {email}
+              </Text>
+            </View>
+          </View>
+
+          {/* Error Message */}
+          {error && (
+            <View
+              style={[styles.errorBanner, { backgroundColor: theme.colors.errorContainer }]}
+              accessible
+              accessibilityRole='alert'
+              accessibilityLabel={`Error: ${error}`}
+            >
+              <Icon
+                name='alert-circle'
+                family='Ionicons'
+                size={20}
+                color={theme.colors.onErrorContainer}
+              />
+              <Text
+                variant='body'
+                size='sm'
+                style={{
+                  color: theme.colors.onErrorContainer,
+                  marginLeft: 8,
+                  flex: 1,
+                }}
+              >
+                {error}
+              </Text>
+            </View>
+          )}
+
+          {/* Password Input */}
+          <Input
+            label='New Password'
+            placeholder='Enter your new password'
+            value={password}
+            onChangeText={handlePasswordChange}
+            secureTextEntry={!showPassword}
+            autoCapitalize='none'
+            autoCorrect={false}
+            autoComplete='password-new'
+            textContentType='newPassword'
+            leftIcon='lock-closed-outline'
+            leftIconFamily='Ionicons'
+            rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
+            rightIconFamily='Ionicons'
+            onRightIconPress={() => setShowPassword(!showPassword)}
+            hasError={!!error && !password}
+            editable={!isLoading}
+            testID='reset-password-new-input'
+            accessibilityLabel='New password input'
+            accessibilityHint='Enter your new password. It must be at least 8 characters long.'
+          />
+
+          {/* Password Strength Indicator - Compact dropdown mode */}
+          <PasswordStrengthIndicator
+            password={password}
+            context={{
+              email: email,
+            }}
+            dropdownMode
+            autoHideWhenValid
+            showRules
+            showProgressBar
+            enableHaptic
+            enableAnimations
+            onValidityChange={setIsPasswordValid}
+            testID='reset-password-strength'
+          />
+
+          {/* Password Reuse Error - shown under password field */}
+          {passwordReuseError && (
+            <View style={styles.fieldErrorIndicator} accessible accessibilityRole='alert'>
+              <Icon
+                name='close-circle'
+                family='Ionicons'
+                size={16}
+                color={theme.colors.error}
+              />
+              <Text
+                variant='body'
+                size='sm'
+                style={{
+                  color: theme.colors.error,
+                  marginLeft: 6,
+                }}
+              >
+                {passwordReuseError}
+              </Text>
+            </View>
+          )}
+
+          {/* Confirm Password Input */}
+          <Input
+            label='Confirm Password'
+            placeholder='Re-enter your new password'
+            value={confirmPassword}
+            onChangeText={handleConfirmPasswordChange}
+            onFocus={() => setIsConfirmPasswordFocused(true)}
+            onBlur={() => {
+              setIsConfirmPasswordFocused(false);
+              setHasBlurredConfirmPassword(true);
+            }}
+            secureTextEntry={!showConfirmPassword}
+            autoCapitalize='none'
+            autoCorrect={false}
+            autoComplete='password-new'
+            textContentType='newPassword'
+            leftIcon='lock-closed-outline'
+            leftIconFamily='Ionicons'
+            rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+            rightIconFamily='Ionicons'
+            onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
+            hasError={showPasswordMismatch}
+            editable={!isLoading}
+            testID='reset-password-confirm-input'
+            accessibilityLabel='Confirm password input'
+            accessibilityHint='Re-enter your new password to confirm it matches.'
+          />
+
+          {/* Password Mismatch Error - only show when passwords don't match after blur */}
+          {showPasswordMismatch && (
+            <View style={styles.fieldErrorIndicator} accessible accessibilityRole='alert'>
+              <Icon
+                name='close-circle'
+                family='Ionicons'
+                size={16}
+                color={theme.colors.error}
+              />
+              <Text
+                variant='body'
+                size='sm'
+                style={{
+                  color: theme.colors.error,
+                  marginLeft: 6,
+                }}
+              >
+                Passwords do not match
+              </Text>
+            </View>
+          )}
+
+          {/* Reset Password Button */}
+          <Button
+            variant='primary'
+            size='lg'
+            onPress={handleResetPassword}
+            loading={isLoading}
+            disabled={!canSubmit}
+            style={styles.submitButton}
+            testID='reset-password-submit-button'
+            accessibilityLabel='Reset password button'
+            accessibilityHint='Tap to confirm and reset your password'
+            accessibilityState={{ disabled: !canSubmit, busy: isLoading }}
+          >
+            {isLoading ? 'Resetting Password...' : 'Reset Password'}
+          </Button>
+
+          {/* Request New Link Button (shown on expired/invalid token) */}
+          {showRequestNewLinkButton && (
+            <Button
+              variant='outline'
+              size='md'
+              onPress={handleRequestNewLink}
+              style={styles.linkButton}
+              testID='request-new-link-button'
+              accessibilityLabel='Request new reset link'
+              accessibilityHint='Tap to request a new password reset link via email'
+            >
+              Request New Reset Link
+            </Button>
+          )}
+
+          {/* Back to Login */}
+          <Button
+            variant='ghost'
+            size='md'
+            onPress={handleBackToLogin}
+            disabled={isLoading}
+            style={styles.backButton}
+            testID='back-to-login-button'
+            accessibilityLabel='Back to login'
+            accessibilityHint='Tap to return to the login screen'
+          >
+            Back to Login
+          </Button>
+        </Card>
+
+        {/* Security Info */}
+        <View style={styles.securityInfo} accessible accessibilityRole='text'>
+          <Icon
+            name='shield-checkmark-outline'
+            family='Ionicons'
+            size={20}
+            color={theme.colors.onSurfaceVariant}
+          />
+          <Text variant='body' size='xs' color='secondary' style={styles.securityText}>
+            Your password is encrypted with industry-standard Argon2 hashing and stored securely.
+            For your security, all active sessions will be logged out after password reset.
+          </Text>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    padding: 24,
+    justifyContent: 'center',
+  },
+  formCard: {
+    padding: 24,
+  },
+  iconContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  iconCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    marginBottom: 12,
+  },
+  subtitle: {
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  emailContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 24,
+    borderWidth: 1,
+  },
+  emailTextContainer: {
+    marginLeft: 8,
+    flex: 1,
+  },
+  emailText: {
+    marginTop: 2,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  strengthContainer: {
+    marginTop: -8,
+    marginBottom: 16,
+  },
+  fieldErrorIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  submitButton: {
+    marginTop: 24,
+  },
+  linkButton: {
+    marginTop: 12,
+  },
+  backButton: {
+    marginTop: 8,
+  },
+  securityInfo: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 24,
+    paddingHorizontal: 8,
+  },
+  securityText: {
+    flex: 1,
+    marginLeft: 8,
+    lineHeight: 18,
+  },
+  // Success screen styles
+  successCard: {
+    padding: 32,
+  },
+  successIconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  successTitle: {
+    marginBottom: 16,
+  },
+  successMessage: {
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  securityNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 32,
+  },
+  securityNoteText: {
+    flex: 1,
+    marginLeft: 12,
+    lineHeight: 20,
+  },
+  successButton: {
+    marginTop: 8,
+  },
+});

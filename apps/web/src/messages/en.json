@@ -1,0 +1,337 @@
+{
+  "metadata": {
+    "title": "Too Fresh To Waste - Reduce Food Waste, Save Money",
+    "titleTemplate": "%s | Too Fresh To Waste Tunisia",
+    "description": "Connect with local restaurants in Tunisia to rescue surplus food. Save up to 70% while fighting food waste.",
+    "keywords": "food waste tunisia, cheap food tunis, surplus food, food delivery tunisia, discount meals, save money on food"
+  },
+  "common": {
+    "appName": "Too Fresh To Waste",
+    "country": "Tunisia",
+    "currency": "TND",
+    "downloadApp": "Download App",
+    "learnMore": "Learn More",
+    "getStarted": "Get Started",
+    "signUp": "Sign Up",
+    "logIn": "Log In",
+    "contactUs": "Contact Us",
+    "language": "Language",
+    "close": "Close",
+    "menu": "Menu",
+    "search": "Search",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "nav": {
+    "home": "Home",
+    "howItWorks": "How It Works",
+    "forBusiness": "For Business",
+    "about": "About",
+    "contact": "Contact",
+    "blog": "Blog",
+    "faq": "FAQ"
+  },
+  "header": {
+    "nav": {
+      "theApp": "THE APP",
+      "whyChooseUs": "WHY CHOOSE US",
+      "businessSolution": "BUSINESS SOLUTION"
+    },
+    "cta": {
+      "downloadApp": "DOWNLOAD THE APP",
+      "businessSignup": "BUSINESS SIGN-UP"
+    }
+  },
+  "section2": {
+    "title": "The app that turns surplus food into savings and rewards",
+    "subtitle": "Join the mission to end food waste in Tunisia—together, let's make every meal count",
+    "description": "Our app is the smart marketplace for surplus food in Tunisia. We help you rescue delicious, unsold meals from going to waste—offering you up to <discount>75% off</discount> or more at your favorite local hotels, supermarkets, bakeries, cafes, and restaurants...",
+    "downloadButtons": {
+      "appStore": {
+        "prefix": "Download on the",
+        "name": "App Store"
+      },
+      "playStore": {
+        "prefix": "GET IT ON",
+        "name": "Google Play"
+      }
+    }
+  },
+  "section3": {
+    "titleLine1": "WHY USE",
+    "titleLine2": "TOO FRESH TO WASTE",
+    "benefits": {
+      "saveMoney": "ENJOY GOOD FOOD UP TO 75% OFF",
+      "earnPoints": "EARN POINTS FOR EACH MEALS YOU BUY",
+      "getRewards": "GET REWARDS BY REDEEM YOUR POINT",
+      "helpPlanet": "HELP THE PLANET BY REDUCING FOOD WASTE"
+    }
+  },
+  "hero": {
+    "tagline": "Save Food. Save Money. Get Rewards.",
+    "title": "Reduce Food Waste in Tunisia",
+    "subtitle": "Connect with local restaurants and stores to get quality meals at reduced prices.",
+    "cta": {
+      "download": "DOWNLOAD THE APP",
+      "business": "BUSINESS SOLUTION"
+    },
+    "stats": {
+      "meals": "Meals saved",
+      "users": "Active users",
+      "partners": "Partners",
+      "co2": "kg CO2 saved"
+    }
+  },
+  "features": {
+    "title": "Why Choose Too Fresh To Waste?",
+    "subtitle": "Join the movement against food waste in Tunisia",
+    "saveMoney": {
+      "title": "Save up to 70%",
+      "description": "Enjoy quality meals at reduced prices from the best restaurants in Tunis, Sousse, Sfax and more."
+    },
+    "saveFood": {
+      "title": "Save Food",
+      "description": "Every meal you save contributes to reducing food waste and its environmental impact."
+    },
+    "earnRewards": {
+      "title": "Earn Rewards",
+      "description": "Accumulate points with every purchase and enjoy exclusive benefits."
+    },
+    "localPartners": {
+      "title": "Local Partners",
+      "description": "Support local businesses in your neighborhood while saving money."
+    }
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Simple, fast and eco-friendly",
+    "steps": {
+      "browse": {
+        "title": "Browse Offers",
+        "description": "Discover available offers near you."
+      },
+      "reserve": {
+        "title": "Reserve Your Meal",
+        "description": "Choose and pay in just a few clicks."
+      },
+      "pickup": {
+        "title": "Pick Up",
+        "description": "Go to the restaurant at the indicated time."
+      },
+      "enjoy": {
+        "title": "Enjoy",
+        "description": "Enjoy your meal and feel proud of your contribution!"
+      }
+    }
+  },
+  "business": {
+    "title": "Business Solutions",
+    "subtitle": "Join our network of partners in Tunisia",
+    "benefits": {
+      "revenue": {
+        "title": "Additional Revenue",
+        "description": "Turn your surplus into profit instead of loss."
+      },
+      "visibility": {
+        "title": "Increased Visibility",
+        "description": "Attract new customers through our app."
+      },
+      "sustainability": {
+        "title": "Sustainable Commitment",
+        "description": "Show your environmental commitment."
+      },
+      "simple": {
+        "title": "Simple Management",
+        "description": "Intuitive dashboard to manage your offers."
+      }
+    },
+    "cta": "Become a Partner"
+  },
+  "testimonials": {
+    "title": "What Our Users Say",
+    "subtitle": "Join thousands of satisfied Tunisians"
+  },
+  "download": {
+    "title": "Download the App",
+    "subtitle": "Available on iOS and Android",
+    "appStore": "Download on the App Store",
+    "playStore": "Get it on Google Play"
+  },
+  "footer": {
+    "description": "Too Fresh To Waste is Tunisia's smart marketplace connecting you with local restaurants and stores to rescue surplus food at amazing prices.",
+    "tagline": "Save food. Save money. Get rewards. Make a difference.",
+    "sections": {
+      "about": {
+        "title": "About",
+        "whoWeAre": "Who We Are",
+        "mission": "Our Mission",
+        "careers": "Careers",
+        "blog": "Blog",
+        "press": "Press Kit"
+      },
+      "services": {
+        "title": "Services",
+        "forConsumers": "For Consumers",
+        "forBusinesses": "For Businesses",
+        "howItWorks": "How It Works",
+        "pricing": "Pricing"
+      },
+      "support": {
+        "title": "Support",
+        "helpCenter": "Help Center",
+        "faq": "FAQ",
+        "contact": "Contact Us",
+        "partners": "Partners"
+      },
+      "legal": {
+        "title": "Legal",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "cookies": "Cookie Policy",
+        "security": "Security"
+      }
+    },
+    "social": {
+      "followUs": "Follow Us",
+      "followUsOn": "Follow us on"
+    },
+    "legal": {
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "cookies": "Cookie Policy"
+    },
+    "copyright": "© {year} Too Fresh To Waste Tunisia. All rights reserved.",
+    "locations": "Tunis • Sousse • Sfax • Monastir • Hammamet"
+  },
+  "cta": {
+    "joinMovement": "Join the Movement",
+    "startSaving": "Start Saving",
+    "becomePartner": "Become a Partner",
+    "downloadNow": "Download Now"
+  },
+  "accessibility": {
+    "skipToContent": "Skip to main content",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "changeLanguage": "Change language",
+    "scrollToTop": "Scroll to top"
+  },
+  "businessSignup": {
+    "title": "Coming Soon",
+    "description": "We're building something amazing for businesses to join our platform and help reduce food waste.",
+    "subDescription": "Partner with Too Fresh To Waste and turn your surplus food into revenue while making a positive environmental impact.",
+    "notifyQuestion": "Want to be notified when we launch?",
+    "backToHome": "Back to Home",
+    "animationNotAvailable": "Animation not available",
+    "features": {
+      "analytics": {
+        "title": "Analytics Dashboard",
+        "description": "Track your impact and sales in real-time"
+      },
+      "revenue": {
+        "title": "Revenue Recovery",
+        "description": "Turn surplus into profit automatically"
+      },
+      "sustainability": {
+        "title": "Sustainability Metrics",
+        "description": "Measure your environmental contribution"
+      },
+      "expiry": {
+        "title": "Manage Near-Expiry Products",
+        "description": "Identify and manage near-expiry products digitally to boost profit and efficiency"
+      }
+    }
+  },
+  "section4": {
+    "title": "HOW TO USE THE APP & GET POINTS",
+    "mobileHint": "Swipe or tap slides to navigate",
+    "slides": {
+      "step1": {
+        "title": "Step 1: Browse Delicious Offers",
+        "description": "Discover amazing food deals from restaurants, bakeries, and grocery stores near you. Filter by distance, price, or cuisine to find your perfect meal."
+      },
+      "step2": {
+        "title": "Step 2: Reserve and Confirm",
+        "description": "Select your favorite offer and reserve it with one tap. Confirm your order details and get ready for your delicious meal."
+      },
+      "step3": {
+        "title": "Step 3: Choose Payment & Delivery",
+        "description": "Pay online for convenience or pay on pickup. Select online payment with delivery to get your food brought to you, or pick it up yourself."
+      },
+      "step4": {
+        "title": "Step 4: Enjoy Your Delicious Food",
+        "description": "Savor quality meals at amazing prices while making a positive impact on the environment. Every bite helps reduce food waste!"
+      },
+      "step5": {
+        "title": "Step 5: Earn Points",
+        "description": "Collect points with every order and unlock exclusive rewards. The more you save food, the more you earn!"
+      },
+      "step6": {
+        "title": "Step 6: Get Rewards",
+        "description": "Redeem your points for discounts, free items, and special perks. Turn your food-saving efforts into real benefits!"
+      }
+    },
+    "navigation": {
+      "previous": "Previous slide",
+      "next": "Next slide",
+      "goToSlide": "Go to slide {number}"
+    },
+    "description": "Follow these simple steps to start saving food and earning rewards today."
+  },
+  "section5": {
+    "mainTitle": {
+      "businessSolution": "OUR BUSINESS SOLUTION",
+      "bigPrize": "OUR BIG PRIZE"
+    },
+    "sectionLabel": "FAQ's",
+    "title": "Looking for answers?",
+    "description": "Find quick answers to common questions about Too Fresh To Waste. We're here to help you save food and money with ease.",
+    "imageAlt": "Frequently asked questions illustration",
+    "ctaButton": "Still Have Questions? Contact Us",
+    "faqs": {
+      "faq1": {
+        "question": "How does Too Fresh To Waste work?",
+        "answer": "Too Fresh To Waste connects you with local restaurants, bakeries, hotels, and grocery stores that have surplus food. Browse offers near you, reserve your meal, pay securely, and pick it up at the designated time or choose home delivery. It's that simple!"
+      },
+      "faq2": {
+        "question": "What is the business solution?",
+        "answer": "PROFIT FROM YOUR SURPLUS FOOD\n\nOur marketplace connects your business with users across Tunisia - all eager to buy surplus food."
+      },
+      "faq3": {
+        "question": "What is the big prize?",
+        "answer": "The Big Prize is a high-value reward awarded every 3-4 months to the most active user in each city in Tunisia, each person for each city. The prize may include phones, electric scooters, smart watches, or other valuable gifts announced before each event."
+      },
+      "faq4": {
+        "question": "How do I get the big prize?",
+        "answer": "Buying surprise bags\nReferring friends or businesses\nLeaving honest reviews\nBuying multiple bags in a short time\nLogging in daily for 15 consecutive days"
+      }
+    }
+  },
+  "newsletter": {
+    "label": "Get Updated",
+    "heading": "A special surprise awaits our first 1,000 users. Join the waiting list to be one of them.",
+    "placeholder": "Enter your email address",
+    "button": "Subscribe now",
+    "submitting": "Subscribing...",
+    "privacy": "We respect your privacy. Unsubscribe anytime.",
+    "success": "Thank you for subscribing! Check your inbox for confirmation.",
+    "errors": {
+      "invalidEmail": "Please enter a valid email address.",
+      "general": "Something went wrong. Please try again later."
+    }
+  },
+  "marquee": {
+    "surplusFood": "Surplus Food",
+    "bigPrize": "Big Prize",
+    "points": "Points",
+    "rewards": "Rewards",
+    "reviews": "Reviews",
+    "food": "Food",
+    "surpriseBag": "Surprise Bag",
+    "events": "Events",
+    "onlinePayment": "Online Payment"
+  }
+}

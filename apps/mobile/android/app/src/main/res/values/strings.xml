@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Too Fresh To Waste</string>
+    <!-- GOOGLE_MAPS_API_KEY is injected from .env via react-native-config -->
+</resources>

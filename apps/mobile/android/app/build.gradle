@@ -1,0 +1,197 @@
+// Food Waste Mobile App - Android Application Build Configuration
+// React Native 0.81.0 + Android Gradle Plugin 8.5.2
+// Source: https://reactnative.dev/docs/environment-setup
+
+// React Native plugin MUST be declared in plugins{} block for includeBuild
+// Source: Gradle composite builds documentation
+plugins {
+    id("com.facebook.react")
+}
+
+apply plugin: "com.android.application"
+apply plugin: "com.google.gms.google-services"
+apply plugin: "com.google.firebase.crashlytics"
+apply plugin: "kotlin-android"
+
+// React Native Config - MUST be applied AFTER react plugins
+// Loads environment variables from .env file at build time
+apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
+
+// React Native plugin applied above via plugins{} DSL
+// Generates PackageList class for autolinking and BuildConfig constants
+
+android {
+    namespace "com.foodwasteapp"
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        applicationId "com.foodwasteapp"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
+
+        // Enable MultiDex for large app
+        multiDexEnabled true
+
+        // Default manifest placeholders (overridden by flavors/buildTypes)
+        manifestPlaceholders = [
+            usesCleartextTraffic: "false"
+        ]
+    }
+
+    // ============================================================================
+    // ENTERPRISE: PRODUCT FLAVORS FOR MULTI-ENVIRONMENT DEPLOYMENT
+    // ============================================================================
+    // Source: https://developer.android.com/build/build-variants
+    //
+    // Enables multiple environment configurations:
+    // - dev: Development environment (local/dev servers)
+    // - staging: Pre-production testing environment
+    // - production: Live production environment
+    //
+    // Build variants generated:
+    // - devDebug, devRelease
+    // - stagingDebug, stagingRelease
+    // - productionDebug, productionRelease
+    //
+    // Firebase compatibility:
+    // - Production flavor uses base applicationId "com.foodwasteapp"
+    // - Dev/Staging use suffixes for parallel installation
+    // - Each environment can have its own google-services.json in src/<flavor>/
+
+    // ============================================================================
+    // ENTERPRISE: SIGNING CONFIGURATIONS
+    // ============================================================================
+    signingConfigs {
+        // Debug signing - standard Android debug keystore
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+
+        // Release signing - configured via CI/CD environment variables
+        // Source: https://developer.android.com/studio/publish/app-signing
+        //
+        // Required environment variables for release builds:
+        // - KEYSTORE_FILE: Path to release keystore file
+        // - KEYSTORE_PASSWORD: Keystore password
+        // - KEY_ALIAS: Key alias name
+        // - KEY_PASSWORD: Key password
+        //
+        // CI/CD setup example (GitHub Actions):
+        // env:
+        //   KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
+        //   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        //   KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        //   KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        release {
+            def keystoreFile = System.getenv("KEYSTORE_FILE")
+            if (keystoreFile) {
+                storeFile file(keystoreFile)
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            } else {
+                // Fallback for local testing (NOT for production)
+                // Production builds MUST set environment variables
+                logger.warn("⚠️  WARNING: Release signing not configured. Set KEYSTORE_FILE environment variable for production builds.")
+            }
+        }
+    }
+
+    // ============================================================================
+    // ENTERPRISE: BUILD TYPES
+    // ============================================================================
+    buildTypes {
+        debug {
+            signingConfig = signingConfigs.debug
+            debuggable = true
+            minifyEnabled = false
+            shrinkResources = false
+
+            // Debug builds allow cleartext traffic for development
+            manifestPlaceholders = [
+                usesCleartextTraffic: "true"
+            ]
+        }
+
+        release {
+            // Use release signing configuration (from environment variables)
+            signingConfig = signingConfigs.release
+            debuggable = false
+
+            // Enable ProGuard/R8 minification and obfuscation
+            // Source: https://developer.android.com/studio/build/shrink-code
+            minifyEnabled = (findProperty('enableProguardInReleaseBuilds') ?: 'true').toBoolean()
+            shrinkResources = true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+
+            // Release builds enforce secure connections (no cleartext)
+            manifestPlaceholders = [
+                usesCleartextTraffic: "false"
+            ]
+        }
+    }
+
+    // ============================================================================
+    // JAVA COMPATIBILITY
+    // ============================================================================
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        
+    }
+     kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+kotlin {
+    jvmToolchain(17)
+}
+
+// ============================================================================
+// REACT NATIVE: AUTOLINKING CONFIGURATION
+// ============================================================================
+// Source: React Native 0.81 template
+// https://github.com/react-native-community/template/blob/0.81-stable/template/android/app/build.gradle
+//
+// Automatically links native dependencies discovered by autolinking
+// Adds implementation project(':module-name') dependencies for all React Native modules
+react {
+    autolinkLibrariesWithApp()
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+
+    // React Native core dependencies - Explicit versions for monorepo setup
+    // Autolinking handles native modules, but core RN deps are explicit
+    // Source: React Native 0.81 requirements
+    implementation("com.facebook.react:react-android:0.81.0")
+    implementation("com.facebook.react:hermes-android:0.81.0")
+
+    // Firebase BOM - manages all Firebase dependency versions
+    // Source: https://firebase.google.com/docs/android/setup
+    implementation platform("com.google.firebase:firebase-bom:${rootProject.ext.firebaseBomVersion}")
+    implementation "com.google.firebase:firebase-messaging"
+    implementation "com.google.firebase:firebase-analytics"
+    implementation "com.google.firebase:firebase-crashlytics"
+
+    // AndroidX Core - version 1.13.1 is compatible with AGP 8.7.3 and compileSdk 35
+    // Note: 1.17.0+ requires AGP 8.9.1+ and compileSdk 36
+    // Source: https://developer.android.com/jetpack/androidx/releases/core
+    implementation 'androidx.core:core-ktx:1.13.1'
+
+    // Flipper debugging tools (debug builds only)
+    // Source: https://fbflipper.com/docs/getting-started/react-native-android
+    debugImplementation("com.facebook.flipper:flipper:0.258.0")
+    debugImplementation("com.facebook.flipper:flipper-network-plugin:0.258.0")
+    debugImplementation("com.facebook.soloader:soloader:0.11.0")
+}
+
+// Apply Google Services plugin at the end
+// Source: https://firebase.google.com/docs/android/setup#add-config-file

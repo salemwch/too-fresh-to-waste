@@ -1,0 +1,102 @@
+{
+  /**
+   * TypeScript Configuration for Food Waste Mobile App
+   *
+   * This config extends the base configuration and adds React Native specific settings
+   * Location: apps/mobile/tsconfig.json
+   */
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    /**
+     * JSX transformation for React Native
+     * Matches base config but explicitly set for clarity
+     */
+    "jsx": "react-native",
+
+    /**
+     * Module interop settings
+     * Required for React Native and CommonJS module compatibility
+     */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    /**
+     * Module system and resolution
+     * Inherited from base but repeated for IDE compatibility
+     */
+    "module": "commonjs",
+    "moduleResolution": "node",
+
+    /**
+     * Base URL for path resolution
+     * Relative to this tsconfig.json file (apps/mobile/)
+     */
+    "baseUrl": ".",
+
+    /**
+     * Path aliases - Mobile App Specific
+     *
+     * These override/supplement base config paths for this workspace
+     * All paths are relative to baseUrl (apps/mobile/)
+     *
+     * Path Resolution Priority:
+     * 1. Paths defined here (takes precedence)
+     * 2. Paths from tsconfig.base.json
+     * 3. node_modules resolution
+     *
+     * CRITICAL: Paths match exactly with:
+     * - babel.config.js aliases ✓
+     * - metro.config.js extraNodeModules ✓
+     * - Ensures consistent module resolution across all tools
+     */
+    "paths": {
+      /* Workspace shared package - Points to SOURCE for hot reloading */
+      "@foodwaste/shared": ["../../packages/shared/src"],
+      "@foodwaste/shared/*": ["../../packages/shared/src/*"],
+
+      /* Local app aliases - Relative to apps/mobile/ */
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/screens/*": ["./src/screens/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/store/*": ["./src/store/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/config/*": ["./src/config/*"],
+      "@/assets/*": ["./src/assets/*"]
+    },
+
+    /**
+     * Type definitions to include
+     * react-native: React Native global types
+     * jest: Testing framework types
+     * node: Node.js global types (for NodeJS.Timeout, etc.)
+     */
+    "types": ["react-native", "jest", "node"],
+
+    /**
+     * Skip type checking of declaration files
+     * Improves compilation speed for large projects
+     * Safe because we trust external library types
+     */
+    "skipLibCheck": true
+  },
+
+  /**
+   * Files to include in compilation
+   * - src/**/ /*: All source files
+   * - index.js: React Native entry point
+   * - **\/*.d.ts: All TypeScript declaration files
+   */
+  "include": ["src/**/*", "index.js", "**/*.d.ts"],
+
+  /**
+   * Files to exclude from compilation
+   * - node_modules: External dependencies
+   * - android: Native Android code
+   * - ios: Native iOS code
+   * - **\/*.spec.ts: Unit tests (compiled separately by Jest)
+   * - **\/*.test.ts: Integration tests (compiled separately by Jest)
+   */
+  "exclude": ["node_modules", "android", "ios", "**/*.spec.ts", "**/*.test.ts"]
+}

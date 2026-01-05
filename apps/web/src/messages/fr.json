@@ -1,0 +1,337 @@
+{
+  "metadata": {
+    "title": "Too Fresh To Waste - Réduisez le Gaspillage Alimentaire",
+    "titleTemplate": "%s | Too Fresh To Waste Tunisie",
+    "description": "Connectez-vous aux restaurants locaux en Tunisie pour sauver la nourriture en surplus. Économisez jusqu'à 70% tout en luttant contre le gaspillage alimentaire.",
+    "keywords": "gaspillage alimentaire tunisie, nourriture pas cher tunis, resto surplus, anti gaspillage, livraison nourriture tunisie, repas à petit prix"
+  },
+  "common": {
+    "appName": "Too Fresh To Waste",
+    "country": "Tunisie",
+    "currency": "TND",
+    "downloadApp": "Télécharger l'application",
+    "learnMore": "En savoir plus",
+    "getStarted": "Commencer",
+    "signUp": "S'inscrire",
+    "logIn": "Se connecter",
+    "contactUs": "Nous contacter",
+    "language": "Langue",
+    "close": "Fermer",
+    "menu": "Menu",
+    "search": "Rechercher",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès"
+  },
+  "nav": {
+    "home": "Accueil",
+    "howItWorks": "Comment ça marche",
+    "forBusiness": "Pour les entreprises",
+    "about": "A propos",
+    "contact": "Contact",
+    "blog": "Blog",
+    "faq": "FAQ"
+  },
+  "header": {
+    "nav": {
+      "theApp": "L'APPLICATION",
+      "whyChooseUs": "POURQUOI NOUS CHOISIR",
+      "businessSolution": "SOLUTION ENTREPRISE"
+    },
+    "cta": {
+      "downloadApp": "TÉLÉCHARGER L'APPLICATION",
+      "businessSignup": "INSCRIPTION ENTREPRISE"
+    }
+  },
+  "section2": {
+    "title": "L'application qui transforme les surplus alimentaires en économies et récompenses",
+    "subtitle": "Rejoignez la mission pour mettre fin au gaspillage alimentaire en Tunisie—ensemble, faisons compter chaque repas",
+    "description": "Notre application est la marketplace intelligente pour les surplus alimentaires en Tunisie. Nous vous aidons à sauver de délicieux repas invendus du gaspillage—vous offrant jusqu'à <discount>75% de réduction</discount> ou plus dans vos hôtels, supermarchés, boulangeries, cafés et restaurants locaux préférés...",
+    "downloadButtons": {
+      "appStore": {
+        "prefix": "Télécharger sur",
+        "name": "App Store"
+      },
+      "playStore": {
+        "prefix": "DISPONIBLE SUR",
+        "name": "Google Play"
+      }
+    }
+  },
+  "section3": {
+    "titleLine1": "POURQUOI UTILISER",
+    "titleLine2": "TOO FRESH TO WASTE",
+    "benefits": {
+      "saveMoney": "PROFITEZ DE BONNE NOURRITURE JUSQU'À 75% DE RÉDUCTION",
+      "earnPoints": "GAGNEZ DES POINTS POUR CHAQUE REPAS ACHETÉ",
+      "getRewards": "OBTENEZ DES RÉCOMPENSES EN ÉCHANGEANT VOS POINTS",
+      "helpPlanet": "AIDEZ LA PLANÈTE EN RÉDUISANT LE GASPILLAGE ALIMENTAIRE"
+    }
+  },
+  "hero": {
+    "tagline": "Sauvez la nourriture. Économisez. Gagnez des récompenses.",
+    "title": "Réduisez le gaspillage alimentaire en Tunisie",
+    "subtitle": "Connectez-vous aux restaurants et commerces locaux pour récupérer des repas de qualité à prix réduit.",
+    "cta": {
+      "download": "TÉLÉCHARGER L'APPLICATION",
+      "business": "SOLUTION ENTREPRISE"
+    },
+    "stats": {
+      "meals": "Repas sauvés",
+      "users": "Utilisateurs actifs",
+      "partners": "Partenaires",
+      "co2": "kg CO2 économisés"
+    }
+  },
+  "features": {
+    "title": "Pourquoi choisir Too Fresh To Waste ?",
+    "subtitle": "Rejoignez le mouvement contre le gaspillage alimentaire en Tunisie",
+    "saveMoney": {
+      "title": "Économisez jusqu'à 70%",
+      "description": "Profitez de repas de qualité à prix réduit auprès des meilleurs restaurants de Tunis, Sousse, Sfax et plus encore."
+    },
+    "saveFood": {
+      "title": "Sauvez la nourriture",
+      "description": "Chaque repas sauvé contribue à réduire le gaspillage alimentaire et son impact sur l'environnement."
+    },
+    "earnRewards": {
+      "title": "Gagnez des récompenses",
+      "description": "Accumulez des points à chaque achat et profitez d'avantages exclusifs."
+    },
+    "localPartners": {
+      "title": "Partenaires locaux",
+      "description": "Soutenez les commerces de votre quartier tout en faisant des économies."
+    }
+  },
+  "howItWorks": {
+    "title": "Comment ça marche ?",
+    "subtitle": "Simple, rapide et écologique",
+    "steps": {
+      "browse": {
+        "title": "Parcourez les offres",
+        "description": "Découvrez les offres disponibles près de chez vous."
+      },
+      "reserve": {
+        "title": "Réservez votre repas",
+        "description": "Choisissez et payez en quelques clics."
+      },
+      "pickup": {
+        "title": "Récupérez",
+        "description": "Rendez-vous au restaurant à l'heure indiquée."
+      },
+      "enjoy": {
+        "title": "Savourez",
+        "description": "Profitez de votre repas et félicitez-vous !"
+      }
+    }
+  },
+  "business": {
+    "title": "Solution pour les entreprises",
+    "subtitle": "Rejoignez notre réseau de partenaires en Tunisie",
+    "benefits": {
+      "revenue": {
+        "title": "Revenus supplémentaires",
+        "description": "Transformez vos invendus en revenus plutt qu'en pertes."
+      },
+      "visibility": {
+        "title": "Visibilité accrue",
+        "description": "Attirez de nouveaux clients grâce à notre application."
+      },
+      "sustainability": {
+        "title": "Engagement durable",
+        "description": "Montrez votre engagement environnemental."
+      },
+      "simple": {
+        "title": "Gestion simple",
+        "description": "Tableau de bord intuitif pour gérer vos offres."
+      }
+    },
+    "cta": "Devenir partenaire"
+  },
+  "testimonials": {
+    "title": "Ce que disent nos utilisateurs",
+    "subtitle": "Rejoignez des milliers de Tunisiens satisfaits"
+  },
+  "download": {
+    "title": "Téléchargez l'application",
+    "subtitle": "Disponible sur iOS et Android",
+    "appStore": "Télécharger sur l'App Store",
+    "playStore": "Disponible sur Google Play"
+  },
+  "footer": {
+    "description": "Too Fresh To Waste est la première marketplace tunisienne qui vous connecte aux restaurants et magasins locaux pour sauver les surplus alimentaires à des prix incroyables.",
+    "tagline": "Sauvez la nourriture. Économisez. Gagnez des récompenses. Faites la différence.",
+    "sections": {
+      "about": {
+        "title": "À propos",
+        "whoWeAre": "Qui sommes-nous",
+        "mission": "Notre mission",
+        "careers": "Carrières",
+        "blog": "Blog",
+        "press": "Kit de presse"
+      },
+      "services": {
+        "title": "Services",
+        "forConsumers": "Pour les consommateurs",
+        "forBusinesses": "Pour les entreprises",
+        "howItWorks": "Comment ça marche",
+        "pricing": "Tarification"
+      },
+      "support": {
+        "title": "Support",
+        "helpCenter": "Centre d'aide",
+        "faq": "FAQ",
+        "contact": "Nous contacter",
+        "partners": "Partenaires"
+      },
+      "legal": {
+        "title": "Légal",
+        "terms": "Conditions d'utilisation",
+        "privacy": "Politique de confidentialité",
+        "cookies": "Politique de cookies",
+        "security": "Sécurité"
+      }
+    },
+    "social": {
+      "followUs": "Suivez-nous",
+      "followUsOn": "Suivez-nous sur"
+    },
+    "legal": {
+      "terms": "Conditions d'utilisation",
+      "privacy": "Politique de confidentialité",
+      "cookies": "Politique de cookies"
+    },
+    "copyright": "© {year} Too Fresh To Waste Tunisie. Tous droits réservés.",
+    "locations": "Tunis • Sousse • Sfax • Monastir • Hammamet"
+  },
+  "cta": {
+    "joinMovement": "Rejoignez le mouvement",
+    "startSaving": "Commencez à économiser",
+    "becomePartner": "Devenir partenaire",
+    "downloadNow": "Télécharger maintenant"
+  },
+  "accessibility": {
+    "skipToContent": "Aller au contenu principal",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "changeLanguage": "Changer de langue",
+    "scrollToTop": "Retour en haut"
+  },
+  "businessSignup": {
+    "title": "Bientôt disponible",
+    "description": "Nous construisons quelque chose d'incroyable pour les entreprises qui souhaitent rejoindre notre plateforme et aider à réduire le gaspillage alimentaire.",
+    "subDescription": "Devenez partenaire de Too Fresh To Waste et transformez vos surplus alimentaires en revenus tout en ayant un impact environnemental positif.",
+    "notifyQuestion": "Vous souhaitez être informé du lancement ?",
+    "backToHome": "Retour à l'accueil",
+    "animationNotAvailable": "Animation non disponible",
+    "features": {
+      "analytics": {
+        "title": "Tableau de bord analytique",
+        "description": "Suivez votre impact et vos ventes en temps réel"
+      },
+      "revenue": {
+        "title": "Récupération de revenus",
+        "description": "Transformez automatiquement vos surplus en profits"
+      },
+      "sustainability": {
+        "title": "Métriques de durabilité",
+        "description": "Mesurez votre contribution environnementale"
+      },
+      "expiry": {
+        "title": "Gestion des produits proches de l'expiration",
+        "description": "Identifiez et gérez numériquement les produits proches de l'expiration pour augmenter vos profits"
+      }
+    }
+  },
+  "section4": {
+    "title": "COMMENT UTILISER L'APPLICATION ET GAGNER DES POINTS",
+    "mobileHint": "Glissez ou appuyez sur les diapositives pour naviguer",
+    "slides": {
+      "step1": {
+        "title": "Étape 1: Parcourez les offres délicieuses",
+        "description": "Découvrez d'incroyables offres de nourriture dans les restaurants, boulangeries et épiceries près de chez vous. Filtrez par distance, prix ou cuisine pour trouver votre repas parfait."
+      },
+      "step2": {
+        "title": "Étape 2: Réservez et confirmez",
+        "description": "Sélectionnez votre offre préférée et réservez-la en un seul clic. Confirmez les détails de votre commande et préparez-vous pour votre délicieux repas."
+      },
+      "step3": {
+        "title": "Étape 3: Choisissez paiement et livraison",
+        "description": "Payez en ligne pour plus de commodité ou payez à la récupération. Sélectionnez le paiement en ligne avec livraison pour recevoir votre nourriture chez vous, ou récupérez-la vous-même."
+      },
+      "step4": {
+        "title": "Étape 4: Savourez votre délicieuse nourriture",
+        "description": "Dégustez des repas de qualité à des prix incroyables tout en ayant un impact positif sur l'environnement. Chaque bouchée aide à réduire le gaspillage alimentaire!"
+      },
+      "step5": {
+        "title": "Étape 5: Gagnez des points",
+        "description": "Collectez des points à chaque commande et débloquez des récompenses exclusives. Plus vous sauvez de nourriture, plus vous gagnez!"
+      },
+      "step6": {
+        "title": "Étape 6: Obtenez des récompenses",
+        "description": "Échangez vos points contre des réductions, des articles gratuits et des avantages spéciaux. Transformez vos efforts de sauvegarde alimentaire en bénéfices réels!"
+      }
+    },
+    "navigation": {
+      "previous": "Diapositive précédente",
+      "next": "Diapositive suivante",
+      "goToSlide": "Aller à la diapositive {number}"
+    },
+    "description": "Suivez ces étapes simples pour commencer à sauver de la nourriture et à gagner des récompenses dès aujourd'hui."
+  },
+  "section5": {
+    "mainTitle": {
+      "businessSolution": "NOTRE SOLUTION ENTREPRISE",
+      "bigPrize": "NOTRE GRAND PRIX"
+    },
+    "sectionLabel": "FAQ's",
+    "title": "Vous cherchez des réponses ?",
+    "description": "Trouvez des réponses rapides aux questions courantes sur Too Fresh To Waste. Nous sommes là pour vous aider à sauver la nourriture et économiser facilement.",
+    "imageAlt": "Illustration questions fréquemment posées",
+    "ctaButton": "Vous avez encore des questions ? Contactez-nous",
+    "faqs": {
+      "faq1": {
+        "question": "Comment fonctionne Too Fresh To Waste ?",
+        "answer": "Too Fresh To Waste vous connecte aux restaurants, boulangeries, hôtels et épiceries locales qui ont des surplus alimentaires. Parcourez les offres près de chez vous, réservez votre repas, payez en toute sécurité et récupérez-le à l'heure désignée ou choisissez la livraison à domicile. C'est aussi simple que ça !"
+      },
+      "faq2": {
+        "question": "Quelle est la solution entreprise ?",
+        "answer": "PROFITEZ DE VOS SURPLUS ALIMENTAIRES\n\nNotre marketplace connecte votre entreprise avec des utilisateurs à travers la Tunisie - tous désireux d'acheter des surplus alimentaires."
+      },
+      "faq3": {
+        "question": "Qu'est-ce que le grand prix ?",
+        "answer": "Le Grand Prix est une récompense de grande valeur attribuée tous les 3-4 mois à l'utilisateur le plus actif dans chaque ville de Tunisie, une personne par ville. Le prix peut inclure des téléphones, des scooters électriques, des montres intelligentes ou d'autres cadeaux précieux annoncés avant chaque événement."
+      },
+      "faq4": {
+        "question": "Comment obtenir le grand prix ?",
+        "answer": "Acheter des sacs surprise\nParrainer des amis ou des entreprises\nLaisser des avis honnêtes\nAcheter plusieurs sacs en peu de temps\nSe connecter quotidiennement pendant 15 jours consécutifs"
+      }
+    }
+  },
+  "newsletter": {
+    "label": "Restez informé",
+    "heading": "Une surprise spéciale attend nos 1 000 premiers utilisateurs. Rejoignez la liste d'attente pour en faire partie.",
+    "placeholder": "Entrez votre adresse e-mail",
+    "button": "S'abonner maintenant",
+    "submitting": "Abonnement en cours...",
+    "privacy": "Nous respectons votre vie privée. Désabonnez-vous à tout moment.",
+    "success": "Merci de vous être abonné ! Vérifiez votre boîte de réception pour confirmation.",
+    "errors": {
+      "invalidEmail": "Veuillez entrer une adresse e-mail valide.",
+      "general": "Une erreur s'est produite. Veuillez réessayer plus tard."
+    }
+  },
+  "marquee": {
+    "surplusFood": "Surplus Alimentaire",
+    "bigPrize": "Grand Prix",
+    "points": "Points",
+    "rewards": "Récompenses",
+    "reviews": "Avis",
+    "food": "Nourriture",
+    "surpriseBag": "Sac Surprise",
+    "events": "Événements",
+    "onlinePayment": "Paiement en Ligne"
+  }
+}

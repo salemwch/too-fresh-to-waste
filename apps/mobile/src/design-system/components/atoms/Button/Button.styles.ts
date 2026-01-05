@@ -1,0 +1,250 @@
+/**
+ * Button Component - Styles
+ */
+
+import { Platform, StyleSheet } from 'react-native';
+
+import type { ButtonVariant, ButtonSize } from './Button.types';
+import type { ThemeContextValue } from '../../../types';
+
+export const createButtonStyles = (
+  theme: ThemeContextValue,
+  variant: ButtonVariant,
+  size: ButtonSize,
+  fullWidth: boolean = false,
+  disabled: boolean = false,
+) => {
+  const { colors, spacing, typography, shadows } = theme;
+
+  // Base button styles
+  const baseButton = {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    borderRadius: spacing.radius.md,
+    borderWidth: 1,
+    overflow: 'hidden' as const,
+    ...shadows.component.button.primary,
+  };
+
+  // Size variations
+  const sizeStyles = {
+    xs: {
+      paddingHorizontal: spacing.base.sm,
+      paddingVertical: spacing.base.xs,
+      minHeight: spacing.sizing.button.sm,
+    },
+    sm: {
+      paddingHorizontal: spacing.base.md,
+      paddingVertical: spacing.base.sm,
+      minHeight: spacing.sizing.button.sm,
+    },
+    md: {
+      paddingHorizontal: spacing.base.lg,
+      paddingVertical: spacing.base.md,
+      minHeight: spacing.sizing.button.md,
+    },
+    lg: {
+      paddingHorizontal: spacing.base.lg,
+      paddingVertical: spacing.base.sm,
+      minHeight: spacing.sizing.button.lg,
+    },
+    xl: {
+      paddingHorizontal: spacing.base['2xl'],
+      paddingVertical: spacing.base.lg,
+      minHeight: spacing.sizing.button.xl,
+    },
+  };
+
+  // Variant styles
+  const variantStyles = {
+    primary: {
+      backgroundColor: disabled ? colors.base.neutral[300] : colors.primary,
+      borderColor: disabled ? colors.base.neutral[300] : colors.primary,
+    },
+    secondary: {
+      backgroundColor: disabled ? colors.base.neutral[100] : colors.secondary,
+      borderColor: disabled ? colors.base.neutral[300] : colors.secondary,
+    },
+    tertiary: {
+      backgroundColor: disabled ? colors.base.neutral[100] : colors.surface,
+      borderColor: disabled ? colors.base.neutral[300] : colors.outline,
+    },
+    ghost: {
+      backgroundColor: 'transparent',
+      borderColor: 'transparent',
+      ...(Platform.OS === 'ios'
+        ? shadows.ios.none
+        : Platform.OS === 'android'
+          ? { elevation: 0 }
+          : {}),
+    },
+    outline: {
+      backgroundColor: 'transparent',
+      borderColor: disabled ? colors.base.neutral[300] : colors.primary,
+      ...(Platform.OS === 'ios'
+        ? shadows.ios.none
+        : Platform.OS === 'android'
+          ? { elevation: 0 }
+          : {}),
+    },
+    danger: {
+      backgroundColor: disabled ? colors.base.neutral[300] : colors.error,
+      borderColor: disabled ? colors.base.neutral[300] : colors.error,
+    },
+    success: {
+      backgroundColor: disabled ? colors.base.neutral[300] : colors.success,
+      borderColor: disabled ? colors.base.neutral[300] : colors.success,
+    },
+    text: {
+      backgroundColor: 'transparent',
+      borderColor: 'transparent',
+      ...(Platform.OS === 'ios'
+        ? shadows.ios.none
+        : Platform.OS === 'android'
+          ? { elevation: 0 }
+          : {}),
+    },
+  };
+
+  // Text styles based on variant and size
+  const getTextStyle = () => {
+    const baseTextStyle = {
+      fontFamily: typography.styles.label.medium.fontFamily,
+      fontWeight: typography.styles.label.medium.fontWeight,
+      letterSpacing: typography.styles.label.medium.letterSpacing,
+      textAlign: 'center' as const,
+    };
+
+    // Size-based text styles
+    const textSizeStyles = {
+      xs: {
+        fontSize: typography.fontSize.sm, // 12px
+        lineHeight: 18, // 12 * 1.5 = 18px
+      },
+      sm: {
+        fontSize: typography.fontSize.sm, // 12px
+        lineHeight: 18, // 12 * 1.5 = 18px
+      },
+      md: {
+        fontSize: typography.fontSize.base, // 14px
+        lineHeight: 21, // 14 * 1.5 = 21px
+      },
+      lg: {
+        fontSize: typography.fontSize.md, // 16px
+        lineHeight: 20, // 16 * 1.5 = 24px
+      },
+      xl: {
+        fontSize: typography.fontSize.lg, // 18px
+        lineHeight: 27, // 18 * 1.5 = 27px
+      },
+    };
+
+    // Variant-based text colors
+    const textColorStyles = {
+      primary: { color: disabled ? colors.base.neutral[500] : colors.onPrimary },
+      secondary: { color: disabled ? colors.base.neutral[500] : colors.onSecondary },
+      tertiary: { color: disabled ? colors.base.neutral[500] : colors.onSurface },
+      ghost: { color: disabled ? colors.base.neutral[500] : colors.primary },
+      outline: { color: disabled ? colors.base.neutral[500] : colors.primary },
+      danger: { color: disabled ? colors.base.neutral[500] : colors.onPrimary },
+      success: { color: disabled ? colors.base.neutral[500] : colors.onPrimary },
+      text: { color: disabled ? colors.base.neutral[500] : colors.primary },
+    };
+
+    return {
+      ...baseTextStyle,
+      ...textSizeStyles[size],
+      ...textColorStyles[variant],
+    };
+  };
+
+  // Platform-specific adjustments - only for elevated button variants
+  const shouldHaveElevation = ['primary', 'secondary', 'danger', 'success'].includes(variant);
+
+  const platformStyles = shouldHaveElevation
+    ? Platform.select({
+        ios: {
+          // iOS-specific button styles using direct iOS shadow access
+          shadowColor: shadows.ios?.sm?.shadowColor ?? '#000000',
+          shadowOffset: shadows.ios?.sm?.shadowOffset ?? { width: 0, height: 2 },
+          shadowOpacity: disabled ? 0 : (shadows.ios?.sm?.shadowOpacity ?? 0.1),
+          shadowRadius: shadows.ios?.sm?.shadowRadius ?? 3,
+        },
+        android: {
+          // Android-specific button styles using direct Android elevation access
+          elevation: disabled ? 0 : (shadows.android?.sm ?? 2),
+        },
+        default: {},
+      })
+    : Platform.select({
+        ios: {
+          shadowColor: 'transparent',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0,
+          shadowRadius: 0,
+        },
+        android: { elevation: 0 },
+        default: {},
+      });
+
+  return StyleSheet.create({
+    container: {
+      ...baseButton,
+      ...sizeStyles[size],
+      ...variantStyles[variant],
+      ...platformStyles,
+      width: fullWidth ? '100%' : undefined,
+      opacity: disabled ? 0.6 : 1,
+    },
+    text: getTextStyle(),
+    loadingContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconContainer: {
+      marginHorizontal: spacing.base.xs,
+    },
+    leftIcon: {
+      marginRight: spacing.base.xs,
+    },
+    rightIcon: {
+      marginLeft: spacing.base.xs,
+    },
+  });
+};
+
+// Pressed state styles
+export const createPressedStyles = (theme: ThemeContextValue, variant: ButtonVariant) => {
+  const { colors } = theme;
+
+  const pressedVariantStyles = {
+    primary: {
+      backgroundColor: colors.primaryContainer,
+    },
+    secondary: {
+      backgroundColor: colors.secondaryContainer,
+    },
+    tertiary: {
+      backgroundColor: colors.surfaceVariant,
+    },
+    ghost: {
+      backgroundColor: `${colors.primary}15`, // 15% opacity
+    },
+    outline: {
+      backgroundColor: `${colors.primary}10`, // 10% opacity
+    },
+    danger: {
+      backgroundColor: `${colors.error}80`, // Slightly darker
+    },
+    success: {
+      backgroundColor: `${colors.success}80`, // Slightly darker
+    },
+    text: {
+      backgroundColor: `${colors.primary}10`, // 10% opacity
+    },
+  };
+
+  return pressedVariantStyles[variant];
+};

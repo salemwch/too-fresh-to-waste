@@ -1,0 +1,250 @@
+import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
+import { Noto_Sans_Arabic } from 'next/font/google';
+import { notFound } from 'next/navigation';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, setRequestLocale } from 'next-intl/server';
+import { locales, type Locale, getLocaleConfig } from '@/i18n/config';
+import { seoConfig, getLocaleSeoMetadata } from '@/config/seo.config';
+import {
+  OrganizationStructuredData,
+  WebsiteStructuredData,
+  MobileApplicationStructuredData,
+} from '@/components/StructuredData';
+import { Footer } from '@/components/layout';
+import { Newsletter } from '@/components/sections';
+import '../globals.css';
+
+// Latin font (Inter) for French and English
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+  adjustFontFallback: true,
+  preload: true,
+  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+});
+
+// Arabic font (Noto Sans Arabic) for Arabic locale
+const notoSansArabic = Noto_Sans_Arabic({
+  subsets: ['arabic'],
+  display: 'swap',
+  variable: '--font-noto-arabic',
+  adjustFontFallback: true,
+  preload: true,
+  weight: ['400', '500', '600', '700'],
+  fallback: ['Tahoma', 'Arial', 'sans-serif'],
+});
+
+// Generate static params for all locales
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
+
+// Viewport configuration
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: '#005250',
+  interactiveWidget: 'resizes-content',
+};
+
+// Generate metadata based on locale
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const localeMetadata = getLocaleSeoMetadata(locale as Locale);
+
+  // Generate alternate language URLs
+  const alternateLanguages: Record<string, string> = {};
+  locales.forEach((loc) => {
+    const hreflang = getLocaleConfig(loc).hreflang;
+    alternateLanguages[hreflang] =
+      loc === seoConfig.defaultLocale ? seoConfig.url : `${seoConfig.url}/${loc}`;
+  });
+
+  return {
+    metadataBase: new URL(seoConfig.url),
+
+    // Basic metadata
+    title: {
+      default: localeMetadata.title,
+      template: localeMetadata.titleTemplate,
+    },
+    description: localeMetadata.description,
+    keywords: localeMetadata.keywords,
+    authors: [{ name: seoConfig.siteName, url: seoConfig.url }],
+    creator: seoConfig.siteName,
+    publisher: seoConfig.siteName,
+
+    // Alternate languages for SEO (hreflang)
+    alternates: {
+      canonical:
+        locale === seoConfig.defaultLocale ? seoConfig.url : `${seoConfig.url}/${locale}`,
+      languages: alternateLanguages,
+    },
+
+    // Open Graph (Facebook, LinkedIn)
+    openGraph: {
+      type: 'website',
+      locale: localeMetadata.ogLocale,
+      alternateLocale: locales
+        .filter((l) => l !== locale)
+        .map((l) => getLocaleSeoMetadata(l as Locale).ogLocale),
+      url:
+        locale === seoConfig.defaultLocale ? seoConfig.url : `${seoConfig.url}/${locale}`,
+      siteName: seoConfig.siteName,
+      title: localeMetadata.title,
+      description: localeMetadata.description,
+      images: [
+        {
+          url: seoConfig.ogImage,
+          width: 1200,
+          height: 630,
+          alt: seoConfig.ogImageAlt[locale as Locale] || seoConfig.ogImageAlt.en,
+          type: 'image/jpeg',
+        },
+      ],
+    },
+
+    // Twitter
+    twitter: {
+      card: seoConfig.twitterCard,
+      title: localeMetadata.title,
+      description: localeMetadata.description,
+      images: [seoConfig.ogImage],
+      creator: seoConfig.twitterHandle,
+      site: seoConfig.twitterHandle,
+    },
+
+    // Robots
+    robots: {
+      index: true,
+      follow: true,
+      nocache: false,
+      googleBot: {
+        index: true,
+        follow: true,
+        noimageindex: false,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+
+    // Icons
+    icons: {
+      icon: [
+        { url: '/favicon.svg', type: 'image/svg+xml' },
+        { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+        { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      ],
+      apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+      other: [{ rel: 'manifest', url: '/site.webmanifest' }],
+    },
+
+    // Manifest
+    manifest: '/site.webmanifest',
+
+    // Verification (add codes when available)
+    verification: {
+      google: seoConfig.verification.google,
+    },
+
+    // Category
+    category: 'Food & Beverage',
+  };
+}
+
+interface LocaleLayoutProps {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}
+
+export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
+  const { locale } = await params;
+
+  // Validate locale
+  if (!locales.includes(locale as Locale)) {
+    notFound();
+  }
+
+  // Enable static rendering
+  setRequestLocale(locale);
+
+  // Get messages for the locale
+  const messages = await getMessages();
+
+  // Get locale configuration for RTL support
+  const currentLocaleConfig = getLocaleConfig(locale as Locale);
+  const isRTL = currentLocaleConfig.direction === 'rtl';
+
+  // Select font based on locale
+  const fontClass = isRTL
+    ? `${notoSansArabic.variable} ${inter.variable}`
+    : `${inter.variable} ${notoSansArabic.variable}`;
+
+  return (
+    <html
+      lang={locale}
+      dir={currentLocaleConfig.direction}
+      className={fontClass}
+    >
+      <head>
+        {/* Preload header logos to prevent flicker on scroll */}
+        <link rel="preload" href="/images/green-header-center.png" as="image" />
+        <link rel="preload" href="/images/white-header-center-logo.png" as="image" />
+
+        {/* Preconnect to external resources */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/* DNS prefetch for performance */}
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+      </head>
+      <body
+        className={`font-sans antialiased ${isRTL ? 'text-right' : 'text-left'}`}
+        style={{
+          fontFamily: isRTL
+            ? 'var(--font-noto-arabic), var(--font-inter), sans-serif'
+            : 'var(--font-inter), var(--font-noto-arabic), sans-serif',
+        }}
+      >
+        <NextIntlClientProvider messages={messages}>
+          {/* Structured Data for SEO */}
+          <OrganizationStructuredData locale={locale as Locale} />
+          <WebsiteStructuredData locale={locale as Locale} />
+          <MobileApplicationStructuredData locale={locale as Locale} />
+
+          {/* Skip to content link for accessibility */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded"
+          >
+            {locale === 'ar'
+              ? '\u0627\u0646\u062a\u0642\u0644 \u0625\u0644\u0649 \u0627\u0644\u0645\u062d\u062a\u0648\u0649 \u0627\u0644\u0631\u0626\u064a\u0633\u064a'
+              : locale === 'fr'
+                ? 'Aller au contenu principal'
+                : 'Skip to main content'}
+          </a>
+
+          {/* Main content */}
+          <div id="main-content">{children}</div>
+
+          {/* Newsletter */}
+          <Newsletter />
+
+          {/* Footer */}
+          <Footer />
+
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  );
+}

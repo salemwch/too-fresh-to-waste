@@ -1,0 +1,5 @@
+{
+  "ignores": ["@commitlint/cli", "@commitlint/config-conventional", "lint-staged"],
+  "ignore-patterns": ["dist/**", "build/**", "coverage/**", "node_modules/**", "*.d.ts"],
+  "ignore-path": ".gitignore"
+}

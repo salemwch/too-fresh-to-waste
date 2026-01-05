@@ -1,0 +1,2 @@
+# This file ensures the migration-logs directory is tracked in git
+# Actual migration log files (*.log) are ignored via .gitignore

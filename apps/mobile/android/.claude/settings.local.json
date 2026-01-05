@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/WFA/apps/mobile/**)",
+      "Bash(adb logcat:*)",
+      "Bash(./gradlew:*)",
+      "Bash(cmd.exe /c \"gradlew.bat clean\")",
+      "Bash(cmd.exe:*)",
+      "Bash(adb shell:*)",
+      "Bash(adb shell am start:*)",
+      "Bash(dir:*)",
+      "Bash(adb reverse:*)",
+      "Bash(adb pull:*)",
+      "Bash(curl:*)",
+      "Bash(npx react-native:*)",
+      "Bash(npm start)",
+      "Bash(pkill:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(awk:*)",
+      "Bash(tasklist)",
+      "Bash(xargs:*)",
+      "Bash(node:*)",
+      "Bash(timeout 5 adb logcat:*)",
+      "Bash(timeout 10 adb logcat:*)",
+      "WebSearch",
+      "Bash(./gradlew.bat clean:*)",
+      "Bash(taskkill:*)",
+      "Bash(adb uninstall:*)",
+      "Bash(./gradlew.bat:*)",
+      "Bash(cmd /c:*)",
+      "Read(//c/WFA/**)",
+      "Bash(pnpm install)",
+      "Bash(powershell:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

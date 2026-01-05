@@ -1,0 +1,146 @@
+// Top-level build file for Food Waste Mobile App
+// React Native 0.81.0 + Android Gradle Plugin 8.7.3
+// Source: https://reactnative.dev/docs/environment-setup
+
+buildscript {
+    ext {
+        // Android SDK versions
+        // Source: React Native 0.81 requires Android API 35
+        // MinSdk 24 required by React Native 0.81.0
+        buildToolsVersion = "35.0.0"
+        minSdkVersion = 24
+        compileSdkVersion = 35
+        targetSdkVersion = 35
+        // Source: React Native 0.77 template NDK version
+        // https://github.com/facebook/react-native/blob/0.77-stable/packages/react-native/template/android/build.gradle
+        ndkVersion = "27.1.12297006"
+
+        // React Native configuration
+        // hermesEnabled defined in gradle.properties
+        hermesEnabled = project.hasProperty("hermesEnabled") ? project.hermesEnabled == "true" : true
+        newArchEnabled = project.hasProperty("newArchEnabled") ? project.newArchEnabled == "true" : false
+
+        // Dependency versions
+        // Source: React Native 0.77 template uses Kotlin 2.0.21
+        // https://github.com/facebook/react-native/blob/0.77-stable/packages/react-native/template/android/build.gradle
+        kotlinVersion = "2.0.21"
+        googleServicesVersion = "4.4.2"
+        firebaseBomVersion = "33.7.0"
+    }
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        // Android Gradle Plugin 8.5.2 - stable version with better Windows compatibility
+        // Downgraded from 8.7.3 due to daemon crashes on Windows
+        // Source: https://developer.android.com/build/releases/gradle-plugin
+        classpath('com.android.tools.build:gradle:8.13.1')
+
+        // Google Services plugin for Firebase
+        classpath("com.google.gms:google-services:$googleServicesVersion")
+
+        // Firebase Crashlytics Gradle plugin - generates build ID for crash reporting
+        // Source: https://firebase.google.com/docs/crashlytics/get-started?platform=android
+        // Version 3.0.6 requires AGP 8.1+ and Java 17 (both satisfied)
+        classpath("com.google.firebase:firebase-crashlytics-gradle:3.0.6")
+
+        // Kotlin plugin - version aligned with ext.kotlinVersion
+        // Source: https://kotlinlang.org/docs/gradle.html
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+
+        // Note: React Native Gradle Plugin is loaded via includeBuild() in settings.gradle
+        // It's applied in app/build.gradle using: plugins { id("com.facebook.react") }
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+
+        // JSC (JavaScriptCore) repository - not used, Hermes enabled
+        // Kept for reference if JSC needed in future
+        maven {
+            url("$rootDir/../node_modules/jsc-android/dist")
+        }
+
+        // React Native local Maven repository
+        // Required for libraries that use com.facebook.react:react-native:+ dependency
+        // Source: https://reactnative.dev/docs/integration-with-existing-apps
+        maven {
+            url("$rootDir/../node_modules/react-native/android")
+        }
+    }
+
+    // Force React Native version for libraries using com.facebook.react:react-native:+
+    // Required for jail-monkey and other libraries that don't specify exact versions
+    // Source: https://stackoverflow.com/questions/74430295
+    configurations.all {
+        resolutionStrategy {
+            force("com.facebook.react:react-android:0.81.0")
+            force("com.facebook.react:hermes-android:0.81.0")
+
+            // Force AndroidX Core 1.13.1 - compatible with AGP 8.5.2
+            // Version 1.16.0+ requires AGP 8.6.0+ which has Windows stability issues
+            // Source: https://developer.android.com/jetpack/androidx/releases/core
+            force("androidx.core:core:1.13.1")
+            force("androidx.core:core-ktx:1.13.1")
+
+            // Substitute old react-native artifact with react-android for React Native 0.81+
+            // Libraries like jail-monkey use com.facebook.react:react-native:+ which no longer exists
+            // Source: React Native 0.70+ migration guide
+            dependencySubstitution {
+                substitute(module("com.facebook.react:react-native"))
+                    .using(module("com.facebook.react:react-android:0.81.0"))
+                    .because("React Native 0.70+ renamed react-native to react-android")
+            }
+        }
+
+        // Exclude deprecated Firebase Instance ID (firebase-iid)
+        // Deprecated in Firebase BOM 28+, removed in BOM 30+
+        // Functionality moved to firebase-messaging
+        // Source: https://firebase.google.com/support/release-notes/android
+        exclude group: 'com.google.firebase', module: 'firebase-iid'
+    }
+}
+
+// ============================================================================
+// ENTERPRISE: AGP 8+ NAMESPACE COMPATIBILITY PATCHES
+// ============================================================================
+// AGP 8.0+ requires all Android modules to declare namespace in build.gradle
+// Many legacy React Native libraries still use package attribute in AndroidManifest.xml
+// This block patches those libraries at configuration time
+// Source: https://developer.android.com/r/tools/upgrade-assistant/set-namespace
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                // Patch react-native-geolocation-service
+                // Package name extracted from AndroidManifest.xml
+                if (project.name == 'react-native-geolocation-service') {
+                    namespace = 'com.agontuk.RNFusedLocation'
+                }
+
+                // Patch react-native-touch-id
+                // Package name extracted from AndroidManifest.xml
+                if (project.name == 'react-native-touch-id') {
+                    namespace = 'com.rnfingerprint'
+                }
+
+                // Patch libraries requiring buildConfig feature flag
+                // AGP 8+ requires buildFeatures.buildConfig = true when using custom BuildConfig fields
+                // Multiple React Native libraries need this patch
+                // Source: https://github.com/facebook/react-native/issues/40772
+                if (project.name == 'react-native-image-picker' ||
+                    project.name == 'react-native-vector-icons') {
+                    buildFeatures {
+                        buildConfig = true
+                    }
+                }
+            }
+        }
+    }
+}
