@@ -16,12 +16,13 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { parse as parseDomain } from 'tldts';
+import * as yup from 'yup';
 
 import { Button, Input, Text, Card } from '@/design-system/components/atoms';
 import { PasswordStrengthIndicator } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { registerMobileSchema } from '@/utils/validation/schemas';
 
 import { registerAsync, clearError } from '../store/authSlice';
 import { UserRole } from '../types';
@@ -130,90 +131,36 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
     !passwordsMatch;
 
   /**
-   * Validate email format using Public Suffix List (PSL)
-   * Two-layer validation:
-   * 1. Client-side: Check format + verify TLD is ICANN-registered
-   * 2. Backend: Final verification (class-validator @IsEmail)
-   *
-   * This rejects:
-   * - Invalid TLDs: .or, .rt, .c, .xyz123
-   * And accepts:
-   * - Valid TLDs: .com, .org, .co, .co.uk, .io, .dev
+   * Validate form fields using centralized Yup schema
    */
-  const validateEmail = (email: string): boolean => {
-    if (!email || email.trim() === '') return false;
+  const validateForm = useCallback(async (): Promise<boolean> => {
+    try {
+      // Validate using centralized schema
+      await registerMobileSchema.validate(formData, { abortEarly: false });
 
-    // Basic format check: must contain @ and have characters before/after
-    const basicEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!basicEmailRegex.test(email.trim())) return false;
+      // Additional check: password strength (from PasswordStrengthIndicator)
+      if (!isPasswordValid) {
+        setErrors({
+          password: 'Password does not meet security requirements. Please check the requirements below.',
+        });
+        return false;
+      }
 
-    // Extract domain part (everything after @)
-    const domain = email.trim().split('@')[1];
-    if (!domain) return false;
-
-    // Parse domain using tldts (Public Suffix List)
-    const parsed = parseDomain(domain);
-
-    // Check if it's a valid ICANN-registered TLD
-    // This will reject .or, .rt, .c but accept .com, .org, .co, .co.uk
-    return parsed.isIcann === true && parsed.publicSuffix !== null;
-  };
-
-  // Show email validation error after user has blurred the field AND email is invalid
-  const isEmailValid = validateEmail(formData.email);
-  const showEmailError =
-    hasBlurredEmail && !isEmailFocused && formData.email.length > 0 && !isEmailValid;
-
-  /**
-   * Validate form fields
-   */
-  const validateForm = useCallback((): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    // First name validation
-    if (!formData.firstName.trim()) {
-      newErrors['firstName'] = 'First name is required';
-    } else if (formData.firstName.trim().length < 2) {
-      newErrors['firstName'] = 'First name must be at least 2 characters';
-    } else if (formData.firstName.trim().length > 50) {
-      newErrors['firstName'] = 'First name cannot exceed 50 characters';
+      setErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        // Extract field-level errors
+        const fieldErrors: Record<string, string> = {};
+        error.inner.forEach((err) => {
+          if (err.path) {
+            fieldErrors[err.path] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      }
+      return false;
     }
-
-    // Last name validation
-    if (!formData.lastName.trim()) {
-      newErrors['lastName'] = 'Last name is required';
-    } else if (formData.lastName.trim().length < 2) {
-      newErrors['lastName'] = 'Last name must be at least 2 characters';
-    } else if (formData.lastName.trim().length > 50) {
-      newErrors['lastName'] = 'Last name cannot exceed 50 characters';
-    }
-
-    // Email validation
-    if (!formData.email.trim()) {
-      newErrors['email'] = 'Email is required';
-    } else if (!validateEmail(formData.email)) {
-      newErrors['email'] = 'Please enter a valid email address';
-    }
-
-    // Phone number validation removed - deferred to order placement
-
-    // Password validation - use PasswordStrengthIndicator result
-    if (!formData.password) {
-      newErrors['password'] = 'Password is required';
-    } else if (!isPasswordValid) {
-      newErrors['password'] =
-        'Password does not meet security requirements. Please check the requirements below.';
-    }
-
-    // Confirm password validation
-    if (!formData.confirmPassword) {
-      newErrors['confirmPassword'] = 'Please confirm your password';
-    } else if (!passwordsMatch) {
-      newErrors['confirmPassword'] = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   }, [formData, isPasswordValid]);
 
   /**
@@ -223,8 +170,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
     // Clear previous errors
     setErrors({});
 
-    // Validate form
-    if (!validateForm()) {
+    // Validate form using centralized schema
+    const isValid = await validateForm();
+    if (!isValid) {
       console.log('RegisterScreen: Form validation failed');
       return;
     }
@@ -546,13 +494,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
             autoCapitalize='none'
             autoCorrect={false}
             autoComplete='email'
-            hasError={(errors['email'] !== undefined && errors['email'] !== '') || showEmailError}
+            hasError={errors['email'] !== undefined && errors['email'] !== ''}
             errorText={
               errors['email'] !== undefined && errors['email'] !== ''
                 ? errors['email']
-                : showEmailError
-                  ? 'Please enter a valid email address'
-                  : undefined
+                : undefined
             }
             editable={!isLoading}
             testID='register-email-input'

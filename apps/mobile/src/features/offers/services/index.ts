@@ -5,6 +5,7 @@
  */
 
 export { nearbyOffersService } from './nearbyOffersService';
+export { offersService } from './offersService';
 
 export type {
   GeoCoordinates,
@@ -15,6 +16,8 @@ export type {
   NearbyOffer,
   NearbyEstablishment,
   ProximitySearchResult,
-  NearbyOffersParams,
+  NearbyOffersParams as NearbyOffersServiceParams,
   GeocodeResult,
 } from './nearbyOffersService';
+
+export type { NearbyOffersParams } from './offersService';

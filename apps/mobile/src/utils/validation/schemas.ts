@@ -57,6 +57,19 @@ export const requiredPhoneValidator = requiredPhoneNumberValidator({
 export const requiredStringValidator = (fieldName: string) =>
   yup.string().required(`${fieldName} is required`).trim();
 
+// Name validation (no numbers only, allows letters with spaces/hyphens)
+export const nameValidator = (fieldName: string) =>
+  yup
+    .string()
+    .required(`${fieldName} is required`)
+    .trim()
+    .min(2, `${fieldName} must be at least 2 characters`)
+    .max(50, `${fieldName} is too long`)
+    .matches(
+      /^(?!\d+$)[a-zA-ZÀ-ÿ\s'-]+$/,
+      `${fieldName} must contain letters and cannot be only numbers`,
+    );
+
 // Price validation
 export const priceValidator = yup
   .number()
@@ -83,8 +96,8 @@ export const loginSchema = yup.object({
 });
 
 export const registerSchema = yup.object({
-  firstName: requiredStringValidator('First name').max(50, 'First name is too long'),
-  lastName: requiredStringValidator('Last name').max(50, 'Last name is too long'),
+  firstName: nameValidator('First name'),
+  lastName: nameValidator('Last name'),
   email: emailValidator,
   password: passwordValidator,
   confirmPassword: yup
@@ -97,6 +110,18 @@ export const registerSchema = yup.object({
     .boolean()
     .required('You must accept the terms and conditions')
     .oneOf([true], 'You must accept the terms and conditions'),
+});
+
+// Mobile-specific registration schema (phoneNumber deferred to order placement)
+export const registerMobileSchema = yup.object({
+  firstName: nameValidator('First name'),
+  lastName: nameValidator('Last name'),
+  email: emailValidator,
+  password: passwordValidator,
+  confirmPassword: yup
+    .string()
+    .required('Please confirm your password')
+    .oneOf([yup.ref('password')], 'Passwords must match'),
 });
 
 export const forgotPasswordSchema = yup.object({
@@ -189,8 +214,8 @@ export const editEstablishmentSchema = createEstablishmentSchema;
  */
 
 export const editProfileSchema = yup.object({
-  firstName: requiredStringValidator('First name').max(50, 'First name is too long'),
-  lastName: requiredStringValidator('Last name').max(50, 'Last name is too long'),
+  firstName: nameValidator('First name'),
+  lastName: nameValidator('Last name'),
   email: emailValidator,
   phone: phoneValidator,
   bio: yup.string().max(500, 'Bio is too long').nullable(),
@@ -262,6 +287,7 @@ export const searchFiltersSchema = yup.object({
 
 export type LoginFormData = yup.InferType<typeof loginSchema>;
 export type RegisterFormData = yup.InferType<typeof registerSchema>;
+export type RegisterMobileFormData = yup.InferType<typeof registerMobileSchema>;
 export type ForgotPasswordFormData = yup.InferType<typeof forgotPasswordSchema>;
 export type ResetPasswordFormData = yup.InferType<typeof resetPasswordSchema>;
 export type CreateOfferFormData = yup.InferType<typeof createOfferSchema>;

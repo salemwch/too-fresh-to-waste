@@ -10,17 +10,20 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 
 import { Text, Button, Card } from '@/design-system/components/atoms';
 import { LocationPromptBanner } from '@/design-system/components/molecules';
 import { ManualLocationModal } from '@/design-system/components/organisms';
 import { useTheme } from '@/design-system/providers';
 import { ImpactBanner } from '@/features/donations';
+import { OfferCard } from '@/features/offers/components';
+import { useFeaturedOffers } from '@/features/offers/hooks/useOffers';
 import { useAppSelector } from '@/hooks/redux';
 import { useLocation } from '@/hooks/useLocation';
 
 import type { HomeScreenNavigationProp } from '@/navigation/types';
+import type { OfferListItem } from '@/features/offers/types/offer.types';
 
 interface HomeScreenProps {
   navigation: HomeScreenNavigationProp;
@@ -29,6 +32,14 @@ interface HomeScreenProps {
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const { user } = useAppSelector(state => state.auth);
+
+  // Featured offers query
+  const {
+    data: featuredOffers,
+    isLoading: isFeaturedLoading,
+    error: featuredError,
+    refetch: refetchFeatured
+  } = useFeaturedOffers(10);
 
   // Location hook
   const {
@@ -48,13 +59,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   /**
    * Handle pull-to-refresh
    */
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    // TODO: Fetch latest offers, featured items, nearby offers
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
-  }, []);
+    await refetchFeatured();
+    // TODO: Refetch nearby offers when implemented
+    setRefreshing(false);
+  }, [refetchFeatured]);
 
   /**
    * Handle enabling location
@@ -175,20 +185,68 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             </Button>
           </View>
 
-          <Card style={styles.placeholderCard}>
-            <Text variant='body' size='md' color='secondary' align='center'>
-              Featured offers will appear here
-            </Text>
-            <Text
-              variant='body'
-              size='sm'
-              color='secondary'
-              align='center'
-              style={styles.placeholderSubtext}
-            >
-              Browse amazing deals from local businesses
-            </Text>
-          </Card>
+          {/* Loading State */}
+          {isFeaturedLoading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={theme.colors.primary} />
+              <Text variant="body" size="sm" color="secondary" style={{ marginTop: 12 }}>
+                Loading featured offers...
+              </Text>
+            </View>
+          )}
+
+          {/* Error State */}
+          {featuredError && !isFeaturedLoading && (
+            <Card style={styles.placeholderCard}>
+              <Text variant="body" size="md" color="error" align="center">
+                ⚠️ Failed to load featured offers
+              </Text>
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => refetchFeatured()}
+                style={{ marginTop: 12 }}
+              >
+                Retry
+              </Button>
+            </Card>
+          )}
+
+          {/* Featured Offers Carousel */}
+          {!isFeaturedLoading && !featuredError && featuredOffers && featuredOffers.length > 0 && (
+            <FlatList
+              data={featuredOffers}
+              renderItem={({ item }) => (
+                <OfferCard offer={item} variant="carousel" testID={`featured-offer-${item._id}`} />
+              )}
+              keyExtractor={(item) => item._id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.carouselContainer}
+              snapToInterval={300} // Snap to card width
+              decelerationRate="fast"
+              accessibilityLabel="Featured offers carousel"
+              accessibilityHint="Swipe left or right to browse featured offers"
+            />
+          )}
+
+          {/* Empty State */}
+          {!isFeaturedLoading && !featuredError && (!featuredOffers || featuredOffers.length === 0) && (
+            <Card style={styles.placeholderCard}>
+              <Text variant='body' size='md' color='secondary' align='center'>
+                No featured offers available
+              </Text>
+              <Text
+                variant='body'
+                size='sm'
+                color='secondary'
+                align='center'
+                style={styles.placeholderSubtext}
+              >
+                Check back soon for amazing deals from local businesses
+              </Text>
+            </Card>
+          )}
         </View>
 
         {/* Nearby Offers Section */}
@@ -343,6 +401,15 @@ const styles = StyleSheet.create({
   },
   placeholderSubtext: {
     marginTop: 8,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  carouselContainer: {
+    paddingLeft: 4,
+    paddingRight: 8,
   },
   categoriesGrid: {
     flexDirection: 'row',

@@ -3,7 +3,9 @@
  * User authentication with email/password, MFA support, and remember me
  */
 
+import { yupResolver } from '@hookform/resolvers/yup';
 import React, { useState, useCallback, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import {
   View,
   StyleSheet,
@@ -12,8 +14,8 @@ import {
   Platform,
   TouchableOpacity,
   Image,
+  Animated,
 } from 'react-native';
-import { parse as parseDomain } from 'tldts';
 
 import LeafLogo from '@/assets/images/leaf.png';
 import WavingHand from '@/assets/images/waving-hand.png';
@@ -21,7 +23,9 @@ import { Button, Input, Text, Card, Icon } from '@/design-system/components/atom
 import { LoginSuccessModal } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { loginSchema } from '@/utils/validation/schemas';
 
+import { authService } from '../services/authService';
 import { loginAsync, clearError } from '../store/authSlice';
 
 import type { LoginFormData } from '../types';
@@ -36,15 +40,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const { isLoading, error } = useAppSelector(state => state.auth);
 
-  // Form state
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: '',
-    rememberMe: false,
+  // React Hook Form setup with Yup validation
+  const {
+    control,
+    handleSubmit,
+    formState: { errors: formErrors },
+    watch,
+  } = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+    mode: 'onBlur', // Validate on blur for better UX
+    defaultValues: {
+      email: '',
+      password: '',
+      rememberMe: false,
+    },
   });
 
-  // Field-level errors
-  const [errors, setErrors] = useState<Partial<Record<keyof LoginFormData, string>>>({});
+  // Watch email for resend verification functionality
+  const email = watch('email');
 
   // Show password toggle
   const [showPassword, setShowPassword] = useState(false);
@@ -52,6 +65,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   // Success modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [userName, setUserName] = useState('');
+
+  // Email verification state
+  const [isEmailUnverified, setIsEmailUnverified] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
 
   /**
    * Clear error on component mount
@@ -61,89 +80,56 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   }, [dispatch]);
 
   /**
-   * Validate email format using Public Suffix List (PSL)
-   * Verifies the TLD is ICANN-registered (rejects .or, .rt, .c)
+   * Detect if login error is due to unverified email
    */
-  const validateEmail = (email: string): boolean => {
-    if (!email || email.trim() === '') return false;
-
-    const basicEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!basicEmailRegex.test(email.trim())) return false;
-
-    const domain = email.trim().split('@')[1];
-    if (domain == null || domain.trim() === '') return false;
-
-    const parsed = parseDomain(domain);
-    return parsed.isIcann === true && parsed.publicSuffix !== null;
-  };
+  useEffect(() => {
+    if (error?.toLowerCase().includes('verify your email')) {
+      setIsEmailUnverified(true);
+    } else {
+      setIsEmailUnverified(false);
+      setResendSuccess(false);
+      setResendError(null);
+    }
+  }, [error]);
 
   /**
-   * Validate form fields
+   * Handle form submission (React Hook Form automatically validates)
    */
-  const validateForm = useCallback((): boolean => {
-    const newErrors: Partial<Record<keyof LoginFormData, string>> = {};
+  const onSubmit = useCallback(
+    async (formData: LoginFormData) => {
+      try {
+        const result = await dispatch(
+          loginAsync({
+            email: formData.email.trim().toLowerCase(),
+            password: formData.password,
+            rememberMe: formData.rememberMe,
+          }),
+        ).unwrap();
 
-    // Email validation
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData.email, formData.password]);
-
-  /**
-   * Handle form submission
-   */
-  const handleLogin = useCallback(async () => {
-    // Clear previous errors
-    setErrors({});
-
-    // Validate form
-    if (!validateForm()) {
-      return;
-    }
-
-    try {
-      const result = await dispatch(
-        loginAsync({
-          email: formData.email.trim().toLowerCase(),
-          password: formData.password,
-          rememberMe: formData.rememberMe,
-        }),
-      ).unwrap();
-
-      // Check if MFA is required
-      if (
-        result.requiresMFA === true &&
-        typeof result.mfaToken === 'string' &&
-        result.mfaToken.trim() !== ''
-      ) {
-        navigation.navigate('MFAVerification', {
-          mfaToken: result.mfaToken,
-          userId: result.user.userId,
-        });
-      } else {
-        // Login successful! Show celebration modal
-        setUserName(result.user.firstName || 'User');
-        setShowSuccessModal(true);
-        // Modal will auto-dismiss after 3 seconds, then navigate to MainStack
+        // Check if MFA is required
+        if (
+          result.requiresMFA === true &&
+          typeof result.mfaToken === 'string' &&
+          result.mfaToken.trim() !== ''
+        ) {
+          navigation.navigate('MFAVerification', {
+            mfaToken: result.mfaToken,
+            userId: result.user.userId,
+          });
+        } else {
+          // Login successful! Show celebration modal
+          setUserName(result.user.firstName || 'User');
+          setShowSuccessModal(true);
+          // Modal will auto-dismiss after 3 seconds, then navigate to MainStack
+        }
+      } catch (err: any) {
+        // Error is handled by Redux state and displayed inline
+        // No alert needed - error banner will show automatically
+        console.error('Login error:', err);
       }
-    } catch (err: any) {
-      // Error is handled by Redux state and displayed inline
-      // No alert needed - error banner will show automatically
-      console.error('Login error:', err);
-    }
-  }, [formData, validateForm, dispatch, navigation]);
+    },
+    [formData, validateForm, dispatch, navigation],
+  );
 
   /**
    * Navigate to Register screen
@@ -158,6 +144,35 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const handleNavigateToForgotPassword = useCallback(() => {
     navigation.navigate('ForgotPassword');
   }, [navigation]);
+
+  /**
+   * Resend verification email
+   */
+  const handleResendVerificationEmail = useCallback(async () => {
+    if (!formData.email || resendingEmail) return;
+
+    try {
+      setResendingEmail(true);
+      setResendError(null);
+      setResendSuccess(false);
+
+      await authService.resendVerificationEmail(formData.email.trim().toLowerCase());
+
+      setResendSuccess(true);
+      setResendError(null);
+
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setResendSuccess(false);
+      }, 5000);
+    } catch (err: any) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send verification email';
+      setResendError(errorMessage);
+      setResendSuccess(false);
+    } finally {
+      setResendingEmail(false);
+    }
+  }, [formData.email, resendingEmail]);
 
   /**
    * Handle field change
@@ -206,6 +221,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
         {/* Login Form Card */}
         <Card style={styles.formCard}>
+          {/* Verification Status Badge (Top Right) */}
+          {isEmailUnverified && formData.email && (
+            <View style={styles.verificationBadge}>
+              <View
+                style={[
+                  styles.badge,
+                  {
+                    backgroundColor: '#FFEBEE',
+                    borderColor: theme.colors.error,
+                  },
+                ]}
+              >
+                <Icon name='close-circle' family='Ionicons' size='sm' color={theme.colors.error} />
+                <Text variant='label.small' weight='semibold' style={{ color: theme.colors.error }}>
+                  Unverified
+                </Text>
+              </View>
+            </View>
+          )}
+
           {/* Welcome Back Header with Waving Hand */}
           <View style={styles.welcomeHeader}>
             <View style={styles.welcomeTitleRow}>
@@ -224,7 +259,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             </Text>
           </View>
 
-          {/* Global error message from Redux - Security: Generic message for failed login */}
+          {/* Global error message from Redux - Displays specific error from backend */}
           {error !== null && error !== undefined && (
             <View style={[styles.errorBanner, { backgroundColor: theme.colors.errorContainer }]}>
               <View style={styles.errorBannerContent}>
@@ -239,7 +274,74 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   weight='medium'
                   style={[styles.errorText, { color: theme.colors.onErrorContainer }]}
                 >
-                  Invalid email or password. Please try again.
+                  {error}
+                </Text>
+              </View>
+
+              {/* Resend Verification Email Button (only for unverified email errors) */}
+              {isEmailUnverified && formData.email && (
+                <View style={styles.resendSection}>
+                  <Text variant='body.small' color='secondary' style={styles.resendPrompt}>
+                    Didn't receive the email?
+                  </Text>
+                  <TouchableOpacity
+                    onPress={handleResendVerificationEmail}
+                    disabled={resendingEmail}
+                    activeOpacity={0.7}
+                    style={styles.resendButton}
+                  >
+                    <Text
+                      variant='body.small'
+                      weight='semibold'
+                      style={{
+                        color: resendingEmail ? theme.colors.outline : theme.colors.primary,
+                      }}
+                    >
+                      {resendingEmail ? 'Sending...' : 'Resend Verification Email'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Success Message for Resent Email */}
+          {resendSuccess && (
+            <View
+              style={[styles.successBanner, { backgroundColor: theme.colors.primaryContainer }]}
+            >
+              <Icon
+                name='checkmark-circle-outline'
+                family='Ionicons'
+                size='md'
+                color={theme.colors.primary}
+              />
+              <Text
+                variant='body.small'
+                weight='medium'
+                style={[styles.successText, { color: theme.colors.onPrimaryContainer }]}
+              >
+                Verification email sent! Check your inbox.
+              </Text>
+            </View>
+          )}
+
+          {/* Error Message for Resend Failure */}
+          {resendError && (
+            <View style={[styles.errorBanner, { backgroundColor: theme.colors.errorContainer }]}>
+              <View style={styles.errorBannerContent}>
+                <Icon
+                  name='alert-circle-outline'
+                  family='Ionicons'
+                  size='md'
+                  color={theme.colors.error}
+                />
+                <Text
+                  variant='body.small'
+                  weight='medium'
+                  style={[styles.errorText, { color: theme.colors.onErrorContainer }]}
+                >
+                  {resendError}
                 </Text>
               </View>
             </View>
@@ -430,6 +532,28 @@ const styles = StyleSheet.create({
   formCard: {
     padding: 24,
     marginBottom: 16,
+    position: 'relative',
+  },
+  verificationBadge: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    zIndex: 10,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1,
+    transform: [{ rotate: '3deg' }], // Slight tilt for visual interest
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   welcomeHeader: {
     alignItems: 'center',
@@ -462,6 +586,32 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   errorText: {
+    flex: 1,
+  },
+  resendSection: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+    alignItems: 'center',
+  },
+  resendPrompt: {
+    marginBottom: 6,
+  },
+  resendButton: {
+    paddingVertical: 4,
+  },
+  successBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#C8E6C9', // Light green border
+  },
+  successText: {
     flex: 1,
   },
   passwordInput: {

@@ -88,13 +88,11 @@ export const MainStack: React.FC = () => {
 
       {/* Offer Modals */}
       <Stack.Group screenOptions={modalScreenOptions}>
-        <Stack.Screen name='OfferDetails' options={{ title: 'Offer Details' }}>
-          {props => (
-            <ProtectedRoute>
-              <OfferDetailsScreen {...props} />
-            </ProtectedRoute>
-          )}
-        </Stack.Screen>
+        <Stack.Screen
+          name='OfferDetails'
+          component={OfferDetailsScreen}
+          options={{ title: 'Offer Details' }}
+        />
       </Stack.Group>
 
       {/* Order Screens */}

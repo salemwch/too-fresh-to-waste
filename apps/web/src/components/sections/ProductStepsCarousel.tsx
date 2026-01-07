@@ -8,16 +8,6 @@ import styles from './ProductStepsCarousel.module.css';
 import 'swiper/css';
 import 'swiper/css/pagination';
 
-/**
- * ProductStepsCarousel - Step-by-step guide carousel
- *
- * Features:
- * - Custom card shape with clip-path cutout for step number
- * - Responsive breakpoints (1 → 2 → 3 slides)
- * - Auto-height slides
- * - Clickable pagination
- * - Matches original design from carrousel.md exactly
- */
 
 interface Step {
   number: number;

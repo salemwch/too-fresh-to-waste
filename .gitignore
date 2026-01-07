@@ -124,3 +124,6 @@ uploads/
 # Windows reserved filenames (should never be tracked)
 nul
 NUL
+
+!apps/web/public/images/**
+!apps/web/public/favicon.ico

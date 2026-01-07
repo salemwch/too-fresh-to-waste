@@ -284,6 +284,7 @@
   "section5": {
     "mainTitle": {
       "businessSolution": "OUR BUSINESS SOLUTION",
+      "separator": "&",
       "bigPrize": "OUR BIG PRIZE"
     },
     "sectionLabel": "FAQ's",

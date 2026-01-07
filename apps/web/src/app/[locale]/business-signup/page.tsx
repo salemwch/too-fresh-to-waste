@@ -18,17 +18,6 @@ const Lottie = dynamic(() => import('lottie-react'), {
   ),
 });
 
-/**
- * Business Sign-Up Coming Soon Page (Localized)
- *
- * Features:
- * - Same header as main page
- * - Creative gradient background
- * - Lottie animation from public/json animation/coming soon.json
- * - Animated text and content
- * - Fully responsive design
- * - RTL support for Arabic
- */
 export default function BusinessSignUpPage() {
   const t = useTranslations('businessSignup');
   const tCommon = useTranslations('common');

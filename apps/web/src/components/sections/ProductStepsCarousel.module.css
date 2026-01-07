@@ -1,9 +1,4 @@
-/**
- * CSS Module for ProductStepsCarousel custom card shape
- *
- * Uses CSS shape() function for the unique card cutout design.
- * Fallback to standard border-radius for unsupported browsers.
- */
+
 
 .cardShape {
   --r: 30px; /* outer radius */

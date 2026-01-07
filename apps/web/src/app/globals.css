@@ -3,16 +3,23 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-white text-gray-900;
-  }
-
   html {
     @apply scroll-smooth;
+    /* Prevent horizontal overscroll bounce */
+    overscroll-behavior-x: none;
     /* Improve text rendering */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-white text-gray-900;
+    /* Prevent horizontal overscroll bounce */
+    overscroll-behavior-x: none;
+    /* Ensure body takes full width without overflow */
+    min-width: 100%;
+    width: 100%;
   }
 
   /* Prevent text layout shifts */

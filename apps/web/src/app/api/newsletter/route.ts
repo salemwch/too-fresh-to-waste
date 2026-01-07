@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 // Rate limiting map (in-memory, for production use Redis or similar)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
-// Simple rate limiting: 5 requests per 15 minutes per IP
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes in ms
 const RATE_LIMIT_MAX_REQUESTS = 5;
 

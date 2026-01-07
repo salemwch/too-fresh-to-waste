@@ -64,7 +64,6 @@ export default function Section3Animated() {
               fill
               className='object-contain drop-shadow-2xl'
               style={{ top: '40px' }}
-              priority
               sizes='(min-width: 1024px) 600px, 500px'
             />
           </div>
@@ -190,7 +189,7 @@ export default function Section3Animated() {
               width={500}
               height={500}
               className='w-full h-auto object-contain drop-shadow-xl'
-              priority
+              priority = {false}
             />
           </div>
         </div>

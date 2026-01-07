@@ -4,7 +4,22 @@
  * TanStack Query hooks for offer-related data fetching.
  */
 
-// Nearby offers hooks
+// Offers data hooks
+export {
+  useOffer,
+  useOffers,
+  useFeaturedOffers,
+  useNearbyOffersQuery,
+  useEstablishmentOffers,
+  useCreateOffer,
+  useUpdateOffer,
+  useUpdateOfferStatus,
+  useReserveOffer,
+  useDeleteOffer,
+  offerKeys,
+} from './useOffers';
+
+// Nearby offers hooks (proximity search)
 export {
   useNearbyOffers,
   useNearbyEstablishments,

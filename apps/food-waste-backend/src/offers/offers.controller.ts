@@ -150,11 +150,11 @@ export class OffersController {
     async getFeaturedOffers(
         @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     ) {
-        const offers = await this.offersService.getFeaturedOffers(limit);
+        const result = await this.offersService.getFeaturedOffers(1, limit);
 
         return {
             message: 'Featured offers retrieved successfully',
-            data: offers,
+            data: result.offers,
         };
     }
 
