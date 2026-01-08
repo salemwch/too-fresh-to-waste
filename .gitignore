@@ -102,12 +102,10 @@ eslint-results.json
 *.eslintcache
 
 # Large assets that should use Git LFS or CDN
-*.png
-*.jpg
+
 *.jpeg
 *.gif
 *.webp
-*.svg
 # Exception: Keep small project images if needed
 !apps/web/public/favicon.ico
 !apps/mobile/android/app/src/main/res/**/*.png
