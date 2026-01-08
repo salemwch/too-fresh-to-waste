@@ -18,6 +18,7 @@ const Lottie = dynamic(() => import('lottie-react'), {
 
 export default function ComingSoonPage() {
   const tCommon = useTranslations('common');
+  const tComingSoon = useTranslations('comingSoon');
   const locale = useLocale() as Locale;
   const isRTL = locale === 'ar';
 
@@ -70,7 +71,7 @@ export default function ComingSoonPage() {
                 textShadow: '0 4px 6px rgba(0, 0, 0, 0.5)'
               }}
             >
-              Coming Soon
+              {tComingSoon('title')}
             </h1>
 
             {/* Lottie Animation */}
@@ -107,10 +108,10 @@ export default function ComingSoonPage() {
             {/* Description */}
             <div className="space-y-4 mt-20">
               <p className="text-lg sm:text-xl lg:text-2xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow-lg">
-                We're working hard to bring you something amazing!
+                {tComingSoon('workingHard')}
               </p>
               <p className="text-base sm:text-lg text-white/80 max-w-xl mx-auto drop-shadow-lg">
-                Stay tuned for updates. Subscribe to our newsletter below to be the first to know.
+                {tComingSoon('stayTuned')}
               </p>
             </div>
           </div>

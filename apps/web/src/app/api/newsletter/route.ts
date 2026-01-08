@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 // Rate limiting map (in-memory, for production use Redis or similar)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
+// Subscription tracking (in-memory, persists for server lifetime)
+const subscribedEmails = new Set<string>();
+
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes in ms
 const RATE_LIMIT_MAX_REQUESTS = 5;
 
@@ -94,7 +97,98 @@ export async function POST(request: NextRequest) {
     }
 
     // Sanitize email (remove any HTML tags, just in case)
-    const sanitizedEmail = email.replace(/<[^>]*>/g, '').trim();
+    const sanitizedEmail = email.replace(/<[^>]*>/g, '').trim().toLowerCase();
+
+    // Check if email is already subscribed (in-memory check)
+    if (subscribedEmails.has(sanitizedEmail)) {
+      return NextResponse.json(
+        {
+          error: "You're already subscribed! We'll keep you updated.",
+          code: 'ALREADY_SUBSCRIBED'
+        },
+        { status: 409 }
+      );
+    }
+
+    // Check if contact already exists in Brevo
+    try {
+      const checkContactResponse = await fetch(
+        `https://api.brevo.com/v3/contacts/${encodeURIComponent(sanitizedEmail)}`,
+        {
+          method: 'GET',
+          headers: {
+            accept: 'application/json',
+            'api-key': brevoApiKey,
+          },
+        }
+      );
+
+      // If contact exists (status 200), they're already subscribed
+      if (checkContactResponse.ok) {
+        subscribedEmails.add(sanitizedEmail);
+        return NextResponse.json(
+          {
+            error: "You're already subscribed! We'll keep you updated.",
+            code: 'ALREADY_SUBSCRIBED'
+          },
+          { status: 409 }
+        );
+      }
+      // If status is 404, contact doesn't exist - proceed with subscription
+      // Any other status, we'll log it and proceed anyway
+      if (checkContactResponse.status !== 404) {
+        console.warn('Unexpected status when checking contact:', checkContactResponse.status);
+      }
+    } catch (checkError) {
+      console.error('Error checking contact in Brevo:', checkError);
+      // Continue with subscription even if check fails
+    }
+
+    // Add to Brevo contacts list
+    try {
+      const addContactResponse = await fetch('https://api.brevo.com/v3/contacts', {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'api-key': brevoApiKey,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: sanitizedEmail,
+          listIds: [2], // Add to list ID 2 (you may need to adjust this)
+          updateEnabled: false, // Don't update if already exists
+          attributes: {
+            SUBSCRIBED_AT: new Date().toISOString(),
+            SOURCE: 'Website Newsletter',
+          },
+        }),
+      });
+
+      const addContactData = await addContactResponse.json();
+
+      // If contact already exists in list (duplicate)
+      if (addContactResponse.status === 400 && addContactData.code === 'duplicate_parameter') {
+        subscribedEmails.add(sanitizedEmail);
+        return NextResponse.json(
+          {
+            error: "You're already subscribed! We'll keep you updated.",
+            code: 'ALREADY_SUBSCRIBED'
+          },
+          { status: 409 }
+        );
+      }
+
+      if (!addContactResponse.ok && addContactResponse.status !== 400) {
+        console.error('Error adding contact to Brevo:', addContactData);
+        // Continue to send emails even if list addition fails
+      }
+    } catch (contactError) {
+      console.error('Error managing contact in Brevo:', contactError);
+      // Continue with sending emails
+    }
+
+    // Mark email as subscribed
+    subscribedEmails.add(sanitizedEmail);
 
     // Send notification to support email
     const supportEmailResponse = await fetch('https://api.brevo.com/v3/smtp/email', {

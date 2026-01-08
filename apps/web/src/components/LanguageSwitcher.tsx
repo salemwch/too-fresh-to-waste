@@ -31,9 +31,11 @@ export function LanguageSwitcher({ variant = 'dropdown', className = '', buttonC
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      // Since header is fixed, rect.bottom is already viewport-relative
+      // No need to add window.scrollY
       setDropdownPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX + rect.width / 2,
+        top: rect.bottom,
+        left: rect.left + rect.width / 2,
         width: rect.width,
       });
     }

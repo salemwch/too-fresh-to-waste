@@ -6,18 +6,19 @@ export const routing = defineRouting({
   // All supported locales
   locales,
 
-  // Default locale (French for Tunisia)
+  // Default locale (English)
   defaultLocale,
 
-  // URL strategy: '/fr/about', '/ar/about', '/en/about'
-  // Default locale doesn't need prefix: '/about' = French
-  localePrefix: 'as-needed',
+  // URL strategy: '/en/about', '/fr/about', '/ar/about'
+  // Always show locale prefix for clarity and persistence
+  localePrefix: 'always',
 
   // Alternate links for SEO (hreflang)
   alternateLinks: true,
 
-  // Locale detection
-  localeDetection: true,
+  // Disable automatic locale detection to ensure language persistence
+  // User must manually select language, which will persist across navigation
+  localeDetection: false,
 });
 
 // Navigation helpers with locale awareness

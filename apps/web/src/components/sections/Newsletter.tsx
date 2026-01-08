@@ -38,8 +38,17 @@ export default function Newsletter() {
         setMessage({ type: 'success', text: t('success') });
         setEmail('');
       } else {
-        // Handle specific error messages from server
-        const errorMessage = data.error || t('errors.general');
+        // Handle specific error codes from server
+        let errorMessage = t('errors.general');
+
+        if (response.status === 409 && data.code === 'ALREADY_SUBSCRIBED') {
+          // User is already subscribed
+          errorMessage = t('errors.alreadySubscribed');
+        } else if (data.error) {
+          // Use server-provided error message
+          errorMessage = data.error;
+        }
+
         setMessage({ type: 'error', text: errorMessage });
       }
     } catch (error) {

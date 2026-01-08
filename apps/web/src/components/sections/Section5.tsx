@@ -53,7 +53,7 @@ export default function Section5() {
                 width={520}
                 height={530}
                 className='w-full max-w-xl mx-auto h-auto object-contain'
-                priority={false}
+                loading='lazy'
               />
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function Section5() {
             {/* CTA Button (Optional) */}
             <div className='mt-8'>
               <a
-                href='#contact'
+                href='mailto:support@toofreshtoowaste.com?subject=Support Inquiry - Too Fresh To Waste'
                 className='inline-block px-6 py-3 bg-primary-500 text-white rounded-lg font-bold text-sm md:text-base transition-all duration-300 hover:bg-primary-600 hover:scale-105 outline-none'
                 aria-label={t('ctaButton')}
               >

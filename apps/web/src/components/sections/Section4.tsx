@@ -70,6 +70,7 @@ export default function Section4() {
                   width={32}
                   height={32}
                   className="card-circle-icon"
+                  loading="lazy"
                 />
               </div>
 

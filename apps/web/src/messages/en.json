@@ -219,6 +219,11 @@
     "changeLanguage": "Change language",
     "scrollToTop": "Scroll to top"
   },
+  "comingSoon": {
+    "title": "Coming Soon",
+    "workingHard": "We're working hard to bring you something amazing!",
+    "stayTuned": "Stay tuned for updates. Subscribe to our newsletter below to be the first to know."
+  },
   "businessSignup": {
     "title": "Coming Soon",
     "description": "We're building something amazing for businesses to join our platform and help reduce food waste.",
@@ -321,7 +326,8 @@
     "success": "Thank you for subscribing! Check your inbox for confirmation.",
     "errors": {
       "invalidEmail": "Please enter a valid email address.",
-      "general": "Something went wrong. Please try again later."
+      "general": "Something went wrong. Please try again later.",
+      "alreadySubscribed": "You're already subscribed! We'll keep you updated."
     }
   },
   "marquee": {

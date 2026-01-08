@@ -1,10 +1,10 @@
 // i18n Configuration for Tunisia Market
-// Supports: French (primary), Arabic, English
+// Supports: English (primary), French, Arabic
 
-export const locales = ['fr', 'ar', 'en'] as const;
+export const locales = ['en', 'fr', 'ar'] as const;
 export type Locale = (typeof locales)[number];
 
-export const defaultLocale: Locale = 'fr';
+export const defaultLocale: Locale = 'en';
 
 // Locale metadata for SEO and UI
 export const localeConfig: Record<Locale, {

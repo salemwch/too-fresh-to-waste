@@ -47,6 +47,7 @@ export default function Section3Animated() {
               width={60}
               height={60}
               className='mb-3'
+              loading='lazy'
             />
             <p
               className='text-primary-500 text-2xl leading-tight min-h-[3.5rem]'
@@ -65,12 +66,13 @@ export default function Section3Animated() {
               className='object-contain drop-shadow-2xl'
               style={{ top: '40px' }}
               sizes='(min-width: 1024px) 600px, 500px'
+              loading='lazy'
             />
           </div>
 
           {/* Row 1, Col 3: Earn Points */}
           <div className='flex flex-col items-start text-left w-[320px] self-end'>
-            <Image src='/images/points.png' alt='Points' width={60} height={60} className='mb-3' />
+            <Image src='/images/points.png' alt='Points' width={60} height={60} className='mb-3' loading='lazy' />
             <p
               className='text-primary-500 text-2xl leading-tight min-h-[3.5rem]'
               style={{ fontWeight: 900 }}
@@ -81,7 +83,7 @@ export default function Section3Animated() {
 
           {/* Row 2, Col 1: Get Rewards */}
           <div className='flex flex-col items-end text-right w-[320px]'>
-            <Image src='/images/reward.png' alt='Rewards' width={60} height={60} className='mb-3' />
+            <Image src='/images/reward.png' alt='Rewards' width={60} height={60} className='mb-3' loading='lazy' />
             <p
               className='text-primary-500 text-2xl leading-tight min-h-[3.5rem]'
               style={{ fontWeight: 900 }}
@@ -98,6 +100,7 @@ export default function Section3Animated() {
               width={60}
               height={60}
               className='mb-3'
+              loading='lazy'
             />
             <p
               className='text-primary-500 text-2xl leading-tight min-h-[3.5rem]'
@@ -120,6 +123,7 @@ export default function Section3Animated() {
                 width={50}
                 height={50}
                 className='mb-2 md:w-14 md:h-14 lg:w-16 lg:h-16'
+                loading='lazy'
               />
               <p
                 className='text-primary-500 text-sm md:text-base lg:text-lg font-bold leading-tight'
@@ -137,6 +141,7 @@ export default function Section3Animated() {
                 width={50}
                 height={50}
                 className='mb-2 md:w-14 md:h-14 lg:w-16 lg:h-16'
+                loading='lazy'
               />
               <p
                 className='text-primary-500 text-sm md:text-base lg:text-lg font-bold leading-tight'
@@ -154,6 +159,7 @@ export default function Section3Animated() {
                 width={50}
                 height={50}
                 className='mb-2 md:w-14 md:h-14 lg:w-16 lg:h-16'
+                loading='lazy'
               />
               <p
                 className='text-primary-500 text-sm md:text-base lg:text-lg font-bold leading-tight'
@@ -171,6 +177,7 @@ export default function Section3Animated() {
                 width={50}
                 height={50}
                 className='mb-2 md:w-14 md:h-14 lg:w-16 lg:h-16'
+                loading='lazy'
               />
               <p
                 className='text-primary-500 text-sm md:text-base lg:text-lg font-bold leading-tight'
@@ -189,7 +196,7 @@ export default function Section3Animated() {
               width={500}
               height={500}
               className='w-full h-auto object-contain drop-shadow-xl'
-              priority = {false}
+              loading='lazy'
             />
           </div>
         </div>

@@ -219,6 +219,11 @@
     "changeLanguage": "Changer de langue",
     "scrollToTop": "Retour en haut"
   },
+  "comingSoon": {
+    "title": "Bientôt disponible",
+    "workingHard": "Nous travaillons dur pour vous apporter quelque chose d'incroyable !",
+    "stayTuned": "Restez à l'écoute pour les mises à jour. Abonnez-vous à notre newsletter ci-dessous pour être le premier informé."
+  },
   "businessSignup": {
     "title": "Bientôt disponible",
     "description": "Nous construisons quelque chose d'incroyable pour les entreprises qui souhaitent rejoindre notre plateforme et aider à réduire le gaspillage alimentaire.",
@@ -321,7 +326,8 @@
     "success": "Merci de vous être abonné ! Vérifiez votre boîte de réception pour confirmation.",
     "errors": {
       "invalidEmail": "Veuillez entrer une adresse e-mail valide.",
-      "general": "Une erreur s'est produite. Veuillez réessayer plus tard."
+      "general": "Une erreur s'est produite. Veuillez réessayer plus tard.",
+      "alreadySubscribed": "Vous êtes déjà abonné ! Nous vous tiendrons au courant."
     }
   },
   "marquee": {
