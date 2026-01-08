@@ -66,6 +66,11 @@ export function LanguageSwitcher({ variant = 'dropdown', className = '', buttonC
   }, [isOpen]);
 
   const handleLocaleChange = (newLocale: Locale) => {
+    // Set cookie to persist language preference (1 year expiry)
+    const maxAge = 365 * 24 * 60 * 60; // 1 year in seconds
+    document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${maxAge}; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+
+    // Navigate to the new locale
     router.replace(pathname, { locale: newLocale });
     setIsOpen(false);
   };
@@ -202,6 +207,11 @@ export function LanguageSwitcherCompact({ className = '' }: { className?: string
     const currentIndex = locales.indexOf(locale);
     const nextIndex = (currentIndex + 1) % locales.length;
     const nextLocale = locales[nextIndex] ?? locales[0];
+
+    // Set cookie to persist language preference (1 year expiry)
+    const maxAge = 365 * 24 * 60 * 60; // 1 year in seconds
+    document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=${maxAge}; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+
     router.replace(pathname, { locale: nextLocale });
   };
 

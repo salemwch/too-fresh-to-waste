@@ -16,9 +16,9 @@ export const routing = defineRouting({
   // Alternate links for SEO (hreflang)
   alternateLinks: true,
 
-  // Disable automatic locale detection to ensure language persistence
-  // User must manually select language, which will persist across navigation
-  localeDetection: false,
+  // Enable automatic locale detection from cookie
+  // This allows language preference to persist across navigation
+  localeDetection: true,
 });
 
 // Navigation helpers with locale awareness
