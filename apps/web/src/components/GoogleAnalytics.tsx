@@ -29,7 +29,7 @@ export function GoogleAnalytics({
   measurementId,
   respectDNT = true,
   enabled = true,
-}: GoogleAnalyticsProps) {
+}: Readonly<GoogleAnalyticsProps>) {
   const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {

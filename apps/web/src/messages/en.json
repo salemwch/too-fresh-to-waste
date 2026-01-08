@@ -259,8 +259,8 @@
         "description": "Discover amazing food deals from restaurants, bakeries, and grocery stores near you. Filter by distance, price, or cuisine to find your perfect meal."
       },
       "step2": {
-        "title": "Step 2: Reserve and Confirm",
-        "description": "Select your favorite offer and reserve it with one tap. Confirm your order details and get ready for your delicious meal."
+        "title": "Step 2: Order and Confirm",
+        "description": "Select your favorite offer and order it with one tap. Confirm your order details and get ready for your delicious meal."
       },
       "step3": {
         "title": "Step 3: Choose Payment & Delivery",
@@ -268,7 +268,7 @@
       },
       "step4": {
         "title": "Step 4: Enjoy Your Delicious Food",
-        "description": "Savor quality meals at amazing prices while making a positive impact on the environment. Every bite helps reduce food waste!"
+        "description": "Save quality meals at amazing prices while making a positive impact on the environment. Every bite helps reduce food waste!"
       },
       "step5": {
         "title": "Step 5: Earn Points",
@@ -276,7 +276,7 @@
       },
       "step6": {
         "title": "Step 6: Get Rewards",
-        "description": "Redeem your points for discounts, free items, and special perks. Turn your food-saving efforts into real benefits!"
+        "description": "Redeem your points by donating them, or keep collecting to unlock bigger rewards. Turn your food-saving efforts into real benefits."
       }
     },
     "navigation": {

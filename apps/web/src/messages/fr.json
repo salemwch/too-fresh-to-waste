@@ -259,8 +259,8 @@
         "description": "Découvrez d'incroyables offres de nourriture dans les restaurants, boulangeries et épiceries près de chez vous. Filtrez par distance, prix ou cuisine pour trouver votre repas parfait."
       },
       "step2": {
-        "title": "Étape 2: Réservez et confirmez",
-        "description": "Sélectionnez votre offre préférée et réservez-la en un seul clic. Confirmez les détails de votre commande et préparez-vous pour votre délicieux repas."
+        "title": "Étape 2: Commandez et confirmez",
+        "description": "Sélectionnez votre offre préférée et commandez-la en un seul clic. Confirmez les détails de votre commande et préparez-vous pour votre délicieux repas."
       },
       "step3": {
         "title": "Étape 3: Choisissez paiement et livraison",
@@ -268,7 +268,7 @@
       },
       "step4": {
         "title": "Étape 4: Savourez votre délicieuse nourriture",
-        "description": "Dégustez des repas de qualité à des prix incroyables tout en ayant un impact positif sur l'environnement. Chaque bouchée aide à réduire le gaspillage alimentaire!"
+        "description": "Sauvez des repas de qualité à des prix incroyables tout en ayant un impact positif sur l'environnement. Chaque bouchée aide à réduire le gaspillage alimentaire!"
       },
       "step5": {
         "title": "Étape 5: Gagnez des points",
@@ -276,7 +276,7 @@
       },
       "step6": {
         "title": "Étape 6: Obtenez des récompenses",
-        "description": "Échangez vos points contre des réductions, des articles gratuits et des avantages spéciaux. Transformez vos efforts de sauvegarde alimentaire en bénéfices réels!"
+        "description": "Échangez vos points en les donnant, ou continuez à les accumuler pour débloquer de plus grandes récompenses. Transformez vos efforts de sauvegarde de nourriture en avantages réels."
       }
     },
     "navigation": {
