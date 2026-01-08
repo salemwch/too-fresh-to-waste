@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useScrollPosition } from '@/hooks/useScrollPosition';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Link, usePathname } from '@/i18n/routing';
 
 
 // Navigation link type

@@ -10,6 +10,7 @@ import {
 } from '@/components/sections';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { HashScrollHandler } from '@/components/HashScrollHandler';
+import { Link } from '@/i18n/routing';
 import type { Locale } from '@/i18n/config';
 
 interface HomePageProps {
@@ -204,13 +205,13 @@ function HeroSection({ locale }: { locale: Locale }) {
 
           {/* CTA Buttons */}
           <div className='flex flex-col sm:flex-row gap-4 justify-center items-stretch w-full max-w-2xl mx-auto px-4 sm:px-0'>
-            <a
+            <Link
               href='/coming-soon'
               className='w-full sm:w-auto sm:flex-1 px-6 py-3.5 border-2 border-white text-white rounded-lg font-bold text-sm sm:text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none text-center whitespace-nowrap'
               aria-label={t('cta.download')}
             >
               {t('cta.download')}
-            </a>
+            </Link>
             <a
               href='#faq'
               className='w-full sm:w-auto sm:flex-1 px-6 py-3.5 border-2 border-white text-white rounded-lg font-bold text-sm sm:text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none text-center whitespace-nowrap'
