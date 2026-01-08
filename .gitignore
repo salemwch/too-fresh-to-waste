@@ -126,4 +126,4 @@ nul
 NUL
 
 !apps/web/public/images/**
-!apps/web/public/favicon.ico
+!apps/web/public/favicon.svg

@@ -111,9 +111,14 @@ const config: Config = {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-25%)' },
         },
+        slideUp: {
+          '0%': { transform: 'translateY(100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
       },
       animation: {
         marquee: 'marquee 30s linear infinite',
+        slideUp: 'slideUp 0.3s ease-out',
       },
     },
   },

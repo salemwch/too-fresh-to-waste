@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 interface ScrollPosition {
   scrollY: number;
@@ -7,11 +8,15 @@ interface ScrollPosition {
 
 /**
  * Custom hook to track scroll position and determine if user has scrolled past threshold
- * OPTIMIZED: Initializes with current scroll position to prevent flicker on refresh
+ * BEST PRACTICE (2025): Route-aware scroll tracking that resets on navigation
+ * Based on patterns from Stripe, Airbnb, and modern web design standards
+ *
  * @param threshold - Pixel value to determine when isScrolled becomes true (default: 50)
  * @returns Object with scrollY position and isScrolled boolean
  */
 export function useScrollPosition(threshold: number = 50): ScrollPosition {
+  const pathname = usePathname();
+
   // Initialize with actual scroll position (SSR-safe)
   const [scrollPosition, setScrollPosition] = useState<ScrollPosition>(() => {
     // Server-side: default to top
@@ -26,6 +31,15 @@ export function useScrollPosition(threshold: number = 50): ScrollPosition {
     };
   });
 
+  // CRITICAL: Reset scroll state when pathname changes
+  // This ensures headers always show the correct color on new pages
+  useEffect(() => {
+    setScrollPosition({
+      scrollY: 0,
+      isScrolled: false,
+    });
+  }, [pathname]);
+
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return;
@@ -37,6 +51,9 @@ export function useScrollPosition(threshold: number = 50): ScrollPosition {
         isScrolled: currentScrollY > threshold,
       });
     };
+
+    // Initialize with current scroll position
+    handleScroll();
 
     // Add scroll listener with passive flag for better performance
     window.addEventListener('scroll', handleScroll, { passive: true });

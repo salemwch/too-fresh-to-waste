@@ -9,6 +9,7 @@ import {
   InfiniteMarquee,
 } from '@/components/sections';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { HashScrollHandler } from '@/components/HashScrollHandler';
 import type { Locale } from '@/i18n/config';
 
 interface HomePageProps {
@@ -23,6 +24,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
   return (
     <>
+      <HashScrollHandler />
       <Header />
 
       <main role='main'>
@@ -180,30 +182,38 @@ function HeroSection({ locale }: { locale: Locale }) {
           >
             {(() => {
               const tagline = t('tagline');
-              const parts = tagline.split('.');
-              const lastPart = parts[parts.length - 1]?.trim();
-              const firstParts = parts.slice(0, -1).join('.') + '.';
-              return (
-                <>
-                  {firstParts}
-                  {lastPart && <span style={{ color: '#fffb9b' }}> {lastPart}</span>}
-                </>
-              );
+              // Find the second-to-last period to split before the last sentence
+              const lastPeriodIndex = tagline.lastIndexOf('.');
+              const secondLastPeriodIndex = tagline.lastIndexOf('.', lastPeriodIndex - 1);
+
+              if (secondLastPeriodIndex > 0) {
+                const firstParts = tagline.substring(0, secondLastPeriodIndex + 1);
+                const lastPart = tagline.substring(secondLastPeriodIndex + 1); // Includes the period
+                return (
+                  <>
+                    {firstParts}
+                    <span style={{ color: '#fffb9b' }}>{lastPart}</span>
+                  </>
+                );
+              }
+
+              // Fallback: return the whole tagline
+              return tagline;
             })()}
           </h1>
 
           {/* CTA Buttons */}
-          <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
+          <div className='flex flex-col sm:flex-row gap-4 justify-center items-stretch w-full max-w-2xl mx-auto px-4 sm:px-0'>
             <a
-              href='#app'
-              className='px-8 py-3 border-2 border-white text-white rounded-lg font-bold text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none'
+              href='/coming-soon'
+              className='w-full sm:w-auto sm:flex-1 px-6 py-3.5 border-2 border-white text-white rounded-lg font-bold text-sm sm:text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none text-center whitespace-nowrap'
               aria-label={t('cta.download')}
             >
               {t('cta.download')}
             </a>
             <a
-              href='#business'
-              className='px-8 py-3 border-2 border-white text-white rounded-lg font-bold text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none'
+              href='#faq'
+              className='w-full sm:w-auto sm:flex-1 px-6 py-3.5 border-2 border-white text-white rounded-lg font-bold text-sm sm:text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none text-center whitespace-nowrap'
               aria-label={t('cta.business')}
             >
               {t('cta.business')}

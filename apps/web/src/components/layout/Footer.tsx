@@ -24,11 +24,11 @@ export default function Footer() {
     {
       title: t('sections.about.title'),
       links: [
-        { label: t('sections.about.whoWeAre'), href: '/about' },
-        { label: t('sections.about.mission'), href: '/mission' },
-        { label: t('sections.about.careers'), href: '/careers' },
-        { label: t('sections.about.blog'), href: '/blog' },
-        { label: t('sections.about.press'), href: '/press' },
+        { label: t('sections.about.whoWeAre'), href: '/coming-soon' },
+        { label: t('sections.about.mission'), href: '/coming-soon' },
+        { label: t('sections.about.careers'), href: '/coming-soon' },
+        { label: t('sections.about.blog'), href: '/coming-soon' },
+        { label: t('sections.about.press'), href: '/coming-soon' },
       ],
     },
     {
@@ -37,25 +37,25 @@ export default function Footer() {
         { label: t('sections.services.forConsumers'), href: '/#app' },
         { label: t('sections.services.forBusinesses'), href: '/business-signup' },
         { label: t('sections.services.howItWorks'), href: '/#features' },
-        { label: t('sections.services.pricing'), href: '/pricing' },
+        { label: t('sections.services.pricing'), href: '/coming-soon' },
       ],
     },
     {
       title: t('sections.support.title'),
       links: [
-        { label: t('sections.support.helpCenter'), href: '/help' },
+        { label: t('sections.support.helpCenter'), href: '/coming-soon' },
         { label: t('sections.support.faq'), href: '/#faq' },
-        { label: t('sections.support.contact'), href: '/contact' },
-        { label: t('sections.support.partners'), href: '/partners' },
+        { label: t('sections.support.contact'), href: '/coming-soon' },
+        { label: t('sections.support.partners'), href: '/coming-soon' },
       ],
     },
     {
       title: t('sections.legal.title'),
       links: [
-        { label: t('sections.legal.terms'), href: '/terms' },
-        { label: t('sections.legal.privacy'), href: '/privacy' },
-        { label: t('sections.legal.cookies'), href: '/cookies' },
-        { label: t('sections.legal.security'), href: '/security' },
+        { label: t('sections.legal.terms'), href: '/coming-soon' },
+        { label: t('sections.legal.privacy'), href: '/coming-soon' },
+        { label: t('sections.legal.cookies'), href: '/coming-soon' },
+        { label: t('sections.legal.security'), href: '/coming-soon' },
       ],
     },
   ];
@@ -204,7 +204,7 @@ export default function Footer() {
               </h4>
               <ul className="space-y-2">
                 {section.links.map((link) => (
-                  <li key={link.href}>
+                  <li key={link.label}>
                     <Link
                       href={link.href}
                       className="hover:text-white text-white/70 text-xs sm:text-sm font-normal transition-colors block"

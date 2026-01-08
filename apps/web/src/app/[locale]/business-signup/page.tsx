@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { Header } from '@/components/layout';
-import { motion, useInView } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { Locale } from '@/i18n/config';
 
 // Dynamically import Lottie to avoid SSR issues
@@ -24,15 +24,13 @@ export default function BusinessSignUpPage() {
   const locale = useLocale() as Locale;
   const isRTL = locale === 'ar';
 
-  const sectionRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: true, amount: 0.3 });
   const [animationData, setAnimationData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load the Lottie animation JSON
   useEffect(() => {
     setIsLoading(true);
-    fetch('/json animation/coming soon.json')
+    fetch('/json_animation/coming soon.json')
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to load animation');
@@ -79,7 +77,6 @@ export default function BusinessSignUpPage() {
 
       {/* Main Content Section */}
       <section
-        ref={sectionRef}
         dir={isRTL ? 'rtl' : 'ltr'}
         className="min-h-screen flex items-center justify-center px-4 py-20 relative overflow-hidden"
         style={{
@@ -152,39 +149,24 @@ export default function BusinessSignUpPage() {
                 );
               }
               return (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
-                  className="w-full max-w-md mx-auto min-h-[400px] flex items-center justify-center"
-                >
+                <div className="w-full max-w-md mx-auto min-h-[400px] flex items-center justify-center">
                   {lottieContent}
-                </motion.div>
+                </div>
               );
             })()}
 
             {/* Description */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="space-y-4"
-            >
+            <div className="space-y-4">
               <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
                 {t('description')}
               </p>
               <p className="text-base md:text-lg text-white/70 max-w-xl mx-auto">
                 {t('subDescription')}
               </p>
-            </motion.div>
+            </div>
 
             {/* Features Preview */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-8"
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-8">
               {features.map((feature, index) => (
                 <div
                   key={index}
@@ -195,15 +177,10 @@ export default function BusinessSignUpPage() {
                   <p className="text-white/70 text-sm">{feature.description}</p>
                 </div>
               ))}
-            </motion.div>
+            </div>
 
             {/* CTA Section */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ duration: 0.8, delay: 1 }}
-              className="pt-8"
-            >
+            <div className="pt-8">
               <p className="text-[#fffb9b] text-lg font-semibold mb-4">
                 {t('notifyQuestion')}
               </p>
@@ -221,7 +198,7 @@ export default function BusinessSignUpPage() {
                   {t('backToHome')}
                 </Link>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>

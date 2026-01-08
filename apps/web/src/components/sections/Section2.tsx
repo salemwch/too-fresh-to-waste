@@ -49,7 +49,7 @@ export default function Section2() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
           {/* App Store Button */}
           <a
-            href="#"
+            href="/coming-soon"
             className="group flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto"
             aria-label="Download on the App Store"
           >
@@ -64,7 +64,7 @@ export default function Section2() {
 
           {/* Google Play Button */}
           <a
-            href="#"
+            href="/coming-soon"
             className="group flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto"
             aria-label="Get it on Google Play"
           >

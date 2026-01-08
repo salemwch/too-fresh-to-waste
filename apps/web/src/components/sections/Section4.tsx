@@ -3,15 +3,7 @@
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 
-/**
- * Section 4: How to Use the App & Get Points
- * Features:
- * - Background color #005250 (dark teal)
- * - Title with color #fffb9b (light yellow)
- * - CSS Grid layout for equal height cards
- * - 6 step cards with circular icon badges
- * - Responsive grid breakpoints
- */
+
 
 interface StepCard {
   id: number;

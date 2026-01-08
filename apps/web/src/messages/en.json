@@ -48,7 +48,7 @@
   "section2": {
     "title": "The app that turns surplus food into savings and rewards",
     "subtitle": "Join the mission to end food waste in Tunisia—together, let's make every meal count",
-    "description": "Our app is the smart marketplace for surplus food in Tunisia. We help you rescue delicious, unsold meals from going to waste—offering you up to <discount>75% off</discount> or more at your favorite local hotels, supermarkets, bakeries, cafes, and restaurants...",
+    "description": "Our app is a smart marketplace for surplus food in Tunisia. It connects food businesses with users to rescue unsold meals from going to waste—helping businesses recover revenue while allowing users to enjoy delicious food at lower prices.",
     "downloadButtons": {
       "appStore": {
         "prefix": "Download on the",
@@ -303,7 +303,7 @@
       },
       "faq3": {
         "question": "What is the big prize?",
-        "answer": "The Big Prize is a high-value reward awarded every 3-4 months to the most active user in each city in Tunisia, each person for each city. The prize may include phones, electric scooters, smart watches, or other valuable gifts announced before each event."
+        "answer": "The Big Prize is a high-value reward awarded every 3-4 months to the 10 most active users in Tunisia. The prize may include phones, electric scooters, smart watches, and other valuable gifts announced before each event."
       },
       "faq4": {
         "question": "How do I get the big prize?",

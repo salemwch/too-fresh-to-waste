@@ -21,11 +21,16 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const pathname = usePathname();
-  // Navigation configuration
+
+  // Extract locale from pathname (e.g., /en/business-signup -> en)
+  const locale = pathname.split('/')[1] || 'en';
+  const isHomePage = pathname === `/${locale}` || pathname === '/';
+
+  // Navigation configuration - use full paths when not on home page
   const NAV_LINKS: NavLink[] = [
-    { label: t('nav.theApp'), href: '#app' },
-    { label: t('nav.whyChooseUs'), href: '#features' },
-    { label: t('nav.businessSolution'), href: '#faq'},
+    { label: t('nav.theApp'), href: isHomePage ? '#app' : `/${locale}#app` },
+    { label: t('nav.whyChooseUs'), href: isHomePage ? '#features' : `/${locale}#features` },
+    { label: t('nav.businessSolution'), href: isHomePage ? '#faq' : `/${locale}#faq` },
   ];
 
 
@@ -34,9 +39,19 @@ export default function Header() {
     setHasMounted(true);
   }, []);
 
-  // Reset scroll position on route change to prevent header flicker
+  // CRITICAL: Reset scroll position on route change to prevent header color persistence
+  // This ensures the header always starts with the primary color on new pages
   useEffect(() => {
+    // Immediately scroll to top
     window.scrollTo(0, 0);
+
+    // Force a small delay to ensure scroll position is properly reset
+    // This prevents the useScrollPosition hook from retaining old scroll state
+    const timer = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 10);
+
+    return () => clearTimeout(timer);
   }, [pathname]);
 
   // Prevent body scroll when mobile menu is open
@@ -96,15 +111,25 @@ export default function Header() {
             <div className='flex items-center'>
               <Link href='/' aria-label='Too Fresh To Waste Home'>
                 <div className='relative w-20 lg:w-28 xl:w-40 h-10 lg:h-14 xl:h-20'>
+                  {/* Green logo (when not scrolled) */}
                   <Image
-                    src={
-                      isScrolledState
-                        ? '/images/white-header-center-logo.png'
-                        : '/images/green-header-center.png'
-                    }
+                    src='/images/green-header-center.png'
                     alt='Too Fresh To Waste Logo'
                     fill
-                    className='object-contain'
+                    className={`object-contain transition-opacity duration-200 ${
+                      isScrolledState ? 'opacity-0' : 'opacity-100'
+                    }`}
+                    sizes='(max-width: 1024px) 80px, (max-width: 1280px) 112px, 160px'
+                    priority
+                  />
+                  {/* White logo (when scrolled) */}
+                  <Image
+                    src='/images/white-header-center-logo.png'
+                    alt='Too Fresh To Waste Logo'
+                    fill
+                    className={`object-contain transition-opacity duration-200 ${
+                      isScrolledState ? 'opacity-100' : 'opacity-0'
+                    }`}
                     sizes='(max-width: 1024px) 80px, (max-width: 1280px) 112px, 160px'
                     priority
                   />
@@ -145,7 +170,7 @@ export default function Header() {
               {/* Desktop: CTA Buttons */}
               <div className='hidden lg:flex items-center gap-1.5 xl:gap-4'>
                 <Link
-                  href='#download'
+                  href='/coming-soon'
                   className={`px-2 lg:px-3 xl:px-6 py-2 xl:py-2.5 border-2 rounded-lg font-bold text-[10px] lg:text-xs xl:text-base tracking-tighter lg:tracking-tight xl:tracking-wide transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   aria-label={t('cta.downloadApp')}
                 >
@@ -230,7 +255,7 @@ export default function Header() {
               {/* CTA Buttons */}
               <div className='space-y-3 px-4'>
                 <Link
-                  href='#download'
+                  href='/coming-soon'
                   className={`block text-center px-6 py-3 border-2 rounded-lg font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   role='menuitem'

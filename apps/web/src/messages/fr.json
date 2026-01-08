@@ -48,7 +48,7 @@
   "section2": {
     "title": "L'application qui transforme les surplus alimentaires en économies et récompenses",
     "subtitle": "Rejoignez la mission pour mettre fin au gaspillage alimentaire en Tunisie—ensemble, faisons compter chaque repas",
-    "description": "Notre application est la marketplace intelligente pour les surplus alimentaires en Tunisie. Nous vous aidons à sauver de délicieux repas invendus du gaspillage—vous offrant jusqu'à <discount>75% de réduction</discount> ou plus dans vos hôtels, supermarchés, boulangeries, cafés et restaurants locaux préférés...",
+    "description": "Notre application est une marketplace intelligente pour les surplus alimentaires en Tunisie. Elle connecte les entreprises alimentaires avec les utilisateurs pour sauver les repas invendus du gaspillage—aidant les entreprises à récupérer des revenus tout en permettant aux utilisateurs de profiter de délicieuse nourriture à prix réduits.",
     "downloadButtons": {
       "appStore": {
         "prefix": "Télécharger sur",
@@ -284,6 +284,7 @@
   "section5": {
     "mainTitle": {
       "businessSolution": "NOTRE SOLUTION ENTREPRISE",
+      "separator": "&",
       "bigPrize": "NOTRE GRAND PRIX"
     },
     "sectionLabel": "FAQ's",
@@ -302,7 +303,7 @@
       },
       "faq3": {
         "question": "Qu'est-ce que le grand prix ?",
-        "answer": "Le Grand Prix est une récompense de grande valeur attribuée tous les 3-4 mois à l'utilisateur le plus actif dans chaque ville de Tunisie, une personne par ville. Le prix peut inclure des téléphones, des scooters électriques, des montres intelligentes ou d'autres cadeaux précieux annoncés avant chaque événement."
+        "answer": "Le Grand Prix est une récompense de grande valeur attribuée tous les 3-4 mois aux 10 utilisateurs les plus actifs en Tunisie. Le prix peut inclure des téléphones, des scooters électriques, des montres intelligentes et d'autres cadeaux précieux annoncés avant chaque événement."
       },
       "faq4": {
         "question": "Comment obtenir le grand prix ?",
