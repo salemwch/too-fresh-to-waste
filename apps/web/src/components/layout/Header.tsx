@@ -21,15 +21,17 @@ export default function Header() {
   const [hasMounted, setHasMounted] = useState(false);
   const pathname = usePathname();
 
-  // Extract locale from pathname (e.g., /en/business-signup -> en)
-  const locale = pathname.split('/')[1] || 'en';
-  const isHomePage = pathname === `/${locale}` || pathname === '/';
+  // Check if we're on the home page
+  // Note: usePathname() from @/i18n/routing returns pathname WITHOUT locale prefix
+  const isHomePage = pathname === '/';
 
-  // Navigation configuration - use full paths when not on home page
+  // Navigation configuration
+  // When on home page: use hash links (#app)
+  // When on other pages: use full path with hash (/#app) - locale prefix added automatically by Link
   const NAV_LINKS: NavLink[] = [
-    { label: t('nav.theApp'), href: isHomePage ? '#app' : `/${locale}#app` },
-    { label: t('nav.whyChooseUs'), href: isHomePage ? '#features' : `/${locale}#features` },
-    { label: t('nav.businessSolution'), href: isHomePage ? '#faq' : `/${locale}#faq` },
+    { label: t('nav.theApp'), href: isHomePage ? '#app' : '/#app' },
+    { label: t('nav.whyChooseUs'), href: isHomePage ? '#features' : '/#features' },
+    { label: t('nav.businessSolution'), href: isHomePage ? '#faq' : '/#faq' },
   ];
 
 
