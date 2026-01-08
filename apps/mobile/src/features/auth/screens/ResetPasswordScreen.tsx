@@ -9,7 +9,9 @@
  * - Accessibility support
  */
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { yupResolver } from '@hookform/resolvers/yup';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import {
   View,
   StyleSheet,
@@ -21,17 +23,13 @@ import {
 import { Button, Input, Text, Card, Icon } from '@/design-system/components/atoms';
 import { PasswordStrengthIndicator } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
+import { resetPasswordSchema, type ResetPasswordFormData } from '@/utils/validation/schemas';
 
 import { authService } from '../services/authService';
 import { Logger } from '@/utils/logger';
 import { ErrorType } from '@/utils/errorHandler';
 
 import type { ResetPasswordScreenProps } from '@/navigation/types';
-
-/**
- * Validation rules for password
- */
-const PASSWORD_MIN_LENGTH = 8;
 
 /**
  * ResetPasswordScreen Component
@@ -46,9 +44,26 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
   // Extract params from deep link
   const { email, token } = route.params;
 
-  // Form state
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  // React Hook Form setup with Yup validation
+  const {
+    control,
+    handleSubmit,
+    formState: { errors: formErrors },
+    watch,
+    setError: setFormError,
+  } = useForm<ResetPasswordFormData>({
+    resolver: yupResolver(resetPasswordSchema),
+    mode: 'onBlur', // Validate on blur for better UX
+    defaultValues: {
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  // Watch password for strength indicator
+  const password = watch('password');
+
+  // UI state
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,10 +71,6 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [passwordReuseError, setPasswordReuseError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
-
-  // Track confirm password focus/blur state for UX
-  const [isConfirmPasswordFocused, setIsConfirmPasswordFocused] = useState(false);
-  const [hasBlurredConfirmPassword, setHasBlurredConfirmPassword] = useState(false);
 
   /**
    * Log screen mount for analytics
@@ -82,35 +93,9 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
   }, [email, token]);
 
   /**
-   * Check if passwords match
+   * Handle password reset submission (React Hook Form automatically validates)
    */
-  const passwordsMatch = useMemo(() => {
-    return password === confirmPassword && confirmPassword.length > 0;
-  }, [password, confirmPassword]);
-
-  /**
-   * Only show mismatch error after user has blurred the field AND passwords don't match
-   */
-  const showPasswordMismatch = useMemo(() => {
-    return (
-      hasBlurredConfirmPassword &&
-      !isConfirmPasswordFocused &&
-      confirmPassword.length > 0 &&
-      !passwordsMatch
-    );
-  }, [hasBlurredConfirmPassword, isConfirmPasswordFocused, confirmPassword, passwordsMatch]);
-
-  /**
-   * Determine if form can be submitted
-   */
-  const canSubmit = useMemo(() => {
-    return isPasswordValid && passwordsMatch && !isLoading && !!email && !!token;
-  }, [isPasswordValid, passwordsMatch, isLoading, email, token]);
-
-  /**
-   * Handle password reset submission
-   */
-  const handleResetPassword = useCallback(async () => {
+  const onSubmit = useCallback(async (formData: ResetPasswordFormData) => {
     // Clear previous errors
     setError(null);
 
@@ -122,16 +107,11 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
     }
 
     if (!isPasswordValid) {
-      setError(
-        `Password must be at least ${PASSWORD_MIN_LENGTH} characters and meet strength requirements.`,
-      );
+      setFormError('password', {
+        type: 'manual',
+        message: 'Password does not meet security requirements. Please check the requirements below.',
+      });
       Logger.warn('ResetPassword: Weak password attempt');
-      return;
-    }
-
-    if (!passwordsMatch) {
-      setError('Passwords do not match. Please check and try again.');
-      Logger.warn('ResetPassword: Password mismatch');
       return;
     }
 
@@ -142,7 +122,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
       await authService.confirmPasswordReset({
         email: email.trim().toLowerCase(),
         token: token.trim(),
-        newPassword: password,
+        newPassword: formData.password,
       });
 
       Logger.info('Password reset successful', { email: email.substring(0, 3) + '***' });
@@ -187,7 +167,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [email, token, password, confirmPassword, isPasswordValid, passwordsMatch, navigation]);
+  }, [email, token, isPasswordValid, setFormError, navigation]);
 
   /**
    * Navigate to forgot password screen for new reset link
@@ -217,28 +197,9 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
   }, [navigation]);
 
   /**
-   * Handle password input change
-   */
-  const handlePasswordChange = useCallback((value: string) => {
-    setPassword(value);
-    setError(null);
-    setPasswordReuseError(null);
-  }, []);
-
-  /**
-   * Handle confirm password input change
-   */
-  const handleConfirmPasswordChange = useCallback((value: string) => {
-    setConfirmPassword(value);
-    setError(null);
-  }, []);
-
-  /**
    * Render error banner if expired/invalid token
    */
-  const showRequestNewLinkButton = useMemo(() => {
-    return error?.toLowerCase().includes('expired') || error?.toLowerCase().includes('invalid');
-  }, [error]);
+  const showRequestNewLinkButton = error?.toLowerCase().includes('expired') || error?.toLowerCase().includes('invalid');
 
   // Success state - password reset complete
   if (isSuccess) {
@@ -340,8 +301,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
 
           {/* Subtitle */}
           <Text variant='body' size='md' color='secondary' align='center' style={styles.subtitle}>
-            Enter a strong password for your account. Make sure it's at least {PASSWORD_MIN_LENGTH}{' '}
-            characters long.
+            Enter a strong password for your account. Make sure it's at least 12 characters long.
           </Text>
 
           {/* Email Display */}
@@ -396,26 +356,38 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
           )}
 
           {/* Password Input */}
-          <Input
-            label='New Password'
-            placeholder='Enter your new password'
-            value={password}
-            onChangeText={handlePasswordChange}
-            secureTextEntry={!showPassword}
-            autoCapitalize='none'
-            autoCorrect={false}
-            autoComplete='password-new'
-            textContentType='newPassword'
-            leftIcon='lock-closed-outline'
-            leftIconFamily='Ionicons'
-            rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
-            rightIconFamily='Ionicons'
-            onRightIconPress={() => setShowPassword(!showPassword)}
-            hasError={!!error && !password}
-            editable={!isLoading}
-            testID='reset-password-new-input'
-            accessibilityLabel='New password input'
-            accessibilityHint='Enter your new password. It must be at least 8 characters long.'
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label='New Password'
+                placeholder='Enter your new password'
+                value={value}
+                onChangeText={(text) => {
+                  onChange(text);
+                  setError(null);
+                  setPasswordReuseError(null);
+                }}
+                onBlur={onBlur}
+                secureTextEntry={!showPassword}
+                autoCapitalize='none'
+                autoCorrect={false}
+                autoComplete='password-new'
+                textContentType='newPassword'
+                leftIcon='lock-closed-outline'
+                leftIconFamily='Ionicons'
+                rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                rightIconFamily='Ionicons'
+                onRightIconPress={() => setShowPassword(!showPassword)}
+                hasError={!!formErrors.password || !!passwordReuseError}
+                errorText={formErrors.password?.message}
+                editable={!isLoading}
+                testID='reset-password-new-input'
+                accessibilityLabel='New password input'
+                accessibilityHint='Enter your new password. It must be at least 8 characters long.'
+              />
+            )}
           />
 
           {/* Password Strength Indicator - Compact dropdown mode */}
@@ -457,67 +429,52 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
           )}
 
           {/* Confirm Password Input */}
-          <Input
-            label='Confirm Password'
-            placeholder='Re-enter your new password'
-            value={confirmPassword}
-            onChangeText={handleConfirmPasswordChange}
-            onFocus={() => setIsConfirmPasswordFocused(true)}
-            onBlur={() => {
-              setIsConfirmPasswordFocused(false);
-              setHasBlurredConfirmPassword(true);
-            }}
-            secureTextEntry={!showConfirmPassword}
-            autoCapitalize='none'
-            autoCorrect={false}
-            autoComplete='password-new'
-            textContentType='newPassword'
-            leftIcon='lock-closed-outline'
-            leftIconFamily='Ionicons'
-            rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
-            rightIconFamily='Ionicons'
-            onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
-            hasError={showPasswordMismatch}
-            editable={!isLoading}
-            testID='reset-password-confirm-input'
-            accessibilityLabel='Confirm password input'
-            accessibilityHint='Re-enter your new password to confirm it matches.'
+          <Controller
+            control={control}
+            name="confirmPassword"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label='Confirm Password'
+                placeholder='Re-enter your new password'
+                value={value}
+                onChangeText={(text) => {
+                  onChange(text);
+                  setError(null);
+                }}
+                onBlur={onBlur}
+                secureTextEntry={!showConfirmPassword}
+                autoCapitalize='none'
+                autoCorrect={false}
+                autoComplete='password-new'
+                textContentType='newPassword'
+                leftIcon='lock-closed-outline'
+                leftIconFamily='Ionicons'
+                rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                rightIconFamily='Ionicons'
+                onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                hasError={!!formErrors.confirmPassword}
+                errorText={formErrors.confirmPassword?.message}
+                editable={!isLoading}
+                testID='reset-password-confirm-input'
+                accessibilityLabel='Confirm password input'
+                accessibilityHint='Re-enter your new password to confirm it matches.'
+              />
+            )}
           />
 
-          {/* Password Mismatch Error - only show when passwords don't match after blur */}
-          {showPasswordMismatch && (
-            <View style={styles.fieldErrorIndicator} accessible accessibilityRole='alert'>
-              <Icon
-                name='close-circle'
-                family='Ionicons'
-                size={16}
-                color={theme.colors.error}
-              />
-              <Text
-                variant='body'
-                size='sm'
-                style={{
-                  color: theme.colors.error,
-                  marginLeft: 6,
-                }}
-              >
-                Passwords do not match
-              </Text>
-            </View>
-          )}
 
           {/* Reset Password Button */}
           <Button
             variant='primary'
             size='lg'
-            onPress={handleResetPassword}
+            onPress={handleSubmit(onSubmit)}
             loading={isLoading}
-            disabled={!canSubmit}
+            disabled={isLoading || !isPasswordValid}
             style={styles.submitButton}
             testID='reset-password-submit-button'
             accessibilityLabel='Reset password button'
             accessibilityHint='Tap to confirm and reset your password'
-            accessibilityState={{ disabled: !canSubmit, busy: isLoading }}
+            accessibilityState={{ disabled: isLoading || !isPasswordValid, busy: isLoading }}
           >
             {isLoading ? 'Resetting Password...' : 'Reset Password'}
           </Button>

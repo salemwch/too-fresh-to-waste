@@ -189,10 +189,15 @@ class AuthService {
     }
 
     if (status !== undefined && status >= 400) {
-      // For 400 errors (validation/conflict errors), throw simple Error without showing red box
-      // These are user-facing errors that should be handled gracefully in UI
-      // message is guaranteed to be a string from extraction logic above
-      throw new Error(message);
+      // For 400 errors (validation/conflict errors), preserve response data for field-level error handling
+      // Create enhanced error with response data attached for validation error parsing
+      const enhancedError = new Error(message) as Error & {
+        response?: { data: unknown } | undefined;
+      };
+      if (error.response?.data !== undefined) {
+        enhancedError.response = { data: error.response.data };
+      }
+      throw enhancedError;
     }
 
     // Axios error without response (network issue)

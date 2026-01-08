@@ -6,7 +6,9 @@
 /* eslint-disable dot-notation */
 // Note: Using bracket notation due to TypeScript's noPropertyAccessFromIndexSignature rule
 
+import { yupResolver } from '@hookform/resolvers/yup';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import {
   View,
   StyleSheet,
@@ -16,18 +18,17 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import * as yup from 'yup';
 
 import { Button, Input, Text, Card } from '@/design-system/components/atoms';
 import { PasswordStrengthIndicator } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { registerMobileSchema } from '@/utils/validation/schemas';
+import { registerMobileSchema, type RegisterMobileFormData } from '@/utils/validation/schemas';
 
 import { registerAsync, clearError } from '../store/authSlice';
 import { UserRole } from '../types';
 
-import type { RegisterFormData, RegisterRequest, RegisterResponse } from '../types';
+import type { RegisterRequest, RegisterResponse } from '../types';
 import type { RegisterScreenNavigationProp } from '@/navigation/types';
 
 interface RegisterScreenProps {
@@ -54,17 +55,30 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
     console.log('RegisterScreen Redux error value:', JSON.stringify(error));
   }
 
-  // Form state (phoneNumber removed - deferred to order placement, role hardcoded to consumer)
-  const [formData, setFormData] = useState<RegisterFormData>({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
+  // React Hook Form setup with Yup validation
+  const {
+    control,
+    handleSubmit,
+    formState: { errors: formErrors },
+    watch,
+    setError,
+  } = useForm<RegisterMobileFormData>({
+    resolver: yupResolver(registerMobileSchema),
+    mode: 'onBlur', // Validate on blur for better UX
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
   });
 
-  // Field-level errors
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  // Watch password for strength indicator
+  const password = watch('password');
+  const email = watch('email');
+  const firstName = watch('firstName');
+  const lastName = watch('lastName');
 
   // Show password toggles
   const [showPassword, setShowPassword] = useState(false);
@@ -72,16 +86,6 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
 
   // Password validity state (from PasswordStrengthIndicator)
   const [isPasswordValid, setIsPasswordValid] = useState(false);
-
-  // Track if confirm password field is focused
-  const [isConfirmPasswordFocused, setIsConfirmPasswordFocused] = useState(false);
-
-  // Track if user has blurred the confirm password field (to show validation)
-  const [hasBlurredConfirmPassword, setHasBlurredConfirmPassword] = useState(false);
-
-  // Track if user has blurred the email field (to show validation on blur)
-  const [hasBlurredEmail, setHasBlurredEmail] = useState(false);
-  const [isEmailFocused, setIsEmailFocused] = useState(false);
 
   // Track if global error banner is dismissed
   const [isGlobalErrorDismissed, setIsGlobalErrorDismissed] = useState(false);
@@ -117,63 +121,16 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
     setIsGlobalErrorDismissed(false);
   }, [error]);
 
-  // Real-time password match check
-  const passwordsMatch =
-    formData.password.length > 0 &&
-    formData.confirmPassword.length > 0 &&
-    formData.password === formData.confirmPassword;
-
-  // Only show mismatch error after user has blurred the field AND passwords don't match
-  const showPasswordMismatch =
-    hasBlurredConfirmPassword &&
-    !isConfirmPasswordFocused &&
-    formData.confirmPassword.length > 0 &&
-    !passwordsMatch;
-
   /**
-   * Validate form fields using centralized Yup schema
+   * Handle form submission (React Hook Form automatically validates)
    */
-  const validateForm = useCallback(async (): Promise<boolean> => {
-    try {
-      // Validate using centralized schema
-      await registerMobileSchema.validate(formData, { abortEarly: false });
-
-      // Additional check: password strength (from PasswordStrengthIndicator)
-      if (!isPasswordValid) {
-        setErrors({
-          password: 'Password does not meet security requirements. Please check the requirements below.',
-        });
-        return false;
-      }
-
-      setErrors({});
-      return true;
-    } catch (error) {
-      if (error instanceof yup.ValidationError) {
-        // Extract field-level errors
-        const fieldErrors: Record<string, string> = {};
-        error.inner.forEach((err) => {
-          if (err.path) {
-            fieldErrors[err.path] = err.message;
-          }
-        });
-        setErrors(fieldErrors);
-      }
-      return false;
-    }
-  }, [formData, isPasswordValid]);
-
-  /**
-   * Handle form submission
-   */
-  const handleRegister = useCallback(async () => {
-    // Clear previous errors
-    setErrors({});
-
-    // Validate form using centralized schema
-    const isValid = await validateForm();
-    if (!isValid) {
-      console.log('RegisterScreen: Form validation failed');
+  const onSubmit = useCallback(async (formData: RegisterMobileFormData) => {
+    // Additional check: password strength (from PasswordStrengthIndicator)
+    if (!isPasswordValid) {
+      setError('password', {
+        type: 'manual',
+        message: 'Password does not meet security requirements. Please check the requirements below.',
+      });
       return;
     }
 
@@ -301,25 +258,28 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
       // If we extracted field-specific errors from backend, use them
       if (Object.keys(fieldErrors).length > 0) {
         console.log('RegisterScreen: Setting field errors from backend:', fieldErrors);
-        setErrors(fieldErrors);
+        // Set each field error using React Hook Form's setError
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          setError(field as keyof RegisterMobileFormData, {
+            type: 'manual',
+            message,
+          });
+        });
       } else {
         // Fallback to legacy error message parsing
         const lowerErrorMsg = errorMessage.toLowerCase();
 
         if (lowerErrorMsg.includes('email') && lowerErrorMsg.includes('already')) {
           console.log('RegisterScreen: Showing email already exists error');
-          setErrors({
-            email: 'This email is already registered. Please use a different email.',
-          });
-        } else if (lowerErrorMsg.includes('phone')) {
-          console.log('RegisterScreen: Showing phone number error');
-          setErrors({
-            phoneNumber: errorMessage,
+          setError('email', {
+            type: 'manual',
+            message: 'This email is already registered. Please use a different email.',
           });
         } else if (lowerErrorMsg.includes('password')) {
           console.log('RegisterScreen: Showing password error');
-          setErrors({
-            password: errorMessage,
+          setError('password', {
+            type: 'manual',
+            message: errorMessage,
           });
         } else {
           console.log(
@@ -334,25 +294,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
       console.log('===== REGISTRATION FLOW ERROR END =====');
       console.log('==========================================');
     }
-  }, [formData, validateForm, dispatch, navigation, isMountedRef]);
-
-  /**
-   * Handle field change
-   */
-  const handleFieldChange = useCallback(
-    <K extends keyof RegisterFormData>(field: K, value: RegisterFormData[K]) => {
-      setFormData(prev => ({ ...prev, [field]: value }));
-      // Clear error for this field when user types
-      if (errors[field] !== undefined && errors[field] !== '') {
-        setErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors[field];
-          return newErrors;
-        });
-      }
-    },
-    [errors],
-  );
+  }, [isPasswordValid, setError, dispatch, navigation, isMountedRef]);
 
   /**
    * Navigate to login screen
@@ -373,24 +315,6 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
       {label} <Text style={{ color: theme.colors.error }}>*</Text>
     </>
   );
-
-  /**
-   * Render confirm password label with dynamic color
-   */
-  const renderConfirmPasswordLabel = () => {
-    const labelColor = isConfirmPasswordFocused
-      ? theme.colors.primary // Green when focused
-      : showPasswordMismatch
-        ? theme.colors.error // Red when blurred and mismatch
-        : theme.colors.onSurface; // Default black
-
-    return (
-      <>
-        <Text style={{ color: labelColor }}>Confirm password</Text>{' '}
-        <Text style={{ color: theme.colors.error }}>*</Text>
-      </>
-    );
-  };
 
   return (
     <KeyboardAvoidingView
@@ -450,92 +374,111 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           {/* Name Fields Row */}
           <View style={styles.nameRow}>
             <View style={styles.nameField}>
-              <Input
-                label={renderRequiredLabel('First name')}
-                placeholder='John'
-                value={formData.firstName}
-                onChangeText={value => handleFieldChange('firstName', value)}
-                autoCapitalize='words'
-                autoCorrect={false}
-                hasError={errors['firstName'] !== undefined && errors['firstName'] !== ''}
-                errorText={errors['firstName']}
-                editable={!isLoading}
-                testID='register-firstName-input'
+              <Controller
+                control={control}
+                name="firstName"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input
+                    label={renderRequiredLabel('First name')}
+                    placeholder='John'
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    autoCapitalize='words'
+                    autoCorrect={false}
+                    hasError={!!formErrors.firstName}
+                    errorText={formErrors.firstName?.message}
+                    editable={!isLoading}
+                    testID='register-firstName-input'
+                  />
+                )}
               />
             </View>
             <View style={styles.nameField}>
-              <Input
-                label={renderRequiredLabel('Last name')}
-                placeholder='Doe'
-                value={formData.lastName}
-                onChangeText={value => handleFieldChange('lastName', value)}
-                autoCapitalize='words'
-                autoCorrect={false}
-                hasError={errors['lastName'] !== undefined && errors['lastName'] !== ''}
-                errorText={errors['lastName']}
-                editable={!isLoading}
-                testID='register-lastName-input'
+              <Controller
+                control={control}
+                name="lastName"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input
+                    label={renderRequiredLabel('Last name')}
+                    placeholder='Doe'
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    autoCapitalize='words'
+                    autoCorrect={false}
+                    hasError={!!formErrors.lastName}
+                    errorText={formErrors.lastName?.message}
+                    editable={!isLoading}
+                    testID='register-lastName-input'
+                  />
+                )}
               />
             </View>
           </View>
 
           {/* Email Input */}
-          <Input
-            label={renderRequiredLabel('Email address')}
-            placeholder='john.doe@example.com'
-            value={formData.email}
-            onChangeText={value => handleFieldChange('email', value)}
-            onFocus={() => setIsEmailFocused(true)}
-            onBlur={() => {
-              setIsEmailFocused(false);
-              setHasBlurredEmail(true);
-            }}
-            keyboardType='email-address'
-            autoCapitalize='none'
-            autoCorrect={false}
-            autoComplete='email'
-            hasError={errors['email'] !== undefined && errors['email'] !== ''}
-            errorText={
-              errors['email'] !== undefined && errors['email'] !== ''
-                ? errors['email']
-                : undefined
-            }
-            editable={!isLoading}
-            testID='register-email-input'
-            style={styles.input}
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label={renderRequiredLabel('Email address')}
+                placeholder='john.doe@example.com'
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                keyboardType='email-address'
+                autoCapitalize='none'
+                autoCorrect={false}
+                autoComplete='email'
+                hasError={!!formErrors.email}
+                errorText={formErrors.email?.message}
+                editable={!isLoading}
+                testID='register-email-input'
+                style={styles.input}
+              />
+            )}
           />
 
           {/* Phone verification deferred to order placement */}
 
           {/* Password Input */}
-          <Input
-            label={renderRequiredLabel('Password')}
-            placeholder='Create a strong password'
-            value={formData.password}
-            onChangeText={value => handleFieldChange('password', value)}
-            secureTextEntry={!showPassword}
-            autoCapitalize='none'
-            autoCorrect={false}
-            autoComplete='password-new'
-            leftIcon='lock-closed-outline'
-            leftIconFamily='Ionicons'
-            rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
-            rightIconFamily='Ionicons'
-            onRightIconPress={() => setShowPassword(!showPassword)}
-            hasError={errors['password'] !== undefined && errors['password'] !== ''}
-            errorText={errors['password']}
-            editable={!isLoading}
-            testID='register-password-input'
-            style={styles.input}
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label={renderRequiredLabel('Password')}
+                placeholder='Create a strong password'
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                secureTextEntry={!showPassword}
+                autoCapitalize='none'
+                autoCorrect={false}
+                autoComplete='password-new'
+                leftIcon='lock-closed-outline'
+                leftIconFamily='Ionicons'
+                rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                rightIconFamily='Ionicons'
+                onRightIconPress={() => setShowPassword(!showPassword)}
+                hasError={!!formErrors.password}
+                errorText={formErrors.password?.message}
+                editable={!isLoading}
+                testID='register-password-input'
+                style={styles.input}
+              />
+            )}
           />
 
           {/* Password Strength Indicator - Compact dropdown mode */}
           <PasswordStrengthIndicator
-            password={formData.password}
+            password={password}
             context={{
-              email: formData.email,
-              firstName: formData.firstName,
-              lastName: formData.lastName,
+              email,
+              firstName,
+              lastName,
             }}
             onValidityChange={setIsPasswordValid}
             dropdownMode
@@ -548,46 +491,33 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           />
 
           {/* Confirm Password Input */}
-          <Input
-            label={renderConfirmPasswordLabel()}
-            placeholder='Re-enter your password'
-            value={formData.confirmPassword}
-            onChangeText={value => handleFieldChange('confirmPassword', value)}
-            onFocus={() => setIsConfirmPasswordFocused(true)}
-            onBlur={() => {
-              setIsConfirmPasswordFocused(false);
-              setHasBlurredConfirmPassword(true);
-            }}
-            secureTextEntry={!showConfirmPassword}
-            autoCapitalize='none'
-            autoCorrect={false}
-            autoComplete='password-new'
-            leftIcon='lock-closed-outline'
-            leftIconFamily='Ionicons'
-            rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
-            rightIconFamily='Ionicons'
-            onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
-            hasError={showPasswordMismatch}
-            editable={!isLoading}
-            testID='register-confirmPassword-input'
-            style={styles.input}
-            inputContainerStyle={
-              showPasswordMismatch
-                ? {
-                    borderColor: theme.colors.error,
-                  }
-                : undefined
-            }
+          <Controller
+            control={control}
+            name="confirmPassword"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label={renderRequiredLabel('Confirm password')}
+                placeholder='Re-enter your password'
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                secureTextEntry={!showConfirmPassword}
+                autoCapitalize='none'
+                autoCorrect={false}
+                autoComplete='password-new'
+                leftIcon='lock-closed-outline'
+                leftIconFamily='Ionicons'
+                rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                rightIconFamily='Ionicons'
+                onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                hasError={!!formErrors.confirmPassword}
+                errorText={formErrors.confirmPassword?.message}
+                editable={!isLoading}
+                testID='register-confirmPassword-input'
+                style={styles.input}
+              />
+            )}
           />
-
-          {/* Password Match Indicator */}
-          {showPasswordMismatch && (
-            <View style={styles.passwordMatchIndicator}>
-              <Text style={[styles.passwordMismatchText, { color: theme.colors.error }]}>
-                Passwords should be the same
-              </Text>
-            </View>
-          )}
 
           {/* Terms and Privacy Policy - Automatic Acceptance */}
           <View style={styles.termsContainer}>
@@ -607,9 +537,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           <Button
             variant='primary'
             size='lg'
-            onPress={() => {
-              void handleRegister();
-            }}
+            onPress={handleSubmit(onSubmit)}
             loading={isLoading}
             disabled={isLoading}
             style={styles.registerButton}

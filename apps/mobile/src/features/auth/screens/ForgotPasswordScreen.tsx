@@ -3,11 +3,14 @@
  * Password reset request with email verification
  */
 
+import { yupResolver } from '@hookform/resolvers/yup';
 import React, { useState, useCallback } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 
 import { Button, Input, Text, Card, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/utils/validation/schemas';
 
 import { authService } from '../services/authService';
 
@@ -20,42 +23,31 @@ interface ForgotPasswordScreenProps {
 export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation }) => {
   const theme = useTheme();
 
-  // Form state
-  const [email, setEmail] = useState('');
+  // React Hook Form setup with Yup validation
+  const {
+    control,
+    handleSubmit,
+    formState: { errors: formErrors },
+    getValues,
+  } = useForm<ForgotPasswordFormData>({
+    resolver: yupResolver(forgotPasswordSchema),
+    mode: 'onBlur', // Validate on blur for better UX
+    defaultValues: {
+      email: '',
+    },
+  });
+
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isEmailSent, setIsEmailSent] = useState(false);
 
   /**
-   * Validate email format
+   * Handle password reset request (React Hook Form automatically validates)
    */
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  /**
-   * Handle password reset request
-   */
-  const handleResetPassword = useCallback(async () => {
-    // Clear previous errors
-    setError(null);
-
-    // Validate email
-    if (!email.trim()) {
-      setError('Email is required');
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
+  const onSubmit = useCallback(async (formData: ForgotPasswordFormData) => {
     setIsLoading(true);
 
     try {
-      await authService.forgotPassword(email.trim().toLowerCase());
+      await authService.forgotPassword(formData.email.trim().toLowerCase());
       // Mark as sent - UI will show success state
       setIsEmailSent(true);
     } catch (err: any) {
@@ -65,15 +57,18 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
     } finally {
       setIsLoading(false);
     }
-  }, [email]);
+  }, []);
 
   /**
    * Handle resend email
    */
   const handleResendEmail = useCallback(async () => {
     setIsEmailSent(false);
-    await handleResetPassword();
-  }, [handleResetPassword]);
+    const email = getValues('email');
+    if (email) {
+      await onSubmit({ email });
+    }
+  }, [getValues, onSubmit]);
 
   /**
    * Navigate back to login
@@ -123,7 +118,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
             </Text>
 
             <Text variant='body' size='md' weight='semibold' align='center' style={styles.email}>
-              {email}
+              {getValues('email')}
             </Text>
 
             <Text
@@ -196,44 +191,39 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
             No worries! Enter your email address and we'll send you a link to reset your password.
           </Text>
 
-          {/* Error message */}
-          {error && (
-            <View style={[styles.errorBanner, { backgroundColor: theme.colors.errorContainer }]}>
-              <Text variant='body' size='sm' style={{ color: theme.colors.onErrorContainer }}>
-                {error}
-              </Text>
-            </View>
-          )}
-
           {/* Email Input */}
-          <Input
-            label='Email Address'
-            placeholder='Enter your email'
-            value={email}
-            onChangeText={value => {
-              setEmail(value);
-              setError(null);
-            }}
-            keyboardType='email-address'
-            autoCapitalize='none'
-            autoCorrect={false}
-            autoComplete='email'
-            autoFocus
-            leftIcon='mail-outline'
-            leftIconFamily='Ionicons'
-            error={error || undefined}
-            hasError={!!error}
-            editable={!isLoading}
-            testID='forgot-password-email-input'
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label='Email Address'
+                placeholder='Enter your email'
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                keyboardType='email-address'
+                autoCapitalize='none'
+                autoCorrect={false}
+                autoComplete='email'
+                autoFocus
+                leftIcon='mail-outline'
+                leftIconFamily='Ionicons'
+                hasError={!!formErrors.email}
+                errorText={formErrors.email?.message}
+                editable={!isLoading}
+                testID='forgot-password-email-input'
+              />
+            )}
           />
 
           {/* Reset Button */}
           <Button
             variant='primary'
             size='lg'
-            onPress={handleResetPassword}
+            onPress={handleSubmit(onSubmit)}
             loading={isLoading}
-            disabled={isLoading || !email.trim()}
+            disabled={isLoading}
             style={styles.button}
             testID='forgot-password-submit-button'
           >

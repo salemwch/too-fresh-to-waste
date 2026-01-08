@@ -14,7 +14,6 @@ import {
   Platform,
   TouchableOpacity,
   Image,
-  Animated,
 } from 'react-native';
 
 import LeafLogo from '@/assets/images/leaf.png';
@@ -23,16 +22,87 @@ import { Button, Input, Text, Card, Icon } from '@/design-system/components/atom
 import { LoginSuccessModal } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { loginSchema } from '@/utils/validation/schemas';
+import { loginSchema, type LoginFormData } from '@/utils/validation/schemas';
 
 import { authService } from '../services/authService';
 import { loginAsync, clearError } from '../store/authSlice';
 
-import type { LoginFormData } from '../types';
 import type { LoginScreenNavigationProp } from '@/navigation/types';
 
 interface LoginScreenProps {
   navigation: LoginScreenNavigationProp;
+}
+
+/**
+ * Parse backend validation errors from NestJS class-validator
+ * Backend returns: { message: { message: [{ property: 'email', constraints: {...} }] } }
+ */
+interface BackendValidationError {
+  property: string;
+  constraints: Record<string, string>;
+}
+
+function parseBackendValidationError(error: any): Record<string, string> | null {
+  try {
+    // Handle nested message structure from backend
+    let errorData: unknown = error;
+    if (
+      error !== null &&
+      error !== undefined &&
+      typeof error === 'object' &&
+      'response' in error &&
+      error.response !== null &&
+      error.response !== undefined &&
+      typeof error.response === 'object' &&
+      'data' in error.response
+    ) {
+      errorData = (error.response as { data: unknown }).data;
+    }
+    let validationErrors: BackendValidationError[] = [];
+
+    // Try to extract validation errors from various backend response formats
+    if (
+      typeof errorData === 'object' &&
+      errorData !== null &&
+      'message' in errorData &&
+      typeof (errorData as { message?: unknown }).message === 'object' &&
+      (errorData as { message?: unknown }).message !== null &&
+      typeof (errorData as { message?: { message?: unknown } }).message === 'object' &&
+      Array.isArray(
+        ((errorData as { message?: { message?: unknown } }).message as { message?: unknown })
+          .message,
+      )
+    ) {
+      validationErrors = (errorData as { message: { message: BackendValidationError[] } }).message
+        .message;
+    } else if (
+      typeof errorData === 'object' &&
+      errorData !== null &&
+      'message' in errorData &&
+      Array.isArray((errorData as any).message)
+    ) {
+      validationErrors = (errorData as { message: BackendValidationError[] }).message;
+    }
+
+    // Convert to field-message map
+    if (validationErrors.length > 0) {
+      const fieldErrors: Record<string, string> = {};
+      validationErrors.forEach(err => {
+        if (err.property != null && err.constraints != null) {
+          // Get first constraint message
+          const firstConstraint = Object.values(err.constraints)[0];
+          if (firstConstraint !== null && firstConstraint !== undefined && firstConstraint !== '') {
+            fieldErrors[err.property] = firstConstraint;
+          }
+        }
+      });
+      return Object.keys(fieldErrors).length > 0 ? fieldErrors : null;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
@@ -46,9 +116,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     handleSubmit,
     formState: { errors: formErrors },
     watch,
+    setError,
   } = useForm<LoginFormData>({
     resolver: yupResolver(loginSchema),
-    mode: 'onBlur', // Validate on blur for better UX
+    mode: 'onBlur', // Validate on blur for better UX (matches RegisterScreen)
     defaultValues: {
       email: '',
       password: '',
@@ -83,7 +154,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
    * Detect if login error is due to unverified email
    */
   useEffect(() => {
-    if (error?.toLowerCase().includes('verify your email')) {
+    if (typeof error === 'string' && error.toLowerCase().includes('verify your email')) {
       setIsEmailUnverified(true);
     } else {
       setIsEmailUnverified(false);
@@ -102,7 +173,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           loginAsync({
             email: formData.email.trim().toLowerCase(),
             password: formData.password,
-            rememberMe: formData.rememberMe,
+            rememberMe: formData.rememberMe ?? false,
           }),
         ).unwrap();
 
@@ -123,12 +194,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           // Modal will auto-dismiss after 3 seconds, then navigate to MainStack
         }
       } catch (err: any) {
-        // Error is handled by Redux state and displayed inline
-        // No alert needed - error banner will show automatically
         console.error('Login error:', err);
+
+        // Try to parse backend validation errors and set them on form fields
+        const fieldErrors = parseBackendValidationError(err);
+        if (fieldErrors) {
+          // Set field-specific errors from backend
+          Object.entries(fieldErrors).forEach(([field, message]) => {
+            if (field === 'email' || field === 'password') {
+              setError(field, {
+                type: 'manual',
+                message,
+              });
+            }
+          });
+        }
+        // Global error is already handled by Redux state and displayed in error banner
       }
     },
-    [formData, validateForm, dispatch, navigation],
+    [dispatch, navigation, setError],
   );
 
   /**
@@ -149,14 +233,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
    * Resend verification email
    */
   const handleResendVerificationEmail = useCallback(async () => {
-    if (!formData.email || resendingEmail) return;
+    if (!email || resendingEmail) return;
 
     try {
       setResendingEmail(true);
       setResendError(null);
       setResendSuccess(false);
 
-      await authService.resendVerificationEmail(formData.email.trim().toLowerCase());
+      await authService.resendVerificationEmail(email.trim().toLowerCase());
 
       setResendSuccess(true);
       setResendError(null);
@@ -172,31 +256,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     } finally {
       setResendingEmail(false);
     }
-  }, [formData.email, resendingEmail]);
-
-  /**
-   * Handle field change
-   */
-  const handleFieldChange = useCallback(
-    (field: keyof LoginFormData, value: string | boolean) => {
-      setFormData(prev => ({ ...prev, [field]: value }));
-
-      // Clear field-level error when user types
-      if (errors[field] != null && errors[field] !== '') {
-        setErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors[field];
-          return newErrors;
-        });
-      }
-
-      // Clear global auth error when user starts typing
-      if (error != null) {
-        dispatch(clearError());
-      }
-    },
-    [errors, error, dispatch],
-  );
+  }, [email, resendingEmail]);
 
   return (
     <KeyboardAvoidingView
@@ -222,7 +282,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         {/* Login Form Card */}
         <Card style={styles.formCard}>
           {/* Verification Status Badge (Top Right) */}
-          {isEmailUnverified && formData.email && (
+          {isEmailUnverified && email && (
             <View style={styles.verificationBadge}>
               <View
                 style={[
@@ -279,13 +339,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               </View>
 
               {/* Resend Verification Email Button (only for unverified email errors) */}
-              {isEmailUnverified && formData.email && (
+              {isEmailUnverified && email && (
                 <View style={styles.resendSection}>
                   <Text variant='body.small' color='secondary' style={styles.resendPrompt}>
-                    Didn't receive the email?
+                    Didn&apos;t receive the email?
                   </Text>
                   <TouchableOpacity
-                    onPress={handleResendVerificationEmail}
+                    onPress={() => {
+                      void handleResendVerificationEmail();
+                    }}
                     disabled={resendingEmail}
                     activeOpacity={0.7}
                     style={styles.resendButton}
@@ -327,7 +389,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           )}
 
           {/* Error Message for Resend Failure */}
-          {resendError && (
+          {typeof resendError === 'string' && resendError.trim() !== '' && (
             <View style={[styles.errorBanner, { backgroundColor: theme.colors.errorContainer }]}>
               <View style={styles.errorBannerContent}>
                 <Icon
@@ -348,112 +410,124 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           )}
 
           {/* Email Input */}
-          <Input
-            label='Email Address'
-            placeholder='Enter your email'
-            value={formData.email}
-            onChangeText={value => handleFieldChange('email', value)}
-            keyboardType='email-address'
-            autoCapitalize='none'
-            autoCorrect={false}
-            autoComplete='email'
-            leftIcon={<Icon name='mail-outline' family='Ionicons' size='md' />}
-            hasError={errors.email != null && errors.email !== ''}
-            errorText={
-              typeof errors.email === 'string' && errors.email.trim() !== ''
-                ? errors.email
-                : undefined
-            }
-            editable={isLoading === false}
-            testID='login-email-input'
-            fullWidth
+          <Controller
+            control={control}
+            name='email'
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label='Email Address'
+                placeholder='Enter your email'
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                keyboardType='email-address'
+                autoCapitalize='none'
+                autoCorrect={false}
+                autoComplete='email'
+                leftIcon={<Icon name='mail-outline' family='Ionicons' size='md' />}
+                hasError={!!formErrors.email}
+                errorText={formErrors.email?.message}
+                editable={!isLoading}
+                testID='login-email-input'
+                fullWidth
+              />
+            )}
           />
 
           {/* Password Input */}
-          <Input
-            label='Password'
-            placeholder='Enter your password'
-            value={formData.password}
-            onChangeText={value => handleFieldChange('password', value)}
-            secureTextEntry={!showPassword}
-            autoCapitalize='none'
-            autoCorrect={false}
-            autoComplete='password'
-            leftIcon={<Icon name='lock-closed-outline' family='Ionicons' size='md' />}
-            rightIcon={
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Icon
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  family='Ionicons'
-                  size='md'
-                />
-              </TouchableOpacity>
-            }
-            hasError={typeof errors.password === 'string' && errors.password.trim() !== ''}
-            errorText={
-              typeof errors.password === 'string' && errors.password.trim() !== ''
-                ? errors.password
-                : undefined
-            }
-            editable={isLoading === false}
-            testID='login-password-input'
-            containerStyle={styles.passwordInput}
-            fullWidth
+          <Controller
+            control={control}
+            name='password'
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label='Password'
+                placeholder='Enter your password'
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                secureTextEntry={!showPassword}
+                autoCapitalize='none'
+                autoCorrect={false}
+                autoComplete='password'
+                leftIcon={<Icon name='lock-closed-outline' family='Ionicons' size='md' />}
+                rightIcon={
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    <Icon
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      family='Ionicons'
+                      size='md'
+                    />
+                  </TouchableOpacity>
+                }
+                hasError={!!formErrors.password}
+                errorText={formErrors.password?.message}
+                editable={!isLoading}
+                testID='login-password-input'
+                containerStyle={styles.passwordInput}
+                fullWidth
+              />
+            )}
           />
 
           {/* Remember Me & Forgot Password Row */}
-          <View style={styles.optionsRow}>
-            <TouchableOpacity
-              style={styles.rememberMeContainer}
-              onPress={() => handleFieldChange('rememberMe', !formData.rememberMe)}
-              disabled={isLoading}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  styles.checkbox,
-                  {
-                    borderColor: theme.colors.outline,
-                    backgroundColor: formData.rememberMe ? theme.colors.primary : 'transparent',
-                  },
-                ]}
-              >
-                {formData.rememberMe && (
-                  <Text
-                    style={{
-                      color: theme.colors.onPrimary,
-                      fontSize: 14,
-                      lineHeight: 14,
-                      includeFontPadding: false,
-                      textAlignVertical: 'center',
-                    }}
+          <Controller
+            control={control}
+            name='rememberMe'
+            render={({ field: { onChange, value } }) => (
+              <View style={styles.optionsRow}>
+                <TouchableOpacity
+                  style={styles.rememberMeContainer}
+                  onPress={() => onChange(!Boolean(value))}
+                  disabled={isLoading}
+                  activeOpacity={0.7}
+                >
+                  <View
+                    style={[
+                      styles.checkbox,
+                      {
+                        borderColor: theme.colors.outline,
+                        backgroundColor: value ? theme.colors.primary : 'transparent',
+                      },
+                    ]}
                   >
-                    ✓
+                    {value === true && (
+                      <Text
+                        style={{
+                          color: theme.colors.onPrimary,
+                          fontSize: 14,
+                          lineHeight: 14,
+                          includeFontPadding: false,
+                          textAlignVertical: 'center',
+                        }}
+                      >
+                        ✓
+                      </Text>
+                    )}
+                  </View>
+                  <Text variant='body.small' color='secondary'>
+                    Remember me
                   </Text>
-                )}
-              </View>
-              <Text variant='body.small' color='secondary'>
-                Remember me
-              </Text>
-            </TouchableOpacity>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={handleNavigateToForgotPassword}
-              disabled={isLoading}
-              activeOpacity={0.7}
-            >
-              <Text variant='body.small' color='primary' weight='medium'>
-                Forgot Password?
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <TouchableOpacity
+                  onPress={handleNavigateToForgotPassword}
+                  disabled={isLoading}
+                  activeOpacity={0.7}
+                >
+                  <Text variant='body.small' color='primary' weight='medium'>
+                    Forgot Password?
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          />
 
           {/* Login Button */}
           <Button
             variant='primary'
             size='lg'
             onPress={() => {
-              void handleLogin();
+              void handleSubmit(onSubmit)();
             }}
             loading={isLoading}
             disabled={isLoading}

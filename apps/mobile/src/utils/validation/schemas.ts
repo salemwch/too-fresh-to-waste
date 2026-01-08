@@ -18,19 +18,25 @@ import { phoneNumberValidator, requiredPhoneNumberValidator } from '../phone';
  * Reusable validation rules
  */
 
-// Email validation
+// Email validation with strict TLD checking
 export const emailValidator = yup
   .string()
   .required('Email is required')
   .email('Please enter a valid email address')
   .lowercase()
-  .trim();
+  .trim()
+  .test('valid-tld', 'Please enter a valid email address', value => {
+    if (!value) return false;
+    // Check if email has a valid TLD (at least 2 characters after the last dot)
+    const tldMatch = value.match(/\.([a-z]{2,})$/i);
+    return tldMatch !== null && tldMatch[1].length >= 2;
+  });
 
 // Password validation
 export const passwordValidator = yup
   .string()
   .required('Password is required')
-  .min(8, 'Password must be at least 8 characters')
+  .min(12, 'Password must be at least 12 characters')
   .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
   .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
   .matches(/[0-9]/, 'Password must contain at least one number')

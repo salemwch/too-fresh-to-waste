@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@foodwaste/shared": "workspace:*",
+    "@next/third-parties": "^16.1.1",
     "framer-motion": "^12.23.26",
     "lottie-react": "^2.4.1",
     "next": "^15.1.3",

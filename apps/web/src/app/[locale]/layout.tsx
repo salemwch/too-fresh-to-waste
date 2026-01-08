@@ -11,6 +11,7 @@ import {
   WebsiteStructuredData,
   MobileApplicationStructuredData,
 } from '@/components/StructuredData';
+import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { Footer } from '@/components/layout';
 import { Newsletter } from '@/components/sections';
 import '../globals.css';
@@ -216,6 +217,14 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
             : 'var(--font-inter), var(--font-noto-arabic), sans-serif',
         }}
       >
+        {/* Google Analytics 4 */}
+        {process.env['NEXT_PUBLIC_GA_MEASUREMENT_ID'] && (
+          <GoogleAnalytics
+            measurementId={process.env['NEXT_PUBLIC_GA_MEASUREMENT_ID']}
+            enabled={process.env['NEXT_PUBLIC_ENABLE_ANALYTICS'] === 'true'}
+          />
+        )}
+
         <NextIntlClientProvider messages={messages}>
           {/* Structured Data for SEO */}
           <OrganizationStructuredData locale={locale as Locale} />
