@@ -4,7 +4,7 @@
  * Auto-dismisses after 3 seconds
  */
 
-import LottieView from 'lottie-react-native';
+import { DotLottie, type Dotlottie } from '@lottiefiles/dotlottie-react-native';
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Modal, Dimensions } from 'react-native';
 import Animated, {
@@ -32,7 +32,7 @@ export const LoginSuccessModal: React.FC<LoginSuccessModalProps> = ({
   onDismiss,
 }) => {
   const theme = useTheme();
-  const lottieRef = useRef<LottieView>(null);
+  const lottieRef = useRef<Dotlottie>(null);
 
   // Animated values for celebration effects
   const confettiScale = useSharedValue(0);
@@ -77,14 +77,13 @@ export const LoginSuccessModal: React.FC<LoginSuccessModalProps> = ({
       <View style={styles.overlay}>
         {/* Lottie Success Animation */}
         <Animated.View style={[styles.lottieContainer, confettiAnimatedStyle]}>
-          <LottieView
+          <DotLottie
             ref={lottieRef}
             // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
             source={require('./success-celebration.json')}
-            autoPlay
+            autoplay
             loop={false}
             style={styles.lottie}
-            resizeMode="cover"
           />
         </Animated.View>
 

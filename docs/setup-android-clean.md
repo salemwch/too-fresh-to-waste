@@ -672,7 +672,7 @@ android.enableR8.fullMode=true
 # React Native Configuration
 hermesEnabled=true
 enableProguardInReleaseBuilds=true
-newArchEnabled=false
+newArchEnabled=true
 
 # Network timeout configuration
 systemProp.org.gradle.internal.http.connectionTimeout=180000
@@ -687,7 +687,7 @@ systemProp.org.gradle.internal.http.socketTimeout=180000
 | `org.gradle.configuration-cache=false` | Disabled  | Causes crashes with RN 0.81 native modules       |
 | `org.gradle.workers.max=4`             | 4 workers | Balanced parallelism for stability               |
 | `hermesEnabled=true`                   | Enabled   | Required in RN 0.81 (JSC removed)                |
-| `newArchEnabled=false`                 | Disabled  | New Architecture not production-ready yet        |
+| `newArchEnabled=true`                 | Enabled   | New Architecture         |
 | `android.enableR8.fullMode=true`       | Enabled   | Maximum code optimization for release            |
 
 ---

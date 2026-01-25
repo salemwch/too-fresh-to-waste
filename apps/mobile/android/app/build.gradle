@@ -24,6 +24,7 @@ android {
     namespace "com.foodwasteapp"
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
+    ndkVersion rootProject.ext.ndkVersion
 
     defaultConfig {
         applicationId "com.foodwasteapp"
@@ -174,6 +175,12 @@ dependencies {
     implementation("com.facebook.react:react-android:0.81.0")
     implementation("com.facebook.react:hermes-android:0.81.0")
 
+    // Nitro-based libraries require manual linking because CMake autolinking is disabled
+    // Their Java/Kotlin code is autolinked, but we need explicit project dependencies
+    // Source: https://nitro.margelo.com/docs/minimum-requirements
+    implementation project(":react-native-nitro-modules")
+    implementation project(":react-native-mmkv")
+
     // Firebase BOM - manages all Firebase dependency versions
     // Source: https://firebase.google.com/docs/android/setup
     implementation platform("com.google.firebase:firebase-bom:${rootProject.ext.firebaseBomVersion}")
@@ -186,11 +193,34 @@ dependencies {
     // Source: https://developer.android.com/jetpack/androidx/releases/core
     implementation 'androidx.core:core-ktx:1.13.1'
 
-    // Flipper debugging tools (debug builds only)
-    // Source: https://fbflipper.com/docs/getting-started/react-native-android
-    debugImplementation("com.facebook.flipper:flipper:0.258.0")
-    debugImplementation("com.facebook.flipper:flipper-network-plugin:0.258.0")
-    debugImplementation("com.facebook.soloader:soloader:0.11.0")
+    // Google Play Services Location - Required by react-native-geolocation-service
+    // Version forced in root build.gradle to 21.3.0 for Firebase BOM 33.7.0 compatibility
+    // Source: https://developers.google.com/android/guides/setup
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+
+}
+
+// ============================================================================
+// FIX: React Native Gradle Plugin Overlapping Outputs (Gradle Official Fix)
+// ============================================================================
+// Issue: Tasks :app:generateReactNativeEntryPoint and :app:generateAutolinkingPackageList
+//        both write to: build/generated/autolinking/src/main/java/
+// Impact: Gradle automatically disables caching for overlapping outputs
+// Solution: Separate output directories per Gradle official guidance
+// Source: https://docs.gradle.org/current/userguide/build_cache_concepts.html#concepts_overlapping_outputs
+// TODO: Remove when React Native Gradle Plugin fixes this upstream
+
+afterEvaluate {
+    tasks.matching { it.name == 'generateReactNativeEntryPoint' }.configureEach { task ->
+        // Assign unique output directory to enable Gradle build cache
+        def separateOutputDir = layout.buildDirectory.dir("generated/rn-entry-point/src/main/java")
+        task.outputs.dir(separateOutputDir)
+
+        // Register new output directory with Android source sets
+        android.sourceSets.main.java.srcDirs += separateOutputDir.get().asFile
+
+        logger.lifecycle("[Gradle Fix] Separated ReactNativeEntryPoint output to enable caching: ${separateOutputDir.get().asFile}")
+    }
 }
 
 // Apply Google Services plugin at the end

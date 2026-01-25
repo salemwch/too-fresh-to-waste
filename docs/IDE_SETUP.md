@@ -175,7 +175,7 @@ org.gradle.caching=true
 
 # React Native
 hermesEnabled=true
-newArchEnabled=false
+newArchEnabled=true
 ```
 
 **Build Variants**:

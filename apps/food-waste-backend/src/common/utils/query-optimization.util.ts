@@ -91,6 +91,7 @@ export const ESTABLISHMENT_DETAIL_FIELDS = [
 
 /**
  * Offer fields for list views (browse, search)
+ * ✅ CRITICAL: merchantId is required for .populate() to get merchant profileImage for OfferCard logo
  */
 export const OFFER_LIST_FIELDS = [
     'title',
@@ -102,8 +103,15 @@ export const OFFER_LIST_FIELDS = [
     'reservedQuantity',
     'availableFrom',
     'availableUntil',
-    'establishmentId',
+    'establishmentId',    // Required for .populate() → establishment name, address, rating
+    'merchantId',         // ✅ FIX: Required for .populate() → merchant profileImage (OfferCard logo)
     'status',
+    'pickupTimeSlots',    // ✅ FIX: Added for OfferCard display (pickup time windows)
+    'isFeaturedManual',   // ✅ FIX: Added for featuring metadata
+    'isFeaturedAuto',     // ✅ FIX: Added for featuring metadata
+    'featuredAt',         // ✅ FIX: Added for featuring metadata
+    'isPickupToday',      // ✅ Pickup categorization
+    'isPickupTomorrow',   // ✅ Pickup categorization
 ].join(' ');
 
 /**

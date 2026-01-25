@@ -9,19 +9,12 @@ import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@ta
 import { useSelector } from 'react-redux';
 
 import { Logger } from '@/utils/logger';
-import type { RootState } from '@/types';
 
 import { offersService } from '../services/offersService';
-import type {
-  Offer,
-  OfferListItem,
-  OfferSearchParams,
-  OffersResponse,
-  CreateOfferPayload,
-  UpdateOfferPayload,
-  OfferStatus,
-} from '../types/offer.types';
+
 import type { NearbyOffersParams } from '../services/offersService';
+import type { Offer, OfferListItem, OfferSearchParams, OffersResponse } from '../types/offer.types';
+import type { RootState } from '@/types';
 
 // ============================================================================
 // Query Keys (for cache management)
@@ -34,9 +27,12 @@ export const offerKeys = {
   details: () => [...offerKeys.all, 'detail'] as const,
   detail: (id: string) => [...offerKeys.details(), id] as const,
   featured: (limit: number) => [...offerKeys.all, 'featured', limit] as const,
+  recommended: (limit: number) => [...offerKeys.all, 'recommended', limit] as const,
   nearby: (params: NearbyOffersParams) => [...offerKeys.all, 'nearby', params] as const,
   establishment: (id: string, page: number, limit: number) =>
     [...offerKeys.all, 'establishment', id, page, limit] as const,
+  pickupToday: (limit: number) => [...offerKeys.all, 'pickup-today', limit] as const,
+  pickupTomorrow: (limit: number) => [...offerKeys.all, 'pickup-tomorrow', limit] as const,
 };
 
 // ============================================================================
@@ -69,7 +65,7 @@ export function useOffer(
         hasOffer: !!offer,
         hasPricing: !!(offer as any)?.pricing,
         offerKeys: offer ? Object.keys(offer) : [],
-        pricing: (offer as any)?.pricing
+        pricing: (offer as any)?.pricing,
       });
 
       Logger.info('Offer fetched successfully', { offerId, title: offer.title });
@@ -87,6 +83,7 @@ export function useOffer(
  * Fetch all offers with optional filters
  *
  * @param params - Search and filter parameters
+ * @param userLocation - Optional user location for distance calculation
  * @param options - React Query options
  * @returns Query result with paginated offers
  *
@@ -95,18 +92,24 @@ export function useOffer(
  */
 export function useOffers(
   params?: OfferSearchParams,
+  userLocation?: { latitude: number; longitude: number },
   options?: Omit<UseQueryOptions<OffersResponse, Error>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery<OffersResponse, Error>({
-    queryKey: offerKeys.list(params || {}),
+    queryKey: [...offerKeys.list(params || {}), userLocation],
     queryFn: async () => {
-      Logger.info('Fetching offers', params);
-      const response = await offersService.getAllOffers(params);
+      Logger.info('Fetching offers', { params });
+      const response = await offersService.getAllOffers(params, userLocation);
+      // Handle undefined or malformed responses
+      const validResponse = response || {
+        data: [],
+        meta: { total: 0, page: 1, limit: 10, totalPages: 0 },
+      };
       Logger.info('Offers fetched successfully', {
-        total: response.meta?.total,
-        page: response.meta?.page,
+        total: validResponse.meta?.total,
+        page: validResponse.meta?.page,
       });
-      return response;
+      return validResponse;
     },
     staleTime: 1000 * 60 * 2, // Consider data fresh for 2 minutes
     gcTime: 1000 * 60 * 15, // Keep in cache for 15 minutes
@@ -115,29 +118,140 @@ export function useOffers(
 }
 
 /**
- * Fetch featured offers
+ * Fetch featured offers with optional filters
  *
  * @param limit - Maximum number of featured offers (default 10)
+ * @param userLocation - Optional user location for distance calculation
+ * @param filters - Optional filter parameters (establishment type, cuisine, categories, offer type)
  * @param options - React Query options
  * @returns Query result with featured offers
  *
  * @example
- * const { data: featuredOffers, isLoading } = useFeaturedOffers(5);
+ * const { data: featuredOffers, isLoading } = useFeaturedOffers(5, coordinates, { establishmentTypes: ['BAKERY', 'CAFE'] });
  */
 export function useFeaturedOffers(
   limit: number = 10,
+  userLocation?: { latitude: number; longitude: number },
+  filters?: Pick<OfferSearchParams, 'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories'>,
   options?: Omit<UseQueryOptions<OfferListItem[], Error>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery<OfferListItem[], Error>({
-    queryKey: offerKeys.featured(limit),
+    queryKey: [...offerKeys.featured(limit), userLocation, filters],
     queryFn: async () => {
-      Logger.info('Fetching featured offers', { limit });
-      const offers = await offersService.getFeaturedOffers(limit);
-      Logger.info('Featured offers fetched', { count: offers.length });
-      return offers;
+      Logger.info('Fetching featured offers', { limit, userLocation, filters });
+
+      // Use getAllOffers with isFeatured flag + filters for proper backend filtering
+      const response = await offersService.getAllOffers(
+        {
+          limit,
+          isFeatured: true,
+          ...filters,
+        },
+        userLocation
+      );
+
+      const validOffers = Array.isArray(response?.data) ? response.data : [];
+      Logger.info('Featured offers fetched', { count: validOffers.length });
+      return validOffers;
     },
+    staleTime: 1000 * 60 * 2, // Consider data fresh for 2 minutes (urgent offers)
+    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    ...options,
+  });
+}
+
+/**
+ * Fetch urgent offers (expiring soon)
+ *
+ * Returns offers expiring within a specified time window (default: 1 hour).
+ * Designed for "Urgent Deals" sections that show offers based on actual
+ * time remaining, not manual/auto featuring flags.
+ *
+ * @param hoursUntilExpiry - Maximum hours until expiry (default: 1)
+ * @param limit - Maximum number of offers (default 10)
+ * @param userLocation - Optional user location for distance calculation
+ * @param filters - Optional filters (type, establishmentTypes, cuisineTypes, categories)
+ * @param options - React Query options
+ * @returns Query result with urgent offers sorted by soonest expiring first
+ *
+ * @example
+ * const { data: urgentOffers, isLoading } = useUrgentOffers(1, 10, coordinates);
+ */
+export function useUrgentOffers(
+  hoursUntilExpiry: number = 1,
+  limit: number = 10,
+  userLocation?: { latitude: number; longitude: number },
+  options?: Omit<UseQueryOptions<OfferListItem[], Error>, 'queryKey' | 'queryFn'>,
+) {
+  return useQuery<OfferListItem[], Error>({
+    queryKey: [...offerKeys.all, 'urgent', hoursUntilExpiry, limit, userLocation],
+    queryFn: async () => {
+      Logger.info('Fetching urgent offers', { hoursUntilExpiry, limit, userLocation });
+      const offers = await offersService.getUrgentOffers(hoursUntilExpiry, limit, userLocation);
+      const validOffers = Array.isArray(offers) ? offers : [];
+      Logger.info('Urgent offers fetched', { count: validOffers.length });
+      return validOffers;
+    },
+    staleTime: 1000 * 60 * 1, // Consider data fresh for 1 minute (very time-sensitive)
+    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes only
+    ...options,
+  });
+}
+
+/**
+ * Fetch personalized recommended offers (requires authentication)
+ * Based on user's favorited establishments and categories
+ *
+ * Returns empty array if user is not authenticated (graceful fallback)
+ *
+ * @param limit - Maximum number of offers (default 20)
+ * @param userLocation - Optional user location for distance calculation
+ * @param options - React Query options
+ * @returns Query result with recommended offers
+ *
+ * @example
+ * const { data: recommended, isLoading } = useRecommendedOffers(10, { latitude: 36.8, longitude: 10.2 });
+ */
+export function useRecommendedOffers(
+  limit: number = 20,
+  userLocation?: { latitude: number; longitude: number },
+  options?: Omit<UseQueryOptions<OfferListItem[], Error>, 'queryKey' | 'queryFn'>,
+) {
+  const accessToken = useSelector((state: RootState) => state.auth.tokens?.accessToken);
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+
+  return useQuery<OfferListItem[], Error>({
+    queryKey: [...offerKeys.recommended(limit), userLocation],
+    queryFn: async () => {
+      // Graceful fallback: return empty array if not authenticated
+      if (accessToken === null || accessToken === undefined || !isAuthenticated) {
+        Logger.info('User not authenticated, returning empty recommended offers');
+        return [];
+      }
+
+      try {
+        Logger.info('Fetching recommended offers', { limit, hasLocation: !!userLocation });
+        const offers = await offersService.getRecommendedOffers(limit, accessToken, userLocation);
+        // Handle undefined or null responses
+        const validOffers = Array.isArray(offers) ? offers : [];
+        Logger.info('Recommended offers fetched', { count: validOffers.length });
+        return validOffers;
+      } catch (error: unknown) {
+        // If authentication fails (e.g., expired token), return empty array instead of throwing
+        if (error instanceof Error && error.message.includes('Authentication')) {
+          Logger.warn('Authentication error fetching recommended offers, returning empty array', {
+            error: error.message,
+          });
+          return [];
+        }
+        // Re-throw other errors (network, server errors, etc.)
+        throw error;
+      }
+    },
+    enabled: true, // Always enabled, but returns empty if not authenticated
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
     gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    retry: false, // Don't retry on authentication errors
     ...options,
   });
 }
@@ -164,10 +278,12 @@ export function useNearbyOffersQuery(
   return useQuery<OfferListItem[], Error>({
     queryKey: offerKeys.nearby(params),
     queryFn: async () => {
-      Logger.info('Fetching nearby offers', params);
+      Logger.info('Fetching nearby offers', { params });
       const offers = await offersService.getNearbyOffers(params);
-      Logger.info('Nearby offers fetched', { count: offers.length });
-      return offers;
+      // Handle undefined or null responses
+      const validOffers = Array.isArray(offers) ? offers : [];
+      Logger.info('Nearby offers fetched', { count: validOffers.length });
+      return validOffers;
     },
     enabled: !!(params.latitude && params.longitude),
     staleTime: 1000 * 60 * 2, // Consider data fresh for 2 minutes
@@ -196,8 +312,13 @@ export function useEstablishmentOffers(
     queryFn: async () => {
       Logger.info('Fetching establishment offers', { establishmentId, page, limit });
       const response = await offersService.getOffersByEstablishment(establishmentId, page, limit);
-      Logger.info('Establishment offers fetched', { total: response.meta?.total });
-      return response;
+      // Handle undefined or malformed responses
+      const validResponse = response || {
+        data: [],
+        meta: { total: 0, page, limit, totalPages: 0 },
+      };
+      Logger.info('Establishment offers fetched', { total: validResponse.meta?.total });
+      return validResponse;
     },
     enabled: !!establishmentId,
     staleTime: 1000 * 60 * 3, // Consider data fresh for 3 minutes
@@ -206,98 +327,118 @@ export function useEstablishmentOffers(
   });
 }
 
-// ============================================================================
-// Mutation Hooks (Data Modification - require authentication)
-// ============================================================================
-
 /**
- * Create a new offer
- * Requires JWT token from Redux auth state
+ * Fetch offers available for pickup today with optional filters
+ *
+ * @param limit - Maximum number of offers (default 20)
+ * @param userLocation - Optional user location for distance calculation
+ * @param filters - Optional filter parameters (establishment type, cuisine, categories, offer type)
+ * @param options - React Query options
+ * @returns Query result with pickup today offers
  *
  * @example
- * const createMutation = useCreateOffer();
- * createMutation.mutate(offerData, {
- *   onSuccess: (newOffer) => console.log('Created:', newOffer.id),
- *   onError: (error) => console.error('Failed:', error.message)
- * });
+ * const { data: pickupTodayOffers, isLoading } = usePickupTodayOffers(20, { latitude: 36.8, longitude: 10.2 }, { establishmentTypes: ['BAKERY'] });
  */
-export function useCreateOffer() {
-  const queryClient = useQueryClient();
-  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+export function usePickupTodayOffers(
+  limit: number = 20,
+  userLocation?: { latitude: number; longitude: number },
+  filters?: Pick<OfferSearchParams, 'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories'>,
+  options?: Omit<UseQueryOptions<OfferListItem[], Error>, 'queryKey' | 'queryFn'>,
+) {
+  return useQuery<OfferListItem[], Error>({
+    queryKey: [...offerKeys.pickupToday(limit), userLocation, filters],
+    queryFn: async () => {
+      Logger.info('Fetching pickup today offers', { limit, userLocation, filters });
+      const offers = await offersService.getPickupTodayOffers(limit, userLocation);
+      let validOffers = Array.isArray(offers) ? offers : [];
 
-  return useMutation<Offer, Error, CreateOfferPayload>({
-    mutationFn: async (payload: CreateOfferPayload) => {
-      if (!accessToken) {
-        throw new Error('Authentication required to create offer');
+      // Apply filters client-side
+      if (filters) {
+        if (filters.type) {
+          validOffers = validOffers.filter(offer => offer.type === filters.type);
+        }
+        if (filters.categories && filters.categories.length > 0) {
+          validOffers = validOffers.filter(offer =>
+            filters.categories!.some(cat => (offer as any).categories?.includes(cat))
+          );
+        }
+        // Note: establishmentTypes and cuisineTypes filtering requires establishment data
+        // which may not be fully populated in OfferListItem. Log warning if attempted.
+        if ((filters.establishmentTypes && filters.establishmentTypes.length > 0) || (filters.cuisineTypes && filters.cuisineTypes.length > 0)) {
+          Logger.warn('Establishment/cuisine filtering not fully supported for pickup endpoints - use general search instead');
+        }
       }
-      Logger.info('Creating offer', { title: payload.title });
-      const offer = await offersService.createOffer(payload, accessToken);
-      Logger.info('Offer created successfully', { offerId: offer._id });
-      return offer;
+
+      Logger.info('Pickup today offers fetched and filtered', { count: validOffers.length });
+      return validOffers;
     },
-    onSuccess: () => {
-      // Invalidate offers list to refetch
-      queryClient.invalidateQueries({ queryKey: offerKeys.lists() });
-    },
+    staleTime: 1000 * 60 * 2, // Consider data fresh for 2 minutes (time-sensitive)
+    gcTime: 1000 * 60 * 15, // Keep in cache for 15 minutes
+    ...options,
   });
 }
 
 /**
- * Update an existing offer
+ * Fetch offers available for pickup tomorrow with optional filters
+ *
+ * @param limit - Maximum number of offers (default 20)
+ * @param userLocation - Optional user location for distance calculation
+ * @param filters - Optional filter parameters (establishment type, cuisine, categories, offer type)
+ * @param options - React Query options
+ * @returns Query result with pickup tomorrow offers
+ *
+ * @example
+ * const { data: pickupTomorrowOffers, isLoading } = usePickupTomorrowOffers(20, { latitude: 36.8, longitude: 10.2 }, { establishmentTypes: ['BAKERY'] });
  */
-export function useUpdateOffer(offerId: string) {
-  const queryClient = useQueryClient();
-  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+export function usePickupTomorrowOffers(
+  limit: number = 20,
+  userLocation?: { latitude: number; longitude: number },
+  filters?: Pick<OfferSearchParams, 'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories'>,
+  options?: Omit<UseQueryOptions<OfferListItem[], Error>, 'queryKey' | 'queryFn'>,
+) {
+  return useQuery<OfferListItem[], Error>({
+    queryKey: [...offerKeys.pickupTomorrow(limit), userLocation, filters],
+    queryFn: async () => {
+      Logger.info('Fetching pickup tomorrow offers', { limit, userLocation, filters });
+      const offers = await offersService.getPickupTomorrowOffers(limit, userLocation);
+      let validOffers = Array.isArray(offers) ? offers : [];
 
-  return useMutation<Offer, Error, UpdateOfferPayload>({
-    mutationFn: async (payload: UpdateOfferPayload) => {
-      if (!accessToken) {
-        throw new Error('Authentication required to update offer');
+      // Apply filters client-side
+      if (filters) {
+        if (filters.type) {
+          validOffers = validOffers.filter(offer => offer.type === filters.type);
+        }
+        if (filters.categories && filters.categories.length > 0) {
+          validOffers = validOffers.filter(offer =>
+            filters.categories!.some(cat => (offer as any).categories?.includes(cat))
+          );
+        }
+        // Note: establishmentTypes and cuisineTypes filtering requires establishment data
+        // which may not be fully populated in OfferListItem. Log warning if attempted.
+        if ((filters.establishmentTypes && filters.establishmentTypes.length > 0) || (filters.cuisineTypes && filters.cuisineTypes.length > 0)) {
+          Logger.warn('Establishment/cuisine filtering not fully supported for pickup endpoints - use general search instead');
+        }
       }
-      Logger.info('Updating offer', { offerId });
-      const offer = await offersService.updateOffer(offerId, payload, accessToken);
-      Logger.info('Offer updated successfully', { offerId });
-      return offer;
+
+      Logger.info('Pickup tomorrow offers fetched and filtered', { count: validOffers.length });
+      return validOffers;
     },
-    onSuccess: (updatedOffer) => {
-      // Update cache with new data
-      queryClient.setQueryData(offerKeys.detail(offerId), updatedOffer);
-      // Invalidate lists to refetch
-      queryClient.invalidateQueries({ queryKey: offerKeys.lists() });
-    },
+    staleTime: 1000 * 60 * 2, // Consider data fresh for 2 minutes (time-sensitive)
+    gcTime: 1000 * 60 * 15, // Keep in cache for 15 minutes
+    ...options,
   });
 }
 
-/**
- * Update offer status
- */
-export function useUpdateOfferStatus(offerId: string) {
-  const queryClient = useQueryClient();
-  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
-
-  return useMutation<Offer, Error, OfferStatus>({
-    mutationFn: async (status: OfferStatus) => {
-      if (!accessToken) {
-        throw new Error('Authentication required to update offer status');
-      }
-      Logger.info('Updating offer status', { offerId, status });
-      const offer = await offersService.updateOfferStatus(offerId, status, accessToken);
-      Logger.info('Offer status updated', { offerId, status });
-      return offer;
-    },
-    onSuccess: (updatedOffer) => {
-      queryClient.setQueryData(offerKeys.detail(offerId), updatedOffer);
-      queryClient.invalidateQueries({ queryKey: offerKeys.lists() });
-    },
-  });
-}
+// ============================================================================
+// Mutation Hooks (Consumer Actions - require authentication)
+// ============================================================================
 
 /**
  * Reserve quantity from an offer
  */
 export function useReserveOffer(offerId: string) {
   const queryClient = useQueryClient();
-  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+  const accessToken = useSelector((state: RootState) => state.auth.tokens?.accessToken);
 
   return useMutation<Offer, Error, number>({
     mutationFn: async (quantity: number) => {
@@ -309,34 +450,8 @@ export function useReserveOffer(offerId: string) {
       Logger.info('Offer reserved successfully', { offerId, quantity });
       return offer;
     },
-    onSuccess: (updatedOffer) => {
+    onSuccess: updatedOffer => {
       queryClient.setQueryData(offerKeys.detail(offerId), updatedOffer);
-      queryClient.invalidateQueries({ queryKey: offerKeys.lists() });
-    },
-  });
-}
-
-/**
- * Delete an offer
- */
-export function useDeleteOffer() {
-  const queryClient = useQueryClient();
-  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
-
-  return useMutation<{ status: string; message: string; offerId: string }, Error, string>({
-    mutationFn: async (offerId: string) => {
-      if (!accessToken) {
-        throw new Error('Authentication required to delete offer');
-      }
-      Logger.info('Deleting offer', { offerId });
-      const result = await offersService.deleteOffer(offerId, accessToken);
-      Logger.info('Offer deleted successfully', { offerId });
-      return result;
-    },
-    onSuccess: (_, offerId) => {
-      // Remove from cache
-      queryClient.removeQueries({ queryKey: offerKeys.detail(offerId) });
-      // Invalidate lists
       queryClient.invalidateQueries({ queryKey: offerKeys.lists() });
     },
   });

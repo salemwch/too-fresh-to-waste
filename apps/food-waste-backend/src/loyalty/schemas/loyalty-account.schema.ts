@@ -257,7 +257,7 @@ export class LoyaltyAccount {
   // GAMIFICATION: Referral Code
   // =============================================================================
 
-  @Prop({ unique: true, sparse: true })
+  @Prop()
   referralCode?: string; // Unique code like "JOHN1234" for sharing
 
   // =============================================================================

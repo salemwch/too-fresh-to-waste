@@ -1,9 +1,9 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
-import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
-import { ScheduleModule } from '@nestjs/schedule';
+
+// Note: ScheduleModule.forRoot() and EventEmitterModule.forRoot() are already called in AppModule
 
 import { ReviewsService } from './reviwes.service';
 import { ReviewsController } from './reviwes.controller';
@@ -33,7 +33,6 @@ import { ReviewModerationProcessor } from '../proccessors/review-moderation.proc
 
 import { ReviewEventListener } from '../listeners/review-event.listener';
 import { Review, ReviewSchema } from './schemas/reviwe.schema';
-import { UsersModule } from 'src/users/user.module';
 import { OrdersModule } from 'src/orders/order.module';
 import { CommonModule } from '../common/common.module';
 import { LoyaltyModule } from '../loyalty/loyalty.module';
@@ -42,17 +41,7 @@ import { LoyaltyModule } from '../loyalty/loyalty.module';
     imports: [
         CommonModule,
         ConfigModule,
-        ScheduleModule.forRoot(),
-        EventEmitterModule.forRoot({
-            global: true,
-            wildcard: false,
-            delimiter: '.',
-            newListener: false,
-            removeListener: false,
-            maxListeners: 20,
-            verboseMemoryLeak: false,
-            ignoreErrors: false,
-        }),
+        // ScheduleModule and EventEmitterModule are initialized in AppModule
         MongooseModule.forFeature([
             { name: Review.name, schema: ReviewSchema },
             { name: Order.name, schema: OrderSchema },
@@ -111,7 +100,6 @@ import { LoyaltyModule } from '../loyalty/loyalty.module';
                 },
             },
         ),
-        forwardRef(() => UsersModule),
         forwardRef(() => EstablishmentsModule),
         forwardRef(() => OrdersModule),
         forwardRef(() => OffersModule),

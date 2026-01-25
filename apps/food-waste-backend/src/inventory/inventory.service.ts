@@ -377,24 +377,35 @@ export class InventoryService {
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async updateExpiredItems(): Promise<void> {
     try {
+      // ✅ FIX: Use aggregation pipeline update to reference document fields
+      // Cannot use '$currentStock' in regular update - must use pipeline syntax
       const result = await this.inventoryModel.updateMany(
         {
           expiryDate: { $lt: new Date() },
           status: { $ne: InventoryStatus.EXPIRED },
         },
-        {
-          $set: { status: InventoryStatus.EXPIRED },
-          $push: {
-            stockHistory: {
-              quantity: 0,
-              previousQuantity: '$currentStock',
-              newQuantity: '$currentStock',
-              reason: StockUpdateReason.EXPIRED,
-              notes: 'Automatically marked as expired',
-              timestamp: new Date(),
+        [
+          {
+            $set: {
+              status: InventoryStatus.EXPIRED,
+              stockHistory: {
+                $concatArrays: [
+                  { $ifNull: ['$stockHistory', []] },
+                  [
+                    {
+                      quantity: 0,
+                      previousQuantity: '$currentStock',
+                      newQuantity: '$currentStock',
+                      reason: StockUpdateReason.EXPIRED,
+                      notes: 'Automatically marked as expired',
+                      timestamp: new Date(),
+                    },
+                  ],
+                ],
+              },
             },
           },
-        }
+        ]
       );
 
       this.logger.log(`Updated ${result.modifiedCount} expired items`);

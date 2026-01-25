@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString, IsBoolean, IsEnum, IsArray, IsMongoId, IsNumber, Min, Max, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { FavoriteType } from '../schemas/favorite.schema';
 import { ListVisibility } from '../schemas/favorite-list.schema';
 
@@ -114,17 +114,27 @@ export class FavoritesFilterDto {
 
   @ApiProperty({ required: false, default: true })
   @IsOptional()
+  @Transform(({ value }) => {
+    // Handle string boolean conversion from query params
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    if (value === '1') return true;
+    if (value === '0') return false;
+    return value;
+  })
   @IsBoolean()
   isActive?: boolean;
 
   @ApiProperty({ required: false, default: 1 })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   page?: number;
 
   @ApiProperty({ required: false, default: 20 })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   @Max(100)

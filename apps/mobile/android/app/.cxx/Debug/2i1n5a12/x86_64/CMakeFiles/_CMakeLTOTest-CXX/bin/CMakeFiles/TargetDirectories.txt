@@ -1,0 +1,4 @@
+C:/WFA/apps/mobile/android/app/.cxx/Debug/2i1n5a12/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/foo.dir
+C:/WFA/apps/mobile/android/app/.cxx/Debug/2i1n5a12/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/boo.dir
+C:/WFA/apps/mobile/android/app/.cxx/Debug/2i1n5a12/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/edit_cache.dir
+C:/WFA/apps/mobile/android/app/.cxx/Debug/2i1n5a12/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/rebuild_cache.dir

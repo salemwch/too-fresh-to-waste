@@ -83,7 +83,7 @@ export const Text = forwardRef<RNText, TextProps>(
       ...variantStyle,
 
       // Color override
-      color: color || colors.onSurface,
+      color: color ?? colors.onSurface,
 
       // Alignment
       textAlign: align,

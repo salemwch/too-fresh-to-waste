@@ -16,7 +16,7 @@ import { LoggingInterceptor } from '../../common/interceptors/loggin.interceptor
 import { ModerationLogService } from '../services/moderation-log.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { LogLevel, LogCategory } from '../schemas/moderation-log.schema';
-import { UserRole } from '../../users/schemas/user.schema';
+import { UserRole } from '../../common/enums/user.enum';
 
 class ModerationLogQueryDto {
     level?: LogLevel;

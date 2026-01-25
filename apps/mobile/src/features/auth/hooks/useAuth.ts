@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState, useEffect, useCallback } from 'react';
 
 import type { User, AuthTokens } from '../types';
 
@@ -31,12 +30,12 @@ export const useAuth = () => {
         AsyncStorage.getItem('auth_user'),
       ]);
 
-      if (tokensStr) {
+      if (tokensStr != null) {
         const parsedTokens = JSON.parse(tokensStr) as AuthTokens;
         setTokens(parsedTokens);
       }
 
-      if (userStr) {
+      if (userStr != null) {
         const parsedUser = JSON.parse(userStr) as User;
         setUser(parsedUser);
       }
@@ -107,7 +106,7 @@ export const useAuth = () => {
 export const getAccessToken = async (): Promise<string | null> => {
   try {
     const tokensStr = await AsyncStorage.getItem('auth_tokens');
-    if (tokensStr) {
+    if (tokensStr != null) {
       const tokens = JSON.parse(tokensStr) as AuthTokens;
       return tokens.accessToken;
     }
@@ -127,7 +126,7 @@ export const getAccessToken = async (): Promise<string | null> => {
 export const getRefreshToken = async (): Promise<string | null> => {
   try {
     const tokensStr = await AsyncStorage.getItem('auth_tokens');
-    if (tokensStr) {
+    if (tokensStr != null) {
       const tokens = JSON.parse(tokensStr) as AuthTokens;
       return tokens.refreshToken;
     }

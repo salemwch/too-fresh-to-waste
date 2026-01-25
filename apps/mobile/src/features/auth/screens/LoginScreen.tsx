@@ -19,7 +19,7 @@ import {
 import LeafLogo from '@/assets/images/leaf.png';
 import WavingHand from '@/assets/images/waving-hand.png';
 import { Button, Input, Text, Card, Icon } from '@/design-system/components/atoms';
-import { LoginSuccessModal } from '@/design-system/components/molecules';
+import { LoginSuccessModal, ResendVerificationModal, AccountLockedModal } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { loginSchema, type LoginFormData } from '@/utils/validation/schemas';
@@ -137,11 +137,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [userName, setUserName] = useState('');
 
+  // Resend verification modal state
+  const [showResendModal, setShowResendModal] = useState(false);
+
   // Email verification state
   const [isEmailUnverified, setIsEmailUnverified] = useState(false);
   const [resendingEmail, setResendingEmail] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [resendError, setResendError] = useState<string | null>(null);
+
+  // Account lockout state
+  const [showLockedModal, setShowLockedModal] = useState(false);
+  const [blockedUntil, setBlockedUntil] = useState<string | Date | null>(null);
 
   /**
    * Clear error on component mount
@@ -196,20 +203,50 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       } catch (err: any) {
         console.error('Login error:', err);
 
-        // Try to parse backend validation errors and set them on form fields
-        const fieldErrors = parseBackendValidationError(err);
-        if (fieldErrors) {
-          // Set field-specific errors from backend
-          Object.entries(fieldErrors).forEach(([field, message]) => {
-            if (field === 'email' || field === 'password') {
-              setError(field, {
-                type: 'manual',
-                message,
-              });
-            }
+        // Check if this is an account lockout error (403 with blockedUntil)
+        if (err?.isAccountLocked && err?.blockedUntil) {
+          console.log('[LoginScreen] Account locked error detected:', {
+            blockedUntil: err.blockedUntil,
+            message: err.message,
           });
+
+          // Show account locked modal instead of inline error
+          setBlockedUntil(err.blockedUntil);
+          setShowLockedModal(true);
+
+          // Clear the global error from Redux since we're showing the modal
+          dispatch(clearError());
+          return;
         }
-        // Global error is already handled by Redux state and displayed in error banner
+
+        // Check if error has field-specific information from backend
+        // Backend now returns: { field: 'email' | 'password', type: 'EMAIL_NOT_FOUND' | 'INVALID_PASSWORD' }
+        if (err?.field && (err.field === 'email' || err.field === 'password')) {
+          // Set inline error on the specific field
+          const errorMessage = err.message || 'Invalid value';
+          setError(err.field, {
+            type: 'manual',
+            message: errorMessage,
+          });
+          // Clear the global error from Redux since we're showing field-specific error
+          dispatch(clearError());
+        } else {
+          // Try to parse backend validation errors for other cases
+          const fieldErrors = parseBackendValidationError(err);
+          if (fieldErrors) {
+            // Set field-specific errors from backend validation
+            Object.entries(fieldErrors).forEach(([field, message]) => {
+              if (field === 'email' || field === 'password') {
+                setError(field, {
+                  type: 'manual',
+                  message,
+                });
+              }
+            });
+          }
+        }
+        // Global error is handled by Redux state and displayed in error banner
+        // Only shown if no field-specific error was set
       }
     },
     [dispatch, navigation, setError],
@@ -257,6 +294,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       setResendingEmail(false);
     }
   }, [email, resendingEmail]);
+
+  /**
+   * Handle resend verification from modal
+   */
+  const handleResendFromModal = useCallback(async (emailAddress: string) => {
+    await authService.resendVerificationEmail(emailAddress.trim().toLowerCase());
+  }, []);
+
+  /**
+   * Handle successful verification email send from modal
+   */
+  const handleResendSuccess = useCallback(
+    (emailAddress: string) => {
+      setShowResendModal(false);
+      navigation.navigate('VerifyEmail', { email: emailAddress });
+    },
+    [navigation],
+  );
 
   return (
     <KeyboardAvoidingView
@@ -567,6 +622,27 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Resend Verification Link */}
+          <View style={styles.verificationLinkContainer}>
+            <Text variant='body.small' color={theme.colors.onSurfaceVariant}>
+              Need to verify email?{' '}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowResendModal(true)}
+              disabled={isLoading}
+              activeOpacity={0.7}
+            >
+              <Text
+                variant='body.small'
+                color={theme.colors.primary}
+                weight='semibold'
+                style={[styles.verificationLinkText, { textDecorationColor: theme.colors.primary }]}
+              >
+                Resend Link
+              </Text>
+            </TouchableOpacity>
+          </View>
         </Card>
 
         {/* Footer */}
@@ -581,6 +657,27 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         userName={userName}
         onDismiss={() => setShowSuccessModal(false)}
       />
+
+      {/* Resend Verification Modal */}
+      <ResendVerificationModal
+        visible={showResendModal}
+        onDismiss={() => setShowResendModal(false)}
+        onSuccess={handleResendSuccess}
+        onSendVerification={handleResendFromModal}
+      />
+
+      {/* Account Locked Modal */}
+      {blockedUntil && (
+        <AccountLockedModal
+          visible={showLockedModal}
+          blockedUntil={blockedUntil}
+          onDismiss={() => {
+            setShowLockedModal(false);
+            setBlockedUntil(null);
+          }}
+          onPasswordReset={handleNavigateToForgotPassword}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 };
@@ -735,6 +832,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signUpText: {
+    textDecorationLine: 'underline',
+    // textDecorationColor is set inline using theme.colors.primary for dynamic theming
+  },
+  verificationLinkContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  verificationLinkText: {
     textDecorationLine: 'underline',
     // textDecorationColor is set inline using theme.colors.primary for dynamic theming
   },

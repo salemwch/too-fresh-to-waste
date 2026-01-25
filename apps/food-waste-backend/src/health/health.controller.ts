@@ -13,7 +13,7 @@
  * - Monitoring systems
  */
 
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Version, VERSION_NEUTRAL } from '@nestjs/common';
 import {
   HealthCheck,
   HealthCheckService,
@@ -21,11 +21,11 @@ import {
   MemoryHealthIndicator,
 } from '@nestjs/terminus';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Public } from '../auth/decorators/public.decorator';
+import { Public } from '../common/decorators/public.decorator';
 import { RedisHealthIndicator } from './indicators/redis.health';
 
 @ApiTags('Health')
-@Controller('health')
+@Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthController {
   constructor(
     private readonly health: HealthCheckService,

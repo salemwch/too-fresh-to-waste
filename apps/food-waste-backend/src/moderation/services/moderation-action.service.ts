@@ -6,7 +6,7 @@ import { CreateModerationActionDto, UpdateModerationActionDto, BulkModerationAct
 import { ModerationActionQueryDto } from '../dtos/report-query.dto';
 import { ModerationLogService } from './moderation-log.service';
 import { LogLevel, LogCategory } from '../schemas/moderation-log.schema';
-import { UserRole } from '../../users/schemas/user.schema';
+import { UserRole } from '../../common/enums/user.enum';
 
 @Injectable()
 export class ModerationActionService {

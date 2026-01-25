@@ -8,7 +8,7 @@
  * - GPS location via react-native-geolocation-service
  * - Manual location fallback (city search)
  * - Permission status tracking
- * - Automatic expiry check (24h)
+ * - Location persists indefinitely until manually changed
  * - Preferred radius management
  *
  * Usage:
@@ -22,7 +22,7 @@
  * ```
  */
 
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 
 import {
   type LocationCoordinates,
@@ -31,7 +31,6 @@ import {
   type PermissionStatus,
   checkPermissionAsync,
   requestLocationAsync,
-  clearExpiredLocationAsync,
   setManualLocation,
   setPreferredRadius,
   dismissPrompt,
@@ -170,14 +169,6 @@ export function useLocation(): UseLocationReturn {
     preferredRadiusKm,
     manualLocationName,
   } = locationState;
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Check for expired location on mount
-  // ─────────────────────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    void dispatch(clearExpiredLocationAsync());
-  }, [dispatch]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Action handlers

@@ -51,6 +51,7 @@ export interface DonationApiResponse<T> {
 
 /**
  * Order with donation information
+ * Uses _id to match MongoDB backend responses
  */
 export interface OrderWithDonation {
   _id: string;

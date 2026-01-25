@@ -14,7 +14,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { FavoritesService } from './favorites.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { GetUser } from '../auth/decorators/get-user.decorator';
+import { GetUser } from '../common/decorators/get-user.decorator';
 import { FavoriteType } from './schemas/favorite.schema';
 import {
   AddFavoriteDto,

@@ -106,7 +106,7 @@ ANALYTICS_CACHE_TTL=900                # Cache TTL in seconds (15 minutes)
 ANALYTICS_MAX_DATE_RANGE=730           # Maximum date range in days (2 years)
 
 # Database
-DATABASE_URL=mongodb://localhost:27017/foodwaste
+DATABASE_URL=mongodb+srv://foodwaste_user:a3yoNUPRgksQvUnZ@cluster0.61uimdv.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0&compressors=none
 
 # Optional: Redis for advanced caching
 REDIS_URL=redis://localhost:6379

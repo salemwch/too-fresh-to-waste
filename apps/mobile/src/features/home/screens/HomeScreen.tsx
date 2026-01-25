@@ -9,21 +9,63 @@
  * - Personal impact stats
  */
 
-import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  TouchableOpacity,
+  FlatList,
+} from 'react-native';
+import { useSelector } from 'react-redux';
 
-import { Text, Button, Card } from '@/design-system/components/atoms';
-import { LocationPromptBanner } from '@/design-system/components/molecules';
-import { ManualLocationModal } from '@/design-system/components/organisms';
+import { Text, Button, Card, Icon, Input } from '@/design-system/components/atoms';
+import { LocationPromptBanner, SkeletonOfferCard } from '@/design-system/components/molecules';
+import { ManualLocationModal, LocationSelectionModal } from '@/design-system/components/organisms';
 import { useTheme } from '@/design-system/providers';
 import { ImpactBanner } from '@/features/donations';
-import { OfferCard } from '@/features/offers/components';
-import { useFeaturedOffers } from '@/features/offers/hooks/useOffers';
-import { useAppSelector } from '@/hooks/redux';
+import { FavoriteOfferCard } from '@/features/favorites';
+import {
+  useUrgentOffers,
+  useRecommendedOffers,
+  useOffers,
+  usePickupTodayOffers,
+  usePickupTomorrowOffers,
+} from '@/features/offers/hooks/useOffers';
+import {
+  OfferStatus,
+  EstablishmentType,
+  type OfferSearchParams,
+} from '@/features/offers/types/offer.types';
+import { userService } from '@/features/profile/services';
+import { FilterBottomSheet, ActiveFilterChips } from '@/features/search/components';
+import {
+  INITIAL_FILTER_STATE,
+  hasActiveFilters,
+  countActiveFilters,
+} from '@/features/search/types/filter.types';
 import { useLocation } from '@/hooks/useLocation';
+import { analytics } from '@/utils/analytics';
+import { Logger } from '@/utils/logger';
 
+import type { FilterState } from '@/features/search/types/filter.types';
 import type { HomeScreenNavigationProp } from '@/navigation/types';
-import type { OfferListItem } from '@/features/offers/types/offer.types';
+import type { RootState } from '@/types';
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+const LOCATION_SETUP_COMPLETED_KEY = '@location_required_v1';
+const FILTERS_STORAGE_KEY = '@home_filters_v1';
+
+// Style constants
+const COLORS: { readonly BLACK: string; readonly WHITE: string } = {
+  BLACK: '#000',
+  WHITE: '#FFFFFF',
+};
 
 interface HomeScreenProps {
   navigation: HomeScreenNavigationProp;
@@ -31,15 +73,7 @@ interface HomeScreenProps {
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const theme = useTheme();
-  const { user } = useAppSelector(state => state.auth);
-
-  // Featured offers query
-  const {
-    data: featuredOffers,
-    isLoading: isFeaturedLoading,
-    error: featuredError,
-    refetch: refetchFeatured
-  } = useFeaturedOffers(10);
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
   // Location hook
   const {
@@ -52,19 +86,239 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     setManualLocationValue,
   } = useLocation();
 
+  // Filter state
+  const [filters, setFilters] = useState<FilterState>(INITIAL_FILTER_STATE);
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+
+  // Convert filter state to API params (memoized for performance)
+  const filterParams = useMemo(() => {
+    try {
+      const params: Partial<
+        Pick<OfferSearchParams, 'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories'>
+      > = {};
+
+      // ✅ Input validation and sanitization
+      if (filters.offerType != null) {
+        params.type = filters.offerType;
+      }
+
+      // ✅ FIXED: Backend now supports multiple establishment types
+      if (filters.establishmentTypes.length > 0) {
+        // Validate and sanitize establishment types
+        const validTypes = filters.establishmentTypes.filter(
+          type => Boolean(type) && Object.values(EstablishmentType).includes(type),
+        );
+        if (validTypes.length > 0) {
+          params.establishmentTypes = [...validTypes]; // Defensive copy
+        }
+      }
+
+      // Validate and sanitize cuisine types
+      if (filters.cuisineTypes.length > 0) {
+        const validCuisines = filters.cuisineTypes.filter(
+          cuisine => typeof cuisine === 'string' && cuisine.trim().length > 0,
+        );
+        if (validCuisines.length > 0) {
+          params.cuisineTypes = validCuisines.map(c => c.trim()); // Sanitize
+        }
+      }
+
+      // Validate and sanitize categories
+      if (filters.categories.length > 0) {
+        const validCategories = filters.categories.filter(
+          category => typeof category === 'string' && category.trim().length > 0,
+        );
+        if (validCategories.length > 0) {
+          params.categories = validCategories.map(c => c.trim()); // Sanitize
+        }
+      }
+
+      Logger.debug('Filter params computed', { params, originalFilters: filters });
+      return params;
+    } catch (error) {
+      // ✅ Error boundary: Graceful degradation
+      Logger.error('Failed to convert filters to params', { error, filters });
+      return {}; // Fallback to no filters
+    }
+  }, [filters]);
+
+  // Recommended offers query (personalized, requires auth)
+  const {
+    data: _recommendedOffers,
+    isLoading: _isRecommendedLoading,
+    error: _recommendedError,
+    refetch: refetchRecommended,
+  } = useRecommendedOffers(
+    10,
+    coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
+  );
+
+  // ✅ FIXED: Urgent offers query (expiring within 1 hours) - with distance if location available
+  // This replaces the previous featured offers query which was showing ALL featured offers
+  // (including manually featured ones with 11+ hours remaining)
+  const {
+    data: urgentOffers,
+    isLoading: isUrgentLoading,
+    error: urgentError,
+    refetch: refetchUrgent,
+  } = useUrgentOffers(
+    1, // Only show offers expiring within 1 hours
+    10,
+    coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
+  );
+
+  // Hottest deals query (highest discounts) - with distance if location available
+  const {
+    data: hottestDeals,
+    isLoading: isHottestLoading,
+    error: hottestError,
+    refetch: refetchHottest,
+  } = useOffers(
+    {
+      status: OfferStatus.ACTIVE,
+      minDiscount: 70,
+      limit: 10,
+      ...filterParams,
+    },
+    coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
+    {},
+  );
+
+  // Pickup Today offers query - offers available for pickup today
+  const {
+    data: pickupTodayOffers,
+    isLoading: isPickupTodayLoading,
+    error: pickupTodayError,
+    refetch: refetchPickupToday,
+  } = usePickupTodayOffers(
+    20,
+    coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
+    filterParams,
+  );
+
+  // Pickup Tomorrow offers query - offers available for pickup tomorrow
+  const {
+    data: pickupTomorrowOffers,
+    isLoading: isPickupTomorrowLoading,
+    error: pickupTomorrowError,
+    refetch: refetchPickupTomorrow,
+  } = usePickupTomorrowOffers(
+    20,
+    coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
+    filterParams,
+  );
+
   // State
   const [refreshing, setRefreshing] = useState(false);
   const [showManualLocationModal, setShowManualLocationModal] = useState(false);
+  const [showLocationSelectionModal, setShowLocationSelectionModal] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  /**
+   * Load persisted filters on mount
+   */
+  useEffect(() => {
+    const loadFilters = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(FILTERS_STORAGE_KEY);
+        if (stored != null) {
+          const parsedFilters = JSON.parse(stored) as FilterState;
+          setFilters(parsedFilters);
+          Logger.debug('Filters restored from storage', parsedFilters);
+        }
+      } catch (error) {
+        Logger.error('Failed to load persisted filters', { error });
+      }
+    };
+    void loadFilters();
+  }, []);
+
+  /**
+   * Persist filters when they change
+   */
+  useEffect(() => {
+    const persistFilters = async () => {
+      try {
+        await AsyncStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
+        Logger.debug('Filters persisted to storage', filters);
+      } catch (error) {
+        Logger.error('Failed to persist filters', { error });
+      }
+    };
+    void persistFilters();
+  }, [filters]);
+
+  /**
+   * Check if location setup modal should be shown (first time user)
+   * Also fetch location from backend if user is authenticated but has no local location
+   */
+  useEffect(() => {
+    const checkLocationSetup = async () => {
+      try {
+        const hasCompleted = await AsyncStorage.getItem(LOCATION_SETUP_COMPLETED_KEY);
+
+        // If authenticated, no local location, but has completed setup before (returning user on new device)
+        // Try fetching from backend. Skip for brand new users (hasCompleted === null)
+        if (isAuthenticated && !hasLocation && hasCompleted !== null) {
+          try {
+            Logger.debug('[HomeScreen] Attempting to restore location from backend...');
+            const profile = await userService.getCurrentProfile();
+
+            // Check if user has location preferences set
+            if (profile?.locationPreferences?.defaultLocation) {
+              const { latitude, longitude } = profile.locationPreferences.defaultLocation;
+              Logger.debug('[HomeScreen] Location found in backend, restoring...');
+
+              // Set location from backend
+              setManualLocationValue({ latitude, longitude }, 'Synced from server');
+              await AsyncStorage.setItem(LOCATION_SETUP_COMPLETED_KEY, 'true');
+              Logger.debug('[HomeScreen] Location restored from backend successfully');
+              return; // Don't show modal if we got location from backend
+            }
+            Logger.debug('[HomeScreen] No location found in backend for this user');
+          } catch (error) {
+            // Non-blocking: if backend fetch fails, continue with modal flow
+            Logger.error('[HomeScreen] Failed to fetch location from backend:', error);
+          }
+        }
+
+        // Show modal if user hasn't completed setup AND doesn't have location set
+        if (hasCompleted == null && !hasLocation) {
+          Logger.debug('[HomeScreen] First-time user, showing location modal');
+          setShowLocationSelectionModal(true);
+        } else if (hasCompleted !== null && !hasLocation) {
+          // Returning user but no location (edge case)
+          Logger.debug('[HomeScreen] Returning user with no location, showing modal');
+          setShowLocationSelectionModal(true);
+        }
+      } catch (error) {
+        Logger.error('[HomeScreen] Failed to check location setup:', error);
+      }
+    };
+
+    void checkLocationSetup();
+  }, [hasLocation, isAuthenticated, setManualLocationValue]);
 
   /**
    * Handle pull-to-refresh
    */
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refetchFeatured();
-    // TODO: Refetch nearby offers when implemented
+    await Promise.all([
+      refetchRecommended(),
+      refetchUrgent(),
+      refetchHottest(),
+      refetchPickupToday(),
+      refetchPickupTomorrow(),
+    ]);
     setRefreshing(false);
-  }, [refetchFeatured]);
+  }, [
+    refetchRecommended,
+    refetchUrgent,
+    refetchHottest,
+    refetchPickupToday,
+    refetchPickupTomorrow,
+  ]);
 
   /**
    * Handle enabling location
@@ -90,8 +344,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   /**
    * Navigate to nearby offers
+   * TODO: Wire this up to a "View All" button
    */
-  const handleViewNearbyOffers = useCallback(async () => {
+  // @ts-expect-error - TODO: Wire this up to a "View All" button
+  const _handleViewNearbyOffers = useCallback(async () => {
     if (hasLocation && coordinates) {
       // Navigate with current location
       navigation.navigate('NearbyOffers', {
@@ -123,6 +379,149 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     [navigation],
   );
 
+  /**
+   * Handle location selection from LocationSelectionModal
+   */
+  const handleLocationSelection = useCallback(
+    async (coordinates: { latitude: number; longitude: number }, name: string) => {
+      setLocationError(null);
+
+      // Check if GPS was requested (coordinates are 0,0 as signal)
+      if (coordinates.latitude === 0 && coordinates.longitude === 0 && name === 'gps') {
+        const result = await requestLocation();
+        if (result.success && result.coordinates) {
+          // GPS location obtained successfully
+          setShowLocationSelectionModal(false);
+          await AsyncStorage.setItem(LOCATION_SETUP_COMPLETED_KEY, 'true');
+
+          // Sync location to backend for cross-device persistence
+          try {
+            if (isAuthenticated) {
+              await userService.updateLocation({
+                latitude: result.coordinates.latitude,
+                longitude: result.coordinates.longitude,
+                source: 'gps',
+              });
+            }
+          } catch (error) {
+            // Non-blocking: log error but don't prevent local storage
+            Logger.error('[HomeScreen] Failed to sync location to backend:', error);
+          }
+        } else {
+          // GPS failed, show error and keep modal open
+          setLocationError(
+            result.error ?? 'Failed to get your location. Please try another option.',
+          );
+        }
+      } else {
+        // Manual location or default location selected
+        setManualLocationValue(coordinates, name);
+        setShowLocationSelectionModal(false);
+        await AsyncStorage.setItem(LOCATION_SETUP_COMPLETED_KEY, 'true');
+
+        // Sync location to backend for cross-device persistence
+        try {
+          if (isAuthenticated) {
+            await userService.updateLocation({
+              latitude: coordinates.latitude,
+              longitude: coordinates.longitude,
+              locationName: name,
+              source: 'manual',
+            });
+          }
+        } catch (error) {
+          // Non-blocking: log error but don't prevent local storage
+          Logger.error('[HomeScreen] Failed to sync location to backend:', error);
+        }
+      }
+    },
+    [requestLocation, setManualLocationValue, isAuthenticated],
+  );
+
+  /**
+   * Filter handlers
+   */
+  const handleApplyFilters = useCallback((newFilters: FilterState) => {
+    // Track filter usage analytics
+    analytics.trackFiltersApplied({
+      ...(newFilters.offerType != null && { offerType: String(newFilters.offerType) }),
+      establishmentCount: newFilters.establishmentTypes.length,
+      establishmentTypes: newFilters.establishmentTypes.map(String),
+      cuisineCount: newFilters.cuisineTypes.length,
+      cuisineTypes: newFilters.cuisineTypes,
+      categoryCount: newFilters.categories.length,
+      categories: newFilters.categories,
+      totalFilters: countActiveFilters(newFilters),
+      source: 'home_screen',
+    });
+
+    setFilters(newFilters);
+    setIsFilterVisible(false);
+  }, []);
+
+  const handleClearAllFilters = useCallback(() => {
+    // Track analytics
+    analytics.trackFiltersCleared({
+      previousFilterCount: countActiveFilters(filters),
+      source: 'home_screen',
+    });
+
+    setFilters(INITIAL_FILTER_STATE);
+  }, [filters]);
+
+  const handleRemoveOfferType = useCallback(() => {
+    // Track analytics
+    analytics.trackFilterRemoved({
+      filterType: 'offerType',
+      value: filters.offerType ?? 'unknown',
+      source: 'home_screen',
+    });
+
+    setFilters(prev => ({ ...prev, offerType: null }));
+  }, [filters.offerType]);
+
+  const handleRemoveEstablishmentType = useCallback((type: EstablishmentType) => {
+    // Track analytics
+    analytics.trackFilterRemoved({
+      filterType: 'establishmentType',
+      value: type,
+      source: 'home_screen',
+    });
+
+    setFilters(prev => ({
+      ...prev,
+      establishmentTypes: prev.establishmentTypes.filter(t => t !== type),
+    }));
+  }, []);
+
+  const handleRemoveCuisineType = useCallback((cuisine: string) => {
+    // Track analytics
+    analytics.trackFilterRemoved({
+      filterType: 'cuisineType',
+      value: cuisine,
+      source: 'home_screen',
+    });
+
+    setFilters(prev => ({
+      ...prev,
+      cuisineTypes: prev.cuisineTypes.filter(c => c !== cuisine),
+    }));
+  }, []);
+
+  const handleRemoveCategory = useCallback((category: string) => {
+    // Track analytics
+    analytics.trackFilterRemoved({
+      filterType: 'category',
+      value: category,
+      source: 'home_screen',
+    });
+
+    setFilters(prev => ({
+      ...prev,
+      categories: prev.categories.filter(c => c !== category),
+    }));
+  }, []);
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView
@@ -133,7 +532,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={handleRefresh}
+            onRefresh={() => {
+              void handleRefresh();
+            }}
             tintColor={theme.colors.primary}
             accessibilityLabel={refreshing ? 'Refreshing offers' : 'Pull to refresh'}
           />
@@ -141,145 +542,437 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       >
         {/* Location Prompt Banner - Show when user hasn't enabled location */}
         {shouldShowPrompt && (
-          <LocationPromptBanner
-            onEnable={handleEnableLocation}
-            onDismiss={dismissLocationPrompt}
-            isLoading={isLocationLoading}
-            testID="location-prompt-banner"
+          <View style={styles.bannerWrapper}>
+            <LocationPromptBanner
+              onEnable={() => {
+                void handleEnableLocation();
+              }}
+              onDismiss={dismissLocationPrompt}
+              isLoading={isLocationLoading}
+              testID='location-prompt-banner'
+            />
+          </View>
+        )}
+
+        {/* Search Bar + Filter Button */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputWrapper}>
+            <Input
+              placeholder='Search by establishment, cuisine or food...'
+              leftIcon={<Icon name='search' size={20} color={theme.colors.onSurfaceVariant} />}
+              onFocus={() => navigation.navigate('Search')}
+              editable={false}
+              style={styles.searchInput}
+            />
+          </View>
+          <TouchableOpacity
+            style={[styles.filterButton, { backgroundColor: theme.colors.surface }]}
+            onPress={() => setIsFilterVisible(true)}
+            accessibilityLabel={`Filters ${hasActiveFilters(filters) ? `(${countActiveFilters(filters)} active)` : ''}`}
+          >
+            <Icon name='filter-list' size={24} color={theme.colors.onSurface} />
+            {hasActiveFilters(filters) && (
+              <View style={[styles.filterBadge, { backgroundColor: theme.colors.accent }]}>
+                <Text style={styles.filterBadgeText}>{countActiveFilters(filters)}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Active Filter Chips */}
+        {hasActiveFilters(filters) && (
+          <ActiveFilterChips
+            filters={filters}
+            onRemoveOfferType={handleRemoveOfferType}
+            onRemoveEstablishmentType={handleRemoveEstablishmentType}
+            onRemoveCuisineType={handleRemoveCuisineType}
+            onRemoveCategory={handleRemoveCategory}
+            onClearAll={handleClearAllFilters}
           />
         )}
 
         {/* 🌍 Community Donation Impact Banner */}
-        <ImpactBanner
-          onExpand={() => {
-            // TODO: Track analytics when user expands the banner
-            // analytics.track('community_impact_banner_expanded');
-          }}
-        />
-
-        {/* Welcome Section */}
-        <View style={styles.welcomeSection}>
-          <Text variant='headline' size='xl' weight='bold'>
-            Welcome back
-            {user?.firstName != null && user.firstName !== '' ? `, ${user.firstName}` : ''}!
-          </Text>
-          <Text variant='body' size='md' color='secondary' style={styles.subtitle}>
-            Discover great deals on surplus food nearby
-          </Text>
+        <View style={styles.bannerWrapper}>
+          <ImpactBanner
+            onExpand={() => {
+              // TODO: Track analytics when user expands the banner
+              // analytics.track('community_impact_banner_expanded');
+            }}
+          />
         </View>
 
-        {/* Featured Offers Section */}
+        {/* Recommended Offers Section (Personalized - Auth Required) */}
+        {/* ✅ FIXED: Urgent Deals Section - Now shows only offers expiring within 1 hour */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text variant='title' size='lg' weight='semibold'>
-              Featured Offers
+              Urgent Deals ⚡
             </Text>
             <Button
               variant='ghost'
               size='sm'
               onPress={() => navigation.navigate('Search')}
-              accessibilityLabel='See all featured offers'
-              accessibilityHint='Opens search screen with all available offers'
+              accessibilityLabel='See all urgent offers'
             >
               See All
             </Button>
           </View>
 
-          {/* Loading State */}
-          {isFeaturedLoading && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={theme.colors.primary} />
-              <Text variant="body" size="sm" color="secondary" style={{ marginTop: 12 }}>
-                Loading featured offers...
-              </Text>
-            </View>
+          {Boolean(isUrgentLoading) && (
+            <FlatList
+              data={[1, 2, 3]}
+              renderItem={() => (
+                <SkeletonOfferCard imageAspectRatio={1.4} style={styles.offerCardItem} />
+              )}
+              keyExtractor={item => `skeleton-urgent-${item}`}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.carouselContainer}
+              scrollEnabled={false}
+            />
           )}
 
-          {/* Error State */}
-          {featuredError && !isFeaturedLoading && (
+          {Boolean(urgentError) && !Boolean(isUrgentLoading) && urgentOffers === undefined && (
             <Card style={styles.placeholderCard}>
-              <Text variant="body" size="md" color="error" align="center">
-                ⚠️ Failed to load featured offers
+              <Text variant='body' size='md' color='error' align='center'>
+                ⚠️ Failed to load urgent deals
               </Text>
               <Button
-                variant="outline"
-                size="sm"
-                onPress={() => refetchFeatured()}
-                style={{ marginTop: 12 }}
+                variant='outline'
+                size='sm'
+                onPress={() => void refetchUrgent()}
+                style={styles.retryButton}
               >
                 Retry
               </Button>
             </Card>
           )}
 
-          {/* Featured Offers Carousel */}
-          {!isFeaturedLoading && !featuredError && featuredOffers && featuredOffers.length > 0 && (
+          {!isUrgentLoading && !urgentError && urgentOffers && urgentOffers.length > 0 && (
             <FlatList
-              data={featuredOffers}
+              data={urgentOffers}
               renderItem={({ item }) => (
-                <OfferCard offer={item} variant="carousel" testID={`featured-offer-${item._id}`} />
+                <FavoriteOfferCard
+                  offer={item}
+                  variant='featured'
+                  imageAspectRatio={1.4}
+                  onPress={offer => navigation.navigate('OfferDetails', { offerId: offer.id })}
+                  testID={`urgent-offer-${item.id}`}
+                  style={styles.offerCardItem}
+                />
               )}
-              keyExtractor={(item) => item._id}
+              keyExtractor={item => item.id}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.carouselContainer}
-              snapToInterval={300} // Snap to card width
-              decelerationRate="fast"
-              accessibilityLabel="Featured offers carousel"
-              accessibilityHint="Swipe left or right to browse featured offers"
+              snapToInterval={300}
+              decelerationRate='fast'
+              accessibilityLabel='Urgent offers carousel'
+              accessibilityHint='Swipe left or right to browse offers expiring within 1 hour'
             />
           )}
 
-          {/* Empty State */}
-          {!isFeaturedLoading && !featuredError && (!featuredOffers || featuredOffers.length === 0) && (
-            <Card style={styles.placeholderCard}>
-              <Text variant='body' size='md' color='secondary' align='center'>
-                No featured offers available
-              </Text>
-              <Text
-                variant='body'
-                size='sm'
-                color='secondary'
-                align='center'
-                style={styles.placeholderSubtext}
-              >
-                Check back soon for amazing deals from local businesses
-              </Text>
-            </Card>
-          )}
+          {!Boolean(isUrgentLoading) &&
+            !Boolean(urgentError) &&
+            (!urgentOffers || urgentOffers.length === 0) && (
+              <Card style={styles.placeholderCard}>
+                <Text variant='body' size='md' color='secondary' align='center'>
+                  No urgent deals right now
+                </Text>
+                <Text
+                  variant='body'
+                  size='sm'
+                  color='secondary'
+                  align='center'
+                  style={styles.placeholderSubtext}
+                >
+                  Offers expiring within 1 hour will appear here
+                </Text>
+              </Card>
+            )}
         </View>
 
-        {/* Nearby Offers Section */}
+        {/* Hottest Deals Section (70%+ Discount) */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text variant='title' size='lg' weight='semibold'>
-              Nearby Offers
+              Hottest Deals 🔥
             </Text>
             <Button
               variant='ghost'
               size='sm'
-              onPress={handleViewNearbyOffers}
-              accessibilityLabel='View nearby offers on map'
-              accessibilityHint='Opens map view showing food offers near your location'
+              onPress={() => navigation.navigate('Search')}
+              accessibilityLabel='See all hot deals'
             >
-              View Map
+              See All
             </Button>
           </View>
 
-          <Card style={styles.placeholderCard}>
-            <Text variant='body' size='md' color='secondary' align='center'>
-              Nearby offers will appear here
+          {isHottestLoading && (
+            <FlatList
+              data={[1, 2, 3]}
+              renderItem={() => (
+                <SkeletonOfferCard imageAspectRatio={1.4} style={styles.offerCardItem} />
+              )}
+              keyExtractor={item => `skeleton-hottest-${item}`}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.carouselContainer}
+              scrollEnabled={false}
+            />
+          )}
+
+          {hottestError && !isHottestLoading && hottestDeals?.data === undefined && (
+            <Card style={styles.placeholderCard}>
+              <Text variant='body' size='md' color='error' align='center'>
+                ⚠️ Failed to load hottest deals
+              </Text>
+              <Button
+                variant='outline'
+                size='sm'
+                onPress={() => void refetchHottest()}
+                style={styles.retryButton}
+              >
+                Retry
+              </Button>
+            </Card>
+          )}
+
+          {!isHottestLoading &&
+            !hottestError &&
+            hottestDeals?.data &&
+            hottestDeals.data.length > 0 && (
+              <FlatList
+                data={hottestDeals.data}
+                renderItem={({ item }) => (
+                  <FavoriteOfferCard
+                    offer={item}
+                    variant='default'
+                    imageAspectRatio={1.4}
+                    onPress={offer => navigation.navigate('OfferDetails', { offerId: offer.id })}
+                    testID={`hottest-offer-${item.id}`}
+                    style={styles.offerCardItem}
+                  />
+                )}
+                keyExtractor={item => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.carouselContainer}
+                snapToInterval={300}
+                decelerationRate='fast'
+                accessibilityLabel='Hottest deals carousel'
+                accessibilityHint='Swipe left or right to browse biggest discounts'
+              />
+            )}
+
+          {!isHottestLoading &&
+            !hottestError &&
+            (!hottestDeals?.data || hottestDeals.data.length === 0) && (
+              <Card style={styles.placeholderCard}>
+                <Text variant='body' size='md' color='secondary' align='center'>
+                  No hottest deals for now
+                </Text>
+                <Text
+                  variant='body'
+                  size='sm'
+                  color='secondary'
+                  align='center'
+                  style={styles.placeholderSubtext}
+                >
+                  Check back soon for offers with 70%+ discount
+                </Text>
+              </Card>
+            )}
+        </View>
+
+        {/* Pickup Today Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text variant='title' size='lg' weight='semibold'>
+              Pickup Today 📅
             </Text>
-            <Text
-              variant='body'
+            <Button
+              variant='ghost'
               size='sm'
-              color='secondary'
-              align='center'
-              style={styles.placeholderSubtext}
+              onPress={() => navigation.navigate('Search')}
+              accessibilityLabel='See all pickup today offers'
             >
-              Save food and money from restaurants near you
+              See All
+            </Button>
+          </View>
+
+          {Boolean(isPickupTodayLoading) && (
+            <FlatList
+              data={[1, 2, 3]}
+              renderItem={() => (
+                <SkeletonOfferCard imageAspectRatio={1.4} style={styles.offerCardItem} />
+              )}
+              keyExtractor={item => `skeleton-pickup-today-${item}`}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.carouselContainer}
+              scrollEnabled={false}
+            />
+          )}
+
+          {Boolean(pickupTodayError) &&
+            !Boolean(isPickupTodayLoading) &&
+            pickupTodayOffers === undefined && (
+              <Card style={styles.placeholderCard}>
+                <Text variant='body' size='md' color='error' align='center'>
+                  ⚠️ Failed to load pickup today offers
+                </Text>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onPress={() => void refetchPickupToday()}
+                  style={styles.retryButton}
+                >
+                  Retry
+                </Button>
+              </Card>
+            )}
+
+          {!Boolean(isPickupTodayLoading) &&
+            !Boolean(pickupTodayError) &&
+            pickupTodayOffers &&
+            pickupTodayOffers.length > 0 && (
+              <FlatList
+                data={pickupTodayOffers}
+                renderItem={({ item }) => (
+                  <FavoriteOfferCard
+                    offer={item}
+                    variant='default'
+                    imageAspectRatio={1.4}
+                    onPress={offer => navigation.navigate('OfferDetails', { offerId: offer.id })}
+                    testID={`pickup-today-offer-${item.id}`}
+                    style={styles.offerCardItem}
+                  />
+                )}
+                keyExtractor={item => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.carouselContainer}
+                snapToInterval={300}
+                decelerationRate='fast'
+                accessibilityLabel='Pickup today offers carousel'
+                accessibilityHint='Swipe left or right to browse pickup today offers'
+              />
+            )}
+
+          {!isPickupTodayLoading &&
+            !pickupTodayError &&
+            (!pickupTodayOffers || pickupTodayOffers.length === 0) && (
+              <Card style={styles.placeholderCard}>
+                <Text variant='body' size='md' color='secondary' align='center'>
+                  No offers available for pickup today
+                </Text>
+                <Text
+                  variant='body'
+                  size='sm'
+                  color='secondary'
+                  align='center'
+                  style={styles.placeholderSubtext}
+                >
+                  Check back later or browse other offers
+                </Text>
+              </Card>
+            )}
+        </View>
+
+        {/* Pickup Tomorrow Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text variant='title' size='lg' weight='semibold'>
+              Pickup Tomorrow 📅
             </Text>
-          </Card>
+            <Button
+              variant='ghost'
+              size='sm'
+              onPress={() => navigation.navigate('Search')}
+              accessibilityLabel='See all pickup tomorrow offers'
+            >
+              See All
+            </Button>
+          </View>
+
+          {isPickupTomorrowLoading && (
+            <FlatList
+              data={[1, 2, 3]}
+              renderItem={() => (
+                <SkeletonOfferCard imageAspectRatio={1.4} style={styles.offerCardItem} />
+              )}
+              keyExtractor={item => `skeleton-pickup-tomorrow-${item}`}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.carouselContainer}
+              scrollEnabled={false}
+            />
+          )}
+
+          {pickupTomorrowError &&
+            !isPickupTomorrowLoading &&
+            pickupTomorrowOffers === undefined && (
+              <Card style={styles.placeholderCard}>
+                <Text variant='body' size='md' color='error' align='center'>
+                  ⚠️ Failed to load pickup tomorrow offers
+                </Text>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onPress={() => void refetchPickupTomorrow()}
+                  style={styles.retryButton}
+                >
+                  Retry
+                </Button>
+              </Card>
+            )}
+
+          {!isPickupTomorrowLoading &&
+            !pickupTomorrowError &&
+            pickupTomorrowOffers &&
+            pickupTomorrowOffers.length > 0 && (
+              <FlatList
+                data={pickupTomorrowOffers}
+                renderItem={({ item }) => (
+                  <FavoriteOfferCard
+                    offer={item}
+                    variant='default'
+                    imageAspectRatio={1.4}
+                    onPress={offer => navigation.navigate('OfferDetails', { offerId: offer.id })}
+                    testID={`pickup-tomorrow-offer-${item.id}`}
+                    style={styles.offerCardItem}
+                  />
+                )}
+                keyExtractor={item => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.carouselContainer}
+                snapToInterval={300}
+                decelerationRate='fast'
+                accessibilityLabel='Pickup tomorrow offers carousel'
+                accessibilityHint='Swipe left or right to browse pickup tomorrow offers'
+              />
+            )}
+
+          {!isPickupTomorrowLoading &&
+            !pickupTomorrowError &&
+            (!pickupTomorrowOffers || pickupTomorrowOffers.length === 0) && (
+              <Card style={styles.placeholderCard}>
+                <Text variant='body' size='md' color='secondary' align='center'>
+                  No offers available for pickup tomorrow
+                </Text>
+                <Text
+                  variant='body'
+                  size='sm'
+                  color='secondary'
+                  align='center'
+                  style={styles.placeholderSubtext}
+                >
+                  Check back later or browse other offers
+                </Text>
+              </Card>
+            )}
         </View>
 
         {/* Categories Section */}
@@ -358,12 +1051,32 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         </Card>
       </ScrollView>
 
+      {/* Location Selection Modal - First time setup */}
+      <LocationSelectionModal
+        visible={showLocationSelectionModal}
+        onLocationSelect={(coordinates, name) => {
+          void handleLocationSelection(coordinates, name);
+        }}
+        isLoading={isLocationLoading}
+        error={locationError}
+        testID='location-selection-modal'
+      />
+
       {/* Manual Location Modal - Fallback when GPS permission denied */}
       <ManualLocationModal
         visible={showManualLocationModal}
         onClose={() => setShowManualLocationModal(false)}
         onLocationSelect={handleManualLocationSelect}
-        testID="manual-location-modal"
+        testID='manual-location-modal'
+      />
+
+      {/* Filter Bottom Sheet */}
+      <FilterBottomSheet
+        visible={isFilterVisible}
+        filters={filters}
+        onClose={() => setIsFilterVisible(false)}
+        onApply={handleApplyFilters}
+        onClear={handleClearAllFilters}
       />
     </View>
   );
@@ -374,14 +1087,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
     paddingBottom: 32,
-  },
-  welcomeSection: {
-    marginBottom: 24,
-  },
-  subtitle: {
-    marginTop: 4,
   },
   section: {
     marginBottom: 24,
@@ -391,30 +1097,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
+    paddingHorizontal: 15,
   },
   sectionTitle: {
     marginBottom: 12,
+    paddingHorizontal: 10,
   },
   placeholderCard: {
     padding: 32,
     alignItems: 'center',
+    marginHorizontal: 10,
   },
   placeholderSubtext: {
     marginTop: 8,
   },
-  loadingContainer: {
-    padding: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   carouselContainer: {
-    paddingLeft: 4,
-    paddingRight: 8,
+    paddingLeft: 14,
+    paddingRight: 18,
+    paddingVertical: 12,
+  },
+  offerCardItem: {
+    marginRight: 3,
+    marginVertical: 3,
   },
   categoriesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+    paddingHorizontal: 10,
   },
   categoryCard: {
     flex: 1,
@@ -424,6 +1134,7 @@ const styles = StyleSheet.create({
   },
   impactCard: {
     padding: 20,
+    marginHorizontal: 10,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -431,5 +1142,56 @@ const styles = StyleSheet.create({
   },
   statItem: {
     alignItems: 'center',
+  },
+  retryButton: {
+    marginTop: 12,
+  },
+  bannerWrapper: {
+    paddingHorizontal: 10,
+    marginBottom: 12,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 12,
+  },
+  searchInputWrapper: {
+    flex: 1,
+  },
+  searchInput: {
+    flex: 1,
+  },
+  filterButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    shadowColor: COLORS.BLACK,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+    borderWidth: 2,
+    borderColor: COLORS.WHITE,
+  },
+  filterBadgeText: {
+    color: COLORS.WHITE,
+    fontSize: 11,
+    fontWeight: '600',
   },
 });

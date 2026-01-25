@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { StrictMode } from 'react';
 import { StatusBar, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import { Provider as ReduxProvider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-import Toast from 'react-native-toast-message';
 
 import { OfflineBanner } from '@/components/Errors';
 import { ThemeProvider } from '@/design-system/providers';
@@ -43,7 +43,9 @@ function App(): React.JSX.Element {
                   backgroundColor='transparent'
                   translucent
                 />
-                <RootNavigator />
+                <StrictMode>
+                  <RootNavigator />
+                </StrictMode>
                 {/* Toast must be last in the component tree to render on top */}
                 <Toast config={toastConfig} />
               </ThemeProvider>

@@ -3,7 +3,6 @@ import { Alert } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import * as Keychain from 'react-native-keychain';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
-import TouchID from 'react-native-touch-id';
 
 import { environment } from '@/config/environment';
 
@@ -122,11 +121,11 @@ class SecurityService {
     }
   }
 
-  // Biometric authentication
+  // Biometric authentication using react-native-keychain (New Architecture compatible)
   public async isBiometricSupported(): Promise<boolean> {
     try {
-      const biometryType = await TouchID.isSupported();
-      return typeof biometryType === 'string';
+      const biometryType = await Keychain.getSupportedBiometryType();
+      return biometryType !== null;
     } catch (error) {
       Logger.debug('Biometric authentication not supported');
       return false;
@@ -135,8 +134,8 @@ class SecurityService {
 
   public async getBiometricType(): Promise<string | null> {
     try {
-      const biometryType = await TouchID.isSupported();
-      return typeof biometryType === 'string' ? biometryType : null;
+      const biometryType = await Keychain.getSupportedBiometryType();
+      return biometryType;
     } catch (error) {
       Logger.debug('Failed to get biometric type');
       return null;
@@ -155,17 +154,50 @@ class SecurityService {
         ...options,
       };
 
-      await TouchID.authenticate(defaultOptions.description, {
-        title: defaultOptions.title,
-        fallbackLabel: defaultOptions.fallbackLabel,
+      // Use Keychain with biometric protection to authenticate
+      // First, ensure we have a credential stored for biometric auth
+      const BIOMETRIC_SERVICE = 'FoodWasteApp_BiometricAuth';
+
+      // Try to get existing credentials (this triggers biometric prompt)
+      let credentials = await Keychain.getGenericPassword({
+        service: BIOMETRIC_SERVICE,
+        authenticationPrompt: {
+          title: defaultOptions.title,
+          subtitle: defaultOptions.subtitle,
+          description: defaultOptions.description,
+          cancel: defaultOptions.cancelLabel,
+        },
       });
 
-      Logger.info('Biometric authentication successful');
-      const bioType = await this.getBiometricType();
-      return {
-        success: true,
-        biometryType: (bioType as 'TouchID' | 'FaceID' | 'Fingerprint' | 'None') || 'None',
-      };
+      // If no credentials exist, create them first
+      if (!credentials) {
+        await Keychain.setGenericPassword('biometric_user', 'biometric_enabled', {
+          service: BIOMETRIC_SERVICE,
+          accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET,
+          accessible: Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+        });
+
+        // Now authenticate
+        credentials = await Keychain.getGenericPassword({
+          service: BIOMETRIC_SERVICE,
+          authenticationPrompt: {
+            title: defaultOptions.title,
+            subtitle: defaultOptions.subtitle,
+            cancel: defaultOptions.cancelLabel,
+          },
+        });
+      }
+
+      if (credentials) {
+        Logger.info('Biometric authentication successful');
+        const bioType = await this.getBiometricType();
+        return {
+          success: true,
+          biometryType: (bioType as 'TouchID' | 'FaceID' | 'Fingerprint' | 'None') || 'None',
+        };
+      }
+
+      throw new Error('Authentication failed');
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Biometric authentication failed';

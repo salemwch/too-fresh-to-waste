@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ScheduleModule } from '@nestjs/schedule';
+
+// Note: ScheduleModule.forRoot() is already called in AppModule
 
 // Schemas
 import { Report, ReportSchema } from './schemas/report.schema';
@@ -39,9 +40,7 @@ import { ModerationTaskProcessor } from './processors/moderation-task.processor'
             ttl: 60000, // 1 minute
             limit: 20,  // 20 requests per minute for moderation actions
         }]),
-
-        // Schedule module for automated tasks
-        ScheduleModule.forRoot(),
+        // ScheduleModule is initialized in AppModule
     ],
     controllers: [
         ReportController,

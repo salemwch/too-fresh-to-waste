@@ -19,8 +19,8 @@ import { Order, OrderDocument, OrderStatus, PaymentStatus as OrderPaymentStatus 
 import { Payment, PaymentDocument, PaymentStatus } from '../payments/schemas/payment.schema';
 import { PayoutService } from '../payments/services/payout.service';
 import { RefundService } from '../payments/services/refund.service';
-import { LoyaltyService } from '../loyalty/loyalty.service';
-import { GamificationService } from '../loyalty/services/gamification.service';
+import { EventBusService } from '../common/services/event-bus/event-bus.service';
+import { OrderCompletedEvent } from '../common/events';
 
 /**
  * Lean result type for Order documents
@@ -32,7 +32,8 @@ import { GamificationService } from '../loyalty/services/gamification.service';
 export type OrderLean = FlattenMaps<Order> & { _id: unknown };
 import { Offer, OfferDocument, OfferStatus } from '../offers/schemas/offer.schema';
 import { Establishment, EstablishmentDocument } from '../establishments/schemas/establishment.schema';
-import { User, UserDocument, UserRole } from '../users/schemas/user.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
+import { UserRole } from '../common/enums/user.enum';
 import { CreateOrderDto, ConfirmPickupDto, UpdateOrderStatusDto, CancelOrderDto, OrderQueryDto } from './DTO/create-order.dto';
 import * as crypto from 'crypto';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -124,9 +125,7 @@ export class OrdersService {
         private readonly regexSecurityUtil: RegexSecurityUtil,
         private readonly payoutService: PayoutService,
         private readonly refundService: RefundService,
-        @Optional() @Inject('DonationsService') private readonly donationsService?: any, // Optional to avoid breaking if donations module fails
-        @Optional() @Inject(forwardRef(() => LoyaltyService)) private readonly loyaltyService?: LoyaltyService, // Optional for loyalty points
-        @Optional() @Inject(forwardRef(() => GamificationService)) private readonly gamificationService?: GamificationService, // Optional for gamification
+        private readonly eventBus: EventBusService,
     ) { }
     @Cron(CronExpression.EVERY_10_MINUTES)
     async expireApprovedOrdersCron() {
@@ -348,9 +347,7 @@ export class OrdersService {
 
                 // 5.1. Calculate donation amount (1% of total order)
                 // Formula: (total * 0.20 platform fee) * 0.05 donation percentage = 1% of total
-                const donationAmount = this.donationsService
-                    ? parseFloat((total * 0.01).toFixed(3))
-                    : 0;
+                const donationAmount = parseFloat((total * 0.01).toFixed(3));
 
                 // 6. Generate metadata
                 const orderNumber = this.generateOrderNumber();
@@ -404,29 +401,7 @@ export class OrdersService {
                     .exec();
             });
 
-            // 9. Create donation record asynchronously (outside transaction)
-            if (finalOrder && this.donationsService && finalOrder.donationAmount > 0) {
-                try {
-                    const donationInput = {
-                        userId: new Types.ObjectId(customerId),
-                        orderId: finalOrder._id as Types.ObjectId,
-                        amount: finalOrder.donationAmount,
-                        currency: 'TND',
-                        metadata: {
-                            platform: 'mobile' as const,
-                        },
-                    };
-
-                    await this.donationsService.createDonation(donationInput);
-                    this.logger.log(`Donation created for order ${finalOrder._id}: ${finalOrder.donationAmount} TND`);
-                } catch (donationError) {
-                    // Log error but don't fail the order
-                    this.logger.error(
-                        `Failed to create donation for order ${finalOrder._id}`,
-                        donationError
-                    );
-                }
-            }
+            // Donation creation is now handled via order.completed event
 
             return finalOrder!;
 
@@ -800,66 +775,35 @@ private generatePickupCode(): string {
                 }
             });
 
-            // 5. Award loyalty points to customer (outside transaction, non-blocking)
-            // 10 points per bag (item quantity)
+            // 5. Emit order completed event for cross-module reactions (loyalty, donations, analytics)
             const totalBags = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
-            if (this.loyaltyService) {
-                try {
-                    const pointsToAward = totalBags * this.POINTS_PER_BAG;
-
-                    await this.loyaltyService.addPoints(order.customerId._id.toString(), {
-                        amount: pointsToAward,
-                        reason: `Order pickup completed - ${totalBags} bag(s)`,
-                        orderId: orderId,
-                    });
-
-                    this.appLogger.log(
-                        `Awarded ${pointsToAward} loyalty points to customer ${order.customerId._id} for order ${orderId}`,
-                        'OrderService.Loyalty'
-                    );
-                } catch (loyaltyError) {
-                    // Log error but don't fail the pickup confirmation
-                    this.appLogger.error(
-                        `Failed to award loyalty points for order ${orderId}: ${(loyaltyError as Error).message}`,
-                        'OrderService.Loyalty'
-                    );
-                }
-            }
-
-            // 6. Gamification: Update friend referral bag counts, purchase streak, and business referral
-            if (this.gamificationService) {
-                try {
-                    // Update friend referral tracking (if customer was referred)
-                    await this.gamificationService.updateFriendBagCount(
+            try {
+                await this.eventBus.emit(
+                    'order.completed',
+                    new OrderCompletedEvent(
+                        orderId,
                         order.customerId._id.toString(),
-                        totalBags,
-                    );
-
-                    // Update purchase streak for customer
-                    const streakResult = await this.gamificationService.updatePurchaseStreak(
-                        order.customerId._id.toString(),
-                        totalBags,
-                    );
-
-                    if (streakResult.completed) {
-                        this.appLogger.log(
-                            `Purchase streak completed! +${streakResult.pointsAwarded} points for ${order.customerId._id}`,
-                            'OrderService.Gamification'
-                        );
-                    }
-
-                    // Update business referral tracking (for merchant)
-                    await this.gamificationService.updateBusinessOrderCount(
                         order.merchantId._id.toString(),
-                    );
-                } catch (gamificationError) {
-                    // Log error but don't fail the pickup confirmation
-                    this.appLogger.error(
-                        `Gamification update failed for order ${orderId}: ${(gamificationError as Error).message}`,
-                        'OrderService.Gamification'
-                    );
-                }
+                        order.items[0]?.offerId.toString() || '', // Get first offer ID
+                        order.pricing?.total || 0,
+                        new Date(),
+                        {
+                            itemCount: totalBags,
+                            isFirstOrder: false, // TODO: Determine if this is first order
+                        },
+                    ),
+                );
+                this.appLogger.log(
+                    `Order completed event emitted for order ${orderId}`,
+                    'OrderService.Events'
+                );
+            } catch (eventError) {
+                // Log error but don't fail the pickup confirmation
+                this.appLogger.error(
+                    `Failed to emit order completed event for order ${orderId}: ${(eventError as Error).message}`,
+                    'OrderService.Events'
+                );
             }
 
             return this.findById(orderId);
@@ -1358,5 +1302,145 @@ private generatePickupCode(): string {
         );
 
         return this.findById(orderId);
+    }
+
+    // =============================================================================
+    // ADMIN USER EVENT HANDLERS
+    // =============================================================================
+
+    /**
+     * Cancel all pending orders for a user (triggered by admin suspension/blocking)
+     * Used when admin suspends or blocks a user account
+     *
+     * @param userId - User ID whose orders should be cancelled
+     * @param reason - Reason for cancellation (e.g., "Account suspended by admin")
+     * @returns Number of orders cancelled
+     */
+    async cancelUserPendingOrders(userId: string, reason: string): Promise<number> {
+        try {
+            const pendingStatuses = [
+                OrderStatus.PENDING,
+                OrderStatus.CONFIRMED,
+                OrderStatus.READY_FOR_PICKUP,
+            ];
+
+            // Find all pending orders for this user
+            const ordersToCancel = await this.orderModel
+                .find({
+                    customerId: new Types.ObjectId(userId),
+                    status: { $in: pendingStatuses },
+                })
+                .lean();
+
+            if (ordersToCancel.length === 0) {
+                this.appLogger.debug(
+                    `No pending orders to cancel for user ${userId}`,
+                    'OrderService.cancelUserPendingOrders',
+                );
+                return 0;
+            }
+
+            // Update orders to cancelled status
+            const result = await this.orderModel.updateMany(
+                {
+                    customerId: new Types.ObjectId(userId),
+                    status: { $in: pendingStatuses },
+                },
+                {
+                    $set: {
+                        status: OrderStatus.CANCELLED,
+                        cancellationReason: reason,
+                        cancelledAt: new Date(),
+                        cancelledBy: 'system',
+                    },
+                },
+            );
+
+            this.appLogger.log(
+                `Cancelled ${result.modifiedCount} pending orders for user ${userId}. Reason: ${reason}`,
+                'OrderService.cancelUserPendingOrders',
+            );
+
+            // Process refunds for cancelled orders
+            for (const order of ordersToCancel) {
+                try {
+                    // Check if payment needs refund
+                    const payment = await this.paymentModel.findOne({
+                        orderId: order._id,
+                        status: { $in: [PaymentStatus.HELD, PaymentStatus.COMPLETED] },
+                    });
+
+                    if (payment && this.refundService) {
+                        await this.refundService.processFullRefund(
+                            payment._id.toString(),
+                            reason,
+                        );
+                        this.appLogger.log(
+                            `Initiated refund for order ${order._id.toString()} payment ${payment._id.toString()}`,
+                            'OrderService.cancelUserPendingOrders',
+                        );
+                    }
+                } catch (refundError) {
+                    this.appLogger.error(
+                        `Failed to process refund for order ${order._id.toString()}: ${refundError.message}`,
+                        'OrderService.cancelUserPendingOrders',
+                    );
+                    // Continue with other orders even if one refund fails
+                }
+            }
+
+            return result.modifiedCount;
+        } catch (error) {
+            this.appLogger.error(
+                `Failed to cancel pending orders for user ${userId}: ${error.message}`,
+                'OrderService.cancelUserPendingOrders',
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * Anonymize user data in orders for GDPR compliance (hard delete scenario)
+     * Keeps orders for analytics but removes all PII
+     *
+     * @param userId - User ID whose order data should be anonymized
+     */
+    async anonymizeUserOrders(userId: string): Promise<void> {
+        try {
+            const result = await this.orderModel.updateMany(
+                { customerId: new Types.ObjectId(userId) },
+                {
+                    $set: {
+                        'customerInfo.firstName': 'Anonymous',
+                        'customerInfo.lastName': 'User',
+                        'customerInfo.email': `deleted-${userId}@privacy.local`,
+                        'customerInfo.phone': null,
+                        'deliveryAddress': null,
+                        'pickupDetails.contactPhone': null,
+                        'pickupDetails.contactEmail': `deleted-${userId}@privacy.local`,
+                        anonymized: true,
+                        anonymizedAt: new Date(),
+                        anonymizationReason: 'User account permanently deleted',
+                    },
+                },
+            );
+
+            this.appLogger.log(
+                `Anonymized ${result.modifiedCount} orders for deleted user ${userId} (GDPR compliance)`,
+                'OrderService.anonymizeUserOrders',
+            );
+
+            // Log for compliance audit trail
+            this.appLogger.warn(
+                `GDPR: User ${userId} order history anonymized - ${result.modifiedCount} orders affected`,
+                'OrderService.GDPRCompliance',
+            );
+        } catch (error) {
+            this.appLogger.error(
+                `Failed to anonymize orders for user ${userId}: ${error.message}`,
+                'OrderService.anonymizeUserOrders',
+            );
+            throw error;
+        }
     }
 }

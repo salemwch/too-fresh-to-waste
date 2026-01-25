@@ -3,26 +3,12 @@ import { Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
 import { Document, Types } from 'mongoose';
 import { CoordinatesDto } from '../DTO/cordinates.dto';
+import { EstablishmentType, EstablishmentStatus } from '../../common/enums/establishment.enum';
 
 export type EstablishmentDocument = Establishment & Document;
 
-export enum EstablishmentType {
-    RESTAURANT = 'restaurant',
-    BAKERY = 'bakery',
-    GROCERY_STORE = 'grocery_store',
-    CAFE = 'cafe',
-    FAST_FOOD = 'fast_food',
-    SUPERMARKET = 'supermarket',
-    OTHER = 'other',
-}
-
-export enum EstablishmentStatus {
-    PENDING = 'pending',
-    ACTIVE = 'active',
-    SUSPENDED = 'suspended',
-    REJECTED = 'rejected',
-    INACTIVE = 'inactive',
-}
+// Re-export enums for backward compatibility
+export { EstablishmentType, EstablishmentStatus };
 
 export interface BusinessHours {
     monday: { open: string; close: string; closed: boolean };

@@ -7,16 +7,15 @@
  * - GPS location via react-native-geolocation-service
  * - Manual location fallback (city/area search)
  * - Permission status tracking
- * - 24-hour location expiry for privacy
+ * - Location persists indefinitely until manually changed
  * - Preferred radius persistence
  *
  * Privacy requirements:
  * - Never request location on app launch
- * - Auto-clear location after 24h of inactivity
  * - Never log coordinates with user identifiers
  */
 
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createSelector, type PayloadAction } from '@reduxjs/toolkit';
 import Geolocation, { type GeoError, type GeoPosition } from 'react-native-geolocation-service';
 import { check, request, PERMISSIONS, RESULTS, type Permission } from 'react-native-permissions';
 import { Platform } from 'react-native';
@@ -73,14 +72,11 @@ export interface LocationResult {
 // Constants
 // ============================================================================
 
-/** Location expiry time: 24 hours in milliseconds */
-const LOCATION_EXPIRY_MS = 24 * 60 * 60 * 1000;
-
 /** Minimum time before re-showing dismissed prompt: 7 days */
 const PROMPT_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 
-/** Geolocation request timeout: 10 seconds */
-const GEOLOCATION_TIMEOUT_MS = 10000;
+/** Geolocation request timeout: 30 seconds (longer for emulators/slow GPS) */
+const GEOLOCATION_TIMEOUT_MS = 30000;
 
 /** Maximum age for cached position: 5 minutes */
 const MAXIMUM_AGE_MS = 5 * 60 * 1000;
@@ -145,13 +141,13 @@ function mapPermissionResult(result: string): PermissionStatus {
 function getErrorMessage(error: GeoError): string {
   switch (error.code) {
     case 1: // PERMISSION_DENIED
-      return 'Location permission denied';
+      return 'Location permission denied. Please enable location access in your device settings.';
     case 2: // POSITION_UNAVAILABLE
-      return 'Unable to determine location. Please check your device settings.';
+      return 'Unable to determine location. Please check your device settings or try "Use default location".';
     case 3: // TIMEOUT
-      return 'Location request timed out. Please try again.';
+      return 'GPS signal not found. For faster setup, try "Use default location" or search for your city.';
     default:
-      return 'An error occurred while getting your location.';
+      return 'An error occurred while getting your location. Try using default location instead.';
   }
 }
 
@@ -235,7 +231,7 @@ export const requestLocationAsync = createAsyncThunk<
           );
         },
         {
-          enableHighAccuracy: false, // Use approximate first for faster response
+          enableHighAccuracy: true, // Required for Android emulators and some devices
           timeout: GEOLOCATION_TIMEOUT_MS,
           maximumAge: MAXIMUM_AGE_MS,
         },
@@ -248,30 +244,6 @@ export const requestLocationAsync = createAsyncThunk<
       error: 'Failed to get location',
     });
   }
-});
-
-/**
- * Clear expired location data (>24h old)
- *
- * Should be called on app startup and periodically.
- */
-export const clearExpiredLocationAsync = createAsyncThunk<
-  boolean,
-  void,
-  { state: { location: LocationState } }
->('location/clearExpired', async (_, { getState, dispatch }) => {
-  const { timestamp } = getState().location;
-
-  if (timestamp) {
-    const age = Date.now() - timestamp;
-    if (age > LOCATION_EXPIRY_MS) {
-      dispatch(clearLocation());
-      Logger.info('Location cleared due to expiry (>24h)');
-      return true;
-    }
-  }
-
-  return false;
 });
 
 // ============================================================================
@@ -426,14 +398,10 @@ export default locationSlice.reducer;
 // ============================================================================
 
 /**
- * Select whether user has a valid (non-expired) location
+ * Select whether user has a valid location
  */
 export const selectHasValidLocation = (state: { location: LocationState }): boolean => {
-  const { coordinates, timestamp } = state.location;
-  if (!coordinates || !timestamp) return false;
-
-  const age = Date.now() - timestamp;
-  return age <= LOCATION_EXPIRY_MS;
+  return state.location.coordinates !== null;
 };
 
 /**
@@ -468,18 +436,19 @@ export const selectShouldShowPrompt = (state: { location: LocationState }): bool
 };
 
 /**
- * Select location source display name
+ * Select location source display name (memoized)
+ * ✅ PERFORMANCE: Memoized to prevent unnecessary re-renders
  */
-export const selectLocationSourceDisplay = (
-  state: { location: LocationState },
-): { mode: 'gps' | 'manual' | 'off'; label: string } => {
-  const { source, manualLocationName } = state.location;
-
-  if (source === 'gps') {
-    return { mode: 'gps', label: 'Using GPS' };
+export const selectLocationSourceDisplay = createSelector(
+  [(state: { location: LocationState }) => state.location.source,
+   (state: { location: LocationState }) => state.location.manualLocationName],
+  (source, manualLocationName): { mode: 'gps' | 'manual' | 'off'; label: string } => {
+    if (source === 'gps') {
+      return { mode: 'gps', label: 'Using GPS' };
+    }
+    if (source === 'manual' && manualLocationName) {
+      return { mode: 'manual', label: manualLocationName };
+    }
+    return { mode: 'off', label: 'Location off' };
   }
-  if (source === 'manual' && manualLocationName) {
-    return { mode: 'manual', label: manualLocationName };
-  }
-  return { mode: 'off', label: 'Location off' };
-};
+);

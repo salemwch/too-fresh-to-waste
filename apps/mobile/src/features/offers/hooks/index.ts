@@ -4,18 +4,14 @@
  * TanStack Query hooks for offer-related data fetching.
  */
 
-// Offers data hooks
+// Offers data hooks (Consumer-only)
 export {
   useOffer,
   useOffers,
   useFeaturedOffers,
   useNearbyOffersQuery,
   useEstablishmentOffers,
-  useCreateOffer,
-  useUpdateOffer,
-  useUpdateOfferStatus,
   useReserveOffer,
-  useDeleteOffer,
   offerKeys,
 } from './useOffers';
 
@@ -42,4 +38,9 @@ export type {
 // Geocoding hooks
 export { useLocationSearch, useReverseGeocode, geocodeKeys } from './useGeocode';
 
-export type { UseLocationSearchOptions, UseReverseGeocodeOptions, GeocodeResult, GeoCoordinates } from './useGeocode';
+export type {
+  UseLocationSearchOptions,
+  UseReverseGeocodeOptions,
+  GeocodeResult,
+  GeoCoordinates,
+} from './useGeocode';

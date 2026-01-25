@@ -1,71 +1,83 @@
-import { Injectable, Logger } from '@nestjs/common';
+/**
+ * Enterprise-Grade Unified Session Management Service
+ * Consolidates auth/services/session-management.service.ts and users/services/session-management.service.ts
+ *
+ * Features:
+ * - Redis for fast active session lookup
+ * - MongoDB for persistent login history and audit trail
+ * - Automatic session cleanup and expiration
+ * - Suspicious activity detection
+ * - Device trust management
+ * - Concurrent session limiting
+ *
+ * @module common/security
+ * @version 2.0.0
+ * @since 2025-11-21
+ */
+
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  UnauthorizedException,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from '../../users/user.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import * as crypto from 'crypto';
+import * as geoip from 'geoip-lite';
+import { RedisService } from '../../redis/redis.service';
+import { User, UserDocument } from '../../users/schemas/user.schema';
+import {
+  SessionInfo,
+  DeviceInfo,
+  CreateSessionRequest,
+  SessionConfiguration,
+  LoginHistoryEntry,
+  SessionValidationResult,
+  SessionActivity,
+} from '../../common/security/interfaces/session.interface';
 
-export interface DeviceInfo {
-  readonly deviceId: string;
-  readonly deviceFingerprint: string;
-  readonly deviceName: string;
-  readonly platform: string;
-  readonly browser: string;
-  readonly ipAddress: string;
-  readonly userAgent: string;
-  isTrusted: boolean;
-  lastActiveAt: Date;
-  readonly createdAt: Date;
-}
-
-export interface SessionInfo {
-  readonly sessionId: string;
-  readonly userId: string;
-  readonly deviceInfo: DeviceInfo;
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: Date;
-  isActive: boolean;
-  readonly createdAt: Date;
-  lastActivityAt: Date;
-}
-
-export interface CreateSessionRequest {
-  readonly userId: string;
-  readonly userAgent: string;
-  readonly ipAddress: string;
-  readonly deviceFingerprint?: string;
-  readonly rememberMe?: boolean;
-}
-
-export interface SessionConfiguration {
-  readonly maxConcurrentSessions: number;
-  readonly sessionTimeout: number;
-  readonly rememberMeDuration: number;
-  readonly cleanupInterval: number;
-  readonly suspiciousActivityThreshold: number;
-}
-
+/**
+ * Unified Session Management Service
+ * Single source of truth for all session-related operations
+ */
 @Injectable()
-export class SessionManagementService {
+export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(SessionManagementService.name);
   private readonly config: SessionConfiguration;
 
-  private readonly activeSessions = new Map<string, SessionInfo>();
-  private readonly userSessions = new Map<string, Set<string>>();
+  // In-memory fallback (used when Redis is unavailable)
+  private readonly fallbackSessions = new Map<string, SessionInfo>();
+  private readonly fallbackUserSessions = new Map<string, Set<string>>();
+
   private cleanupTimer?: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly usersService: UsersService,
+    private readonly redisService: RedisService,
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {
     this.config = {
-      maxConcurrentSessions: this.configService.get<number>('SESSION_MAX_CONCURRENT') || 5,
-      sessionTimeout: this.configService.get<number>('SESSION_TIMEOUT_MS') || (15 * 60 * 1000), // 15 minutes
-      rememberMeDuration: this.configService.get<number>('SESSION_REMEMBER_ME_MS') || (30 * 24 * 60 * 60 * 1000), // 30 days
-      cleanupInterval: this.configService.get<number>('SESSION_CLEANUP_INTERVAL_MS') || (5 * 60 * 1000), // 5 minutes
-      suspiciousActivityThreshold: this.configService.get<number>('SESSION_SUSPICIOUS_THRESHOLD') || 3,
+      maxConcurrentSessions:
+        this.configService.get<number>('SESSION_MAX_CONCURRENT') || 5,
+      sessionTimeout:
+        this.configService.get<number>('SESSION_TIMEOUT_MS') || 15 * 60 * 1000, // 15 min
+      rememberMeDuration:
+        this.configService.get<number>('SESSION_REMEMBER_ME_MS') ||
+        30 * 24 * 60 * 60 * 1000, // 30 days
+      cleanupInterval:
+        this.configService.get<number>('SESSION_CLEANUP_INTERVAL_MS') ||
+        5 * 60 * 1000, // 5 min
+      suspiciousActivityThreshold:
+        this.configService.get<number>('SESSION_SUSPICIOUS_THRESHOLD') || 3,
     };
+  }
 
-    // Start cleanup timer
+  async onModuleInit(): Promise<void> {
+    this.logger.log('Initializing Unified Session Management Service...');
     this.startCleanupTimer();
   }
 
@@ -75,141 +87,212 @@ export class SessionManagementService {
     }
   }
 
-  private startCleanupTimer(): void {
-    this.cleanupTimer = setInterval(() => {
-      try {
-        this.cleanupExpiredSessions();
-      } catch (error) {
-        this.logger.error('Error during automated session cleanup:', error);
-      }
-    }, this.config.cleanupInterval);
-  }
+  /**
+   * Create a new session for a user
+   * Stores session in Redis (fast lookup) and login history in MongoDB (audit trail)
+   */
+  async createSession(request: CreateSessionRequest): Promise<SessionInfo> {
+    const { userId, userAgent, ipAddress, deviceFingerprint, rememberMe } = request;
 
-  async createSession(request: CreateSessionRequest, tokens: { accessToken: string; refreshToken: string }): Promise<SessionInfo> {
-    const sessionId = this.generateSessionId();
-    const deviceInfo = this.parseDeviceInfo(request);
+    // Validate user exists
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
 
-    // Check concurrent session limits
-    this.enforceSessionLimits(request.userId);
+    // Parse device information
+    const deviceInfo = this.parseDeviceInfo(userAgent, ipAddress, deviceFingerprint);
 
-    const sessionInfo: SessionInfo = {
+    // Check concurrent session limit
+    await this.enforceConcurrentSessionLimit(userId);
+
+    // Generate session ID
+    const sessionId = crypto.randomUUID();
+
+    // Calculate expiration
+    const expiresAt = new Date(
+      Date.now() +
+        (rememberMe ? this.config.rememberMeDuration : this.config.sessionTimeout),
+    );
+
+    // Create session object
+    const session: SessionInfo = {
       sessionId,
-      userId: request.userId,
+      userId,
       deviceInfo,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      expiresAt: new Date(Date.now() + (request.rememberMe ? this.config.rememberMeDuration : this.config.sessionTimeout)),
+      accessToken: '', // Will be set by auth service
+      refreshToken: '', // Will be set by auth service
+      expiresAt,
       isActive: true,
       createdAt: new Date(),
       lastActivityAt: new Date(),
     };
 
-    // Store session
-    this.activeSessions.set(sessionId, sessionInfo);
+    // Store in Redis (fast access)
+    await this.storeSessionInRedis(session);
 
-    // Track user sessions
-    if (!this.userSessions.has(request.userId)) {
-      this.userSessions.set(request.userId, new Set());
-    }
-    const userSessionSet = this.userSessions.get(request.userId);
-    if (userSessionSet) {
-      userSessionSet.add(sessionId);
-    }
+    // Store in user sessions map
+    await this.addSessionToUser(userId, sessionId);
 
-    // Update user device tracking
-    await this.updateUserDeviceInfo(request.userId, deviceInfo);
-
-    this.logger.log(`Session created for user ${request.userId}`, {
-      sessionId,
-      deviceInfo: {
-        platform: deviceInfo.platform,
-        browser: deviceInfo.browser,
-        ipAddress: deviceInfo.ipAddress,
-      },
+    // Add to login history (MongoDB for audit trail)
+    await this.addLoginHistory(userId, {
+      ipAddress,
+      userAgent,
+      timestamp: new Date(),
+      location: deviceInfo.location,
+      success: true,
     });
 
-    return sessionInfo;
-  }
+    // Log activity
+    await this.logSessionActivity({
+      sessionId,
+      activityType: 'login',
+      timestamp: new Date(),
+      metadata: { userId, ipAddress },
+    });
 
-  validateSession(sessionId: string): SessionInfo | null {
-    const session = this.activeSessions.get(sessionId);
-
-    if (!session) {
-      return null;
-    }
-
-    // Check if session is expired
-    if (session.expiresAt < new Date()) {
-      this.terminateSession(sessionId);
-      return null;
-    }
-
-    // Check if session is active
-    if (!session.isActive) {
-      return null;
-    }
-
-    // Update last activity
-    session.lastActivityAt = new Date();
-    this.activeSessions.set(sessionId, session);
+    this.logger.log(`Session created for user ${userId}: ${sessionId}`);
 
     return session;
   }
 
-  terminateSession(sessionId: string): void {
-    const session = this.activeSessions.get(sessionId);
+  /**
+   * Validate and retrieve a session by ID
+   */
+  async validateSession(sessionId: string): Promise<SessionValidationResult> {
+    try {
+      // Try Redis first
+      const session = await this.getSessionFromRedis(sessionId);
+
+      if (!session) {
+        return {
+          isValid: false,
+          error: 'Session not found',
+        };
+      }
+
+      // Check if expired
+      if (new Date() > session.expiresAt) {
+        await this.destroySession(sessionId);
+        return {
+          isValid: false,
+          error: 'Session expired',
+          wasExpired: true,
+        };
+      }
+
+      // Check if active
+      if (!session.isActive) {
+        return {
+          isValid: false,
+          error: 'Session inactive',
+        };
+      }
+
+      // Update last activity
+      session.lastActivityAt = new Date();
+      await this.storeSessionInRedis(session);
+
+      return {
+        isValid: true,
+        session,
+      };
+    } catch (error) {
+      this.logger.error(`Session validation error: ${error.message}`);
+      return {
+        isValid: false,
+        error: 'Validation error',
+      };
+    }
+  }
+
+  /**
+   * Refresh a session (update expiration and activity)
+   */
+  async refreshSession(
+    sessionId: string,
+    newAccessToken?: string,
+    newRefreshToken?: string,
+  ): Promise<SessionInfo> {
+    const validation = await this.validateSession(sessionId);
+
+    if (!validation.isValid || !validation.session) {
+      throw new UnauthorizedException('Invalid session');
+    }
+
+    const session = validation.session;
+
+    // Update tokens if provided
+    if (newAccessToken) {
+      session.accessToken = newAccessToken;
+    }
+    if (newRefreshToken) {
+      session.refreshToken = newRefreshToken;
+    }
+
+    // Extend expiration
+    session.expiresAt = new Date(Date.now() + this.config.sessionTimeout);
+    session.lastActivityAt = new Date();
+
+    await this.storeSessionInRedis(session);
+
+    // Log activity
+    await this.logSessionActivity({
+      sessionId,
+      activityType: 'refresh',
+      timestamp: new Date(),
+    });
+
+    return session;
+  }
+
+  /**
+   * Destroy a session (logout)
+   */
+  async destroySession(sessionId: string): Promise<void> {
+    const session = await this.getSessionFromRedis(sessionId);
 
     if (session) {
-      // Remove from user sessions tracking
-      const userSessionSet = this.userSessions.get(session.userId);
-      if (userSessionSet) {
-        userSessionSet.delete(sessionId);
-        if (userSessionSet.size === 0) {
-          this.userSessions.delete(session.userId);
-        }
-      }
+      // Remove from user sessions map
+      await this.removeSessionFromUser(session.userId, sessionId);
 
-      // Remove the session
-      this.activeSessions.delete(sessionId);
+      // Remove from Redis
+      await this.deleteSessionFromRedis(sessionId);
 
-      this.logger.log(`Session terminated: ${sessionId} for user ${session.userId}`);
+      // Log activity
+      await this.logSessionActivity({
+        sessionId,
+        activityType: 'logout',
+        timestamp: new Date(),
+      });
+
+      this.logger.log(`Session destroyed: ${sessionId}`);
     }
   }
 
-  terminateAllUserSessions(userId: string, excludeSessionId?: string): number {
-    const userSessionSet = this.userSessions.get(userId);
+  /**
+   * Destroy all sessions for a user
+   */
+  async destroyAllUserSessions(userId: string): Promise<void> {
+    const sessionIds = await this.getUserSessionIds(userId);
 
-    if (!userSessionSet) {
-      return 0;
+    for (const sessionId of sessionIds) {
+      await this.destroySession(sessionId);
     }
 
-    let terminatedCount = 0;
-
-    for (const sessionId of userSessionSet) {
-      if (excludeSessionId && sessionId === excludeSessionId) {
-        continue;
-      }
-
-      this.terminateSession(sessionId);
-      terminatedCount++;
-    }
-
-    this.logger.log(`Terminated ${terminatedCount} sessions for user ${userId}`);
-    return terminatedCount;
+    this.logger.log(`All sessions destroyed for user ${userId}`);
   }
 
-  getUserActiveSessions(userId: string): SessionInfo[] {
-    const userSessionSet = this.userSessions.get(userId);
-
-    if (!userSessionSet) {
-      return [];
-    }
-
+  /**
+   * Get all active sessions for a user
+   */
+  async getUserSessions(userId: string): Promise<SessionInfo[]> {
+    const sessionIds = await this.getUserSessionIds(userId);
     const sessions: SessionInfo[] = [];
 
-    for (const sessionId of userSessionSet) {
-      const session = this.activeSessions.get(sessionId);
-      if (session?.isActive) {
+    for (const sessionId of sessionIds) {
+      const session = await this.getSessionFromRedis(sessionId);
+      if (session && session.isActive) {
         sessions.push(session);
       }
     }
@@ -217,169 +300,379 @@ export class SessionManagementService {
     return sessions;
   }
 
-  refreshSession(sessionId: string, newTokens: { accessToken: string; refreshToken: string }): SessionInfo | null {
-    const session = this.activeSessions.get(sessionId);
-
-    if (!session) {
-      return null;
+  /**
+   * Mark a device as trusted
+   */
+  async trustDevice(userId: string, deviceId: string): Promise<void> {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new BadRequestException('User not found');
     }
 
-    session.accessToken = newTokens.accessToken;
-    session.refreshToken = newTokens.refreshToken;
-    session.lastActivityAt = new Date();
-
-    // Extend expiration if it's a remember me session
-    if (session.expiresAt.getTime() - session.createdAt.getTime() > this.config.sessionTimeout) {
-      session.expiresAt = new Date(Date.now() + this.config.rememberMeDuration);
-    } else {
-      session.expiresAt = new Date(Date.now() + this.config.sessionTimeout);
+    if (!user.trustedDevices) {
+      user.trustedDevices = [];
     }
 
-    this.activeSessions.set(sessionId, session);
-    return session;
+    // Check if device already trusted
+    const existingDevice = user.trustedDevices.find((d) => d.deviceId === deviceId);
+
+    if (!existingDevice) {
+      user.trustedDevices.push({
+        deviceId,
+        deviceFingerprint: '', // Will be updated from session
+        deviceName: '',
+        platform: '',
+        browser: '',
+        ipAddress: '',
+        userAgent: '',
+        isTrusted: true,
+        trustedAt: new Date(),
+        lastUsedAt: new Date(),
+      });
+
+      await user.save();
+      this.logger.log(`Device ${deviceId} marked as trusted for user ${userId}`);
+    }
   }
 
-  detectSuspiciousSession(sessionId: string, currentIp: string, currentUserAgent: string): boolean {
-    const session = this.activeSessions.get(sessionId);
+  /**
+   * Detect suspicious activity (e.g., multiple IPs, locations)
+   */
+  async detectSuspiciousActivity(userId: string): Promise<boolean> {
+    const sessions = await this.getUserSessions(userId);
 
-    if (!session) {
-      return false;
-    }
+    // Check for multiple unique IPs within short time window
+    const uniqueIps = new Set(sessions.map((s) => s.deviceInfo.ipAddress));
 
-    // Check for IP address changes
-    if (session.deviceInfo.ipAddress !== currentIp) {
-      this.logger.warn(`IP address change detected for session ${sessionId}`, {
-        originalIp: session.deviceInfo.ipAddress,
-        currentIp,
-        userId: session.userId,
-      });
-      return true;
-    }
+    if (uniqueIps.size >= this.config.suspiciousActivityThreshold) {
+      this.logger.warn(`Suspicious activity detected for user ${userId}`);
 
-    // Check for user agent changes (could indicate session hijacking)
-    if (session.deviceInfo.userAgent !== currentUserAgent) {
-      this.logger.warn(`User agent change detected for session ${sessionId}`, {
-        originalUserAgent: session.deviceInfo.userAgent,
-        currentUserAgent,
-        userId: session.userId,
-      });
+      // Log suspicious activity
+      for (const session of sessions) {
+        await this.logSessionActivity({
+          sessionId: session.sessionId,
+          activityType: 'suspicious',
+          timestamp: new Date(),
+          metadata: { reason: 'Multiple unique IPs', uniqueIpCount: uniqueIps.size },
+        });
+      }
+
       return true;
     }
 
     return false;
   }
 
-  cleanupExpiredSessions(): number {
-    let cleanedCount = 0;
-    const now = new Date();
+  /**
+   * Get login history for a user
+   */
+  async getLoginHistory(userId: string, limit = 50): Promise<LoginHistoryEntry[]> {
+    const user = await this.userModel.findById(userId).select('loginHistory');
 
-    for (const [sessionId, session] of this.activeSessions.entries()) {
-      if (session.expiresAt < now) {
-        this.terminateSession(sessionId);
-        cleanedCount++;
-      }
+    if (!user || !user.loginHistory) {
+      return [];
     }
 
-    if (cleanedCount > 0) {
-      this.logger.log(`Cleaned up ${cleanedCount} expired sessions`);
-    }
-
-    return cleanedCount;
+    return user.loginHistory.slice(0, limit) as LoginHistoryEntry[];
   }
 
-  private enforceSessionLimits(userId: string): void {
-    const userSessionSet = this.userSessions.get(userId);
+  // ============================================================================
+  // PRIVATE HELPER METHODS
+  // ============================================================================
 
-    if (!userSessionSet || userSessionSet.size < this.config.maxConcurrentSessions) {
-      return;
-    }
+  /**
+   * Parse device information from user agent and IP
+   *
+   * CRITICAL: This method MUST NOT make any blocking external API calls
+   * - Uses offline geoip-lite for IP location (local database lookup)
+   * - Never calls external geocoding APIs (Nominatim, Google Maps, etc.)
+   * - Login flow depends on this being fast and non-blocking
+   */
+  private parseDeviceInfo(
+    userAgent: string,
+    ipAddress: string,
+    deviceFingerprint?: string,
+  ): DeviceInfo {
+    // ✅ SECURITY FIX: Use offline geoip-lite ONLY (no external API calls)
+    // This is a local database lookup that never blocks on network
+    const location = this.getLocationFromIP(ipAddress);
 
-    // Find oldest session and terminate it
-    let oldestSession: SessionInfo | null = null;
-    let oldestSessionId: string | null = null;
-
-    for (const sessionId of userSessionSet) {
-      const session = this.activeSessions.get(sessionId);
-      if (session && (!oldestSession || session.createdAt < oldestSession.createdAt)) {
-        oldestSession = session;
-        oldestSessionId = sessionId;
-      }
-    }
-
-    if (oldestSessionId) {
-      this.terminateSession(oldestSessionId);
-      this.logger.log(`Terminated oldest session for user ${userId} due to session limit`);
-    }
-  }
-
-  private parseDeviceInfo(request: CreateSessionRequest): DeviceInfo {
-    const deviceFingerprint = request.deviceFingerprint || this.generateDeviceFingerprint(request);
+    // Simple user agent parsing (can be enhanced with ua-parser-js)
+    const platform = this.extractPlatform(userAgent);
+    const browser = this.extractBrowser(userAgent);
 
     return {
-      deviceId: this.generateDeviceId(deviceFingerprint),
-      deviceFingerprint,
-      deviceName: this.extractDeviceName(request.userAgent),
-      platform: this.extractPlatform(request.userAgent),
-      browser: this.extractBrowser(request.userAgent),
-      ipAddress: request.ipAddress,
-      userAgent: request.userAgent,
-      isTrusted: false, // New devices are not trusted by default
+      deviceId: deviceFingerprint || crypto.randomUUID(),
+      deviceFingerprint: deviceFingerprint || this.generateDeviceFingerprint(userAgent, ipAddress),
+      deviceName: `${platform} - ${browser}`,
+      platform,
+      browser,
+      ipAddress,
+      userAgent,
+      location,
+      isTrusted: false,
       lastActiveAt: new Date(),
       createdAt: new Date(),
     };
   }
 
-  private generateSessionId(): string {
-    return crypto.randomBytes(32).toString('hex');
+  /**
+   * Get geographic location from IP address
+   *
+   * CRITICAL: Uses OFFLINE geoip-lite library (local MaxMind database)
+   * - NO external API calls
+   * - NO network requests
+   * - NO blocking on Nominatim/Google Maps/etc
+   * - Safe for login critical path
+   *
+   * @param ipAddress - IPv4 or IPv6 address
+   * @returns Location string like "Paris, FR" or undefined if lookup fails
+   */
+  private getLocationFromIP(ipAddress: string): string | undefined {
+    try {
+      // Skip invalid/local IPs that won't have geolocation
+      if (!ipAddress || ipAddress === 'unknown' || ipAddress.startsWith('192.168.') ||
+          ipAddress.startsWith('10.') || ipAddress.startsWith('172.') ||
+          ipAddress === '127.0.0.1' || ipAddress === '::1') {
+        this.logger.debug(`Skipping geolocation for local/invalid IP: ${ipAddress}`);
+        return undefined;
+      }
+
+      // ✅ OFFLINE LOOKUP - No external API call, pure local database query
+      const geo = geoip.lookup(ipAddress);
+      if (geo) {
+        // Return city and country code (e.g., "Paris, FR")
+        return `${geo.city || 'Unknown'}, ${geo.country || 'Unknown'}`;
+      }
+    } catch (error) {
+      this.logger.warn(`Failed to lookup IP location (non-blocking): ${error.message}`);
+    }
+    return undefined;
   }
 
-  private generateDeviceFingerprint(request: CreateSessionRequest): string {
-    const data = `${request.userAgent}:${request.ipAddress}`;
+  /**
+   * Extract platform from user agent
+   */
+  private extractPlatform(userAgent: string): string {
+    if (/android/i.test(userAgent)) return 'Android';
+    if (/iphone|ipad|ipod/i.test(userAgent)) return 'iOS';
+    if (/windows/i.test(userAgent)) return 'Windows';
+    if (/mac/i.test(userAgent)) return 'macOS';
+    if (/linux/i.test(userAgent)) return 'Linux';
+    return 'Unknown';
+  }
+
+  /**
+   * Extract browser from user agent
+   */
+  private extractBrowser(userAgent: string): string {
+    if (/chrome/i.test(userAgent)) return 'Chrome';
+    if (/safari/i.test(userAgent)) return 'Safari';
+    if (/firefox/i.test(userAgent)) return 'Firefox';
+    if (/edge/i.test(userAgent)) return 'Edge';
+    return 'Unknown';
+  }
+
+  /**
+   * Generate device fingerprint
+   */
+  private generateDeviceFingerprint(userAgent: string, ipAddress: string): string {
+    const data = `${userAgent}-${ipAddress}`;
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  private generateDeviceId(fingerprint: string): string {
-    return crypto.createHash('md5').update(fingerprint).digest('hex');
+  /**
+   * Enforce concurrent session limit for a user
+   */
+  private async enforceConcurrentSessionLimit(userId: string): Promise<void> {
+    const sessionIds = await this.getUserSessionIds(userId);
+
+    if (sessionIds.length >= this.config.maxConcurrentSessions) {
+      // Remove oldest session
+      const sessions = await this.getUserSessions(userId);
+      sessions.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+      if (sessions.length > 0) {
+        await this.destroySession(sessions[0].sessionId);
+        this.logger.log(`Removed oldest session for user ${userId} due to limit`);
+      }
+    }
   }
 
-  private extractDeviceName(userAgent: string): string {
-    if (userAgent.includes('Mobile')) {return 'Mobile Device';}
-    if (userAgent.includes('Tablet')) {return 'Tablet';}
-    return 'Desktop';
+  /**
+   * Add login history entry to user document
+   */
+  private async addLoginHistory(
+    userId: string,
+    entry: LoginHistoryEntry,
+  ): Promise<void> {
+    const user = await this.userModel.findById(userId);
+    if (!user) return;
+
+    if (!user.loginHistory) {
+      user.loginHistory = [];
+    }
+
+    user.loginHistory.unshift(entry as any);
+
+    // Keep only last 50 records
+    if (user.loginHistory.length > 50) {
+      user.loginHistory = user.loginHistory.slice(0, 50);
+    }
+
+    await user.save();
   }
 
-  private extractPlatform(userAgent: string): string {
-    if (userAgent.includes('Windows')) {return 'Windows';}
-    if (userAgent.includes('Mac')) {return 'macOS';}
-    if (userAgent.includes('Linux')) {return 'Linux';}
-    if (userAgent.includes('Android')) {return 'Android';}
-    if (userAgent.includes('iOS')) {return 'iOS';}
-    return 'Unknown';
+  /**
+   * Log session activity
+   */
+  private async logSessionActivity(activity: SessionActivity): Promise<void> {
+    // Could be expanded to store in dedicated activity log collection
+    this.logger.debug(
+      `Session activity: ${activity.activityType} for ${activity.sessionId}`,
+    );
   }
 
-  private extractBrowser(userAgent: string): string {
-    if (userAgent.includes('Chrome')) {return 'Chrome';}
-    if (userAgent.includes('Firefox')) {return 'Firefox';}
-    if (userAgent.includes('Safari')) {return 'Safari';}
-    if (userAgent.includes('Edge')) {return 'Edge';}
-    return 'Unknown';
+  /**
+   * Start cleanup timer for expired sessions
+   */
+  private startCleanupTimer(): void {
+    this.cleanupTimer = setInterval(async () => {
+      try {
+        await this.cleanupExpiredSessions();
+      } catch (error) {
+        this.logger.error(`Session cleanup error: ${error.message}`);
+      }
+    }, this.config.cleanupInterval);
+
+    this.logger.log('Session cleanup timer started');
   }
 
-  private async updateUserDeviceInfo(userId: string, deviceInfo: DeviceInfo): Promise<void> {
+  /**
+   * Clean up expired sessions
+   */
+  private async cleanupExpiredSessions(): Promise<void> {
+    // Redis TTL will auto-expire keys, but we clean up user session mappings
+    const redisClient = await this.redisService.getClient();
+    const keys = await redisClient.keys('session:*');
+
+    let cleaned = 0;
+
+    for (const key of keys) {
+      const sessionJson = await redisClient.get(key);
+      if (sessionJson) {
+        const session: SessionInfo = JSON.parse(sessionJson as string);
+
+        if (new Date() > session.expiresAt) {
+          await this.destroySession(session.sessionId);
+          cleaned++;
+        }
+      }
+    }
+
+    if (cleaned > 0) {
+      this.logger.log(`Cleaned up ${cleaned} expired sessions`);
+    }
+  }
+
+  // ============================================================================
+  // REDIS STORAGE METHODS
+  // ============================================================================
+
+  /**
+   * Store session in Redis
+   */
+  private async storeSessionInRedis(session: SessionInfo): Promise<void> {
     try {
-      // This would update the user's device tracking in the database
-      await this.usersService.updateDeviceInfo(userId, {
-        deviceId: deviceInfo.deviceId,
-        deviceFingerprint: deviceInfo.deviceFingerprint,
-        deviceName: deviceInfo.deviceName,
-        platform: deviceInfo.platform,
-        browser: deviceInfo.browser,
-        ipAddress: deviceInfo.ipAddress,
-        userAgent: deviceInfo.userAgent,
-        lastActiveAt: deviceInfo.lastActiveAt,
-      });
+      const redisClient = await this.redisService.getClient();
+      const key = `session:${session.sessionId}`;
+      const ttl = Math.ceil(
+        (session.expiresAt.getTime() - Date.now()) / 1000,
+      );
+
+      await redisClient.setEx(key, ttl, JSON.stringify(session) as any);
+    } catch (error: any) {
+      this.logger.warn(`Redis storage failed, using fallback: ${error.message}`);
+      this.fallbackSessions.set(session.sessionId, session);
+    }
+  }
+
+  /**
+   * Get session from Redis
+   */
+  private async getSessionFromRedis(sessionId: string): Promise<SessionInfo | null> {
+    try {
+      const redisClient = await this.redisService.getClient();
+      const key = `session:${sessionId}`;
+      const sessionJson = await redisClient.get(key);
+
+      if (sessionJson) {
+        return JSON.parse(sessionJson as string);
+      }
+    } catch (error: any) {
+      this.logger.warn(`Redis retrieval failed, using fallback: ${error.message}`);
+      return this.fallbackSessions.get(sessionId) || null;
+    }
+
+    return null;
+  }
+
+  /**
+   * Delete session from Redis
+   */
+  private async deleteSessionFromRedis(sessionId: string): Promise<void> {
+    try {
+      const redisClient = await this.redisService.getClient();
+      const key = `session:${sessionId}`;
+      await redisClient.del(key);
     } catch (error) {
-      this.logger.error(`Failed to update device info for user ${userId}:`, error);
+      this.logger.warn(`Redis deletion failed, using fallback: ${error.message}`);
+      this.fallbackSessions.delete(sessionId);
+    }
+  }
+
+  /**
+   * Add session ID to user's session list
+   */
+  private async addSessionToUser(userId: string, sessionId: string): Promise<void> {
+    try {
+      const redisClient = await this.redisService.getClient();
+      const key = `user:sessions:${userId}`;
+      await redisClient.sAdd(key, sessionId);
+    } catch (error) {
+      this.logger.warn(`Redis sAdd failed, using fallback: ${error.message}`);
+      if (!this.fallbackUserSessions.has(userId)) {
+        this.fallbackUserSessions.set(userId, new Set());
+      }
+      this.fallbackUserSessions.get(userId)!.add(sessionId);
+    }
+  }
+
+  /**
+   * Remove session ID from user's session list
+   */
+  private async removeSessionFromUser(userId: string, sessionId: string): Promise<void> {
+    try {
+      const redisClient = await this.redisService.getClient();
+      const key = `user:sessions:${userId}`;
+      await redisClient.sRem(key, sessionId);
+    } catch (error) {
+      this.logger.warn(`Redis sRem failed, using fallback: ${error.message}`);
+      this.fallbackUserSessions.get(userId)?.delete(sessionId);
+    }
+  }
+
+  /**
+   * Get all session IDs for a user
+   */
+  private async getUserSessionIds(userId: string): Promise<string[]> {
+    try {
+      const redisClient = await this.redisService.getClient();
+      const key = `user:sessions:${userId}`;
+      return await redisClient.sMembers(key);
+    } catch (error) {
+      this.logger.warn(`Redis sMembers failed, using fallback: ${error.message}`);
+      return Array.from(this.fallbackUserSessions.get(userId) || []);
     }
   }
 }

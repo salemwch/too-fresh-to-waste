@@ -28,7 +28,7 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { GetUser } from '../../auth/decorators/get-user.decorator';
+import { GetUser } from '../../common/decorators/get-user.decorator';
 import { DashboardService } from '../services/dashboard.service';
 
 import { CreateDashboardDto, CreateWidgetDto } from '../dto/analytics.dto';

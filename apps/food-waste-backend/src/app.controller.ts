@@ -1,9 +1,13 @@
 import { Controller, Get, HttpStatus } from '@nestjs/common';
-import { Public } from './auth/decorators/public.decorator';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Public } from './common/decorators/public.decorator';
 
+@ApiTags('General')
 @Controller()
 export class AppController {
 
+    @ApiOperation({ summary: 'Get API information', description: 'Public endpoint returning basic API information and status' })
+    @ApiResponse({ status: 200, description: 'API information retrieved successfully' })
     @Get()
     @Public()
     getAppInfo() {
@@ -16,6 +20,8 @@ export class AppController {
         };
     }
 
+    @ApiOperation({ summary: 'Health check', description: 'Public health check endpoint returning API status and uptime' })
+    @ApiResponse({ status: 200, description: 'Health check successful' })
     @Get('health')
     @Public()
     getHealthCheck() {
@@ -28,6 +34,8 @@ export class AppController {
         };
     }
 
+    @ApiOperation({ summary: 'Get available endpoints', description: 'Public endpoint listing all available API endpoints and documentation URL' })
+    @ApiResponse({ status: 200, description: 'API endpoints information retrieved successfully' })
     @Get('api')
     @Public()
     getApiInfo() {

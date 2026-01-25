@@ -4,7 +4,8 @@ import { Model } from 'mongoose';
 import { getModelToken } from '@nestjs/mongoose';
 
 import { UsersService } from 'src/users/user.service';
-import { User, UserRole, UserStatus } from 'src/users/schemas/user.schema';
+import { User } from 'src/users/schemas/user.schema';
+import { UserRole, UserStatus } from 'src/common/enums/user.enum';
 import { AppLoggerService } from '../common/services/logger.service';
 
 async function bootstrap() {

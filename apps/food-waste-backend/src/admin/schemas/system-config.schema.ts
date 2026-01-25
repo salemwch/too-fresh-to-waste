@@ -86,7 +86,7 @@ export class SystemConfig {
 
   @Prop({
     type: {
-      maxLoginAttempts: { type: Number, default: 5 },
+      maxLoginAttempts: { type: Number, default: 10 },
       loginAttemptWindow: { type: Number, default: 15 },
       accountLockoutDuration: { type: Number, default: 30 },
       passwordMinLength: { type: Number, default: 8 },

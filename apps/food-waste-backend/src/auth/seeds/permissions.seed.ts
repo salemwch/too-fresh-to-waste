@@ -9,7 +9,7 @@ import {
     PermissionScope,
 } from '../schemas/permission.schema';
 import { RolePermission, RolePermissionDocument } from '../schemas/role-permission.schema';
-import { UserRole } from 'src/users/schemas/user.schema';
+import { UserRole } from 'src/common/enums/user.enum';
 
 /**
  * Permissions Seed Service

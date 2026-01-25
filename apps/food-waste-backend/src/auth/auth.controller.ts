@@ -45,7 +45,7 @@ import { LoginDto } from './DTO/login.dto';
 import { ForgotPasswordDto } from './DTO/forget-password.dto';
 import { ResetPasswordDto } from './DTO/reset-password.dto';
 import { VerifyEmailDto } from './DTO/verify-email.dto';
-import { Public } from './decorators/public.decorator';
+import { Public } from '../common/decorators/public.decorator';
 
 /**
  * AUTHENTICATION CONTROLLER
@@ -79,7 +79,7 @@ export class AuthController {
     @Post('register')
     @Public()
     @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 5, ttl: 300000 } }) // 5 attempts per 5 minutes
+    @Throttle({ default: { limit: 10, ttl: 600000 } }) // 10 attempts per 10 minutes
     @ApiOperation({
         summary: 'Register new user account',
         description: `Creates a new user account with email verification flow.
@@ -88,7 +88,7 @@ export class AuthController {
 - Email uniqueness validation
 - Password strength enforcement (NIST 800-63B compliant)
 - Automatic verification email dispatch
-- Rate limiting: 5 attempts per 5 minutes per IP
+- Rate limiting: 10 attempts per 10 minutes per IP
 - Input sanitization against XSS/SQL injection
 
 **Flow:**
@@ -134,7 +134,7 @@ export class AuthController {
         },
     })
     @ApiTooManyRequestsResponse({
-        description: 'Rate limit exceeded (5 attempts per 5 minutes)',
+        description: 'Rate limit exceeded (10 attempts per 10 minutes)',
         schema: {
             example: {
                 statusCode: 429,
@@ -198,7 +198,7 @@ export class AuthController {
     @Post('resend-verification')
     @HttpCode(HttpStatus.OK)
     @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 3, ttl: 600000 } }) // 3 attempts / 10 minutes
+    @Throttle({ default: { limit: 10, ttl: 600000 } }) // 3 attempts / 10 minutes
     async resendVerification(@Body('email') email: string): Promise<{ message: string }> {
         try {
             if (!email || typeof email !== 'string') {
@@ -229,7 +229,7 @@ export class AuthController {
     @Post('login')
     @HttpCode(HttpStatus.OK)
     @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 5, ttl: 900000 } }) // 5 attempts per 15 minutes
+    @Throttle({ default: { limit: 10, ttl: 900000 } }) // 10 attempts per 15 minutes
     @ApiOperation({
         summary: 'Authenticate user and obtain JWT tokens',
         description: `Authenticates user credentials and returns JWT access/refresh tokens with session tracking.
@@ -242,7 +242,7 @@ export class AuthController {
 - Session management with device tracking
 - Secure HTTP-only cookies
 
-**Rate Limiting:** 5 attempts per 15 minutes per IP
+**Rate Limiting:** 10 attempts per 15 minutes per IP
 
 **Returns:**
 - Access token (15min expiry)
@@ -330,7 +330,7 @@ export class AuthController {
                 userAgent: requestInfo.userAgent,
                 ipAddress: requestInfo.ipAddress,
                 rememberMe: loginDto.rememberMe || false,
-            }, loginResponse.tokens);
+            });
 
             this.setAuthCookies(res, loginResponse.tokens, sessionInfo.sessionId);
 
@@ -361,7 +361,7 @@ export class AuthController {
     @Post('forgot-password')
     @HttpCode(HttpStatus.OK)
     @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 3, ttl: 900000 } }) // 3 attempts per 15 minutes
+    @Throttle({ default: { limit: 10, ttl: 900000 } }) // 3 attempts per 15 minutes
     async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
         try {
             const result = await this.authService.forgotPassword(forgotPasswordDto);
@@ -389,7 +389,7 @@ export class AuthController {
     @Post('reset-password')
     @HttpCode(HttpStatus.OK)
     @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 3, ttl: 900000 } }) // 3 attempts per 15 minutes
+    @Throttle({ default: { limit: 10, ttl: 900000 } }) // 3 attempts per 15 minutes
     async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
         try {
             const result = await this.authService.resetPassword(resetPasswordDto);
@@ -430,20 +430,47 @@ export class AuthController {
     }
 
     @Post('refresh')
-    @UseGuards(JwtRefreshGuard)
+    @Public() // ✅ Remove guard to accept refresh token from request body
     @HttpCode(HttpStatus.OK)
     async refresh(
-        @Request() req,
+        @Request() req: ExpressRequest,
+        @Body() body: { refreshToken?: string },
         @Response({ passthrough: true }) res: ExpressResponse,
     ) {
+        // ✅ Support both mobile (body) and web (cookies)
+        // Priority: 1. Request body (mobile), 2. Cookies (web), 3. Header
+        const refreshToken = body?.refreshToken ||
+                            req.cookies?.['refresh_token'] ||
+                            (req.user as any)?.refreshToken;
+
+        if (!refreshToken) {
+            throw new BadRequestException('Refresh token is required in request body or cookies');
+        }
+
+        // Validate and decode refresh token to get userId
+        const decoded = await this.authService.validateRefreshToken(refreshToken);
+
+        if (!decoded) {
+            throw new BadRequestException('Invalid or expired refresh token');
+        }
+
         const tokens = await this.authService.refreshTokens(
-            req.user.userId,
-            req.user.refreshToken,
+            decoded.userId,
+            refreshToken,
         );
 
+        // Set cookies for web compatibility
         this.setAuthCookies(res, tokens);
 
-        return { message: 'Tokens refreshed successfully' };
+        // ✅ Return tokens in response body for mobile app
+        return {
+            message: 'Tokens refreshed successfully',
+            tokens: {
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+                expiresIn: 900, // 15 minutes in seconds
+            },
+        };
     }
 
     @Post('logout')
@@ -457,7 +484,7 @@ export class AuthController {
 
         // Terminate session if exists
         if (sessionId) {
-            this.sessionManagementService.terminateSession(sessionId);
+            await this.sessionManagementService.destroySession(sessionId);
         }
 
         await this.authService.logout(req.user.userId, req.cookies?.['refresh_token']);
@@ -476,24 +503,20 @@ export class AuthController {
         const currentSessionId = req.cookies?.['session_id'];
 
         // Terminate all user sessions
-        const terminatedCount = this.sessionManagementService.terminateAllUserSessions(
-            req.user.userId,
-            currentSessionId // Exclude current session
-        );
+        await this.sessionManagementService.destroyAllUserSessions(req.user.userId);
 
         await this.authService.logout(req.user.userId, req.cookies?.['refresh_token']);
         this.clearAuthCookies(res);
 
         return {
-            message: 'Logged out from all devices',
-            terminatedSessions: terminatedCount
+            message: 'Logged out from all devices'
         };
     }
 
     @Get('sessions')
     @UseGuards(JwtAuthGuard)
-    getActiveSessions(@Request() req) {
-        const sessions = this.sessionManagementService.getUserActiveSessions(req.user.userId);
+    async getActiveSessions(@Request() req) {
+        const sessions = await this.sessionManagementService.getUserSessions(req.user.userId);
 
         return {
             success: true,
@@ -517,19 +540,19 @@ export class AuthController {
     @Post('terminate-session/:sessionId')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
-    terminateSession(
+    async terminateSession(
         @Param('sessionId') sessionId: string,
         @Request() req,
     ) {
         // Verify the session belongs to the current user
-        const userSessions = this.sessionManagementService.getUserActiveSessions(req.user.userId);
+        const userSessions = await this.sessionManagementService.getUserSessions(req.user.userId);
         const sessionExists = userSessions.some(session => session.sessionId === sessionId);
 
         if (!sessionExists) {
             throw new ForbiddenException('Session not found or does not belong to user');
         }
 
-        this.sessionManagementService.terminateSession(sessionId);
+        await this.sessionManagementService.destroySession(sessionId);
 
         return {
             success: true,
@@ -654,7 +677,7 @@ export class AuthController {
     @Post('mfa/verify')
     @Public()
     @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 5, ttl: 300000 } })
+    @Throttle({ default: { limit: 10, ttl: 300000 } })
     @HttpCode(HttpStatus.OK)
     async verifyMfa(@Body() body: { userId: string; token: string }) {
         const result = await this.mfaService.verifyTotp(body.userId, body.token);

@@ -21,10 +21,8 @@ export interface RootStackParamList extends Record<string, object | undefined> {
   // Main Tab Navigator
   MainTabs: undefined;
 
-  // Offer Stack
+  // Offer Stack (Consumer-only)
   OfferDetails: { offerId: string };
-  CreateOffer: undefined;
-  EditOffer: { offerId: string };
 
   // Order Stack
   OrderDetails: { orderId: string };
@@ -38,10 +36,8 @@ export interface RootStackParamList extends Record<string, object | undefined> {
   Privacy: undefined;
   Security: undefined;
 
-  // Establishment Stack
+  // Establishment Stack (Consumer-only: view details)
   EstablishmentDetails: { establishmentId: string };
-  CreateEstablishment: undefined;
-  EditEstablishment: { establishmentId: string };
 
   // Map Stack
   Map: undefined;

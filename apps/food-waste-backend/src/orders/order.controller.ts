@@ -22,14 +22,15 @@ import {
     ArgumentsHost,
     ConflictException,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AppLoggerService } from '../common/services/logger.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { QueryComplexityGuard, QueryComplexity } from '../common/guards/query-complexity.guard';
 import { PickupThrottlerGuard } from './guards/pickup-throttler.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '../users/schemas/user.schema';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/user.enum';
 import {
     CreateOrderDto,
     ConfirmPickupDto,
@@ -91,6 +92,8 @@ export class OrderExceptionFilter implements ExceptionFilter {
         });
     }
 }
+@ApiTags('Orders')
+@ApiBearerAuth('JWT-auth')
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
 export class OrdersController {
@@ -100,6 +103,11 @@ export class OrdersController {
         private readonly logger: AppLoggerService,
     ) { }
 
+    @ApiOperation({ summary: 'Create a new order', description: 'Consumer endpoint to create an order for a surplus food offer' })
+    @ApiBody({ type: CreateOrderDto, description: 'Order details including offer ID, quantity, and pickup preferences' })
+    @ApiResponse({ status: 201, description: 'Order created successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid order data or offer unavailable' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Consumer access required' })
     @Post()
     @UseFilters(OrderExceptionFilter)
     @UseGuards(JwtAuthGuard, RolesGuard)
@@ -116,6 +124,12 @@ export class OrdersController {
     }
 
 
+    @ApiOperation({ summary: 'Get all orders with filters', description: 'Retrieve paginated and filtered list of orders. Filters available based on user role.' })
+    @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Results per page (default: 10, max: 50)' })
+    @ApiQuery({ name: 'status', required: false, type: String, description: 'Filter by order status' })
+    @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
     @Get()
     @UseGuards(QueryComplexityGuard)
     @QueryComplexity({ maxNestingDepth: 2, maxOrConditions: 5, maxRegexConditions: 2 })
@@ -153,6 +167,11 @@ export class OrdersController {
     }
 
 
+    @ApiOperation({ summary: 'Get my orders as consumer', description: 'Retrieve paginated list of orders placed by the authenticated consumer' })
+    @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Results per page (default: 10, max: 50)' })
+    @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Consumer access required' })
     @Get('my-orders')
     @UseGuards(RolesGuard)
     @Roles(UserRole.CONSUMER)
@@ -182,6 +201,11 @@ export class OrdersController {
         };
     }
 
+    @ApiOperation({ summary: 'Get my orders as merchant', description: 'Retrieve paginated list of orders for the authenticated merchant\'s establishment' })
+    @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Results per page (default: 10, max: 50)' })
+    @ApiResponse({ status: 200, description: 'Merchant orders retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Merchant access required' })
     @Get('merchant-orders')
     @UseGuards(RolesGuard)
     @Roles(UserRole.MERCHANT)
@@ -211,6 +235,9 @@ export class OrdersController {
         };
     }
 
+    @ApiOperation({ summary: 'Get order statistics', description: 'Retrieve order statistics and analytics for admin or merchant' })
+    @ApiResponse({ status: 200, description: 'Order statistics retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Admin or Merchant access required' })
     @Get('stats')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MERCHANT)
@@ -256,6 +283,11 @@ export class OrdersController {
         };
     }
 
+    @ApiOperation({ summary: 'Get order by ID', description: 'Retrieve detailed information about a specific order' })
+    @ApiParam({ name: 'id', description: 'MongoDB ObjectId of the order' })
+    @ApiResponse({ status: 200, description: 'Order retrieved successfully' })
+    @ApiResponse({ status: 404, description: 'Order not found' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
     @Get(':id')
     async findOne(@Param('id') id: string, @Request() req) {
         const order = await this.ordersService.findById(id, req.user.userId, req.user.role);
@@ -267,6 +299,12 @@ export class OrdersController {
         };
     }
 
+    @ApiOperation({ summary: 'Update order status', description: 'Update the status of an order (merchant or admin only)' })
+    @ApiParam({ name: 'id', description: 'MongoDB ObjectId of the order' })
+    @ApiBody({ type: UpdateOrderStatusDto })
+    @ApiResponse({ status: 200, description: 'Order status updated successfully' })
+    @ApiResponse({ status: 404, description: 'Order not found' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
     @Patch(':id/status')
     async updateStatus(
         @Param('id') id: string,
@@ -296,6 +334,13 @@ export class OrdersController {
      *
      * @see PickupThrottlerGuard for rate limiting implementation
      */
+    @ApiOperation({ summary: 'Confirm order pickup', description: 'Merchant confirms order pickup using QR code or pickup code. Rate limited to 5 attempts per minute.' })
+    @ApiParam({ name: 'id', description: 'MongoDB ObjectId of the order' })
+    @ApiBody({ type: ConfirmPickupDto, description: 'Pickup confirmation details (QR code or pickup code)' })
+    @ApiResponse({ status: 200, description: 'Order pickup confirmed successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid pickup code' })
+    @ApiResponse({ status: 429, description: 'Too many attempts - rate limit exceeded' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
     @Patch(':id/confirm-pickup')
     @UseGuards(PickupThrottlerGuard)
     @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 attempts per 60 seconds
@@ -318,6 +363,12 @@ export class OrdersController {
         };
     }
 
+    @ApiOperation({ summary: 'Cancel an order', description: 'Cancel an order with reason (consumer, merchant, or admin)' })
+    @ApiParam({ name: 'id', description: 'MongoDB ObjectId of the order' })
+    @ApiBody({ type: CancelOrderDto })
+    @ApiResponse({ status: 200, description: 'Order cancelled successfully' })
+    @ApiResponse({ status: 404, description: 'Order not found' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
     @Patch(':id/cancel')
     async cancel(
         @Param('id') id: string,
@@ -372,6 +423,11 @@ export class OrdersController {
         };
     }
 
+    @ApiOperation({ summary: 'Get order receipt', description: 'Retrieve detailed receipt information for an order' })
+    @ApiParam({ name: 'id', description: 'MongoDB ObjectId of the order' })
+    @ApiResponse({ status: 200, description: 'Order receipt retrieved successfully' })
+    @ApiResponse({ status: 404, description: 'Order not found' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
     @Get(':id/receipt')
     async getOrderReceipt(@Param('id') id: string, @Request() req) {
         const order = await this.ordersService.findById(id, req.user.userId, req.user.role);
@@ -407,6 +463,11 @@ export class OrdersController {
         };
     }
 
+    @ApiOperation({ summary: 'Get order QR code', description: 'Retrieve QR code and pickup code for order verification' })
+    @ApiParam({ name: 'id', description: 'MongoDB ObjectId of the order' })
+    @ApiResponse({ status: 200, description: 'QR code retrieved successfully' })
+    @ApiResponse({ status: 404, description: 'Order not found' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
     @Get(':id/qr-code')
     async getOrderQRCode(@Param('id') id: string, @Request() req) {
         const order = await this.ordersService.findById(id, req.user.userId, req.user.role);

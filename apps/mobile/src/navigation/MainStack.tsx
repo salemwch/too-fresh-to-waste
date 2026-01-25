@@ -62,6 +62,7 @@ export const MainStack: React.FC = () => {
       fontWeight: theme.typography.fontWeight.semibold,
     },
     headerShadowVisible: true,
+    headerStatusBarHeight: 0, // Fix for Android - prevent header from being cut off
   };
 
   /**

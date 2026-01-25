@@ -9,9 +9,9 @@ import {
 import { Reflector } from '@nestjs/core';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
-import { CHECK_OWNERSHIP_KEY, OwnershipCheckConfig } from '../decorators/check-ownership.decorator';
+import { CHECK_OWNERSHIP_KEY, OwnershipCheckConfig } from '../../common/decorators/check-ownership.decorator';
 import { AuthorizationService } from '../services/authorization.service';
-import { UserRole } from 'src/users/schemas/user.schema';
+import { UserRole } from 'src/common/enums/user.enum';
 
 /**
  * Resource Ownership Guard

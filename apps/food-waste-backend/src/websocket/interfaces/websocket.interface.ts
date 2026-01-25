@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io';
-import { UserRole } from '../../users/schemas/user.schema';
+import { UserRole } from '../../common/enums/user.enum';
 
 export interface AuthenticatedSocket extends Socket {
   userId: string;

@@ -10,20 +10,68 @@
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View, TouchableOpacity, StyleSheet } from 'react-native';
 
-import { Icon } from '@/design-system/components/atoms';
+import { Icon, Text } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { HomeScreen } from '@/features/home/screens/HomeScreen';
 import { SearchScreen } from '@/features/search/screens/SearchScreen';
 import { FavoritesScreen } from '@/features/favorites/screens/FavoritesScreen';
 import { OrdersScreen } from '@/features/orders/screens/OrdersScreen';
 import { ProfileScreen } from '@/features/profile/screens/ProfileScreen';
+import { useLocation } from '@/hooks/useLocation';
 
 import type { TabParamList } from './types';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
+/**
+ * Location Header Component
+ * Custom header showing current location with dropdown
+ */
+const LocationHeader: React.FC = () => {
+  const theme = useTheme();
+  const { manualLocationName, hasLocation } = useLocation();
+
+  const handleLocationPress = () => {
+    // TODO: Open location selection modal
+    console.log('Open location selector');
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.locationHeader}
+      onPress={handleLocationPress}
+      accessibilityRole='button'
+      accessibilityLabel='Choose location'
+      accessibilityHint='Tap to select your location'
+    >
+      <View style={styles.locationIconCircle}>
+        <Icon name='location' family='Ionicons' size={16} color='#FFFFFF' />
+      </View>
+      <View style={styles.locationTextContainer}>
+        <Text variant='body' size='sm' style={styles.locationLabel}>
+          Choose Location
+        </Text>
+        <Text
+          variant='body'
+          size='md'
+          weight='semibold'
+          numberOfLines={1}
+          ellipsizeMode='tail'
+          style={styles.locationValue}
+        >
+          {hasLocation && manualLocationName
+            ? manualLocationName.length > 20
+              ? manualLocationName.substring(0, 17).replace(/\s+/g, '_') + '...'
+              : manualLocationName
+            : 'Choose location...'}
+        </Text>
+      </View>
+      <Icon name='chevron-down' family='Ionicons' size={20} color={theme.colors.onSurface} />
+    </TouchableOpacity>
+  );
+};
 /**
  * Tab Navigator Component
  * Main bottom tab navigation for authenticated users
@@ -100,7 +148,7 @@ export const TabNavigator: React.FC = () => {
         component={HomeScreen}
         options={{
           title: 'Home',
-          headerTitle: 'Food Waste Marketplace',
+          headerTitle: () => <LocationHeader />,
         }}
       />
 
@@ -146,3 +194,35 @@ export const TabNavigator: React.FC = () => {
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  locationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  locationIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#69dab5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  locationTextContainer: {
+    flex: 1,
+    marginRight: 4,
+  },
+  locationLabel: {
+    color: '#9CA3AF',
+    fontSize: 12,
+    lineHeight: 14,
+  },
+  locationValue: {
+    color: '#1F2937',
+    fontSize: 14,
+    lineHeight: 18,
+  },
+});

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { UserRole } from 'src/users/schemas/user.schema';
+import { UserRole } from 'src/common/enums/user.enum';
 
 /**
  * Role-Permission Mapping Schema

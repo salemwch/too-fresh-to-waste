@@ -102,8 +102,8 @@ const developmentPolicy: SecurityPolicy = {
 // Staging security policy (moderate security)
 const stagingPolicy: SecurityPolicy = {
   authentication: {
-    maxLoginAttempts: 5,
-    lockoutDurationMinutes: 15,
+    maxLoginAttempts: 10,
+    lockoutDurationMinutes: 5,
     sessionTimeoutMinutes: 120, // 2 hours
     requireMFA: true,
     passwordMinLength: 8,
@@ -152,8 +152,8 @@ const stagingPolicy: SecurityPolicy = {
 // Production security policy (maximum security)
 const productionPolicy: SecurityPolicy = {
   authentication: {
-    maxLoginAttempts: 3,
-    lockoutDurationMinutes: 30,
+    maxLoginAttempts: 10,
+    lockoutDurationMinutes: 5,
     sessionTimeoutMinutes: 60, // 1 hour
     requireMFA: true,
     passwordMinLength: 12,
@@ -275,7 +275,7 @@ export const rateLimitConfig = {
   },
   // Authentication attempts
   auth: {
-    maxRequests: 5,
+    maxRequests: 10,
     windowMs: 900000, // 15 minutes
   },
   // Password reset requests

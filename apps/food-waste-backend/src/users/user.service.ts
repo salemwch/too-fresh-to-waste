@@ -1,7 +1,11 @@
-import { Injectable, NotFoundException, ConflictException, Logger, BadRequestException, Inject, forwardRef } from '@nestjs/common';
+import {
+    Injectable,
+    NotFoundException,
+    ConflictException,
+    Logger,
+    BadRequestException,
+} from '@nestjs/common';
 import { IUsersService } from './interfaces/users-service.interface';
-import { QueryOptimizer, USER_PUBLIC_FIELDS, USER_DETAIL_FIELDS } from '../common/utils/query-optimization.util';
-
 interface IPaginationMeta {
     page: number;
     limit: number;
@@ -70,8 +74,8 @@ import { PasswordHistoryService } from '../auth/services/password-history.servic
 @Injectable()
 export class UsersService implements IUsersService {
     private readonly logger = new Logger(UsersService.name);
-    private readonly MAX_FAILED_ATTEMPTS = 5;
-    private readonly LOCKOUT_DURATION = 30 * 60 * 1000; // 30 minutes
+    private readonly MAX_FAILED_ATTEMPTS = 10; // Increased from 5 to 10
+    private readonly BASE_LOCKOUT_DURATION = 5 * 60 * 1000; // 5 minutes (first lockout)
     private readonly PHONE_VERIFICATION_CODE_EXPIRY = 10 * 60 * 1000; // 10 minutes
     private readonly MAX_VERIFICATION_ATTEMPTS = 5;
     private readonly VERIFICATION_RATE_LIMIT = 5; // Max 5 requests per hour
@@ -80,7 +84,6 @@ export class UsersService implements IUsersService {
         @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
         private readonly passwordValidationService: PasswordValidationService,
         private readonly phoneNumberService: PhoneNumberService,
-        @Inject(forwardRef(() => SmsNotificationService))
         private readonly smsNotificationService: SmsNotificationService,
         private readonly passwordHistoryService: PasswordHistoryService,
     ) { }
@@ -781,6 +784,88 @@ export class UsersService implements IUsersService {
         return user;
     }
 
+    /**
+     * Update user's last known location
+     * Stores location in locationPreferences.defaultLocation for:
+     * - Location-based offer discovery
+     * - Cross-device synchronization
+     * - Distance calculations
+     *
+     * @param userId - User ID
+     * @param locationData - Location coordinates and metadata
+     * @returns Updated location data with timestamp
+     */
+    async updateUserLocation(
+        userId: string,
+        locationData: {
+            latitude: number;
+            longitude: number;
+            locationName?: string;
+            source?: 'gps' | 'network' | 'passive' | 'manual' | 'ip';
+        },
+    ): Promise<{
+        latitude: number;
+        longitude: number;
+        locationName?: string;
+        updatedAt: Date;
+    }> {
+        const timestamp = new Date();
+
+        // Update locationPreferences.defaultLocation
+        const updateData: any = {
+            'locationPreferences.defaultLocation': {
+                latitude: locationData.latitude,
+                longitude: locationData.longitude,
+            },
+            updatedAt: timestamp,
+        };
+
+        // Optionally add location to history for tracking
+        const historyEntry = {
+            coordinates: {
+                latitude: locationData.latitude,
+                longitude: locationData.longitude,
+            },
+            timestamp,
+            accuracy: null,
+            source: locationData.source || 'manual',
+        };
+
+        const user = await this.userModel
+            .findByIdAndUpdate(
+                userId,
+                {
+                    $set: updateData,
+                    $push: {
+                        'locationPreferences.locationHistory': {
+                            $each: [historyEntry],
+                            $slice: -10, // Keep only last 10 locations for privacy
+                        },
+                    },
+                },
+                { new: true },
+            )
+            .select('locationPreferences updatedAt')
+            .exec();
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        this.logger.log('User location updated', {
+            userId,
+            source: locationData.source || 'manual',
+            hasLocationName: !!locationData.locationName,
+        });
+
+        return {
+            latitude: locationData.latitude,
+            longitude: locationData.longitude,
+            locationName: locationData.locationName,
+            updatedAt: timestamp,
+        };
+    }
+
     async updateStatus(id: string, status: UserStatus): Promise<User> {
         const user = await this.userModel
             .findByIdAndUpdate(id, { status }, { new: true })
@@ -878,11 +963,14 @@ export class UsersService implements IUsersService {
                     $slice: -50 // Keep only last 50 login records
                 },
                 auditLog: {
-                    action: 'LOGIN_SUCCESS',
-                    timestamp: new Date(),
-                    ipAddress,
-                    userAgent,
-                    details: { location }
+                    $each: [{
+                        action: 'LOGIN_SUCCESS',
+                        timestamp: new Date(),
+                        ipAddress,
+                        userAgent,
+                        details: { location }
+                    }],
+                    $slice: -1000 // ✅ FIX: Keep only last 1000 audit entries (same as addAuditLog)
                 }
             }
         });
@@ -958,6 +1046,11 @@ export class UsersService implements IUsersService {
         this.logger.warn(`User PERMANENTLY DELETED: ${id}`);
     }
 
+    /**
+     * @deprecated Use AuthSecurityService.recordFailedLoginAttempt() instead.
+     * This method is kept for backward compatibility but is no longer used for blocking decisions.
+     * The single source of truth for login attempts is now Redis via AuthSecurityService.
+     */
     async recordFailedLogin(
         userId: string,
         ipAddress: string,
@@ -996,10 +1089,14 @@ export class UsersService implements IUsersService {
         };
 
         if (isLocked) {
-            updateData.accountLockedUntil = new Date(Date.now() + this.LOCKOUT_DURATION);
+            const lockoutDuration = this.calculateLockoutDuration(failedAttempts);
+            updateData.accountLockedUntil = new Date(Date.now() + lockoutDuration);
             updateData.status = UserStatus.SUSPENDED;
 
-            this.logger.warn(`Account locked due to failed login attempts: ${userId}`);
+            this.logger.warn(`Account locked due to failed login attempts: ${userId}`, {
+                attempts: failedAttempts,
+                lockoutDuration: `${lockoutDuration / 60000} minutes`
+            });
         }
 
         await this.userModel.findByIdAndUpdate(userId, updateData);
@@ -1018,9 +1115,28 @@ export class UsersService implements IUsersService {
         });
     }
 
+    /**
+     * Calculate progressive lockout duration based on attempt count
+     * - First lockout (10-19 attempts): 5 minutes
+     * - Second lockout (20-29 attempts): 15 minutes
+     * - Third+ lockout (30+ attempts): 30 minutes
+     */
+    private calculateLockoutDuration(attemptCount: number): number {
+        if (attemptCount < 20) {
+            // First lockout: 5 minutes
+            return this.BASE_LOCKOUT_DURATION;
+        } else if (attemptCount < 30) {
+            // Second lockout: 15 minutes
+            return this.BASE_LOCKOUT_DURATION * 3;
+        } else {
+            // Third+ lockout: 30 minutes
+            return this.BASE_LOCKOUT_DURATION * 6;
+        }
+    }
+
     async isAccountLocked(userId: string): Promise<boolean> {
         const user = await this.userModel.findById(userId);
-        if (!user) {return false};
+        if (!user) { return false };
 
         if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
             return true;
@@ -1167,8 +1283,8 @@ export class UsersService implements IUsersService {
         const ccpaCompliant = !privacy?.internationalCompliance?.ccpaOptOutRequested;
 
         // Determine pending actions
-        if (!tunisiaCompliant) {pendingActions.push('🇹🇳 Tunisia consent required')};
-        if (!gdprCompliant) {pendingActions.push('🌍 GDPR consent required')};
+        if (!tunisiaCompliant) { pendingActions.push('🇹🇳 Tunisia consent required') };
+        if (!gdprCompliant) { pendingActions.push('🌍 GDPR consent required') };
         if (privacy?.dataSubjectRights?.deletionRequested) {
             pendingActions.push('Data deletion request pending');
         }

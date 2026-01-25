@@ -4,7 +4,7 @@ import { Model, Types } from 'mongoose';
 import { Permission, PermissionDocument } from '../schemas/permission.schema';
 import { RolePermission, RolePermissionDocument } from '../schemas/role-permission.schema';
 import { UserPermission, UserPermissionDocument } from '../schemas/user-permission.schema';
-import { UserRole } from 'src/users/schemas/user.schema';
+import { UserRole } from 'src/common/enums/user.enum';
 import {
     AuthorizationContext,
     AuthorizationResult,

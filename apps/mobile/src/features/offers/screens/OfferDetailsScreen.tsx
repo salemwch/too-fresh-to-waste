@@ -1,18 +1,19 @@
-/**
- * Offer Details Screen
- * Display full details of a specific food waste offer
- *
- * Features:
- * - Real-time data fetching with React Query
- * - Loading, error, and success states
- * - Image carousel for offer photos
- * - Pricing information with discount percentage
- * - Availability and pickup time slots
- * - Nutritional information and allergens
- * - Reserve/checkout functionality
- */
-
-import React from 'react';
+import {
+  ChevronLeft,
+  Share2,
+  Heart,
+  ShoppingBag,
+  Star,
+  Clock,
+  MapPin,
+  ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  Minus,
+  Plus,
+  Info,
+} from 'lucide-react-native';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -21,26 +22,34 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  TouchableOpacity,
+  StatusBar,
+  Platform,
+  Modal,
+  TouchableWithoutFeedback,
+  Animated,
+  Easing,
 } from 'react-native';
-import { format } from 'date-fns';
+import LinearGradient from 'react-native-linear-gradient';
 
-import { Text, Button, Card } from '@/design-system/components/atoms';
+// Your existing imports
+import { Text, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { formatTime } from '@/utils/datetime';
+
+import { useOffer } from '../hooks/useOffers';
+import { getOfferStatusLabel, isOfferActive } from '../types/offer.types';
 
 import type { MainStackParamList } from '@/navigation/types';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { useOffer } from '../hooks/useOffers';
-import { getOfferStatusLabel, getOfferTypeLabel, isOfferActive } from '../types/offer.types';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type OfferDetailsScreenNavigationProp = NativeStackNavigationProp<
   MainStackParamList,
   'OfferDetails'
 >;
-
 type OfferDetailsScreenRouteProp = RouteProp<MainStackParamList, 'OfferDetails'>;
 
 interface OfferDetailsScreenProps {
@@ -48,439 +57,439 @@ interface OfferDetailsScreenProps {
   route: OfferDetailsScreenRouteProp;
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Animated Bottom Sheet Sub-Component
+// ─────────────────────────────────────────────────────────────────────────
+const ReserveBottomSheet = ({ visible, onClose, onConfirm, offer, theme }: any) => {
+  const [quantity, setQuantity] = useState(1);
+  const [showModal, setShowModal] = useState(visible);
+  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (Boolean(visible)) {
+      setShowModal(true);
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 350,
+          useNativeDriver: true,
+          easing: Easing.out(Easing.poly(4)),
+        }),
+      ]).start();
+    }
+  }, [visible]);
+
+  const handleClose = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 0, duration: 250, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: SCREEN_HEIGHT, duration: 300, useNativeDriver: true }),
+    ]).start(() => {
+      setShowModal(false);
+      onClose();
+    });
+  };
+
+  if (!Boolean(showModal)) return null;
+
+  const discountedPrice = offer.pricing.discountedPrice;
+  const total = (discountedPrice * quantity).toFixed(2);
+
+  return (
+    <Modal transparent visible={showModal} animationType='none' onRequestClose={handleClose}>
+      <View style={styles.modalOverlay}>
+        <TouchableWithoutFeedback onPress={handleClose}>
+          <Animated.View style={[styles.modalBackdrop, { opacity: fadeAnim }]} />
+        </TouchableWithoutFeedback>
+
+        <Animated.View style={[styles.modalContent, { transform: [{ translateY: slideAnim }] }]}>
+          <View style={[styles.modalHeader, { backgroundColor: theme.colors.primary }]}>
+            <Text weight='bold' style={{ color: '#fff' }} size='md'>
+              {offer.title}
+            </Text>
+            <View style={styles.modalTimeRow}>
+              <Clock color='#fff' size={14} />
+              <Text size='sm' style={{ color: '#fff' }}>
+                Pickup slots available
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.modalBody}>
+            <Text align='center' color='secondary' size='sm' style={{ marginBottom: 16 }}>
+              Select quantity
+            </Text>
+            <View style={styles.quantityControls}>
+              <TouchableOpacity
+                onPress={() => setQuantity(q => Math.max(1, q - 1))}
+                style={[styles.qtyButton, { backgroundColor: theme.colors.primary }]}
+              >
+                <Minus color='#fff' size={20} />
+              </TouchableOpacity>
+              <Text weight='bold' size='xl'>
+                {quantity}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setQuantity(q => Math.min(offer.availableQuantity, q + 1))}
+                style={[styles.qtyButton, { backgroundColor: theme.colors.primary }]}
+              >
+                <Plus color='#fff' size={20} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalDivider} />
+            <View style={styles.totalRow}>
+              <Text size='md'>Total</Text>
+              <Text weight='bold' size='lg'>
+                {total} {offer.pricing.currency}
+              </Text>
+            </View>
+
+            <Button
+              variant='primary'
+              size='lg'
+              style={{ marginTop: 24 }}
+              onPress={() => onConfirm(quantity)}
+            >
+              RESERVE NOW
+            </Button>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Main Screen
+// ─────────────────────────────────────────────────────────────────────────
 export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
   const { offerId } = route.params;
-
-  // Fetch offer data using React Query
   const { data: offer, isLoading, error, refetch } = useOffer(offerId);
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Loading State
-  // ─────────────────────────────────────────────────────────────────────────
+  const [isDescriptionOpen, setIsDescriptionOpen] = useState(true);
+  const [isSheetVisible, setSheetVisible] = useState(false);
 
   if (isLoading) {
     return (
       <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size='large' color={theme.colors.primary} />
-        <Text
-          variant='body'
-          size='md'
-          color='secondary'
-          style={{ marginTop: 16 }}
-          align='center'
-        >
-          Loading offer details...
-        </Text>
       </View>
     );
   }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Error State
-  // ─────────────────────────────────────────────────────────────────────────
 
   if (error || !offer) {
     return (
       <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
-        <Text variant='headline' size='lg' weight='bold' color='error' align='center'>
+        <Text weight='bold' color='error'>
           ⚠️ Error Loading Offer
         </Text>
-        <Text
-          variant='body'
-          size='md'
-          color='secondary'
-          align='center'
-          style={{ marginTop: 12, marginBottom: 24 }}
-        >
-          {error?.message || 'Failed to load offer details. Please try again.'}
-        </Text>
-        <Button variant='primary' size='md' onPress={() => refetch()}>
+        <Button variant='primary' style={{ marginTop: 20 }} onPress={() => refetch()}>
           Retry
         </Button>
-        <Button
-          variant='ghost'
-          size='md'
-          onPress={() => navigation.goBack()}
-          style={{ marginTop: 12 }}
-        >
-          Go Back
-        </Button>
       </View>
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Helper Functions
-  // ─────────────────────────────────────────────────────────────────────────
+  const canReserve = isOfferActive(offer) && (offer.availableQuantity ?? 0) > 0;
 
-  const handleReserve = () => {
-    if (!isOfferActive(offer)) {
-      Alert.alert(
-        'Offer Unavailable',
-        'This offer is currently not available for reservation.',
-        [{ text: 'OK' }],
-      );
-      return;
-    }
-
-    // Navigate to checkout
-    navigation.navigate('Checkout', { offerId: offer._id });
+  const handleConfirmReservation = (qty: number) => {
+    setSheetVisible(false);
+    navigation.navigate('Checkout', { offerId: offer.id, quantity: qty });
   };
-
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'MMM d, yyyy h:mm a');
-    } catch {
-      return dateString;
-    }
-  };
-
-  const formatPrice = (price: number, currency: string) => {
-    return `${price.toFixed(2)} ${currency}`;
-  };
-
-  // Defensive checks for required data
-  if (!offer.pricing || !offer.pricing.originalPrice || !offer.pricing.discountedPrice) {
-    return (
-      <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
-        <Text variant='headline' size='lg' weight='bold' color='error' align='center'>
-          ⚠️ Invalid Offer Data
-        </Text>
-        <Text
-          variant='body'
-          size='md'
-          color='secondary'
-          align='center'
-          style={{ marginTop: 12, marginBottom: 24 }}
-        >
-          This offer is missing required pricing information.
-        </Text>
-        <Button variant='ghost' size='md' onPress={() => navigation.goBack()}>
-          Go Back
-        </Button>
-      </View>
-    );
-  }
-
-  const availableQty = offer.availableQuantity ?? 0;
-  const canReserve = isOfferActive(offer) && availableQty > 0;
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Render UI
-  // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Images Carousel */}
-        {offer.images && offer.images.length > 0 && (
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            style={styles.imagesCarousel}
-          >
-            {offer.images.map((imageUrl, index) => (
-              <Image
-                key={index}
-                source={{ uri: imageUrl }}
-                style={styles.offerImage}
-                resizeMode='cover'
-              />
-            ))}
-          </ScrollView>
-        )}
+      <StatusBar barStyle='light-content' translucent backgroundColor='transparent' />
 
-        {/* Main Content Card */}
-        <Card style={styles.card}>
-          {/* Title & Type */}
-          <View style={styles.header}>
-            <Text variant='headline' size='xl' weight='bold' style={styles.title}>
-              {offer.title}
-            </Text>
-            <View style={[styles.badge, { backgroundColor: theme.colors.primary }]}>
-              <Text variant='label' size='sm' weight='bold' style={{ color: '#fff' }}>
-                {getOfferTypeLabel(offer.type)}
-              </Text>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* --- Header Section --- */}
+        <View style={styles.headerContainer}>
+          <Image source={{ uri: offer.images?.[0] }} style={styles.headerImage} />
+          <LinearGradient
+            colors={['rgba(0,0,0,0.7)', 'transparent', 'rgba(0,0,0,0.8)']}
+            style={styles.gradientOverlay}
+          />
+
+          <View style={styles.topNav}>
+            <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+              <ChevronLeft color='#111827' size={24} />
+            </TouchableOpacity>
+            <View style={styles.topRightActions}>
+              <TouchableOpacity style={styles.iconButton}>
+                <Share2 color='#111827' size={20} />
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.iconButton, { marginLeft: 12 }]}>
+                <Heart color='#111827' size={20} />
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Status */}
-          <View
-            style={[
-              styles.statusBadge,
-              {
-                backgroundColor:
-                  canReserve ? theme.colors.success + '20' : theme.colors.error + '20',
-              },
-            ]}
-          >
-            <Text
-              variant='label'
-              size='sm'
-              weight='semibold'
-              style={{ color: canReserve ? theme.colors.success : theme.colors.error }}
-            >
-              {getOfferStatusLabel(offer.status)}
-              {!canReserve && ' - Not Available'}
-            </Text>
-          </View>
-
-          {/* Pricing */}
-          <View style={styles.pricingSection}>
-            <View style={styles.priceRow}>
-              <Text
-                variant='body'
-                size='sm'
-                color='secondary'
-                style={styles.originalPrice}
-              >
-                {formatPrice(offer.pricing.originalPrice, offer.pricing.currency || 'EUR')}
-              </Text>
-              <View style={[styles.discountBadge, { backgroundColor: theme.colors.error }]}>
-                <Text variant='label' size='xs' weight='bold' style={{ color: '#fff' }}>
-                  -{offer.pricing.discountPercentage || 0}%
-                </Text>
-              </View>
-            </View>
-            <Text variant='headline' size='lg' weight='bold' color='primary'>
-              {formatPrice(offer.pricing.discountedPrice, offer.pricing.currency || 'EUR')}
-            </Text>
-          </View>
-
-          {/* Description */}
-          <View style={styles.section}>
-            <Text variant='headline' size='md' weight='semibold' style={styles.sectionTitle}>
-              Description
-            </Text>
-            <Text variant='body' size='md' color='secondary'>
-              {offer.description}
-            </Text>
-          </View>
-
-          {/* Availability */}
-          <View style={styles.section}>
-            <Text variant='headline' size='md' weight='semibold' style={styles.sectionTitle}>
-              Availability
-            </Text>
-            <Text variant='body' size='sm' color='secondary'>
-              <Text weight='semibold'>Available from:</Text> {formatDate(offer.availableFrom)}
-            </Text>
-            <Text variant='body' size='sm' color='secondary' style={{ marginTop: 4 }}>
-              <Text weight='semibold'>Available until:</Text> {formatDate(offer.availableUntil)}
-            </Text>
-            <Text variant='body' size='sm' color='secondary' style={{ marginTop: 4 }}>
-              <Text weight='semibold'>Remaining:</Text> {availableQty} of {offer.totalQuantity}
-            </Text>
-          </View>
-
-          {/* Pickup Time Slots */}
-          {offer.pickupTimeSlots && offer.pickupTimeSlots.length > 0 && (
-            <View style={styles.section}>
-              <Text variant='headline' size='md' weight='semibold' style={styles.sectionTitle}>
-                Pickup Time Slots
-              </Text>
-              {offer.pickupTimeSlots.map((slot, index) => (
-                <View key={index} style={styles.timeSlot}>
-                  <Text variant='body' size='sm' color='secondary'>
-                    {slot.startTime} - {slot.endTime}
-                  </Text>
-                  <Text variant='label' size='xs' color='secondary'>
-                    {slot.currentOrders}/{slot.maxOrders} orders
+          {/* Merchant Logo - Bottom Left */}
+          {offer.establishmentId && (
+            <View style={styles.merchantLogoContainer}>
+              {typeof offer.merchantId === 'object' &&
+              offer.merchantId?.profileImage !== null &&
+              offer.merchantId?.profileImage !== undefined &&
+              offer.merchantId.profileImage.length > 0 ? (
+                <Image
+                  source={{ uri: offer.merchantId.profileImage }}
+                  style={styles.merchantLogo}
+                  resizeMode='cover'
+                />
+              ) : (
+                <View style={styles.merchantLogoPlaceholder}>
+                  <Text weight='bold' style={{ color: '#fff', fontSize: 16 }}>
+                    {typeof offer.establishmentId === 'object' && offer.establishmentId?.name
+                      ? offer.establishmentId.name.charAt(0).toUpperCase()
+                      : 'E'}
                   </Text>
                 </View>
-              ))}
+              )}
             </View>
           )}
 
-          {/* Categories */}
-          {offer.categories && offer.categories.length > 0 && (
-            <View style={styles.section}>
-              <Text variant='headline' size='md' weight='semibold' style={styles.sectionTitle}>
-                Categories
+          <View style={styles.headerTextContainer}>
+            <Text weight='bold' style={{ color: '#fff' }} size='xl'>
+              {typeof offer.establishmentId === 'object' && offer.establishmentId?.name
+                ? offer.establishmentId.name
+                : 'Establishment'}
+            </Text>
+            <Text style={{ color: '#e5e7eb' }}>{offer.categories?.join(' • ')}</Text>
+          </View>
+        </View>
+
+        {/* --- Info Section --- */}
+        <View style={styles.contentContainer}>
+          <View style={styles.itemHeader}>
+            <View style={styles.itemTitleRow}>
+              <ShoppingBag color={theme.colors.secondary} size={20} />
+              <Text weight='semibold' size='md' style={{ marginLeft: 8 }}>
+                {offer.type ? offer.type.replace('_', ' ') : 'Surprise Bag'}
               </Text>
-              <View style={styles.tagsContainer}>
-                {offer.categories.map((category, index) => (
-                  <View
-                    key={index}
-                    style={[styles.tag, { backgroundColor: theme.colors.primary + '20' }]}
-                  >
-                    <Text variant='label' size='xs' style={{ color: theme.colors.primary }}>
-                      {category}
-                    </Text>
-                  </View>
-                ))}
+            </View>
+            <View style={styles.priceContainer}>
+              <Text size='sm' color='secondary' style={styles.oldPrice}>
+                {offer.pricing.originalPrice.toFixed(2)} {offer.pricing.currency}
+              </Text>
+              <Text weight='bold' size='lg' style={{ color: theme.colors.primary }}>
+                {offer.pricing.discountedPrice.toFixed(2)} {offer.pricing.currency}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.pickupRow}>
+            <Clock color='#9ca3af' size={20} />
+            <Text style={styles.pickupText}>
+              Pick up: {offer.pickupTimeSlots?.[0]?.startTime} -{' '}
+              {offer.pickupTimeSlots?.[0]?.endTime}
+            </Text>
+            <View style={[styles.todayBadge, { backgroundColor: theme.colors.success }]}>
+              <Text weight='bold' style={{ color: '#fff', fontSize: 10 }}>
+                TODAY
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* --- Description Accordion --- */}
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.accordionHeader}
+              onPress={() => setIsDescriptionOpen(!isDescriptionOpen)}
+            >
+              <Text weight='semibold' size='md'>
+                What you could get
+              </Text>
+              {isDescriptionOpen ? (
+                <ChevronUp color='#9ca3af' size={20} />
+              ) : (
+                <ChevronDown color='#9ca3af' size={20} />
+              )}
+            </TouchableOpacity>
+            {isDescriptionOpen && (
+              <View style={styles.accordionContent}>
+                <Text color='secondary' style={{ lineHeight: 22 }}>
+                  {offer.description}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* --- Allergens & Dietary --- */}
+          {offer.nutritionalInfo && (
+            <View style={[styles.infoBox, { backgroundColor: '#f9fafb' }]}>
+              <Info size={18} color={theme.colors.primary} />
+              <View style={{ marginLeft: 12, flex: 1 }}>
+                <Text weight='semibold' size='sm'>
+                  Ingredients & Allergens
+                </Text>
+                <Text size='xs' color='secondary'>
+                  {offer.nutritionalInfo.allergens?.join(', ') != null || 'No allergens listed'}
+                </Text>
               </View>
             </View>
           )}
 
-          {/* Nutritional Info */}
-          {offer.nutritionalInfo && (
-            <View style={styles.section}>
-              <Text variant='headline' size='md' weight='semibold' style={styles.sectionTitle}>
-                Nutritional Information
-              </Text>
-              {offer.nutritionalInfo.calories && (
-                <Text variant='body' size='sm' color='secondary'>
-                  Calories: {offer.nutritionalInfo.calories} kcal
-                </Text>
-              )}
-              {offer.nutritionalInfo.allergens && offer.nutritionalInfo.allergens.length > 0 && (
-                <Text variant='body' size='sm' color='error' style={{ marginTop: 8 }}>
-                  <Text weight='semibold'>Allergens:</Text>{' '}
-                  {offer.nutritionalInfo.allergens.join(', ')}
-                </Text>
-              )}
-              {offer.nutritionalInfo.dietaryInfo &&
-                offer.nutritionalInfo.dietaryInfo.length > 0 && (
-                  <View style={styles.tagsContainer}>
-                    {offer.nutritionalInfo.dietaryInfo.map((info, index) => (
-                      <View
-                        key={index}
-                        style={[styles.tag, { backgroundColor: theme.colors.success + '20' }]}
-                      >
-                        <Text variant='label' size='xs' style={{ color: theme.colors.success }}>
-                          {info}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-            </View>
-          )}
-
-          {/* Special Instructions */}
-          {offer.specialInstructions && (
-            <View style={styles.section}>
-              <Text variant='headline' size='md' weight='semibold' style={styles.sectionTitle}>
-                Special Instructions
-              </Text>
-              <Text variant='body' size='sm' color='secondary'>
-                {offer.specialInstructions}
-              </Text>
-            </View>
-          )}
-
-          {/* Action Buttons */}
-          <View style={styles.actionsSection}>
-            <Button
-              variant='primary'
-              size='lg'
-              onPress={handleReserve}
-              disabled={!canReserve}
-              style={styles.button}
-            >
-              {canReserve ? 'Reserve This Offer' : 'Currently Unavailable'}
-            </Button>
-
-            <Button
-              variant='outline'
-              size='md'
-              onPress={() => navigation.goBack()}
-              style={styles.button}
-            >
-              Go Back
-            </Button>
-          </View>
-        </Card>
+          <View style={{ height: 120 }} />
+        </View>
       </ScrollView>
+
+      {/* --- Sticky Footer --- */}
+      <View style={[styles.footer, { borderTopColor: theme.colors.border }]}>
+        <View style={{ flex: 1, marginRight: 16 }}>
+          <Text size='xs' color='secondary'>
+            Remaining
+          </Text>
+          <Text weight='bold' color={offer.availableQuantity < 3 ? 'error' : 'primary'}>
+            {offer.availableQuantity} bags left
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={[
+            styles.reserveButton,
+            { backgroundColor: theme.colors.primary, opacity: canReserve ? 1 : 0.6 },
+          ]}
+          onPress={() => canReserve && setSheetVisible(true)}
+          disabled={!canReserve}
+        >
+          <Text weight='bold' style={{ color: '#fff' }}>
+            {canReserve ? 'Reserve' : 'Sold Out'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <ReserveBottomSheet
+        visible={isSheetVisible}
+        onClose={() => setSheetVisible(false)}
+        onConfirm={handleConfirmReservation}
+        offer={offer}
+        theme={theme}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  scrollContent: {
-    paddingBottom: 24,
-  },
-  imagesCarousel: {
-    height: 250,
-  },
-  offerImage: {
-    width: SCREEN_WIDTH,
-    height: 250,
-  },
-  card: {
-    margin: 16,
-    padding: 20,
-  },
-  header: {
-    marginBottom: 12,
-  },
-  title: {
-    marginBottom: 8,
-  },
-  badge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  pricingSection: {
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#e0e0e0',
-    marginBottom: 16,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  originalPrice: {
-    textDecorationLine: 'line-through',
-    marginRight: 8,
-  },
-  discountBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    marginBottom: 8,
-  },
-  timeSlot: {
+  container: { flex: 1 },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  scrollContent: { paddingBottom: 0 },
+  headerContainer: { height: 280, width: '100%', position: 'relative' },
+  headerImage: { width: '100%', height: '100%', resizeMode: 'cover' },
+  gradientOverlay: { ...StyleSheet.absoluteFillObject },
+  topNav: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 30,
+    left: 16,
+    right: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    zIndex: 10,
   },
-  tagsContainer: {
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  topRightActions: { flexDirection: 'row' },
+  merchantLogoContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    zIndex: 5,
+  },
+  merchantLogo: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#fff',
+    borderWidth: 3,
+    borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  merchantLogoPlaceholder: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#6366f1',
+    borderWidth: 3,
+    borderColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  headerTextContainer: { position: 'absolute', bottom: 20, left: 90, right: 20 },
+  contentContainer: { paddingHorizontal: 20, paddingTop: 24 },
+  itemHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  itemTitleRow: { flexDirection: 'row', alignItems: 'center' },
+  priceContainer: { alignItems: 'flex-end' },
+  oldPrice: { textDecorationLine: 'line-through', marginBottom: 2 },
+  pickupRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
+  pickupText: { fontSize: 15, color: '#4b5563', marginLeft: 8, marginRight: 8 },
+  todayBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
+  divider: { height: 1, backgroundColor: '#f3f4f6', marginVertical: 24 },
+  accordionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  accordionContent: { marginTop: 12 },
+  infoBox: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 8,
-  },
-  tag: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    padding: 16,
     borderRadius: 12,
+    marginTop: 24,
+    alignItems: 'center',
   },
-  actionsSection: {
-    marginTop: 8,
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    backgroundColor: '#fff',
+    padding: 16,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
   },
-  button: {
-    marginTop: 12,
+  reserveButton: { flex: 2, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+
+  // Modal Styles
+  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
+  modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: 'hidden',
   },
+  modalHeader: { padding: 24, alignItems: 'center' },
+  modalTimeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 },
+  modalBody: { padding: 24 },
+  quantityControls: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 30,
+    marginVertical: 10,
+  },
+  qtyButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalDivider: { height: 1, backgroundColor: '#eee', marginVertical: 20 },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

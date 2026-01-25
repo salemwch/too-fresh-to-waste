@@ -38,7 +38,7 @@ export class MerchantPayoutLedger {
     @Prop({ required: true })
     merchantEmail: string;
 
-    @Prop({ required: true, type: Types.ObjectId, ref: 'Order', unique: true })
+    @Prop({ required: true, type: Types.ObjectId, ref: 'Order' })  // ✅ Removed unique: true (schema-level at line 136)
     orderId: Types.ObjectId;
 
     @Prop({ required: true, type: Types.ObjectId, ref: 'Payment' })

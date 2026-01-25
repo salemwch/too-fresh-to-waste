@@ -10,6 +10,25 @@ export interface User {
   readonly isEmailVerified: boolean;
   readonly isPhoneVerified: boolean;
   readonly avatar?: string;
+  readonly address?: {
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+    coordinates?: {
+      type: string;
+      coordinates: [number, number];
+    };
+  };
+  readonly locationPreferences?: {
+    defaultLocation?: {
+      latitude: number;
+      longitude: number;
+    };
+    searchRadius?: number;
+    autoDetectLocation?: boolean;
+    shareLocation?: boolean;
+  };
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly lastLoginAt?: string;

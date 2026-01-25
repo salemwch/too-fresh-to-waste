@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { UserRole } from 'src/users/schemas/user.schema';
+import { UserRole } from 'src/common/enums/user.enum';
 
 /**
  * Authorization Context

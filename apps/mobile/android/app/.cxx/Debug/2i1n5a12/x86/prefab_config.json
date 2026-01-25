@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "prefabPath": "C:\\Users\\EL-MECHKAT\\.gradle\\caches\\modules-2\\files-2.1\\com.google.prefab\\cli\\2.1.0\\aa32fec809c44fa531f01dcfb739b5b3304d3050\\cli-2.1.0-all.jar",
+  "packages": [
+    "C:\\Users\\EL-MECHKAT\\.gradle\\caches\\8.13\\transforms\\913d34de9225892e9cb1cbe0a3835ed8\\transformed\\react-android-0.81.0-debug\\prefab",
+    "C:\\WFA\\apps\\mobile\\node_modules\\react-native-nitro-modules\\android\\build\\intermediates\\prefab_package\\debug\\prefab",
+    "C:\\WFA\\apps\\mobile\\node_modules\\react-native-reanimated\\android\\build\\intermediates\\prefab_package\\debug\\prefab",
+    "C:\\WFA\\apps\\mobile\\node_modules\\react-native-worklets\\android\\build\\intermediates\\prefab_package\\debug\\prefab",
+    "C:\\Users\\EL-MECHKAT\\.gradle\\caches\\8.13\\transforms\\c9b623243f122ef162427a84107b42a5\\transformed\\hermes-android-0.81.0-debug\\prefab",
+    "C:\\Users\\EL-MECHKAT\\.gradle\\caches\\8.13\\transforms\\cefba67a41bec24540976a866f7d1e54\\transformed\\fbjni-0.7.0\\prefab"
+  ]
+}

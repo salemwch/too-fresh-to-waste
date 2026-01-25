@@ -27,8 +27,8 @@ import { FirebaseStorageService } from '../common/services/firebase-storage.serv
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '../users/schemas/user.schema';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/user.enum';
 import { ReviewsService } from './reviwes.service';
 import {
     CreateReviewDto,
@@ -43,7 +43,7 @@ import {
 } from './dto/create-reviwe.dto';
 import { GlobalExceptionFilter } from '../common/filters/http-exception.filter';
 import { RateLimitGuard } from '../common/validators/RateLimitGuard';
-import { Public } from '../auth/decorators/public.decorator';
+import { Public } from '../common/decorators/public.decorator';
 import { ReviewImages, ReviewStatus } from './schemas/reviwe.schema';
 import { AppLoggerService } from '../common/services/logger.service';
 @ApiTags('Reviews')

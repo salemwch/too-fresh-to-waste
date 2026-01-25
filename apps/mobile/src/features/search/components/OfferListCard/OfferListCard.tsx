@@ -53,9 +53,13 @@ export const OfferListCard: React.FC<OfferListCardProps> = memo(({
   const { item, distance } = offer;
   const offerImage = item.images?.[0];
 
-  // Format pickup time
+  // Format pickup time - convert UTC to local timezone
   const pickupTime = item.availableUntil
-    ? new Date(item.availableUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    ? new Date(item.availableUntil).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      })
     : 'Today';
 
   // Mock merchant logo - in real app, this would come from the offer data

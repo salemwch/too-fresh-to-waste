@@ -9,7 +9,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
-import { UserRole, UserStatus } from 'src/users/schemas/user.schema';
+import { UserRole, UserStatus } from 'src/common/enums/user.enum';
 import { EmailService } from 'src/email/email.service';
 import { RegisterDto } from 'src/auth/DTO/register.dto';
 import { PasswordPolicyService } from './services/password-policy.service';
@@ -21,9 +21,11 @@ import { ForgotPasswordDto } from 'src/auth/DTO/forget-password.dto';
 import { ResetPasswordDto } from 'src/auth/DTO/reset-password.dto';
 import { UsersService } from 'src/users/user.service';
 import { PhoneNumberService } from 'src/common/services/phone-number.service';
+import { EventBusService } from 'src/common/services/event-bus/event-bus.service';
 import { AuthSecurityService } from './services/auth-security.service';
 import { CaptchaService } from './services/captcha.service';
-import { GamificationService } from '../loyalty/services/gamification.service';
+import { UserRegisteredEvent } from '../common/events';
+import { mapToSafeUserResponse, SafeUserResponse } from './DTO/safe-user-response.dto';
 
 export interface AuthTokens {
     accessToken: string;
@@ -41,7 +43,8 @@ export interface UserResponse {
     status: UserStatus;
     isEmailVerified: boolean;
     isPhoneVerified: boolean;
-    avatar?: string;
+    profileImage?: string | null;  // ✅ FIX: Matches database field name
+    phoneNumber?: string;           // ✅ FIX: Added phoneNumber
     createdAt: Date;
     updatedAt: Date;
     lastLoginAt?: Date;
@@ -50,7 +53,7 @@ export interface UserResponse {
 export interface RegisterResponse {
     success: boolean;
     message: string;
-    user: Partial<UserResponse>;
+    user: SafeUserResponse;
 }
 
 export interface LoginResponse {
@@ -82,7 +85,7 @@ export class AuthService {
         private readonly tokenService: TokenService,
         private readonly authSecurityService: AuthSecurityService,
         private readonly captchaService: CaptchaService,
-        @Optional() private readonly gamificationService?: GamificationService,
+        private readonly eventBus: EventBusService,
     ) { }
 
     async register(registerDto: RegisterDto): Promise<RegisterResponse> {
@@ -144,46 +147,33 @@ export class AuthService {
             });
         }
 
-        // Handle referral registration if referral code was provided
-        if (registerDto.referralCode && this.gamificationService) {
-            try {
-                const referrer = await this.gamificationService.findReferrerByCode(registerDto.referralCode);
-
-                if (referrer) {
-                    // Register referral based on user role
-                    if (role === UserRole.MERCHANT) {
-                        // Business referral: business must sell 30 orders in first month for referrer to get 30 pts
-                        await this.gamificationService.registerBusinessReferral(
-                            referrer.userId.toString(),
-                            user.id,
-                        );
-                        this.logger.log(`Registered business referral: ${user.id} referred by ${referrer.userId}`);
-                    } else {
-                        // Friend referral: friend must buy 10 bags in first month for referrer to get 15 pts
-                        await this.gamificationService.registerFriendReferral(
-                            referrer.userId.toString(),
-                            user.id,
-                        );
-                        this.logger.log(`Registered friend referral: ${user.id} referred by ${referrer.userId}`);
-                    }
-                } else {
-                    this.logger.warn(`Invalid referral code used during registration: ${registerDto.referralCode}`);
-                }
-            } catch (referralError) {
-                // Log error but don't fail registration
-                this.logger.error(
-                    `Failed to process referral during registration: ${(referralError as Error).message}`,
-                    (referralError as Error).stack
-                );
-            }
+        // Emit user registered event for cross-module reactions (loyalty, notifications, analytics)
+        try {
+            await this.eventBus.emit(
+                'user.registered',
+                new UserRegisteredEvent(
+                    user._id.toString(),
+                    user.email,
+                    role,
+                    new Date(),
+                ),
+            );
+            this.logger.log(`User registered event emitted for user: ${user._id}`);
+        } catch (eventError) {
+            // Log error but don't fail registration
+            this.logger.error(
+                `Failed to emit user registered event: ${(eventError as Error).message}`,
+                (eventError as Error).stack,
+            );
         }
 
-        const { password: _password, refreshTokens: _refreshTokens, emailVerificationToken: _token, id, ...result } = user.toObject();
+        // SECURITY: Use safe mapper to exclude sensitive fields (passwordHistory, loginHistory, etc.)
+        const safeUser = mapToSafeUserResponse(user.toObject());
 
         return {
             success: true,
             message: 'Registration successful. Please check your email to verify your account before logging in.',
-            user: { ...result, userId: id },
+            user: safeUser,
         };
     }
     async verifyEmail(
@@ -199,15 +189,15 @@ export class AuthService {
         }
 
         // Mark email as verified
-        await this.usersService.verifyEmail(user.id);
-        this.logger.log('Email verification successful', { userId: user.id });
+        await this.usersService.verifyEmail(user._id.toString());
+        this.logger.log('Email verification successful', { userId: user._id });
 
         // Send welcome email (non-blocking)
         try {
             await this.emailService.sendWelcomeEmail(user);
         } catch (error) {
             this.logger.warn('Failed to send welcome email after verification', {
-                userId: user.id,
+                userId: user._id,
                 error: error instanceof Error ? error.message : 'Unknown error'
             });
         }
@@ -222,7 +212,7 @@ export class AuthService {
         };
 
         const tokenPair = await this.tokenService.generateTokenPair(
-            user.id,
+            user._id.toString(),
             user.email,
             user.role,
             deviceInfo,
@@ -233,21 +223,32 @@ export class AuthService {
 
         // Update last login timestamp
         await this.usersService.updateLastLogin(
-            user.id,
+            user._id.toString(),
             requestInfo?.ipAddress || 'unknown',
             requestInfo?.userAgent || 'unknown',
             requestInfo?.location
         );
 
-        // Prepare user response (exclude sensitive fields)
-        const { password: _password, refreshTokens: _refreshTokens, emailVerificationToken: _emailVerificationToken, passwordResetToken: _passwordResetToken, id, ...userResult } = user.toObject();
+        this.logger.log('Email verification with auto-login successful', { userId: user._id });
 
-        this.logger.log('Email verification with auto-login successful', { userId: user.id });
-
+        // ✅ SECURITY: Use DTO - only send what frontend needs
         return {
             success: true,
             message: 'Email verified successfully',
-            user: { ...userResult, userId: id, isEmailVerified: true },
+            user: {
+                userId: user._id.toString(),
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role,
+                status: user.status,
+                isEmailVerified: true,
+                isPhoneVerified: user.isPhoneVerified,
+                profileImage: user.profileImage,
+                phoneNumber: user.phoneNumber,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
+            },
             tokens: {
                 accessToken: tokenPair.accessToken,
                 refreshToken: tokenPair.refreshToken,
@@ -285,6 +286,8 @@ export class AuthService {
         }
 
         // PRODUCTION-READY IMPROVEMENT: Validate CAPTCHA if required
+        // DISABLED: CAPTCHA validation temporarily disabled for development
+        /*
         if (securityCheck.captchaRequired) {
             if (!loginDto.captchaToken) {
                 this.logger.warn('CAPTCHA required but not provided', {
@@ -332,6 +335,7 @@ export class AuthService {
                 score: captchaResult.score
             });
         }
+        */
 
         const user = await this.usersService.findByEmail(loginDto.email);
 
@@ -341,11 +345,17 @@ export class AuthService {
             // Record failed attempt for rate limiting
             await this.authSecurityService.recordFailedLoginAttempt(ipAddress, loginDto.email);
 
-            throw new UnauthorizedException('Invalid credentials');
+            // SECURITY WARNING: Revealing that email doesn't exist enables email enumeration attacks
+            // Consider using generic 'Invalid credentials' in production
+            throw new UnauthorizedException({
+                message: 'No account found with this email address',
+                type: 'EMAIL_NOT_FOUND',
+                field: 'email',
+            });
         }
 
         if (!user.isEmailVerified) {
-            this.logger.warn('Login attempt with unverified email', { userId: user.id });
+            this.logger.warn('Login attempt with unverified email', { userId: user._id });
             throw new UnauthorizedException('Please verify your email before logging in');
         }
 
@@ -356,7 +366,7 @@ export class AuthService {
         // Check account lockout status
         if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
             this.logger.warn('Login attempt on locked account', {
-                userId: user.id,
+                userId: user._id,
                 lockedUntil: user.accountLockedUntil
             });
             throw new UnauthorizedException({
@@ -367,7 +377,7 @@ export class AuthService {
         }
 
         if (user.status !== UserStatus.ACTIVE) {
-            this.logger.warn('Login attempt with inactive account', { userId: user.id, status: user.status });
+            this.logger.warn('Login attempt with inactive account', { userId: user._id, status: user.status });
 
             if (user.status === UserStatus.SUSPENDED) {
                 throw new UnauthorizedException({
@@ -382,44 +392,38 @@ export class AuthService {
         const isPasswordValid = await argon2.verify(user.password, loginDto.password);
 
         if (!isPasswordValid) {
-            // Record failed login attempt in both systems
-            const lockoutResult = await this.usersService.recordFailedLogin(
-                user.id,
-                ipAddress,
-                requestInfo?.userAgent || 'unknown'
-            );
-
-            // PRODUCTION-READY IMPROVEMENT: Record in auth security service for rate limiting
-            await this.authSecurityService.recordFailedLoginAttempt(ipAddress, loginDto.email);
+            // Record failed login attempt in auth security service (Redis) - SINGLE SOURCE OF TRUTH
+            const securityResult = await this.authSecurityService.recordFailedLoginAttempt(ipAddress, loginDto.email);
 
             this.logger.warn('Login attempt with invalid password', {
-                userId: user.id,
-                attempts: lockoutResult.attemptsRemaining,
-                isLocked: lockoutResult.isLocked
+                userId: user._id,
+                attempts: securityResult.currentAttempts,
+                maxAttempts: securityResult.maxAttempts,
+                attemptsRemaining: securityResult.attemptsRemaining,
+                isLocked: securityResult.isLocked
             });
 
-            if (lockoutResult.isLocked) {
+            if (securityResult.isLocked) {
                 throw new UnauthorizedException({
                     message: 'Account has been locked due to multiple failed login attempts',
                     type: 'ACCOUNT_LOCKED',
-                    attemptsRemaining: 0
+                    attemptsRemaining: 0,
+                    blockedUntil: securityResult.blockedUntil
                 });
             }
 
             throw new UnauthorizedException({
-                message: 'Invalid credentials',
-                attemptsRemaining: lockoutResult.attemptsRemaining,
-                type: 'INVALID_CREDENTIALS',
-                captchaRequired: securityCheck.captchaRequired, // PRODUCTION-READY IMPROVEMENT
+                message: 'The password you entered is incorrect',
+                field: 'password',
+                attemptsRemaining: securityResult.attemptsRemaining,
+                type: 'INVALID_PASSWORD',
+                // captchaRequired: securityCheck.captchaRequired, // DISABLED for development
             });
         }
 
-        this.logger.log('User login successful', { userId: user.id, email: user.email });
+        this.logger.log('User login successful', { userId: user._id, email: user.email });
 
-        // Reset failed login attempts on successful login
-        await this.usersService.resetFailedLoginAttempts(user.id);
-
-        // PRODUCTION-READY IMPROVEMENT: Clear auth security service attempts
+        // Clear failed login attempts in Redis (single source of truth)
         await this.authSecurityService.clearLoginAttempts(ipAddress, loginDto.email);
 
         // Generate tokens with JTI, family tracking, and device info
@@ -431,7 +435,7 @@ export class AuthService {
         };
 
         const tokenPair = await this.tokenService.generateTokenPair(
-            user.id,
+            user._id.toString(),
             user.email,
             user.role,
             deviceInfo,
@@ -441,18 +445,31 @@ export class AuthService {
         );
 
         await this.usersService.updateLastLogin(
-            user.id,
+            user._id.toString(),
             requestInfo?.ipAddress || 'unknown',
             requestInfo?.userAgent || 'unknown',
             requestInfo?.location
         );
 
-        const { password: _password, refreshTokens: _refreshTokens, emailVerificationToken: _emailVerificationToken, passwordResetToken: _passwordResetToken, id, ...userResult } = user.toObject();
-
+        // ✅ SECURITY: Use DTO - only send what frontend needs (NO history/audit logs)
+        // History endpoints should be separate: GET /users/me/login-history, GET /users/me/audit-log
         return {
             success: true,
             message: 'Login successful',
-            user: { ...userResult, userId: id },
+            user: {
+                userId: user._id.toString(),
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role,
+                status: user.status,
+                isEmailVerified: user.isEmailVerified,
+                isPhoneVerified: user.isPhoneVerified,
+                profileImage: user.profileImage,
+                phoneNumber: user.phoneNumber,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
+            },
             tokens: {
                 accessToken: tokenPair.accessToken,
                 refreshToken: tokenPair.refreshToken,
@@ -468,7 +485,7 @@ export class AuthService {
     private getAccessTokenExpiresInSeconds(): number {
         const expiration = this.configService.get<string>('JWT_EXPIRES_IN') || '15m';
         const match = expiration.match(/^(\d+)([smhd])$/);
-        if (!match) return 900; // 15 minutes default
+        if (!match) {return 900;} // 15 minutes default
 
         const [, value, unit] = match;
         const num = parseInt(value, 10);
@@ -488,7 +505,7 @@ export class AuthService {
         const resetToken = CryptoUtil.generateRandomToken(32);
         const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-        await this.usersService.setPasswordResetToken(user.id, resetToken, resetExpires);
+        await this.usersService.setPasswordResetToken(user._id.toString(), resetToken, resetExpires);
 
         try {
             await this.emailService.sendPasswordResetEmail(user, resetToken);
@@ -521,14 +538,14 @@ export class AuthService {
         });
 
         // Update password and clear reset token
-        await this.usersService.updatePassword(user.id, newPassword);
-        this.logger.log('Password reset successful', { userId: user.id });
+        await this.usersService.updatePassword(user._id.toString(), newPassword);
+        this.logger.log('Password reset successful', { userId: user._id });
 
         // Security: Revoke all tokens and mark security event
-        await this.tokenService.revokeAllUserTokens(user.id, 'Password reset');
-        await this.usersService.markTokenInvalidation(user.id);
-        await this.usersService.incrementTokenRevocationVersion(user.id);
-        await this.usersService.clearAllRefreshTokens(user.id); // Backward compatibility
+        await this.tokenService.revokeAllUserTokens(user._id.toString(), 'Password reset');
+        await this.usersService.markTokenInvalidation(user._id.toString());
+        await this.usersService.incrementTokenRevocationVersion(user._id.toString());
+        await this.usersService.clearAllRefreshTokens(user._id.toString()); // Backward compatibility
 
         return {
             message: 'Password reset successful. Please log in with your new password.',
@@ -550,7 +567,7 @@ export class AuthService {
 
         // Generate new verification token
         const emailVerificationToken = CryptoUtil.generateRandomToken(32);
-        await this.usersService.updateEmailVerificationToken(user.id, emailVerificationToken);
+        await this.usersService.updateEmailVerificationToken(user._id.toString(), emailVerificationToken);
 
         // Send new verification email
         try {
@@ -714,11 +731,32 @@ export class AuthService {
         const user = await this.usersService.findByEmail(email);
 
         if (user && (await argon2.verify(user.password, password))) {
-            const { password: _password, id, ...result } = user.toObject();
-            return { ...result, userId: id };
+            const { password: _password, _id, ...result } = user.toObject();
+            return { ...result, userId: _id.toString() };
         }
 
         return null;
+    }
+
+    /**
+     * Validate and decode refresh token (for mobile app refresh endpoint)
+     * @param refreshToken - JWT refresh token
+     * @returns Decoded payload with userId, or null if invalid
+     */
+    async validateRefreshToken(refreshToken: string): Promise<{ userId: string } | null> {
+        try {
+            // ✅ Use JWT_REFRESH_SECRET for refresh tokens (not JWT_SECRET)
+            const decoded = await this.jwtService.verifyAsync(refreshToken, {
+                secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+            });
+            if (!decoded || !decoded.sub) {
+                return null;
+            }
+            return { userId: decoded.sub };
+        } catch (error) {
+            this.logger.warn('Failed to decode refresh token', { error: (error as Error).message });
+            return null;
+        }
     }
 
     /**

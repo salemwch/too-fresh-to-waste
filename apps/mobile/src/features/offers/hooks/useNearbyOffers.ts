@@ -43,7 +43,8 @@ export const nearbyOffersKeys = {
   all: ['nearbyOffers'] as const,
 
   /** Key for offer search with specific params */
-  offers: (params: NearbyOffersParams | null) => [...nearbyOffersKeys.all, 'offers', params] as const,
+  offers: (params: NearbyOffersParams | null) =>
+    [...nearbyOffersKeys.all, 'offers', params] as const,
 
   /** Key for establishment search */
   establishments: (params: NearbyOffersParams | null) =>
@@ -120,11 +121,7 @@ export function useNearbyEstablishments(
   params: NearbyOffersParams | null,
   options: UseNearbyOffersOptions = {},
 ) {
-  const {
-    enabled = true,
-    staleTime = 5 * 60 * 1000,
-    refetchOnFocus = true,
-  } = options;
+  const { enabled = true, staleTime = 5 * 60 * 1000, refetchOnFocus = true } = options;
 
   const isEnabled = enabled && !!params;
 
@@ -164,11 +161,7 @@ export function useQuickSearch(
   radius: number,
   options: UseNearbyOffersOptions = {},
 ) {
-  const {
-    enabled = true,
-    staleTime = 5 * 60 * 1000,
-    refetchOnFocus = true,
-  } = options;
+  const { enabled = true, staleTime = 5 * 60 * 1000, refetchOnFocus = true } = options;
 
   const isEnabled = enabled && latitude !== null && longitude !== null;
 

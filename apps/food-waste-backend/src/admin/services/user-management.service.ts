@@ -1,7 +1,9 @@
 import { Injectable, Logger, NotFoundException, BadRequestException, Optional } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model} from 'mongoose';
-import { User, UserDocument, UserStatus } from '../../users/schemas/user.schema';
+import { EventBusService } from '../../common/services/event-bus/event-bus.service';
+import { User, UserDocument } from '../../users/schemas/user.schema';
+import { UserStatus } from '../../common/enums/user.enum';
 import { UpdateUserStatusDto, BulkUserActionDto, UserSearchDto } from '../dto/user-management.dto';
 import { AdminAuditService, AuditableObject } from './admin-audit.service';
 import { AdminAction } from '../interfaces/admin-analytics.interface';
@@ -10,6 +12,14 @@ import { ISendNotificationRequest } from '../../notifications/interfaces/notific
 import { IUser } from '../../common/interfaces/user.interface';
 import { UserMapper } from '../../common/mappers/user.mapper';
 import { LeanDocument } from '../../common/types/mongoose.types';
+import {
+  AdminUserStatusChangedEvent,
+  AdminUserActivatedEvent,
+  AdminUserSuspendedEvent,
+  AdminUserBlockedEvent,
+  AdminUserDeletedEvent,
+  AdminBulkUserActionEvent,
+} from '../../common/events/admin-user.events';
 
 export interface UserListResponse {
   users: LeanDocument<UserDocument>[];
@@ -124,6 +134,7 @@ export class UserManagementService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly auditService: AdminAuditService,
+    private readonly eventBus: EventBusService,
     @Optional() private readonly notificationService?: NotificationService,
   ) {}
 
@@ -369,6 +380,10 @@ export class UserManagementService {
       this.logger.log(
         `User ${userId} status changed from ${previousStatus} to ${updateDto.status} by admin ${adminEmail}. Reason: ${updateDto.reason}`
       );
+
+      // Emit domain event for cross-module reactions
+      await this.emitUserStatusEvent(userId, adminId, adminEmail, previousStatus, updateDto);
+
       if (updateDto.sendNotification) {
         await this.sendStatusChangeNotification(user, updateDto, previousStatus);
       }
@@ -462,6 +477,20 @@ export class UserManagementService {
         `Bulk user status update completed: ${result.successCount}/${result.processedCount} successful`
       );
 
+      // Emit bulk operation event for async processing
+      if (result.successCount > 0) {
+        await this.eventBus.emit(
+          'admin.user.bulk_action',
+          new AdminBulkUserActionEvent(
+            adminId,
+            adminEmail,
+            userIds,
+            this.getBulkActionType(status),
+            reason,
+          ),
+        );
+      }
+
       return result;
 
     } catch (error) {
@@ -516,6 +545,18 @@ export class UserManagementService {
 
       this.logger.log(
         `User ${userId} ${hardDelete ? 'permanently deleted' : 'soft deleted'} by admin ${adminEmail}. Reason: ${reason}`
+      );
+
+      // Emit deletion event for cascade cleanup
+      await this.eventBus.emit(
+        'admin.user.deleted',
+        new AdminUserDeletedEvent(
+          userId,
+          adminId,
+          adminEmail,
+          hardDelete,
+          reason,
+        ),
       );
 
       return true;
@@ -1039,6 +1080,95 @@ export class UserManagementService {
       }
     } catch (error) {
       this.logger.error(`Error sending critical push notification:`, error);
+    }
+  }
+
+  /**
+   * Emit appropriate user status change event based on the new status
+   * Allows different services to react to specific status changes
+   */
+  private async emitUserStatusEvent(
+    userId: string,
+    adminId: string,
+    adminEmail: string,
+    previousStatus: UserStatus,
+    updateDto: UpdateUserStatusDto,
+  ): Promise<void> {
+    try {
+      // Emit generic status changed event
+      await this.eventBus.emit(
+        'admin.user.status_changed',
+        new AdminUserStatusChangedEvent(
+          userId,
+          adminId,
+          adminEmail,
+          previousStatus,
+          updateDto.status,
+          updateDto.reason,
+        ),
+      );
+
+      // Emit specific status events for targeted reactions
+      switch (updateDto.status) {
+        case UserStatus.ACTIVE:
+          await this.eventBus.emit(
+            'admin.user.activated',
+            new AdminUserActivatedEvent(
+              userId,
+              adminId,
+              adminEmail,
+              updateDto.reason,
+            ),
+          );
+          break;
+
+        case UserStatus.SUSPENDED:
+          await this.eventBus.emit(
+            'admin.user.suspended',
+            new AdminUserSuspendedEvent(
+              userId,
+              adminId,
+              adminEmail,
+              updateDto.reason || 'No reason provided',
+              updateDto.adminNotes,
+            ),
+          );
+          break;
+
+        case UserStatus.BLOCKED:
+          await this.eventBus.emit(
+            'admin.user.blocked',
+            new AdminUserBlockedEvent(
+              userId,
+              adminId,
+              adminEmail,
+              updateDto.reason || 'No reason provided',
+              updateDto.adminNotes,
+            ),
+          );
+          break;
+      }
+
+      this.logger.debug(`Emitted status change events for user ${userId}: ${previousStatus} → ${updateDto.status}`);
+    } catch (error) {
+      // Don't fail the operation if event emission fails
+      this.logger.error(`Failed to emit user status events for ${userId}:`, error);
+    }
+  }
+
+  /**
+   * Convert UserStatus to bulk action type
+   */
+  private getBulkActionType(status: UserStatus): 'activate' | 'suspend' | 'block' {
+    switch (status) {
+      case UserStatus.ACTIVE:
+        return 'activate';
+      case UserStatus.SUSPENDED:
+        return 'suspend';
+      case UserStatus.BLOCKED:
+        return 'block';
+      default:
+        return 'activate';
     }
   }
 

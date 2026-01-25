@@ -93,10 +93,10 @@ export const Card = forwardRef<
     // If pressable, wrap in TouchableOpacity with animation
     if (pressable) {
       return (
-        <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
+        <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
           <TouchableOpacity
             ref={ref as React.RefObject<React.ElementRef<typeof TouchableOpacity>>}
-            style={styles.pressable}
+            style={[styles.pressable, style]}
             onPress={handlePress}
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}

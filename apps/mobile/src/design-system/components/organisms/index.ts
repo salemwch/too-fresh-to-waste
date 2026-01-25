@@ -19,7 +19,22 @@ export type {
   LocationCoordinates as ManualLocationCoordinates,
 } from './ManualLocationModal';
 
-// TODO: Add other organisms as they are implemented
-// export { RestaurantHeader } from './RestaurantHeader';
-// export { CartSummary } from './CartSummary';
-// export { FilterPanel } from './FilterPanel';
+// LocationSelectionModal
+export { LocationSelectionModal } from './LocationSelectionModal';
+export type { LocationSelectionModalProps } from './LocationSelectionModal';
+
+// OfferCard
+export { OfferCard } from './OfferCard';
+export type {
+  OfferCardProps,
+  OfferCardVariant,
+  OfferCardLayout,
+  OfferCardOrientation,
+  OfferBadge,
+} from './OfferCard';
+export {
+  offerTypeLabels,
+  formatPickupTime,
+  formatDistance,
+  isExpiringSoon,
+} from './OfferCard';

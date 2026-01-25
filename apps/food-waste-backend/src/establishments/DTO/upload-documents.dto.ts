@@ -1,19 +1,9 @@
 import { IsEnum, IsOptional, IsString, IsDateString, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { DocumentType } from '../../common/enums/establishment.enum';
 
-/**
- * Document types that can be uploaded for establishments
- * Enterprise-grade categorization for regulatory compliance
- */
-export enum DocumentType {
-    BUSINESS_LICENSE = 'business_license',
-    FOOD_SAFETY_LICENSE = 'food_safety_license',
-    INSURANCE_DOCUMENT = 'insurance_document',
-    TAX_CERTIFICATE = 'tax_certificate',
-    OWNER_ID_DOCUMENT = 'owner_id_document',
-    ADDITIONAL = 'additional',
-}
+// Re-export DocumentType for backward compatibility
+export { DocumentType };
 
 /**
  * DTO for uploading legal documents to an establishment
@@ -66,7 +56,7 @@ export class UploadDocumentsDto {
         description: 'Document file (PDF, max 5MB)',
         required: true,
     })
-    document: any; // Multer will handle this
+    document: Express.Multer.File; // Multer will handle this
 }
 
 /**

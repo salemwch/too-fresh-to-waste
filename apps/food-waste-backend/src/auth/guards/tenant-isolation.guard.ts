@@ -5,7 +5,7 @@ import {
     ForbiddenException,
     Logger,
 } from '@nestjs/common';
-import { UserRole } from 'src/users/schemas/user.schema';
+import { UserRole } from 'src/common/enums/user.enum';
 import { TenantContext } from '../interfaces/authorization.interface';
 
 /**

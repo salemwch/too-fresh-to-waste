@@ -1,6 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
+// Modules
+import { CommonModule } from '../common/common.module';
+import { NotificationsModule } from '../notifications/notifications.module';
+
 // Schemas
 import { AdminAuditLog, AdminAuditLogSchema } from './schemas/admin-audit-log.schema';
 import { SystemConfig, SystemConfigSchema } from './schemas/system-config.schema';
@@ -34,6 +38,10 @@ import { AdminOnlyGuard } from './guards/admin-only.guard';
 
 @Module({
   imports: [
+    // Shared modules
+    CommonModule, // Provides EventBusService, LoggerService, etc.
+    NotificationsModule, // Provides NotificationService
+
     MongooseModule.forFeature([
       // Admin-specific schemas
       { name: AdminAuditLog.name, schema: AdminAuditLogSchema },

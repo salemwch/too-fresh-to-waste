@@ -1,12 +1,20 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { EventBusService } from '../../common/services/event-bus/event-bus.service';
 import { SystemConfig, SystemConfigDocument } from '../schemas/system-config.schema';
 import { UpdateSystemConfigDto } from '../dto/system-config.dto';
 import { AdminAuditService, AuditableObject } from './admin-audit.service';
 import { AdminAction } from '../interfaces/admin-analytics.interface';
 import { ISystemConfig } from '../../common/interfaces/system-config.interface';
 import { SystemConfigMapper } from '../../common/mappers/system-config.mapper';
+import {
+  AdminSystemConfigChangedEvent,
+  AdminSystemConfigRolledBackEvent,
+  AdminMaintenanceModeChangedEvent,
+  AdminSecurityConfigChangedEvent,
+  AdminPaymentConfigChangedEvent,
+} from '../../common/events/admin-system.events';
 
 export interface ConfigValidationResult {
   isValid: boolean;
@@ -149,6 +157,7 @@ export class SystemConfigService {
   constructor(
     @InjectModel(SystemConfig.name) private readonly configModel: Model<SystemConfigDocument>,
     private readonly auditService: AdminAuditService,
+    private readonly eventBus: EventBusService,
   ) {}
 
   async getSystemConfig(): Promise<ISystemConfig> {
@@ -280,6 +289,15 @@ export class SystemConfigService {
 
       this.logger.log(`System configuration updated to version ${newVersion} by admin ${adminEmail}`);
 
+      // Emit domain events for cache invalidation and service refresh
+      await this.emitConfigChangedEvents(
+        adminId,
+        adminEmail,
+        currentConfig,
+        savedConfig,
+        updateDto,
+      );
+
       return SystemConfigMapper.toInterface(savedConfig);
 
     } catch (error) {
@@ -376,6 +394,18 @@ export class SystemConfigService {
       });
 
       this.logger.log(`System configuration rolled back to version ${version} by admin ${adminEmail}`);
+
+      // Emit rollback event for emergency cache clearing
+      await this.eventBus.emit(
+        'admin.system.config_rolled_back',
+        new AdminSystemConfigRolledBackEvent(
+          adminId,
+          adminEmail,
+          currentConfigDoc.version,
+          version,
+          `Rolled back configuration to version ${version}`,
+        ),
+      );
 
       return SystemConfigMapper.toInterface(savedConfig);
 
@@ -560,7 +590,7 @@ export class SystemConfigService {
         promotionalEmailsEnabled: true
       },
       securitySettings: {
-        maxLoginAttempts: 5,
+        maxLoginAttempts: 10,
         loginAttemptWindow: 15,
         accountLockoutDuration: 30,
         passwordMinLength: 8,
@@ -714,5 +744,127 @@ export class SystemConfigService {
     const newVersion = `${major}.${minor}.${newPatch}`;
 
     return suffix ? `${newVersion}-${suffix}` : newVersion;
+  }
+
+  /**
+   * Emit configuration change events for targeted service reactions
+   * Different services can subscribe to specific config changes
+   */
+  private async emitConfigChangedEvents(
+    adminId: string,
+    adminEmail: string,
+    previousConfig: ISystemConfig,
+    newConfig: SystemConfigDocument,
+    updateDto: UpdateSystemConfigDto,
+  ): Promise<void> {
+    try {
+      const changedFields: string[] = [];
+      const previousValues: Record<string, unknown> = {};
+      const newValues: Record<string, unknown> = {};
+
+      // Detect changed fields
+      if (updateDto.platformSettings) {
+        Object.keys(updateDto.platformSettings).forEach((key) => {
+          changedFields.push(`platformSettings.${key}`);
+          previousValues[`platformSettings.${key}`] = previousConfig.platformSettings?.[key];
+          newValues[`platformSettings.${key}`] = updateDto.platformSettings![key];
+        });
+
+        // Check for maintenance mode change (critical)
+        if (
+          updateDto.platformSettings.maintenanceMode !== undefined &&
+          updateDto.platformSettings.maintenanceMode !== previousConfig.platformSettings?.maintenanceMode
+        ) {
+          await this.eventBus.emit(
+            'admin.system.maintenance_mode_changed',
+            new AdminMaintenanceModeChangedEvent(
+              adminId,
+              adminEmail,
+              updateDto.platformSettings.maintenanceMode,
+              updateDto.description,
+            ),
+          );
+        }
+      }
+
+      if (updateDto.securitySettings) {
+        const securityChangedFields: string[] = [];
+        Object.keys(updateDto.securitySettings).forEach((key) => {
+          securityChangedFields.push(key);
+          changedFields.push(`securitySettings.${key}`);
+          previousValues[`securitySettings.${key}`] = previousConfig.securitySettings?.[key];
+          newValues[`securitySettings.${key}`] = updateDto.securitySettings![key];
+        });
+
+        // Emit specific security config changed event
+        if (securityChangedFields.length > 0) {
+          await this.eventBus.emit(
+            'admin.system.security_config_changed',
+            new AdminSecurityConfigChangedEvent(
+              adminId,
+              adminEmail,
+              securityChangedFields,
+              (previousConfig.securitySettings as unknown as Record<string, unknown>) || {},
+              updateDto.securitySettings as unknown as Record<string, unknown>,
+            ),
+          );
+        }
+      }
+
+      if (updateDto.paymentSettings) {
+        const paymentChangedFields: string[] = [];
+        Object.keys(updateDto.paymentSettings).forEach((key) => {
+          paymentChangedFields.push(key);
+          changedFields.push(`paymentSettings.${key}`);
+          previousValues[`paymentSettings.${key}`] = previousConfig.paymentSettings?.[key];
+          newValues[`paymentSettings.${key}`] = updateDto.paymentSettings![key];
+        });
+
+        // Emit specific payment config changed event
+        if (paymentChangedFields.length > 0) {
+          await this.eventBus.emit(
+            'admin.system.payment_config_changed',
+            new AdminPaymentConfigChangedEvent(
+              adminId,
+              adminEmail,
+              paymentChangedFields,
+              (previousConfig.paymentSettings as unknown as Record<string, unknown>) || {},
+              updateDto.paymentSettings as unknown as Record<string, unknown>,
+            ),
+          );
+        }
+      }
+
+      if (updateDto.notificationSettings) {
+        Object.keys(updateDto.notificationSettings).forEach((key) => {
+          changedFields.push(`notificationSettings.${key}`);
+          previousValues[`notificationSettings.${key}`] = previousConfig.notificationSettings?.[key];
+          newValues[`notificationSettings.${key}`] = updateDto.notificationSettings![key];
+        });
+      }
+
+      // Emit generic config changed event
+      if (changedFields.length > 0) {
+        await this.eventBus.emit(
+          'admin.system.config_changed',
+          new AdminSystemConfigChangedEvent(
+            adminId,
+            adminEmail,
+            previousConfig.version,
+            newConfig.version,
+            changedFields,
+            previousValues,
+            newValues,
+            updateDto.description,
+          ),
+        );
+      }
+
+      this.logger.debug(
+        `Emitted config change events: ${changedFields.length} fields changed in version ${newConfig.version}`,
+      );
+    } catch (error) {
+      this.logger.error('Failed to emit config change events:', error);
+    }
   }
 }

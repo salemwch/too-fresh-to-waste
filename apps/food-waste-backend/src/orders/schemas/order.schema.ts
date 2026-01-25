@@ -193,7 +193,7 @@ export class Order {
             country: String,
             coordinates: {
                 type: { type: String, enum: ['Point'], default: 'Point' },
-                coordinates: { type: [Number], index: '2dsphere' }
+                coordinates: { type: [Number] }  // ✅ Removed field-level index (schema-level at line 435)
             }
         }
     })

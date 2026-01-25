@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventBusService } from '../../common/services/event-bus/event-bus.service';
 import { RedisService } from '../../redis/redis.service';
 import { RedisClientType } from 'redis';
 import {
@@ -49,12 +49,12 @@ export class AuthSecurityService {
   private readonly logger = new Logger(AuthSecurityService.name);
 
   // Account lockout configuration
-  private readonly MAX_LOGIN_ATTEMPTS = 5;
-  private readonly LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
+  private readonly MAX_LOGIN_ATTEMPTS = 10; // Increased from 5 to 10
+  private readonly BASE_LOCKOUT_DURATION = 5 * 60 * 1000; // 5 minutes (first lockout)
   private readonly SUSPICIOUS_ACTIVITY_THRESHOLD = 10;
 
   // CAPTCHA requirement thresholds (PRODUCTION-READY IMPROVEMENT)
-  private readonly CAPTCHA_REQUIRED_AFTER_ATTEMPTS = 3; // Require CAPTCHA after 3 failed attempts
+  private readonly CAPTCHA_REQUIRED_AFTER_ATTEMPTS = 7; // Require CAPTCHA after 7 failed attempts (70% of max)
 
   // Rate limiting configuration (PRODUCTION-READY IMPROVEMENT: Reduced from 50 to 25)
   private readonly RATE_LIMIT_THRESHOLD = 25; // requests per minute (down from 50)
@@ -75,9 +75,9 @@ export class AuthSecurityService {
   constructor(
     private readonly configService: ConfigService,
     private readonly redisService: RedisService,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly eventBus: EventBusService,
   ) {
-    this.logger.log('✅ AuthSecurityService initialized with shared RedisService and EventEmitter');
+    this.logger.log('✅ AuthSecurityService initialized with shared RedisService and EventBusService');
   }
 
   /**
@@ -110,11 +110,17 @@ export class AuthSecurityService {
     try {
       // Check IP-based attempts
       const ipAttempts = await this.getAttempts(ipKey);
+
+      // DEBUG: Log actual attempt counts and MAX value
+      this.logger.debug(`[LOGIN CHECK] IP: ${ip}, Email: ${email}`);
+      this.logger.debug(`[LOGIN CHECK] MAX_LOGIN_ATTEMPTS: ${this.MAX_LOGIN_ATTEMPTS}`);
+      this.logger.debug(`[LOGIN CHECK] IP attempts: ${ipAttempts.count}, blocked: ${ipAttempts.blocked}`);
+
       if (ipAttempts.blocked) {
         this.logger.warn(`Login blocked for IP ${ip} until ${ipAttempts.blockedUntil}`);
 
         // Emit security event for account lockout (PRODUCTION-READY IMPROVEMENT)
-        this.emitSecurityEvent(
+        await this.emitSecurityEvent(
           SecurityEventType.ACCOUNT_LOCKED,
           SecuritySeverity.HIGH,
           ip,
@@ -127,11 +133,13 @@ export class AuthSecurityService {
 
       // Check email-based attempts
       const emailAttempts = await this.getAttempts(emailKey);
+      this.logger.debug(`[LOGIN CHECK] Email attempts: ${emailAttempts.count}, blocked: ${emailAttempts.blocked}`);
+
       if (emailAttempts.blocked) {
         this.logger.warn(`Login blocked for email ${email} until ${emailAttempts.blockedUntil}`);
 
         // Emit security event for account lockout (PRODUCTION-READY IMPROVEMENT)
-        this.emitSecurityEvent(
+        await this.emitSecurityEvent(
           SecurityEventType.ACCOUNT_LOCKED,
           SecuritySeverity.HIGH,
           ip,
@@ -157,7 +165,7 @@ export class AuthSecurityService {
         );
 
         // Emit security event for CAPTCHA requirement (PRODUCTION-READY IMPROVEMENT)
-        this.emitSecurityEvent(
+        await this.emitSecurityEvent(
           SecurityEventType.CAPTCHA_REQUIRED,
           SecuritySeverity.MEDIUM,
           ip,
@@ -173,7 +181,13 @@ export class AuthSecurityService {
     }
   }
 
-  async recordFailedLoginAttempt(ip: string, email: string): Promise<void> {
+  async recordFailedLoginAttempt(ip: string, email: string): Promise<{
+    currentAttempts: number;
+    maxAttempts: number;
+    attemptsRemaining: number;
+    isLocked: boolean;
+    blockedUntil?: Date;
+  }> {
     const ipKey = `ip:${ip}`;
     const emailKey = `email:${email}`;
 
@@ -181,14 +195,24 @@ export class AuthSecurityService {
       await this.incrementAttempts(ipKey);
       await this.incrementAttempts(emailKey);
 
-      // Check for suspicious activity and emit events (PRODUCTION-READY IMPROVEMENT)
+      // Get updated attempt counts after increment
       const ipAttempts = await this.getAttempts(ipKey);
+      const emailAttempts = await this.getAttempts(emailKey);
 
+      // Use the higher count between IP and email for blocking decision
+      const maxCount = Math.max(ipAttempts.count, emailAttempts.count);
+      const isLocked = maxCount >= this.MAX_LOGIN_ATTEMPTS;
+      const blockedUntil = ipAttempts.blockedUntil || emailAttempts.blockedUntil;
+
+      this.logger.debug(`[RECORD ATTEMPT] IP: ${ip}, Email: ${email}`);
+      this.logger.debug(`[RECORD ATTEMPT] IP count: ${ipAttempts.count}, Email count: ${emailAttempts.count}`);
+      this.logger.debug(`[RECORD ATTEMPT] MAX_LOGIN_ATTEMPTS: ${this.MAX_LOGIN_ATTEMPTS}, isLocked: ${isLocked}`);
+
+      // Check for suspicious activity and emit events
       if (ipAttempts && ipAttempts.count >= this.SUSPICIOUS_ACTIVITY_THRESHOLD) {
         this.logger.warn(`Suspicious activity detected from IP ${ip}: ${ipAttempts.count} failed attempts`);
 
-        // Emit brute force detection event (PRODUCTION-READY IMPROVEMENT)
-        this.emitSecurityEvent(
+        await this.emitSecurityEvent(
           SecurityEventType.BRUTE_FORCE_DETECTED,
           SecuritySeverity.CRITICAL,
           ip,
@@ -200,8 +224,7 @@ export class AuthSecurityService {
           email,
         );
       } else if (ipAttempts && ipAttempts.count >= this.CAPTCHA_REQUIRED_AFTER_ATTEMPTS) {
-        // Emit multiple failed logins event (PRODUCTION-READY IMPROVEMENT)
-        this.emitSecurityEvent(
+        await this.emitSecurityEvent(
           SecurityEventType.MULTIPLE_FAILED_LOGINS,
           SecuritySeverity.MEDIUM,
           ip,
@@ -212,26 +235,50 @@ export class AuthSecurityService {
           email,
         );
       }
+
+      return {
+        currentAttempts: maxCount,
+        maxAttempts: this.MAX_LOGIN_ATTEMPTS,
+        attemptsRemaining: Math.max(0, this.MAX_LOGIN_ATTEMPTS - maxCount),
+        isLocked,
+        blockedUntil,
+      };
     } catch (error) {
       this.logger.error('Error recording failed login attempt:', error);
+      // Return safe defaults on error
+      return {
+        currentAttempts: 0,
+        maxAttempts: this.MAX_LOGIN_ATTEMPTS,
+        attemptsRemaining: this.MAX_LOGIN_ATTEMPTS,
+        isLocked: false,
+      };
     }
   }
 
   async clearLoginAttempts(ip: string, email: string): Promise<void> {
-    const ipKey = `ip:${ip}`;
     const emailKey = `email:${email}`;
 
     try {
       const redisClient = await this.getRedisClient();
       if (redisClient) {
-        await Promise.all([
-          redisClient.del(this.REDIS_KEYS.ATTEMPTS + ipKey),
-          redisClient.del(this.REDIS_KEYS.ATTEMPTS + emailKey)
-        ]);
+        // Always clear email-based attempts
+        await redisClient.del(this.REDIS_KEYS.ATTEMPTS + emailKey);
+
+        // Clear IP-based attempts (unless wildcard '*')
+        if (ip !== '*') {
+          const ipKey = `ip:${ip}`;
+          await redisClient.del(this.REDIS_KEYS.ATTEMPTS + ipKey);
+        }
       } else {
-        this.fallbackAttempts.delete(ipKey);
+        // Fallback in-memory storage
         this.fallbackAttempts.delete(emailKey);
+        if (ip !== '*') {
+          const ipKey = `ip:${ip}`;
+          this.fallbackAttempts.delete(ipKey);
+        }
       }
+
+      this.logger.debug(`Cleared login attempts for email: ${email}, IP: ${ip}`);
     } catch (error) {
       this.logger.error('Error clearing login attempts:', error);
     }
@@ -268,7 +315,7 @@ export class AuthSecurityService {
     }
   }
 
-  async blockIp(ip: string, duration: number = this.LOCKOUT_DURATION, reason?: string): Promise<void> {
+  async blockIp(ip: string, duration: number = this.BASE_LOCKOUT_DURATION, reason?: string): Promise<void> {
     try {
       const blockedUntil = new Date(Date.now() + duration);
       const redisClient = await this.getRedisClient();
@@ -665,7 +712,7 @@ export class AuthSecurityService {
 
     const newCount = existingData.count + 1;
     const blockedUntil = this.shouldBlockAttempt(newCount)
-      ? new Date(now.getTime() + this.LOCKOUT_DURATION)
+      ? new Date(now.getTime() + this.calculateLockoutDuration(newCount))
       : existingData.blockedUntil;
 
     return {
@@ -686,7 +733,7 @@ export class AuthSecurityService {
   private createIncrementedAttemptData(existingData: AttemptData, now: Date): AttemptData {
     const newCount = existingData.count + 1;
     const blockedUntil = this.shouldBlockAttempt(newCount)
-      ? new Date(now.getTime() + this.LOCKOUT_DURATION).toISOString()
+      ? new Date(now.getTime() + this.calculateLockoutDuration(newCount)).toISOString()
       : existingData.blockedUntil;
 
     return {
@@ -700,10 +747,31 @@ export class AuthSecurityService {
     return attemptCount >= this.MAX_LOGIN_ATTEMPTS;
   }
 
+  /**
+   * Calculate progressive lockout duration based on attempt count
+   * - First lockout (10-19 attempts): 5 minutes
+   * - Second lockout (20-29 attempts): 15 minutes
+   * - Third+ lockout (30+ attempts): 30 minutes
+   */
+  private calculateLockoutDuration(attemptCount: number): number {
+    if (attemptCount < 20) {
+      // First lockout: 5 minutes
+      return this.BASE_LOCKOUT_DURATION;
+    } else if (attemptCount < 30) {
+      // Second lockout: 15 minutes
+      return this.BASE_LOCKOUT_DURATION * 3;
+    } else {
+      // Third+ lockout: 30 minutes
+      return this.BASE_LOCKOUT_DURATION * 6;
+    }
+  }
+
   private calculateTtlSeconds(attemptData: AttemptData): number {
-    return attemptData.blockedUntil
-      ? Math.ceil(this.LOCKOUT_DURATION / 1000)
-      : 3600; // 1 hour for non-blocked attempts
+    if (attemptData.blockedUntil) {
+      const lockoutDuration = this.calculateLockoutDuration(attemptData.count);
+      return Math.ceil(lockoutDuration / 1000);
+    }
+    return 3600; // 1 hour for non-blocked attempts
   }
 
   /**
@@ -715,14 +783,14 @@ export class AuthSecurityService {
    * @param email - User email (optional)
    * @param userAgent - User agent string (optional)
    */
-  private emitSecurityEvent(
+  private async emitSecurityEvent(
     type: SecurityEventType,
     severity: SecuritySeverity,
     ipAddress: string,
     details: Record<string, any>,
     email?: string,
     userAgent?: string,
-  ): void {
+  ): Promise<void> {
     try {
       const event = new SecurityEvent(
         type,
@@ -740,7 +808,7 @@ export class AuthSecurityService {
       );
 
       // Emit event asynchronously (non-blocking)
-      this.eventEmitter.emit(type, event.toPayload());
+      await this.eventBus.emit(type, event.toPayload());
 
       this.logger.debug(`Security event emitted: ${type}`, {
         severity,

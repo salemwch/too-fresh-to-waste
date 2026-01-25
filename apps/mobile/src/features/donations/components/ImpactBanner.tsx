@@ -12,16 +12,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   LayoutAnimation,
-  Platform,
-  UIManager,
 } from 'react-native';
+
 import { useDonationStats } from '../hooks/useDonations';
-
-// Enable LayoutAnimation on Android
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
 interface ImpactBannerProps {
   onExpand?: () => void;
 }
@@ -48,7 +41,7 @@ export const ImpactBanner: React.FC<ImpactBannerProps> = ({ onExpand }) => {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#10B981" />
+          <ActivityIndicator size='small' color='#10B981' />
           <Text style={styles.loadingText}>Loading impact stats...</Text>
         </View>
       </View>
@@ -66,11 +59,7 @@ export const ImpactBanner: React.FC<ImpactBannerProps> = ({ onExpand }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.banner}
-        onPress={toggleExpand}
-        activeOpacity={0.8}
-      >
+      <TouchableOpacity style={styles.banner} onPress={toggleExpand} activeOpacity={0.8}>
         {/* Collapsed View */}
         <View style={styles.collapsedContent}>
           <Text style={styles.icon}>🌍</Text>
@@ -107,26 +96,21 @@ export const ImpactBanner: React.FC<ImpactBannerProps> = ({ onExpand }) => {
               {/* Contributors */}
               <View style={styles.statItem}>
                 <Text style={styles.statLabel}>Contributors:</Text>
-                <Text style={styles.statValue}>
-                  {contributorCount.toLocaleString()} people
-                </Text>
+                <Text style={styles.statValue}>{contributorCount.toLocaleString()} people</Text>
               </View>
             </View>
 
             {/* Progress Bar */}
             <View style={styles.progressContainer}>
-              <Text style={styles.progressLabel}>Next Milestone: {targetAmount} {currency}</Text>
+              <Text style={styles.progressLabel}>
+                Next Milestone: {targetAmount} {currency}
+              </Text>
               <View style={styles.progressBar}>
                 <View
-                  style={[
-                    styles.progressFill,
-                    { width: `${Math.min(progressPercentage, 100)}%` },
-                  ]}
+                  style={[styles.progressFill, { width: `${Math.min(progressPercentage, 100)}%` }]}
                 />
               </View>
-              <Text style={styles.progressPercent}>
-                {progressPercentage.toFixed(0)}%
-              </Text>
+              <Text style={styles.progressPercent}>{progressPercentage.toFixed(0)}%</Text>
             </View>
 
             {/* Cause */}

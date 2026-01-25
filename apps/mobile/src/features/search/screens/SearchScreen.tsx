@@ -26,14 +26,17 @@ import MapView, { Circle, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text, Input, Icon } from '@/design-system/components/atoms';
+import { SkeletonOfferCard } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
+import { FavoriteOfferCard } from '@/features/favorites';
 import { useLocation } from '@/hooks/useLocation';
 import { useNearbyOffers, useLocationSearch, type ProximitySearchResult, type NearbyOffer, type GeocodeResult } from '@/features/offers/hooks';
+import type { OfferListItem } from '@/features/offers/types/offer.types';
+import { OfferType, CtaState, OfferStatus } from '@/features/offers/types/offer.types';
 
 import {
   LocationFilterModal,
   OfferMapCard,
-  OfferListCard,
   MapListToggle,
   OfferMarker,
   type ViewMode,
@@ -54,6 +57,49 @@ const DEFAULT_LOCATION = {
 };
 
 const INITIAL_RADIUS_KM = 5;
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Convert ProximitySearchResult<NearbyOffer> to OfferListItem
+ * Maps the search data structure to the standardized card format
+ */
+const mapSearchResultToOfferListItem = (
+  result: ProximitySearchResult<NearbyOffer>,
+): OfferListItem => {
+  const { item, distance } = result;
+
+  // Convert distance to meters
+  let distanceInMeters = distance.value;
+  if (distance.unit === 'kilometers') {
+    distanceInMeters = distance.value * 1000;
+  } else if (distance.unit === 'miles') {
+    distanceInMeters = distance.value * 1609.34;
+  }
+
+  return {
+    id: item._id,
+    title: item.title,
+    type: OfferType.SURPRISE_BAG, // Default type, could be enhanced with actual type from backend
+    image: item.images?.[0] ?? undefined,
+    pricing: {
+      originalPrice: item.pricing.originalPrice,
+      discountedPrice: item.pricing.discountedPrice,
+      discountPercentage: item.pricing.discountPercentage,
+      currency: item.pricing.currency as 'TND', // Backend enforces TND currency
+    },
+    availableQuantity: item.availableQuantity,
+    availableUntil: item.availableUntil,
+    establishment: {
+      name: item.establishmentName,
+    },
+    distance: distanceInMeters,
+    ctaState: item.availableQuantity > 0 ? CtaState.AVAILABLE : CtaState.SOLD_OUT,
+    status: OfferStatus.ACTIVE,
+  };
+};
 
 // ============================================================================
 // Types
@@ -300,17 +346,20 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   // ─────────────────────────────────────────────────────────────────────────
 
   const renderListItem = useCallback(
-    ({ item, index }: { item: ProximitySearchResult<NearbyOffer>; index: number }) => (
-      <OfferListCard
-        offer={item}
-        onPress={() => handleOfferPress(item)}
-        style={{
-          marginLeft: index % 2 === 0 ? 16 : 8,
-          marginRight: index % 2 === 1 ? 16 : 8,
-          marginBottom: 16,
-        }}
-      />
-    ),
+    ({ item }: { item: ProximitySearchResult<NearbyOffer> }) => {
+      const offerData = mapSearchResultToOfferListItem(item);
+
+      return (
+        <FavoriteOfferCard
+          offer={offerData}
+          variant='default'
+          imageAspectRatio={1.4}
+          onPress={() => handleOfferPress(item)}
+          testID={`search-offer-${item.item._id}`}
+          style={styles.offerCardItem}
+        />
+      );
+    },
     [handleOfferPress],
   );
 
@@ -318,10 +367,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     if (isLoadingOffers) {
       return (
         <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
-            Finding offers near you...
-          </Text>
+          <SkeletonOfferCard imageAspectRatio={1.4} style={{ marginBottom: 16 }} />
+          <SkeletonOfferCard imageAspectRatio={1.4} style={{ marginBottom: 16 }} />
+          <SkeletonOfferCard imageAspectRatio={1.4} />
         </View>
       );
     }
@@ -463,7 +511,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
           data={filteredOffers}
           keyExtractor={item => item.item._id}
           renderItem={renderListItem}
-          numColumns={2}
           ListHeaderComponent={renderListHeader}
           ListEmptyComponent={renderListEmpty}
           contentContainerStyle={[
@@ -773,11 +820,14 @@ const styles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
+    paddingHorizontal: 16,
     paddingBottom: 24,
   },
   listHeader: {
-    paddingHorizontal: 16,
     paddingBottom: 16,
+  },
+  offerCardItem: {
+    marginVertical: 8,
   },
   emptyContainer: {
     flex: 1,

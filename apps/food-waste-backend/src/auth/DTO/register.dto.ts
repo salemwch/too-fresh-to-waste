@@ -7,7 +7,7 @@ import {
     PASSWORD_ERROR_MESSAGES,
     buildPasswordRegex,
 } from '@foodwaste/shared';
-import { UserRole } from '../../users/schemas/user.schema';
+import { UserRole } from '../../common/enums/user.enum';
 import { IsValidPhoneNumber } from '../../common/validators/is-valid-phone-number.validator';
 import { SanitizeEmail, SanitizeText, SanitizePhoneNumber } from '../../common/decorators/sanitize.decorator';
 

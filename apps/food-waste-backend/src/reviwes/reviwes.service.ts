@@ -15,13 +15,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, ClientSession, PipelineStage } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { GamificationService } from '../loyalty/services/gamification.service';
 
 import { Review, ReviewDocument, ReviewStatus, ReviewType, SentimentType } from './schemas/reviwe.schema';
 import { Order, OrderDocument, OrderStatus } from '../orders/schemas/order.schema';
 import { Establishment, EstablishmentDocument } from '../establishments/schemas/establishment.schema';
-import { User, UserDocument, UserRole } from '../users/schemas/user.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
+import { UserRole } from '../common/enums/user.enum';
 import { Offer, OfferDocument } from '../offers/schemas/offer.schema';
 
 import {
@@ -69,7 +70,7 @@ export class ReviewsService {
         @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
         @InjectModel(Offer.name) private readonly offerModel: Model<OfferDocument>,
         private readonly configService: ConfigService,
-        private readonly eventEmitter: EventEmitter2,
+        private readonly eventBus: EventBusService,
         private readonly appLogger: AppLoggerService,
         @Optional() @Inject(forwardRef(() => GamificationService)) private readonly gamificationService?: GamificationService,
     ) { }
@@ -195,7 +196,7 @@ export class ReviewsService {
             });
 
             // 11. Emit events for real-time notifications
-            this.eventEmitter.emit('review.created', {
+            await this.eventBus.emit('review.created', {
                 review,
                 reviewerId,
                 establishmentId: createReviewDto.establishmentId,
@@ -460,7 +461,7 @@ export class ReviewsService {
             });
 
             // Emit update event
-            this.eventEmitter.emit('review.updated', {
+            await this.eventBus.emit('review.updated', {
                 review: updatedReview,
                 userId,
                 changes: updateReviewDto,
@@ -531,7 +532,7 @@ export class ReviewsService {
             await review.save();
 
             // Emit response event
-            this.eventEmitter.emit('review.response_added', {
+            await this.eventBus.emit('review.response_added', {
                 review,
                 response,
                 responderId: userId,
@@ -589,7 +590,7 @@ export class ReviewsService {
             await review.save();
 
             // Emit interaction event
-            this.eventEmitter.emit('review.interaction', {
+            await this.eventBus.emit('review.interaction', {
                 reviewId,
                 userId,
                 interactionType: interactionDto.interactionType,
@@ -642,7 +643,7 @@ export class ReviewsService {
             await review.save();
 
             // Emit report event
-            this.eventEmitter.emit('review.reported', {
+            await this.eventBus.emit('review.reported', {
                 reviewId,
                 reporterId: userId,
                 reason: reportDto.reason,
@@ -692,7 +693,7 @@ export class ReviewsService {
             }
 
             // Emit moderation event
-            this.eventEmitter.emit('review.moderated', {
+            await this.eventBus.emit('review.moderated', {
                 reviewId,
                 moderatorId,
                 previousStatus,
@@ -915,7 +916,7 @@ export class ReviewsService {
             });
 
             // Emit deletion event
-            this.eventEmitter.emit('review.deleted', {
+            await this.eventBus.emit('review.deleted', {
                 reviewId: id,
                 deletedBy: userId,
                 reason,
@@ -1653,7 +1654,7 @@ export class ReviewsService {
                 this.logger.log(`Found ${reviewsToModerate.length} reviews requiring manual moderation`);
 
                 // Emit event for admin notification
-                this.eventEmitter.emit('reviews.moderation_required', {
+                await this.eventBus.emit('reviews.moderation_required', {
                     count: reviewsToModerate.length,
                     reviews: reviewsToModerate.map(r => ({
                         id: r._id,

@@ -8,24 +8,31 @@ import { UsersService } from './user.service';
 import { USERS_SERVICE_TOKEN } from './interfaces';
 import { PrivacyComplianceService } from './services/privacy-compliance.service';
 import { MfaService } from './services/mfa.service';
-import { SessionManagementService } from './services/session-management.service';
 import { PasswordValidationService } from './services/password-validation.service';
 import { PasswordHistoryService } from '../auth/services/password-history.service';
 import { UserPreferencesService } from './services/user-preferences.service';
-import { OrdersModule } from 'src/orders/order.module';
-import { FavoritesModule } from 'src/favorites/favorites.module';
+import { Order, OrderSchema } from '../orders/schemas/order.schema';
+import { Favorite, FavoriteSchema } from '../favorites/schemas/favorite.schema';
+import { Review, ReviewSchema } from '../reviwes/schemas/reviwe.schema';
+import { Notification, NotificationSchema } from '../notifications/schemas/notification.schema';
 import { ReviewsModule } from 'src/reviwes/reviwes.module';
-import { NotificationsModule } from 'src/notifications/notifications.module';
 import { CommonModule } from 'src/common/common.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
     imports: [
-        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-        OrdersModule,
-        FavoritesModule,
+        MongooseModule.forFeature([
+            { name: User.name, schema: UserSchema },
+            { name: Order.name, schema: OrderSchema }, // For GDPR data export
+            { name: Favorite.name, schema: FavoriteSchema }, // For GDPR data export
+            { name: Review.name, schema: ReviewSchema }, // For GDPR data export
+            { name: Notification.name, schema: NotificationSchema }, // For GDPR data export
+        ]),
         forwardRef(() => ReviewsModule),
-        NotificationsModule,
         CommonModule,
+        forwardRef(() => AuthModule),
+        NotificationsModule, // Provides SmsNotificationService
     ],
     controllers: [
         UsersController,
@@ -42,7 +49,6 @@ import { CommonModule } from 'src/common/common.module';
         UsersService,
         PrivacyComplianceService,
         MfaService,
-        SessionManagementService,
         PasswordValidationService,
         PasswordHistoryService,
         UserPreferencesService
@@ -53,7 +59,6 @@ import { CommonModule } from 'src/common/common.module';
         UsersService, // Export concrete class for backward compatibility
         PrivacyComplianceService,
         MfaService,
-        SessionManagementService,
         PasswordValidationService,
         UserPreferencesService
     ],

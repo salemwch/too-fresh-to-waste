@@ -1,0 +1,1 @@
+export { ResendVerificationModal } from './ResendVerificationModal';

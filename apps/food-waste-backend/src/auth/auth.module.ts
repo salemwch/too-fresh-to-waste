@@ -37,7 +37,7 @@ import { RolePermission, RolePermissionSchema } from './schemas/role-permission.
 import { UserPermission, UserPermissionSchema } from './schemas/user-permission.schema';
 import { TenantContextMiddleware } from './middleware/tenant-context.middleware';
 import { PermissionsSeedService } from './seeds/permissions.seed';
-import { LoyaltyModule } from '../loyalty/loyalty.module';
+import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
 
 @Module({
     imports: [
@@ -46,7 +46,6 @@ import { LoyaltyModule } from '../loyalty/loyalty.module';
         EmailModule,
         CommonModule,
         HttpModule, // PRODUCTION-READY IMPROVEMENT: For CAPTCHA verification
-        LoyaltyModule, // For referral tracking gamification
         MongooseModule.forFeature([
             { name: RefreshToken.name, schema: RefreshTokenSchema },
             { name: Permission.name, schema: PermissionSchema },
@@ -113,6 +112,9 @@ import { LoyaltyModule } from '../loyalty/loyalty.module';
 
         // Seed Service
         PermissionsSeedService,
+
+        // Event Listeners
+        AdminUserEventsListener,
     ],
     exports: [
         AuthService,
@@ -124,6 +126,7 @@ import { LoyaltyModule } from '../loyalty/loyalty.module';
         AuthSecurityService, // PRODUCTION-READY IMPROVEMENT: Export for use in other modules
         CaptchaService, // PRODUCTION-READY IMPROVEMENT: Export for use in other modules
         AdminNotificationService, // PRODUCTION-READY IMPROVEMENT: Export for use in other modules
+        SessionManagementService, // Export for use in users module
         JwtAuthGuard,
         RolesGuard,
         PermissionsGuard,

@@ -16,7 +16,7 @@
 
 import { Controller, Get, Header } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiExcludeEndpoint } from '@nestjs/swagger';
-import { Public } from '../../auth/decorators/public.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { PrometheusMetricsService } from '../services/prometheus-metrics.service';
 
 @ApiTags('Monitoring')

@@ -2,7 +2,8 @@
  * @format
  */
 
-import {AppRegistry} from 'react-native';
+import { AppRegistry } from 'react-native';
+
 import App from './src/App';
 
 // IMPORTANT: This name must match MainActivity.kt getMainComponentName()

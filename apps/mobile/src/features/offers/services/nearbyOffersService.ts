@@ -72,6 +72,7 @@ export interface OfferPricing {
 
 /**
  * Offer data returned from proximity search
+ * Uses _id to match MongoDB backend responses
  */
 export interface NearbyOffer {
   _id: string;
@@ -88,6 +89,7 @@ export interface NearbyOffer {
 
 /**
  * Establishment data returned from proximity search
+ * Uses _id to match MongoDB backend responses
  */
 export interface NearbyEstablishment {
   _id: string;

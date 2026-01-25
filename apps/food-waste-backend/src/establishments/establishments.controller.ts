@@ -24,16 +24,17 @@ import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '../users/schemas/user.schema';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/user.enum';
 import { EstablishmentsService } from './establishments.service';
 import { CreateEstablishmentDto } from './DTO/create-establishment.dto';
 import { UpdateEstablishmentDto } from './DTO/update-establishment.dto';
 import { SearchEstablishmentsDto } from './DTO/search-establishments.dto';
 import { EstablishmentStatus } from './schemas/establishment.schema';
 import { ParseFloatPipe } from './float/parse-float.pipe';
-import { FirebaseStorageService } from '../common/services/firebase-storage.service';
+import { LocalStorageService } from '../common/services/local-storage.service';
 import { DocumentType, UploadDocumentsDto, VerifyDocumentDto } from './DTO/upload-documents.dto';
+import { mapToSafeEstablishmentResponse } from './DTO/safe-establishment-response.dto';
 
 @ApiTags('🏪 Establishments Management')
 @Controller('establishments')
@@ -41,7 +42,7 @@ import { DocumentType, UploadDocumentsDto, VerifyDocumentDto } from './DTO/uploa
 export class EstablishmentsController {
     constructor(
         private readonly establishmentsService: EstablishmentsService,
-        private readonly firebaseStorageService: FirebaseStorageService,
+        private readonly localStorageService: LocalStorageService,
     ) { }
 
     @Post()
@@ -93,25 +94,22 @@ export class EstablishmentsController {
         try {
             logger.debug('Received createEstablishmentDto:');
             logger.debug(JSON.stringify(createEstablishmentDto, null, 2));
+            logger.debug(`Received files: ${files ? files.length : 0}`);
+            if (files && files.length > 0) {
+                logger.debug(`File details: ${JSON.stringify(files.map(f => ({ originalname: f.originalname, mimetype: f.mimetype, size: f.size })))}`);
+            }
 
             let imageUrls: string[] = [];
 
-            // Upload images to Firebase Storage if provided
+            // Upload images to local storage if provided
             if (files && files.length > 0) {
-                const uploadResults = await this.firebaseStorageService.uploadFiles(files, {
+                const uploadResults = await this.localStorageService.uploadFiles(files, {
                     folder: 'establishments',
-                    makePublic: true,
                     imageProcessing: {
                         maxWidth: 1000,
                         maxHeight: 750,
                         quality: 85,
                         format: 'jpeg',
-                    },
-                    metadata: {
-                        uploadedBy: req.user.userId,
-                        category: 'establishment-image',
-                        establishmentName: createEstablishmentDto.name,
-                        establishmentType: createEstablishmentDto.type,
                     },
                 });
 
@@ -132,9 +130,12 @@ export class EstablishmentsController {
 
             logger.debug('Establishment created successfully:', JSON.stringify(establishment, null, 2));
 
+            // SECURITY: Use safe mapper to exclude sensitive fields (metadata, internal _id fields, etc.)
+            const safeEstablishment = mapToSafeEstablishmentResponse(establishment.toObject());
+
             return {
                 message: 'Establishment created successfully. Pending admin approval.',
-                data: establishment,
+                data: safeEstablishment,
             };
         } catch (error) {
             logger.error('Failed to create establishment', (error as Error).stack || error);
@@ -288,21 +289,15 @@ export class EstablishmentsController {
         try {
             let newImageUrls: string[] = [];
 
-            // Upload new images to Firebase Storage if provided
+            // Upload new images to local storage if provided
             if (files && files.length > 0) {
-                const uploadResults = await this.firebaseStorageService.uploadFiles(files, {
+                const uploadResults = await this.localStorageService.uploadFiles(files, {
                     folder: 'establishments',
-                    makePublic: true,
                     imageProcessing: {
                         maxWidth: 1000,
                         maxHeight: 750,
                         quality: 85,
                         format: 'jpeg',
-                    },
-                    metadata: {
-                        uploadedBy: req.user.userId,
-                        category: 'establishment-image-update',
-                        establishmentId: id,
                     },
                 });
 
@@ -447,16 +442,9 @@ export class EstablishmentsController {
 
             logger.debug(`Uploading ${documentType} for establishment ${id}`);
 
-            // Upload to Firebase Storage
-            const uploadResult = await this.firebaseStorageService.uploadFile(file, {
+            // Upload to local storage
+            const uploadResult = await this.localStorageService.uploadFile(file, {
                 folder: `establishments/${id}/documents`,
-                makePublic: false, // Keep documents private
-                metadata: {
-                    uploadedBy: req.user.userId,
-                    category: 'legal-document',
-                    documentType,
-                    establishmentId: id,
-                },
             });
 
             logger.debug(`Document uploaded: ${uploadResult.downloadURL}`);

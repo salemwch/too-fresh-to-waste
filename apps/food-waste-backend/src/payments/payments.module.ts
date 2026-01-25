@@ -1,8 +1,9 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
-import { ScheduleModule } from '@nestjs/schedule';
 import { CommonModule } from '../common/common.module';
+
+// Note: ScheduleModule.forRoot() is already called in AppModule
 import { SMTPaymentService } from './services/smt-payment.service';
 import { PayoutService } from './services/payout.service';
 import { RefundService } from './services/refund.service';
@@ -20,7 +21,7 @@ import { PaymentService } from './payments.service';
     imports: [
         ConfigModule,
         CommonModule,
-        ScheduleModule.forRoot(),
+        // ScheduleModule is initialized in AppModule
         MongooseModule.forFeature([
             { name: Payment.name, schema: PaymentSchema },
             { name: PaymentWebhook.name, schema: PaymentWebhookSchema },

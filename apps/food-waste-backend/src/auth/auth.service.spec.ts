@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../email/email.service';
 import { PasswordPolicyService } from './services/password-policy.service';
 import { ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import { UserRole, UserStatus } from '../users/schemas/user.schema';
+import { UserRole, UserStatus } from '../common/enums/user.enum';
 import { RegisterDto } from './DTO/register.dto';
 import { VerifyEmailDto } from './DTO/verify-email.dto';
 import { LoginDto } from './DTO/login.dto';

@@ -25,7 +25,7 @@ import { CreateReportDto } from '../dtos/create-report.dto';
 import { ReportQueryDto, ReportUpdateDto } from '../dtos/report-query.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { IpAddress } from '../../admin/decorators/ip-address.decorator';
-import { UserRole } from '../../users/schemas/user.schema';
+import { UserRole } from '../../common/enums/user.enum';
 
 interface AuthenticatedRequest extends Request {
     user: {

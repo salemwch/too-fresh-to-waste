@@ -9,19 +9,16 @@ import { Payment, PaymentSchema } from '../payments/schemas/payment.schema';
 import { OrdersController } from './order.controller';
 import { OrdersService } from './order.service';
 import { CommonModule } from '../common/common.module';
-import { DonationsModule } from '../donations/donations.module';
 import { PaymentModule } from '../payments/payments.module';
-import { LoyaltyModule } from '../loyalty/loyalty.module';
 import { QueryComplexityGuard } from '../common/guards/query-complexity.guard';
 import { RegexSecurityUtil } from '../common/utils/regex-security.util';
 import { PickupThrottlerGuard } from './guards/pickup-throttler.guard';
+import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
 
 @Module({
     imports: [
         CommonModule,
-        DonationsModule, // Import donations module for dependency injection
         forwardRef(() => PaymentModule), // Import for PayoutService and RefundService access
-        forwardRef(() => LoyaltyModule), // Import for loyalty points awarding
         MongooseModule.forFeature([
             { name: Order.name, schema: OrderSchema },
             { name: Offer.name, schema: OfferSchema },
@@ -31,7 +28,13 @@ import { PickupThrottlerGuard } from './guards/pickup-throttler.guard';
         ]),
     ],
     controllers: [OrdersController],
-    providers: [OrdersService, QueryComplexityGuard, RegexSecurityUtil, PickupThrottlerGuard],
+    providers: [
+        OrdersService,
+        QueryComplexityGuard,
+        RegexSecurityUtil,
+        PickupThrottlerGuard,
+        AdminUserEventsListener,
+    ],
     exports: [OrdersService, MongooseModule.forFeature([{ name: Order.name, schema: OrderSchema }]),],
 })
 export class OrdersModule { }

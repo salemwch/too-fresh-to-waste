@@ -7,10 +7,11 @@ import { PayoutBatchSummary, PayoutResult } from '../dto/create-ledger.dto';
  * PayoutTask
  *
  * Monthly payout cron job that processes all pending merchant settlements.
- * Runs on the first Monday of each month at 8:00 AM Tunisia time (UTC+1).
+ * Runs on the first Monday of each month at 8:00 AM Tunisia time.
  *
  * Cron expression breakdown:
- * - '0 7 1-7 * 1' = At 07:00 UTC (08:00 Tunisia) on day 1-7 of month, only if Monday
+ * - '0 7 1-7 * 1' = At 07:00 UTC on day 1-7 of month, only if Monday
+ * - Note: UTC offset for Tunisia is dynamically determined (DST-aware)
  * - This ensures it runs on the FIRST Monday of each month
  */
 @Injectable()

@@ -14,6 +14,7 @@ import {
 
 import { environment } from '@/config/environment';
 import authReducer from '@/features/auth/store/authSlice';
+import favoritesReducer from '@/store/slices/favoritesSlice';
 import locationReducer from '@/store/slices/locationSlice';
 import { Logger } from '@/utils/logger';
 
@@ -21,6 +22,7 @@ import { Logger } from '@/utils/logger';
 const rootReducer = combineReducers({
   auth: authReducer,
   location: locationReducer,
+  favorites: favoritesReducer,
   // Add other feature reducers here as they are created
   // offers: offersReducer,
   // orders: ordersReducer,
@@ -42,16 +44,15 @@ const authTransform = createTransform(
     return rest;
   },
   // Transform state being rehydrated
-  (outboundState: any) => {
+  (outboundState: any) =>
     // Restore default values for transient state on rehydration
-    return {
+    ({
       ...outboundState,
       isLoading: false,
       error: undefined,
-    };
-  },
+    }),
   // Specify which reducers this transform applies to
-  { whitelist: ['auth'] }
+  { whitelist: ['auth'] },
 );
 
 // Transform to exclude transient state from location slice persistence
@@ -63,25 +64,44 @@ const locationTransform = createTransform(
     return rest;
   },
   // Transform state being rehydrated
-  (outboundState: any) => {
+  (outboundState: any) =>
     // Restore default values for transient state on rehydration
-    return {
+    ({
       ...outboundState,
       isLoading: false,
       error: null,
-    };
-  },
+    }),
   // Specify which reducers this transform applies to
-  { whitelist: ['location'] }
+  { whitelist: ['location'] },
+);
+
+// Transform to exclude transient state from favorites slice persistence
+const favoritesTransform = createTransform(
+  // Transform state on its way to being serialized and persisted
+  (inboundState: any) => {
+    const { isLoading, error, ...rest } = inboundState;
+    // Don't persist isLoading and error - these are transient UI state
+    return rest;
+  },
+  // Transform state being rehydrated
+  (outboundState: any) =>
+    // Restore default values for transient state on rehydration
+    ({
+      ...outboundState,
+      isLoading: false,
+      error: null,
+    }),
+  // Specify which reducers this transform applies to
+  { whitelist: ['favorites'] },
 );
 
 // Redux Persist configuration
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth', 'location'], // Persist auth and location state
+  whitelist: ['auth', 'location', 'favorites'], // Persist auth, location, and favorites state
   blacklist: [], // Don't persist these reducers
-  transforms: [authTransform, locationTransform], // Exclude transient state from persisted slices
+  transforms: [authTransform, locationTransform, favoritesTransform], // Exclude transient state from persisted slices
 };
 
 // Cast to fix redux-persist type inference with transforms

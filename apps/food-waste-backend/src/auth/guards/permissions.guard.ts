@@ -10,9 +10,9 @@ import {
     PERMISSIONS_KEY,
     REQUIRE_ALL_PERMISSIONS_KEY,
     REQUIRE_ANY_PERMISSION_KEY,
-} from '../decorators/permissions.decorator';
+} from '../../common/decorators/permissions.decorator';
 import { AuthorizationService } from '../services/authorization.service';
-import { UserRole } from 'src/users/schemas/user.schema';
+import { UserRole } from 'src/common/enums/user.enum';
 
 /**
  * Permissions Guard

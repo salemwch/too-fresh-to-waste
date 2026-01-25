@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { RefreshToken, RefreshTokenDocument } from '../schemas/refresh-token.schema';
-import { UserRole } from 'src/users/schemas/user.schema';
+import { UserRole } from 'src/common/enums/user.enum';
 
 /**
  * Token Payload Interface

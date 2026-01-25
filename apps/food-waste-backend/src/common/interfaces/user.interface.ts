@@ -1,3 +1,6 @@
+// Import enums from centralized location
+import { UserRole, UserStatus } from '../enums/user.enum';
+
 export interface IUser {
   readonly id: string;
   readonly email: string;
@@ -66,22 +69,9 @@ export interface IUserAddress {
   };
 }
 
-export enum UserRole {
-  USER = 'user',
-  ESTABLISHMENT_OWNER = 'establishment_owner',
-  MERCHANT = 'merchant',
-  ADMIN = 'admin',
-  SUPER_ADMIN = 'super_admin'
-}
-
-export enum UserStatus {
-  PENDING = 'pending',
-  ACTIVE = 'active',
-  SUSPENDED = 'suspended',
-  BLOCKED = 'blocked',
-  DELETED = 'deleted',
-  ANONYMIZED = 'anonymized'
-}
+// UserRole and UserStatus enums are now imported from '../enums/user.enum'
+// and re-exported for backward compatibility
+export { UserRole, UserStatus };
 
 export interface IUserStats {
   readonly totalUsers: number;

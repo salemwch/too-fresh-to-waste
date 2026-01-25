@@ -59,7 +59,7 @@ export class RefreshToken {
     /**
      * Expiration timestamp
      */
-    @Prop({ required: true, index: true })
+    @Prop({ required: true })
     expiresAt: Date;
 
     /**

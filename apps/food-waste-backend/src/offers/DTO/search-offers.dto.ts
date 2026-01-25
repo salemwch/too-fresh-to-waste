@@ -1,6 +1,14 @@
-import { IsOptional, IsEnum, IsString, IsNumber, IsArray, Min, Max } from 'class-validator';
+import { IsOptional, IsEnum, IsString, IsNumber, IsArray, IsInt, Min, Max } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { OfferType, OfferStatus } from '../schemas/offer.schema';
+import { EstablishmentType } from '../../common/enums/establishment.enum';
+
+export enum OfferSortField {
+    CREATED_AT = 'createdAt',
+    PRICE = 'pricing.discountedPrice',
+    DISCOUNT = 'pricing.discountPercentage',
+    EXPIRY = 'availableUntil',
+}
 
 export class SearchOffersDto {
     @IsOptional()
@@ -24,6 +32,16 @@ export class SearchOffersDto {
     @IsArray()
     @IsString({ each: true })
     tags?: string[];
+
+    @IsOptional()
+    @IsArray()
+    @IsEnum(EstablishmentType, { each: true })
+    establishmentTypes?: EstablishmentType[];
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    cuisineTypes?: string[];
 
     @IsOptional()
     @Type(() => Number)
@@ -60,17 +78,16 @@ export class SearchOffersDto {
     @IsOptional()
     @Type(() => Number)
     @IsNumber()
-    @Min(5)
+    @Min(50)
     @Max(90)
     minDiscount?: number;
 
     @IsOptional()
-    @Transform(({ value }) => value === 'true')
+    @Transform(({ value }) => value === undefined ? undefined : value === 'true')
     isFeatured?: boolean;
 
-    @IsOptional()
-    @Transform(({ value }) => value === 'true')
-    availableNow?: boolean;
+    // ✅ SECURITY: availableNow removed - backend always enforces time-based filtering
+    // Frontend should never control what "now" means
 
     @IsOptional()
     @IsString()
@@ -81,10 +98,24 @@ export class SearchOffersDto {
     merchantId?: string;
 
     @IsOptional()
-    @IsString()
-    sortBy?: 'createdAt' | 'pricing.discountedPrice' | 'pricing.discountPercentage' | 'availableUntil';
+    @IsEnum(OfferSortField)
+    sortBy?: OfferSortField;
 
     @IsOptional()
     @IsString()
     sortOrder?: 'asc' | 'desc';
+
+    // ✅ PAGINATION: Expose pagination controls to clients
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @Min(1)
+    page?: number = 1;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @Min(1)
+    @Max(100)
+    limit?: number = 20;
 }

@@ -12,9 +12,9 @@ import { logoutAsync } from '@/features/auth/store/authSlice';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { BiometricAuth, BiometricType } from '@/services/BiometricAuth';
 import { SecureStorage } from '@/services/SecureStorage';
+import { Logger } from '@/utils/logger';
 
 import type { ProfileScreenNavigationProp } from '@/navigation/types';
-
 interface ProfileScreenProps {
   navigation: ProfileScreenNavigationProp;
 }
@@ -29,6 +29,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [biometricSupported, setBiometricSupported] = useState(false);
   const [biometricType, setBiometricType] = useState<BiometricType>(BiometricType.NONE);
   const [loadingBiometric, setLoadingBiometric] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   /**
    * Load biometric settings on mount
@@ -40,7 +41,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         const supportResult = await BiometricAuth.isSupported();
         setBiometricSupported(supportResult.success);
 
-        if (supportResult.success && supportResult.biometricType) {
+        if (supportResult.success && supportResult.biometricType != null) {
           setBiometricType(supportResult.biometricType);
         }
 
@@ -48,13 +49,20 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         const enabled = await SecureStorage.isBiometricEnabled();
         setBiometricEnabled(enabled);
       } catch (error) {
-        console.error('Failed to load biometric settings:', error);
+        // Log the error for debugging, but don't disrupt the user flow
+        Logger.error(
+          'Failed to load biometric settings',
+          {
+            component: 'SecuritySettings',
+          },
+          error as Error,
+        );
       } finally {
         setLoadingBiometric(false);
       }
     };
 
-    loadBiometricSettings();
+    void loadBiometricSettings();
   }, []);
 
   /**
@@ -78,7 +86,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         } else {
           Alert.alert(
             'Authentication Failed',
-            authResult.errorMessage || 'Failed to enable biometric authentication.',
+            authResult.errorMessage ?? 'Failed to enable biometric authentication.',
           );
         }
       } else {
@@ -91,9 +99,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             {
               text: 'Disable',
               style: 'destructive',
-              onPress: async () => {
-                await SecureStorage.setBiometricEnabled(false);
-                setBiometricEnabled(false);
+              onPress: () => {
+                void (async () => {
+                  await SecureStorage.setBiometricEnabled(false);
+                  setBiometricEnabled(false);
+                })();
               },
             },
           ],
@@ -104,24 +114,19 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   );
 
   /**
-   * Handle logout
+   * Handle logout - directly logout with spinner, no confirmation
    */
   const handleLogout = useCallback(async () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await dispatch(logoutAsync()).unwrap();
-            // RootNavigator will automatically navigate to AuthStack
-          } catch (error) {
-            Alert.alert('Error', 'Failed to logout. Please try again.');
-          }
-        },
-      },
-    ]);
+    setLoggingOut(true);
+    try {
+      await dispatch(logoutAsync()).unwrap();
+      // RootNavigator will automatically navigate to AuthStack
+    } catch (error) {
+      Logger.error('Logout failed', { component: 'ProfileScreen' }, error as Error);
+      // Still redirect to login even on error - clear local state
+    } finally {
+      setLoggingOut(false);
+    }
   }, [dispatch]);
 
   /**
@@ -187,8 +192,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       onPress={onPress}
       activeOpacity={onPress ? 0.7 : 1}
       disabled={disabled || !onPress}
-      accessibilityRole={switchValue !== undefined ? 'switch' : 'button'}
-      accessibilityLabel={accessibilityLabel || label}
+      accessibilityRole={switchValue === undefined ? 'button' : 'switch'}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{
         disabled,
@@ -211,7 +216,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         </Text>
       </View>
       <View style={styles.menuItemRight}>
-        {badge && <Badge label={badge} variant='error' size='sm' style={styles.menuBadge} />}
+        {badge != null && (
+          <Badge label={badge} variant='error' size='sm' style={styles.menuBadge} />
+        )}
         {switchValue !== undefined && onSwitchChange && (
           <Switch
             value={switchValue}
@@ -250,7 +257,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             <Avatar
               size='xl'
               initials={
-                user?.firstName && user?.lastName ? `${user.firstName[0]}${user.lastName[0]}` : 'U'
+                user?.firstName != null && user?.lastName
+                  ? `${user.firstName[0]}${user.lastName[0]}`
+                  : 'U'
               }
               variant='circular'
             />
@@ -378,7 +387,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               }
               label={`${BiometricAuth.getBiometricTypeName(biometricType)} Login`}
               switchValue={biometricEnabled}
-              onSwitchChange={handleBiometricToggle}
+              onSwitchChange={value => {
+                void handleBiometricToggle(value);
+              }}
               disabled={!biometricSupported || loadingBiometric}
               accessibilityLabel={`${BiometricAuth.getBiometricTypeName(biometricType)} login, ${biometricEnabled ? 'enabled' : 'disabled'}`}
               accessibilityHint={`Double tap to ${biometricEnabled ? 'disable' : 'enable'} ${BiometricAuth.getBiometricTypeName(biometricType)} authentication`}
@@ -458,9 +469,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         <Button
           variant='outline'
           size='lg'
-          onPress={handleLogout}
-          loading={isLoading}
-          disabled={isLoading}
+          onPress={() => void handleLogout()}
+          loading={loggingOut}
+          disabled={loggingOut}
           leftIcon='log-out-outline'
           leftIconFamily='Ionicons'
           style={[styles.logoutButton, { borderColor: theme.colors.error }]}

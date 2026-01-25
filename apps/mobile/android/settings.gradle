@@ -31,4 +31,16 @@ rootProject.name = 'FoodWasteApp'
 
 include ':app'
 
+// ============================================================================
+// Manual includes for Nitro-based libraries
+// These libraries use Nitro Modules which require manual project inclusion
+// because their CMake/codegen autolinking is disabled in react-native.config.js
+// Source: https://nitro.margelo.com/docs/minimum-requirements
+// ============================================================================
+include ':react-native-nitro-modules'
+project(':react-native-nitro-modules').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-nitro-modules/android')
+
+include ':react-native-mmkv'
+project(':react-native-mmkv').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-mmkv/android')
+
 includeBuild('../../../node_modules/.pnpm/@react-native+gradle-plugin@0.81.0/node_modules/@react-native/gradle-plugin')

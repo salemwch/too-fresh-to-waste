@@ -1,11 +1,11 @@
 /**
  * Biometric Authentication Service
  * TouchID (iOS) / Fingerprint & Face Unlock (Android)
- * Uses react-native-touch-id for biometric authentication
+ * Uses react-native-keychain for biometric authentication (New Architecture compatible)
  */
 
 import { Platform } from 'react-native';
-import TouchID from 'react-native-touch-id';
+import * as Keychain from 'react-native-keychain';
 
 import { Logger } from '@/utils/logger';
 
@@ -17,6 +17,7 @@ export enum BiometricType {
   FACE_ID = 'FaceID',
   FINGERPRINT = 'Fingerprint',
   FACE_UNLOCK = 'Face',
+  IRIS = 'Iris',
   NONE = 'None',
 }
 
@@ -42,33 +43,36 @@ export interface BiometricAuthResult {
   errorMessage?: string;
 }
 
+// Internal key used for biometric authentication verification
+const BIOMETRIC_AUTH_KEY = 'biometric_auth_verification';
+const BIOMETRIC_AUTH_SERVICE = 'FoodWasteApp_BiometricAuth';
+
 export class BiometricAuth {
   /**
    * Check if biometric authentication is supported on device
    */
   static async isSupported(): Promise<BiometricAuthResult> {
     try {
-      const biometryType = await TouchID.isSupported();
+      const biometryType = await Keychain.getSupportedBiometryType();
 
       let type: BiometricType = BiometricType.NONE;
 
-      if (typeof biometryType === 'string') {
-        // Map TouchID library types to our enum
-        const biometryTypeStr = biometryType as string;
-        switch (biometryTypeStr) {
-          case 'TouchID':
+      if (biometryType) {
+        switch (biometryType) {
+          case Keychain.BIOMETRY_TYPE.TOUCH_ID:
             type = BiometricType.TOUCH_ID;
             break;
-          case 'FaceID':
+          case Keychain.BIOMETRY_TYPE.FACE_ID:
             type = BiometricType.FACE_ID;
             break;
-          case 'Fingerprint':
-          case BiometricType.FINGERPRINT:
+          case Keychain.BIOMETRY_TYPE.FINGERPRINT:
             type = BiometricType.FINGERPRINT;
             break;
-          case 'Face':
-          case BiometricType.FACE_UNLOCK:
+          case Keychain.BIOMETRY_TYPE.FACE:
             type = BiometricType.FACE_UNLOCK;
+            break;
+          case Keychain.BIOMETRY_TYPE.IRIS:
+            type = BiometricType.IRIS;
             break;
           default:
             type = BiometricType.NONE;
@@ -93,6 +97,32 @@ export class BiometricAuth {
   }
 
   /**
+   * Initialize biometric authentication by storing a verification key
+   * This must be called once before authenticate() can work
+   */
+  static async initialize(): Promise<boolean> {
+    try {
+      const supportCheck = await this.isSupported();
+      if (!supportCheck.success) {
+        return false;
+      }
+
+      // Store a verification key that requires biometric to access
+      await Keychain.setGenericPassword(BIOMETRIC_AUTH_KEY, 'biometric_enabled', {
+        service: BIOMETRIC_AUTH_SERVICE,
+        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET,
+        accessible: Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+      });
+
+      Logger.info('Biometric authentication initialized');
+      return true;
+    } catch (error: any) {
+      Logger.warn('Failed to initialize biometric auth', { error: error?.message });
+      return false;
+    }
+  }
+
+  /**
    * Authenticate user with biometric
    */
   static async authenticate(
@@ -105,27 +135,54 @@ export class BiometricAuth {
         return supportCheck;
       }
 
-      // Configure authentication options
-      const optionalConfigObject = {
-        title: 'Authentication Required',
-        imageColor: '#e00606', // Android only
-        imageErrorColor: '#ff0000', // Android only
-        sensorDescription: 'Touch sensor', // Android only
-        sensorErrorDescription: 'Failed', // Android only
-        cancelText: 'Cancel', // Android only
-        fallbackLabel: 'Show Passcode', // iOS only, shows the device passcode after failed biometric
-        unifiedErrors: false, // Use unified error messages
-        passcodeFallback: false, // iOS only - don't allow fallback to passcode
-      };
+      // Try to retrieve the verification key using biometric
+      const credentials = await Keychain.getGenericPassword({
+        service: BIOMETRIC_AUTH_SERVICE,
+        authenticationPrompt: {
+          title: 'Authentication Required',
+          subtitle: reason,
+          description: Platform.select({
+            ios: 'Use Face ID or Touch ID to authenticate',
+            android: 'Use your fingerprint or face to authenticate',
+          }),
+          cancel: 'Cancel',
+        },
+      });
 
-      await TouchID.authenticate(reason, optionalConfigObject);
+      if (credentials) {
+        Logger.info('Biometric authentication successful');
+        return {
+          success: true,
+          ...(supportCheck.biometricType && { biometricType: supportCheck.biometricType }),
+        };
+      }
 
-      Logger.info('Biometric authentication successful');
+      // If no credentials found, initialize and try again
+      const initialized = await this.initialize();
+      if (initialized) {
+        // Retry authentication after initialization
+        const retryCredentials = await Keychain.getGenericPassword({
+          service: BIOMETRIC_AUTH_SERVICE,
+          authenticationPrompt: {
+            title: 'Authentication Required',
+            subtitle: reason,
+            cancel: 'Cancel',
+          },
+        });
 
-      // Conditional spreading for exactOptionalPropertyTypes compliance
+        if (retryCredentials) {
+          Logger.info('Biometric authentication successful after initialization');
+          return {
+            success: true,
+            ...(supportCheck.biometricType && { biometricType: supportCheck.biometricType }),
+          };
+        }
+      }
+
       return {
-        success: true,
-        ...(supportCheck.biometricType && { biometricType: supportCheck.biometricType }),
+        success: false,
+        error: BiometricError.AUTHENTICATION_FAILED,
+        errorMessage: 'Biometric authentication failed',
       };
     } catch (error: any) {
       const errorResult = this.handleBiometricError(error);
@@ -144,46 +201,47 @@ export class BiometricAuth {
     const errorCode = error.code || error.name;
     const errorMessage = error.message || 'Unknown error occurred';
 
-    // Map TouchID error codes to our BiometricError enum
     let mappedError: BiometricError;
 
+    // Map Keychain error codes to our BiometricError enum
     switch (errorCode) {
-      case 'LAErrorAuthenticationFailed': // iOS
-      case 'AUTHENTICATION_FAILED': // Android
+      case '-1': // Authentication failed
+      case 'AuthenticationFailed':
         mappedError = BiometricError.AUTHENTICATION_FAILED;
         break;
 
-      case 'LAErrorUserCancel': // iOS
-      case 'USER_CANCELED': // Android
+      case '-2': // User canceled
+      case 'UserCancel':
         mappedError = BiometricError.USER_CANCEL;
         break;
 
-      case 'LAErrorSystemCancel': // iOS
-      case 'SYSTEM_CANCELED': // Android
+      case '-4': // System canceled
+      case 'SystemCancel':
         mappedError = BiometricError.SYSTEM_CANCEL;
         break;
 
-      case 'LAErrorBiometryNotAvailable': // iOS
-      case 'NOT_AVAILABLE': // Android
+      case '-6': // Biometry not available
+      case 'BiometryNotAvailable':
         mappedError = BiometricError.NOT_SUPPORTED;
         break;
 
-      case 'LAErrorBiometryNotEnrolled': // iOS
-      case 'NOT_ENROLLED': // Android
+      case '-7': // Biometry not enrolled
+      case 'BiometryNotEnrolled':
         mappedError = BiometricError.NOT_ENROLLED;
         break;
 
-      case 'LAErrorPasscodeNotSet': // iOS
-      case 'PASSCODE_NOT_SET': // Android
+      case '-5': // Passcode not set
+      case 'PasscodeNotSet':
         mappedError = BiometricError.PASSCODE_NOT_SET;
         break;
 
-      case 'LAErrorBiometryLockout': // iOS
-      case 'BIOMETRIC_LOCKOUT': // Android
+      case '-8': // Biometry lockout
+      case 'BiometryLockout':
         mappedError = BiometricError.BIOMETRIC_LOCKOUT;
         break;
 
-      case 'BIOMETRIC_ERROR_LOCKOUT_PERMANENT': // Android
+      case '-9': // Biometry permanent lockout
+      case 'BiometryLockoutPermanent':
         mappedError = BiometricError.BIOMETRIC_LOCKOUT_PERMANENT;
         break;
 
@@ -249,9 +307,36 @@ export class BiometricAuth {
       return false;
     }
 
-    // In a real app, you'd show a modal/alert here asking user
-    // if they want to enable biometric for future logins
-    return true;
+    // Initialize biometric auth for future use
+    return this.initialize();
+  }
+
+  /**
+   * Disable biometric authentication
+   */
+  static async disable(): Promise<boolean> {
+    try {
+      await Keychain.resetGenericPassword({ service: BIOMETRIC_AUTH_SERVICE });
+      Logger.info('Biometric authentication disabled');
+      return true;
+    } catch (error: any) {
+      Logger.warn('Failed to disable biometric auth', { error: error?.message });
+      return false;
+    }
+  }
+
+  /**
+   * Check if biometric authentication is enabled for this app
+   */
+  static async isEnabled(): Promise<boolean> {
+    try {
+      const credentials = await Keychain.getGenericPassword({
+        service: BIOMETRIC_AUTH_SERVICE,
+      });
+      return !!credentials;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -267,6 +352,8 @@ export class BiometricAuth {
         return 'Fingerprint';
       case BiometricType.FACE_UNLOCK:
         return 'Face Unlock';
+      case BiometricType.IRIS:
+        return 'Iris Scanner';
       default:
         return 'Biometric';
     }

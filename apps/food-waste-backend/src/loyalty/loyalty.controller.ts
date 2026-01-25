@@ -13,9 +13,9 @@ import { LoyaltyService } from './loyalty.service';
 import { GamificationService } from './services/gamification.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { GetUser } from '../auth/decorators/get-user.decorator';
-import { UserRole } from '../users/schemas/user.schema';
+import { Roles } from '../common/decorators/roles.decorator';
+import { GetUser } from '../common/decorators/get-user.decorator';
+import { UserRole } from '../common/enums/user.enum';
 import {
   CreateLoyaltyAccountDto,
   AddPointsDto,

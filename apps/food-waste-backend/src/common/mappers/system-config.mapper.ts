@@ -38,7 +38,7 @@ export class SystemConfigMapper {
         passwordRequireNumbers: document.securitySettings?.passwordRequireNumbers ?? true,
         passwordRequireSymbols: document.securitySettings?.passwordRequireSymbols ?? true,
         sessionTimeoutMinutes: document.securitySettings?.sessionTimeoutMinutes || 30,
-        maxLoginAttempts: document.securitySettings?.maxLoginAttempts || 5,
+        maxLoginAttempts: document.securitySettings?.maxLoginAttempts || 10,
         lockoutDurationMinutes: document.securitySettings?.lockoutDurationMinutes || 15,
         requireTwoFactor: document.securitySettings?.requireTwoFactor || false,
         allowedFileTypes: document.securitySettings?.allowedFileTypes || ['jpg', 'jpeg', 'png', 'pdf'],

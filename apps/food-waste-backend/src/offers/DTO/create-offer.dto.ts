@@ -20,39 +20,63 @@ import { OfferType } from '../schemas/offer.schema';
 class PriceInfoDto {
     @IsNumber()
     @Min(0.01)
+    @Transform(({ value }) => {
+        // ✅ FIX: Convert string to number for multipart/form-data
+        if (typeof value === 'string') return parseFloat(value);
+        return value;
+    })
     originalPrice: number;
 
     @IsNumber()
     @Min(0.01)
+    @Transform(({ value }) => {
+        // ✅ FIX: Convert string to number for multipart/form-data
+        if (typeof value === 'string') return parseFloat(value);
+        return value;
+    })
     discountedPrice: number;
 
-    @IsNumber()
-    @Min(5)
-    @Max(90)
-    discountPercentage: number;
-
-    @IsOptional()
-    @IsString()
-    currency?: string = 'EUR';
+    // ✅ SECURITY: discountPercentage is backend-calculated - removed from user input
+    // Backend calculates and validates this in offers.service.ts
+    // ✅ SECURITY: Currency is system-enforced (TND) - removed from user input
+    // Backend automatically sets this in offers.service.ts
 }
 
 class PickupTimeSlotDto {
     @IsString()
-    @Transform(({ value }) => value?.trim())
+    @Transform(({ value }) => {
+        // ✅ FIX: Handle arrays from multipart/form-data (e.g., ["10:00"] → "10:00")
+        if (Array.isArray(value)) {return value[0]?.trim?.() || value[0];}
+        return typeof value === 'string' ? value.trim() : value;
+    })
     startTime: string;
 
     @IsString()
-    @Transform(({ value }) => value?.trim())
+    @Transform(({ value }) => {
+        // ✅ FIX: Handle arrays from multipart/form-data (e.g., ["23:46"] → "23:46")
+        if (Array.isArray(value)) {return value[0]?.trim?.() || value[0];}
+        return typeof value === 'string' ? value.trim() : value;
+    })
     endTime: string;
 
     @IsNumber()
     @Min(1)
     @Max(100)
+    @Transform(({ value }) => {
+        // ✅ FIX: Convert string to number for multipart/form-data
+        if (typeof value === 'string') return parseInt(value, 10);
+        return value;
+    })
     maxOrders: number;
 
     @IsOptional()
     @IsNumber()
     @Min(0)
+    @Transform(({ value }) => {
+        // ✅ FIX: Convert string to number for multipart/form-data
+        if (typeof value === 'string') return parseInt(value, 10);
+        return value;
+    })
     currentOrders?: number = 0;
 }
 
@@ -60,21 +84,41 @@ class NutritionalInfoDto {
     @IsOptional()
     @IsNumber()
     @Min(0)
+    @Transform(({ value }) => {
+        // ✅ FIX: Convert string to number for multipart/form-data
+        if (typeof value === 'string') return parseFloat(value);
+        return value;
+    })
     calories?: number;
 
     @IsOptional()
     @IsNumber()
     @Min(0)
+    @Transform(({ value }) => {
+        // ✅ FIX: Convert string to number for multipart/form-data
+        if (typeof value === 'string') return parseFloat(value);
+        return value;
+    })
     protein?: number;
 
     @IsOptional()
     @IsNumber()
     @Min(0)
+    @Transform(({ value }) => {
+        // ✅ FIX: Convert string to number for multipart/form-data
+        if (typeof value === 'string') return parseFloat(value);
+        return value;
+    })
     carbs?: number;
 
     @IsOptional()
     @IsNumber()
     @Min(0)
+    @Transform(({ value }) => {
+        // ✅ FIX: Convert string to number for multipart/form-data
+        if (typeof value === 'string') return parseFloat(value);
+        return value;
+    })
     fat?: number;
 
     @IsOptional()
@@ -115,13 +159,21 @@ export class CreateOfferDto {
     @IsString()
     @MinLength(5)
     @MaxLength(100)
-    @Transform(({ value }) => value?.trim())
+    @Transform(({ value }) => {
+        // ✅ FIX: Handle arrays from multipart/form-data
+        if (Array.isArray(value)) {return value[0]?.trim?.() || value[0];}
+        return typeof value === 'string' ? value.trim() : value;
+    })
     title: string;
 
     @IsString()
     @MinLength(20)
     @MaxLength(1000)
-    @Transform(({ value }) => value?.trim())
+    @Transform(({ value }) => {
+        // ✅ FIX: Handle arrays from multipart/form-data
+        if (Array.isArray(value)) {return value[0]?.trim?.() || value[0];}
+        return typeof value === 'string' ? value.trim() : value;
+    })
     description: string;
 
     @IsString()
@@ -137,6 +189,11 @@ export class CreateOfferDto {
     @IsNumber()
     @Min(1)
     @Max(1000)
+    @Transform(({ value }) => {
+        // ✅ FIX: Convert string to number for multipart/form-data
+        if (typeof value === 'string') return parseInt(value, 10);
+        return value;
+    })
     totalQuantity: number;
 
     @ApiProperty({
@@ -201,4 +258,62 @@ export class CreateOfferDto {
     @IsOptional()
     @IsDateString()
     cancellationDeadline?: string;
+
+    @IsOptional()
+    @IsString()
+    @ApiProperty({
+        description: 'IANA timezone (e.g., "Africa/Tunis", "Europe/Paris"). If not provided, defaults to Africa/Tunis.',
+        example: 'Africa/Tunis',
+        required: false,
+        default: 'Africa/Tunis'
+    })
+    timezone?: string = 'Africa/Tunis';
+
+    @IsOptional()
+    @IsBoolean()
+    @Transform(({ value }) => {
+        // ✅ FIX: Handle arrays from multipart/form-data
+        if (Array.isArray(value)) {
+            const val = value[0];
+            if (typeof val === 'string') return val === 'true' || val === '1';
+            return Boolean(val);
+        }
+        // ✅ FIX: Convert string to boolean
+        if (typeof value === 'string') {
+            return value === 'true' || value === '1';
+        }
+        // ✅ Already boolean or undefined
+        return value !== undefined ? Boolean(value) : false;
+    })
+    @ApiProperty({
+        description: 'Show offer in "Pickup Today" section on mobile app',
+        example: false,
+        required: false,
+        default: false
+    })
+    isPickupToday?: boolean = false;
+
+    @IsOptional()
+    @IsBoolean()
+    @Transform(({ value }) => {
+        // ✅ FIX: Handle arrays from multipart/form-data
+        if (Array.isArray(value)) {
+            const val = value[0];
+            if (typeof val === 'string') return val === 'true' || val === '1';
+            return Boolean(val);
+        }
+        // ✅ FIX: Convert string to boolean
+        if (typeof value === 'string') {
+            return value === 'true' || value === '1';
+        }
+        // ✅ Already boolean or undefined
+        return value !== undefined ? Boolean(value) : false;
+    })
+    @ApiProperty({
+        description: 'Show offer in "Pickup Tomorrow" section on mobile app',
+        example: false,
+        required: false,
+        default: false
+    })
+    isPickupTomorrow?: boolean = false;
 }

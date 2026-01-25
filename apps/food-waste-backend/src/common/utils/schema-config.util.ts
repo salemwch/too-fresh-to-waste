@@ -1,0 +1,67 @@
+/**
+ * Schema Configuration Utilities
+ *
+ * Standardized Mongoose schema configuration for consistent API responses
+ *
+ * ✅ BEST PRACTICE: Use _id only (MongoDB convention)
+ * - MongoDB uses _id as the primary key natively
+ * - Consistent with aggregation pipelines and raw queries
+ * - No transformation overhead
+ * - Industry standard across MongoDB ecosystem
+ */
+
+import { SchemaOptions } from 'mongoose';
+
+/**
+ * Standard toJSON configuration for all schemas
+ *
+ * Features:
+ * - Includes custom virtuals (availableQuantity, isExpired, etc.)
+ * - Removes __v (version key) from responses
+ * - Removes Mongoose's default 'id' virtual (use _id only)
+ *
+ * @example
+ * ```typescript
+ * const MySchema = SchemaFactory.createForClass(MyClass);
+ * MySchema.set('toJSON', getStandardToJSON());
+ * MySchema.set('toObject', getStandardToObject());
+ * ```
+ */
+export function getStandardToJSON(): NonNullable<SchemaOptions['toJSON']> {
+    return {
+        virtuals: true,        // Include custom virtuals
+        versionKey: false,     // Remove __v field
+        transform (_doc, ret) {
+            delete ret._id;     // Remove Mongoose's default id virtual (use _id only)
+            return ret;
+        }
+    };
+}
+
+/**
+ * Standard toObject configuration for all schemas
+ */
+export function getStandardToObject(): NonNullable<SchemaOptions['toObject']> {
+    return {
+        virtuals: true,
+        versionKey: false,
+        transform (_doc, ret) {
+            delete ret._id;     // Remove Mongoose's default id virtual (use _id only)
+            return ret;
+        }
+    };
+}
+
+/**
+ * Apply standard configuration to a schema
+ *
+ * @example
+ * ```typescript
+ * const MySchema = SchemaFactory.createForClass(MyClass);
+ * applyStandardSchemaConfig(MySchema);
+ * ```
+ */
+export function applyStandardSchemaConfig(schema: any): void {
+    schema.set('toJSON', getStandardToJSON());
+    schema.set('toObject', getStandardToObject());
+}

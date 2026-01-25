@@ -36,7 +36,7 @@ export class Favorite {
   @Prop({ required: true, enum: FavoriteType })
   type: FavoriteType;
 
-  @Prop({ required: true, type: Types.ObjectId, refPath: 'type' })
+  @Prop({ required: true, type: Types.ObjectId })
   itemId: Types.ObjectId;
 
   @Prop()

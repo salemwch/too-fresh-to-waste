@@ -20,11 +20,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         readonly usersService: UsersService,
     ) {
         super({
+            // ✅ Priority: Authorization header FIRST (mobile), then cookies (web)
+            // This ensures mobile apps don't accidentally use stale cookies
             jwtFromRequest: ExtractJwt.fromExtractors([
+                ExtractJwt.fromAuthHeaderAsBearerToken(),  // Mobile: Authorization header
                 (request: Request) => {
-                    return request?.cookies?.['access_token'];
+                    return request?.cookies?.['access_token'];  // Web: Cookie fallback
                 },
-                ExtractJwt.fromAuthHeaderAsBearerToken(),
             ]),
             ignoreExpiration: false,
             secretOrKey: configService.get<string>('JWT_SECRET'),

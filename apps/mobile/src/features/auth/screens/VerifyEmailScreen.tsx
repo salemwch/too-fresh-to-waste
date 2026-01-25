@@ -28,24 +28,36 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
   // Get email from route params OR Redux state (state-driven approach)
   const { email: routeEmail, token } = route.params;
   const { pendingVerificationEmail } = useAppSelector(state => state.auth);
-  const email = routeEmail || pendingVerificationEmail || '';
+  const email =
+    typeof routeEmail === 'string' && routeEmail.trim() !== ''
+      ? routeEmail
+      : typeof pendingVerificationEmail === 'string' && pendingVerificationEmail.trim() !== ''
+        ? pendingVerificationEmail
+        : '';
 
   // State
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [canResend, setCanResend] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'error'>('pending');
+  const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'error'>(
+    'pending',
+  );
 
   /**
    * Auto-verify if token is present in URL
    */
   useEffect(() => {
-    if (token && email && verificationStatus === 'pending') {
+    if (
+      typeof token === 'string' &&
+      token.trim() !== '' &&
+      typeof email === 'string' &&
+      email.trim() !== '' &&
+      verificationStatus === 'pending'
+    ) {
       void handleAutoVerification();
     }
   }, [token, email]);
-
 
   /**
    * Handle automatic verification when token is present
@@ -66,10 +78,18 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
 
       // Note: Navigation to Home happens automatically via RootNavigator
       // when flowState changes to AUTHENTICATED
-    } catch (err: any) {
+    } catch (err) {
       setVerificationStatus('error');
 
-      const errorMessage = err?.message || 'Verification failed. The link may be invalid or expired.';
+      let errorMessage = 'Verification failed. The link may be invalid or expired.';
+      if (
+        err !== null &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message?: unknown }).message === 'string'
+      ) {
+        errorMessage = (err as { message: string }).message;
+      }
 
       showErrorToast('Verification Failed', errorMessage);
     } finally {
@@ -108,7 +128,15 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
       // Set 60 second cooldown
       setResendCooldown(60);
     } catch (err: any) {
-      const errorMessage = err?.message || 'Failed to resend email. Please try again.';
+      let errorMessage = 'Failed to resend email. Please try again.';
+      if (
+        err !== null &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message?: unknown }).message === 'string'
+      ) {
+        errorMessage = (err as { message: string }).message;
+      }
 
       showErrorToast('Resend Failed', errorMessage);
 
@@ -132,7 +160,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
   const handleOpenEmailApp = useCallback(async () => {
     try {
       await Linking.openURL('mailto:');
-    } catch (error) {
+    } catch {
       // If mailto: fails, show a helpful message
       showErrorToast('Unable to Open Email', 'Please open your email app manually');
     }
@@ -144,22 +172,35 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
         <Card style={styles.card}>
           {/* Icon */}
           <View style={styles.iconContainer}>
-            <View style={[styles.iconCircle, { backgroundColor:
-              verificationStatus === 'success' ? theme.colors.primaryContainer :
-              verificationStatus === 'error' ? theme.colors.errorContainer :
-              theme.colors.warningContainer }]}>
+            <View
+              style={[
+                styles.iconCircle,
+                {
+                  backgroundColor:
+                    verificationStatus === 'success'
+                      ? theme.colors.primaryContainer
+                      : verificationStatus === 'error'
+                        ? theme.colors.errorContainer
+                        : theme.colors.warningContainer,
+                },
+              ]}
+            >
               <Icon
                 name={
-                  verificationStatus === 'success' ? 'checkmark-circle-outline' :
-                  verificationStatus === 'error' ? 'close-circle-outline' :
-                  'mail-outline'
+                  verificationStatus === 'success'
+                    ? 'checkmark-circle-outline'
+                    : verificationStatus === 'error'
+                      ? 'close-circle-outline'
+                      : 'mail-outline'
                 }
                 family='Ionicons'
                 size={64}
                 color={
-                  verificationStatus === 'success' ? theme.colors.primary :
-                  verificationStatus === 'error' ? theme.colors.error :
-                  theme.colors.warning
+                  verificationStatus === 'success'
+                    ? theme.colors.primary
+                    : verificationStatus === 'error'
+                      ? theme.colors.error
+                      : theme.colors.warning
                 }
               />
             </View>
@@ -167,10 +208,13 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
 
           {/* Title */}
           <Text variant='headline' size='lg' weight='semibold' align='center' style={styles.title}>
-            {isVerifying ? 'Verifying Email...' :
-             verificationStatus === 'success' ? 'Email Verified!' :
-             verificationStatus === 'error' ? 'Verification Failed' :
-             'Verify Your Email'}
+            {isVerifying
+              ? 'Verifying Email...'
+              : verificationStatus === 'success'
+                ? 'Email Verified!'
+                : verificationStatus === 'error'
+                  ? 'Verification Failed'
+                  : 'Verify Your Email'}
           </Text>
 
           {/* Content based on verification status */}
@@ -239,7 +283,9 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
               <Button
                 variant='primary'
                 size='lg'
-                onPress={handleResendVerification}
+                onPress={() => {
+                  void handleResendVerification();
+                }}
                 loading={isResending}
                 disabled={isResending || !canResend || resendCooldown > 0}
                 style={[styles.verifiedButton, { marginTop: 24 }]}
@@ -266,11 +312,13 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 align='center'
                 style={styles.description}
               >
-                We've sent a verification link to:
+                We&apos;ve sent a verification link to:
               </Text>
 
               {/* Email Display */}
-              <View style={[styles.emailContainer, { backgroundColor: theme.colors.surfaceContainer }]}>
+              <View
+                style={[styles.emailContainer, { backgroundColor: theme.colors.surfaceContainer }]}
+              >
                 <Text variant='body' size='md' weight='semibold' align='center'>
                   {email}
                 </Text>
@@ -280,7 +328,9 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
               <Button
                 variant='primary'
                 size='lg'
-                onPress={handleOpenEmailApp}
+                onPress={() => {
+                  void handleOpenEmailApp();
+                }}
                 style={[styles.verifiedButton, { marginTop: 24 }]}
               >
                 Open Email App
@@ -290,7 +340,9 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
               <Button
                 variant='outline'
                 size='md'
-                onPress={handleResendVerification}
+                onPress={() => {
+                  void handleResendVerification();
+                }}
                 loading={isResending}
                 disabled={isResending || !canResend || resendCooldown > 0}
                 style={[styles.resendButton, { backgroundColor: '#FFFFFF' }]}
@@ -328,7 +380,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                   color='secondary'
                   style={styles.helpTitle}
                 >
-                  Didn't receive the email?
+                  Didn&lsquo;t receive the email?
                 </Text>
                 <Text variant='body' size='xs' color='secondary' style={styles.helpText}>
                   • Check your spam or junk folder{'\n'}• Make sure you entered the correct email
@@ -337,12 +389,14 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                     variant='body'
                     size='xs'
                     weight='semibold'
-                    onPress={() => Linking.openURL('mailto:support@toofreshtowaste.com')}
+                    onPress={() => {
+                      void Linking.openURL('mailto:support@toofreshtowaste.com');
+                    }}
                     style={[styles.supportLink, { color: theme.colors.primary }]}
                   >
                     support
-                  </Text>
-                  {' '}if the problem persists
+                  </Text>{' '}
+                  if the problem persists
                 </Text>
               </View>
             </View>
@@ -387,9 +441,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     marginBottom: 24,
-  },
-  instructionsContainer: {
-    marginBottom: 32,
   },
   instructions: {
     lineHeight: 20,

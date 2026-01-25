@@ -9,7 +9,7 @@ import {
   OfferUpdate,
   NotificationEvent
 } from './interfaces/websocket.interface';
-import { UserRole } from '../users/schemas/user.schema';
+import { UserRole } from '../common/enums/user.enum';
 
 @Injectable()
 export class WebSocketService {

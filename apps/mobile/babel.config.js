@@ -189,29 +189,8 @@ module.exports = {
     'react-native-reanimated/plugin',
   ],
 
-  /**
-   * Babel transformation assumptions for class features
-   *
-   * These assumptions replace the deprecated "loose: true" option:
-   * - setPublicClassFields: true → Use assignment instead of Object.defineProperty (faster)
-   * - privateFieldsAsSymbols: true → Use Symbols instead of WeakMaps (less memory, better performance)
-   * - noDocumentAll: true → Assume document.all doesn't exist (safe for React Native)
-   * - iterableIsArray: true → Assume iterables are arrays (performance optimization)
-   *
-   * Note: Only use setPublicClassFields and privateFieldsAsSymbols as recommended.
-   * Removed privateFieldsAsProperties to avoid conflicts with transform-private-methods.
-   *
-   * Trade-off: Better performance vs strict spec compliance
-   * Safe for React Native where full spec compliance isn't critical
-   *
-   * @see https://babeljs.io/docs/en/assumptions
-   */
-  assumptions: {
-    setPublicClassFields: true,
-    privateFieldsAsSymbols: true,
-    noDocumentAll: true,
-    iterableIsArray: true,
-  },
+
+
 
   /**
    * Only parse files we need

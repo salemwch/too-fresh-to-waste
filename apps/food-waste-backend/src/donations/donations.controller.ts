@@ -11,7 +11,7 @@ import { DonationsService } from './donations.service';
 import { DonationStatsResponseDto, UserDonationStatsResponseDto } from './dto/donation-stats.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Public } from '../auth/decorators/public.decorator';
+import { Public } from '../common/decorators/public.decorator';
 import { Types } from 'mongoose';
 
 /**

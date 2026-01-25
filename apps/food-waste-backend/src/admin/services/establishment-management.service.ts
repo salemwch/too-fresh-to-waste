@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, PipelineStage } from 'mongoose';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { EventBusService } from '../../common/services/event-bus/event-bus.service';
 import { Establishment, EstablishmentDocument, EstablishmentStatus, EstablishmentType } from '../../establishments/schemas/establishment.schema';
 import { ApproveEstablishmentDto, UpdateEstablishmentStatusDto, EstablishmentSearchDto, EstablishmentStatsDto } from '../dto/establishment-management.dto';
 import { AdminAuditService } from './admin-audit.service';
@@ -17,6 +18,15 @@ import { EstablishmentMapper } from '../../common/mappers/establishment.mapper';
 import { Order, OrderDocument, OrderStatus } from '../../orders/schemas/order.schema';
 import { Offer, OfferDocument, OfferStatus } from '../../offers/schemas/offer.schema';
 import { LeanDocument } from '../../common/types/mongoose.types';
+import {
+  AdminEstablishmentApprovedEvent,
+  AdminEstablishmentRejectedEvent,
+  AdminEstablishmentStatusChangedEvent,
+  AdminEstablishmentSuspendedEvent,
+  AdminEstablishmentReactivatedEvent,
+  AdminEstablishmentVerifiedEvent,
+  AdminEstablishmentReactivationScheduledEvent,
+} from '../../common/events/admin-establishment.events';
 
 interface EstablishmentReactivationJob {
   establishmentId: string;
@@ -277,6 +287,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
     @InjectModel(Offer.name) private readonly offerModel: Model<OfferDocument>,
     private readonly auditService: AdminAuditService,
+    private readonly eventBus: EventBusService,
     @Optional() private readonly notificationService?: NotificationService,
     @Optional() @InjectQueue('establishment-management') private readonly establishmentQueue?: Queue,
   ) { }
@@ -506,6 +517,9 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
         `Establishment ${establishmentId} ${approveDto.approved ? 'approved' : 'rejected'} by admin ${adminEmail}. Reason: ${approveDto.reason}`
       );
 
+      // Emit domain event for cross-module reactions
+      await this.emitApprovalEvent(establishment, approveDto, adminId, adminEmail);
+
       // Send notification if required
       if (approveDto.sendNotification) {
         await this.sendApprovalNotification(establishment, approveDto);
@@ -580,6 +594,9 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
         `Establishment ${establishmentId} status changed from ${previousStatus} to ${updateDto.status} by admin ${adminEmail}. Reason: ${updateDto.reason}`
       );
 
+      // Emit domain event for cross-module reactions
+      await this.emitStatusChangeEvent(establishment, previousStatus, updateDto, adminId, adminEmail);
+
       // Send notification if required
       if (updateDto.sendNotification) {
         await this.sendStatusChangeNotification(establishment, updateDto);
@@ -587,7 +604,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
 
       // Schedule reactivation if specified
       if (updateDto.reactivationDate && updateDto.status === EstablishmentStatus.SUSPENDED) {
-        await this.scheduleReactivation(establishmentId, updateDto.reactivationDate);
+        await this.scheduleReactivation(establishmentId, updateDto.reactivationDate, adminId, adminEmail);
       }
 
       // Cancel any existing scheduled reactivation if status is not suspended
@@ -635,6 +652,18 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       });
 
       this.logger.log(`Establishment ${establishmentId} documents verified by admin ${adminEmail}`);
+
+      // Emit verification event
+      await this.eventBus.emit(
+        'admin.establishment.verified',
+        new AdminEstablishmentVerifiedEvent(
+          establishmentId,
+          adminId,
+          adminEmail,
+          establishment.name,
+          establishment.ownerId.toString(),
+        ),
+      );
 
       return EstablishmentMapper.toInterface(updatedEstablishment);
 
@@ -1225,7 +1254,12 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
     }
   }
 
-  private async scheduleReactivation(establishmentId: string, reactivationDate: Date): Promise<void> {
+  private async scheduleReactivation(
+    establishmentId: string,
+    reactivationDate: Date,
+    adminId: string,
+    adminEmail: string,
+  ): Promise<void> {
     try {
       if (!this.establishmentQueue) {
         this.logger.warn('Establishment queue not available, scheduling via fallback method');
@@ -1277,6 +1311,17 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
 
       // Store job reference for potential cancellation
       await this.storeReactivationJobReference(establishmentId, job.id as string, reactivationDate);
+
+      // Emit reactivation scheduled event
+      await this.eventBus.emit(
+        'admin.establishment.reactivation_scheduled',
+        new AdminEstablishmentReactivationScheduledEvent(
+          establishmentId,
+          adminId,
+          adminEmail,
+          reactivationDate,
+        ),
+      );
 
     } catch (error) {
       this.logger.error(
@@ -1350,6 +1395,119 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
         `Failed to cancel scheduled reactivation for establishment ${establishmentId}:`,
         error
       );
+    }
+  }
+
+  /**
+   * Emit approval/rejection event for establishment
+   * Triggers search indexing, merchant onboarding, analytics
+   */
+  private async emitApprovalEvent(
+    establishment: EstablishmentDocument,
+    approveDto: ApproveEstablishmentDto,
+    adminId: string,
+    adminEmail: string,
+  ): Promise<void> {
+    try {
+      const ownerId = establishment.ownerId.toString();
+
+      if (approveDto.approved) {
+        await this.eventBus.emit(
+          'admin.establishment.approved',
+          new AdminEstablishmentApprovedEvent(
+            establishment._id.toString(),
+            adminId,
+            adminEmail,
+            establishment.name,
+            ownerId,
+            approveDto.adminNotes,
+          ),
+        );
+      } else {
+        await this.eventBus.emit(
+          'admin.establishment.rejected',
+          new AdminEstablishmentRejectedEvent(
+            establishment._id.toString(),
+            adminId,
+            adminEmail,
+            establishment.name,
+            ownerId,
+            approveDto.reason || 'No reason provided',
+            approveDto.adminNotes,
+          ),
+        );
+      }
+
+      this.logger.debug(
+        `Emitted ${approveDto.approved ? 'approval' : 'rejection'} event for establishment ${establishment._id.toString()}`,
+      );
+    } catch (error) {
+      this.logger.error(`Failed to emit approval event for establishment ${establishment._id.toString() }:`, error);
+    }
+  }
+
+  /**
+   * Emit status change event for establishment
+   * Triggers offer deactivation, search updates, notifications
+   */
+  private async emitStatusChangeEvent(
+    establishment: EstablishmentDocument,
+    previousStatus: EstablishmentStatus,
+    updateDto: UpdateEstablishmentStatusDto,
+    adminId: string,
+    adminEmail: string,
+  ): Promise<void> {
+    try {
+      const establishmentId = establishment._id.toString();
+      const ownerId = establishment.ownerId.toString();
+
+      // Emit generic status change event
+      await this.eventBus.emit(
+        'admin.establishment.status_changed',
+        new AdminEstablishmentStatusChangedEvent(
+          establishmentId,
+          adminId,
+          adminEmail,
+          previousStatus,
+          updateDto.status,
+          updateDto.reason,
+        ),
+      );
+
+      // Emit specific status events for targeted reactions
+      if (updateDto.status === EstablishmentStatus.SUSPENDED) {
+        await this.eventBus.emit(
+          'admin.establishment.suspended',
+          new AdminEstablishmentSuspendedEvent(
+            establishmentId,
+            adminId,
+            adminEmail,
+            establishment.name,
+            ownerId,
+            updateDto.reason || 'No reason provided',
+            updateDto.reactivationDate,
+            updateDto.adminNotes,
+          ),
+        );
+      } else if (updateDto.status === EstablishmentStatus.ACTIVE && previousStatus === EstablishmentStatus.SUSPENDED) {
+        await this.eventBus.emit(
+          'admin.establishment.reactivated',
+          new AdminEstablishmentReactivatedEvent(
+            establishmentId,
+            adminId,
+            adminEmail,
+            establishment.name,
+            ownerId,
+            updateDto.reason,
+          ),
+        );
+      }
+
+      this.logger.debug(
+        `Emitted status change events for establishment ${establishmentId}: ${previousStatus} → ${updateDto.status}`,
+      );
+    } catch (error) {
+      this.logger.error(`Failed to emit status change events for establishment ${establishment._id.toString()}:`, error);
     }
   }
 }

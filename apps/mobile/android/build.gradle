@@ -1,29 +1,55 @@
-// Top-level build file for Food Waste Mobile App
-// React Native 0.81.0 + Android Gradle Plugin 8.7.3
+// ============================================================================
+// TOP-LEVEL BUILD FILE - Food Waste Mobile App
+// ============================================================================
+// React Native 0.81.0 + Android Gradle Plugin 8.13.2
 // Source: https://reactnative.dev/docs/environment-setup
+//
+// PROPERTY RESOLUTION PATTERN:
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │  gradle.properties  →  Source of Truth (Project Properties)            │
+// │         ↓                                                              │
+// │  ext{} block        →  Reads from properties (Backward Compatibility)  │
+// │         ↓                                                              │
+// │  Native modules     →  Can access via rootProject.ext.* or properties  │
+// └─────────────────────────────────────────────────────────────────────────┘
+//
+// Why this pattern?
+// - AGP 8.8+ and React Native Kotlin DSL check rootProject.properties[]
+// - Legacy native modules (reanimated, maps) use rootProject.ext.*
+// - This ensures both access patterns work correctly
 
 buildscript {
     ext {
-        // Android SDK versions
-        // Source: React Native 0.81 requires Android API 35
-        // MinSdk 24 required by React Native 0.81.0
-        buildToolsVersion = "35.0.0"
-        minSdkVersion = 24
-        compileSdkVersion = 35
-        targetSdkVersion = 35
-        // Source: React Native 0.77 template NDK version
-        // https://github.com/facebook/react-native/blob/0.77-stable/packages/react-native/template/android/build.gradle
-        ndkVersion = "27.1.12297006"
+        // ====================================================================
+        // ANDROID SDK/NDK VERSIONS
+        // ====================================================================
+        // Read from gradle.properties (project properties) with hardcoded fallbacks.
+        // Source of truth is gradle.properties - these fallbacks are safety nets only.
+        // Source: https://developer.android.com/studio/projects/configure-agp-ndk
 
-        // React Native configuration
-        // hermesEnabled defined in gradle.properties
-        hermesEnabled = project.hasProperty("hermesEnabled") ? project.hermesEnabled == "true" : true
-        newArchEnabled = project.hasProperty("newArchEnabled") ? project.newArchEnabled == "true" : false
+        // SDK Versions - React Native 0.81 requirements
+        buildToolsVersion = findProperty('buildToolsVersion') ?: "35.0.0"
+        minSdkVersion = findProperty('minSdkVersion')?.toInteger() ?: 24
+        compileSdkVersion = findProperty('compileSdkVersion')?.toInteger() ?: 35
+        targetSdkVersion = findProperty('targetSdkVersion')?.toInteger() ?: 35
 
-        // Dependency versions
-        // Source: React Native 0.77 template uses Kotlin 2.0.21
-        // https://github.com/facebook/react-native/blob/0.77-stable/packages/react-native/template/android/build.gradle
-        kotlinVersion = "2.0.21"
+        // NDK Version - Critical for native builds
+        // Must be defined in gradle.properties for AGP 8.8+ compatibility
+        // AGP default (27.0.12077973) differs from RN 0.81 requirement (27.1.12297006)
+        ndkVersion = findProperty('ndkVersion') ?: "27.1.12297006"
+
+        // ====================================================================
+        // REACT NATIVE CONFIGURATION
+        // ====================================================================
+        // These are read from gradle.properties for consistency
+        hermesEnabled = findProperty('hermesEnabled')?.toBoolean() ?: true
+        newArchEnabled = findProperty('newArchEnabled')?.toBoolean() ?: false
+
+        // ====================================================================
+        // DEPENDENCY VERSIONS
+        // ====================================================================
+        // Kotlin and Firebase versions for native module compilation
+        kotlinVersion = findProperty('kotlinVersion') ?: "2.0.21"
         googleServicesVersion = "4.4.2"
         firebaseBomVersion = "33.7.0"
     }
@@ -34,10 +60,10 @@ buildscript {
     }
 
     dependencies {
-        // Android Gradle Plugin 8.5.2 - stable version with better Windows compatibility
-        // Downgraded from 8.7.3 due to daemon crashes on Windows
+        // Android Gradle Plugin 8.13.2
         // Source: https://developer.android.com/build/releases/gradle-plugin
-        classpath('com.android.tools.build:gradle:8.13.1')
+        // Note: AGP 8.8+ defaults to NDK 27.0.12077973, override via gradle.properties
+        classpath('com.android.tools.build:gradle:8.13.2')
 
         // Google Services plugin for Firebase
         classpath("com.google.gms:google-services:$googleServicesVersion")
@@ -47,10 +73,10 @@ buildscript {
         // Version 3.0.6 requires AGP 8.1+ and Java 17 (both satisfied)
         classpath("com.google.firebase:firebase-crashlytics-gradle:3.0.6")
 
-        // Kotlin plugin - version aligned with ext.kotlinVersion
+        // Kotlin plugin - version from gradle.properties via ext.kotlinVersion
         // Source: https://kotlinlang.org/docs/gradle.html
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-
+        classpath("com.facebook.react:react-native-gradle-plugin")
         // Note: React Native Gradle Plugin is loaded via includeBuild() in settings.gradle
         // It's applied in app/build.gradle using: plugins { id("com.facebook.react") }
     }
@@ -89,6 +115,16 @@ allprojects {
             force("androidx.core:core:1.13.1")
             force("androidx.core:core-ktx:1.13.1")
 
+            // Force Google Play Services versions for compatibility
+            // Firebase BOM 33.7.0 requires GMS 18.5.0+ / 21.3.0+
+            // react-native-geolocation-service 5.3.1 compatible with GMS 21.3.0
+            // Source: https://firebase.google.com/support/release-notes/android
+            force("com.google.android.gms:play-services-base:18.5.0")
+            force("com.google.android.gms:play-services-location:21.3.0")
+            force("com.google.android.gms:play-services-maps:19.0.0")
+            force("com.google.android.gms:play-services-basement:18.4.0")
+            force("com.google.android.gms:play-services-tasks:18.2.0")
+
             // Substitute old react-native artifact with react-android for React Native 0.81+
             // Libraries like jail-monkey use com.facebook.react:react-native:+ which no longer exists
             // Source: React Native 0.70+ migration guide
@@ -108,7 +144,37 @@ allprojects {
 }
 
 // ============================================================================
-// ENTERPRISE: AGP 8+ NAMESPACE COMPATIBILITY PATCHES
+// ENTERPRISE: NEW ARCHITECTURE COMPATIBILITY PATCHES
+// ============================================================================
+// React Native 0.81+ New Architecture requires special handling for legacy libraries.
+// Many libraries try to apply 'com.facebook.react' plugin when newArchEnabled=true,
+// but this plugin is only available via includeBuild() for the app module.
+//
+// Solution: Disable newArchEnabled for problematic libraries - RN 0.81's autolinking
+// handles codegen through codegenConfig in package.json, not manual plugin application.
+//
+// Source: https://reactnative.dev/docs/new-architecture-intro
+// Source: https://github.com/facebook/react-native/issues/53926
+
+// Libraries that manually apply com.facebook.react plugin (incompatible with RN 0.81)
+// NOTE: @react-native-async-storage/async-storage v2.2.0+ supports New Architecture
+// as a pure Java TurboModule - no longer needs to be in this list
+def newArchIncompatibleLibraries = [
+    // Add problematic libraries here as discovered
+]
+
+// Apply patches to incompatible libraries before their build.gradle is evaluated
+gradle.beforeProject { project ->
+    if (newArchIncompatibleLibraries.contains(project.name)) {
+        // Set property BEFORE any build.gradle is evaluated
+        // This overrides gradle.properties value for this specific project
+        project.ext.set('newArchEnabled', 'false')
+        logger.lifecycle("[New Arch Patch] Disabled newArchEnabled for ${project.name}")
+    }
+}
+
+// ============================================================================
+// ENTERPRISE: AGP 8+ NAMESPACE & SDK COMPATIBILITY PATCHES
 // ============================================================================
 // AGP 8.0+ requires all Android modules to declare namespace in build.gradle
 // Many legacy React Native libraries still use package attribute in AndroidManifest.xml
@@ -118,6 +184,27 @@ subprojects {
     afterEvaluate { project ->
         if (project.hasProperty('android')) {
             project.android {
+                // ================================================================
+                // FORCE compileSdk FOR LIBRARIES THAT DON'T PROPERLY READ ext{}
+                // ================================================================
+                // Some libraries fail to read rootProject.ext.compileSdkVersion
+                // Force compileSdk to ensure all modules compile correctly
+                // Note: android.compileSdkVersion returns String like "android-35", extract the number
+                def currentSdk = android.compileSdkVersion?.toString()?.replaceAll(/[^0-9]/, '')?.toInteger() ?: 0
+                def targetSdk = rootProject.ext.compileSdkVersion
+                if (currentSdk < targetSdk) {
+                    compileSdk targetSdk
+                    logger.info("[SDK Patch] Forced compileSdk=${targetSdk} for ${project.name}")
+                }
+
+                // ================================================================
+                // FORCE ndkVersion FOR ALL NATIVE MODULES (CXX5106 fix)
+                // ================================================================
+                // AGP 8.8+ deprecated ndk.dir in local.properties
+                // Must set android.ndkVersion in all modules with native code
+                // Source: https://developer.android.com/r/studio-ui/ndk-dir
+                ndkVersion rootProject.ext.ndkVersion
+
                 // Patch react-native-geolocation-service
                 // Package name extracted from AndroidManifest.xml
                 if (project.name == 'react-native-geolocation-service') {

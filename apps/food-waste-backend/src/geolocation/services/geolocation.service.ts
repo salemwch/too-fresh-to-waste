@@ -533,14 +533,14 @@ export class GeolocationService {
         'Socialist Republic of Vietnam': 'VN',
 
         // Middle East & Africa
-        'Israel': 'IL',
-        'State of Israel': 'IL',
 
         'United Arab Emirates': 'AE',
         'UAE': 'AE',
 
         'Saudi Arabia': 'SA',
         'Kingdom of Saudi Arabia': 'SA',
+        'tunisie': 'TN',
+        'Republic of tunis': 'TN',
 
         'Turkey': 'TR',
         'Republic of Turkey': 'TR',

@@ -13,3 +13,7 @@ export type { MapListToggleProps, ViewMode } from './MapListToggle';
 
 export { OfferMarker } from './OfferMarker';
 export type { OfferMarkerProps } from './OfferMarker';
+
+// Filter components
+export { FilterBottomSheet } from './FilterBottomSheet';
+export { ActiveFilterChips } from './ActiveFilterChips';

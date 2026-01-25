@@ -13,7 +13,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { AppLoggerService } from './common/services/logger.service';
-import { SentryService } from './common/services/sentry.service';
 import { TransformInterceptor } from './common/interceptors/transFormInterceptor';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { MetricsInterceptor } from './common/interceptors/metrics.interceptor';
@@ -222,10 +221,14 @@ async function bootstrap() {
 
     /**
      * STATIC FILE SERVING
-     * Serve static assets (images, etc.) for email templates
+     * Serve static assets (images, etc.) for email templates and user uploads
      * Path: /public/images/leaf.png
+     * Path: /uploads/establishments/image.jpg
+     *
+     * Note: __dirname in compiled code is dist/src/, so we need to go up 2 levels
      */
-    app.use('/public', express.static(join(__dirname, '..', 'public')));
+    app.use('/public', express.static(join(__dirname, '../..', 'public')));
+    app.use('/uploads', express.static(join(__dirname, '../..', 'uploads')));
 
     /**
      * MIDDLEWARE EXECUTION ORDER (Critical for Security):
@@ -424,14 +427,24 @@ This API provides comprehensive endpoints for:
     });
 
 }
-bootstrap().catch((error) => {
+bootstrap().catch(async (error) => {
     const logger = new AppLoggerService();
     const errorId = logger.error(`Failed to start the application: ${error.message}`, error.stack, 'Bootstrap');
 
+    console.error(`[Bootstrap Error] Error ID: ${errorId}`);
+
     // Ensure Sentry captures bootstrap errors
     if (process.env.SENTRY_DSN) {
-        Sentry.captureException(error);
-        Sentry.close(2000).then(() => {
+        Sentry.captureException(error, {
+            tags: { errorId },
+            contexts: {
+                bootstrap: {
+                    errorId,
+                    message: error.message,
+                },
+            },
+        });
+        await Sentry.close(2000).then(() => {
             process.exit(1);
         });
     } else {

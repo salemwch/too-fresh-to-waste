@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, Logger, ConflictException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, PipelineStage, FlattenMaps } from 'mongoose';
+import { EventBusService } from '../common/services/event-bus/event-bus.service';
+import { FavoriteAddedEvent, FavoriteRemovedEvent } from '../common/events';
 import { Favorite, FavoriteDocument, FavoriteType } from './schemas/favorite.schema';
 import { FavoriteList, FavoriteListDocument, ListVisibility, ListItem } from './schemas/favorite-list.schema';
 
@@ -37,6 +39,9 @@ export class FavoritesService {
   constructor(
     @InjectModel(Favorite.name) private readonly favoriteModel: Model<FavoriteDocument>,
     @InjectModel(FavoriteList.name) private readonly favoriteListModel: Model<FavoriteListDocument>,
+    @InjectModel('Offer') private readonly offerModel: Model<any>,
+    @InjectModel('Establishment') private readonly establishmentModel: Model<any>,
+    private readonly eventBus: EventBusService,
   ) {}
 
   async addFavorite(userId: string, addFavoriteDto: AddFavoriteDto): Promise<FavoriteDocument> {
@@ -95,6 +100,21 @@ export class FavoritesService {
       const saved = await favorite.save();
       await this.updateInteractionCount((saved._id as Types.ObjectId).toString());
 
+      // Emit event for offers module to update favorite count
+      try {
+        await this.eventBus.emit(
+          'favorite.added',
+          new FavoriteAddedEvent(
+            (saved._id as Types.ObjectId).toString(),
+            userId,
+            addFavoriteDto.itemId,
+            new Date(),
+          ),
+        );
+      } catch (eventError) {
+        this.logger.error(`Failed to emit favorite.added event: ${eventError.message}`);
+      }
+
       this.logger.log(`Favorite added: ${addFavoriteDto.type} ${addFavoriteDto.itemId} for user ${userId}`);
       return saved;
     } catch (error) {
@@ -115,6 +135,21 @@ export class FavoritesService {
 
       if (!result) {
         throw new NotFoundException('Favorite not found');
+      }
+
+      // Emit event for offers module to update favorite count
+      try {
+        await this.eventBus.emit(
+          'favorite.removed',
+          new FavoriteRemovedEvent(
+            favoriteId,
+            userId,
+            result.itemId.toString(),
+            new Date(),
+          ),
+        );
+      } catch (eventError) {
+        this.logger.error(`Failed to emit favorite.removed event: ${eventError.message}`);
       }
 
       this.logger.log(`Favorite removed: ${favoriteId} for user ${userId}`);
@@ -202,16 +237,38 @@ export class FavoritesService {
       const [favorites, total] = await Promise.all([
         this.favoriteModel
           .find(query)
-          .populate('itemId')
           .sort(filters.sortBy || '-addedAt')
           .skip(skip)
           .limit(limit)
+          .lean()
           .exec(),
         this.favoriteModel.countDocuments(query),
       ]);
 
+      // Manually populate based on type
+      const populatedFavorites = await Promise.all(
+        favorites.map(async (favorite) => {
+          let populatedItem = null;
+
+          try {
+            if (favorite.type === FavoriteType.OFFER) {
+              populatedItem = await this.offerModel.findById(favorite.itemId).lean();
+            } else if (favorite.type === FavoriteType.ESTABLISHMENT) {
+              populatedItem = await this.establishmentModel.findById(favorite.itemId).lean();
+            }
+          } catch (error) {
+            this.logger.warn(`Failed to populate ${favorite.type} ${favorite.itemId}: ${error instanceof Error ? error.message : 'Unknown'}`);
+          }
+
+          return {
+            ...favorite,
+            itemId: populatedItem || favorite.itemId,
+          };
+        })
+      );
+
       return {
-        favorites,
+        favorites: populatedFavorites as any,
         total,
         page,
         totalPages: Math.ceil(total / limit),

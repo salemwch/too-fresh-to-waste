@@ -15,18 +15,21 @@ import {
     Logger,
     Res,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody, ApiHeader } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PaymentService } from './payments.service';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { UserRole } from 'src/users/schemas/user.schema';
-import { Roles } from 'src/auth/decorators/roles.decorator';
+import { UserRole } from 'src/common/enums/user.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { PaymentQueryDto } from './dto/payment-query.dto';
 import { ProcessRefundDto } from './dto/proccess-refund.dto';
 import { SMTWebhookPayloadDto } from './dto/webhook-payload.dto';
-import { Public } from 'src/auth/decorators/public.decorator';
+import { Public } from 'src/common/decorators/public.decorator';
 import { Response } from 'express';
 
+@ApiTags('Payments')
+@ApiBearerAuth('JWT-auth')
 @Controller('payments')
 @UseGuards(JwtAuthGuard)
 export class PaymentController {
@@ -34,6 +37,11 @@ export class PaymentController {
 
     constructor(private readonly paymentService: PaymentService) { }
 
+    @ApiOperation({ summary: 'Create a payment', description: 'Initiate a payment for an order using SMT Tunisia payment gateway' })
+    @ApiBody({ type: CreatePaymentDto, description: 'Payment details including order ID and payment method' })
+    @ApiResponse({ status: 201, description: 'Payment initiated successfully with redirect URL' })
+    @ApiResponse({ status: 400, description: 'Invalid payment data or order not found' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Consumer access required' })
     @Post()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.CONSUMER)
@@ -72,6 +80,11 @@ export class PaymentController {
         }
     }
 
+    @ApiOperation({ summary: 'Get all payments (Admin only)', description: 'Retrieve paginated list of all payments using cursor-based pagination' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Results per page (max: 10)' })
+    @ApiQuery({ name: 'after', required: false, type: String, description: 'Cursor for pagination' })
+    @ApiResponse({ status: 200, description: 'Payments retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Admin access required' })
     @Get('all-payments-cursor')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
@@ -100,6 +113,11 @@ export class PaymentController {
         };
     }
 
+    @ApiOperation({ summary: 'Get merchant payments', description: 'Retrieve paginated list of payments for the authenticated merchant' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Results per page (max: 10)' })
+    @ApiQuery({ name: 'after', required: false, type: String, description: 'Cursor for pagination' })
+    @ApiResponse({ status: 200, description: 'Payments retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Merchant access required' })
     @Get('my-merchant-payments')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.MERCHANT)
@@ -128,6 +146,11 @@ export class PaymentController {
             },
         };
     }
+    @ApiOperation({ summary: 'Get consumer payments', description: 'Retrieve paginated list of payments made by the authenticated consumer' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Results per page (max: 10)' })
+    @ApiQuery({ name: 'after', required: false, type: String, description: 'Cursor for pagination' })
+    @ApiResponse({ status: 200, description: 'Payments retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Consumer access required' })
     @Get('my-consumer-payments')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.CONSUMER)
@@ -158,6 +181,10 @@ export class PaymentController {
     }
 
 
+    @ApiOperation({ summary: 'Get payment statistics', description: 'Retrieve payment statistics and analytics for the authenticated user' })
+    @ApiResponse({ status: 200, description: 'Payment statistics retrieved successfully' })
+    @ApiResponse({ status: 500, description: 'Unable to retrieve statistics' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
     @Get('stats')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.CONSUMER, UserRole.MERCHANT, UserRole.ADMIN)
@@ -182,6 +209,11 @@ export class PaymentController {
     }
 
 
+    @ApiOperation({ summary: 'Get payment by ID', description: 'Retrieve detailed information about a specific payment' })
+    @ApiParam({ name: 'id', description: 'MongoDB ObjectId of the payment' })
+    @ApiResponse({ status: 200, description: 'Payment retrieved successfully' })
+    @ApiResponse({ status: 404, description: 'Payment not found' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
     @Get(':id')
     async findOne(@Param('id') id: string, @Request() req) {
         const payment = await this.paymentService.findById(id, req.user.userId, req.user.role);
@@ -193,6 +225,11 @@ export class PaymentController {
         };
     }
 
+    @ApiOperation({ summary: 'Process payment refund', description: 'Admin endpoint to process a refund for a payment' })
+    @ApiBody({ type: ProcessRefundDto, description: 'Refund details including payment ID and amount' })
+    @ApiResponse({ status: 200, description: 'Refund processed successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid refund request' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Admin access required' })
     @Post('refund')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles( UserRole.ADMIN)
@@ -212,6 +249,12 @@ export class PaymentController {
         };
     }
 
+    @ApiOperation({ summary: 'Payment webhook endpoint', description: 'Public endpoint for SMT Tunisia payment gateway webhooks. Verifies signature and processes payment status updates.' })
+    @ApiBody({ type: SMTWebhookPayloadDto, description: 'SMT webhook payload' })
+    @ApiHeader({ name: 'x-smt-signature', description: 'Webhook signature for verification', required: true })
+    @ApiHeader({ name: 'x-smt-timestamp', description: 'Webhook timestamp', required: true })
+    @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
+    @ApiResponse({ status: 400, description: 'Missing required webhook headers or invalid signature' })
     @Post('webhook')
     @Public()
     @HttpCode(HttpStatus.OK)
@@ -231,6 +274,9 @@ export class PaymentController {
             message: 'Webhook processed successfully',
         };
     }
+    @ApiOperation({ summary: 'Retry failed webhooks', description: 'Admin endpoint to retry processing of failed payment webhooks' })
+    @ApiResponse({ status: 200, description: 'Failed webhooks retry completed' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Admin access required' })
     @Post('retry-webhooks')
     @UseGuards(RolesGuard)
     @Roles(UserRole.ADMIN)

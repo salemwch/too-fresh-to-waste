@@ -300,7 +300,7 @@ Promise<boolean>
 
 **Configuration:**
 
-- Max login attempts: 5
+- Max login attempts: 10
 - Lockout duration: 15 minutes
 - IP block duration: 1 hour
 - Suspicious activity threshold: 3 unique IPs
@@ -374,7 +374,7 @@ Maximum password length
 
 # Account Security
 
-LOGIN_MAX_ATTEMPTS=5 # Max failed login attempts LOGIN_LOCKOUT_DURATION=900000 #
+LOGIN_MAX_ATTEMPTS=10 # Max failed login attempts LOGIN_LOCKOUT_DURATION=300000 #
 Lockout duration (15 min in ms) IP_BLOCK_DURATION=3600000 # IP block duration (1
 hour)
 

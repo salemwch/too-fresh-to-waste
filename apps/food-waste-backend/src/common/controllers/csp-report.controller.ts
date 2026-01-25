@@ -1,7 +1,8 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
-import { Public } from '../../auth/decorators/public.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { CspReportDto } from '../dto/csp-report.dto';
 import { AppLoggerService } from '../services/logger.service';
 
@@ -21,6 +22,7 @@ import { AppLoggerService } from '../services/logger.service';
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP#reporting_violations
  */
+@ApiTags('Security')
 @Controller('csp-report')
 @UseGuards(ThrottlerGuard)
 export class CspReportController {
@@ -46,6 +48,13 @@ export class CspReportController {
    *   }
    * }
    */
+  @ApiOperation({
+    summary: 'Receive CSP violation report',
+    description: 'Public endpoint for browsers to report Content Security Policy violations. Rate limited to 100 reports per minute per IP.'
+  })
+  @ApiBody({ type: CspReportDto, description: 'CSP violation report from browser' })
+  @ApiResponse({ status: 204, description: 'Report received and logged successfully' })
+  @ApiResponse({ status: 429, description: 'Too many reports - rate limit exceeded' })
   @Post()
   @Public() // CSP reports come from browsers, not authenticated users
   @HttpCode(HttpStatus.NO_CONTENT)

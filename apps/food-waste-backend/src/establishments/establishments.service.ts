@@ -4,15 +4,26 @@ import {
     ConflictException,
     BadRequestException,
     ForbiddenException,
+    Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Model, Types, FlattenMaps } from 'mongoose';
 import { Establishment, EstablishmentDocument, EstablishmentStatus, DocumentMetadata } from './schemas/establishment.schema';
 import { CreateEstablishmentDto } from './DTO/create-establishment.dto';
 import { UpdateEstablishmentDto } from './DTO/update-establishment.dto';
 import { SearchEstablishmentsDto } from './DTO/search-establishments.dto';
 import { DocumentType } from './DTO/upload-documents.dto';
-import { QueryOptimizer, ESTABLISHMENT_LIST_FIELDS, ESTABLISHMENT_DETAIL_FIELDS } from '../common/utils/query-optimization.util';
+import { ESTABLISHMENT_LIST_FIELDS } from '../common/utils/query-optimization.util';
+import {
+    EstablishmentCreatedEvent,
+    EstablishmentUpdatedEvent,
+    EstablishmentDeletedEvent,
+    EstablishmentDocumentUploadedEvent,
+    EstablishmentDocumentVerifiedEvent,
+    EstablishmentDocumentDeletedEvent,
+    EstablishmentStatsUpdatedEvent,
+} from '../common/events';
 
 /**
  * Lean result type for Establishment documents
@@ -30,9 +41,12 @@ export interface FindAllResult {
 
 @Injectable()
 export class EstablishmentsService {
+    private readonly logger = new Logger(EstablishmentsService.name);
+
     constructor(
         @InjectModel(Establishment.name)
         readonly establishmentModel: Model<EstablishmentDocument>,
+        private readonly eventEmitter: EventEmitter2,
     ) { }
 
     async create(
@@ -49,7 +63,37 @@ export class EstablishmentsService {
             ownerId: new Types.ObjectId(ownerId),
         });
 
-        return establishment.save();
+        const savedEstablishment = await establishment.save();
+
+        // ✅ EVENT: Emit establishment created event
+        try {
+            const event = new EstablishmentCreatedEvent(
+                savedEstablishment._id.toString(),
+                ownerId,
+                savedEstablishment.name,
+                savedEstablishment.type,
+                savedEstablishment.status,
+                savedEstablishment.email,
+                {
+                    street: savedEstablishment.address.street,
+                    city: savedEstablishment.address.city,
+                    postalCode: savedEstablishment.address.postalCode,
+                    country: savedEstablishment.address.country,
+                    coordinates: savedEstablishment.address.coordinates.coordinates as [number, number],
+                },
+                {
+                    hasImages: savedEstablishment.images && savedEstablishment.images.length > 0,
+                    imageCount: savedEstablishment.images?.length || 0,
+                    hasLegalDocuments: !!savedEstablishment.legalDocuments,
+                },
+            );
+            this.eventEmitter.emit('establishment.created', event);
+            this.logger.log(`Event emitted: establishment.created for ${savedEstablishment._id}`);
+        } catch (error) {
+            this.logger.error(`Failed to emit establishment.created event: ${error.message}`);
+        }
+
+        return savedEstablishment;
     }
 
     async findAll(
@@ -60,7 +104,7 @@ export class EstablishmentsService {
         // ✅ OPTIMIZATION: Limit max page size to prevent DOS
         const safeLimit = Math.min(limit, 100);
         const skip = (page - 1) * safeLimit;
-        const query: any = {};
+        const query: Record<string, any> = {};
 
         if (filters.search) {
             query.$text = { $search: filters.search };
@@ -162,10 +206,53 @@ export class EstablishmentsService {
             delete updateEstablishmentDto.status;
         }
 
+        // Track significant changes for event emission
+        const updatedFields: string[] = [];
+        const changedData: Record<string, any> = {};
+
+        if (updateEstablishmentDto.address) {
+            updatedFields.push('address');
+            changedData.addressChanged = true;
+            changedData.previousAddress = establishment.address;
+            changedData.newAddress = updateEstablishmentDto.address;
+        }
+
+        if (updateEstablishmentDto.phoneNumber || updateEstablishmentDto.email) {
+            updatedFields.push('contact');
+            changedData.contactChanged = true;
+        }
+
+        if (updateEstablishmentDto.businessHours) {
+            updatedFields.push('businessHours');
+            changedData.businessHoursChanged = true;
+        }
+
+        if (updateEstablishmentDto.type) {
+            updatedFields.push('type');
+            changedData.typeChanged = true;
+        }
+
         const updatedEstablishment = await this.establishmentModel
             .findByIdAndUpdate(id, updateEstablishmentDto, { new: true })
             .populate('ownerId', 'firstName lastName email phoneNumber')
             .exec();
+
+        // ✅ EVENT: Emit establishment updated event (only for significant changes)
+        if (updatedFields.length > 0) {
+            try {
+                const event = new EstablishmentUpdatedEvent(
+                    id,
+                    establishment.ownerId.toString(),
+                    updatedEstablishment.name,
+                    updatedFields,
+                    changedData,
+                );
+                this.eventEmitter.emit('establishment.updated', event);
+                this.logger.log(`Event emitted: establishment.updated for ${id} (fields: ${updatedFields.join(', ')})`);
+            } catch (error) {
+                this.logger.error(`Failed to emit establishment.updated event: ${error.message}`);
+            }
+        }
 
         return updatedEstablishment;
     }
@@ -175,7 +262,7 @@ export class EstablishmentsService {
         status: EstablishmentStatus,
         rejectionReason?: string,
     ): Promise<EstablishmentDocument> {
-        const updateData: any = { status };
+        const updateData: Record<string, any> = { status };
 
         if (status === EstablishmentStatus.ACTIVE) {
             updateData.isVerified = true;
@@ -197,7 +284,25 @@ export class EstablishmentsService {
     }
 
     async updateStats(id: string, stats: Partial<{ averageRating: number; totalReviews: number; totalOffers: number; completedOrders: number }>): Promise<void> {
-        await this.establishmentModel.findByIdAndUpdate(id, stats).exec();
+        const establishment = await this.establishmentModel.findByIdAndUpdate(id, stats, { new: true }).exec();
+
+        if (!establishment) {
+            this.logger.warn(`Attempted to update stats for non-existent establishment: ${id}`);
+            return;
+        }
+
+        // ✅ EVENT: Emit stats updated event
+        try {
+            const event = new EstablishmentStatsUpdatedEvent(
+                id,
+                establishment.ownerId.toString(),
+                stats,
+            );
+            this.eventEmitter.emit('establishment.stats.updated', event);
+            this.logger.log(`Event emitted: establishment.stats.updated for ${id}`);
+        } catch (error) {
+            this.logger.error(`Failed to emit establishment.stats.updated event: ${error.message}`);
+        }
     }
 
     /**
@@ -211,6 +316,9 @@ export class EstablishmentsService {
             throw new ForbiddenException('You can only delete your own establishment');
         }
 
+        const isAdminDeletion = userRole === 'admin';
+        const finalDeletionReason = deletionReason || (isAdminDeletion ? 'Admin deletion' : 'Owner deletion');
+
         // Soft delete: mark as deleted instead of removing from database
         await this.establishmentModel.findByIdAndUpdate(
             id,
@@ -218,12 +326,33 @@ export class EstablishmentsService {
                 isDeleted: true,
                 deletedAt: new Date(),
                 deletedBy: userId,
-                deletionReason: deletionReason || (userRole === 'admin' ? 'Admin deletion' : 'Owner deletion'),
+                deletionReason: finalDeletionReason,
                 isActive: false, // Also mark as inactive
                 status: EstablishmentStatus.INACTIVE
             },
             { new: true }
         ).exec();
+
+        // ✅ EVENT: Emit establishment deleted event
+        try {
+            const event = new EstablishmentDeletedEvent(
+                id,
+                establishment.ownerId.toString(),
+                establishment.name,
+                userId,
+                finalDeletionReason,
+                isAdminDeletion,
+                {
+                    totalOffers: establishment.totalOffers,
+                    totalReviews: establishment.totalReviews,
+                    pendingOrders: 0, // Could be fetched from orders service if needed
+                },
+            );
+            this.eventEmitter.emit('establishment.deleted', event);
+            this.logger.log(`Event emitted: establishment.deleted for ${id} by ${isAdminDeletion ? 'admin' : 'owner'}`);
+        } catch (error) {
+            this.logger.error(`Failed to emit establishment.deleted event: ${error.message}`);
+        }
     }
 
     /**
@@ -368,6 +497,29 @@ export class EstablishmentsService {
 
         // Save and return updated establishment
         await establishment.save();
+
+        // ✅ EVENT: Emit document uploaded event
+        try {
+            const event = new EstablishmentDocumentUploadedEvent(
+                establishmentId,
+                establishment.ownerId.toString(),
+                establishment.name,
+                documentType,
+                documentUrl,
+                userId,
+                {
+                    fileName: metadata.fileName,
+                    fileSize: metadata.fileSize,
+                    mimeType: metadata.mimeType,
+                    expiryDate: metadata.expiryDate,
+                },
+            );
+            this.eventEmitter.emit('establishment.document.uploaded', event);
+            this.logger.log(`Event emitted: establishment.document.uploaded (${documentType}) for ${establishmentId}`);
+        } catch (error) {
+            this.logger.error(`Failed to emit establishment.document.uploaded event: ${error.message}`);
+        }
+
         return establishment;
     }
 
@@ -445,6 +597,33 @@ export class EstablishmentsService {
         }
 
         await establishment.save();
+
+        // Check if all required documents are verified
+        const allDocumentsVerified =
+            establishment.legalDocuments.businessLicenseMetadata?.verified === true &&
+            establishment.legalDocuments.foodSafetyLicenseMetadata?.verified === true;
+
+        // ✅ EVENT: Emit document verified event
+        try {
+            // Get verifier email (would need to fetch from users service in real implementation)
+            const verifiedByEmail = 'admin@example.com'; // Placeholder
+
+            const event = new EstablishmentDocumentVerifiedEvent(
+                establishmentId,
+                establishment.ownerId.toString(),
+                establishment.name,
+                documentType,
+                verifiedBy,
+                verifiedByEmail,
+                allDocumentsVerified,
+                notes,
+            );
+            this.eventEmitter.emit('establishment.document.verified', event);
+            this.logger.log(`Event emitted: establishment.document.verified (${documentType}) for ${establishmentId}`);
+        } catch (error) {
+            this.logger.error(`Failed to emit establishment.document.verified event: ${error.message}`);
+        }
+
         return establishment;
     }
 
@@ -466,6 +645,8 @@ export class EstablishmentsService {
         if (!establishment.legalDocuments) {
             throw new BadRequestException('No documents found for this establishment');
         }
+
+        const isAdminDeletion = userRole === 'admin';
 
         // Remove the document based on type
         switch (documentType) {
@@ -499,6 +680,24 @@ export class EstablishmentsService {
         }
 
         await establishment.save();
+
+        // ✅ EVENT: Emit document deleted event
+        try {
+            const event = new EstablishmentDocumentDeletedEvent(
+                establishmentId,
+                establishment.ownerId.toString(),
+                establishment.name,
+                documentType,
+                userId,
+                isAdminDeletion,
+                isAdminDeletion ? 'Admin deleted document' : 'Owner deleted document',
+            );
+            this.eventEmitter.emit('establishment.document.deleted', event);
+            this.logger.log(`Event emitted: establishment.document.deleted (${documentType}) for ${establishmentId}`);
+        } catch (error) {
+            this.logger.error(`Failed to emit establishment.document.deleted event: ${error.message}`);
+        }
+
         return establishment;
     }
 }

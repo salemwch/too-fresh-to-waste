@@ -24,6 +24,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { DonationsModule } from './donations/donations.module';
 import { RedisModule } from './redis/redis.module';
+import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
 
@@ -31,7 +32,6 @@ import { HealthModule } from './health/health.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { SearchModule } from './search/search.module';
 //import { SocialModule } from './social/social.module';
-import { EnhancedAnalyticsModule } from './analytics/enhanced-analytics.module';
 
 // Global middleware
 import { GlobalSanitizationMiddleware } from './common/middleware/global-sanitization.middleware';
@@ -45,6 +45,7 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
         }),
         CommonModule, // Common utilities including sanitization (MUST be early)
         RedisModule, // Shared Redis connection pool (MUST be first after Config)
+        RabbitMQModule, // Message broker for event-driven architecture
         ThrottlerModule.forRoot([{
             ttl: 60000,
             limit: 100,
@@ -121,7 +122,6 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
         WebSocketModule,
         SearchModule,
         //SocialModule,
-        EnhancedAnalyticsModule,
 
         // Monitoring and health checks
         HealthModule, // Health check endpoints (liveness/readiness probes)

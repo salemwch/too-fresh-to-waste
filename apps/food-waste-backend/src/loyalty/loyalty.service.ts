@@ -90,10 +90,26 @@ export class LoyaltyService {
   /**
    * Add points to a user's account
    * Points are multiplied based on current tier
+   * Implements idempotency: If orderId provided, checks for duplicate before adding points
    */
   async addPoints(userId: string, addPointsDto: AddPointsDto): Promise<LoyaltyAccountDocument> {
     try {
       const account = await this.getLoyaltyAccount(userId);
+
+      // IDEMPOTENCY CHECK: Prevent duplicate point awards for same order
+      if (addPointsDto.orderId) {
+        const orderIdObj = new Types.ObjectId(addPointsDto.orderId);
+        const alreadyProcessed = account.pointsHistory.some(
+          (transaction) => transaction.orderId && transaction.orderId.toString() === orderIdObj.toString()
+        );
+
+        if (alreadyProcessed) {
+          this.logger.warn(
+            `Points already awarded for order ${addPointsDto.orderId} to user ${userId}. Skipping duplicate.`
+          );
+          return account; // Return existing account without modifications
+        }
+      }
 
       const currentTier = this.getCurrentTier(account.totalPoints);
       const multipliedPoints = Math.floor(addPointsDto.amount * currentTier.multiplier);
@@ -127,7 +143,7 @@ export class LoyaltyService {
 
       await this.checkAndAwardBadges(updatedAccount);
 
-      this.logger.log(`Added ${multipliedPoints} points to user: ${userId}`);
+      this.logger.log(`Added ${multipliedPoints} points to user: ${userId} for order: ${addPointsDto.orderId || 'N/A'}`);
       return updatedAccount;
     } catch (error) {
       this.logger.error(`Error adding points: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);

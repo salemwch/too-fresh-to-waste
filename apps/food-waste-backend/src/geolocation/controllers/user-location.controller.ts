@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { GetUser } from '../../auth/decorators/get-user.decorator';
+import { GetUser } from '../../common/decorators/get-user.decorator';
 import { UserLocationService } from '../services/user-location.service';
 import {
   SaveLocationDto,

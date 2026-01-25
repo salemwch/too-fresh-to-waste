@@ -1,0 +1,99 @@
+/**
+ * Order Events Listener for Donations Module
+ * Handles order-related events to process donation round-ups
+ *
+ * Dual-mode listener:
+ * - @OnEvent: Legacy EventEmitter2 (fallback)
+ * - @RabbitSubscribe: RabbitMQ message broker (production)
+ *
+ * @module donations/listeners
+ */
+
+import { Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
+import { plainToClass } from 'class-transformer';
+import { Types } from 'mongoose';
+import { OrderCompletedEvent } from '../../common/events';
+import { DonationsService } from '../donations.service';
+
+@Injectable()
+export class OrderEventsListener {
+  private readonly logger = new Logger(OrderEventsListener.name);
+
+  constructor(private readonly donationsService: DonationsService) {}
+
+  // ============================================
+  // ORDER COMPLETED HANDLERS
+  // ============================================
+
+  /**
+   * LEGACY: EventEmitter2 handler for order completion
+   */
+  @OnEvent('order.completed')
+  async handleOrderCompletedLegacy(event: OrderCompletedEvent): Promise<void> {
+    await this.processOrderDonation(event);
+  }
+
+  /**
+   * RABBITMQ: Message broker handler for order completion
+   */
+  @RabbitSubscribe({
+    exchange: 'foodwaste.events',
+    routingKey: 'order.completed',
+    queue: 'foodwaste.donations.order-completed',
+    queueOptions: {
+      durable: true,
+      arguments: {
+        'x-dead-letter-exchange': 'foodwaste.dlx',
+        'x-message-ttl': 86400000, // 24 hours
+      },
+    },
+  })
+  async handleOrderCompletedRabbitMQ(msg: object): Promise<void | Nack> {
+    try {
+      const event = plainToClass(OrderCompletedEvent, msg);
+      await this.processOrderDonation(event);
+      // Auto-ACK on success
+    } catch (error) {
+      this.logger.error(
+        `RabbitMQ: Failed to process order.completed event for donations`,
+        error,
+      );
+      return new Nack(true); // Requeue for retry
+    }
+  }
+
+  /**
+   * Shared logic: Process donation round-up (1% of order total)
+   */
+  private async processOrderDonation(event: OrderCompletedEvent): Promise<void> {
+    try {
+      this.logger.log(`Processing order.completed event for donations: ${event.orderId}`);
+
+      // Calculate donation amount (1% of total)
+      const donationAmount = parseFloat((event.totalAmount * 0.01).toFixed(3));
+
+      if (donationAmount > 0) {
+        await this.donationsService.createDonation({
+          userId: new Types.ObjectId(event.userId),
+          orderId: new Types.ObjectId(event.orderId),
+          amount: donationAmount,
+          metadata: {
+            platform: 'web',
+          },
+        });
+
+        this.logger.log(
+          `Created donation of ${donationAmount} TND for order ${event.orderId}`,
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to process order.completed event for donations ${event.orderId}: ${error.message}`,
+        error.stack,
+      );
+      // Don't throw - event listeners should not break the flow
+    }
+  }
+}

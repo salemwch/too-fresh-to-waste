@@ -25,7 +25,7 @@ import {
 import { Response } from 'express';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../schemas/user.schema';
 import { PrivacyComplianceService } from '../services/privacy-compliance.service';
 import {
@@ -37,7 +37,7 @@ import {
   ConsentWithdrawalDto,
 } from '../DTO/privacy-consent.dto';
 import { IUserDataExport, ISystemComplianceOverview, IAnonymizationResult } from '../interfaces/privacy-consent.interface';
-import { AuthUser } from '../../auth/decorators/get-user.decorator';
+import { AuthUser } from '../../common/decorators/get-user.decorator';
 import { Builder } from 'xml2js';
 import { createObjectCsvStringifier } from 'csv-writer';
 

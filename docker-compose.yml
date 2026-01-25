@@ -73,6 +73,31 @@ services:
       start_period: 10s
 
   # ============================================
+  # RabbitMQ Message Broker
+  # ============================================
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: foodwaste-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # AMQP protocol
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: rabbitmq_dev_password
+      RABBITMQ_DEFAULT_VHOST: /foodwaste
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - foodwaste-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ============================================
   # Backend API (NestJS)
   # ============================================
   backend:
@@ -98,6 +123,14 @@ services:
       REDIS_PASSWORD: redis_dev_password
       REDIS_TLS: "false"
 
+      # RabbitMQ
+      RABBITMQ_URL: amqp://admin:rabbitmq_dev_password@rabbitmq:5672/foodwaste
+      RABBITMQ_ENABLED: "false"
+      RABBITMQ_ENABLED_EVENTS: ""
+      RABBITMQ_EXCHANGE: foodwaste.events
+      RABBITMQ_PREFETCH_COUNT: 10
+      RABBITMQ_MESSAGE_TTL: 86400000
+
       # JWT (Development only - NEVER use these in production)
       JWT_SECRET: dev_jwt_secret_please_change_in_production
       JWT_REFRESH_SECRET: dev_jwt_refresh_secret_please_change_in_production
@@ -110,6 +143,8 @@ services:
       mongodb:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     volumes:
       # Mount logs for debugging
@@ -232,6 +267,8 @@ volumes:
     name: foodwaste-mongodb-config
   redis_data:
     name: foodwaste-redis-data
+  rabbitmq_data:
+    name: foodwaste-rabbitmq-data
   prometheus_data:
     name: foodwaste-prometheus-data
   grafana_data:

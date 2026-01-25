@@ -56,9 +56,45 @@ export const loginAsync = createAsyncThunk(
       // DO NOT call ErrorHandler.handle() - it shows red box
       // Login errors should be handled gracefully in UI
 
-      return rejectWithValue({
-        message: error instanceof Error ? error.message : 'Login failed',
-      });
+      // Preserve field-specific error information from backend (field, type)
+      // for inline error display in the form
+      let errorMessage = 'Login failed';
+
+      // Extract message from AppError or Error
+      if (error !== null && error !== undefined && typeof error === 'object') {
+        const errObj = error as Record<string, unknown>;
+        if (typeof errObj['message'] === 'string') {
+          errorMessage = errObj['message'];
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      const errorPayload: Record<string, unknown> = {
+        message: errorMessage,
+      };
+
+      // Check if error has field/errorCode/lockout metadata (from backend authentication errors)
+      if (error !== null && error !== undefined && typeof error === 'object') {
+        const errObj = error as Record<string, unknown>;
+        if (typeof errObj['field'] === 'string') {
+          errorPayload.field = errObj['field'];
+        }
+        if (typeof errObj['errorCode'] === 'string') {
+          errorPayload.type = errObj['errorCode']; // Map errorCode to type for backward compatibility
+        }
+        // Preserve account lockout metadata
+        if (errObj['isAccountLocked'] === true) {
+          errorPayload.isAccountLocked = true;
+        }
+        if (errObj['blockedUntil'] !== null && errObj['blockedUntil'] !== undefined) {
+          errorPayload.blockedUntil = errObj['blockedUntil'];
+        }
+      }
+
+      console.log('[authSlice] Login error payload:', errorPayload);
+
+      return rejectWithValue(errorPayload);
     }
   },
 );
@@ -90,17 +126,24 @@ export const registerAsync = createAsyncThunk(
       console.log('===== REDUX THUNK: registerAsync caught error =====');
       console.error('AuthSlice: Registration error caught:', error);
       console.error('AuthSlice: Error type:', typeof error);
-      console.error(
-        'AuthSlice: Error message:',
-        error instanceof Error ? error.message : 'Unknown',
-      );
 
       Logger.error('Registration failed', { email: request.email }, error as Error);
       // DO NOT call ErrorHandler.handle() - it shows red box
       // Registration errors should be handled gracefully in UI with inline messages
 
+      // Extract message from AppError or Error
+      let errorMessage = 'Registration failed';
+      if (error !== null && error !== undefined && typeof error === 'object') {
+        const errObj = error as Record<string, unknown>;
+        if (typeof errObj['message'] === 'string') {
+          errorMessage = errObj['message'];
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       const errorPayload = {
-        message: error instanceof Error ? error.message : 'Registration failed',
+        message: errorMessage,
       };
       console.log('AuthSlice: Rejecting with value:', errorPayload);
       console.log('===== REDUX THUNK: registerAsync returning rejection =====');
@@ -125,13 +168,26 @@ export const verifyEmailAsync = createAsyncThunk(
       const expiresAt = new Date(Date.now() + (response.tokens.expiresIn || 3600) * 1000);
       await SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString());
 
-      Logger.info('Email verification successful with auto-login', { userId: response.user.userId });
+      Logger.info('Email verification successful with auto-login', {
+        userId: response.user.userId,
+      });
       return response;
     } catch (error) {
       Logger.error('Email verification failed', { email: request.email }, error as Error);
 
+      // Extract message from AppError or Error
+      let errorMessage = 'Email verification failed';
+      if (error !== null && error !== undefined && typeof error === 'object') {
+        const errObj = error as Record<string, unknown>;
+        if (typeof errObj['message'] === 'string') {
+          errorMessage = errObj['message'];
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       return rejectWithValue({
-        message: error instanceof Error ? error.message : 'Email verification failed',
+        message: errorMessage,
       });
     }
   },
@@ -159,8 +215,19 @@ export const verifyMFAAsync = createAsyncThunk(
       Logger.error('MFA verification failed', {}, error as Error);
       ErrorHandler.handle(error as Error, { operation: 'verifyMFA' });
 
+      // Extract message from AppError or Error
+      let errorMessage = 'MFA verification failed';
+      if (error !== null && error !== undefined && typeof error === 'object') {
+        const errObj = error as Record<string, unknown>;
+        if (typeof errObj['message'] === 'string') {
+          errorMessage = errObj['message'];
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       return rejectWithValue({
-        message: error instanceof Error ? error.message : 'MFA verification failed',
+        message: errorMessage,
       });
     }
   },
@@ -198,8 +265,19 @@ export const refreshTokenAsync = createAsyncThunk(
       Logger.error('Token refresh failed', {}, error as Error);
       ErrorHandler.handle(error as Error, { operation: 'refreshToken' });
 
+      // Extract message from AppError or Error
+      let errorMessage = 'Token refresh failed';
+      if (error !== null && error !== undefined && typeof error === 'object') {
+        const errObj = error as Record<string, unknown>;
+        if (typeof errObj['message'] === 'string') {
+          errorMessage = errObj['message'];
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       return rejectWithValue({
-        message: error instanceof Error ? error.message : 'Token refresh failed',
+        message: errorMessage,
       });
     }
   },
@@ -287,6 +365,49 @@ export const loadStoredAuthAsync = createAsyncThunk(
 
       return rejectWithValue({
         message: 'Failed to load stored authentication data',
+      });
+    }
+  },
+);
+
+export const updateProfileAsync = createAsyncThunk(
+  'auth/updateProfile',
+  async (
+    updates: Partial<Omit<User, 'userId' | 'email' | 'role' | 'createdAt' | 'updatedAt'>>,
+    { getState, rejectWithValue },
+  ) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const accessToken = state.auth.tokens?.accessToken;
+
+      if (accessToken == null || accessToken === '') {
+        throw new Error('No access token available');
+      }
+
+      Logger.info('Updating user profile', { fields: Object.keys(updates) });
+      const updatedUser = await authService.updateProfile(updates, accessToken);
+
+      // Update stored user data in Keychain
+      await SecureStorage.setUserData(JSON.stringify(updatedUser));
+
+      Logger.info('Profile updated successfully', { userId: updatedUser.userId });
+      return updatedUser;
+    } catch (error) {
+      Logger.error('Failed to update profile', {}, error as Error);
+
+      // Extract message from AppError or Error
+      let errorMessage = 'Failed to update profile';
+      if (error !== null && error !== undefined && typeof error === 'object') {
+        const errObj = error as Record<string, unknown>;
+        if (typeof errObj['message'] === 'string') {
+          errorMessage = errObj['message'];
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      return rejectWithValue({
+        message: errorMessage,
       });
     }
   },
@@ -474,7 +595,7 @@ const authSlice = createSlice({
     builder.addCase(verifyEmailAsync.fulfilled, (state, action) => {
       state.isLoading = false;
       state.error = undefined;
-      state.user = action.payload.user as User;
+      state.user = action.payload.user;
       state.tokens = action.payload.tokens;
       state.isAuthenticated = true;
       state.lastLoginTime = new Date().toISOString();
@@ -487,7 +608,10 @@ const authSlice = createSlice({
       state.flowState = AuthFlowState.AUTHENTICATED;
       state.pendingVerificationEmail = undefined;
 
-      console.log('[STATE-DRIVEN NAV] Email verified with auto-login, flowState =', AuthFlowState.AUTHENTICATED);
+      console.log(
+        '[STATE-DRIVEN NAV] Email verified with auto-login, flowState =',
+        AuthFlowState.AUTHENTICATED,
+      );
     });
 
     builder.addCase(verifyEmailAsync.rejected, (state, action) => {
@@ -557,14 +681,25 @@ const authSlice = createSlice({
       state.isLoading = true;
     });
 
-    builder.addCase(logoutAsync.fulfilled, () => initialState);
+    builder.addCase(logoutAsync.fulfilled, () => {
+      // Reset to initial state but with UNAUTHENTICATED flow state
+      // (not INITIALIZING, which would cause navigator to have no screens)
+      console.log('[STATE-DRIVEN NAV] Logout successful, flowState =', AuthFlowState.UNAUTHENTICATED);
+      return {
+        ...initialState,
+        flowState: AuthFlowState.UNAUTHENTICATED,
+      };
+    });
 
-    builder.addCase(
-      logoutAsync.rejected,
-      () =>
-        // Even if logout API fails, clear local state
-        initialState,
-    );
+    builder.addCase(logoutAsync.rejected, () => {
+      // Even if logout API fails, clear local state
+      // Set UNAUTHENTICATED flow state to redirect to login
+      console.log('[STATE-DRIVEN NAV] Logout failed but clearing state, flowState =', AuthFlowState.UNAUTHENTICATED);
+      return {
+        ...initialState,
+        flowState: AuthFlowState.UNAUTHENTICATED,
+      };
+    });
 
     // Load Stored Auth
     builder.addCase(loadStoredAuthAsync.pending, state => {
@@ -603,6 +738,31 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.flowState = AuthFlowState.UNAUTHENTICATED;
       // Keep initial state
+    });
+
+    // Update Profile
+    builder.addCase(updateProfileAsync.pending, state => {
+      state.isLoading = true;
+      state.error = undefined;
+    });
+
+    builder.addCase(updateProfileAsync.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.error = undefined;
+      state.user = action.payload;
+
+      Logger.info('[Profile] Profile updated in Redux state', { userId: action.payload.userId });
+    });
+
+    builder.addCase(updateProfileAsync.rejected, (state, action) => {
+      state.isLoading = false;
+      const payload = action.payload as { message?: string } | undefined;
+      state.error =
+        payload?.message != null && payload.message !== ''
+          ? payload.message
+          : 'Failed to update profile';
+
+      Logger.error('[Profile] Profile update failed', {}, new Error(state.error));
     });
   },
 });

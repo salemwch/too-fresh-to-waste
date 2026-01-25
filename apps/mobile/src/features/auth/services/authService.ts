@@ -63,6 +63,8 @@ class AuthService {
         headers: {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
+          'ngrok-skip-browser-warning': 'true', // ✅ Skip ngrok browser warning
+          'User-Agent': 'FoodWasteApp/1.0', // ✅ Identify as mobile app
           ...headers,
         },
         timeout: this.timeout,
@@ -71,12 +73,20 @@ class AuthService {
       const duration = Date.now() - startTime;
       NetworkLogger.logResponse(url, response.status, duration);
 
-      console.log('AuthService.makeRequest: Raw response:', {
-        status: response.status,
-        statusText: response.statusText,
-        data: response.data,
-      });
-      console.log('AuthService.makeRequest: Extracting response.data.data:', response.data.data);
+      console.log('========================================');
+      console.log('🔍 AUTH SERVICE: Response Analysis');
+      console.log('========================================');
+      console.log('URL:', url);
+      console.log('Status:', response.status);
+      console.log('response.data keys:', Object.keys(response.data || {}));
+      console.log('response.data.data:', response.data.data);
+      console.log('response.data.data type:', typeof response.data.data);
+      console.log(
+        'response.data.data keys:',
+        response.data.data ? Object.keys(response.data.data) : 'null',
+      );
+      console.log('Full response.data:', JSON.stringify(response.data, null, 2));
+      console.log('========================================');
 
       return response.data.data;
     } catch (error) {
@@ -123,7 +133,11 @@ class AuthService {
         if (typeof dataObj['message'] === 'string') {
           // Standard case: { message: "error text" }
           message = dataObj['message'];
-        } else if (dataObj['message'] !== null && dataObj['message'] !== undefined && typeof dataObj['message'] === 'object') {
+        } else if (
+          dataObj['message'] !== null &&
+          dataObj['message'] !== undefined &&
+          typeof dataObj['message'] === 'object'
+        ) {
           // Nested message object: { message: { message: "error text" } }
           const nestedMsg = dataObj['message'] as Record<string, unknown>;
           if (typeof nestedMsg['message'] === 'string') {
@@ -148,15 +162,89 @@ class AuthService {
     console.log('[authService] Status:', status);
 
     if (status === 401) {
-      throw ErrorHandler.createError(ErrorType.AUTHENTICATION, message ?? 'Authentication failed', {
+      // Preserve field-specific error information from backend for inline error display
+      const errorMetadata: Record<string, unknown> = {
         code: status,
-      });
+      };
+
+      if (responseData !== null && responseData !== undefined && typeof responseData === 'object') {
+        const dataObj = responseData as Record<string, unknown>;
+
+        // Check for field/type at top level first (for direct error objects)
+        if (typeof dataObj['field'] === 'string') {
+          errorMetadata.field = dataObj['field'];
+        }
+        if (typeof dataObj['type'] === 'string') {
+          errorMetadata.errorCode = dataObj['type']; // Rename to errorCode to avoid conflict with ErrorType
+        }
+
+        // Also check nested message object (for wrapped error responses)
+        if (
+          dataObj['message'] !== null &&
+          dataObj['message'] !== undefined &&
+          typeof dataObj['message'] === 'object'
+        ) {
+          const nestedMsg = dataObj['message'] as Record<string, unknown>;
+          if (typeof nestedMsg['field'] === 'string') {
+            errorMetadata.field = nestedMsg['field'];
+          }
+          if (typeof nestedMsg['type'] === 'string') {
+            errorMetadata.errorCode = nestedMsg['type']; // Rename to errorCode to avoid conflict with ErrorType
+          }
+        }
+      }
+
+      console.log('[authService] 401 error metadata:', errorMetadata);
+
+      throw ErrorHandler.createError(
+        ErrorType.AUTHENTICATION,
+        message ?? 'Authentication failed',
+        errorMetadata,
+      );
     }
 
     if (status === 403) {
-      throw ErrorHandler.createError(ErrorType.PERMISSION, message ?? 'Permission denied', {
+      // Check if this is an account lockout error with blockedUntil timestamp
+      const errorMetadata: Record<string, unknown> = {
         code: status,
-      });
+      };
+
+      if (responseData !== null && responseData !== undefined && typeof responseData === 'object') {
+        const dataObj = responseData as Record<string, unknown>;
+
+        // Extract blockedUntil timestamp for account lockout errors
+        if (
+          typeof dataObj['blockedUntil'] === 'string' ||
+          dataObj['blockedUntil'] instanceof Date
+        ) {
+          errorMetadata.blockedUntil = dataObj['blockedUntil'];
+          errorMetadata.isAccountLocked = true;
+        }
+
+        // Also check nested message object
+        if (
+          dataObj['message'] !== null &&
+          dataObj['message'] !== undefined &&
+          typeof dataObj['message'] === 'object'
+        ) {
+          const nestedMsg = dataObj['message'] as Record<string, unknown>;
+          if (
+            typeof nestedMsg['blockedUntil'] === 'string' ||
+            nestedMsg['blockedUntil'] instanceof Date
+          ) {
+            errorMetadata.blockedUntil = nestedMsg['blockedUntil'];
+            errorMetadata.isAccountLocked = true;
+          }
+        }
+      }
+
+      console.log('[authService] 403 error metadata:', errorMetadata);
+
+      throw ErrorHandler.createError(
+        ErrorType.PERMISSION,
+        message ?? 'Permission denied',
+        errorMetadata,
+      );
     }
 
     if (status === 404) {
@@ -241,16 +329,46 @@ class AuthService {
 
   // Authentication methods
   public async login(request: LoginRequest): Promise<LoginResponse> {
+    console.log('🌐 LOGIN: Full URL:', `${this.baseURL}/login`);
+    console.log('🌐 LOGIN: Attempting to connect to:', this.baseURL);
+    console.log('========================================');
+    console.log('🔐 LOGIN: Starting login process');
+    console.log('========================================');
+    console.log('Email:', request.email);
+    console.log('Base URL:', this.baseURL);
+    console.log('Full URL:', `${this.baseURL}/login`);
+    console.log('Timeout:', this.timeout);
+    console.log('========================================');
+
     Logger.info('Attempting user login', { email: request.email });
 
-    const response = await this.makeRequest<LoginResponse>('POST', '/login', {
-      email: request.email,
-      password: request.password,
-      rememberMe: request.rememberMe,
-    });
+    try {
+      console.log('🌐 LOGIN: About to call makeRequest...');
+      const response = await this.makeRequest<LoginResponse>('POST', '/login', {
+        email: request.email,
+        password: request.password,
+        rememberMe: request.rememberMe,
+      });
 
-    Logger.info('Login successful', { userId: response.user.userId });
-    return response;
+      console.log('========================================');
+      console.log('✅ LOGIN: Response received successfully');
+      console.log('========================================');
+      console.log('User ID:', response.user.userId);
+      console.log('Has tokens:', !!response.tokens);
+      console.log('========================================');
+
+      Logger.info('Login successful', { userId: response.user.userId });
+      return response;
+    } catch (error) {
+      console.log('========================================');
+      console.log('❌ LOGIN: Error occurred');
+      console.log('========================================');
+      console.log('Error:', error);
+      console.log('Error type:', typeof error);
+      console.log('Error keys:', error && typeof error === 'object' ? Object.keys(error) : 'N/A');
+      console.log('========================================');
+      throw error;
+    }
   }
 
   public async register(request: RegisterRequest): Promise<RegisterResponse> {

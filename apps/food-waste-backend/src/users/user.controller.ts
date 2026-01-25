@@ -26,17 +26,18 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole, UserStatus } from './schemas/user.schema';
 import { UsersService } from './user.service';
 import { CreateUserDto } from './DTO/create-user.dto';
 import { UpdateUserDto } from './DTO/update-user.dto';
 import { SendPhoneVerificationDto } from './DTO/send-phone-verification.dto';
 import { VerifyPhoneDto } from './DTO/verify-phone.dto';
+import { UpdateLocationDto } from './DTO/update-location.dto';
 import { Response } from 'express';
-import { Public } from 'src/auth/decorators/public.decorator';
+import { Public } from 'src/common/decorators/public.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { FirebaseStorageService } from '../common/services/firebase-storage.service';
+import { LocalStorageService } from '../common/services/local-storage.service';
 
 @ApiTags('👥 User Management')
 @Controller('users')
@@ -46,7 +47,7 @@ import { FirebaseStorageService } from '../common/services/firebase-storage.serv
 export class UsersController {
     constructor(
         private readonly usersService: UsersService,
-        private readonly firebaseStorageService: FirebaseStorageService,
+        private readonly localStorageService: LocalStorageService,
     ) { }
 
     @Post()
@@ -139,20 +140,15 @@ export class UsersController {
         try {
             let profileImageUrl: string | null = null;
 
-            // Upload profile image to Firebase Storage if provided
+            // Upload profile image to local storage if provided
             if (file) {
-                const uploadResult = await this.firebaseStorageService.uploadFile(file, {
+                const uploadResult = await this.localStorageService.uploadFile(file, {
                     folder: 'profile-images',
-                    makePublic: true,
                     imageProcessing: {
                         maxWidth: 400,
                         maxHeight: 400,
                         quality: 85,
                         format: 'jpeg',
-                    },
-                    metadata: {
-                        uploadedBy: 'user-registration',
-                        category: 'profile-image',
                     },
                 });
 
@@ -274,14 +270,161 @@ export class UsersController {
                 req.user.userId,
                 updateUserDto,
             );
+            // Note: TransformInterceptor adds statusCode and timestamp
             return {
-                statusCode: HttpStatus.OK,
                 message: 'Profile updated successfully',
                 data: updatedUser,
             };
         } catch (error) {
             throw new HttpException(
                 { message: (error as Error).message || 'Error updating profile' },
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+    /**
+     * Upload profile image for authenticated user
+     * Accepts image file via multipart/form-data
+     */
+    @Patch('profile/image')
+    @UseInterceptors(FileInterceptor('profileImage'))
+    @ApiOperation({
+        summary: '📷 Upload Profile Image',
+        description: 'Upload a profile image for the authenticated user. Accepts JPEG, PNG, WebP formats.'
+    })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        description: 'Profile image file',
+        schema: {
+            type: 'object',
+            properties: {
+                profileImage: {
+                    type: 'string',
+                    format: 'binary',
+                    description: 'Image file (JPEG, PNG, WebP - max 5MB)'
+                }
+            },
+            required: ['profileImage']
+        }
+    })
+    @ApiResponse({ status: 200, description: 'Profile image uploaded successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid file or no file provided' })
+    async uploadProfileImage(
+        @Request() req,
+        @UploadedFile() file: Express.Multer.File,
+    ) {
+        if (!file) {
+            throw new HttpException(
+                { message: 'No image file provided' },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        try {
+            // Upload to local storage
+            const uploadResult = await this.localStorageService.uploadFile(file, {
+                folder: 'profile-images',
+                imageProcessing: {
+                    maxWidth: 400,
+                    maxHeight: 400,
+                    quality: 85,
+                    format: 'jpeg',
+                },
+            });
+
+            // Update user's profileImage field
+            const updatedUser = await this.usersService.update(req.user.userId, {
+                profileImage: uploadResult.downloadURL,
+            });
+
+            return {
+                message: 'Profile image uploaded successfully',
+                data: {
+                    profileImage: uploadResult.downloadURL,
+                    user: updatedUser,
+                },
+            };
+        } catch (error) {
+            throw new HttpException(
+                { message: (error as Error).message || 'Error uploading profile image' },
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+    /**
+     * Update user's last known location
+     * Stores location for cross-device sync and location-based features
+     */
+    @Patch('location')
+    @ApiOperation({
+        summary: '📍 Update User Location',
+        description: 'Update the user\'s last known location for location-based features and cross-device sync. Location persists indefinitely until manually changed.'
+    })
+    @ApiBody({
+        description: 'Location coordinates and optional metadata',
+        type: UpdateLocationDto,
+        examples: {
+            gpsLocation: {
+                summary: 'GPS Location',
+                value: {
+                    latitude: 35.8288,
+                    longitude: 10.6405,
+                    locationName: 'Sousse, Tunisia',
+                    source: 'gps'
+                }
+            },
+            manualLocation: {
+                summary: 'Manual Location',
+                value: {
+                    latitude: 36.8065,
+                    longitude: 10.1815,
+                    locationName: 'Tunis, Tunisia',
+                    source: 'manual'
+                }
+            }
+        }
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Location updated successfully',
+        schema: {
+            type: 'object',
+            properties: {
+                statusCode: { type: 'number', example: 200 },
+                message: { type: 'string', example: 'Location updated successfully' },
+                data: {
+                    type: 'object',
+                    properties: {
+                        latitude: { type: 'number', example: 35.8288 },
+                        longitude: { type: 'number', example: 10.6405 },
+                        locationName: { type: 'string', example: 'Sousse, Tunisia' },
+                        updatedAt: { type: 'string', format: 'date-time' }
+                    }
+                }
+            }
+        }
+    })
+    @ApiResponse({ status: 400, description: 'Invalid location data' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    async updateLocation(
+        @Request() req,
+        @Body() updateLocationDto: UpdateLocationDto,
+    ) {
+        try {
+            const result = await this.usersService.updateUserLocation(
+                req.user.userId,
+                updateLocationDto,
+            );
+
+            return {
+                message: 'Location updated successfully',
+                data: result,
+            };
+        } catch (error) {
+            throw new HttpException(
+                { message: (error as Error).message || 'Error updating location' },
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
@@ -296,8 +439,8 @@ export class UsersController {
     ) {
         try {
             const updatedUser = await this.usersService.update(id, updateUserDto);
+            // Note: TransformInterceptor adds statusCode and timestamp
             return {
-                statusCode: HttpStatus.OK,
                 message: 'User updated successfully',
                 data: updatedUser,
             };

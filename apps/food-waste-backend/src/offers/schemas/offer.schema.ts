@@ -21,6 +21,10 @@ export enum OfferType {
     MEAL_DEAL = 'meal_deal',
 }
 
+export enum Currency {
+    TND = 'TND', // Tunisia Dinar (primary currency for this platform)
+}
+
 export interface PickupTimeSlot {
     startTime: string;
     endTime: string;
@@ -41,7 +45,7 @@ export interface PriceInfo {
     originalPrice: number;
     discountedPrice: number;
     discountPercentage: number;
-    currency: string;
+    currency: Currency;
 }
 
 @Schema({ timestamps: true })
@@ -69,11 +73,11 @@ export class Offer {
         type: {
             originalPrice: { type: Number, required: true, min: 0 },
             discountedPrice: { type: Number, required: true, min: 0 },
-            discountPercentage: { type: Number, required: true, min: 0, max: 90 },
-            currency: { type: String, required: true, default: 'EUR' },
+            discountPercentage: { type: Number, required: true, min: 50, max: 90 },
+            currency: { type: String, enum: Currency, required: true, default: Currency.TND },
         },
         validate: {
-            validator: function (priceInfo: PriceInfo) {
+            validator(priceInfo: PriceInfo) {
                 return priceInfo.discountedPrice < priceInfo.originalPrice &&
                     priceInfo.discountPercentage === Math.round(((priceInfo.originalPrice - priceInfo.discountedPrice) / priceInfo.originalPrice) * 100);
             },
@@ -124,7 +128,7 @@ export class Offer {
             currentOrders: { type: Number, default: 0, min: 0 },
         }],
         validate: {
-            validator: function (slots: PickupTimeSlot[]) {
+            validator (slots: PickupTimeSlot[]) {
                 return slots.length > 0 && slots.every(slot =>
                     slot.startTime < slot.endTime &&
                     slot.currentOrders <= slot.maxOrders
@@ -151,8 +155,55 @@ export class Offer {
     @Prop({ default: true })
     isActive: boolean;
 
+    // =============================================================================
+    // FEATURING SYSTEM - Hybrid Manual + Auto
+    // =============================================================================
+
+    /**
+     * Manual featuring flag - Set by admins only
+     * Persists until admin explicitly removes it
+     */
     @Prop({ default: false })
-    isFeatured: boolean;
+    isFeaturedManual: boolean;
+
+    /**
+     * Auto-featuring flag - Managed by cron job
+     * Set automatically when offer is urgent (≤1.5h remaining, existed ≥2h)
+     */
+    @Prop({ default: false })
+    isFeaturedAuto: boolean;
+
+    /**
+     * Timestamp when offer was featured (manual or auto)
+     * Used for audit trail and analytics
+     */
+    @Prop()
+    featuredAt?: Date;
+
+    /**
+     * User ID who manually featured the offer
+     * Only set for manual featuring (admin action)
+     */
+    @Prop({ type: Types.ObjectId, ref: 'User' })
+    featuredBy?: Types.ObjectId;
+
+    // =============================================================================
+    // PICKUP CATEGORIZATION - Merchant-Controlled
+    // =============================================================================
+
+    /**
+     * Pickup Today flag - Set by merchant when creating/editing offer
+     * Shows offer in "Pickup Today" section on mobile app
+     */
+    @Prop({ default: false })
+    isPickupToday: boolean;
+
+    /**
+     * Pickup Tomorrow flag - Set by merchant when creating/editing offer
+     * Shows offer in "Pickup Tomorrow" section on mobile app
+     */
+    @Prop({ default: false })
+    isPickupTomorrow: boolean;
 
     @Prop({ default: false })
     isRecurring: boolean;
@@ -209,6 +260,11 @@ export class Offer {
 
 export const OfferSchema = SchemaFactory.createForClass(Offer);
 
+// ✅ BEST PRACTICE: Use _id only (MongoDB convention)
+// Apply standard schema configuration to ensure consistent API responses
+import { applyStandardSchemaConfig } from 'src/common/utils/schema-config.util';
+applyStandardSchemaConfig(OfferSchema);
+
 // =============================================================================
 // PERFORMANCE INDEXES - Base Coverage
 // =============================================================================
@@ -249,11 +305,45 @@ OfferSchema.index({ categories: 1, status: 1 });
 OfferSchema.index({ tags: 1 });
 
 /**
- * Featured Offers Index
- * - Optimizes queries for promoted offers
- * - Query pattern: find({ isFeatured: true, status: 'active' })
+ * Featured Offers Index - Manual Featuring
+ * - Optimizes queries for manually promoted offers
+ * - Query pattern: find({ isFeaturedManual: true, status: 'active' })
  */
-OfferSchema.index({ isFeatured: 1, status: 1 });
+OfferSchema.index({ isFeaturedManual: 1, status: 1 });
+
+/**
+ * Auto-Featured Offers Index
+ * - Optimizes queries for auto-promoted offers
+ * - Query pattern: find({ isFeaturedAuto: true, status: 'active' })
+ */
+OfferSchema.index({ isFeaturedAuto: 1, status: 1 });
+
+/**
+ * Pickup Today Offers Index
+ * - Optimizes queries for pickup today section
+ * - Query pattern: find({ isPickupToday: true, status: 'active' })
+ */
+OfferSchema.index({ isPickupToday: 1, status: 1 });
+
+/**
+ * Pickup Tomorrow Offers Index
+ * - Optimizes queries for pickup tomorrow section
+ * - Query pattern: find({ isPickupTomorrow: true, status: 'active' })
+ */
+OfferSchema.index({ isPickupTomorrow: 1, status: 1 });
+
+/**
+ * Auto-Featuring Eligibility Index
+ * - Critical for cron job performance
+ * - Query pattern: find({ status: 'active', createdAt: { $lte: cutoff }, availableUntil: { $lte: urgency, $gte: now } })
+ * - Used by: Auto-featuring cron job (every 5 minutes)
+ */
+OfferSchema.index({
+    status: 1,
+    createdAt: 1,
+    availableUntil: 1,
+    isFeaturedAuto: 1  // Include to speed up update queries
+});
 
 /**
  * Chronological Sorting Index
@@ -275,14 +365,27 @@ OfferSchema.index({ title: 'text', description: 'text' });
 // Added per production readiness audit recommendations
 
 /**
- * Active Featured Offers Index
+ * Active Featured Offers Index - Manual
  * - Optimizes high-visibility featured offer queries with availability
- * - Query pattern: find({ status: 'active', isFeatured: true, availableFrom: { $lte: now } }).sort({ createdAt: -1 })
- * - Use case: Homepage featured section
+ * - Query pattern: find({ status: 'active', isFeaturedManual: true, availableFrom: { $lte: now } }).sort({ createdAt: -1 })
+ * - Use case: Homepage featured section (manually featured offers)
  */
 OfferSchema.index({
     status: 1,
-    isFeatured: 1,
+    isFeaturedManual: 1,
+    availableFrom: 1,
+    createdAt: -1
+});
+
+/**
+ * Active Featured Offers Index - Auto
+ * - Optimizes high-visibility featured offer queries with availability
+ * - Query pattern: find({ status: 'active', isFeaturedAuto: true, availableFrom: { $lte: now } }).sort({ createdAt: -1 })
+ * - Use case: Homepage featured section (auto-featured offers)
+ */
+OfferSchema.index({
+    status: 1,
+    isFeaturedAuto: 1,
     availableFrom: 1,
     createdAt: -1
 });
@@ -431,6 +534,14 @@ OfferSchema.virtual('isExpired').get(function () {
 OfferSchema.virtual('isSoldOut').get(function () {
     const available = this.totalQuantity - this.reservedQuantity - this.soldQuantity;
     return available <= 0;
+});
+
+/**
+ * Computed isFeatured - Combines manual and auto featuring
+ * Returns true if EITHER manual OR auto featuring is active
+ */
+OfferSchema.virtual('isFeatured').get(function () {
+    return this.isFeaturedManual || this.isFeaturedAuto;
 });
 
 OfferSchema.pre('save', function (next) {

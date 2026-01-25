@@ -1,4 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+import { ConsentType, ConsentStatus, LegalBasis } from '../interfaces/privacy-consent.interface';
+
+// Import and re-export UserRole and UserStatus from centralized location
+// This maintains backward compatibility for any remaining imports from this file
+import { UserRole, UserStatus } from '../../common/enums/user.enum';
+export { UserRole, UserStatus };
 
 // Interface for audit log entry details
 export interface IAuditLogDetails {
@@ -33,26 +40,8 @@ export interface IAuditLogDetails {
     // Allow additional dynamic fields for flexible audit logging
     [key: string]: string | number | boolean | Date | string[] | Record<string, any> | undefined;
 }
-import { Document } from 'mongoose';
-import { ConsentType, ConsentStatus, LegalBasis } from '../interfaces/privacy-consent.interface';
 
 export type UserDocument = User & Document;
-
-export enum UserRole {
-    CONSUMER = 'consumer',
-    MERCHANT = 'merchant',
-    ADMIN = 'admin',
-    MODERATOR = 'moderator',
-}
-
-export enum UserStatus {
-    PENDING = 'pending',
-    ACTIVE = 'active',
-    SUSPENDED = 'suspended',
-    BLOCKED = 'blocked',
-    DELETED = 'deleted',
-    ANONYMIZED = 'anonymized',
-}
 
 @Schema({ timestamps: true })
 export class User {
@@ -68,7 +57,7 @@ export class User {
     @Prop({ required: true })
     lastName: string;
 
-    @Prop({ sparse: true })
+    @Prop()
     phoneNumber?: string;
 
     @Prop({ type: String, enum: UserRole, default: UserRole.CONSUMER })
@@ -94,7 +83,7 @@ export class User {
             country: String,
             coordinates: {
                 type: { type: String, enum: ['Point'], default: 'Point' },
-                coordinates: { type: [Number], index: '2dsphere' }
+                coordinates: { type: [Number] }
             }
         }
     })
@@ -630,10 +619,10 @@ export const UserSchema = SchemaFactory.createForClass(User);
 // ============================================
 // 🔧 SCHEMA CONFIGURATION
 // ============================================
-// Enable virtuals (id getter) in toJSON and toObject output
-// This ensures 'id' is available alongside '_id' when serializing
-UserSchema.set('toJSON', { virtuals: true });
-UserSchema.set('toObject', { virtuals: true });
+// ✅ BEST PRACTICE: Use _id only (MongoDB convention)
+// Apply standard schema configuration to ensure consistent API responses
+import { applyStandardSchemaConfig } from 'src/common/utils/schema-config.util';
+applyStandardSchemaConfig(UserSchema);
 
 // ============================================
 // 📊 DATABASE INDEXES FOR PERFORMANCE

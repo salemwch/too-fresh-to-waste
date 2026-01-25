@@ -10,22 +10,25 @@ import { AppLoggerService } from './services/logger.service';
 import { SentryService } from './services/sentry.service';
 import { FirebaseAdminService } from './services/firebase-admin.service';
 import { FirebaseStorageService } from './services/firebase-storage.service';
+import { LocalStorageService } from './services/local-storage.service';
 import { PhoneNumberService } from './services/phone-number.service';
 import { IsNotProfaneConstraint } from './validators/business-constraints.validator';
 import { GlobalSanitizationMiddleware } from './middleware/global-sanitization.middleware';
 import { CspReportController } from './controllers/csp-report.controller';
 import { MetricsController } from './controllers/metrics.controller';
-import { SessionManagementService } from './security/session-management.service';
 import { PrometheusMetricsService } from './services/prometheus-metrics.service';
 import { RedisModule } from '../redis/redis.module';
-import { User, UserSchema } from '../users/schemas/user.schema';
+import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
+import { EventBusService } from './services/event-bus/event-bus.service';
+import { RabbitMQAdapter } from './services/event-bus/adapters/rabbitmq.adapter';
+import { EventEmitter2Adapter } from './services/event-bus/adapters/eventemitter2.adapter';
 
 @Module({
   imports: [
     ConfigModule,
     ThrottlerModule,
     RedisModule,
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    RabbitMQModule,
   ],
   controllers: [
     CspReportController, // CSP violation reporting endpoint
@@ -41,10 +44,13 @@ import { User, UserSchema } from '../users/schemas/user.schema';
     PrometheusMetricsService, // Prometheus metrics collection
     FirebaseAdminService,
     FirebaseStorageService,
+    LocalStorageService, // Local file storage for development
     PhoneNumberService,
     IsNotProfaneConstraint, // Injectable custom validator
     GlobalSanitizationMiddleware, // Global XSS prevention
-    SessionManagementService, // Unified session management (v2.0)
+    EventBusService, // Event routing: RabbitMQ or EventEmitter2
+    RabbitMQAdapter, // RabbitMQ event publisher
+    EventEmitter2Adapter, // EventEmitter2 fallback publisher
   ],
   exports: [
     SanitizationUtil,
@@ -56,10 +62,11 @@ import { User, UserSchema } from '../users/schemas/user.schema';
     PrometheusMetricsService, // Export for application-wide metrics
     FirebaseAdminService,
     FirebaseStorageService,
+    LocalStorageService, // Export for Establishments and Offers modules
     PhoneNumberService,
     IsNotProfaneConstraint,
     GlobalSanitizationMiddleware,
-    SessionManagementService, // Export for Auth and Users modules
+    EventBusService, // Export for all modules to use event bus
   ],
 })
 export class CommonModule {}

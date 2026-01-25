@@ -1,5 +1,5 @@
 // React Native Configuration for Monorepo
-// Based on: https://reactnative.dev/docs/native-modules-android
+// Based on: https://github.com/react-native-community/cli/blob/main/docs/autolinking.md
 // Purpose: Provides autolinking configuration and package metadata
 
 module.exports = {
@@ -11,10 +11,20 @@ module.exports = {
     // iOS configuration removed - bundleIdentifier not supported in RN 0.81 config schema
     // iOS setup requires macOS and will be configured separately
   },
-  // Dependencies configuration
-  // Leave empty to use default autolinking for all packages
+  // Dependencies configuration for Nitro-based libraries
+  // Nitro modules use their own Nitrogen tooling instead of RN's codegen
+  // We disable CMake/codegen autolinking while keeping basic autolinking enabled
+  // Source: https://github.com/react-native-community/cli/blob/main/docs/autolinking.md
   dependencies: {
-    // Explicitly exclude packages if needed
-    // Example: 'some-package': { platforms: { android: null } }
+    'react-native-nitro-modules': {
+      platforms: {
+        android: null, // disable Android autolinking for this package
+      },
+    },
+    'react-native-mmkv': {
+      platforms: {
+        android: null,
+      },
+    },
   },
 };

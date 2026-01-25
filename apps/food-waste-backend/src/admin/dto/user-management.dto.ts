@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsOptional, IsEnum, IsString, MaxLength,  IsBoolean, IsDateString, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole, UserStatus } from '../../common/interfaces/user.interface';
+import { UserRole, UserStatus } from '../../common/enums/user.enum';
 
 export class UpdateUserStatusDto {
   @ApiProperty({
