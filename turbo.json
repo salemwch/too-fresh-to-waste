@@ -9,6 +9,7 @@
       "env": ["NODE_ENV"]
     },
     "dev": {
+      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },
@@ -21,8 +22,8 @@
       "persistent": true
     },
     "lint": {
-      "outputs": [".eslintcache"],
-      "dependsOn": []
+      "dependsOn": ["^build"],
+      "outputs": [".eslintcache"]
     },
     "lint:fix": {
       "outputs": [],

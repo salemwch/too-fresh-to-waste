@@ -3,34 +3,11 @@
 // Password validation - centralized configuration
 export * from './validation/password-policy.constants';
 
-// API Response types
-export interface ApiResponse<T = unknown> {
-  data: T;
-  message: string;
-  statusCode: number;
-  timestamp: string;
-}
+// Enums — single source of truth (mirrors backend)
+export * from './enums';
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-}
-
-export interface ApiError {
-  statusCode: number;
-  message: string | string[];
-  error?: string;
-  timestamp: string;
-  path: string;
-  method?: string;
-}
+// Types — shared DTOs and interfaces
+export * from './types';
 
 // Common validation utilities
 export class ValidationUtils {
@@ -164,14 +141,14 @@ export class ArrayUtils {
     array: T[],
     key: keyof T,
   ): Record<string, T[]> {
-    return array.reduce(
+    return array.reduce<Record<string, T[]>>(
       (groups, item) => {
         const group = String(item[key]);
-        groups[group] ??= [];
+        if (!groups[group]) groups[group] = [];
         groups[group].push(item);
         return groups;
       },
-      {} as Record<string, T[]>,
+      {},
     );
   }
 
@@ -179,7 +156,7 @@ export class ArrayUtils {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
     }
     return shuffled;
   }
@@ -199,50 +176,38 @@ export class ObjectUtils {
     obj: T,
     keys: K[],
   ): Pick<T, K> {
-    const result = {} as Pick<T, K>;
-    keys.forEach(key => {
-      if (key in obj) {
-        result[key] = obj[key];
-      }
-    });
-    return result;
+    return Object.fromEntries(
+      keys.filter((key) => key in obj).map((key) => [key, obj[key]]),
+    ) as Pick<T, K>;
   }
 
   public static omit<T extends Record<string, unknown>, K extends keyof T>(
     obj: T,
     keys: K[],
   ): Omit<T, K> {
-    const result = { ...obj };
-    keys.forEach(key => {
-      delete result[key];
-    });
-    return result;
+    return Object.fromEntries(
+      Object.entries(obj).filter(([k]) => !(keys as string[]).includes(k)),
+    ) as Omit<T, K>;
   }
 
   public static deepMerge<T extends Record<string, unknown>>(target: T, source: Partial<T>): T {
-    const output = { ...target };
+    const output: Record<string, unknown> = { ...target };
     if (this.isObject(target) && this.isObject(source)) {
-      Object.keys(source).forEach(key => {
-        const sourceValue = source[key as keyof typeof source];
-        const targetValue = target[key as keyof typeof target];
+      for (const key of Object.keys(source)) {
+        const sourceValue = (source as Record<string, unknown>)[key];
+        const targetValue = (target as Record<string, unknown>)[key];
 
-        if (this.isObject(sourceValue)) {
-          if (!(key in target)) {
-            Object.assign(output, { [key]: sourceValue });
-          } else if (this.isObject(targetValue)) {
-            (output as Record<string, unknown>)[key] = this.deepMerge(
-              targetValue,
-              sourceValue as Partial<typeof targetValue>,
-            );
-          } else {
-            Object.assign(output, { [key]: sourceValue });
-          }
+        if (this.isObject(sourceValue) && this.isObject(targetValue)) {
+          output[key] = this.deepMerge(
+            targetValue as Record<string, unknown>,
+            sourceValue as Partial<Record<string, unknown>>,
+          );
         } else {
-          Object.assign(output, { [key]: sourceValue });
+          output[key] = sourceValue;
         }
-      });
+      }
     }
-    return output;
+    return output as T;
   }
 
   public static isEmpty(obj: unknown): boolean {
@@ -306,8 +271,8 @@ export const TypeGuards = {
   isObject: (value: unknown): value is Record<string, unknown> =>
     value !== null && typeof value === 'object' && !Array.isArray(value),
   isArray: (value: unknown): value is unknown[] => Array.isArray(value),
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  isFunction: (value: unknown): value is (...args: unknown[]) => unknown => typeof value === 'function',
+  isFunction: (value: unknown): value is (...args: unknown[]) => unknown =>
+    typeof value === 'function',
   isNull: (value: unknown): value is null => value === null,
   isUndefined: (value: unknown): value is undefined => value === undefined,
   isNullOrUndefined: (value: unknown): value is null | undefined =>

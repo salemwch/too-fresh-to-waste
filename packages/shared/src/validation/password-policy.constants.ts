@@ -192,8 +192,8 @@ export const PASSWORD_POLICY = {
   specialCharacters: PASSWORD_SPECIAL_CHARS,
   minScore: PASSWORD_MIN_SCORE,
   maxRepeatingChars: PASSWORD_MAX_REPEATING_CHARS,
-  preventCommon: false,
-  preventPersonalInfo: false,
+  preventCommon: true,
+  preventPersonalInfo: false, // Allow users to use their name in passwords
   preventRepeating: true,
 } as const;
 

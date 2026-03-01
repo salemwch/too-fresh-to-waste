@@ -169,14 +169,10 @@
     "**/ios"
   ],
   "references": [
-    {
-      "path": "./packages/shared"
-    },
-    {
-      "path": "./apps/mobile"
-    },
-    {
-      "path": "./apps/food-waste-backend"
-    }
+    { "path": "./packages/shared" },
+    { "path": "./packages/ui" },
+    { "path": "./apps/mobile" },
+    { "path": "./apps/food-waste-backend" },
+    { "path": "./apps/web" }
   ]
 }

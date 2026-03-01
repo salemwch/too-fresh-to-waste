@@ -1,7 +1,7 @@
 {
-  "name": "foodwaste-mobile-app",
+  "name": "wfa-monorepo",
   "version": "1.0.0",
-  "description": "Food Waste Mobile App - Production-ready React Native monorepo",
+  "description": "Too Fresh To Waste — food waste reduction marketplace monorepo",
   "private": true,
   "packageManager": "pnpm@10.17.0",
   "engines": {
@@ -9,13 +9,14 @@
     "pnpm": "10.17.0"
   },
   "scripts": {
-    "postinstall": "husky install && pnpm build:deps",
+    "prepare": "husky",
+    "postinstall": "pnpm build:deps",
     "build:deps": "pnpm --filter @foodwaste/shared build",
     "build": "turbo run build",
-    "dev": "pnpm build:deps && turbo run dev",
+    "dev": "turbo run dev",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
-    "type-check": "pnpm build:deps && turbo run type-check",
+    "type-check": "turbo run type-check",
     "test": "turbo run test",
     "test:ci": "turbo run test:ci",
     "clean": "turbo run clean && pnpm store prune",
@@ -41,9 +42,9 @@
     "mobile:lint": "pnpm turbo run lint --filter=@foodwaste/mobile",
     "mobile:clean": "pnpm turbo run clean --filter=@foodwaste/mobile",
     "// ENTERPRISE DIRECT COMMANDS (CI/CD)": "",
-    "dev:android": "cd apps/mobile/android && ./gradlew assembleDebug",
-    "dev:android:clean": "cd apps/mobile/android && ./gradlew clean",
-    "dev:android:release": "cd apps/mobile/android && ./gradlew assembleRelease",
+    "dev:android": "cd apps/mobile/android && gradlew assembleDebug",
+    "dev:android:clean": "cd apps/mobile/android && gradlew clean",
+    "dev:android:release": "cd apps/mobile/android && gradlew assembleRelease",
     "dev:metro": "cd apps/mobile && node ./node_modules/metro/src/cli.js start --reset-cache --host 0.0.0.0",
     "dev:android:run": "cd apps/mobile && node ./node_modules/@react-native-community/cli/build/bin.js run-android",
     "release:ios": "turbo run release:ios",
@@ -85,7 +86,40 @@
     "@typescript-eslint/utils": "^8.44.1",
     "@typescript-eslint/visitor-keys": "^8.44.1"
   },
-  "dependencies": {
-    "deprecated-react-native-prop-types": "^5.0.0"
+  "pnpm": {
+    "overrides": {
+      "typescript": "^5.9.3",
+      "jest": "^29.7.0"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "react": ">=19.1.0",
+        "react-dom": ">=19.1.0",
+        "react-native-web": ">=0.21.0",
+        "@react-native-async-storage/async-storage": ">=2.0.0",
+        "expect": ">=27.2.5"
+      },
+      "ignoreMissing": [
+        "react-native"
+      ]
+    },
+    "onlyBuiltDependencies": [
+      "@firebase/util",
+      "@mongodb-js/zstd",
+      "@nestjs/core",
+      "@parcel/watcher",
+      "@scarf/scarf",
+      "@sentry/cli",
+      "@swc/core",
+      "argon2",
+      "bcrypt",
+      "detox",
+      "dtrace-provider",
+      "mongodb-memory-server",
+      "msgpackr-extract",
+      "protobufjs",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }
