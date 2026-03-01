@@ -5,6 +5,7 @@ import { usePathname, useRouter } from '@/i18n/routing';
 import { locales, type Locale, localeConfig } from '@/i18n/config';
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { cn } from '@foodwaste/ui';
 
 interface LanguageSwitcherProps {
   variant?: 'dropdown' | 'inline';
@@ -218,7 +219,10 @@ export function LanguageSwitcherCompact({ className = '' }: { className?: string
   return (
     <button
       onClick={cycleLocale}
-      className={`flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white ${className}`}
+      className={cn(
+        'flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white',
+        className,
+      )}
       aria-label={`Current language: ${localeConfig[locale].name}. Click to change.`}
     >
       <span className="text-xs font-bold uppercase">{locale}</span>

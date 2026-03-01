@@ -6,14 +6,8 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { locales, type Locale, getLocaleConfig } from '@/i18n/config';
 import { seoConfig, getLocaleSeoMetadata } from '@/config/seo.config';
-import {
-  OrganizationStructuredData,
-  WebsiteStructuredData,
-  MobileApplicationStructuredData,
-} from '@/components/StructuredData';
 import { GoogleAnalytics } from '@/components/GoogleAnalytics';
-import { Footer } from '@/components/layout';
-import { Newsletter } from '@/components/sections';
+import { AppProviders } from '@/components/providers/app-providers';
 import '../globals.css';
 
 // Latin font (Inter) for French and English
@@ -195,12 +189,10 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
       lang={locale}
       dir={currentLocaleConfig.direction}
       className={fontClass}
+      suppressHydrationWarning
+      data-scroll-behavior="smooth"
     >
       <head>
-        {/* Preload header logos to prevent flicker on scroll */}
-        <link rel="preload" href="/images/green-header-center.png" as="image" />
-        <link rel="preload" href="/images/white-header-center-logo.png" as="image" />
-
         {/* Preconnect to external resources */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -226,11 +218,6 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         )}
 
         <NextIntlClientProvider messages={messages}>
-          {/* Structured Data for SEO */}
-          <OrganizationStructuredData locale={locale as Locale} />
-          <WebsiteStructuredData locale={locale as Locale} />
-          <MobileApplicationStructuredData locale={locale as Locale} />
-
           {/* Skip to content link for accessibility */}
           <a
             href="#main-content"
@@ -243,15 +230,9 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
                 : 'Skip to main content'}
           </a>
 
-          {/* Main content */}
-          <div id="main-content">{children}</div>
-
-          {/* Newsletter */}
-          <Newsletter />
-
-          {/* Footer */}
-          <Footer />
-
+          <AppProviders>
+            {children}
+          </AppProviders>
         </NextIntlClientProvider>
       </body>
     </html>

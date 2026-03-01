@@ -3,6 +3,51 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 180 100% 3%;
+    --card: 0 0% 100%;
+    --card-foreground: 180 100% 3%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 180 100% 3%;
+    --primary: 179 100% 16%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 45 100% 51%;
+    --secondary-foreground: 180 100% 3%;
+    --accent: 4 90% 62%;
+    --accent-foreground: 0 0% 98%;
+    --muted: 174 8% 93%;
+    --muted-foreground: 174 8% 40%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 174 8% 90%;
+    --input: 174 8% 90%;
+    --ring: 179 100% 16%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 180 100% 3%;
+    --foreground: 0 0% 98%;
+    --card: 180 50% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 180 50% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 179 100% 16%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 45 100% 51%;
+    --secondary-foreground: 180 100% 3%;
+    --accent: 4 90% 62%;
+    --accent-foreground: 0 0% 98%;
+    --muted: 180 10% 15%;
+    --muted-foreground: 174 8% 55%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 180 10% 15%;
+    --input: 180 10% 15%;
+    --ring: 179 100% 16%;
+  }
+
   html {
     @apply scroll-smooth;
     /* Prevent horizontal overscroll bounce */
@@ -29,12 +74,12 @@
     font-kerning: normal;
   }
 
-  /* Ensure header stays fixed on mobile browsers */
-  header {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
+  /* Ensure public marketing header stays fixed on mobile browsers */
+  .public-layout header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     will-change: background-color;
@@ -42,7 +87,7 @@
   }
 
   /* Optimize logo transitions for instant switching */
-  header img {
+  .public-layout header img {
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     backface-visibility: hidden;
@@ -50,20 +95,21 @@
   }
 
   /* Prevent header layout shifts during font loading */
-  header nav {
+  .public-layout header nav {
     contain: layout;
   }
 
   /* Prevent button layout shifts */
-  header a, header button {
+  .public-layout header a,
+  .public-layout header button {
     contain: layout style;
   }
 
   /* Fix for iOS Safari fixed positioning */
   @supports (-webkit-touch-callout: none) {
-    header {
-      position: -webkit-sticky !important;
-      position: sticky !important;
+    .public-layout header {
+      position: -webkit-sticky;
+      position: sticky;
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
     }

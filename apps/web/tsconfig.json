@@ -19,6 +19,8 @@
     "paths": {
       "@foodwaste/shared": ["../../packages/shared/src"],
       "@foodwaste/shared/*": ["../../packages/shared/src/*"],
+      "@foodwaste/ui": ["../../packages/ui/src"],
+      "@foodwaste/ui/*": ["../../packages/ui/src/*"],
       "@/*": ["./src/*"],
       "@/components/*": ["./src/components/*"],
       "@/app/*": ["./src/app/*"],

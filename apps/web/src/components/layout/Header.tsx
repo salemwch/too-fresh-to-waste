@@ -175,14 +175,33 @@ export default function Header() {
                   className={`px-2 lg:px-3 xl:px-6 py-2 xl:py-2.5 border-2 rounded-lg font-bold text-[10px] lg:text-xs xl:text-base tracking-tighter lg:tracking-tight xl:tracking-wide transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   aria-label={t('cta.downloadApp')}
                 >
-                  {t('cta.downloadApp')}
+                  <span className='hidden 2xl:inline'>{t('cta.downloadApp')}</span>
+                  <span className='2xl:hidden'>{t('cta.downloadAppShort')}</span>
                 </Link>
                 <Link
-                  href='/business-signup'
+                  href='/merchant-signup'
                   className={`px-2 lg:px-3 xl:px-6 py-2 xl:py-2.5 border-2 rounded-lg font-bold text-[10px] lg:text-xs xl:text-base tracking-tighter lg:tracking-tight xl:tracking-wide transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   aria-label={t('cta.businessSignup')}
                 >
-                  {t('cta.businessSignup')}
+                  <span className='hidden 2xl:inline'>{t('cta.businessSignup')}</span>
+                  <span className='2xl:hidden'>{t('cta.businessSignupShort')}</span>
+                </Link>
+                <Link
+                  href='/login'
+                  className={`flex flex-col items-center gap-0.5 shrink-0 transition-all duration-200 hover:opacity-75 outline-none ${linkColorClass}`}
+                  aria-label={t('cta.login')}
+                >
+                  <Image
+                    src='/icons/login.svg'
+                    alt=''
+                    width={28}
+                    height={28}
+                    aria-hidden='true'
+                    className={`transition-all duration-200 ${isScrolledState ? '' : 'brightness-0 invert'}`}
+                  />
+                  <span className='text-xs lg:text-sm xl:text-sm font-bold tracking-wide whitespace-nowrap'>
+                    {t('cta.login')}
+                  </span>
                 </Link>
               </div>
 
@@ -264,12 +283,28 @@ export default function Header() {
                   {t('cta.downloadApp')}
                 </Link>
                 <Link
-                  href='/business-signup'
+                  href='/merchant-signup'
                   className={`block text-center px-6 py-3 border-2 rounded-lg font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   role='menuitem'
                 >
                   {t('cta.businessSignup')}
+                </Link>
+                <Link
+                  href='/login'
+                  className={`flex items-center justify-center gap-2 px-6 py-3 border-2 rounded-lg font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  role='menuitem'
+                >
+                  <Image
+                    src='/icons/login.svg'
+                    alt=''
+                    width={20}
+                    height={20}
+                    aria-hidden='true'
+                    className={`transition-all duration-200 ${isScrolledState ? '' : 'brightness-0 invert'}`}
+                  />
+                  {t('cta.login')}
                 </Link>
               </div>
             </div>

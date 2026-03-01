@@ -18,10 +18,39 @@ const nextConfig = {
   // Image optimization
   images: {
     formats: ['image/avif', 'image/webp'],
+    qualities: [25, 50, 75, 85, 100],
     deviceSizes: [360, 640, 768, 1024, 1280, 1536],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    domains: [], // Add CDN domains if needed
     minimumCacheTTL: 60,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+        pathname: '/toofreshtowaste.firebasestorage.app/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+        pathname: '/v0/b/toofreshtowaste**',
+      },
+      // Supabase storage (user-uploaded avatars)
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+      // Backend self-hosted uploads (dev + prod)
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: process.env.NEXT_PUBLIC_API_HOSTNAME ?? 'localhost',
+        pathname: '/uploads/**',
+      },
+    ],
   },
 
   // Output mode (standalone requires admin on Windows for symlinks)
@@ -33,8 +62,15 @@ const nextConfig = {
   // Trailing slash preference
   trailingSlash: false,
 
+  // Allow local network IPs to access the Next.js dev server without
+  // cross-origin warnings (Next.js 15+ requirement)
+  ...(process.env.NODE_ENV === 'development' && {
+    allowedDevOrigins: ['192.168.1.4'],
+  }),
+
   // Security headers
   async headers() {
+    const isProd = process.env.NODE_ENV === 'production';
     return [
       {
         source: '/:path*',
@@ -43,10 +79,13 @@ const nextConfig = {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
           },
-          {
+          // HSTS must only be sent over a real HTTPS connection in production.
+          // Sending it in dev (over HTTP on an IP) causes the browser to cache
+          // the domain as HTTPS-only, breaking future HTTP redirects.
+          ...(isProd ? [{
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload',
-          },
+          }] : []),
           {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',
@@ -78,9 +117,12 @@ const nextConfig = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
 
+  // Transpile workspace packages
+  transpilePackages: ['@foodwaste/ui', '@foodwaste/shared'],
+
   // Experimental features
   experimental: {
-    optimizePackageImports: ['@foodwaste/shared'],
+    optimizePackageImports: ['@foodwaste/shared', '@foodwaste/ui'],
   },
 };
 

@@ -1,0 +1,88 @@
+/*
+ * Merchant Signup — Scoped Theme
+ *
+ * These CSS variables are scoped to .merchant-signup-theme so they
+ * do NOT leak into the rest of the app (landing, login, dashboard).
+ * Values are taken directly from the approved signup.md design spec.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+.merchant-signup-theme {
+  --background: 0 0% 100%;
+  --foreground: 170 70% 15%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 170 70% 15%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 170 70% 15%;
+
+  --primary: 174 72% 17%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 170 20% 95%;
+  --secondary-foreground: 174 72% 17%;
+
+  --muted: 170 15% 95%;
+  --muted-foreground: 170 10% 45%;
+
+  --accent: 170 20% 95%;
+  --accent-foreground: 174 72% 17%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 170 15% 88%;
+  --input: 170 15% 88%;
+  --ring: 174 72% 17%;
+
+  --radius: 0.75rem;
+
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+/* Hide browser's built-in password reveal icon (Edge/Chrome) */
+.merchant-signup-theme input::-ms-reveal,
+.merchant-signup-theme input::-webkit-credentials-auto-fill-button {
+  display: none;
+}
+
+/* Override browser autofill yellow flash (Chrome/Safari apply a yellow bg via
+   :-webkit-autofill that cannot be removed directly — the box-shadow inset
+   hack covers it with the correct input background color).
+   Literal color used because CSS custom properties on a class (not :root)
+   may not resolve inside :-webkit-autofill in some Chromium versions. */
+.merchant-signup-theme input:-webkit-autofill,
+.merchant-signup-theme input:-webkit-autofill:hover,
+.merchant-signup-theme input:-webkit-autofill:focus,
+.merchant-signup-theme input:-webkit-autofill:active {
+  /* hsl(170 20% 95% / 0.5) blended over white ≈ hsl(170 20% 97.5%) */
+  -webkit-box-shadow: 0 0 0 1000px hsl(170 20% 97%) inset !important;
+  -webkit-text-fill-color: hsl(170 70% 15%) !important;
+  caret-color: hsl(170 70% 15%);
+  transition: background-color 9999s ease-out 0s;
+}
+
+.merchant-signup-theme.dark {
+  --background: 174 72% 7%;
+  --foreground: 0 0% 95%;
+  --card: 174 72% 10%;
+  --card-foreground: 0 0% 95%;
+  --popover: 174 72% 10%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 170 50% 60%;
+  --primary-foreground: 174 72% 7%;
+  --secondary: 174 30% 15%;
+  --secondary-foreground: 0 0% 95%;
+  --muted: 174 30% 15%;
+  --muted-foreground: 170 15% 60%;
+  --accent: 174 30% 15%;
+  --accent-foreground: 0 0% 95%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 95%;
+  --border: 174 30% 20%;
+  --input: 174 30% 20%;
+  --ring: 170 50% 60%;
+}

@@ -1,0 +1,132 @@
+'use client';
+
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { userService } from '@/services/user.service';
+import { Input, Button, Label } from '@foodwaste/ui';
+import { Lock, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator';
+
+export default function MerchantSecurityPage() {
+  const t = useTranslations('dashboard.merchantSecurity');
+
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setSuccess(false);
+
+    if (newPassword !== confirmPassword) {
+      setError(t('passwordMismatch'));
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await userService.changePassword(newPassword);
+      setSuccess(true);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch {
+      setError(t('error'));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <div className="max-w-md">
+      <div className="mb-5">
+        <h1 className="text-lg font-semibold text-slate-900">{t('title')}</h1>
+        <p className="text-xs text-slate-500 mt-0.5">{t('description')}</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
+        {/* New Password */}
+        <div className="space-y-1">
+          <Label htmlFor="newPassword" className="text-xs font-medium text-slate-700">
+            {t('newPassword')}
+          </Label>
+          <div className="relative">
+            <Lock className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <Input
+              id="newPassword"
+              type={showNew ? 'text' : 'password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              disabled={isLoading}
+              autoComplete="new-password"
+              className="h-[36px] pl-8 pr-9 text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => setShowNew((v) => !v)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              tabIndex={-1}
+              aria-label={showNew ? 'Hide password' : 'Show password'}
+            >
+              {showNew ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+            </button>
+          </div>
+          <PasswordStrengthIndicator password={newPassword} />
+        </div>
+
+        {/* Confirm Password */}
+        <div className="space-y-1">
+          <Label htmlFor="confirmPassword" className="text-xs font-medium text-slate-700">
+            {t('confirmPassword')}
+          </Label>
+          <div className="relative">
+            <Lock className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <Input
+              id="confirmPassword"
+              type={showConfirm ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              disabled={isLoading}
+              autoComplete="new-password"
+              className="h-[36px] pl-8 pr-9 text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm((v) => !v)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              tabIndex={-1}
+              aria-label={showConfirm ? 'Hide password' : 'Show password'}
+            >
+              {showConfirm ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Feedback */}
+        {error && (
+          <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+        {success && (
+          <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700">
+            <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+            <span>{t('success')}</span>
+          </div>
+        )}
+
+        <Button type="submit" disabled={isLoading} className="mt-1 h-[36px] px-4 text-sm">
+          {isLoading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+          {isLoading ? t('updating') : t('updatePassword')}
+        </Button>
+      </form>
+    </div>
+  );
+}

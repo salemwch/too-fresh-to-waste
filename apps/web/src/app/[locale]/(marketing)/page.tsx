@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
+import Image from 'next/image';
 import { Header } from '@/components/layout';
 import {
   Section2,
@@ -87,12 +88,14 @@ function HeroSection({ locale }: { locale: Locale }) {
           }}
         >
           <div className='relative'>
-            <img
+            <Image
               src='/images/profile.png'
               alt='Profile Screen'
+              width={390}
+              height={844}
               className='w-32 md:w-44 lg:w-52 h-auto opacity-90'
+              priority
             />
-            {/* Floor Shadow */}
             <div
               className='absolute left-1/2 -translate-x-1/2'
               style={{
@@ -117,12 +120,14 @@ function HeroSection({ locale }: { locale: Locale }) {
           }}
         >
           <div className='relative'>
-            <img
+            <Image
               src='/images/getstarted.png'
               alt='Get Started Screen'
+              width={390}
+              height={844}
               className='w-40 md:w-48 lg:w-48 h-auto'
+              priority
             />
-            {/* Enhanced Floor Shadow for Center Phone */}
             <div
               className='absolute left-1/2 -translate-x-1/2'
               style={{
@@ -148,12 +153,14 @@ function HeroSection({ locale }: { locale: Locale }) {
           }}
         >
           <div className='relative'>
-            <img
+            <Image
               src='/images/login.png'
               alt='Login Screen'
+              width={390}
+              height={844}
               className='w-32 md:w-44 lg:w-52 h-auto opacity-90'
+              priority
             />
-            {/* Floor Shadow */}
             <div
               className='absolute left-1/2 -translate-x-1/2'
               style={{
@@ -183,13 +190,12 @@ function HeroSection({ locale }: { locale: Locale }) {
           >
             {(() => {
               const tagline = t('tagline');
-              // Find the second-to-last period to split before the last sentence
               const lastPeriodIndex = tagline.lastIndexOf('.');
               const secondLastPeriodIndex = tagline.lastIndexOf('.', lastPeriodIndex - 1);
 
               if (secondLastPeriodIndex > 0) {
                 const firstParts = tagline.substring(0, secondLastPeriodIndex + 1);
-                const lastPart = tagline.substring(secondLastPeriodIndex + 1); // Includes the period
+                const lastPart = tagline.substring(secondLastPeriodIndex + 1);
                 return (
                   <>
                     {firstParts}
@@ -198,7 +204,6 @@ function HeroSection({ locale }: { locale: Locale }) {
                 );
               }
 
-              // Fallback: return the whole tagline
               return tagline;
             })()}
           </h1>

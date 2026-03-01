@@ -1,15 +1,18 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    // Include packages/ui components in Tailwind scanning
+    '../../packages/ui/src/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {
       colors: {
-        // Brand colors from mobile design system
+        // Brand colors from mobile design system (landing page uses these)
         primary: {
           50: '#E6F4F4',
           100: '#CCE9E8',
@@ -21,6 +24,8 @@ const config: Config = {
           700: '#003130',
           800: '#002120',
           900: '#001110',
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
         },
         accent: {
           50: '#FFF5F4',
@@ -33,12 +38,38 @@ const config: Config = {
           700: '#93322C',
           800: '#62221D',
           900: '#751A13',
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
         },
         secondary: {
-          DEFAULT: '#FFC107',
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
           light: '#FFECB3',
           dark: '#FFA000',
         },
+        // shadcn CSS variable colors
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+        // Keep legacy utility colors
         success: '#2E7D32',
         error: '#D32F2F',
         warning: '#F57C00',
@@ -84,7 +115,7 @@ const config: Config = {
         sm: '4px',
         DEFAULT: '8px',
         md: '12px',
-        lg: '16px',
+        lg: 'var(--radius)',
         xl: '20px',
         '2xl': '24px',
         full: '9999px',
@@ -115,14 +146,24 @@ const config: Config = {
           '0%': { transform: 'translateY(100%)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
+        },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
+        },
       },
       animation: {
         marquee: 'marquee 30s linear infinite',
         slideUp: 'slideUp 0.3s ease-out',
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
       },
     },
   },
-  plugins: [],
+  plugins: [require('tailwindcss-animate')],
 };
 
 export default config;
