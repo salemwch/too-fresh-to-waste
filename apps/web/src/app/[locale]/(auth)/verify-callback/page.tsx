@@ -116,7 +116,7 @@ function VerifyCallbackInner() {
             </p>
             {/* Google Play */}
             <a
-              href={process.env.NEXT_PUBLIC_PLAY_STORE_URL ?? '#'}
+              href={process.env['NEXT_PUBLIC_PLAY_STORE_URL'] ?? '#'}
               target="_blank"
               rel="noopener noreferrer"
               className="flex w-full max-w-[200px] items-center gap-3 rounded-xl bg-black px-4 py-2.5 transition-opacity hover:opacity-80"
@@ -136,7 +136,7 @@ function VerifyCallbackInner() {
             </a>
             {/* App Store */}
             <a
-              href={process.env.NEXT_PUBLIC_APP_STORE_URL ?? '#'}
+              href={process.env['NEXT_PUBLIC_APP_STORE_URL'] ?? '#'}
               target="_blank"
               rel="noopener noreferrer"
               className="flex w-full max-w-[200px] items-center gap-3 rounded-xl bg-black px-4 py-2.5 transition-opacity hover:opacity-80"

@@ -108,7 +108,7 @@ function buildStatsCards(
         direction: stats.completedOrders > 0 ? 'up' : 'down',
         label: `${stats.completedOrders} ${t('merchant.completed')}`,
       },
-      sparkline: revenueSparkline.length >= 2 ? revenueSparkline : undefined,
+      ...(revenueSparkline.length >= 2 ? { sparkline: revenueSparkline } : {}),
     },
     {
       label: t('merchant.bagsSaved'),
@@ -206,16 +206,16 @@ function buildRecentOrders(orders: MerchantOrder[]): RecentOrderItem[] {
   return orders.map((order) => {
     const customer = order.customerId;
     const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+    const avatar = resolveProfileImage(customer.profileImage, customer.avatar);
     return {
       id: order._id,
       orderNumber: order.orderNumber,
       customerName: `${customer.firstName} ${customer.lastName}`,
       customerInitials: getInitials(customer.firstName, customer.lastName),
-      customerAvatar: resolveProfileImage(customer.profileImage, customer.avatar),
+      ...(avatar ? { customerAvatar: avatar } : {}),
       itemCount,
       total: formatCurrency(order.pricing.total),
       status: STATUS_MAP[order.status] ?? 'pending',
-      // Pass raw timestamp so the panel can live-tick the display
       createdAt: order.createdAt,
       timeAgo: timeAgo(order.createdAt),
     };
