@@ -56,6 +56,7 @@ pnpm-debug.log*
 **/android/build
 **/android/.gradle
 **/android/local.properties
+**/android/app/.cxx
 
 # Keep Gradle wrapper files (important!)
 !**/android/gradle/wrapper/gradle-wrapper.jar
@@ -118,6 +119,14 @@ snyk-*
 # Uploads directory (user-generated content - use S3/CDN instead)
 **/uploads/
 uploads/
+
+# Ad-hoc root-level scripts and data (use scripts/ or docs/ instead)
+/check-offer.js
+/test-network-speed.js
+/start-ngrok.bat
+/coordinates.json
+/leaderboard.md
+/Plan.md
 
 # Windows reserved filenames (should never be tracked)
 nul
