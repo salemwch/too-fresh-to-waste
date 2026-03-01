@@ -34,6 +34,8 @@ class MainApplication : Application(), ReactApplication {
               // Nitro Modules Package - required for react-native-mmkv v4+
               // Manually added because CMake autolinking is disabled
               add(NitroModulesPackage())
+              // Screen capture prevention (FLAG_SECURE controlled per screen from JS)
+              add(ScreenCapturePackage())
             }
 
         override fun getJSMainModuleName(): String = "index"

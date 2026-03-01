@@ -1,0 +1,95 @@
+# Fastlane configuration — Food Waste Mobile App (Android)
+# Docs: https://docs.fastlane.tools
+#
+# Required environment variables (set in CI/CD secrets, never committed):
+#   KEYSTORE_PATH       — Absolute path to the decoded .keystore file
+#   KEYSTORE_PASSWORD   — Keystore password
+#   KEY_ALIAS           — Key alias inside the keystore
+#   KEY_PASSWORD        — Key password
+#   GOOGLE_PLAY_JSON_KEY — Full JSON content of the Google Play service account key
+#   VERSION_CODE        — Integer build number (e.g. GitHub Actions run_number)
+#   VERSION_NAME        — Semantic version string (e.g. "1.0.0")
+
+fastlane_version "2.226.0"
+
+default_platform(:android)
+
+platform :android do
+  # ─── build ────────────────────────────────────────────────────────────────
+  desc "Build a signed release AAB (Android App Bundle) ready for Play Store"
+  lane :build do
+    gradle(
+      project_dir: "android",
+      task:        "bundle",
+      build_type:  "Release",
+      # Pass signing config via Gradle properties instead of modifying source
+      # Docs: https://developer.android.com/studio/publish/app-signing#sign-apk
+      properties: {
+        "android.injected.signing.store.file"     => ENV.fetch("KEYSTORE_PATH"),
+        "android.injected.signing.store.password" => ENV.fetch("KEYSTORE_PASSWORD"),
+        "android.injected.signing.key.alias"      => ENV.fetch("KEY_ALIAS"),
+        "android.injected.signing.key.password"   => ENV.fetch("KEY_PASSWORD"),
+        "VERSION_CODE"                            => ENV.fetch("VERSION_CODE", "1"),
+        "VERSION_NAME"                            => ENV.fetch("VERSION_NAME", "1.0.0"),
+      },
+      print_command: false # hides signing passwords from logs
+    )
+  end
+
+  # ─── internal ─────────────────────────────────────────────────────────────
+  desc "Build + upload to Play Store internal testing track"
+  lane :internal do
+    build
+    upload_to_play_store(
+      track:                    "internal",
+      aab:                      lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      json_key_data:            ENV.fetch("GOOGLE_PLAY_JSON_KEY"),
+      skip_upload_apk:          true,
+      skip_upload_metadata:     true,
+      skip_upload_changelogs:   true,
+      skip_upload_images:       true,
+      skip_upload_screenshots:  true,
+      release_status:           "draft" # stays as draft until you manually publish
+    )
+  end
+
+  # ─── release ──────────────────────────────────────────────────────────────
+  desc "Full CI release pipeline: build signed AAB → upload to internal track"
+  lane :release do
+    internal
+  end
+
+  # ─── beta ─────────────────────────────────────────────────────────────────
+  desc "Promote the latest internal build to open testing (beta) track"
+  lane :beta do
+    upload_to_play_store(
+      track:              "internal",
+      track_promote_to:   "beta",
+      json_key_data:      ENV.fetch("GOOGLE_PLAY_JSON_KEY"),
+      skip_upload_aab:    true,
+      skip_upload_apk:    true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true
+    )
+  end
+
+  # ─── production ───────────────────────────────────────────────────────────
+  desc "Promote the latest beta build to production (requires Play Console review)"
+  lane :production do
+    upload_to_play_store(
+      track:              "beta",
+      track_promote_to:   "production",
+      json_key_data:      ENV.fetch("GOOGLE_PLAY_JSON_KEY"),
+      skip_upload_aab:    true,
+      skip_upload_apk:    true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      rollout:            "0.1" # 10% staged rollout — increase manually in Play Console
+    )
+  end
+
+  # ─── error hook ───────────────────────────────────────────────────────────
+  error do |lane, exception|
+    UI.error("Lane '#{lane}' failed: #{exception.message}")
+  end
+end

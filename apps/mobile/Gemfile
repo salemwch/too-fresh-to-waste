@@ -1,0 +1,10 @@
+source "https://rubygems.org"
+
+# Fastlane — automates building, testing, and releasing mobile apps
+# Docs: https://docs.fastlane.tools
+gem "fastlane", "~> 2.226"
+
+# Google Play Store plugin (bundled with fastlane, listed explicitly for clarity)
+# Docs: https://docs.fastlane.tools/actions/upload_to_play_store/
+plugins_path = File.join(File.dirname(__FILE__), "fastlane", "Pluginfile")
+eval_gemfile(plugins_path) if File.exist?(plugins_path)

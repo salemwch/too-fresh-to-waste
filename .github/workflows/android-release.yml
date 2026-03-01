@@ -1,0 +1,132 @@
+name: Android Release
+
+# Triggers:
+#   1. Push a semver tag: git tag v1.0.0 && git push origin v1.0.0
+#   2. Manual dispatch from GitHub Actions UI (choose version name)
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: "Version name (e.g. 1.2.3)"
+        required: true
+        default: "1.0.0"
+
+concurrency:
+  group: android-release
+  cancel-in-progress: false # Never cancel a release in flight
+
+jobs:
+  release:
+    name: Build & Upload to Play Store (internal track)
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Toolchain ─────────────────────────────────────────────────────────
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.11.1"
+
+      - name: Set up Java 17 (required by Gradle)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "10.17.0"
+
+      - name: Set up Ruby 3.3 (required by Fastlane)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true          # caches gems automatically
+          working-directory: apps/mobile
+
+      # ── Caches ────────────────────────────────────────────────────────────
+      - name: Get pnpm store path
+        id: pnpm-cache
+        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-pnpm-
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      # ── Dependencies ──────────────────────────────────────────────────────
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared package (required before mobile build)
+        run: pnpm --filter @foodwaste/shared build
+
+      - name: Make gradlew executable
+        run: chmod +x apps/mobile/android/gradlew
+
+      # ── Version numbers ───────────────────────────────────────────────────
+      # VERSION_CODE: unique integer per upload — use GitHub run_number.
+      # VERSION_NAME: human-readable semver from tag (v1.0.0 → 1.0.0) or manual input.
+      - name: Resolve version numbers
+        id: version
+        run: |
+          RAW_NAME="${{ github.event.inputs.version_name || github.ref_name }}"
+          # Strip leading "v" if present (v1.0.0 → 1.0.0)
+          VERSION_NAME="${RAW_NAME#v}"
+          echo "VERSION_CODE=${{ github.run_number }}" >> $GITHUB_ENV
+          echo "VERSION_NAME=${VERSION_NAME}"          >> $GITHUB_ENV
+          echo "version_name=${VERSION_NAME}"          >> $GITHUB_OUTPUT
+          echo "version_code=${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      # ── Signing ───────────────────────────────────────────────────────────
+      # The keystore is base64-encoded and stored as a GitHub secret.
+      # To encode your keystore: base64 -w 0 release.keystore
+      - name: Decode release keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode \
+            > ${{ github.workspace }}/apps/mobile/android/app/release.keystore
+
+      # ── Fastlane build + upload ───────────────────────────────────────────
+      - name: Build AAB & upload to Play Store internal track
+        working-directory: apps/mobile
+        env:
+          KEYSTORE_PATH:        "${{ github.workspace }}/apps/mobile/android/app/release.keystore"
+          KEYSTORE_PASSWORD:    "${{ secrets.KEYSTORE_PASSWORD }}"
+          KEY_ALIAS:            "${{ secrets.KEY_ALIAS }}"
+          KEY_PASSWORD:         "${{ secrets.KEY_PASSWORD }}"
+          GOOGLE_PLAY_JSON_KEY: "${{ secrets.GOOGLE_PLAY_JSON_KEY }}"
+          VERSION_CODE:         "${{ env.VERSION_CODE }}"
+          VERSION_NAME:         "${{ env.VERSION_NAME }}"
+        run: bundle exec fastlane android release
+
+      # ── Artifacts ─────────────────────────────────────────────────────────
+      - name: Upload AAB as workflow artifact (for audit trail)
+        uses: actions/upload-artifact@v4
+        with:
+          name: "app-release-${{ steps.version.outputs.version_name }}.aab"
+          path: apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      # ── Cleanup ───────────────────────────────────────────────────────────
+      - name: Remove decoded keystore
+        if: always() # run even if previous steps fail
+        run: rm -f ${{ github.workspace }}/apps/mobile/android/app/release.keystore
