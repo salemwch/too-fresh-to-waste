@@ -38,9 +38,31 @@ import {
     CancelOrderDto,
     OrderQueryDto,
 } from './DTO/create-order.dto';
-import { OrdersService, OrderStatsResponse } from './order.service';
-import * as QRCode from 'qrcode' ;
+import {
+    OrdersService,
+    OrderStatsResponse,
+    RevenueChartResponse,
+    CustomerLocationResponse,
+    type ChartGranularity,
+} from './order.service';
 
+/** Allowed granularity values — validated at the controller boundary. */
+const VALID_GRANULARITIES = new Set<ChartGranularity>(['day', 'week', 'month']);
+
+/** Maximum `value` allowed per granularity to prevent runaway aggregations. */
+const CHART_LIMITS: Record<ChartGranularity, number> = { day: 90, week: 52, month: 24 };
+import { plainToInstance } from 'class-transformer';
+import { ConsumerOrderResponseDto, MerchantOrderResponseDto } from './DTO/order-response.dto';
+import * as QRCode from 'qrcode' ;
+import { QueryOptimizer } from '../common/utils/query-optimization.util';
+
+/** Converts a Mongoose document to a primitive-only plain object.
+ *  plainToInstance (class-transformer) constructs new instances for any class-typed
+ *  value it encounters — e.g. ObjectId instances silently become freshly generated IDs.
+ *  JSON.stringify triggers ObjectId.toJSON() → hex string, Date.toJSON() → ISO string,
+ *  and JSON.parse returns a pure primitive object.  This is exactly what both
+ *  plainToInstance and the eventual HTTP serialisation expect. */
+const toPlain = (doc: any): any => JSON.parse(JSON.stringify(doc));
 
 @Catch()
 export class OrderExceptionFilter implements ExceptionFilter {
@@ -74,7 +96,7 @@ export class OrderExceptionFilter implements ExceptionFilter {
             status = HttpStatus.BAD_REQUEST;
             const exceptionResponse = exception.getResponse() as any;
             message = exceptionResponse.message || exceptionResponse || 'Invalid order data';
-            details = exceptionResponse.code ? exceptionResponse : null;
+            details = exceptionResponse.code ? exceptionResponse : (exceptionResponse.details || null);
         } else if (exception instanceof NotFoundException) {
             status = HttpStatus.NOT_FOUND;
             message = exception.message || 'Resource not found';
@@ -119,7 +141,7 @@ export class OrdersController {
         return {
             statusCode: HttpStatus.CREATED,
             message: 'Order created successfully',
-            data: order,
+            data: plainToInstance(ConsumerOrderResponseDto, toPlain(order), { excludeExtraneousValues: true }),
         };
     }
 
@@ -155,14 +177,7 @@ export class OrdersController {
             statusCode: HttpStatus.OK,
             message: result.orders.length > 0 ? 'Orders retrieved successfully' : 'No orders found matching the criteria',
             data: result.orders,
-            meta: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-                hasNextPage: page < Math.ceil(result.total / limit),
-                hasPrevPage: page > 1,
-            },
+            meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
         };
     }
 
@@ -189,15 +204,8 @@ export class OrdersController {
         return {
             statusCode: HttpStatus.OK,
             message: 'Your orders retrieved successfully',
-            data: result.orders,
-            meta: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-                hasNextPage: page < Math.ceil(result.total / limit),
-                hasPrevPage: page > 1,
-            },
+            data: result.orders.map(o => plainToInstance(ConsumerOrderResponseDto, toPlain(o), { excludeExtraneousValues: true })),
+            meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
         };
     }
 
@@ -223,35 +231,111 @@ export class OrdersController {
         return {
             statusCode: HttpStatus.OK,
             message: 'Your merchant orders retrieved successfully',
-            data: result.orders,
-            meta: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-                hasNextPage: page < Math.ceil(result.total / limit),
-                hasPrevPage: page > 1,
-            },
+            data: result.orders.map(o => plainToInstance(MerchantOrderResponseDto, toPlain(o), { excludeExtraneousValues: true })),
+            meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
         };
     }
 
     @ApiOperation({ summary: 'Get order statistics', description: 'Retrieve order statistics and analytics for admin or merchant' })
+    @ApiQuery({ name: 'startDate', required: false, type: String, description: 'ISO 8601 date — filter orders from this date (e.g. 2025-06-01T00:00:00.000Z)' })
     @ApiResponse({ status: 200, description: 'Order statistics retrieved successfully' })
     @ApiResponse({ status: 401, description: 'Unauthorized - Admin or Merchant access required' })
     @Get('stats')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.MERCHANT)
-    async getOrderStats(@Request() req): Promise<{
+    async getOrderStats(
+        @Request() req,
+        @Query('startDate') startDateStr?: string,
+    ): Promise<{
         statusCode: number;
         message: string;
         data: OrderStatsResponse;
     }> {
-        const stats = await this.ordersService.getOrderStats(req.user.userId, req.user.role);
+        const startDate = startDateStr ? new Date(startDateStr) : undefined;
+        const stats = await this.ordersService.getOrderStats(req.user.userId, req.user.role, startDate);
 
         return {
             statusCode: HttpStatus.OK,
             message: 'Order statistics retrieved successfully',
             data: stats,
+        };
+    }
+
+    @ApiOperation({
+        summary: 'Get revenue chart data',
+        description:
+            'Returns revenue per slot (day / week / month) for the last N slots. ' +
+            'Limits: day ≤ 90, week ≤ 52, month ≤ 24.',
+    })
+    @ApiQuery({ name: 'granularity', required: false, enum: ['day', 'week', 'month'], description: 'Aggregation granularity (default: month)' })
+    @ApiQuery({ name: 'value',       required: false, type: Number,                   description: 'Number of slots to return (default: 9)' })
+    @ApiResponse({ status: 200, description: 'Revenue chart data retrieved successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid granularity or value out of range' })
+    @ApiResponse({ status: 401, description: 'Unauthorized — merchant or admin access required' })
+    @Get('merchant-revenue-chart')
+    @UseGuards(RolesGuard)
+    @Roles(UserRole.MERCHANT, UserRole.ADMIN)
+    async getMerchantRevenueChart(
+        @Request() req,
+        @Query('granularity') rawGranularity = 'month',
+        @Query('value', new DefaultValuePipe(9), ParseIntPipe) value: number,
+    ): Promise<{
+        statusCode: number;
+        message: string;
+        data: RevenueChartResponse[];
+    }> {
+        if (!VALID_GRANULARITIES.has(rawGranularity as ChartGranularity)) {
+            throw new BadRequestException(
+                `granularity must be one of: ${[...VALID_GRANULARITIES].join(', ')}`,
+            );
+        }
+        const granularity = rawGranularity as ChartGranularity;
+
+        const limit = CHART_LIMITS[granularity];
+        if (value < 1 || value > limit) {
+            throw new BadRequestException(
+                `value for granularity "${granularity}" must be between 1 and ${limit}`,
+            );
+        }
+
+        const data = await this.ordersService.getRevenueChart(
+            req.user.userId,
+            req.user.role,
+            granularity,
+            value,
+        );
+
+        return {
+            statusCode: HttpStatus.OK,
+            message: 'Revenue chart data retrieved successfully',
+            data,
+        };
+    }
+
+    @ApiOperation({ summary: 'Get customer locations from orders', description: 'Aggregates customer city distribution from merchant orders' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Max locations (default: 5)' })
+    @ApiQuery({ name: 'startDate', required: false, type: String, description: 'ISO 8601 date — filter orders from this date' })
+    @ApiResponse({ status: 200, description: 'Customer locations retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Merchant access required' })
+    @Get('merchant-customer-locations')
+    @UseGuards(RolesGuard)
+    @Roles(UserRole.MERCHANT, UserRole.ADMIN)
+    async getMerchantCustomerLocations(
+        @Request() req,
+        @Query('limit', new DefaultValuePipe(5), ParseIntPipe) limit: number,
+        @Query('startDate') startDateStr?: string,
+    ): Promise<{
+        statusCode: number;
+        message: string;
+        data: CustomerLocationResponse[];
+    }> {
+        const startDate = startDateStr ? new Date(startDateStr) : undefined;
+        const data = await this.ordersService.getCustomerLocations(req.user.userId, req.user.role, limit, startDate);
+
+        return {
+            statusCode: HttpStatus.OK,
+            message: 'Customer locations retrieved successfully',
+            data,
         };
     }
 
@@ -274,12 +358,7 @@ export class OrdersController {
             statusCode: HttpStatus.OK,
             message: 'Pending orders retrieved successfully',
             data: result.orders,
-            meta: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-            },
+            meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
         };
     }
 
@@ -292,10 +371,14 @@ export class OrdersController {
     async findOne(@Param('id') id: string, @Request() req) {
         const order = await this.ordersService.findById(id, req.user.userId, req.user.role);
 
+        const DtoClass = req.user.role === UserRole.MERCHANT || req.user.role === UserRole.ADMIN
+            ? MerchantOrderResponseDto
+            : ConsumerOrderResponseDto;
+
         return {
             statusCode: HttpStatus.OK,
             message: 'Order retrieved successfully',
-            data: order,
+            data: plainToInstance(DtoClass, toPlain(order), { excludeExtraneousValues: true }),
         };
     }
 
@@ -437,7 +520,7 @@ export class OrdersController {
         const customer = order.customerId as any;
 
         // Generate a simplified receipt data
-        const receipt = {
+        const receipt: Record<string, unknown> = {
             orderNumber: order.orderNumber,
             establishmentName: establishment.name,
             customerName: `${customer.firstName} ${customer.lastName}`,
@@ -455,6 +538,11 @@ export class OrdersController {
             status: order.status,
             paymentStatus: order.paymentStatus,
         };
+
+        // Merchant/admin sees pickup code on receipt; consumer does not
+        if (req.user.role === UserRole.MERCHANT || req.user.role === UserRole.ADMIN) {
+            receipt.pickupCode = order.pickupDetails.pickupCode;
+        }
 
         return {
             statusCode: HttpStatus.OK,
@@ -474,16 +562,22 @@ export class OrdersController {
 
         const qrImage = await QRCode.toDataURL(order.pickupDetails.qrCode);
 
+        const responseData: Record<string, unknown> = {
+            qrCode: order.pickupDetails.qrCode,
+            orderId: order._id,
+            orderNumber: order.orderNumber,
+            qrCodeImage: qrImage,
+        };
+
+        // Only merchant/admin receives the 6-digit pickup code
+        if (req.user.role === UserRole.MERCHANT || req.user.role === UserRole.ADMIN) {
+            responseData.pickupCode = order.pickupDetails.pickupCode;
+        }
+
         return {
             statusCode: HttpStatus.OK,
             message: 'Order QR code retrieved successfully',
-            data: {
-                qrCode: order.pickupDetails.qrCode,
-                pickupCode: order.pickupDetails.pickupCode,
-                orderId: order._id,
-                orderNumber: order.orderNumber,
-                qrCodeImage: qrImage,
-            },
+            data: responseData,
         };
     }
 

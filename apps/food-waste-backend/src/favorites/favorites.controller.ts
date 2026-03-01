@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { FavoritesService } from './favorites.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -109,11 +110,103 @@ export class FavoritesController {
     return { isFavorite };
   }
 
+  // ============================================================================
+  // NEW: Production-grade endpoints for optimistic UI
+  // ============================================================================
+
+  @Get('ids')
+  @ApiOperation({
+    summary: 'Get user favorite offer IDs (lightweight)',
+    description:
+      'Returns only IDs of favorited offers (not full documents). ' +
+      'Optimized for frontend Redux hydration and isFavorite computation.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Favorite offer IDs retrieved successfully',
+    schema: {
+      example: {
+        ids: ['507f1f77bcf86cd799439011', '507f191e810c19729de860ea'],
+      },
+    },
+  })
+  async getUserFavoriteIds(@GetUser('id') userId: string) {
+    const ids = await this.favoritesService.getUserFavoriteOfferIds(userId);
+    return { message: 'Favorite offer IDs retrieved successfully', data: { ids } };
+  }
+
+  @Post('toggle')
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // Max 10 toggles per minute
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Toggle favorite status (add or remove)',
+    description:
+      'Atomic operation that adds or removes favorite with transaction support. ' +
+      'Returns new status. Optimized for optimistic UI updates. Rate limited to 10 requests/minute.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Favorite toggled successfully',
+    schema: {
+      example: {
+        isFavorite: true,
+        message: 'Favorite added successfully',
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 429, description: 'Too many requests (rate limit exceeded)' })
+  async toggleFavorite(
+    @GetUser('id') userId: string,
+    @Body()
+    dto: {
+      type: FavoriteType;
+      itemId: string;
+      itemName?: string;
+      itemImage?: string;
+    },
+  ) {
+    const isFavorite = await this.favoritesService.toggleFavorite(
+      userId,
+      dto.type,
+      dto.itemId,
+      dto.itemName,
+      dto.itemImage,
+    );
+
+    return {
+      isFavorite,
+      message: isFavorite ? 'Favorite added successfully' : 'Favorite removed successfully',
+    };
+  }
+
   @Get('stats')
   @ApiOperation({ summary: 'Get user favorites statistics' })
   @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
    getFavoriteStats(@GetUser('id') userId: string) {
     return this.favoritesService.getFavoriteStats(userId);
+  }
+
+  @Get('debug/count')
+  @ApiOperation({ summary: '[DEBUG] Get raw favorites count for current user' })
+  @ApiResponse({ status: 200, description: 'Debug count retrieved' })
+  async debugGetFavoritesCount(@GetUser('id') userId: string) {
+    const { Types } = await import('mongoose');
+    const userObjectId = new Types.ObjectId(userId);
+
+    const [totalFavorites, activeFavorites, offerFavorites] = await Promise.all([
+      this.favoritesService['favoriteModel'].countDocuments({ userId: userObjectId }),
+      this.favoritesService['favoriteModel'].countDocuments({ userId: userObjectId, isActive: true }),
+      this.favoritesService['favoriteModel'].countDocuments({ userId: userObjectId, type: 'offer', isActive: true }),
+    ]);
+
+    return {
+      userId,
+      totalFavorites,
+      activeFavorites,
+      offerFavorites,
+      timestamp: new Date(),
+    };
   }
 
   // Favorite Lists endpoints

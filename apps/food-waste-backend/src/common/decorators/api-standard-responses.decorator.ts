@@ -16,9 +16,10 @@ import {
 
 /**
  * Standard error response schema
+ * ✅ Updated to match TransformInterceptor and AllExceptionsFilter
  */
 export class ErrorResponse {
-    statusCode: number;
+    status: number;
     message: string | string[];
     error?: string;
     timestamp: string;
@@ -86,7 +87,7 @@ export function ApiCommonErrorResponses() {
             description: 'Bad Request - Invalid input data or validation failed',
             type: ValidationErrorResponse,
             example: {
-                statusCode: 400,
+                status: 400,
                 message: ['email must be a valid email address'],
                 error: 'Bad Request',
                 timestamp: '2025-01-21T10:30:00.000Z',
@@ -99,7 +100,7 @@ export function ApiCommonErrorResponses() {
             description: 'Unauthorized - Missing or invalid authentication token',
             type: ErrorResponse,
             example: {
-                statusCode: 401,
+                status: 401,
                 message: 'Unauthorized',
                 timestamp: '2025-01-21T10:30:00.000Z',
                 path: '/api/v1/users/profile',
@@ -111,7 +112,7 @@ export function ApiCommonErrorResponses() {
             description: 'Forbidden - Insufficient permissions to access resource',
             type: ErrorResponse,
             example: {
-                statusCode: 403,
+                status: 403,
                 message: 'Forbidden resource',
                 timestamp: '2025-01-21T10:30:00.000Z',
                 path: '/api/v1/admin/users',
@@ -123,7 +124,7 @@ export function ApiCommonErrorResponses() {
             description: 'Not Found - Resource does not exist',
             type: ErrorResponse,
             example: {
-                statusCode: 404,
+                status: 404,
                 message: 'User not found',
                 timestamp: '2025-01-21T10:30:00.000Z',
                 path: '/api/v1/users/123',
@@ -135,7 +136,7 @@ export function ApiCommonErrorResponses() {
             description: 'Too Many Requests - Rate limit exceeded',
             type: ErrorResponse,
             example: {
-                statusCode: 429,
+                status: 429,
                 message: 'ThrottlerException: Too Many Requests',
                 timestamp: '2025-01-21T10:30:00.000Z',
                 path: '/api/v1/auth/login',
@@ -147,7 +148,7 @@ export function ApiCommonErrorResponses() {
             description: 'Internal Server Error - Unexpected server error',
             type: ErrorResponse,
             example: {
-                statusCode: 500,
+                status: 500,
                 message: 'Internal server error',
                 timestamp: '2025-01-21T10:30:00.000Z',
                 path: '/api/v1/orders',

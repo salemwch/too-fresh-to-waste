@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, Query, Types } from 'mongoose';
+import { DEFAULT_CURRENCY } from '../../common/enums/currency.enum';
 
 export type OrderDocument = Order & Document;
 
@@ -160,7 +161,7 @@ export class Order {
             stripePaymentIntentId: String,
             transactionId: String,
             amount: { type: Number, required: true, min: 0 },
-            currency: { type: String, required: true, default: 'EUR' },
+            currency: { type: String, required: true, default: DEFAULT_CURRENCY },
             processingFee: { type: Number, min: 0 },
         }
     })
@@ -173,7 +174,7 @@ export class Order {
             taxAmount: { type: Number, default: 0, min: 0 },
             serviceFee: { type: Number, default: 0, min: 0 },
             total: { type: Number, required: true, min: 0 },
-            currency: { type: String, required: true, default: 'EUR' },
+            currency: { type: String, required: true, default: DEFAULT_CURRENCY },
         }
     })
     pricing: {
@@ -459,15 +460,17 @@ OrderSchema.virtual('totalItems').get(function () {
 
 // Pre-save middleware to auto-expire orders
 OrderSchema.pre('save', function (next) {
-    // Set expiration for RESERVED orders (TGTG model) or CONFIRMED (legacy)
+    // Fallback: if expiresAt was NOT set by the service layer (e.g. legacy
+    // code-path), compute it from the pickup end time + 30 minutes.
+    // The primary calculation happens in OrdersService.create() using
+    // offer.availableUntil + GRACE_PERIOD_MS.
     if (this.isModified('status') &&
         (this.status === OrderStatus.RESERVED || this.status === OrderStatus.CONFIRMED) &&
         !this.expiresAt) {
-        // Set expiration to 24 hours from pickup scheduled date end time
         const pickupDate = new Date(this.pickupDetails.scheduledDate);
         const endTime = this.pickupDetails.timeSlot.endTime.split(':');
         pickupDate.setHours(parseInt(endTime[0]), parseInt(endTime[1]), 0, 0);
-        this.expiresAt = new Date(pickupDate.getTime() + (24 * 60 * 60 * 1000)); // +24 hours
+        this.expiresAt = new Date(pickupDate.getTime() + (30 * 60 * 1000)); // +30 minutes fallback
     }
 
     if (this.isModified('status')) {
@@ -495,4 +498,23 @@ OrderSchema.pre('save', function (next) {
     }
 
     next();
+});
+
+// =============================================================================
+// SOFT-DELETE MIDDLEWARE — Auto-exclude deleted orders from queries
+// Bypass with: .setOptions({ includeDeleted: true })
+// =============================================================================
+
+OrderSchema.pre<Query<any, OrderDocument>>(/^find/, function (next) {
+    if (!(this as any).getOptions()?.includeDeleted) {
+        this.where({ isDeleted: { $ne: true } });
+    }
+    next();
+});
+
+OrderSchema.pre('aggregate', function () {
+    const options = (this as any).options || {};
+    if (!options.includeDeleted) {
+        this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    }
 });

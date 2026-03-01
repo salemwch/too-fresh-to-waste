@@ -141,6 +141,9 @@ export class Establishment {
     email: string;
 
     @Prop()
+    googlePlaceId?: string;
+
+    @Prop()
     website?: string;
 
     @Prop({ type: [String], default: [] })
@@ -382,6 +385,14 @@ EstablishmentSchema.index({ name: 'text', description: 'text' });
 // Added per production readiness audit recommendations
 
 /**
+ * Google Place ID Lookup Index
+ * - Enables deduplication and lookup by Google Place ID
+ * - Sparse index (only establishments linked to Google Places)
+ * - Query pattern: findOne({ googlePlaceId: 'ChIJ...' })
+ */
+EstablishmentSchema.index({ googlePlaceId: 1 }, { sparse: true });
+
+/**
  * Email Contact Lookup Index
  * - Enables email-based establishment lookup during onboarding
  * - Prevents duplicate establishment registration
@@ -506,13 +517,19 @@ import { Query } from 'mongoose';
  * Applies to: find, findOne, findOneAndUpdate, etc.
  */
 EstablishmentSchema.pre<Query<any, EstablishmentDocument>>(/^find/, function (next) {
-    this.where({ isDeleted: { $ne: true } });
+    if (!(this as any).getOptions()?.includeDeleted) {
+        this.where({ isDeleted: { $ne: true } });
+    }
     next();
 });
 
 /**
  * Pre-aggregate middleware to exclude soft-deleted establishments
+ * Bypass with: .setOptions({ includeDeleted: true })
  */
 EstablishmentSchema.pre('aggregate', function () {
-    this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    const options = (this as any).options || {};
+    if (!options.includeDeleted) {
+        this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    }
 });

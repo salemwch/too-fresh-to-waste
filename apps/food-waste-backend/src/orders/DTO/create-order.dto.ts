@@ -54,7 +54,7 @@ export class PickupTimeSlotDto {
  * BUSINESS LOGIC: Order creation with comprehensive validation
  *
  * Key constraints addressed (PRODUCTION_READINESS_AUDIT_REPORT.md:246):
- * - Minimum booking time (30 minutes ahead)
+ * - Immediate pickups allowed (no minimum delay)
  * - Maximum booking window (30 days)
  * - Input sanitization for all text fields
  * - Profanity filtering for user-generated content
@@ -78,14 +78,14 @@ export class CreateOrderDto {
 
     /**
      * BUSINESS RULE: Pickup date must be:
-     * 1. At least 30 minutes in the future (operational requirement)
+     * 1. In the future (can be immediate)
      * 2. Within 30 days from now (inventory planning constraint)
      *
-     * Rationale: Prevents last-minute orders that merchants can't fulfill
-     * and prevents far-future bookings that complicate inventory management
+     * Rationale: Allows immediate pickups while preventing far-future bookings
+     * that complicate inventory management
      */
     @IsDateString({}, { message: 'pickupDate must be a valid ISO 8601 date string' })
-    @IsFutureDate(30, { message: 'Pickup time must be at least 30 minutes from now' }) // BUSINESS RULE
+    @IsFutureDate(0, { message: 'Pickup time must be in the future' }) // BUSINESS RULE: No minimum delay
     @IsWithinDays(30, { message: 'Cannot book pickup more than 30 days in advance' }) // BUSINESS RULE
     pickupDate: string;
 
@@ -101,12 +101,13 @@ export class CreateOrderDto {
 
     /**
      * Payment method: sanitize enum to prevent injection
+     * ✅ BUSINESS RULE: Support cash_on_pickup as primary payment method (MVP)
      */
-    @SanitizeEnum(['stripe', 'paypal', 'apple_pay', 'google_pay']) // SECURITY
+    @SanitizeEnum(['cash_on_pickup', 'pay_on_delivery', 'stripe', 'paypal', 'apple_pay', 'google_pay']) // SECURITY
     @IsNotEmpty()
     @IsString()
-    @IsEnum(['stripe', 'paypal', 'apple_pay', 'google_pay'], {
-        message: 'Payment method must be one of: stripe, paypal, apple_pay, google_pay'
+    @IsEnum(['cash_on_pickup', 'pay_on_delivery', 'stripe', 'paypal', 'apple_pay', 'google_pay'], {
+        message: 'Payment method must be one of: cash_on_pickup, pay_on_delivery, stripe, paypal, apple_pay, google_pay'
     })
     paymentMethod: string;
 

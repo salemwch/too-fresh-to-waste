@@ -5,7 +5,7 @@ import { DonationPoolStatus } from '../schemas/donation-pool.schema';
  * Interface for donation calculation configuration
  */
 export interface DonationCalculationConfig {
-    platformFeePercentage: number; // 20% = 0.20
+    platformFeePercentage: number; // 25% = 0.25
     donationPercentage: number;    // 5% = 0.05
     mealCostEstimate: number;      // Cost per meal in TND
 }
@@ -75,10 +75,10 @@ export interface BadgeCriteria {
  * Constants for donation business logic
  */
 export const DONATION_CONSTANTS = {
-    PLATFORM_FEE_PERCENTAGE: 0.20,     // 20% platform fee
+    PLATFORM_FEE_PERCENTAGE: 0.25,     // 25% platform fee
     DONATION_PERCENTAGE: 0.05,         // 5% of platform fee goes to donations
     MEAL_COST_ESTIMATE_TND: 5.0,      // Estimated cost per meal in TND
-    DEFAULT_TARGET_AMOUNT: 1000,       // Default pool target
+    DEFAULT_TARGET_AMOUNT: 300,        // Default pool target (changed from 1000)
     DEFAULT_CURRENCY: 'TND',           // Default currency
 } as const;
 

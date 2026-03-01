@@ -86,7 +86,7 @@ export class DonationsService {
     /**
      * Calculate donation amount from order total
      * Formula: (orderTotal * platformFeePercentage) * donationPercentage
-     * Example: (5 DT * 0.20) * 0.05 = 0.05 DT
+     * Example: (5 DT * 0.25) * 0.05 = 0.0625 DT
      */
     calculateDonationAmount(orderTotal: number): number {
         if (orderTotal <= 0) {
@@ -142,9 +142,9 @@ export class DonationsService {
             const pool = await this.getActivePool();
 
             // Check if donation already exists for this order (idempotency)
+            // Note: isDeleted filter is handled by schema pre-find middleware
             const existingDonation = await this.userDonationModel.findOne({
                 orderId: input.orderId,
-                isDeleted: false,
             });
 
             if (existingDonation) {
@@ -208,7 +208,6 @@ export class DonationsService {
     private async updateContributorCount(poolId: Types.ObjectId): Promise<void> {
         const uniqueContributors = await this.userDonationModel.distinct('userId', {
             donationPoolId: poolId,
-            isDeleted: false,
         });
 
         await this.donationPoolModel.findByIdAndUpdate(poolId, {
@@ -305,11 +304,13 @@ export class DonationsService {
      */
     async getUserStats(userId: Types.ObjectId): Promise<UserDonationStatsResponseDto> {
         try {
-            // Aggregate user donations
+            // Aggregate user donations — select only fields needed for stats computation
+            // Note: isDeleted filter is handled by schema pre-find middleware
             const userDonations = await this.userDonationModel.find({
                 userId,
-                isDeleted: false,
-            });
+            })
+                .select('amount contributedAt badges')
+                .lean();
 
             const totalDonated = userDonations.reduce((sum, d) => sum + d.amount, 0);
             const contributionCount = userDonations.length;
@@ -323,8 +324,8 @@ export class DonationsService {
             const mealsContributed = this.calculateMealCount(totalDonated);
 
             // Calculate rank (simplified - count users with more donations)
+            // Note: isDeleted filter is handled by schema pre-aggregate middleware
             const usersWithMore = await this.userDonationModel.aggregate([
-                { $match: { isDeleted: false } },
                 { $group: { _id: '$userId', total: { $sum: '$amount' } } },
                 { $match: { total: { $gt: totalDonated } } },
                 { $count: 'count' },
@@ -347,6 +348,40 @@ export class DonationsService {
     }
 
     /**
+     * Admin: Update the active donation pool (targetAmount, cause)
+     * Only updates fields that are provided (partial update)
+     */
+    async updateActivePool(
+        updates: { targetAmount?: number; cause?: string },
+    ): Promise<DonationStatsResponseDto> {
+        const pool = await this.getActivePool();
+
+        const setFields: Record<string, unknown> = {};
+        if (updates.targetAmount != null) {
+            setFields['targetAmount'] = updates.targetAmount;
+        }
+        if (updates.cause != null) {
+            setFields['cause'] = updates.cause;
+        }
+
+        if (Object.keys(setFields).length === 0) {
+            return this.getCurrentStats();
+        }
+
+        await this.donationPoolModel.findByIdAndUpdate(
+            pool._id,
+            { $set: setFields },
+            { new: true },
+        );
+
+        this.logger.log(
+            `Active donation pool updated: ${JSON.stringify(setFields)}`,
+        );
+
+        return this.getCurrentStats();
+    }
+
+    /**
      * Archive old pools and create new one (admin/cron job)
      * Runs monthly to rotate donation pools
      */
@@ -356,7 +391,7 @@ export class DonationsService {
             const fundedPools = await this.donationPoolModel.find({
                 status: DonationPoolStatus.FUNDED,
                 isArchived: false,
-            });
+            }).lean();
 
             for (const pool of fundedPools) {
                 pool.isArchived = true;

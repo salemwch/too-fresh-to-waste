@@ -53,7 +53,7 @@ describe('AuthService with Interface-Based Injection', () => {
       markTokenInvalidation: jest.fn(),
       incrementTokenRevocationVersion: jest.fn(),
       updateLastLogin: jest.fn(),
-      recordFailedLogin: jest.fn(),
+      incrementFailedLoginAttempts: jest.fn(),
       resetFailedLoginAttempts: jest.fn(),
       isAccountLocked: jest.fn(),
       softDelete: jest.fn(),

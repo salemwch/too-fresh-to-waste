@@ -22,13 +22,23 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         super();
     }
 
-    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
             context.getHandler(),
             context.getClass(),
         ]);
-        if (isPublic) {return true;} // skip JWT check
-        return super.canActivate(context);
+        if (isPublic) {
+            // Attempt to populate req.user when a valid token is present.
+            // Failures are silently swallowed — public routes must never reject
+            // solely because a token is missing or stale.
+            try {
+                await super.canActivate(context);
+            } catch {
+                // no-op: no valid token, req.user stays undefined
+            }
+            return true;
+        }
+        return super.canActivate(context) as Promise<boolean>;
     }
 
     handleRequest<TUser = JwtUser>(err: JwtError | null, user: JwtUser | null, _info: unknown, _context: ExecutionContext): TUser {

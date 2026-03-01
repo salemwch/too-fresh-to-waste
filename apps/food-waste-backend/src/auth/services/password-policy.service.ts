@@ -122,11 +122,13 @@ export class PasswordPolicyService implements IPasswordPolicyService {
         isValid = false;
       }
 
-      if (policy.preventPersonalInfo && context && this.containsPersonalInfo(password, context)) {
-        feedback.push('Password contains personal information');
-        suggestions.push('Avoid using your name or email in the password');
-        isValid = false;
-      }
+      // Personal information checking DISABLED - users can use their name/email in passwords
+      // This check is commented out to allow memorable passwords without penalty
+      // if (policy.preventPersonalInfo && context && this.containsPersonalInfo(password, context)) {
+      //   feedback.push('Password contains personal information');
+      //   suggestions.push('Avoid using your name or email in the password');
+      //   isValid = false;
+      // }
 
       // Use zxcvbn for advanced password strength analysis
       const userInputs = this.buildUserInputs(context);
@@ -152,7 +154,7 @@ export class PasswordPolicyService implements IPasswordPolicyService {
         isValid: isValid && strengthAnalysis.score >= policy.minScore,
         warning: strengthAnalysis.feedback.warning,
         suggestions,
-        crackTime: this.formatCrackTime(strengthAnalysis.crack_times_display.offline_slow_hashing_1e4_per_second),
+        crackTime: this.formatCrackTime(String(strengthAnalysis.crack_times_display.offline_slow_hashing_1e4_per_second)),
         guessesLog10: strengthAnalysis.guesses_log10,
       };
 
@@ -355,45 +357,59 @@ export class PasswordPolicyService implements IPasswordPolicyService {
   }
 
   private containsPersonalInfo(password: string, context: PasswordValidationContext): boolean {
-    const lowercasePassword = password.toLowerCase();
+    // Personal information checking DISABLED - allow users to use their name/email in passwords
+    // This prevents password strength from being penalized for including:
+    // - Email address or email prefix
+    // - First name or last name
+    // Users can create memorable passwords using personal info without penalty
 
-    if (context.email) {
-      const emailParts = context.email.toLowerCase().split('@')[0];
-      if (lowercasePassword.includes(emailParts) && emailParts.length > 2) {
-        return true;
-      }
-    }
-
-    if (context.firstName && context.firstName.length > 2) {
-      if (lowercasePassword.includes(context.firstName.toLowerCase())) {
-        return true;
-      }
-    }
-
-    if (context.lastName && context.lastName.length > 2) {
-      if (lowercasePassword.includes(context.lastName.toLowerCase())) {
-        return true;
-      }
-    }
+    // All personal info checking disabled - always return false
+    // const lowercasePassword = password.toLowerCase();
+    //
+    // if (context.email) {
+    //   const emailParts = context.email.toLowerCase().split('@')[0];
+    //   if (lowercasePassword.includes(emailParts) && emailParts.length > 2) {
+    //     return true;
+    //   }
+    // }
+    //
+    // if (context.firstName && context.firstName.length > 2) {
+    //   if (lowercasePassword.includes(context.firstName.toLowerCase())) {
+    //     return true;
+    //   }
+    // }
+    //
+    // if (context.lastName && context.lastName.length > 2) {
+    //   if (lowercasePassword.includes(context.lastName.toLowerCase())) {
+    //     return true;
+    //   }
+    // }
 
     return false;
   }
 
   private buildUserInputs(context?: PasswordValidationContext): string[] {
+    // Don't pass any personal info to zxcvbn to allow users flexibility in password choice
+    // This prevents password strength from being penalized for including:
+    // - Email address or email prefix
+    // - First name or last name
+    // Users can create memorable passwords using personal info without penalty
+
     const inputs: string[] = [];
 
-    if (context?.email) {
-      inputs.push(context.email);
-      inputs.push(context.email.split('@')[0]);
-    }
+    // All personal info checking disabled - empty array returned
+    // if (context?.email) {
+    //   inputs.push(context.email);
+    //   inputs.push(context.email.split('@')[0]);
+    // }
 
-    if (context?.firstName) {
-      inputs.push(context.firstName);
-    }
+    // if (context?.firstName) {
+    //   inputs.push(context.firstName);
+    // }
 
-    if (context?.lastName) {
-      inputs.push(context.lastName);
-    }
+    // if (context?.lastName) {
+    //   inputs.push(context.lastName);
+    // }
 
     return inputs;
   }

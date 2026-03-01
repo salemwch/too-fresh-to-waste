@@ -140,7 +140,13 @@ export const OFFER_DETAIL_FIELDS = [
 ].join(' ');
 
 /**
- * Order fields for list views (order history)
+ * Order fields for list views (order history / OrderCard)
+ *
+ * ✅ Must include everything the mobile OrderCard component needs:
+ *    - pickupDetails.timeSlot (startTime, endTime) for pickup window display
+ *    - pricing (full object) for total, currency, discountAmount
+ *    - items pricing fields for strikethrough original price
+ *    - establishmentId for .populate() → name, images
  */
 export const ORDER_LIST_FIELDS = [
     'orderNumber',
@@ -148,10 +154,18 @@ export const ORDER_LIST_FIELDS = [
     'establishmentId',
     'status',
     'paymentStatus',
-    'pricing.total',
+    'pricing',
+    'items.offerId',
     'items.offerTitle',
     'items.quantity',
+    'items.unitPrice',
+    'items.totalPrice',
+    'items.originalPrice',
+    'items.discountAmount',
+    'pickupDetails.timeSlot',
     'pickupDetails.scheduledDate',
+    'expiresAt',
+    'donationAmount',
     'createdAt',
 ].join(' ');
 
@@ -166,11 +180,13 @@ export const ORDER_DETAIL_FIELDS = [
     'items',
     'status',
     'paymentStatus',
+    'paymentDetails',
     'pricing',
     'pickupDetails',
     'establishmentAddress',
     'customerNotes',
     'merchantNotes',
+    'expiresAt',
     'createdAt',
     'updatedAt',
 ].join(' ');

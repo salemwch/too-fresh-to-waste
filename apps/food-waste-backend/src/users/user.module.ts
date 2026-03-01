@@ -8,7 +8,7 @@ import { UsersService } from './user.service';
 import { USERS_SERVICE_TOKEN } from './interfaces';
 import { PrivacyComplianceService } from './services/privacy-compliance.service';
 import { MfaService } from './services/mfa.service';
-import { PasswordValidationService } from './services/password-validation.service';
+// PasswordPolicyService is imported from AuthModule (no need to import here - DRY principle)
 import { PasswordHistoryService } from '../auth/services/password-history.service';
 import { UserPreferencesService } from './services/user-preferences.service';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
@@ -49,7 +49,7 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
         UsersService,
         PrivacyComplianceService,
         MfaService,
-        PasswordValidationService,
+        // PasswordPolicyService provided by AuthModule (imported above)
         PasswordHistoryService,
         UserPreferencesService
     ],
@@ -59,7 +59,7 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
         UsersService, // Export concrete class for backward compatibility
         PrivacyComplianceService,
         MfaService,
-        PasswordValidationService,
+        // PasswordPolicyService exported by AuthModule
         UserPreferencesService
     ],
 })

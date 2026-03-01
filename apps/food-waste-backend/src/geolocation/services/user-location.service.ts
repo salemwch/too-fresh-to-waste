@@ -17,6 +17,7 @@ import {
 } from '../interfaces/geolocation.interface';
 import { GeolocationService } from './geolocation.service';
 import { DistanceCalculator } from '../utils/distance.util';
+import { USER_LOCATION_HISTORY_MAX } from '../../common/constants/database-indexes.constant';
 
 @Injectable()
 export class UserLocationService {
@@ -296,11 +297,9 @@ export class UserLocationService {
 
       user.locationPreferences.locationHistory.push(historyEntry);
 
-      // Keep only recent history (last 100 entries)
-      const maxHistoryEntries = 100;
-      if (user.locationPreferences.locationHistory.length > maxHistoryEntries) {
+      if (user.locationPreferences.locationHistory.length > USER_LOCATION_HISTORY_MAX) {
         user.locationPreferences.locationHistory = user.locationPreferences.locationHistory
-          .slice(-maxHistoryEntries);
+          .slice(-USER_LOCATION_HISTORY_MAX);
       }
 
       await user.save();

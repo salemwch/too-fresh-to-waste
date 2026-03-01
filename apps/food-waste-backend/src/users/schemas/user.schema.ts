@@ -82,8 +82,8 @@ export class User {
             postalCode: String,
             country: String,
             coordinates: {
-                type: { type: String, enum: ['Point'], default: 'Point' },
-                coordinates: { type: [Number] }
+                type: { type: String, enum: ['Point'] },
+                coordinates: { type: [Number], default: undefined }
             }
         }
     })
@@ -98,6 +98,13 @@ export class User {
         };
     };
 
+    /**
+     * @deprecated Legacy refresh token storage — tokens are stored as plain strings in an array.
+     * Prefer the RefreshToken schema (auth/schemas/refresh-token.schema.ts) which stores tokens
+     * with metadata (deviceInfo, ipAddress, expiresAt) and supports per-session revocation.
+     * This field is still actively read by auth.service.ts and session-management.service.ts;
+     * removal requires a data migration to the RefreshToken collection.
+     */
     @Prop({ type: [String], default: [] })
     refreshTokens: string[];
 
@@ -119,6 +126,9 @@ export class User {
 
     @Prop()
     emailVerificationToken?: string;
+
+    @Prop()
+    emailVerificationExpires?: Date;
 
     @Prop()
     phoneVerificationCode?: string;
@@ -617,6 +627,35 @@ export class User {
 export const UserSchema = SchemaFactory.createForClass(User);
 
 // ============================================
+// PRE-VALIDATE HOOK: Sanitize invalid GeoJSON coordinates
+// ============================================
+// MUST run in pre('validate'), NOT pre('save').
+// Mongoose execution order: pre('validate') → validate → pre('save') → save.
+// If placed in pre('save'), validation fails first and this hook never runs.
+UserSchema.pre('validate', function (next) {
+    const doc = this as UserDocument;
+    const coords = doc.address?.coordinates;
+    if (coords) {
+        const innerCoords = coords.coordinates;
+        const hasValidCoords = Array.isArray(innerCoords) && innerCoords.length === 2
+            && typeof innerCoords[0] === 'number' && typeof innerCoords[1] === 'number';
+        const hasValidType = coords.type === 'Point';
+
+        if (!hasValidCoords || !hasValidType) {
+            console.warn(
+                `[UserSchema] Sanitized invalid address.coordinates for user ${doc._id}:`,
+                JSON.stringify({ type: coords.type, coordinates: innerCoords }),
+            );
+            // Remove the invalid coordinates sub-document and ensure
+            // Mongoose sends $unset to MongoDB on save
+            doc.address.coordinates = undefined;
+            doc.markModified('address.coordinates');
+        }
+    }
+    next();
+});
+
+// ============================================
 // 🔧 SCHEMA CONFIGURATION
 // ============================================
 // ✅ BEST PRACTICE: Use _id only (MongoDB convention)
@@ -653,11 +692,19 @@ UserSchema.index({ phoneNumber: 1, isPhoneVerified: 1 }, { sparse: true });
 UserSchema.index({ phoneVerificationExpires: 1 }, { sparse: true });
 
 /**
- * Email Index - Already has unique constraint, explicit index for queries
- * - Optimizes email lookups during login and registration
- * - Unique index prevents duplicate emails
+ * Email Partial Unique Index
+ * - Enforces email uniqueness ONLY among non-deleted users (deletedAt is null or missing)
+ * - Deleted users (deletedAt = Date) are excluded from the constraint,
+ *   allowing re-registration with the same email as a brand-new account
+ *
+ * IMPORTANT: Mongoose cannot overwrite an existing unique index.
+ * You MUST drop the old index manually in MongoDB Shell before deploying:
+ *   db.users.dropIndex("email_1")
  */
-UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index(
+    { email: 1 },
+    { unique: true, partialFilterExpression: { deletedAt: null } },
+);
 
 /**
  * Compound Index - User Status and Role
@@ -698,6 +745,13 @@ UserSchema.index({ role: 1, status: 1, createdAt: -1 });
  * - Query pattern: GDPR compliance, data retention policies
  */
 UserSchema.index({ deletedAt: 1 }, { sparse: true });
+
+/**
+ * Archive Cron Index
+ * - Optimizes the nightly archive query: find({ status: 'deleted', deletedAt: { $lte: 30d ago } })
+ * - Compound index covers both the status filter and deletedAt range scan
+ */
+UserSchema.index({ status: 1, deletedAt: 1 }, { sparse: true });
 
 /**
  * Anonymization Index
@@ -749,7 +803,16 @@ UserSchema.index({ isEmailVerified: 1, createdAt: -1 });
  * - Use case: User proximity searches, delivery radius calculation
  * - Strategy: Coordinate format [longitude, latitude] per GeoJSON standard
  */
-UserSchema.index({ 'address.coordinates.coordinates': '2dsphere' });
+UserSchema.index(
+    { 'address.coordinates': '2dsphere' },
+    {
+        sparse: true,
+        partialFilterExpression: {
+            'address.coordinates.type': { $eq: 'Point' },
+            'address.coordinates.coordinates': { $exists: true },
+        },
+    },
+);
 
 /**
  * MFA Status Index

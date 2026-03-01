@@ -77,7 +77,7 @@ export class ReviewProcessor {
     private async processNewReview(review: ReviewDocument): Promise<void> {
         try {
             // 1. Perform content analysis and moderation
-            const moderationResult = await this.moderationService.moderateReview({
+            const moderationResult = this.moderationService.moderateReview({
                 content: review.comment,
                 title: review.title,
                 rating: review.overallRating
@@ -137,7 +137,7 @@ export class ReviewProcessor {
             }
 
             // Re-check moderation
-            const moderationResult = await this.moderationService.moderateReview({
+            const moderationResult = this.moderationService.moderateReview({
                 content: review.comment,
                 title: review.title,
                 rating: review.overallRating
@@ -167,7 +167,7 @@ export class ReviewProcessor {
     private async processReviewModeration(review: ReviewDocument): Promise<void> {
         try {
             // Perform comprehensive moderation check
-            const moderationResult = await this.moderationService.moderateReview({
+            const moderationResult = this.moderationService.moderateReview({
                 content: review.comment,
                 title: review.title,
                 rating: review.overallRating,
@@ -249,7 +249,7 @@ export class ReviewProcessor {
             const establishment = review.establishmentId as any;
 
             // Notify establishment owner
-            if (establishment && establishment.ownerId) {
+            if (establishment?.ownerId) {
                 this.sendEstablishmentOwnerNotification(review, establishment);
             }
             this.sendFollowerNotifications(review);
@@ -483,7 +483,7 @@ export class ReviewProcessor {
             reviewerName: `${reviewer.firstName} ${reviewer.lastName}`,
             establishmentName: establishment.name,
             rating: review.overallRating,
-            comment: review.comment.substring(0, 100) + '...'
+            comment: `${review.comment.substring(0, 100)  }...`
         });
     }
 

@@ -29,10 +29,12 @@ import { SchemaOptions } from 'mongoose';
  */
 export function getStandardToJSON(): NonNullable<SchemaOptions['toJSON']> {
     return {
-        virtuals: true,        // Include custom virtuals
+        virtuals: true,        // ✅ CRITICAL: Include custom virtuals (availableQuantity, isExpired, isSoldOut, etc.)
         versionKey: false,     // Remove __v field
         transform (_doc, ret) {
-            delete ret._id;     // Remove Mongoose's default id virtual (use _id only)
+            // ✅ Delete _id and keep 'id' virtual for API consistency
+            // This codebase convention: use 'id' (not '_id') in API responses
+            delete ret._id;
             return ret;
         }
     };
@@ -43,10 +45,11 @@ export function getStandardToJSON(): NonNullable<SchemaOptions['toJSON']> {
  */
 export function getStandardToObject(): NonNullable<SchemaOptions['toObject']> {
     return {
-        virtuals: true,
-        versionKey: false,
+        virtuals: true,        // ✅ CRITICAL: Include custom virtuals
+        versionKey: false,     // Remove __v field
         transform (_doc, ret) {
-            delete ret._id;     // Remove Mongoose's default id virtual (use _id only)
+            // ✅ Delete _id and keep 'id' virtual for API consistency
+            delete ret._id;
             return ret;
         }
     };

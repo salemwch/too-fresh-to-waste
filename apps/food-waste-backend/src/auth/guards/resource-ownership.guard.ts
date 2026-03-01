@@ -10,7 +10,6 @@ import { Reflector } from '@nestjs/core';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { CHECK_OWNERSHIP_KEY, OwnershipCheckConfig } from '../../common/decorators/check-ownership.decorator';
-import { AuthorizationService } from '../services/authorization.service';
 import { UserRole } from 'src/common/enums/user.enum';
 
 /**
@@ -37,7 +36,6 @@ export class ResourceOwnershipGuard implements CanActivate {
 
     constructor(
         private readonly reflector: Reflector,
-        private readonly authorizationService: AuthorizationService,
         @InjectConnection() private readonly connection: Connection,
     ) {}
 
@@ -65,25 +63,6 @@ export class ResourceOwnershipGuard implements CanActivate {
         if (config.allowAdmin !== false && role === UserRole.ADMIN) {
             this.logger.debug(`Admin bypass for user ${userId}`);
             return true;
-        }
-
-        // Check for bypass permissions
-        if (config.bypassPermissions && config.bypassPermissions.length > 0) {
-            const userPermissions = await this.authorizationService.getUserPermissions(
-                userId,
-                role as UserRole,
-            );
-
-            const hasBypassPermission = config.bypassPermissions.some(perm =>
-                userPermissions.includes(perm),
-            );
-
-            if (hasBypassPermission) {
-                this.logger.debug(
-                    `Permission bypass for user ${userId} with permissions ${config.bypassPermissions}`,
-                );
-                return true;
-            }
         }
 
         // Get resource ID from request params

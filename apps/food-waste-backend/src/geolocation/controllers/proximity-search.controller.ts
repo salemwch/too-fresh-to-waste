@@ -7,6 +7,7 @@ import {
   ProximitySearchResult,
   EstablishmentGeoData,
   OfferGeoData,
+  MapEstablishmentGeoData,
   GeoCoordinate
 } from '../interfaces/geolocation.interface';
 
@@ -112,6 +113,33 @@ export class ProximitySearchController {
     };
 
     return  this.proximitySearchService.searchEstablishments(searchDto, options);
+  }
+
+  @Post('map-establishments')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Search establishments with active offers for map view',
+    description: 'Returns establishments within radius, each enriched with their active offers. Public endpoint for map markers.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Map establishments found successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid search parameters' })
+  searchMapEstablishments(
+    @Body() searchDto: ProximitySearchDto,
+    @Query('establishmentTypes') establishmentTypes?: string[],
+    @Query('minRating') minRating?: number,
+  ): Promise<ProximitySearchResult<MapEstablishmentGeoData>[]> {
+    this.logger.log(`Searching map establishments within ${searchDto.radius}m radius`);
+
+    const options: ProximitySearchOptions = {
+      establishmentTypes: establishmentTypes?.length ? establishmentTypes : undefined,
+      minRating: minRating ? +minRating : undefined,
+      onlyActive: true,
+    };
+
+    return this.proximitySearchService.searchMapEstablishments(searchDto, options);
   }
 
   @Post('offers')

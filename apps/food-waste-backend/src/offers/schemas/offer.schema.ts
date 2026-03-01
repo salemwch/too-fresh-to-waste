@@ -5,6 +5,8 @@ export type OfferDocument = Offer & Document & {
     availableQuantity: number;
     isExpired: boolean;
     isSoldOut: boolean;
+    createdAt: Date;
+    updatedAt: Date;
 };
 export enum OfferStatus {
     DRAFT = 'draft',
@@ -19,6 +21,7 @@ export enum OfferType {
     SURPRISE_BAG = 'surprise_bag',
     SPECIFIC_ITEMS = 'specific_items',
     MEAL_DEAL = 'meal_deal',
+    PARCLES_BAG = 'parcels_bag'
 }
 
 export enum Currency {
@@ -28,7 +31,7 @@ export enum Currency {
 export interface PickupTimeSlot {
     startTime: string;
     endTime: string;
-    maxOrders: number;
+    maxOrders?: number;      // Optional — business decides. No limit if unset.
     currentOrders: number;
 }
 
@@ -124,14 +127,14 @@ export class Offer {
         type: [{
             startTime: { type: String, required: true, match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/ },
             endTime: { type: String, required: true, match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/ },
-            maxOrders: { type: Number, required: true, min: 1 },
+            maxOrders: { type: Number, min: 1 },
             currentOrders: { type: Number, default: 0, min: 0 },
         }],
         validate: {
             validator (slots: PickupTimeSlot[]) {
                 return slots.length > 0 && slots.every(slot =>
                     slot.startTime < slot.endTime &&
-                    slot.currentOrders <= slot.maxOrders
+                    slot.currentOrders <= (slot.maxOrders ?? Infinity)
                 );
             },
             message: 'Invalid pickup time slots'
@@ -148,6 +151,10 @@ export class Offer {
 
     @Prop({ default: 0, min: 0 })
     viewCount: number;
+
+    // Tracks which users have already been counted — atomic dedup via $addToSet / $ne
+    @Prop({ type: [Types.ObjectId], default: [] })
+    viewedBy: Types.ObjectId[];
 
     @Prop({ default: 0, min: 0 })
     favoriteCount: number;
@@ -434,6 +441,13 @@ OfferSchema.index({ 'pricing.discountedPrice': 1, status: 1 });
 OfferSchema.index({ viewCount: -1, favoriteCount: -1, status: 1 });
 
 /**
+ * Unique View Dedup Index
+ * - Speeds up the $ne membership check in the atomic view-count update
+ * - Query pattern: findOneAndUpdate({ _id, viewedBy: { $ne: userId } })
+ */
+OfferSchema.index({ viewedBy: 1 });
+
+/**
  * Dietary Filtering Index
  * - Optimizes dietary preference searches
  * - Query pattern: find({ 'nutritionalInfo.dietaryInfo': { $in: ['vegan'] }, status: 'active' })
@@ -508,15 +522,21 @@ import { Query } from 'mongoose';
  * Applies to: find, findOne, findOneAndUpdate, etc.
  */
 OfferSchema.pre<Query<any, OfferDocument>>(/^find/, function (next) {
-    this.where({ isDeleted: { $ne: true } });
+    if (!(this as any).getOptions()?.includeDeleted) {
+        this.where({ isDeleted: { $ne: true } });
+    }
     next();
 });
 
 /**
  * Pre-aggregate middleware to exclude soft-deleted offers
+ * Bypass with: .setOptions({ includeDeleted: true })
  */
 OfferSchema.pre('aggregate', function () {
-    this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    const options = (this as any).options || {};
+    if (!options.includeDeleted) {
+        this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    }
 });
 
 // =============================================================================

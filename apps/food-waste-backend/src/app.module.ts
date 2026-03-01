@@ -1,8 +1,10 @@
 // src/app.module.ts
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose';
+import * as mongoose from 'mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bull';
@@ -23,10 +25,12 @@ import { LoyaltyModule } from './loyalty/loyalty.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { DonationsModule } from './donations/donations.module';
+import { CommunityGoalModule } from './community-goal/community-goal.module';
 import { RedisModule } from './redis/redis.module';
 import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
+import { ArchiveModule } from './archive/archive.module';
 
 // New enhanced modules
 import { WebSocketModule } from './websocket/websocket.module';
@@ -46,10 +50,18 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
         CommonModule, // Common utilities including sanitization (MUST be early)
         RedisModule, // Shared Redis connection pool (MUST be first after Config)
         RabbitMQModule, // Message broker for event-driven architecture
-        ThrottlerModule.forRoot([{
-            ttl: 60000,
-            limit: 100,
-        }]),
+        ThrottlerModule.forRootAsync({
+            useFactory: (configService: ConfigService) => ({
+                throttlers: [{
+                    ttl: parseInt(configService.get('THROTTLE_TTL', '60000')),
+                    limit: parseInt(configService.get('THROTTLE_LIMIT', '100')),
+                }],
+                storage: new ThrottlerStorageRedisService(
+                    `redis://${configService.get('REDIS_USERNAME', 'default')}:${configService.get('REDIS_PASSWORD', '')}@${configService.get('REDIS_HOST', 'localhost')}:${configService.get('REDIS_PORT', '6379')}`,
+                ),
+            }),
+            inject: [ConfigService],
+        }),
         EventEmitterModule.forRoot(),
         ScheduleModule.forRoot(), // Required for @Cron decorators in DonationsService
         BullModule.forRootAsync({
@@ -88,7 +100,7 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
                 // Performance optimizations
                 retryWrites: true, // Automatic retry for write operations
                 retryReads: true,  // Automatic retry for read operations
-                compressors: ['snappy', 'zlib'], // Network compression for large payloads
+                compressors: ['zstd', 'snappy', 'zlib'], // Network compression: zstd (30-50% better than snappy), with fallbacks
                 // Read/Write concerns for production
                 readConcern: { level: 'majority' }, // Read committed data
                 writeConcern: {
@@ -97,6 +109,12 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
                 },
                 // Monitoring
                 monitorCommands: configService.get('NODE_ENV') === 'development',
+                // Disable __v versionKey globally — no code uses optimistic concurrency via __v
+                // Existing documents keep their __v (harmless, ignored on read)
+                connectionFactory: (connection: mongoose.Connection) => {
+                    connection.set('versionKey', false);
+                    return connection;
+                },
             }),
             inject: [ConfigService],
         }),
@@ -117,11 +135,15 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
         InventoryModule,
         FavoritesModule,
         DonationsModule, // Community donation tracking and impact
+        CommunityGoalModule, // Community bag saving goal with real-time updates
 
         // Enhanced modules for production-ready features
         WebSocketModule,
         SearchModule,
         //SocialModule,
+
+        // Data lifecycle management
+        ArchiveModule, // Nightly archive + purge of expired soft-deleted records
 
         // Monitoring and health checks
         HealthModule, // Health check endpoints (liveness/readiness probes)

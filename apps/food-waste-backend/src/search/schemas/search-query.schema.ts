@@ -107,3 +107,6 @@ SearchQuerySchema.index({ userId: 1, createdAt: -1 });
 SearchQuerySchema.index({ sessionId: 1, createdAt: -1 });
 SearchQuerySchema.index({ createdAt: -1 });
 SearchQuerySchema.index({ 'location.coordinates': '2dsphere' });
+
+// TTL index: auto-delete search queries after 90 days to prevent unbounded collection growth
+SearchQuerySchema.index({ createdAt: 1 }, { expireAfterSeconds: 7776000, name: 'idx_searchqueries_createdAt_ttl_90d' });

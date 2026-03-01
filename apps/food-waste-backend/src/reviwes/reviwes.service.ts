@@ -226,12 +226,14 @@ export class ReviewsService {
                 }
             }
 
-            // 13. Return populated review
-            return this.reviewModel
-                .findById(review._id)
-                .populate('reviewerId', 'firstName lastName avatar')
-                .populate('establishmentId', 'name type averageRating totalReviews')
-                .exec();
+            // 13. Return populated review via aggregation (2 populates → 1 round-trip)
+            const pipeline: PipelineStage[] = [
+                { $match: { _id: review._id } },
+                ...this.buildReviewerLookup(),
+                ...this.buildEstablishmentLookupForReview(),
+            ];
+            const [populated] = await this.reviewModel.aggregate(pipeline).exec();
+            return populated as ReviewDocument;
 
         } catch (error) {
             this.logger.error('Failed to create review:', error);
@@ -344,13 +346,17 @@ export class ReviewsService {
                 throw new BadRequestException('Invalid review ID');
             }
 
-            const review = await this.reviewModel
-                .findById(id)
-                .populate('reviewerId', 'firstName lastName avatar')
-                .populate('establishmentId', 'name type address averageRating totalReviews')
-                .populate('orderId', 'orderNumber status createdAt')
-                .populate('responses.respondedBy', 'firstName lastName')
-                .exec();
+            // ✅ PERFORMANCE: Single aggregation replaces findById + 4 populates (5 → 1 round-trip)
+            const pipeline: PipelineStage[] = [
+                { $match: { _id: new Types.ObjectId(id) } },
+                ...this.buildReviewerLookup(),
+                ...this.buildEstablishmentLookupForReview(true),
+                ...this.buildOrderLookupForReview(),
+                ...this.buildResponsesRespondedByLookup(),
+            ];
+
+            const results = await this.reviewModel.aggregate(pipeline).exec();
+            const review = results[0] as ReviewDocument | undefined;
 
             if (!review) {
                 throw new NotFoundException('Review not found');
@@ -1272,6 +1278,120 @@ export class ReviewsService {
         }
     }
 
+    // =========================================================================
+    // REUSABLE $lookup PIPELINE BUILDERS (replaces .populate() — 1 round-trip)
+    // =========================================================================
+
+    private buildReviewerLookup(): PipelineStage[] {
+        return [
+            {
+                $lookup: {
+                    from: 'users',
+                    let: { refId: '$reviewerId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+                        { $project: { _id: 1, firstName: 1, lastName: 1, avatar: 1 } },
+                    ],
+                    as: '_reviewerDoc',
+                },
+            },
+            { $unwind: { path: '$_reviewerDoc', preserveNullAndEmptyArrays: true } },
+            { $addFields: { reviewerId: '$_reviewerDoc' } },
+            { $project: { _reviewerDoc: 0 } },
+        ];
+    }
+
+    private buildEstablishmentLookupForReview(includeAddress = false): PipelineStage[] {
+        const fields: Record<string, 1> = { _id: 1, name: 1, type: 1, averageRating: 1, totalReviews: 1 };
+        if (includeAddress) { fields.address = 1; }
+
+        return [
+            {
+                $lookup: {
+                    from: 'establishments',
+                    let: { refId: '$establishmentId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+                        { $project: fields },
+                    ],
+                    as: '_establishmentDoc',
+                },
+            },
+            { $unwind: { path: '$_establishmentDoc', preserveNullAndEmptyArrays: true } },
+            { $addFields: { establishmentId: '$_establishmentDoc' } },
+            { $project: { _establishmentDoc: 0 } },
+        ];
+    }
+
+    private buildOrderLookupForReview(): PipelineStage[] {
+        return [
+            {
+                $lookup: {
+                    from: 'orders',
+                    let: { refId: '$orderId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+                        { $project: { _id: 1, orderNumber: 1, status: 1, createdAt: 1 } },
+                    ],
+                    as: '_orderDoc',
+                },
+            },
+            { $unwind: { path: '$_orderDoc', preserveNullAndEmptyArrays: true } },
+            { $addFields: { orderId: '$_orderDoc' } },
+            { $project: { _orderDoc: 0 } },
+        ];
+    }
+
+    /**
+     * Populates `responses[].respondedBy` with user details.
+     * Uses $map + $lookup pattern for nested array population.
+     */
+    private buildResponsesRespondedByLookup(): PipelineStage[] {
+        return [
+            {
+                $lookup: {
+                    from: 'users',
+                    let: { responderIds: '$responses.respondedBy' },
+                    pipeline: [
+                        { $match: { $expr: { $in: ['$_id', { $ifNull: ['$$responderIds', []] }] } } },
+                        { $project: { _id: 1, firstName: 1, lastName: 1 } },
+                    ],
+                    as: '_respondersDoc',
+                },
+            },
+            {
+                $addFields: {
+                    responses: {
+                        $map: {
+                            input: '$responses',
+                            as: 'resp',
+                            in: {
+                                $mergeObjects: [
+                                    '$$resp',
+                                    {
+                                        respondedBy: {
+                                            $arrayElemAt: [
+                                                {
+                                                    $filter: {
+                                                        input: '$_respondersDoc',
+                                                        as: 'u',
+                                                        cond: { $eq: ['$$u._id', '$$resp.respondedBy'] },
+                                                    },
+                                                },
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            },
+            { $project: { _respondersDoc: 0 } },
+        ];
+    }
+
     private async checkReviewAccess(
         review: ReviewDocument,
         userId: string,
@@ -1596,28 +1716,8 @@ export class ReviewsService {
     // ================================
     // CRON JOBS FOR MAINTENANCE
     // ================================
-
-    /**
-     * Clean up old soft-deleted reviews
-     */
-    @Cron(CronExpression.EVERY_DAY_AT_2AM)
-    async cleanupDeletedReviews(): Promise<void> {
-        try {
-            const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-            const result = await this.reviewModel.deleteMany({
-                isDeleted: true,
-                deletedAt: { $lte: thirtyDaysAgo },
-            });
-
-            if (result.deletedCount > 0) {
-                this.logger.log(`Cleaned up ${result.deletedCount} old deleted reviews`);
-            }
-
-        } catch (error) {
-            this.logger.error('Failed to cleanup deleted reviews:', error);
-        }
-    }
+    // NOTE: cleanupDeletedReviews() removed — replaced by centralized
+    // ArchiveModule cron (5 AM) that archives + purges all entities.
 
     /**
      * Re-calculate establishment ratings periodically
@@ -1627,7 +1727,7 @@ export class ReviewsService {
         try {
             const establishments = await this.establishmentModel.find({
                 status: 'active',
-            }).select('_id');
+            }).select('_id').lean();
 
             let updated = 0;
             for (const establishment of establishments) {
@@ -1648,7 +1748,10 @@ export class ReviewsService {
             const reviewsToModerate = await this.reviewModel.find({
                 'moderationInfo.manualModerationRequired': true,
                 status: { $in: [ReviewStatus.PENDING, ReviewStatus.FLAGGED] },
-            }).limit(100);
+            })
+                .select('_id status moderationInfo userId establishmentId rating')
+                .limit(100)
+                .lean();
 
             if (reviewsToModerate.length > 0) {
                 this.logger.log(`Found ${reviewsToModerate.length} reviews requiring manual moderation`);

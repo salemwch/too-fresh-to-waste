@@ -71,6 +71,14 @@ export class OfferCardDto {
     status: OfferStatus;
 
     // =========================================================================
+    // FAVORITE STATUS (for authenticated users)
+    // =========================================================================
+
+    @IsOptional()
+    @IsBoolean()
+    isFavorite?: boolean; // True if current user has favorited (only when authenticated)
+
+    // =========================================================================
     // FEATURING METADATA
     // =========================================================================
 

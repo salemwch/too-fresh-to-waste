@@ -216,10 +216,9 @@ export class DashboardConfig {
     type: Date
   })
   lastViewedAt?: Date;
-  @Prop()
-  createdAt: Date;
-  @Prop()
-  updatedAt: Date;
+  // createdAt and updatedAt are managed by Mongoose `timestamps: true`
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const DashboardConfigSchema = SchemaFactory.createForClass(DashboardConfig);
@@ -239,6 +238,4 @@ DashboardConfigSchema.pre('save', function() {
   }
 });
 
-DashboardConfigSchema.pre('findOneAndUpdate', function() {
-  this.set({ updatedAt: new Date() });
-});
+// Removed redundant findOneAndUpdate pre-hook — Mongoose `timestamps: true` handles updatedAt automatically

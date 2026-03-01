@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Param,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -47,9 +48,10 @@ export class LoyaltyController {
   @ApiOperation({ summary: 'Create loyalty account' })
   @ApiResponse({ status: 201, description: 'Loyalty account created successfully' })
   @ApiResponse({ status: 400, description: 'Account already exists' })
-  createAccount(@Body() createDto: CreateLoyaltyAccountDto, @GetUser('id') userId: string) {
+  async createAccount(@Body() createDto: CreateLoyaltyAccountDto, @GetUser('id') userId: string) {
     createDto.userId = userId;
-    return this.loyaltyService.createLoyaltyAccount(createDto);
+    const account = await this.loyaltyService.createLoyaltyAccount(createDto);
+    return { message: 'Loyalty account created successfully', data: account };
   }
 
   @Get('account')
@@ -57,29 +59,18 @@ export class LoyaltyController {
   @ApiOperation({ summary: 'Get user loyalty account' })
   @ApiResponse({ status: 200, description: 'Loyalty account retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Loyalty account not found' })
-  getAccount(@GetUser('id') userId: string) {
-    return this.loyaltyService.getLoyaltyAccount(userId);
+  async getAccount(@GetUser('id') userId: string) {
+    const account = await this.loyaltyService.getLoyaltyAccountWithBagCount(userId);
+    return { message: 'Loyalty account retrieved successfully', data: account };
   }
 
   @Get('stats')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get loyalty statistics' })
   @ApiResponse({ status: 200, description: 'Loyalty statistics retrieved successfully' })
-  async getStats(@GetUser('id') userId: string): Promise<LoyaltyStatsDto> {
-    const account = await this.loyaltyService.getLoyaltyAccount(userId);
-
-    return {
-      totalPoints: account.totalPoints,
-      availablePoints: account.availablePoints,
-      lifetimePointsEarned: account.lifetimePointsEarned,
-      totalOrdersCount: account.totalOrdersCount,
-      totalAmountSpent: account.totalAmountSpent,
-      currentTier: account.currentTier,
-      badgeCount: account.badges.length,
-      referralCount: account.referralCount,
-      joinedAt: account.joinedAt,
-      lastActivity: account.lastActivity,
-    };
+  async getStats(@GetUser('id') userId: string) {
+    const stats = await this.loyaltyService.getLoyaltyStats(userId);
+    return { message: 'Loyalty statistics retrieved successfully', data: stats };
   }
 
   @Post('points/add')
@@ -128,8 +119,9 @@ export class LoyaltyController {
   })
   @ApiResponse({ status: 200, description: 'Donation history retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Loyalty account not found' })
-  getDonationHistory(@GetUser('id') userId: string) {
-    return this.loyaltyService.getDonationHistory(userId);
+  async getDonationHistory(@GetUser('id') userId: string) {
+    const history = await this.loyaltyService.getDonationHistory(userId);
+    return { message: 'Donation history retrieved successfully', data: history };
   }
 
   // =============================================================================
@@ -145,7 +137,7 @@ export class LoyaltyController {
   @ApiResponse({ status: 200, description: 'Referral code retrieved successfully' })
   async getReferralCode(@GetUser('id') userId: string) {
     const code = await this.gamificationService.getReferralCode(userId);
-    return { referralCode: code };
+    return { message: 'Referral code retrieved successfully', data: { referralCode: code } };
   }
 
   // =============================================================================
@@ -159,8 +151,9 @@ export class LoyaltyController {
     description: 'Get user\'s progress on all gamification features: referrals, streaks, reviews',
   })
   @ApiResponse({ status: 200, description: 'Gamification stats retrieved successfully' })
-  getGamificationStats(@GetUser('id') userId: string) {
-    return this.gamificationService.getGamificationStats(userId);
+  async getGamificationStats(@GetUser('id') userId: string) {
+    const stats = await this.gamificationService.getGamificationStats(userId);
+    return { message: 'Gamification stats retrieved successfully', data: stats };
   }
 
   // =============================================================================
@@ -183,5 +176,27 @@ export class LoyaltyController {
         ? `Day ${result.streakDays} streak! +${result.pointsAwarded} points`
         : `Day ${result.streakDays} streak (already logged in today or max reached)`,
     };
+  }
+
+  // =============================================================================
+  // LEADERBOARD
+  // =============================================================================
+
+  @Get('leaderboard')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get loyalty leaderboard',
+    description: 'Returns top users ranked by total loyalty points. Also returns the calling user\'s entry when they fall outside the top N.',
+  })
+  @ApiResponse({ status: 200, description: 'Leaderboard retrieved successfully' })
+  async getLeaderboard(
+    @GetUser('id') userId: string,
+    @Query('limit')  limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    const parsedLimit  = limit  ? Math.min(Math.max(parseInt(limit,  10) || 50, 1), 100) : 50;
+    const parsedOffset = offset ? Math.max(parseInt(offset, 10) || 0, 0) : 0;
+    const data = await this.loyaltyService.getLeaderboard(userId, parsedLimit, parsedOffset);
+    return { message: 'Leaderboard retrieved successfully', data };
   }
 }

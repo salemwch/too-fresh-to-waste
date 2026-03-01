@@ -8,9 +8,10 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Model, Types, FlattenMaps } from 'mongoose';
-import { Establishment, EstablishmentDocument, EstablishmentStatus, DocumentMetadata } from './schemas/establishment.schema';
+import { Model, Types, FlattenMaps, PipelineStage } from 'mongoose';
+import { Establishment, EstablishmentDocument, EstablishmentStatus, EstablishmentType, DocumentMetadata } from './schemas/establishment.schema';
 import { CreateEstablishmentDto } from './DTO/create-establishment.dto';
+import type { BusinessInfo } from '@foodwaste/shared';
 import { UpdateEstablishmentDto } from './DTO/update-establishment.dto';
 import { SearchEstablishmentsDto } from './DTO/search-establishments.dto';
 import { DocumentType } from './DTO/upload-documents.dto';
@@ -96,6 +97,157 @@ export class EstablishmentsService {
         return savedEstablishment;
     }
 
+    /**
+     * Create an establishment from merchant signup data.
+     * Bypasses full CreateEstablishmentDto validation (minimal data from Google Places).
+     * Idempotent: skips creation if owner already has an establishment.
+     *
+     * @param businessInfo - Business data from Google Places
+     * @param ownerId - The newly created user's ID
+     * @param userEmail - User's registration email (used as establishment contact)
+     * @param userPhone - User's phone number (optional)
+     */
+    /**
+     * Returns true when an active, admin-approved establishment already claims
+     * this Google Place ID.  Only ACTIVE + isVerified=true establishments block
+     * registration — pending/rejected ones do not.
+     */
+    async isGooglePlaceRegistered(googlePlaceId: string): Promise<boolean> {
+        const count = await this.establishmentModel.countDocuments({
+            googlePlaceId,
+            status: EstablishmentStatus.ACTIVE,
+            isVerified: true,
+            isDeleted: { $ne: true },
+        });
+        return count > 0;
+    }
+
+    async createFromSignup(
+        businessInfo: BusinessInfo,
+        ownerId: string,
+        userEmail: string,
+        userPhone?: string,
+    ): Promise<EstablishmentDocument | null> {
+        // Idempotent: skip if owner already has an establishment
+        const existing = await this.establishmentModel.findOne({
+            ownerId: new Types.ObjectId(ownerId),
+        });
+        if (existing) {
+            this.logger.warn(
+                `Establishment already exists for owner ${ownerId}, skipping signup creation`,
+            );
+            return existing;
+        }
+
+        // Block registration if an active, verified establishment already owns this place
+        if (businessInfo.googlePlaceId) {
+            const taken = await this.isGooglePlaceRegistered(businessInfo.googlePlaceId);
+            if (taken) {
+                throw new ConflictException(
+                    'This business location is already registered on our platform. If you own this business, please contact support.',
+                );
+            }
+        }
+
+        const street =
+            businessInfo.addressComponents?.street || businessInfo.formattedAddress;
+        const city = businessInfo.addressComponents?.city || 'Unknown';
+        const postalCode = businessInfo.addressComponents?.postalCode || '0000';
+        const country = businessInfo.addressComponents?.country || 'Tunisia';
+
+        const establishmentType = this.mapGoogleTypesToEstablishmentType(
+            businessInfo.types,
+        );
+
+        const establishment = new this.establishmentModel({
+            name: businessInfo.name,
+            description: 'Establishment pending profile completion',
+            ownerId: new Types.ObjectId(ownerId),
+            type: establishmentType,
+            status: EstablishmentStatus.PENDING,
+            googlePlaceId: businessInfo.googlePlaceId,
+            address: {
+                street,
+                city,
+                postalCode,
+                country,
+                coordinates: {
+                    type: 'Point',
+                    coordinates: [businessInfo.longitude, businessInfo.latitude],
+                },
+            },
+            phoneNumber: userPhone || '+21600000000',
+            email: userEmail,
+        });
+
+        const saved = await establishment.save();
+
+        try {
+            const event = new EstablishmentCreatedEvent(
+                saved._id.toString(),
+                ownerId,
+                saved.name,
+                saved.type,
+                saved.status,
+                saved.email,
+                {
+                    street,
+                    city,
+                    postalCode,
+                    country,
+                    coordinates: [businessInfo.longitude, businessInfo.latitude],
+                },
+                {
+                    hasImages: false,
+                    imageCount: 0,
+                    hasLegalDocuments: false,
+                },
+            );
+            this.eventEmitter.emit('establishment.created', event);
+            this.logger.log(
+                `Establishment created from signup for owner ${ownerId}: ${saved._id}`,
+            );
+        } catch (error) {
+            this.logger.error(
+                `Failed to emit establishment.created event: ${error.message}`,
+            );
+        }
+
+        return saved;
+    }
+
+    /**
+     * Map Google Place types to EstablishmentType enum.
+     * Falls back to OTHER if no match is found.
+     */
+    private mapGoogleTypesToEstablishmentType(
+        googleTypes?: string[],
+    ): EstablishmentType {
+        if (!googleTypes || googleTypes.length === 0) {
+            return EstablishmentType.OTHER;
+        }
+
+        const typeMap: Record<string, EstablishmentType> = {
+            restaurant: EstablishmentType.RESTAURANT,
+            bakery: EstablishmentType.BAKERY,
+            grocery_or_supermarket: EstablishmentType.GROCERY_STORE,
+            supermarket: EstablishmentType.SUPERMARKET,
+            cafe: EstablishmentType.CAFE,
+            meal_takeaway: EstablishmentType.FAST_FOOD,
+            meal_delivery: EstablishmentType.FAST_FOOD,
+            lodging: EstablishmentType.HOTEL,
+        };
+
+        for (const gType of googleTypes) {
+            const mapped = typeMap[gType];
+            if (mapped) {
+                return mapped;
+            }
+        }
+
+        return EstablishmentType.OTHER;
+    }
+
     async findAll(
         page: number = 1,
         limit: number = 10,
@@ -104,40 +256,76 @@ export class EstablishmentsService {
         // ✅ OPTIMIZATION: Limit max page size to prevent DOS
         const safeLimit = Math.min(limit, 100);
         const skip = (page - 1) * safeLimit;
-        const query: Record<string, any> = {};
+        // Build non-geo filter
+        const filter: Record<string, any> = {};
 
         if (filters.search) {
-            query.$text = { $search: filters.search };
+            filter.$text = { $search: filters.search };
         }
-        if (filters.type) {query.type = filters.type;}
-        if (filters.status) {query.status = filters.status;}
-        if (filters.isVerified !== undefined) {query.isVerified = filters.isVerified;}
-        if (filters.acceptsReservations !== undefined) {query.acceptsReservations = filters.acceptsReservations;}
-        if (filters.minRating) {query.averageRating = { $gte: filters.minRating };}
-        if (filters.longitude && filters.latitude) {
-            const maxDistance = filters.maxDistance || 5000;
-            query['address.coordinates'] = {
-                $near: {
-                    $geometry: {
+        if (filters.type) { filter.type = filters.type; }
+        if (filters.status) { filter.status = filters.status; }
+        if (filters.isVerified !== undefined) { filter.isVerified = filters.isVerified; }
+        if (filters.acceptsReservations !== undefined) { filter.acceptsReservations = filters.acceptsReservations; }
+        if (filters.minRating) { filter.averageRating = { $gte: filters.minRating }; }
+
+        const hasGeoFilter = !!(filters.longitude && filters.latitude);
+        const ownerFields = ['firstName', 'lastName', 'email', 'phoneNumber'];
+
+        // Build aggregate pipeline
+        const pipeline: PipelineStage[] = [];
+
+        if (hasGeoFilter) {
+            // $geoNear must be the first stage — replaces both $match and $near
+            // $text is not supported with $geoNear; exclude it from the geo query
+            const geoFilter = { ...filter };
+            delete geoFilter.$text;
+
+            pipeline.push({
+                $geoNear: {
+                    near: {
                         type: 'Point',
-                        coordinates: [filters.longitude, filters.latitude],
+                        coordinates: [filters.longitude!, filters.latitude!],
                     },
-                    $maxDistance: maxDistance,
+                    distanceField: 'distance',
+                    maxDistance: filters.maxDistance || 5000,
+                    query: geoFilter,
+                    spherical: true,
                 },
-            };
+            });
+            // $geoNear already sorts by distance — no explicit $sort needed
+        } else {
+            pipeline.push({ $match: filter });
+            pipeline.push({ $sort: { createdAt: -1 as const } });
         }
 
+        pipeline.push(
+            { $skip: skip },
+            { $limit: safeLimit },
+            ...this.getOwnerLookupStages(ownerFields),
+        );
+
+        // Execute aggregate + count in parallel
         const [establishments, total] = await Promise.all([
-            this.establishmentModel
-                .find(query)
-                .select(ESTABLISHMENT_LIST_FIELDS) // ✅ OPTIMIZATION: Only fetch required fields
-                .populate('ownerId', 'firstName lastName email phoneNumber')
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(safeLimit)
-                .lean() // ✅ OPTIMIZATION: 50% memory reduction
-                .exec(),
-            this.establishmentModel.countDocuments(query),
+            this.establishmentModel.aggregate<EstablishmentLean>(pipeline),
+            hasGeoFilter
+                ? this.establishmentModel
+                      .aggregate([
+                          {
+                              $geoNear: {
+                                  near: {
+                                      type: 'Point',
+                                      coordinates: [filters.longitude!, filters.latitude!],
+                                  },
+                                  distanceField: 'distance',
+                                  maxDistance: filters.maxDistance || 5000,
+                                  query: (() => { const f = { ...filter }; delete f.$text; return f; })(),
+                                  spherical: true,
+                              },
+                          },
+                          { $count: 'total' },
+                      ])
+                      .then(r => r[0]?.total || 0)
+                : this.establishmentModel.countDocuments(filter),
         ]);
 
         return { establishments, total };
@@ -148,9 +336,10 @@ export class EstablishmentsService {
             throw new BadRequestException('Invalid establishment ID');
         }
 
+        // No populate — internal callers use .save() and only need ownerId as ObjectId.
+        // For API responses with populated owner, use findByIdWithOwner() instead.
         const establishment = await this.establishmentModel
             .findById(id)
-            .populate('ownerId', 'firstName lastName email phoneNumber')
             .exec();
 
         if (!establishment) {
@@ -174,16 +363,15 @@ export class EstablishmentsService {
 
         const query = { ownerId: new Types.ObjectId(ownerId) };
 
+        // Aggregate + count in parallel (single DB round-trip per query)
         const [establishments, total] = await Promise.all([
-            this.establishmentModel
-                .find(query)
-                .select(ESTABLISHMENT_LIST_FIELDS) // ✅ Only fetch required fields
-                .populate('ownerId', 'firstName lastName email phoneNumber')
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(safeLimit)
-                .lean() // ✅ 50% memory reduction
-                .exec(),
+            this.establishmentModel.aggregate<EstablishmentLean>([
+                { $match: query },
+                { $sort: { createdAt: -1 as const } },
+                { $skip: skip },
+                { $limit: safeLimit },
+                ...this.getOwnerLookupStages(['firstName', 'lastName', 'email', 'phoneNumber']),
+            ]),
             this.establishmentModel.countDocuments(query),
         ]);
 
@@ -195,7 +383,7 @@ export class EstablishmentsService {
         updateEstablishmentDto: UpdateEstablishmentDto,
         userId: string,
         userRole: string,
-    ): Promise<EstablishmentDocument> {
+    ): Promise<EstablishmentLean> {
         const establishment = await this.findById(id);
 
         if (userRole !== 'admin' && establishment.ownerId.toString() !== userId) {
@@ -232,10 +420,13 @@ export class EstablishmentsService {
             changedData.typeChanged = true;
         }
 
-        const updatedEstablishment = await this.establishmentModel
+        // Step 1: Perform mutation
+        await this.establishmentModel
             .findByIdAndUpdate(id, updateEstablishmentDto, { new: true })
-            .populate('ownerId', 'firstName lastName email phoneNumber')
             .exec();
+
+        // Step 2: Fetch updated document with owner via $lookup (single round-trip)
+        const updatedEstablishment = await this.findByIdWithOwner(id);
 
         // ✅ EVENT: Emit establishment updated event (only for significant changes)
         if (updatedFields.length > 0) {
@@ -261,7 +452,7 @@ export class EstablishmentsService {
         id: string,
         status: EstablishmentStatus,
         rejectionReason?: string,
-    ): Promise<EstablishmentDocument> {
+    ): Promise<EstablishmentLean> {
         const updateData: Record<string, any> = { status };
 
         if (status === EstablishmentStatus.ACTIVE) {
@@ -271,14 +462,17 @@ export class EstablishmentsService {
             updateData.rejectionReason = rejectionReason;
         }
 
-        const establishment = await this.establishmentModel
+        // Step 1: Perform mutation
+        const updateResult = await this.establishmentModel
             .findByIdAndUpdate(id, updateData, { new: true })
-            .populate('ownerId', 'firstName lastName email phoneNumber')
             .exec();
 
-        if (!establishment) {
+        if (!updateResult) {
             throw new NotFoundException('Establishment not found');
         }
+
+        // Step 2: Fetch updated document with owner via $lookup (single round-trip)
+        const establishment = await this.findByIdWithOwner(id);
 
         return establishment;
     }
@@ -369,30 +563,35 @@ export class EstablishmentsService {
         const safeLimit = Math.min(limit, 100);
         const skip = (page - 1) * safeLimit;
 
-        const query = {
+        const geoFilter = {
             status: EstablishmentStatus.ACTIVE,
             isActive: true,
-            'address.coordinates': {
-                $near: {
-                    $geometry: {
-                        type: 'Point',
-                        coordinates: [longitude, latitude],
-                    },
-                    $maxDistance: maxDistance,
+        };
+
+        const geoNearStage: PipelineStage.GeoNear = {
+            $geoNear: {
+                near: {
+                    type: 'Point',
+                    coordinates: [longitude, latitude],
                 },
+                distanceField: 'distance',
+                maxDistance,
+                query: geoFilter,
+                spherical: true,
             },
         };
 
+        // Aggregate + count in parallel
         const [establishments, total] = await Promise.all([
+            this.establishmentModel.aggregate<EstablishmentLean>([
+                geoNearStage,
+                { $skip: skip },
+                { $limit: safeLimit },
+                ...this.getOwnerLookupStages(['firstName', 'lastName']),
+            ]),
             this.establishmentModel
-                .find(query)
-                .select(ESTABLISHMENT_LIST_FIELDS) // ✅ Only fetch required fields
-                .populate('ownerId', 'firstName lastName')
-                .skip(skip)
-                .limit(safeLimit)
-                .lean() // ✅ 50% memory reduction
-                .exec(),
-            this.establishmentModel.countDocuments(query),
+                .aggregate([geoNearStage, { $count: 'total' }])
+                .then(r => r[0]?.total || 0),
         ]);
 
         return { establishments, total };
@@ -696,6 +895,63 @@ export class EstablishmentsService {
             this.logger.log(`Event emitted: establishment.document.deleted (${documentType}) for ${establishmentId}`);
         } catch (error) {
             this.logger.error(`Failed to emit establishment.document.deleted event: ${error.message}`);
+        }
+
+        return establishment;
+    }
+
+    /**
+     * Builds $lookup + $unwind stages to join owner (user) data.
+     * Uses the pipeline form of $lookup for field-level projection,
+     * reducing network I/O compared to populate().
+     * @param fields - Owner fields to project (default: firstName, lastName, email)
+     * @see https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection
+     */
+    private getOwnerLookupStages(fields: string[] = ['firstName', 'lastName', 'email']): PipelineStage[] {
+        const projection: Record<string, 1> = { _id: 1 };
+        for (const field of fields) {
+            projection[field] = 1;
+        }
+
+        return [
+            {
+                $lookup: {
+                    from: 'users',
+                    let: { ownerObjId: '$ownerId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$ownerObjId'] } } },
+                        { $project: projection },
+                    ],
+                    as: 'ownerId',
+                },
+            },
+            {
+                $unwind: {
+                    path: '$ownerId',
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+        ];
+    }
+
+    /**
+     * Read-only findById with $lookup for API responses.
+     * Returns a lean object with populated owner — used by controllers.
+     * Mutation callers should use findById() which returns a Mongoose document.
+     */
+    async findByIdWithOwner(id: string): Promise<EstablishmentLean> {
+        if (!Types.ObjectId.isValid(id)) {
+            throw new BadRequestException('Invalid establishment ID');
+        }
+
+        const [establishment] = await this.establishmentModel.aggregate<EstablishmentLean>([
+            { $match: { _id: new Types.ObjectId(id) } },
+            { $limit: 1 },
+            ...this.getOwnerLookupStages(['firstName', 'lastName', 'email', 'phoneNumber']),
+        ]);
+
+        if (!establishment) {
+            throw new NotFoundException('Establishment not found');
         }
 
         return establishment;

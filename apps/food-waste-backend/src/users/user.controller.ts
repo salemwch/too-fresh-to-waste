@@ -34,10 +34,11 @@ import { UpdateUserDto } from './DTO/update-user.dto';
 import { SendPhoneVerificationDto } from './DTO/send-phone-verification.dto';
 import { VerifyPhoneDto } from './DTO/verify-phone.dto';
 import { UpdateLocationDto } from './DTO/update-location.dto';
+import { UpdatePasswordDto } from './DTO/update-password.dto';
 import { Response } from 'express';
 import { Public } from 'src/common/decorators/public.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { LocalStorageService } from '../common/services/local-storage.service';
+import { SupabaseStorageService } from '../common/services/supabase-storage.service';
 
 @ApiTags('👥 User Management')
 @Controller('users')
@@ -47,7 +48,7 @@ import { LocalStorageService } from '../common/services/local-storage.service';
 export class UsersController {
     constructor(
         private readonly usersService: UsersService,
-        private readonly localStorageService: LocalStorageService,
+        private readonly supabaseStorageService: SupabaseStorageService,
     ) { }
 
     @Post()
@@ -140,10 +141,12 @@ export class UsersController {
         try {
             let profileImageUrl: string | null = null;
 
-            // Upload profile image to local storage if provided
+            // Upload profile image to Firebase Cloud Storage if provided
             if (file) {
-                const uploadResult = await this.localStorageService.uploadFile(file, {
+                const uploadResult = await this.supabaseStorageService.uploadFile(file, {
                     folder: 'profile-images',
+                    makePublic: true,
+                    metadata: { category: 'profile-image' },
                     imageProcessing: {
                         maxWidth: 400,
                         maxHeight: 400,
@@ -266,9 +269,18 @@ export class UsersController {
         @Body() updateUserDto: UpdateUserDto,
     ) {
         try {
+            // `phone` is the shared-type / frontend field name.
+            // The DB schema stores the same value as `phoneNumber` — remap here
+            // so the service receives the correct field without leaking this
+            // translation concern into the generic update() method.
+            const { phone, ...rest } = updateUserDto;
+            const payload: UpdateUserDto = phone !== undefined
+                ? { ...rest, phoneNumber: phone }
+                : rest;
+
             const updatedUser = await this.usersService.update(
                 req.user.userId,
-                updateUserDto,
+                payload,
             );
             // Note: TransformInterceptor adds statusCode and timestamp
             return {
@@ -281,6 +293,21 @@ export class UsersController {
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
+    }
+
+    /**
+     * Update password for the authenticated user (no current password required)
+     */
+    @Patch('me/password')
+    @ApiOperation({ summary: 'Update password', description: 'Set a new password for the authenticated user.' })
+    @ApiResponse({ status: 200, description: 'Password updated successfully' })
+    @ApiResponse({ status: 400, description: 'Password does not meet policy requirements' })
+    async updatePassword(
+        @Request() req,
+        @Body() dto: UpdatePasswordDto,
+    ) {
+        await this.usersService.updatePassword(req.user.userId, dto.newPassword);
+        return { message: 'Password updated successfully' };
     }
 
     /**
@@ -322,9 +349,11 @@ export class UsersController {
         }
 
         try {
-            // Upload to local storage
-            const uploadResult = await this.localStorageService.uploadFile(file, {
+            // Upload to Firebase Cloud Storage
+            const uploadResult = await this.supabaseStorageService.uploadFile(file, {
                 folder: 'profile-images',
+                makePublic: true,
+                metadata: { uploadedBy: req.user.userId, category: 'profile-image-update' },
                 imageProcessing: {
                     maxWidth: 400,
                     maxHeight: 400,
@@ -333,16 +362,23 @@ export class UsersController {
                 },
             });
 
-            // Update user's profileImage field
+            // Update both profileImage and avatar for backward compatibility
+            // (legacy code reads `avatar`, newer code reads `profileImage`)
             const updatedUser = await this.usersService.update(req.user.userId, {
                 profileImage: uploadResult.downloadURL,
+                avatar: uploadResult.downloadURL,
             });
 
             return {
                 message: 'Profile image uploaded successfully',
                 data: {
                     profileImage: uploadResult.downloadURL,
-                    user: updatedUser,
+                    user: {
+                        email: updatedUser.email,
+                        firstName: updatedUser.firstName,
+                        lastName: updatedUser.lastName,
+                        profileImage: updatedUser.profileImage,
+                    },
                 },
             };
         } catch (error) {
@@ -418,7 +454,9 @@ export class UsersController {
                 updateLocationDto,
             );
 
+            // ✅ FIX: Add statusCode to match frontend expectations
             return {
+                statusCode: HttpStatus.OK,
                 message: 'Location updated successfully',
                 data: result,
             };
@@ -655,21 +693,156 @@ export class UsersController {
         }
     }
 
-    @Delete(':id')
-    @UseGuards(RolesGuard)
-    @Roles(UserRole.ADMIN)
-    async remove(@Param('id') id: string) {
+    /**
+     * 📍 GET USER LOCATION PREFERENCES
+     *
+     * Fetch user's saved location preferences for cross-device sync.
+     * Industry best practice: Persist location across devices (Facebook/Instagram pattern).
+     *
+     * @returns Location preferences with default location and search radius
+     */
+    @Get('me/location-preferences')
+    @ApiOperation({
+        summary: '📍 Get Location Preferences',
+        description: 'Fetch user location preferences for cross-device sync. Returns last saved location and search radius.'
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Location preferences retrieved successfully',
+        schema: {
+            example: {
+                success: true,
+                data: {
+                    defaultLocation: { latitude: 32.0853, longitude: 34.7818 },
+                    searchRadius: 25,
+                    manualLocationName: 'Tel Aviv, Israel',
+                    source: 'gps'
+                }
+            }
+        }
+    })
+    async getLocationPreferences(@Request() req) {
         try {
-            await this.usersService.remove(id);
+            const userId = req.user.userId;
+            const user = await this.usersService.findOne(userId);
+
+            if (!user || !user.locationPreferences) {
+                return {
+                    success: true,
+                    data: null, // No saved location
+                    message: 'No location preferences found'
+                };
+            }
+
             return {
-                statusCode: HttpStatus.NO_CONTENT,
-                message: 'User removed successfully',
+                success: true,
+                data: {
+                    defaultLocation: user.locationPreferences.defaultLocation,
+                    searchRadius: user.locationPreferences.searchRadius || 25,
+                    // Return most recent location from history if available
+                    lastKnownLocation: user.locationPreferences.locationHistory?.[0]
+                }
             };
         } catch (error) {
             throw new HttpException(
-                { message: (error as Error).message || 'Error deleting user' },
-                HttpStatus.INTERNAL_SERVER_ERROR,
+                { message: 'Failed to fetch location preferences' },
+                HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    /**
+     * 📍 SAVE USER LOCATION PREFERENCES
+     *
+     * Save user's location preferences for cross-device persistence.
+     * Industry best practice: Sync location to backend (Facebook/Instagram pattern).
+     *
+     * @param body - Location data (coordinates, radius, name, source)
+     * @returns Success confirmation
+     */
+    @Patch('me/location-preferences')
+    @ApiOperation({
+        summary: '📍 Save Location Preferences',
+        description: 'Save user location preferences to backend for cross-device sync. Called when user selects/changes location.'
+    })
+    @ApiBody({
+        schema: {
+            example: {
+                coordinates: { latitude: 32.0853, longitude: 34.7818 },
+                searchRadius: 25,
+                manualLocationName: 'Tel Aviv, Israel',
+                source: 'gps'
+            }
+        }
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Location preferences saved successfully'
+    })
+    async saveLocationPreferences(@Request() req, @Body() body: {
+        coordinates?: { latitude: number; longitude: number };
+        searchRadius?: number;
+        manualLocationName?: string;
+        source?: 'gps' | 'manual';
+    }) {
+        try {
+            const userId = req.user.userId;
+
+            await this.usersService.updateLocationPreferences(userId, {
+                defaultLocation: body.coordinates,
+                searchRadius: body.searchRadius,
+                locationHistory: body.coordinates ? [{
+                    coordinates: body.coordinates,
+                    timestamp: new Date(),
+                    source: body.source || 'manual'
+                }] : undefined
+            });
+
+            return {
+                success: true,
+                message: 'Location preferences saved successfully'
+            };
+        } catch (error) {
+            throw new HttpException(
+                { message: 'Failed to save location preferences' },
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @Patch(':id/restore')
+    @UseGuards(RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @ApiOperation({ summary: 'Restore soft-deleted user account' })
+    @ApiResponse({ status: 200, description: 'User restored successfully' })
+    async restore(@Param('id') id: string, @Request() req) {
+        const ipAddress = req.ip || req.connection?.remoteAddress;
+        const userAgent = req.headers['user-agent'] || 'unknown';
+        const user = await this.usersService.restore(id, { ipAddress, userAgent });
+        return { statusCode: HttpStatus.OK, message: 'User restored successfully', data: user };
+    }
+
+    @Delete(':id')
+    @UseGuards(RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @ApiOperation({ summary: 'Soft-delete a user account' })
+    @ApiResponse({ status: 200, description: 'User soft-deleted successfully' })
+    async remove(
+        @Param('id') id: string,
+        @Query('reason') reason: string | undefined,
+        @Request() req,
+    ) {
+        const ipAddress = req.ip || req.connection?.remoteAddress;
+        const userAgent = req.headers['user-agent'] || 'unknown';
+        await this.usersService.softDelete(
+            id,
+            reason || 'Admin deletion',
+            { ipAddress, userAgent },
+            { adminId: req.user.userId, adminEmail: req.user.email },
+        );
+        return {
+            statusCode: HttpStatus.OK,
+            message: 'User soft-deleted successfully',
+        };
     }
 }

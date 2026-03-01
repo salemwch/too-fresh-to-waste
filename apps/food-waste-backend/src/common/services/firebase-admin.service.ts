@@ -43,9 +43,15 @@ export class FirebaseAdminService implements OnModuleInit {
 
       // Initialize Firebase Admin SDK
       if (!admin.apps.length) {
+        const storageBucket = this.configService.get<string>(
+          'FIREBASE_STORAGE_BUCKET',
+          `${serviceAccountObj.projectId}.appspot.com`,
+        );
+
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccountObj),
           projectId: serviceAccountObj.projectId,
+          storageBucket,
         });
       }
 

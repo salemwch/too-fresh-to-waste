@@ -224,17 +224,16 @@ export class AdminAuditService {
       // Calculate pagination
       const skip = (page - 1) * limit;
 
-      // Execute queries in parallel
+      // Execute aggregate + count in parallel (single DB round-trip per query)
       const [logs, total] = await Promise.all([
-        this.auditLogModel
-          .find(filter)
-          .sort({ timestamp: -1 })
-          .skip(skip)
-          .limit(limit)
-          .populate('adminId', 'firstName lastName email')
-          .lean()
-          .exec(),
-        this.auditLogModel.countDocuments(filter)
+        this.auditLogModel.aggregate<LeanDocument<AdminAuditLogDocument>>([
+          { $match: filter },
+          { $sort: { timestamp: -1 as const } },
+          { $skip: skip },
+          { $limit: limit },
+          ...this.getAdminLookupStages(),
+        ]),
+        this.auditLogModel.countDocuments(filter),
       ]);
 
       const totalPages = Math.ceil(total / limit);
@@ -272,16 +271,12 @@ export class AdminAuditService {
 
   async getAuditLogsByTarget(targetType: string, targetId: string, limit: number = 20): Promise<LeanDocument<AdminAuditLogDocument>[]> {
     try {
-      return await this.auditLogModel
-        .find({
-          targetType,
-          targetId
-        })
-        .sort({ timestamp: -1 })
-        .limit(limit)
-        .populate('adminId', 'firstName lastName email')
-        .lean()
-        .exec();
+      return await this.auditLogModel.aggregate<LeanDocument<AdminAuditLogDocument>>([
+        { $match: { targetType, targetId } },
+        { $sort: { timestamp: -1 as const } },
+        { $limit: limit },
+        ...this.getAdminLookupStages(),
+      ]);
 
     } catch (error) {
       this.logger.error(`Failed to retrieve audit logs for ${targetType}:${targetId}:`, error);
@@ -293,15 +288,12 @@ export class AdminAuditService {
     try {
       const startTime = new Date(Date.now() - hours * 60 * 60 * 1000);
 
-      return await this.auditLogModel
-        .find({
-          timestamp: { $gte: startTime }
-        })
-        .sort({ timestamp: -1 })
-        .limit(limit)
-        .populate('adminId', 'firstName lastName email')
-        .lean()
-        .exec();
+      return await this.auditLogModel.aggregate<LeanDocument<AdminAuditLogDocument>>([
+        { $match: { timestamp: { $gte: startTime } } },
+        { $sort: { timestamp: -1 as const } },
+        { $limit: limit },
+        ...this.getAdminLookupStages(),
+      ]);
 
     } catch (error) {
       this.logger.error('Failed to retrieve recent activity:', error);
@@ -417,17 +409,11 @@ export class AdminAuditService {
     format: T = 'json' as T
   ): Promise<ExportResult<T>> {
     try {
-      const logs = await this.auditLogModel
-        .find({
-          timestamp: {
-            $gte: startDate,
-            $lte: endDate
-          }
-        })
-        .sort({ timestamp: -1 })
-        .populate('adminId', 'firstName lastName email')
-        .lean()
-        .exec();
+      const logs = await this.auditLogModel.aggregate<LeanDocument<AdminAuditLogDocument>>([
+        { $match: { timestamp: { $gte: startDate, $lte: endDate } } },
+        { $sort: { timestamp: -1 as const } },
+        ...this.getAdminLookupStages(),
+      ]);
 
       if (format === 'csv') {
         return this.convertLogsToCSV(logs) as ExportResult<T>;
@@ -483,6 +469,34 @@ export class AdminAuditService {
       acc[item._id] = item.count;
       return acc;
     }, {} as Record<T, number>);
+  }
+
+  /**
+   * Builds $lookup + $unwind stages to join admin user data.
+   * Uses the pipeline form of $lookup for field-level projection,
+   * reducing network I/O compared to populate().
+   * @see https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection
+   */
+  private getAdminLookupStages(): PipelineStage[] {
+    return [
+      {
+        $lookup: {
+          from: 'users',
+          let: { adminObjId: '$adminId' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$adminObjId'] } } },
+            { $project: { _id: 1, firstName: 1, lastName: 1, email: 1 } },
+          ],
+          as: 'adminId',
+        },
+      },
+      {
+        $unwind: {
+          path: '$adminId',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ];
   }
 
   private convertLogsToCSV(logs: LeanDocument<AdminAuditLogDocument>[]): string {

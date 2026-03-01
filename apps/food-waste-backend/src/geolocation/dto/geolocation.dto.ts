@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString, IsOptional, IsEnum, IsBoolean, IsArray, ValidateNested, Min, Max, IsLatitude, IsLongitude } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsOptional, IsEnum, IsBoolean, IsArray, ValidateNested, Min, Max, MinLength, MaxLength, IsLatitude, IsLongitude } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DistanceUnit, LocationCategory} from '../interfaces/geolocation.interface';
@@ -135,6 +135,18 @@ export class ProximitySearchDto {
   @IsOptional()
   @IsBoolean()
   sortByDistance?: boolean = true;
+
+  @ApiPropertyOptional({
+    description: 'Text query to search offers by title or establishment name',
+    example: 'Movenpick',
+    minLength: 2,
+    maxLength: 100
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  @MaxLength(100)
+  query?: string;
 }
 
 export class DistanceCalculationDto {

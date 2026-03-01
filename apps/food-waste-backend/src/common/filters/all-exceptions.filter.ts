@@ -26,7 +26,7 @@ import * as Sentry from '@sentry/node';
  */
 
 interface ErrorResponse {
-    statusCode: number;
+    status: number;
     message: string;
     error?: string;
     errorId: string;
@@ -80,9 +80,34 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 'message' in exceptionResponse
             ) {
                 const msgValue = (exceptionResponse as any).message;
-                message = Array.isArray(msgValue)
-                    ? msgValue.join(', ')
-                    : msgValue;
+
+                // ✅ CRITICAL FIX: Handle validation errors properly
+                if (Array.isArray(msgValue)) {
+                    // Extract readable messages from array elements
+                    message = msgValue
+                        .map(item => {
+                            // If item is a string, use it directly
+                            if (typeof item === 'string') {
+                                return item;
+                            }
+                            // If item is an object with a message property, extract it
+                            if (item && typeof item === 'object' && 'message' in item) {
+                                return String(item.message);
+                            }
+                            // If item is an object, try to stringify it properly
+                            if (item && typeof item === 'object') {
+                                return JSON.stringify(item);
+                            }
+                            // Fallback to string conversion
+                            return String(item);
+                        })
+                        .join(', ');
+                } else if (typeof msgValue === 'string') {
+                    message = msgValue;
+                } else {
+                    // Handle non-array, non-string message values
+                    message = String(msgValue);
+                }
             } else {
                 message = 'An error occurred';
             }
@@ -147,7 +172,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
         // Build error response
         const errorResponse: ErrorResponse = {
-            statusCode: status,
+            status: status,
             message,
             errorId, // Critical: Return error ID to client for support tickets
             correlationId,

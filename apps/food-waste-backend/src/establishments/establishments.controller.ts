@@ -25,6 +25,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiConsumes } from '@nestjs/swagger
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Public } from '../common/decorators/public.decorator';
 import { UserRole } from '../common/enums/user.enum';
 import { EstablishmentsService } from './establishments.service';
 import { CreateEstablishmentDto } from './DTO/create-establishment.dto';
@@ -32,9 +33,10 @@ import { UpdateEstablishmentDto } from './DTO/update-establishment.dto';
 import { SearchEstablishmentsDto } from './DTO/search-establishments.dto';
 import { EstablishmentStatus } from './schemas/establishment.schema';
 import { ParseFloatPipe } from './float/parse-float.pipe';
-import { LocalStorageService } from '../common/services/local-storage.service';
+import { SupabaseStorageService } from '../common/services/supabase-storage.service';
 import { DocumentType, UploadDocumentsDto, VerifyDocumentDto } from './DTO/upload-documents.dto';
 import { mapToSafeEstablishmentResponse } from './DTO/safe-establishment-response.dto';
+import { QueryOptimizer } from '../common/utils/query-optimization.util';
 
 @ApiTags('🏪 Establishments Management')
 @Controller('establishments')
@@ -42,8 +44,38 @@ import { mapToSafeEstablishmentResponse } from './DTO/safe-establishment-respons
 export class EstablishmentsController {
     constructor(
         private readonly establishmentsService: EstablishmentsService,
-        private readonly localStorageService: LocalStorageService,
+        private readonly supabaseStorageService: SupabaseStorageService,
     ) { }
+
+    /**
+     * Public endpoint — no JWT required.
+     * Called during merchant signup to verify a Google Place ID is not already
+     * claimed by an active, admin-approved establishment.
+     */
+    @Get('check-place/:placeId')
+    @Public()
+    @ApiOperation({
+        summary: '🔍 Check if a Google Place is already registered',
+        description: 'Returns { available: true } when the place can be registered. Returns { available: false } when an active, verified establishment already owns it.',
+    })
+    @ApiResponse({ status: 200, description: 'Availability result' })
+    async checkPlaceAvailability(
+        @Param('placeId') placeId: string,
+    ): Promise<{ data: { available: boolean; message?: string } }> {
+        if (!placeId?.trim()) {
+            return { data: { available: false, message: 'Invalid place ID' } };
+        }
+        const taken = await this.establishmentsService.isGooglePlaceRegistered(placeId.trim());
+        if (taken) {
+            return {
+                data: {
+                    available: false,
+                    message: 'This business location is already registered on our platform. If you own this business, please contact support.',
+                },
+            };
+        }
+        return { data: { available: true } };
+    }
 
     @Post()
     @UseGuards(RolesGuard)
@@ -101,10 +133,12 @@ export class EstablishmentsController {
 
             let imageUrls: string[] = [];
 
-            // Upload images to local storage if provided
+            // Upload images to Firebase Cloud Storage if provided
             if (files && files.length > 0) {
-                const uploadResults = await this.localStorageService.uploadFiles(files, {
+                const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
                     folder: 'establishments',
+                    makePublic: true,
+                    metadata: { uploadedBy: req.user.userId, category: 'establishment-image' },
                     imageProcessing: {
                         maxWidth: 1000,
                         maxHeight: 750,
@@ -154,12 +188,7 @@ export class EstablishmentsController {
         return {
             message: 'Establishments retrieved successfully',
             data: result.establishments,
-            meta: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-            },
+            meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
         };
     }
 
@@ -167,13 +196,13 @@ export class EstablishmentsController {
     @UseGuards(RolesGuard)
     @Roles(UserRole.MERCHANT)
     async getMyEstablishment(@Request() req) {
-        const establishments = await this.establishmentsService.findByOwnerId(
+        const result = await this.establishmentsService.findByOwnerId(
             req.user.userId,
         );
 
         return {
             message: 'Your establishments retrieved successfully',
-            data: establishments,
+            data: result.establishments,
         };
     }
 
@@ -211,18 +240,13 @@ export class EstablishmentsController {
         return {
             message: 'Pending establishments retrieved successfully',
             data: result.establishments,
-            meta: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-            },
+            meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
         };
     }
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        const establishment = await this.establishmentsService.findById(id);
+        const establishment = await this.establishmentsService.findByIdWithOwner(id);
 
         return {
             message: 'Establishment retrieved successfully',
@@ -289,10 +313,12 @@ export class EstablishmentsController {
         try {
             let newImageUrls: string[] = [];
 
-            // Upload new images to local storage if provided
+            // Upload new images to Firebase Cloud Storage if provided
             if (files && files.length > 0) {
-                const uploadResults = await this.localStorageService.uploadFiles(files, {
+                const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
                     folder: 'establishments',
+                    makePublic: true,
+                    metadata: { uploadedBy: req.user.userId, category: 'establishment-image-update' },
                     imageProcessing: {
                         maxWidth: 1000,
                         maxHeight: 750,
@@ -442,9 +468,11 @@ export class EstablishmentsController {
 
             logger.debug(`Uploading ${documentType} for establishment ${id}`);
 
-            // Upload to local storage
-            const uploadResult = await this.localStorageService.uploadFile(file, {
+            // Upload to Firebase Cloud Storage (private — documents use signed URLs)
+            const uploadResult = await this.supabaseStorageService.uploadFile(file, {
                 folder: `establishments/${id}/documents`,
+                makePublic: false,
+                metadata: { uploadedBy: req.user.userId, category: 'establishment-document', establishmentId: id },
             });
 
             logger.debug(`Document uploaded: ${uploadResult.downloadURL}`);

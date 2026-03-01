@@ -21,7 +21,7 @@ import {
     BadRequestException,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiResponse, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -29,18 +29,21 @@ import { UserRole } from '../common/enums/user.enum';
 import { OffersService } from './offers.service';
 import { CreateOfferDto } from './DTO/create-offer.dto';
 import { UpdateOfferDto } from './DTO/update-offer.dto';
+import { ReactivateOfferDto } from './DTO/reactivate-offer.dto';
 import { SearchOffersDto } from './DTO/search-offers.dto';
 import { OfferStatus } from './schemas/offer.schema';
-import { Public } from '../common/decorators/public.decorator';
-import { LocalStorageService } from '../common/services/local-storage.service';
-import { OfferPresenter } from './presenters/offer.presenter';
+import { GetUser } from '../common/decorators/get-user.decorator';
+import { SupabaseStorageService } from '../common/services/supabase-storage.service';
+import { SafeUserResponse } from '../auth/DTO/safe-user-response.dto';
+import { QueryOptimizer } from '../common/utils/query-optimization.util';
 
-@ApiTags('🎯 Offers Management')
+@ApiTags('Offers Management')
 @Controller('offers')
+@UseGuards(JwtAuthGuard)
 export class OffersController {
     constructor(
         private readonly offersService: OffersService,
-        private readonly localStorageService: LocalStorageService,
+        private readonly supabaseStorageService: SupabaseStorageService,
     ) { }
 
     @Post()
@@ -87,10 +90,12 @@ export class OffersController {
         try {
             let imageUrls: string[] = [];
 
-            // Upload images to local storage if provided
+            // Upload images to Firebase Cloud Storage if provided
             if (files && files.length > 0) {
-                const uploadResults = await this.localStorageService.uploadFiles(files, {
+                const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
                     folder: 'offers',
+                    makePublic: true,
+                    metadata: { uploadedBy: req.user.userId, category: 'offer-image' },
                     imageProcessing: {
                         maxWidth: 800,
                         maxHeight: 600,
@@ -123,67 +128,24 @@ export class OffersController {
     }
 
     @Get()
-    @Public()
     async findAll(
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
         @Query('limit', new DefaultValuePipe(12), ParseIntPipe) limit: number,
         @Query(new ValidationPipe({ transform: true })) filters: SearchOffersDto,
-        @Query('latitude') latitudeStr?: string,
-        @Query('longitude') longitudeStr?: string,
+        @GetUser() user: SafeUserResponse,
     ) {
-        // ✅ FIX: Parse lat/lng manually (optional params can't use pipes directly)
-        const latitude = latitudeStr ? parseFloat(latitudeStr) : undefined;
-        const longitude = longitudeStr ? parseFloat(longitudeStr) : undefined;
-        const result = await this.offersService.findAll(page, limit, filters);
-
-        // 🔍 DEBUG: Log what service returned
-        console.log('🔍🔍🔍 CONTROLLER findAll: result.offers[0]:', JSON.stringify(result.offers[0]).substring(0, 600));
-
-        // ✅ Calculate distance if user location provided
-        const distances = new Map<string, number>();
-        if (latitude !== undefined && longitude !== undefined) {
-            for (const offer of result.offers) {
-                // ✅ Check if distance is already calculated (from aggregation pipeline)
-                if ((offer as any).distance !== undefined) {
-                    distances.set(offer._id.toString(), (offer as any).distance);
-                }
-                // ✅ Otherwise, manually calculate if establishment is populated
-                else if (offer.establishmentId && typeof offer.establishmentId === 'object') {
-                    const establishment = offer.establishmentId as any;
-                    if (establishment.address?.coordinates?.coordinates) {
-                        const [estLng, estLat] = establishment.address.coordinates.coordinates;
-                        const distance = this.offersService.calculateDistance(
-                            latitude,
-                            longitude,
-                            estLat,
-                            estLng,
-                        );
-                        distances.set(offer._id.toString(), distance);
-                    }
-                }
-            }
-        }
-
-        // ✅ SECURITY: Use presenter to sanitize data (remove PII and internal metrics)
-        const sanitizedOffers = OfferPresenter.toCardDtoArray(result.offers as any, distances);
-
-        // 🔍 DEBUG: Log after presenter
-        console.log('🔍🔍🔍 CONTROLLER findAll: sanitizedOffers[0]:', JSON.stringify(sanitizedOffers[0]));
+        // latitude/longitude are handled by SearchOffersDto (class-transformer)
+        // and used by findAll service via filters.latitude / filters.longitude
+        const result = await this.offersService.findAll(page, limit, filters, user.userId);
 
         return {
             message: 'Offers retrieved successfully',
-            data: sanitizedOffers,
-            meta: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-            },
+            data: result.data, // ✅ Service now returns { data, total }
+            meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
         };
     }
 
     @Get('pickup-today')
-    @Public()
     @ApiOperation({
         summary: '📅 Get Offers Available for Pickup Today',
         description: 'Returns all active offers where pickup window overlaps with today (00:00 - 23:59 Africa/Tunis timezone)'
@@ -219,54 +181,25 @@ export class OffersController {
     async getPickupTodayOffers(
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
         @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
-        @Query('latitude') latitudeStr?: string,
-        @Query('longitude') longitudeStr?: string,
+        @GetUser() user: SafeUserResponse,
+        @Query('latitude', new ParseFloatPipe({ optional: true })) latitude?: number,
+        @Query('longitude', new ParseFloatPipe({ optional: true })) longitude?: number,
     ) {
-        const latitude = latitudeStr ? parseFloat(latitudeStr) : undefined;
-        const longitude = longitudeStr ? parseFloat(longitudeStr) : undefined;
-        const result = await this.offersService.getPickupTodayOffers(page, limit);
+        // Pass coordinates for distance calculation (only if both provided)
+        const userLocation = latitude !== undefined && longitude !== undefined
+            ? { latitude, longitude }
+            : undefined;
 
-        // ✅ Calculate distance if user location provided
-        const distances = new Map<string, number>();
-        if (latitude !== undefined && longitude !== undefined) {
-            for (const offer of result.offers) {
-                // ✅ Check if distance is already calculated (from aggregation pipeline)
-                if ((offer as any).distance !== undefined) {
-                    distances.set(offer._id.toString(), (offer as any).distance);
-                }
-                // ✅ Otherwise, manually calculate if establishment is populated
-                else if (offer.establishmentId && typeof offer.establishmentId === 'object') {
-                    const establishment = offer.establishmentId as any;
-                    if (establishment.address?.coordinates?.coordinates) {
-                        const [estLng, estLat] = establishment.address.coordinates.coordinates;
-                        const distance = this.offersService.calculateDistance(
-                            latitude,
-                            longitude,
-                            estLat,
-                            estLng,
-                        );
-                        distances.set(offer._id.toString(), distance);
-                    }
-                }
-            }
-        }
-
-        const sanitizedOffers = OfferPresenter.toCardDtoArray(result.offers as any, distances);
+        const result = await this.offersService.getPickupTodayOffers(page, limit, user.userId, userLocation);
 
         return {
             message: 'Pickup today offers retrieved successfully',
-            data: sanitizedOffers,
-            meta: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-            },
+            data: result.data, // ✅ Service now returns { data, total }
+            meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
         };
     }
 
     @Get('pickup-tomorrow')
-    @Public()
     @ApiOperation({
         summary: '📅 Get Offers Available for Pickup Tomorrow',
         description: 'Returns all active offers where pickup window overlaps with tomorrow (00:00 - 23:59 Africa/Tunis timezone)'
@@ -302,101 +235,34 @@ export class OffersController {
     async getPickupTomorrowOffers(
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
         @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
-        @Query('latitude') latitudeStr?: string,
-        @Query('longitude') longitudeStr?: string,
+        @GetUser() user: SafeUserResponse,
+        @Query('latitude', new ParseFloatPipe({ optional: true })) latitude?: number,
+        @Query('longitude', new ParseFloatPipe({ optional: true })) longitude?: number,
     ) {
-        const latitude = latitudeStr ? parseFloat(latitudeStr) : undefined;
-        const longitude = longitudeStr ? parseFloat(longitudeStr) : undefined;
-        const result = await this.offersService.getPickupTomorrowOffers(page, limit);
+        // Pass coordinates for distance calculation (only if both provided)
+        const userLocation = latitude !== undefined && longitude !== undefined
+            ? { latitude, longitude }
+            : undefined;
 
-        // ✅ Calculate distance if user location provided
-        const distances = new Map<string, number>();
-        if (latitude !== undefined && longitude !== undefined) {
-            for (const offer of result.offers) {
-                // ✅ Check if distance is already calculated (from aggregation pipeline)
-                if ((offer as any).distance !== undefined) {
-                    distances.set(offer._id.toString(), (offer as any).distance);
-                }
-                // ✅ Otherwise, manually calculate if establishment is populated
-                else if (offer.establishmentId && typeof offer.establishmentId === 'object') {
-                    const establishment = offer.establishmentId as any;
-                    if (establishment.address?.coordinates?.coordinates) {
-                        const [estLng, estLat] = establishment.address.coordinates.coordinates;
-                        const distance = this.offersService.calculateDistance(
-                            latitude,
-                            longitude,
-                            estLat,
-                            estLng,
-                        );
-                        distances.set(offer._id.toString(), distance);
-                    }
-                }
-            }
-        }
-
-        const sanitizedOffers = OfferPresenter.toCardDtoArray(result.offers as any, distances);
+        const result = await this.offersService.getPickupTomorrowOffers(page, limit, user.userId, userLocation);
 
         return {
             message: 'Pickup tomorrow offers retrieved successfully',
-            data: sanitizedOffers,
-            meta: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-            },
+            data: result.data, // ✅ Service now returns { data, total }
+            meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
         };
     }
 
     @Get('featured')
-    @Public()
     async getFeaturedOffers(
         @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-        @Query('latitude') latitudeStr?: string,
-        @Query('longitude') longitudeStr?: string,
+        @GetUser() user: SafeUserResponse,
     ) {
-        // ✅ FIX: Parse lat/lng manually (optional params can't use pipes directly)
-        const latitude = latitudeStr ? parseFloat(latitudeStr) : undefined;
-        const longitude = longitudeStr ? parseFloat(longitudeStr) : undefined;
-        const result = await this.offersService.getFeaturedOffers(1, limit);
-
-        // 🔍 DEBUG: Log what service returned
-        console.log('🔍🔍🔍 CONTROLLER getFeaturedOffers: result.offers[0]:', JSON.stringify(result.offers[0]).substring(0, 600));
-
-        // ✅ Calculate distance if user location provided
-        const distances = new Map<string, number>();
-        if (latitude !== undefined && longitude !== undefined) {
-            for (const offer of result.offers) {
-                // ✅ Check if distance is already calculated (from aggregation pipeline)
-                if ((offer as any).distance !== undefined) {
-                    distances.set(offer._id.toString(), (offer as any).distance);
-                }
-                // ✅ Otherwise, manually calculate if establishment is populated
-                else if (offer.establishmentId && typeof offer.establishmentId === 'object') {
-                    const establishment = offer.establishmentId as any;
-                    if (establishment.address?.coordinates?.coordinates) {
-                        const [estLng, estLat] = establishment.address.coordinates.coordinates;
-                        const distance = this.offersService.calculateDistance(
-                            latitude,
-                            longitude,
-                            estLat,
-                            estLng,
-                        );
-                        distances.set(offer._id.toString(), distance);
-                    }
-                }
-            }
-        }
-
-        // ✅ SECURITY: Use presenter to sanitize data with distances
-        const sanitizedOffers = OfferPresenter.toCardDtoArray(result.offers as any, distances);
-
-        // 🔍 DEBUG: Log after presenter
-        console.log('🔍🔍🔍 CONTROLLER getFeaturedOffers: sanitizedOffers[0]:', JSON.stringify(sanitizedOffers[0]));
+        const result = await this.offersService.getFeaturedOffers(1, limit, user.userId);
 
         return {
             message: 'Featured offers retrieved successfully',
-            data: sanitizedOffers,
+            data: result.data, // ✅ Service now returns { data, total }
         };
     }
 
@@ -418,7 +284,6 @@ export class OffersController {
      * GET /offers/urgent?hoursUntilExpiry=1&limit=10&latitude=40.7128&longitude=-74.0060
      */
     @Get('urgent')
-    @Public()
     @ApiOperation({
         summary: '🚨 Get urgent offers (expiring soon)',
         description: 'Returns offers expiring within a specified time window. Sorted by soonest expiring first.',
@@ -430,42 +295,19 @@ export class OffersController {
     async getUrgentOffers(
         @Query('hoursUntilExpiry', new DefaultValuePipe(1), ParseIntPipe) hoursUntilExpiry: number,
         @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-        @Query('latitude') latitudeStr?: string,
-        @Query('longitude') longitudeStr?: string,
+        @GetUser() user: SafeUserResponse,
+        @Query('latitude', new ParseFloatPipe({ optional: true })) latitude?: number,
+        @Query('longitude', new ParseFloatPipe({ optional: true })) longitude?: number,
     ) {
-        // ✅ Parse lat/lng manually (optional params)
-        const latitude = latitudeStr ? parseFloat(latitudeStr) : undefined;
-        const longitude = longitudeStr ? parseFloat(longitudeStr) : undefined;
+        const userLocation = latitude !== undefined && longitude !== undefined
+            ? { latitude, longitude }
+            : undefined;
 
-        // ✅ Get urgent offers from service
-        const result = await this.offersService.getUrgentOffers(hoursUntilExpiry, 1, limit);
-
-        // ✅ Calculate distance if user location provided
-        const distances = new Map<string, number>();
-        if (latitude !== undefined && longitude !== undefined) {
-            for (const offer of result.offers) {
-                if (offer.establishmentId && typeof offer.establishmentId === 'object') {
-                    const establishment = offer.establishmentId as any;
-                    if (establishment.address?.coordinates?.coordinates) {
-                        const [estLng, estLat] = establishment.address.coordinates.coordinates;
-                        const distance = this.offersService.calculateDistance(
-                            latitude,
-                            longitude,
-                            estLat,
-                            estLng,
-                        );
-                        distances.set(offer._id.toString(), distance);
-                    }
-                }
-            }
-        }
-
-        // ✅ SECURITY: Use presenter to sanitize data with distances
-        const sanitizedOffers = OfferPresenter.toCardDtoArray(result.offers as any, distances);
+        const result = await this.offersService.getUrgentOffers(hoursUntilExpiry, 1, limit, user.userId, userLocation);
 
         return {
             message: 'Urgent offers retrieved successfully',
-            data: sanitizedOffers,
+            data: result.data,
             meta: {
                 total: result.total,
                 hoursUntilExpiry,
@@ -474,12 +316,12 @@ export class OffersController {
     }
 
     @Get('nearby')
-    @Public()
     async getNearbyOffers(
         @Query('longitude', ParseFloatPipe) longitude: number,
         @Query('latitude', ParseFloatPipe) latitude: number,
         @Query('maxDistance', new DefaultValuePipe(5000), ParseIntPipe) maxDistance: number,
         @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+        @GetUser() user: SafeUserResponse,
     ) {
         const result = await this.offersService.getNearbyOffers(
             longitude,
@@ -487,16 +329,12 @@ export class OffersController {
             maxDistance,
             1,
             limit,
-        );
-
-        // ✅ SECURITY: Use presenter to sanitize data (includes distance)
-        const sanitizedOffers = result.offers.map((offer: any) =>
-            OfferPresenter.toCardDto(offer, offer.distance)
+            user.userId,
         );
 
         return {
             message: 'Nearby offers retrieved successfully',
-            data: sanitizedOffers,
+            data: result.data, // ✅ Service now returns { data, total }
         };
     }
 
@@ -512,7 +350,6 @@ export class OffersController {
      * Ranking: Priority → Discount → Urgency → CreatedAt
      */
     @Get('recommended')
-    @UseGuards(JwtAuthGuard)
     @ApiOperation({
         summary: '🎯 Get personalized offer recommendations',
         description: 'Returns personalized offers based on user favorites (establishments + categories). Falls back to featured offers if no favorites exist.'
@@ -545,73 +382,62 @@ export class OffersController {
     })
     @ApiResponse({ status: 401, description: '❌ Unauthorized - Login required' })
     async getRecommendedOffers(
-        @Request() req: any,
+        @GetUser() user: SafeUserResponse, // Required: user must be authenticated
         @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number
     ) {
-        const userId = req.user?.userId || req.user?.sub;
-        const offers = await this.offersService.getRecommendedOffers(userId, limit);
-
-        // ✅ SECURITY: Use presenter to sanitize data
-        const sanitizedOffers = OfferPresenter.toCardDtoArray(offers as any);
+        // ✅ Service returns OfferCardDto[] (already sanitized with isFavorite)
+        const offers = await this.offersService.getRecommendedOffers(user.userId, limit);
 
         return {
             message: 'Recommended offers retrieved successfully',
-            data: sanitizedOffers,
-            count: sanitizedOffers.length
+            data: offers,
+            count: offers.length
         };
     }
 
     @Get('my-offers')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.MERCHANT)
+    @ApiQuery({ name: 'status', required: false, enum: OfferStatus, description: 'Filter by offer status' })
     async getMyOffers(
-        @Request() req,
+        @GetUser() user: SafeUserResponse, // Required: merchant must be authenticated
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
         @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+        @Query('status') status?: OfferStatus,
     ) {
         const result = await this.offersService.findByMerchant(
-            req.user.userId,
+            user.userId,
             page,
             limit,
+            user.userId,
+            status,
         );
 
         return {
             message: 'Your offers retrieved successfully',
-            data: result.offers,
-            meta: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-            },
+            data: result.data,
+            meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
         };
     }
 
     @Get('establishment/:establishmentId')
-    @Public()
     async getOffersByEstablishment(
         @Param('establishmentId') establishmentId: string,
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
         @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+        @GetUser() user: SafeUserResponse,
     ) {
         const result = await this.offersService.findByEstablishment(
             establishmentId,
             page,
             limit,
+            user.userId,
         );
-
-        // ✅ SECURITY: Use presenter to sanitize data
-        const sanitizedOffers = OfferPresenter.toCardDtoArray(result.offers as any);
 
         return {
             message: 'Establishment offers retrieved successfully',
-            data: sanitizedOffers,
-            meta: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-            },
+            data: result.data, // ✅ Service now returns { data, total }
+            meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
         };
     }
 
@@ -710,10 +536,92 @@ export class OffersController {
         };
     }
 
+    // =========================================================================
+    // OFFER LIFECYCLE: Reactivate & Toggle (Enable/Disable)
+    // =========================================================================
+
+    @Patch(':id/reactivate')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.MERCHANT, UserRole.ADMIN)
+    @ApiOperation({
+        summary: 'Reactivate an expired/cancelled/sold-out offer with new dates',
+        description: 'Allows the owning merchant to reactivate a terminal-state offer. Resets quantities and sets new availability window.',
+    })
+    @ApiResponse({ status: 200, description: 'Offer reactivated successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid dates or offer cannot be reactivated' })
+    @ApiResponse({ status: 403, description: 'Not authorized to reactivate this offer' })
+    @ApiResponse({ status: 404, description: 'Offer not found' })
+    async reactivateOffer(
+        @Param('id') id: string,
+        @Body(new ValidationPipe({ transform: true })) dto: ReactivateOfferDto,
+        @Request() req,
+    ) {
+        const offer = await this.offersService.reactivateOffer(
+            id,
+            dto,
+            req.user.userId,
+            req.user.role,
+        );
+
+        return {
+            message: 'Offer reactivated successfully',
+            data: offer,
+        };
+    }
+
+    @Patch(':id/enable')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.MERCHANT, UserRole.ADMIN)
+    @ApiOperation({
+        summary: 'Enable an offer (make visible)',
+        description: 'Re-enables a previously disabled offer. The offer becomes visible in public queries again.',
+    })
+    @ApiResponse({ status: 200, description: 'Offer enabled successfully' })
+    @ApiResponse({ status: 400, description: 'Offer is already enabled or cannot be toggled' })
+    @ApiResponse({ status: 403, description: 'Not authorized' })
+    @ApiResponse({ status: 404, description: 'Offer not found' })
+    async enableOffer(@Param('id') id: string, @Request() req) {
+        const offer = await this.offersService.toggleOfferActive(
+            id,
+            true,
+            req.user.userId,
+            req.user.role,
+        );
+
+        return {
+            message: 'Offer enabled successfully',
+            data: offer,
+        };
+    }
+
+    @Patch(':id/disable')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.MERCHANT, UserRole.ADMIN)
+    @ApiOperation({
+        summary: 'Disable an offer (hide from public)',
+        description: 'Temporarily hides the offer from public queries without changing its status. Cannot disable offers with active reservations.',
+    })
+    @ApiResponse({ status: 200, description: 'Offer disabled successfully' })
+    @ApiResponse({ status: 400, description: 'Offer is already disabled, has reservations, or cannot be toggled' })
+    @ApiResponse({ status: 403, description: 'Not authorized' })
+    @ApiResponse({ status: 404, description: 'Offer not found' })
+    async disableOffer(@Param('id') id: string, @Request() req) {
+        const offer = await this.offersService.toggleOfferActive(
+            id,
+            false,
+            req.user.userId,
+            req.user.role,
+        );
+
+        return {
+            message: 'Offer disabled successfully',
+            data: offer,
+        };
+    }
+
     @Get(':id')
-    @Public()
-    async findOne(@Param('id') id: string) {
-        const offer = await this.offersService.findById(id);
+    async findOne(@Param('id') id: string, @Request() req: any) {
+        const offer = await this.offersService.findById(id, req.user.userId);
 
         return {
             message: 'Offer retrieved successfully',
@@ -722,7 +630,6 @@ export class OffersController {
     }
 
     @Patch(':id')
-    @UseGuards(JwtAuthGuard)
     @UseInterceptors(FilesInterceptor('images', 5))
     @ApiOperation({
         summary: '✏️ Update Food Offer',
@@ -758,10 +665,12 @@ export class OffersController {
         try {
             let newImageUrls: string[] = [];
 
-            // Upload new images to local storage if provided
+            // Upload new images to Firebase Cloud Storage if provided
             if (files && files.length > 0) {
-                const uploadResults = await this.localStorageService.uploadFiles(files, {
+                const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
                     folder: 'offers',
+                    makePublic: true,
+                    metadata: { uploadedBy: req.user.userId, category: 'offer-image-update' },
                     imageProcessing: {
                         maxWidth: 800,
                         maxHeight: 600,
@@ -798,7 +707,6 @@ export class OffersController {
     }
 
     @Patch(':id/images')
-    @UseGuards(JwtAuthGuard)
     @UseInterceptors(FilesInterceptor('images', 5))
     @ApiOperation({
         summary: '🖼️ Update Offer Images Only',
@@ -833,9 +741,11 @@ export class OffersController {
                 throw new BadRequestException('No images provided');
             }
 
-            // Upload images to local storage
-            const uploadResults = await this.localStorageService.uploadFiles(files, {
+            // Upload images to Firebase Cloud Storage
+            const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
                 folder: 'offers',
+                makePublic: true,
+                metadata: { uploadedBy: req.user.userId, category: 'offer-image-replace' },
                 imageProcessing: {
                     maxWidth: 800,
                     maxHeight: 600,
@@ -903,7 +813,10 @@ export class OffersController {
             }
         }
 
-        const updatedOffer = await this.offersService.updateStatus(id, status);
+        const merchantId =
+            req.user.role === UserRole.MERCHANT ? req.user.userId : undefined;
+
+        const updatedOffer = await this.offersService.updateStatus(id, status, merchantId);
 
         return {
             message: 'Offer status updated successfully',
@@ -917,7 +830,6 @@ export class OffersController {
     }
 
     @Patch(':id/reserve')
-    @UseGuards(JwtAuthGuard)
     async reserveQuantity(
         @Param('id') id: string,
         @Body('quantity', ParseIntPipe) quantity: number,
@@ -946,7 +858,6 @@ export class OffersController {
     }
 
     @Patch(':id/cancel-reservation')
-    @UseGuards(JwtAuthGuard)
     async cancelReservation(
         @Param('id') id: string,
         @Body('quantity', ParseIntPipe) quantity: number,
@@ -959,7 +870,6 @@ export class OffersController {
         };
     }
     @Delete(':id')
-    @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
     async remove(@Param('id') id: string, @Request() req) {
         await this.offersService.remove(id, req.user.userId, req.user.role);

@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { DonationPool, DonationPoolSchema } from './schemas/donation-pool.schema';
 import { UserDonation, UserDonationSchema } from './schemas/user-donation.schema';
 import { DonationsController } from './donations.controller';
+import { DonationsAdminController } from './donations-admin.controller';
 import { DonationsService } from './donations.service';
 import { OrderEventsListener } from './listeners/order-events.listener';
 
@@ -18,7 +19,7 @@ import { OrderEventsListener } from './listeners/order-events.listener';
             { name: UserDonation.name, schema: UserDonationSchema },
         ]),
     ],
-    controllers: [DonationsController],
+    controllers: [DonationsController, DonationsAdminController],
     providers: [
         DonationsService,
         {

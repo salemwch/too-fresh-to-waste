@@ -9,7 +9,7 @@ import { ConfigParserService } from './services/config-parser.service';
 import { AppLoggerService } from './services/logger.service';
 import { SentryService } from './services/sentry.service';
 import { FirebaseAdminService } from './services/firebase-admin.service';
-import { FirebaseStorageService } from './services/firebase-storage.service';
+import { SupabaseStorageService } from './services/supabase-storage.service';
 import { LocalStorageService } from './services/local-storage.service';
 import { PhoneNumberService } from './services/phone-number.service';
 import { IsNotProfaneConstraint } from './validators/business-constraints.validator';
@@ -43,7 +43,7 @@ import { EventEmitter2Adapter } from './services/event-bus/adapters/eventemitter
     SentryService, // Enterprise error tracking and monitoring
     PrometheusMetricsService, // Prometheus metrics collection
     FirebaseAdminService,
-    FirebaseStorageService,
+    SupabaseStorageService,
     LocalStorageService, // Local file storage for development
     PhoneNumberService,
     IsNotProfaneConstraint, // Injectable custom validator
@@ -61,7 +61,7 @@ import { EventEmitter2Adapter } from './services/event-bus/adapters/eventemitter
     SentryService, // Export for global error tracking
     PrometheusMetricsService, // Export for application-wide metrics
     FirebaseAdminService,
-    FirebaseStorageService,
+    SupabaseStorageService,
     LocalStorageService, // Export for Establishments and Offers modules
     PhoneNumberService,
     IsNotProfaneConstraint,

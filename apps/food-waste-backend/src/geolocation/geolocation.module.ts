@@ -11,7 +11,8 @@ import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 import { GeolocationService } from './services/geolocation.service';
 import { ProximitySearchService } from './services/proximity-search.service';
 import { UserLocationService } from './services/user-location.service';
-import { NominatimService } from './services/nominatim.service';
+import { GooglePlacesService } from './services/google-places.service';
+import { GeoapifyService } from './services/geoapify.service';
 
 // Controllers
 import { GeolocationController } from './controllers/geolocation.controller';
@@ -54,7 +55,8 @@ import { OffersModule } from '../offers/offers.module';
     GeolocationService,
     ProximitySearchService,
     UserLocationService,
-    NominatimService,
+    GooglePlacesService,
+    GeoapifyService,
   ],
 
   exports: [
@@ -62,7 +64,8 @@ import { OffersModule } from '../offers/offers.module';
     GeolocationService,
     ProximitySearchService,
     UserLocationService,
-    NominatimService,
+    GooglePlacesService,
+    GeoapifyService,
 
     // Export MongooseModule for schema access
     MongooseModule,

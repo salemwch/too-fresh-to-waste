@@ -316,12 +316,12 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
           }
         ]),
 
-        this.establishmentModel
-          .find({ createdAt: { $gte: thirtyDaysAgo } })
-          .sort({ createdAt: -1 })
-          .limit(10)
-          .populate('ownerId', 'firstName lastName email')
-          .lean(),
+        this.establishmentModel.aggregate([
+          { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+          { $sort: { createdAt: -1 as const } },
+          { $limit: 10 },
+          ...this.getOwnerLookupStages(),
+        ]),
 
         this.getTopRatedEstablishments()
       ]);
@@ -404,17 +404,16 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const sort: EstablishmentSortConfig = {};
       sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
-      // Execute queries in parallel
+      // Execute aggregate + count in parallel (single DB round-trip per query)
       const [establishments, total] = await Promise.all([
-        this.establishmentModel
-          .find(filter)
-          .sort(sort)
-          .skip(skip)
-          .limit(limit)
-          .populate('ownerId', 'firstName lastName email')
-          .lean()
-          .exec(),
-        this.establishmentModel.countDocuments(filter)
+        this.establishmentModel.aggregate([
+          { $match: filter },
+          { $sort: sort },
+          { $skip: skip },
+          { $limit: limit },
+          ...this.getOwnerLookupStages(),
+        ]),
+        this.establishmentModel.countDocuments(filter),
       ]);
 
       const totalPages = Math.ceil(total / limit);
@@ -437,11 +436,13 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
 
   async getEstablishmentById(establishmentId: string): Promise<IEstablishment> {
     try {
-      const establishment = await this.establishmentModel
-        .findById(establishmentId)
-        .populate('ownerId', 'firstName lastName email phoneNumber')
-        .lean()
-        .exec();
+      const results = await this.establishmentModel.aggregate([
+        { $match: { _id: new Types.ObjectId(establishmentId) } },
+        ...this.getOwnerLookupStages(['firstName', 'lastName', 'email', 'phoneNumber']),
+        { $limit: 1 },
+      ]);
+
+      const establishment = results[0] || null;
 
       if (!establishment) {
         throw new NotFoundException(`Establishment with ID ${establishmentId} not found`);
@@ -1025,13 +1026,12 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
 
   async getPendingApprovals(limit: number = 50): Promise<IEstablishment[]> {
     try {
-      const establishments = await this.establishmentModel
-        .find({ status: EstablishmentStatus.PENDING })
-        .sort({ createdAt: 1 }) // Oldest first
-        .limit(limit)
-        .populate('ownerId', 'firstName lastName email phoneNumber')
-        .lean()
-        .exec();
+      const establishments = await this.establishmentModel.aggregate([
+        { $match: { status: EstablishmentStatus.PENDING } },
+        { $sort: { createdAt: 1 as const } }, // Oldest first
+        { $limit: limit },
+        ...this.getOwnerLookupStages(['firstName', 'lastName', 'email', 'phoneNumber']),
+      ]);
 
       return EstablishmentMapper.toInterfaceArray(establishments);
 
@@ -1052,6 +1052,41 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
     }
   }
   // Helper Methods
+
+  /**
+   * Builds $lookup + $unwind stages to join owner (user) data.
+   * Uses the pipeline form of $lookup for field-level projection,
+   * reducing network I/O compared to populate().
+   * @param fields - Owner fields to project (default: firstName, lastName, email)
+   * @see https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection
+   */
+  private getOwnerLookupStages(fields: string[] = ['firstName', 'lastName', 'email']): PipelineStage[] {
+    const projection: Record<string, 1> = { _id: 1 };
+    for (const field of fields) {
+      projection[field] = 1;
+    }
+
+    return [
+      {
+        $lookup: {
+          from: 'users',
+          let: { ownerObjId: '$ownerId' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$ownerObjId'] } } },
+            { $project: projection },
+          ],
+          as: 'ownerId',
+        },
+      },
+      {
+        $unwind: {
+          path: '$ownerId',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ];
+  }
+
   private formatGroupedResults(results: Array<{ _id: string; count: number }>): Record<string, number> {
     return results.reduce((acc, item) => {
       acc[item._id] = item.count;

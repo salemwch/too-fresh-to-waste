@@ -39,10 +39,13 @@ export class AuthRedirectController {
         // Deep link for mobile app
         const deepLink = `foodwaste://auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
 
-        // API endpoint for web fallback (direct verification)
-        const apiVerifyUrl = `${this.configService.get<string>('BACKEND_URL', 'http://localhost:3000')}/api/v1/auth/verify-email`;
+        // Web frontend callback URL (verify-callback page handles POST + auto-login)
+        const webFrontendUrl = this.configService.get<string>('WEB_FRONTEND_URL', '');
+        const webCallbackUrl = webFrontendUrl
+            ? `${webFrontendUrl}/verify-callback?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`
+            : '';
 
-        const html = this.generateSmartRedirectPage(deepLink, apiVerifyUrl, token, email);
+        const html = this.generateSmartRedirectPage(deepLink, webCallbackUrl, token, email);
 
         res.setHeader('Content-Type', 'text/html');
         res.send(html);
@@ -70,30 +73,31 @@ export class AuthRedirectController {
 
     /**
      * Generate smart redirect page
-     * Attempts deep link, then falls back to API or web UI
+     * Attempts deep link first (for mobile), then auto-redirects to web callback.
+     * Flow: deep link attempt → 1.5s timeout → redirect to web verify-callback page
      */
     private generateSmartRedirectPage(
         deepLink: string,
-        apiVerifyUrl: string,
+        webCallbackUrl: string,
         token: string,
         email: string,
     ): string {
+        const webBtnHtml = webCallbackUrl
+            ? '<a href="' + webCallbackUrl + '" class="btn" style="background:#e5e7eb;color:#333;">Verify in Browser</a>'
+            : '';
+
         return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Verification - FoodWaste</title>
+    <title>Email Verification - Too Fresh To Waste</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #ffffff;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -106,39 +110,12 @@ export class AuthRedirectController {
             padding: 40px;
             max-width: 500px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
             text-align: center;
-        }
-        .logo {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-        h1 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 16px;
-        }
-        .status {
-            padding: 16px;
-            border-radius: 8px;
-            margin: 24px 0;
-            font-size: 14px;
-        }
-        .status.loading {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-        .status.success {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-        .status.error {
-            background: #ffebee;
-            color: #c62828;
         }
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid #22c55e;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -149,142 +126,72 @@ export class AuthRedirectController {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        h1 { color: #333; font-size: 22px; margin-bottom: 12px; }
+        p { color: #666; font-size: 14px; line-height: 1.5; }
         .btn {
             display: inline-block;
-            padding: 14px 28px;
+            padding: 12px 24px;
             margin: 8px;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #22c55e;
             color: white;
         }
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-        .instructions {
-            margin-top: 24px;
-            padding: 16px;
-            background: #f5f5f5;
-            border-radius: 8px;
-            font-size: 14px;
-            color: #666;
-            text-align: left;
-        }
-        .instructions ol {
-            margin: 12px 0 12px 20px;
-        }
-        .instructions li {
-            margin: 8px 0;
-        }
+        #fallback-actions { display: none; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">🍽️</div>
-        <h1>Email Verification</h1>
+        <div class="spinner"></div>
+        <h1>Verifying your email...</h1>
+        <p>Redirecting you automatically. Please wait.</p>
 
-        <div id="status" class="status loading">
-            <div class="spinner"></div>
-            <p>Opening FoodWaste app...</p>
-        </div>
-
-        <div id="actions" style="display:none;">
-            <a href="${deepLink}" class="btn btn-primary" id="openApp">
-                📱 Open in App
-            </a>
-            <button onclick="verifyInBrowser()" class="btn btn-secondary" id="verifyBrowser">
-                🌐 Verify in Browser
-            </button>
-        </div>
-
-        <div class="instructions">
-            <strong>📌 Don't have the app?</strong>
-            <ol>
-                <li>Download FoodWaste from the App Store or Play Store</li>
-                <li>Open the app and register with: <strong>${email}</strong></li>
-                <li>Your email will be verified automatically</li>
-            </ol>
+        <div id="fallback-actions">
+            <p style="margin-bottom: 12px; color: #999;">If nothing happened, try one of these:</p>
+            <a href="${deepLink}" class="btn btn-primary">Open in App</a>
+            ${webBtnHtml}
         </div>
     </div>
 
     <script>
-        // Configuration
-        const DEEP_LINK = '${deepLink}';
-        const API_VERIFY_URL = '${apiVerifyUrl}';
-        const TOKEN = '${token}';
-        const EMAIL = '${email}';
-        const APP_CHECK_TIMEOUT = 2000; // 2 seconds
+        var DEEP_LINK = '${deepLink}';
+        var WEB_CALLBACK = '${webCallbackUrl}';
+        var DEEP_LINK_TIMEOUT = 1500;
 
-        // Attempt to open app immediately
-        window.location.href = DEEP_LINK;
+        // Track if user leaves page (deep link succeeded)
+        var pageHidden = false;
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) pageHidden = true;
+        });
 
-        // After timeout, show manual options
-        setTimeout(() => {
-            const status = document.getElementById('status');
-            const actions = document.getElementById('actions');
+        // 1. Attempt deep link first (for mobile)
+        setTimeout(function() {
+            window.location.href = DEEP_LINK;
+        }, 100);
 
-            status.style.display = 'none';
-            actions.style.display = 'block';
-        }, APP_CHECK_TIMEOUT);
+        // 2. After timeout: if page is still visible, redirect to web callback
+        setTimeout(function() {
+            if (pageHidden) return; // App opened successfully, do nothing
 
-        // Browser verification fallback
-        async function verifyInBrowser() {
-            const status = document.getElementById('status');
-            const actions = document.getElementById('actions');
-
-            status.className = 'status loading';
-            status.innerHTML = '<div class="spinner"></div><p>Verifying your email...</p>';
-            status.style.display = 'block';
-            actions.style.display = 'none';
-
-            try {
-                const response = await fetch(API_VERIFY_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        token: TOKEN,
-                        email: EMAIL
-                    })
-                });
-
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    status.className = 'status success';
-                    status.innerHTML = \`
-                        <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
-                        <strong>Email Verified!</strong>
-                        <p style="margin-top: 8px;">Your account is now active. You can close this page and log in to the app.</p>
-                    \`;
-                } else {
-                    throw new Error(result.message || 'Verification failed');
-                }
-            } catch (error) {
-                status.className = 'status error';
-                status.innerHTML = \`
-                    <div style="font-size: 48px; margin-bottom: 12px;">❌</div>
-                    <strong>Verification Failed</strong>
-                    <p style="margin-top: 8px;">\${error.message}</p>
-                    <p style="margin-top: 8px;">Please try again or contact support.</p>
-                \`;
-                actions.style.display = 'block';
+            if (WEB_CALLBACK) {
+                // Auto-redirect to web verify-callback page
+                window.location.href = WEB_CALLBACK;
+            } else {
+                // No web frontend configured — show manual actions
+                document.getElementById('fallback-actions').style.display = 'block';
             }
-        }
-
-        // Log analytics (optional)
-        console.log('Email verification page loaded for:', EMAIL);
+        }, DEEP_LINK_TIMEOUT);
     </script>
 </body>
 </html>
@@ -303,12 +210,12 @@ export class AuthRedirectController {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Reset - FoodWaste</title>
+    <title>Password Reset - Too Fresh To Waste</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #ffffff;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -321,45 +228,81 @@ export class AuthRedirectController {
             padding: 40px;
             max-width: 500px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
             text-align: center;
         }
-        .logo { font-size: 48px; margin-bottom: 16px; }
-        h1 { color: #333; font-size: 24px; margin-bottom: 16px; }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #dc3545;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h1 { color: #333; font-size: 22px; margin-bottom: 12px; }
+        p { color: #666; font-size: 14px; line-height: 1.5; }
         .btn {
             display: inline-block;
-            padding: 14px 28px;
+            padding: 12px 24px;
             margin: 8px;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 16px;
-            transition: transform 0.2s;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .btn:hover { transform: translateY(-2px); }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
         .btn-primary {
             background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
             color: white;
         }
-        .btn-secondary { background: #e0e0e0; color: #333; }
+        #fallback-actions { display: none; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">🔐</div>
-        <h1>Reset Your Password</h1>
-        <p style="margin: 20px 0; color: #666;">Choose how to reset your password:</p>
+        <div class="spinner"></div>
+        <h1>Opening password reset...</h1>
+        <p>Redirecting you automatically. Please wait.</p>
 
-        <a href="${deepLink}" class="btn btn-primary">
-            📱 Open in App
-        </a>
-        <a href="${webFallbackUrl}" class="btn btn-secondary">
-            🌐 Reset in Browser
-        </a>
+        <div id="fallback-actions">
+            <p style="margin-bottom: 12px; color: #999;">If nothing happened, try one of these:</p>
+            <a href="${deepLink}" class="btn btn-primary">Open in App</a>
+            <a href="${webFallbackUrl}" class="btn" style="background:#e5e7eb;color:#333;">Reset in Browser</a>
+        </div>
     </div>
+
     <script>
-        // Attempt to open app immediately
-        window.location.href = '${deepLink}';
+        var DEEP_LINK = '${deepLink}';
+        var WEB_FALLBACK = '${webFallbackUrl}';
+        var DEEP_LINK_TIMEOUT = 1500;
+
+        // Track if user leaves page (deep link succeeded)
+        var pageHidden = false;
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) pageHidden = true;
+        });
+
+        // 1. Attempt deep link first (for mobile)
+        setTimeout(function() {
+            window.location.href = DEEP_LINK;
+        }, 100);
+
+        // 2. After timeout: if page is still visible, show fallback actions
+        setTimeout(function() {
+            if (pageHidden) return; // App opened successfully, do nothing
+            document.getElementById('fallback-actions').style.display = 'block';
+        }, DEEP_LINK_TIMEOUT);
     </script>
 </body>
 </html>

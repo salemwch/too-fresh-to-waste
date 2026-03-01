@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types, PipelineStage } from 'mongoose';
 import { Offer, OfferDocument } from '../../offers/schemas/offer.schema';
 import { Establishment, EstablishmentDocument } from '../../establishments/schemas/establishment.schema';
 import { SearchCacheService } from './search-cache.service';
@@ -10,17 +10,48 @@ export class SearchIndexService {
   private readonly logger = new Logger(SearchIndexService.name);
 
   constructor(
-    @InjectModel(Offer.name) private offerModel: Model<OfferDocument>,
-    @InjectModel(Establishment.name) private establishmentModel: Model<EstablishmentDocument>,
-    private searchCacheService: SearchCacheService,
+    @InjectModel(Offer.name) private readonly offerModel: Model<OfferDocument>,
+    @InjectModel(Establishment.name) private readonly establishmentModel: Model<EstablishmentDocument>,
+    private readonly searchCacheService: SearchCacheService,
   ) {}
+
+  // =========================================================================
+  // REUSABLE $lookup PIPELINE BUILDER (replaces .populate() — 1 round-trip)
+  // =========================================================================
+
+  /**
+   * Build $lookup stages for establishment population on offers.
+   * Overwrites `establishmentId` ObjectId with the full establishment doc
+   * (identical shape to Mongoose `.populate('establishmentId')`).
+   */
+  private buildEstablishmentLookupForSearch(): PipelineStage[] {
+    return [
+      {
+        $lookup: {
+          from: 'establishments',
+          let: { refId: '$establishmentId' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+          ],
+          as: '_establishmentDoc',
+        },
+      },
+      { $unwind: { path: '$_establishmentDoc', preserveNullAndEmptyArrays: true } },
+      { $addFields: { establishmentId: '$_establishmentDoc' } },
+      { $project: { _establishmentDoc: 0 } },
+    ];
+  }
 
   async indexOffer(offerId: string): Promise<void> {
     try {
-      const offer = await this.offerModel
-        .findById(offerId)
-        .populate('establishmentId')
-        .exec();
+      // ✅ PERFORMANCE: Single aggregation replaces findById + populate (2 → 1 round-trip)
+      const pipeline: PipelineStage[] = [
+        { $match: { _id: new Types.ObjectId(offerId) } },
+        ...this.buildEstablishmentLookupForSearch(),
+      ];
+
+      const results = await this.offerModel.aggregate(pipeline).exec();
+      const offer = results[0];
 
       if (!offer) {
         this.logger.warn(`Offer ${offerId} not found for indexing`);
@@ -72,11 +103,12 @@ export class SearchIndexService {
       // Clear existing index
       await this.searchCacheService.clearPattern('search:*');
 
-      // Index all active offers
-      const offers = await this.offerModel
-        .find({ status: 'active' })
-        .populate('establishmentId')
-        .exec();
+      // ✅ PERFORMANCE: Single aggregation replaces find + populate (2 → 1 round-trip per offer batch)
+      const offerPipeline: PipelineStage[] = [
+        { $match: { status: 'active' } },
+        ...this.buildEstablishmentLookupForSearch(),
+      ];
+      const offers = await this.offerModel.aggregate(offerPipeline).exec();
 
       for (const offer of offers) {
         const searchDocument = this.createOfferSearchDocument(offer);

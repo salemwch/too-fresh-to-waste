@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Types, PipelineStage, FlattenMaps } from 'mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InventoryItem, InventoryItemDocument, InventoryStatus, StockUpdateReason, StockMovement, StockAlert } from './schemas/inventory-item.schema';
 import {
@@ -11,6 +11,9 @@ import {
   BulkUpdateStockDto,
   InventoryFiltersDto,
 } from './dto/inventory.dto';
+
+/** Plain-object shape returned by aggregate pipelines (no Mongoose Document methods). */
+export type InventoryItemLean = FlattenMaps<InventoryItem> & { _id: Types.ObjectId };
 
 @Injectable()
 export class InventoryService {
@@ -51,58 +54,66 @@ export class InventoryService {
   }
 
   async getInventoryItems(filters: InventoryFiltersDto): Promise<{
-    items: InventoryItemDocument[];
+    items: InventoryItemLean[];
     total: number;
     page: number;
     totalPages: number;
   }> {
     try {
-      const query: any = {};
+      const matchConditions: Record<string, unknown> = {};
 
       if (filters.establishmentId) {
-        query.establishmentId = new Types.ObjectId(filters.establishmentId);
+        matchConditions.establishmentId = new Types.ObjectId(filters.establishmentId);
       }
 
       if (filters.status) {
-        query.status = filters.status;
+        matchConditions.status = filters.status;
       }
 
       if (filters.category) {
-        query.categories = { $in: [filters.category] };
+        matchConditions.categories = { $in: [filters.category] };
       }
 
       if (filters.lowStock) {
-        query.$expr = { $lte: ['$currentStock', '$lowStockThreshold'] };
+        matchConditions.$expr = { $lte: ['$currentStock', '$lowStockThreshold'] };
       }
 
       if (filters.expiringSoon) {
         const daysAhead = filters.expiringInDays || 3;
         const expiryThreshold = new Date();
         expiryThreshold.setDate(expiryThreshold.getDate() + daysAhead);
-        query.expiryDate = { $lte: expiryThreshold, $gt: new Date() };
+        matchConditions.expiryDate = { $lte: expiryThreshold, $gt: new Date() };
       }
 
       const page = filters.page || 1;
       const limit = filters.limit || 20;
       const skip = (page - 1) * limit;
 
-      const [items, total] = await Promise.all([
-        this.inventoryModel
-          .find(query)
-          .populate('offerId', 'name description images')
-          .populate('establishmentId', 'name address')
-          .sort(filters.sortBy || '-createdAt')
-          .skip(skip)
-          .limit(limit)
-          .exec(),
-        this.inventoryModel.countDocuments(query),
+      // Parse sort field — handle '-field' prefix for descending
+      const sortField = filters.sortBy || '-createdAt';
+      const sortDirection: 1 | -1 = sortField.startsWith('-') ? -1 : 1;
+      const sortKey = sortField.replace(/^-/, '');
+
+      // Paginate first, then $lookup on small result set
+      const pipeline: PipelineStage[] = [
+        { $match: matchConditions },
+        { $sort: { [sortKey]: sortDirection } },
+        { $skip: skip },
+        { $limit: limit },
+        ...this.getOfferLookupStages(),
+        ...this.getEstablishmentLookupStages(),
+      ];
+
+      const [items, totalResult] = await Promise.all([
+        this.inventoryModel.aggregate<InventoryItemLean>(pipeline),
+        this.inventoryModel.countDocuments(matchConditions),
       ]);
 
       return {
         items,
-        total,
+        total: totalResult,
         page,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(totalResult / limit),
       };
     } catch (error) {
       this.logger.error(`Error fetching inventory items: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
@@ -110,12 +121,18 @@ export class InventoryService {
     }
   }
 
-  async getInventoryItem(id: string): Promise<InventoryItemDocument> {
-    const item = await this.inventoryModel
-      .findById(id)
-      .populate('offerId')
-      .populate('establishmentId')
-      .exec();
+  /**
+   * Get inventory item with populated offer/establishment (for API responses).
+   */
+  async getInventoryItem(id: string): Promise<InventoryItemLean> {
+    return this.findByIdWithLookups(id);
+  }
+
+  /**
+   * Internal: get raw document for mutation validation (no joins needed).
+   */
+  private async getInventoryItemRaw(id: string): Promise<InventoryItemDocument> {
+    const item = await this.inventoryModel.findById(id).exec();
 
     if (!item) {
       throw new NotFoundException('Inventory item not found');
@@ -124,9 +141,9 @@ export class InventoryService {
     return item;
   }
 
-  async updateStock(id: string, updateDto: StockUpdateDto, userId?: string): Promise<InventoryItemDocument> {
+  async updateStock(id: string, updateDto: StockUpdateDto, userId?: string): Promise<InventoryItemLean> {
     try {
-      const item = await this.getInventoryItem(id);
+      const item = await this.getInventoryItemRaw(id);
       const previousQuantity = item.currentStock;
       const newQuantity = Math.max(0, previousQuantity + updateDto.quantity);
 
@@ -141,7 +158,7 @@ export class InventoryService {
         timestamp: new Date(),
       };
 
-      const updatedItem = await this.inventoryModel.findByIdAndUpdate(
+      const mutatedItem = await this.inventoryModel.findByIdAndUpdate(
         id,
         {
           $set: {
@@ -152,27 +169,27 @@ export class InventoryService {
           $push: { stockHistory: stockMovement },
         },
         { new: true }
-      ).populate('offerId').populate('establishmentId');
+      );
 
-      await this.checkAndCreateAlerts(updatedItem);
+      await this.checkAndCreateAlerts(mutatedItem!);
 
       this.logger.log(`Stock updated for item ${id}: ${previousQuantity} -> ${newQuantity}`);
-      return updatedItem;
+      return this.findByIdWithLookups(id);
     } catch (error) {
       this.logger.error(`Error updating stock: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
 
-  async reserveStock(id: string, reserveDto: ReserveStockDto, userId?: string): Promise<InventoryItemDocument> {
+  async reserveStock(id: string, reserveDto: ReserveStockDto, userId?: string): Promise<InventoryItemLean> {
     try {
-      const item = await this.getInventoryItem(id);
+      const item = await this.getInventoryItemRaw(id);
 
       if (item.availableStock < reserveDto.quantity) {
         throw new BadRequestException('Insufficient available stock');
       }
 
-      const updatedItem = await this.inventoryModel.findByIdAndUpdate(
+      await this.inventoryModel.findByIdAndUpdate(
         id,
         {
           $inc: { reservedStock: reserveDto.quantity },
@@ -191,25 +208,25 @@ export class InventoryService {
           },
         },
         { new: true }
-      ).populate('offerId').populate('establishmentId');
+      );
 
       this.logger.log(`Reserved ${reserveDto.quantity} units for order ${reserveDto.orderId}`);
-      return updatedItem;
+      return this.findByIdWithLookups(id);
     } catch (error) {
       this.logger.error(`Error reserving stock: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
 
-  async releaseStock(id: string, releaseDto: ReleaseStockDto, userId?: string): Promise<InventoryItemDocument> {
+  async releaseStock(id: string, releaseDto: ReleaseStockDto, userId?: string): Promise<InventoryItemLean> {
     try {
-      const item = await this.getInventoryItem(id);
+      const item = await this.getInventoryItemRaw(id);
 
       if (item.reservedStock < releaseDto.quantity) {
         throw new BadRequestException('Cannot release more stock than reserved');
       }
 
-      const updatedItem = await this.inventoryModel.findByIdAndUpdate(
+      await this.inventoryModel.findByIdAndUpdate(
         id,
         {
           $inc: { reservedStock: -releaseDto.quantity },
@@ -227,19 +244,19 @@ export class InventoryService {
           },
         },
         { new: true }
-      ).populate('offerId').populate('establishmentId');
+      );
 
       this.logger.log(`Released ${releaseDto.quantity} units from reservation`);
-      return updatedItem;
+      return this.findByIdWithLookups(id);
     } catch (error) {
       this.logger.error(`Error releasing stock: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
 
-  async confirmSale(id: string, quantity: number, orderId: string, userId?: string): Promise<InventoryItemDocument> {
+  async confirmSale(id: string, quantity: number, orderId: string, userId?: string): Promise<InventoryItemLean> {
     try {
-      const item = await this.getInventoryItem(id);
+      const item = await this.getInventoryItemRaw(id);
 
       if (item.reservedStock < quantity) {
         throw new BadRequestException('Cannot confirm sale: insufficient reserved stock');
@@ -247,7 +264,7 @@ export class InventoryService {
 
       const revenue = quantity * item.discountedPrice;
 
-      const updatedItem = await this.inventoryModel.findByIdAndUpdate(
+      const mutatedItem = await this.inventoryModel.findByIdAndUpdate(
         id,
         {
           $inc: {
@@ -271,21 +288,21 @@ export class InventoryService {
           },
         },
         { new: true }
-      ).populate('offerId').populate('establishmentId');
+      );
 
-      await this.checkAndCreateAlerts(updatedItem);
+      await this.checkAndCreateAlerts(mutatedItem!);
 
       this.logger.log(`Sale confirmed: ${quantity} units for order ${orderId}`);
-      return updatedItem;
+      return this.findByIdWithLookups(id);
     } catch (error) {
       this.logger.error(`Error confirming sale: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
 
-  async bulkUpdateStock(bulkUpdateDto: BulkUpdateStockDto, userId?: string): Promise<InventoryItemDocument[]> {
+  async bulkUpdateStock(bulkUpdateDto: BulkUpdateStockDto, userId?: string): Promise<InventoryItemLean[]> {
     try {
-      const results: InventoryItemDocument[] = [];
+      const results: InventoryItemLean[] = [];
 
       for (const itemId of bulkUpdateDto.inventoryItemIds) {
         const updated = await this.updateStock(
@@ -412,6 +429,67 @@ export class InventoryService {
     } catch (error) {
       this.logger.error(`Error updating expired items: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
     }
+  }
+
+  /**
+   * Reusable $lookup stages for offer and establishment joins.
+   * Paginate first, then join on the small result set.
+   */
+  private getOfferLookupStages(): PipelineStage[] {
+    return [
+      {
+        $lookup: {
+          from: 'offers',
+          let: { offerObjId: '$offerId' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$offerObjId'] } } },
+            { $project: { _id: 1, name: 1, description: 1, images: 1 } },
+          ],
+          as: 'offerId',
+        },
+      },
+      { $unwind: { path: '$offerId', preserveNullAndEmptyArrays: true } },
+    ];
+  }
+
+  private getEstablishmentLookupStages(): PipelineStage[] {
+    return [
+      {
+        $lookup: {
+          from: 'establishments',
+          let: { estObjId: '$establishmentId' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$estObjId'] } } },
+            { $project: { _id: 1, name: 1, address: 1 } },
+          ],
+          as: 'establishmentId',
+        },
+      },
+      { $unwind: { path: '$establishmentId', preserveNullAndEmptyArrays: true } },
+    ];
+  }
+
+  /**
+   * Aggregate lookup for a single inventory item by ID.
+   * Used after mutations (two-step pattern) and for API read endpoints.
+   */
+  private async findByIdWithLookups(id: string): Promise<InventoryItemLean> {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Invalid inventory item ID');
+    }
+
+    const [item] = await this.inventoryModel.aggregate<InventoryItemLean>([
+      { $match: { _id: new Types.ObjectId(id) } },
+      { $limit: 1 },
+      ...this.getOfferLookupStages(),
+      ...this.getEstablishmentLookupStages(),
+    ]);
+
+    if (!item) {
+      throw new NotFoundException('Inventory item not found');
+    }
+
+    return item;
   }
 
   private async checkAndCreateAlerts(item: InventoryItemDocument, alertType?: string): Promise<void> {

@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 // Modules
 import { CommonModule } from '../common/common.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { UsersModule } from '../users/user.module';
 
 // Schemas
 import { AdminAuditLog, AdminAuditLogSchema } from './schemas/admin-audit-log.schema';
@@ -41,6 +42,7 @@ import { AdminOnlyGuard } from './guards/admin-only.guard';
     // Shared modules
     CommonModule, // Provides EventBusService, LoggerService, etc.
     NotificationsModule, // Provides NotificationService
+    UsersModule, // Provides UsersService (for delegated soft-delete in UserManagementService)
 
     MongooseModule.forFeature([
       // Admin-specific schemas

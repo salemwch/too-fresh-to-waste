@@ -1,12 +1,15 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Types, PipelineStage, FlattenMaps } from 'mongoose';
 import { Report, ReportDocument, ReportStatus, ReportPriority } from '../schemas/report.schema';
 import { CreateReportDto } from '../dtos/create-report.dto';
 import { ReportQueryDto, ReportUpdateDto } from '../dtos/report-query.dto';
 import { ModerationLogService } from './moderation-log.service';
 import { LogLevel, LogCategory } from '../schemas/moderation-log.schema';
 import { UserRole } from '../../common/enums/user.enum';
+
+/** Plain-object shape returned by aggregate pipelines (no Mongoose Document methods). */
+export type ReportLean = FlattenMaps<Report> & { _id: Types.ObjectId };
 
 @Injectable()
 export class ReportService {
@@ -76,90 +79,124 @@ export class ReportService {
         queryDto: ReportQueryDto,
         currentUserId: string,
         userRole: UserRole
-    ): Promise<{ reports: ReportDocument[]; total: number; totalPages: number }> {
-        const query: any = {};
+    ): Promise<{ reports: ReportLean[]; total: number; totalPages: number }> {
+        const matchConditions: Record<string, unknown> = {};
 
         // Build query based on filters
-        if (queryDto.type) { query.type = queryDto.type; }
-        if (queryDto.reason) { query.reason = queryDto.reason; }
-        if (queryDto.status) { query.status = queryDto.status; }
-        if (queryDto.priority) { query.priority = queryDto.priority; }
-        if (queryDto.reporterId) { query.reporterId = new Types.ObjectId(queryDto.reporterId); }
+        if (queryDto.type) { matchConditions.type = queryDto.type; }
+        if (queryDto.reason) { matchConditions.reason = queryDto.reason; }
+        if (queryDto.status) { matchConditions.status = queryDto.status; }
+        if (queryDto.priority) { matchConditions.priority = queryDto.priority; }
+        if (queryDto.reporterId) { matchConditions.reporterId = new Types.ObjectId(queryDto.reporterId); }
 
         // Role-based access control
         if (userRole === UserRole.MODERATOR) {
-            // Moderators can only see unassigned reports or reports assigned to them
-            query.$or = [
+            matchConditions.$or = [
                 { assignedToModerator: new Types.ObjectId(currentUserId) },
                 { assignedToModerator: { $exists: false } },
-                { assignedToModerator: null }
+                { assignedToModerator: null },
             ];
         }
-        // Admins can see all reports (no additional filter)
 
         // Date range filter
         if (queryDto.startDate || queryDto.endDate) {
-            query.createdAt = {};
-            if (queryDto.startDate) { query.createdAt.$gte = new Date(queryDto.startDate); }
-            if (queryDto.endDate) { query.createdAt.$lte = new Date(queryDto.endDate); }
+            const createdAtFilter: Record<string, Date> = {};
+            if (queryDto.startDate) { createdAtFilter.$gte = new Date(queryDto.startDate); }
+            if (queryDto.endDate) { createdAtFilter.$lte = new Date(queryDto.endDate); }
+            matchConditions.createdAt = createdAtFilter;
         }
 
         // Search functionality
         if (queryDto.search) {
-            query.$or = [
+            matchConditions.$or = [
                 { description: { $regex: queryDto.search, $options: 'i' } },
-                { resolutionNotes: { $regex: queryDto.search, $options: 'i' } }
+                { resolutionNotes: { $regex: queryDto.search, $options: 'i' } },
             ];
         }
 
         const skip = (queryDto.page - 1) * queryDto.limit;
         const sortOrder: 1 | -1 = queryDto.sortOrder === 'asc' ? 1 : -1;
-        const sort = { [queryDto.sortBy]: sortOrder };
+
+        // Paginate first, then $lookup on small result set
+        const pipeline: PipelineStage[] = [
+            { $match: matchConditions },
+            { $sort: { [queryDto.sortBy]: sortOrder } },
+            { $skip: skip },
+            { $limit: queryDto.limit },
+            ...this.getUserLookupStages('reporterId'),
+            ...this.getUserLookupStages('assignedToModerator'),
+            ...this.getUserLookupStages('resolvedBy'),
+        ];
 
         const [reports, total] = await Promise.all([
-            this.reportModel
-                .find(query)
-                .populate('reporterId', 'firstName lastName email')
-                .populate('assignedToModerator', 'firstName lastName email')
-                .populate('resolvedBy', 'firstName lastName email')
-                .sort(sort)
-                .skip(skip)
-                .limit(queryDto.limit)
-                .exec(),
-            this.reportModel.countDocuments(query)
+            this.reportModel.aggregate<ReportLean>(pipeline),
+            this.reportModel.countDocuments(matchConditions),
         ]);
 
         return {
             reports,
             total,
-            totalPages: Math.ceil(total / queryDto.limit)
+            totalPages: Math.ceil(total / queryDto.limit),
         };
     }
 
     /**
      * Get a specific report by ID with permission checks
      */
+    /**
+     * Get report by ID with all user lookups (for API responses).
+     */
     async getReportById(
         reportId: string,
         currentUserId: string,
         userRole: UserRole
-    ): Promise<ReportDocument> {
-        const report = await this.reportModel
-            .findById(reportId)
-            .populate('reporterId', 'firstName lastName email')
-            .populate('assignedToModerator', 'firstName lastName email')
-            .populate('resolvedBy', 'firstName lastName email')
-            .populate('moderationHistory.performedBy', 'firstName lastName email')
-            .exec();
+    ): Promise<ReportLean> {
+        if (!Types.ObjectId.isValid(reportId)) {
+            throw new BadRequestException('Invalid report ID');
+        }
+
+        const [report] = await this.reportModel.aggregate<ReportLean>([
+            { $match: { _id: new Types.ObjectId(reportId) } },
+            { $limit: 1 },
+            ...this.getUserLookupStages('reporterId'),
+            ...this.getUserLookupStages('assignedToModerator'),
+            ...this.getUserLookupStages('resolvedBy'),
+            ...this.getModerationHistoryLookupStages(),
+        ]);
 
         if (!report) {
             throw new NotFoundException('Report not found');
         }
 
-        // Permission check for moderators
+        // Permission check for moderators — after $lookup, assignedToModerator is a user object or null
+        if (userRole === UserRole.MODERATOR && report.assignedToModerator) {
+            const assigned = report.assignedToModerator as unknown as { _id: Types.ObjectId };
+            if (assigned._id && String(assigned._id) !== currentUserId) {
+                throw new ForbiddenException('You can only access reports assigned to you');
+            }
+        }
+
+        return report;
+    }
+
+    /**
+     * Internal: get raw document for mutations (no joins needed).
+     */
+    private async getReportRaw(
+        reportId: string,
+        currentUserId: string,
+        userRole: UserRole,
+    ): Promise<ReportDocument> {
+        const report = await this.reportModel.findById(reportId).exec();
+
+        if (!report) {
+            throw new NotFoundException('Report not found');
+        }
+
+        // Permission check for moderators — assignedToModerator is a raw ObjectId
         if (userRole === UserRole.MODERATOR &&
             report.assignedToModerator &&
-            !report.assignedToModerator._id.equals(currentUserId)) {
+            !report.assignedToModerator.equals(currentUserId)) {
             throw new ForbiddenException('You can only access reports assigned to you');
         }
 
@@ -175,14 +212,14 @@ export class ReportService {
         currentUserId: string,
         userRole: UserRole,
         requestContext?: { ipAddress?: string; userAgent?: string }
-    ): Promise<ReportDocument> {
-        const report = await this.getReportById(reportId, currentUserId, userRole);
+    ): Promise<ReportLean> {
+        const report = await this.getReportRaw(reportId, currentUserId, userRole);
 
         const beforeState = {
             status: report.status,
             priority: report.priority,
-            assignedToModerator: report.assignedToModerator?._id?.toString(),
-            resolutionNotes: report.resolutionNotes
+            assignedToModerator: report.assignedToModerator?.toString(),
+            resolutionNotes: report.resolutionNotes,
         };
 
         // Update fields
@@ -213,16 +250,16 @@ export class ReportService {
             action: 'updated',
             performedBy: new Types.ObjectId(currentUserId),
             details: `Report updated: ${Object.keys(updateDto).join(', ')}`,
-            timestamp: new Date()
+            timestamp: new Date(),
         });
 
-        const updatedReport = await report.save();
+        await report.save();
 
         const afterState = {
-            status: updatedReport.status,
-            priority: updatedReport.priority,
-            assignedToModerator: updatedReport.assignedToModerator?.toString(),
-            resolutionNotes: updatedReport.resolutionNotes
+            status: report.status,
+            priority: report.priority,
+            assignedToModerator: report.assignedToModerator?.toString(),
+            resolutionNotes: report.resolutionNotes,
         };
 
         // Log the update
@@ -232,16 +269,17 @@ export class ReportService {
             action: 'REPORT_UPDATED',
             description: `Report ${reportId} updated`,
             performedBy: currentUserId,
-            targetId: updatedReport.targetId.toString(),
-            targetType: updatedReport.type,
+            targetId: report.targetId.toString(),
+            targetType: report.type,
             relatedReportId: reportId,
             requestContext,
             beforeState,
             afterState,
-            metadata: updateDto
+            metadata: updateDto,
         });
 
-        return updatedReport;
+        // Return with lookups for API response
+        return this.getReportById(reportId, currentUserId, userRole);
     }
 
     /**
@@ -297,18 +335,20 @@ export class ReportService {
     getMyAssignedReports(
         moderatorId: string,
         status?: ReportStatus
-    ): Promise<ReportDocument[]> {
-        const query: any = { assignedToModerator: new Types.ObjectId(moderatorId) };
+    ): Promise<ReportLean[]> {
+        const matchConditions: Record<string, unknown> = {
+            assignedToModerator: new Types.ObjectId(moderatorId),
+        };
 
         if (status) {
-            query.status = status;
+            matchConditions.status = status;
         }
 
-        return this.reportModel
-            .find(query)
-            .populate('reporterId', 'firstName lastName email')
-            .sort({ priority: -1, createdAt: -1 })
-            .exec();
+        return this.reportModel.aggregate<ReportLean>([
+            { $match: matchConditions },
+            { $sort: { priority: -1, createdAt: -1 } },
+            ...this.getUserLookupStages('reporterId'),
+        ]);
     }
 
     /**
@@ -382,6 +422,93 @@ export class ReportService {
         }
 
         return stats;
+    }
+
+    /**
+     * Reusable $lookup for a user ObjectId field → users collection.
+     */
+    private getUserLookupStages(
+        localField: string,
+        fields: string[] = ['firstName', 'lastName', 'email'],
+    ): PipelineStage[] {
+        const projection: Record<string, 1> = { _id: 1 };
+        for (const f of fields) { projection[f] = 1; }
+
+        return [
+            {
+                $lookup: {
+                    from: 'users',
+                    let: { userObjId: `$${localField}` },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$userObjId'] } } },
+                        { $project: projection },
+                    ],
+                    as: localField,
+                },
+            },
+            { $unwind: { path: `$${localField}`, preserveNullAndEmptyArrays: true } },
+        ];
+    }
+
+    /**
+     * $lookup for moderationHistory.performedBy (nested array of ObjectId refs → users).
+     * Uses $map + $lookup + $arrayElemAt to resolve each performedBy in the array.
+     */
+    private getModerationHistoryLookupStages(): PipelineStage[] {
+        return [
+            // Collect all unique performedBy IDs from the array
+            {
+                $lookup: {
+                    from: 'users',
+                    let: {
+                        performerIds: {
+                            $map: {
+                                input: { $ifNull: ['$moderationHistory', []] },
+                                as: 'h',
+                                in: '$$h.performedBy',
+                            },
+                        },
+                    },
+                    pipeline: [
+                        { $match: { $expr: { $in: ['$_id', '$$performerIds'] } } },
+                        { $project: { _id: 1, firstName: 1, lastName: 1, email: 1 } },
+                    ],
+                    as: '_historyPerformers',
+                },
+            },
+            // Map each history entry to replace performedBy ObjectId with the looked-up user
+            {
+                $addFields: {
+                    moderationHistory: {
+                        $map: {
+                            input: { $ifNull: ['$moderationHistory', []] },
+                            as: 'h',
+                            in: {
+                                $mergeObjects: [
+                                    '$$h',
+                                    {
+                                        performedBy: {
+                                            $arrayElemAt: [
+                                                {
+                                                    $filter: {
+                                                        input: '$_historyPerformers',
+                                                        as: 'u',
+                                                        cond: { $eq: ['$$u._id', '$$h.performedBy'] },
+                                                    },
+                                                },
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            },
+            // Remove temporary lookup field
+            { $project: { _historyPerformers: 0 } },
+        ];
     }
 
     /**

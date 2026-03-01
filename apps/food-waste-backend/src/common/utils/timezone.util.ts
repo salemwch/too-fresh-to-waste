@@ -19,29 +19,52 @@ export class TimezoneUtil {
   private static readonly DEFAULT_TIMEZONE = 'Africa/Tunis';
 
   /**
-   * Convert a local datetime string to UTC
+   * Convert a datetime string to UTC.
    *
-   * @param localDateTimeString - ISO string or date string in local timezone (e.g., "2026-01-12T23:20:00")
-   * @param timezone - IANA timezone (default: Africa/Tunis)
+   * Accepts two formats from clients:
+   *  - Local time (no Z / no offset): "2026-01-12T23:20:00"
+   *    → interpreted as the given timezone (default: Africa/Tunis)
+   *    → converted to UTC
+   *  - Already-UTC string (Z suffix): "2026-01-12T22:20:00.000Z"
+   *    → returned as-is (no second conversion)
+   *  - Explicit offset (e.g., +01:00): "2026-01-12T23:20:00+01:00"
+   *    → returned as-is (offset is authoritative)
+   *
+   * This prevents double-conversion when the frontend sends a UTC string
+   * (e.g., after converting Tunisia local → UTC on the client side).
+   *
+   * @param dateTimeString - ISO string, with or without timezone indicator
+   * @param timezone - IANA timezone used only when no suffix present (default: Africa/Tunis)
    * @returns UTC Date object
    *
    * @example
-   * // User inputs: 23:20 Tunisia time
+   * // Local time (no Z) — interpreted as Tunisia, converted to UTC
    * TimezoneUtil.toUTC('2026-01-12T23:20:00', 'Africa/Tunis')
-   * // Returns: Date object representing 2026-01-12T22:20:00.000Z (UTC)
+   * // → 2026-01-12T22:20:00.000Z
+   *
+   * // Already UTC (has Z) — returned directly, no re-conversion
+   * TimezoneUtil.toUTC('2026-01-12T22:20:00.000Z', 'Africa/Tunis')
+   * // → 2026-01-12T22:20:00.000Z  (unchanged)
    */
-  static toUTC(localDateTimeString: string, timezone: string = this.DEFAULT_TIMEZONE): Date {
-    // Remove 'Z' or timezone suffix if present (treat as local time)
-    const cleanedString = localDateTimeString.replace(/[zZ]$/, '').replace(/[+-]\d{2}:\d{2}$/, '');
+  static toUTC(dateTimeString: string, timezone: string = this.DEFAULT_TIMEZONE): Date {
+    const hasTimezoneIndicator = /[zZ]$/.test(dateTimeString) || /[+-]\d{2}:\d{2}$/.test(dateTimeString);
 
-    // Parse as local time in the specified timezone
-    const localDateTime = DateTime.fromISO(cleanedString, { zone: timezone });
-
-    if (!localDateTime.isValid) {
-      throw new Error(`Invalid datetime string: ${localDateTimeString}. Error: ${localDateTime.invalidReason}`);
+    if (hasTimezoneIndicator) {
+      // String already carries absolute timezone info — parse it directly as UTC
+      const utcDate = new Date(dateTimeString);
+      if (isNaN(utcDate.getTime())) {
+        throw new Error(`Invalid datetime string: ${dateTimeString}`);
+      }
+      return utcDate;
     }
 
-    // Convert to UTC and return as Date object
+    // No timezone indicator → treat as local time in the specified timezone
+    const localDateTime = DateTime.fromISO(dateTimeString, { zone: timezone });
+
+    if (!localDateTime.isValid) {
+      throw new Error(`Invalid datetime string: ${dateTimeString}. Error: ${localDateTime.invalidReason}`);
+    }
+
     return localDateTime.toUTC().toJSDate();
   }
 

@@ -23,7 +23,7 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes } from '@nestjs/swagger';
-import { FirebaseStorageService } from '../common/services/firebase-storage.service';
+import { SupabaseStorageService } from '../common/services/supabase-storage.service';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -56,7 +56,7 @@ export class ReviewsController {
     constructor(
         private readonly reviewsService: ReviewsService,
         private readonly appLogger: AppLoggerService,
-        private readonly firebaseStorageService: FirebaseStorageService,
+        private readonly supabaseStorageService: SupabaseStorageService,
     ) { }
 
     @Post()
@@ -101,7 +101,7 @@ export class ReviewsController {
 
             // Upload images to Firebase Storage if provided
             if (files && files.length > 0) {
-                const uploadResults = await this.firebaseStorageService.uploadFiles(files, {
+                const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
                     folder: 'reviews',
                     makePublic: true,
                     imageProcessing: {
@@ -474,7 +474,7 @@ export class ReviewsController {
 
             // Upload new images to Firebase Storage if provided
             if (files && files.length > 0) {
-                const uploadResults = await this.firebaseStorageService.uploadFiles(files, {
+                const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
                     folder: 'reviews',
                     makePublic: true,
                     imageProcessing: {

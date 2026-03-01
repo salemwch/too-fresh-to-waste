@@ -109,7 +109,7 @@ describe('AllExceptionsFilter', () => {
             expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
             expect(mockResponse.json).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    statusCode: HttpStatus.BAD_REQUEST,
+                    status: HttpStatus.BAD_REQUEST,
                     message: 'Bad request',
                 })
             );
@@ -154,7 +154,7 @@ describe('AllExceptionsFilter', () => {
             );
             expect(mockResponse.json).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                    status: HttpStatus.INTERNAL_SERVER_ERROR,
                 })
             );
         });

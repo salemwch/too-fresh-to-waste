@@ -27,6 +27,10 @@ import {
   DataDeletionRequestDto,
   ConsentWithdrawalDto
 } from '../DTO/privacy-consent.dto';
+import {
+  USER_AUDIT_LOG_MAX,
+  USER_CONSENT_RECORDS_MAX,
+} from '../../common/constants/database-indexes.constant';
 
 // Privacy Export Data Interfaces
 interface IPrivacyOrderData {
@@ -213,13 +217,19 @@ export class PrivacyComplianceService {
         }
       },
       $push: {
-        'privacySettings.consentRecords': consentRecord,
+        'privacySettings.consentRecords': {
+          $each: [consentRecord],
+          $slice: -USER_CONSENT_RECORDS_MAX
+        },
         auditLog: {
-          action: '🇹🇳 TUNISIA_CONSENT_RECORDED',
-          timestamp: new Date(),
-          ipAddress,
-          userAgent,
-          details: { consentData, legalBasis: consentData.legalBasis }
+          $each: [{
+            action: '🇹🇳 TUNISIA_CONSENT_RECORDED',
+            timestamp: new Date(),
+            ipAddress,
+            userAgent,
+            details: { consentData, legalBasis: consentData.legalBasis }
+          }],
+          $slice: -USER_AUDIT_LOG_MAX
         }
       }
     });
@@ -309,13 +319,19 @@ export class PrivacyComplianceService {
         }
       },
       $push: {
-        'privacySettings.consentRecords': gdprConsentRecord,
+        'privacySettings.consentRecords': {
+          $each: [gdprConsentRecord],
+          $slice: -USER_CONSENT_RECORDS_MAX
+        },
         auditLog: {
-          action: '🌍 INTERNATIONAL_CONSENT_RECORDED',
-          timestamp: new Date(),
-          ipAddress,
-          userAgent,
-          details: { consentData, regions: ['GDPR', 'CCPA'] }
+          $each: [{
+            action: '🌍 INTERNATIONAL_CONSENT_RECORDED',
+            timestamp: new Date(),
+            ipAddress,
+            userAgent,
+            details: { consentData, regions: ['GDPR', 'CCPA'] }
+          }],
+          $slice: -USER_AUDIT_LOG_MAX
         }
       }
     });
@@ -359,15 +375,18 @@ export class PrivacyComplianceService {
       },
       $push: {
         auditLog: {
-          action: `CONSENT_WITHDRAWN_${withdrawalData.consentType}`,
-          timestamp: new Date(),
-          ipAddress: withdrawalData.ipAddress,
-          userAgent: withdrawalData.userAgent,
-          details: {
-            consentType: withdrawalData.consentType,
-            reason: withdrawalData.reason,
-            stopProcessing: withdrawalData.stopProcessingImmediately
-          }
+          $each: [{
+            action: `CONSENT_WITHDRAWN_${withdrawalData.consentType}`,
+            timestamp: new Date(),
+            ipAddress: withdrawalData.ipAddress,
+            userAgent: withdrawalData.userAgent,
+            details: {
+              consentType: withdrawalData.consentType,
+              reason: withdrawalData.reason,
+              stopProcessing: withdrawalData.stopProcessingImmediately
+            }
+          }],
+          $slice: -USER_AUDIT_LOG_MAX
         }
       }
     });
@@ -403,11 +422,14 @@ export class PrivacyComplianceService {
       },
       $push: {
         auditLog: {
-          action: 'DATA_EXPORT_REQUESTED',
-          timestamp: new Date(),
-          ipAddress: requestIp,
-          userAgent,
-          details: { format: exportRequest.format, legalBasis: exportRequest.legalBasis }
+          $each: [{
+            action: 'DATA_EXPORT_REQUESTED',
+            timestamp: new Date(),
+            ipAddress: requestIp,
+            userAgent,
+            details: { format: exportRequest.format, legalBasis: exportRequest.legalBasis }
+          }],
+          $slice: -USER_AUDIT_LOG_MAX
         }
       }
     });
@@ -545,11 +567,14 @@ export class PrivacyComplianceService {
       },
       $push: {
         auditLog: {
-          action: '🇹🇳🌍 USER_SOFT_DELETED',
-          timestamp: new Date(),
-          ipAddress: requestIp,
-          userAgent,
-          details: request
+          $each: [{
+            action: '🇹🇳🌍 USER_SOFT_DELETED',
+            timestamp: new Date(),
+            ipAddress: requestIp,
+            userAgent,
+            details: request
+          }],
+          $slice: -USER_AUDIT_LOG_MAX
         }
       }
     });
@@ -585,11 +610,14 @@ export class PrivacyComplianceService {
       $set: anonymizedData,
       $push: {
         auditLog: {
-          action: '🇹🇳🌍 USER_ANONYMIZED',
-          timestamp: new Date(),
-          ipAddress: _requestIp,
-          userAgent: _userAgent,
-          details: { ..._request, anonymizedFields: Object.keys(anonymizedData) }
+          $each: [{
+            action: '🇹🇳🌍 USER_ANONYMIZED',
+            timestamp: new Date(),
+            ipAddress: _requestIp,
+            userAgent: _userAgent,
+            details: { ..._request, anonymizedFields: Object.keys(anonymizedData) }
+          }],
+          $slice: -USER_AUDIT_LOG_MAX
         }
       }
     });

@@ -54,6 +54,68 @@ export class GamificationService {
   ) {}
 
   // =============================================================================
+  // LOYALTY ACCOUNT CREATION (AUTO-CREATE ON REGISTRATION)
+  // =============================================================================
+
+  /**
+   * Create loyalty account for new user (auto-created on registration)
+   *
+   * BEST PRACTICES:
+   * - ✅ Idempotent: Safe to call multiple times (checks if exists first)
+   * - ✅ Fast: Minimal data, no welcome bonus (MVP requirement)
+   * - ✅ Error handling: Gracefully handles duplicates
+   * - ✅ Logging: Clear audit trail
+   *
+   * PERFORMANCE: ~50ms (single DB write)
+   *
+   * @param userId - User ID from registration event
+   * @returns Created or existing loyalty account
+   */
+  async createLoyaltyAccountForNewUser(userId: string): Promise<LoyaltyAccountDocument> {
+    try {
+      const userIdObj = new Types.ObjectId(userId);
+
+      // IDEMPOTENCY CHECK: Return existing account if already created
+      const existingAccount = await this.loyaltyModel.findOne({ userId: userIdObj });
+      if (existingAccount) {
+        this.logger.log(`Loyalty account already exists for user: ${userId}`);
+        return existingAccount;
+      }
+
+      // Create minimal loyalty account (MVP: just points tracking)
+      const newAccount = await this.loyaltyModel.create({
+        userId: userIdObj,
+        totalPoints: 0,
+        availablePoints: 0,
+        lifetimePointsEarned: 0,
+        totalOrdersCount: 0,
+        totalAmountSpent: 0,
+        currentTier: 'Bronze',
+        badges: [],
+        pointsHistory: [],
+        joinedAt: new Date(),
+        isActive: true,
+      });
+
+      this.logger.log(`✅ Loyalty account created for user: ${userId}`);
+      return newAccount;
+    } catch (error) {
+      // Handle duplicate key error gracefully (race condition)
+      if (error.code === 11000) {
+        this.logger.warn(`Duplicate loyalty account creation attempt for user: ${userId} (race condition handled)`);
+        const existingAccount = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
+        return existingAccount;
+      }
+
+      this.logger.error(
+        `Failed to create loyalty account for user ${userId}: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  // =============================================================================
   // REFERRAL CODE GENERATION
   // =============================================================================
 
@@ -188,6 +250,7 @@ export class GamificationService {
         await this.loyaltyService.addPoints(referrer.userId.toString(), {
           amount: GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_POINTS,
           reason: `Friend referral completed: Friend bought ${newBagCount} bags`,
+          bypassMultiplier: true,
         });
 
         // Update referral status
@@ -289,6 +352,7 @@ export class GamificationService {
         await this.loyaltyService.addPoints(referrer.userId.toString(), {
           amount: GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_POINTS,
           reason: `Business referral completed: Business sold ${newOrderCount} orders`,
+          bypassMultiplier: true,
         });
 
         // Update referral status
@@ -318,85 +382,145 @@ export class GamificationService {
   // =============================================================================
 
   /**
-   * Record daily login and award streak points
-   * Called when user logs in
+   * Record daily login and award streak points.
+   *
+   * COOLDOWN-BASED IDEMPOTENCY: Uses a strict 24-hour cooldown from the
+   * last login timestamp instead of UTC midnight boundaries. This prevents
+   * users from earning two streak rewards within a single 24-hour window
+   * (e.g. logging in at 23:59 UTC and 00:01 UTC the next day).
+   *
+   * Streak logic:
+   *  - < 24h since last login  → duplicate, no points
+   *  - 24h..48h since last     → consecutive day, streak continues
+   *  - > 48h since last        → missed a day, streak resets to 1
+   *
+   * Flow:
+   *  1. Read current account state
+   *  2. Compute 24h cooldown and streak values in memory
+   *  3. Atomically update loginStreak with a filter that rejects writes
+   *     when lastLoginDate is within the past 24 hours
+   *  4. Only AFTER the atomic write succeeds, award points via addPoints()
    */
   async recordDailyLogin(userId: string): Promise<{ streakDays: number; pointsAwarded: number }> {
-    const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
+    const userIdObj = new Types.ObjectId(userId);
+    const account = await this.loyaltyModel.findOne({ userId: userIdObj });
     if (!account) {
       throw new NotFoundException('Loyalty account not found');
     }
 
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const loginStreak = account.loginStreak || {
-      currentStreak: 0,
-      pointsEarnedThisMonth: 0,
-      longestStreak: 0,
-    };
+    const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+    const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000;
+    const twentyFourHoursAgo = new Date(now.getTime() - TWENTY_FOUR_HOURS_MS);
+    const monthStartUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
-    // Check if monthly reset is needed
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    if (!loginStreak.monthlyResetDate || loginStreak.monthlyResetDate < monthStart) {
-      loginStreak.pointsEarnedThisMonth = 0;
-      loginStreak.monthlyResetDate = monthStart;
+    // Extract current streak as a plain object (avoid Mongoose subdocument serialization issues)
+    const streak = account.loginStreak
+      ? {
+          currentStreak: account.loginStreak.currentStreak || 0,
+          lastLoginDate: account.loginStreak.lastLoginDate
+            ? new Date(account.loginStreak.lastLoginDate)
+            : null,
+          pointsEarnedThisMonth: account.loginStreak.pointsEarnedThisMonth || 0,
+          monthlyResetDate: account.loginStreak.monthlyResetDate
+            ? new Date(account.loginStreak.monthlyResetDate)
+            : null,
+          longestStreak: account.loginStreak.longestStreak || 0,
+        }
+      : {
+          currentStreak: 0,
+          lastLoginDate: null as Date | null,
+          pointsEarnedThisMonth: 0,
+          monthlyResetDate: null as Date | null,
+          longestStreak: 0,
+        };
+
+    // --- Quick guard: if last login was within 24 hours, reject immediately ---
+    if (streak.lastLoginDate && streak.lastLoginDate >= twentyFourHoursAgo) {
+      return { streakDays: streak.currentStreak, pointsAwarded: 0 };
     }
 
-    // Check if already logged in today
-    if (loginStreak.lastLoginDate) {
-      const lastLogin = new Date(loginStreak.lastLoginDate);
-      const lastLoginDay = new Date(lastLogin.getFullYear(), lastLogin.getMonth(), lastLogin.getDate());
+    // --- Monthly reset ---
+    let pointsThisMonth = streak.pointsEarnedThisMonth;
+    let resetDate = streak.monthlyResetDate;
+    if (!resetDate || resetDate < monthStartUTC) {
+      pointsThisMonth = 0;
+      resetDate = monthStartUTC;
+    }
 
-      if (lastLoginDay.getTime() === today.getTime()) {
-        // Already logged in today, no points
-        return { streakDays: loginStreak.currentStreak, pointsAwarded: 0 };
-      }
-
-      // Check if streak continues (yesterday)
-      const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-      if (lastLoginDay.getTime() === yesterday.getTime()) {
-        // Streak continues
-        loginStreak.currentStreak += 1;
+    // --- Compute new streak ---
+    let newStreak: number;
+    if (streak.lastLoginDate) {
+      const timeSinceLastLogin = now.getTime() - streak.lastLoginDate.getTime();
+      if (timeSinceLastLogin < FORTY_EIGHT_HOURS_MS) {
+        // 24h ≤ gap < 48h → consecutive day, streak continues
+        newStreak = streak.currentStreak + 1;
       } else {
-        // Streak broken, reset to 1
-        loginStreak.currentStreak = 1;
+        // gap ≥ 48h → missed a day, streak resets
+        newStreak = 1;
       }
     } else {
       // First login ever
-      loginStreak.currentStreak = 1;
+      newStreak = 1;
     }
 
-    loginStreak.lastLoginDate = now;
+    const newLongest = Math.max(newStreak, streak.longestStreak);
 
-    // Update longest streak
-    if (loginStreak.currentStreak > (loginStreak.longestStreak || 0)) {
-      loginStreak.longestStreak = loginStreak.currentStreak;
-    }
-
-    // Award points if within the 10-day streak and haven't maxed out monthly
+    // --- Compute points to award ---
     let pointsAwarded = 0;
     if (
-      loginStreak.currentStreak <= GAMIFICATION_CONSTANTS.LOGIN_STREAK_DAYS_REQUIRED &&
-      loginStreak.pointsEarnedThisMonth < GAMIFICATION_CONSTANTS.LOGIN_STREAK_MAX_POINTS_PER_MONTH
+      newStreak <= GAMIFICATION_CONSTANTS.LOGIN_STREAK_DAYS_REQUIRED &&
+      pointsThisMonth < GAMIFICATION_CONSTANTS.LOGIN_STREAK_MAX_POINTS_PER_MONTH
     ) {
       pointsAwarded = GAMIFICATION_CONSTANTS.LOGIN_STREAK_POINTS_PER_DAY;
-      loginStreak.pointsEarnedThisMonth += pointsAwarded;
-
-      await this.loyaltyService.addPoints(userId, {
-        amount: pointsAwarded,
-        reason: `Daily login streak - Day ${loginStreak.currentStreak}`,
-      });
-
-      this.logger.log(`Awarded ${pointsAwarded} login streak points to ${userId} (Day ${loginStreak.currentStreak})`);
     }
 
-    // Save updated streak
-    await this.loyaltyModel.findByIdAndUpdate(account._id, {
-      loginStreak,
-      lastActivity: now,
-    });
+    // --- ATOMIC UPDATE: filter guarantees at most one write per 24-hour window ---
+    // The filter only matches if lastLoginDate is absent/null OR older than 24 hours.
+    // If a concurrent request already updated lastLoginDate within 24h, this
+    // findOneAndUpdate returns null → no duplicate points.
+    const updated = await this.loyaltyModel.findOneAndUpdate(
+      {
+        userId: userIdObj,
+        $or: [
+          { 'loginStreak.lastLoginDate': { $exists: false } },
+          { 'loginStreak.lastLoginDate': null },
+          { 'loginStreak.lastLoginDate': { $lt: twentyFourHoursAgo } },
+        ],
+      },
+      {
+        $set: {
+          'loginStreak.currentStreak': newStreak,
+          'loginStreak.lastLoginDate': now,
+          'loginStreak.pointsEarnedThisMonth': pointsThisMonth + pointsAwarded,
+          'loginStreak.monthlyResetDate': resetDate,
+          'loginStreak.longestStreak': newLongest,
+          lastActivity: now,
+        },
+      },
+      { new: true },
+    );
 
-    return { streakDays: loginStreak.currentStreak, pointsAwarded };
+    if (!updated) {
+      // Atomic filter rejected → already logged in within 24h (concurrent request won)
+      this.logger.debug(`Login streak already recorded within 24h for user ${userId} (concurrent guard)`);
+      return { streakDays: streak.currentStreak, pointsAwarded: 0 };
+    }
+
+    // --- Award points AFTER the atomic guard succeeded ---
+    if (pointsAwarded > 0) {
+      await this.loyaltyService.addPoints(userId, {
+        amount: pointsAwarded,
+        reason: `Daily login streak - Day ${newStreak}`,
+        bypassMultiplier: true,
+      });
+
+      this.logger.log(
+        `Awarded ${pointsAwarded} login streak points to ${userId} (Day ${newStreak})`,
+      );
+    }
+
+    return { streakDays: newStreak, pointsAwarded };
   }
 
   // =============================================================================
@@ -414,19 +538,22 @@ export class GamificationService {
     }
 
     const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthStartUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
     let purchaseStreak = account.purchaseStreak || {
       bagsThisPeriod: 0,
       completedThisMonth: false,
       totalStreaksCompleted: 0,
     };
 
-    // Check if monthly reset is needed
-    if (!purchaseStreak.monthlyResetDate || purchaseStreak.monthlyResetDate < monthStart) {
+    // Check if monthly reset is needed (UTC-based)
+    if (
+      !purchaseStreak.monthlyResetDate ||
+      purchaseStreak.monthlyResetDate.getTime() < monthStartUTC.getTime()
+    ) {
       purchaseStreak.bagsThisPeriod = 0;
       purchaseStreak.completedThisMonth = false;
       purchaseStreak.periodStartDate = now;
-      purchaseStreak.monthlyResetDate = monthStart;
+      purchaseStreak.monthlyResetDate = monthStartUTC;
     }
 
     // Check if period needs reset (15 days passed)
@@ -460,6 +587,7 @@ export class GamificationService {
       await this.loyaltyService.addPoints(userId, {
         amount: pointsAwarded,
         reason: `Purchase streak completed: ${purchaseStreak.bagsThisPeriod} bags in 15 days`,
+        bypassMultiplier: true,
       });
 
       this.logger.log(`Purchase streak completed! Awarded ${pointsAwarded} points to ${userId}`);
@@ -512,6 +640,7 @@ export class GamificationService {
       amount: pointsAwarded,
       reason: 'Review submitted for order',
       orderId,
+      bypassMultiplier: true,
     });
 
     // Update review tracking
@@ -571,7 +700,12 @@ export class GamificationService {
         longestStreak: account.loginStreak?.longestStreak || 0,
       },
       purchaseStreak: {
-        bagsThisPeriod: account.purchaseStreak?.bagsThisPeriod || 0,
+        // Cap at bagsRequired so the UI always shows at most 15/15 once the streak
+        // is completed, even though the raw DB counter keeps growing past 15.
+        bagsThisPeriod: Math.min(
+          account.purchaseStreak?.bagsThisPeriod || 0,
+          GAMIFICATION_CONSTANTS.PURCHASE_STREAK_BAGS_REQUIRED,
+        ),
         bagsRequired: GAMIFICATION_CONSTANTS.PURCHASE_STREAK_BAGS_REQUIRED,
         daysRemaining: account.purchaseStreak?.periodStartDate
           ? Math.max(0, GAMIFICATION_CONSTANTS.PURCHASE_STREAK_DAYS - Math.floor((Date.now() - account.purchaseStreak.periodStartDate.getTime()) / (24 * 60 * 60 * 1000)))

@@ -17,6 +17,7 @@ import { TransformInterceptor } from './common/interceptors/transFormInterceptor
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { MetricsInterceptor } from './common/interceptors/metrics.interceptor';
 import { PrometheusMetricsService } from './common/services/prometheus-metrics.service';
+import { RedisIoAdapter } from './websocket/adapters/redis-io.adapter';
 
 async function bootstrap() {
     const configService = new ConfigService();
@@ -82,7 +83,7 @@ async function bootstrap() {
                 ),
             };
             app = await NestFactory.create(AppModule, { httpsOptions });
-        } catch (err) {
+            } catch (err) {
             logger.security(`HTTPS certificates not found, falling back to HTTP: ${(err as Error).message}`);
             app = await NestFactory.create(AppModule);
         }
@@ -176,17 +177,19 @@ async function bootstrap() {
                 formAction: [`'self'`],
                 frameAncestors: [`'none'`],
                 baseUri: [`'self'`],
-                upgradeInsecureRequests: [],                     // Force HTTPS even in development (when available)
                 reportUri: ['/api/v1/csp-report'],              // CSP violation reporting (enabled in dev for testing)
+                // NOTE: upgradeInsecureRequests intentionally OMITTED in dev
+                // — it forces HTTP→HTTPS which breaks local IP/localhost dev servers
             },
         },
         // HTTP Strict Transport Security (HSTS)
         // Forces browsers to use HTTPS for all future requests
-        hsts: {
+        // DISABLED in development — breaks local HTTP dev servers
+        hsts: isProduction ? {
             maxAge: 31536000,       // 1 year (OWASP recommended minimum)
             includeSubDomains: true, // Apply to all subdomains
             preload: true,           // Eligible for browser HSTS preload list
-        },
+        } : false,
         // X-Frame-Options: Defense-in-depth (CSP frame-ancestors is primary)
         frameguard: {
             action: 'deny',          // Prevent iframe embedding completely
@@ -228,7 +231,14 @@ async function bootstrap() {
      * Note: __dirname in compiled code is dist/src/, so we need to go up 2 levels
      */
     app.use('/public', express.static(join(__dirname, '../..', 'public')));
-    app.use('/uploads', express.static(join(__dirname, '../..', 'uploads')));
+
+    // Legacy static uploads route — backward compatibility for existing DB URLs
+    // New uploads go to Firebase Cloud Storage; this serves old local files only
+    app.use('/uploads', (req, res, next) => {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        next();
+    }, express.static(join(__dirname, '../..', 'uploads')));
 
     /**
      * MIDDLEWARE EXECUTION ORDER (Critical for Security):
@@ -243,6 +253,7 @@ async function bootstrap() {
     app.enableCors({
         origin: [
             'http://localhost:3000',
+            'http://localhost:3001',
             'http://localhost:8081',
             'http://10.0.2.2:3000',
             'http://10.0.2.2:8081',
@@ -383,6 +394,22 @@ This API provides comprehensive endpoints for:
 
     // Enable shutdown hooks for proper lifecycle management
     app.enableShutdownHooks();
+
+    // ========================================================================
+    // REDIS IO ADAPTER — enables WebSocket horizontal scaling
+    // Socket.IO events are synced across instances via Redis pub/sub.
+    // Without this, multi-instance deployments drop WebSocket messages.
+    // ========================================================================
+    const redisIoAdapter = new RedisIoAdapter(app, appConfigService);
+    try {
+        await redisIoAdapter.connectToRedis();
+        app.useWebSocketAdapter(redisIoAdapter);
+        logger.startup('Redis IO adapter enabled for WebSocket horizontal scaling');
+    } catch (err) {
+        logger.security(
+            `Redis IO adapter failed — falling back to in-memory adapter (single-instance only): ${(err as Error).message}`,
+        );
+    }
 
     await app.listen(port, '0.0.0.0');
     logger.startup(`Food Waste API running on ${protocol} port ${port}`, {

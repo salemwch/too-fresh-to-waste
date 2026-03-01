@@ -22,7 +22,7 @@ import {
 import { DistanceCalculator } from '../utils/distance.util';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 import { Establishment, EstablishmentDocument } from '../../establishments/schemas/establishment.schema';
-import { NominatimService } from './nominatim.service';
+import { GeoapifyService } from './geoapify.service';
 
 @Injectable()
 export class GeolocationService {
@@ -32,7 +32,7 @@ export class GeolocationService {
     private readonly configService: ConfigService,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Establishment.name) private readonly establishmentModel: Model<EstablishmentDocument>,
-    private readonly nominatimService: NominatimService,
+    private readonly geoapifyService: GeoapifyService,
   ) {}
 
   /**
@@ -174,73 +174,26 @@ export class GeolocationService {
   }
 
   /**
-   * Geocode address to coordinates using OpenStreetMap Nominatim
+   * Geocode address to coordinates via Geoapify
    */
   async geocodeAddress(dto: GeocodingDto): Promise<GeocodingResult[]> {
-    try {
-      this.logger.debug(`Geocoding address: ${dto.address}`);
-
-      const nominatimResults = await this.nominatimService.search({
-        address: dto.address,
-        countryCode: dto.countryCode,
-        limit: dto.limit || 10,
-        language: dto.language,
-        bounds: dto.bounds ? {
-          viewbox: `${dto.bounds.southwest.longitude},${dto.bounds.northeast.latitude},${dto.bounds.northeast.longitude},${dto.bounds.southwest.latitude}`,
-          bounded: dto.bounded || false
-        } : undefined
-      });
-
-      // Convert Nominatim results to standard GeocodingResult format
-      const results: GeocodingResult[] = nominatimResults.map(result => ({
-        coordinates: result.coordinates,
-        address: result.address,
-        bounds: result.bounds,
-        accuracy: result.accuracy,
-        provider: result.provider
-      }));
-
-      this.logger.log(`Successfully geocoded address: ${dto.address} - ${results.length} results found`);
-      return results;
-
-    } catch (error) {
-      this.logger.error('Failed to geocode address:', error);
-      throw error;
-    }
+    return this.geoapifyService.geocodeAddress(
+      dto.address,
+      dto.language,
+      dto.limit,
+      dto.countryCode,
+    );
   }
 
   /**
-   * Reverse geocode coordinates to address using OpenStreetMap Nominatim
+   * Reverse geocode coordinates to address via Geoapify
    */
   async reverseGeocode(dto: ReverseGeocodingDto): Promise<ReverseGeocodingResult> {
-    try {
-      if (!DistanceCalculator.isValidCoordinate(dto.coordinates)) {
-        throw new BadRequestException('Invalid coordinates for reverse geocoding');
-      }
-
-      this.logger.debug(`Reverse geocoding coordinates: ${dto.coordinates.latitude},${dto.coordinates.longitude}`);
-
-      const nominatimResult = await this.nominatimService.reverse({
-        coordinates: dto.coordinates,
-        zoom: dto.zoom || 18,
-        language: dto.language,
-        includeAddress: true
-      });
-
-      // Convert to standard format
-      const result: ReverseGeocodingResult = {
-        coordinates: nominatimResult.coordinates,
-        addresses: [nominatimResult.address],
-        primaryAddress: nominatimResult.address
-      };
-
-      this.logger.log(`Successfully reverse geocoded: ${dto.coordinates.latitude},${dto.coordinates.longitude}`);
-      return result;
-
-    } catch (error) {
-      this.logger.error('Failed to reverse geocode:', error);
-      throw error;
-    }
+    return this.geoapifyService.reverseGeocode(
+      dto.coordinates.latitude,
+      dto.coordinates.longitude,
+      dto.language,
+    );
   }
 
   /**
@@ -336,26 +289,23 @@ export class GeolocationService {
   }
 
   /**
-   * Get coordinates from address info (using cached data from user/establishment)
+   * Get coordinates from address info via Geoapify forward geocoding
    */
   async getCoordinatesFromAddress(address: AddressInfo): Promise<GeoCoordinate | null> {
+    const query = address.formattedAddress
+      || [address.street, address.city, address.country].filter(Boolean).join(', ');
+
+    if (!query) {
+      this.logger.warn('getCoordinatesFromAddress: No usable address fields provided');
+      return null;
+    }
+
     try {
-      // Try to find coordinates from existing data first
-      const formattedAddress = `${address.street || ''} ${address.city} ${address.postalCode} ${address.country}`.trim();
-
-      // In a real implementation, you would:
-      // 1. Check cache for previously geocoded addresses
-      // 2. Use external geocoding service if not cached
-      // 3. Store result in cache for future use
-
-      const geocodingResult = await this.geocodeAddress({
-        address: formattedAddress,
-        countryCode: this.getCountryCode(address.country),
-        limit: 1
-      });
-
-      return geocodingResult.length > 0 ? geocodingResult[0].coordinates : null;
-
+      const results = await this.geoapifyService.geocodeAddress(query);
+      if (results.length > 0) {
+        return results[0].coordinates;
+      }
+      return null;
     } catch (error) {
       this.logger.error('Failed to get coordinates from address:', error);
       return null;

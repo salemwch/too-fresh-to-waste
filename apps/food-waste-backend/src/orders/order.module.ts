@@ -10,6 +10,8 @@ import { OrdersController } from './order.controller';
 import { OrdersService } from './order.service';
 import { CommonModule } from '../common/common.module';
 import { PaymentModule } from '../payments/payments.module';
+import { WebSocketModule } from '../websocket/websocket.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { QueryComplexityGuard } from '../common/guards/query-complexity.guard';
 import { RegexSecurityUtil } from '../common/utils/regex-security.util';
 import { PickupThrottlerGuard } from './guards/pickup-throttler.guard';
@@ -18,7 +20,9 @@ import { AdminUserEventsListener } from './listeners/admin-user-events.listener'
 @Module({
     imports: [
         CommonModule,
-        forwardRef(() => PaymentModule), // Import for PayoutService and RefundService access
+        forwardRef(() => PaymentModule),
+        forwardRef(() => WebSocketModule),
+        forwardRef(() => NotificationsModule),
         MongooseModule.forFeature([
             { name: Order.name, schema: OrderSchema },
             { name: Offer.name, schema: OfferSchema },

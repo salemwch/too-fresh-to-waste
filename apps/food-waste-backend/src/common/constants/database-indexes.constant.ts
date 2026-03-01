@@ -24,6 +24,19 @@
 import { IndexDefinition } from 'mongoose';
 
 /**
+ * User Document Embedded Array Size Caps
+ *
+ * Prevents unbounded array growth toward MongoDB's 16 MB document limit.
+ * Every $push or .unshift() site MUST use the corresponding constant.
+ *
+ * Ref: https://www.mongodb.com/docs/manual/reference/limits/#bson-document-size
+ */
+export const USER_AUDIT_LOG_MAX = 20;
+export const USER_LOGIN_HISTORY_MAX = 20;
+export const USER_LOCATION_HISTORY_MAX = 20;
+export const USER_CONSENT_RECORDS_MAX = 50;
+
+/**
  * User Collection Indexes
  * Collection: users
  */
@@ -322,6 +335,51 @@ export const NOTIFICATION_INDEXES: { fields: Record<string, 1 | -1 | string>; op
 ];
 
 /**
+ * Search Query Collection Indexes
+ * Collection: searchqueries
+ * TTL: 90 days — search queries are analytics data with limited long-term value
+ */
+export const SEARCH_QUERY_INDEXES: { fields: Record<string, 1 | -1 | string>; options?: any }[] = [
+    {
+        fields: { createdAt: 1 },
+        options: {
+            name: 'idx_searchqueries_createdAt_ttl_90d',
+            expireAfterSeconds: 7776000 // 90 days
+        }
+    }
+];
+
+/**
+ * Popular Search Collection Indexes
+ * Collection: popularsearches
+ * TTL: 180 days — trend data is useful longer than raw queries
+ */
+export const POPULAR_SEARCH_INDEXES: { fields: Record<string, 1 | -1 | string>; options?: any }[] = [
+    {
+        fields: { createdAt: 1 },
+        options: {
+            name: 'idx_popularsearches_createdAt_ttl_180d',
+            expireAfterSeconds: 15552000 // 180 days
+        }
+    }
+];
+
+/**
+ * Payment Webhook Collection Indexes
+ * Collection: paymentwebhooks
+ * TTL: 90 days — webhook logs are audit data with regulatory retention period
+ */
+export const PAYMENT_WEBHOOK_INDEXES: { fields: Record<string, 1 | -1 | string>; options?: any }[] = [
+    {
+        fields: { createdAt: 1 },
+        options: {
+            name: 'idx_paymentwebhooks_createdAt_ttl_90d',
+            expireAfterSeconds: 7776000 // 90 days
+        }
+    }
+];
+
+/**
  * Aggregate all indexes for easy import
  */
 export const ALL_INDEXES = {
@@ -333,4 +391,7 @@ export const ALL_INDEXES = {
     favoritelists: FAVORITE_LIST_INDEXES,
     reviews: REVIEW_INDEXES,
     notifications: NOTIFICATION_INDEXES,
+    searchqueries: SEARCH_QUERY_INDEXES,
+    popularsearches: POPULAR_SEARCH_INDEXES,
+    paymentwebhooks: PAYMENT_WEBHOOK_INDEXES,
 };

@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, Query, Types } from 'mongoose';
 
 export type UserDonationDocument = UserDonation & Document;
 
@@ -63,6 +63,9 @@ export class UserDonation {
 
     @Prop({ type: Date })
     deletedAt?: Date;
+
+    @Prop({ type: String })
+    deletedBy?: string;
 }
 
 export const UserDonationSchema = SchemaFactory.createForClass(UserDonation);
@@ -72,4 +75,24 @@ UserDonationSchema.index({ userId: 1, contributedAt: -1 });
 UserDonationSchema.index({ donationPoolId: 1, userId: 1 });
 UserDonationSchema.index({ orderId: 1 }, { unique: true });
 UserDonationSchema.index({ isDeleted: 1, userId: 1 });
+UserDonationSchema.index({ isDeleted: 1, deletedAt: 1 }, { sparse: true });
 UserDonationSchema.index({ createdAt: -1 });
+
+// =============================================================================
+// SOFT-DELETE MIDDLEWARE — Auto-exclude deleted donations from queries
+// Bypass with: .setOptions({ includeDeleted: true })
+// =============================================================================
+
+UserDonationSchema.pre<Query<any, UserDonationDocument>>(/^find/, function (next) {
+    if (!(this as any).getOptions()?.includeDeleted) {
+        this.where({ isDeleted: { $ne: true } });
+    }
+    next();
+});
+
+UserDonationSchema.pre('aggregate', function () {
+    const options = (this as any).options || {};
+    if (!options.includeDeleted) {
+        this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    }
+});

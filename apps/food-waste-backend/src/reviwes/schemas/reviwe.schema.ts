@@ -375,12 +375,9 @@ export class Review {
     @Prop()
     deletionReason?: string;
 
-    // Timestamps
-    @Prop({ type: Date, default: Date.now })
-    createdAt: Date;
-
-    @Prop({ type: Date, default: Date.now })
-    updatedAt: Date;
+    // createdAt and updatedAt are managed by Mongoose `timestamps: true`
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export const ReviewSchema = SchemaFactory.createForClass(Review);
@@ -412,6 +409,13 @@ ReviewSchema.index({
     createdAt: -1
 });
 
+/**
+ * Soft Delete Recovery Index
+ * - Optimizes archive cron query: find({ isDeleted: true, deletedAt: { $lte: 30d ago } })
+ * - Sparse index (only deleted reviews)
+ */
+ReviewSchema.index({ isDeleted: 1, deletedAt: 1 }, { sparse: true });
+
 // Virtual fields
 ReviewSchema.virtual('helpfulnessRatio').get(function () {
     const total = this.metrics.helpfulCount + this.metrics.notHelpfulCount;
@@ -441,12 +445,17 @@ ReviewSchema.pre('save', function (next) {
 });
 
 ReviewSchema.pre<Query<any, ReviewDocument>>(/^find/, function (next) {
-    this.where({ isDeleted: { $ne: true } });
+    if (!(this as any).getOptions()?.includeDeleted) {
+        this.where({ isDeleted: { $ne: true } });
+    }
     next();
 });
 
 ReviewSchema.pre('aggregate', function () {
-    this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    const options = (this as any).options || {};
+    if (!options.includeDeleted) {
+        this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    }
 });
 
 // Static methods

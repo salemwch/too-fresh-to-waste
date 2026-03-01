@@ -113,6 +113,13 @@ export class RefreshToken {
     lastUsedAt?: Date;
 
     /**
+     * Whether this token was issued with "remember me" enabled.
+     * Persisted so that token rotation preserves the session duration.
+     */
+    @Prop({ default: false })
+    rememberMe: boolean;
+
+    /**
      * Security metadata
      */
     @Prop({
@@ -152,6 +159,10 @@ RefreshTokenSchema.index({ userId: 1, isRevoked: 1 });
 
 // TTL index to automatically remove expired tokens
 RefreshTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+// TTL index to auto-purge revoked tokens 2 days after revocation
+// Safety net independent of the cron job — only affects documents where revokedAt is set
+RefreshTokenSchema.index({ revokedAt: 1 }, { expireAfterSeconds: 172800 });
 
 // Index for security queries
 RefreshTokenSchema.index({ familyId: 1, 'securityMetadata.isCompromised': 1 });

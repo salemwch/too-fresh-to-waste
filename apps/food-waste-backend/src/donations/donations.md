@@ -30,7 +30,7 @@ The `donations` module implements the social impact layer of the Too Fresh To Wa
 
 ### Key Features
 
-✅ **Automatic Donation Collection** - 5% of platform fee (20% of order total) goes to donations
+✅ **Automatic Donation Collection** - 5% of platform fee (25% of order total) goes to donations
 ✅ **Donation Pool Management** - Rotating pools with target amounts and distribution tracking
 ✅ **Real-Time Statistics** - Public endpoint for community impact metrics
 ✅ **User Contribution Tracking** - Personal donation history with rankings
@@ -53,8 +53,8 @@ The `donations` module implements the social impact layer of the Too Fresh To Wa
        ▼
 ┌─────────────────────────────────────────┐
 │   Calculate Donation Amount             │
-│   Platform Fee: 5 * 0.20 = 1 TND       │
-│   Donation: 1 * 0.05 = 0.05 TND        │
+│   Platform Fee: 5 * 0.25 = 1.25 TND    │
+│   Donation: 1.25 * 0.05 = 0.0625 TND   │
 └──────┬──────────────────────────────────┘
        │
        ▼
@@ -220,14 +220,14 @@ async getUserDonationStats(
 /**
  * Calculate donation amount from order total
  * Formula: (orderTotal * platformFeePercentage) * donationPercentage
- * Example: (5 DT * 0.20) * 0.05 = 0.05 DT
+ * Example: (5 DT * 0.25) * 0.05 = 0.0625 DT
  */
 calculateDonationAmount(orderTotal: number): number {
   if (orderTotal <= 0) {
     throw new BadRequestException('Order total must be greater than 0');
   }
 
-  const platformFee = orderTotal * DONATION_CONSTANTS.PLATFORM_FEE_PERCENTAGE; // 0.20
+  const platformFee = orderTotal * DONATION_CONSTANTS.PLATFORM_FEE_PERCENTAGE; // 0.25
   const donationAmount = platformFee * DONATION_CONSTANTS.DONATION_PERCENTAGE; // 0.05
 
   return parseFloat(donationAmount.toFixed(3)); // Precision to 3 decimals
@@ -569,7 +569,7 @@ enum DonationBadge {
 **Business Logic Configuration:**
 ```typescript
 export const DONATION_CONSTANTS = {
-  PLATFORM_FEE_PERCENTAGE: 0.20,     // 20% platform fee on orders
+  PLATFORM_FEE_PERCENTAGE: 0.25,     // 25% platform fee on orders
   DONATION_PERCENTAGE: 0.05,         // 5% of platform fee → donations
   MEAL_COST_ESTIMATE_TND: 5.0,       // Estimated cost per meal in Tunisia
   DEFAULT_TARGET_AMOUNT: 1000,       // Default pool target (TND)
@@ -580,17 +580,17 @@ export const DONATION_CONSTANTS = {
 **Calculation Examples:**
 ```typescript
 // Order: 5 TND
-// Platform fee: 5 * 0.20 = 1 TND
-// Donation: 1 * 0.05 = 0.05 TND
-// Meals: 0.05 / 5 = 0 meals (need 100 orders = 5 TND = 1 meal)
+// Platform fee: 5 * 0.25 = 1.25 TND
+// Donation: 1.25 * 0.05 = 0.0625 TND
+// Meals: 0.0625 / 5 = 0 meals (need 80 orders = 5 TND = 1 meal)
 
 // Order: 100 TND
-// Platform fee: 100 * 0.20 = 20 TND
-// Donation: 20 * 0.05 = 1 TND
-// Meals: 1 / 5 = 0 meals (need 5 orders like this = 1 meal)
+// Platform fee: 100 * 0.25 = 25 TND
+// Donation: 25 * 0.05 = 1.25 TND
+// Meals: 1.25 / 5 = 0 meals (need 4 orders like this = 1 meal)
 
-// Order: 500 TND
-// Platform fee: 500 * 0.20 = 100 TND
+// Order: 400 TND
+// Platform fee: 400 * 0.25 = 100 TND
 // Donation: 100 * 0.05 = 5 TND
 // Meals: 5 / 5 = 1 meal
 ```
@@ -831,12 +831,12 @@ describe('DonationsService', () => {
   describe('calculateDonationAmount', () => {
     it('should calculate donation correctly (5 TND order)', () => {
       const result = service.calculateDonationAmount(5);
-      expect(result).toBe(0.05); // (5 * 0.20) * 0.05
+      expect(result).toBe(0.0625); // (5 * 0.25) * 0.05
     });
 
     it('should calculate donation correctly (100 TND order)', () => {
       const result = service.calculateDonationAmount(100);
-      expect(result).toBe(1.0); // (100 * 0.20) * 0.05
+      expect(result).toBe(1.25); // (100 * 0.25) * 0.05
     });
 
     it('should throw error for invalid order total', () => {

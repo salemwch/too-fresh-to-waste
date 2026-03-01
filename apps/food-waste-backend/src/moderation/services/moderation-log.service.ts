@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Types, PipelineStage, FlattenMaps } from 'mongoose';
 import { ModerationLogDocument, LogLevel, LogCategory, ModerationLog } from '../schemas/moderation-log.schema';
 
 export interface LogModerationEventOptions {
@@ -27,6 +27,9 @@ export interface LogModerationEventOptions {
     automationRule?: string;
     tags?: string[];
 }
+
+/** Plain-object shape returned by aggregate pipelines (no Mongoose Document methods). */
+export type ModerationLogLean = FlattenMaps<ModerationLog> & { _id: Types.ObjectId };
 
 @Injectable()
 export class ModerationLogService {
@@ -101,43 +104,47 @@ export class ModerationLogService {
             isAutomated?: boolean;
         } = {},
         pagination: { page: number; limit: number; sortBy?: string; sortOrder?: 'asc' | 'desc' } = { page: 1, limit: 20 }
-    ): Promise<{ logs: ModerationLogDocument[]; total: number; totalPages: number }> {
-        const query: any = {};
+    ): Promise<{ logs: ModerationLogLean[]; total: number; totalPages: number }> {
+        const matchConditions: Record<string, unknown> = {};
 
         // Build query filters
-        if (filters.level) { query.level = filters.level; }
-        if (filters.category) { query.category = filters.category; }
-        if (filters.performedBy) { query.performedBy = new Types.ObjectId(filters.performedBy); }
-        if (filters.targetId) { query.targetId = new Types.ObjectId(filters.targetId); }
-        if (filters.isAutomated !== undefined) { query.isAutomated = filters.isAutomated; }
-        if (filters.tags && filters.tags.length > 0) { query.tags = { $in: filters.tags }; }
+        if (filters.level) { matchConditions.level = filters.level; }
+        if (filters.category) { matchConditions.category = filters.category; }
+        if (filters.performedBy) { matchConditions.performedBy = new Types.ObjectId(filters.performedBy); }
+        if (filters.targetId) { matchConditions.targetId = new Types.ObjectId(filters.targetId); }
+        if (filters.isAutomated !== undefined) { matchConditions.isAutomated = filters.isAutomated; }
+        if (filters.tags && filters.tags.length > 0) { matchConditions.tags = { $in: filters.tags }; }
 
         // Date range filter
         if (filters.startDate || filters.endDate) {
-            query.createdAt = {};
-            if (filters.startDate) { query.createdAt.$gte = filters.startDate; }
-            if (filters.endDate) { query.createdAt.$lte = filters.endDate; }
+            const createdAtFilter: Record<string, Date> = {};
+            if (filters.startDate) { createdAtFilter.$gte = filters.startDate; }
+            if (filters.endDate) { createdAtFilter.$lte = filters.endDate; }
+            matchConditions.createdAt = createdAtFilter;
         }
 
         const skip = (pagination.page - 1) * pagination.limit;
         const sortBy = pagination.sortBy || 'createdAt';
-        const sortOrder = pagination.sortOrder === 'asc' ? 1 : -1;
+        const sortOrder: 1 | -1 = pagination.sortOrder === 'asc' ? 1 : -1;
+
+        // Paginate first, then $lookup on small result set
+        const pipeline: PipelineStage[] = [
+            { $match: matchConditions },
+            { $sort: { [sortBy]: sortOrder } },
+            { $skip: skip },
+            { $limit: pagination.limit },
+            ...this.getPerformedByLookupStages(),
+        ];
 
         const [logs, total] = await Promise.all([
-            this.moderationLogModel
-                .find(query)
-                .populate('performedBy', 'firstName lastName email role')
-                .sort({ [sortBy]: sortOrder })
-                .skip(skip)
-                .limit(pagination.limit)
-                .exec(),
-            this.moderationLogModel.countDocuments(query)
+            this.moderationLogModel.aggregate<ModerationLogLean>(pipeline),
+            this.moderationLogModel.countDocuments(matchConditions),
         ]);
 
         return {
             logs,
             total,
-            totalPages: Math.ceil(total / pagination.limit)
+            totalPages: Math.ceil(total / pagination.limit),
         };
     }
 
@@ -146,19 +153,23 @@ export class ModerationLogService {
      */
     getUserModerationHistory(
         userId: string,
-        limit: number = 10
-    ): Promise<ModerationLogDocument[]> {
-        return this.moderationLogModel
-            .find({
-                $or: [
-                    { targetId: new Types.ObjectId(userId) },
-                    { performedBy: new Types.ObjectId(userId) }
-                ]
-            })
-            .populate('performedBy', 'firstName lastName email role')
-            .sort({ createdAt: -1 })
-            .limit(limit)
-            .exec();
+        resultLimit: number = 10
+    ): Promise<ModerationLogLean[]> {
+        const userObjId = new Types.ObjectId(userId);
+
+        return this.moderationLogModel.aggregate<ModerationLogLean>([
+            {
+                $match: {
+                    $or: [
+                        { targetId: userObjId },
+                        { performedBy: userObjId },
+                    ],
+                },
+            },
+            { $sort: { createdAt: -1 } },
+            { $limit: resultLimit },
+            ...this.getPerformedByLookupStages(),
+        ]);
     }
 
     /**
@@ -261,5 +272,25 @@ export class ModerationLogService {
             topModerators,
             automatedVsManual: automatedStats
         };
+    }
+
+    /**
+     * Reusable $lookup for performedBy → users collection.
+     */
+    private getPerformedByLookupStages(): PipelineStage[] {
+        return [
+            {
+                $lookup: {
+                    from: 'users',
+                    let: { userObjId: '$performedBy' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$userObjId'] } } },
+                        { $project: { _id: 1, firstName: 1, lastName: 1, email: 1, role: 1 } },
+                    ],
+                    as: 'performedBy',
+                },
+            },
+            { $unwind: { path: '$performedBy', preserveNullAndEmptyArrays: true } },
+        ];
     }
 }

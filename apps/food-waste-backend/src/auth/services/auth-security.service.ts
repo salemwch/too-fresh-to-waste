@@ -8,6 +8,11 @@ import {
   SecurityEventType,
   SecuritySeverity,
 } from '../events/security-events';
+import {
+  MAX_LOGIN_ATTEMPTS,
+  BASE_LOCKOUT_DURATION,
+  calculateLockoutDuration,
+} from '../../common/constants/lockout-policy.constant';
 
 type RedisClient = RedisClientType;
 
@@ -48,9 +53,7 @@ function isRequestData(obj: unknown): obj is RequestData {
 export class AuthSecurityService {
   private readonly logger = new Logger(AuthSecurityService.name);
 
-  // Account lockout configuration
-  private readonly MAX_LOGIN_ATTEMPTS = 10; // Increased from 5 to 10
-  private readonly BASE_LOCKOUT_DURATION = 5 * 60 * 1000; // 5 minutes (first lockout)
+  // Account lockout thresholds live in lockout-policy.constant.ts (single source of truth)
   private readonly SUSPICIOUS_ACTIVITY_THRESHOLD = 10;
 
   // CAPTCHA requirement thresholds (PRODUCTION-READY IMPROVEMENT)
@@ -113,7 +116,7 @@ export class AuthSecurityService {
 
       // DEBUG: Log actual attempt counts and MAX value
       this.logger.debug(`[LOGIN CHECK] IP: ${ip}, Email: ${email}`);
-      this.logger.debug(`[LOGIN CHECK] MAX_LOGIN_ATTEMPTS: ${this.MAX_LOGIN_ATTEMPTS}`);
+      this.logger.debug(`[LOGIN CHECK] MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS}`);
       this.logger.debug(`[LOGIN CHECK] IP attempts: ${ipAttempts.count}, blocked: ${ipAttempts.blocked}`);
 
       if (ipAttempts.blocked) {
@@ -151,15 +154,15 @@ export class AuthSecurityService {
       }
 
       const remainingAttempts = Math.min(
-        this.MAX_LOGIN_ATTEMPTS - ipAttempts.count,
-        this.MAX_LOGIN_ATTEMPTS - emailAttempts.count
+        MAX_LOGIN_ATTEMPTS - ipAttempts.count,
+        MAX_LOGIN_ATTEMPTS - emailAttempts.count
       );
 
       // Check if CAPTCHA is required (PRODUCTION-READY IMPROVEMENT)
       const maxAttempts = Math.max(ipAttempts.count, emailAttempts.count);
       const captchaRequired = maxAttempts >= this.CAPTCHA_REQUIRED_AFTER_ATTEMPTS;
 
-      if (captchaRequired && maxAttempts < this.MAX_LOGIN_ATTEMPTS) {
+      if (captchaRequired && maxAttempts < MAX_LOGIN_ATTEMPTS) {
         this.logger.warn(
           `CAPTCHA required for ${email} from IP ${ip} after ${maxAttempts} failed attempts`
         );
@@ -201,12 +204,12 @@ export class AuthSecurityService {
 
       // Use the higher count between IP and email for blocking decision
       const maxCount = Math.max(ipAttempts.count, emailAttempts.count);
-      const isLocked = maxCount >= this.MAX_LOGIN_ATTEMPTS;
+      const isLocked = maxCount >= MAX_LOGIN_ATTEMPTS;
       const blockedUntil = ipAttempts.blockedUntil || emailAttempts.blockedUntil;
 
       this.logger.debug(`[RECORD ATTEMPT] IP: ${ip}, Email: ${email}`);
       this.logger.debug(`[RECORD ATTEMPT] IP count: ${ipAttempts.count}, Email count: ${emailAttempts.count}`);
-      this.logger.debug(`[RECORD ATTEMPT] MAX_LOGIN_ATTEMPTS: ${this.MAX_LOGIN_ATTEMPTS}, isLocked: ${isLocked}`);
+      this.logger.debug(`[RECORD ATTEMPT] MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS}, isLocked: ${isLocked}`);
 
       // Check for suspicious activity and emit events
       if (ipAttempts && ipAttempts.count >= this.SUSPICIOUS_ACTIVITY_THRESHOLD) {
@@ -238,8 +241,8 @@ export class AuthSecurityService {
 
       return {
         currentAttempts: maxCount,
-        maxAttempts: this.MAX_LOGIN_ATTEMPTS,
-        attemptsRemaining: Math.max(0, this.MAX_LOGIN_ATTEMPTS - maxCount),
+        maxAttempts: MAX_LOGIN_ATTEMPTS,
+        attemptsRemaining: Math.max(0, MAX_LOGIN_ATTEMPTS - maxCount),
         isLocked,
         blockedUntil,
       };
@@ -248,8 +251,8 @@ export class AuthSecurityService {
       // Return safe defaults on error
       return {
         currentAttempts: 0,
-        maxAttempts: this.MAX_LOGIN_ATTEMPTS,
-        attemptsRemaining: this.MAX_LOGIN_ATTEMPTS,
+        maxAttempts: MAX_LOGIN_ATTEMPTS,
+        attemptsRemaining: MAX_LOGIN_ATTEMPTS,
         isLocked: false,
       };
     }
@@ -315,7 +318,7 @@ export class AuthSecurityService {
     }
   }
 
-  async blockIp(ip: string, duration: number = this.BASE_LOCKOUT_DURATION, reason?: string): Promise<void> {
+  async blockIp(ip: string, duration: number = BASE_LOCKOUT_DURATION, reason?: string): Promise<void> {
     try {
       const blockedUntil = new Date(Date.now() + duration);
       const redisClient = await this.getRedisClient();
@@ -471,7 +474,7 @@ export class AuthSecurityService {
   }
 
   private buildAttemptResult(count: number, blockedUntil?: Date | string): AttemptResult {
-    const isBlocked = count >= this.MAX_LOGIN_ATTEMPTS;
+    const isBlocked = count >= MAX_LOGIN_ATTEMPTS;
 
     if (isBlocked) {
       const blockedUntilDate = typeof blockedUntil === 'string' ? new Date(blockedUntil) : blockedUntil;
@@ -712,7 +715,7 @@ export class AuthSecurityService {
 
     const newCount = existingData.count + 1;
     const blockedUntil = this.shouldBlockAttempt(newCount)
-      ? new Date(now.getTime() + this.calculateLockoutDuration(newCount))
+      ? new Date(now.getTime() + calculateLockoutDuration(newCount))
       : existingData.blockedUntil;
 
     return {
@@ -733,7 +736,7 @@ export class AuthSecurityService {
   private createIncrementedAttemptData(existingData: AttemptData, now: Date): AttemptData {
     const newCount = existingData.count + 1;
     const blockedUntil = this.shouldBlockAttempt(newCount)
-      ? new Date(now.getTime() + this.calculateLockoutDuration(newCount)).toISOString()
+      ? new Date(now.getTime() + calculateLockoutDuration(newCount)).toISOString()
       : existingData.blockedUntil;
 
     return {
@@ -744,31 +747,12 @@ export class AuthSecurityService {
   }
 
   private shouldBlockAttempt(attemptCount: number): boolean {
-    return attemptCount >= this.MAX_LOGIN_ATTEMPTS;
-  }
-
-  /**
-   * Calculate progressive lockout duration based on attempt count
-   * - First lockout (10-19 attempts): 5 minutes
-   * - Second lockout (20-29 attempts): 15 minutes
-   * - Third+ lockout (30+ attempts): 30 minutes
-   */
-  private calculateLockoutDuration(attemptCount: number): number {
-    if (attemptCount < 20) {
-      // First lockout: 5 minutes
-      return this.BASE_LOCKOUT_DURATION;
-    } else if (attemptCount < 30) {
-      // Second lockout: 15 minutes
-      return this.BASE_LOCKOUT_DURATION * 3;
-    } else {
-      // Third+ lockout: 30 minutes
-      return this.BASE_LOCKOUT_DURATION * 6;
-    }
+    return attemptCount >= MAX_LOGIN_ATTEMPTS;
   }
 
   private calculateTtlSeconds(attemptData: AttemptData): number {
     if (attemptData.blockedUntil) {
-      const lockoutDuration = this.calculateLockoutDuration(attemptData.count);
+      const lockoutDuration = calculateLockoutDuration(attemptData.count);
       return Math.ceil(lockoutDuration / 1000);
     }
     return 3600; // 1 hour for non-blocked attempts

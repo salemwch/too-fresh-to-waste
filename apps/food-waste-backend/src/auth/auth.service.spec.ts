@@ -93,7 +93,7 @@ describe('AuthService', () => {
             create: jest.fn(),
             findByEmailVerificationToken: jest.fn(),
             verifyEmail: jest.fn(),
-            recordFailedLogin: jest.fn(),
+            incrementFailedLoginAttempts: jest.fn(),
             resetFailedLoginAttempts: jest.fn(),
             addRefreshToken: jest.fn(),
             updateLastLogin: jest.fn(),
@@ -561,35 +561,32 @@ describe('AuthService', () => {
         // Arrange
         jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
         (bcrypt.compare as jest.Mock).mockResolvedValue(false);
-        jest.spyOn(usersService, 'recordFailedLogin').mockResolvedValue({
-          attemptsRemaining: 2,
-          isLocked: false
-        });
+        jest.spyOn(usersService, 'incrementFailedLoginAttempts').mockResolvedValue(undefined);
 
         // Act & Assert
         const error = await service.login(mockLoginDto, mockRequestInfo).catch(e => e);
         expect(error).toBeInstanceOf(UnauthorizedException);
-        expect(error.response.message).toBe('Invalid credentials');
-        expect(error.response.attemptsRemaining).toBe(2);
-        expect(error.response.type).toBe('INVALID_CREDENTIALS');
-        expect(usersService.recordFailedLogin).toHaveBeenCalledWith(mockUserId, '192.168.1.1', 'Mozilla/5.0 Test Browser');
+        expect(error.response.message).toBe('The password you entered is incorrect');
+        expect(error.response.type).toBe('INVALID_PASSWORD');
+        // Audit counter persisted to MongoDB
+        expect(usersService.incrementFailedLoginAttempts).toHaveBeenCalledWith(
+          mockUserId, '192.168.1.1', 'Mozilla/5.0 Test Browser',
+        );
       });
 
       it('should_LockAccount_When_TooManyFailedAttempts', async () => {
-        // Arrange
+        // Arrange – lockout decision now comes from AuthSecurityService (Redis).
+        // This test verifies the audit trail is still written on every failed attempt.
         jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
         (bcrypt.compare as jest.Mock).mockResolvedValue(false);
-        jest.spyOn(usersService, 'recordFailedLogin').mockResolvedValue({
-          attemptsRemaining: 0,
-          isLocked: true
-        });
+        jest.spyOn(usersService, 'incrementFailedLoginAttempts').mockResolvedValue(undefined);
 
         // Act & Assert
         const error = await service.login(mockLoginDto, mockRequestInfo).catch(e => e);
         expect(error).toBeInstanceOf(UnauthorizedException);
-        expect(error.response.message).toBe('Account has been locked due to multiple failed login attempts');
-        expect(error.response.type).toBe('ACCOUNT_LOCKED');
-        expect(error.response.attemptsRemaining).toBe(0);
+        expect(usersService.incrementFailedLoginAttempts).toHaveBeenCalledWith(
+          mockUserId, '192.168.1.1', 'Mozilla/5.0 Test Browser',
+        );
       });
     });
 

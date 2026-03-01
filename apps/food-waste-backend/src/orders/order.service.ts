@@ -11,16 +11,19 @@ import {
     forwardRef,
 } from '@nestjs/common';
 import { AppLoggerService } from '../common/services/logger.service';
+import { DEFAULT_CURRENCY } from '../common/enums/currency.enum';
 import { RegexSecurityUtil } from '../common/utils/regex-security.util';
 import { ORDER_LIST_FIELDS, ORDER_DETAIL_FIELDS } from '../common/utils/query-optimization.util';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types, ClientSession, FlattenMaps } from 'mongoose';
+import { Model, Types, ClientSession, FlattenMaps, PipelineStage } from 'mongoose';
 import { Order, OrderDocument, OrderStatus, PaymentStatus as OrderPaymentStatus } from './schemas/order.schema';
 import { Payment, PaymentDocument, PaymentStatus } from '../payments/schemas/payment.schema';
 import { PayoutService } from '../payments/services/payout.service';
 import { RefundService } from '../payments/services/refund.service';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { OrderCompletedEvent } from '../common/events';
+import { WebSocketService } from '../websocket/websocket.service';
+import { NotificationService } from '../notifications/services/notification.service';
 
 /**
  * Lean result type for Order documents
@@ -71,6 +74,34 @@ interface OrderStatsResult {
     averageOrderValue: number;
 }
 
+export type ChartGranularity = 'day' | 'week' | 'month';
+
+/** Module-level constant — shared by service methods (no heap allocation per call). */
+const CHART_MONTH_NAMES = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+] as const;
+
+export interface RevenueChartResponse {
+    label: string;
+    year: number;
+    month: number;
+    /** ISO week number — only set when granularity is 'week'. */
+    week?: number;
+    /** Day of month — only set when granularity is 'day'. */
+    day?: number;
+    revenue: number;
+    orderCount: number;
+}
+
+/** @deprecated Renamed to RevenueChartResponse. Kept for import compatibility. */
+export type MonthlyRevenueResponse = RevenueChartResponse;
+
+export interface CustomerLocationResponse {
+    city: string;
+    count: number;
+}
+
 export interface OrderStatsResponse {
     totalOrders: number;
     totalRevenue: number;
@@ -106,6 +137,9 @@ interface OrderQuantityUpdate {
 }
 
 
+/** Grace period after offer expires before order expires (30 minutes) */
+const ORDER_GRACE_PERIOD_MS = 30 * 60 * 1000;
+
 @Injectable()
 export class OrdersService {
     private readonly logger = new Logger(OrdersService.name);
@@ -126,6 +160,8 @@ export class OrdersService {
         private readonly payoutService: PayoutService,
         private readonly refundService: RefundService,
         private readonly eventBus: EventBusService,
+        @Inject(forwardRef(() => WebSocketService)) private readonly webSocketService: WebSocketService,
+        @Inject(forwardRef(() => NotificationService)) private readonly notificationService: NotificationService,
     ) { }
     @Cron(CronExpression.EVERY_10_MINUTES)
     async expireApprovedOrdersCron() {
@@ -306,8 +342,13 @@ export class OrdersService {
             let finalOrder: OrderDocument | null = null;
 
             await session.withTransaction(async () => {
-                const customer = await this.userModel.findById(customerId).session(session);
+                // Fetch customer + establishment in parallel — independent queries.
+                const [customer, establishment] = await Promise.all([
+                    this.userModel.findById(customerId).session(session),
+                    this.establishmentModel.findById(createOrderDto.establishmentId).session(session),
+                ]);
                 if (!customer) {throw new NotFoundException('Customer not found');}
+                if (!establishment) {throw new NotFoundException('Establishment not found');}
 
                 // Enforce phone verification for order placement
                 if (!customer.phoneNumber || !customer.isPhoneVerified) {
@@ -318,26 +359,28 @@ export class OrdersService {
                         requiresPhoneVerification: !!customer.phoneNumber && !customer.isPhoneVerified
                     });
                 }
-
-                const establishment = await this.establishmentModel.findById(createOrderDto.establishmentId).session(session);
-                if (!establishment) {throw new NotFoundException('Establishment not found');}
-                const { orderItems, subtotal, totalDiscountAmount, updates } =
+                const { orderItems, subtotal, totalDiscountAmount, updates, earliestOfferExpiry } =
                     await this.validateAndBuildOrderItems(createOrderDto, session);
-                for (const update of updates) {
-                    await this.offerModel.findByIdAndUpdate(update.offerId, {
-                        $inc: { reservedQuantity: update.quantity }
-                    }, { session });
-
-                    await this.offerModel.findOneAndUpdate(
-                        {
-                            _id: update.offerId,
-                            'pickupTimeSlots.startTime': update.slotStart,
-                            'pickupTimeSlots.endTime': update.slotEnd,
-                        },
-                        { $inc: { 'pickupTimeSlots.$.currentOrders': 1 } },
-                        { session }
-                    );
-                }
+                // reservedQuantity and currentOrders target independent fields;
+                // flatten into a single Promise.all to eliminate serial round-trips.
+                await Promise.all([
+                    ...updates.map(update =>
+                        this.offerModel.findByIdAndUpdate(update.offerId, {
+                            $inc: { reservedQuantity: update.quantity }
+                        }, { session })
+                    ),
+                    ...updates.map(update =>
+                        this.offerModel.findOneAndUpdate(
+                            {
+                                _id: update.offerId,
+                                'pickupTimeSlots.startTime': update.slotStart,
+                                'pickupTimeSlots.endTime': update.slotEnd,
+                            },
+                            { $inc: { 'pickupTimeSlots.$.currentOrders': 1 } },
+                            { session }
+                        )
+                    ),
+                ]);
 
                 // 5. Calculate pricing
                 // No service fee - customer pays exact bag price
@@ -362,7 +405,7 @@ export class OrdersService {
                     establishmentId: new Types.ObjectId(createOrderDto.establishmentId),
                     merchantId: establishment.ownerId,
                     items: orderItems,
-                    status: OrderStatus.PENDING,
+                    status: OrderStatus.RESERVED,
                     paymentStatus: PaymentStatus.PENDING,
                     pickupDetails: {
                         timeSlot: createOrderDto.pickupTimeSlot,
@@ -374,7 +417,7 @@ export class OrdersService {
                     paymentDetails: {
                         method: createOrderDto.paymentMethod,
                         amount: total,
-                        currency: 'EUR',
+                        currency: DEFAULT_CURRENCY,
                     },
                     pricing: {
                         subtotal,
@@ -382,26 +425,48 @@ export class OrdersService {
                         taxAmount,
                         serviceFee,
                         total,
-                        currency: 'EUR',
+                        currency: DEFAULT_CURRENCY,
                     },
                     establishmentAddress: establishment.address,
                     customerNotes: createOrderDto.customerNotes,
                     donationAmount, // Add donation tracking
+                    // Order expires when offer expires + 30min grace period
+                    expiresAt: new Date(earliestOfferExpiry.getTime() + ORDER_GRACE_PERIOD_MS),
                 });
 
                 const savedOrder = await order.save({ session });
 
-                // 8. Populate before returning
-                finalOrder = await this.orderModel
-                    .findById(savedOrder._id)
-                    .session(session)
-                    .populate('customerId', 'firstName lastName email phoneNumber')
-                    .populate('establishmentId', 'name address phoneNumber type')
-                    .populate('items.offerId', 'title images type')
-                    .exec();
+                // 8. Hydrate populated refs from already-fetched documents.
+                //    customer, establishment were loaded at the top of the
+                //    transaction — reuse them instead of a second findById +
+                //    3 populate round-trip.
+                const orderPlain: any = savedOrder.toObject();
+                orderPlain.customerId = {
+                    _id: customer._id,
+                    firstName: customer.firstName,
+                    lastName: customer.lastName,
+                    email: customer.email,
+                    phoneNumber: customer.phoneNumber,
+                };
+                orderPlain.establishmentId = {
+                    _id: establishment._id,
+                    name: establishment.name,
+                    address: establishment.address,
+                    phoneNumber: establishment.phoneNumber,
+                    type: establishment.type,
+                };
+                finalOrder = orderPlain as OrderDocument;
             });
 
             // Donation creation is now handled via order.completed event
+
+            // Notify merchant via WebSocket + push (non-blocking — failure must not break order creation)
+            this.notifyMerchantNewOrder(finalOrder!).catch((err: Error) => {
+                this.appLogger.error(
+                    `Merchant notification failed for order ${finalOrder!.orderNumber}: ${err.message}`,
+                    'OrderService.notifyMerchant',
+                );
+            });
 
             return finalOrder!;
 
@@ -424,6 +489,7 @@ export class OrdersService {
 private isValidStatusTransition(oldStatus: OrderStatus, newStatus: OrderStatus): boolean {
   const allowedTransitions = {
     [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
+    [OrderStatus.RESERVED]: [OrderStatus.PICKED_UP, OrderStatus.CANCELLED],
     [OrderStatus.CONFIRMED]: [OrderStatus.READY_FOR_PICKUP, OrderStatus.CANCELLED],
     [OrderStatus.READY_FOR_PICKUP]: [OrderStatus.PICKED_UP, OrderStatus.CANCELLED],
     [OrderStatus.PICKED_UP]: [OrderStatus.REFUNDED],
@@ -446,18 +512,81 @@ private generateQRCode(): string {
 }
 
 private generatePickupCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+  return crypto.randomInt(100000, 1000000).toString();
 }
 
+    /**
+     * Sends WebSocket event + push notification to the merchant when a new order
+     * is placed.  pickupCode is included — merchants need it on their dashboard.
+     * Wrapped in try/catch so a failure here never propagates to the caller.
+     */
+    private async notifyMerchantNewOrder(order: OrderDocument): Promise<void> {
+        const merchantId = order.merchantId._id
+            ? order.merchantId._id.toString()
+            : order.merchantId.toString();
+
+        const customer = order.customerId as any;
+        const customerName = customer.firstName && customer.lastName
+            ? `${customer.firstName} ${customer.lastName}`
+            : 'Customer';
+
+        const payload = {
+            orderId: order._id.toString(),
+            orderNumber: order.orderNumber,
+            status: order.status,
+            items: order.items.map(item => ({
+                title: item.offerTitle,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+            })),
+            pickupDetails: {
+                timeSlot: order.pickupDetails.timeSlot,
+                scheduledDate: order.pickupDetails.scheduledDate,
+                pickupCode: order.pickupDetails.pickupCode,
+            },
+            customerName,
+            pricing: { total: order.pricing.total },
+        };
+
+        // 1. WebSocket — real-time dashboard update
+        this.webSocketService.sendToUser(merchantId, 'ORDER_STATUS_UPDATED', payload);
+
+        // 2. Push notification — visible even when app is in background
+        await this.notificationService.sendNotification({
+            type: 'push',
+            trigger: 'order_confirmed',
+            target: { userId: merchantId },
+            payload: {
+                title: `New Order #${order.orderNumber}`,
+                body: `Pickup code: ${order.pickupDetails.pickupCode}`,
+                data: {
+                    orderId: order._id.toString(),
+                    pickupCode: order.pickupDetails.pickupCode,
+                },
+            },
+            priority: 'high',
+        });
+    }
+
     async findById(orderId: string, userId?: string, userRole?: UserRole): Promise<OrderDocument> {
-        const order = await this.orderModel
-            .findById(orderId)
-            .select(ORDER_DETAIL_FIELDS) // ✅ OPTIMIZATION: Reduce payload by excluding internal fields
-            .populate('customerId', 'firstName lastName email phoneNumber avatar')
-            .populate('establishmentId', 'name address phoneNumber type images averageRating')
-            .populate('merchantId', 'firstName lastName email phoneNumber')
-            .populate('items.offerId', 'title images type estimatedWeight')
-            .exec();
+        // ✅ PERFORMANCE: Single aggregation replaces findById + 4 populates (5 → 1 round-trip)
+        const detailFields = ORDER_DETAIL_FIELDS.split(' ');
+        const projectStage: Record<string, 1> = {};
+        for (const field of detailFields) {
+            projectStage[field] = 1;
+        }
+
+        const pipeline: PipelineStage[] = [
+            { $match: { _id: new Types.ObjectId(orderId) } },
+            { $project: projectStage },
+            ...this.buildCustomerLookup(),
+            ...this.buildEstablishmentLookupForOrder(),
+            ...this.buildMerchantLookupForOrder(),
+            ...this.buildItemsOfferLookup(true),
+        ];
+
+        const results = await this.orderModel.aggregate(pipeline).exec();
+        const order = results[0] as OrderDocument | undefined;
 
         if (!order) {
             throw new NotFoundException('Order not found');
@@ -488,22 +617,31 @@ private generatePickupCode(): string {
         const skip = (page - 1) * safeLimit;
         const { query, sort } = this.buildQuery(userRole, userId, filters);
 
+        // ✅ PERFORMANCE: Single aggregation replaces find + 3 populates (4 → 1 round-trip)
+        // Note: findAll does NOT populate merchantId — preserving this behavior
+        const listFields = ORDER_LIST_FIELDS.split(' ');
+        const projectStage: Record<string, 1> = {};
+        for (const field of listFields) {
+            projectStage[field] = 1;
+        }
+
+        const pipeline: PipelineStage[] = [
+            { $match: query },
+            { $project: projectStage },
+            ...this.buildCustomerLookup(),
+            ...this.buildEstablishmentLookupForOrder(),
+            ...this.buildItemsOfferLookup(false),
+            { $sort: sort },
+            { $skip: skip },
+            { $limit: safeLimit },
+        ];
+
         const [orders, total] = await Promise.all([
-            this.orderModel
-                .find(query)
-                .select(ORDER_LIST_FIELDS) // ✅ OPTIMIZATION: Only fetch required fields (60% payload reduction)
-                .populate('customerId', 'firstName lastName email')
-                .populate('establishmentId', 'name address type')
-                .populate('items.offerId', 'title images')
-                .sort(sort)
-                .skip(skip)
-                .limit(safeLimit)
-                .lean() // ✅ OPTIMIZATION: 50% memory reduction, 10-15% faster
-                .exec(),
+            this.orderModel.aggregate(pipeline).exec(),
             this.orderModel.countDocuments(query),
         ]);
 
-        return { orders, total };
+        return { orders: orders as OrderLean[], total };
     }
 
     private buildQuery(userRole: UserRole, userId: string, filters: OrderQueryDto): { query: OrderQueryFilter; sort: OrderSort } {
@@ -563,6 +701,7 @@ private generatePickupCode(): string {
         userId: string,
         userRole: UserRole,
     ) {
+        // 1. Validate via findById (aggregation — POJO is fine for reads/permission checks)
         const order = await this.findById(orderId, userId, userRole);
 
         if (order.status !== 'confirmed' && order.status !== 'ready_for_pickup') {
@@ -575,15 +714,21 @@ private generatePickupCode(): string {
         }
         this.appLogger.log(`Incoming newPickupDate: ${newPickupDate} (type: ${typeof newPickupDate})`, 'OrderService');
 
-        order.pickupExtensionRequest = {
-            newDate: parsedDate,
-            approved: null,
-            requestedAt: new Date(),
-        };
+        // 2. Atomic update instead of .save() (aggregation returns POJO, not Mongoose doc)
+        await this.orderModel.findByIdAndUpdate(orderId, {
+            $set: {
+                pickupExtensionRequest: {
+                    newDate: parsedDate,
+                    approved: null,
+                    requestedAt: new Date(),
+                },
+            },
+        });
+
         this.appLogger.log(`Setting pickup extension - newPickupDate: ${newPickupDate} (type: ${typeof newPickupDate})`, 'OrderService');
 
-        await order.save();
-        return order;
+        // 3. Return populated result
+        return this.findById(orderId);
     }
 
 
@@ -688,31 +833,69 @@ private generatePickupCode(): string {
             });
         }
 
+        // Check if order is ready for pickup (RESERVED, READY_FOR_PICKUP, or CONFIRMED for backward compat)
+        const validStatuses = [OrderStatus.RESERVED, OrderStatus.READY_FOR_PICKUP, OrderStatus.CONFIRMED];
+        if (!validStatuses.includes(order.status)) {
+            throw new BadRequestException({
+                message: 'Order is not ready for pickup yet. Please wait for the merchant to confirm it.',
+                code: 'ORDER_NOT_READY',
+            });
+        }
+
+        // Pickup-code expiry: aligned with order expiration (offer.availableUntil + 30min)
+        // If order has expiresAt, code expires when order expires.
+        // Fallback: pickup end time + 30min (matches pre-save fallback).
+        if (confirmDto.pickupCode) {
+            let codeExpiresAt: Date;
+
+            if (order.expiresAt) {
+                codeExpiresAt = new Date(order.expiresAt);
+            } else {
+                const pickupEnd = new Date(order.pickupDetails.scheduledDate);
+                const [h, m] = order.pickupDetails.timeSlot.endTime.split(':').map(Number);
+                pickupEnd.setHours(h, m, 0, 0);
+                codeExpiresAt = new Date(pickupEnd.getTime() + ORDER_GRACE_PERIOD_MS);
+            }
+
+            if (new Date() > codeExpiresAt) {
+                throw new BadRequestException({
+                    message: 'Pickup code has expired. The order window has ended.',
+                    code: 'CODE_EXPIRED',
+                });
+            }
+        }
+
+        // --- Change E: Role-based enforcement on the pickup-code path ---
+        // ConfirmPickupDto.pickupCode is @IsNotEmpty — it is always present on
+        // every request.  The semantic split is:
+        //   Consumer path  → pickupCode is the real credential (qrCode absent)
+        //   Merchant path  → qrCode is the real credential (pickupCode is forced
+        //                     by the DTO but is not used for merchant auth)
+        if (userRole === UserRole.CONSUMER) {
+            // Only the consumer who owns this order may confirm via pickup code
+            if (order.customerId._id.toString() !== userId) {
+                throw new ForbiddenException('Only the order owner can confirm pickup');
+            }
+        }
+        if (userRole === UserRole.MERCHANT) {
+            // Merchants MUST provide a qrCode — they cannot rely on pickupCode alone
+            if (!confirmDto.qrCode) {
+                throw new ForbiddenException('Merchants must confirm pickup using a QR code');
+            }
+            // And it must belong to this merchant's order
+            if (order.merchantId._id.toString() !== userId) {
+                throw new ForbiddenException('Only the establishment merchant can confirm pickup');
+            }
+        }
+
         // Validate pickup code or QR code
         const isValidCode = order.pickupDetails.pickupCode === confirmDto.pickupCode ||
             (confirmDto.qrCode && order.pickupDetails.qrCode === confirmDto.qrCode);
         this.appLogger.log(`Validating pickup - Order details: ${JSON.stringify(order.pickupDetails)}`, 'OrderService');
 
         if (!isValidCode) {
-            // Track failed attempt
             await this.trackFailedPickupAttempt(orderId, userId);
             throw new BadRequestException('Invalid pickup code or QR code');
-        }
-
-        // Check if order is ready for pickup (RESERVED, READY_FOR_PICKUP, or CONFIRMED for backward compat)
-        const validStatuses = [OrderStatus.RESERVED, OrderStatus.READY_FOR_PICKUP, OrderStatus.CONFIRMED];
-        if (!validStatuses.includes(order.status)) {
-            throw new BadRequestException('Order is not ready for pickup');
-        }
-
-        // Consumer can show pickup code but only merchant should confirm
-        if (userRole === UserRole.CONSUMER && order.customerId._id.toString() !== userId) {
-            throw new ForbiddenException('Access denied');
-        }
-
-        // Only the merchant who owns this order can confirm pickup
-        if (userRole === UserRole.MERCHANT && order.merchantId._id.toString() !== userId) {
-            throw new ForbiddenException('Only the establishment merchant can confirm pickup');
         }
 
         // Use transaction for atomicity
@@ -720,12 +903,51 @@ private generatePickupCode(): string {
 
         try {
             await session.withTransaction(async () => {
-                // 1. Update order status to PICKED_UP
-                await this.orderModel.findByIdAndUpdate(orderId, {
-                    status: OrderStatus.PICKED_UP,
-                    'pickupDetails.actualPickupTime': new Date(),
-                    ...(confirmDto.notes && { customerNotes: confirmDto.notes }),
-                }, { session });
+                // 1. Atomic gate — only one concurrent request can flip the status.
+                //    The filter includes the current valid statuses; if a second
+                //    request races in after the first already set PICKED_UP, the
+                //    filter will not match and claimed will be null.
+                // Build the code-match clause.  Pre-validation (isValidCode above)
+                // already confirmed at least one code is correct.  The $or here
+                // mirrors that OR so the atomic filter does not reject a valid
+                // request simply because the other code field doesn't match.
+                const codeMatch: Record<string, unknown>[] = [];
+                if (confirmDto.pickupCode) {
+                    codeMatch.push({ 'pickupDetails.pickupCode': confirmDto.pickupCode });
+                }
+                if (confirmDto.qrCode) {
+                    codeMatch.push({ 'pickupDetails.qrCode': confirmDto.qrCode });
+                }
+
+                // Check if payment method is cash-based (needs paymentStatus update on pickup)
+                const isCashPayment = ['cash_on_pickup', 'pay_on_delivery'].includes(
+                    order.paymentDetails?.method ?? ''
+                );
+
+                const claimed = await this.orderModel.findOneAndUpdate(
+                    {
+                        _id: orderId,
+                        status: { $in: [OrderStatus.RESERVED, OrderStatus.READY_FOR_PICKUP, OrderStatus.CONFIRMED] },
+                        $or: codeMatch,
+                    },
+                    {
+                        $set: {
+                            status: OrderStatus.PICKED_UP,
+                            'pickupDetails.actualPickupTime': new Date(),
+                            // For cash/delivery payments, mark as paid when confirmed
+                            ...(isCashPayment && { paymentStatus: OrderPaymentStatus.PAID }),
+                            ...(confirmDto.notes && { customerNotes: confirmDto.notes }),
+                        },
+                    },
+                    { session, new: true },
+                );
+
+                if (!claimed) {
+                    throw new BadRequestException({
+                        message: 'Order already confirmed or invalid',
+                        code: 'PICKUP_ALREADY_DONE',
+                    });
+                }
 
                 // 2. Update inventory (release reserved, add to sold)
                 await Promise.all(
@@ -772,6 +994,15 @@ private generatePickupCode(): string {
                         `Pickup confirmed for order ${orderId}: Payment status ${payment.status} (legacy)`,
                         'OrderService'
                     );
+                } else {
+                    // Cash payment flow: no Payment doc exists
+                    const method = order.paymentDetails?.method;
+                    if (method && ['cash_on_pickup', 'pay_on_delivery'].includes(method)) {
+                        this.appLogger.log(
+                            `Pickup confirmed for order ${orderId}: Cash payment (${method}) - order paymentStatus PENDING -> PAID`,
+                            'OrderService'
+                        );
+                    }
                 }
             });
 
@@ -982,10 +1213,14 @@ private generatePickupCode(): string {
 
         return order;
     }
-    async getOrderStats(userId: string, userRole: UserRole): Promise<OrderStatsResponse> {
-        const matchCondition = userRole === UserRole.MERCHANT
+    async getOrderStats(userId: string, userRole: UserRole, startDate?: Date): Promise<OrderStatsResponse> {
+        const matchCondition: Record<string, unknown> = userRole === UserRole.MERCHANT
             ? { merchantId: new Types.ObjectId(userId) }
             : { customerId: new Types.ObjectId(userId) };
+
+        if (startDate) {
+            matchCondition.createdAt = { $gte: startDate };
+        }
 
         const stats = await this.orderModel.aggregate([
             { $match: matchCondition },
@@ -1026,6 +1261,247 @@ private generatePickupCode(): string {
             averageOrderValue: 0
         };
     }
+
+    /**
+     * Revenue chart aggregation for the merchant dashboard.
+     *
+     * Supports three granularities:
+     *  - 'day'   → `value` = number of days  (max 90)
+     *  - 'week'  → `value` = number of weeks (max 52)
+     *  - 'month' → `value` = number of months (max 24)
+     *
+     * Every slot in the returned array is guaranteed to be present, even if
+     * revenue is 0 (gap-filled), so the chart always shows a complete axis.
+     */
+    async getRevenueChart(
+        userId: string,
+        userRole: UserRole,
+        granularity: ChartGranularity,
+        value: number,
+    ): Promise<RevenueChartResponse[]> {
+        const matchCondition = userRole === UserRole.MERCHANT
+            ? { merchantId: new Types.ObjectId(userId) }
+            : {};
+
+        const now = new Date();
+        let startDate: Date;
+        let groupId: Record<string, unknown>;
+        let sortStage: Record<string, 1 | -1>;
+
+        switch (granularity) {
+            case 'day': {
+                startDate = new Date(now);
+                startDate.setDate(now.getDate() - (value - 1));
+                startDate.setHours(0, 0, 0, 0);
+                groupId = {
+                    year:  { $year:       '$createdAt' },
+                    month: { $month:      '$createdAt' },
+                    day:   { $dayOfMonth: '$createdAt' },
+                };
+                sortStage = { '_id.year': 1, '_id.month': 1, '_id.day': 1 };
+                break;
+            }
+            case 'week': {
+                // Align to the Monday of the current week, then go back (value-1) weeks.
+                const dow = now.getDay() || 7; // 1 = Mon … 7 = Sun
+                const thisMonday = new Date(now);
+                thisMonday.setDate(now.getDate() - dow + 1);
+                thisMonday.setHours(0, 0, 0, 0);
+                startDate = new Date(thisMonday);
+                startDate.setDate(thisMonday.getDate() - (value - 1) * 7);
+                groupId = {
+                    isoWeekYear: { $isoWeekYear: '$createdAt' },
+                    week:        { $isoWeek:     '$createdAt' },
+                };
+                sortStage = { '_id.isoWeekYear': 1, '_id.week': 1 };
+                break;
+            }
+            case 'month':
+            default: {
+                startDate = new Date(now);
+                startDate.setMonth(now.getMonth() - (value - 1));
+                startDate.setDate(1);
+                startDate.setHours(0, 0, 0, 0);
+                groupId = {
+                    year:  { $year:  '$createdAt' },
+                    month: { $month: '$createdAt' },
+                };
+                sortStage = { '_id.year': 1, '_id.month': 1 };
+                break;
+            }
+        }
+
+        const pipeline: PipelineStage[] = [
+            {
+                $match: {
+                    ...matchCondition,
+                    status: { $in: [OrderStatus.PICKED_UP, OrderStatus.CONFIRMED, OrderStatus.READY_FOR_PICKUP] },
+                    createdAt: { $gte: startDate },
+                },
+            },
+            {
+                $group: {
+                    _id:        groupId,
+                    revenue:    { $sum: '$pricing.total' },
+                    orderCount: { $sum: 1 },
+                },
+            },
+            { $sort: sortStage },
+        ];
+
+        const results = await this.orderModel.aggregate<{
+            _id: Record<string, number>;
+            revenue: number;
+            orderCount: number;
+        }>(pipeline);
+
+        return this.fillChartGaps(granularity, value, now, results);
+    }
+
+    /**
+     * Returns ISO week number and year (ISO 8601) for the given date.
+     * The ISO week containing January 4th is always week 1 of the year.
+     */
+    private getIsoWeek(d: Date): { isoWeekYear: number; isoWeek: number } {
+        const utc = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        const dow = utc.getUTCDay() || 7; // 1 = Mon … 7 = Sun
+        utc.setUTCDate(utc.getUTCDate() + 4 - dow); // move to Thursday (defines ISO week year)
+        const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+        const isoWeek = Math.ceil(((utc.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7);
+        return { isoWeekYear: utc.getUTCFullYear(), isoWeek };
+    }
+
+    /**
+     * Builds a fully-gapless array of `RevenueChartResponse` entries.
+     * Missing slots (no orders in that period) are emitted with revenue = 0.
+     */
+    private fillChartGaps(
+        granularity: ChartGranularity,
+        value: number,
+        now: Date,
+        results: Array<{ _id: Record<string, number>; revenue: number; orderCount: number }>,
+    ): RevenueChartResponse[] {
+        const output: RevenueChartResponse[] = [];
+
+        switch (granularity) {
+            case 'day': {
+                for (let i = value - 1; i >= 0; i--) {
+                    const d = new Date(now);
+                    d.setDate(now.getDate() - i);
+                    const year  = d.getFullYear();
+                    const month = d.getMonth() + 1; // 1-indexed
+                    const day   = d.getDate();
+                    const found = results.find(
+                        (r) => r._id['year'] === year && r._id['month'] === month && r._id['day'] === day,
+                    );
+                    output.push({
+                        label:      `${day} ${CHART_MONTH_NAMES[month - 1]}`,
+                        year, month, day,
+                        revenue:    found?.revenue    ?? 0,
+                        orderCount: found?.orderCount ?? 0,
+                    });
+                }
+                break;
+            }
+            case 'week': {
+                const dow = now.getDay() || 7;
+                const thisMonday = new Date(now);
+                thisMonday.setDate(now.getDate() - dow + 1);
+                thisMonday.setHours(0, 0, 0, 0);
+
+                for (let i = value - 1; i >= 0; i--) {
+                    const monday = new Date(thisMonday);
+                    monday.setDate(thisMonday.getDate() - i * 7);
+                    const { isoWeekYear, isoWeek } = this.getIsoWeek(monday);
+                    const month = monday.getMonth() + 1;
+                    const found = results.find(
+                        (r) => r._id['isoWeekYear'] === isoWeekYear && r._id['week'] === isoWeek,
+                    );
+                    output.push({
+                        // Label = Monday's date — e.g. "17 Feb"
+                        label:      `${monday.getDate()} ${CHART_MONTH_NAMES[monday.getMonth()]}`,
+                        year:       isoWeekYear,
+                        month,
+                        week:       isoWeek,
+                        revenue:    found?.revenue    ?? 0,
+                        orderCount: found?.orderCount ?? 0,
+                    });
+                }
+                break;
+            }
+            case 'month':
+            default: {
+                for (let i = value - 1; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    const year  = d.getFullYear();
+                    const month = d.getMonth() + 1;
+                    const found = results.find(
+                        (r) => r._id['year'] === year && r._id['month'] === month,
+                    );
+                    output.push({
+                        label:      CHART_MONTH_NAMES[month - 1],
+                        year, month,
+                        revenue:    found?.revenue    ?? 0,
+                        orderCount: found?.orderCount ?? 0,
+                    });
+                }
+                break;
+            }
+        }
+
+        return output;
+    }
+
+    /**
+     * Customer location aggregation from merchant orders.
+     * Groups customers by city from their populated address or establishment address.
+     */
+    async getCustomerLocations(
+        userId: string,
+        userRole: UserRole,
+        limit: number = 5,
+        startDate?: Date,
+    ): Promise<CustomerLocationResponse[]> {
+        const matchCondition: Record<string, unknown> = userRole === UserRole.MERCHANT
+            ? { merchantId: new Types.ObjectId(userId) }
+            : {};
+
+        if (startDate) {
+            matchCondition.createdAt = { $gte: startDate };
+        }
+
+        const pipeline: PipelineStage[] = [
+            { $match: matchCondition },
+            {
+                $lookup: {
+                    from: 'establishments',
+                    localField: 'establishmentId',
+                    foreignField: '_id',
+                    as: 'establishment',
+                    pipeline: [{ $project: { 'address.city': 1 } }],
+                },
+            },
+            { $unwind: { path: '$establishment', preserveNullAndEmptyArrays: true } },
+            {
+                $group: {
+                    _id: { $ifNull: ['$establishment.address.city', 'Unknown'] },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { count: -1 } },
+            { $limit: limit },
+            {
+                $project: {
+                    _id: 0,
+                    city: '$_id',
+                    count: 1,
+                },
+            },
+        ];
+
+        return this.orderModel.aggregate(pipeline);
+    }
+
     async updateExpiredOrders(): Promise<number> {
         const now = new Date();
 
@@ -1083,6 +1559,136 @@ private generatePickupCode(): string {
         this.logger.log(`✅ Total expired orders updated: ${updatedCount} in ${batchNumber} batches`);
         return updatedCount;
     }
+    // =========================================================================
+    // REUSABLE $lookup PIPELINE BUILDERS (replaces .populate() — 1 round-trip)
+    // =========================================================================
+
+    /**
+     * Build $lookup stages for customer population on orders.
+     * Overwrites `customerId` ObjectId with populated user object.
+     */
+    private buildCustomerLookup(): PipelineStage[] {
+        return [
+            {
+                $lookup: {
+                    from: 'users',
+                    let: { refId: '$customerId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+                        { $project: { _id: 1, firstName: 1, lastName: 1, email: 1, phoneNumber: 1, avatar: 1 } },
+                    ],
+                    as: '_customerDoc',
+                },
+            },
+            { $unwind: { path: '$_customerDoc', preserveNullAndEmptyArrays: true } },
+            { $addFields: { customerId: '$_customerDoc' } },
+            { $project: { _customerDoc: 0 } },
+        ];
+    }
+
+    /**
+     * Build $lookup stages for establishment population on orders.
+     * Overwrites `establishmentId` ObjectId with populated establishment object.
+     */
+    private buildEstablishmentLookupForOrder(): PipelineStage[] {
+        return [
+            {
+                $lookup: {
+                    from: 'establishments',
+                    let: { refId: '$establishmentId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+                        { $project: { _id: 1, name: 1, address: 1, phoneNumber: 1, type: 1, images: 1, averageRating: 1 } },
+                    ],
+                    as: '_establishmentDoc',
+                },
+            },
+            { $unwind: { path: '$_establishmentDoc', preserveNullAndEmptyArrays: true } },
+            { $addFields: { establishmentId: '$_establishmentDoc' } },
+            { $project: { _establishmentDoc: 0 } },
+        ];
+    }
+
+    /**
+     * Build $lookup stages for merchant population on orders.
+     * Overwrites `merchantId` ObjectId with populated user object.
+     */
+    private buildMerchantLookupForOrder(): PipelineStage[] {
+        return [
+            {
+                $lookup: {
+                    from: 'users',
+                    let: { refId: '$merchantId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+                        { $project: { _id: 1, firstName: 1, lastName: 1, email: 1, phoneNumber: 1 } },
+                    ],
+                    as: '_merchantDoc',
+                },
+            },
+            { $unwind: { path: '$_merchantDoc', preserveNullAndEmptyArrays: true } },
+            { $addFields: { merchantId: '$_merchantDoc' } },
+            { $project: { _merchantDoc: 0 } },
+        ];
+    }
+
+    /**
+     * Build $lookup stages for populating `items[].offerId` with offer details.
+     * Single $lookup fetches all referenced offers, then $map assigns each back.
+     *
+     * @param includeWeight - Include estimatedWeight in projection (for detail view)
+     */
+    private buildItemsOfferLookup(includeWeight = false): PipelineStage[] {
+        const offerProject: Record<string, 1> = { _id: 1, title: 1, images: 1, type: 1 };
+        if (includeWeight) {
+            offerProject.estimatedWeight = 1;
+        }
+
+        return [
+            {
+                $lookup: {
+                    from: 'offers',
+                    let: { offerIds: '$items.offerId' },
+                    pipeline: [
+                        { $match: { $expr: { $in: ['$_id', '$$offerIds'] } } },
+                        { $project: offerProject },
+                    ],
+                    as: '_populatedOffers',
+                },
+            },
+            {
+                $addFields: {
+                    items: {
+                        $map: {
+                            input: '$items',
+                            as: 'item',
+                            in: {
+                                $mergeObjects: [
+                                    '$$item',
+                                    {
+                                        offerId: {
+                                            $arrayElemAt: [
+                                                {
+                                                    $filter: {
+                                                        input: '$_populatedOffers',
+                                                        as: 'o',
+                                                        cond: { $eq: ['$$o._id', '$$item.offerId'] },
+                                                    },
+                                                },
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            },
+            { $project: { _populatedOffers: 0 } },
+        ];
+    }
+
     private async validateAndBuildOrderItems(
         createOrderDto: CreateOrderDto,
         session: ClientSession
@@ -1091,12 +1697,14 @@ private generatePickupCode(): string {
         subtotal: number;
         totalDiscountAmount: number;
         updates: OrderQuantityUpdate[];
+        earliestOfferExpiry: Date;
     }> {
         const pickupDate = new Date(createOrderDto.pickupDate);
+        const now = new Date();
         const offerIds = createOrderDto.items.map(item => new Types.ObjectId(item.offerId));
         const establishmentId = new Types.ObjectId(createOrderDto.establishmentId);
 
-        // Fetch offers
+        // Fetch offers (no populate needed — establishment already fetched in create())
         const offers = await this.offerModel.find({
             _id: { $in: offerIds },
             establishmentId,
@@ -1104,12 +1712,29 @@ private generatePickupCode(): string {
             availableFrom: { $lte: pickupDate },
             availableUntil: { $gte: pickupDate },
         })
-            .session(session)
-            .populate('establishmentId');
+            .session(session);
 
         if (offers.length !== offerIds.length) {
             throw new BadRequestException('One or more offers are invalid or unavailable');
         }
+
+        // Explicit time guard: reject if any offer has already expired
+        // (covers the gap between offer cron runs)
+        for (const offer of offers) {
+            if (now > new Date(offer.availableUntil)) {
+                throw new BadRequestException({
+                    message: `Offer "${offer.title}" has expired and can no longer accept orders`,
+                    code: 'OFFER_EXPIRED',
+                    offerId: offer._id.toString(),
+                });
+            }
+        }
+
+        // Determine earliest offer expiry for order expiresAt calculation
+        const earliestOfferExpiry = offers.reduce((earliest, offer) => {
+            const until = new Date(offer.availableUntil);
+            return until < earliest ? until : earliest;
+        }, new Date(offers[0].availableUntil));
 
         let subtotal = 0;
         let totalDiscountAmount = 0;
@@ -1150,10 +1775,10 @@ private generatePickupCode(): string {
                 continue;
             }
 
-            if (selectedSlot.currentOrders >= selectedSlot.maxOrders) {
+            if (selectedSlot.maxOrders != null && selectedSlot.currentOrders >= selectedSlot.maxOrders) {
                 validationDetails.push({
                     offerId: offer._id as Types.ObjectId,
-                    reason: 'Selected pickup time slot is fully booked'
+                    reason: `This pickup slot is full — the restaurant allows a maximum of ${selectedSlot.maxOrders} order${selectedSlot.maxOrders === 1 ? '' : 's'} per slot.`
                 });
                 continue;
             }
@@ -1190,7 +1815,7 @@ private generatePickupCode(): string {
             });
         }
 
-        return { orderItems, subtotal, totalDiscountAmount, updates };
+        return { orderItems, subtotal, totalDiscountAmount, updates, earliestOfferExpiry };
     }
     private buildPickupDate(date: string, startTime: string): Date {
         const pickupDate = new Date(date);

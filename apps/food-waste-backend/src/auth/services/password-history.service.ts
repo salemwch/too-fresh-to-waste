@@ -15,8 +15,8 @@ import * as argon2 from 'argon2';
 export class PasswordHistoryService {
   private readonly logger = new Logger(PasswordHistoryService.name);
 
-  // Default configuration: prevent reuse of last 5 passwords (NIST recommendation: at least 3)
-  private readonly DEFAULT_PASSWORD_HISTORY_COUNT = 5;
+  // Default configuration: prevent reuse of last 1 password
+  private readonly DEFAULT_PASSWORD_HISTORY_COUNT = 1;
   private readonly DEFAULT_ENFORCE_HISTORY = true;
 
   constructor(private readonly configService: ConfigService) {}

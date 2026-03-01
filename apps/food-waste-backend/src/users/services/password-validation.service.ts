@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import * as argon2 from 'argon2';
 const zxcvbn = require('zxcvbn');
 import { User, UserDocument } from '../schemas/user.schema';
+import { USER_AUDIT_LOG_MAX } from '../../common/constants/database-indexes.constant';
 
 export interface PasswordStrengthResult {
     score: number; // 0-4 (0 = very weak, 4 = very strong)
@@ -460,6 +461,10 @@ export class PasswordValidationService {
             userAgent: '', // Would come from request context
             details: { reason }
         });
+
+        if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
+            user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
+        }
 
         await user.save();
 

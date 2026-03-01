@@ -2,9 +2,26 @@ import { Injectable, NotFoundException, BadRequestException, Logger, Inject, for
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { LoyaltyAccountDocument, BadgeType, PointTransaction, LoyaltyAccount } from './schemas/loyalty-account.schema';
-import { CreateLoyaltyAccountDto, AddPointsDto, DonatePointsDto, DonatePointsResponseDto } from './dto/loyalty-account.dto';
+import { CreateLoyaltyAccountDto, AddPointsDto, LoyaltyStatsDto, DonatePointsDto, DonatePointsResponseDto } from './dto/loyalty-account.dto';
+import { Order, OrderDocument, OrderStatus } from '../orders/schemas/order.schema';
 import { DonationsService } from '../donations/donations.service';
 import { DONATION_CONSTANTS } from '../donations/interfaces/donation.interface';
+
+// ---------------------------------------------------------------------------
+// Leaderboard response shape (returned by getLeaderboard)
+// ---------------------------------------------------------------------------
+export interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  profileImage: string | null;
+  currentBadge: string | null;
+  currentBadgeType: string | null;
+  currentTier: string;
+  totalPoints: number;
+  isCurrentUser: boolean;
+}
 
 /**
  * LoyaltyService
@@ -21,9 +38,9 @@ export class LoyaltyService {
    */
   private readonly tiers = [
     { name: 'Bronze', minPoints: 0, multiplier: 1.0 },
-    { name: 'Silver', minPoints: 500, multiplier: 1.2 },
-    { name: 'Gold', minPoints: 1500, multiplier: 1.5 },
-    { name: 'Platinum', minPoints: 3000, multiplier: 2.0 },
+    { name: 'Silver', minPoints: 400, multiplier: 1.2 },
+    { name: 'Gold', minPoints: 1200, multiplier: 1.5 },
+    { name: 'Platinum', minPoints: 2700, multiplier: 2.0 },
   ];
 
   /**
@@ -34,6 +51,7 @@ export class LoyaltyService {
 
   constructor(
     @InjectModel(LoyaltyAccount.name) private readonly loyaltyModel: Model<LoyaltyAccountDocument>,
+    @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
     @Inject(forwardRef(() => DonationsService)) private readonly donationsService: DonationsService,
   ) {}
 
@@ -88,6 +106,80 @@ export class LoyaltyService {
   }
 
   /**
+   * Retrieve loyalty account with accurate totalBagsSaved.
+   * One-time backfill: if totalBagsSaved is 0 but orders exist,
+   * computes from orders, persists to DB, then returns.
+   * Subsequent calls read the stored value instantly.
+   */
+  async getLoyaltyAccountWithBagCount(userId: string): Promise<Record<string, any>> {
+    const account = await this.getLoyaltyAccount(userId);
+    const accountObj = account.toObject ? account.toObject() : account;
+
+    if (!accountObj.totalBagsSaved && accountObj.totalOrdersCount > 0) {
+      accountObj.totalBagsSaved = await this.backfillTotalBagsSaved(userId);
+    }
+
+    return accountObj;
+  }
+
+  /**
+   * Build loyalty statistics DTO with accurate bag count.
+   * Uses persisted totalBagsSaved (backfilled on first access if needed).
+   */
+  async getLoyaltyStats(userId: string): Promise<LoyaltyStatsDto> {
+    const account = await this.getLoyaltyAccount(userId);
+
+    let totalBagsSaved = account.totalBagsSaved;
+    if (!totalBagsSaved && account.totalOrdersCount > 0) {
+      totalBagsSaved = await this.backfillTotalBagsSaved(userId);
+    }
+
+    return {
+      totalPoints: account.totalPoints,
+      availablePoints: account.availablePoints,
+      lifetimePointsEarned: account.lifetimePointsEarned,
+      totalOrdersCount: account.totalOrdersCount,
+      totalBagsSaved: totalBagsSaved || account.totalOrdersCount,
+      totalAmountSpent: account.totalAmountSpent,
+      currentTier: account.currentTier,
+      badgeCount: account.badges.length,
+      referralCount: account.referralCount,
+      joinedAt: account.joinedAt,
+      lastActivity: account.lastActivity,
+    };
+  }
+
+  /**
+   * One-time backfill: Aggregate total bags from orders, persist to loyalty account.
+   * After this runs once, totalBagsSaved is stored in DB and never recomputed.
+   * New orders increment it via addPoints() (line ~139).
+   */
+  private async backfillTotalBagsSaved(userId: string): Promise<number> {
+    const result = await this.orderModel.aggregate([
+      {
+        $match: {
+          customerId: new Types.ObjectId(userId),
+          status: OrderStatus.PICKED_UP,
+        },
+      },
+      { $unwind: '$items' },
+      { $group: { _id: null, totalBags: { $sum: '$items.quantity' } } },
+    ]);
+
+    const totalBags = result[0]?.totalBags || 0;
+
+    if (totalBags > 0) {
+      await this.loyaltyModel.updateOne(
+        { userId: new Types.ObjectId(userId) },
+        { $set: { totalBagsSaved: totalBags } },
+      );
+      this.logger.log(`Backfilled totalBagsSaved=${totalBags} for user ${userId}`);
+    }
+
+    return totalBags;
+  }
+
+  /**
    * Add points to a user's account
    * Points are multiplied based on current tier
    * Implements idempotency: If orderId provided, checks for duplicate before adding points
@@ -112,7 +204,11 @@ export class LoyaltyService {
       }
 
       const currentTier = this.getCurrentTier(account.totalPoints);
-      const multipliedPoints = Math.floor(addPointsDto.amount * currentTier.multiplier);
+      // Gamification points (login streak, purchase streak, referrals, reviews) bypass the
+      // tier multiplier so the advertised flat amounts are always awarded accurately.
+      const multipliedPoints = addPointsDto.bypassMultiplier
+        ? addPointsDto.amount
+        : Math.floor(addPointsDto.amount * currentTier.multiplier);
 
       const pointTransaction: PointTransaction = {
         amount: multipliedPoints,
@@ -124,6 +220,10 @@ export class LoyaltyService {
         expiresAt: addPointsDto.expiresAt || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year default
       };
 
+      // Only increment order/bag counters for actual order completions (identified by orderId)
+      const isOrderCompletion = !!addPointsDto.orderId;
+      const bagCount = addPointsDto.bagCount || 1;
+
       const updatedAccount = await this.loyaltyModel.findOneAndUpdate(
         { userId: new Types.ObjectId(userId) },
         {
@@ -131,6 +231,9 @@ export class LoyaltyService {
             totalPoints: multipliedPoints,
             availablePoints: multipliedPoints,
             lifetimePointsEarned: multipliedPoints,
+            ...(isOrderCompletion ? { totalOrdersCount: 1 } : {}),
+            ...(isOrderCompletion ? { totalBagsSaved: bagCount } : {}),
+            ...(addPointsDto.orderAmount ? { totalAmountSpent: addPointsDto.orderAmount } : {}),
           },
           $push: { pointsHistory: pointTransaction },
           $set: {
@@ -295,5 +398,112 @@ export class LoyaltyService {
         $push: { badges: { $each: badges } },
       });
     }
+  }
+
+  // ===========================================================================
+  // LEADERBOARD
+  // ===========================================================================
+
+  /**
+   * Get top-N loyalty accounts with user info for the leaderboard.
+   * Uses a $lookup aggregation against the 'users' collection — no circular
+   * dependency since we never inject the UserModel here.
+   * Also returns the calling user's entry when they fall outside the top N.
+   */
+  async getLeaderboard(
+    currentUserId: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<{
+    entries: LeaderboardEntry[];
+    currentUserEntry: LeaderboardEntry | null;
+    total: number;
+  }> {
+    const currentUserObjectId = new Types.ObjectId(currentUserId);
+
+    const userProjection = { firstName: 1, lastName: 1, profileImage: 1, avatar: 1 };
+
+    // ── Top-N entries with offset pagination ──────────────────────────────
+    const raw = await this.loyaltyModel.aggregate([
+      { $match: { isActive: true } },
+      { $sort: { totalPoints: -1, _id: 1 } },
+      { $skip: offset },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          pipeline: [{ $project: userProjection }],
+          as: 'userInfo',
+        },
+      },
+      { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
+    ]);
+
+    const entries: LeaderboardEntry[] = raw.map((doc, index) =>
+      this.mapToLeaderboardEntry(doc, offset + index + 1, currentUserObjectId),
+    );
+
+    // ── Current user's own entry (only when outside top N) ─────────────────
+    const isCurrentUserInTop = entries.some(e => e.isCurrentUser);
+    let currentUserEntry: LeaderboardEntry | null = null;
+
+    if (!isCurrentUserInTop) {
+      const ownRaw = await this.loyaltyModel.aggregate([
+        { $match: { userId: currentUserObjectId } },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            pipeline: [{ $project: userProjection }],
+            as: 'userInfo',
+          },
+        },
+        { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
+      ]);
+
+      if (ownRaw.length > 0) {
+        const aboveCount = await this.loyaltyModel.countDocuments({
+          isActive: true,
+          totalPoints: { $gt: ownRaw[0].totalPoints },
+        });
+        currentUserEntry = this.mapToLeaderboardEntry(
+          ownRaw[0],
+          aboveCount + 1,
+          currentUserObjectId,
+        );
+      }
+    }
+
+    const total = await this.loyaltyModel.countDocuments({ isActive: true });
+
+    return { entries, currentUserEntry, total };
+  }
+
+  /** Maps a raw aggregation document to a typed LeaderboardEntry */
+  private mapToLeaderboardEntry(
+    doc: Record<string, any>,
+    rank: number,
+    currentUserObjectId: Types.ObjectId,
+  ): LeaderboardEntry {
+    const user = doc.userInfo ?? {};
+    const badges: Array<{ type: string; name: string }> = doc.badges ?? [];
+    const mostRecentBadge = badges.length > 0 ? badges[badges.length - 1] : null;
+
+    return {
+      rank,
+      userId: doc.userId.toString(),
+      firstName: (user.firstName as string | undefined) ?? 'Unknown',
+      lastName: (user.lastName as string | undefined) ?? '',
+      profileImage:
+        (user.profileImage as string | null) ?? (user.avatar as string | null) ?? null,
+      currentBadge: (mostRecentBadge?.name as string | null) ?? null,
+      currentBadgeType: (mostRecentBadge?.type as string | null) ?? null,
+      currentTier: (doc.currentTier as string | undefined) ?? 'Bronze',
+      totalPoints: (doc.totalPoints as number | undefined) ?? 0,
+      isCurrentUser: (doc.userId as Types.ObjectId).equals(currentUserObjectId),
+    };
   }
 }

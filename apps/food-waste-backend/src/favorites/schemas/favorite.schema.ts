@@ -79,9 +79,26 @@ export class Favorite {
 export type FavoriteDocument = Favorite & Document;
 export const FavoriteSchema = SchemaFactory.createForClass(Favorite);
 
-// Compound index to ensure one favorite per user per item
+// ============================================================================
+// Indexes for Performance Optimization
+// ============================================================================
+
+// Compound index to ensure one favorite per user per item (UNIQUE CONSTRAINT)
 FavoriteSchema.index({ userId: 1, type: 1, itemId: 1 }, { unique: true });
-FavoriteSchema.index({ userId: 1, isActive: 1 });
-FavoriteSchema.index({ userId: 1, type: 1 });
-FavoriteSchema.index({ addedAt: -1 });
+
+// Query optimization: getUserFavoriteOfferIds (for isFavorite computation)
+// Covers query: { userId, type: 'offer', isActive: true }
+FavoriteSchema.index(
+  { userId: 1, type: 1, isActive: 1 },
+  { name: 'user_favorites_lookup' }
+);
+
+// Query optimization: favorites list pagination
+// Covers query: { userId, isActive, addedAt } with sorting
+FavoriteSchema.index(
+  { userId: 1, isActive: 1, addedAt: -1 },
+  { name: 'user_favorites_list' }
+);
+
+// Legacy indexes (keep for backward compatibility)
 FavoriteSchema.index({ lastInteraction: -1 });

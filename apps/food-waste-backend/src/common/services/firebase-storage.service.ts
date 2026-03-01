@@ -58,8 +58,11 @@ export class FirebaseStorageService {
       // Initialize Storage
       this.storage = admin.storage(app);
 
-      // Get default bucket name from Firebase project
-      this.defaultBucketName = `${this.configService.get('FIREBASE_PROJECT_ID', 'waste-food-d479c')}.appspot.com`;
+      // Read bucket name from env (FIREBASE_STORAGE_BUCKET), fall back to projectId.appspot.com
+      this.defaultBucketName = this.configService.get<string>(
+        'FIREBASE_STORAGE_BUCKET',
+        `${this.configService.get('FIREBASE_PROJECT_ID', 'toofreshtowaste')}.appspot.com`,
+      );
       this.bucket = this.storage.bucket(this.defaultBucketName);
 
       this.logger.log(`✅ Firebase Storage initialized with bucket: ${this.defaultBucketName}`);
@@ -169,7 +172,7 @@ export class FirebaseStorageService {
       return [];
     }
 
-    const uploadPromises = files.map(file => this.uploadFile(file, options));
+    const uploadPromises = files.map(async file => this.uploadFile(file, options));
 
     try {
       const results = await Promise.allSettled(uploadPromises);
@@ -228,7 +231,7 @@ export class FirebaseStorageService {
       return;
     }
 
-    const deletePromises = fileNames.map(fileName => this.deleteFile(fileName));
+    const deletePromises = fileNames.map(async fileName => this.deleteFile(fileName));
 
     try {
       await Promise.allSettled(deletePromises);
@@ -298,15 +301,17 @@ export class FirebaseStorageService {
       throw new BadRequestException('File buffer is empty');
     }
 
-    // Check file size (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Check file size (configurable via env, default 10MB)
+    const maxSizeMB = parseInt(this.configService.get<string>('FIREBASE_MAX_FILE_SIZE_MB', '10'), 10);
+    const maxSize = maxSizeMB * 1024 * 1024;
     if (file.size > maxSize) {
-      throw new BadRequestException(`File size exceeds ${maxSize / (1024 * 1024)}MB limit`);
+      throw new BadRequestException(`File size exceeds ${maxSizeMB}MB limit`);
     }
 
     // Validate mime type for security
     const allowedMimeTypes = [
       'image/jpeg',
+      'image/jpg',
       'image/png',
       'image/webp',
       'image/gif',

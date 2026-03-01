@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException, ConflictException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { AppLoggerService } from '../common/services/logger.service';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Types, PipelineStage } from 'mongoose';
 import { Payment, PaymentDocument, PaymentMethod, PaymentStatus } from './schemas/payment.schema';
 import { Order, OrderDocument, OrderStatus } from 'src/orders/schemas/order.schema';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
@@ -274,15 +274,17 @@ export class PaymentService {
             }
         }
 
-        // Query DB
-        const payments = await this.paymentModel
-            .find(query)
-            .sort({ createdAt: 1 })
-            .limit(limit + 1)
-            .populate('customerId', 'firstName lastName email')
-            .populate('establishmentId', 'name type')
-            .populate('merchantId', 'firstName lastName')
-            .exec();
+        // ✅ PERFORMANCE: Single aggregation replaces find + 3 populates (4 → 1 round-trip)
+        const pipeline: PipelineStage[] = [
+            { $match: query },
+            { $sort: { createdAt: 1 as const } },
+            { $limit: limit + 1 },
+            ...this.buildCustomerLookupForPayment(),
+            ...this.buildEstablishmentLookupForPayment(),
+            ...this.buildMerchantLookupForPayment(),
+        ];
+
+        const payments = await this.paymentModel.aggregate(pipeline).exec();
 
         let nextCursor: string | undefined;
         if (payments.length > limit) {
@@ -290,18 +292,22 @@ export class PaymentService {
             nextCursor = nextItem._id.toString();
         }
 
-        return { payments, nextCursor };
+        return { payments: payments as PaymentDocument[], nextCursor };
     }
 
 
     async findById(paymentId: string, userId?: string, userRole?: UserRole): Promise<PaymentDocument> {
-        const payment = await this.paymentModel
-            .findById(paymentId)
-            .populate('customerId', 'firstName lastName email phoneNumber')
-            .populate('establishmentId', 'name address type')
-            .populate('merchantId', 'firstName lastName email')
-            .populate('orderId')
-            .exec();
+        // ✅ PERFORMANCE: Single aggregation replaces findById + 4 populates (5 → 1 round-trip)
+        const pipeline: PipelineStage[] = [
+            { $match: { _id: new Types.ObjectId(paymentId) } },
+            ...this.buildCustomerLookupForPayment(true),
+            ...this.buildEstablishmentLookupForPayment(true),
+            ...this.buildMerchantLookupForPayment(true),
+            ...this.buildOrderLookupForPayment(),
+        ];
+
+        const results = await this.paymentModel.aggregate(pipeline).exec();
+        const payment = results[0] as PaymentDocument | undefined;
 
         if (!payment) {
             throw new NotFoundException('Payment not found');
@@ -513,6 +519,94 @@ export class PaymentService {
         }
 
         return retriedCount;
+    }
+
+    // =========================================================================
+    // REUSABLE $lookup PIPELINE BUILDERS (replaces .populate() — 1 round-trip)
+    // =========================================================================
+
+    private buildCustomerLookupForPayment(includePhone = false): PipelineStage[] {
+        const fields: Record<string, 1> = { _id: 1, firstName: 1, lastName: 1, email: 1 };
+        if (includePhone) { fields.phoneNumber = 1; }
+
+        return [
+            {
+                $lookup: {
+                    from: 'users',
+                    let: { refId: '$customerId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+                        { $project: fields },
+                    ],
+                    as: '_customerDoc',
+                },
+            },
+            { $unwind: { path: '$_customerDoc', preserveNullAndEmptyArrays: true } },
+            { $addFields: { customerId: '$_customerDoc' } },
+            { $project: { _customerDoc: 0 } },
+        ];
+    }
+
+    private buildEstablishmentLookupForPayment(includeAddress = false): PipelineStage[] {
+        const fields: Record<string, 1> = { _id: 1, name: 1, type: 1 };
+        if (includeAddress) { fields.address = 1; }
+
+        return [
+            {
+                $lookup: {
+                    from: 'establishments',
+                    let: { refId: '$establishmentId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+                        { $project: fields },
+                    ],
+                    as: '_establishmentDoc',
+                },
+            },
+            { $unwind: { path: '$_establishmentDoc', preserveNullAndEmptyArrays: true } },
+            { $addFields: { establishmentId: '$_establishmentDoc' } },
+            { $project: { _establishmentDoc: 0 } },
+        ];
+    }
+
+    private buildMerchantLookupForPayment(includeEmail = false): PipelineStage[] {
+        const fields: Record<string, 1> = { _id: 1, firstName: 1, lastName: 1 };
+        if (includeEmail) { fields.email = 1; }
+
+        return [
+            {
+                $lookup: {
+                    from: 'users',
+                    let: { refId: '$merchantId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+                        { $project: fields },
+                    ],
+                    as: '_merchantDoc',
+                },
+            },
+            { $unwind: { path: '$_merchantDoc', preserveNullAndEmptyArrays: true } },
+            { $addFields: { merchantId: '$_merchantDoc' } },
+            { $project: { _merchantDoc: 0 } },
+        ];
+    }
+
+    private buildOrderLookupForPayment(): PipelineStage[] {
+        return [
+            {
+                $lookup: {
+                    from: 'orders',
+                    let: { refId: '$orderId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+                    ],
+                    as: '_orderDoc',
+                },
+            },
+            { $unwind: { path: '$_orderDoc', preserveNullAndEmptyArrays: true } },
+            { $addFields: { orderId: '$_orderDoc' } },
+            { $project: { _orderDoc: 0 } },
+        ];
     }
 
     private generateMerchantTransactionId(): string {

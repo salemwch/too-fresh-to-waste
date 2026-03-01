@@ -93,6 +93,27 @@ export class AddPointsDto {
   @IsDate()
   @Type(() => Date)
   expiresAt?: Date;
+
+  @ApiProperty({ required: false, description: 'Order total amount in TND for tracking totalAmountSpent' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  orderAmount?: number;
+
+  @ApiProperty({ required: false, description: 'Number of bags in the order (for tracking totalBagsSaved)' })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  bagCount?: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'When true, skip the tier multiplier and award the exact amount. Use for gamification points (login streak, purchase streak, referrals, reviews).',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  bypassMultiplier?: boolean;
 }
 
 export class RedeemPointsDto {
@@ -123,6 +144,9 @@ export class LoyaltyStatsDto {
 
   @ApiProperty()
   totalOrdersCount: number;
+
+  @ApiProperty({ description: 'Total bags saved (actual bag count, not order count)' })
+  totalBagsSaved: number;
 
   @ApiProperty()
   totalAmountSpent: number;

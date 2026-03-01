@@ -1,12 +1,15 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Types, PipelineStage, FlattenMaps } from 'mongoose';
 import { ModerationAction, ModerationActionDocument, ModerationActionStatus, ModerationActionType } from '../schemas/moderation-action.schema';
 import { CreateModerationActionDto, UpdateModerationActionDto, BulkModerationActionDto } from '../dtos/moderation-action.dto';
 import { ModerationActionQueryDto } from '../dtos/report-query.dto';
 import { ModerationLogService } from './moderation-log.service';
 import { LogLevel, LogCategory } from '../schemas/moderation-log.schema';
 import { UserRole } from '../../common/enums/user.enum';
+
+/** Plain-object shape returned by aggregate pipelines (no Mongoose Document methods). */
+export type ModerationActionLean = FlattenMaps<ModerationAction> & { _id: Types.ObjectId };
 
 @Injectable()
 export class ModerationActionService {
@@ -90,51 +93,53 @@ export class ModerationActionService {
         queryDto: ModerationActionQueryDto,
         currentUserId: string,
         userRole: UserRole
-    ): Promise<{ actions: ModerationActionDocument[]; total: number; totalPages: number }> {
-        const query: any = {};
+    ): Promise<{ actions: ModerationActionLean[]; total: number; totalPages: number }> {
+        const matchConditions: Record<string, unknown> = {};
 
         // Build query based on filters
-        if (queryDto.targetUserId) { query.targetUserId = new Types.ObjectId(queryDto.targetUserId); }
-        if (queryDto.actionType) { query.actionType = queryDto.actionType; }
-        if (queryDto.status) { query.status = queryDto.status; }
+        if (queryDto.targetUserId) { matchConditions.targetUserId = new Types.ObjectId(queryDto.targetUserId); }
+        if (queryDto.actionType) { matchConditions.actionType = queryDto.actionType; }
+        if (queryDto.status) { matchConditions.status = queryDto.status; }
 
         // Role-based filtering
         if (userRole === UserRole.MODERATOR) {
-            // Moderators can only see actions they created
-            query.moderatorId = new Types.ObjectId(currentUserId);
+            matchConditions.moderatorId = new Types.ObjectId(currentUserId);
         }
 
-        if (queryDto.moderatorId) { query.moderatorId = new Types.ObjectId(queryDto.moderatorId); }
+        if (queryDto.moderatorId) { matchConditions.moderatorId = new Types.ObjectId(queryDto.moderatorId); }
 
         // Date range filter
         if (queryDto.startDate || queryDto.endDate) {
-            query.createdAt = {};
-            if (queryDto.startDate) { query.createdAt.$gte = new Date(queryDto.startDate); }
-            if (queryDto.endDate) { query.createdAt.$lte = new Date(queryDto.endDate); }
+            const createdAtFilter: Record<string, Date> = {};
+            if (queryDto.startDate) { createdAtFilter.$gte = new Date(queryDto.startDate); }
+            if (queryDto.endDate) { createdAtFilter.$lte = new Date(queryDto.endDate); }
+            matchConditions.createdAt = createdAtFilter;
         }
 
         const skip = (queryDto.page - 1) * queryDto.limit;
         const sortOrder: 1 | -1 = queryDto.sortOrder === 'asc' ? 1 : -1;
-        const sort = { [queryDto.sortBy]: sortOrder };
+
+        // Paginate first, then $lookup on small result set
+        const pipeline: PipelineStage[] = [
+            { $match: matchConditions },
+            { $sort: { [queryDto.sortBy]: sortOrder } },
+            { $skip: skip },
+            { $limit: queryDto.limit },
+            ...this.getUserLookupStages('targetUserId', ['firstName', 'lastName', 'email', 'role', 'status']),
+            ...this.getUserLookupStages('moderatorId', ['firstName', 'lastName', 'email', 'role']),
+            ...this.getUserLookupStages('revokedBy', ['firstName', 'lastName', 'email']),
+            ...this.getReportLookupStages(),
+        ];
 
         const [actions, total] = await Promise.all([
-            this.moderationActionModel
-                .find(query)
-                .populate('targetUserId', 'firstName lastName email role status')
-                .populate('moderatorId', 'firstName lastName email role')
-                .populate('revokedBy', 'firstName lastName email')
-                .populate('relatedReportId')
-                .sort(sort)
-                .skip(skip)
-                .limit(queryDto.limit)
-                .exec(),
-            this.moderationActionModel.countDocuments(query)
+            this.moderationActionModel.aggregate<ModerationActionLean>(pipeline),
+            this.moderationActionModel.countDocuments(matchConditions),
         ]);
 
         return {
             actions,
             total,
-            totalPages: Math.ceil(total / queryDto.limit)
+            totalPages: Math.ceil(total / queryDto.limit),
         };
     }
 
@@ -361,20 +366,22 @@ export class ModerationActionService {
     /**
      * Get active actions for a user
      */
-    getUserActiveActions(userId: string): Promise<ModerationActionDocument[]> {
-        return this.moderationActionModel
-            .find({
-                targetUserId: new Types.ObjectId(userId),
-                status: ModerationActionStatus.ACTIVE,
-                $or: [
-                    { expiresAt: { $exists: false } },
-                    { expiresAt: null },
-                    { expiresAt: { $gt: new Date() } }
-                ]
-            })
-            .populate('moderatorId', 'firstName lastName email role')
-            .sort({ createdAt: -1 })
-            .exec();
+    getUserActiveActions(userId: string): Promise<ModerationActionLean[]> {
+        return this.moderationActionModel.aggregate<ModerationActionLean>([
+            {
+                $match: {
+                    targetUserId: new Types.ObjectId(userId),
+                    status: ModerationActionStatus.ACTIVE,
+                    $or: [
+                        { expiresAt: { $exists: false } },
+                        { expiresAt: null },
+                        { expiresAt: { $gt: new Date() } },
+                    ],
+                },
+            },
+            { $sort: { createdAt: -1 } },
+            ...this.getUserLookupStages('moderatorId', ['firstName', 'lastName', 'email', 'role']),
+        ]);
     }
 
     /**
@@ -420,6 +427,51 @@ export class ModerationActionService {
         }
 
         return processedCount;
+    }
+
+    /**
+     * Reusable $lookup for a user ObjectId field → users collection.
+     */
+    private getUserLookupStages(
+        localField: string,
+        fields: string[] = ['firstName', 'lastName', 'email', 'role'],
+    ): PipelineStage[] {
+        const projection: Record<string, 1> = { _id: 1 };
+        for (const f of fields) { projection[f] = 1; }
+
+        return [
+            {
+                $lookup: {
+                    from: 'users',
+                    let: { userObjId: `$${localField}` },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$userObjId'] } } },
+                        { $project: projection },
+                    ],
+                    as: localField,
+                },
+            },
+            { $unwind: { path: `$${localField}`, preserveNullAndEmptyArrays: true } },
+        ];
+    }
+
+    /**
+     * $lookup for relatedReportId → reports collection (full document).
+     */
+    private getReportLookupStages(): PipelineStage[] {
+        return [
+            {
+                $lookup: {
+                    from: 'reports',
+                    let: { reportObjId: '$relatedReportId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$reportObjId'] } } },
+                    ],
+                    as: 'relatedReportId',
+                },
+            },
+            { $unwind: { path: '$relatedReportId', preserveNullAndEmptyArrays: true } },
+        ];
     }
 
     /**

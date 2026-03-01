@@ -20,7 +20,7 @@ export class LoginDto {
     password: string;
 
     @ApiPropertyOptional({
-        description: 'Extend session duration to 7 days (instead of 1 day)',
+        description: 'Keep session active for 30 days (default: 7 days)',
         example: false,
         default: false,
     })

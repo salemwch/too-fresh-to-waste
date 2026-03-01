@@ -59,6 +59,7 @@ class PickupTimeSlotDto {
     })
     endTime: string;
 
+    @IsOptional()
     @IsNumber()
     @Min(1)
     @Max(100)
@@ -67,7 +68,7 @@ class PickupTimeSlotDto {
         if (typeof value === 'string') return parseInt(value, 10);
         return value;
     })
-    maxOrders: number;
+    maxOrders?: number;
 
     @IsOptional()
     @IsNumber()
@@ -271,19 +272,18 @@ export class CreateOfferDto {
 
     @IsOptional()
     @IsBoolean()
-    @Transform(({ value }) => {
-        // ✅ FIX: Handle arrays from multipart/form-data
-        if (Array.isArray(value)) {
-            const val = value[0];
-            if (typeof val === 'string') return val === 'true' || val === '1';
-            return Boolean(val);
+    @Transform(({ value, obj, key }) => {
+        // Read from the raw source object first to avoid the class-field
+        // default (= false) shadowing the incoming value in class-transformer.
+        const raw = (obj as Record<string, unknown>)?.[key as string] ?? value;
+        if (typeof raw === 'boolean') return raw;
+        if (Array.isArray(raw)) {
+            const v = raw[0];
+            if (typeof v === 'string') return v === 'true' || v === '1';
+            return Boolean(v);
         }
-        // ✅ FIX: Convert string to boolean
-        if (typeof value === 'string') {
-            return value === 'true' || value === '1';
-        }
-        // ✅ Already boolean or undefined
-        return value !== undefined ? Boolean(value) : false;
+        if (typeof raw === 'string') return raw === 'true' || raw === '1';
+        return Boolean(raw);
     })
     @ApiProperty({
         description: 'Show offer in "Pickup Today" section on mobile app',
@@ -291,23 +291,20 @@ export class CreateOfferDto {
         required: false,
         default: false
     })
-    isPickupToday?: boolean = false;
+    isPickupToday?: boolean;
 
     @IsOptional()
     @IsBoolean()
-    @Transform(({ value }) => {
-        // ✅ FIX: Handle arrays from multipart/form-data
-        if (Array.isArray(value)) {
-            const val = value[0];
-            if (typeof val === 'string') return val === 'true' || val === '1';
-            return Boolean(val);
+    @Transform(({ value, obj, key }) => {
+        const raw = (obj as Record<string, unknown>)?.[key as string] ?? value;
+        if (typeof raw === 'boolean') return raw;
+        if (Array.isArray(raw)) {
+            const v = raw[0];
+            if (typeof v === 'string') return v === 'true' || v === '1';
+            return Boolean(v);
         }
-        // ✅ FIX: Convert string to boolean
-        if (typeof value === 'string') {
-            return value === 'true' || value === '1';
-        }
-        // ✅ Already boolean or undefined
-        return value !== undefined ? Boolean(value) : false;
+        if (typeof raw === 'string') return raw === 'true' || raw === '1';
+        return Boolean(raw);
     })
     @ApiProperty({
         description: 'Show offer in "Pickup Tomorrow" section on mobile app',
@@ -315,5 +312,5 @@ export class CreateOfferDto {
         required: false,
         default: false
     })
-    isPickupTomorrow?: boolean = false;
+    isPickupTomorrow?: boolean;
 }

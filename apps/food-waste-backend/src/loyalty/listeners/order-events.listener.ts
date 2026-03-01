@@ -16,6 +16,7 @@ import { plainToClass } from 'class-transformer';
 import { OrderCompletedEvent } from '../../common/events';
 import { LoyaltyService } from '../loyalty.service';
 import { GamificationService } from '../services/gamification.service';
+import { CommunityGoalService } from '../../community-goal/community-goal.service';
 
 @Injectable()
 export class OrderEventsListener {
@@ -25,6 +26,7 @@ export class OrderEventsListener {
   constructor(
     private readonly loyaltyService: LoyaltyService,
     private readonly gamificationService: GamificationService,
+    private readonly communityGoalService: CommunityGoalService,
   ) {}
 
   // ============================================
@@ -70,24 +72,60 @@ export class OrderEventsListener {
 
   /**
    * Shared logic: Award loyalty points and update gamification
+   *
+   * SAFETY FALLBACK: Creates loyalty account if it doesn't exist
+   * - Primary: Account created on registration (user-events.listener)
+   * - Fallback: Account created here on first order (for legacy users)
    */
   private async processOrderLoyalty(event: OrderCompletedEvent): Promise<void> {
     try {
       this.logger.log(`Processing order.completed event for order: ${event.orderId}`);
 
       const totalBags = event.metadata?.itemCount || 1;
-
-      // Award loyalty points
       const pointsToAward = totalBags * this.POINTS_PER_BAG;
-      await this.loyaltyService.addPoints(event.userId, {
-        amount: pointsToAward,
-        reason: `Order pickup completed - ${totalBags} bag(s)`,
-        orderId: event.orderId,
-      });
 
-      this.logger.log(
-        `Awarded ${pointsToAward} loyalty points to user ${event.userId} for order ${event.orderId}`,
-      );
+      // SAFETY FALLBACK: Create loyalty account if it doesn't exist (lazy creation)
+      // This handles edge cases:
+      // 1. Users who registered before auto-creation feature was implemented
+      // 2. Race conditions during registration
+      // 3. Failed registration event processing
+      try {
+        await this.loyaltyService.addPoints(event.userId, {
+          amount: pointsToAward,
+          reason: `Order pickup completed - ${totalBags} bag(s)`,
+          orderId: event.orderId,
+          orderAmount: event.totalAmount,
+          bagCount: totalBags,
+        });
+
+        this.logger.log(
+          `✅ Awarded ${pointsToAward} loyalty points to user ${event.userId} for order ${event.orderId} (${totalBags} bags)`,
+        );
+      } catch (error) {
+        // If "Loyalty account not found", create it and retry
+        if (error.message === 'Loyalty account not found') {
+          this.logger.warn(
+            `Loyalty account not found for user ${event.userId}, creating now (fallback)`,
+          );
+
+          await this.gamificationService.createLoyaltyAccountForNewUser(event.userId);
+
+          // Retry adding points
+          await this.loyaltyService.addPoints(event.userId, {
+            amount: pointsToAward,
+            reason: `Order pickup completed - ${totalBags} bag(s)`,
+            orderId: event.orderId,
+            orderAmount: event.totalAmount,
+            bagCount: totalBags,
+          });
+
+          this.logger.log(
+            `✅ Created loyalty account and awarded ${pointsToAward} points to user ${event.userId}`,
+          );
+        } else {
+          throw error; // Re-throw other errors
+        }
+      }
 
       // Update gamification tracking
       await this.gamificationService.updateFriendBagCount(event.userId, totalBags);
@@ -101,6 +139,15 @@ export class OrderEventsListener {
 
       // Update business referral tracking for merchant
       await this.gamificationService.updateBusinessOrderCount(event.merchantId);
+
+      // Increment community bag goal (non-blocking — must NOT fail loyalty flow)
+      try {
+        await this.communityGoalService.incrementBagCount(totalBags);
+      } catch (goalError) {
+        this.logger.warn(
+          `Community goal increment failed for order ${event.orderId}: ${(goalError as Error).message}`,
+        );
+      }
 
       this.logger.log(`Successfully processed order completion for loyalty: ${event.orderId}`);
     } catch (error) {

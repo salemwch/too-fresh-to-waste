@@ -119,10 +119,9 @@ export class Notification extends Document {
 
   @Prop()
   expiresAt?: Date;
-  @Prop()
-  createdAt: Date;
-  @Prop()
-  updatedAt: Date;
+  // createdAt and updatedAt are managed by Mongoose `timestamps: true`
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);

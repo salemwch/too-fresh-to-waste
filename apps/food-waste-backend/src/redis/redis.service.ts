@@ -89,21 +89,35 @@ export class RedisService implements OnModuleInit {
 
         this.logger.log(`🔌 Connecting to Redis at ${redisConfig.host}:${port} (TLS: ${useTLS})`);
 
+        const connectTimeout = parseInt(
+            this.configService.get<string>('REDIS_CONNECT_TIMEOUT', '10000'),
+        );
+        const commandTimeout = parseInt(
+            this.configService.get<string>('REDIS_COMMAND_TIMEOUT', '5000'),
+        );
+        const maxRetries = parseInt(
+            this.configService.get<string>('REDIS_MAX_RETRIES', '10'),
+        );
+
         try {
             const clientConfig: any = {
                 socket: {
                     host: redisConfig.host,
                     port,
+                    connectTimeout,
+                    keepAlive: 5000,       // TCP keep-alive every 5s to detect dead connections
                     reconnectStrategy: (retries: number) => {
-                        if (retries > 10) {
-                            this.logger.error('❌ Max Redis reconnection attempts reached');
+                        if (retries > maxRetries) {
+                            this.logger.error('Max Redis reconnection attempts reached');
                             return new Error('Max reconnection attempts reached');
                         }
                         const delay = Math.min(retries * 100, 3000);
-                        this.logger.log(`🔄 Reconnecting to Redis... (attempt ${retries}, delay: ${delay}ms)`);
+                        this.logger.log(`Reconnecting to Redis... (attempt ${retries}, delay: ${delay}ms)`);
                         return delay;
                     },
                 },
+                commandsQueueMaxLength: 1000,  // Prevent unbounded memory growth if Redis is slow
+                disableOfflineQueue: false,     // Queue commands while reconnecting
             };
 
             // Add TLS configuration if enabled

@@ -4,6 +4,10 @@ import { Model } from 'mongoose';
 import * as crypto from 'crypto';
 import * as geoip from 'geoip-lite';
 import { User, UserDocument } from '../schemas/user.schema';
+import {
+    USER_AUDIT_LOG_MAX,
+    USER_LOGIN_HISTORY_MAX,
+} from '../../common/constants/database-indexes.constant';
 
 export interface DeviceInfo {
     deviceId: string;
@@ -73,9 +77,8 @@ export class SessionManagementService {
 
         user.loginHistory.unshift(loginEntry);
 
-        // Keep only last 50 login records
-        if (user.loginHistory.length > 50) {
-            user.loginHistory = user.loginHistory.slice(0, 50);
+        if (user.loginHistory.length > USER_LOGIN_HISTORY_MAX) {
+            user.loginHistory = user.loginHistory.slice(0, USER_LOGIN_HISTORY_MAX);
         }
 
         // Update last login
@@ -98,9 +101,8 @@ export class SessionManagementService {
             }
         });
 
-        // Keep only last 100 audit entries
-        if (user.auditLog.length > 100) {
-            user.auditLog = user.auditLog.slice(0, 100);
+        if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
+            user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
         }
 
         await user.save();
@@ -150,6 +152,10 @@ export class SessionManagementService {
             details: { sessionId }
         });
 
+        if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
+            user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
+        }
+
         await user.save();
 
         this.logger.log(`Session revoked: ${sessionId} for user: ${user.email}`);
@@ -184,6 +190,10 @@ export class SessionManagementService {
                 reason: 'user_requested'
             }
         });
+
+        if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
+            user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
+        }
 
         await user.save();
 
@@ -266,6 +276,10 @@ export class SessionManagementService {
             }
         });
 
+        if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
+            user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
+        }
+
         await user.save();
 
         this.logger.log(`Device trusted for user: ${user.email}, Device: ${deviceInfo.deviceName}`);
@@ -305,6 +319,10 @@ export class SessionManagementService {
                     reason: reason || 'User requested revocation'
                 }
             });
+
+            if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
+                user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
+            }
 
             await user.save();
 

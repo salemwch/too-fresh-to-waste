@@ -1,15 +1,17 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Types, PipelineStage } from 'mongoose';
 import {
   ProximitySearchResult,
   EstablishmentGeoData,
   OfferGeoData,
+  MapEstablishmentGeoData,
   GeoCoordinate,
   DistanceUnit
 } from '../interfaces/geolocation.interface';
 import { ProximitySearchDto } from '../dto/geolocation.dto';
 import { DistanceCalculator } from '../utils/distance.util';
+import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
 import { Establishment, EstablishmentDocument, EstablishmentStatus } from '../../establishments/schemas/establishment.schema';
 import { Offer, OfferDocument, OfferStatus } from '../../offers/schemas/offer.schema';
 
@@ -26,6 +28,7 @@ export interface ProximitySearchOptions {
 @Injectable()
 export class ProximitySearchService {
   private readonly logger = new Logger(ProximitySearchService.name);
+  private readonly regexUtil = new RegexSecurityUtil();
 
   constructor(
     @InjectModel(Establishment.name) private readonly establishmentModel: Model<EstablishmentDocument>,
@@ -93,6 +96,17 @@ export class ProximitySearchService {
 
         if (excludeObjectIds.length > 0) {
           matchConditions._id = { $nin: excludeObjectIds };
+        }
+      }
+
+      // Text search on establishment name (reuses RegexSecurityUtil for ReDoS protection)
+      if (searchDto.query) {
+        const searchFields = this.regexUtil.buildMultiFieldSearch(
+          searchDto.query,
+          ['name'],
+        );
+        if (searchFields.length > 0) {
+          matchConditions.$or = searchFields;
         }
       }
 
@@ -309,6 +323,17 @@ export class ProximitySearchService {
 
         { $unwind: '$establishment' },
 
+        // Text query filter: match offer title OR establishment name
+        ...(searchDto.query ? (() => {
+          const searchFields = this.regexUtil.buildMultiFieldSearch(
+            searchDto.query,
+            ['title', 'description', 'establishment.name'],
+          );
+          return searchFields.length > 0
+            ? [{ $match: { $or: searchFields } }]
+            : [];
+        })() : []),
+
         // Add virtual fields for available quantity
         {
           $addFields: {
@@ -453,17 +478,31 @@ export class ProximitySearchService {
     radius: number = 2000 // 2km default
   ): Promise<ProximitySearchResult<EstablishmentGeoData>[]> {
     try {
-      // First get the offer and its establishment location
-      const offer = await this.offerModel
-        .findById(offerId)
-        .populate('establishmentId')
-        .exec();
+      // Fetch offer with establishment data via $lookup (single round-trip)
+      const pipeline: PipelineStage[] = [
+        { $match: { _id: new Types.ObjectId(offerId) } },
+        { $limit: 1 },
+        {
+          $lookup: {
+            from: 'establishments',
+            let: { estId: '$establishmentId' },
+            pipeline: [
+              { $match: { $expr: { $eq: ['$_id', '$$estId'] } } },
+              { $project: { _id: 1, address: 1 } },
+            ],
+            as: 'establishmentId',
+          },
+        },
+        { $unwind: { path: '$establishmentId', preserveNullAndEmptyArrays: true } },
+      ];
+
+      const [offer] = await this.offerModel.aggregate(pipeline);
 
       if (!offer) {
         throw new BadRequestException('Offer not found');
       }
 
-      const establishment = offer.establishmentId as any;
+      const establishment = offer.establishmentId;
       if (!establishment?.address?.coordinates) {
         throw new BadRequestException('Establishment coordinates not found');
       }
@@ -511,6 +550,240 @@ export class ProximitySearchService {
 
     } catch (error) {
       this.logger.error('Failed to get establishments in delivery radius:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search establishments with their active offers for the map view.
+   * Single aggregation pipeline: geo-filter → $lookup offers → project.
+   */
+  async searchMapEstablishments(
+    searchDto: ProximitySearchDto,
+    options: ProximitySearchOptions = {}
+  ): Promise<ProximitySearchResult<MapEstablishmentGeoData>[]> {
+    try {
+      if (!DistanceCalculator.isValidCoordinate(searchDto.center)) {
+        throw new BadRequestException('Invalid search center coordinates');
+      }
+
+      this.logger.log(
+        `Searching map establishments within ${searchDto.radius}m of ${searchDto.center.latitude}, ${searchDto.center.longitude}`,
+      );
+
+      const centerPoint = DistanceCalculator.coordinateToPoint(searchDto.center);
+      const radiusInRadians = searchDto.radius / 6378100;
+      const now = new Date();
+
+      // ── Match: geo + active ────────────────────────────────────────────
+      const matchConditions: any = {
+        'address.coordinates': {
+          $geoWithin: {
+            $centerSphere: [
+              [centerPoint.coordinates[0], centerPoint.coordinates[1]],
+              radiusInRadians,
+            ],
+          },
+        },
+        status: options.onlyActive !== false ? EstablishmentStatus.ACTIVE : { $ne: EstablishmentStatus.REJECTED },
+        isActive: true,
+      };
+
+      if (options.establishmentTypes?.length) {
+        matchConditions.type = { $in: options.establishmentTypes };
+      }
+      if (options.minRating) {
+        matchConditions.averageRating = { $gte: options.minRating };
+      }
+      if (searchDto.excludeIds?.length) {
+        const ids = searchDto.excludeIds
+          .filter(id => Types.ObjectId.isValid(id))
+          .map(id => new Types.ObjectId(id));
+        if (ids.length) matchConditions._id = { $nin: ids };
+      }
+      if (searchDto.query) {
+        const fields = this.regexUtil.buildMultiFieldSearch(searchDto.query, ['name']);
+        if (fields.length) matchConditions.$or = fields;
+      }
+
+      const pipeline: any[] = [
+        { $match: matchConditions },
+
+        // ── Lookup merchant profile image from users ───────────────────
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'ownerId',
+            foreignField: '_id',
+            pipeline: [{ $project: { profileImage: 1, avatar: 1 } }],
+            as: 'ownerData',
+          },
+        },
+
+        // ── Lookup active offers per establishment ─────────────────────
+        {
+          $lookup: {
+            from: 'offers',
+            let: { estId: '$_id' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: ['$establishmentId', '$$estId'] },
+                  status: OfferStatus.ACTIVE,
+                  isActive: true,
+                  availableUntil: { $gte: now },
+                },
+              },
+              {
+                $addFields: {
+                  availableQuantity: {
+                    $subtract: ['$totalQuantity', { $add: ['$reservedQuantity', '$soldQuantity'] }],
+                  },
+                },
+              },
+              { $match: { availableQuantity: { $gt: 0 } } },
+              {
+                $project: {
+                  title: 1,
+                  description: 1,
+                  pricing: 1,
+                  availableUntil: 1,
+                  availableQuantity: 1,
+                  categories: 1,
+                  images: { $slice: ['$images', 3] },
+                },
+              },
+              { $limit: 20 },
+            ],
+            as: 'activeOffers',
+          },
+        },
+
+        // ── Computed fields ────────────────────────────────────────────
+        {
+          $addFields: {
+            activeOfferCount: { $size: '$activeOffers' },
+            distance: {
+              $let: {
+                vars: {
+                  lon1: { $arrayElemAt: ['$address.coordinates.coordinates', 0] },
+                  lat1: { $arrayElemAt: ['$address.coordinates.coordinates', 1] },
+                  lon2: centerPoint.coordinates[0],
+                  lat2: centerPoint.coordinates[1],
+                },
+                in: {
+                  $multiply: [
+                    6371000,
+                    {
+                      $acos: {
+                        $add: [
+                          {
+                            $multiply: [
+                              { $sin: { $degreesToRadians: '$$lat1' } },
+                              { $sin: { $degreesToRadians: '$$lat2' } },
+                            ],
+                          },
+                          {
+                            $multiply: [
+                              { $cos: { $degreesToRadians: '$$lat1' } },
+                              { $cos: { $degreesToRadians: '$$lat2' } },
+                              { $cos: { $degreesToRadians: { $subtract: ['$$lon2', '$$lon1'] } } },
+                            ],
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+
+        // ── Sort + paginate ─────────────────────────────────────────────
+        ...(searchDto.sortByDistance !== false ? [{ $sort: { distance: 1 as const } }] : []),
+        ...(searchDto.skip && searchDto.skip > 0 ? [{ $skip: searchDto.skip }] : []),
+        { $limit: searchDto.limit || 50 },
+
+        // ── Project ────────────────────────────────────────────────────
+        {
+          $project: {
+            name: 1,
+            type: 1,
+            address: 1,
+            averageRating: 1,
+            totalReviews: 1,
+            isVerified: 1,
+            // Merchant profile image: profileImage → avatar → null
+            profileImage: {
+              $ifNull: [
+                { $arrayElemAt: ['$ownerData.profileImage', 0] },
+                { $ifNull: [{ $arrayElemAt: ['$ownerData.avatar', 0] }, null] },
+              ],
+            },
+            activeOfferCount: 1,
+            activeOffers: 1,
+            distance: 1,
+            coordinates: '$address.coordinates.coordinates',
+          },
+        },
+      ];
+
+      const establishments = await this.establishmentModel.aggregate(pipeline);
+
+      // ── Transform to ProximitySearchResult ──────────────────────────
+      const results: ProximitySearchResult<MapEstablishmentGeoData>[] = establishments.map(est => {
+        const coordinates: GeoCoordinate = {
+          longitude: est.coordinates[0],
+          latitude: est.coordinates[1],
+        };
+
+        const distance = DistanceCalculator.calculateDistance(
+          searchDto.center,
+          coordinates,
+          DistanceUnit.METERS,
+        );
+
+        const itemData: MapEstablishmentGeoData = {
+          _id: est._id.toString(),
+          name: est.name,
+          type: est.type,
+          profileImage: est.profileImage ?? null,
+          coordinates,
+          address: {
+            street: est.address.street,
+            city: est.address.city,
+            postalCode: est.address.postalCode,
+            country: est.address.country,
+            formattedAddress: `${est.address.street}, ${est.address.city} ${est.address.postalCode}`,
+          },
+          averageRating: est.averageRating ?? 0,
+          totalReviews: est.totalReviews ?? 0,
+          isVerified: est.isVerified ?? false,
+          activeOfferCount: est.activeOfferCount,
+          offers: (est.activeOffers ?? []).map((o: any) => ({
+            _id: o._id.toString(),
+            title: o.title,
+            description: o.description ?? '',
+            pricing: o.pricing,
+            availableUntil: o.availableUntil,
+            availableQuantity: o.availableQuantity,
+            categories: o.categories ?? [],
+            images: o.images ?? [],
+          })),
+        };
+
+        return {
+          item: itemData,
+          distance,
+          geoData: { coordinates, address: itemData.address },
+        };
+      });
+
+      this.logger.log(`Found ${results.length} map establishments within radius`);
+      return results;
+    } catch (error) {
+      this.logger.error('Failed to search map establishments:', error);
       throw error;
     }
   }

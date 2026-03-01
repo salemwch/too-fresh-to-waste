@@ -71,10 +71,9 @@ export class NotificationPreference {
       radius: number;
     }>;
   };
-  @Prop()
-  createdAt: Date;
-  @Prop()
-  updatedAt: Date;
+  // createdAt and updatedAt are managed by Mongoose `timestamps: true`
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const NotificationPreferenceSchema = SchemaFactory.createForClass(NotificationPreference);

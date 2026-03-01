@@ -3,6 +3,7 @@ import { IsOptional, IsString, IsBoolean, IsEnum, IsArray, IsMongoId, IsNumber, 
 import { Type, Transform } from 'class-transformer';
 import { FavoriteType } from '../schemas/favorite.schema';
 import { ListVisibility } from '../schemas/favorite-list.schema';
+import { EstablishmentType } from '../../common/enums';
 
 export class FavoritePreferenceDto {
   @ApiProperty({ required: false, default: true })
@@ -144,6 +145,11 @@ export class FavoritesFilterDto {
   @IsOptional()
   @IsString()
   sortBy?: string;
+
+  @ApiProperty({ enum: EstablishmentType, required: false, description: 'Filter by establishment type (e.g., restaurant, bakery)' })
+  @IsOptional()
+  @IsEnum(EstablishmentType)
+  establishmentType?: EstablishmentType;
 }
 
 export class CreateFavoriteListDto {

@@ -88,6 +88,10 @@ export enum WebSocketEvents {
   ESTABLISHMENT_OFFLINE = 'establishment:offline',
   ESTABLISHMENT_NEW_OFFER = 'establishment:new_offer',
 
+  // Community goal events
+  COMMUNITY_BAG_UPDATED = 'community:bag_updated',
+  COMMUNITY_GOAL_COMPLETED = 'community:goal_completed',
+
   // Error events
   ERROR = 'error',
   UNAUTHORIZED = 'unauthorized',

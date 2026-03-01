@@ -20,7 +20,7 @@ export interface IUsersService {
    * @returns Created user document
    */
   create(
-    createUserDto: CreateUserDto & { emailVerificationToken?: string; profileImage?: string },
+    createUserDto: CreateUserDto & { emailVerificationToken?: string; emailVerificationExpires?: Date; profileImage?: string },
     auditData?: { ipAddress: string; userAgent: string }
   ): Promise<UserDocument>;
 
@@ -61,7 +61,7 @@ export interface IUsersService {
   /**
    * Update email verification token
    */
-  updateEmailVerificationToken(userId: string, token: string): Promise<void>;
+  updateEmailVerificationToken(userId: string, token: string, expires: Date): Promise<void>;
 
   /**
    * Update user password
@@ -118,14 +118,14 @@ export interface IUsersService {
   ): Promise<void>;
 
   /**
-   * Record failed login attempt
-   * @returns Object indicating if account is locked and attempts remaining
+   * Atomic increment of the failed-login audit counter.
+   * Lockout decisions are owned by AuthSecurityService (Redis).
    */
-  recordFailedLogin(
+  incrementFailedLoginAttempts(
     userId: string,
     ipAddress: string,
-    userAgent: string
-  ): Promise<{ isLocked: boolean; attemptsRemaining: number }>;
+    userAgent: string,
+  ): Promise<void>;
 
   /**
    * Reset failed login attempts

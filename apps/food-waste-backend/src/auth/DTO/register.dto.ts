@@ -1,4 +1,18 @@
-import { IsEmail, IsString, MinLength, MaxLength, Matches, IsOptional, IsEnum } from 'class-validator';
+import {
+    IsEmail,
+    IsString,
+    MinLength,
+    MaxLength,
+    Matches,
+    IsOptional,
+    IsEnum,
+    IsNumber,
+    Min,
+    Max,
+    ValidateNested,
+    IsArray,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
     PASSWORD_MIN_LENGTH,
@@ -10,6 +24,99 @@ import {
 import { UserRole } from '../../common/enums/user.enum';
 import { IsValidPhoneNumber } from '../../common/validators/is-valid-phone-number.validator';
 import { SanitizeEmail, SanitizeText, SanitizePhoneNumber } from '../../common/decorators/sanitize.decorator';
+
+/**
+ * Nested DTO for address components from Google Places API
+ */
+export class AddressComponentsDto {
+    @ApiPropertyOptional({ example: 'Avenue Habib Bourguiba' })
+    @IsOptional()
+    @IsString()
+    @MaxLength(200, { message: 'Street cannot exceed 200 characters' })
+    street?: string;
+
+    @ApiPropertyOptional({ example: 'Tunis' })
+    @IsOptional()
+    @IsString()
+    @MaxLength(100, { message: 'City cannot exceed 100 characters' })
+    city?: string;
+
+    @ApiPropertyOptional({ example: '1000' })
+    @IsOptional()
+    @IsString()
+    @MaxLength(20, { message: 'Postal code cannot exceed 20 characters' })
+    postalCode?: string;
+
+    @ApiPropertyOptional({ example: 'Tunisia' })
+    @IsOptional()
+    @IsString()
+    @MaxLength(100, { message: 'Country cannot exceed 100 characters' })
+    country?: string;
+}
+
+/**
+ * Business information captured from Google Places during merchant signup.
+ * Validated with class-validator decorators for nested DTO support.
+ */
+export class BusinessInfoDto {
+    @ApiProperty({
+        description: 'Business name from Google Places',
+        example: 'Cafe De Tunis',
+        minLength: 2,
+        maxLength: 100,
+    })
+    @SanitizeText()
+    @IsString({ message: 'Business name must be a string' })
+    @MinLength(2, { message: 'Business name must be at least 2 characters' })
+    @MaxLength(100, { message: 'Business name cannot exceed 100 characters' })
+    name: string;
+
+    @ApiProperty({
+        description: 'Google Place ID',
+        example: 'ChIJZa7pLMDy4RIRkHFwgn4ruUc',
+    })
+    @IsString({ message: 'Google Place ID must be a string' })
+    @MinLength(1, { message: 'Google Place ID is required' })
+    @MaxLength(300, { message: 'Google Place ID cannot exceed 300 characters' })
+    googlePlaceId: string;
+
+    @ApiProperty({ description: 'Latitude', example: 36.8065 })
+    @IsNumber({}, { message: 'Latitude must be a number' })
+    @Min(-90, { message: 'Latitude must be between -90 and 90' })
+    @Max(90, { message: 'Latitude must be between -90 and 90' })
+    latitude: number;
+
+    @ApiProperty({ description: 'Longitude', example: 10.1815 })
+    @IsNumber({}, { message: 'Longitude must be a number' })
+    @Min(-180, { message: 'Longitude must be between -180 and 180' })
+    @Max(180, { message: 'Longitude must be between -180 and 180' })
+    longitude: number;
+
+    @ApiProperty({
+        description: 'Full formatted address from Google Places',
+        example: 'Avenue Habib Bourguiba, Tunis 1000, Tunisia',
+    })
+    @SanitizeText()
+    @IsString({ message: 'Formatted address must be a string' })
+    @MinLength(1, { message: 'Formatted address is required' })
+    @MaxLength(500, { message: 'Formatted address cannot exceed 500 characters' })
+    formattedAddress: string;
+
+    @ApiPropertyOptional({ description: 'Parsed address components' })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => AddressComponentsDto)
+    addressComponents?: AddressComponentsDto;
+
+    @ApiPropertyOptional({
+        description: 'Google Place types for mapping to EstablishmentType',
+        example: ['restaurant', 'food', 'point_of_interest'],
+    })
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    types?: string[];
+}
 
 /**
  * SECURITY: Decorator order is CRITICAL
@@ -135,4 +242,13 @@ export class RegisterDto {
     @MinLength(4, { message: 'Referral code must be at least 4 characters' })
     @MaxLength(20, { message: 'Referral code cannot exceed 20 characters' })
     referralCode?: string;
+
+    @ApiPropertyOptional({
+        description: 'Business information from Google Places (required for merchant signup)',
+        type: BusinessInfoDto,
+    })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => BusinessInfoDto)
+    businessInfo?: BusinessInfoDto;
 }

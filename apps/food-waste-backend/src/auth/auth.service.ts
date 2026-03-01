@@ -1,10 +1,13 @@
 import {
     Injectable,
     UnauthorizedException,
+    ForbiddenException,
     ConflictException,
     BadRequestException,
     Logger,
     Optional,
+    Inject,
+    forwardRef,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -26,6 +29,7 @@ import { AuthSecurityService } from './services/auth-security.service';
 import { CaptchaService } from './services/captcha.service';
 import { UserRegisteredEvent } from '../common/events';
 import { mapToSafeUserResponse, SafeUserResponse } from './DTO/safe-user-response.dto';
+import { EstablishmentsService } from 'src/establishments/establishments.service';
 
 export interface AuthTokens {
     accessToken: string;
@@ -86,6 +90,9 @@ export class AuthService {
         private readonly authSecurityService: AuthSecurityService,
         private readonly captchaService: CaptchaService,
         private readonly eventBus: EventBusService,
+        @Optional()
+        @Inject(forwardRef(() => EstablishmentsService))
+        private readonly establishmentsService?: EstablishmentsService,
     ) { }
 
     async register(registerDto: RegisterDto): Promise<RegisterResponse> {
@@ -123,6 +130,7 @@ export class AuthService {
         });
 
         const emailVerificationToken = CryptoUtil.generateRandomToken(32);
+        const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
         let role: UserRole = UserRole.CONSUMER;
 
@@ -136,6 +144,7 @@ export class AuthService {
             phoneNumber: normalizedPhone,  // Use normalized E.164 format
             role,
             emailVerificationToken,
+            emailVerificationExpires,
         });
 
         try {
@@ -167,6 +176,25 @@ export class AuthService {
             );
         }
 
+        // Auto-create establishment for merchant signups with business info
+        if (registerDto.businessInfo && role === UserRole.MERCHANT && this.establishmentsService) {
+            try {
+                await this.establishmentsService.createFromSignup(
+                    registerDto.businessInfo,
+                    user._id.toString(),
+                    registerDto.email,
+                    normalizedPhone,
+                );
+                this.logger.log(`Establishment created from signup for merchant: ${user._id}`);
+            } catch (establishmentError) {
+                // Log but don't fail registration — establishment can be created later
+                this.logger.error(
+                    `Failed to create establishment during signup: ${(establishmentError as Error).message}`,
+                    (establishmentError as Error).stack,
+                );
+            }
+        }
+
         // SECURITY: Use safe mapper to exclude sensitive fields (passwordHistory, loginHistory, etc.)
         const safeUser = mapToSafeUserResponse(user.toObject());
 
@@ -176,6 +204,7 @@ export class AuthService {
             user: safeUser,
         };
     }
+
     async verifyEmail(
         verifyEmailDto: VerifyEmailDto,
         requestInfo?: { ipAddress?: string; userAgent?: string; location?: string }
@@ -191,16 +220,6 @@ export class AuthService {
         // Mark email as verified
         await this.usersService.verifyEmail(user._id.toString());
         this.logger.log('Email verification successful', { userId: user._id });
-
-        // Send welcome email (non-blocking)
-        try {
-            await this.emailService.sendWelcomeEmail(user);
-        } catch (error) {
-            this.logger.warn('Failed to send welcome email after verification', {
-                userId: user._id,
-                error: error instanceof Error ? error.message : 'Unknown error'
-            });
-        }
 
         // AUTO-LOGIN: Generate tokens so user goes directly to home
         // This is the same pattern used in login() for seamless UX
@@ -263,8 +282,23 @@ export class AuthService {
         requestInfo?: { ipAddress?: string; userAgent?: string; location?: string }
     ): Promise<LoginResponse> {
         const ipAddress = requestInfo?.ipAddress || 'unknown';
+        const userAgent = requestInfo?.userAgent || 'unknown';
 
-        // PRODUCTION-READY IMPROVEMENT: Check if CAPTCHA is required before proceeding
+        // 1. Explicit IP block list (set by previous suspicious-activity detection)
+        const ipBlocked = await this.authSecurityService.isIpBlocked(ipAddress);
+        if (ipBlocked) {
+            this.logger.warn('Login attempt from blocked IP', { ip: ipAddress, email: loginDto.email });
+            throw new ForbiddenException('Access temporarily blocked due to suspicious activity');
+        }
+
+        // 2. Bot / suspicious user-agent detection
+        const isSuspicious = await this.authSecurityService.detectSuspiciousActivity(ipAddress, userAgent);
+        if (isSuspicious) {
+            await this.authSecurityService.blockIp(ipAddress, 300000); // 5 min
+            throw new ForbiddenException('Suspicious activity detected. Access temporarily blocked');
+        }
+
+        // 3. Redis-based attempt-count gate
         const securityCheck = await this.authSecurityService.checkLoginAttempts(
             ipAddress,
             loginDto.email
@@ -345,12 +379,11 @@ export class AuthService {
             // Record failed attempt for rate limiting
             await this.authSecurityService.recordFailedLoginAttempt(ipAddress, loginDto.email);
 
-            // SECURITY WARNING: Revealing that email doesn't exist enables email enumeration attacks
-            // Consider using generic 'Invalid credentials' in production
+            // SECURITY: Never reveal user existence - prevents account enumeration attacks
             throw new UnauthorizedException({
-                message: 'No account found with this email address',
-                type: 'EMAIL_NOT_FOUND',
-                field: 'email',
+                message: 'Invalid email or password',
+                type: 'INVALID_CREDENTIALS',
+                field: 'credentials',
             });
         }
 
@@ -392,8 +425,10 @@ export class AuthService {
         const isPasswordValid = await argon2.verify(user.password, loginDto.password);
 
         if (!isPasswordValid) {
-            // Record failed login attempt in auth security service (Redis) - SINGLE SOURCE OF TRUTH
+            // Redis: runtime gate (drives the lockout decision)
             const securityResult = await this.authSecurityService.recordFailedLoginAttempt(ipAddress, loginDto.email);
+            // MongoDB: audit trail (atomic increment, no lockout logic)
+            await this.usersService.incrementFailedLoginAttempts(user._id.toString(), ipAddress, userAgent);
 
             this.logger.warn('Login attempt with invalid password', {
                 userId: user._id,
@@ -423,8 +458,9 @@ export class AuthService {
 
         this.logger.log('User login successful', { userId: user._id, email: user.email });
 
-        // Clear failed login attempts in Redis (single source of truth)
+        // Clear failed login attempts in both Redis and MongoDB
         await this.authSecurityService.clearLoginAttempts(ipAddress, loginDto.email);
+        await this.usersService.resetFailedLoginAttempts(user._id.toString());
 
         // Generate tokens with JTI, family tracking, and device info
         const deviceInfo: DeviceInfo = {
@@ -442,6 +478,7 @@ export class AuthService {
             undefined, // No parent JTI (new login)
             undefined, // No existing family (new login)
             user.tokenRevocationVersion || 0,
+            loginDto.rememberMe ?? false,
         );
 
         await this.usersService.updateLastLogin(
@@ -498,21 +535,28 @@ export class AuthService {
         const user = await this.usersService.findByEmail(email);
 
         if (!user) {
+            this.logger.warn('Password reset requested for non-existent email', { email });
             return {
                 message: 'If an account with this email exists, you will receive a password reset link.',
             };
         }
+
         const resetToken = CryptoUtil.generateRandomToken(32);
         const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
         await this.usersService.setPasswordResetToken(user._id.toString(), resetToken, resetExpires);
 
-        try {
-            await this.emailService.sendPasswordResetEmail(user, resetToken);
-        } catch (error) {
-            this.logger.warn('Failed to send password reset email', {
+        const emailSent = await this.emailService.sendPasswordResetEmail(user, resetToken);
+
+        if (!emailSent) {
+            this.logger.error('Failed to send password reset email', {
+                userId: user._id.toString(),
                 email,
-                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+        } else {
+            this.logger.log('Password reset email sent successfully', {
+                userId: user._id.toString(),
+                email,
             });
         }
 
@@ -565,9 +609,10 @@ export class AuthService {
             throw new BadRequestException('Email is already verified');
         }
 
-        // Generate new verification token
+        // Generate new verification token with 24h expiry
         const emailVerificationToken = CryptoUtil.generateRandomToken(32);
-        await this.usersService.updateEmailVerificationToken(user._id.toString(), emailVerificationToken);
+        const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        await this.usersService.updateEmailVerificationToken(user._id.toString(), emailVerificationToken, emailVerificationExpires);
 
         // Send new verification email
         try {
@@ -596,7 +641,13 @@ export class AuthService {
         const user = await this.usersService.findOneWithTokens(userId);
 
         if (!user) {
-            throw new UnauthorizedException('User not found');
+            // SECURITY: Never reveal user existence - use generic message for all auth failures
+            throw new UnauthorizedException('Session expired. Please log in again.');
+        }
+
+        // SECURITY: Block deleted/suspended/blocked users from refreshing tokens
+        if (user.status !== UserStatus.ACTIVE) {
+            throw new UnauthorizedException('Account is no longer active');
         }
 
         // Validate refresh token with token fixation attack prevention
@@ -650,6 +701,7 @@ export class AuthService {
             validationResult.jti, // Parent JTI (rotated token)
             validationResult.familyId, // Existing family ID
             user.tokenRevocationVersion || 0,
+            validationResult.rememberMe ?? false, // Preserve session duration across rotation
         );
 
         this.logger.log('Tokens refreshed successfully', {
@@ -731,6 +783,10 @@ export class AuthService {
         const user = await this.usersService.findByEmail(email);
 
         if (user && (await argon2.verify(user.password, password))) {
+            // SECURITY: Reject login for non-active accounts
+            if (user.status !== UserStatus.ACTIVE) {
+                throw new UnauthorizedException('Account is no longer active');
+            }
             const { password: _password, _id, ...result } = user.toObject();
             return { ...result, userId: _id.toString() };
         }

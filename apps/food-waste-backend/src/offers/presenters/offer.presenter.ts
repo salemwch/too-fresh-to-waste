@@ -1,5 +1,41 @@
 import { OfferDocument } from '../schemas/offer.schema';
 import { OfferCardDto, CtaState } from '../DTO/offer-list.dto';
+import { OfferLean } from '../offers.service';
+
+/**
+ * Type for populated merchant with profile image
+ */
+interface PopulatedMerchant {
+    profileImage?: string;
+    [key: string]: unknown;
+}
+
+/**
+ * Type for populated establishment with basic info
+ */
+interface PopulatedEstablishment {
+    name: string;
+    averageRating?: number;
+    totalReviews?: number;
+    profileImage?: string;
+    [key: string]: unknown;
+}
+
+/**
+ * Type for aggregation result that includes establishment data
+ */
+interface OfferWithEstablishment {
+    establishment?: PopulatedEstablishment;
+    [key: string]: unknown;
+}
+
+/**
+ * Union type for offer entities that the presenter can handle
+ * Supports both Mongoose documents and lean query results
+ *
+ * ✅ TYPE SAFETY: Imports OfferLean from service to ensure consistency
+ */
+type OfferEntity = OfferDocument | OfferLean;
 
 /**
  * OfferPresenter - Presentation layer for transforming offer entities to DTOs
@@ -8,24 +44,38 @@ import { OfferCardDto, CtaState } from '../DTO/offer-list.dto';
  * ✅ UX: Calculates CTA state for frontend consumption
  *
  * Design Pattern: Presenter Pattern (separates data transformation from business logic)
+ *
+ * Type Support: Handles both OfferDocument (Mongoose) and OfferLean (POJO from aggregations)
  */
 export class OfferPresenter {
     /**
-     * Transform OfferDocument to OfferCardDto for list/card display
+     * Transform offer entity to OfferCardDto for list/card display
      *
-     * @param offer - Mongoose offer document (with populated establishment)
-     * @param distance - Optional distance in meters (from geolocation queries)
+     * @param offer - Offer entity (Mongoose document or lean object from aggregation)
+     * @param distance - Optional distance in meters (from geolocation queries, overrides offer.distance)
+     * @param isFavorite - Whether current user has favorited this offer (undefined if unauthenticated)
      * @returns Sanitized DTO safe for public API responses
+     *
+     * ✅ BEST PRACTICE: Accepts both document and lean types for flexibility
+     * ✅ TYPE SAFETY: Uses type guards and safe property access
      */
-    static toCardDto(offer: OfferDocument, distance?: number): OfferCardDto {
+    static toCardDto(offer: OfferEntity, distance?: number, isFavorite?: boolean): OfferCardDto {
+        // ✅ Extract distance from offer if not explicitly provided
+        // Lean objects from aggregations may have distance property
+        const finalDistance = distance ?? (offer as OfferLean).distance;
         // ✅ Calculate available quantity (hide internal metrics)
         const availableQty = offer.totalQuantity - offer.soldQuantity - offer.reservedQuantity;
 
         // ✅ Extract establishment data safely
         const establishmentData = this.getEstablishmentData(offer);
 
+        // ✅ TYPE SAFETY: Convert _id to string (works for both ObjectId and FlattenMaps)
+        const offerId = typeof offer._id === 'string'
+            ? offer._id
+            : offer._id?.toString() ?? '';
+
         return {
-            id: offer._id.toString(),
+            id: offerId,
             title: offer.title,
             type: offer.type,
             image: offer.images?.[0], // First image only for card
@@ -42,9 +92,11 @@ export class OfferPresenter {
                 endTime: slot.endTime,
             })),
             establishment: establishmentData,
-            distance,
+            distance: finalDistance,
             ctaState: this.calculateCtaState(availableQty, offer.totalQuantity),
             status: offer.status,
+            // Favorite status (only when user is authenticated)
+            isFavorite,
             // Featuring metadata
             isFeatured: offer.isFeaturedManual || offer.isFeaturedAuto,
             isFeaturedManual: offer.isFeaturedManual,
@@ -78,27 +130,28 @@ export class OfferPresenter {
     }
 
     /**
-     * Safely extract establishment data from populated document
+     * Safely extract establishment data from offer entity
      *
-     * @param offer - Offer document (may or may not have populated establishment and merchant)
+     * @param offer - Offer entity (document or lean, may or may not have populated establishment and merchant)
      * @returns Establishment data with name, rating, reviews, and profileImage
      */
-    private static getEstablishmentData(offer: OfferDocument): {
+    private static getEstablishmentData(offer: OfferEntity): {
         name: string;
         averageRating?: number;
         totalReviews?: number;
         profileImage?: string;
     } {
-        // Get merchant profileImage if populated
+        // ✅ TYPE SAFETY: Get merchant profileImage if populated
         let profileImage: string | undefined;
         if (offer.merchantId && typeof offer.merchantId === 'object') {
-            const merchant = offer.merchantId as any;
+            const merchant = offer.merchantId as unknown as PopulatedMerchant;
             profileImage = merchant.profileImage;
         }
 
-        // ✅ Handle aggregation pipeline result (has 'establishment' field)
-        if ((offer as any).establishment && typeof (offer as any).establishment === 'object') {
-            const establishment = (offer as any).establishment;
+        // ✅ TYPE SAFETY: Handle aggregation pipeline result (has 'establishment' field)
+        const offerWithEstablishment = offer as unknown as OfferWithEstablishment;
+        if (offerWithEstablishment.establishment && typeof offerWithEstablishment.establishment === 'object') {
+            const establishment = offerWithEstablishment.establishment;
             return {
                 name: establishment.name || 'Establishment',
                 averageRating: establishment.averageRating,
@@ -107,9 +160,9 @@ export class OfferPresenter {
             };
         }
 
-        // ✅ Handle populated establishment (from .populate())
+        // ✅ TYPE SAFETY: Handle populated establishment (from .populate())
         if (offer.establishmentId && typeof offer.establishmentId === 'object') {
-            const establishment = offer.establishmentId as any;
+            const establishment = offer.establishmentId as unknown as PopulatedEstablishment;
             return {
                 name: establishment.name || 'Establishment',
                 averageRating: establishment.averageRating,
@@ -128,16 +181,20 @@ export class OfferPresenter {
     /**
      * Transform array of offers to DTOs
      *
-     * @param offers - Array of offer documents
+     * @param offers - Array of offer entities (documents or lean objects)
      * @param distances - Optional map of offer ID to distance
      * @returns Array of sanitized DTOs
      */
     static toCardDtoArray(
-        offers: OfferDocument[],
+        offers: OfferEntity[],
         distances?: Map<string, number>
     ): OfferCardDto[] {
         return offers.map(offer => {
-            const distance = distances?.get(offer._id.toString());
+            // ✅ TYPE SAFETY: Handle both ObjectId and string _id
+            const offerId = typeof offer._id === 'string'
+                ? offer._id
+                : offer._id?.toString() ?? '';
+            const distance = distances?.get(offerId);
             return this.toCardDto(offer, distance);
         });
     }

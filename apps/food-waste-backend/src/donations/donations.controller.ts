@@ -47,12 +47,15 @@ export class DonationsController {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         description: 'Failed to retrieve donation statistics',
     })
-    async getCurrentDonationStats(): Promise<DonationStatsResponseDto> {
+    async getCurrentDonationStats(): Promise<{ message: string; data: DonationStatsResponseDto }> {
         this.logger.log('Fetching current donation pool statistics');
 
         try {
             const stats = await this.donationsService.getCurrentStats();
-            return stats;
+            return {
+                message: 'Donation statistics retrieved successfully',
+                data: stats,
+            };
         } catch (error) {
             this.logger.error('Error fetching donation stats', error);
             throw error;
@@ -87,13 +90,16 @@ export class DonationsController {
     })
     async getUserDonationStats(
         @CurrentUser('_id') userId: string,
-    ): Promise<UserDonationStatsResponseDto> {
+    ): Promise<{ message: string; data: UserDonationStatsResponseDto }> {
         this.logger.log(`Fetching donation statistics for user ${userId}`);
 
         try {
             const userObjectId = new Types.ObjectId(userId);
             const stats = await this.donationsService.getUserStats(userObjectId);
-            return stats;
+            return {
+                message: 'User donation statistics retrieved successfully',
+                data: stats,
+            };
         } catch (error) {
             this.logger.error(`Error fetching user stats for ${userId}`, error);
             throw error;

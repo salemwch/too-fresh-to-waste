@@ -10,9 +10,10 @@ import { map } from 'rxjs/operators';
 
 /**
  * Standardized API response format
+ * ✅ CANONICAL: Matches BackendApiResponse in frontend
  */
 export interface ResponseFormat<T> {
-    statusCode: number;
+    status: number;
     message?: string;
     data: T;
     timestamp: string;
@@ -23,7 +24,7 @@ export interface ResponseFormat<T> {
  *
  * Ensures consistent response format across all endpoints:
  * {
- *   statusCode: 200,
+ *   status: 200,
  *   message: "Success message",
  *   data: { ... },
  *   timestamp: "2026-01-10T..."
@@ -46,7 +47,7 @@ export class TransformInterceptor<T>
                 // If response is null/undefined, return empty data
                 if (response === null || response === undefined) {
                     return {
-                        statusCode: httpStatusCode,
+                        status: httpStatusCode,
                         data: null as T,
                         timestamp: new Date().toISOString(),
                     };
@@ -66,7 +67,7 @@ export class TransformInterceptor<T>
                     const hasMeta = 'meta' in response;
 
                     return {
-                        statusCode: httpStatusCode,
+                        status: httpStatusCode,
                         ...(hasMessage && { message: response.message }),
                         data: response.data as T,
                         ...(hasMeta && { meta: response.meta }),  // ✅ Preserve meta at top level
@@ -78,7 +79,7 @@ export class TransformInterceptor<T>
                 if (hasMessage && !hasData) {
                     const { message, statusCode: _ignoredStatus, ...rest } = response;
                     return {
-                        statusCode: httpStatusCode,
+                        status: httpStatusCode,
                         message,
                         data: Object.keys(rest).length > 0 ? rest : null as T,
                         timestamp: new Date().toISOString(),
@@ -87,7 +88,7 @@ export class TransformInterceptor<T>
 
                 // Raw response - wrap it as data
                 return {
-                    statusCode: httpStatusCode,
+                    status: httpStatusCode,
                     data: response as T,
                     timestamp: new Date().toISOString(),
                 };

@@ -215,3 +215,41 @@ export interface ServiceRadiusAnalysis {
   reachableUsers: number;
   competitorCount: number;
 }
+
+/**
+ * Lightweight offer summary for map marker bottom sheets.
+ * Projected from the offers collection inside the map-establishments aggregation.
+ */
+export interface MapOfferSummary {
+  _id: string;
+  title: string;
+  description: string;
+  pricing: {
+    originalPrice: number;
+    discountedPrice: number;
+    discountPercentage: number;
+    currency: string;
+  };
+  availableUntil: Date;
+  availableQuantity: number;
+  categories: string[];
+  images: string[];
+}
+
+/**
+ * Establishment data enriched with active offers for the map view.
+ * Separate from EstablishmentGeoData to avoid breaking the existing API contract.
+ */
+export interface MapEstablishmentGeoData {
+  _id: string;
+  name: string;
+  type: string;
+  profileImage: string | null;
+  coordinates: GeoCoordinate;
+  address: AddressInfo;
+  averageRating: number;
+  totalReviews: number;
+  isVerified: boolean;
+  activeOfferCount: number;
+  offers: MapOfferSummary[];
+}

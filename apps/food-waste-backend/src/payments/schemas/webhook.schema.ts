@@ -77,3 +77,6 @@ export const PaymentWebhookSchema = SchemaFactory.createForClass(PaymentWebhook)
 PaymentWebhookSchema.index({ webhookId: 1 }, { unique: true });
 PaymentWebhookSchema.index({ transactionId: 1 });
 PaymentWebhookSchema.index({ status: 1, nextRetryAt: 1 });
+
+// TTL index: auto-delete webhook records after 90 days to prevent unbounded collection growth
+PaymentWebhookSchema.index({ createdAt: 1 }, { expireAfterSeconds: 7776000, name: 'idx_paymentwebhooks_createdAt_ttl_90d' });

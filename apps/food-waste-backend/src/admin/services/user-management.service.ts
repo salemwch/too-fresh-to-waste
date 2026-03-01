@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model} from 'mongoose';
 import { EventBusService } from '../../common/services/event-bus/event-bus.service';
 import { User, UserDocument } from '../../users/schemas/user.schema';
+import { UsersService } from '../../users/user.service';
 import { UserStatus } from '../../common/enums/user.enum';
 import { UpdateUserStatusDto, BulkUserActionDto, UserSearchDto } from '../dto/user-management.dto';
 import { AdminAuditService, AuditableObject } from './admin-audit.service';
@@ -135,6 +136,7 @@ export class UserManagementService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly auditService: AdminAuditService,
     private readonly eventBus: EventBusService,
+    private readonly usersService: UsersService,
     @Optional() private readonly notificationService?: NotificationService,
   ) {}
 
@@ -522,15 +524,32 @@ export class UserManagementService {
       const previousValue = user.toObject();
 
       if (hardDelete) {
-        // Permanently delete user
+        // Permanently delete user — handled directly here
         await this.userModel.findByIdAndDelete(userId);
+
+        // Emit deletion event for cascade cleanup (hard-delete path only)
+        await this.eventBus.emit(
+          'admin.user.deleted',
+          new AdminUserDeletedEvent(
+            userId,
+            adminId,
+            adminEmail,
+            true,
+            reason,
+          ),
+        );
       } else {
-        // Soft delete - mark as deleted
-        user.status = UserStatus.BLOCKED;
-        await user.save();
+        // Delegate to UsersService.softDelete() — single source of truth
+        // softDelete() handles: status, tokens, audit log, event emission
+        await this.usersService.softDelete(
+          userId,
+          reason,
+          { ipAddress, userAgent },
+          { adminId, adminEmail },
+        );
       }
 
-      // Log the action
+      // Log admin audit trail (always, for both paths)
       await this.auditService.logUserAction({
         adminId,
         adminEmail,
@@ -545,18 +564,6 @@ export class UserManagementService {
 
       this.logger.log(
         `User ${userId} ${hardDelete ? 'permanently deleted' : 'soft deleted'} by admin ${adminEmail}. Reason: ${reason}`
-      );
-
-      // Emit deletion event for cascade cleanup
-      await this.eventBus.emit(
-        'admin.user.deleted',
-        new AdminUserDeletedEvent(
-          userId,
-          adminId,
-          adminEmail,
-          hardDelete,
-          reason,
-        ),
       );
 
       return true;

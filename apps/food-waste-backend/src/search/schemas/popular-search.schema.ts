@@ -89,3 +89,6 @@ PopularSearchSchema.index({
   searchCount: -1,
   isActive: 1
 });
+
+// TTL index: auto-delete popular search records after 180 days to prevent unbounded collection growth
+PopularSearchSchema.index({ createdAt: 1 }, { expireAfterSeconds: 15552000, name: 'idx_popularsearches_createdAt_ttl_180d' });

@@ -226,6 +226,9 @@ export class LoyaltyAccount {
   totalOrdersCount: number;
 
   @Prop({ required: true, default: 0, min: 0 })
+  totalBagsSaved: number;
+
+  @Prop({ required: true, default: 0, min: 0 })
   totalAmountSpent: number;
 
   @Prop({ required: true, default: 'Bronze' })

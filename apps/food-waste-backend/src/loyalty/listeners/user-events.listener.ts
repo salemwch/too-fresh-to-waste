@@ -64,23 +64,37 @@ export class UserEventsListener {
   }
 
   /**
-   * Shared logic: Award signup bonus and process referral codes
+   * Shared logic: Create loyalty account for new users
+   *
+   * BEST PRACTICE: Auto-create loyalty account on registration
+   * - Ensures account exists before first order
+   * - Prevents "Loyalty account not found" errors
+   * - Simple MVP: No welcome bonus, just account creation
+   *
+   * IDEMPOTENT: Safe to retry - checks if account exists first
    */
   private async processUserRegistration(event: UserRegisteredEvent): Promise<void> {
     try {
-      this.logger.log(`Processing user.registered event for user: ${event.userId}`);
+      this.logger.log(`Processing user.registered event for user: ${event.userId} (role: ${event.role})`);
 
-      // Award signup bonus (if gamification service has this method)
-      // Note: You may need to implement this method in GamificationService
-      // await this.gamificationService.awardSignupBonus(event.userId);
+      // Loyalty accounts are only for consumers — merchants/admins don't earn points
+      if (event.role === 'merchant' || event.role === 'admin') {
+        this.logger.log(`Skipping loyalty account for ${event.role} user: ${event.userId}`);
+        return;
+      }
 
-      this.logger.log(`Successfully processed user registration for loyalty: ${event.userId}`);
+      // Create loyalty account via gamification service
+      // This is idempotent - won't create duplicates
+      await this.gamificationService.createLoyaltyAccountForNewUser(event.userId);
+
+      this.logger.log(`Successfully created loyalty account for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.registered event for user ${event.userId}: ${error.message}`,
+        `Failed to create loyalty account for user ${event.userId}: ${error.message}`,
         error.stack,
       );
-      // Don't throw - event listeners should not break the flow
+      // CRITICAL: Don't throw - event listeners should not break registration flow
+      // User can still use the app, loyalty account will be created lazily on first order
     }
   }
 }

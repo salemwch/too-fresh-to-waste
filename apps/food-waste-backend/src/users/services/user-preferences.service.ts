@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Logger, BadRequestException } from '@nes
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
+import { USER_AUDIT_LOG_MAX } from '../../common/constants/database-indexes.constant';
 
 export interface UserPreferences {
     theme: 'light' | 'dark' | 'auto';
@@ -199,9 +200,8 @@ export class UserPreferencesService {
                 }
             });
 
-            // Keep only last 100 audit entries
-            if (user.auditLog.length > 100) {
-                user.auditLog = user.auditLog.slice(0, 100);
+            if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
+                user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
             }
         }
 
@@ -245,6 +245,10 @@ export class UserPreferencesService {
                 userAgent: auditData.userAgent,
                 details: { changes: notificationPrefs }
             });
+
+            if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
+                user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
+            }
         }
 
         await user.save();
@@ -290,6 +294,10 @@ export class UserPreferencesService {
                     complianceNote: 'Privacy setting changes logged for GDPR/CCPA compliance'
                 }
             });
+
+            if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
+                user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
+            }
         }
 
         await user.save();
@@ -341,6 +349,10 @@ export class UserPreferencesService {
                 userAgent: auditData.userAgent,
                 details: { changes: discoveryPrefs }
             });
+
+            if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
+                user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
+            }
         }
 
         await user.save();
@@ -375,6 +387,10 @@ export class UserPreferencesService {
                 userAgent: auditData.userAgent,
                 details: { resetTo: 'defaults' }
             });
+
+            if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
+                user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
+            }
         }
 
         await user.save();
@@ -434,6 +450,10 @@ export class UserPreferencesService {
                 userAgent: auditData.userAgent,
                 details: { source: 'user_import' }
             });
+
+            if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
+                user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
+            }
         }
 
         await user.save();

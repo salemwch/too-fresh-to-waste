@@ -145,19 +145,48 @@ export class SanitizationUtil {
   }
 
   /**
-   * Sanitize plain text by encoding HTML entities
-   * Use for text content that should not contain HTML
+   * Sanitize plain text by stripping all HTML tags.
+   * Does NOT encode HTML entities — this stores clean plain text in the
+   * database. React Native / JSON consumers are not browsers and must not
+   * receive entity-encoded strings.
    *
-   * @param input - Plain text string
-   * @returns HTML-entity-encoded string
+   * Strategy:
+   *  1. Decode any pre-existing entities (normalises &amp; → &, etc.)
+   *  2. Strip all HTML tags via sanitize-html (XSS prevention)
+   *  3. Decode entities that sanitize-html re-introduced in step 2
+   *
+   * @param input - Plain text string (may already contain HTML entities)
+   * @returns Plain text with all HTML stripped, entities decoded
    */
   sanitizeText(input: string): string {
     if (!input || typeof input !== 'string') {
       return '';
     }
 
-    // Use sanitize-html with zero tags allowed for consistent entity encoding
-    return sanitizeHtml(input, this.textOnlyOptions).trim();
+    // Step 1 — normalise: decode any pre-existing entity encoding
+    const normalised = this.decodeHtmlEntities(input);
+
+    // Step 2 — strip HTML tags (AST-based, prevents XSS)
+    const stripped = sanitizeHtml(normalised, this.textOnlyOptions);
+
+    // Step 3 — decode entities that sanitize-html re-introduced
+    return this.decodeHtmlEntities(stripped).trim();
+  }
+
+  /**
+   * Decode common HTML entities to their plain-text equivalents.
+   * Used internally to ensure plain-text storage without entity encoding.
+   */
+  private decodeHtmlEntities(str: string): string {
+    return str
+      .replace(/&amp;/g,  '&')
+      .replace(/&lt;/g,   '<')
+      .replace(/&gt;/g,   '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&apos;/g, "'")
+      .replace(/&#x27;/g, "'")
+      .replace(/&#x2F;/g, '/')
+      .replace(/&#39;/g,  "'");
   }
 
   /**

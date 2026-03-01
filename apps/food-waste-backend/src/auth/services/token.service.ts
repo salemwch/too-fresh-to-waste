@@ -59,6 +59,7 @@ export interface TokenValidationResult {
     payload?: TokenPayload;
     error?: string;
     shouldRevokeFamily?: boolean; // True if token reuse detected
+    rememberMe?: boolean; // Persisted flag — propagated to rotated tokens
 }
 
 /**
@@ -109,6 +110,7 @@ export class TokenService {
         parentJti?: string,
         existingFamilyId?: string,
         tokenRevocationVersion: number = 0,
+        rememberMe: boolean = false,
     ): Promise<TokenPair> {
         const now = Math.floor(Date.now() / 1000);
 
@@ -121,7 +123,9 @@ export class TokenService {
             this.configService.get<string>('JWT_EXPIRES_IN') || '15m'
         );
         const refreshExpiresInSec = this.parseExpiration(
-            this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d'
+            this.configService.get<string>(
+                rememberMe ? 'JWT_REFRESH_REMEMBER_ME_EXPIRES_IN' : 'JWT_REFRESH_EXPIRES_IN'
+            ) || (rememberMe ? '30d' : '7d')
         );
 
         // Create token payloads WITHOUT exp/iat - let JWT library handle them
@@ -166,6 +170,7 @@ export class TokenService {
             expiresAt: new Date((now + refreshExpiresInSec) * 1000),
             deviceInfo,
             parentJti,
+            rememberMe,
         });
 
         this.logger.log(`Generated token pair for user ${userId}`, {
@@ -332,6 +337,7 @@ export class TokenService {
                 jti: payload.jti,
                 familyId: tokenRecord.familyId,
                 payload,
+                rememberMe: tokenRecord.rememberMe ?? false,
             };
         } catch (error) {
             this.logger.warn(`Token validation failed`, {
@@ -565,6 +571,7 @@ export class TokenService {
         expiresAt: Date;
         deviceInfo?: DeviceInfo;
         parentJti?: string;
+        rememberMe?: boolean;
     }): Promise<void> {
         try {
             await this.refreshTokenModel.create({

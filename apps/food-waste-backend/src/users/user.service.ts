@@ -14,23 +14,6 @@ interface IPaginationMeta {
     hasPrev: boolean;
 }
 
-interface IFailedLoginUpdateData {
-    failedLoginAttempts: number;
-    $push: {
-        auditLog: {
-            action: string;
-            timestamp: Date;
-            ipAddress: string;
-            userAgent: string;
-            details: {
-                attempt: number;
-                maxAttempts: number;
-            };
-        };
-    };
-    accountLockedUntil?: Date;
-    status?: string;
-}
 
 interface IAuditLogEntry {
     action: string;
@@ -53,10 +36,18 @@ import * as crypto from 'crypto';
 import { User, UserDocument, UserStatus, IAuditLogDetails } from './schemas/user.schema';
 import { CreateUserDto } from './DTO/create-user.dto';
 import { UpdateUserDto } from './DTO/update-user.dto';
-import { PasswordValidationService } from './services/password-validation.service';
+import { PasswordPolicyService } from '../auth/services/password-policy.service';
+import { CryptoUtil } from '../common/utils/crypto.util';
 import { PhoneNumberService } from '../common/services/phone-number.service';
 import { SmsNotificationService } from '../notifications/services/sms-notification.service';
 import { PasswordHistoryService } from '../auth/services/password-history.service';
+import { EventBusService } from '../common/services/event-bus/event-bus.service';
+import { AdminUserDeletedEvent } from '../common/events/admin-user.events';
+import {
+    USER_AUDIT_LOG_MAX,
+    USER_LOGIN_HISTORY_MAX,
+    USER_LOCATION_HISTORY_MAX,
+} from '../common/constants/database-indexes.constant';
 
 
 /**
@@ -71,25 +62,113 @@ import { PasswordHistoryService } from '../auth/services/password-history.servic
  *
  * @implements {IUsersService}
  */
+/**
+ * Mongoose .select() exclusion strings for user queries.
+ * Centralised here to avoid duplication across query methods.
+ *
+ * SENSITIVE_FIELDS  — always exclude (passwords, tokens, hashes)
+ * INTERNAL_FIELDS   — exclude from client-facing responses (audit, security internals)
+ * PROFILE_RESPONSE_FIELDS — SENSITIVE + INTERNAL (used by update/profile endpoints)
+ */
+const SENSITIVE_FIELDS = [
+    '-password',
+    '-refreshTokens',
+    '-emailVerificationToken',
+    '-phoneVerificationCode',
+    '-passwordResetToken',
+].join(' ');
+
+const INTERNAL_FIELDS = [
+    '-auditLog',
+    '-loginHistory',
+    '-trustedDevices',
+    '-securitySettings',
+    '-failedLoginAttempts',
+    '-tokenRevocationVersion',
+    '-phoneVerificationAttempts',
+    '-phoneVerificationExpires',
+    '-deletedAt',
+    '-isAnonymized',
+].join(' ');
+
+const PROFILE_RESPONSE_FIELDS = `${SENSITIVE_FIELDS} ${INTERNAL_FIELDS}`;
+
 @Injectable()
 export class UsersService implements IUsersService {
     private readonly logger = new Logger(UsersService.name);
-    private readonly MAX_FAILED_ATTEMPTS = 10; // Increased from 5 to 10
-    private readonly BASE_LOCKOUT_DURATION = 5 * 60 * 1000; // 5 minutes (first lockout)
     private readonly PHONE_VERIFICATION_CODE_EXPIRY = 10 * 60 * 1000; // 10 minutes
     private readonly MAX_VERIFICATION_ATTEMPTS = 5;
     private readonly VERIFICATION_RATE_LIMIT = 5; // Max 5 requests per hour
 
     constructor(
         @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-        private readonly passwordValidationService: PasswordValidationService,
+        private readonly passwordPolicyService: PasswordPolicyService,
         private readonly phoneNumberService: PhoneNumberService,
         private readonly smsNotificationService: SmsNotificationService,
         private readonly passwordHistoryService: PasswordHistoryService,
+        private readonly eventBus: EventBusService,
     ) { }
 
+    // ========================================================================
+    // Private helpers
+    // ========================================================================
+
+    /**
+     * Detect and clean up invalid empty GeoJSON coordinates.
+     *
+     * MongoDB 2dsphere index crashes with:
+     *   "Can't extract geo keys … Point must only contain numeric elements"
+     * when `address.coordinates = { type: "Point", coordinates: [] }` or
+     * when `address.coordinates = { type: "Point" }` (missing coordinates array).
+     *
+     * Call this before any `findByIdAndUpdate` that could trigger index
+     * validation. If empty coords are found, it merges `$unset` into the
+     * provided update ops so the cleanup is atomic with the write.
+     *
+     * @param userId - The user document to check
+     * @param updateOps - The MongoDB update operations object (mutated in place)
+     * @returns true if empty coords were found and $unset was added
+     */
+    private async sanitizeEmptyGeoCoordinates(
+        userId: string,
+        updateOps: Record<string, unknown>,
+    ): Promise<boolean> {
+        const existing = await this.userModel
+            .findById(userId)
+            .select('address.coordinates')
+            .lean()
+            .exec();
+
+        // Cast to unknown[] — schema types coords as [Number, Number] but
+        // at runtime it can be [] (the exact case we're guarding against).
+        const geoObj = existing?.address?.coordinates;
+        if (!geoObj) {
+            return false; // No coordinates sub-document at all — nothing to clean
+        }
+
+        const coords = geoObj.coordinates as unknown[] | undefined;
+        // Invalid if: coords missing entirely OR empty array (both break 2dsphere)
+        if (Array.isArray(coords) && coords.length === 2) {
+            return false; // Valid GeoJSON Point — no cleanup needed
+        }
+
+        // Merge $unset atomically into the existing update
+        const unset = (updateOps.$unset as Record<string, unknown>) ?? {};
+        unset['address.coordinates'] = 1;
+        updateOps.$unset = unset;
+
+        this.logger.warn(
+            `Sanitizing empty address.coordinates for user ${userId} (prevents 2dsphere index error)`,
+        );
+        return true;
+    }
+
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
     async create(
-        createUserDto: CreateUserDto & { emailVerificationToken?: string; profileImage?: string },
+        createUserDto: CreateUserDto & { emailVerificationToken?: string; emailVerificationExpires?: Date; profileImage?: string },
         auditData?: { ipAddress: string; userAgent: string }
     ): Promise<UserDocument> {
         // 1. Input validation for required fields
@@ -130,21 +209,22 @@ export class UsersService implements IUsersService {
                 this.logger.log(`Phone number normalized: ${createUserDto.phoneNumber} -> ${normalizedPhone}`);
             }
 
-            // 4. Validate password strength using dedicated service
-            const userInfo = {
+            // 4. Validate password strength using PasswordPolicyService
+            // Get validation result for audit logging
+            const passwordValidation = this.passwordPolicyService.validatePassword(createUserDto.password, {
                 email: normalizedEmail,
                 firstName: createUserDto.firstName,
                 lastName: createUserDto.lastName,
-                phoneNumber: normalizedPhone || createUserDto.phoneNumber
-            };
+            });
 
-            const passwordValidation = await this.passwordValidationService.validatePassword(
-                createUserDto.password,
-                userInfo
-            );
-
-            if (!passwordValidation.isAcceptable) {
-                throw new BadRequestException(`Password validation failed: ${passwordValidation.feedback.join(', ')}`);
+            // Throw if password is invalid
+            if (!passwordValidation.isValid) {
+                throw new BadRequestException({
+                    message: 'Password does not meet security requirements',
+                    feedback: passwordValidation.feedback,
+                    suggestions: passwordValidation.suggestions,
+                    score: passwordValidation.score,
+                });
             }
 
             // 5. Check for existing user with normalized email OR phone number
@@ -216,11 +296,17 @@ export class UsersService implements IUsersService {
             };
 
             // 9. Create user with explicit status, normalized email and phone
+            // Hash the verification token so plaintext is never stored in DB
+            const hashedVerificationToken = createUserDto.emailVerificationToken
+                ? CryptoUtil.hashToken(createUserDto.emailVerificationToken)
+                : undefined;
+
             const user = new this.userModel({
                 ...createUserDto,
                 email: normalizedEmail, // Use normalized email
                 phoneNumber: normalizedPhone, // Use normalized E.164 phone number
                 password: hashedPassword,
+                emailVerificationToken: hashedVerificationToken,
                 status: UserStatus.PENDING, // Explicit status for email verification
                 isEmailVerified: false, // Explicit email verification status
                 isPhoneVerified: false, // Phone not verified until verification flow completed
@@ -347,14 +433,15 @@ export class UsersService implements IUsersService {
     }
 
     async findByEmailVerificationToken(email: string, token: string): Promise<UserDocument> {
-        // Normalize email to match stored format
         const normalizedEmail = email.trim().toLowerCase();
+        const tokenHash = CryptoUtil.hashToken(token);
 
         return this.userModel.findOne({
             email: normalizedEmail,
-            emailVerificationToken: token,
+            emailVerificationToken: tokenHash,
             isEmailVerified: false,
-            deletedAt: null  // Exclude soft-deleted users
+            deletedAt: null,
+            emailVerificationExpires: { $gt: new Date() },
         }).exec();
     }
 
@@ -374,12 +461,14 @@ export class UsersService implements IUsersService {
             isEmailVerified: true,
             status: UserStatus.ACTIVE,
             emailVerificationToken: undefined,
+            emailVerificationExpires: undefined,
         });
     }
 
-    async updateEmailVerificationToken(userId: string, token: string): Promise<void> {
+    async updateEmailVerificationToken(userId: string, token: string, expires: Date): Promise<void> {
         await this.userModel.findByIdAndUpdate(userId, {
-            emailVerificationToken: token,
+            emailVerificationToken: CryptoUtil.hashToken(token),
+            emailVerificationExpires: expires,
         });
     }
 
@@ -469,15 +558,18 @@ export class UsersService implements IUsersService {
                 phoneVerificationAttempts: 0, // Reset attempts on new code
                 $push: auditData ? {
                     auditLog: {
-                        action: 'PHONE_VERIFICATION_SENT',
-                        timestamp: new Date(),
-                        ipAddress: auditData.ipAddress,
-                        userAgent: auditData.userAgent,
-                        details: {
-                            phoneNumberMasked: this.maskPhoneNumber(normalizedPhone),
-                            expiresAt: codeExpiresAt,
-                            attemptsRemaining: this.VERIFICATION_RATE_LIMIT - recentAttempts.length - 1
-                        }
+                        $each: [{
+                            action: 'PHONE_VERIFICATION_SENT',
+                            timestamp: new Date(),
+                            ipAddress: auditData.ipAddress,
+                            userAgent: auditData.userAgent,
+                            details: {
+                                phoneNumberMasked: this.maskPhoneNumber(normalizedPhone),
+                                expiresAt: codeExpiresAt,
+                                attemptsRemaining: this.VERIFICATION_RATE_LIMIT - recentAttempts.length - 1
+                            }
+                        }],
+                        $slice: -USER_AUDIT_LOG_MAX
                     }
                 } : undefined
             });
@@ -579,14 +671,17 @@ export class UsersService implements IUsersService {
                     phoneVerificationAttempts: 0,
                     $push: auditData ? {
                         auditLog: {
-                            action: 'PHONE_VERIFICATION_MAX_ATTEMPTS',
-                            timestamp: new Date(),
-                            ipAddress: auditData.ipAddress,
-                            userAgent: auditData.userAgent,
-                            details: {
-                                phoneNumberMasked: this.maskPhoneNumber(normalizedPhone),
-                                attempts
-                            }
+                            $each: [{
+                                action: 'PHONE_VERIFICATION_MAX_ATTEMPTS',
+                                timestamp: new Date(),
+                                ipAddress: auditData.ipAddress,
+                                userAgent: auditData.userAgent,
+                                details: {
+                                    phoneNumberMasked: this.maskPhoneNumber(normalizedPhone),
+                                    attempts
+                                }
+                            }],
+                            $slice: -USER_AUDIT_LOG_MAX
                         }
                     } : undefined
                 });
@@ -631,14 +726,17 @@ export class UsersService implements IUsersService {
                 phoneVerificationAttempts: 0,
                 $push: auditData ? {
                     auditLog: {
-                        action: 'PHONE_VERIFIED',
-                        timestamp: new Date(),
-                        ipAddress: auditData.ipAddress,
-                        userAgent: auditData.userAgent,
-                        details: {
-                            phoneNumberMasked: this.maskPhoneNumber(normalizedPhone),
-                            method: 'sms_code'
-                        }
+                        $each: [{
+                            action: 'PHONE_VERIFIED',
+                            timestamp: new Date(),
+                            ipAddress: auditData.ipAddress,
+                            userAgent: auditData.userAgent,
+                            details: {
+                                phoneNumberMasked: this.maskPhoneNumber(normalizedPhone),
+                                method: 'sms_code'
+                            }
+                        }],
+                        $slice: -USER_AUDIT_LOG_MAX
                     }
                 } : undefined
             });
@@ -750,15 +848,18 @@ export class UsersService implements IUsersService {
         if (auditData) {
             updateObj.$push = {
                 auditLog: {
-                    action: 'PASSWORD_UPDATED',
-                    timestamp: new Date(),
-                    ipAddress: auditData.ipAddress,
-                    userAgent: auditData.userAgent,
-                    details: {
-                        method: 'password_reset',
-                        historyEnforced: this.passwordHistoryService.isHistoryEnforced(),
-                        historyCount: this.passwordHistoryService.getPasswordHistoryCount()
-                    }
+                    $each: [{
+                        action: 'PASSWORD_UPDATED',
+                        timestamp: new Date(),
+                        ipAddress: auditData.ipAddress,
+                        userAgent: auditData.userAgent,
+                        details: {
+                            method: 'password_reset',
+                            historyEnforced: this.passwordHistoryService.isHistoryEnforced(),
+                            historyCount: this.passwordHistoryService.getPasswordHistoryCount()
+                        }
+                    }],
+                    $slice: -USER_AUDIT_LOG_MAX
                 }
             };
         }
@@ -772,9 +873,31 @@ export class UsersService implements IUsersService {
     }
 
     async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+        // Flatten nested `address` into dot-notation so MongoDB only
+        // updates the provided fields and preserves existing ones
+        // (e.g. address.coordinates kept intact when only street/city change).
+        const { address, ...rest } = updateUserDto;
+        const updatePayload: Record<string, unknown> = { ...rest };
+
+        if (address) {
+            if (address.street !== undefined) {updatePayload['address.street'] = address.street;}
+            if (address.city !== undefined) {updatePayload['address.city'] = address.city;}
+            if (address.postalCode !== undefined) {updatePayload['address.postalCode'] = address.postalCode;}
+            if (address.country !== undefined) {updatePayload['address.country'] = address.country;}
+            if (address.coordinates?.coordinates?.length === 2) {
+                updatePayload['address.coordinates'] = address.coordinates;
+            }
+        }
+
+        // Sanitize empty coordinates that break the 2dsphere index
+        const updateOps: Record<string, unknown> = { $set: updatePayload };
+        if (!updatePayload['address.coordinates']) {
+            await this.sanitizeEmptyGeoCoordinates(id, updateOps);
+        }
+
         const user = await this.userModel
-            .findByIdAndUpdate(id, updateUserDto, { new: true })
-            .select('-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken')
+            .findByIdAndUpdate(id, updateOps, { new: true })
+            .select(PROFILE_RESPONSE_FIELDS)
             .exec();
 
         if (!user) {
@@ -795,6 +918,53 @@ export class UsersService implements IUsersService {
      * @param locationData - Location coordinates and metadata
      * @returns Updated location data with timestamp
      */
+    /**
+     * 📍 UPDATE LOCATION PREFERENCES (Cross-device sync)
+     *
+     * Industry best practice: Save location to backend for persistence across devices.
+     * Facebook/Instagram pattern: User sets location once, works everywhere.
+     *
+     * @param userId - User ID
+     * @param preferences - Location preferences (coordinates, radius, history)
+     * @returns Success status
+     */
+    async updateLocationPreferences(
+        userId: string,
+        preferences: {
+            defaultLocation?: { latitude: number; longitude: number };
+            searchRadius?: number;
+            locationHistory?: Array<{
+                coordinates: { latitude: number; longitude: number };
+                timestamp: Date;
+                source?: string;
+            }>;
+        }
+    ): Promise<void> {
+        const updateData: any = { updatedAt: new Date() };
+
+        if (preferences.defaultLocation) {
+            updateData['locationPreferences.defaultLocation'] = preferences.defaultLocation;
+        }
+
+        if (preferences.searchRadius) {
+            updateData['locationPreferences.searchRadius'] = preferences.searchRadius;
+        }
+
+        const updateOptions: any = { $set: updateData };
+
+        if (preferences.locationHistory) {
+            updateOptions.$push = {
+                'locationPreferences.locationHistory': {
+                    $each: preferences.locationHistory,
+                    $slice: -USER_LOCATION_HISTORY_MAX,
+                }
+            };
+        }
+
+        await this.userModel.findByIdAndUpdate(userId, updateOptions, { new: true });
+        this.logger.log(`Location preferences updated for user: ${userId}`);
+    }
+
     async updateUserLocation(
         userId: string,
         locationData: {
@@ -839,7 +1009,7 @@ export class UsersService implements IUsersService {
                     $push: {
                         'locationPreferences.locationHistory': {
                             $each: [historyEntry],
-                            $slice: -10, // Keep only last 10 locations for privacy
+                            $slice: -USER_LOCATION_HISTORY_MAX,
                         },
                     },
                 },
@@ -948,58 +1118,98 @@ export class UsersService implements IUsersService {
         userAgent: string,
         location?: string
     ): Promise<void> {
-        const loginData = {
-            ipAddress,
-            userAgent,
-            timestamp: new Date(),
-            location
-        };
+        const now = new Date();
 
-        await this.userModel.findByIdAndUpdate(userId, {
-            lastLoginAt: new Date(),
+        const updateOps: Record<string, unknown> = {
+            $set: { lastLoginAt: now },
             $push: {
                 loginHistory: {
-                    $each: [loginData],
-                    $slice: -50 // Keep only last 50 login records
+                    $each: [{ ipAddress, userAgent, timestamp: now, location }],
+                    $slice: -USER_LOGIN_HISTORY_MAX
                 },
                 auditLog: {
                     $each: [{
                         action: 'LOGIN_SUCCESS',
-                        timestamp: new Date(),
+                        timestamp: now,
                         ipAddress,
                         userAgent,
                         details: { location }
                     }],
-                    $slice: -1000 // ✅ FIX: Keep only last 1000 audit entries (same as addAuditLog)
+                    $slice: -USER_AUDIT_LOG_MAX
                 }
             }
-        });
+        };
+
+        // Sanitize invalid empty coordinates before writing (prevents 2dsphere crash)
+        await this.sanitizeEmptyGeoCoordinates(userId, updateOps);
+
+        await this.userModel.findByIdAndUpdate(userId, updateOps);
     }
 
+    /**
+     * Single source of truth for soft-deleting a user.
+     *
+     * Performs an atomic update that:
+     * 1. Sets status to DELETED + timestamps
+     * 2. Invalidates all tokens (bumps tokenRevocationVersion, clears refreshTokens)
+     * 3. Appends an audit log entry
+     * 4. Emits 'admin.user.deleted' so listeners can destroy Redis sessions + cancel orders
+     *
+     * @param id - User ID to soft-delete
+     * @param reason - Human-readable deletion reason (audit)
+     * @param auditData - IP + User-Agent for audit trail
+     * @param adminContext - Optional admin info (omitted for self-deletion / system actions)
+     */
     async softDelete(
         id: string,
         reason: string,
-        auditData: { ipAddress: string; userAgent: string }
+        auditData: { ipAddress: string; userAgent: string },
+        adminContext?: { adminId: string; adminEmail: string },
     ): Promise<void> {
         const user = await this.userModel.findOne({ _id: id, deletedAt: null });
         if (!user) {
             throw new NotFoundException('User not found');
         }
 
+        const now = new Date();
+
+        // Atomic update: status + token invalidation + audit log
         await this.userModel.findByIdAndUpdate(id, {
             status: UserStatus.DELETED,
-            deletedAt: new Date(),
+            deletedAt: now,
             deletionReason: reason,
+            lastTokenInvalidation: now,
+            refreshTokens: [],
+            $inc: { tokenRevocationVersion: 1 },
             $push: {
                 auditLog: {
-                    action: '🇹🇳🌍 USER_SOFT_DELETED',
-                    timestamp: new Date(),
-                    ipAddress: auditData.ipAddress,
-                    userAgent: auditData.userAgent,
-                    details: { reason, method: 'soft_delete' }
+                    $each: [{
+                        action: 'USER_SOFT_DELETED',
+                        timestamp: now,
+                        ipAddress: auditData.ipAddress,
+                        userAgent: auditData.userAgent,
+                        details: {
+                            reason,
+                            method: 'soft_delete',
+                            adminId: adminContext?.adminId,
+                        }
+                    }],
+                    $slice: -USER_AUDIT_LOG_MAX
                 }
             }
         });
+
+        // Emit event so listeners destroy Redis sessions + cancel pending orders
+        await this.eventBus.emit(
+            'admin.user.deleted',
+            new AdminUserDeletedEvent(
+                id,
+                adminContext?.adminId ?? 'system',
+                adminContext?.adminEmail ?? 'system',
+                false, // hardDelete = false (soft-delete)
+                reason,
+            ),
+        );
 
         this.logger.log(`User soft deleted: ${id}, reason: ${reason}`);
     }
@@ -1023,11 +1233,14 @@ export class UsersService implements IUsersService {
             deletionReason: undefined,
             $push: {
                 auditLog: {
-                    action: 'USER_RESTORED',
-                    timestamp: new Date(),
-                    ipAddress: auditData.ipAddress,
-                    userAgent: auditData.userAgent,
-                    details: { method: 'admin_restore' }
+                    $each: [{
+                        action: 'USER_RESTORED',
+                        timestamp: new Date(),
+                        ipAddress: auditData.ipAddress,
+                        userAgent: auditData.userAgent,
+                        details: { method: 'admin_restore' }
+                    }],
+                    $slice: -USER_AUDIT_LOG_MAX
                 }
             }
         }, { new: true }).select('-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken');
@@ -1047,64 +1260,29 @@ export class UsersService implements IUsersService {
     }
 
     /**
-     * @deprecated Use AuthSecurityService.recordFailedLoginAttempt() instead.
-     * This method is kept for backward compatibility but is no longer used for blocking decisions.
-     * The single source of truth for login attempts is now Redis via AuthSecurityService.
+     * Atomic increment of the failed-login audit counter.
+     * Lockout decisions are made by AuthSecurityService (Redis).
+     * This method only persists the count and the audit-log entry.
      */
-    async recordFailedLogin(
+    async incrementFailedLoginAttempts(
         userId: string,
         ipAddress: string,
-        userAgent: string
-    ): Promise<{ isLocked: boolean; attemptsRemaining: number }> {
-        const user = await this.userModel.findById(userId);
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
-
-        // Check if account is already locked
-        if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
-            return {
-                isLocked: true,
-                attemptsRemaining: 0
-            };
-        }
-
-        const failedAttempts = (user.failedLoginAttempts || 0) + 1;
-        const isLocked = failedAttempts >= this.MAX_FAILED_ATTEMPTS;
-
-        const updateData: IFailedLoginUpdateData = {
-            failedLoginAttempts: failedAttempts,
+        userAgent: string,
+    ): Promise<void> {
+        await this.userModel.findByIdAndUpdate(userId, {
+            $inc: { failedLoginAttempts: 1 },
             $push: {
                 auditLog: {
-                    action: 'LOGIN_FAILED',
-                    timestamp: new Date(),
-                    ipAddress,
-                    userAgent,
-                    details: {
-                        attempt: failedAttempts,
-                        maxAttempts: this.MAX_FAILED_ATTEMPTS
-                    }
-                }
-            }
-        };
-
-        if (isLocked) {
-            const lockoutDuration = this.calculateLockoutDuration(failedAttempts);
-            updateData.accountLockedUntil = new Date(Date.now() + lockoutDuration);
-            updateData.status = UserStatus.SUSPENDED;
-
-            this.logger.warn(`Account locked due to failed login attempts: ${userId}`, {
-                attempts: failedAttempts,
-                lockoutDuration: `${lockoutDuration / 60000} minutes`
-            });
-        }
-
-        await this.userModel.findByIdAndUpdate(userId, updateData);
-
-        return {
-            isLocked,
-            attemptsRemaining: Math.max(0, this.MAX_FAILED_ATTEMPTS - failedAttempts)
-        };
+                    $each: [{
+                        action: 'LOGIN_FAILED',
+                        timestamp: new Date(),
+                        ipAddress,
+                        userAgent,
+                    }],
+                    $slice: -USER_AUDIT_LOG_MAX
+                },
+            },
+        });
     }
 
     async resetFailedLoginAttempts(userId: string): Promise<void> {
@@ -1113,25 +1291,6 @@ export class UsersService implements IUsersService {
             accountLockedUntil: undefined,
             status: UserStatus.ACTIVE
         });
-    }
-
-    /**
-     * Calculate progressive lockout duration based on attempt count
-     * - First lockout (10-19 attempts): 5 minutes
-     * - Second lockout (20-29 attempts): 15 minutes
-     * - Third+ lockout (30+ attempts): 30 minutes
-     */
-    private calculateLockoutDuration(attemptCount: number): number {
-        if (attemptCount < 20) {
-            // First lockout: 5 minutes
-            return this.BASE_LOCKOUT_DURATION;
-        } else if (attemptCount < 30) {
-            // Second lockout: 15 minutes
-            return this.BASE_LOCKOUT_DURATION * 3;
-        } else {
-            // Third+ lockout: 30 minutes
-            return this.BASE_LOCKOUT_DURATION * 6;
-        }
     }
 
     async isAccountLocked(userId: string): Promise<boolean> {
@@ -1162,11 +1321,14 @@ export class UsersService implements IUsersService {
             status: UserStatus.ACTIVE,
             $push: {
                 auditLog: {
-                    action: 'ACCOUNT_UNLOCKED',
-                    timestamp: new Date(),
-                    ipAddress: auditData.ipAddress,
-                    userAgent: auditData.userAgent,
-                    details: { unlockedBy: adminUserId, method: 'admin_action' }
+                    $each: [{
+                        action: 'ACCOUNT_UNLOCKED',
+                        timestamp: new Date(),
+                        ipAddress: auditData.ipAddress,
+                        userAgent: auditData.userAgent,
+                        details: { unlockedBy: adminUserId, method: 'admin_action' }
+                    }],
+                    $slice: -USER_AUDIT_LOG_MAX
                 }
             }
         });
@@ -1191,7 +1353,7 @@ export class UsersService implements IUsersService {
                         userAgent,
                         details
                     }],
-                    $slice: -1000 // Keep only last 1000 audit entries
+                    $slice: -USER_AUDIT_LOG_MAX
                 }
             }
         });

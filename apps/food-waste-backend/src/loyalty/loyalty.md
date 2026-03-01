@@ -151,9 +151,9 @@ Defined in `loyalty.service.ts:22`
 | Tier     | Min Points | Multiplier | Benefits                    |
 |----------|-----------|------------|----------------------------|
 | Bronze   | 0         | 1.0×       | Standard earning rate      |
-| Silver   | 500       | 1.2×       | 20% bonus on points earned |
-| Gold     | 1,500     | 1.5×       | 50% bonus on points earned |
-| Platinum | 3,000     | 2.0×       | 100% bonus on points earned|
+| Silver   | 400       | 1.2×       | 20% bonus on points earned |
+| Gold     | 1,200     | 1.5×       | 50% bonus on points earned |
+| Platinum | 2,700     | 2.0×       | 100% bonus on points earned|
 
 **Note:** Tiers apply multipliers to point earnings but **do not provide discounts**.
 

@@ -2,6 +2,11 @@ import { Controller, Post, Get, Body, Query, Logger, HttpCode, HttpStatus } from
 import { ApiTags, ApiOperation, ApiResponse,  ApiQuery } from '@nestjs/swagger';
 import { GeolocationService } from '../services/geolocation.service';
 import { ProximitySearchService } from '../services/proximity-search.service';
+import { GooglePlacesService } from '../services/google-places.service';
+import type {
+  GoogleAutocompleteSuggestion,
+  GoogleLocationResult,
+} from '../services/google-places.service';
 import {
   DistanceCalculationDto,
   GeocodingDto,
@@ -26,6 +31,7 @@ export class GeolocationController {
   constructor(
     private readonly geolocationService: GeolocationService,
     private readonly proximitySearchService: ProximitySearchService,
+    private readonly googlePlacesService: GooglePlacesService,
   ) {}
 
   @Post('distance/calculate')
@@ -319,4 +325,134 @@ export class GeolocationController {
     const isValid = this.geolocationService.validateCoordinates(coordinate);
     return { isValid, coordinate };
   }
+
+  @Get('location/autocomplete')
+  @ApiOperation({
+    summary: 'Autocomplete locations using Google Places API with session token (Tunisia only)',
+    description:
+      'Cost-optimized autocomplete endpoint. Returns suggestions WITHOUT coordinates. ' +
+      'Use with a session token: all autocomplete requests in a session are FREE. ' +
+      'Call GET /location/details with the same session token to get coordinates when user selects a place. ' +
+      'The Place Details call concludes the session and is the only billed request.',
+  })
+  @ApiQuery({
+    name: 'query',
+    type: 'string',
+    description: 'Search query (e.g., "Tunis", "Sousse")',
+    required: true,
+    example: 'Tunis',
+  })
+  @ApiQuery({
+    name: 'sessionToken',
+    type: 'string',
+    description: 'Session token (UUID) to group autocomplete requests for billing optimization',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: 'number',
+    description: 'Maximum number of results to return',
+    required: false,
+    example: 5,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Autocomplete suggestions returned successfully',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', example: 'GOOGLE_ChIJZa7pLMDy4RIRkHFwgn4ruUc' },
+          name: { type: 'string', example: 'Tunis' },
+          nameAr: { type: 'string', example: 'Tunis' },
+          subtext: { type: 'string', example: 'Tunis, Tunisia' },
+          source: { type: 'string', example: 'GOOGLE' },
+          googlePlaceId: { type: 'string', example: 'ChIJZa7pLMDy4RIRkHFwgn4ruUc' },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Invalid query parameter' })
+  @ApiResponse({ status: 502, description: 'Google Places API error' })
+  async autocompleteLocations(
+    @Query('query') query: string,
+    @Query('sessionToken') sessionToken?: string,
+    @Query('limit') limit?: number,
+  ): Promise<GoogleAutocompleteSuggestion[]> {
+    this.logger.log(
+      `Autocomplete: "${query}" (session: ${sessionToken ? 'active' : 'none'}, limit: ${limit || 'default'})`,
+    );
+
+    if (!query || query.trim().length < 2) {
+      this.logger.warn('Invalid autocomplete query - too short');
+      return [];
+    }
+
+    return this.googlePlacesService.autocomplete(query, sessionToken, limit);
+  }
+
+  @Get('location/details')
+  @ApiOperation({
+    summary: 'Get place details by Google Place ID (concludes session)',
+    description:
+      'Fetches full place details including coordinates for a specific Google Place ID. ' +
+      'This call concludes the session token billing session. ' +
+      'After this call, generate a new session token for the next search session.',
+  })
+  @ApiQuery({
+    name: 'placeId',
+    type: 'string',
+    description: 'Google Place ID from autocomplete results',
+    required: true,
+    example: 'ChIJZa7pLMDy4RIRkHFwgn4ruUc',
+  })
+  @ApiQuery({
+    name: 'sessionToken',
+    type: 'string',
+    description: 'Same session token used in autocomplete requests (concludes the session)',
+    required: false,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Place details returned successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', example: 'GOOGLE_ChIJZa7pLMDy4RIRkHFwgn4ruUc' },
+        name: { type: 'string', example: 'Tunis' },
+        nameAr: { type: 'string', example: 'Tunis' },
+        subtext: { type: 'string', example: 'Tunis, Tunisia' },
+        coords: {
+          type: 'object',
+          properties: {
+            lat: { type: 'number', example: 36.8065 },
+            lng: { type: 'number', example: 10.1815 },
+          },
+        },
+        source: { type: 'string', example: 'GOOGLE' },
+        formattedAddress: { type: 'string', example: 'Tunis, Tunisia' },
+        googlePlaceId: { type: 'string', example: 'ChIJZa7pLMDy4RIRkHFwgn4ruUc' },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Invalid placeId parameter' })
+  @ApiResponse({ status: 404, description: 'Place not found' })
+  @ApiResponse({ status: 502, description: 'Google Places API error' })
+  async getPlaceDetails(
+    @Query('placeId') placeId: string,
+    @Query('sessionToken') sessionToken?: string,
+  ): Promise<GoogleLocationResult | null> {
+    this.logger.log(
+      `Place Details: ${placeId} (session: ${sessionToken ? 'concluding' : 'none'})`,
+    );
+
+    if (!placeId || placeId.trim().length === 0) {
+      this.logger.warn('Invalid placeId - empty');
+      return null;
+    }
+
+    return this.googlePlacesService.getPlaceDetailsById(placeId, sessionToken);
+  }
+
 }

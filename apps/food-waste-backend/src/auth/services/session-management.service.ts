@@ -39,6 +39,7 @@ import {
   SessionValidationResult,
   SessionActivity,
 } from '../../common/security/interfaces/session.interface';
+import { USER_LOGIN_HISTORY_MAX } from '../../common/constants/database-indexes.constant';
 
 /**
  * Unified Session Management Service
@@ -385,7 +386,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
    *
    * CRITICAL: This method MUST NOT make any blocking external API calls
    * - Uses offline geoip-lite for IP location (local database lookup)
-   * - Never calls external geocoding APIs (Nominatim, Google Maps, etc.)
+   * - Never calls external geocoding APIs (Google Maps, etc.)
    * - Login flow depends on this being fast and non-blocking
    */
   private parseDeviceInfo(
@@ -422,7 +423,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
    * CRITICAL: Uses OFFLINE geoip-lite library (local MaxMind database)
    * - NO external API calls
    * - NO network requests
-   * - NO blocking on Nominatim/Google Maps/etc
+   * - NO blocking on external geocoding APIs
    * - Safe for login critical path
    *
    * @param ipAddress - IPv4 or IPv6 address
@@ -515,9 +516,8 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
 
     user.loginHistory.unshift(entry as any);
 
-    // Keep only last 50 records
-    if (user.loginHistory.length > 50) {
-      user.loginHistory = user.loginHistory.slice(0, 50);
+    if (user.loginHistory.length > USER_LOGIN_HISTORY_MAX) {
+      user.loginHistory = user.loginHistory.slice(0, USER_LOGIN_HISTORY_MAX);
     }
 
     await user.save();
@@ -589,6 +589,11 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       const ttl = Math.ceil(
         (session.expiresAt.getTime() - Date.now()) / 1000,
       );
+
+      if (ttl <= 0) {
+        this.logger.warn(`Session ${session.sessionId} already expired (ttl=${ttl}s), skipping Redis store`);
+        return;
+      }
 
       await redisClient.setEx(key, ttl, JSON.stringify(session) as any);
     } catch (error: any) {

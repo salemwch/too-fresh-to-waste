@@ -4,6 +4,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { UsersService } from 'src/users/user.service';
+import { UserStatus } from 'src/common/enums/user.enum';
 
 export interface JwtPayload {
     sub: string;
@@ -36,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     async validate(payload: JwtPayload) {
         const user = await this.usersService.findByEmail(payload.email);
 
-        if (!user || user.status !== 'active') {
+        if (!user || user.status !== UserStatus.ACTIVE) {
             throw new UnauthorizedException('User not found or inactive');
         }
 

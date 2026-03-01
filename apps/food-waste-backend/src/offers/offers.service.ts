@@ -6,14 +6,18 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, isValidObjectId, PipelineStage, FlattenMaps } from 'mongoose';
-import { Offer, OfferDocument, OfferStatus, Currency } from './schemas/offer.schema';
-import { EstablishmentDocument } from '../establishments/schemas/establishment.schema';
+import { Offer, OfferDocument, OfferStatus, OfferType, Currency } from './schemas/offer.schema';
+import { EstablishmentDocument, EstablishmentStatus } from '../establishments/schemas/establishment.schema';
+import { EstablishmentsService } from '../establishments/establishments.service';
 import { CreateOfferDto } from './DTO/create-offer.dto';
 import { SearchOffersDto, OfferSortField } from './DTO/search-offers.dto';
 import { UpdateOfferDto } from './DTO/update-offer.dto';
+import { ReactivateOfferDto } from './DTO/reactivate-offer.dto';
+import { OfferPresenter } from './presenters/offer.presenter';
+import { OfferCardDto } from './DTO/offer-list.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AppLoggerService } from '../common/services/logger.service';
-import { OFFER_LIST_FIELDS } from '../common/utils/query-optimization.util';
+// OFFER_LIST_FIELDS no longer needed — aggregation pipelines select fields via $project
 import { TimezoneUtil } from '../common/utils/timezone.util';
 import {
     MIN_EXISTENCE_MS,
@@ -23,15 +27,52 @@ import {
     MIN_EXISTENCE_HOURS,
     URGENCY_THRESHOLD_HOURS,
 } from './config/featuring.config';
+import { FavoritesService } from 'src/favorites/favorites.service';
+
+/**
+ * Base offer properties required by presenter (minimum interface)
+ * Ensures type safety while allowing flexibility for different query types
+ *
+ * ✅ TYPE SAFETY: Defines minimum required fields without relying on `any`
+ */
+interface OfferBase {
+    _id: unknown;
+    title: string;
+    type: OfferType;
+    images?: string[];
+    pricing: {
+        originalPrice: number;
+        discountedPrice: number;
+        discountPercentage: number;
+        currency: Currency;
+    };
+    totalQuantity: number;
+    soldQuantity: number;
+    reservedQuantity: number;
+    availableUntil: Date;
+    pickupTimeSlots?: Array<{
+        startTime: string;
+        endTime: string;
+    }>;
+    status: OfferStatus;
+    establishmentId?: unknown;
+    merchantId?: unknown;
+    isFeaturedManual?: boolean;
+    isFeaturedAuto?: boolean;
+    featuredAt?: Date;
+    isPickupToday?: boolean;
+    isPickupTomorrow?: boolean;
+}
 
 /**
  * Lean result type for Offer documents
- * Use this for results from .lean() queries to maintain type safety
+ * Combines Mongoose lean results with optional aggregation fields
  *
- * Note: When using .lean(), Mongoose returns POJO with FlattenMaps type.
- * We use 'unknown' for _id to accept both ObjectId and FlattenMaps variants.
+ * ✅ TYPE SAFETY: Union of FlattenMaps and OfferBase for maximum compatibility
  */
-export type OfferLean = FlattenMaps<Offer> & { _id: unknown };
+export type OfferLean = (FlattenMaps<OfferDocument> | OfferBase) & {
+    distance?: number;
+};
 
 // Core business interfaces for type safety
 interface MongoQuery {
@@ -79,7 +120,7 @@ interface OfferPricing {
 interface OfferPickupTimeSlot {
     startTime: string;
     endTime: string;
-    maxOrders: number;
+    maxOrders?: number;      // Optional — business decides. No limit if unset.
     currentOrders?: number;
 }
 
@@ -88,25 +129,103 @@ interface StatusUpdateData {
     publishedAt?: Date;
 }
 
-export interface FindAllResult {
-    offers: OfferLean[];
-    total: number;
-}
 @Injectable()
 export class OffersService {
     constructor(
         @InjectModel(Offer.name)
         private readonly offerModel: Model<OfferDocument>,
         private readonly logger: AppLoggerService,
+        private readonly favoritesService: FavoritesService,
+        private readonly establishmentsService: EstablishmentsService,
     ) { }
+
+    // ============================================================================
+    // PRODUCTION-GRADE: Helper for mapping offers with isFavorite field
+    // ============================================================================
+
+    /**
+     * Map offers to DTOs with isFavorite field (production-grade implementation)
+     * Efficiently checks favorite status using Set lookup (O(1) per offer)
+     *
+     * Performance:
+     * - Single favorites query (O(n) where n = user's favorites count)
+     * - Set lookup per offer (O(1))
+     * - Total: O(n + m) where m = offers count
+     *
+     * @param offers - Array of offer entities (supports documents, lean results, and aggregations)
+     * @param userId - Current user ID (optional, for authenticated requests)
+     * @returns Array of OfferCardDto with isFavorite field
+     */
+    /**
+     * Haversine distance in meters between two lat/lng points.
+     * O(1) — pure math, no DB calls.
+     */
+    private calculateDistance(
+        lat1: number, lng1: number,
+        lat2: number, lng2: number,
+    ): number {
+        const R = 6_371_000; // Earth radius in meters
+        const toRad = (deg: number) => deg * (Math.PI / 180);
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    private async mapOffersToDto(
+        offers: (OfferDocument | OfferLean)[],
+        userId?: string,
+    ): Promise<OfferCardDto[]> {
+        let favoriteSet: Set<string> = new Set();
+
+        // If user is authenticated, fetch their favorite IDs
+        if (userId) {
+            try {
+                const favoriteIds = await this.favoritesService.getUserFavoriteOfferIds(userId);
+                favoriteSet = new Set(favoriteIds); // O(1) lookup per offer
+
+                this.logger.debug(
+                    `Fetched ${favoriteIds.length} favorite IDs for user`,
+                    'OffersService',
+                    { userId, count: favoriteIds.length }
+                );
+            } catch (error) {
+                // Graceful degradation: log warning but continue without isFavorite
+                this.logger.warn(
+                    `Failed to fetch user favorites, continuing without isFavorite field`,
+                    'OffersService',
+                    { userId, error }
+                );
+            }
+        }
+
+        // Map offers to DTOs with isFavorite
+        return offers.map(offer => {
+            // ✅ TYPE SAFETY: Extract distance from lean objects (aggregations)
+            const distance = (offer as OfferLean).distance;
+
+            // ✅ TYPE SAFETY: Handle both ObjectId and string _id
+            const offerId = typeof offer._id === 'string'
+                ? offer._id
+                : offer._id?.toString() ?? '';
+
+            return OfferPresenter.toCardDto(
+                offer,
+                distance,
+                userId ? favoriteSet.has(offerId) : undefined
+            );
+        });
+    }
 
     async create(
         createOfferDto: CreateOfferDto,
         merchantId: string
     ): Promise<OfferDocument> {
-        this.validateEstablishmentOwnership(
+        await this.validateEstablishmentOwnerOnly(
             createOfferDto.establishmentId,
-            merchantId
+            merchantId,
         );
         // ✅ TIMEZONE: Convert local time (Tunisia) to UTC using proper timezone library
         // User inputs local time (e.g., 23:20 Tunisia) → Backend stores UTC (22:20)
@@ -116,7 +235,9 @@ export class OffersService {
         const availableUntil = TimezoneUtil.toUTC(createOfferDto.availableUntil, timezone);
         const now = new Date();
 
-        if (availableFrom < now) {
+        // 2-minute grace period covers network latency and the "Right Now" use case
+        // where the frontend captures the timestamp at submit time (seconds included).
+        if (availableFrom < new Date(Date.now() - 2 * 60 * 1000)) {
             throw new BadRequestException('Available from date cannot be in the past');
         }
         if (availableUntil <= availableFrom) {
@@ -135,27 +256,25 @@ export class OffersService {
             merchantId: new Types.ObjectId(merchantId),
             availableFrom,
             availableUntil,
+            // Explicit override — must come AFTER the spread so the merchant's
+            // choice is never overwritten by the DTO's class-field default (false).
+            isPickupToday:    createOfferDto.isPickupToday    === true,
+            isPickupTomorrow: createOfferDto.isPickupTomorrow === true,
             cancellationDeadline: createOfferDto.cancellationDeadline
                 ? TimezoneUtil.toUTC(createOfferDto.cancellationDeadline, timezone)
                 : new Date(availableFrom.getTime() - 2 * 60 * 60 * 1000), // 2 hours before
         });
 
-        return offer.save();
+        const savedOffer = await offer.save();
+        return savedOffer;
     }
 
     async findAll(
         page: number = 1,
         limit: number = 10,
         filters: SearchOffersDto = {},
-    ): Promise<FindAllResult> {
-        // 🔍 DEBUG: Log incoming request
-        console.log('========================================');
-        console.log('🔍 BACKEND: findAll called');
-        console.log('========================================');
-        console.log('page:', page);
-        console.log('limit:', limit);
-        console.log('filters:', JSON.stringify(filters, null, 2));
-        console.log('========================================');
+        userId?: string, // NEW: For isFavorite computation
+    ): Promise<{ data: OfferCardDto[]; total: number }> {
 
         // ✅ ENTERPRISE: DOS protection - limit max page size
         const safeLimit = Math.min(limit, 100);
@@ -338,7 +457,10 @@ export class OffersService {
             ]);
 
             const total = totalCount[0]?.total || 0;
-            return { offers: offers as OfferLean[], total };
+
+            // ✅ NEW: Map offers to DTOs with isFavorite
+            const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
+            return { data, total };
         }
 
         // ✅ ENTERPRISE: Geolocation query with pagination
@@ -348,7 +470,12 @@ export class OffersService {
 
             // ✅ FIX: Use $geoNear as FIRST stage (MongoDB requirement)
             // Move all offer filters into the 'query' parameter of $geoNear
-            const geoNearQuery: any = {
+            const geoNearQuery: {
+                isActive: boolean;
+                isDeleted: { $ne: boolean };
+                type?: { $in: string[] };
+                cuisineTypes?: { $in: string[] };
+            } = {
                 // Establishment must be active (we're querying establishments collection virtually)
                 isActive: true,
                 isDeleted: { $ne: true }
@@ -502,7 +629,10 @@ export class OffersService {
             ]);
 
             const total = totalCount[0]?.total || 0;
-            return { offers: offers as OfferLean[], total };
+
+            // ✅ NEW: Map offers to DTOs with isFavorite
+            const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
+            return { data, total };
         }
 
         // ✅ SECURITY: Whitelist-based sorting to prevent prototype pollution
@@ -523,76 +653,92 @@ export class OffersService {
             sort.createdAt = -1;
         }
 
-        // 🔍 DEBUG: Log final query before execution
-        console.log('========================================');
-        console.log('🔍 BACKEND: Final MongoDB query');
-        console.log('========================================');
-        console.log('query:', JSON.stringify(query, null, 2));
-        console.log('sort:', JSON.stringify(sort, null, 2));
-        console.log('skip:', skip);
-        console.log('limit:', safeLimit);
-        console.log('========================================');
+        // ✅ PERFORMANCE: Single aggregation pipeline replaces .find().populate().populate()
+        // Reduces 3 DB round-trips (1 find + 2 populates) → 1 aggregation
+        const pipeline: PipelineStage[] = [
+            { $match: query },
+            ...this.buildEstablishmentLookup(),
+            ...this.buildMerchantLookup(),
+            { $sort: sort },
+            { $skip: skip },
+            { $limit: safeLimit },
+        ];
 
         const [offers, total] = await Promise.all([
-            this.offerModel
-                .find(query)
-                .select(OFFER_LIST_FIELDS) // ✅ ENTERPRISE: Only fetch required fields (60% payload reduction)
-                .populate('establishmentId', 'name address type averageRating')
-                .populate('merchantId', 'firstName lastName profileImage')
-                .sort(sort)
-                .skip(skip)
-                .limit(safeLimit)
-                .lean() // ✅ ENTERPRISE: 50% memory reduction
-                .exec(),
+            this.offerModel.aggregate(pipeline).exec(),
             this.offerModel.countDocuments(query),
         ]);
 
-        // 🔍 DEBUG: Log results
-        console.log('========================================');
-        console.log('🔍 BACKEND: Query results');
-        console.log('========================================');
-        console.log('offers count:', offers.length);
-        console.log('total:', total);
-        if (offers.length > 0) {
-            console.log('First offer:', {
-                id: offers[0]._id,
-                title: offers[0].title,
-                discount: offers[0].pricing?.discountPercentage,
-                status: offers[0].status
-            });
-        }
-        console.log('========================================');
-
-        return { offers, total };
+        // ✅ NEW: Map offers to DTOs with isFavorite
+        const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
+        return { data, total };
     }
 
-    async findById(id: string): Promise<OfferDocument> {
+    async findById(id: string, viewerUserId?: string): Promise<OfferDocument> {
         if (!Types.ObjectId.isValid(id)) {
             throw new BadRequestException('Invalid offer ID');
         }
 
-        const offer = await this.offerModel
-            .findById(id)
-            .populate('establishmentId', 'name address type averageRating phoneNumber email')
-            .populate('merchantId', 'firstName lastName email phoneNumber profileImage')
-            .exec();
+        // ✅ PERFORMANCE: Single aggregation replaces findById + 2 populates (3 → 1 round-trip)
+        const pipeline: PipelineStage[] = [
+            { $match: { _id: new Types.ObjectId(id) } },
+            { $project: { viewedBy: 0 } }, // internal tracking field — never expose to API consumers
+            // Compute availableQuantity so frontend doesn't need to calculate it
+            {
+                $addFields: {
+                    id: { $toString: '$_id' }, // ✅ BUGFIX: Transform _id to id for frontend compatibility
+                    availableQuantity: {
+                        $subtract: ['$totalQuantity', { $add: ['$soldQuantity', '$reservedQuantity'] }],
+                    },
+                },
+            },
+            ...this.buildEstablishmentLookup(true),
+            ...this.buildMerchantLookup(true),
+        ];
+
+        const results = await this.offerModel.aggregate(pipeline).exec();
+        const offer = results[0] as OfferDocument | undefined;
 
         if (!offer) {
             throw new NotFoundException('Offer not found');
         }
 
-        // Increment view count
-        await this.offerModel.findByIdAndUpdate(id, { $inc: { viewCount: 1 } });
+        // Unique-view increment: atomic single op.
+        // Filter $ne ensures the update only matches when this user hasn't viewed before.
+        // If they have, filter misses → zero writes → viewCount unchanged.
+        if (viewerUserId) {
+            await this.offerModel.findOneAndUpdate(
+                { _id: id, viewedBy: { $ne: viewerUserId } },
+                { $inc: { viewCount: 1 }, $addToSet: { viewedBy: viewerUserId } },
+            );
+        }
 
         return offer;
     }
 
-    async findByEstablishment(establishmentId: string, page: number = 1, limit: number = 10): Promise<FindAllResult> {
-        return this.findAll(page, limit, { establishmentId });
+    async findByEstablishment(
+        establishmentId: string,
+        page: number = 1,
+        limit: number = 10,
+        userId?: string, // NEW: For isFavorite computation
+    ): Promise<{ data: OfferCardDto[]; total: number }> {
+        const result = await this.findAll(page, limit, { establishmentId }, userId);
+        return result;
     }
 
-    async findByMerchant(merchantId: string, page: number = 1, limit: number = 10): Promise<FindAllResult> {
-        return this.findAll(page, limit, { merchantId });
+    async findByMerchant(
+        merchantId: string,
+        page: number = 1,
+        limit: number = 10,
+        userId?: string, // NEW: For isFavorite computation
+        status?: OfferStatus,
+    ): Promise<{ data: OfferCardDto[]; total: number }> {
+        const filters: SearchOffersDto = { merchantId };
+        if (status) {
+            filters.status = status;
+        }
+        const result = await this.findAll(page, limit, filters, userId);
+        return result;
     }
 
     async update(
@@ -631,8 +777,13 @@ export class OffersService {
             this.validatePickupSlotsAgainstQuantity(offer.pickupTimeSlots, updateOfferDto.totalQuantity);
         }
         if (updateOfferDto.availableFrom || updateOfferDto.availableUntil) {
-            const availableFrom = updateOfferDto.availableFrom ? new Date(updateOfferDto.availableFrom) : offer.availableFrom;
-            const availableUntil = updateOfferDto.availableUntil ? new Date(updateOfferDto.availableUntil) : offer.availableUntil;
+            const timezone = updateOfferDto.timezone || 'Africa/Tunis';
+            const availableFrom = updateOfferDto.availableFrom
+                ? TimezoneUtil.toUTC(updateOfferDto.availableFrom, timezone)
+                : offer.availableFrom;
+            const availableUntil = updateOfferDto.availableUntil
+                ? TimezoneUtil.toUTC(updateOfferDto.availableUntil, timezone)
+                : offer.availableUntil;
 
             if (availableUntil <= availableFrom) {
                 throw new BadRequestException('Available until date must be after available from date');
@@ -642,39 +793,63 @@ export class OffersService {
             updateOfferDto.availableUntil = availableUntil.toISOString();
         }
 
-        const updatedOffer = await this.offerModel
-            .findByIdAndUpdate(
-                id,
-                {
-                    ...updateOfferDto,
-                    lastModifiedBy: new Types.ObjectId(userId)
-                },
-                { new: true }
-            )
-            .populate('establishmentId', 'name address type averageRating')
-            .populate('merchantId', 'firstName lastName')
-            .exec();
+        // Atomic update (no populate needed here)
+        await this.offerModel.findByIdAndUpdate(
+            id,
+            {
+                ...updateOfferDto,
+                lastModifiedBy: new Types.ObjectId(userId),
+            },
+            { new: true },
+        ).exec();
 
-        return updatedOffer;
+        // Return populated result via aggregation (reuses findById pipeline)
+        return this.findById(id);
     }
 
-    async updateStatus(id: string, status: OfferStatus): Promise<any> {
+    async updateStatus(
+        id: string,
+        status: OfferStatus,
+        merchantId?: string,
+    ): Promise<OfferDocument> {
+        // When a merchant tries to activate an offer, verify their establishment is approved.
+        // Admin users pass no merchantId and bypass this check intentionally.
+        if (status === OfferStatus.ACTIVE && merchantId) {
+            const offer = await this.offerModel
+                .findById(id)
+                .select('establishmentId merchantId')
+                .exec();
+
+            if (!offer) {
+                throw new NotFoundException('Offer not found');
+            }
+
+            if (offer.merchantId.toString() !== merchantId) {
+                throw new ForbiddenException('You can only manage your own offers');
+            }
+
+            await this.validateEstablishmentOwnership(
+                offer.establishmentId.toString(),
+                merchantId,
+            );
+        }
+
         const updateData: StatusUpdateData = { status };
 
         if (status === OfferStatus.ACTIVE) {
             updateData.publishedAt = new Date();
         }
 
-        const offer = await this.offerModel
+        const updatedOffer = await this.offerModel
             .findByIdAndUpdate(id, updateData, { new: true })
             .select('_id status publishedAt updatedAt')
             .exec();
 
-        if (!offer) {
+        if (!updatedOffer) {
             throw new NotFoundException('Offer not found');
         }
 
-        return offer;
+        return updatedOffer;
     }
 
     async reserveQuantity(
@@ -829,37 +1004,56 @@ export class OffersService {
      *
      * @param page - Page number (1-indexed)
      * @param limit - Items per page (max 100)
+     * @param userId - User ID for isFavorite computation (optional)
+     * @param userLocation - User coordinates for distance calculation (optional)
      * @returns Paginated offers available for pickup today
      */
     async getPickupTodayOffers(
         page: number = 1,
-        limit: number = 20
-    ): Promise<FindAllResult> {
+        limit: number = 20,
+        userId?: string,
+        userLocation?: { latitude: number; longitude: number },
+    ): Promise<{ data: OfferCardDto[]; total: number }> {
         const safeLimit = Math.min(limit, 100);
         const skip = (page - 1) * safeLimit;
 
-        // ✅ Merchant-controlled categorization (no time-based logic)
-        const query = {
+        const offerQuery = {
             status: OfferStatus.ACTIVE,
             isActive: true,
-            isPickupToday: true,  // Set by merchant when creating/editing offer
+            isPickupToday: true,
         };
 
+        // ✅ PERFORMANCE: Single aggregation replaces find + 2 populates (3 → 1 round-trip)
+        const pipeline: PipelineStage[] = [
+            { $match: offerQuery },
+            ...this.buildEstablishmentLookup(),
+            ...this.buildMerchantLookup(),
+            { $sort: { availableUntil: 1 as const, createdAt: -1 as const } },
+            { $skip: skip },
+            { $limit: safeLimit },
+        ];
+
         const [offers, total] = await Promise.all([
-            this.offerModel
-                .find(query)
-                .select(OFFER_LIST_FIELDS)
-                .populate('establishmentId', 'name address type averageRating')
-                .populate('merchantId', 'firstName lastName profileImage')  // ✅ Populate merchant for logo
-                .sort({ availableUntil: 1, createdAt: -1 }) // Expiring soon first
-                .skip(skip)
-                .limit(safeLimit)
-                .lean()
-                .exec(),
-            this.offerModel.countDocuments(query)
+            this.offerModel.aggregate(pipeline).exec(),
+            this.offerModel.countDocuments(offerQuery),
         ]);
 
-        return { offers, total };
+        // Enrich with distance before DTO mapping
+        if (userLocation) {
+            for (const offer of offers) {
+                const est = (offer as any).establishmentId;
+                const coords = est?.address?.coordinates?.coordinates;
+                if (coords && Array.isArray(coords) && coords.length === 2) {
+                    (offer as any).distance = Math.round(this.calculateDistance(
+                        userLocation.latitude, userLocation.longitude,
+                        coords[1], coords[0],
+                    ));
+                }
+            }
+        }
+
+        const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
+        return { data, total };
     }
 
     /**
@@ -869,37 +1063,56 @@ export class OffersService {
      *
      * @param page - Page number (1-indexed)
      * @param limit - Items per page (max 100)
+     * @param userId - User ID for isFavorite computation (optional)
+     * @param userLocation - User coordinates for distance calculation (optional)
      * @returns Paginated offers available for pickup tomorrow
      */
     async getPickupTomorrowOffers(
         page: number = 1,
-        limit: number = 20
-    ): Promise<FindAllResult> {
+        limit: number = 20,
+        userId?: string,
+        userLocation?: { latitude: number; longitude: number },
+    ): Promise<{ data: OfferCardDto[]; total: number }> {
         const safeLimit = Math.min(limit, 100);
         const skip = (page - 1) * safeLimit;
 
-        // ✅ Merchant-controlled categorization (no time-based logic)
-        const query = {
+        const offerQuery = {
             status: OfferStatus.ACTIVE,
             isActive: true,
-            isPickupTomorrow: true,  // Set by merchant when creating/editing offer
+            isPickupTomorrow: true,
         };
 
+        // ✅ PERFORMANCE: Single aggregation replaces find + 2 populates (3 → 1 round-trip)
+        const pipeline: PipelineStage[] = [
+            { $match: offerQuery },
+            ...this.buildEstablishmentLookup(),
+            ...this.buildMerchantLookup(),
+            { $sort: { availableUntil: 1 as const, createdAt: -1 as const } },
+            { $skip: skip },
+            { $limit: safeLimit },
+        ];
+
         const [offers, total] = await Promise.all([
-            this.offerModel
-                .find(query)
-                .select(OFFER_LIST_FIELDS)
-                .populate('establishmentId', 'name address type averageRating')
-                .populate('merchantId', 'firstName lastName profileImage')  // ✅ Populate merchant for logo
-                .sort({ availableUntil: 1, createdAt: -1 }) // Expiring soon first
-                .skip(skip)
-                .limit(safeLimit)
-                .lean()
-                .exec(),
-            this.offerModel.countDocuments(query)
+            this.offerModel.aggregate(pipeline).exec(),
+            this.offerModel.countDocuments(offerQuery),
         ]);
 
-        return { offers, total };
+        // Enrich with distance before DTO mapping
+        if (userLocation) {
+            for (const offer of offers) {
+                const est = (offer as any).establishmentId;
+                const coords = est?.address?.coordinates?.coordinates;
+                if (coords && Array.isArray(coords) && coords.length === 2) {
+                    (offer as any).distance = Math.round(this.calculateDistance(
+                        userLocation.latitude, userLocation.longitude,
+                        coords[1], coords[0],
+                    ));
+                }
+            }
+        }
+
+        const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
+        return { data, total };
     }
 
     /**
@@ -912,8 +1125,9 @@ export class OffersService {
      */
     async getFeaturedOffers(
         page: number = 1,
-        limit: number = 10
-    ): Promise<FindAllResult> {
+        limit: number = 10,
+        userId?: string, // NEW: For isFavorite computation
+    ): Promise<{ data: OfferCardDto[]; total: number }> {
         // ✅ ENTERPRISE: DOS protection - limit max page size
         const safeLimit = Math.min(limit, 100);
         const skip = (page - 1) * safeLimit;
@@ -934,21 +1148,25 @@ export class OffersService {
             ]
         };
 
+        // ✅ PERFORMANCE: Single aggregation replaces find + 2 populates (3 → 1 round-trip)
+        const pipeline: PipelineStage[] = [
+            { $match: query },
+            ...this.buildEstablishmentLookup(),
+            ...this.buildMerchantLookup(),
+            { $sort: { createdAt: -1 as const } },
+            { $skip: skip },
+            { $limit: safeLimit },
+        ];
+
         const [offers, total] = await Promise.all([
-            this.offerModel
-                .find(query)
-                .select(OFFER_LIST_FIELDS) // ✅ ENTERPRISE: Only fetch required fields
-                .populate('establishmentId', 'name address type averageRating')
-                .populate('merchantId', 'firstName lastName profileImage') // ✅ Merchant profile image for OfferCard logo
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(safeLimit)
-                .lean() // ✅ ENTERPRISE: 50% memory reduction
-                .exec(),
-            this.offerModel.countDocuments(query)
+            this.offerModel.aggregate(pipeline).exec(),
+            this.offerModel.countDocuments(query),
         ]);
 
-        return { offers, total };
+        // ✅ Map to DTOs with isFavorite field
+        const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
+
+        return { data, total };
     }
     /**
      * Get nearby offers with enterprise-grade pagination and geolocation
@@ -967,7 +1185,8 @@ export class OffersService {
         maxDistance: number = 5000,
         page: number = 1,
         limit: number = 20,
-    ): Promise<FindAllResult> {
+        userId?: string, // NEW: For isFavorite computation
+    ): Promise<{ data: OfferCardDto[]; total: number }> {
         // ✅ ENTERPRISE: DOS protection - limit max page size
         const safeLimit = Math.min(limit, 100);
         const skip = (page - 1) * safeLimit;
@@ -1091,7 +1310,11 @@ export class OffersService {
         ]);
 
         const total = totalCount[0]?.total || 0;
-        return { offers: offers as OfferLean[], total };
+
+        // ✅ Map to DTOs with isFavorite field
+        const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
+
+        return { data, total };
     }
     /**
      * Get expiring offers with enterprise-grade pagination
@@ -1105,9 +1328,10 @@ export class OffersService {
     async getExpiringOffers(
         hoursUntilExpiry: number = 24,
         page: number = 1,
-        limit: number = 20
-    ): Promise<FindAllResult> {
-        // ✅ ENTERPRISE: DOS protection - limit max page size
+        limit: number = 20,
+        userId?: string,
+        userLocation?: { latitude: number; longitude: number },
+    ): Promise<{ data: OfferCardDto[]; total: number }> {
         const safeLimit = Math.min(limit, 100);
         const skip = (page - 1) * safeLimit;
 
@@ -1119,21 +1343,39 @@ export class OffersService {
             availableUntil: { $lte: expiryTime, $gte: now }
         };
 
+        // ✅ PERFORMANCE: Single aggregation replaces find + 2 populates (3 → 1 round-trip)
+        // Note: buildMerchantLookup(true) includes email for expiring-offer notifications
+        const pipeline: PipelineStage[] = [
+            { $match: query },
+            ...this.buildEstablishmentLookup(),
+            ...this.buildMerchantLookup(true),
+            { $sort: { availableUntil: 1 as const } },
+            { $skip: skip },
+            { $limit: safeLimit },
+        ];
+
         const [offers, total] = await Promise.all([
-            this.offerModel
-                .find(query)
-                .select(OFFER_LIST_FIELDS) // ✅ ENTERPRISE: Only fetch required fields
-                .populate('establishmentId', 'name address type')
-                .populate('merchantId', 'firstName lastName email profileImage')
-                .sort({ availableUntil: 1 }) // Sort by expiry time (soonest first)
-                .skip(skip)
-                .limit(safeLimit)
-                .lean() // ✅ ENTERPRISE: 50% memory reduction
-                .exec(),
-            this.offerModel.countDocuments(query)
+            this.offerModel.aggregate(pipeline).exec(),
+            this.offerModel.countDocuments(query),
         ]);
 
-        return { offers, total };
+        // Enrich raw offers with distance before DTO mapping
+        if (userLocation) {
+            for (const offer of offers) {
+                const est = (offer as any).establishmentId;
+                const coords = est?.address?.coordinates?.coordinates;
+                if (coords && Array.isArray(coords) && coords.length === 2) {
+                    (offer as any).distance = Math.round(this.calculateDistance(
+                        userLocation.latitude, userLocation.longitude,
+                        coords[1], coords[0],
+                    ));
+                }
+            }
+        }
+
+        const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
+
+        return { data, total };
     }
 
     /**
@@ -1156,11 +1398,11 @@ export class OffersService {
     async getUrgentOffers(
         hoursUntilExpiry: number = 1,
         page: number = 1,
-        limit: number = 10
-    ): Promise<FindAllResult> {
-        // ✅ Reuse existing getExpiringOffers logic
-        // This ensures consistency and reduces code duplication
-        return this.getExpiringOffers(hoursUntilExpiry, page, limit);
+        limit: number = 10,
+        userId?: string,
+        userLocation?: { latitude: number; longitude: number },
+    ): Promise<{ data: OfferCardDto[]; total: number }> {
+        return this.getExpiringOffers(hoursUntilExpiry, page, limit, userId, userLocation);
     }
 
     /**
@@ -1190,20 +1432,23 @@ export class OffersService {
      * @param limit - Maximum offers to return (default: 20, max: 100)
      * @returns Recommended offers array
      */
-    async getRecommendedOffers(userId: string, limit: number = 20): Promise<OfferLean[]> {
+    async getRecommendedOffers(userId: string, limit: number = 20): Promise<OfferCardDto[]> {
         // ✅ ENTERPRISE: DOS protection - limit max page size
         const safeLimit = Math.min(limit, 100);
 
-        // Step 1: Get user's active favorites
-        // TODO: Fetch favorites via FavoritesService or event-driven approach
-        const favorites: any[] = [];
+        // Step 1: Get user's active favorites from FavoritesService
+        // ✅ PRODUCTION: Uses actual favorites service instead of empty array
+        const favorites = await this.favoritesService.getUserFavorites(userId, {
+            isActive: true,
+            limit: 1000, // Get all favorites for recommendation engine
+        });
 
         // Extract favorited establishment IDs and categories
-        const favoritedEstablishments = favorites
+        const favoritedEstablishments = favorites.favorites
             .filter(f => f.type === 'establishment')
-            .map(f => f.itemId);
+            .map(f => f.itemId.toString());
 
-        const favoritedCategories = favorites
+        const favoritedCategories = favorites.favorites
             .filter(f => f.type === 'category')
             .map(f => f.itemName); // Using itemName for categories (stored as string names)
 
@@ -1213,8 +1458,8 @@ export class OffersService {
                 `User ${userId} has no favorites, returning featured offers`,
                 'OffersService'
             );
-            const result = await this.getFeaturedOffers(1, safeLimit);
-            return result.offers;
+            const result = await this.getFeaturedOffers(1, safeLimit, userId);
+            return result.data;
         }
 
         const now = new Date();
@@ -1344,36 +1589,129 @@ export class OffersService {
             'OffersService'
         );
 
-        return offers as OfferLean[];
+        // ✅ Map to DTOs with isFavorite field
+        return this.mapOffersToDto(offers as OfferDocument[], userId);
+    }
+
+    // =========================================================================
+    // REUSABLE $lookup PIPELINE BUILDERS (replaces .populate() — 1 round-trip)
+    // =========================================================================
+
+    /**
+     * Build $lookup stages for establishment population.
+     * Overwrites the `establishmentId` ObjectId with the populated object
+     * (identical shape to Mongoose `.populate()`).
+     *
+     * @param includeContact - Include phoneNumber and email in projection
+     * @returns PipelineStage[] to spread into an aggregation pipeline
+     */
+    private buildEstablishmentLookup(includeContact = false): PipelineStage[] {
+        const fields: Record<string, 1> = {
+            _id: 1, name: 1, address: 1, type: 1, averageRating: 1,
+        };
+        if (includeContact) {
+            fields.phoneNumber = 1;
+            fields.email = 1;
+        }
+
+        return [
+            {
+                $lookup: {
+                    from: 'establishments',
+                    let: { refId: '$establishmentId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+                        { $project: fields },
+                    ],
+                    as: '_establishmentDoc',
+                },
+            },
+            { $unwind: { path: '$_establishmentDoc', preserveNullAndEmptyArrays: true } },
+            { $addFields: { establishmentId: '$_establishmentDoc' } },
+            { $project: { _establishmentDoc: 0 } },
+        ];
     }
 
     /**
-     * Calculate distance between two geographic coordinates using Haversine formula
-     * @param lat1 - User latitude
-     * @param lon1 - User longitude
-     * @param lat2 - Establishment latitude
-     * @param lon2 - Establishment longitude
-     * @returns Distance in meters
+     * Build $lookup stages for merchant (user) population.
+     * Overwrites the `merchantId` ObjectId with the populated object
+     * (identical shape to Mongoose `.populate()`).
+     *
+     * @param includeContact - Include email and phoneNumber in projection
+     * @returns PipelineStage[] to spread into an aggregation pipeline
      */
-    calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-        const R = 6371e3; // Earth radius in meters
-        const φ1 = (lat1 * Math.PI) / 180;
-        const φ2 = (lat2 * Math.PI) / 180;
-        const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-        const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+    private buildMerchantLookup(includeContact = false): PipelineStage[] {
+        const fields: Record<string, 1> = {
+            _id: 1, firstName: 1, lastName: 1, profileImage: 1,
+        };
+        if (includeContact) {
+            fields.email = 1;
+            fields.phoneNumber = 1;
+        }
 
-        const a =
-            Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-            Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return Math.round(R * c); // Distance in meters
+        return [
+            {
+                $lookup: {
+                    from: 'users',
+                    let: { refId: '$merchantId' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+                        { $project: fields },
+                    ],
+                    as: '_merchantDoc',
+                },
+            },
+            { $unwind: { path: '$_merchantDoc', preserveNullAndEmptyArrays: true } },
+            { $addFields: { merchantId: '$_merchantDoc' } },
+            { $project: { _merchantDoc: 0 } },
+        ];
     }
 
-    private validateEstablishmentOwnership(_establishmentId: string, _merchantId: string): EstablishmentDocument | null {
-        // This would typically use EstablishmentsService
-        // For now, we'll assume the validation is done at controller level
-        return null;
+    /**
+     * Validates that the merchant owns the establishment AND that it is approved.
+     * Used when the merchant activates an existing offer.
+     *
+     * @throws NotFoundException  - establishment does not exist
+     * @throws ForbiddenException - merchant does not own it, or it is not ACTIVE
+     */
+    private async validateEstablishmentOwnership(
+        establishmentId: string,
+        merchantId: string,
+    ): Promise<EstablishmentDocument> {
+        const establishment = await this.establishmentsService.findById(establishmentId);
+
+        if (establishment.ownerId.toString() !== merchantId) {
+            throw new ForbiddenException('You can only create offers for your own establishment');
+        }
+
+        if (establishment.status !== EstablishmentStatus.ACTIVE) {
+            throw new ForbiddenException(
+                'Your establishment must be approved before you can activate offers. ' +
+                `Current status: ${establishment.status}`,
+            );
+        }
+
+        return establishment;
+    }
+
+    /**
+     * Validates ownership only — does NOT check establishment approval status.
+     * Used when creating a draft offer so unapproved merchants can still prepare offers.
+     *
+     * @throws NotFoundException  - establishment does not exist
+     * @throws ForbiddenException - merchant does not own the establishment
+     */
+    private async validateEstablishmentOwnerOnly(
+        establishmentId: string,
+        merchantId: string,
+    ): Promise<EstablishmentDocument> {
+        const establishment = await this.establishmentsService.findById(establishmentId);
+
+        if (establishment.ownerId.toString() !== merchantId) {
+            throw new ForbiddenException('You can only create offers for your own establishment');
+        }
+
+        return establishment;
     }
 
     /**
@@ -1427,7 +1765,7 @@ export class OffersService {
                 throw new BadRequestException('Pickup slot start time must be before end time');
             }
 
-            if (slot.maxOrders < 1) {
+            if (slot.maxOrders != null && slot.maxOrders < 1) {
                 throw new BadRequestException('Maximum orders per slot must be at least 1');
             }
         }
@@ -1441,7 +1779,11 @@ export class OffersService {
         slots: OfferPickupTimeSlot[],
         totalQuantity: number
     ): void {
-        const totalSlotCapacity = slots.reduce((sum, slot) => sum + slot.maxOrders, 0);
+        // Only validate when at least one slot has a limit set
+        const slotsWithLimits = slots.filter(slot => slot.maxOrders != null);
+        if (slotsWithLimits.length === 0) return;
+
+        const totalSlotCapacity = slotsWithLimits.reduce((sum, slot) => sum + (slot.maxOrders ?? 0), 0);
 
         if (totalSlotCapacity > totalQuantity) {
             throw new BadRequestException(
@@ -1449,6 +1791,217 @@ export class OffersService {
                 `Please reduce maxOrders per slot or increase totalQuantity.`
             );
         }
+    }
+
+    // =========================================================================
+    // OFFER LIFECYCLE: Reactivate & Toggle
+    // =========================================================================
+
+    /**
+     * Reactivate an expired/cancelled/sold_out offer with new dates
+     * Resets quantities, sets new availability window, and transitions to ACTIVE
+     *
+     * Business Rules:
+     * - Only the owning merchant (or admin) can reactivate
+     * - Offer must be in EXPIRED, CANCELLED, or SOLD_OUT status
+     * - New dates must be valid (future, from < until)
+     * - Pickup time slots are re-validated
+     * - Quantities reset: reservedQuantity=0, soldQuantity=0
+     *
+     * @param offerId - Offer ID to reactivate
+     * @param dto - New dates, pickup slots, and optional quantity
+     * @param userId - Requesting user ID
+     * @param userRole - Requesting user role
+     * @returns Reactivated offer document
+     */
+    async reactivateOffer(
+        offerId: string,
+        dto: ReactivateOfferDto,
+        userId: string,
+        userRole: string,
+    ): Promise<OfferDocument> {
+        const offer = await this.findById(offerId);
+
+        // Ownership check
+        const merchantIdString = typeof offer.merchantId === 'object' && offer.merchantId._id
+            ? offer.merchantId._id.toString()
+            : offer.merchantId.toString();
+
+        if (userRole !== 'admin' && merchantIdString !== userId) {
+            throw new ForbiddenException('You can only reactivate your own offers');
+        }
+
+        // Establishment approval guard — merchants cannot reactivate offers
+        // for establishments that have not yet been approved by an admin.
+        if (userRole !== 'admin') {
+            const establishmentId = typeof offer.establishmentId === 'object' && (offer.establishmentId as any)._id
+                ? (offer.establishmentId as any)._id.toString()
+                : offer.establishmentId.toString();
+
+            await this.validateEstablishmentOwnership(establishmentId, userId);
+        }
+
+        // Status guard — only allow reactivation from terminal states
+        const reactivatableStatuses: OfferStatus[] = [
+            OfferStatus.EXPIRED,
+            OfferStatus.CANCELLED,
+            OfferStatus.SOLD_OUT,
+        ];
+
+        if (!reactivatableStatuses.includes(offer.status as OfferStatus)) {
+            throw new BadRequestException(
+                `Cannot reactivate an offer with status "${offer.status}". ` +
+                `Only expired, cancelled, or sold-out offers can be reactivated.`,
+            );
+        }
+
+        // Validate new dates
+        const timezone = dto.timezone || 'Africa/Tunis';
+        const availableFrom = TimezoneUtil.toUTC(dto.availableFrom, timezone);
+        const availableUntil = TimezoneUtil.toUTC(dto.availableUntil, timezone);
+        const now = new Date();
+
+        // 2-minute grace period — consistent with create() for "Right Now" reactivations.
+        if (availableFrom < new Date(Date.now() - 2 * 60 * 1000)) {
+            throw new BadRequestException('Available from date cannot be in the past');
+        }
+        if (availableUntil <= availableFrom) {
+            throw new BadRequestException('Available until date must be after available from date');
+        }
+
+        // Validate pickup time slots
+        this.validatePickupTimeSlots(dto.pickupTimeSlots);
+        const totalQuantity = dto.totalQuantity ?? offer.totalQuantity;
+        this.validatePickupSlotsAgainstQuantity(dto.pickupTimeSlots, totalQuantity);
+
+        // Reset pickup slot counters
+        const cleanSlots = dto.pickupTimeSlots.map(slot => ({
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            maxOrders: slot.maxOrders,
+            currentOrders: 0,
+        }));
+
+        // Atomic update — reset quantities and set new window
+        const updated = await this.offerModel.findByIdAndUpdate(
+            offerId,
+            {
+                $set: {
+                    status: OfferStatus.ACTIVE,
+                    isActive: true,
+                    availableFrom,
+                    availableUntil,
+                    pickupTimeSlots: cleanSlots,
+                    totalQuantity,
+                    reservedQuantity: 0,
+                    soldQuantity: 0,
+                    publishedAt: now,
+                    lastModifiedBy: new Types.ObjectId(userId),
+                    isPickupToday: dto.isPickupToday ?? false,
+                    isPickupTomorrow: dto.isPickupTomorrow ?? false,
+                    // Clear expiration metadata
+                    expiredAt: null,
+                    // Clear auto-featuring (will be re-evaluated by cron)
+                    isFeaturedAuto: false,
+                },
+            },
+            { new: true },
+        ).exec();
+
+        if (!updated) {
+            throw new NotFoundException('Offer not found');
+        }
+
+        this.logger.log(
+            `Offer ${offerId} reactivated by ${userRole} ${userId} ` +
+            `(${availableFrom.toISOString()} → ${availableUntil.toISOString()}, qty: ${totalQuantity})`,
+            'OffersService',
+        );
+
+        return this.findById(offerId);
+    }
+
+    /**
+     * Toggle offer visibility (enable/disable)
+     * Merchants can temporarily hide their offer without changing its status
+     *
+     * Business Rules:
+     * - Only the owning merchant (or admin) can toggle
+     * - Offer must be in ACTIVE or DRAFT status to disable
+     * - Disabling sets isActive=false (hidden from public queries)
+     * - Enabling sets isActive=true (visible again)
+     * - Does NOT affect status field (remains ACTIVE/DRAFT)
+     * - Offers with active reservations cannot be disabled
+     *
+     * @param offerId - Offer ID to toggle
+     * @param enable - true to enable, false to disable
+     * @param userId - Requesting user ID
+     * @param userRole - Requesting user role
+     * @returns Updated offer document
+     */
+    async toggleOfferActive(
+        offerId: string,
+        enable: boolean,
+        userId: string,
+        userRole: string,
+    ): Promise<OfferDocument> {
+        const offer = await this.findById(offerId);
+
+        // Ownership check
+        const merchantIdString = typeof offer.merchantId === 'object' && offer.merchantId._id
+            ? offer.merchantId._id.toString()
+            : offer.merchantId.toString();
+
+        if (userRole !== 'admin' && merchantIdString !== userId) {
+            throw new ForbiddenException('You can only enable/disable your own offers');
+        }
+
+        // Cannot disable offers with active reservations
+        if (!enable && offer.reservedQuantity > 0) {
+            throw new BadRequestException(
+                'Cannot disable an offer with active reservations. Wait for reservations to complete or cancel them first.',
+            );
+        }
+
+        // Status guard — only ACTIVE or DRAFT offers can be toggled
+        const togglableStatuses: OfferStatus[] = [OfferStatus.ACTIVE, OfferStatus.DRAFT];
+        if (!togglableStatuses.includes(offer.status as OfferStatus)) {
+            throw new BadRequestException(
+                `Cannot toggle an offer with status "${offer.status}". ` +
+                `Only active or draft offers can be enabled/disabled.`,
+            );
+        }
+
+        // Prevent no-op
+        if (offer.isActive === enable) {
+            throw new BadRequestException(
+                `Offer is already ${enable ? 'enabled' : 'disabled'}.`,
+            );
+        }
+
+        const updated = await this.offerModel.findByIdAndUpdate(
+            offerId,
+            {
+                $set: {
+                    isActive: enable,
+                    lastModifiedBy: new Types.ObjectId(userId),
+                    // When disabling, remove from auto-featuring
+                    ...(!enable && { isFeaturedAuto: false }),
+                },
+            },
+            { new: true },
+        ).exec();
+
+        if (!updated) {
+            throw new NotFoundException('Offer not found');
+        }
+
+        this.logger.log(
+            `Offer ${offerId} ${enable ? 'enabled' : 'disabled'} by ${userRole} ${userId}`,
+            'OffersService',
+        );
+
+        return this.findById(offerId);
     }
 
     async updateExpiredOffers(): Promise<number> {
@@ -1483,7 +2036,11 @@ export class OffersService {
         isFeatured: boolean,
         userId?: string
     ): Promise<OfferDocument> {
-        const updateData: any = {
+        const updateData: {
+            isFeaturedManual: boolean;
+            featuredAt?: Date | null;
+            featuredBy?: Types.ObjectId | null;
+        } = {
             isFeaturedManual: isFeatured,
         };
 
@@ -1522,7 +2079,8 @@ export class OffersService {
      * @deprecated Use setManualFeatured instead
      */
     async setFeatured(offerId: string, isFeatured: boolean): Promise<OfferDocument> {
-        return this.setManualFeatured(offerId, isFeatured);
+        const result = await this.setManualFeatured(offerId, isFeatured);
+        return result;
     }
 
     /**

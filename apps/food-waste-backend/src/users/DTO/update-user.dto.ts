@@ -1,10 +1,22 @@
 import { PartialType, OmitType } from '@nestjs/mapped-types';
 import { CreateUserDto } from './create-user.dto';
 import { IsOptional, IsString, IsUrl } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class UpdateUserDto extends PartialType(
     OmitType(CreateUserDto, ['password', 'email'] as const)
 ) {
+    /**
+     * Phone field accepted from the frontend/shared UpdateProfileRequest type.
+     * The controller remaps this to `phoneNumber` (the schema field) before
+     * calling the service, so both names are valid at the API boundary.
+     * Empty strings are converted to undefined and skipped.
+     */
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => (typeof value === 'string' ? value.trim() || undefined : value))
+    phone?: string;
+
     @IsOptional()
     @IsString()
     avatar?: string;
