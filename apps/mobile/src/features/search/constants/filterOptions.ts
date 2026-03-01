@@ -38,16 +38,13 @@ export interface CuisineTypeOption {
 }
 
 export const CUISINE_TYPE_OPTIONS: CuisineTypeOption[] = [
+  { value: 'tunisian', label: 'Tunisian', flag: '🇹🇳' },
   { value: 'italian', label: 'Italian', flag: '🇮🇹' },
   { value: 'asian', label: 'Asian', flag: '🇨🇳' },
-  { value: 'japanese', label: 'Japanese', flag: '🇯🇵' },
   { value: 'french', label: 'French', flag: '🇫🇷' },
-  { value: 'mexican', label: 'Mexican', flag: '🇲🇽' },
-  { value: 'tunisian', label: 'Tunisian', flag: '🇹🇳' },
+  { value: 'shami', label: 'Shami', flag: '🌙' },
+  { value: 'vegetarian', label: 'Vegetarian', flag: '🥗' },
   { value: 'mediterranean', label: 'Mediterranean', flag: '🌊' },
-  { value: 'american', label: 'American', flag: '🇺🇸' },
-  { value: 'indian', label: 'Indian', flag: '🇮🇳' },
-  { value: 'lebanese', label: 'Lebanese', flag: '🇱🇧' },
 ];
 
 // ============================================================================

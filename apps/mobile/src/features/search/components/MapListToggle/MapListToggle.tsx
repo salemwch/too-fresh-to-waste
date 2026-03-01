@@ -11,12 +11,7 @@
  */
 
 import React, { useRef, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-} from 'react-native';
+import { View, StyleSheet, Pressable, Animated } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -37,11 +32,7 @@ export interface MapListToggleProps {
 // Component
 // ============================================================================
 
-export const MapListToggle: React.FC<MapListToggleProps> = ({
-  value,
-  onChange,
-  style,
-}) => {
+export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, style }) => {
   const theme = useTheme();
   const slideAnim = useRef(new Animated.Value(value === 'map' ? 0 : 1)).current;
 
@@ -79,7 +70,7 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({
               {
                 translateX: slideAnim.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [2, 62], // Half of container width - padding
+                  outputRange: [2, 82], // Half of container width - padding
                 }),
               },
             ],
@@ -88,56 +79,54 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({
       />
 
       {/* Map Button */}
-      <TouchableOpacity
+      <Pressable
         style={styles.button}
         onPress={handleMapPress}
-        activeOpacity={0.8}
-        accessibilityRole="button"
-        accessibilityLabel="Map view"
+        accessibilityRole='button'
+        accessibilityLabel='Map view'
         accessibilityState={{ selected: value === 'map' }}
       >
         <Icon
-          name="map-outline"
-          family="Ionicons"
+          name='map-outline'
+          family='Ionicons'
           size={18}
           color={value === 'map' ? theme.colors.primary : theme.colors.onSurfaceVariant}
         />
         <Text
-          variant="label"
-          size="sm"
+          variant='label'
+          size='sm'
           weight={value === 'map' ? 'bold' : 'medium'}
           color={value === 'map' ? 'primary' : 'secondary'}
           style={styles.buttonText}
         >
           Map
         </Text>
-      </TouchableOpacity>
+      </Pressable>
 
       {/* List Button */}
-      <TouchableOpacity
+      <Pressable
         style={styles.button}
         onPress={handleListPress}
-        activeOpacity={0.8}
-        accessibilityRole="button"
-        accessibilityLabel="List view"
+        accessibilityRole='button'
+        accessibilityLabel='List view'
         accessibilityState={{ selected: value === 'list' }}
       >
         <Icon
-          name="list-outline"
-          family="Ionicons"
+          name='list-outline'
+          family='Ionicons'
           size={18}
           color={value === 'list' ? theme.colors.primary : theme.colors.onSurfaceVariant}
         />
         <Text
-          variant="label"
-          size="sm"
+          variant='label'
+          size='sm'
           weight={value === 'list' ? 'bold' : 'medium'}
           color={value === 'list' ? 'primary' : 'secondary'}
           style={styles.buttonText}
         >
           List
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };
@@ -151,15 +140,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 12,
     padding: 2,
-    width: 124,
+    width: 164,
     position: 'relative',
   },
   selectionIndicator: {
     position: 'absolute',
     top: 2,
     left: 0,
-    width: 60,
-    height: 36,
+    width: 80,
+    height: 38,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -172,8 +161,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
     zIndex: 1,
   },
   buttonText: {

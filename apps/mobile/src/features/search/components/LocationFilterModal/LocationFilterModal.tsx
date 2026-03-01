@@ -3,17 +3,18 @@
  *
  * Beautiful bottom sheet modal for location filtering.
  * Features:
- * - Continuous distance slider (1-50km)
+ * - Continuous distance slider (0.5-30km)
  * - City search with autocomplete
  * - "Use my current location" button
  * - Smooth animations
  */
 
+import { Slider } from '@miblanchard/react-native-slider';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Modal,
-  TouchableOpacity,
+  Pressable,
   TouchableWithoutFeedback,
   FlatList,
   StyleSheet,
@@ -21,7 +22,6 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { Slider } from '@miblanchard/react-native-slider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text, Icon, Input, Button } from '@/design-system/components/atoms';
@@ -68,8 +68,10 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
   const slideAnim = useRef(new Animated.Value(MODAL_HEIGHT)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
 
-  // Local state
-  const [localRadius, setLocalRadius] = useState(currentRadius);
+  const MAX_RADIUS = 30;
+
+  // Local state — clamp to new max in case a persisted value exceeds it
+  const [localRadius, setLocalRadius] = useState(Math.min(currentRadius, MAX_RADIUS));
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -87,10 +89,10 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
     debouncedQuery.length >= 2 ? debouncedQuery : '',
   );
 
-  // Sync local radius with prop
+  // Sync local radius with prop (clamp to max)
   useEffect(() => {
-    setLocalRadius(currentRadius);
-  }, [currentRadius]);
+    setLocalRadius(Math.min(currentRadius, MAX_RADIUS));
+  }, [currentRadius, MAX_RADIUS]);
 
   // Animate modal in/out
   useEffect(() => {
@@ -168,26 +170,30 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
 
   const renderSearchResult = useCallback(
     ({ item }: { item: GeocodeResult }) => (
-      <TouchableOpacity
+      <Pressable
         style={[styles.searchResultItem, { borderBottomColor: theme.colors.outline }]}
         onPress={() => handleLocationSelect(item)}
-        activeOpacity={0.7}
       >
         <View style={[styles.searchResultIcon, { backgroundColor: theme.colors.primaryContainer }]}>
-          <Icon name="location-sharp" family="Ionicons" size={18} color={theme.colors.primary} />
+          <Icon name='location-sharp' family='Ionicons' size={18} color={theme.colors.primary} />
         </View>
         <View style={styles.searchResultText}>
-          <Text variant="body" size="md" weight="medium" numberOfLines={1}>
-            {(item.address?.city && item.address.city !== 'Unknown')
+          <Text variant='body' size='md' weight='medium' numberOfLines={1}>
+            {item.address?.city && item.address.city !== 'Unknown'
               ? item.address.city
               : (item.displayName?.split(',')[0] ?? 'Unknown location')}
           </Text>
-          <Text variant="body" size="sm" color="secondary" numberOfLines={1}>
+          <Text variant='body' size='sm' color='secondary' numberOfLines={1}>
             {item.displayName ?? ''}
           </Text>
         </View>
-        <Icon name="chevron-forward" family="Ionicons" size={18} color={theme.colors.onSurfaceVariant} />
-      </TouchableOpacity>
+        <Icon
+          name='chevron-forward'
+          family='Ionicons'
+          size={18}
+          color={theme.colors.onSurfaceVariant}
+        />
+      </Pressable>
     ),
     [theme.colors, handleLocationSelect],
   );
@@ -198,7 +204,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
     <Modal
       visible={visible}
       transparent
-      animationType="none"
+      animationType='none'
       statusBarTranslucent
       onRequestClose={onClose}
     >
@@ -235,31 +241,36 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
 
         {/* Header */}
         <View style={styles.header}>
-          <Text variant="title" size="lg" weight="bold">
+          <Text variant='title' size='lg' weight='bold'>
             Location & Distance
           </Text>
-          <TouchableOpacity
+          <Pressable
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Icon name="close" family="Ionicons" size={24} color={theme.colors.onSurface} />
-          </TouchableOpacity>
+            <Icon name='close' family='Ionicons' size={24} color={theme.colors.onSurface} />
+          </Pressable>
         </View>
 
         {/* Distance Slider Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconContainer, { backgroundColor: theme.colors.primaryContainer }]}>
-              <Icon name="resize" family="Ionicons" size={20} color={theme.colors.primary} />
+            <View
+              style={[
+                styles.sectionIconContainer,
+                { backgroundColor: theme.colors.primaryContainer },
+              ]}
+            >
+              <Icon name='resize' family='Ionicons' size={20} color={theme.colors.primary} />
             </View>
-            <Text variant="title" size="md" weight="semibold">
+            <Text variant='title' size='md' weight='semibold'>
               Search Radius
             </Text>
           </View>
 
           <View style={styles.sliderContainer}>
             <View style={styles.sliderValueContainer}>
-              <Text variant="display" size="md" weight="bold" color="primary">
+              <Text variant='display' size='md' weight='bold' color='primary'>
                 {formatRadius(localRadius)}
               </Text>
             </View>
@@ -267,10 +278,10 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
             <Slider
               containerStyle={styles.slider}
               minimumValue={0.5}
-              maximumValue={50}
+              maximumValue={30}
               value={[localRadius]}
-              onValueChange={(values) => setLocalRadius(values[0] ?? localRadius)}
-              onSlidingComplete={(values) => handleSliderComplete(values[0] ?? localRadius)}
+              onValueChange={values => setLocalRadius(values[0] ?? localRadius)}
+              onSlidingComplete={values => handleSliderComplete(values[0] ?? localRadius)}
               minimumTrackTintColor={theme.colors.primary}
               maximumTrackTintColor={theme.colors.outline}
               thumbTintColor={theme.colors.primary}
@@ -280,14 +291,14 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
             />
 
             <View style={styles.sliderLabels}>
-              <Text variant="label" size="xs" color="secondary">
+              <Text variant='label' size='xs' color='secondary'>
                 500m
               </Text>
-              <Text variant="label" size="xs" color="secondary">
+              <Text variant='label' size='xs' color='secondary'>
                 25km
               </Text>
-              <Text variant="label" size="xs" color="secondary">
-                50km
+              <Text variant='label' size='xs' color='secondary'>
+                30km
               </Text>
             </View>
           </View>
@@ -299,25 +310,30 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
         {/* City Search Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconContainer, { backgroundColor: theme.colors.primaryContainer }]}>
-              <Icon name="search" family="Ionicons" size={20} color={theme.colors.primary} />
+            <View
+              style={[
+                styles.sectionIconContainer,
+                { backgroundColor: theme.colors.primaryContainer },
+              ]}
+            >
+              <Icon name='search' family='Ionicons' size={20} color={theme.colors.primary} />
             </View>
-            <Text variant="title" size="md" weight="semibold">
+            <Text variant='title' size='md' weight='semibold'>
               Search City
             </Text>
           </View>
 
           <Input
             value={searchQuery}
-            onChangeText={(text) => {
+            onChangeText={text => {
               setSearchQuery(text);
               setShowSearchResults(true);
             }}
-            placeholder="Enter city name..."
-            leftIcon="location-outline"
-            leftIconFamily="Ionicons"
+            placeholder='Enter city name...'
+            leftIcon='location-outline'
+            leftIconFamily='Ionicons'
             rightIcon={searchQuery.length > 0 ? 'close-circle' : ''}
-            rightIconFamily="Ionicons"
+            rightIconFamily='Ionicons'
             onRightIconPress={() => {
               setSearchQuery('');
               setShowSearchResults(false);
@@ -331,8 +347,8 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
             <View style={[styles.searchResults, { backgroundColor: theme.colors.surface }]}>
               {isSearching ? (
                 <View style={styles.searchLoading}>
-                  <ActivityIndicator size="small" color={theme.colors.primary} />
-                  <Text variant="body" size="sm" color="secondary" style={styles.searchLoadingText}>
+                  <ActivityIndicator size='small' color={theme.colors.primary} />
+                  <Text variant='body' size='sm' color='secondary' style={styles.searchLoadingText}>
                     Searching...
                   </Text>
                 </View>
@@ -342,11 +358,11 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
                   keyExtractor={(item, index) => `${item.coordinates.latitude}-${index}`}
                   renderItem={renderSearchResult}
                   scrollEnabled={false}
-                  keyboardShouldPersistTaps="handled"
+                  keyboardShouldPersistTaps='handled'
                 />
               ) : (
                 <View style={styles.noResults}>
-                  <Text variant="body" size="sm" color="secondary">
+                  <Text variant='body' size='sm' color='secondary'>
                     No cities found
                   </Text>
                 </View>
@@ -360,39 +376,33 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
 
         {/* Use My Location Button */}
         <View style={styles.section}>
-          <TouchableOpacity
+          <Pressable
             style={[styles.useLocationButton, { backgroundColor: theme.colors.primaryContainer }]}
             onPress={handleUseMyLocation}
-            activeOpacity={0.8}
             disabled={isLoadingLocation}
           >
             <View style={[styles.useLocationIcon, { backgroundColor: theme.colors.primary }]}>
               {isLoadingLocation ? (
-                <ActivityIndicator size="small" color={theme.colors.onPrimary} />
+                <ActivityIndicator size='small' color={theme.colors.onPrimary} />
               ) : (
-                <Icon name="navigate" family="Ionicons" size={22} color={theme.colors.onPrimary} />
+                <Icon name='navigate' family='Ionicons' size={22} color={theme.colors.onPrimary} />
               )}
             </View>
             <View style={styles.useLocationText}>
-              <Text variant="title" size="md" weight="semibold">
+              <Text variant='title' size='md' weight='semibold'>
                 Use My Current Location
               </Text>
-              <Text variant="body" size="sm" color="secondary">
+              <Text variant='body' size='sm' color='secondary'>
                 {isLoadingLocation ? 'Getting location...' : 'Enable GPS to find offers near you'}
               </Text>
             </View>
-            <Icon name="chevron-forward" family="Ionicons" size={20} color={theme.colors.primary} />
-          </TouchableOpacity>
+            <Icon name='chevron-forward' family='Ionicons' size={20} color={theme.colors.primary} />
+          </Pressable>
         </View>
 
         {/* Apply Button */}
         <View style={styles.footer}>
-          <Button
-            variant="primary"
-            size="lg"
-            onPress={onClose}
-            style={styles.applyButton}
-          >
+          <Button variant='primary' size='lg' onPress={onClose} style={styles.applyButton}>
             Apply Filters
           </Button>
         </View>

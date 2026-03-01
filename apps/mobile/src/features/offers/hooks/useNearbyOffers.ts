@@ -28,6 +28,7 @@ import {
   type ProximitySearchResult,
   type NearbyOffer,
   type NearbyEstablishment,
+  type MapEstablishment,
 } from '../services/nearbyOffersService';
 
 // ============================================================================
@@ -53,6 +54,10 @@ export const nearbyOffersKeys = {
   /** Key for quick search */
   quickSearch: (lat: number, lng: number, radius: number) =>
     [...nearbyOffersKeys.all, 'quick', { lat, lng, radius }] as const,
+
+  /** Key for map establishments (with embedded offers) */
+  mapEstablishments: (params: NearbyOffersParams | null) =>
+    [...nearbyOffersKeys.all, 'mapEstablishments', params] as const,
 };
 
 // ============================================================================
@@ -183,6 +188,43 @@ export function useQuickSearch(
 }
 
 // ============================================================================
+// useMapEstablishments Hook
+// ============================================================================
+
+/**
+ * Fetch establishments with their active offers for map markers.
+ * Public endpoint — no auth required.
+ *
+ * @param params - Search parameters (null to disable query)
+ * @param options - Query options
+ * @returns TanStack Query result with map establishment data
+ */
+export function useMapEstablishments(
+  params: NearbyOffersParams | null,
+  options: UseNearbyOffersOptions = {},
+) {
+  const { enabled = true, staleTime = 3 * 60 * 1000, refetchOnFocus = true } = options;
+
+  const isEnabled = enabled && !!params;
+
+  return useQueryWithFocus<ProximitySearchResult<MapEstablishment>[], Error>(
+    nearbyOffersKeys.mapEstablishments(params),
+    async () => {
+      if (!params) {
+        throw new Error('Missing required parameters');
+      }
+      return nearbyOffersService.searchMapEstablishments(params);
+    },
+    {
+      enabled: isEnabled,
+      staleTime,
+      gcTime: 60 * 60 * 1000,
+    },
+    refetchOnFocus,
+  );
+}
+
+// ============================================================================
 // Re-export Types
 // ============================================================================
 
@@ -191,6 +233,8 @@ export type {
   ProximitySearchResult,
   NearbyOffer,
   NearbyEstablishment,
+  MapEstablishment,
+  MapOfferSummary,
   DistanceInfo,
   GeoData,
   AddressInfo,

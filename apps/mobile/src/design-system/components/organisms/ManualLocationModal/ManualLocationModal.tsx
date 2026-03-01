@@ -2,14 +2,14 @@
  * ManualLocationModal Component
  *
  * Modal for manually searching and selecting a location.
- * Uses Nominatim geocoding for address autocomplete.
+ * Uses Google Places API for address autocomplete.
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Modal,
-  TouchableOpacity,
+  Pressable,
   FlatList,
   StyleSheet,
   KeyboardAvoidingView,
@@ -18,20 +18,21 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useLocationSearch, type GeocodeResult } from '@/features/offers/hooks';
+
 import { useTheme } from '../../../providers';
 import { Text, Button, Icon, Input } from '../../atoms';
-import { useLocationSearch, type GeocodeResult } from '@/features/offers/hooks';
 
 import type { ManualLocationModalProps, ManualLocationResult } from './ManualLocationModal.types';
 
-export const ManualLocationModal: React.FC<ManualLocationModalProps> = ({
+export const ManualLocationModal = React.memo<ManualLocationModalProps>(function ManualLocationModal({
   visible,
   onClose,
   onLocationSelect,
   initialQuery = '',
   style,
   testID,
-}) => {
+}) {
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
@@ -69,28 +70,33 @@ export const ManualLocationModal: React.FC<ManualLocationModalProps> = ({
 
   const renderSearchResult = useCallback(
     ({ item }: { item: GeocodeResult }) => (
-      <TouchableOpacity
+      <Pressable
         style={[styles.resultItem, { borderBottomColor: theme.colors.outline }]}
         onPress={() => handleSelectLocation(item)}
-        accessibilityRole="button"
+        accessibilityRole='button'
         accessibilityLabel={item.displayName}
       >
         <Icon
-          name="location-outline"
+          name='location-outline'
           size={20}
           color={theme.colors.primary}
           style={styles.resultIcon}
         />
         <View style={styles.resultTextContainer}>
-          <Text variant="body" size="md" numberOfLines={1}>
+          <Text variant='body' size='md' numberOfLines={1}>
             {item.address?.city || item.displayName.split(',')[0]}
           </Text>
-          <Text variant="body" size="sm" color="secondary" numberOfLines={1}>
+          <Text variant='body' size='sm' color='secondary' numberOfLines={1}>
             {item.displayName}
           </Text>
         </View>
-        <Icon name="chevron-forward" family="Ionicons" size={20} color={theme.colors.onSurfaceVariant} />
-      </TouchableOpacity>
+        <Icon
+          name='chevron-forward'
+          family='Ionicons'
+          size={20}
+          color={theme.colors.onSurfaceVariant}
+        />
+      </Pressable>
     ),
     [theme.colors, handleSelectLocation],
   );
@@ -99,8 +105,8 @@ export const ManualLocationModal: React.FC<ManualLocationModalProps> = ({
     if (isLoading) {
       return (
         <View style={styles.emptyState}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
+          <ActivityIndicator size='large' color={theme.colors.primary} />
+          <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
             Searching locations...
           </Text>
         </View>
@@ -110,8 +116,13 @@ export const ManualLocationModal: React.FC<ManualLocationModalProps> = ({
     if (error) {
       return (
         <View style={styles.emptyState}>
-          <Icon name="alert-circle-outline" family="Ionicons" size={48} color={theme.colors.error} />
-          <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
+          <Icon
+            name='alert-circle-outline'
+            family='Ionicons'
+            size={48}
+            color={theme.colors.error}
+          />
+          <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
             Failed to search locations. Please try again.
           </Text>
         </View>
@@ -121,8 +132,13 @@ export const ManualLocationModal: React.FC<ManualLocationModalProps> = ({
     if (debouncedQuery.length >= 3 && (!searchResults || searchResults.length === 0)) {
       return (
         <View style={styles.emptyState}>
-          <Icon name="search-outline" family="Ionicons" size={48} color={theme.colors.onSurfaceVariant} />
-          <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
+          <Icon
+            name='search-outline'
+            family='Ionicons'
+            size={48}
+            color={theme.colors.onSurfaceVariant}
+          />
+          <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
             No locations found for "{debouncedQuery}"
           </Text>
         </View>
@@ -131,8 +147,13 @@ export const ManualLocationModal: React.FC<ManualLocationModalProps> = ({
 
     return (
       <View style={styles.emptyState}>
-        <Icon name="location-sharp" family="Ionicons" size={48} color={theme.colors.onSurfaceVariant} />
-        <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
+        <Icon
+          name='location-sharp'
+          family='Ionicons'
+          size={48}
+          color={theme.colors.onSurfaceVariant}
+        />
+        <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
           Search for a city, address, or place
         </Text>
       </View>
@@ -142,8 +163,8 @@ export const ManualLocationModal: React.FC<ManualLocationModalProps> = ({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
+      animationType='slide'
+      presentationStyle='pageSheet'
       onRequestClose={onClose}
       testID={testID}
     >
@@ -157,17 +178,17 @@ export const ManualLocationModal: React.FC<ManualLocationModalProps> = ({
         >
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: theme.colors.outline }]}>
-            <Text variant="title" size="lg" weight="semibold">
+            <Text variant='title' size='lg' weight='semibold'>
               Set Location
             </Text>
-            <TouchableOpacity
+            <Pressable
               onPress={onClose}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              accessibilityLabel="Close"
-              accessibilityRole="button"
+              accessibilityLabel='Close'
+              accessibilityRole='button'
             >
-              <Icon name="close" family="Ionicons" size={24} color={theme.colors.onSurface} />
-            </TouchableOpacity>
+              <Icon name='close' family='Ionicons' size={24} color={theme.colors.onSurface} />
+            </Pressable>
           </View>
 
           {/* Search Input */}
@@ -175,34 +196,48 @@ export const ManualLocationModal: React.FC<ManualLocationModalProps> = ({
             <Input
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Search city or address..."
-              leftIcon={<Icon name="search" family="Ionicons" size={20} color={theme.colors.onSurfaceVariant} />}
+              placeholder='Search city or address...'
+              leftIcon={
+                <Icon
+                  name='search'
+                  family='Ionicons'
+                  size={20}
+                  color={theme.colors.onSurfaceVariant}
+                />
+              }
               rightIcon={
                 searchQuery.length > 0 ? (
-                  <TouchableOpacity onPress={() => setSearchQuery('')}>
-                    <Icon name="close-circle" family="Ionicons" size={20} color={theme.colors.onSurfaceVariant} />
-                  </TouchableOpacity>
+                  <Pressable onPress={() => setSearchQuery('')}>
+                    <Icon
+                      name='close-circle'
+                      family='Ionicons'
+                      size={20}
+                      color={theme.colors.onSurfaceVariant}
+                    />
+                  </Pressable>
                 ) : undefined
               }
               autoFocus
-              returnKeyType="search"
-              accessibilityLabel="Search location"
+              returnKeyType='search'
+              accessibilityLabel='Search location'
             />
           </View>
 
           {/* Results List */}
           <FlatList
             data={searchResults || []}
-            keyExtractor={(item, index) => `${item.coordinates.latitude}-${item.coordinates.longitude}-${index}`}
+            keyExtractor={(item, index) =>
+              `${item.coordinates.latitude}-${item.coordinates.longitude}-${index}`
+            }
             renderItem={renderSearchResult}
             ListEmptyComponent={renderEmptyState}
             contentContainerStyle={styles.listContent}
-            keyboardShouldPersistTaps="handled"
+            keyboardShouldPersistTaps='handled'
           />
 
           {/* Cancel Button */}
           <View style={[styles.footer, { borderTopColor: theme.colors.outline }]}>
-            <Button variant="outline" size="lg" onPress={onClose} style={styles.cancelButton}>
+            <Button variant='outline' size='lg' onPress={onClose} style={styles.cancelButton}>
               Cancel
             </Button>
           </View>
@@ -210,7 +245,7 @@ export const ManualLocationModal: React.FC<ManualLocationModalProps> = ({
       </SafeAreaView>
     </Modal>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

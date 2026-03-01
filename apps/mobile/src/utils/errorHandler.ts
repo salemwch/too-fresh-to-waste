@@ -3,6 +3,8 @@ import { Alert } from 'react-native';
 import { environment } from '@/config/environment';
 
 import { Logger } from './logger';
+import { networkErrorBus } from './networkErrorBus';
+import { showErrorToast } from './toast';
 
 export enum ErrorType {
   NETWORK = 'NETWORK',
@@ -53,7 +55,10 @@ export class ErrorHandler {
     };
   }
 
-  public static handle(error: Error | AppError, context?: Record<string, unknown>): void {
+  public static async handle(
+    error: Error | AppError,
+    context?: Record<string, unknown>,
+  ): Promise<void> {
     const appError = this.normalizeError(error, context);
 
     // Log the error
@@ -63,7 +68,7 @@ export class ErrorHandler {
     this.errorQueue.push(appError);
 
     // Process the queue
-    this.processErrorQueue();
+    await this.processErrorQueue();
   }
 
   private static normalizeError(
@@ -154,9 +159,17 @@ export class ErrorHandler {
       userMessage: error.userMessage,
     };
 
-    if (error.type === ErrorType.VALIDATION || error.type === ErrorType.CLIENT_ERROR) {
+    // ✅ OFFLINE-FIRST: Use appropriate log levels
+    // Network errors are expected in mobile apps (poor signal, airplane mode)
+    // Don't spam ERROR logs for expected scenarios
+    if (error.type === ErrorType.NETWORK) {
+      // Network errors are INFO - expected and handled gracefully
+      Logger.info(`Handling network error | Context: ${JSON.stringify(context)}`);
+    } else if (error.type === ErrorType.VALIDATION || error.type === ErrorType.CLIENT_ERROR) {
+      // Validation/client errors are WARN - user input issues
       Logger.warn(error.message, context, error.originalError);
     } else {
+      // Server errors, auth errors, unknown errors are ERROR
       Logger.error(error.message, context, error.originalError);
     }
   }
@@ -187,7 +200,8 @@ export class ErrorHandler {
 
   private static async processError(error: AppError): Promise<void> {
     // Show user notification if needed
-    if (error.shouldShowToUser && !environment.isProduction) {
+    // ✅ PRODUCTION-SAFE: Always show errors, but use non-intrusive Toast in production
+    if (error.shouldShowToUser ?? false) {
       this.showErrorToUser(error);
     }
 
@@ -196,15 +210,28 @@ export class ErrorHandler {
   }
 
   private static showErrorToUser(error: AppError): void {
+    const message = error.userMessage ?? error.message;
     const title = this.getErrorTitle(error.type);
-    const message = error.userMessage || error.message;
 
-    Alert.alert(title, message, [
-      { text: 'OK', style: 'cancel' },
-      ...(error.type === ErrorType.NETWORK
-        ? [{ text: 'Retry', onPress: () => this.handleRetry(error) }]
-        : []),
-    ]);
+    // NETWORK errors → non-intrusive top banner (not Alert or Toast)
+    if (error.type === ErrorType.NETWORK) {
+      networkErrorBus.emit(message);
+      return;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // ENVIRONMENT-AWARE ERROR DISPLAY
+    // ──────────────────────────────────────────────────────────────────────────
+
+    if (environment.isProduction) {
+      // ✅ PRODUCTION: Show non-intrusive Toast
+      // Never block user with Alert dialogs in production
+      showErrorToast(title, message);
+    } else {
+      // ✅ DEVELOPMENT/STAGING: Show blocking Alert for debugging
+      // Helps developers notice errors immediately
+      Alert.alert(title, message, [{ text: 'OK', style: 'cancel' }]);
+    }
   }
 
   private static getErrorTitle(type: ErrorType): string {
@@ -261,34 +288,38 @@ export class ErrorHandler {
     Logger.info('Handling permission error');
   }
 
-  private static handleRetry(error: AppError): void {
-    // Implement retry logic based on error context
-    Logger.info('Retrying after error', { errorType: error.type });
-  }
-
   // Utility methods for common error scenarios
-  public static handleNetworkError(originalError: Error, context?: Record<string, unknown>): void {
+  public static async handleNetworkError(
+    originalError: Error,
+    context?: Record<string, unknown>,
+  ): Promise<void> {
     const error = this.createError(ErrorType.NETWORK, originalError.message, {
       originalError,
       ...(context ? { context } : {}),
     });
-    this.handle(error);
+    await this.handle(error);
   }
 
-  public static handleValidationError(message: string, context?: Record<string, unknown>): void {
+  public static async handleValidationError(
+    message: string,
+    context?: Record<string, unknown>,
+  ): Promise<void> {
     const error = this.createError(ErrorType.VALIDATION, message, {
       ...(context ? { context } : {}),
       shouldReport: false, // Validation errors usually don't need reporting
     });
-    this.handle(error);
+    await this.handle(error);
   }
 
-  public static handleUnknownError(originalError: Error, context?: Record<string, unknown>): void {
+  public static async handleUnknownError(
+    originalError: Error,
+    context?: Record<string, unknown>,
+  ): Promise<void> {
     const error = this.createError(ErrorType.UNKNOWN, originalError.message, {
       originalError,
       ...(context ? { context } : {}),
     });
-    this.handle(error);
+    await this.handle(error);
   }
 
   // Global error handler setup
@@ -299,11 +330,11 @@ export class ErrorHandler {
     const ErrorUtils = require('react-native').ErrorUtils;
     const originalHandler = ErrorUtils?.getGlobalHandler?.();
 
-    ErrorUtils?.setGlobalHandler?.((error: Error, isFatal?: boolean) => {
-      this.handle(error, { isFatal, source: 'globalHandler' });
+    ErrorUtils?.setGlobalHandler?.(async (error: Error, isFatal?: boolean) => {
+      await this.handle(error, { isFatal, source: 'globalHandler' });
 
       // Call original handler if it exists
-      if (originalHandler) {
+      if (Boolean(originalHandler)) {
         originalHandler(error, isFatal);
       }
     });

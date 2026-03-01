@@ -4,7 +4,8 @@
  */
 
 import React, { forwardRef, useState } from 'react';
-import { View, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Image, Pressable, ActivityIndicator } from 'react-native';
+import FastImage from 'react-native-fast-image';
 
 import { useTheme } from '../../../providers';
 import { Icon } from '../Icon';
@@ -15,10 +16,10 @@ import { createAvatarStyles, getAvatarSize } from './Avatar.styles';
 import type { AvatarProps } from './Avatar.types';
 
 export const Avatar = forwardRef<
-  React.ElementRef<typeof View> | React.ElementRef<typeof TouchableOpacity>,
+  React.ElementRef<typeof View> | React.ElementRef<typeof Pressable>,
   AvatarProps
 >(
-  (
+  function Avatar(
     {
       size = 'md',
       variant = 'circular',
@@ -46,7 +47,7 @@ export const Avatar = forwardRef<
       ...rest
     },
     ref,
-  ) => {
+  ) {
     const theme = useTheme();
     const { colors } = theme;
     const [imageError, setImageError] = useState(false);
@@ -68,6 +69,19 @@ export const Avatar = forwardRef<
     const renderAvatarContent = () => {
       // 1. Try to render image
       if ((source || uri) && !imageError) {
+        // Use FastImage for network URIs (disk + memory caching)
+        const resolvedUri = uri ?? (source && typeof source === 'object' && 'uri' in source ? (source as { uri?: string }).uri : undefined);
+        if (resolvedUri) {
+          return (
+            <FastImage
+              source={{ uri: resolvedUri, priority: FastImage.priority.normal, cache: FastImage.cacheControl.immutable }}
+              style={[styles.image, imageStyle]}
+              onError={() => setImageError(true)}
+              resizeMode={FastImage.resizeMode.cover}
+            />
+          );
+        }
+        // Fallback to RN Image for local/static sources (require())
         return (
           <Image
             source={source || { uri }}
@@ -132,14 +146,13 @@ export const Avatar = forwardRef<
       </>
     );
 
-    // If pressable, wrap in TouchableOpacity
+    // If pressable, wrap in Pressable
     if (pressable && onPress) {
       return (
-        <TouchableOpacity
-          ref={ref as React.RefObject<React.ElementRef<typeof TouchableOpacity>>}
+        <Pressable
+          ref={ref as React.RefObject<React.ElementRef<typeof Pressable>>}
           style={[styles.container, style]}
           onPress={onPress}
-          activeOpacity={0.7}
           testID={testID}
           accessibilityLabel={accessibilityLabel}
           accessibilityHint={accessibilityHint}
@@ -147,7 +160,7 @@ export const Avatar = forwardRef<
           {...rest}
         >
           {avatarContent}
-        </TouchableOpacity>
+        </Pressable>
       );
     }
 
@@ -167,7 +180,5 @@ export const Avatar = forwardRef<
     );
   },
 );
-
-Avatar.displayName = 'Avatar';
 
 export default Avatar;

@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from '@/services/apiClient';
+
 import type { Establishment } from '../types/establishment.types';
 
 interface EstablishmentResponse {

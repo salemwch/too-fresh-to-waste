@@ -4,69 +4,64 @@
  * Enterprise-grade with collapsible animation and error handling
  */
 
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  LayoutAnimation,
-} from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, Pressable, LayoutAnimation } from 'react-native';
 
+import HeartInHandsIcon from '../../../assets/images/RedHeartinHands IconMedicalCareLogo.svg';
 import { useDonationStats } from '../hooks/useDonations';
+
+import { SkeletonImpactBanner } from './SkeletonImpactBanner';
 interface ImpactBannerProps {
   onExpand?: () => void;
 }
 
-export const ImpactBanner: React.FC<ImpactBannerProps> = ({ onExpand }) => {
+/**
+ * ✅ BEST PRACTICE: Internal component function for memoization
+ * Extracted to enable React.memo() wrapping
+ */
+const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: stats, isLoading, isError } = useDonationStats();
 
-  const toggleExpand = () => {
+  // ✅ BEST PRACTICE: Memoize callback to prevent unnecessary re-renders
+  const toggleExpand = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsExpanded(!isExpanded);
+    setIsExpanded(prev => !prev);
     if (!isExpanded && onExpand) {
       onExpand();
     }
-  };
+  }, [isExpanded, onExpand]);
 
   // Don't render if there's an error or no data
   if (isError || (!isLoading && !stats)) {
     return null;
   }
 
-  // Loading state
+  // Loading state - Show skeleton in collapsed state
   if (isLoading || !stats) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size='small' color='#10B981' />
-          <Text style={styles.loadingText}>Loading impact stats...</Text>
-        </View>
-      </View>
-    );
+    return <SkeletonImpactBanner />;
   }
 
   // Safe accessors with fallbacks for undefined values
   const totalDonations = stats.totalDonations ?? 0;
-  const mealCount = stats.mealCount ?? 0;
   const contributorCount = stats.contributorCount ?? 0;
   const progressPercentage = stats.progressPercentage ?? 0;
   const targetAmount = stats.targetAmount ?? 0;
   const currency = stats.currency ?? 'TND';
-  const cause = stats.cause ?? 'Community Support';
+  const cause = stats.cause ?? 'Ensuring No One Goes Hungry';
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.banner} onPress={toggleExpand} activeOpacity={0.8}>
+      <Pressable style={styles.banner} onPress={toggleExpand}>
         {/* Collapsed View */}
         <View style={styles.collapsedContent}>
-          <Text style={styles.icon}>🌍</Text>
+          <View style={styles.iconContainer}>
+            <HeartInHandsIcon width={36} height={36} />
+          </View>
           <View style={styles.textContainer}>
-            <Text style={styles.title}>Our Community Impact</Text>
+            <Text style={styles.title}>Your Orders Change Lives</Text>
             <Text style={styles.subtitle}>
-              {totalDonations.toFixed(0)} {currency} raised • {mealCount} meals
+              {contributorCount} contributors • {totalDonations.toFixed(2)} {currency} raised
             </Text>
           </View>
           <Text style={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</Text>
@@ -85,12 +80,6 @@ export const ImpactBanner: React.FC<ImpactBannerProps> = ({ onExpand }) => {
                 <Text style={styles.statValue}>
                   {totalDonations.toFixed(2)} {currency}
                 </Text>
-              </View>
-
-              {/* Meals Funded */}
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Meals Funded:</Text>
-                <Text style={styles.statValue}>{mealCount} 🍽️</Text>
               </View>
 
               {/* Contributors */}
@@ -120,14 +109,13 @@ export const ImpactBanner: React.FC<ImpactBannerProps> = ({ onExpand }) => {
             </View>
           </View>
         )}
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
     paddingVertical: 8,
   },
   banner: {
@@ -140,24 +128,16 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-  },
-  loadingText: {
-    marginLeft: 12,
-    fontSize: 14,
-    color: '#6B7280',
-  },
   collapsedContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  icon: {
-    fontSize: 28,
-    marginRight: 12,
+  iconContainer: {
+    width: 28,
+    height: 28,
+    marginRight: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   textContainer: {
     flex: 1,
@@ -174,7 +154,7 @@ const styles = StyleSheet.create({
   },
   expandIcon: {
     fontSize: 16,
-    color: '#10B981',
+    color: '#005250',
     marginLeft: 8,
   },
   expandedContent: {
@@ -220,12 +200,12 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#10B981',
+    backgroundColor: '#005250',
     borderRadius: 4,
   },
   progressPercent: {
     fontSize: 12,
-    color: '#10B981',
+    color: '#005250',
     fontWeight: '600',
     textAlign: 'right',
   },
@@ -245,3 +225,11 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
 });
+
+/**
+ * ✅ BEST PRACTICE: Memoized export prevents unnecessary re-renders
+ * Component only re-renders when props change (onExpand callback)
+ * Internal state changes (isExpanded) don't trigger parent re-renders
+ */
+ImpactBannerComponent.displayName = 'ImpactBanner';
+export const ImpactBanner = React.memo(ImpactBannerComponent);

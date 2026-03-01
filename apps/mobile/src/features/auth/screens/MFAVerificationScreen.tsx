@@ -4,11 +4,12 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TextInput, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native';
 
 import { Button, Text, Card, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { showAlert, showSuccessAlert, showErrorAlert } from '@/utils/alert';
 
 import { verifyMFAAsync } from '../store/authSlice';
 
@@ -98,9 +99,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
       const fullCode = verificationCode || code.join('');
 
       if (fullCode.length !== CODE_LENGTH) {
-        Alert.alert('Invalid Code', 'Please enter all 6 digits.', [
-          { text: 'OK', style: 'default' },
-        ]);
+        showErrorAlert('Invalid Code', 'Please enter all 6 digits.');
         return;
       }
 
@@ -113,11 +112,11 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
         ).unwrap();
 
         // Success! RootNavigator will automatically navigate to MainStack
-        Alert.alert('Success', 'Authentication successful!', [{ text: 'OK', style: 'default' }]);
+        showSuccessAlert('Success', 'Authentication successful!');
       } catch (err: any) {
         const errorMessage = err?.message || 'Invalid verification code. Please try again.';
 
-        Alert.alert('Verification Failed', errorMessage, [{ text: 'OK', style: 'default' }]);
+        showErrorAlert('Verification Failed', errorMessage);
 
         // Clear code and focus first input
         setCode(['', '', '', '', '', '']);
@@ -146,7 +145,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
    * Navigate back to login
    */
   const handleBackToLogin = useCallback(() => {
-    Alert.alert(
+    showAlert(
       'Cancel Verification',
       'Are you sure you want to cancel? You will need to log in again.',
       [
@@ -157,6 +156,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
           onPress: () => navigation.navigate('Login'),
         },
       ],
+      { type: 'warning' },
     );
   }, [navigation]);
 
@@ -297,11 +297,10 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
           </View>
 
           {/* Back to Login */}
-          <TouchableOpacity
+          <Pressable
             style={styles.backToLoginContainer}
             onPress={handleBackToLogin}
             disabled={isLoading}
-            activeOpacity={0.7}
           >
             <Icon name='arrow-back' family='Ionicons' size={20} color={theme.colors.primary} />
             <Text
@@ -313,7 +312,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
             >
               Back to Login
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </Card>
 
         {/* Security Notice */}

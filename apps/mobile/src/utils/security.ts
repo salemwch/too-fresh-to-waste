@@ -262,7 +262,7 @@ class SecurityService {
 
   public async removeSecureData(key: string): Promise<boolean> {
     try {
-      await Keychain.resetInternetCredentials(key);
+      await Keychain.resetInternetCredentials({ server: key });
       Logger.debug('Secure data removed successfully', { key });
       return true;
     } catch (error) {
@@ -273,7 +273,7 @@ class SecurityService {
 
   public async clearAllSecureData(): Promise<boolean> {
     try {
-      await Keychain.resetInternetCredentials(this.KEYCHAIN_SERVICE);
+      await Keychain.resetInternetCredentials({ server: this.KEYCHAIN_SERVICE });
       Logger.info('All secure data cleared');
       return true;
     } catch (error) {

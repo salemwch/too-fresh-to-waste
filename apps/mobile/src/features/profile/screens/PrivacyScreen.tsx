@@ -3,11 +3,14 @@
  * Privacy settings and data management
  */
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 
 import { Text, Button, Card } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { useAppDispatch, useAppSelector } from '@/hooks';
+import { deleteAccountAsync } from '@/features/auth/store/authSlice';
+import { showAlert } from '@/utils/alert';
 
 import type { MainStackParamList } from '@/navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -20,6 +23,26 @@ interface PrivacyScreenProps {
 
 export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navigation }) => {
   const theme = useTheme();
+  const dispatch = useAppDispatch();
+  const isLoading = useAppSelector(state => state.auth.isLoading);
+
+  const handleDeleteAccount = useCallback(() => {
+    showAlert(
+      'Delete Account?',
+      'This action is permanent and cannot be undone. All your data will be removed.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            dispatch(deleteAccountAsync());
+          },
+        },
+      ],
+      { type: 'error' },
+    );
+  }, [dispatch]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -31,7 +54,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
 
           <View style={styles.placeholder}>
             <Text variant='body' size='md' align='center' color='secondary'>
-              🔒 Privacy settings will be here
+              Privacy settings will be here
             </Text>
             <Text
               variant='body'
@@ -60,7 +83,8 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
             <Button
               variant='outline'
               size='md'
-              onPress={() => {}}
+              onPress={handleDeleteAccount}
+              loading={isLoading}
               style={[styles.button, { borderColor: theme.colors.error }]}
               textStyle={{ color: theme.colors.error }}
             >

@@ -19,6 +19,7 @@ export interface FilterState {
     max: number | null;
   };
   minDiscount: number | null;
+  [key: string]: unknown;
 }
 
 /**
@@ -39,17 +40,14 @@ export const INITIAL_FILTER_STATE: FilterState = {
 /**
  * Check if filters are active (not empty)
  */
-export const hasActiveFilters = (filters: FilterState): boolean => {
-  return (
-    filters.offerType !== null ||
-    filters.establishmentTypes.length > 0 ||
-    filters.cuisineTypes.length > 0 ||
-    filters.categories.length > 0 ||
-    filters.priceRange.min !== null ||
-    filters.priceRange.max !== null ||
-    filters.minDiscount !== null
-  );
-};
+export const hasActiveFilters = (filters: FilterState): boolean =>
+  filters.offerType !== null ||
+  filters.establishmentTypes.length > 0 ||
+  filters.cuisineTypes.length > 0 ||
+  filters.categories.length > 0 ||
+  filters.priceRange.min !== null ||
+  filters.priceRange.max !== null ||
+  filters.minDiscount !== null;
 
 /**
  * Count active filters

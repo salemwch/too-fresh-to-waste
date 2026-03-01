@@ -4,7 +4,7 @@
  */
 
 import React, { forwardRef } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, Pressable } from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Icon } from '../Icon';
@@ -15,10 +15,10 @@ import { createBadgeStyles } from './Badge.styles';
 import type { BadgeProps } from './Badge.types';
 
 export const Badge = forwardRef<
-  React.ElementRef<typeof View> | React.ElementRef<typeof TouchableOpacity>,
+  React.ElementRef<typeof View> | React.ElementRef<typeof Pressable>,
   BadgeProps
 >(
-  (
+  function Badge(
     {
       variant = 'default',
       size = 'md',
@@ -45,7 +45,7 @@ export const Badge = forwardRef<
       ...rest
     },
     ref,
-  ) => {
+  ) {
     const theme = useTheme();
 
     // Create styles
@@ -74,7 +74,7 @@ export const Badge = forwardRef<
           {rightIcon && <View style={styles.rightIcon}>{rightIcon}</View>}
 
           {closable && onClose && (
-            <TouchableOpacity
+            <Pressable
               style={styles.closeButton}
               onPress={onClose}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -86,20 +86,19 @@ export const Badge = forwardRef<
                 size={size === 'xs' ? 10 : size === 'sm' ? 12 : 14}
                 color={color || theme.colors.onPrimary}
               />
-            </TouchableOpacity>
+            </Pressable>
           )}
         </>
       );
     };
 
-    // If pressable, wrap in TouchableOpacity
+    // If pressable, wrap in Pressable
     if (pressable && onPress) {
       return (
-        <TouchableOpacity
-          ref={ref as React.RefObject<React.ElementRef<typeof TouchableOpacity>>}
+        <Pressable
+          ref={ref as React.RefObject<React.ElementRef<typeof Pressable>>}
           style={[styles.container, style]}
           onPress={onPress}
-          activeOpacity={0.7}
           testID={testID}
           accessibilityLabel={
             accessibilityLabel || (typeof label === 'string' ? label : String(label))
@@ -109,7 +108,7 @@ export const Badge = forwardRef<
           {...rest}
         >
           {renderContent()}
-        </TouchableOpacity>
+        </Pressable>
       );
     }
 
@@ -131,7 +130,5 @@ export const Badge = forwardRef<
     );
   },
 );
-
-Badge.displayName = 'Badge';
 
 export default Badge;

@@ -10,24 +10,27 @@
  * - Live result count
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
+
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
-import type { FilterState } from '../types/filter.types';
+
 import {
   ESTABLISHMENT_TYPE_OPTIONS,
   CUISINE_TYPE_OPTIONS,
   CATEGORY_OPTIONS,
   OFFER_TYPE_OPTIONS,
 } from '../constants/filterOptions';
+
+import type { FilterState } from '../types/filter.types';
 import type { EstablishmentType, OfferType } from '@/features/offers/types/offer.types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -59,7 +62,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   onApply,
   onClear,
 }) => {
-  const { colors, spacing } = useTheme();
+  const { colors } = useTheme();
   const [localFilters, setLocalFilters] = useState<FilterState>(initialFilters);
 
   // Sync local state when initial filters change
@@ -119,45 +122,29 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
   const handleApply = useCallback(() => {
     onApply(localFilters);
-  }, [localFilters, onApply]);
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // Render Helpers
-  // ──────────────────────────────────────────────────────────────────────────
-
-  const hasActiveFilters = useMemo(() => {
-    return (
-      localFilters.offerType !== null ||
-      localFilters.establishmentTypes.length > 0 ||
-      localFilters.cuisineTypes.length > 0 ||
-      localFilters.categories.length > 0
-    );
-  }, [localFilters]);
+    onClose();
+  }, [localFilters, onApply, onClose]);
 
   if (!visible) return null;
 
   return (
     <View style={styles.overlay}>
-      <TouchableOpacity
-        style={styles.backdrop}
-        activeOpacity={1}
-        onPress={onClose}
-      />
+      <Pressable style={styles.backdrop} onPress={onClose} />
 
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Header */}
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color={colors.onSurface} />
-          </TouchableOpacity>
-          <Text variant="h3" style={styles.headerTitle}>
+        <View style={[styles.header, { borderBottomColor: colors.outline }]}>
+          <Pressable onPress={onClose} style={styles.closeButton}>
+            <Icon name='close' size={24} color={colors.onSurface} />
+          </Pressable>
+          <Text variant='headline' style={styles.headerTitle}>
             Filters
           </Text>
-          <TouchableOpacity onPress={handleClear}>
-            <Text variant="body" style={{ color: colors.accent }}>
+          <Pressable onPress={handleClear}>
+            <Text variant='body' style={{ color: colors.accent }}>
               Clear
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Scrollable Content */}
@@ -168,14 +155,14 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         >
           {/* Offer Type Section */}
           <View style={styles.section}>
-            <Text variant="h4" style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
               🎁 Offer Type
             </Text>
             <View style={styles.radioGroup}>
               {OFFER_TYPE_OPTIONS.map(option => {
                 const isSelected = localFilters.offerType === option.value;
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={option.label}
                     style={[
                       styles.radioChip,
@@ -188,12 +175,12 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   >
                     <Text style={{ fontSize: 18, marginRight: 6 }}>{option.icon}</Text>
                     <Text
-                      variant="body"
+                      variant='body'
                       style={{ color: isSelected ? '#FFFFFF' : colors.onSurface }}
                     >
                       {option.label}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })}
             </View>
@@ -201,14 +188,14 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
           {/* Establishment Type Section */}
           <View style={styles.section}>
-            <Text variant="h4" style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
               🏪 Establishment Type
             </Text>
             <View style={styles.chipGrid}>
               {ESTABLISHMENT_TYPE_OPTIONS.map(option => {
                 const isSelected = localFilters.establishmentTypes.includes(option.value);
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={option.value}
                     style={[
                       styles.iconChip,
@@ -221,7 +208,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   >
                     <Text style={{ fontSize: 24, marginBottom: 4 }}>{option.icon}</Text>
                     <Text
-                      variant="caption"
+                      variant='caption'
                       style={{
                         color: isSelected ? '#FFFFFF' : colors.onSurface,
                         fontSize: 11,
@@ -230,7 +217,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     >
                       {option.label}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })}
             </View>
@@ -238,14 +225,14 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
           {/* Cuisine Type Section */}
           <View style={styles.section}>
-            <Text variant="h4" style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
               🍝 Cuisine Type
             </Text>
             <View style={styles.chipGrid}>
               {CUISINE_TYPE_OPTIONS.map(option => {
                 const isSelected = localFilters.cuisineTypes.includes(option.value);
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={option.value}
                     style={[
                       styles.flagChip,
@@ -258,7 +245,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   >
                     <Text style={{ fontSize: 20, marginRight: 6 }}>{option.flag}</Text>
                     <Text
-                      variant="caption"
+                      variant='caption'
                       style={{
                         color: isSelected ? '#FFFFFF' : colors.onSurface,
                         fontSize: 12,
@@ -266,7 +253,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     >
                       {option.label}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })}
             </View>
@@ -274,14 +261,14 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
           {/* Food Categories Section */}
           <View style={styles.section}>
-            <Text variant="h4" style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
               🍕 Food Categories
             </Text>
             <View style={styles.chipWrap}>
               {CATEGORY_OPTIONS.map(option => {
                 const isSelected = localFilters.categories.includes(option.value);
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={option.value}
                     style={[
                       styles.categoryPill,
@@ -296,12 +283,12 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                       <Text style={{ fontSize: 16, marginRight: 4 }}>{option.icon}</Text>
                     )}
                     <Text
-                      variant="caption"
+                      variant='caption'
                       style={{ color: isSelected ? '#FFFFFF' : colors.onSurface }}
                     >
                       {option.label}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })}
             </View>
@@ -310,30 +297,27 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
         {/* Apply Button */}
         <View style={[styles.footer, { borderTopColor: colors.outline }]}>
-          <TouchableOpacity
-            style={[
-              styles.applyButton,
-              { backgroundColor: colors.success },
-            ]}
+          <Pressable
+            style={[styles.applyButton, { backgroundColor: colors.success }]}
             onPress={handleApply}
           >
             {isLoading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color='#FFFFFF' />
             ) : (
               <>
-                <Text variant="button" style={{ color: '#FFFFFF' }}>
+                <Text variant='label' weight='semibold' style={{ color: '#FFFFFF' }}>
                   Apply Filters
                 </Text>
                 {resultCount !== undefined && (
                   <View style={styles.resultBadge}>
-                    <Text variant="caption" style={{ color: colors.success, fontWeight: '600' }}>
+                    <Text variant='caption' style={{ color: colors.success, fontWeight: '600' }}>
                       {resultCount}
                     </Text>
                   </View>
                 )}
               </>
             )}
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     </View>

@@ -17,8 +17,10 @@ import { Input } from '@/design-system/components/atoms';
 import type { InputProps } from '@/design-system/components/atoms/Input/Input.types';
 import type { Control, FieldValues, Path } from 'react-hook-form';
 
-interface ControlledInputProps<T extends FieldValues>
-  extends Omit<InputProps, 'value' | 'onChangeText'> {
+interface ControlledInputProps<T extends FieldValues> extends Omit<
+  InputProps,
+  'value' | 'onChangeText'
+> {
   control: Control<T>;
   name: Path<T>;
   defaultValue?: string;

@@ -12,16 +12,21 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
+  Pressable,
   Image,
 } from 'react-native';
 
 import LeafLogo from '@/assets/images/leaf.png';
 import WavingHand from '@/assets/images/waving-hand.png';
-import { Button, Input, Text, Card, Icon } from '@/design-system/components/atoms';
-import { LoginSuccessModal, ResendVerificationModal, AccountLockedModal } from '@/design-system/components/molecules';
+import { Input, Text, Card, Icon } from '@/design-system/components/atoms';
+import {
+  ResendVerificationModal,
+  AccountLockedModal,
+  MorphingButton,
+} from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { showSuccessToast } from '@/utils/toast';
 import { loginSchema, type LoginFormData } from '@/utils/validation/schemas';
 
 import { authService } from '../services/authService';
@@ -133,10 +138,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   // Show password toggle
   const [showPassword, setShowPassword] = useState(false);
 
-  // Success modal state
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [userName, setUserName] = useState('');
-
   // Resend verification modal state
   const [showResendModal, setShowResendModal] = useState(false);
 
@@ -149,6 +150,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   // Account lockout state
   const [showLockedModal, setShowLockedModal] = useState(false);
   const [blockedUntil, setBlockedUntil] = useState<string | Date | null>(null);
+
+  // Login success — drives MorphingButton success animation before nav transition
+  const [loginSuccess, setLoginSuccess] = useState(false);
 
   /**
    * Clear error on component mount
@@ -195,10 +199,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             userId: result.user.userId,
           });
         } else {
-          // Login successful! Show celebration modal
-          setUserName(result.user.firstName || 'User');
-          setShowSuccessModal(true);
-          // Modal will auto-dismiss after 3 seconds, then navigate to MainStack
+          // ✅ SUCCESS: trigger MorphingButton success animation, then show toast
+          setLoginSuccess(true);
+          const firstName = result.user.firstName || 'User';
+          showSuccessToast(`Welcome back, ${firstName}! 🎉`);
+
+          // ✅ Navigation happens automatically via state-driven flow
+          // RootNavigator detects flowState = AUTHENTICATED and switches to MainStack
+          // No manual navigation needed - RootNavigator now checks auth state FIRST (before onboarding)
+          //
+          // Flow:
+          // 1. loginAsync.fulfilled sets flowState = AUTHENTICATED
+          // 2. RootNavigator re-renders (useAppSelector hook detects state change)
+          // 3. renderNavigator() checks flowState first (GATE 1)
+          // 4. flowState === AUTHENTICATED → returns MainStack screen
+          // 5. React Navigation switches from AuthStack to MainStack
+          //
+          // Why no manual navigation?
+          // - State-driven navigation is more reliable (React pattern)
+          // - No risk of navigation errors (RESET action not handled)
+          // - Easier to test and debug (single source of truth: Redux state)
         }
       } catch (err: any) {
         console.error('Login error:', err);
@@ -399,12 +419,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   <Text variant='body.small' color='secondary' style={styles.resendPrompt}>
                     Didn&apos;t receive the email?
                   </Text>
-                  <TouchableOpacity
+                  <Pressable
                     onPress={() => {
                       void handleResendVerificationEmail();
                     }}
                     disabled={resendingEmail}
-                    activeOpacity={0.7}
                     style={styles.resendButton}
                   >
                     <Text
@@ -416,7 +435,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     >
                       {resendingEmail ? 'Sending...' : 'Resend Verification Email'}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
               )}
             </View>
@@ -506,13 +525,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 autoComplete='password'
                 leftIcon={<Icon name='lock-closed-outline' family='Ionicons' size='md' />}
                 rightIcon={
-                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Pressable onPress={() => setShowPassword(!showPassword)}>
                     <Icon
                       name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                       family='Ionicons'
                       size='md'
                     />
-                  </TouchableOpacity>
+                  </Pressable>
                 }
                 hasError={!!formErrors.password}
                 errorText={formErrors.password?.message}
@@ -530,11 +549,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             name='rememberMe'
             render={({ field: { onChange, value } }) => (
               <View style={styles.optionsRow}>
-                <TouchableOpacity
+                <Pressable
                   style={styles.rememberMeContainer}
                   onPress={() => onChange(!Boolean(value))}
                   disabled={isLoading}
-                  activeOpacity={0.7}
                 >
                   <View
                     style={[
@@ -562,36 +580,32 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   <Text variant='body.small' color='secondary'>
                     Remember me
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
 
-                <TouchableOpacity
+                <Pressable
                   onPress={handleNavigateToForgotPassword}
                   disabled={isLoading}
-                  activeOpacity={0.7}
                 >
                   <Text variant='body.small' color='primary' weight='medium'>
                     Forgot Password?
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             )}
           />
 
           {/* Login Button */}
-          <Button
-            variant='primary'
-            size='lg'
+          <MorphingButton
+            label='Sign In'
+            successLabel='Welcome!'
+            loading={isLoading}
+            success={loginSuccess}
             onPress={() => {
               void handleSubmit(onSubmit)();
             }}
-            loading={isLoading}
-            disabled={isLoading}
             style={styles.loginButton}
-            textStyle={styles.loginButtonText}
             testID='login-submit-button'
-          >
-            Sign In
-          </Button>
+          />
 
           {/* Divider */}
           <View style={styles.divider}>
@@ -607,10 +621,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <Text variant='body.medium' color={theme.colors.onSurfaceVariant}>
               Don&apos;t have an account?{' '}
             </Text>
-            <TouchableOpacity
+            <Pressable
               onPress={handleNavigateToRegister}
               disabled={isLoading}
-              activeOpacity={0.7}
             >
               <Text
                 variant='body.medium'
@@ -620,7 +633,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               >
                 Sign Up
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           {/* Resend Verification Link */}
@@ -628,10 +641,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <Text variant='body.small' color={theme.colors.onSurfaceVariant}>
               Need to verify email?{' '}
             </Text>
-            <TouchableOpacity
+            <Pressable
               onPress={() => setShowResendModal(true)}
               disabled={isLoading}
-              activeOpacity={0.7}
             >
               <Text
                 variant='body.small'
@@ -641,7 +653,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               >
                 Resend Link
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </Card>
 
@@ -650,13 +662,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           By signing in, you agree to our Terms of Service and Privacy Policy
         </Text>
       </ScrollView>
-
-      {/* Login Success Modal - Auto-dismisses after 3 seconds */}
-      <LoginSuccessModal
-        visible={showSuccessModal}
-        userName={userName}
-        onDismiss={() => setShowSuccessModal(false)}
-      />
 
       {/* Resend Verification Modal */}
       <ResendVerificationModal
@@ -810,9 +815,6 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginBottom: 18,
-  },
-  loginButtonText: {
-    fontSize: 16, // ← Adjust this value to increase/decrease text size
   },
   divider: {
     flexDirection: 'row',

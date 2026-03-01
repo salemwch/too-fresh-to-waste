@@ -30,7 +30,16 @@ const initialState: AuthState = {
   pendingVerificationPhone: undefined,
   mfaToken: undefined,
   passwordResetToken: undefined,
+  // Offline mode
+  isOffline: false,
+  offlineMessage: undefined,
+  retryAfterMs: undefined,
+  offlineSince: undefined,
 };
+
+// ✅ PROMISE-BASED LOCK: Prevent concurrent logout calls
+// Using Promise instead of boolean flag for true concurrency control
+let logoutLock: Promise<void> | null = null;
 
 // Async thunks
 export const loginAsync = createAsyncThunk(
@@ -40,16 +49,28 @@ export const loginAsync = createAsyncThunk(
       Logger.info('Login attempt started', { email: request.email });
       const response = await authService.login(request);
 
-      // Store tokens securely in Keychain
-      await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
+      // ✅ PRODUCTION: Synchronous token storage for CRITICAL auth operations
+      // Ensures tokens are in Keychain BEFORE Redux state updates
+      // Non-critical data (user profile) can still be background
+      const { backgroundStorage } = await import('@/utils/backgroundStorage');
 
-      // Store user data and session metadata
-      await SecureStorage.setUserData(JSON.stringify(response.user));
+      // CRITICAL: Await token storage (Keychain is authoritative)
+      await backgroundStorage.executeAwaitable('login-tokens', async () => {
+        await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
+      });
 
-      const expiresAt = new Date(Date.now() + response.tokens.expiresIn * 1000);
-      await SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString());
+      Logger.info('[Auth] Tokens persisted to Keychain', { userId: response.user.userId });
 
-      Logger.info('Login successful', { userId: response.user.userId });
+      // Non-critical: Fire-and-forget for user data and metadata
+      backgroundStorage.execute('login-user-data', async () => {
+        await SecureStorage.setUserData(JSON.stringify(response.user));
+        const expiresAt = new Date(Date.now() + response.tokens.expiresIn * 1000);
+        await SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString());
+      });
+
+      Logger.info('Login successful - navigating immediately, storage complete', {
+        userId: response.user.userId,
+      });
       return response;
     } catch (error) {
       Logger.error('Login failed', { email: request.email }, error as Error);
@@ -78,17 +99,17 @@ export const loginAsync = createAsyncThunk(
       if (error !== null && error !== undefined && typeof error === 'object') {
         const errObj = error as Record<string, unknown>;
         if (typeof errObj['field'] === 'string') {
-          errorPayload.field = errObj['field'];
+          errorPayload['field'] = errObj['field'];
         }
         if (typeof errObj['errorCode'] === 'string') {
-          errorPayload.type = errObj['errorCode']; // Map errorCode to type for backward compatibility
+          errorPayload['type'] = errObj['errorCode']; // Map errorCode to type for backward compatibility
         }
         // Preserve account lockout metadata
         if (errObj['isAccountLocked'] === true) {
-          errorPayload.isAccountLocked = true;
+          errorPayload['isAccountLocked'] = true;
         }
         if (errObj['blockedUntil'] !== null && errObj['blockedUntil'] !== undefined) {
-          errorPayload.blockedUntil = errObj['blockedUntil'];
+          errorPayload['blockedUntil'] = errObj['blockedUntil'];
         }
       }
 
@@ -159,16 +180,24 @@ export const verifyEmailAsync = createAsyncThunk(
       Logger.info('Email verification attempt started', { email: request.email });
       const response = await authService.verifyEmail(request);
 
-      // Store tokens securely in Keychain (same as login)
-      await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
+      // ✅ PRODUCTION: Synchronous token storage
+      const { backgroundStorage } = await import('@/utils/backgroundStorage');
 
-      // Store user data and session metadata
-      await SecureStorage.setUserData(JSON.stringify(response.user));
+      // CRITICAL: Await token storage
+      await backgroundStorage.executeAwaitable('verify-email-tokens', async () => {
+        await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
+      });
 
-      const expiresAt = new Date(Date.now() + (response.tokens.expiresIn || 3600) * 1000);
-      await SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString());
+      Logger.info('[Auth] Email verified - tokens persisted', { userId: response.user.userId });
 
-      Logger.info('Email verification successful with auto-login', {
+      // Non-critical: Fire-and-forget
+      backgroundStorage.execute('verify-email-user-data', async () => {
+        await SecureStorage.setUserData(JSON.stringify(response.user));
+        const expiresAt = new Date(Date.now() + (response.tokens.expiresIn || 3600) * 1000);
+        await SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString());
+      });
+
+      Logger.info('Email verification successful with auto-login - navigating immediately', {
         userId: response.user.userId,
       });
       return response;
@@ -200,16 +229,24 @@ export const verifyMFAAsync = createAsyncThunk(
       Logger.info('MFA verification attempt started');
       const response = await authService.verifyMFA(request);
 
-      // Store tokens securely in Keychain
-      await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
+      // ✅ PRODUCTION: Synchronous token storage
+      const { backgroundStorage } = await import('@/utils/backgroundStorage');
 
-      // Store user data and session metadata
-      await SecureStorage.setUserData(JSON.stringify(response.user));
+      // CRITICAL: Await token storage
+      await backgroundStorage.executeAwaitable('mfa-tokens', async () => {
+        await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
+      });
 
-      const expiresAt = new Date(Date.now() + response.tokens.expiresIn * 1000);
-      await SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString());
+      Logger.info('[Auth] MFA verified - tokens persisted', { userId: response.user.userId });
 
-      Logger.info('MFA verification successful', { userId: response.user.userId });
+      // Non-critical: Fire-and-forget
+      backgroundStorage.execute('mfa-user-data', async () => {
+        await SecureStorage.setUserData(JSON.stringify(response.user));
+        const expiresAt = new Date(Date.now() + response.tokens.expiresIn * 1000);
+        await SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString());
+      });
+
+      Logger.info('MFA verification successful - navigating immediately', { userId: response.user.userId });
       return response;
     } catch (error) {
       Logger.error('MFA verification failed', {}, error as Error);
@@ -247,22 +284,48 @@ export const refreshTokenAsync = createAsyncThunk(
       Logger.debug('Token refresh attempt started');
       const response = await authService.refreshToken({ refreshToken });
 
-      // Update stored tokens in Keychain
-      await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
+      // ✅ CRITICAL FIX: Token persistence MUST be awaited, NOT fire-and-forget!
+      //
+      // WHY THIS MATTERS:
+      // Backend uses TOKEN ROTATION - when refresh succeeds:
+      // 1. Old token is IMMEDIATELY REVOKED (cannot be used again!)
+      // 2. New token is issued
+      //
+      // If we fire-and-forget the storage and the app crashes/closes before
+      // persistence completes, we lose the new tokens and the old ones are
+      // already revoked → user gets logged out on next app launch.
+      //
+      // MUST AWAIT: Ensure new tokens are in Keychain BEFORE returning success.
+      const { backgroundStorage } = await import('@/utils/backgroundStorage');
 
-      const expiresAt = new Date(Date.now() + response.tokens.expiresIn * 1000);
-      const { lastLoginTime } = await SecureStorage.getSessionMetadata();
-      await SecureStorage.setSessionMetadata(
-        expiresAt.toISOString(),
-        typeof lastLoginTime === 'string' && lastLoginTime !== ''
-          ? lastLoginTime
-          : new Date().toISOString(),
-      );
+      // ATOMIC: Await token storage - if this fails, the refresh should fail
+      await backgroundStorage.executeAwaitable('refresh-tokens-critical', async () => {
+        await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
+        Logger.info('[AUTH] New tokens persisted to Keychain after refresh', {
+          expiresIn: response.tokens.expiresIn,
+        });
+      });
 
-      Logger.debug('Token refresh successful');
+      // Non-critical metadata can be fire-and-forget
+      backgroundStorage.execute('refresh-metadata', async () => {
+        const expiresAt = new Date(Date.now() + response.tokens.expiresIn * 1000);
+        const { lastLoginTime } = await SecureStorage.getSessionMetadata();
+        await SecureStorage.setSessionMetadata(
+          expiresAt.toISOString(),
+          typeof lastLoginTime === 'string' && lastLoginTime !== ''
+            ? lastLoginTime
+            : new Date().toISOString(),
+        );
+      });
+
+      Logger.info('[AUTH] Token refresh completed successfully');
       return response;
     } catch (error) {
-      Logger.error('Token refresh failed', {}, error as Error);
+      // ✅ OFFLINE-FIRST: Use WARN instead of ERROR for token refresh failures
+      // Network errors are expected and shouldn't spam error logs
+      Logger.warn('Token refresh failed (will be handled by middleware)', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       ErrorHandler.handle(error as Error, { operation: 'refreshToken' });
 
       // Extract message from AppError or Error
@@ -276,36 +339,170 @@ export const refreshTokenAsync = createAsyncThunk(
         errorMessage = error.message;
       }
 
+      // Determine if this is a network error (offline/timeout) vs auth error (401/403)
+      const isNetworkError =
+        errorMessage === 'Network request failed' ||
+        errorMessage.toLowerCase().includes('network') ||
+        errorMessage.toLowerCase().includes('timeout') ||
+        errorMessage.toLowerCase().includes('econnrefused') ||
+        errorMessage.toLowerCase().includes('econnaborted') ||
+        (error !== null &&
+          typeof error === 'object' &&
+          'type' in error &&
+          (error as { type: string }).type === 'NETWORK');
+
       return rejectWithValue({
         message: errorMessage,
+        isNetworkError,
       });
     }
   },
 );
 
-export const logoutAsync = createAsyncThunk('auth/logout', async (_, { getState }) => {
-  try {
+/**
+ * Logout Async Thunk
+ *
+ * ✅ PRODUCTION-GRADE:
+ * - Cancels inflight requests before logout
+ * - Only calls API for explicit user logout with valid token
+ * - Always clears local state (even if API fails)
+ * - Idempotent with promise-based lock
+ *
+ * @param params.reason - Why logout is happening (user_action | session_expired | token_missing)
+ */
+export const logoutAsync = createAsyncThunk(
+  'auth/logout',
+  async (
+    params: { reason?: 'user_action' | 'session_expired' | 'token_missing' } = {},
+    { getState },
+  ) => {
+    // ✅ PROMISE LOCK: Prevent concurrent logout calls
+    if (logoutLock !== null) {
+      Logger.info('[AUTH] Logout already in progress, waiting for completion');
+      await logoutLock;
+      return; // Logout already completed by another call
+    }
+
+    // Snapshot state before async operations
     const state = getState() as { auth: AuthState };
-    const userId = state.auth.user?.userId;
+    const { isAuthenticated, tokens, user } = state.auth;
+    const userId = user?.userId;
+    const accessToken = tokens?.accessToken;
+    const reason = params.reason || 'user_action';
 
-    Logger.info('Logout attempt started', { userId });
+    // Create logout promise and store as lock
+    logoutLock = (async () => {
+      try {
+        Logger.info('[AUTH] Logout started', { userId, reason });
 
-    // Call logout API to invalidate server-side session
-    await authService.logout();
+        // ✅ CRITICAL: Cancel all inflight requests FIRST
+        // Prevents orphaned requests from re-triggering auth flows
+        const { cancelInflightRequests } = await import('@/services/apiClient');
+        cancelInflightRequests();
 
-    // Clear all stored auth data from Keychain and AsyncStorage
-    await SecureStorage.clearAll();
+        // ✅ BEST PRACTICE: Only call logout API for explicit user action with valid token
+        // Don't call API if:
+        // - Session expired (token already invalid → would get 401)
+        // - Token missing (no session to invalidate)
+        // - Not authenticated (no active session)
+        const shouldCallApi = reason === 'user_action' && isAuthenticated && accessToken;
 
-    Logger.info('Logout successful', { userId });
-  } catch (error) {
-    Logger.error('Logout failed', {}, error as Error);
+        if (shouldCallApi) {
+          try {
+            Logger.info('[AUTH] Calling logout API (user-initiated)', { userId });
+            await authService.logout(accessToken);
+            Logger.info('[AUTH] Logout API successful', { userId });
+          } catch (error) {
+            // ✅ GRACEFUL DEGRADATION: API failure doesn't stop local logout
+            Logger.warn(
+              '[AUTH] Logout API failed, clearing local state anyway',
+              { userId, reason },
+              error as Error,
+            );
+          }
+        } else {
+          Logger.info('[AUTH] Skipping logout API call (local-only)', {
+            userId,
+            reason,
+            shouldCallApi: false,
+          });
+        }
 
-    // Even if logout API fails, clear local storage
-    await SecureStorage.clearAll();
+        // ✅ ALWAYS clear local state (even if API fails)
+        await SecureStorage.clearAll();
 
-    throw error;
-  }
-});
+        Logger.info('[AUTH] Logout completed', { userId, reason, calledApi: shouldCallApi });
+      } catch (error) {
+        Logger.error('[AUTH] Logout failed (unexpected)', { userId, reason }, error as Error);
+
+        // Still try to clear storage
+        await SecureStorage.clearAll().catch(storageError => {
+          Logger.error('[AUTH] Failed to clear secure storage', {}, storageError as Error);
+        });
+      } finally {
+        // Clear lock
+        logoutLock = null;
+      }
+    })();
+
+    // Wait for logout to complete
+    await logoutLock;
+  },
+);
+
+/**
+ * Delete Account Async Thunk
+ *
+ * Self-service account deletion:
+ * - Calls DELETE /auth/me API
+ * - Cancels inflight requests
+ * - Clears all local storage (Keychain)
+ * - Resets auth state → state-driven nav redirects to login
+ *
+ * On failure: keeps user logged in, surfaces error message.
+ */
+export const deleteAccountAsync = createAsyncThunk(
+  'auth/deleteAccount',
+  async (_, { getState, rejectWithValue }) => {
+    const state = getState() as { auth: AuthState };
+    const accessToken = state.auth.tokens?.accessToken;
+
+    if (accessToken == null || accessToken === '') {
+      return rejectWithValue({ message: 'No access token available' });
+    }
+
+    try {
+      Logger.info('[AUTH] Account deletion started');
+
+      // Cancel all inflight requests before deletion
+      const { cancelInflightRequests } = await import('@/services/apiClient');
+      cancelInflightRequests();
+
+      // Call backend DELETE /auth/me
+      await authService.deleteAccount(accessToken);
+
+      // Clear all local storage (same as logout)
+      await SecureStorage.clearAll();
+
+      Logger.info('[AUTH] Account deletion completed');
+      return undefined;
+    } catch (error) {
+      Logger.error('[AUTH] Account deletion failed', {}, error as Error);
+
+      let errorMessage = 'Failed to delete account';
+      if (error !== null && error !== undefined && typeof error === 'object') {
+        const errObj = error as Record<string, unknown>;
+        if (typeof errObj['message'] === 'string') {
+          errorMessage = errObj['message'];
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      return rejectWithValue({ message: errorMessage });
+    }
+  },
+);
 
 export const loadStoredAuthAsync = createAsyncThunk(
   'auth/loadStoredAuth',
@@ -316,10 +513,13 @@ export const loadStoredAuthAsync = createAsyncThunk(
       // Migrate from AsyncStorage to Keychain if needed (one-time migration)
       await SecureStorage.migrateFromAsyncStorage();
 
-      // Load tokens from secure storage
-      const { accessToken, refreshToken } = await SecureStorage.getTokens();
+      // ✅ PRODUCTION: Load tokens from Keychain WITH RETRY
+      // Keychain is authoritative - MMKV/Redux is only UI cache
+      const { accessToken, refreshToken } = await SecureStorage.getTokensWithRetry(3);
       const userJson = await SecureStorage.getUserData();
       const { expiresAt, lastLoginTime } = await SecureStorage.getSessionMetadata();
+
+      Logger.info('[Auth] Loaded from Keychain', { hasTokens: !!(accessToken && refreshToken) });
 
       // Explicitly check for null/undefined or empty strings to avoid nullable conditional usage
       const isAccessTokenMissing = accessToken == null || accessToken === '';
@@ -475,6 +675,59 @@ const authSlice = createSlice({
           AuthFlowState.UNAUTHENTICATED,
         );
       }
+    },
+
+    /**
+     * RESILIENT AUTH: Set network error state (keep session, show banner)
+     * Called by apiClient when network errors occur (500, timeout, DNS)
+     * NEVER triggers logout - session is preserved
+     */
+    setNetworkError: (
+      state,
+      action: PayloadAction<{
+        isOffline: boolean;
+        message: string;
+        retryAfterMs?: number;
+      }>,
+    ) => {
+      state.isOffline = action.payload.isOffline;
+      state.offlineMessage = action.payload.message;
+      state.retryAfterMs = action.payload.retryAfterMs;
+      state.offlineSince = new Date().toISOString();
+      Logger.info('[AUTH] Entered offline mode (session preserved)', {
+        message: action.payload.message,
+        retryAfterMs: action.payload.retryAfterMs,
+      });
+    },
+
+    /**
+     * RESILIENT AUTH: Clear network error state (connection restored)
+     * Called when network connection is restored
+     */
+    clearNetworkError: state => {
+      state.isOffline = false;
+      state.offlineMessage = undefined;
+      state.retryAfterMs = undefined;
+      state.offlineSince = undefined;
+      Logger.info('[AUTH] Exited offline mode (connection restored)');
+    },
+
+    /**
+     * CRITICAL: Force local logout WITHOUT making any API call
+     * Used by apiClient interceptor when token refresh fails
+     * This prevents infinite loop: 401 → refresh fail → logout API → 401 → ...
+     */
+    forceLocalLogout: () => {
+      console.log(
+        '[STATE-DRIVEN NAV] Force local logout (no API call), flowState =',
+        AuthFlowState.SESSION_EXPIRED,
+      );
+      // ✅ CRITICAL: Reset logout lock to allow future logout attempts
+      logoutLock = null;
+      return {
+        ...initialState,
+        flowState: AuthFlowState.SESSION_EXPIRED,
+      };
     },
   },
   extraReducers: builder => {
@@ -659,21 +912,50 @@ const authSlice = createSlice({
     });
 
     // Token Refresh
+    builder.addCase(refreshTokenAsync.pending, state => {
+      // Don't set isLoading here to avoid UI flickering during background refresh
+      state.error = undefined;
+    });
+
     builder.addCase(refreshTokenAsync.fulfilled, (state, action) => {
       state.tokens = action.payload.tokens;
       const expiresAt = new Date(Date.now() + action.payload.tokens.expiresIn * 1000);
       state.sessionExpiresAt = expiresAt.toISOString();
+
+      // CRITICAL FIX: Restore authenticated state after successful token refresh
+      // This fixes the race condition where loadStoredAuthAsync clears the session
+      // but the refresh token (still in memory) successfully refreshes
+      state.isAuthenticated = true;
+      state.flowState = AuthFlowState.AUTHENTICATED;
+
+      console.log(
+        '[STATE-DRIVEN NAV] Token refresh successful, flowState =',
+        AuthFlowState.AUTHENTICATED,
+      );
     });
 
-    builder.addCase(refreshTokenAsync.rejected, state => {
-      // Token refresh failed, user needs to login again
-      state.user = null;
-      state.tokens = null;
-      state.isAuthenticated = false;
-      state.error = 'Session expired. Please login again.';
-      state.flowState = AuthFlowState.SESSION_EXPIRED;
+    builder.addCase(refreshTokenAsync.rejected, (state, action) => {
+      const payload = action.payload as { message?: string; isNetworkError?: boolean } | undefined;
 
-      console.log('[STATE-DRIVEN NAV] Session expired, flowState =', AuthFlowState.SESSION_EXPIRED);
+      if (payload?.isNetworkError) {
+        // NETWORK ERROR: Device offline or server unreachable.
+        // Keep the session alive — the user is still authenticated.
+        // The offline banner (driven by NetInfo) handles the UX.
+        state.isOffline = true;
+        state.offlineMessage = 'No connection. Your session is safe — we\'ll retry when you\'re back online.';
+        state.error = undefined;
+
+        console.log('[STATE-DRIVEN NAV] Token refresh failed (network), keeping session alive');
+      } else {
+        // AUTH ERROR (401/403/invalid token): Session truly expired.
+        state.user = null;
+        state.tokens = null;
+        state.isAuthenticated = false;
+        state.error = 'Session expired. Please login again.';
+        state.flowState = AuthFlowState.SESSION_EXPIRED;
+
+        console.log('[STATE-DRIVEN NAV] Session expired, flowState =', AuthFlowState.SESSION_EXPIRED);
+      }
     });
 
     // Logout
@@ -684,7 +966,11 @@ const authSlice = createSlice({
     builder.addCase(logoutAsync.fulfilled, () => {
       // Reset to initial state but with UNAUTHENTICATED flow state
       // (not INITIALIZING, which would cause navigator to have no screens)
-      console.log('[STATE-DRIVEN NAV] Logout successful, flowState =', AuthFlowState.UNAUTHENTICATED);
+      // NOTE: Location and favorites slices listen for this action and clear themselves
+      console.log(
+        '[STATE-DRIVEN NAV] Logout successful, flowState =',
+        AuthFlowState.UNAUTHENTICATED,
+      );
       return {
         ...initialState,
         flowState: AuthFlowState.UNAUTHENTICATED,
@@ -694,11 +980,40 @@ const authSlice = createSlice({
     builder.addCase(logoutAsync.rejected, () => {
       // Even if logout API fails, clear local state
       // Set UNAUTHENTICATED flow state to redirect to login
-      console.log('[STATE-DRIVEN NAV] Logout failed but clearing state, flowState =', AuthFlowState.UNAUTHENTICATED);
+      console.log(
+        '[STATE-DRIVEN NAV] Logout failed but clearing state, flowState =',
+        AuthFlowState.UNAUTHENTICATED,
+      );
       return {
         ...initialState,
         flowState: AuthFlowState.UNAUTHENTICATED,
       };
+    });
+
+    // Delete Account
+    builder.addCase(deleteAccountAsync.pending, state => {
+      state.isLoading = true;
+      state.error = undefined;
+    });
+
+    builder.addCase(deleteAccountAsync.fulfilled, () => {
+      console.log(
+        '[STATE-DRIVEN NAV] Account deleted, flowState =',
+        AuthFlowState.UNAUTHENTICATED,
+      );
+      return {
+        ...initialState,
+        flowState: AuthFlowState.UNAUTHENTICATED,
+      };
+    });
+
+    builder.addCase(deleteAccountAsync.rejected, (state, action) => {
+      state.isLoading = false;
+      const payload = action.payload as { message?: string } | undefined;
+      state.error =
+        payload?.message != null && payload.message !== ''
+          ? payload.message
+          : 'Failed to delete account';
     });
 
     // Load Stored Auth
@@ -775,5 +1090,17 @@ export const {
   setFlowState,
   emailVerified,
   phoneVerified,
+  setNetworkError,
+  clearNetworkError,
+  forceLocalLogout,
 } = authSlice.actions;
 export default authSlice.reducer;
+
+// ── Named selectors (co-located with slice per Redux best practices) ──
+import type { RootState } from '@/store';
+
+/** Primitive boolean — no createSelector needed (returns stable ref). */
+export const selectIsPhoneVerified = (state: RootState): boolean =>
+  state.auth.user?.isPhoneVerified ?? false;
+
+export const selectAuthUser = (state: RootState) => state.auth.user;

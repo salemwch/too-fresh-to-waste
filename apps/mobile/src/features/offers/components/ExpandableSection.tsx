@@ -4,7 +4,14 @@
  */
 
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+} from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -44,48 +51,47 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
 
   if (variant === 'link') {
     return (
-      <TouchableOpacity
-        style={[styles.linkButton, { borderTopColor: theme.colors.border }]}
+      <Pressable
+        style={[styles.linkButton, { borderTopColor: theme.colors.outline }]}
         onPress={handleToggle}
         testID={testID}
-        accessibilityRole="button"
+        accessibilityRole='button'
         accessibilityState={{ expanded: isExpanded }}
       >
-        <Text variant="body" size="md" weight="medium" color="primary" style={styles.linkText}>
+        <Text variant='body' size='md' weight='medium' color='primary' style={styles.linkText}>
           {title}
         </Text>
         <Icon
-          name="chevron-right"
+          name='chevron-right'
           size={20}
-          color={theme.colors.textSecondary}
+          color={theme.colors.onSurfaceVariant}
           style={[styles.icon, isExpanded && styles.iconRotated]}
         />
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
   return (
-    <View style={[styles.container, { borderTopColor: theme.colors.border }]} testID={testID}>
+    <View style={[styles.container, { borderTopColor: theme.colors.outline }]} testID={testID}>
       {/* Header */}
-      <TouchableOpacity
+      <Pressable
         style={styles.header}
         onPress={handleToggle}
-        activeOpacity={0.7}
-        accessibilityRole="button"
+        accessibilityRole='button'
         accessibilityState={{ expanded: isExpanded }}
         accessibilityLabel={title}
         accessibilityHint={isExpanded ? 'Tap to collapse' : 'Tap to expand'}
       >
-        <Text variant="body" size="md" weight="semibold">
+        <Text variant='body' size='md' weight='semibold'>
           {title}
         </Text>
         <Icon
-          name="chevron-down"
+          name='chevron-down'
           size={20}
-          color={theme.colors.textSecondary}
+          color={theme.colors.onSurfaceVariant}
           style={[styles.icon, isExpanded && styles.iconRotated]}
         />
-      </TouchableOpacity>
+      </Pressable>
 
       {/* Content */}
       {isExpanded && <View style={styles.content}>{children}</View>}

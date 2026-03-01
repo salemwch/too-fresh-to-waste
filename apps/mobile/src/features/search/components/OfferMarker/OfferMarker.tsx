@@ -9,16 +9,13 @@
  * - Premium look with shadow
  */
 
-import React, { memo, useEffect, useRef } from 'react';
-import {
-  View,
-  StyleSheet,
-  Animated,
-} from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, Animated } from 'react-native';
 import { Marker } from 'react-native-maps';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+
 import type { ProximitySearchResult, NearbyOffer } from '@/features/offers/hooks';
 
 // ============================================================================
@@ -35,11 +32,7 @@ export interface OfferMarkerProps {
 // Component
 // ============================================================================
 
-export const OfferMarker: React.FC<OfferMarkerProps> = memo(({
-  offer,
-  isSelected,
-  onPress,
-}) => {
+const OfferMarkerComponent: React.FC<OfferMarkerProps> = ({ offer, isSelected, onPress }) => {
   const theme = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const { item, geoData } = offer;
@@ -82,12 +75,7 @@ export const OfferMarker: React.FC<OfferMarkerProps> = memo(({
       onPress={onPress}
       tracksViewChanges={isSelected}
     >
-      <Animated.View
-        style={[
-          styles.container,
-          { transform: [{ scale: scaleAnim }] },
-        ]}
-      >
+      <Animated.View style={[styles.container, { transform: [{ scale: scaleAnim }] }]}>
         {/* Main Pin */}
         <View
           style={[
@@ -101,9 +89,9 @@ export const OfferMarker: React.FC<OfferMarkerProps> = memo(({
           {/* Icon or Discount */}
           {discountPercent > 0 ? (
             <Text
-              variant="label"
-              size="xs"
-              weight="bold"
+              variant='label'
+              size='xs'
+              weight='bold'
               style={{
                 color: isSelected ? theme.colors.onPrimary : theme.colors.primary,
               }}
@@ -112,8 +100,8 @@ export const OfferMarker: React.FC<OfferMarkerProps> = memo(({
             </Text>
           ) : (
             <Icon
-              name="pricetag-outline"
-              family="Ionicons"
+              name='pricetag-outline'
+              family='Ionicons'
               size={16}
               color={isSelected ? theme.colors.onPrimary : theme.colors.primary}
             />
@@ -135,9 +123,11 @@ export const OfferMarker: React.FC<OfferMarkerProps> = memo(({
       </Animated.View>
     </Marker>
   );
-});
+};
 
-OfferMarker.displayName = 'OfferMarker';
+OfferMarkerComponent.displayName = 'OfferMarker';
+
+export const OfferMarker = React.memo(OfferMarkerComponent);
 
 // ============================================================================
 // Styles

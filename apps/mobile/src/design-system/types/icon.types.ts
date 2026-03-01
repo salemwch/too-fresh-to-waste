@@ -6,7 +6,7 @@
 import type React from 'react';
 
 /**
- * All supported icon families from react-native-vector-icons
+ * All supported icon families from @react-native-vector-icons/* scoped packages
  * Complete list of available icon libraries
  */
 export type IconFamily =
@@ -40,7 +40,7 @@ export interface IconComponentProps {
 }
 
 /**
- * Type alias for icon components from react-native-vector-icons
+ * Type alias for icon components from @react-native-vector-icons/* packages
  * Represents any icon component that accepts standard icon props
  */
 export type IconComponent = React.ComponentType<IconComponentProps>;

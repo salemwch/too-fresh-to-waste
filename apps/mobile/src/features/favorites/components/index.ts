@@ -4,3 +4,4 @@
  */
 
 export * from './FavoriteOfferCard';
+export * from './DeletedOfferCard';

@@ -1,7 +1,9 @@
 /**
  * Secure Storage Service
  * Uses react-native-keychain for encrypted token storage
- * More secure than AsyncStorage or MMKV for sensitive data
+ *
+ * PRODUCTION: Keychain/Keystore is the AUTHORITATIVE source for tokens
+ * MMKV/Redux is only a UI cache for fast rendering
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -26,6 +28,30 @@ export const STORAGE_KEYS = {
  */
 const KEYCHAIN_SERVICE = 'com.foodwaste.app';
 
+/**
+ * Retry configuration
+ */
+const RETRY_CONFIG = {
+  MAX_RETRIES: 3,
+  INITIAL_DELAY_MS: 100,
+  MAX_DELAY_MS: 1000,
+} as const;
+
+/**
+ * Delay helper for exponential backoff
+ */
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Calculate exponential backoff delay
+ */
+function getBackoffDelay(attempt: number): number {
+  const exponentialDelay = RETRY_CONFIG.INITIAL_DELAY_MS * Math.pow(2, attempt - 1);
+  return Math.min(exponentialDelay, RETRY_CONFIG.MAX_DELAY_MS);
+}
+
 export class SecureStorage {
   /**
    * Store access token securely
@@ -36,30 +62,61 @@ export class SecureStorage {
         service: `${KEYCHAIN_SERVICE}.access`,
         accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
       });
-      Logger.debug('Access token stored securely');
+      Logger.debug('[SecureStorage] Access token stored');
     } catch (error) {
-      Logger.error('Failed to store access token', {}, error as Error);
+      Logger.error('[SecureStorage] Failed to store access token', {}, error as Error);
       throw error;
     }
   }
 
   /**
-   * Get access token
+   * Get access token with retry logic
+   * PRODUCTION: Authoritative source for access tokens
+   *
+   * @param maxRetries - Maximum retry attempts (default 3)
+   * @returns Access token or null if not found after retries
+   */
+  static async getAccessTokenWithRetry(maxRetries: number = RETRY_CONFIG.MAX_RETRIES): Promise<string | null> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const credentials = await Keychain.getGenericPassword({
+          service: `${KEYCHAIN_SERVICE}.access`,
+        });
+
+        if (credentials && typeof credentials !== 'boolean') {
+          Logger.debug('[SecureStorage] Access token retrieved', { attempt });
+          return credentials.password;
+        }
+
+        Logger.debug('[SecureStorage] No access token found', { attempt });
+        return null;
+      } catch (error) {
+        const isLastAttempt = attempt === maxRetries;
+
+        Logger.warn(
+          `[SecureStorage] Failed to get access token (attempt ${attempt}/${maxRetries})`,
+          { error: (error as Error).message },
+        );
+
+        if (isLastAttempt) {
+          Logger.error('[SecureStorage] All retries exhausted for access token', {}, error as Error);
+          return null;
+        }
+
+        // Exponential backoff
+        const delayMs = getBackoffDelay(attempt);
+        await delay(delayMs);
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Get access token (no retry - legacy method)
    */
   static async getAccessToken(): Promise<string | null> {
-    try {
-      const credentials = await Keychain.getGenericPassword({
-        service: `${KEYCHAIN_SERVICE}.access`,
-      });
-
-      if (credentials && typeof credentials !== 'boolean') {
-        return credentials.password;
-      }
-      return null;
-    } catch (error) {
-      Logger.error('Failed to get access token', {}, error as Error);
-      return null;
-    }
+    return this.getAccessTokenWithRetry(1); // Single attempt
   }
 
   /**
@@ -71,52 +128,107 @@ export class SecureStorage {
         service: `${KEYCHAIN_SERVICE}.refresh`,
         accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
       });
-      Logger.debug('Refresh token stored securely');
+      Logger.debug('[SecureStorage] Refresh token stored');
     } catch (error) {
-      Logger.error('Failed to store refresh token', {}, error as Error);
+      Logger.error('[SecureStorage] Failed to store refresh token', {}, error as Error);
       throw error;
     }
   }
 
   /**
-   * Get refresh token
+   * Get refresh token with retry logic
+   * PRODUCTION: Authoritative source for refresh tokens
+   *
+   * @param maxRetries - Maximum retry attempts (default 3)
+   * @returns Refresh token or null if not found after retries
+   */
+  static async getRefreshTokenWithRetry(maxRetries: number = RETRY_CONFIG.MAX_RETRIES): Promise<string | null> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const credentials = await Keychain.getGenericPassword({
+          service: `${KEYCHAIN_SERVICE}.refresh`,
+        });
+
+        if (credentials && typeof credentials !== 'boolean') {
+          Logger.debug('[SecureStorage] Refresh token retrieved', { attempt });
+          return credentials.password;
+        }
+
+        Logger.debug('[SecureStorage] No refresh token found', { attempt });
+        return null;
+      } catch (error) {
+        const isLastAttempt = attempt === maxRetries;
+
+        Logger.warn(
+          `[SecureStorage] Failed to get refresh token (attempt ${attempt}/${maxRetries})`,
+          { error: (error as Error).message },
+        );
+
+        if (isLastAttempt) {
+          Logger.error('[SecureStorage] All retries exhausted for refresh token', {}, error as Error);
+          return null;
+        }
+
+        // Exponential backoff
+        const delayMs = getBackoffDelay(attempt);
+        await delay(delayMs);
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Get refresh token (no retry - legacy method)
    */
   static async getRefreshToken(): Promise<string | null> {
-    try {
-      const credentials = await Keychain.getGenericPassword({
-        service: `${KEYCHAIN_SERVICE}.refresh`,
-      });
-
-      if (credentials && typeof credentials !== 'boolean') {
-        return credentials.password;
-      }
-      return null;
-    } catch (error) {
-      Logger.error('Failed to get refresh token', {}, error as Error);
-      return null;
-    }
+    return this.getRefreshTokenWithRetry(1); // Single attempt
   }
 
   /**
    * Store both tokens
    */
   static async setTokens(accessToken: string, refreshToken: string): Promise<void> {
-    await Promise.all([this.setAccessToken(accessToken), this.setRefreshToken(refreshToken)]);
+    await Promise.all([
+      this.setAccessToken(accessToken),
+      this.setRefreshToken(refreshToken),
+    ]);
   }
 
   /**
-   * Get both tokens
+   * Get both tokens with retry logic (PRODUCTION)
+   * AUTHORITATIVE source for auth tokens
+   *
+   * @param maxRetries - Maximum retry attempts (default 3)
+   * @returns Tokens or null values if not found after retries
+   */
+  static async getTokensWithRetry(maxRetries: number = RETRY_CONFIG.MAX_RETRIES): Promise<{
+    accessToken: string | null;
+    refreshToken: string | null;
+  }> {
+    Logger.info('[SecureStorage] Getting tokens with retry', { maxRetries });
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.getAccessTokenWithRetry(maxRetries),
+      this.getRefreshTokenWithRetry(maxRetries),
+    ]);
+
+    Logger.info('[SecureStorage] Tokens retrieved', {
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
+    });
+
+    return { accessToken, refreshToken };
+  }
+
+  /**
+   * Get both tokens (no retry - legacy method for compatibility)
    */
   static async getTokens(): Promise<{
     accessToken: string | null;
     refreshToken: string | null;
   }> {
-    const [accessToken, refreshToken] = await Promise.all([
-      this.getAccessToken(),
-      this.getRefreshToken(),
-    ]);
-
-    return { accessToken, refreshToken };
+    return this.getTokensWithRetry(1); // Single attempt for backwards compatibility
   }
 
   /**
@@ -128,9 +240,9 @@ export class SecureStorage {
         Keychain.resetGenericPassword({ service: `${KEYCHAIN_SERVICE}.access` }),
         Keychain.resetGenericPassword({ service: `${KEYCHAIN_SERVICE}.refresh` }),
       ]);
-      Logger.info('Tokens cleared from secure storage');
+      Logger.info('[SecureStorage] Tokens cleared');
     } catch (error) {
-      Logger.error('Failed to clear tokens', {}, error as Error);
+      Logger.error('[SecureStorage] Failed to clear tokens', {}, error as Error);
       throw error;
     }
   }
@@ -141,9 +253,9 @@ export class SecureStorage {
   static async setUserData(userData: string): Promise<void> {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, userData);
-      Logger.debug('User data stored');
+      Logger.debug('[SecureStorage] User data stored');
     } catch (error) {
-      Logger.error('Failed to store user data', {}, error as Error);
+      Logger.error('[SecureStorage] Failed to store user data', {}, error as Error);
       throw error;
     }
   }
@@ -155,7 +267,7 @@ export class SecureStorage {
     try {
       return await AsyncStorage.getItem(STORAGE_KEYS.USER_DATA);
     } catch (error) {
-      Logger.error('Failed to get user data', {}, error as Error);
+      Logger.error('[SecureStorage] Failed to get user data', {}, error as Error);
       return null;
     }
   }
@@ -169,9 +281,9 @@ export class SecureStorage {
         AsyncStorage.setItem(STORAGE_KEYS.SESSION_EXPIRES_AT, expiresAt),
         AsyncStorage.setItem(STORAGE_KEYS.LAST_LOGIN_TIME, lastLoginTime),
       ]);
-      Logger.debug('Session metadata stored');
+      Logger.debug('[SecureStorage] Session metadata stored');
     } catch (error) {
-      Logger.error('Failed to store session metadata', {}, error as Error);
+      Logger.error('[SecureStorage] Failed to store session metadata', {}, error as Error);
       throw error;
     }
   }
@@ -191,7 +303,7 @@ export class SecureStorage {
 
       return { expiresAt, lastLoginTime };
     } catch (error) {
-      Logger.error('Failed to get session metadata', {}, error as Error);
+      Logger.error('[SecureStorage] Failed to get session metadata', {}, error as Error);
       return { expiresAt: null, lastLoginTime: null };
     }
   }
@@ -207,9 +319,9 @@ export class SecureStorage {
         AsyncStorage.removeItem(STORAGE_KEYS.SESSION_EXPIRES_AT),
         AsyncStorage.removeItem(STORAGE_KEYS.LAST_LOGIN_TIME),
       ]);
-      Logger.info('All auth data cleared');
+      Logger.info('[SecureStorage] All auth data cleared');
     } catch (error) {
-      Logger.error('Failed to clear all auth data', {}, error as Error);
+      Logger.error('[SecureStorage] Failed to clear all auth data', {}, error as Error);
       throw error;
     }
   }
@@ -222,7 +334,7 @@ export class SecureStorage {
       const value = await AsyncStorage.getItem(STORAGE_KEYS.USE_BIOMETRIC);
       return value === 'true';
     } catch (error) {
-      Logger.error('Failed to check biometric setting', {}, error as Error);
+      Logger.error('[SecureStorage] Failed to check biometric setting', {}, error as Error);
       return false;
     }
   }
@@ -233,9 +345,9 @@ export class SecureStorage {
   static async setBiometricEnabled(enabled: boolean): Promise<void> {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.USE_BIOMETRIC, enabled.toString());
-      Logger.info(`Biometric authentication ${enabled ? 'enabled' : 'disabled'}`);
+      Logger.info(`[SecureStorage] Biometric authentication ${enabled ? 'enabled' : 'disabled'}`);
     } catch (error) {
-      Logger.error('Failed to set biometric setting', {}, error as Error);
+      Logger.error('[SecureStorage] Failed to set biometric setting', {}, error as Error);
       throw error;
     }
   }
@@ -249,7 +361,7 @@ export class SecureStorage {
       // Check if migration is needed
       const oldAccessToken = await AsyncStorage.getItem('auth_tokens');
       if (!oldAccessToken) {
-        Logger.debug('No old tokens to migrate');
+        Logger.debug('[SecureStorage] No old tokens to migrate');
         return;
       }
 
@@ -267,9 +379,9 @@ export class SecureStorage {
       // Remove old data
       await AsyncStorage.removeItem('auth_tokens');
 
-      Logger.info('Successfully migrated tokens to secure storage');
+      Logger.info('[SecureStorage] Successfully migrated tokens');
     } catch (error) {
-      Logger.error('Token migration failed', {}, error as Error);
+      Logger.error('[SecureStorage] Token migration failed', {}, error as Error);
     }
   }
 }

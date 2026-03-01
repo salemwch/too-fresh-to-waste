@@ -19,6 +19,7 @@ export {
 export {
   useNearbyOffers,
   useNearbyEstablishments,
+  useMapEstablishments,
   useQuickSearch,
   nearbyOffersKeys,
 } from './useNearbyOffers';
@@ -29,6 +30,8 @@ export type {
   ProximitySearchResult,
   NearbyOffer,
   NearbyEstablishment,
+  MapEstablishment,
+  MapOfferSummary,
   DistanceInfo,
   GeoData,
   AddressInfo,

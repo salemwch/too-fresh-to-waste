@@ -19,17 +19,17 @@ import { isDevelopment, isStaging, isProduction } from './environment';
  */
 export interface FeatureFlags {
   // Authentication & API
-  useApiClientV2: boolean;              // New centralized API client with auto token refresh
-  usePreemptiveTokenRefresh: boolean;   // Refresh token 5min before expiry
-  useBiometricReauth: boolean;          // Quick biometric re-auth instead of full login
+  useApiClientV2: boolean; // New centralized API client with auto token refresh
+  usePreemptiveTokenRefresh: boolean; // Refresh token 5min before expiry
+  useBiometricReauth: boolean; // Quick biometric re-auth instead of full login
 
   // Performance
-  enableRequestQueueing: boolean;       // Queue concurrent 401 requests
-  enableResponseCaching: boolean;       // Cache GET requests
+  enableRequestQueueing: boolean; // Queue concurrent 401 requests
+  enableResponseCaching: boolean; // Cache GET requests
 
   // Monitoring
-  enableDetailedLogging: boolean;       // Verbose API logs
-  enableErrorReporting: boolean;        // Send errors to Sentry
+  enableDetailedLogging: boolean; // Verbose API logs
+  enableErrorReporting: boolean; // Send errors to Sentry
 }
 
 /**
@@ -43,7 +43,7 @@ export const getFeatureFlags = (): FeatureFlags => {
     // API Client V2 - ENABLED IN DEV/STAGING NOW
     useApiClientV2,
     usePreemptiveTokenRefresh: false, // Phase 2
-    useBiometricReauth: false,        // Phase 3
+    useBiometricReauth: false, // Phase 3
 
     // Performance - Enabled everywhere
     enableRequestQueueing: true,
@@ -65,9 +65,7 @@ export const featureFlags = getFeatureFlags();
  * @param flag - Feature flag name
  * @returns True if enabled
  */
-export const isFeatureEnabled = (flag: keyof FeatureFlags): boolean => {
-  return featureFlags[flag];
-};
+export const isFeatureEnabled = (flag: keyof FeatureFlags): boolean => featureFlags[flag];
 
 /**
  * 🚀 ROLLOUT STATUS: PHASE 1 ACTIVE

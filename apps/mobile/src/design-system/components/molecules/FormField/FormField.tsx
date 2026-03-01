@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, Pressable } from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Input } from '../../atoms/Input';
@@ -30,7 +30,7 @@ const EyeOffIcon = () => (
   <View style={{ width: 20, height: 20, backgroundColor: '#999', borderRadius: 4 }} />
 );
 
-export const FormField: React.FC<FormFieldProps> = ({
+export const FormField = React.memo<FormFieldProps>(function FormField({
   label,
   value,
   onChangeText,
@@ -69,7 +69,7 @@ export const FormField: React.FC<FormFieldProps> = ({
   accessibilityLabel,
   accessibilityHint,
   ...rest
-}) => {
+}) {
   const theme = useTheme();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [internalError, setInternalError] = useState<string | null>(null);
@@ -234,7 +234,7 @@ export const FormField: React.FC<FormFieldProps> = ({
 
     if (type === 'password' && showPasswordToggle) {
       return (
-        <TouchableOpacity
+        <Pressable
           onPress={togglePasswordVisibility}
           style={{ padding: 0 }}
           testID={`${testID}-password-toggle`}
@@ -242,7 +242,7 @@ export const FormField: React.FC<FormFieldProps> = ({
           accessibilityLabel={isPasswordVisible ? 'Hide password' : 'Show password'}
         >
           {isPasswordVisible ? <EyeOffIcon /> : <EyeIcon />}
-        </TouchableOpacity>
+        </Pressable>
       );
     }
 
@@ -293,6 +293,6 @@ export const FormField: React.FC<FormFieldProps> = ({
       />
     </View>
   );
-};
+});
 
 export default FormField;

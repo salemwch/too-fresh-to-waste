@@ -11,7 +11,7 @@ import {
   View,
   StyleSheet,
   Modal,
-  TouchableOpacity,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -41,12 +41,12 @@ const emailSchema = yup.object({
 
 type EmailFormData = yup.InferType<typeof emailSchema>;
 
-export const ResendVerificationModal: React.FC<ResendVerificationModalProps> = ({
+export const ResendVerificationModal = React.memo<ResendVerificationModalProps>(function ResendVerificationModal({
   visible,
   onDismiss,
   onSuccess,
   onSendVerification,
-}) => {
+}) {
   const theme = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -81,7 +81,9 @@ export const ResendVerificationModal: React.FC<ResendVerificationModalProps> = (
         onSuccess(formData.email);
       } catch (err: any) {
         const message =
-          err instanceof Error ? err.message : 'Failed to send verification email. Please try again.';
+          err instanceof Error
+            ? err.message
+            : 'Failed to send verification email. Please try again.';
         setErrorMessage(message);
       } finally {
         setIsLoading(false);
@@ -117,9 +119,8 @@ export const ResendVerificationModal: React.FC<ResendVerificationModalProps> = (
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <TouchableOpacity
+        <Pressable
           style={styles.backdrop}
-          activeOpacity={1}
           onPress={handleDismiss}
           disabled={isLoading}
         />
@@ -142,7 +143,12 @@ export const ResendVerificationModal: React.FC<ResendVerificationModalProps> = (
                       },
                     ]}
                   >
-                    <Icon name='mail-outline' family='Ionicons' size={28} color={theme.colors.primary} />
+                    <Icon
+                      name='mail-outline'
+                      family='Ionicons'
+                      size={28}
+                      color={theme.colors.primary}
+                    />
                   </View>
                   <Text variant='headline.medium' weight='semibold' style={styles.title}>
                     Verify Your Email
@@ -158,14 +164,14 @@ export const ResendVerificationModal: React.FC<ResendVerificationModalProps> = (
                 </View>
 
                 {/* Close Button */}
-                <TouchableOpacity
+                <Pressable
                   style={styles.closeButton}
                   onPress={handleDismiss}
                   disabled={isLoading}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <Icon name='close' family='Ionicons' size={24} color={theme.colors.onSurface} />
-                </TouchableOpacity>
+                </Pressable>
               </View>
 
               {/* Error Message */}
@@ -173,7 +179,10 @@ export const ResendVerificationModal: React.FC<ResendVerificationModalProps> = (
                 <View
                   style={[
                     styles.errorBanner,
-                    { backgroundColor: theme.colors.errorContainer, borderColor: theme.colors.error },
+                    {
+                      backgroundColor: theme.colors.errorContainer,
+                      borderColor: theme.colors.error,
+                    },
                   ]}
                 >
                   <Icon
@@ -248,12 +257,9 @@ export const ResendVerificationModal: React.FC<ResendVerificationModalProps> = (
                   size={18}
                   color={theme.colors.onSurfaceVariant}
                 />
-                <Text
-                  variant='body.small'
-                  color='secondary'
-                  style={styles.helpText}
-                >
-                  A verification link will be sent to your email. Please check your inbox and spam folder.
+                <Text variant='body.small' color='secondary' style={styles.helpText}>
+                  A verification link will be sent to your email. Please check your inbox and spam
+                  folder.
                 </Text>
               </View>
             </Card>
@@ -262,7 +268,7 @@ export const ResendVerificationModal: React.FC<ResendVerificationModalProps> = (
       </KeyboardAvoidingView>
     </Modal>
   );
-};
+});
 
 /* eslint-disable react-native/no-color-literals */
 const styles = StyleSheet.create({

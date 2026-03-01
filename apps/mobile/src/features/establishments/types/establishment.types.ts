@@ -5,24 +5,9 @@
 
 import type { ID, Timestamp } from '@/types';
 
-export enum EstablishmentType {
-  RESTAURANT = 'restaurant',
-  BAKERY = 'bakery',
-  GROCERY_STORE = 'grocery_store',
-  CAFE = 'cafe',
-  FAST_FOOD = 'fast_food',
-  SUPERMARKET = 'supermarket',
-  HOTEL = 'hotel',
-  OTHER = 'other',
-}
-
-export enum EstablishmentStatus {
-  PENDING = 'pending',
-  ACTIVE = 'active',
-  SUSPENDED = 'suspended',
-  REJECTED = 'rejected',
-  INACTIVE = 'inactive',
-}
+// Enums — single source of truth from shared package
+export { EstablishmentType, EstablishmentStatus } from '@foodwaste/shared';
+import { EstablishmentType, EstablishmentStatus } from '@foodwaste/shared';
 
 export interface EstablishmentAddress {
   street: string;

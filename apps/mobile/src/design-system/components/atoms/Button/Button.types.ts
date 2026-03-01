@@ -3,7 +3,7 @@
  */
 
 import type { ComponentSize, StyleSystemProps, IconFamily } from '../../../types';
-import type { TouchableOpacityProps } from 'react-native';
+import type { PressableProps } from 'react-native';
 
 export type ButtonVariant =
   | 'primary'
@@ -17,7 +17,7 @@ export type ButtonVariant =
 
 export type ButtonSize = ComponentSize;
 
-export interface ButtonProps extends Omit<TouchableOpacityProps, 'style'>, StyleSystemProps {
+export interface ButtonProps extends Omit<PressableProps, 'style'>, StyleSystemProps {
   /**
    * Button variant - affects colors and styling
    */

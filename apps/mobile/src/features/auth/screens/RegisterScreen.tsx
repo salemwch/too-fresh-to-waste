@@ -15,9 +15,9 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@react-native-vector-icons/material-design-icons';
 
 import { Button, Input, Text, Card } from '@/design-system/components/atoms';
 import { PasswordStrengthIndicator } from '@/design-system/components/molecules';
@@ -124,177 +124,181 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
   /**
    * Handle form submission (React Hook Form automatically validates)
    */
-  const onSubmit = useCallback(async (formData: RegisterMobileFormData) => {
-    // Additional check: password strength (from PasswordStrengthIndicator)
-    if (!isPasswordValid) {
-      setError('password', {
-        type: 'manual',
-        message: 'Password does not meet security requirements. Please check the requirements below.',
-      });
-      return;
-    }
-
-    try {
-      // Phone number removed - will be collected when placing first order
-      // Role hardcoded to 'consumer' - merchants register via website
-      const registerData: RegisterRequest = {
-        email: formData.email.trim().toLowerCase(),
-        password: formData.password,
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        role: UserRole.CONSUMER,
-      };
-
-      console.log('===== REGISTRATION FLOW START =====');
-      console.log('RegisterScreen: Starting registration for:', registerData.email);
-      console.log('RegisterScreen: Full registration data (password hidden):', {
-        ...registerData,
-        password: '[HIDDEN]',
-      });
-
-      const dispatchResult = await dispatch(registerAsync(registerData));
-      console.log('RegisterScreen: Dispatch result:', dispatchResult);
-      console.log('RegisterScreen: Dispatch result type:', dispatchResult.type);
-      console.log('RegisterScreen: Dispatch result payload:', dispatchResult.payload);
-
-      const result = dispatchResult.payload as RegisterResponse;
-      console.log('RegisterScreen: Extracted payload:', result);
-
-      if (dispatchResult.type.endsWith('/rejected')) {
-        console.error('RegisterScreen: Registration was REJECTED by Redux');
-        throw new Error(
-          typeof result === 'object' && result !== null && 'message' in result
-            ? (result as { message: string }).message
-            : 'Registration failed',
-        );
-      }
-
-      console.log('RegisterScreen: Registration successful! Response:', result);
-
-      // ✅ IMPERATIVE NAVIGATION (Best Practice)
-      // Screen is responsible for navigation after successful async operation
-      // This is explicit, testable, and follows React Navigation recommendations
-      //
-      // Why imperative vs state-driven?
-      // - Explicit: Easy to trace navigation flow in code
-      // - Testable: Can mock navigation and assert it was called
-      // - No side effects: Doesn't cause unwanted re-renders
-      // - Standard pattern: Used by Uber, Stripe, Airbnb
-      //
-      // Redux state (flowState, pendingVerificationEmail) is still set for:
-      // - Deep linking support
-      // - Session restoration
-      // - Cross-screen data sharing
-      console.log('===== REGISTRATION FLOW SUCCESS =====');
-      console.log('RegisterScreen: Navigating to VerifyEmail...');
-
-      // Navigate to email verification with the registered email
-      navigation.navigate('VerifyEmail', {
-        email: result.user.email ?? registerData.email,
-      });
-
-      console.log('===== REGISTRATION COMPLETE =====');
-    } catch (err: unknown) {
-      console.log('==========================================');
-      console.log('===== REGISTRATION FLOW ERROR =====');
-      console.log('==========================================');
-      const errorMessage =
-        err instanceof Error ? err.message : 'Registration failed. Please try again.';
-
-      console.log('RegisterScreen: Registration CAUGHT ERROR:', errorMessage);
-      console.error('RegisterScreen: Full error object:', err);
-      console.error('RegisterScreen: Error type:', typeof err);
-      console.error('RegisterScreen: Error constructor:', err?.constructor?.name);
-      console.log('RegisterScreen: About to set local errors state...');
-
-      // Only update state if component is still mounted
-      if (!isMountedRef.current) {
-        console.log('RegisterScreen: Component unmounted, skipping error state update');
+  const onSubmit = useCallback(
+    async (formData: RegisterMobileFormData) => {
+      // Additional check: password strength (from PasswordStrengthIndicator)
+      if (!isPasswordValid) {
+        setError('password', {
+          type: 'manual',
+          message:
+            'Password does not meet security requirements. Please check the requirements below.',
+        });
         return;
       }
 
-      // Parse backend validation errors (class-validator format)
-      // Backend returns: { message: [{ property: 'email', constraints: { isEmail: '...' } }], ... }
-      const fieldErrors: Record<string, string> = {};
-
       try {
-        // Extract the error payload from the error message
-        if (typeof err === 'object' && err !== null && 'message' in err) {
-          const errObj = err as { message?: unknown };
+        // Phone number removed - will be collected when placing first order
+        // Role hardcoded to 'consumer' - merchants register via website
+        const registerData: RegisterRequest = {
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          role: UserRole.CONSUMER,
+        };
 
-          // Check if message is an array of validation errors
-          if (Array.isArray(errObj.message)) {
-            errObj.message.forEach((validationError: unknown) => {
-              if (
-                typeof validationError === 'object' &&
-                validationError !== null &&
-                'property' in validationError &&
-                'constraints' in validationError
-              ) {
-                const error = validationError as {
-                  property: string;
-                  constraints: Record<string, string>;
-                };
-                const field = error.property;
-                const constraintKeys = Object.keys(error.constraints);
-                if (constraintKeys.length > 0) {
-                  // Take the first constraint message
-                  const firstKey = constraintKeys[0]!;
-                  const message = error.constraints[firstKey];
-                  if (message !== undefined) {
-                    fieldErrors[field] = message;
-                  }
-                }
-              }
-            });
-
-            console.log('RegisterScreen: Parsed backend validation errors:', fieldErrors);
-          }
-        }
-      } catch (parseError) {
-        console.error('RegisterScreen: Error parsing validation errors:', parseError);
-      }
-
-      // If we extracted field-specific errors from backend, use them
-      if (Object.keys(fieldErrors).length > 0) {
-        console.log('RegisterScreen: Setting field errors from backend:', fieldErrors);
-        // Set each field error using React Hook Form's setError
-        Object.entries(fieldErrors).forEach(([field, message]) => {
-          setError(field as keyof RegisterMobileFormData, {
-            type: 'manual',
-            message,
-          });
+        console.log('===== REGISTRATION FLOW START =====');
+        console.log('RegisterScreen: Starting registration for:', registerData.email);
+        console.log('RegisterScreen: Full registration data (password hidden):', {
+          ...registerData,
+          password: '[HIDDEN]',
         });
-      } else {
-        // Fallback to legacy error message parsing
-        const lowerErrorMsg = errorMessage.toLowerCase();
 
-        if (lowerErrorMsg.includes('email') && lowerErrorMsg.includes('already')) {
-          console.log('RegisterScreen: Showing email already exists error');
-          setError('email', {
-            type: 'manual',
-            message: 'This email is already registered. Please use a different email.',
-          });
-        } else if (lowerErrorMsg.includes('password')) {
-          console.log('RegisterScreen: Showing password error');
-          setError('password', {
-            type: 'manual',
-            message: errorMessage,
-          });
-        } else {
-          console.log(
-            'RegisterScreen: Error not matching any specific case, will show in banner',
+        const dispatchResult = await dispatch(registerAsync(registerData));
+        console.log('RegisterScreen: Dispatch result:', dispatchResult);
+        console.log('RegisterScreen: Dispatch result type:', dispatchResult.type);
+        console.log('RegisterScreen: Dispatch result payload:', dispatchResult.payload);
+
+        const result = dispatchResult.payload as RegisterResponse;
+        console.log('RegisterScreen: Extracted payload:', result);
+
+        if (dispatchResult.type.endsWith('/rejected')) {
+          console.error('RegisterScreen: Registration was REJECTED by Redux');
+          throw new Error(
+            typeof result === 'object' && result !== null && 'message' in result
+              ? (result as { message: string }).message
+              : 'Registration failed',
           );
         }
-      }
 
-      // For other errors, Redux state.error will show in global banner
-      // No Alert.alert - professional inline error display only
-      console.log('RegisterScreen: Component should stay mounted with error visible');
-      console.log('===== REGISTRATION FLOW ERROR END =====');
-      console.log('==========================================');
-    }
-  }, [isPasswordValid, setError, dispatch, navigation, isMountedRef]);
+        console.log('RegisterScreen: Registration successful! Response:', result);
+
+        // ✅ IMPERATIVE NAVIGATION (Best Practice)
+        // Screen is responsible for navigation after successful async operation
+        // This is explicit, testable, and follows React Navigation recommendations
+        //
+        // Why imperative vs state-driven?
+        // - Explicit: Easy to trace navigation flow in code
+        // - Testable: Can mock navigation and assert it was called
+        // - No side effects: Doesn't cause unwanted re-renders
+        // - Standard pattern: Used by Uber, Stripe, Airbnb
+        //
+        // Redux state (flowState, pendingVerificationEmail) is still set for:
+        // - Deep linking support
+        // - Session restoration
+        // - Cross-screen data sharing
+        console.log('===== REGISTRATION FLOW SUCCESS =====');
+        console.log('RegisterScreen: Navigating to VerifyEmail...');
+
+        // Navigate to email verification with the registered email
+        navigation.navigate('VerifyEmail', {
+          email: result.user.email ?? registerData.email,
+        });
+
+        console.log('===== REGISTRATION COMPLETE =====');
+      } catch (err: unknown) {
+        console.log('==========================================');
+        console.log('===== REGISTRATION FLOW ERROR =====');
+        console.log('==========================================');
+        const errorMessage =
+          err instanceof Error ? err.message : 'Registration failed. Please try again.';
+
+        console.log('RegisterScreen: Registration CAUGHT ERROR:', errorMessage);
+        console.error('RegisterScreen: Full error object:', err);
+        console.error('RegisterScreen: Error type:', typeof err);
+        console.error('RegisterScreen: Error constructor:', err?.constructor?.name);
+        console.log('RegisterScreen: About to set local errors state...');
+
+        // Only update state if component is still mounted
+        if (!isMountedRef.current) {
+          console.log('RegisterScreen: Component unmounted, skipping error state update');
+          return;
+        }
+
+        // Parse backend validation errors (class-validator format)
+        // Backend returns: { message: [{ property: 'email', constraints: { isEmail: '...' } }], ... }
+        const fieldErrors: Record<string, string> = {};
+
+        try {
+          // Extract the error payload from the error message
+          if (typeof err === 'object' && err !== null && 'message' in err) {
+            const errObj = err as { message?: unknown };
+
+            // Check if message is an array of validation errors
+            if (Array.isArray(errObj.message)) {
+              errObj.message.forEach((validationError: unknown) => {
+                if (
+                  typeof validationError === 'object' &&
+                  validationError !== null &&
+                  'property' in validationError &&
+                  'constraints' in validationError
+                ) {
+                  const error = validationError as {
+                    property: string;
+                    constraints: Record<string, string>;
+                  };
+                  const field = error.property;
+                  const constraintKeys = Object.keys(error.constraints);
+                  if (constraintKeys.length > 0) {
+                    // Take the first constraint message
+                    const firstKey = constraintKeys[0]!;
+                    const message = error.constraints[firstKey];
+                    if (message !== undefined) {
+                      fieldErrors[field] = message;
+                    }
+                  }
+                }
+              });
+
+              console.log('RegisterScreen: Parsed backend validation errors:', fieldErrors);
+            }
+          }
+        } catch (parseError) {
+          console.error('RegisterScreen: Error parsing validation errors:', parseError);
+        }
+
+        // If we extracted field-specific errors from backend, use them
+        if (Object.keys(fieldErrors).length > 0) {
+          console.log('RegisterScreen: Setting field errors from backend:', fieldErrors);
+          // Set each field error using React Hook Form's setError
+          Object.entries(fieldErrors).forEach(([field, message]) => {
+            setError(field as keyof RegisterMobileFormData, {
+              type: 'manual',
+              message,
+            });
+          });
+        } else {
+          // Fallback to legacy error message parsing
+          const lowerErrorMsg = errorMessage.toLowerCase();
+
+          if (lowerErrorMsg.includes('email') && lowerErrorMsg.includes('already')) {
+            console.log('RegisterScreen: Showing email already exists error');
+            setError('email', {
+              type: 'manual',
+              message: 'This email is already registered. Please use a different email.',
+            });
+          } else if (lowerErrorMsg.includes('password')) {
+            console.log('RegisterScreen: Showing password error');
+            setError('password', {
+              type: 'manual',
+              message: errorMessage,
+            });
+          } else {
+            console.log(
+              'RegisterScreen: Error not matching any specific case, will show in banner',
+            );
+          }
+        }
+
+        // For other errors, Redux state.error will show in global banner
+        // No Alert.alert - professional inline error display only
+        console.log('RegisterScreen: Component should stay mounted with error visible');
+        console.log('===== REGISTRATION FLOW ERROR END =====');
+        console.log('==========================================');
+      }
+    },
+    [isPasswordValid, setError, dispatch, navigation, isMountedRef],
+  );
 
   /**
    * Navigate to login screen
@@ -358,16 +362,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
                 >
                   {error}
                 </Text>
-                <TouchableOpacity
+                <Pressable
                   onPress={() => {
                     setIsGlobalErrorDismissed(true);
                     dispatch(clearError());
                   }}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  activeOpacity={0.7}
                 >
                   <Icon name='close' size={20} color={theme.colors.onErrorContainer} />
-                </TouchableOpacity>
+                </Pressable>
               </View>
             )}
 
@@ -376,7 +379,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
             <View style={styles.nameField}>
               <Controller
                 control={control}
-                name="firstName"
+                name='firstName'
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
                     label={renderRequiredLabel('First name')}
@@ -397,7 +400,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
             <View style={styles.nameField}>
               <Controller
                 control={control}
-                name="lastName"
+                name='lastName'
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
                     label={renderRequiredLabel('Last name')}
@@ -420,7 +423,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           {/* Email Input */}
           <Controller
             control={control}
-            name="email"
+            name='email'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 label={renderRequiredLabel('Email address')}
@@ -446,7 +449,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           {/* Password Input */}
           <Controller
             control={control}
-            name="password"
+            name='password'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 label={renderRequiredLabel('Password')}
@@ -493,7 +496,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           {/* Confirm Password Input */}
           <Controller
             control={control}
-            name="confirmPassword"
+            name='confirmPassword'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 label={renderRequiredLabel('Confirm password')}
@@ -551,10 +554,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
             <Text variant='body.medium' color={theme.colors.onSurfaceVariant}>
               Already have an account?{' '}
             </Text>
-            <TouchableOpacity
+            <Pressable
               onPress={handleNavigateToLogin}
               disabled={isLoading}
-              activeOpacity={0.7}
             >
               <Text
                 variant='body.medium'
@@ -564,7 +566,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
               >
                 Sign In
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </Card>
       </ScrollView>

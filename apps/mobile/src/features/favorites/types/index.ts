@@ -4,8 +4,8 @@
  * Backend: apps/food-waste-backend/src/favorites/
  */
 
-import type { ID, Timestamp} from '@/types';
 import type { OfferListItem } from '@/features/offers/types';
+import type { ID, Timestamp } from '@/types';
 
 // ============================================================================
 // Enums (must match backend exactly)
@@ -127,6 +127,7 @@ export interface FavoritesFilterRequest {
   page?: number | undefined;
   limit?: number | undefined;
   sortBy?: string | undefined;
+  establishmentType?: string | undefined;
 }
 
 /**

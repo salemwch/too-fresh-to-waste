@@ -4,3 +4,5 @@
  */
 
 export * from './useFavorites';
+export * from './useFavoritesInfinite';
+export * from './useFavoriteToggle';

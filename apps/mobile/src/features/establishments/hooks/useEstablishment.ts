@@ -4,7 +4,9 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+
 import { establishmentsService } from '../services/establishmentsService';
+
 import type { Establishment } from '../types/establishment.types';
 
 /**
@@ -18,8 +20,8 @@ export const establishmentKeys = {
 /**
  * Hook to fetch establishment details
  */
-export const useEstablishment = (establishmentId: string | undefined) => {
-  return useQuery<Establishment, Error>({
+export const useEstablishment = (establishmentId: string | undefined) =>
+  useQuery<Establishment, Error>({
     queryKey: establishmentKeys.detail(establishmentId ?? ''),
     queryFn: () => {
       if (!establishmentId) {
@@ -31,4 +33,3 @@ export const useEstablishment = (establishmentId: string | undefined) => {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
-};

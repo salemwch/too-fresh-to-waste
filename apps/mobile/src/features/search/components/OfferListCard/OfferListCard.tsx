@@ -13,17 +13,12 @@
  * - Rating (bottom left, under pickup time)
  */
 
-import React, { memo } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-} from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Pressable, Image, Dimensions } from 'react-native';
 
 import { Text, Icon, Card } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+
 import type { ProximitySearchResult, NearbyOffer } from '@/features/offers/hooks';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -44,11 +39,7 @@ export interface OfferListCardProps {
 // Component
 // ============================================================================
 
-export const OfferListCard: React.FC<OfferListCardProps> = memo(({
-  offer,
-  onPress,
-  style,
-}) => {
+const OfferListCardComponent: React.FC<OfferListCardProps> = ({ offer, onPress, style }) => {
   const theme = useTheme();
   const { item, distance } = offer;
   const offerImage = item.images?.[0];
@@ -66,11 +57,10 @@ export const OfferListCard: React.FC<OfferListCardProps> = memo(({
   const merchantLogoUrl = null;
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
+    <Pressable
       onPress={onPress}
       style={[styles.container, style]}
-      accessibilityRole="button"
+      accessibilityRole='button'
       accessibilityLabel={`${item.title} from ${item.establishmentName}, ${distance.formatted} away`}
     >
       <Card
@@ -85,28 +75,38 @@ export const OfferListCard: React.FC<OfferListCardProps> = memo(({
         {/* Image Section */}
         <View style={styles.imageSection}>
           {offerImage ? (
-            <Image
-              source={{ uri: offerImage }}
-              style={styles.offerImage}
-              resizeMode="cover"
-            />
+            <Image source={{ uri: offerImage }} style={styles.offerImage} resizeMode='cover' />
           ) : (
-            <View style={[styles.imagePlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}>
-              <Icon name="fast-food" family="Ionicons" size={36} color={theme.colors.onSurfaceVariant} />
+            <View
+              style={[styles.imagePlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}
+            >
+              <Icon
+                name='fast-food'
+                family='Ionicons'
+                size={36}
+                color={theme.colors.onSurfaceVariant}
+              />
             </View>
           )}
 
           {/* Merchant Logo Overlay */}
-          <View style={[styles.merchantLogoContainer, { backgroundColor: theme.colors.background }]}>
+          <View
+            style={[styles.merchantLogoContainer, { backgroundColor: theme.colors.background }]}
+          >
             {merchantLogoUrl ? (
               <Image
                 source={{ uri: merchantLogoUrl }}
                 style={styles.merchantLogo}
-                resizeMode="cover"
+                resizeMode='cover'
               />
             ) : (
-              <View style={[styles.merchantLogoPlaceholder, { backgroundColor: theme.colors.primaryContainer }]}>
-                <Text variant="label" size="sm" weight="bold" color="primary">
+              <View
+                style={[
+                  styles.merchantLogoPlaceholder,
+                  { backgroundColor: theme.colors.primaryContainer },
+                ]}
+              >
+                <Text variant='label' size='sm' weight='bold' color='primary'>
                   {item.establishmentName.charAt(0).toUpperCase()}
                 </Text>
               </View>
@@ -116,7 +116,12 @@ export const OfferListCard: React.FC<OfferListCardProps> = memo(({
           {/* Discount Badge */}
           {item.pricing.discountPercentage > 0 && (
             <View style={[styles.discountBadge, { backgroundColor: theme.colors.accent }]}>
-              <Text variant="label" size="xs" weight="bold" style={{ color: theme.colors.onAccent }}>
+              <Text
+                variant='label'
+                size='xs'
+                weight='bold'
+                style={{ color: theme.colors.onAccent }}
+              >
                 -{Math.round(item.pricing.discountPercentage)}%
               </Text>
             </View>
@@ -124,8 +129,8 @@ export const OfferListCard: React.FC<OfferListCardProps> = memo(({
 
           {/* Distance Badge on Image */}
           <View style={[styles.distanceOnImage, { backgroundColor: 'rgba(0,0,0,0.7)' }]}>
-            <Icon name="location-sharp" family="Ionicons" size={10} color="#fff" />
-            <Text variant="label" size="xs" weight="semibold" style={styles.distanceOnImageText}>
+            <Icon name='location-sharp' family='Ionicons' size={10} color='#fff' />
+            <Text variant='label' size='xs' weight='semibold' style={styles.distanceOnImageText}>
               {distance.formatted}
             </Text>
           </View>
@@ -134,19 +139,31 @@ export const OfferListCard: React.FC<OfferListCardProps> = memo(({
         {/* Details Section */}
         <View style={styles.details}>
           {/* Merchant Name */}
-          <Text variant="body" size="sm" weight="semibold" numberOfLines={1}>
+          <Text variant='body' size='sm' weight='semibold' numberOfLines={1}>
             {item.establishmentName}
           </Text>
 
           {/* Offer Title */}
-          <Text variant="body" size="xs" color="secondary" numberOfLines={1} style={styles.offerTitle}>
+          <Text
+            variant='body'
+            size='xs'
+            color='secondary'
+            numberOfLines={1}
+            style={styles.offerTitle}
+          >
             {item.title}
           </Text>
 
           {/* Pickup Time Row */}
           <View style={styles.pickupRow}>
-            <Icon name="time-outline" family="Ionicons" size={12} color={theme.colors.primary} />
-            <Text variant="label" size="xs" color="primary" weight="medium" style={styles.pickupText}>
+            <Icon name='time-outline' family='Ionicons' size={12} color={theme.colors.primary} />
+            <Text
+              variant='label'
+              size='xs'
+              color='primary'
+              weight='medium'
+              style={styles.pickupText}
+            >
               {pickupTime}
             </Text>
           </View>
@@ -155,34 +172,33 @@ export const OfferListCard: React.FC<OfferListCardProps> = memo(({
           <View style={styles.bottomRow}>
             {/* Rating */}
             <View style={styles.ratingContainer}>
-              <Icon name="star" family="Ionicons" size={12} color="#FFB800" />
-              <Text variant="label" size="xs" weight="semibold" style={styles.ratingText}>
+              <Icon name='star' family='Ionicons' size={12} color='#FFB800' />
+              <Text variant='label' size='xs' weight='semibold' style={styles.ratingText}>
                 4.5
               </Text>
             </View>
 
             {/* Pricing */}
             <View style={styles.pricingContainer}>
-              <Text
-                variant="body"
-                size="xs"
-                color="secondary"
-                style={styles.originalPrice}
-              >
-                {item.pricing.currency}{item.pricing.originalPrice.toFixed(0)}
+              <Text variant='body' size='xs' color='secondary' style={styles.originalPrice}>
+                {item.pricing.currency}
+                {item.pricing.originalPrice.toFixed(0)}
               </Text>
-              <Text variant="title" size="sm" weight="bold" color="success">
-                {item.pricing.currency}{item.pricing.discountedPrice.toFixed(0)}
+              <Text variant='title' size='sm' weight='bold' color='success'>
+                {item.pricing.currency}
+                {item.pricing.discountedPrice.toFixed(0)}
               </Text>
             </View>
           </View>
         </View>
       </Card>
-    </TouchableOpacity>
+    </Pressable>
   );
-});
+};
 
-OfferListCard.displayName = 'OfferListCard';
+OfferListCardComponent.displayName = 'OfferListCard';
+
+export const OfferListCard = React.memo(OfferListCardComponent);
 
 // ============================================================================
 // Styles

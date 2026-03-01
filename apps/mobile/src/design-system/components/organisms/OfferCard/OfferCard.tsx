@@ -11,14 +11,15 @@
  * - Type-safe with backend schema integration
  */
 
-import React, { useMemo, useCallback, memo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   View,
   Image,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   type GestureResponderEvent,
 } from 'react-native';
+import { Heart } from 'lucide-react-native';
 
 import { useTheme } from '../../../providers';
 import { Badge } from '../../atoms/Badge';
@@ -39,7 +40,7 @@ const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/400x300/E5E7EB/9CA3AF?tex
  * Extracted to comply with react-native/no-color-literals rule
  */
 const COLORS = {
-  HEART_DEFAULT: '#FF6B6B',
+  HEART_DEFAULT: '#005250', // ✅ Brand green for filled heart
   HEART_UNFILLED: '#9CA3AF',
   ITEMS_LEFT_BG: '#fbf9be',
   ITEMS_LEFT_TEXT: '#005250',
@@ -50,74 +51,52 @@ const COLORS = {
 
 /**
  * Heart icon component for favorite button
+ * Uses lucide-react-native Heart icon for consistent styling
  */
 const HeartIcon: React.FC<{ filled: boolean; size?: number; color?: string }> = ({
   filled,
   size = 20,
   color = COLORS.HEART_DEFAULT,
 }) => {
-  const heartStyles = StyleSheet.create({
-    icon: {
-      fontSize: size,
-      color: filled ? color : COLORS.HEART_UNFILLED,
-      lineHeight: size,
-    },
-  });
-
   return (
-    <Text
-      style={heartStyles.icon}
-      accessibilityLabel={filled ? 'Remove from favorites' : 'Add to favorites'}
-    >
-      {filled ? '❤' : '♡'}
-    </Text>
+    <Heart
+      color={filled ? color : COLORS.HEART_UNFILLED}
+      size={size}
+      fill={filled ? color : 'transparent'}
+      strokeWidth={filled ? 0 : 2}
+    />
   );
 };
 /**
  * OfferCard Component
  */
-export const OfferCard: React.FC<OfferCardProps> = memo(
-  ({
-    offer,
-    layout = 'standard',
-    orientation = 'vertical',
-    showEstablishment = true,
-    showPickupTime = true,
-    showDistance = true,
-    showItemsLeft = true,
-    showFavorite = true,
-    imageAspectRatio = 4 / 3,
-    onPress,
-    onFavorite,
-    onEstablishmentPress,
-    isFavorite = false,
-    loading = false,
-    disabled = false,
-    style,
-    imageStyle,
-    contentStyle,
-    testID = 'offer-card',
-    accessibilityLabel,
-    accessibilityHint,
-  }) => {
+const OfferCardComponent: React.FC<OfferCardProps> = ({
+  offer,
+  layout = 'standard',
+  orientation = 'vertical',
+  showEstablishment = true,
+  showPickupTime = true,
+  showDistance = true,
+  showItemsLeft = true,
+  showFavorite = true,
+  imageAspectRatio = 4 / 3,
+  onPress,
+  onFavorite,
+  onEstablishmentPress,
+  isFavorite = false,
+  loading = false,
+  disabled = false,
+  style,
+  imageStyle,
+  contentStyle,
+  testID = 'offer-card',
+  accessibilityLabel,
+  accessibilityHint,
+}) => {
     const theme = useTheme();
     const styles = createStyles(theme, orientation, layout, imageAspectRatio);
 
-    // 🔍 DEBUG: Log offer data structure
-    if (__DEV__) {
-      console.log('========================================');
-      console.log('🎴 OfferCard Data:', {
-        offerId: offer.id,
-        establishment: {
-          name: offer.establishment?.name,
-          profileImage: offer.establishment?.profileImage,
-          hasProfileImage: !(offer.establishment?.profileImage == null),
-        },
-        pickupTimeSlots: offer.pickupTimeSlots,
-        pickupTimeSlotsLength: offer.pickupTimeSlots?.length != null || 0,
-      });
-      console.log('========================================');
-    }
+    // ✅ PERFORMANCE: Debug logs removed (use React DevTools Profiler instead)
 
     // ==================== Computed Values ====================
     // ✅ Backend provides availableQuantity (totalQuantity - sold - reserved)
@@ -133,13 +112,16 @@ export const OfferCard: React.FC<OfferCardProps> = memo(
     const imageSource = useMemo(() => {
       const uri = offer.image ?? PLACEHOLDER_IMAGE;
 
-      // Debug: Log image URL to help diagnose issues
+      // ✅ DIAGNOSTIC: Log image data to debug rendering issues
       if (__DEV__) {
-        // eslint-disable-next-line no-console
-        console.log('[OfferCard] Image URL:', {
+        console.log('🖼️ OfferCard image:', {
           offerId: offer.id,
-          imageUrl: uri,
-          isPlaceholder: uri === PLACEHOLDER_IMAGE,
+          hasImage: !!offer.image,
+          imageValue: offer.image,
+          usingPlaceholder: uri === PLACEHOLDER_IMAGE,
+          hasEstablishment: !!offer.establishment,
+          hasProfileImage: !!offer.establishment?.profileImage,
+          profileImageValue: offer.establishment?.profileImage,
         });
       }
 
@@ -155,10 +137,20 @@ export const OfferCard: React.FC<OfferCardProps> = memo(
 
     // ==================== Handlers ====================
     const handleCardPress = useCallback(() => {
+      if (__DEV__) {
+        console.log('[OfferCard] handleCardPress called', {
+          offerId: offer.id,
+          disabled,
+          loading,
+          hasOnPress: !!onPress,
+          isOutOfStock,
+          availableQuantity: offer.availableQuantity,
+        });
+      }
       if (!disabled && !loading && onPress) {
         onPress(offer);
       }
-    }, [disabled, loading, onPress, offer]);
+    }, [disabled, loading, onPress, offer, isOutOfStock]);
 
     const handleFavoritePress = useCallback(
       (event: GestureResponderEvent) => {
@@ -271,6 +263,13 @@ export const OfferCard: React.FC<OfferCardProps> = memo(
             <Badge variant='error' size='md' label='SOLD OUT' />
           </View>
         )}
+
+        {/* Expired overlay (for favorites view) */}
+        {offer.status === 'expired' && (
+          <View style={styles.expiredOverlay}>
+            <Badge variant='warning' size='md' label='EXPIRED' />
+          </View>
+        )}
       </View>
     );
 
@@ -282,7 +281,7 @@ export const OfferCard: React.FC<OfferCardProps> = memo(
 
       return (
         <View style={styles.establishmentRow}>
-          <TouchableOpacity
+          <Pressable
             onPress={handleEstablishmentPress}
             disabled={!onEstablishmentPress}
             accessibilityRole='button'
@@ -297,19 +296,19 @@ export const OfferCard: React.FC<OfferCardProps> = memo(
             >
               {offer.establishment.name}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
           {/* Favorite button moved to content section */}
           {showFavorite && (
-            <TouchableOpacity
+            <Pressable
               onPress={handleFavoritePress}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole='button'
               accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
               style={styles.favoriteButtonContent}
             >
-              <HeartIcon filled={isFavorite} size={20} color={theme.colors.secondary} />
-            </TouchableOpacity>
+              <HeartIcon filled={isFavorite} size={20} />
+            </Pressable>
           )}
         </View>
       );
@@ -424,10 +423,11 @@ export const OfferCard: React.FC<OfferCardProps> = memo(
         </View>
       </Card>
     );
-  },
-);
+};
 
-OfferCard.displayName = 'OfferCard';
+OfferCardComponent.displayName = 'OfferCard';
+
+export const OfferCard = React.memo(OfferCardComponent);
 
 // ==================== Styles ====================
 const createStyles = (
@@ -553,6 +553,17 @@ const createStyles = (
       backgroundColor: COLORS.SOLD_OUT_OVERLAY,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    expiredOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: COLORS.SOLD_OUT_OVERLAY,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10,
     },
     content: {
       flex: 1,

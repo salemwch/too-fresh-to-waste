@@ -141,10 +141,11 @@ export class BiometricAuth {
         authenticationPrompt: {
           title: 'Authentication Required',
           subtitle: reason,
-          description: Platform.select({
-            ios: 'Use Face ID or Touch ID to authenticate',
-            android: 'Use your fingerprint or face to authenticate',
-          }),
+          description:
+            Platform.select({
+              ios: 'Use Face ID or Touch ID to authenticate',
+              android: 'Use your fingerprint or face to authenticate',
+            }) ?? 'Use biometric authentication',
           cancel: 'Cancel',
         },
       });

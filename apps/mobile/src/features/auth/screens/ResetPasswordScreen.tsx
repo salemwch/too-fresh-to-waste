@@ -12,22 +12,16 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import React, { useState, useCallback, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 
 import { Button, Input, Text, Card, Icon } from '@/design-system/components/atoms';
 import { PasswordStrengthIndicator } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
+import { ErrorType } from '@/utils/errorHandler';
+import { Logger } from '@/utils/logger';
 import { resetPasswordSchema, type ResetPasswordFormData } from '@/utils/validation/schemas';
 
 import { authService } from '../services/authService';
-import { Logger } from '@/utils/logger';
-import { ErrorType } from '@/utils/errorHandler';
 
 import type { ResetPasswordScreenProps } from '@/navigation/types';
 
@@ -35,10 +29,7 @@ import type { ResetPasswordScreenProps } from '@/navigation/types';
  * ResetPasswordScreen Component
  * Handles password reset confirmation after user clicks email link
  */
-export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
-  navigation,
-  route,
-}) => {
+export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
 
   // Extract params from deep link
@@ -77,13 +68,16 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
    */
   useEffect(() => {
     Logger.info('ResetPasswordScreen mounted', {
-      email: email.substring(0, 3) + '***', // Partial email for privacy
+      email: `${email.substring(0, 3)}***`, // Partial email for privacy
       hasToken: !!token,
     });
 
     // Validate params on mount
     if (!email || !token) {
-      Logger.error('ResetPasswordScreen: Missing required params', { email: !!email, token: !!token });
+      Logger.error('ResetPasswordScreen: Missing required params', {
+        email: !!email,
+        token: !!token,
+      });
       setError('Invalid reset link. Missing email or token.');
     }
 
@@ -95,94 +89,125 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
   /**
    * Handle password reset submission (React Hook Form automatically validates)
    */
-  const onSubmit = useCallback(async (formData: ResetPasswordFormData) => {
-    // Clear previous errors
-    setError(null);
+  const onSubmit = useCallback(
+    async (formData: ResetPasswordFormData) => {
+      // Clear previous errors
+      setError(null);
 
-    // Validation checks
-    if (!email || !token) {
-      setError('Invalid reset link. Please request a new password reset.');
-      Logger.error('ResetPassword: Missing email or token');
-      return;
-    }
-
-    if (!isPasswordValid) {
-      setFormError('password', {
-        type: 'manual',
-        message: 'Password does not meet security requirements. Please check the requirements below.',
-      });
-      Logger.warn('ResetPassword: Weak password attempt');
-      return;
-    }
-
-    setIsLoading(true);
-    Logger.info('Attempting password reset', { email: email.substring(0, 3) + '***' });
-
-    try {
-      await authService.confirmPasswordReset({
-        email: email.trim().toLowerCase(),
-        token: token.trim(),
-        newPassword: formData.password,
-      });
-
-      Logger.info('Password reset successful', { email: email.substring(0, 3) + '***' });
-
-      // Show success screen
-      setIsSuccess(true);
-    } catch (err: any) {
-      Logger.error('Password reset failed', {
-        error: err.message,
-        type: err.type || 'UNKNOWN',
-      });
-
-      const errorMessage = err.message || 'Failed to reset password. Please try again.';
-
-      // Handle specific error types
-      if (
-        errorMessage.toLowerCase().includes('expired') ||
-        errorMessage.toLowerCase().includes('invalid token')
-      ) {
-        setError(
-          'This reset link has expired or is invalid. Please request a new password reset link.',
-        );
-      } else if (
-        errorMessage.toLowerCase().includes('password') &&
-        (errorMessage.toLowerCase().includes('last') ||
-          errorMessage.toLowerCase().includes('used before') ||
-          errorMessage.toLowerCase().includes('reuse'))
-      ) {
-        // Handle password reuse error - show under password field
-        setPasswordReuseError(
-          'You have used this password before, please enter a new password',
-        );
-      } else if (err.type === ErrorType.NETWORK) {
-        setError('Network error. Please check your connection and try again.');
-      } else if (err.type === ErrorType.VALIDATION) {
-        setError(
-          errorMessage || 'Password does not meet security requirements. Please choose a stronger password.',
-        );
-      } else {
-        setError(errorMessage);
+      // Validation checks
+      if (!email || !token) {
+        setError('Invalid reset link. Please request a new password reset.');
+        Logger.error('ResetPassword: Missing email or token');
+        return;
       }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [email, token, isPasswordValid, setFormError, navigation]);
+
+      if (!isPasswordValid) {
+        setFormError('password', {
+          type: 'manual',
+          message:
+            'Password does not meet security requirements. Please check the requirements below.',
+        });
+        Logger.warn('ResetPassword: Weak password attempt');
+        return;
+      }
+
+      setIsLoading(true);
+      Logger.info('Attempting password reset', { email: `${email.substring(0, 3)}***` });
+
+      try {
+        await authService.confirmPasswordReset({
+          email: email.trim().toLowerCase(),
+          token: token.trim(),
+          newPassword: formData.password,
+        });
+
+        Logger.info('Password reset successful', { email: `${email.substring(0, 3)}***` });
+
+        // Show success screen
+        setIsSuccess(true);
+      } catch (err: any) {
+        Logger.error('Password reset failed', {
+          error: err.message,
+          type: err.type || 'UNKNOWN',
+        });
+
+        const errorMessage = err.message || 'Failed to reset password. Please try again.';
+
+        // Handle specific error types
+        if (
+          errorMessage.toLowerCase().includes('expired') ||
+          errorMessage.toLowerCase().includes('invalid token')
+        ) {
+          setError(
+            'This reset link has expired or is invalid. Please request a new password reset link.',
+          );
+        } else if (
+          errorMessage.toLowerCase().includes('password') &&
+          (errorMessage.toLowerCase().includes('last') ||
+            errorMessage.toLowerCase().includes('used before') ||
+            errorMessage.toLowerCase().includes('reuse'))
+        ) {
+          // Handle password reuse error - show under password field
+          setPasswordReuseError('You have used this password before, please enter a new password');
+        } else if (err.type === ErrorType.NETWORK) {
+          setError('Network error. Please check your connection and try again.');
+        } else if (err.type === ErrorType.VALIDATION) {
+          setError(
+            errorMessage ||
+              'Password does not meet security requirements. Please choose a stronger password.',
+          );
+        } else {
+          setError(errorMessage);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [email, token, isPasswordValid, setFormError, navigation],
+  );
 
   /**
    * Navigate to forgot password screen for new reset link
    */
   const handleRequestNewLink = useCallback(() => {
+    Keyboard.dismiss();
     Logger.info('User requested new password reset link');
     navigation.navigate('ForgotPassword');
   }, [navigation]);
 
   /**
    * Navigate back to login
+   *
+   * Wait for the keyboard to FULLY hide before mounting LoginScreen.
+   * Without this, LoginScreen's KeyboardAvoidingView mounts mid-animation
+   * and adjusts layout twice (keyboard partially visible → hidden), causing
+   * the visible up/down bounce.
+   *
+   * Strategy:
+   *  - Dismiss keyboard, then listen for keyboardDidHide (fires after animation)
+   *  - 50ms fallback handles the case where keyboard was already hidden
+   *    (keyboardDidHide never fires when keyboard is not shown)
    */
   const handleBackToLogin = useCallback(() => {
     Logger.info('User navigated back to login');
-    navigation.navigate('Login');
+
+    const doReset = () => {
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    };
+
+    Keyboard.dismiss();
+
+    const sub = Keyboard.addListener('keyboardDidHide', () => {
+      sub.remove();
+      clearTimeout(fallback);
+      doReset();
+    });
+
+    // Fallback: keyboard was already hidden → keyboardDidHide won't fire
+    const fallback = setTimeout(() => {
+      sub.remove();
+      doReset();
+    }, 50);
   }, [navigation]);
 
   /**
@@ -199,7 +224,8 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
   /**
    * Render error banner if expired/invalid token
    */
-  const showRequestNewLinkButton = error?.toLowerCase().includes('expired') || error?.toLowerCase().includes('invalid');
+  const showRequestNewLinkButton =
+    error?.toLowerCase().includes('expired') || error?.toLowerCase().includes('invalid');
 
   // Success state - password reset complete
   if (isSuccess) {
@@ -212,7 +238,12 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
           <Card style={styles.successCard}>
             {/* Success Icon */}
             <View style={styles.iconContainer}>
-              <View style={[styles.successIconCircle, { backgroundColor: theme.colors.successContainer }]}>
+              <View
+                style={[
+                  styles.successIconCircle,
+                  { backgroundColor: theme.colors.successContainer },
+                ]}
+              >
                 <Icon
                   name='checkmark-circle'
                   family='Ionicons'
@@ -241,7 +272,8 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
               align='center'
               style={styles.successMessage}
             >
-              Your password has been changed successfully. You can now log in with your new password.
+              Your password has been changed successfully. You can now log in with your new
+              password.
             </Text>
 
             {/* Security Note */}
@@ -287,9 +319,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
         <Card style={styles.formCard}>
           {/* Icon */}
           <View style={styles.iconContainer}>
-            <View
-              style={[styles.iconCircle, { backgroundColor: theme.colors.primaryContainer }]}
-            >
+            <View style={[styles.iconCircle, { backgroundColor: theme.colors.primaryContainer }]}>
               <Icon name='key' family='Ionicons' size={48} color={theme.colors.primary} />
             </View>
           </View>
@@ -358,13 +388,13 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
           {/* Password Input */}
           <Controller
             control={control}
-            name="password"
+            name='password'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 label='New Password'
                 placeholder='Enter your new password'
                 value={value}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   onChange(text);
                   setError(null);
                   setPasswordReuseError(null);
@@ -394,7 +424,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
           <PasswordStrengthIndicator
             password={password}
             context={{
-              email: email,
+              email,
             }}
             dropdownMode
             autoHideWhenValid
@@ -409,12 +439,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
           {/* Password Reuse Error - shown under password field */}
           {passwordReuseError && (
             <View style={styles.fieldErrorIndicator} accessible accessibilityRole='alert'>
-              <Icon
-                name='close-circle'
-                family='Ionicons'
-                size={16}
-                color={theme.colors.error}
-              />
+              <Icon name='close-circle' family='Ionicons' size={16} color={theme.colors.error} />
               <Text
                 variant='body'
                 size='sm'
@@ -431,13 +456,13 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
           {/* Confirm Password Input */}
           <Controller
             control={control}
-            name="confirmPassword"
+            name='confirmPassword'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 label='Confirm Password'
                 placeholder='Re-enter your new password'
                 value={value}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   onChange(text);
                   setError(null);
                 }}
@@ -461,7 +486,6 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
               />
             )}
           />
-
 
           {/* Reset Password Button */}
           <Button

@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, TouchableOpacity, ActivityIndicator, FlatList } from 'react-native';
+import { View, Pressable, ActivityIndicator, FlatList } from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Input } from '../../atoms/Input';
@@ -143,7 +143,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     if (!showClearButton || !value || loading) return null;
 
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={handleClear}
         style={{
           padding: theme.spacing.base.xs,
@@ -156,7 +156,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         accessibilityHint='Clears the current search text'
       >
         {clearIcon}
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
@@ -170,6 +170,28 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       </View>
     );
   };
+
+  // Memoized renderItem for suggestion FlatList
+  const renderSuggestionItem = useCallback(
+    ({ item, index }: { item: string; index: number }) => (
+      <Pressable
+        onPress={() => handleSuggestionSelect(item)}
+        style={{
+          padding: theme.spacing.base.md,
+          borderBottomWidth: index < suggestions.length - 1 ? 1 : 0,
+          borderBottomColor: theme.colors.outlineVariant,
+        }}
+        testID={`${testID}-suggestion-${index}`}
+        accessibilityRole='button'
+        accessibilityLabel={`Select suggestion: ${item}`}
+      >
+        <Text variant='body.medium' numberOfLines={1}>
+          {item}
+        </Text>
+      </Pressable>
+    ),
+    [handleSuggestionSelect, theme.spacing.base.md, theme.colors.outlineVariant, suggestions.length, testID],
+  );
 
   // Render suggestions list
   const renderSuggestions = () => {
@@ -195,23 +217,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         <FlatList
           data={suggestions}
           keyExtractor={(_item, index) => `suggestion-${index}`}
-          renderItem={({ item, index }) => (
-            <TouchableOpacity
-              onPress={() => handleSuggestionSelect(item)}
-              style={{
-                padding: theme.spacing.base.md,
-                borderBottomWidth: index < suggestions.length - 1 ? 1 : 0,
-                borderBottomColor: theme.colors.outlineVariant,
-              }}
-              testID={`${testID}-suggestion-${index}`}
-              accessibilityRole='button'
-              accessibilityLabel={`Select suggestion: ${item}`}
-            >
-              <Text variant='body.medium' numberOfLines={1}>
-                {item}
-              </Text>
-            </TouchableOpacity>
-          )}
+          renderItem={renderSuggestionItem}
           showsVerticalScrollIndicator={false}
         />
       </View>

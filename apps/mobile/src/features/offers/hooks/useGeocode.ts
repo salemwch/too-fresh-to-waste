@@ -63,10 +63,7 @@ export interface UseLocationSearchOptions {
  * @param options - Query options
  * @returns TanStack Query result with matching locations
  */
-export function useLocationSearch(
-  query: string,
-  options: UseLocationSearchOptions = {},
-) {
+export function useLocationSearch(query: string, options: UseLocationSearchOptions = {}) {
   const { minLength = 3, limit = 5, enabled = true } = options;
 
   const isEnabled = enabled && query.length >= minLength;

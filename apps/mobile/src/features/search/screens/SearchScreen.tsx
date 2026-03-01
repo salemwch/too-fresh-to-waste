@@ -1,17 +1,17 @@
 /**
  * Search Screen
  *
- * Map-first search experience for discovering offers.
+ * Google Maps-like search experience for discovering offers.
  * Features:
- * - Google Maps as primary view (centered on Sousse, Tunisia)
- * - Live search as you type (no search button)
- * - Location filter modal with distance slider
+ * - Unified dropdown: app establishments + Google Places results
+ * - Offers load on place selection (not live as-you-type)
+ * - Bottom sheet shows offers for selected place
  * - Toggle between Map and List views
  * - Semi-transparent radius circle
- * - Beautiful offer cards
+ * - Session token optimization for Google billing
  */
 
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -20,29 +20,44 @@ import {
   ActivityIndicator,
   RefreshControl,
   StatusBar,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
-import MapView, { Circle, PROVIDER_GOOGLE, Region } from 'react-native-maps';
+import MapView, { Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text, Input, Icon } from '@/design-system/components/atoms';
 import { SkeletonOfferCard } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { FavoriteOfferCard } from '@/features/favorites';
-import { useLocation } from '@/hooks/useLocation';
-import { useNearbyOffers, useLocationSearch, type ProximitySearchResult, type NearbyOffer, type GeocodeResult } from '@/features/offers/hooks';
-import type { OfferListItem } from '@/features/offers/types/offer.types';
+import {
+  useNearbyOffers,
+  useMapEstablishments,
+  type ProximitySearchResult,
+  type NearbyOffer,
+  type NearbyEstablishment,
+  type MapEstablishment,
+} from '@/features/offers/hooks';
 import { OfferType, CtaState, OfferStatus } from '@/features/offers/types/offer.types';
+import { useAppDispatch } from '@/hooks/redux';
+import { useLocation } from '@/hooks/useLocation';
+import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
+import { environment } from '@/config/environment';
+import { Logger } from '@/utils/logger';
+import type { ILocationResult } from '@/types/location.types';
 
 import {
   LocationFilterModal,
-  OfferMapCard,
   MapListToggle,
-  OfferMarker,
+  PlaceOffersBottomSheet,
+  EstablishmentMarker,
+  EstablishmentBottomSheet,
   type ViewMode,
 } from '../components';
+import { usePlaceSearch } from '../hooks/usePlaceSearch';
 
+import type { OfferListItem } from '@/features/offers/types/offer.types';
 import type { SearchScreenNavigationProp } from '@/navigation/types';
+import type { Region } from 'react-native-maps';
 
 // ============================================================================
 // Constants
@@ -50,10 +65,10 @@ import type { SearchScreenNavigationProp } from '@/navigation/types';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Default location: Sousse, Tunisia
+// Fallback map center from environment config (only used when user has no location set)
 const DEFAULT_LOCATION = {
-  latitude: 35.8288,
-  longitude: 10.6405,
+  latitude: environment.geolocation.defaultLatitude,
+  longitude: environment.geolocation.defaultLongitude,
 };
 
 const INITIAL_RADIUS_KM = 5;
@@ -64,14 +79,12 @@ const INITIAL_RADIUS_KM = 5;
 
 /**
  * Convert ProximitySearchResult<NearbyOffer> to OfferListItem
- * Maps the search data structure to the standardized card format
  */
 const mapSearchResultToOfferListItem = (
   result: ProximitySearchResult<NearbyOffer>,
 ): OfferListItem => {
   const { item, distance } = result;
 
-  // Convert distance to meters
   let distanceInMeters = distance.value;
   if (distance.unit === 'kilometers') {
     distanceInMeters = distance.value * 1000;
@@ -82,13 +95,13 @@ const mapSearchResultToOfferListItem = (
   return {
     id: item._id,
     title: item.title,
-    type: OfferType.SURPRISE_BAG, // Default type, could be enhanced with actual type from backend
+    type: OfferType.SURPRISE_BAG,
     image: item.images?.[0] ?? undefined,
     pricing: {
       originalPrice: item.pricing.originalPrice,
       discountedPrice: item.pricing.discountedPrice,
       discountPercentage: item.pricing.discountPercentage,
-      currency: item.pricing.currency as 'TND', // Backend enforces TND currency
+      currency: item.pricing.currency as 'TND',
     },
     availableQuantity: item.availableQuantity,
     availableUntil: item.availableUntil,
@@ -109,6 +122,13 @@ interface SearchScreenProps {
   navigation: SearchScreenNavigationProp;
 }
 
+/** Selected place info used for bottom sheet + offer fetching */
+interface SelectedPlace {
+  name: string;
+  address: string;
+  coordinates: { latitude: number; longitude: number };
+}
+
 // ============================================================================
 // Component
 // ============================================================================
@@ -117,6 +137,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
+  const dispatch = useAppDispatch();
 
   // Location hook
   const {
@@ -131,19 +152,14 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   // State
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('map');
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [selectedOffer, setSelectedOffer] = useState<ProximitySearchResult<NearbyOffer> | null>(null);
+  const [selectedEstablishment, setSelectedEstablishment] =
+    useState<ProximitySearchResult<MapEstablishment> | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [showPlaceResults, setShowPlaceResults] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
-
-  // Geocoding for place search
-  const { data: placeResults, isLoading: isSearchingPlaces } = useLocationSearch(
-    debouncedQuery.length >= 2 ? debouncedQuery : '',
-    { minLength: 2, limit: 5 },
-  );
+  const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
 
   // Use user location or default to Sousse
   const centerCoordinates = useMemo(() => {
@@ -155,25 +171,42 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   // Search radius (use preferredRadiusKm or default)
   const searchRadius = preferredRadiusKm || INITIAL_RADIUS_KM;
+  const searchRadiusMeters = searchRadius * 1000;
 
-  // Debounce search query
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  // ─────────────────────────────────────────────────────────────────────────
+  // Unified Place Search (Google Places + App Establishments)
+  // ─────────────────────────────────────────────────────────────────────────
 
-  // Fetch nearby offers
-  const searchParams = useMemo(() => {
-    return {
-      center: centerCoordinates,
-      radius: searchRadius * 1000, // Convert km to meters
+  const {
+    googleResults,
+    appResults,
+    hasResults: hasPlaceResults,
+    isLoading: isSearchingPlaces,
+    resolveGooglePlace,
+    resetSessionToken,
+    debouncedQuery,
+  } = usePlaceSearch(searchQuery, centerCoordinates, searchRadiusMeters, {
+    minLength: 2,
+    debounceDelay: 300,
+    googleLimit: 5,
+    appLimit: 10,
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Offer fetching: loads around current center OR selected place
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const offerCenter = selectedPlace?.coordinates ?? centerCoordinates;
+
+  const searchParams = useMemo(
+    () => ({
+      center: offerCenter,
+      radius: searchRadiusMeters,
       limit: 50,
       sortByDistance: true,
-      query: debouncedQuery || undefined,
-    };
-  }, [centerCoordinates, searchRadius, debouncedQuery]);
+    }),
+    [offerCenter, searchRadiusMeters],
+  );
 
   const {
     data: offers,
@@ -182,31 +215,24 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     isRefetching,
   } = useNearbyOffers(searchParams);
 
-  // Filter offers based on search query (client-side for real-time feel)
-  const filteredOffers = useMemo(() => {
-    if (!offers) return [];
-    if (!debouncedQuery.trim()) return offers;
+  // Map establishments (with embedded offers) for map markers
+  const { data: mapEstablishments } = useMapEstablishments(searchParams);
+  const displayEstablishments = mapEstablishments ?? [];
 
-    const query = debouncedQuery.toLowerCase();
-    return offers.filter(
-      offer =>
-        offer.item.title.toLowerCase().includes(query) ||
-        offer.item.establishmentName.toLowerCase().includes(query) ||
-        offer.item.categories?.some(cat => cat.toLowerCase().includes(query)),
-    );
-  }, [offers, debouncedQuery]);
+  // Offers to display (no client-side text filter — offers load for selected place)
+  const displayOffers = offers ?? [];
 
   // Map region based on center and radius
   const mapRegion: Region = useMemo(() => {
-    const latDelta = (searchRadius / 111) * 2.5; // 1 degree ~ 111km
+    const latDelta = (searchRadius / 111) * 2.5;
     const lngDelta = latDelta * 1.2;
     return {
-      latitude: centerCoordinates.latitude,
-      longitude: centerCoordinates.longitude,
+      latitude: offerCenter.latitude,
+      longitude: offerCenter.longitude,
       latitudeDelta: Math.max(0.02, Math.min(latDelta, 1)),
       longitudeDelta: Math.max(0.02, Math.min(lngDelta, 1)),
     };
-  }, [centerCoordinates, searchRadius]);
+  }, [offerCenter, searchRadius]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Handlers
@@ -219,24 +245,75 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   const handleClearSearch = useCallback(() => {
     setSearchQuery('');
-    setDebouncedQuery('');
     setShowPlaceResults(false);
-  }, []);
+    resetSessionToken();
+  }, [resetSessionToken]);
 
-  // Handle selecting a place from geocoding results
-  const handlePlaceSelect = useCallback(
-    (place: GeocodeResult) => {
-      const cityName = place.address?.city ?? place.displayName.split(',')[0] ?? 'Unknown';
-      setManualLocationValue(place.coordinates, cityName);
+  /**
+   * Handle selecting a Google Places result from dropdown
+   */
+  const handleGooglePlaceSelect = useCallback(
+    async (place: ILocationResult) => {
+      let coords = place.coords;
+
+      // Resolve coordinates via Place Details (billed call, concludes session)
+      if (place.googlePlaceId) {
+        const resolved = await resolveGooglePlace(place.googlePlaceId);
+        if (resolved) {
+          coords = resolved.coords;
+        } else {
+          return; // Failed to resolve
+        }
+      }
+
+      const placeCoords = { latitude: coords.lat, longitude: coords.lng };
+      const placeName = place.name || 'Unknown';
+      const placeAddress = place.subtext || place.formattedAddress || '';
+
+      setSelectedPlace({ name: placeName, address: placeAddress, coordinates: placeCoords });
+      setManualLocationValue(placeCoords, placeName);
       setSearchQuery('');
-      setDebouncedQuery('');
       setShowPlaceResults(false);
+      setSelectedEstablishment(null);
 
       // Animate map to selected place
       mapRef.current?.animateToRegion(
         {
-          latitude: place.coordinates.latitude,
-          longitude: place.coordinates.longitude,
+          ...placeCoords,
+          latitudeDelta: (searchRadius / 111) * 2.5,
+          longitudeDelta: (searchRadius / 111) * 3,
+        },
+        500,
+      );
+    },
+    [resolveGooglePlace, setManualLocationValue, searchRadius],
+  );
+
+  /**
+   * Handle selecting an app establishment from dropdown
+   */
+  const handleAppEstablishmentSelect = useCallback(
+    (establishment: ProximitySearchResult<NearbyEstablishment>) => {
+      const est = establishment.item;
+      const estCoords = {
+        latitude: est.coordinates?.latitude ?? establishment.geoData.coordinates.latitude,
+        longitude: est.coordinates?.longitude ?? establishment.geoData.coordinates.longitude,
+      };
+
+      const address = est.address?.formattedAddress
+        ?? est.address?.city
+        ?? '';
+
+      setSelectedPlace({ name: est.name, address, coordinates: estCoords });
+      setManualLocationValue(estCoords, est.name);
+      setSearchQuery('');
+      setShowPlaceResults(false);
+      setSelectedEstablishment(null);
+
+      // Animate map to selected establishment
+      mapRef.current?.animateToRegion(
+        {
+          ...estCoords,
           latitudeDelta: (searchRadius / 111) * 2.5,
           longitudeDelta: (searchRadius / 111) * 3,
         },
@@ -246,6 +323,17 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     [setManualLocationValue, searchRadius],
   );
 
+  const handleCloseBottomSheet = useCallback(() => {
+    setSelectedPlace(null);
+  }, []);
+
+  const handleBottomSheetOfferPress = useCallback(
+    (offerId: string) => {
+      navigation.navigate('OfferDetails', { offerId });
+    },
+    [navigation],
+  );
+
   const handleLocationPress = useCallback(() => {
     setShowLocationModal(true);
   }, []);
@@ -253,26 +341,25 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const handleRadiusChange = useCallback(
     (radius: number) => {
       setRadius(radius);
-      // Animate map to show the new circle radius
       const latDelta = (radius / 111) * 2.5;
       const lngDelta = latDelta * 1.2;
       mapRef.current?.animateToRegion(
         {
-          latitude: centerCoordinates.latitude,
-          longitude: centerCoordinates.longitude,
+          latitude: offerCenter.latitude,
+          longitude: offerCenter.longitude,
           latitudeDelta: Math.max(0.02, Math.min(latDelta, 1)),
           longitudeDelta: Math.max(0.02, Math.min(lngDelta, 1)),
         },
         300,
       );
     },
-    [setRadius, centerCoordinates],
+    [setRadius, offerCenter],
   );
 
   const handleLocationSelect = useCallback(
     (location: { coordinates: { latitude: number; longitude: number }; name: string }) => {
       setManualLocationValue(location.coordinates, location.name);
-      // Animate map to new location
+      setSelectedPlace(null);
       mapRef.current?.animateToRegion(
         {
           ...location.coordinates,
@@ -286,8 +373,15 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   );
 
   const handleUseMyLocation = useCallback(async () => {
-    const result = await requestLocation();
-    if (result.success && result.coordinates) {
+    try {
+      const result = await requestLocation();
+
+      if (!result.success || !result.coordinates) {
+        return;
+      }
+
+      setSelectedPlace(null);
+
       mapRef.current?.animateToRegion(
         {
           ...result.coordinates,
@@ -296,17 +390,33 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
         },
         500,
       );
-    }
-  }, [requestLocation, mapRegion]);
 
-  const handleMarkerPress = useCallback(
-    (offer: ProximitySearchResult<NearbyOffer>) => {
-      setSelectedOffer(offer);
-      // Center map on selected marker
+      Logger.debug(
+        '[SearchScreen] GPS acquired, triggering reverse geocoding for header update...',
+      );
+      void dispatch(reverseGeocodeAsync(result.coordinates))
+        .unwrap()
+        .then(() => {
+          Logger.info('[SearchScreen] Reverse geocoding completed - HomeScreen header updated');
+        })
+        .catch((error: unknown) => {
+          Logger.warn(
+            '[SearchScreen] Reverse geocoding failed, header will show fallback',
+            { error: String(error) },
+          );
+        });
+    } catch (error) {
+      Logger.error('[SearchScreen] Failed to get current location:', {}, error as Error);
+    }
+  }, [requestLocation, mapRegion, dispatch]);
+
+  const handleEstablishmentMarkerPress = useCallback(
+    (est: ProximitySearchResult<MapEstablishment>) => {
+      setSelectedEstablishment(est);
       mapRef.current?.animateToRegion(
         {
-          latitude: offer.geoData.coordinates.latitude,
-          longitude: offer.geoData.coordinates.longitude,
+          latitude: est.geoData.coordinates.latitude,
+          longitude: est.geoData.coordinates.longitude,
           latitudeDelta: mapRegion.latitudeDelta * 0.5,
           longitudeDelta: mapRegion.longitudeDelta * 0.5,
         },
@@ -314,6 +424,13 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       );
     },
     [mapRegion],
+  );
+
+  const handleEstablishmentOfferPress = useCallback(
+    (offerId: string) => {
+      navigation.navigate('OfferDetails', { offerId });
+    },
+    [navigation],
   );
 
   const handleOfferPress = useCallback(
@@ -324,7 +441,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   );
 
   const handleMapPress = useCallback(() => {
-    setSelectedOffer(null);
+    setSelectedEstablishment(null);
   }, []);
 
   const handleRecenter = useCallback(() => {
@@ -333,7 +450,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   const handleViewModeChange = useCallback((mode: ViewMode) => {
     setViewMode(mode);
-    setSelectedOffer(null);
+    setSelectedEstablishment(null);
   }, []);
 
   const handleMapReady = useCallback(() => {
@@ -367,8 +484,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     if (isLoadingOffers) {
       return (
         <View style={styles.emptyContainer}>
-          <SkeletonOfferCard imageAspectRatio={1.4} style={{ marginBottom: 16 }} />
-          <SkeletonOfferCard imageAspectRatio={1.4} style={{ marginBottom: 16 }} />
+          <SkeletonOfferCard imageAspectRatio={1.4} style={styles.skeletonCardMargin} />
+          <SkeletonOfferCard imageAspectRatio={1.4} style={styles.skeletonCardMargin} />
           <SkeletonOfferCard imageAspectRatio={1.4} />
         </View>
       );
@@ -377,30 +494,182 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     return (
       <View style={styles.emptyContainer}>
         <View style={[styles.emptyIconContainer, { backgroundColor: theme.colors.surfaceVariant }]}>
-          <Icon name="search" family="Ionicons" size={48} color={theme.colors.onSurfaceVariant} />
+          <Icon name='search' family='Ionicons' size={48} color={theme.colors.onSurfaceVariant} />
         </View>
-        <Text variant="title" size="lg" weight="semibold" align="center" style={styles.emptyTitle}>
+        <Text variant='title' size='lg' weight='semibold' align='center' style={styles.emptyTitle}>
           No offers found
         </Text>
-        <Text variant="body" size="md" color="secondary" align="center" style={styles.emptyText}>
-          {searchQuery
-            ? `No results for "${searchQuery}". Try a different search or expand your radius.`
-            : 'Try expanding your search radius or search for something specific.'}
+        <Text variant='body' size='md' color='secondary' align='center' style={styles.emptyText}>
+          Try expanding your search radius or search for a place.
         </Text>
       </View>
     );
-  }, [isLoadingOffers, searchQuery, theme.colors]);
+  }, [isLoadingOffers, theme.colors]);
 
-  const renderListHeader = useCallback(() => (
-    <View style={styles.listHeader}>
-      <Text variant="title" size="md" weight="semibold">
-        {filteredOffers.length} {filteredOffers.length === 1 ? 'offer' : 'offers'} nearby
-      </Text>
-      <Text variant="body" size="sm" color="secondary">
-        Within {searchRadius} km
-      </Text>
-    </View>
-  ), [filteredOffers.length, searchRadius]);
+  const renderListHeader = useCallback(
+    () => (
+      <View style={styles.listHeader}>
+        <Text variant='title' size='md' weight='semibold'>
+          {displayOffers.length} {displayOffers.length === 1 ? 'offer' : 'offers'} nearby
+        </Text>
+        <Text variant='body' size='sm' color='secondary'>
+          Within {searchRadius} km
+          {selectedPlace ? ` of ${selectedPlace.name}` : ''}
+        </Text>
+      </View>
+    ),
+    [displayOffers.length, searchRadius, selectedPlace],
+  );
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Dropdown Render
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const renderDropdown = () => {
+    if (!showPlaceResults || viewMode !== 'map') return null;
+
+    const showLoading = isSearchingPlaces && appResults.length === 0 && googleResults.length === 0;
+    const showEmpty = !isSearchingPlaces && debouncedQuery.length >= 2 && !hasPlaceResults;
+
+    return (
+      <View style={[styles.placeResultsContainer, { backgroundColor: theme.colors.background }]}>
+        {showLoading ? (
+          <View style={styles.placeResultsLoading}>
+            <ActivityIndicator size='small' color={theme.colors.primary} />
+            <Text
+              variant='body'
+              size='sm'
+              color='secondary'
+              style={styles.placeResultsLoadingText}
+            >
+              Searching...
+            </Text>
+          </View>
+        ) : showEmpty ? (
+          <View style={styles.placeResultsEmpty}>
+            <Text variant='body' size='sm' color='secondary'>
+              No results found for "{debouncedQuery}"
+            </Text>
+          </View>
+        ) : (
+          <>
+            {/* App Establishments Section */}
+            {appResults.length > 0 && (
+              <>
+                <Text
+                  variant='label'
+                  size='xs'
+                  color='secondary'
+                  style={styles.placeResultsHeader}
+                >
+                  In WasteFood
+                </Text>
+                {appResults.slice(0, 4).map((est, index) => (
+                  <Pressable
+                    key={`app-${est.item._id}`}
+                    style={[
+                      styles.placeResultItem,
+                      { borderBottomColor: theme.colors.outline },
+                      index === Math.min(appResults.length - 1, 3) &&
+                        googleResults.length === 0 &&
+                        styles.placeResultItemLast,
+                    ]}
+                    onPress={() => handleAppEstablishmentSelect(est)}
+                  >
+                    <View
+                      style={[
+                        styles.placeResultIcon,
+                        { backgroundColor: theme.colors.primaryContainer },
+                      ]}
+                    >
+                      <Icon
+                        name='storefront-outline'
+                        family='Ionicons'
+                        size={16}
+                        color={theme.colors.primary}
+                      />
+                    </View>
+                    <View style={styles.placeResultText}>
+                      <Text variant='body' size='sm' weight='medium' numberOfLines={1}>
+                        {est.item.name}
+                      </Text>
+                      <Text variant='body' size='xs' color='secondary' numberOfLines={1}>
+                        {est.item.address?.city || est.distance.formatted}
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.sourceBadge,
+                        { backgroundColor: theme.colors.primaryContainer },
+                      ]}
+                    >
+                      <Text variant='label' size='xs' color='primary'>
+                        App
+                      </Text>
+                    </View>
+                  </Pressable>
+                ))}
+              </>
+            )}
+
+            {/* Google Places Section */}
+            {googleResults.length > 0 && (
+              <>
+                <Text
+                  variant='label'
+                  size='xs'
+                  color='secondary'
+                  style={styles.placeResultsHeader}
+                >
+                  More places
+                </Text>
+                {googleResults.slice(0, 4).map((place, index) => (
+                  <Pressable
+                    key={`google-${place.id}`}
+                    style={[
+                      styles.placeResultItem,
+                      { borderBottomColor: theme.colors.outline },
+                      index === Math.min(googleResults.length - 1, 3) &&
+                        styles.placeResultItemLast,
+                    ]}
+                    onPress={() => handleGooglePlaceSelect(place)}
+                  >
+                    <View
+                      style={[
+                        styles.placeResultIcon,
+                        { backgroundColor: theme.colors.surfaceVariant },
+                      ]}
+                    >
+                      <Icon
+                        name='location-sharp'
+                        family='Ionicons'
+                        size={16}
+                        color={theme.colors.onSurfaceVariant}
+                      />
+                    </View>
+                    <View style={styles.placeResultText}>
+                      <Text variant='body' size='sm' weight='medium' numberOfLines={1}>
+                        {place.name}
+                      </Text>
+                      <Text variant='body' size='xs' color='secondary' numberOfLines={1}>
+                        {place.subtext}
+                      </Text>
+                    </View>
+                    <Icon
+                      name='arrow-forward'
+                      family='Ionicons'
+                      size={16}
+                      color={theme.colors.onSurfaceVariant}
+                    />
+                  </Pressable>
+                ))}
+              </>
+            )}
+          </>
+        )}
+      </View>
+    );
+  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // Main Render
@@ -408,99 +677,125 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
+      <StatusBar barStyle='dark-content' backgroundColor={theme.colors.background} />
 
       {/* Map View */}
       {viewMode === 'map' && (
         <View style={styles.mapContainer}>
-          {mapError ? (
-            <View style={[styles.mapErrorContainer, { backgroundColor: theme.colors.surfaceVariant }]}>
-              <Icon name="map-outline" family="Ionicons" size={48} color={theme.colors.onSurfaceVariant} />
-              <Text variant="title" size="md" weight="semibold" align="center" style={styles.mapErrorTitle}>
+          {mapError != null ? (
+            <View
+              style={[styles.mapErrorContainer, { backgroundColor: theme.colors.surfaceVariant }]}
+            >
+              <Icon
+                name='map-outline'
+                family='Ionicons'
+                size={48}
+                color={theme.colors.onSurfaceVariant}
+              />
+              <Text
+                variant='title'
+                size='md'
+                weight='semibold'
+                align='center'
+                style={styles.mapErrorTitle}
+              >
                 Map Unavailable
               </Text>
-              <Text variant="body" size="sm" color="secondary" align="center">
+              <Text variant='body' size='sm' color='secondary' align='center'>
                 Unable to load the map. Please check your internet connection and try again.
               </Text>
-              <TouchableOpacity
+              <Pressable
                 style={[styles.mapRetryButton, { backgroundColor: theme.colors.primary }]}
                 onPress={() => setMapError(null)}
-                activeOpacity={0.8}
               >
-                <Text variant="label" size="sm" weight="semibold" style={{ color: theme.colors.onPrimary }}>
+                <Text
+                  variant='label'
+                  size='sm'
+                  weight='semibold'
+                  style={{ color: theme.colors.onPrimary }}
+                >
                   Retry
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           ) : (
-          <>
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            provider={PROVIDER_GOOGLE}
-            initialRegion={mapRegion}
-            showsUserLocation={hasLocation}
-            showsMyLocationButton={false}
-            showsCompass={false}
-            onPress={handleMapPress}
-            onMapReady={handleMapReady}
-            accessibilityLabel="Map showing nearby offers"
-          >
-            {/* Search radius circle */}
-            <Circle
-              center={centerCoordinates}
-              radius={searchRadius * 1000}
-              strokeColor={theme.colors.primary}
-              strokeWidth={2}
-              fillColor={`${theme.colors.primary}40`}
-            />
-
-            {/* Offer markers */}
-            {mapReady &&
-              filteredOffers.map(offer => (
-                <OfferMarker
-                  key={offer.item._id}
-                  offer={offer}
-                  isSelected={selectedOffer?.item._id === offer.item._id}
-                  onPress={() => handleMarkerPress(offer)}
+            <>
+              <MapView
+                ref={mapRef}
+                style={styles.map}
+                provider={PROVIDER_GOOGLE}
+                initialRegion={mapRegion}
+                showsUserLocation={hasLocation}
+                showsMyLocationButton={false}
+                showsCompass={false}
+                onPress={handleMapPress}
+                onMapReady={handleMapReady}
+                accessibilityLabel='Map showing nearby offers'
+              >
+                {/* Search radius circle */}
+                <Circle
+                  center={offerCenter}
+                  radius={searchRadiusMeters}
+                  strokeColor={theme.colors.primary}
+                  strokeWidth={2}
+                  fillColor={`${theme.colors.primary}40`}
                 />
-              ))}
-          </MapView>
 
-          {/* Recenter button */}
-          <TouchableOpacity
-            style={[
-              styles.recenterButton,
-              {
-                backgroundColor: theme.colors.background,
-                top: SCREEN_HEIGHT * 0.4,
-              },
-            ]}
-            onPress={handleRecenter}
-            activeOpacity={0.8}
-          >
-            <Icon
-              name="locate"
-              size={22}
-              color={theme.colors.primary}
-            />
-          </TouchableOpacity>
+                {/* Establishment markers — one per establishment */}
+                {mapReady &&
+                  displayEstablishments.map(est => (
+                    <EstablishmentMarker
+                      key={est.item._id}
+                      establishment={est}
+                      isSelected={selectedEstablishment?.item._id === est.item._id}
+                      onPress={() => handleEstablishmentMarkerPress(est)}
+                    />
+                  ))}
+              </MapView>
 
-          {/* Loading overlay */}
-          {isLoadingOffers && !filteredOffers.length && (
-            <View style={styles.mapLoadingOverlay}>
-              <ActivityIndicator size="large" color={theme.colors.primary} />
-            </View>
-          )}
+              {/* Recenter button */}
+              <Pressable
+                style={[
+                  styles.recenterButton,
+                  {
+                    backgroundColor: theme.colors.background,
+                    top: SCREEN_HEIGHT * 0.4,
+                  },
+                ]}
+                onPress={handleRecenter}
+              >
+                <Icon name='locate' family='Ionicons' size={22} color={theme.colors.primary} />
+              </Pressable>
 
-          {/* Selected offer card */}
-          <OfferMapCard
-            offer={selectedOffer}
-            visible={!!selectedOffer}
-            onPress={() => selectedOffer && handleOfferPress(selectedOffer)}
-            onClose={() => setSelectedOffer(null)}
-          />
-          </>
+              {/* Loading overlay */}
+              {isLoadingOffers && !displayOffers.length && (
+                <View style={styles.mapLoadingOverlay}>
+                  <ActivityIndicator size='large' color={theme.colors.primary} />
+                </View>
+              )}
+
+              {/* Establishment bottom sheet (marker tap) */}
+              {!selectedPlace && (
+                <EstablishmentBottomSheet
+                  visible={!!selectedEstablishment}
+                  establishment={selectedEstablishment}
+                  onClose={() => setSelectedEstablishment(null)}
+                  onOfferPress={handleEstablishmentOfferPress}
+                  bottomInset={insets.bottom + 49}
+                />
+              )}
+
+              {/* Place Offers Bottom Sheet (place selected from dropdown) */}
+              <PlaceOffersBottomSheet
+                visible={!!selectedPlace}
+                placeName={selectedPlace?.name ?? ''}
+                placeAddress={selectedPlace?.address ?? ''}
+                offers={displayOffers}
+                isLoading={isLoadingOffers}
+                onClose={handleCloseBottomSheet}
+                onOfferPress={handleBottomSheetOfferPress}
+              />
+            </>
           )}
         </View>
       )}
@@ -508,16 +803,20 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       {/* List View */}
       {viewMode === 'list' && (
         <FlatList
-          data={filteredOffers}
+          data={displayOffers}
           keyExtractor={item => item.item._id}
           renderItem={renderListItem}
           ListHeaderComponent={renderListHeader}
           ListEmptyComponent={renderListEmpty}
           contentContainerStyle={[
             styles.listContent,
-            { paddingTop: insets.top + 120 }, // Space for search bar
+            { paddingTop: insets.top + 120 },
           ]}
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews
+          maxToRenderPerBatch={6}
+          windowSize={7}
+          initialNumToRender={5}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
@@ -531,6 +830,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
       {/* Search Bar Overlay */}
       <View
+        pointerEvents='box-none'
         style={[
           styles.searchOverlay,
           {
@@ -543,15 +843,15 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
         <View style={styles.searchRow}>
           <View style={[styles.searchInputContainer, { backgroundColor: theme.colors.background }]}>
             <Input
-              placeholder="Search places or offers..."
+              placeholder='Search businesses or places...'
               value={searchQuery}
               onChangeText={handleSearchChange}
-              leftIcon="search-outline"
-              leftIconFamily="Ionicons"
+              leftIcon='search-outline'
+              leftIconFamily='Ionicons'
               rightIcon={searchQuery ? 'close-circle' : undefined}
-              rightIconFamily="Ionicons"
+              rightIconFamily='Ionicons'
               onRightIconPress={handleClearSearch}
-              returnKeyType="search"
+              returnKeyType='search'
               autoCorrect={false}
               style={styles.searchInput}
               containerStyle={styles.searchInputInner}
@@ -561,87 +861,23 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
           </View>
 
           {/* Location Button */}
-          <TouchableOpacity
+          <Pressable
             style={[styles.locationButton, { backgroundColor: theme.colors.background }]}
             onPress={handleLocationPress}
-            activeOpacity={0.8}
-            accessibilityLabel="Location settings"
-            accessibilityHint="Open location filter options"
+            accessibilityLabel='Location settings'
+            accessibilityHint='Open location filter options'
           >
-            <Icon
-              name="location-sharp"
-              family="Ionicons"
-              size={22}
-              color={theme.colors.primary}
-            />
-          </TouchableOpacity>
+            <Icon name='location-sharp' family='Ionicons' size={22} color={theme.colors.primary} />
+          </Pressable>
         </View>
 
-        {/* Place Search Results Dropdown */}
-        {showPlaceResults && viewMode === 'map' && (
-          <View style={[styles.placeResultsContainer, { backgroundColor: theme.colors.background }]}>
-            {isSearchingPlaces ? (
-              <View style={styles.placeResultsLoading}>
-                <ActivityIndicator size="small" color={theme.colors.primary} />
-                <Text variant="body" size="sm" color="secondary" style={styles.placeResultsLoadingText}>
-                  Searching places...
-                </Text>
-              </View>
-            ) : placeResults && placeResults.length > 0 ? (
-              <>
-                <Text variant="label" size="xs" color="secondary" style={styles.placeResultsHeader}>
-                  📍 Go to location
-                </Text>
-                {placeResults.slice(0, 4).map((place, index) => (
-                  <TouchableOpacity
-                    key={`${place.coordinates.latitude}-${index}`}
-                    style={[
-                      styles.placeResultItem,
-                      { borderBottomColor: theme.colors.outline },
-                      index === Math.min(placeResults.length - 1, 3) && styles.placeResultItemLast,
-                    ]}
-                    onPress={() => handlePlaceSelect(place)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[styles.placeResultIcon, { backgroundColor: theme.colors.primaryContainer }]}>
-                      <Icon name="location-sharp" family="Ionicons" size={16} color={theme.colors.primary} />
-                    </View>
-                    <View style={styles.placeResultText}>
-                      <Text variant="body" size="sm" weight="medium" numberOfLines={1}>
-                        {(place.address?.city && place.address.city !== 'Unknown')
-                          ? place.address.city
-                          : (place.displayName?.split(',')[0] ?? 'Unknown location')}
-                      </Text>
-                      <Text variant="body" size="xs" color="secondary" numberOfLines={1}>
-                        {place.displayName ?? ''}
-                      </Text>
-                    </View>
-                    <Icon name="arrow-forward" family="Ionicons" size={16} color={theme.colors.onSurfaceVariant} />
-                  </TouchableOpacity>
-                ))}
-              </>
-            ) : debouncedQuery.length >= 2 ? (
-              <View style={styles.placeResultsEmpty}>
-                <Text variant="body" size="sm" color="secondary">
-                  No places found for "{debouncedQuery}"
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        )}
+        {/* Unified Dropdown: App Establishments + Google Places */}
+        {renderDropdown()}
 
         {/* Toggle Row */}
         <View style={styles.toggleRow}>
           <MapListToggle value={viewMode} onChange={handleViewModeChange} />
 
-          {/* Results count badge */}
-          {viewMode === 'map' && (
-            <View style={[styles.resultsBadge, { backgroundColor: theme.colors.background }]}>
-              <Text variant="label" size="sm" weight="semibold" color="primary">
-                {filteredOffers.length} offers
-              </Text>
-            </View>
-          )}
         </View>
       </View>
 
@@ -757,16 +993,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 12,
   },
-  resultsBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
   placeResultsContainer: {
     marginTop: 8,
     borderRadius: 14,
@@ -795,6 +1021,12 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     alignItems: 'center',
+  },
+  sourceBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 4,
   },
   placeResultItem: {
     flexDirection: 'row',
@@ -849,6 +1081,9 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     marginTop: 8,
+  },
+  skeletonCardMargin: {
+    marginBottom: 16,
   },
 });
 

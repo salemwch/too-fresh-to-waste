@@ -32,10 +32,7 @@ const APP_TIMEZONE = 'Africa/Tunis';
  * formatTime("2026-01-11T18:50:00.000Z", { showDate: true });
  * // Returns: "Jan 11, 2026, 19:50" (Tunisia time)
  */
-export function formatTime(
-  utcString: string,
-  options?: { showDate?: boolean },
-): string {
+export function formatTime(utcString: string, options?: { showDate?: boolean }): string {
   const date = new Date(utcString);
 
   if (isNaN(date.getTime())) {

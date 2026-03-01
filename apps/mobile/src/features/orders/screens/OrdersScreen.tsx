@@ -1,371 +1,414 @@
 /**
  * Orders Screen
- * Display user's order history and active orders
+ * Displays the authenticated consumer's orders in two tabs: Active / History.
+ *
+ * Data flow:
+ *   useOrders → ordersService.getMyOrders → FlatList<OrderCard>
+ *
+ * Design spec: apps/check.md
+ *   - Pill-style segmented control with count badge
+ *   - OrderCard with absolute status badge, strikethrough price, "Go now!" pulse
+ *   - Skeleton loading state
+ *   - Contextual empty states per tab
  */
 
-import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import React, { useCallback, useState, useMemo } from 'react';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  RefreshControl,
+  Platform,
+  Pressable,
+} from 'react-native';
 
-import { Text, Button, Card, Badge, Icon } from '@/design-system/components/atoms';
+import { Text, Icon, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
-import { useAppSelector } from '@/hooks/redux';
 
+import { OrderCard } from '../components/OrderCard';
+import { SkeletonOrderCard } from '../components/SkeletonOrderCard';
+import { useOrders } from '../hooks/useOrders';
+
+import type { Order } from '../types/order.types';
 import type { OrdersScreenNavigationProp } from '@/navigation/types';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+type TabKey = 'active' | 'history';
 
 interface OrdersScreenProps {
   navigation: OrdersScreenNavigationProp;
 }
 
+// ---------------------------------------------------------------------------
+// Skeleton list (loading state)
+// ---------------------------------------------------------------------------
+
+const SKELETON_COUNT = 4;
+const SKELETON_DATA = Array.from({ length: SKELETON_COUNT }, (_, i) => ({ key: String(i) }));
+
+const SkeletonList: React.FC = () => (
+  <View style={styles.listContent}>
+    {SKELETON_DATA.map(item => (
+      <SkeletonOrderCard key={item.key} />
+    ))}
+  </View>
+);
+
+// ---------------------------------------------------------------------------
+// Empty state
+// ---------------------------------------------------------------------------
+
+interface EmptyStateProps {
+  tab: TabKey;
+  onBrowse: () => void;
+}
+
+const EmptyState: React.FC<EmptyStateProps> = ({ tab, onBrowse }) => {
+  const theme = useTheme();
+
+  return (
+    <View style={styles.emptyState}>
+      <View style={[styles.emptyIconCircle, { backgroundColor: theme.colors.surfaceContainer }]}>
+        <Icon
+          name={tab === 'active' ? 'receipt-outline' : 'time-outline'}
+          family="Ionicons"
+          size={56}
+          color="#94A3B8"
+        />
+      </View>
+
+      <Text style={styles.emptyTitle}>
+        {tab === 'active' ? 'No Active Orders' : 'No Order History'}
+      </Text>
+
+      <Text style={styles.emptySubtitle}>
+        {tab === 'active'
+          ? 'Start saving food and money by placing your first order'
+          : "Your completed orders will appear here"}
+      </Text>
+
+      {tab === 'active' && (
+        <Button
+          variant="primary"
+          size="lg"
+          onPress={onBrowse}
+          leftIcon="restaurant-outline"
+          leftIconFamily="Ionicons"
+          style={styles.browseButton}
+          accessibilityLabel="Browse offers"
+          accessibilityHint="Navigate to home screen to discover food offers"
+        >
+          Browse Offers
+        </Button>
+      )}
+
+      {/* How It Works card (only on active tab) */}
+      {tab === 'active' && (
+        <View style={styles.howItWorksCard}>
+          <Text style={styles.howItWorksTitle}>How It Works</Text>
+
+          <View style={styles.stepRow}>
+            <View style={styles.stepDot}><Text style={styles.stepNum}>1</Text></View>
+            <Text style={styles.stepText}>Browse and select an offer</Text>
+          </View>
+          <View style={styles.stepRow}>
+            <View style={styles.stepDot}><Text style={styles.stepNum}>2</Text></View>
+            <Text style={styles.stepText}>Confirm and pay for your order</Text>
+          </View>
+          <View style={styles.stepRow}>
+            <View style={styles.stepDot}><Text style={styles.stepNum}>3</Text></View>
+            <Text style={styles.stepText}>Pick up during the specified time</Text>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Tab Pill
+// ---------------------------------------------------------------------------
+
+interface TabPillProps {
+  label: string;
+  count: number;
+  isActive: boolean;
+  onPress: () => void;
+}
+
+const TabPill: React.FC<TabPillProps> = ({ label, count, isActive, onPress }) => (
+  <Pressable
+    onPress={onPress}
+    style={[styles.tabPill, isActive && styles.tabPillActive]}
+    android_ripple={{ color: 'rgba(0, 82, 80, 0.1)', borderless: false }}
+    accessibilityRole="tab"
+    accessibilityState={{ selected: isActive }}
+    accessibilityLabel={`${label} tab, ${count} orders`}
+  >
+    <Text style={[styles.tabPillText, isActive && styles.tabPillTextActive]}>
+      {label}
+    </Text>
+    {count > 0 && (
+      <View style={[styles.tabCountBadge, isActive && styles.tabCountBadgeActive]}>
+        <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>
+          {count}
+        </Text>
+      </View>
+    )}
+  </Pressable>
+);
+
+// ---------------------------------------------------------------------------
+// Main Screen
+// ---------------------------------------------------------------------------
+
 export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
   const theme = useTheme();
-  const { user } = useAppSelector(state => state.auth);
+  const [selectedTab, setSelectedTab] = useState<TabKey>('active');
 
-  // State
-  const [refreshing, setRefreshing] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<'active' | 'history'>('active');
-  const [hasOrders] = useState(false);
+  const {
+    activeOrders,
+    historyOrders,
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useOrders();
 
-  /**
-   * Handle pull-to-refresh
-   */
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    // TODO: Fetch user's orders
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
+  const currentOrders = useMemo(
+    () => (selectedTab === 'active' ? activeOrders : historyOrders),
+    [selectedTab, activeOrders, historyOrders],
+  );
 
-  /**
-   * Navigate to browse offers
-   */
+  // ---------------------------------------------------------------------------
+  // Handlers
+  // ---------------------------------------------------------------------------
+
+  const handleOrderPress = useCallback(
+    (order: Order) => {
+      navigation.navigate('OrderDetails', { orderId: order._id });
+    },
+    [navigation],
+  );
+
   const handleBrowseOffers = useCallback(() => {
     navigation.jumpTo('Home');
   }, [navigation]);
 
+  // ---------------------------------------------------------------------------
+  // Render helpers
+  // ---------------------------------------------------------------------------
+
+  const renderOrderCard = useCallback(
+    ({ item }: { item: Order }) => (
+      <OrderCard order={item} onPress={handleOrderPress} />
+    ),
+    [handleOrderPress],
+  );
+
+  const keyExtractor = useCallback((item: Order) => item._id, []);
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {/* Tabs */}
-      <View style={styles.tabsContainer}>
-        <Button
-          variant={selectedTab === 'active' ? 'primary' : 'ghost'}
-          size='md'
+      {/* ── Tab Bar ── */}
+      <View style={styles.tabBar}>
+        <TabPill
+          label="Active"
+          count={activeOrders.length}
+          isActive={selectedTab === 'active'}
           onPress={() => setSelectedTab('active')}
-          style={styles.tabButton}
-          accessibilityRole='tab'
-          accessibilityLabel='Active orders'
-          accessibilityHint='View your active orders'
-          accessibilityState={{ selected: selectedTab === 'active' }}
-        >
-          Active Orders
-        </Button>
-        <Button
-          variant={selectedTab === 'history' ? 'primary' : 'ghost'}
-          size='md'
+        />
+        <TabPill
+          label="History"
+          count={historyOrders.length}
+          isActive={selectedTab === 'history'}
           onPress={() => setSelectedTab('history')}
-          style={styles.tabButton}
-          accessibilityRole='tab'
-          accessibilityLabel='Order history'
-          accessibilityHint='View your completed orders'
-          accessibilityState={{ selected: selectedTab === 'history' }}
-        >
-          History
-        </Button>
+        />
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        accessibilityLabel='Orders content'
-        accessibilityHint='Scroll to view your orders'
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={theme.colors.primary}
-            accessibilityLabel={refreshing ? 'Refreshing orders' : 'Pull to refresh'}
-          />
-        }
-      >
-        {/* Empty State */}
-        {!hasOrders && (
-          <View style={styles.emptyState}>
-            <View
-              style={[styles.iconContainer, { backgroundColor: theme.colors.surfaceContainer }]}
-            >
-              <Icon
-                name={selectedTab === 'active' ? 'receipt-outline' : 'time-outline'}
-                family='Ionicons'
-                size={64}
-                color={theme.colors.onSurfaceVariant}
-              />
-            </View>
-
-            <Text variant='headline' size='lg' weight='semibold' align='center'>
-              {selectedTab === 'active' ? 'No Active Orders' : 'No Order History'}
-            </Text>
-
-            <Text
-              variant='body'
-              size='md'
-              color='secondary'
-              align='center'
-              style={styles.emptyStateDescription}
-            >
-              {selectedTab === 'active'
-                ? 'Start saving food and money by placing your first order'
-                : "You haven't completed any orders yet"}
-            </Text>
-
-            <Button
-              variant='primary'
-              size='lg'
-              onPress={handleBrowseOffers}
-              leftIcon='restaurant-outline'
-              leftIconFamily='Ionicons'
-              style={styles.browseButton}
-              accessibilityLabel='Browse offers'
-              accessibilityHint='Navigate to home screen to discover food offers'
-            >
-              Browse Offers
-            </Button>
-
-            {/* Info Card */}
-            <Card style={styles.infoCard}>
-              <Text variant='title' size='sm' weight='semibold' style={styles.infoTitle}>
-                How It Works
-              </Text>
-              <View style={styles.stepsContainer}>
-                <View style={styles.stepItem}>
-                  <View
-                    style={[styles.stepNumber, { backgroundColor: theme.colors.primaryContainer }]}
-                  >
-                    <Text
-                      variant='body'
-                      size='sm'
-                      weight='bold'
-                      style={{ color: theme.colors.primary }}
-                    >
-                      1
-                    </Text>
-                  </View>
-                  <Text variant='body' size='sm' color='secondary'>
-                    Browse and select an offer
-                  </Text>
-                </View>
-                <View style={styles.stepItem}>
-                  <View
-                    style={[styles.stepNumber, { backgroundColor: theme.colors.primaryContainer }]}
-                  >
-                    <Text
-                      variant='body'
-                      size='sm'
-                      weight='bold'
-                      style={{ color: theme.colors.primary }}
-                    >
-                      2
-                    </Text>
-                  </View>
-                  <Text variant='body' size='sm' color='secondary'>
-                    Complete payment
-                  </Text>
-                </View>
-                <View style={styles.stepItem}>
-                  <View
-                    style={[styles.stepNumber, { backgroundColor: theme.colors.primaryContainer }]}
-                  >
-                    <Text
-                      variant='body'
-                      size='sm'
-                      weight='bold'
-                      style={{ color: theme.colors.primary }}
-                    >
-                      3
-                    </Text>
-                  </View>
-                  <Text variant='body' size='sm' color='secondary'>
-                    Pick up during specified time
-                  </Text>
-                </View>
-              </View>
-            </Card>
-          </View>
-        )}
-
-        {/* Orders List Placeholder */}
-        {hasOrders && (
-          <View style={styles.ordersSection}>
-            <View style={styles.header}>
-              <Text variant='title' size='md' weight='medium'>
-                {selectedTab === 'active' ? 'Active Orders' : 'Order History'}
-              </Text>
-              <Badge label='0' variant='neutral' size='sm' />
-            </View>
-
-            <Card style={styles.placeholderCard}>
-              <Text variant='body' size='md' color='secondary' align='center'>
-                {selectedTab === 'active' ? 'No active orders' : 'No order history'}
-              </Text>
-              <Text
-                variant='body'
-                size='sm'
-                color='secondary'
-                align='center'
-                style={styles.placeholderSubtext}
-              >
-                {selectedTab === 'active'
-                  ? 'Your active orders will appear here'
-                  : 'Your completed orders will appear here'}
-              </Text>
-            </Card>
-          </View>
-        )}
-
-        {/* Merchant View - Show Different Content */}
-        {user?.role === 'merchant' && hasOrders && (
-          <View style={styles.merchantSection}>
-            <Card style={styles.statsCard}>
-              <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
-                Order Statistics
-              </Text>
-              <View style={styles.statsGrid}>
-                <View
-                  style={styles.statItem}
-                  accessibilityLabel='Pending orders: 0'
-                  accessibilityHint='Number of pending orders waiting to be fulfilled'
-                >
-                  <Text variant='headline' size='lg' weight='bold' color='primary'>
-                    0
-                  </Text>
-                  <Text variant='body' size='sm' color='secondary'>
-                    Pending
-                  </Text>
-                </View>
-                <View
-                  style={styles.statItem}
-                  accessibilityLabel='Completed orders: 0'
-                  accessibilityHint='Number of successfully completed orders'
-                >
-                  <Text variant='headline' size='lg' weight='bold' color='success'>
-                    0
-                  </Text>
-                  <Text variant='body' size='sm' color='secondary'>
-                    Completed
-                  </Text>
-                </View>
-                <View
-                  style={styles.statItem}
-                  accessibilityLabel='Revenue: $0'
-                  accessibilityHint='Total revenue from completed orders'
-                >
-                  <Text variant='headline' size='lg' weight='bold' color='warning'>
-                    $0
-                  </Text>
-                  <Text variant='body' size='sm' color='secondary'>
-                    Revenue
-                  </Text>
-                </View>
-              </View>
-            </Card>
-          </View>
-        )}
-      </ScrollView>
+      {/* ── Content ── */}
+      {isLoading ? (
+        <SkeletonList />
+      ) : currentOrders.length === 0 ? (
+        <EmptyState tab={selectedTab} onBrowse={handleBrowseOffers} />
+      ) : (
+        <FlatList
+          data={currentOrders}
+          renderItem={renderOrderCard}
+          keyExtractor={keyExtractor}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          removeClippedSubviews
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          initialNumToRender={6}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={theme.colors.primary}
+              colors={[theme.colors.primary]}
+            />
+          }
+        />
+      )}
     </View>
   );
 };
+
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  tabsContainer: {
+
+  // Tab bar
+  tabBar: {
     flexDirection: 'row',
-    padding: 8,
-    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.08)',
+    borderBottomColor: '#F1F5F9',
   },
-  tabButton: {
+  tabPill: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    gap: 6,
   },
-  scrollContent: {
-    flexGrow: 1,
+  tabPillActive: {
+    backgroundColor: '#005250',
+  },
+  tabPillText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  tabPillTextActive: {
+    color: '#FFFFFF',
+  },
+  tabCountBadge: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  tabCountBadgeActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  tabCountText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  tabCountTextActive: {
+    color: '#FFFFFF',
+  },
+
+  // List
+  listContent: {
     padding: 16,
+    paddingBottom: 32,
   },
+
+  // Empty state
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 48,
+    paddingHorizontal: 32,
+    paddingBottom: 40,
   },
-  iconContainer: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
+  emptyIconCircle: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
   },
-  emptyStateDescription: {
-    marginTop: 12,
-    marginBottom: 32,
-    paddingHorizontal: 16,
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#64748B',
+    textAlign: 'center',
     lineHeight: 22,
+    marginBottom: 24,
   },
   browseButton: {
     minWidth: 200,
     marginBottom: 32,
   },
-  infoCard: {
-    padding: 20,
+
+  // How it works
+  howItWorksCard: {
     width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 12,
+      },
+      android: { elevation: 2 },
+    }),
   },
-  infoTitle: {
+  howItWorksTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1F2937',
     marginBottom: 16,
   },
-  stepsContainer: {
-    gap: 12,
-  },
-  stepItem: {
+  stepRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 12,
   },
-  stepNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  stepDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#D1FAE5',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
-  ordersSection: {
+  stepNum: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#005250',
+  },
+  stepText: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#475569',
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  placeholderCard: {
-    padding: 48,
-    alignItems: 'center',
-  },
-  placeholderSubtext: {
-    marginTop: 8,
-  },
-  merchantSection: {
-    marginTop: 16,
-  },
-  statsCard: {
-    padding: 20,
-  },
-  sectionTitle: {
-    marginBottom: 16,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
   },
 });

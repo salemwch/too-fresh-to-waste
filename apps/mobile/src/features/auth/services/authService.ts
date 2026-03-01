@@ -172,10 +172,10 @@ class AuthService {
 
         // Check for field/type at top level first (for direct error objects)
         if (typeof dataObj['field'] === 'string') {
-          errorMetadata.field = dataObj['field'];
+          errorMetadata['field'] = dataObj['field'];
         }
         if (typeof dataObj['type'] === 'string') {
-          errorMetadata.errorCode = dataObj['type']; // Rename to errorCode to avoid conflict with ErrorType
+          errorMetadata['errorCode'] = dataObj['type']; // Rename to errorCode to avoid conflict with ErrorType
         }
 
         // Also check nested message object (for wrapped error responses)
@@ -186,10 +186,10 @@ class AuthService {
         ) {
           const nestedMsg = dataObj['message'] as Record<string, unknown>;
           if (typeof nestedMsg['field'] === 'string') {
-            errorMetadata.field = nestedMsg['field'];
+            errorMetadata['field'] = nestedMsg['field'];
           }
           if (typeof nestedMsg['type'] === 'string') {
-            errorMetadata.errorCode = nestedMsg['type']; // Rename to errorCode to avoid conflict with ErrorType
+            errorMetadata['errorCode'] = nestedMsg['type']; // Rename to errorCode to avoid conflict with ErrorType
           }
         }
       }
@@ -217,8 +217,8 @@ class AuthService {
           typeof dataObj['blockedUntil'] === 'string' ||
           dataObj['blockedUntil'] instanceof Date
         ) {
-          errorMetadata.blockedUntil = dataObj['blockedUntil'];
-          errorMetadata.isAccountLocked = true;
+          errorMetadata['blockedUntil'] = dataObj['blockedUntil'];
+          errorMetadata['isAccountLocked'] = true;
         }
 
         // Also check nested message object
@@ -232,8 +232,8 @@ class AuthService {
             typeof nestedMsg['blockedUntil'] === 'string' ||
             nestedMsg['blockedUntil'] instanceof Date
           ) {
-            errorMetadata.blockedUntil = nestedMsg['blockedUntil'];
-            errorMetadata.isAccountLocked = true;
+            errorMetadata['blockedUntil'] = nestedMsg['blockedUntil'];
+            errorMetadata['isAccountLocked'] = true;
           }
         }
       }
@@ -421,10 +421,17 @@ class AuthService {
     return response;
   }
 
-  public async logout(): Promise<void> {
+  public async logout(accessToken?: string): Promise<void> {
     Logger.info('Attempting logout');
 
-    await this.makeRequest<void>('POST', '/logout');
+    // Pass authorization header if token is available
+    // This ensures the backend can properly invalidate the session
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
+    await this.makeRequest<void>('POST', '/logout', undefined, headers);
 
     Logger.info('Logout successful');
   }
@@ -523,9 +530,9 @@ class AuthService {
   public async updateProfile(updates: Partial<User>, accessToken: string): Promise<User> {
     Logger.info('Updating user profile');
 
-    const response = await this.makeRequest<User>('PATCH', '/me', updates, {
+    const response = await this.makeRequest<User>('PATCH', '/profile', updates, {
       Authorization: `Bearer ${accessToken}`,
-    });
+    }, `${environment.api.baseUrl}/users`);
 
     Logger.info('User profile updated', { userId: response.userId });
     return response;

@@ -28,9 +28,9 @@
  */
 
 import { useMemo } from 'react';
+import zxcvbn from 'zxcvbn';
 
 import { colorTokens } from '@/design-system/tokens/colors';
-import zxcvbn from 'zxcvbn';
 
 // ============================================================================
 // Types & Interfaces
@@ -166,24 +166,32 @@ const hasRepeatingChars = (
  */
 const calculateStrengthScore = (
   password: string,
-  context?: PasswordValidationContext,
+  _context?: PasswordValidationContext,
 ): { score: number; crackTime: string } => {
   if (!password) {
     return { score: 0, crackTime: 'instant' };
   }
 
-  // Build user inputs array for zxcvbn (personal info to check against)
+  // Don't pass any personal info to zxcvbn to allow users flexibility in password choice
+  // This prevents password strength from being penalized for including:
+  // - Email address or email prefix
+  // - First name or last name
+  // - Phone number
+  // Users can create memorable passwords using personal info without penalty
+
   const userInputs: string[] = [];
-  if (context?.email !== undefined && context.email !== '') {
-    userInputs.push(context.email);
-    const emailParts = context.email.split('@');
-    if (emailParts[0] !== undefined && emailParts[0] !== '') {
-      userInputs.push(emailParts[0]); // Email prefix
-    }
-  }
-  if (context?.firstName !== undefined) userInputs.push(context.firstName);
-  if (context?.lastName !== undefined) userInputs.push(context.lastName);
-  if (context?.phoneNumber !== undefined) userInputs.push(context.phoneNumber);
+
+  // All personal info checking disabled - empty array
+  // if (context?.email !== undefined && context.email !== '') {
+  //   userInputs.push(context.email);
+  //   const emailParts = context.email.split('@');
+  //   if (emailParts[0] !== undefined && emailParts[0] !== '') {
+  //     userInputs.push(emailParts[0]); // Email prefix
+  //   }
+  // }
+  // if (context?.firstName !== undefined) userInputs.push(context.firstName);
+  // if (context?.lastName !== undefined) userInputs.push(context.lastName);
+  // if (context?.phoneNumber !== undefined) userInputs.push(context.phoneNumber);
 
   // Use zxcvbn for accurate strength calculation
   const result = zxcvbn(password, userInputs);

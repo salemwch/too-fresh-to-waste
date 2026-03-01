@@ -49,40 +49,42 @@ export const SurpriseBagCard: React.FC<SurpriseBagCardProps> = ({
       {/* Header with pricing - HORIZONTAL LAYOUT */}
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Icon name="shopping-bag" size={20} color={theme.colors.textSecondary} />
-          <Text variant="body" size="md" weight="medium">
+          <Icon name='shopping-bag' size={20} color={theme.colors.onSurfaceVariant} />
+          <Text variant='body' size='md' weight='medium'>
             Surprise Bag
           </Text>
         </View>
         <View style={styles.priceRow}>
-          <Text variant="body" size="sm" color="secondary" style={styles.originalPrice}>
-            {currency}{originalPrice.toFixed(2)}
+          <Text variant='body' size='sm' color='secondary' style={styles.originalPrice}>
+            {currency}
+            {originalPrice.toFixed(2)}
           </Text>
-          <Text variant="headline" size="xl" weight="bold" color="primary">
-            {currency}{discountedPrice.toFixed(2)}
+          <Text variant='headline' size='xl' weight='bold' color='primary'>
+            {currency}
+            {discountedPrice.toFixed(2)}
           </Text>
         </View>
       </View>
 
       {/* Rating */}
       <View style={styles.ratingRow}>
-        <Icon name="star" size={16} color="#FFA500" filled />
-        <Text variant="body" size="md" weight="medium">
+        <Icon name='star' size={16} color='#FFA500' />
+        <Text variant='body' size='md' weight='medium'>
           {rating.toFixed(1)}
         </Text>
-        <Text variant="body" size="md" color="secondary">
+        <Text variant='body' size='md' color='secondary'>
           ({reviewCount})
         </Text>
       </View>
 
       {/* Pickup Time */}
       <View style={styles.pickupRow}>
-        <Icon name="clock" size={16} color={theme.colors.textSecondary} />
-        <Text variant="body" size="md">
+        <Icon name='clock' size={16} color={theme.colors.onSurfaceVariant} />
+        <Text variant='body' size='md'>
           Pick up: {pickupStart} - {pickupEnd}
         </Text>
         {isToday && (
-          <Badge variant="success" size="sm">
+          <Badge variant='success' size='sm'>
             Today
           </Badge>
         )}

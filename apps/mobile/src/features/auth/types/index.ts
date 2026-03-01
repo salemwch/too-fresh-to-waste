@@ -1,4 +1,9 @@
 // Authentication Types
+
+// UserRole — single source of truth from shared package
+export { UserRole } from '@foodwaste/shared';
+import { UserRole } from '@foodwaste/shared';
+
 export interface User {
   readonly userId: string;
   readonly email: string;
@@ -10,6 +15,7 @@ export interface User {
   readonly isEmailVerified: boolean;
   readonly isPhoneVerified: boolean;
   readonly avatar?: string;
+  readonly profileImage?: string;
   readonly address?: {
     street: string;
     city: string;
@@ -34,12 +40,7 @@ export interface User {
   readonly lastLoginAt?: string;
 }
 
-export enum UserRole {
-  CONSUMER = 'consumer',
-  MERCHANT = 'merchant',
-  ADMIN = 'admin',
-  MODERATOR = 'moderator',
-}
+// UserRole enum is re-exported from @foodwaste/shared above.
 
 export interface AuthTokens {
   readonly accessToken: string;
@@ -173,6 +174,12 @@ export interface AuthState {
   readonly pendingVerificationPhone?: string | undefined; // Phone waiting for verification
   readonly mfaToken?: string | undefined; // Temporary MFA token
   readonly passwordResetToken?: string | undefined; // Temporary password reset token
+
+  // Offline mode (resilient auth - never logout on network errors)
+  readonly isOffline: boolean; // Network error detected (500, timeout, DNS failure)
+  readonly offlineMessage?: string | undefined; // Message to show in banner ("You're offline. Trying to reconnect…")
+  readonly retryAfterMs?: number | undefined; // When to retry connection
+  readonly offlineSince?: string | undefined; // When offline mode started (ISO timestamp)
 }
 
 export interface BiometricAuthState {

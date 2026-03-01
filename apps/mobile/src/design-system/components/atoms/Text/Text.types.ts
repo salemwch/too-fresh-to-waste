@@ -6,7 +6,8 @@ import type { BaseComponentProps, StyleSystemProps, TypographyVariant } from '..
 import type { TextProps as RNTextProps } from 'react-native';
 
 export interface TextProps
-  extends Omit<
+  extends
+    Omit<
       RNTextProps,
       | 'style'
       | 'testID'

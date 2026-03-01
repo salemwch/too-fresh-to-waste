@@ -4,8 +4,8 @@
  * Auto-dismisses after 3 seconds
  */
 
-import { DotLottie, type Dotlottie } from '@lottiefiles/dotlottie-react-native';
-import React, { useEffect, useRef } from 'react';
+import DotLottieAnimation from '@lottiefiles/dotlottie-react-native';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, Modal, Dimensions } from 'react-native';
 import Animated, {
   FadeIn,
@@ -26,22 +26,17 @@ interface LoginSuccessModalProps {
   onDismiss: () => void;
 }
 
-export const LoginSuccessModal: React.FC<LoginSuccessModalProps> = ({
+export const LoginSuccessModal = React.memo<LoginSuccessModalProps>(function LoginSuccessModal({
   visible,
   userName,
   onDismiss,
-}) => {
+}) {
   const theme = useTheme();
-  const lottieRef = useRef<Dotlottie>(null);
-
   // Animated values for celebration effects
   const confettiScale = useSharedValue(0);
 
   useEffect(() => {
     if (visible) {
-      // Play Lottie animation
-      lottieRef.current?.play();
-
       // Confetti scale animation
       confettiScale.value = withSpring(1, {
         damping: 10,
@@ -70,15 +65,14 @@ export const LoginSuccessModal: React.FC<LoginSuccessModalProps> = ({
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType='fade'
       statusBarTranslucent
       onRequestClose={onDismiss}
     >
       <View style={styles.overlay}>
         {/* Lottie Success Animation */}
         <Animated.View style={[styles.lottieContainer, confettiAnimatedStyle]}>
-          <DotLottie
-            ref={lottieRef}
+          <DotLottieAnimation
             // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
             source={require('./success-celebration.json')}
             autoplay
@@ -109,19 +103,19 @@ export const LoginSuccessModal: React.FC<LoginSuccessModalProps> = ({
 
           {/* Welcome Text */}
           <Animated.View entering={FadeIn.delay(400).duration(400)} style={styles.textContainer}>
-            <Text variant="headline.large" align="center" style={styles.title}>
+            <Text variant='headline.large' align='center' style={styles.title}>
               Welcome Back!
             </Text>
             <Text
-              variant="headline.medium"
-              align="center"
+              variant='headline.medium'
+              align='center'
               style={[styles.subtitle, { color: theme.colors.primary }]}
             >
               {userName} 🌟
             </Text>
             <Text
-              variant="body.medium"
-              align="center"
+              variant='body.medium'
+              align='center'
               style={[styles.message, { color: theme.colors.onSurfaceVariant }]}
             >
               Great to see you again!
@@ -131,7 +125,7 @@ export const LoginSuccessModal: React.FC<LoginSuccessModalProps> = ({
       </View>
     </Modal>
   );
-};
+});
 
 /* eslint-disable react-native/no-color-literals */
 const styles = StyleSheet.create({

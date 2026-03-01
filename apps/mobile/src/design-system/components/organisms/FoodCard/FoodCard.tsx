@@ -4,7 +4,7 @@
  */
 
 import React, { useCallback, useMemo } from 'react';
-import { View, Image, TouchableOpacity } from 'react-native';
+import { View, Image, Pressable } from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Button } from '../../atoms/Button';
@@ -236,7 +236,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({
           }}
         >
           {showFavorite && (
-            <TouchableOpacity
+            <Pressable
               onPress={handleFavorite}
               style={{
                 padding: theme.spacing.base.xs,
@@ -248,11 +248,11 @@ export const FoodCard: React.FC<FoodCardProps> = ({
               accessibilityLabel={offer.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >
               <FavoriteIcon filled={offer.isFavorite || false} />
-            </TouchableOpacity>
+            </Pressable>
           )}
 
           {showShare && (
-            <TouchableOpacity
+            <Pressable
               onPress={handleShare}
               style={{
                 padding: theme.spacing.base.xs,
@@ -264,7 +264,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({
               accessibilityLabel='Share offer'
             >
               <ShareIcon />
-            </TouchableOpacity>
+            </Pressable>
           )}
         </View>
       )}
@@ -276,7 +276,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({
     if (!showEstablishment) return null;
 
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={handleEstablishmentPress}
         style={{ marginBottom: theme.spacing.base.xs }}
         testID={`${testID}-establishment`}
@@ -286,7 +286,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({
         <Text variant='body.small' color={theme.colors.primary} numberOfLines={1}>
           {offer.establishmentName}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 

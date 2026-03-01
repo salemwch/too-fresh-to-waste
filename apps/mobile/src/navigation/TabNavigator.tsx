@@ -3,80 +3,42 @@
  * Bottom tab navigation for main app screens
  * Home, Search, Favorites, Orders, Profile
  *
+ * Headers are rendered by each tab's NativeStack navigator,
+ * NOT by the BottomTab itself (headerShown: false).
+ * This ensures consistent native header height and animation
+ * across all screens.
+ *
  * NOTE: Direct imports used instead of React.lazy() due to Metro bundler
  * incompatibility (facebook/metro#1019). Metro's inlineRequires handles
  * lazy loading at the module level automatically.
  */
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import React from 'react';
-import { Platform, View, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { memo } from 'react';
+import { Platform } from 'react-native';
 
-import { Icon, Text } from '@/design-system/components/atoms';
+import { Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
-import { HomeScreen } from '@/features/home/screens/HomeScreen';
-import { SearchScreen } from '@/features/search/screens/SearchScreen';
-import { FavoritesScreen } from '@/features/favorites/screens/FavoritesScreen';
-import { OrdersScreen } from '@/features/orders/screens/OrdersScreen';
-import { ProfileScreen } from '@/features/profile/screens/ProfileScreen';
-import { useLocation } from '@/hooks/useLocation';
 
+import { FavoritesStack } from './FavoritesStack';
+import { HomeStack } from './HomeStack';
+import { OrdersStack } from './OrdersStack';
+import { ProfileStack } from './ProfileStack';
+import { SearchStack } from './SearchStack';
 import type { TabParamList } from './types';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
 /**
- * Location Header Component
- * Custom header showing current location with dropdown
- */
-const LocationHeader: React.FC = () => {
-  const theme = useTheme();
-  const { manualLocationName, hasLocation } = useLocation();
-
-  const handleLocationPress = () => {
-    // TODO: Open location selection modal
-    console.log('Open location selector');
-  };
-
-  return (
-    <TouchableOpacity
-      style={styles.locationHeader}
-      onPress={handleLocationPress}
-      accessibilityRole='button'
-      accessibilityLabel='Choose location'
-      accessibilityHint='Tap to select your location'
-    >
-      <View style={styles.locationIconCircle}>
-        <Icon name='location' family='Ionicons' size={16} color='#FFFFFF' />
-      </View>
-      <View style={styles.locationTextContainer}>
-        <Text variant='body' size='sm' style={styles.locationLabel}>
-          Choose Location
-        </Text>
-        <Text
-          variant='body'
-          size='md'
-          weight='semibold'
-          numberOfLines={1}
-          ellipsizeMode='tail'
-          style={styles.locationValue}
-        >
-          {hasLocation && manualLocationName
-            ? manualLocationName.length > 20
-              ? manualLocationName.substring(0, 17).replace(/\s+/g, '_') + '...'
-              : manualLocationName
-            : 'Choose location...'}
-        </Text>
-      </View>
-      <Icon name='chevron-down' family='Ionicons' size={20} color={theme.colors.onSurface} />
-    </TouchableOpacity>
-  );
-};
-/**
  * Tab Navigator Component
  * Main bottom tab navigation for authenticated users
+ *
+ * PRODUCTION OPTIMIZATIONS:
+ * - Lazy loading of tab screens (only render when first accessed)
+ * - Memoized icon rendering to prevent re-renders
+ * - Optimized tab bar style to reduce layout calculations
  */
-export const TabNavigator: React.FC = () => {
+const TabNavigatorComponent: React.FC = () => {
   const theme = useTheme();
 
   /**
@@ -100,6 +62,12 @@ export const TabNavigator: React.FC = () => {
     <Tab.Navigator
       initialRouteName='Home'
       screenOptions={({ route }) => ({
+        // Headers are provided by each tab's NativeStack — disable BottomTab headers
+        headerShown: false,
+
+        // Lazy mount screens (only render when first accessed)
+        lazy: true,
+
         // Tab Bar Icon
         tabBarIcon: ({ focused, color, size }) => {
           const iconName = getTabIcon(route.name, focused);
@@ -120,22 +88,7 @@ export const TabNavigator: React.FC = () => {
         tabBarLabelStyle: {
           fontFamily: theme.typography.fontFamily.secondary,
           fontSize: theme.typography.fontSize.xs,
-          fontWeight: theme.typography.fontWeight.medium,
-        },
-
-        // Header Styling
-        headerStyle: {
-          backgroundColor: theme.colors.surface,
-          elevation: 0,
-          shadowOpacity: 0,
-          borderBottomWidth: 1,
-          borderBottomColor: theme.colors.outline,
-        },
-        headerTintColor: theme.colors.onSurface,
-        headerTitleStyle: {
-          fontFamily: theme.typography.fontFamily.primary,
-          fontSize: theme.typography.fontSize.xl,
-          fontWeight: theme.typography.fontWeight.bold,
+          fontWeight: theme.typography.fontWeight?.medium ?? '500',
         },
 
         // Behavior
@@ -145,84 +98,74 @@ export const TabNavigator: React.FC = () => {
       {/* Home Tab */}
       <Tab.Screen
         name='Home'
-        component={HomeScreen}
-        options={{
-          title: 'Home',
-          headerTitle: () => <LocationHeader />,
+        component={HomeStack}
+        listeners={{
+          tabPress: (_e) => {
+            if (__DEV__) console.log('[TabNavigator] Home tab pressed');
+          },
         }}
+        options={{ title: 'Home' }}
       />
 
       {/* Search Tab */}
       <Tab.Screen
         name='Search'
-        component={SearchScreen}
-        options={{
-          title: 'Search',
-          headerTitle: 'Search Offers',
+        component={SearchStack}
+        listeners={{
+          tabPress: (_e) => {
+            if (__DEV__) console.log('[TabNavigator] Search tab pressed');
+          },
         }}
+        options={{ title: 'Search' }}
       />
 
       {/* Favorites Tab */}
       <Tab.Screen
         name='Favorites'
-        component={FavoritesScreen}
-        options={{
-          title: 'Favorites',
-          headerTitle: 'My Favorites',
+        component={FavoritesStack}
+        listeners={{
+          tabPress: (_e) => {
+            if (__DEV__) console.log('[TabNavigator] Favorites tab pressed');
+          },
         }}
+        options={{ title: 'Favorites' }}
       />
 
       {/* Orders Tab */}
       <Tab.Screen
         name='Orders'
-        component={OrdersScreen}
-        options={{
-          title: 'Orders',
-          headerTitle: 'My Orders',
-        }}
+        component={OrdersStack}
+        options={{ title: 'Orders' }}
       />
 
-      {/* Profile Tab */}
+      {/* Profile Tab — reset nested stack to ProfileMain whenever the tab is pressed */}
       <Tab.Screen
         name='Profile'
-        component={ProfileScreen}
-        options={{
-          title: 'Profile',
-          headerTitle: 'My Profile',
-        }}
+        component={ProfileStack}
+        options={{ title: 'Profile' }}
+        listeners={({ navigation }) => ({
+          tabPress: (_e) => {
+            const state = navigation.getState();
+            const profileIndex = state.routes.findIndex(r => r.name === 'Profile');
+            const isProfileActive = state.index === profileIndex;
+            const profileStackDepth = (state.routes[profileIndex]?.state?.index ?? 0) as number;
+
+            // Already on ProfileMain — nothing to do.
+            if (isProfileActive && profileStackDepth === 0) return;
+
+            // Deep in stack or switching from another tab: pop ProfileStack to root.
+            // navigate() pops to ProfileMain if it already exists in the stack.
+            _e.preventDefault();
+            (navigation as any).navigate('Profile', { screen: 'ProfileMain' });
+          },
+        })}
       />
     </Tab.Navigator>
   );
 };
 
-const styles = StyleSheet.create({
-  locationHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  locationIconCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#69dab5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  locationTextContainer: {
-    flex: 1,
-    marginRight: 4,
-  },
-  locationLabel: {
-    color: '#9CA3AF',
-    fontSize: 12,
-    lineHeight: 14,
-  },
-  locationValue: {
-    color: '#1F2937',
-    fontSize: 14,
-    lineHeight: 18,
-  },
-});
+/**
+ * PRODUCTION: Memoize TabNavigator to prevent unnecessary re-renders
+ * TabNavigator only needs to re-render when theme changes
+ */
+export const TabNavigator = memo(TabNavigatorComponent);

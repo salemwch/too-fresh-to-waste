@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import Animated, {
   FadeInDown,
   FadeInUp,
@@ -24,6 +24,7 @@ import { Button, Text, Icon } from '@/design-system/components/atoms';
 import { OTPInput } from '@/design-system/components/molecules/OTPInput';
 import { useTheme } from '@/design-system/providers';
 import { Logger } from '@/utils/logger';
+import { showAlert, showSuccessAlert, showErrorAlert } from '@/utils/alert';
 
 import { useAuth } from '../hooks/useAuth';
 import { authService } from '../services/authService';
@@ -191,12 +192,12 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
    */
   const handleSendVerificationCode = useCallback(async () => {
     if (!phoneNumber) {
-      Alert.alert('Error', 'Please provide a phone number');
+      showErrorAlert('Error', 'Please provide a phone number');
       return;
     }
 
     if (!tokens?.accessToken) {
-      Alert.alert('Error', 'Authentication required. Please log in again.');
+      showErrorAlert('Error', 'Authentication required. Please log in again.');
       navigation.navigate('Login');
       return;
     }
@@ -217,14 +218,13 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
       setResendCooldown(60);
       setCanResend(false);
 
-      Alert.alert(
+      showSuccessAlert(
         'Code Sent!',
         `A 6-digit verification code has been sent to ${phoneNumber}. ${
           response.attemptsRemaining
             ? `You have ${response.attemptsRemaining} attempts remaining.`
             : ''
         }`,
-        [{ text: 'OK', style: 'default' }],
       );
     } catch (err: any) {
       const errorMessage = err?.message || 'Failed to send verification code. Please try again.';
@@ -233,7 +233,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
       setError(errorMessage);
 
-      Alert.alert('Failed to Send Code', errorMessage, [{ text: 'OK', style: 'default' }]);
+      showErrorAlert('Failed to Send Code', errorMessage);
     } finally {
       setIsSendingCode(false);
     }
@@ -249,7 +249,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
     }
 
     if (!tokens?.accessToken) {
-      Alert.alert('Error', 'Authentication required. Please log in again.');
+      showErrorAlert('Error', 'Authentication required. Please log in again.');
       navigation.navigate('Login');
       return;
     }
@@ -272,31 +272,25 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
       setTimeout(() => {
         if (fromEmailVerification) {
           // Coming from email verification, go to main app
-          Alert.alert(
+          showSuccessAlert(
             'Verification Complete!',
             'Your phone number has been verified. Welcome to the app!',
-            [
-              {
-                text: 'Get Started',
-                onPress: () => {
-                  // The auth state will handle navigation to MainStack
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'Login' }],
-                  });
-                },
-                style: 'default',
-              },
-            ],
           );
+
+          // Navigate after showing success
+          setTimeout(() => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
+          }, 2000);
         } else {
-          Alert.alert('Phone Verified!', 'Your phone number has been successfully verified.', [
-            {
-              text: 'Continue',
-              onPress: () => navigation.goBack(),
-              style: 'default',
-            },
-          ]);
+          showSuccessAlert('Phone Verified!', 'Your phone number has been successfully verified.');
+
+          // Navigate back after showing success
+          setTimeout(() => {
+            navigation.goBack();
+          }, 2000);
         }
       }, 500);
     } catch (err: any) {
@@ -308,7 +302,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
       setError(errorMessage);
       setCode(''); // Reset code on error
 
-      Alert.alert('Verification Failed', errorMessage, [{ text: 'OK', style: 'default' }]);
+      showErrorAlert('Verification Failed', errorMessage);
     } finally {
       setIsVerifying(false);
     }
@@ -321,7 +315,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
     if (!canResend || resendCooldown > 0) return;
 
     if (!tokens?.accessToken) {
-      Alert.alert('Error', 'Authentication required. Please log in again.');
+      showErrorAlert('Error', 'Authentication required. Please log in again.');
       navigation.navigate('Login');
       return;
     }
@@ -338,14 +332,13 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
       Logger.info('Phone verification code resent', { phoneNumber });
 
-      Alert.alert(
+      showSuccessAlert(
         'Code Resent!',
         `A new verification code has been sent to ${phoneNumber}. ${
           response.attemptsRemaining
             ? `You have ${response.attemptsRemaining} attempts remaining.`
             : ''
         }`,
-        [{ text: 'OK', style: 'default' }],
       );
 
       setResendCooldown(60);
@@ -357,7 +350,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
       setError(errorMessage);
 
-      Alert.alert('Resend Failed', errorMessage, [{ text: 'OK', style: 'default' }]);
+      showErrorAlert('Resend Failed', errorMessage);
     } finally {
       setIsSendingCode(false);
     }
@@ -368,15 +361,11 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
    */
   const handleBack = useCallback(() => {
     if (fromEmailVerification) {
-      Alert.alert(
+      showAlert(
         'Verification Required',
         'Phone verification is mandatory to complete your registration. You must verify your phone number before you can log in.',
-        [
-          {
-            text: 'OK',
-            style: 'cancel',
-          },
-        ],
+        undefined,
+        { type: 'warning' },
       );
     } else {
       navigation.goBack();

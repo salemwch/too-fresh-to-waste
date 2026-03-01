@@ -51,6 +51,7 @@ export interface EnvironmentConfig {
     readonly logLevel: 'debug' | 'info' | 'warn' | 'error';
     readonly enableNetworkLogging: boolean;
     readonly enableReduxLogging: boolean;
+    readonly enableNativeModuleLogging: boolean;
   };
   readonly storage: {
     readonly encryptionKey: string;
@@ -153,6 +154,7 @@ const createEnvironmentConfig = (): EnvironmentConfig => {
       logLevel: getLogLevel(Config['LOG_LEVEL']),
       enableNetworkLogging: getBoolean(Config['ENABLE_NETWORK_LOGGING'], false),
       enableReduxLogging: getBoolean(Config['ENABLE_REDUX_LOGGING'], false),
+      enableNativeModuleLogging: getBoolean(Config['ENABLE_NATIVE_MODULE_LOGGING'], __DEV__),
     },
     storage: {
       encryptionKey: getString(Config['STORAGE_ENCRYPTION_KEY'], 'default-key'),
@@ -227,8 +229,13 @@ export const validateEnvironmentConfig = (): { isValid: boolean; errors: string[
       errors.push('Debug log level should not be used in production');
     }
 
-    if (environment.storage.encryptionKey === 'default-key') {
-      errors.push('Default encryption key should not be used in production');
+    if (
+      environment.storage.encryptionKey === 'default-key' ||
+      environment.storage.encryptionKey.startsWith('REPLACE_WITH')
+    ) {
+      errors.push(
+        'STORAGE_ENCRYPTION_KEY is still a placeholder. Generate a secure key: openssl rand -base64 32',
+      );
     }
   }
 

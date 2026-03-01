@@ -8,6 +8,12 @@ export { RootNavigator } from './RootNavigator';
 export { AuthStack } from './AuthStack';
 export { MainStack } from './MainStack';
 export { TabNavigator } from './TabNavigator';
+export { HomeStack } from './HomeStack';
+export { SearchStack } from './SearchStack';
+export { FavoritesStack } from './FavoritesStack';
+
+// Shared header config
+export { getDefaultScreenOptions, getModalScreenOptions, getAuthScreenOptions } from './headerConfig';
 
 // Components
 export { ProtectedRoute } from './ProtectedRoute';
@@ -20,6 +26,11 @@ export type {
   AuthStackParamList,
   MainStackParamList,
   TabParamList,
+  HomeStackParamList,
+  SearchStackParamList,
+  FavoritesStackParamList,
+  OrdersStackParamList,
+  ProfileStackParamList,
 
   // Auth Navigation Props
   LoginScreenNavigationProp,
@@ -31,7 +42,6 @@ export type {
   // Main Stack Navigation Props
   MainStackNavigationProp,
   OfferDetailsScreenNavigationProp,
-  OrderDetailsScreenNavigationProp,
   CheckoutScreenNavigationProp,
 
   // Tab Navigation Props

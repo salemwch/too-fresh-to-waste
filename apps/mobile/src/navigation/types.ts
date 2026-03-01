@@ -50,13 +50,17 @@ export interface MainStackParamList extends Record<string, object | undefined> {
   // Offer Modals
   OfferDetails: { offerId: string };
 
-  // Order Modals
-  OrderDetails: { orderId: string };
+  // Order Modals (OrderDetails moved to OrdersStack)
   OrderHistory: undefined;
-  Checkout: { offerId: string };
+  Checkout: { offerId: string; quantity?: number };
 
-  // Profile Modals
-  EditProfile: undefined;
+  // Loyalty
+  Loyalty: undefined;
+
+  // Leaderboard
+  Leaderboard: undefined;
+
+  // Profile Modals (EditProfile moved to ProfileStack)
   Settings: undefined;
   Privacy: undefined;
   Security: undefined;
@@ -75,8 +79,26 @@ export interface MainStackParamList extends Record<string, object | undefined> {
 }
 
 /**
+ * Orders Stack Param List
+ * Nested stack inside Orders tab (list → detail flow)
+ */
+export interface OrdersStackParamList extends Record<string, object | undefined> {
+  OrdersList: undefined;
+  OrderDetails: { orderId: string };
+}
+
+/**
+ * Profile Stack Param List
+ * Nested stack inside Profile tab (profile → edit flow)
+ */
+export interface ProfileStackParamList extends Record<string, object | undefined> {
+  ProfileMain: undefined;
+  EditProfile: undefined;
+}
+
+/**
  * Tab Navigator Param List
- * Bottom tab screens
+ * Bottom tab screens — each tab wraps a NativeStack navigator
  */
 export interface TabParamList extends Record<string, object | undefined> {
   Home: undefined;
@@ -84,6 +106,30 @@ export interface TabParamList extends Record<string, object | undefined> {
   Favorites: undefined;
   Orders: undefined;
   Profile: undefined;
+}
+
+/**
+ * Home Stack Param List
+ * NativeStack wrapper inside Home tab
+ */
+export interface HomeStackParamList extends Record<string, object | undefined> {
+  HomeMain: undefined;
+}
+
+/**
+ * Search Stack Param List
+ * NativeStack wrapper inside Search tab
+ */
+export interface SearchStackParamList extends Record<string, object | undefined> {
+  SearchMain: undefined;
+}
+
+/**
+ * Favorites Stack Param List
+ * NativeStack wrapper inside Favorites tab
+ */
+export interface FavoritesStackParamList extends Record<string, object | undefined> {
+  FavoritesMain: undefined;
 }
 
 /**
@@ -133,9 +179,23 @@ export type OfferDetailsScreenNavigationProp = NativeStackNavigationProp<
   'OfferDetails'
 >;
 
-export type OrderDetailsScreenNavigationProp = NativeStackNavigationProp<
-  MainStackParamList,
-  'OrderDetails'
+/**
+ * Navigation Props for OrdersStack Screens (nested inside Orders tab)
+ */
+export type OrdersListScreenNavigationProp = CompositeNavigationProp<
+  NativeStackNavigationProp<OrdersStackParamList, 'OrdersList'>,
+  CompositeNavigationProp<
+    BottomTabNavigationProp<TabParamList, 'Orders'>,
+    NativeStackNavigationProp<MainStackParamList>
+  >
+>;
+
+export type OrderDetailsFromOrdersStackNavigationProp = CompositeNavigationProp<
+  NativeStackNavigationProp<OrdersStackParamList, 'OrderDetails'>,
+  CompositeNavigationProp<
+    BottomTabNavigationProp<TabParamList, 'Orders'>,
+    NativeStackNavigationProp<MainStackParamList>
+  >
 >;
 
 export type CheckoutScreenNavigationProp = NativeStackNavigationProp<
@@ -147,29 +207,59 @@ export type CheckoutScreenNavigationProp = NativeStackNavigationProp<
  * Navigation Props for Tab Screens
  * Composite navigation prop for accessing parent navigators
  */
+
+/**
+ * Generic Tab Navigation Prop
+ * Used for components that need to navigate between tabs (e.g., LocationHeader)
+ */
+export type TabNavigationProp = BottomTabNavigationProp<TabParamList>;
+
 export type HomeScreenNavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<TabParamList, 'Home'>,
-  NativeStackNavigationProp<MainStackParamList>
+  NativeStackNavigationProp<HomeStackParamList, 'HomeMain'>,
+  CompositeNavigationProp<
+    BottomTabNavigationProp<TabParamList, 'Home'>,
+    NativeStackNavigationProp<MainStackParamList>
+  >
 >;
 
 export type SearchScreenNavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<TabParamList, 'Search'>,
-  NativeStackNavigationProp<MainStackParamList>
+  NativeStackNavigationProp<SearchStackParamList, 'SearchMain'>,
+  CompositeNavigationProp<
+    BottomTabNavigationProp<TabParamList, 'Search'>,
+    NativeStackNavigationProp<MainStackParamList>
+  >
 >;
 
 export type FavoritesScreenNavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<TabParamList, 'Favorites'>,
-  NativeStackNavigationProp<MainStackParamList>
+  NativeStackNavigationProp<FavoritesStackParamList, 'FavoritesMain'>,
+  CompositeNavigationProp<
+    BottomTabNavigationProp<TabParamList, 'Favorites'>,
+    NativeStackNavigationProp<MainStackParamList>
+  >
 >;
 
 export type OrdersScreenNavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<TabParamList, 'Orders'>,
-  NativeStackNavigationProp<MainStackParamList>
+  NativeStackNavigationProp<OrdersStackParamList, 'OrdersList'>,
+  CompositeNavigationProp<
+    BottomTabNavigationProp<TabParamList, 'Orders'>,
+    NativeStackNavigationProp<MainStackParamList>
+  >
 >;
 
 export type ProfileScreenNavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<TabParamList, 'Profile'>,
-  NativeStackNavigationProp<MainStackParamList>
+  NativeStackNavigationProp<ProfileStackParamList, 'ProfileMain'>,
+  CompositeNavigationProp<
+    BottomTabNavigationProp<TabParamList, 'Profile'>,
+    NativeStackNavigationProp<MainStackParamList>
+  >
+>;
+
+export type EditProfileScreenNavigationProp = CompositeNavigationProp<
+  NativeStackNavigationProp<ProfileStackParamList, 'EditProfile'>,
+  CompositeNavigationProp<
+    BottomTabNavigationProp<TabParamList, 'Profile'>,
+    NativeStackNavigationProp<MainStackParamList>
+  >
 >;
 
 /**
@@ -180,7 +270,7 @@ export type VerifyEmailRouteProp = RouteProp<AuthStackParamList, 'VerifyEmail'>;
 export type VerifyPhoneRouteProp = RouteProp<AuthStackParamList, 'VerifyPhone'>;
 export type MFAVerificationRouteProp = RouteProp<AuthStackParamList, 'MFAVerification'>;
 export type OfferDetailsRouteProp = RouteProp<MainStackParamList, 'OfferDetails'>;
-export type OrderDetailsRouteProp = RouteProp<MainStackParamList, 'OrderDetails'>;
+export type OrderDetailsRouteProp = RouteProp<OrdersStackParamList, 'OrderDetails'>;
 export type CheckoutRouteProp = RouteProp<MainStackParamList, 'Checkout'>;
 export type EstablishmentDetailsRouteProp = RouteProp<MainStackParamList, 'EstablishmentDetails'>;
 export type NearbyOffersRouteProp = RouteProp<MainStackParamList, 'NearbyOffers'>;
@@ -215,7 +305,7 @@ export interface OfferDetailsScreenProps {
 }
 
 export interface OrderDetailsScreenProps {
-  navigation: OrderDetailsScreenNavigationProp;
+  navigation: OrderDetailsFromOrdersStackNavigationProp;
   route: OrderDetailsRouteProp;
 }
 

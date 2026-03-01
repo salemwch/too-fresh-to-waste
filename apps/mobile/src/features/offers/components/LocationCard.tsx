@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -29,7 +29,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
   const theme = useTheme();
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={[
         styles.container,
         {
@@ -38,29 +38,28 @@ export const LocationCard: React.FC<LocationCardProps> = ({
       ]}
       onPress={onPress}
       disabled={!onPress}
-      activeOpacity={0.7}
       testID={testID}
       accessibilityLabel={`Location: ${address}`}
-      accessibilityHint="Tap to open in maps"
+      accessibilityHint='Tap to open in maps'
     >
       {/* Icon */}
       <View style={[styles.iconContainer, { backgroundColor: theme.colors.primary }]}>
-        <Icon name="map-pin" size={20} color="#fff" />
+        <Icon name='map-pin' size={20} color='#fff' />
       </View>
 
       {/* Text */}
       <View style={styles.textContainer}>
-        <Text variant="body" size="md" weight="medium" numberOfLines={1}>
+        <Text variant='body' size='md' weight='medium' numberOfLines={1}>
           {address}
         </Text>
-        <Text variant="body" size="sm" color="secondary" numberOfLines={1}>
+        <Text variant='body' size='sm' color='secondary' numberOfLines={1}>
           {subtitle}
         </Text>
       </View>
 
       {/* Arrow */}
-      <Icon name="chevron-right" size={20} color={theme.colors.textSecondary} />
-    </TouchableOpacity>
+      <Icon name='chevron-right' size={20} color={theme.colors.onSurfaceVariant} />
+    </Pressable>
   );
 };
 

@@ -38,6 +38,13 @@ export interface AddressInfo {
   postalCode?: string;
   country?: string;
   formattedAddress?: string;
+  // ✅ Backend returns nested primaryAddress
+  primaryAddress?: {
+    city?: string;
+    postalCode?: string;
+    country?: string;
+    formattedAddress?: string;
+  };
 }
 
 /**
@@ -129,6 +136,8 @@ export interface NearbyOffersParams {
   categories?: string[];
   /** Sort by distance (default true) */
   sortByDistance?: boolean;
+  /** Text query to search offers by title or establishment name */
+  query?: string;
 }
 
 /**
@@ -144,6 +153,39 @@ export interface GeocodeResult {
     east: number;
     west: number;
   };
+}
+
+/**
+ * Lightweight offer summary returned inside MapEstablishment.
+ * Mirrors backend MapOfferSummary interface.
+ */
+export interface MapOfferSummary {
+  _id: string;
+  title: string;
+  description: string;
+  pricing: OfferPricing;
+  availableUntil: string;
+  availableQuantity: number;
+  categories: string[];
+  images: string[];
+}
+
+/**
+ * Establishment enriched with active offers for map marker display.
+ * Mirrors backend MapEstablishmentGeoData interface.
+ */
+export interface MapEstablishment {
+  _id: string;
+  name: string;
+  type: string;
+  profileImage: string | null;
+  coordinates: GeoCoordinates;
+  address: AddressInfo;
+  averageRating: number;
+  totalReviews: number;
+  isVerified: boolean;
+  activeOfferCount: number;
+  offers: MapOfferSummary[];
 }
 
 /**
@@ -179,6 +221,7 @@ class NearbyOffersService {
     url: string,
     data?: unknown,
     headers?: Record<string, string>,
+    signal?: AbortSignal,
   ): Promise<T> {
     const startTime = Date.now();
 
@@ -195,6 +238,8 @@ class NearbyOffersService {
           ...headers,
         },
         timeout: this.timeout,
+        // ✅ Only include signal if defined (exactOptionalPropertyTypes compatibility)
+        ...(signal && { signal }),
       });
 
       const duration = Date.now() - startTime;
@@ -214,7 +259,11 @@ class NearbyOffersService {
       NetworkLogger.logResponse(url, axiosError.response?.status ?? 0, duration);
 
       const message = axiosError.response?.data?.message ?? axiosError.message;
-      Logger.error('Nearby offers API error', { url, status: axiosError.response?.status }, new Error(message));
+      Logger.error(
+        'Nearby offers API error',
+        { url, status: axiosError.response?.status },
+        new Error(message),
+      );
 
       // Re-throw with user-friendly message
       throw new Error(message || 'Failed to fetch nearby offers');
@@ -248,6 +297,7 @@ class NearbyOffersService {
       skip: params.skip ?? 0,
       categories: params.categories,
       sortByDistance: params.sortByDistance ?? true,
+      ...(params.query ? { query: params.query } : {}),
     };
 
     return this.makeRequest<ProximitySearchResult<NearbyOffer>[]>('POST', url, requestBody, {
@@ -276,9 +326,38 @@ class NearbyOffersService {
       limit: params.limit ?? 20,
       skip: params.skip ?? 0,
       sortByDistance: params.sortByDistance ?? true,
+      ...(params.query ? { query: params.query } : {}),
     };
 
     return this.makeRequest<ProximitySearchResult<NearbyEstablishment>[]>('POST', url, requestBody);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Proximity Search (Map Establishments) - Public
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Search for establishments with their active offers for map markers.
+   * Public endpoint — no JWT required.
+   *
+   * @param params - Search parameters
+   * @returns Array of establishments with embedded offers and distance info
+   */
+  async searchMapEstablishments(
+    params: NearbyOffersParams,
+  ): Promise<ProximitySearchResult<MapEstablishment>[]> {
+    const url = `${this.proximityBaseURL}/map-establishments`;
+
+    const requestBody = {
+      center: params.center,
+      radius: params.radius,
+      limit: params.limit ?? 50,
+      skip: params.skip ?? 0,
+      sortByDistance: params.sortByDistance ?? true,
+      ...(params.query ? { query: params.query } : {}),
+    };
+
+    return this.makeRequest<ProximitySearchResult<MapEstablishment>[]>('POST', url, requestBody);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -305,15 +384,14 @@ class NearbyOffersService {
     try {
       NetworkLogger.logRequest(url, 'GET');
 
-      const response = await axios.get<ApiResponseWrapper<ProximitySearchResult<NearbyEstablishment>[]>>(
-        url,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          timeout: this.timeout,
+      const response = await axios.get<
+        ApiResponseWrapper<ProximitySearchResult<NearbyEstablishment>[]>
+      >(url, {
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        timeout: this.timeout,
+      });
 
       const duration = Date.now() - startTime;
       NetworkLogger.logResponse(url, response.status, duration);
@@ -349,22 +427,30 @@ class NearbyOffersService {
    *
    * @param coordinates - Lat/lng to reverse geocode
    * @param language - Preferred language (default 'en')
+   * @param signal - Optional AbortSignal for request cancellation
    * @returns Address information
    */
   async reverseGeocode(
     coordinates: GeoCoordinates,
     language: string = 'en',
+    signal?: AbortSignal,
   ): Promise<AddressInfo> {
     const url = `${this.geolocationBaseURL}/reverse-geocode`;
 
     // Backend expects nested 'coordinates' object per ReverseGeocodingDto
-    return this.makeRequest<AddressInfo>('POST', url, {
-      coordinates: {
-        latitude: coordinates.latitude,
-        longitude: coordinates.longitude,
+    return this.makeRequest<AddressInfo>(
+      'POST',
+      url,
+      {
+        coordinates: {
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
+        },
+        language,
       },
-      language,
-    });
+      undefined, // headers
+      signal, // ✅ Pass abort signal through
+    );
   }
 }
 

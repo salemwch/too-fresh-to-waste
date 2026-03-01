@@ -17,16 +17,17 @@
  */
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import {
   View,
   StyleSheet,
   ScrollView,
+  InteractionManager,
   KeyboardAvoidingView,
   Platform,
   Alert,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { launchImageLibrary, type ImagePickerResponse } from 'react-native-image-picker';
 import * as yup from 'yup';
@@ -34,15 +35,16 @@ import * as yup from 'yup';
 import { Text, Button, Card, Avatar, Icon, Input } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { updateProfileAsync, updateUser } from '@/features/auth/store/authSlice';
+import { SkeletonEditProfileScreen } from '@/features/profile/components/SkeletonEditProfileScreen';
 import { userService } from '@/features/profile/services/userService';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { useAppDispatch } from '@/hooks/redux';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { SecureStorage } from '@/services/SecureStorage';
 import { Logger } from '@/utils/logger';
+import { showSuccessToast, showErrorToast, showInfoToast } from '@/utils/toast';
 
-import type { MainStackParamList } from '@/navigation/types';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { EditProfileScreenNavigationProp } from '@/navigation/types';
 import type { InferType } from 'yup';
-
-type EditProfileScreenNavigationProp = NativeStackNavigationProp<MainStackParamList, 'EditProfile'>;
 
 interface EditProfileScreenProps {
   navigation: EditProfileScreenNavigationProp;
@@ -102,10 +104,11 @@ type ProfileFormData = InferType<typeof profileSchema>;
 export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const { user, isLoading } = useAppSelector(state => state.auth);
+  const { user, avatarUri, initials } = useUserProfile();
 
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isImageUploading, setIsImageUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Initialize form with current user data
   // Extract address with type suppression for optional nested property
@@ -167,10 +170,13 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
     );
   }, []);
 
+  // Ref to hold validated form data between render frames
+  const pendingDataRef = useRef<ProfileFormData | null>(null);
+
   /**
-   * Handle form submission
+   * Perform the actual save (called AFTER skeleton is visible)
    */
-  const onSubmit = useCallback(
+  const performSave = useCallback(
     async (data: ProfileFormData) => {
       try {
         Logger.info('Submitting profile update', { fields: Object.keys(data) });
@@ -191,7 +197,6 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
           (data.country ?? '') !== (currentAddress?.country ?? '');
 
         if (hasAddressChanges) {
-          // Only include address if at least one field has a value
           const hasAddressData =
             (data.street != null && data.street !== '') ||
             (data.city != null && data.city !== '') ||
@@ -208,30 +213,35 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
           }
         }
 
-        // If no changes, just go back
+        // If no changes, restore form
         if (Object.keys(updates).length === 0 && imageUri == null) {
-          Alert.alert('No Changes', 'No changes were made to your profile.');
+          setIsSaving(false);
+          showInfoToast('No changes', 'No changes were made to your profile.');
           return;
         }
 
-        // Update profile fields if there are any changes
+        // Update profile fields
         if (Object.keys(updates).length > 0) {
           await dispatch(updateProfileAsync(updates)).unwrap();
           Logger.info('Profile fields updated successfully', { userId: user?.userId });
         }
 
-        // Handle image upload if imageUri exists
+        // Handle image upload
         if (imageUri != null) {
           setIsImageUploading(true);
           try {
             const uploadResult = await userService.uploadProfileImage(imageUri);
 
-            // Update user in Redux with new avatar URL
-            dispatch(
-              updateUser({
-                avatar: uploadResult.profileImage,
-              }),
-            );
+            const imageUpdate = {
+              avatar: uploadResult.profileImage,
+              profileImage: uploadResult.profileImage,
+            };
+            dispatch(updateUser(imageUpdate));
+
+            if (user != null) {
+              const persistedUser = { ...user, ...imageUpdate };
+              await SecureStorage.setUserData(JSON.stringify(persistedUser));
+            }
 
             Logger.info('Profile image uploaded successfully', {
               userId: user?.userId,
@@ -245,29 +255,59 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
           }
         }
 
-        // Success feedback
-        Alert.alert('Success', 'Your profile has been updated successfully.', [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
+        // Success: reset form with fresh data, stay on screen
+        setImageUri(null);
+        reset({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phoneNumber: data.phoneNumber,
+          street: data.street,
+          city: data.city,
+          postalCode: data.postalCode,
+          country: data.country,
+        });
 
+        showSuccessToast('Profile updated', 'Your changes have been saved');
         Logger.info('Profile updated successfully', { userId: user?.userId });
       } catch (error) {
         Logger.error('Failed to update profile', {}, error as Error);
-        Alert.alert(
-          'Update Failed',
+        showErrorToast(
+          'Update failed',
           error instanceof Error ? error.message : 'Failed to update profile. Please try again.',
         );
+      } finally {
+        setIsSaving(false);
       }
     },
-    [dispatch, user, imageUri, navigation],
+    [dispatch, user, imageUri, reset],
   );
 
   /**
    * Handle save button press
+   *
+   * Two-phase approach to guarantee skeleton renders:
+   * 1. Validate form → set isSaving=true → React renders skeleton
+   * 2. After render frame completes → start async network work
+   *
+   * Without this split, React 18 batches setIsSaving(true) and
+   * setIsSaving(false) into a single render, skipping the skeleton.
    */
   const handleSave = useCallback(() => {
-    void handleSubmit(onSubmit)();
-  }, [handleSubmit, onSubmit]);
+    void handleSubmit((data: ProfileFormData) => {
+      // Store validated data and flip to skeleton
+      pendingDataRef.current = data;
+      setIsSaving(true);
+
+      // Wait for the skeleton to render, then start async work
+      InteractionManager.runAfterInteractions(() => {
+        const savedData = pendingDataRef.current;
+        pendingDataRef.current = null;
+        if (savedData != null) {
+          void performSave(savedData);
+        }
+      });
+    })();
+  }, [handleSubmit, performSave]);
 
   /**
    * Handle cancel with unsaved changes confirmation
@@ -307,6 +347,11 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
     </View>
   );
 
+  // Show skeleton while saving
+  if (isSaving) {
+    return <SkeletonEditProfileScreen />;
+  }
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
@@ -323,18 +368,14 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
           <View style={styles.avatarSection}>
             <Avatar
               size='xl'
-              source={{ uri: imageUri ?? user?.avatar ?? '' }}
-              initials={
-                user?.firstName != null && user?.lastName != null
-                  ? `${user.firstName[0]}${user.lastName[0]}`
-                  : 'U'
-              }
+              source={{ uri: imageUri ?? avatarUri ?? '' }}
+              initials={initials}
               variant='circular'
             />
-            <TouchableOpacity
+            <Pressable
               style={[styles.changePhotoButton, { backgroundColor: theme.colors.primaryContainer }]}
               onPress={handleSelectImage}
-              disabled={isImageUploading || isLoading}
+              disabled={isImageUploading}
               accessibilityLabel='Change profile photo'
               accessibilityHint='Opens image picker to select a new profile photo'
             >
@@ -353,7 +394,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
               >
                 {isImageUploading ? 'Uploading...' : 'Change Photo'}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
             {imageUri != null && !isImageUploading && (
               <Text variant='body' size='xs' color='success' style={styles.imageStatusText}>
                 New image selected
@@ -421,9 +462,6 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             accessibilityLabel='Email address (read-only)'
             accessibilityHint='Your email address cannot be changed'
           />
-          <Text variant='body' size='xs' color='secondary' style={styles.helperText}>
-            Email cannot be changed. Contact support if you need to update your email.
-          </Text>
 
           <Controller
             control={control}
@@ -539,24 +577,18 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             variant='primary'
             size='lg'
             onPress={handleSave}
-            loading={isLoading || isImageUploading}
-            disabled={isLoading || isImageUploading || (!isDirty && imageUri == null)}
-            leftIcon='checkmark-circle-outline'
-            leftIconFamily='Ionicons'
+            disabled={!isDirty && imageUri == null}
             style={styles.saveButton}
             accessibilityLabel='Save changes'
-            accessibilityHint='Saves your profile changes and returns to profile screen'
+            accessibilityHint='Saves your profile changes'
           >
-            {isImageUploading ? 'Uploading...' : 'Save Changes'}
+            Save Changes
           </Button>
 
           <Button
             variant='outline'
             size='md'
             onPress={handleCancel}
-            disabled={isLoading || isImageUploading}
-            leftIcon='close-circle-outline'
-            leftIconFamily='Ionicons'
             accessibilityLabel='Cancel editing'
             accessibilityHint='Discards changes and returns to profile screen'
           >
@@ -626,11 +658,6 @@ const styles = StyleSheet.create({
   },
   disabledInput: {
     opacity: 0.6,
-  },
-  helperText: {
-    marginTop: -8,
-    marginBottom: 16,
-    marginLeft: 4,
   },
   row: {
     flexDirection: 'row',

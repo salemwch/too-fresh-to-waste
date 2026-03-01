@@ -21,7 +21,7 @@
  */
 
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, StyleSheet, Pressable, Linking } from 'react-native';
 
 import { Text } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -83,7 +83,7 @@ export const PrivacyConsentsSection: React.FC<PrivacyConsentsSectionProps> = ({
     const hasError = errors[key];
 
     return (
-      <TouchableOpacity
+      <Pressable
         key={key}
         style={[
           styles.consentRow,
@@ -96,7 +96,6 @@ export const PrivacyConsentsSection: React.FC<PrivacyConsentsSectionProps> = ({
         ]}
         onPress={() => handleToggleConsent(key)}
         disabled={disabled}
-        activeOpacity={0.7}
         accessibilityRole='checkbox'
         accessibilityState={{ checked: isChecked }}
         accessibilityLabel={`${label}. ${description}. ${required ? 'Required' : 'Optional'}`}
@@ -144,17 +143,16 @@ export const PrivacyConsentsSection: React.FC<PrivacyConsentsSectionProps> = ({
             </Text>
           )}
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
   return (
     <View style={styles.container}>
       {/* Section Header */}
-      <TouchableOpacity
+      <Pressable
         style={styles.sectionHeader}
         onPress={() => setIsExpanded(!isExpanded)}
-        activeOpacity={0.7}
       >
         <View>
           <Text variant='body.medium' weight='semibold'>
@@ -167,21 +165,20 @@ export const PrivacyConsentsSection: React.FC<PrivacyConsentsSectionProps> = ({
         <Text variant='body.large' weight='medium' style={{ color: theme.colors.primary }}>
           {isExpanded ? '−' : '+'}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
 
       {/* Expanded Content */}
       {isExpanded && (
         <View style={styles.consentsList}>
           {/* Privacy Policy Link */}
-          <TouchableOpacity
+          <Pressable
             style={styles.privacyPolicyLink}
             onPress={handleOpenPrivacyPolicy}
-            activeOpacity={0.7}
           >
             <Text variant='label.small' color='primary' weight='medium' style={{ lineHeight: 10 }}>
               📄 Read our Privacy Policy
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
           {/* Required Consents */}
           <Text

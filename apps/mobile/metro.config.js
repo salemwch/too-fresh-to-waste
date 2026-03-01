@@ -20,6 +20,10 @@ const fs = require('fs');
 const os = require('os');
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
+const {
+ withSentryConfig
+} = require("@sentry/react-native/metro");
+
 // ============================================================================
 // PATH CONFIGURATION
 // ============================================================================
@@ -214,9 +218,8 @@ const config = {
      * Performance Impact: ~5-10% faster module resolution
      */
     blockList: [
-      // Ignore build artifacts
+      // Ignore build artifacts (scoped to project — not node_modules which use dist/)
       /\/build\//,
-      /\/dist\//,
       /\.expo\//,
       // Ignore test files (not needed in bundle)
       /\/__tests__\//,
@@ -266,9 +269,7 @@ const config = {
         drop_console: isProd, // Remove console.* in production
         drop_debugger: isProd, // Remove debugger statements in production
         passes: isProd ? 3 : 1, // Multiple passes for better compression (prod only)
-        pure_funcs: isProd
-          ? ['console.log', 'console.debug', 'console.info']
-          : [],
+        pure_funcs: isProd ? ['console.log', 'console.debug', 'console.info'] : [],
         reduce_vars: isProd, // Aggressive variable inlining (prod only)
         collapse_vars: isProd, // Collapse single-use variables
         sequences: isProd, // Join consecutive statements with comma
@@ -345,7 +346,7 @@ const config = {
     createModuleIdFactory: function () {
       const fileToIdMap = new Map();
       let nextId = 0;
-      return (path) => {
+      return path => {
         if (!fileToIdMap.has(path)) {
           fileToIdMap.set(path, nextId++);
         }
@@ -359,11 +360,7 @@ const config = {
      */
     processModuleFilter: module => {
       // Exclude source maps from node_modules in production
-      if (
-        isProd &&
-        module.path.includes('node_modules') &&
-        module.path.endsWith('.map')
-      ) {
+      if (isProd && module.path.includes('node_modules') && module.path.endsWith('.map')) {
         return false;
       }
 
@@ -407,18 +404,18 @@ const config = {
      * Enable compression for faster HMR
      * gzip compression reduces transfer size by ~70%
      */
-    enableVisualizer: false, // Set to true to analyze bundle size
+    //enableVisualizer: true, // Set to true to analyze bundle size
   },
 
   /**
    * Watcher configuration
    * File watching settings for hot reloading
    */
-  watchman: {
+  /** watchman: {
     // Use Watchman for faster file watching (if installed)
     // Falls back to NodeWatcher if Watchman not available
-    useWatchman: true,
-  },
+    //useWatchman: true,
+  }, */
 
   /**
    * Symbolicator configuration
@@ -466,4 +463,4 @@ if (isDev && process.env.METRO_DEBUG) {
  * Merge custom config with React Native defaults
  * Custom settings override defaults where conflicts exist
  */
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+module.exports = withSentryConfig(mergeConfig(getDefaultConfig(__dirname), config));

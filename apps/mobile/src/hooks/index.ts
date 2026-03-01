@@ -24,6 +24,12 @@ export type {
 // Phone verification hook
 export { usePhoneVerification } from './usePhoneVerification';
 
+// User profile hook (centralized avatar + display name)
+export { useUserProfile } from './useUserProfile';
+
+// Secure screen — prevents screenshots/recordings on sensitive screens (Android FLAG_SECURE)
+export { useSecureScreen } from './useSecureScreen';
+
 // Add other custom hooks here as they are created
 // export { useDebounce } from './useDebounce';
 // export { useThrottle } from './useThrottle';

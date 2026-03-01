@@ -4,7 +4,13 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, TouchableOpacity, Image, ActivityIndicator, type AccessibilityRole } from 'react-native';
+import {
+  View,
+  Pressable,
+  Image,
+  ActivityIndicator,
+  type AccessibilityRole,
+} from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Text } from '../../atoms/Text';
@@ -197,12 +203,12 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   const initialsTextStyles = useMemo(
     () => ({
       fontSize: getSizeDimensions.fontSize,
-      fontWeight: theme.typography.fontWeight.semibold,
+      fontWeight: theme.typography.fontWeight?.semibold ?? '600',
       color: textColor || theme.colors.onPrimary,
     }),
     [
       getSizeDimensions.fontSize,
-      theme.typography.fontWeight.semibold,
+      theme.typography.fontWeight?.semibold ?? '600',
       textColor,
       theme.colors.onPrimary,
     ],
@@ -340,12 +346,11 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   };
 
   // Wrapper component
-  const AvatarWrapper = pressable ? TouchableOpacity : View;
+  const AvatarWrapper = pressable ? Pressable : View;
   const wrapperProps = pressable
     ? {
         onPress: handlePress,
         disabled: loading,
-        activeOpacity: 0.8,
       }
     : {};
 

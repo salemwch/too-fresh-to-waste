@@ -6,17 +6,20 @@
  */
 
 import React, { useMemo } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
+
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
-import type { FilterState } from '../types/filter.types';
+
 import {
   ESTABLISHMENT_TYPE_OPTIONS,
   CUISINE_TYPE_OPTIONS,
   CATEGORY_OPTIONS,
   OFFER_TYPE_OPTIONS,
 } from '../constants/filterOptions';
-import type { EstablishmentType, OfferType } from '@/features/offers/types/offer.types';
+
+import type { FilterState } from '../types/filter.types';
+import type { EstablishmentType } from '@/features/offers/types/offer.types';
 
 // ============================================================================
 // Props
@@ -95,7 +98,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
         result.push({
           id: `category-${category}`,
           label: option.label,
-          icon: option.icon,
+          ...(option.icon != null && { icon: option.icon }),
           onRemove: () => onRemoveCategory(category),
         });
       }
@@ -131,28 +134,28 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
             ]}
           >
             {chip.icon && <Text style={{ fontSize: 14, marginRight: 4 }}>{chip.icon}</Text>}
-            <Text variant="caption" style={{ color: colors.accent, fontWeight: '500' }}>
+            <Text variant='caption' style={{ color: colors.accent, fontWeight: '500' }}>
               {chip.label}
             </Text>
-            <TouchableOpacity
+            <Pressable
               onPress={chip.onRemove}
               style={styles.removeButton}
               hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
             >
-              <Icon name="close" size={14} color={colors.accent} />
-            </TouchableOpacity>
+              <Icon name='close' size={14} color={colors.accent} />
+            </Pressable>
           </View>
         ))}
 
         {/* Clear All Button */}
-        <TouchableOpacity
+        <Pressable
           style={[styles.clearAllButton, { borderColor: colors.onSurfaceVariant }]}
           onPress={onClearAll}
         >
-          <Text variant="caption" style={{ color: colors.onSurfaceVariant, fontWeight: '500' }}>
+          <Text variant='caption' style={{ color: colors.onSurfaceVariant, fontWeight: '500' }}>
             Clear All
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </ScrollView>
     </View>
   );

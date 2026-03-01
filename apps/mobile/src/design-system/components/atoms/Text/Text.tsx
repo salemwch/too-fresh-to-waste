@@ -35,7 +35,7 @@ const getVariantStyle = (variant: TypographyVariant, typography: any) => {
 };
 
 export const Text = forwardRef<RNText, TextProps>(
-  (
+  function Text(
     {
       variant = 'body.medium',
       color,
@@ -59,7 +59,7 @@ export const Text = forwardRef<RNText, TextProps>(
       ...rest
     },
     ref,
-  ) => {
+  ) {
     const theme = useTheme();
     const { colors, typography } = theme;
 
@@ -94,8 +94,8 @@ export const Text = forwardRef<RNText, TextProps>(
       // Text transform
       textTransform: transform,
 
-      // Font weight override
-      ...(weight && { fontWeight: typography.fontWeight[weight] }),
+      // Font weight override (defensive: fontWeight may be undefined during hydration)
+      ...(weight && typography.fontWeight && { fontWeight: typography.fontWeight[weight] }),
 
       // Font size override - now handles both number and string
       ...(size && { fontSize: resolveFontSize(size) }),
@@ -130,7 +130,5 @@ export const Text = forwardRef<RNText, TextProps>(
     );
   },
 );
-
-Text.displayName = 'Text';
 
 export default Text;

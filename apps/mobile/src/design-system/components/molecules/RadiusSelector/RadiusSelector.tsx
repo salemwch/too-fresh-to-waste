@@ -5,7 +5,7 @@
  */
 
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Text } from '../../atoms';
@@ -14,7 +14,7 @@ import type { RadiusSelectorProps } from './RadiusSelector.types';
 
 const DEFAULT_PRESETS = [5, 10, 25, 50];
 
-export const RadiusSelector: React.FC<RadiusSelectorProps> = ({
+export const RadiusSelector = React.memo<RadiusSelectorProps>(function RadiusSelector({
   value,
   onChange,
   presets = DEFAULT_PRESETS,
@@ -23,7 +23,7 @@ export const RadiusSelector: React.FC<RadiusSelectorProps> = ({
   disabled = false,
   style,
   testID,
-}) => {
+}) {
   const theme = useTheme();
 
   const handleSelect = useCallback(
@@ -49,40 +49,40 @@ export const RadiusSelector: React.FC<RadiusSelectorProps> = ({
       ];
 
       return (
-        <TouchableOpacity
+        <Pressable
           key={radiusKm}
           style={buttonStyle}
           onPress={() => handleSelect(radiusKm)}
           disabled={disabled}
-          accessibilityRole="radio"
+          accessibilityRole='radio'
           accessibilityState={{ checked: isSelected, disabled }}
           accessibilityLabel={`${radiusKm} kilometers`}
         >
           <Text
-            variant="label"
-            size="sm"
+            variant='label'
+            size='sm'
             weight={isSelected ? 'semibold' : 'medium'}
             style={{ color: isSelected ? theme.colors.onPrimary : theme.colors.onSurface }}
           >
             {radiusKm} km
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       );
     },
     [value, variant, theme.colors, disabled, handleSelect],
   );
 
   return (
-    <View style={[styles.container, style]} testID={testID} accessibilityRole="radiogroup">
+    <View style={[styles.container, style]} testID={testID} accessibilityRole='radiogroup'>
       {label && (
-        <Text variant="label" size="sm" color="secondary" style={styles.label}>
+        <Text variant='label' size='sm' color='secondary' style={styles.label}>
           {label}
         </Text>
       )}
       <View style={styles.presetsRow}>{presets.map(renderPreset)}</View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {},

@@ -15,7 +15,8 @@ export type IconSize = ComponentSize | number;
 export type IconVariant = 'default' | 'filled' | 'outlined' | 'rounded' | 'sharp';
 
 export interface IconProps
-  extends Omit<
+  extends
+    Omit<
       ViewProps,
       | 'style'
       | 'testID'

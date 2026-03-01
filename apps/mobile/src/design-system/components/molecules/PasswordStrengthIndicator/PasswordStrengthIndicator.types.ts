@@ -2,8 +2,8 @@
  * PasswordStrengthIndicator Types
  */
 
-import type { ViewStyle, TextStyle } from 'react-native';
 import type { PasswordValidationContext } from '../../../../hooks/usePasswordRules';
+import type { ViewStyle, TextStyle } from 'react-native';
 
 export interface PasswordStrengthIndicatorProps {
   /**

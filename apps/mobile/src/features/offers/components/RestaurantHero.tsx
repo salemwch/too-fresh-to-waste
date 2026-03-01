@@ -4,14 +4,7 @@
  */
 
 import React from 'react';
-import {
-  View,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-  ImageSourcePropType,
-} from 'react-native';
+import { View, Image, StyleSheet, Pressable, Dimensions } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { Badge } from '@/design-system/components/atoms/Badge';
@@ -73,40 +66,39 @@ export const RestaurantHero: React.FC<RestaurantHeroProps> = ({
 
         {/* Navigation Buttons */}
         <View style={styles.navButtons}>
-          <TouchableOpacity
+          <Pressable
             style={[styles.iconButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}
             onPress={onBack}
             accessibilityLabel='Go back'
             testID={`${testID}-back-button`}
           >
-            <Icon name='chevron-left' size={20} color={theme.colors.text} />
-          </TouchableOpacity>
+            <Icon name='chevron-left' size={20} color={theme.colors.onSurface} />
+          </Pressable>
 
           <View style={styles.rightButtons}>
             {onShare && (
-              <TouchableOpacity
+              <Pressable
                 style={[styles.iconButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}
                 onPress={onShare}
                 accessibilityLabel='Share'
                 testID={`${testID}-share-button`}
               >
-                <Icon name='share-2' size={20} color={theme.colors.text} />
-              </TouchableOpacity>
+                <Icon name='share-2' size={20} color={theme.colors.onSurface} />
+              </Pressable>
             )}
             {onFavorite && (
-              <TouchableOpacity
+              <Pressable
                 style={[styles.iconButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}
                 onPress={onFavorite}
-                accessibilityLabel='Add to favorites'
+                accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                 testID={`${testID}-favorite-button`}
               >
                 <Icon
                   name='heart'
                   size={20}
-                  color={isFavorite ? theme.colors.error : theme.colors.text}
-                  filled={isFavorite}
+                  color={isFavorite ? '#005250' : theme.colors.onSurface}
                 />
-              </TouchableOpacity>
+              </Pressable>
             )}
           </View>
         </View>
@@ -147,12 +139,7 @@ export const RestaurantHero: React.FC<RestaurantHeroProps> = ({
             >
               {name}
             </Text>
-            <Text
-              variant='body'
-              size='sm'
-              numberOfLines={1}
-              style={styles.locationText}
-            >
+            <Text variant='body' size='sm' numberOfLines={1} style={styles.locationText}>
               {location}
             </Text>
           </View>

@@ -194,7 +194,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
           {/* Email Input */}
           <Controller
             control={control}
-            name="email"
+            name='email'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 label='Email Address'

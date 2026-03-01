@@ -84,7 +84,7 @@ export const createAvatarStyles = (
     initialsText: {
       fontFamily: typography.fontFamily.primary,
       fontSize,
-      fontWeight: typography.fontWeight.semibold,
+      fontWeight: typography.fontWeight?.semibold ?? '600',
       color: colors.onPrimary,
       textAlign: 'center',
       textTransform: 'uppercase',

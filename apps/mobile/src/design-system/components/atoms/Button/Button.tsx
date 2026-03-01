@@ -4,7 +4,7 @@
  */
 
 import React, { useRef, forwardRef, useCallback } from 'react';
-import { TouchableOpacity, Text, View, ActivityIndicator, Animated, Platform } from 'react-native';
+import { Pressable, Text, View, ActivityIndicator, Animated, Platform } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 import { useTheme } from '../../../providers';
@@ -15,8 +15,8 @@ import { createButtonStyles } from './Button.styles';
 import type { ButtonProps } from './Button.types';
 import type { IconFamily } from '../../../types';
 
-export const Button = forwardRef<React.ComponentRef<typeof TouchableOpacity>, ButtonProps>(
-  (
+export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonProps>(
+  function Button(
     {
       variant = 'primary',
       size = 'md',
@@ -44,7 +44,7 @@ export const Button = forwardRef<React.ComponentRef<typeof TouchableOpacity>, Bu
       ...rest
     },
     ref,
-  ) => {
+  ) {
     const theme = useTheme();
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const isDisabled = disabled || loading;
@@ -182,14 +182,13 @@ export const Button = forwardRef<React.ComponentRef<typeof TouchableOpacity>, Bu
 
     return (
       <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
-        <TouchableOpacity
+        <Pressable
           ref={ref}
           style={[styles.container]}
           onPress={handlePress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           disabled={isDisabled}
-          activeOpacity={0.8}
           testID={testID}
           accessibilityLabel={
             accessibilityLabel ?? (typeof children === 'string' ? children : undefined)
@@ -203,12 +202,10 @@ export const Button = forwardRef<React.ComponentRef<typeof TouchableOpacity>, Bu
           {...rest}
         >
           {renderContent()}
-        </TouchableOpacity>
+        </Pressable>
       </Animated.View>
     );
   },
 );
-
-Button.displayName = 'Button';
 
 export default Button;

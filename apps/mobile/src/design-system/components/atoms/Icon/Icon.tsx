@@ -5,21 +5,21 @@
 
 import React, { forwardRef } from 'react';
 import { View } from 'react-native';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import Entypo from 'react-native-vector-icons/Entypo';
-import EvilIcons from 'react-native-vector-icons/EvilIcons';
-import Feather from 'react-native-vector-icons/Feather';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
-import Fontisto from 'react-native-vector-icons/Fontisto';
-import Foundation from 'react-native-vector-icons/Foundation';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Octicons from 'react-native-vector-icons/Octicons';
-import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
-import Zocial from 'react-native-vector-icons/Zocial';
+import AntDesign from '@react-native-vector-icons/ant-design';
+import Entypo from '@react-native-vector-icons/entypo';
+import EvilIcons from '@react-native-vector-icons/evil-icons';
+import Feather from '@react-native-vector-icons/feather';
+import FontAwesome from '@react-native-vector-icons/fontawesome';
+import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
+import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
+import Fontisto from '@react-native-vector-icons/fontisto';
+import Foundation from '@react-native-vector-icons/foundation';
+import Ionicons from '@react-native-vector-icons/ionicons';
+import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
+import MaterialIcons from '@react-native-vector-icons/material-icons';
+import Octicons from '@react-native-vector-icons/octicons';
+import SimpleLineIcons from '@react-native-vector-icons/simple-line-icons';
+import Zocial from '@react-native-vector-icons/zocial';
 
 import { useTheme } from '../../../providers';
 
@@ -29,7 +29,7 @@ import type { IconProps } from './Icon.types';
 import type { IconComponent } from '../../../types';
 
 export const Icon = forwardRef<View, IconProps>(
-  (
+  function Icon(
     {
       name,
       size = 'md',
@@ -49,7 +49,7 @@ export const Icon = forwardRef<View, IconProps>(
       ...rest
     },
     ref,
-  ) => {
+  ) {
     const theme = useTheme();
     const { colors } = theme;
 
@@ -132,7 +132,5 @@ export const Icon = forwardRef<View, IconProps>(
     );
   },
 );
-
-Icon.displayName = 'Icon';
 
 export default Icon;

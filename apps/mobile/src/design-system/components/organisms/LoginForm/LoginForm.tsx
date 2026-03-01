@@ -4,34 +4,33 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, TouchableOpacity, Alert } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { parse as parseDomain } from 'tldts';
 
 import { useTheme } from '../../../providers';
 import { Button } from '../../atoms/Button';
 import { Text } from '../../atoms/Text';
 import { FormField } from '../../molecules/FormField';
+import { showInfoAlert } from '@/utils/alert';
 
 import type { LoginFormProps, LoginFormData } from './LoginForm.types';
 
 // Social login icons placeholders
-const GoogleIcon = () => (
-  <View style={{ width: 20, height: 20, backgroundColor: '#4285F4', borderRadius: 4 }} />
-);
-
-const AppleIcon = () => (
-  <View style={{ width: 20, height: 20, backgroundColor: '#000', borderRadius: 4 }} />
-);
-
-const FacebookIcon = () => (
-  <View style={{ width: 20, height: 20, backgroundColor: '#1877F2', borderRadius: 4 }} />
-);
-
+const GoogleIcon = () => <View style={iconStyles.google} />;
+const AppleIcon = () => <View style={iconStyles.apple} />;
+const FacebookIcon = () => <View style={iconStyles.facebook} />;
 const CheckIcon: React.FC<{ color: string }> = ({ color }) => (
-  <View style={{ width: 16, height: 16, backgroundColor: color, borderRadius: 3 }} />
+  <View style={[iconStyles.check, { backgroundColor: color }]} />
 );
 
-export const LoginForm: React.FC<LoginFormProps> = ({
+const iconStyles = StyleSheet.create({
+  google: { width: 20, height: 20, backgroundColor: '#4285F4', borderRadius: 4 },
+  apple: { width: 20, height: 20, backgroundColor: '#000', borderRadius: 4 },
+  facebook: { width: 20, height: 20, backgroundColor: '#1877F2', borderRadius: 4 },
+  check: { width: 16, height: 16, borderRadius: 3 },
+});
+
+export const LoginForm = React.memo<LoginFormProps>(function LoginForm({
   initialValues = {},
   loading = false,
   disabled = false,
@@ -63,7 +62,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   footerStyle,
   testID = 'login-form',
   accessibilityLabel = 'Login form',
-}) => {
+}) {
   const theme = useTheme();
   const [formData, setFormData] = useState<LoginFormData>({
     email: initialValues.email || '',
@@ -192,7 +191,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
     // Validate form
     if (!validateForm()) {
-      Alert.alert('Validation Error', 'Please correct the errors in the form');
+      // Don't show alert - inline errors are sufficient and more professional
+      // showErrorAlert('Validation Error', 'Please correct the errors in the form');
       return;
     }
 
@@ -209,7 +209,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       if (handler) {
         handler();
       } else {
-        Alert.alert('Social Login', `${provider} login not implemented`);
+        showInfoAlert('Social Login', `${provider} login not implemented`);
       }
     },
     [],
@@ -231,7 +231,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {subtitle && (
         <Text
           variant='body.medium'
-          style={{ color: '#424242' }}
+          style={formStyles.subtitleText}
           align='center'
           testID={`${testID}-subtitle`}
         >
@@ -320,7 +320,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       />
 
       {showRememberMe && (
-        <TouchableOpacity
+        <Pressable
           onPress={() => onRememberMeChange?.(!rememberMe)}
           style={{
             flexDirection: 'row',
@@ -348,7 +348,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             {rememberMe && <CheckIcon color={theme.colors.onPrimary} />}
           </View>
           <Text variant='body.medium'>Remember me</Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
     </View>
   );
@@ -390,14 +390,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             marginBottom: theme.spacing.base.md,
           }}
         >
-          <View style={{ flex: 1, height: 1, backgroundColor: '#E0E0E0' }} />
+          <View style={formStyles.dividerLine} />
           <Text
             variant='body.small'
-            style={{ marginHorizontal: theme.spacing.base.md, color: '#424242' }}
+            style={[formStyles.subtitleText, { marginHorizontal: theme.spacing.base.md }]}
           >
             Or continue with
           </Text>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#E0E0E0' }} />
+          <View style={formStyles.dividerLine} />
         </View>
 
         <View style={{ flexDirection: 'row', gap: theme.spacing.base.md }}>
@@ -424,7 +424,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const renderFooter = () => (
     <View style={[{ marginTop: theme.spacing.base.lg, alignItems: 'center' }, footerStyle]}>
       {showForgotPassword && (
-        <TouchableOpacity
+        <Pressable
           onPress={onForgotPassword}
           style={{ marginBottom: theme.spacing.base.md }}
           testID={`${testID}-forgot-password`}
@@ -434,15 +434,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           <Text variant='body.medium' style={{ color: theme.colors.primary }}>
             Forgot your password?
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
 
       {showSignUp && (
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text variant='body.medium' style={{ color: '#424242' }}>
+          <Text variant='body.medium' style={formStyles.subtitleText}>
             Don't have an account?{' '}
           </Text>
-          <TouchableOpacity
+          <Pressable
             onPress={onSignUp}
             testID={`${testID}-sign-up`}
             accessible
@@ -451,7 +451,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             <Text variant='body.medium' weight='medium' style={{ color: theme.colors.primary }}>
               Sign up
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
     </View>
@@ -481,6 +481,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {renderFooter()}
     </View>
   );
-};
+});
+
+const formStyles = StyleSheet.create({
+  subtitleText: {
+    color: '#424242',
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+});
 
 export default LoginForm;

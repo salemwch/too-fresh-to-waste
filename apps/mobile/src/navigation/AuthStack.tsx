@@ -2,13 +2,16 @@
  * Auth Stack Navigator
  * Handles all unauthenticated screens
  * Login, Register, Password Recovery, Email Verification, MFA
+ *
+ * Uses shared getAuthScreenOptions for consistent styling.
+ * Register screen keeps its custom header override.
  */
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@react-native-vector-icons/ionicons';
 
 import { Text } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -24,6 +27,7 @@ import { WelcomeScreen } from '@/features/auth/screens/WelcomeScreen';
 import { useAppSelector } from '@/hooks/redux';
 import { onboardingStorage } from '@/storage/onboardingStorage';
 
+import { getAuthScreenOptions } from './headerConfig';
 import type { AuthStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -59,9 +63,9 @@ export const AuthStack: React.FC = () => {
         },
       ]}
     >
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackButton}>
+      <Pressable onPress={() => navigation.goBack()} style={styles.headerBackButton}>
         <Icon name='arrow-back' size={24} color={theme.colors.onSurface} />
-      </TouchableOpacity>
+      </Pressable>
       <Text
         variant='headline.medium'
         weight='semibold'
@@ -88,27 +92,10 @@ export const AuthStack: React.FC = () => {
   // This is NOT used for navigation logic, only for initial params
   const pendingVerificationEmail = useAppSelector(state => state.auth?.pendingVerificationEmail);
 
-  /**
-   * Common header options for auth screens
-   */
-  const defaultScreenOptions = {
-    headerStyle: {
-      backgroundColor: theme.colors.surface,
-    },
-    headerTintColor: theme.colors.onSurface,
-    headerTitleStyle: {
-      fontFamily: theme.typography.fontFamily.primary,
-      fontSize: theme.typography.fontSize.lg,
-      fontWeight: theme.typography.fontWeight.semibold,
-    },
-    headerShadowVisible: false,
-    animation: 'slide_from_right' as const,
-  };
-
   return (
     <Stack.Navigator
       initialRouteName={hasSeenWelcome ? 'Login' : 'Welcome'}
-      screenOptions={defaultScreenOptions}
+      screenOptions={getAuthScreenOptions(theme)}
     >
       {/* Welcome Screen - ONLY for first-time users (device-level onboarding) */}
       {!hasSeenWelcome && (

@@ -18,7 +18,8 @@ export type InputState = 'default' | 'focused' | 'error' | 'disabled';
 export type { IconFamily };
 
 export interface InputProps
-  extends Omit<
+  extends
+    Omit<
       TextInputProps,
       | 'style'
       | 'testID'

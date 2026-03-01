@@ -4,16 +4,29 @@
  */
 
 import React, { useCallback, useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Switch,
+  Pressable,
+  Platform,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 import { Text, Button, Card, Avatar, Icon, Badge } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { logoutAsync } from '@/features/auth/store/authSlice';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { getTierConfig } from '@/features/loyalty/constants/tiers';
+import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';
+import { useAppDispatch } from '@/hooks/redux';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { BiometricAuth, BiometricType } from '@/services/BiometricAuth';
 import { SecureStorage } from '@/services/SecureStorage';
 import { Logger } from '@/utils/logger';
 
+import type { TierName } from '@/features/loyalty/types/loyalty.types';
 import type { ProfileScreenNavigationProp } from '@/navigation/types';
 interface ProfileScreenProps {
   navigation: ProfileScreenNavigationProp;
@@ -22,7 +35,7 @@ interface ProfileScreenProps {
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const { user, isLoading } = useAppSelector(state => state.auth);
+  const { user, avatarUri, initials } = useUserProfile();
 
   // Biometric authentication state
   const [biometricEnabled, setBiometricEnabled] = useState(false);
@@ -30,6 +43,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [biometricType, setBiometricType] = useState<BiometricType>(BiometricType.NONE);
   const [loadingBiometric, setLoadingBiometric] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  // Loyalty points preview — shares React Query cache with LoyaltyScreen
+  const { account: loyaltyAccount } = useLoyalty();
+  const availablePoints = loyaltyAccount?.availablePoints ?? null;
+  const currentTier: TierName = loyaltyAccount?.currentTier ?? 'Bronze';
 
   /**
    * Load biometric settings on mount
@@ -119,7 +137,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const handleLogout = useCallback(async () => {
     setLoggingOut(true);
     try {
-      await dispatch(logoutAsync()).unwrap();
+      await dispatch(logoutAsync({})).unwrap();
       // RootNavigator will automatically navigate to AuthStack
     } catch (error) {
       Logger.error('Logout failed', { component: 'ProfileScreen' }, error as Error);
@@ -141,13 +159,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
    */
   const handleNavigateToSettings = useCallback(() => {
     navigation.navigate('Settings');
-  }, [navigation]);
-
-  /**
-   * Navigate to privacy
-   */
-  const handleNavigateToPrivacy = useCallback(() => {
-    navigation.navigate('Privacy');
   }, [navigation]);
 
   /**
@@ -183,14 +194,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     accessibilityLabel?: string;
     accessibilityHint?: string;
   }) => (
-    <TouchableOpacity
+    <Pressable
       style={[
         styles.menuItem,
         { borderBottomColor: theme.colors.outline },
         disabled && styles.menuItemDisabled,
       ]}
       onPress={onPress}
-      activeOpacity={onPress ? 0.7 : 1}
       disabled={disabled || !onPress}
       accessibilityRole={switchValue === undefined ? 'button' : 'switch'}
       accessibilityLabel={accessibilityLabel ?? label}
@@ -240,7 +250,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           />
         )}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   return (
@@ -256,11 +266,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           <View style={styles.profileHeader}>
             <Avatar
               size='xl'
-              initials={
-                user?.firstName != null && user?.lastName
-                  ? `${user.firstName[0]}${user.lastName[0]}`
-                  : 'U'
-              }
+              {...(avatarUri ? { source: { uri: avatarUri } } : {})}
+              initials={initials}
               variant='circular'
             />
             <View style={styles.profileInfo}>
@@ -287,55 +294,92 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           </Button>
         </Card>
 
-        {/* Stats Card */}
-        <Card style={styles.statsCard}>
-          <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
-            My Impact
-          </Text>
-          <View style={styles.statsGrid}>
-            <View
-              style={styles.statItem}
-              accessibilityLabel='Total orders: 0'
-              accessibilityHint='Number of orders you have placed'
-            >
-              <Text variant='headline' size='lg' weight='bold' color='primary'>
-                0
-              </Text>
-              <Text variant='body' size='sm' color='secondary'>
-                Orders
-              </Text>
-            </View>
-            <View
-              style={styles.statItem}
-              accessibilityLabel='Money saved: $0'
-              accessibilityHint='Total amount of money you have saved'
-            >
-              <Text variant='headline' size='lg' weight='bold' color='success'>
-                $0
-              </Text>
-              <Text variant='body' size='sm' color='secondary'>
-                Saved
-              </Text>
-            </View>
-            <View
-              style={styles.statItem}
-              accessibilityLabel='CO2 saved: 0 kilograms'
-              accessibilityHint='Carbon dioxide emissions prevented'
-            >
-              <Text
-                variant='headline'
-                size='lg'
-                weight='bold'
-                style={{ color: theme.colors.warning }}
+        {/* Loyalty Points Card — navigates to full LoyaltyScreen */}
+        <Pressable
+          onPress={() => navigation.navigate('Loyalty')}
+          android_ripple={{ color: 'rgba(0, 82, 80, 0.08)', borderless: false }}
+          style={({ pressed }) => [Platform.OS === 'ios' && pressed && { opacity: 0.85 }]}
+          accessibilityRole='button'
+          accessibilityLabel='My Points'
+          accessibilityHint='Tap to view your loyalty points and rewards'
+        >
+          {(() => {
+            const tierConfig = getTierConfig(currentTier);
+            return (
+              <LinearGradient
+                colors={['#005251', '#2DB89B']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.loyaltyCard}
               >
-                0kg
-              </Text>
-              <Text variant='body' size='sm' color='secondary'>
-                CO₂ Saved
-              </Text>
+                <View style={styles.loyaltyCardTop}>
+                  <View>
+                    <Text variant='body' size='sm' style={styles.loyaltyLabel}>
+                      My Points
+                    </Text>
+                    <Text variant='headline' size='lg' weight='bold' style={styles.loyaltyPoints}>
+                      {availablePoints !== null ? availablePoints.toLocaleString() : '--'}
+                    </Text>
+                  </View>
+                  <View
+                    style={[styles.tierBadgePill, { backgroundColor: tierConfig.gradientStart }]}
+                  >
+                    <Icon name={tierConfig.icon} family='Ionicons' size={14} color='#FFFFFF' />
+                    <Text variant='body' size='xs' weight='bold' style={styles.tierBadgeText}>
+                      {currentTier}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Tap hint row */}
+                <View style={styles.tapHintRow}>
+                  <Text variant='body' size='xs' style={styles.tapHintText}>
+                    Tap to view rewards
+                  </Text>
+                  <Icon
+                    name='chevron-forward'
+                    family='Ionicons'
+                    size={16}
+                    color='rgba(255,255,255,0.7)'
+                  />
+                </View>
+              </LinearGradient>
+            );
+          })()}
+        </Pressable>
+
+        {/* Leaderboard Card */}
+        <Pressable
+          onPress={() => navigation.navigate('Leaderboard')}
+          android_ripple={{ color: 'rgba(90, 66, 224, 0.08)', borderless: false }}
+          style={({ pressed }) => [Platform.OS === 'ios' && pressed && { opacity: 0.85 }]}
+          accessibilityRole='button'
+          accessibilityLabel='Leaderboard'
+          accessibilityHint='Tap to view the community leaderboard'
+        >
+          <LinearGradient
+            colors={['#8a75f8', '#5a42e0']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.leaderboardCard}
+          >
+            <View style={styles.leaderboardCardLeft}>
+              <Text style={styles.leaderboardCardLabel}>Community</Text>
+              <Text style={styles.leaderboardCardTitle}>Leaderboard</Text>
+              <Text style={styles.leaderboardCardSub}>See where you rank</Text>
             </View>
-          </View>
-        </Card>
+            <View style={styles.leaderboardCardRight}>
+              <Icon name='trophy' family='Ionicons' size={36} color='rgba(255,255,255,0.4)' />
+              <Icon
+                name='chevron-forward'
+                family='Ionicons'
+                size={20}
+                color='rgba(255,255,255,0.7)'
+                style={{ marginTop: 12 }}
+              />
+            </View>
+          </LinearGradient>
+        </Pressable>
 
         {/* Menu Sections */}
         <Card style={styles.menuCard}>
@@ -356,18 +400,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               accessibilityHint='Manage password and security settings'
             />
             <MenuItem
-              icon='lock-closed-outline'
-              label='Privacy'
-              onPress={handleNavigateToPrivacy}
-              accessibilityHint='Control your privacy and data settings'
-            />
-            <MenuItem
-              icon='notifications-outline'
-              label='Notifications'
-              onPress={handleNavigateToSettings}
-              badge='3'
-              accessibilityLabel='Notifications, 3 unread'
-              accessibilityHint='Manage notification preferences'
+              icon='trophy-outline'
+              label='Leaderboard'
+              onPress={() => navigation.navigate('Leaderboard')}
+              accessibilityHint='View the community loyalty points leaderboard'
             />
           </View>
         </Card>
@@ -418,18 +454,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               onPress={handleNavigateToSettings}
               accessibilityHint='Access app settings and preferences'
             />
-            <MenuItem
-              icon='globe-outline'
-              label='Language'
-              onPress={handleNavigateToSettings}
-              accessibilityHint='Change app language'
-            />
-            <MenuItem
-              icon='moon-outline'
-              label='Dark Mode'
-              onPress={handleNavigateToSettings}
-              accessibilityHint='Toggle dark mode theme'
-            />
           </View>
         </Card>
 
@@ -439,28 +463,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           </Text>
           <View style={styles.menuList}>
             <MenuItem
-              icon='help-circle-outline'
-              label='Help Center'
-              onPress={() => {}}
-              accessibilityHint='Access help articles and FAQs'
-            />
-            <MenuItem
               icon='chatbubble-outline'
               label='Contact Support'
               onPress={() => {}}
               accessibilityHint='Get help from our support team'
-            />
-            <MenuItem
-              icon='document-text-outline'
-              label='Terms & Conditions'
-              onPress={() => {}}
-              accessibilityHint='Read terms and conditions'
-            />
-            <MenuItem
-              icon='information-circle-outline'
-              label='About'
-              onPress={() => {}}
-              accessibilityHint='Learn more about this app'
             />
           </View>
         </Card>
@@ -515,18 +521,88 @@ const styles = StyleSheet.create({
   editButton: {
     marginTop: 8,
   },
-  statsCard: {
+  loyaltyCard: {
+    borderRadius: 16,
     padding: 20,
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  sectionTitle: {
-    marginBottom: 16,
-  },
-  statsGrid: {
+  loyaltyCardTop: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  statItem: {
+  loyaltyLabel: {
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: 4,
+  },
+  loyaltyPoints: {
+    color: '#FFFFFF',
+  },
+  tierBadgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+  },
+  tierBadgeText: {
+    color: '#FFFFFF',
+    marginLeft: 5,
+  },
+  tapHintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.15)',
+    paddingTop: 10,
+  },
+  tapHintText: {
+    color: 'rgba(255,255,255,0.7)',
+    marginRight: 4,
+  },
+  leaderboardCard: {
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#5a42e0',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  leaderboardCardLeft: {
+    flex: 1,
+  },
+  leaderboardCardLabel: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.7)',
+    fontWeight: '500',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  leaderboardCardTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  leaderboardCardSub: {
+    fontSize: 13,
+    color: 'rgba(224,214,255,0.85)',
+  },
+  leaderboardCardRight: {
     alignItems: 'center',
   },
   menuCard: {

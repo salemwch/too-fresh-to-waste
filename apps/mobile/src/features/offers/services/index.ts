@@ -2,14 +2,13 @@
  * Offers Services - Central Export
  *
  * API services for offer-related operations.
- *
- * NOTE: offersService now uses facade pattern for safe migration
- * - Development/Staging: Uses V2 (auto token refresh) ✅
- * - Production: Uses V1 (manual tokens) until rollout
+ * All endpoints require authentication (JWT via apiClient interceptor).
  */
 
+export { offersService } from './offersService';
 export { nearbyOffersService } from './nearbyOffersService';
-export { offersServiceFacade as offersService } from './offersService.facade';
+
+export type { NearbyOffersParams } from './offersService';
 
 export type {
   GeoCoordinates,
@@ -23,5 +22,3 @@ export type {
   NearbyOffersParams as NearbyOffersServiceParams,
   GeocodeResult,
 } from './nearbyOffersService';
-
-export type { NearbyOffersParams } from './offersService';

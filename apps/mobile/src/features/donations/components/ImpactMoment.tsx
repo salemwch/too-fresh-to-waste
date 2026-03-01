@@ -4,16 +4,8 @@
  * Enterprise-grade with smooth animations and error handling
  */
 
-import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  Animated,
-  Easing,
-  Dimensions,
-} from 'react-native';
+import React, { useEffect, useRef, useCallback } from 'react';
+import { View, Text, StyleSheet, Modal, Animated, Easing, Dimensions } from 'react-native';
 
 interface ImpactMomentProps {
   visible: boolean;
@@ -26,7 +18,11 @@ interface ImpactMomentProps {
 
 const { width } = Dimensions.get('window');
 
-export const ImpactMoment: React.FC<ImpactMomentProps> = ({
+/**
+ * ✅ BEST PRACTICE: Internal component function for memoization
+ * Extracted to enable React.memo() wrapping
+ */
+const ImpactMomentComponent: React.FC<ImpactMomentProps> = ({
   visible,
   donationAmount,
   totalDonations,
@@ -37,6 +33,17 @@ export const ImpactMoment: React.FC<ImpactMomentProps> = ({
   const heartScale = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const sparkleAnim = useRef(new Animated.Value(0)).current;
+
+  // ✅ BEST PRACTICE: Memoize callback and define before useEffect
+  const handleDismiss = useCallback(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      onDismiss();
+    });
+  }, [fadeAnim, onDismiss]);
 
   useEffect(() => {
     if (visible) {
@@ -91,22 +98,14 @@ export const ImpactMoment: React.FC<ImpactMomentProps> = ({
         handleDismiss();
       }, 3000);
 
+      // ✅ BEST PRACTICE: Cleanup timer on unmount
       return () => clearTimeout(timer);
     }
 
     // Return undefined when not visible (satisfies TypeScript)
     return undefined;
-  }, [visible]);
-
-  const handleDismiss = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      onDismiss();
-    });
-  };
+    // ✅ BEST PRACTICE: Include all dependencies
+  }, [visible, heartScale, fadeAnim, sparkleAnim, handleDismiss]);
 
   if (!visible) return null;
 
@@ -116,12 +115,7 @@ export const ImpactMoment: React.FC<ImpactMomentProps> = ({
   });
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="none"
-      onRequestClose={handleDismiss}
-    >
+    <Modal visible={visible} transparent animationType='none' onRequestClose={handleDismiss}>
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
         <View style={styles.content}>
           {/* Sparkles */}
@@ -162,9 +156,7 @@ export const ImpactMoment: React.FC<ImpactMomentProps> = ({
             <Text style={styles.statsValue}>
               {totalDonations.toFixed(2)} {currency}
             </Text>
-            <Text style={styles.mealsText}>
-              🍽️ That's {mealCount} meals! 🍽️
-            </Text>
+            <Text style={styles.mealsText}>🍽️ That's {mealCount} meals! 🍽️</Text>
           </View>
 
           {/* Auto-dismiss indicator */}
@@ -265,3 +257,11 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 });
+
+/**
+ * ✅ BEST PRACTICE: Memoized export prevents unnecessary re-renders
+ * Component only re-renders when props change (visible, amounts, onDismiss)
+ * Internal animation state doesn't trigger parent re-renders
+ */
+ImpactMomentComponent.displayName = 'ImpactMoment';
+export const ImpactMoment = React.memo(ImpactMomentComponent);

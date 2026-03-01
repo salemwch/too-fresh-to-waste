@@ -3,6 +3,8 @@
  * Handles all authenticated screens and modals
  * Contains the bottom tab navigator and modal screens
  *
+ * Uses shared headerConfig for consistent NativeStack styling.
+ *
  * NOTE: Direct imports used instead of React.lazy() due to Metro bundler
  * incompatibility (facebook/metro#1019). Metro's inlineRequires handles
  * lazy loading at the module level automatically.
@@ -12,27 +14,21 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 
 import { useTheme } from '@/design-system/providers';
-
 // Offer Screens
+import { EstablishmentDetailsScreen } from '@/features/establishments/screens/EstablishmentDetailsScreen';
+import { LeaderboardScreen } from '@/features/leaderboard/screens/LeaderboardScreen';
+import { LoyaltyScreen } from '@/features/loyalty/screens/LoyaltyScreen';
+import { NearbyOffersScreen } from '@/features/map/screens/NearbyOffersScreen';
 import { OfferDetailsScreen } from '@/features/offers/screens/OfferDetailsScreen';
-
-// Order Screens
-import { OrderDetailsScreen } from '@/features/orders/screens/OrderDetailsScreen';
-import { OrderHistoryScreen } from '@/features/orders/screens/OrderHistoryScreen';
+// Order Screens (OrderDetailsScreen moved to OrdersStack)
 import { CheckoutScreen } from '@/features/orders/screens/CheckoutScreen';
-
-// Profile Screens
-import { EditProfileScreen } from '@/features/profile/screens/EditProfileScreen';
-import { SettingsScreen } from '@/features/profile/screens/SettingsScreen';
+import { OrderHistoryScreen } from '@/features/orders/screens/OrderHistoryScreen';
+// Profile Screens (EditProfile moved to ProfileStack)
 import { PrivacyScreen } from '@/features/profile/screens/PrivacyScreen';
 import { SecurityScreen } from '@/features/profile/screens/SecurityScreen';
+import { SettingsScreen } from '@/features/profile/screens/SettingsScreen';
 
-// Establishment Screens
-import { EstablishmentDetailsScreen } from '@/features/establishments/screens/EstablishmentDetailsScreen';
-
-// Map Screens
-import { NearbyOffersScreen } from '@/features/map/screens/NearbyOffersScreen';
-
+import { getDefaultScreenOptions, getModalScreenOptions, makeHeaderBackButton } from './headerConfig';
 import { ProtectedRoute } from './ProtectedRoute';
 import { TabNavigator } from './TabNavigator';
 
@@ -47,48 +43,24 @@ const Stack = createNativeStackNavigator<MainStackParamList>();
 export const MainStack: React.FC = () => {
   const theme = useTheme();
 
-  /**
-   * Common modal screen options
-   */
-  const modalScreenOptions = {
-    presentation: 'modal' as const,
-    headerStyle: {
-      backgroundColor: theme.colors.surface,
-    },
-    headerTintColor: theme.colors.onSurface,
-    headerTitleStyle: {
-      fontFamily: theme.typography.fontFamily.primary,
-      fontSize: theme.typography.fontSize.lg,
-      fontWeight: theme.typography.fontWeight.semibold,
-    },
-    headerShadowVisible: true,
-    headerStatusBarHeight: 0, // Fix for Android - prevent header from being cut off
-  };
-
-  /**
-   * Common full screen options
-   */
-  const screenOptions = {
-    headerStyle: {
-      backgroundColor: theme.colors.surface,
-    },
-    headerTintColor: theme.colors.onSurface,
-    headerTitleStyle: {
-      fontFamily: theme.typography.fontFamily.primary,
-      fontSize: theme.typography.fontSize.lg,
-      fontWeight: theme.typography.fontWeight.semibold,
-    },
-    headerShadowVisible: false,
-    animation: 'slide_from_right' as const,
-  };
+  const defaultOptions = (navigation: { goBack: () => void }) => ({
+    ...getDefaultScreenOptions(theme),
+    headerLeft: makeHeaderBackButton(navigation, theme.colors.onSurface),
+  });
+  const modalOptions = (navigation: { goBack: () => void }) => ({
+    ...getModalScreenOptions(theme),
+    headerLeft: makeHeaderBackButton(navigation, theme.colors.onSurface),
+  });
 
   return (
-    <Stack.Navigator initialRouteName='MainTabs' screenOptions={{ headerShown: true }}>
-      {/* Bottom Tab Navigator */}
-      <Stack.Screen name='MainTabs' component={TabNavigator} options={{ headerShown: false }} />
+    <Stack.Navigator initialRouteName='MainTabs' screenOptions={{ headerShown: false }}>
+      {/* Bottom Tab Navigator — no header, inner tab stacks provide their own */}
+      <Stack.Screen name='MainTabs' component={TabNavigator} />
 
       {/* Offer Modals */}
-      <Stack.Group screenOptions={modalScreenOptions}>
+      <Stack.Group
+        screenOptions={({ navigation }) => ({ ...modalOptions(navigation), headerShown: true })}
+      >
         <Stack.Screen
           name='OfferDetails'
           component={OfferDetailsScreen}
@@ -96,16 +68,10 @@ export const MainStack: React.FC = () => {
         />
       </Stack.Group>
 
-      {/* Order Screens */}
-      <Stack.Group screenOptions={screenOptions}>
-        <Stack.Screen name='OrderDetails' options={{ title: 'Order Details' }}>
-          {props => (
-            <ProtectedRoute>
-              <OrderDetailsScreen {...props} />
-            </ProtectedRoute>
-          )}
-        </Stack.Screen>
-
+      {/* Order Screens - Note: OrderDetails moved to OrdersStack (nested in Orders tab) */}
+      <Stack.Group
+        screenOptions={({ navigation }) => ({ ...defaultOptions(navigation), headerShown: true })}
+      >
         <Stack.Screen name='OrderHistory' options={{ title: 'Order History' }}>
           {props => (
             <ProtectedRoute>
@@ -114,7 +80,10 @@ export const MainStack: React.FC = () => {
           )}
         </Stack.Screen>
 
-        <Stack.Screen name='Checkout' options={{ title: 'Checkout', presentation: 'modal' }}>
+        <Stack.Screen
+          name='Checkout'
+          options={{ title: 'Checkout', presentation: 'modal' }}
+        >
           {props => (
             <ProtectedRoute>
               <CheckoutScreen {...props} />
@@ -123,16 +92,31 @@ export const MainStack: React.FC = () => {
         </Stack.Screen>
       </Stack.Group>
 
-      {/* Profile Modals */}
-      <Stack.Group screenOptions={modalScreenOptions}>
-        <Stack.Screen name='EditProfile' options={{ title: 'Edit Profile' }}>
-          {props => (
+      {/* Loyalty Screen */}
+      <Stack.Group
+        screenOptions={({ navigation }) => ({ ...defaultOptions(navigation), headerShown: true })}
+      >
+        <Stack.Screen name='Leaderboard' options={{ title: 'Leaderboard' }}>
+          {(props: any) => (
             <ProtectedRoute>
-              <EditProfileScreen {...props} />
+              <LeaderboardScreen {...props} />
             </ProtectedRoute>
           )}
         </Stack.Screen>
 
+        <Stack.Screen name='Loyalty' options={{ title: 'My Points' }}>
+          {(props: any) => (
+            <ProtectedRoute>
+              <LoyaltyScreen {...props} />
+            </ProtectedRoute>
+          )}
+        </Stack.Screen>
+      </Stack.Group>
+
+      {/* Profile Sub-screens — slide_from_right to match EditProfile */}
+      <Stack.Group
+        screenOptions={({ navigation }) => ({ ...defaultOptions(navigation), headerShown: true })}
+      >
         <Stack.Screen name='Settings' options={{ title: 'Settings' }}>
           {props => (
             <ProtectedRoute>
@@ -159,7 +143,9 @@ export const MainStack: React.FC = () => {
       </Stack.Group>
 
       {/* Establishment Screens */}
-      <Stack.Group screenOptions={screenOptions}>
+      <Stack.Group
+        screenOptions={({ navigation }) => ({ ...defaultOptions(navigation), headerShown: true })}
+      >
         <Stack.Screen name='EstablishmentDetails' options={{ title: 'Establishment Details' }}>
           {props => (
             <ProtectedRoute>
@@ -170,7 +156,9 @@ export const MainStack: React.FC = () => {
       </Stack.Group>
 
       {/* Map Screens */}
-      <Stack.Group screenOptions={modalScreenOptions}>
+      <Stack.Group
+        screenOptions={({ navigation }) => ({ ...modalOptions(navigation), headerShown: true })}
+      >
         <Stack.Screen name='NearbyOffers' options={{ title: 'Nearby Offers' }}>
           {props => (
             <ProtectedRoute>

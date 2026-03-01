@@ -29,7 +29,7 @@ export const emailValidator = yup
     if (!value) return false;
     // Check if email has a valid TLD (at least 2 characters after the last dot)
     const tldMatch = value.match(/\.([a-z]{2,})$/i);
-    return tldMatch !== null && tldMatch[1] !== undefined && tldMatch[1].length >= 2;
+    return tldMatch?.[1] !== undefined && tldMatch[1].length >= 2;
   });
 
 // Password validation

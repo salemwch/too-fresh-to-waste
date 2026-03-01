@@ -32,9 +32,4 @@ export type {
   OfferCardOrientation,
   OfferBadge,
 } from './OfferCard';
-export {
-  offerTypeLabels,
-  formatPickupTime,
-  formatDistance,
-  isExpiringSoon,
-} from './OfferCard';
+export { offerTypeLabels, formatPickupTime, formatDistance, isExpiringSoon } from './OfferCard';

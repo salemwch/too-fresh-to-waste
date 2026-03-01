@@ -25,7 +25,7 @@ import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { View, Animated, type ViewStyle, type TextStyle } from 'react-native';
 import { trigger as triggerHaptic } from 'react-native-haptic-feedback';
 import * as Progress from 'react-native-progress';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@react-native-vector-icons/material-design-icons';
 
 import { usePasswordRules } from '../../../../hooks';
 import { useTheme } from '../../../providers';

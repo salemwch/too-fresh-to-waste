@@ -81,9 +81,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           await dispatch(refreshTokenAsync()).unwrap();
           console.log('Token refreshed successfully');
         } catch (error) {
-          console.error('Token refresh failed:', error);
-          // Logout user if refresh fails
-          await dispatch(logoutAsync());
+          // The refreshTokenAsync.rejected reducer already handles the state:
+          // - Network errors → keep session alive, show offline banner
+          // - Auth errors → set SESSION_EXPIRED
+          // Do NOT force logout here — the reducer handles the distinction.
+          const rejectionPayload = error as { message?: string; isNetworkError?: boolean } | undefined;
+          if (rejectionPayload?.isNetworkError) {
+            console.warn('Token refresh failed (network) — session preserved, will retry');
+          } else {
+            console.error('Token refresh failed (auth) — session expired');
+          }
         }
       }
     };
@@ -162,7 +169,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check if session has expired
   if (sessionExpiresAt && new Date(sessionExpiresAt).getTime() < Date.now()) {
     // Trigger logout
-    dispatch(logoutAsync());
+    dispatch(logoutAsync({}));
     return renderLoading();
   }
 

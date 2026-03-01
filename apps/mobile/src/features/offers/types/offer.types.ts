@@ -8,23 +8,10 @@
 import type { ID, Timestamp, Currency } from '@/types';
 
 // ============================================================================
-// Enums (must match backend exactly)
+// Enums — single source of truth from shared package
 // ============================================================================
-
-export enum OfferStatus {
-  DRAFT = 'draft',
-  ACTIVE = 'active',
-  SOLD_OUT = 'sold_out',
-  EXPIRED = 'expired',
-  CANCELLED = 'cancelled',
-  SUSPENDED = 'suspended',
-}
-
-export enum OfferType {
-  SURPRISE_BAG = 'surprise_bag',
-  SPECIFIC_ITEMS = 'specific_items',
-  MEAL_DEAL = 'meal_deal',
-}
+export { OfferStatus, OfferType } from '@foodwaste/shared';
+import { OfferStatus, OfferType } from '@foodwaste/shared';
 
 /**
  * CTA (Call-to-Action) State for UI
@@ -46,7 +33,7 @@ export enum CtaState {
 export interface PickupTimeSlot {
   startTime: string; // HH:mm format
   endTime: string; // HH:mm format
-  maxOrders: number;
+  maxOrders?: number; // Optional — business decides. No limit if unset.
   currentOrders: number;
 }
 
@@ -97,7 +84,9 @@ export interface Offer {
   title: string;
   description: string;
   // Can be either ID string or populated object
-  establishmentId: ID | {
+  establishmentId:
+  | ID
+  | {
     _id?: ID;
     id?: ID;
     name: string;
@@ -107,7 +96,9 @@ export interface Offer {
     totalReviews?: number;
   };
   // Can be either ID string or populated object
-  merchantId: ID | {
+  merchantId:
+  | ID
+  | {
     _id?: ID;
     id?: ID;
     firstName?: string;
@@ -209,22 +200,12 @@ export interface OfferListItem {
   distance?: number; // In meters (for geolocation queries)
   ctaState: CtaState; // ✅ Backend-computed UI state (available/low_stock/sold_out)
   status: OfferStatus;
+  isFavorite?: boolean; // ✅ Backend-computed (only present when user is authenticated)
 }
 
-/**
- * Establishment Type Enum (must match backend)
- * Backend: apps/food-waste-backend/src/common/enums/establishment.enum.ts
- */
-export enum EstablishmentType {
-  RESTAURANT = 'restaurant',
-  BAKERY = 'bakery',
-  GROCERY_STORE = 'grocery_store',
-  CAFE = 'cafe',
-  FAST_FOOD = 'fast_food',
-  SUPERMARKET = 'supermarket',
-  HOTEL = 'hotel',
-  OTHER = 'other',
-}
+// EstablishmentType — re-exported from shared package (single source of truth)
+export { EstablishmentType } from '@foodwaste/shared';
+import { EstablishmentType } from '@foodwaste/shared';
 
 /**
  * Search/filter parameters for offers
@@ -246,6 +227,9 @@ export interface OfferSearchParams {
   // ✅ NEW: Establishment filters
   establishmentTypes?: EstablishmentType[];
   cuisineTypes?: string[];
+
+  // ✅ NEW: Geolocation filter (in meters, backend default: 5000m)
+  maxDistance?: number;
 }
 
 /**
@@ -291,54 +275,20 @@ export interface ReserveQuantityRequest {
 /**
  * Check if an offer is currently active.
  *
- * IMPORTANT: Stored times are treated as "display times" (Tunisia local),
- * NOT actual UTC. We compare using Tunisia local time (Africa/Tunis).
+ * ✅ FIX: Direct UTC comparison (times are already stored in UTC format)
  */
 export const isOfferActive = (offer: Offer): boolean => {
-  // Get current time in Tunisia timezone
-  const nowTunisia = new Date().toLocaleString('en-US', { timeZone: 'Africa/Tunis' });
-
-  // Stored times are "display times" - extract UTC components as if they're Tunisia local
-  // e.g., "2026-01-11T21:55:00.000Z" means 21:55 Tunisia time
-  const availableFrom = new Date(offer.availableFrom);
-  const availableUntil = new Date(offer.availableUntil);
-
-  // Extract UTC time components (which represent Tunisia display time)
-  const fromTime = Date.UTC(
-    availableFrom.getUTCFullYear(),
-    availableFrom.getUTCMonth(),
-    availableFrom.getUTCDate(),
-    availableFrom.getUTCHours(),
-    availableFrom.getUTCMinutes(),
-    availableFrom.getUTCSeconds()
-  );
-  const untilTime = Date.UTC(
-    availableUntil.getUTCFullYear(),
-    availableUntil.getUTCMonth(),
-    availableUntil.getUTCDate(),
-    availableUntil.getUTCHours(),
-    availableUntil.getUTCMinutes(),
-    availableUntil.getUTCSeconds()
-  );
-
-  // Get current Tunisia time as comparable timestamp
-  const nowDate = new Date(nowTunisia);
-  const nowTime = Date.UTC(
-    nowDate.getFullYear(),
-    nowDate.getMonth(),
-    nowDate.getDate(),
-    nowDate.getHours(),
-    nowDate.getMinutes(),
-    nowDate.getSeconds()
-  );
+  const now = new Date();
+  const fromTime = new Date(offer.availableFrom);
+  const untilTime = new Date(offer.availableUntil);
 
   return (
     offer.status === OfferStatus.ACTIVE &&
     offer.isActive &&
     !offer.isExpired &&
     !offer.isSoldOut &&
-    fromTime <= nowTime &&
-    untilTime >= nowTime
+    now >= fromTime &&
+    now <= untilTime
   );
 };
 
@@ -364,6 +314,7 @@ export const getOfferTypeLabel = (type: OfferType): string => {
     [OfferType.SURPRISE_BAG]: 'Surprise Bag',
     [OfferType.SPECIFIC_ITEMS]: 'Specific Items',
     [OfferType.MEAL_DEAL]: 'Meal Deal',
+    [OfferType.PARCELS_BAG]: 'Parcels Bag',
   };
   return labels[type];
 };

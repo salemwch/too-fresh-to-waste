@@ -190,6 +190,7 @@ export const offerTypeLabels: Record<OfferType, string> = {
   surprise_bag: 'Surprise Bag',
   specific_items: 'Specific Items',
   meal_deal: 'Meal Deal',
+  parcels_bag: 'Parcels Bag',
 };
 
 /**

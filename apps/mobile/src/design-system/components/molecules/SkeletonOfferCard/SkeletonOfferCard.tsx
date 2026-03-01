@@ -50,119 +50,115 @@ const SkeletonOfferCardComponent: React.FC<SkeletonOfferCardProps> = ({
   style,
   testID = 'skeleton-offer-card',
 }) => {
-    const theme = useTheme();
-    const shimmerAnimation = useRef(new Animated.Value(0)).current;
+  const theme = useTheme();
+  const shimmerAnimation = useRef(new Animated.Value(0)).current;
 
-    // Shimmer animation loop
-    useEffect(() => {
-      const animation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(shimmerAnimation, {
-            toValue: 1,
-            duration: 1500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(shimmerAnimation, {
-            toValue: 0,
-            duration: 0,
-            useNativeDriver: true,
-          }),
-        ]),
-      );
+  // Shimmer animation loop
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnimation, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnimation, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
 
-      animation.start();
+    animation.start();
 
-      return () => {
-        animation.stop();
-      };
-    }, [shimmerAnimation]);
+    return () => {
+      animation.stop();
+    };
+  }, [shimmerAnimation]);
 
-    // Shimmer gradient translation
-    const translateX = shimmerAnimation.interpolate({
-      inputRange: [0, 1],
-      outputRange: [-300, 300],
-    });
+  // Shimmer gradient translation
+  const translateX = shimmerAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-300, 300],
+  });
 
-    const styles = createStyles(theme, orientation, imageAspectRatio);
+  const styles = createStyles(theme, orientation, imageAspectRatio);
 
-    /**
-     * Shimmer effect component
-     */
-    const Shimmer: React.FC<{ style?: any }> = ({ style: shimmerStyle }) => (
-      <View style={[styles.shimmerContainer, shimmerStyle]}>
-        <Animated.View
-          style={[
-            styles.shimmerGradientWrapper,
-            {
-              transform: [{ translateX }],
-            },
-          ]}
-        >
-          <LinearGradient
-            colors={[
-              theme.colors.surfaceVariant,
-              theme.colors.surface,
-              theme.colors.surfaceVariant,
-            ]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.shimmerGradient}
-          />
-        </Animated.View>
+  /**
+   * Shimmer effect component
+   */
+  const Shimmer: React.FC<{ style?: any }> = ({ style: shimmerStyle }) => (
+    <View style={[styles.shimmerContainer, shimmerStyle]}>
+      <Animated.View
+        style={[
+          styles.shimmerGradientWrapper,
+          {
+            transform: [{ translateX }],
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={[theme.colors.surfaceVariant, theme.colors.surface, theme.colors.surfaceVariant]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.shimmerGradient}
+        />
+      </Animated.View>
+    </View>
+  );
+
+  return (
+    <Card variant='elevated' style={[styles.card, style]} testID={testID}>
+      {/* Image Skeleton */}
+      <View style={styles.imageContainer}>
+        <Shimmer style={styles.imageSkeleton} />
+
+        {/* Top left badge placeholder */}
+        <View style={styles.topLeftBadge}>
+          <Shimmer style={styles.badgeSkeleton} />
+        </View>
+
+        {/* Top right rating badge placeholder */}
+        <View style={styles.topRightBadge}>
+          <Shimmer style={styles.ratingBadgeSkeleton} />
+        </View>
+
+        {/* Bottom left logo placeholder */}
+        <View style={styles.logoPlaceholder}>
+          <Shimmer style={styles.logoSkeleton} />
+        </View>
       </View>
-    );
 
-    return (
-      <Card variant='elevated' style={[styles.card, style]} testID={testID}>
-        {/* Image Skeleton */}
-        <View style={styles.imageContainer}>
-          <Shimmer style={styles.imageSkeleton} />
-
-          {/* Top left badge placeholder */}
-          <View style={styles.topLeftBadge}>
-            <Shimmer style={styles.badgeSkeleton} />
-          </View>
-
-          {/* Top right rating badge placeholder */}
-          <View style={styles.topRightBadge}>
-            <Shimmer style={styles.ratingBadgeSkeleton} />
-          </View>
-
-          {/* Bottom left logo placeholder */}
-          <View style={styles.logoPlaceholder}>
-            <Shimmer style={styles.logoSkeleton} />
-          </View>
+      {/* Content Skeleton */}
+      <View style={styles.content}>
+        {/* Establishment name row */}
+        <View style={styles.establishmentRow}>
+          <Shimmer style={styles.establishmentNameSkeleton} />
+          <Shimmer style={styles.heartSkeleton} />
         </View>
 
-        {/* Content Skeleton */}
-        <View style={styles.content}>
-          {/* Establishment name row */}
-          <View style={styles.establishmentRow}>
-            <Shimmer style={styles.establishmentNameSkeleton} />
-            <Shimmer style={styles.heartSkeleton} />
-          </View>
+        {/* Title */}
+        <Shimmer style={styles.titleSkeleton} />
 
-          {/* Title */}
-          <Shimmer style={styles.titleSkeleton} />
-
-          {/* Pickup time row */}
-          <View style={styles.pickupTimeRow}>
-            <Shimmer style={styles.pickupTimeSkeleton} />
-            <Shimmer style={styles.distanceSkeleton} />
-          </View>
-
-          {/* Price row */}
-          <View style={styles.priceRow}>
-            <Shimmer style={styles.priceSkeleton} />
-          </View>
+        {/* Pickup time row */}
+        <View style={styles.pickupTimeRow}>
+          <Shimmer style={styles.pickupTimeSkeleton} />
+          <Shimmer style={styles.distanceSkeleton} />
         </View>
-      </Card>
-    );
+
+        {/* Price row */}
+        <View style={styles.priceRow}>
+          <Shimmer style={styles.priceSkeleton} />
+        </View>
+      </View>
+    </Card>
+  );
 };
 
 // Export memoized component
 export const SkeletonOfferCard = React.memo(SkeletonOfferCardComponent);
-SkeletonOfferCard.displayName = 'SkeletonOfferCard';
+SkeletonOfferCardComponent.displayName = 'SkeletonOfferCard';
 
 // ==================== Styles ====================
 const createStyles = (

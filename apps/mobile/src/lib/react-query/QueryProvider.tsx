@@ -12,7 +12,7 @@
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import React, { useEffect, useState, Component } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 
 import { ErrorHandler } from '@/utils/errorHandler';
 import { Logger } from '@/utils/logger';
@@ -97,9 +97,9 @@ const DefaultErrorFallback: React.FC<{
   <View style={styles.errorContainer}>
     <Text style={styles.errorTitle}>Something went wrong</Text>
     <Text style={styles.errorMessage}>{error.message}</Text>
-    <TouchableOpacity style={styles.retryButton} onPress={resetError}>
+    <Pressable style={styles.retryButton} onPress={resetError}>
       <Text style={styles.retryButtonText}>Try Again</Text>
-    </TouchableOpacity>
+    </Pressable>
   </View>
 );
 

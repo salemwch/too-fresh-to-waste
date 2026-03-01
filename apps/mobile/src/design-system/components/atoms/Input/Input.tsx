@@ -4,22 +4,22 @@
  */
 
 import React, { forwardRef, useState, useCallback } from 'react';
-import { View, TextInput, TouchableOpacity } from 'react-native';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import Entypo from 'react-native-vector-icons/Entypo';
-import EvilIcons from 'react-native-vector-icons/EvilIcons';
-import Feather from 'react-native-vector-icons/Feather';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
-import Fontisto from 'react-native-vector-icons/Fontisto';
-import Foundation from 'react-native-vector-icons/Foundation';
-import Icon from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Octicons from 'react-native-vector-icons/Octicons';
-import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
-import Zocial from 'react-native-vector-icons/Zocial';
+import { View, TextInput, Pressable } from 'react-native';
+import AntDesign from '@react-native-vector-icons/ant-design';
+import Entypo from '@react-native-vector-icons/entypo';
+import EvilIcons from '@react-native-vector-icons/evil-icons';
+import Feather from '@react-native-vector-icons/feather';
+import FontAwesome from '@react-native-vector-icons/fontawesome';
+import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
+import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
+import Fontisto from '@react-native-vector-icons/fontisto';
+import Foundation from '@react-native-vector-icons/foundation';
+import Icon from '@react-native-vector-icons/ionicons';
+import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
+import MaterialIcons from '@react-native-vector-icons/material-icons';
+import Octicons from '@react-native-vector-icons/octicons';
+import SimpleLineIcons from '@react-native-vector-icons/simple-line-icons';
+import Zocial from '@react-native-vector-icons/zocial';
 
 import { useTheme } from '../../../providers';
 import { Text } from '../Text';
@@ -30,7 +30,7 @@ import type { InputProps, InputState } from './Input.types';
 import type { IconFamily, IconComponent } from '../../../types';
 
 export const Input = forwardRef<TextInput, InputProps>(
-  (
+  function Input(
     {
       variant = 'default',
       size = 'md',
@@ -70,7 +70,7 @@ export const Input = forwardRef<TextInput, InputProps>(
       ...rest
     },
     ref,
-  ) => {
+  ) {
     const theme = useTheme();
     const [isFocused, setIsFocused] = useState(false);
 
@@ -221,14 +221,13 @@ export const Input = forwardRef<TextInput, InputProps>(
         <View style={[styles.inputContainer, inputContainerStyle]}>
           {leftIcon &&
             (onLeftIconPress ? (
-              <TouchableOpacity
+              <Pressable
                 style={styles.leftIconContainer}
                 onPress={onLeftIconPress}
                 disabled={disabled}
-                activeOpacity={0.7}
               >
                 {renderIcon(leftIcon, leftIconFamily)}
-              </TouchableOpacity>
+              </Pressable>
             ) : (
               <View style={styles.leftIconContainer}>{renderIcon(leftIcon, leftIconFamily)}</View>
             ))}
@@ -254,14 +253,13 @@ export const Input = forwardRef<TextInput, InputProps>(
 
           {rightIcon &&
             (onRightIconPress ? (
-              <TouchableOpacity
+              <Pressable
                 style={styles.rightIconContainer}
                 onPress={onRightIconPress}
                 disabled={disabled}
-                activeOpacity={0.7}
               >
                 {renderIcon(rightIcon, rightIconFamily)}
-              </TouchableOpacity>
+              </Pressable>
             ) : (
               <View style={styles.rightIconContainer}>
                 {renderIcon(rightIcon, rightIconFamily)}
@@ -274,7 +272,5 @@ export const Input = forwardRef<TextInput, InputProps>(
     );
   },
 );
-
-Input.displayName = 'Input';
 
 export default Input;

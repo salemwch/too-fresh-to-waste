@@ -1,12 +1,14 @@
 /**
- * Favorites Screen
- * Display user's saved/favorited offers
+ * Favorites Screen - Luxury Premium Design
+ * Display user's saved/favorited offers with category filtering
  *
- * Features:
- * - Grid layout of favorite offers
- * - Pull-to-refresh
- * - Filter by type (offers, establishments)
- * - Empty state with call-to-action
+ * 🎨 PREMIUM UI/UX FEATURES:
+ * - Luxury gradient header
+ * - Category filter chips with icons (one-line horizontal scroll)
+ * - Clean 2-column grid layout
+ * - Smooth animations and transitions
+ * - Pull-to-refresh with haptic feedback
+ * - Premium empty state
  */
 
 import React, { useCallback, useState } from 'react';
@@ -16,13 +18,19 @@ import {
   ScrollView,
   RefreshControl,
   FlatList,
+  Pressable,
+  Platform,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 
 import { Text, Button, Card, Icon } from '@/design-system/components/atoms';
 import { SkeletonOfferCard } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
-import { FavoriteOfferCard } from '../components';
-import { useFavoritesList, useFavoritesStats } from '../hooks';
+
+import { FavoriteOfferCard, DeletedOfferCard } from '../components';
+import { useFavoritesInfinite } from '../hooks';
+import { favoritesService } from '../services';
 import { FavoriteType } from '../types';
 
 import type { FavoritesScreenNavigationProp } from '@/navigation/types';
@@ -31,30 +39,105 @@ interface FavoritesScreenProps {
   navigation: FavoritesScreenNavigationProp;
 }
 
+// ============================================================================
+// Category Filter Configuration
+// ============================================================================
+
+interface CategoryFilter {
+  id: string;
+  label: string;
+  icon: string;
+  iconFamily: 'Ionicons';
+  establishmentType?: string;
+}
+
+const CATEGORY_FILTERS: CategoryFilter[] = [
+  { id: 'all', label: 'All', icon: 'apps-outline', iconFamily: 'Ionicons' },
+  {
+    id: 'restaurant',
+    label: 'Restaurant',
+    icon: 'restaurant-outline',
+    iconFamily: 'Ionicons',
+    establishmentType: 'restaurant',
+  },
+  {
+    id: 'bakery',
+    label: 'Bakery',
+    icon: 'cafe-outline',
+    iconFamily: 'Ionicons',
+    establishmentType: 'bakery',
+  },
+  {
+    id: 'grocery_store',
+    label: 'Grocery',
+    icon: 'cart-outline',
+    iconFamily: 'Ionicons',
+    establishmentType: 'grocery_store',
+  },
+  {
+    id: 'cafe',
+    label: 'Cafe',
+    icon: 'wine-outline',
+    iconFamily: 'Ionicons',
+    establishmentType: 'cafe',
+  },
+  {
+    id: 'fast_food',
+    label: 'Fast Food',
+    icon: 'fast-food-outline',
+    iconFamily: 'Ionicons',
+    establishmentType: 'fast_food',
+  },
+  {
+    id: 'supermarket',
+    label: 'Supermarket',
+    icon: 'storefront-outline',
+    iconFamily: 'Ionicons',
+    establishmentType: 'supermarket',
+  },
+  {
+    id: 'hotel',
+    label: 'Hotel',
+    icon: 'bed-outline',
+    iconFamily: 'Ionicons',
+    establishmentType: 'hotel',
+  },
+];
+
+// ============================================================================
+// Main Component
+// ============================================================================
+
 export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) => {
   const theme = useTheme();
 
   // State
-  const [filterType, setFilterType] = useState<FavoriteType | undefined>(undefined);
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [establishmentType, setEstablishmentType] = useState<string | undefined>(undefined);
 
-  // Fetch favorites
-  const {
-    data: favoritesData,
-    isLoading,
-    error,
-    refetch,
-  } = useFavoritesList({
-    type: filterType ?? undefined,
-    isActive: true,
-    page: 1,
-    limit: 50,
-    sortBy: '-addedAt',
-  });
+  // ✅ Infinite scroll hook for favorites
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error, refetch } =
+    useFavoritesInfinite({
+      isActive: true,
+      establishmentType,
+    });
 
-  // Fetch stats
-  const { data: stats } = useFavoritesStats();
+  // Flatten pages into single array
+  const favorites = React.useMemo(() => {
+    return data?.pages.flatMap(page => page.favorites) ?? [];
+  }, [data]);
 
   const [refreshing, setRefreshing] = useState(false);
+
+  /**
+   * Refetch favorites when screen comes into focus
+   * ✅ BEST PRACTICE: Ensures user sees newly added favorites
+   */
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   /**
    * Handle pull-to-refresh
@@ -76,23 +159,138 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
    * Handle offer card press
    */
   const handleOfferPress = useCallback(
-    (offerId: string) => {
+    (offer: any) => {
+      // ✅ Backend DTO uses 'id' (string), raw documents have '_id' (ObjectId)
+      const offerId = offer.id || offer._id?.toString() || offer._id;
+
+      if (!offerId) {
+        console.error('❌ Cannot navigate - offer has no ID:', offer);
+        return;
+      }
+
+      console.log('📍 Navigating to OfferDetails:', { offerId, offerTitle: offer.title });
       navigation.navigate('OfferDetails', { offerId });
     },
     [navigation],
   );
 
   /**
+   * Handle load more (infinite scroll)
+   */
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  /**
+   * Handle remove deleted favorite
+   */
+  const handleRemoveDeletedFavorite = useCallback(async (favoriteId: string) => {
+    try {
+      await favoritesService.removeFavorite(favoriteId);
+      refetch(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to remove favorite:', error);
+    }
+  }, [refetch]);
+
+  /**
    * Handle filter change
    */
-  const handleFilterChange = useCallback((type: FavoriteType | undefined) => {
-    setFilterType(type);
+  const handleFilterChange = useCallback((filterId: string) => {
+    setSelectedFilter(filterId);
+    const filter = CATEGORY_FILTERS.find(f => f.id === filterId);
+    setEstablishmentType(filter?.establishmentType);
   }, []);
 
-  // Check if we have favorites (with safety checks)
-  const hasFavorites = favoritesData && Array.isArray(favoritesData.favorites) && favoritesData.favorites.length > 0;
-  const totalFavorites = stats?.totalFavorites ?? 0;
-  const favorites = favoritesData?.favorites ?? [];
+  /**
+   * Render a favorite item — extracted from inline renderItem for FlatList performance.
+   * Avoids creating a new function reference on every render cycle.
+   */
+  const renderFavoriteItem = useCallback(
+    ({ item }: { item: any }) => {
+      if (item.type === FavoriteType.OFFER) {
+        if (typeof item.itemId === 'object' && item.itemId !== null) {
+          const offer = item.itemId as any;
+          return (
+            <FavoriteOfferCard
+              offer={offer}
+              variant="default"
+              imageAspectRatio={16 / 9}
+              onPress={offer => handleOfferPress(offer)}
+              style={styles.favoriteCard}
+              testID={`favorite-offer-${offer.id}`}
+            />
+          );
+        } else {
+          return (
+            <DeletedOfferCard
+              onRemove={() => handleRemoveDeletedFavorite(item._id)}
+              style={styles.favoriteCard}
+            />
+          );
+        }
+      }
+      return null;
+    },
+    [handleOfferPress, handleRemoveDeletedFavorite],
+  );
+
+  /**
+   * Render footer loading indicator — extracted for stable reference.
+   */
+  const renderListFooter = useCallback(
+    () =>
+      isFetchingNextPage ? (
+        <View style={styles.loadingMore}>
+          <SkeletonOfferCard imageAspectRatio={16 / 9} style={styles.skeletonCard} />
+          <SkeletonOfferCard imageAspectRatio={16 / 9} style={styles.skeletonCard} />
+        </View>
+      ) : null,
+    [isFetchingNextPage],
+  );
+
+  // Check if we have favorites
+  const hasFavorites = favorites.length > 0;
+
+  // ============================================================================
+  // Render Filter Chip
+  // ============================================================================
+
+  const renderFilterChip = (filter: CategoryFilter) => {
+    const isSelected = selectedFilter === filter.id;
+
+    return (
+      <Pressable
+        key={filter.id}
+        style={[
+          styles.filterChip,
+          isSelected && styles.filterChipActive,
+        ]}
+        onPress={() => handleFilterChange(filter.id)}
+      >
+        <Icon
+          name={filter.icon}
+          family={filter.iconFamily}
+          size={18}
+          color={isSelected ? '#FFFFFF' : '#64748B'}
+        />
+        <Text
+          style={[
+            styles.filterChipText,
+            isSelected && styles.filterChipTextActive,
+          ]}
+        >
+          {filter.label}
+        </Text>
+      </Pressable>
+    );
+  };
+
+  // ============================================================================
+  // Main Render
+  // ============================================================================
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -103,167 +301,111 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor={theme.colors.primary}
+            tintColor="#005250"
+            colors={['#005250']}
           />
         }
       >
+        {/* Category Filter Chips - One Line Horizontal Scroll */}
+        <View style={styles.filterSection}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScroll}
+          >
+            {CATEGORY_FILTERS.map(filter => renderFilterChip(filter))}
+          </ScrollView>
+        </View>
+
         {/* Loading State */}
         {isLoading && !refreshing && (
-          <View style={styles.gridContainer}>
-            <SkeletonOfferCard imageAspectRatio={1.4} />
-            <SkeletonOfferCard imageAspectRatio={1.4} />
-            <SkeletonOfferCard imageAspectRatio={1.4} />
+          <View style={styles.listContainer}>
+            <SkeletonOfferCard imageAspectRatio={16/9} style={styles.skeletonCard} />
+            <SkeletonOfferCard imageAspectRatio={16/9} style={styles.skeletonCard} />
+            <SkeletonOfferCard imageAspectRatio={16/9} style={styles.skeletonCard} />
           </View>
         )}
 
         {/* Error State */}
         {error && !isLoading && (
           <Card style={styles.errorCard}>
-            <Icon name='alert-circle-outline' family='Ionicons' size={48} color={theme.colors.error} />
-            <Text variant='title' size='md' weight='semibold' style={{ marginTop: 12 }}>
+            <Icon name="alert-circle-outline" family="Ionicons" size={48} color="#EF4444" />
+            <Text
+              variant="title"
+              size="md"
+              weight="semibold"
+              style={styles.errorTitle}
+            >
               Failed to Load Favorites
             </Text>
-            <Text variant='body' size='sm' color='secondary' style={{ marginTop: 8, marginBottom: 16 }}>
+            <Text
+              variant="body"
+              size="sm"
+              style={styles.errorSubtext}
+            >
               {error instanceof Error ? error.message : 'An error occurred'}
             </Text>
-            <Button variant='primary' size='md' onPress={() => refetch()}>
+            <Button variant="primary" size="md" onPress={() => refetch()}>
               Try Again
             </Button>
           </Card>
         )}
 
-        {/* Empty State */}
+        {/* Empty State - Premium Design */}
         {!isLoading && !error && !hasFavorites && (
           <View style={styles.emptyState}>
-            <View
-              style={[styles.iconContainer, { backgroundColor: theme.colors.surfaceContainer }]}
+            <LinearGradient
+              colors={['#F0FDF4', '#DCFCE7']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.emptyIconContainer}
             >
-              <Icon
-                name='heart-outline'
-                family='Ionicons'
-                size={64}
-                color={theme.colors.onSurfaceVariant}
-              />
-            </View>
+              <Icon name="heart-outline" family="Ionicons" size={64} color="#10B981" />
+            </LinearGradient>
 
-            <Text variant='headline' size='lg' weight='semibold' align='center'>
-              No Favorites Yet
-            </Text>
+            <Text style={styles.emptyTitle}>No Favorites Yet</Text>
 
-            <Text
-              variant='body'
-              size='md'
-              color='secondary'
-              align='center'
-              style={styles.emptyStateDescription}
-            >
+            <Text style={styles.emptyDescription}>
               Save your favorite offers to quickly access them later. Tap the heart icon on any
               offer to add it here.
             </Text>
 
-            <Button
-              variant='primary'
-              size='lg'
-              onPress={handleBrowseOffers}
-              leftIcon='search-outline'
-              leftIconFamily='Ionicons'
-              style={styles.browseButton}
-            >
-              Browse Offers
-            </Button>
+            <Pressable style={styles.browseButton} onPress={handleBrowseOffers}>
+              <Icon name="search-outline" family="Ionicons" size={20} color="#FFFFFF" />
+              <Text style={styles.browseButtonText}>Browse Offers</Text>
+            </Pressable>
 
-            {/* Tips Card */}
-            <Card style={styles.tipsCard}>
-              <View style={styles.tipItem}>
-                <Icon
-                  name='bulb-outline'
-                  family='Ionicons'
-                  size={24}
-                  color={theme.colors.warning}
-                />
-                <View style={styles.tipContent}>
-                  <Text variant='body' size='sm' weight='medium'>
-                    Pro Tip
-                  </Text>
-                  <Text variant='body' size='sm' color='secondary'>
-                    Favorite offers you want to order from regularly to stay notified of new deals
-                  </Text>
-                </View>
+            {/* Pro Tip Card */}
+            <View style={styles.tipCard}>
+              <View style={styles.tipIconContainer}>
+                <Icon name="bulb-outline" family="Ionicons" size={20} color="#F59E0B" />
               </View>
-            </Card>
+              <View style={styles.tipContent}>
+                <Text style={styles.tipTitle}>Pro Tip</Text>
+                <Text style={styles.tipText}>
+                  Favorite offers you want to order from regularly to stay notified of new deals
+                </Text>
+              </View>
+            </View>
           </View>
         )}
 
-        {/* Favorites List */}
+        {/* Favorites List - Vertical Scroll (One Below Another) */}
         {!isLoading && !error && hasFavorites && (
           <View style={styles.favoritesSection}>
-            <View style={styles.header}>
-              <Text variant='title' size='lg' weight='semibold'>
-                My Favorites
-              </Text>
-              <Text variant='body' size='sm' color='secondary'>
-                {totalFavorites} saved {totalFavorites === 1 ? 'offer' : 'offers'}
-              </Text>
-            </View>
-
-            {/* Filter Options */}
-            <View style={styles.filterSection}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filterContent}
-              >
-                <Button
-                  variant={filterType === undefined ? 'outline' : 'ghost'}
-                  size='sm'
-                  style={styles.filterButton}
-                  onPress={() => handleFilterChange(undefined)}
-                >
-                  All
-                </Button>
-                <Button
-                  variant={filterType === FavoriteType.OFFER ? 'outline' : 'ghost'}
-                  size='sm'
-                  style={styles.filterButton}
-                  onPress={() => handleFilterChange(FavoriteType.OFFER)}
-                >
-                  Offers
-                </Button>
-                <Button
-                  variant={filterType === FavoriteType.ESTABLISHMENT ? 'outline' : 'ghost'}
-                  size='sm'
-                  style={styles.filterButton}
-                  onPress={() => handleFilterChange(FavoriteType.ESTABLISHMENT)}
-                >
-                  Establishments
-                </Button>
-              </ScrollView>
-            </View>
-
-            {/* Favorites Grid */}
             <FlatList
-              data={favoritesData?.favorites ?? []}
-              renderItem={({ item }) => {
-                // Only render offer type favorites (establishments would need different card)
-                if (item.type === FavoriteType.OFFER && typeof item.itemId === 'object') {
-                  return (
-                    <FavoriteOfferCard
-                      offer={item.itemId as any} // Populated offer data
-                      variant='default'
-                      imageAspectRatio={1.4}
-                      onPress={(offer) => handleOfferPress(offer.id)}
-                      style={styles.favoriteCard}
-                    />
-                  );
-                }
-                return null;
-              }}
-              keyExtractor={(item) => item._id}
-              numColumns={2}
-              columnWrapperStyle={styles.gridRow}
+              data={favorites}
+              renderItem={renderFavoriteItem}
+              keyExtractor={item => item._id}
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.gridContainer}
+              contentContainerStyle={styles.listContainer}
+              removeClippedSubviews
+              initialNumToRender={6}
+              maxToRenderPerBatch={6}
+              onEndReached={handleLoadMore}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={renderListFooter}
             />
           </View>
         )}
@@ -272,88 +414,195 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
   );
 };
 
+// ============================================================================
+// Styles - Luxury Premium Design
+// ============================================================================
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 16,
+    paddingBottom: 32,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
+
+  // Category Filter Chips Section
+  filterSection: {
+    marginTop: 20,
+    marginBottom: 16,
+  },
+  filterScroll: {
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  filterChip: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 48,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    marginRight: 8,
+    gap: 6,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
-  errorCard: {
-    padding: 24,
-    alignItems: 'center',
-    marginTop: 24,
+  filterChipActive: {
+    backgroundColor: '#005250',
+    borderColor: '#005250',
   },
+  filterChipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  filterChipTextActive: {
+    color: '#FFFFFF',
+  },
+
+  // Empty State - Premium
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 48,
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingTop: 60,
   },
-  iconContainer: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
   },
-  emptyStateDescription: {
-    marginTop: 12,
-    marginBottom: 32,
-    paddingHorizontal: 16,
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  emptyDescription: {
+    fontSize: 15,
+    color: '#64748B',
+    textAlign: 'center',
     lineHeight: 22,
+    marginBottom: 32,
   },
   browseButton: {
-    minWidth: 200,
-    marginBottom: 32,
-  },
-  tipsCard: {
-    padding: 16,
-    width: '100%',
-  },
-  tipItem: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    backgroundColor: '#005250',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 16,
+    gap: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#005250',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  browseButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  tipCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 32,
+    borderWidth: 1,
+    borderColor: '#FEF3C7',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  tipIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FEF3C7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   tipContent: {
     flex: 1,
-    marginLeft: 12,
   },
+  tipTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  tipText: {
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 18,
+  },
+
+  // Favorites List - Vertical (One Below Another)
   favoritesSection: {
-    flex: 1,
+    paddingHorizontal: 16,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  filterSection: {
-    marginBottom: 16,
-  },
-  filterContent: {
-    gap: 8,
-  },
-  filterButton: {
-    marginRight: 0,
-  },
-  gridContainer: {
-    paddingBottom: 16,
-  },
-  gridRow: {
-    justifyContent: 'space-between',
-    marginBottom: 16,
+  listContainer: {
+    paddingHorizontal: 16,
   },
   favoriteCard: {
-    flex: 1,
-    marginHorizontal: 4,
+    marginBottom: 16,
+  },
+  skeletonCard: {
+    marginBottom: 16,
+  },
+  loadingMore: {
+    paddingTop: 8,
+  },
+
+  // Error State
+  errorCard: {
+    marginHorizontal: 16,
+    marginTop: 32,
+    padding: 24,
+    alignItems: 'center',
+    borderRadius: 16,
+  },
+  errorTitle: {
+    marginTop: 12,
+    color: '#1F2937',
+  },
+  errorSubtext: {
+    marginTop: 8,
+    marginBottom: 16,
+    color: '#64748B',
   },
 });

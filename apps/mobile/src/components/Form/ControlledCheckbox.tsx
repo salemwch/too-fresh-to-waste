@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { Controller } from 'react-hook-form';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -43,7 +43,7 @@ export function ControlledCheckbox<T extends FieldValues>({
       defaultValue={defaultValue as any}
       render={({ field: { onChange, value }, fieldState: { error } }) => (
         <View style={styles.container}>
-          <TouchableOpacity
+          <Pressable
             style={styles.checkboxContainer}
             onPress={() => !disabled && onChange(!value)}
             disabled={disabled}
@@ -87,7 +87,7 @@ export function ControlledCheckbox<T extends FieldValues>({
                 </Text>
               )}
             </View>
-          </TouchableOpacity>
+          </Pressable>
 
           {error && (
             <Text variant='body' size='sm' style={[styles.error, { color: theme.colors.error }]}>

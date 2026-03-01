@@ -16,20 +16,30 @@ import {
   View,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   RefreshControl,
   Dimensions,
 } from 'react-native';
 import MapView, { Marker, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 
-import { Text, Button, Card, Icon } from '@/design-system/components/atoms';
-import { DistanceBadge, LocationStatusBadge } from '@/design-system/components/atoms';
+import {
+  Text,
+  Button,
+  Card,
+  Icon,
+  DistanceBadge,
+  LocationStatusBadge,
+} from '@/design-system/components/atoms';
 import { RadiusSelector, NearbyOffersEmptyState } from '@/design-system/components/molecules';
 import { ManualLocationModal } from '@/design-system/components/organisms';
 import { useTheme } from '@/design-system/providers';
+import {
+  useNearbyOffers,
+  type ProximitySearchResult,
+  type NearbyOffer,
+} from '@/features/offers/hooks';
 import { useLocation } from '@/hooks/useLocation';
-import { useNearbyOffers, type ProximitySearchResult, type NearbyOffer } from '@/features/offers/hooks';
 
 import type { MainStackParamList } from '@/navigation/types';
 import type { RouteProp } from '@react-navigation/native';
@@ -102,12 +112,7 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
     };
   }, [coordinates, preferredRadiusKm]);
 
-  const {
-    data: offers,
-    isLoading,
-    refetch,
-    isRefetching,
-  } = useNearbyOffers(searchParams);
+  const { data: offers, isLoading, refetch, isRefetching } = useNearbyOffers(searchParams);
 
   // Map region based on coordinates
   const mapRegion = useMemo(() => {
@@ -152,13 +157,10 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
     [navigation],
   );
 
-  const handleMarkerPress = useCallback(
-    (offerId: string) => {
-      setSelectedOfferId(offerId);
-      // Scroll to offer in list
-    },
-    [],
-  );
+  const handleMarkerPress = useCallback((offerId: string) => {
+    setSelectedOfferId(offerId);
+    // Scroll to offer in list
+  }, []);
 
   const handleManualLocationSelect = useCallback(
     (location: { coordinates: { latitude: number; longitude: number }; name: string }) => {
@@ -172,7 +174,6 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
     setShowManualLocationModal(true);
   }, []);
 
-
   // ─────────────────────────────────────────────────────────────────────────
   // Render Functions
   // ─────────────────────────────────────────────────────────────────────────
@@ -181,9 +182,9 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
     ({ item }: { item: ProximitySearchResult<NearbyOffer> }) => {
       const isSelected = selectedOfferId === item.item._id;
       return (
-        <TouchableOpacity
+        <Pressable
           onPress={() => handleOfferPress(item)}
-          accessibilityRole="button"
+          accessibilityRole='button'
           accessibilityLabel={`${item.item.title}, ${item.distance.formatted} away`}
         >
           <Card
@@ -194,37 +195,28 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
           >
             <View style={styles.offerContent}>
               <View style={styles.offerInfo}>
-                <Text variant="title" size="sm" weight="semibold" numberOfLines={1}>
+                <Text variant='title' size='sm' weight='semibold' numberOfLines={1}>
                   {item.item.title}
                 </Text>
-                <Text variant="body" size="sm" color="secondary" numberOfLines={1}>
+                <Text variant='body' size='sm' color='secondary' numberOfLines={1}>
                   {item.item.establishmentName}
                 </Text>
                 <View style={styles.offerMeta}>
-                  <DistanceBadge distance={item.distance.value} variant="compact" />
-                  <Text variant="body" size="sm" color="success" weight="semibold">
+                  <DistanceBadge distance={item.distance.value} variant='compact' />
+                  <Text variant='body' size='sm' color='success' weight='semibold'>
                     {item.item.pricing.currency}
                     {item.item.pricing.discountedPrice.toFixed(2)}
                   </Text>
-                  <Text
-                    variant="body"
-                    size="xs"
-                    color="secondary"
-                    style={styles.originalPrice}
-                  >
+                  <Text variant='body' size='xs' color='secondary' style={styles.originalPrice}>
                     {item.item.pricing.currency}
                     {item.item.pricing.originalPrice.toFixed(2)}
                   </Text>
                 </View>
               </View>
-              <Icon
-                name="chevron-forward"
-                size={20}
-                color={theme.colors.onSurfaceVariant}
-              />
+              <Icon name='chevron-forward' size={20} color={theme.colors.onSurfaceVariant} />
             </View>
           </Card>
-        </TouchableOpacity>
+        </Pressable>
       );
     },
     [selectedOfferId, handleOfferPress, theme.colors],
@@ -234,34 +226,40 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
     () => (
       <View style={styles.listHeader}>
         <View style={styles.listHeaderRow}>
-          <Text variant="title" size="md" weight="semibold">
+          <Text variant='title' size='md' weight='semibold'>
             {offers?.length ?? 0} offers nearby
           </Text>
           <LocationStatusBadge
             mode={locationSourceDisplay.mode}
             locationName={locationSourceDisplay.label}
-            size="sm"
+            size='sm'
             onPress={handleLocationBadgePress}
           />
         </View>
         <View style={styles.radiusHeader}>
-          <Text variant="label" size="sm" color="secondary">
+          <Text variant='label' size='sm' color='secondary'>
             Search radius
           </Text>
-          <Text variant="title" size="sm" weight="semibold" color="primary">
+          <Text variant='title' size='sm' weight='semibold' color='primary'>
             {preferredRadiusKm} km
           </Text>
         </View>
         <RadiusSelector
           value={preferredRadiusKm}
           onChange={handleRadiusChange}
-          variant="chips"
+          variant='chips'
           presets={[1, 2, 5, 10, 25, 50]}
           style={styles.radiusSelector}
         />
       </View>
     ),
-    [offers?.length, locationSourceDisplay, preferredRadiusKm, handleRadiusChange, handleLocationBadgePress],
+    [
+      offers?.length,
+      locationSourceDisplay,
+      preferredRadiusKm,
+      handleRadiusChange,
+      handleLocationBadgePress,
+    ],
   );
 
   const renderEmptyState = useCallback(
@@ -284,24 +282,35 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.centeredContainer}>
-          <Icon name="location-outline" family="Ionicons" size={64} color={theme.colors.onSurfaceVariant} />
-          <Text variant="title" size="lg" weight="semibold" align="center" style={styles.errorTitle}>
+          <Icon
+            name='location-outline'
+            family='Ionicons'
+            size={64}
+            color={theme.colors.onSurfaceVariant}
+          />
+          <Text
+            variant='title'
+            size='lg'
+            weight='semibold'
+            align='center'
+            style={styles.errorTitle}
+          >
             Location Required
           </Text>
-          <Text variant="body" size="md" color="secondary" align="center" style={styles.errorText}>
+          <Text variant='body' size='md' color='secondary' align='center' style={styles.errorText}>
             Please enable location or set a manual location to see nearby offers.
           </Text>
           <Button
-            variant="primary"
-            size="lg"
+            variant='primary'
+            size='lg'
             onPress={() => setShowManualLocationModal(true)}
             style={styles.actionButton}
           >
             Set Location
           </Button>
           <Button
-            variant="outline"
-            size="md"
+            variant='outline'
+            size='md'
             onPress={() => navigation.goBack()}
             style={styles.actionButton}
           >
@@ -327,17 +336,30 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
       {mapRegion && (
         <View style={styles.mapContainer}>
           {mapError ? (
-            <View style={[styles.mapErrorContainer, { backgroundColor: theme.colors.surfaceVariant }]}>
-              <Icon name="map-outline" family="Ionicons" size={48} color={theme.colors.onSurfaceVariant} />
-              <Text variant="title" size="md" weight="semibold" align="center" style={styles.mapErrorTitle}>
+            <View
+              style={[styles.mapErrorContainer, { backgroundColor: theme.colors.surfaceVariant }]}
+            >
+              <Icon
+                name='map-outline'
+                family='Ionicons'
+                size={48}
+                color={theme.colors.onSurfaceVariant}
+              />
+              <Text
+                variant='title'
+                size='md'
+                weight='semibold'
+                align='center'
+                style={styles.mapErrorTitle}
+              >
                 Map Unavailable
               </Text>
-              <Text variant="body" size="sm" color="secondary" align="center">
+              <Text variant='body' size='sm' color='secondary' align='center'>
                 Unable to load the map. Please check your internet connection and try again.
               </Text>
               <Button
-                variant="outline"
-                size="sm"
+                variant='outline'
+                size='sm'
                 onPress={() => setMapError(null)}
                 style={styles.mapRetryButton}
               >
@@ -345,71 +367,81 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
               </Button>
             </View>
           ) : (
-          <>
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            provider={PROVIDER_GOOGLE}
-            initialRegion={mapRegion}
-            showsUserLocation
-            showsMyLocationButton={false}
-            showsCompass
-            onMapReady={() => setMapError(null)}
-            accessibilityLabel="Map showing nearby offers"
-          >
-            {/* Search radius circle */}
-            <Circle
-              center={coordinates}
-              radius={preferredRadiusKm * 1000}
-              strokeColor={theme.colors.primary}
-              strokeWidth={2}
-              fillColor={`${theme.colors.primary}20`}
-            />
+            <>
+              <MapView
+                ref={mapRef}
+                style={styles.map}
+                provider={PROVIDER_GOOGLE}
+                initialRegion={mapRegion}
+                showsUserLocation
+                showsMyLocationButton={false}
+                showsCompass
+                onMapReady={() => setMapError(null)}
+                accessibilityLabel='Map showing nearby offers'
+              >
+                {/* Search radius circle */}
+                <Circle
+                  center={coordinates}
+                  radius={preferredRadiusKm * 1000}
+                  strokeColor={theme.colors.primary}
+                  strokeWidth={2}
+                  fillColor={`${theme.colors.primary}20`}
+                />
 
-            {/* Offer markers */}
-            {offers?.map((offer) => (
-              <Marker
-                key={offer.item._id}
-                coordinate={{
-                  latitude: offer.geoData.coordinates.latitude,
-                  longitude: offer.geoData.coordinates.longitude,
+                {/* Offer markers */}
+                {offers?.map(offer => (
+                  <Marker
+                    key={offer.item._id}
+                    coordinate={{
+                      latitude: offer.geoData.coordinates.latitude,
+                      longitude: offer.geoData.coordinates.longitude,
+                    }}
+                    title={offer.item.title}
+                    description={`${offer.distance.formatted} - ${offer.item.pricing.currency}${offer.item.pricing.discountedPrice}`}
+                    onPress={() => handleMarkerPress(offer.item._id)}
+                    pinColor={
+                      selectedOfferId === offer.item._id
+                        ? theme.colors.primary
+                        : theme.colors.secondary
+                    }
+                  />
+                ))}
+              </MapView>
+
+              {/* Recenter button */}
+              <Pressable
+                style={[styles.recenterButton, { backgroundColor: theme.colors.surface }]}
+                onPress={() => {
+                  mapRef.current?.animateToRegion(mapRegion, 300);
                 }}
-                title={offer.item.title}
-                description={`${offer.distance.formatted} - ${offer.item.pricing.currency}${offer.item.pricing.discountedPrice}`}
-                onPress={() => handleMarkerPress(offer.item._id)}
-                pinColor={selectedOfferId === offer.item._id ? theme.colors.primary : theme.colors.secondary}
-              />
-            ))}
-          </MapView>
+                accessibilityRole='button'
+                accessibilityLabel='Recenter map'
+                accessibilityHint='Centers the map on your current location'
+              >
+                <Icon name='locate' family='Ionicons' size={22} color={theme.colors.primary} />
+              </Pressable>
 
-          {/* Recenter button */}
-          <TouchableOpacity
-            style={[styles.recenterButton, { backgroundColor: theme.colors.surface }]}
-            onPress={() => {
-              mapRef.current?.animateToRegion(mapRegion, 300);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Recenter map"
-            accessibilityHint="Centers the map on your current location"
-          >
-            <Icon name="locate" family="Ionicons" size={22} color={theme.colors.primary} />
-          </TouchableOpacity>
+              {/* Radius indicator on map */}
+              <View style={[styles.radiusIndicator, { backgroundColor: theme.colors.surface }]}>
+                <Icon
+                  name='radio-button-on'
+                  family='Ionicons'
+                  size={14}
+                  color={theme.colors.primary}
+                  style={styles.radiusIndicatorIcon}
+                />
+                <Text variant='label' size='xs' weight='semibold' color='primary'>
+                  {preferredRadiusKm} km
+                </Text>
+              </View>
 
-          {/* Radius indicator on map */}
-          <View style={[styles.radiusIndicator, { backgroundColor: theme.colors.surface }]}>
-            <Icon name="radio-button-on" family="Ionicons" size={14} color={theme.colors.primary} style={styles.radiusIndicatorIcon} />
-            <Text variant="label" size="xs" weight="semibold" color="primary">
-              {preferredRadiusKm} km
-            </Text>
-          </View>
-
-          {/* Loading overlay on map */}
-          {isLoading && (
-            <View style={styles.mapLoadingOverlay}>
-              <ActivityIndicator size="large" color={theme.colors.primary} />
-            </View>
-          )}
-          </>
+              {/* Loading overlay on map */}
+              {isLoading && (
+                <View style={styles.mapLoadingOverlay}>
+                  <ActivityIndicator size='large' color={theme.colors.primary} />
+                </View>
+              )}
+            </>
           )}
         </View>
       )}
@@ -418,12 +450,16 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
       <View style={styles.listContainer}>
         <FlatList
           data={offers || []}
-          keyExtractor={(item) => item.item._id}
+          keyExtractor={item => item.item._id}
           renderItem={renderOfferCard}
           ListHeaderComponent={renderListHeader}
           ListEmptyComponent={isLoading ? null : renderEmptyState}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews
+          maxToRenderPerBatch={6}
+          windowSize={7}
+          initialNumToRender={5}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
@@ -436,8 +472,8 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
         {/* Loading indicator */}
         {isLoading && !offers && (
           <View style={styles.listLoadingContainer}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text variant="body" size="md" color="secondary" style={styles.loadingText}>
+            <ActivityIndicator size='large' color={theme.colors.primary} />
+            <Text variant='body' size='md' color='secondary' style={styles.loadingText}>
               Finding nearby offers...
             </Text>
           </View>

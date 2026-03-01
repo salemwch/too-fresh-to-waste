@@ -23,14 +23,14 @@ interface OTPInputProps {
   autoFocus?: boolean;
 }
 
-export const OTPInput: React.FC<OTPInputProps> = ({
+export const OTPInput = React.memo<OTPInputProps>(function OTPInput({
   length = 6,
   value,
   onChange,
   error = false,
   disabled = false,
   autoFocus = false,
-}) => {
+}) {
   const theme = useTheme();
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(autoFocus ? 0 : null);
@@ -182,7 +182,7 @@ export const OTPInput: React.FC<OTPInputProps> = ({
       })}
     </Animated.View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

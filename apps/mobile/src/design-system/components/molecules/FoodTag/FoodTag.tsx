@@ -4,7 +4,7 @@
  */
 
 import React, { useCallback, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, Pressable } from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Text } from '../../atoms/Text';
@@ -225,10 +225,10 @@ export const FoodTag: React.FC<FoodTagProps> = ({
     () => ({
       color: getTagColors.textColor,
       fontSize: getSizeStyles.fontSize,
-      fontWeight: theme.typography.fontWeight.medium,
+      fontWeight: theme.typography.fontWeight?.medium ?? '500',
       lineHeight: getSizeStyles.fontSize * 1.2,
     }),
-    [getTagColors, getSizeStyles, theme.typography.fontWeight.medium],
+    [getTagColors, getSizeStyles, theme.typography.fontWeight?.medium],
   );
 
   // Render content
@@ -244,7 +244,7 @@ export const FoodTag: React.FC<FoodTagProps> = ({
       </Text>
 
       {closable && (
-        <TouchableOpacity
+        <Pressable
           onPress={handleClose}
           style={{
             marginLeft: theme.spacing.base.xs,
@@ -256,7 +256,7 @@ export const FoodTag: React.FC<FoodTagProps> = ({
           accessibilityHint='Removes this tag'
         >
           {closeIcon}
-        </TouchableOpacity>
+        </Pressable>
       )}
     </View>
   );
@@ -276,17 +276,16 @@ export const FoodTag: React.FC<FoodTagProps> = ({
 
   if (pressable) {
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={handlePress}
         style={[containerStyles, style]}
         disabled={disabled}
-        activeOpacity={0.8}
         testID={testID}
         {...accessibilityProps}
         {...rest}
       >
         {renderContent()}
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 

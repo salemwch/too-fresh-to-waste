@@ -4,12 +4,13 @@
  * Prompts users to add and verify their phone number when needed
  */
 
+import { useNavigation } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+
+import { useAppSelector } from '@/hooks/redux';
 
 import type { MainStackNavigationProp } from '@/navigation/types';
-import { useAppSelector } from '@/hooks/redux';
 
 interface PhoneVerificationResult {
   isVerified: boolean;
@@ -119,7 +120,7 @@ export const usePhoneVerification = (): UsePhoneVerificationReturn => {
         // User has phone but needs to verify it
         Alert.alert(
           'Phone Verification Required',
-          'Your phone number needs to be verified before you can place orders. We\'ll send you a verification code via SMS.',
+          "Your phone number needs to be verified before you can place orders. We'll send you a verification code via SMS.",
           [
             {
               text: 'Cancel',

@@ -4,7 +4,7 @@
  */
 
 import React, { forwardRef, useRef } from 'react';
-import { View, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
+import { View, Pressable, ActivityIndicator, Animated } from 'react-native';
 
 import { useTheme } from '../../../providers';
 
@@ -13,10 +13,10 @@ import { createCardStyles } from './Card.styles';
 import type { CardProps } from './Card.types';
 
 export const Card = forwardRef<
-  React.ElementRef<typeof View> | React.ElementRef<typeof TouchableOpacity>,
+  React.ElementRef<typeof View> | React.ElementRef<typeof Pressable>,
   CardProps
 >(
-  (
+  function Card(
     {
       variant = 'default',
       size = 'md',
@@ -37,7 +37,7 @@ export const Card = forwardRef<
       ...rest
     },
     ref,
-  ) => {
+  ) {
     const theme = useTheme();
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -66,6 +66,9 @@ export const Card = forwardRef<
     };
 
     const handlePress = () => {
+      if (__DEV__) {
+        console.log('[Card] handlePress called', { disabled, loading, hasOnPress: !!onPress, pressable });
+      }
       if (!disabled && onPress) {
         onPress();
       }
@@ -90,18 +93,17 @@ export const Card = forwardRef<
       </>
     );
 
-    // If pressable, wrap in TouchableOpacity with animation
+    // If pressable, wrap in Pressable with scale animation (no opacity flicker)
     if (pressable) {
       return (
         <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
-          <TouchableOpacity
-            ref={ref as React.RefObject<React.ElementRef<typeof TouchableOpacity>>}
+          <Pressable
+            ref={ref as React.RefObject<React.ElementRef<typeof Pressable>>}
             style={[styles.pressable, style]}
             onPress={handlePress}
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
             disabled={disabled || loading}
-            activeOpacity={0.95}
             testID={testID}
             accessibilityLabel={accessibilityLabel}
             accessibilityHint={accessibilityHint}
@@ -113,7 +115,7 @@ export const Card = forwardRef<
             {...rest}
           >
             {renderContent()}
-          </TouchableOpacity>
+          </Pressable>
         </Animated.View>
       );
     }
@@ -134,7 +136,5 @@ export const Card = forwardRef<
     );
   },
 );
-
-Card.displayName = 'Card';
 
 export default Card;

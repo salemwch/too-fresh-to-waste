@@ -11,7 +11,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, Image, Dimensions, StatusBar, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Image, Dimensions, StatusBar, Pressable } from 'react-native';
 
 import BagImage from '@/assets/images/Bag.png';
 import LeafIcon from '@/assets/images/leaf.png';
@@ -130,7 +130,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
           {/* Sign Up Link */}
           <View style={styles.signInContainer}>
-            <TouchableOpacity onPress={handleSignUp} activeOpacity={0.7}>
+            <Pressable onPress={handleSignUp}>
               <Text
                 variant='body.medium'
                 weight='semibold'
@@ -138,7 +138,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
               >
                 Sign Up
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </View>

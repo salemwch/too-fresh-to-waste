@@ -53,10 +53,12 @@ module.exports = {
     production: {
       plugins: [
         /**
-         * Remove console.* calls in production for smaller bundle
-         * Performance: ~5-10KB smaller bundle
+         * Remove ALL console.* calls in production
+         * Per https://reactnative.dev/docs/performance — console.log is a
+         * major JS thread bottleneck; error/warn also serialize arguments.
+         * Use Logger utility (src/utils/logger.ts) for production logging.
          */
-        ['transform-remove-console', {exclude: ['error', 'warn']}],
+        'transform-remove-console',
       ],
     },
     development: {

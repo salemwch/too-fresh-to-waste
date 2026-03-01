@@ -40,6 +40,7 @@ import {
   selectHasValidLocation,
   selectShouldShowPrompt,
   selectLocationSourceDisplay,
+  selectFormattedLocationDisplay,
 } from '@/store/slices/locationSlice';
 
 import { useAppDispatch, useAppSelector } from './redux';
@@ -77,6 +78,12 @@ export interface UseLocationReturn {
   /** Display name for manual location */
   manualLocationName: string | null;
 
+  /** GPS location name from reverse geocoding (e.g., "Tel Aviv, Israel") */
+  gpsLocationName: string | null;
+
+  /** Timestamp when GPS location name was resolved */
+  gpsLocationTimestamp: number | null;
+
   // ─────────────────────────────────────────────────────────────────────────
   // Computed
   // ─────────────────────────────────────────────────────────────────────────
@@ -92,6 +99,15 @@ export interface UseLocationReturn {
 
   /** Location mode for display: { mode: 'gps'|'manual'|'off', label: string } */
   locationSourceDisplay: { mode: 'gps' | 'manual' | 'off'; label: string };
+
+  /**
+   * ✅ NEW: Formatted location display string (presentation-ready)
+   * - Pre-formatted with truncation (> 20 chars)
+   * - Never null/undefined (always returns safe string)
+   * - Handles rehydration races safely
+   * - Use this directly in UI instead of formatLocationName()
+   */
+  formattedLocationDisplay: string;
 
   // ─────────────────────────────────────────────────────────────────────────
   // Actions
@@ -158,6 +174,7 @@ export function useLocation(): UseLocationReturn {
   const hasValidLocation = useAppSelector(selectHasValidLocation);
   const shouldShowPrompt = useAppSelector(selectShouldShowPrompt);
   const locationSourceDisplay = useAppSelector(selectLocationSourceDisplay);
+  const formattedLocationDisplay = useAppSelector(selectFormattedLocationDisplay);
 
   const {
     coordinates,
@@ -168,6 +185,8 @@ export function useLocation(): UseLocationReturn {
     error,
     preferredRadiusKm,
     manualLocationName,
+    gpsLocationName,
+    gpsLocationTimestamp,
   } = locationState;
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -237,12 +256,26 @@ export function useLocation(): UseLocationReturn {
     error,
     preferredRadiusKm,
     manualLocationName,
+    gpsLocationName,
+    gpsLocationTimestamp,
 
     // Computed
-    hasLocation: coordinates !== null,
+    /**
+     * ✅ FIXED: More robust hasLocation check
+     * - Checks coordinates exist AND at least one location name exists
+     * - Prevents rehydration race where coordinates load before names
+     * - Uses runtime type guards for safety
+     */
+    hasLocation: Boolean(
+      coordinates &&
+        (source === 'gps'
+          ? typeof gpsLocationName === 'string' && gpsLocationName.trim().length > 0
+          : typeof manualLocationName === 'string' && manualLocationName.trim().length > 0),
+    ),
     hasValidLocation,
     shouldShowPrompt,
     locationSourceDisplay,
+    formattedLocationDisplay,
 
     // Actions
     requestLocation,

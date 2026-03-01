@@ -20,7 +20,7 @@ import {
   View,
   StyleSheet,
   Modal,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   ScrollView,
   Dimensions,
@@ -28,6 +28,8 @@ import {
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { environment } from '@/config/environment';
+
 import { ManualLocationModal } from '../ManualLocationModal';
 
 // ============================================================================
@@ -36,11 +38,11 @@ import { ManualLocationModal } from '../ManualLocationModal';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Sousse City Center coordinates (from SearchScreen.tsx)
-const SOUSSE_CENTER = {
-  latitude: 35.8288,
-  longitude: 10.6405,
-  name: 'Sousse, Tunisia',
+// Default location from environment config (not hardcoded)
+const DEFAULT_CENTER = {
+  latitude: environment.geolocation.defaultLatitude,
+  longitude: environment.geolocation.defaultLongitude,
+  name: 'Tunisia',
 };
 
 // ============================================================================
@@ -64,13 +66,13 @@ export interface LocationSelectionModalProps {
 // Component
 // ============================================================================
 
-export const LocationSelectionModal: React.FC<LocationSelectionModalProps> = ({
+export const LocationSelectionModal = React.memo<LocationSelectionModalProps>(function LocationSelectionModal({
   visible,
   onLocationSelect,
   isLoading = false,
   error = null,
   testID = 'location-selection-modal',
-}) => {
+}) {
   const theme = useTheme();
   const [showCitySearch, setShowCitySearch] = useState(false);
 
@@ -89,12 +91,12 @@ export const LocationSelectionModal: React.FC<LocationSelectionModalProps> = ({
 
   /**
    * Handle "Use default location"
-   * Sets location to Sousse city center
+   * Sets location to the environment-configured default center
    */
   const handleUseDefaultLocation = useCallback(() => {
     onLocationSelect(
-      { latitude: SOUSSE_CENTER.latitude, longitude: SOUSSE_CENTER.longitude },
-      SOUSSE_CENTER.name,
+      { latitude: DEFAULT_CENTER.latitude, longitude: DEFAULT_CENTER.longitude },
+      DEFAULT_CENTER.name,
     );
   }, [onLocationSelect]);
 
@@ -121,7 +123,7 @@ export const LocationSelectionModal: React.FC<LocationSelectionModalProps> = ({
       <Modal
         visible={visible}
         transparent
-        animationType="fade"
+        animationType='fade'
         statusBarTranslucent
         onRequestClose={() => {}}
         testID={testID}
@@ -148,17 +150,17 @@ export const LocationSelectionModal: React.FC<LocationSelectionModalProps> = ({
               >
                 {/* Header */}
                 <View style={styles.header}>
-                  <Icon name="map-pin" size={48} color={theme.colors.primary} />
+                  <Icon name='map-pin' size={48} color={theme.colors.primary} />
                   <Text
-                    variant="headline"
-                    size="lg"
-                    weight="bold"
-                    align="center"
+                    variant='headline'
+                    size='lg'
+                    weight='bold'
+                    align='center'
                     style={styles.headerTitle}
                   >
                     Where should we look for food?
                   </Text>
-                  <Text variant="body" size="md" color="secondary" align="center">
+                  <Text variant='body' size='md' color='secondary' align='center'>
                     Help us find the best deals near you
                   </Text>
                 </View>
@@ -171,13 +173,8 @@ export const LocationSelectionModal: React.FC<LocationSelectionModalProps> = ({
                       { backgroundColor: theme.colors.errorContainer, borderRadius: 8 },
                     ]}
                   >
-                    <Icon name="alert-circle" size={20} color={theme.colors.error} />
-                    <Text
-                      variant="body"
-                      size="sm"
-                      color="error"
-                      style={styles.errorText}
-                    >
+                    <Icon name='alert-circle' size={20} color={theme.colors.error} />
+                    <Text variant='body' size='sm' color='error' style={styles.errorText}>
                       {error}
                     </Text>
                   </View>
@@ -186,7 +183,7 @@ export const LocationSelectionModal: React.FC<LocationSelectionModalProps> = ({
                 {/* Options */}
                 <View style={styles.optionsContainer}>
                   {/* Option 1: Delicious food near me */}
-                  <TouchableOpacity
+                  <Pressable
                     style={[
                       styles.optionButton,
                       {
@@ -197,26 +194,26 @@ export const LocationSelectionModal: React.FC<LocationSelectionModalProps> = ({
                     ]}
                     onPress={handleRequestGPSLocation}
                     disabled={isLoading}
-                    accessibilityRole="button"
-                    accessibilityLabel="Find delicious food near me"
-                    accessibilityHint="Uses your current GPS location"
+                    accessibilityRole='button'
+                    accessibilityLabel='Find delicious food near me'
+                    accessibilityHint='Uses your current GPS location'
                   >
                     <View style={styles.optionIconContainer}>
-                      <Icon name="search" size={24} color={theme.colors.primary} />
+                      <Icon name='search' size={24} color={theme.colors.primary} />
                     </View>
                     <View style={styles.optionTextContainer}>
-                      <Text variant="body" size="md" weight="semibold">
+                      <Text variant='body' size='md' weight='semibold'>
                         Delicious food near me
                       </Text>
-                      <Text variant="body" size="sm" color="secondary">
+                      <Text variant='body' size='sm' color='secondary'>
                         Find nearby deals using GPS
                       </Text>
                     </View>
-                    <Icon name="chevron-right" size={20} color={theme.colors.secondary} />
-                  </TouchableOpacity>
+                    <Icon name='chevron-right' size={20} color={theme.colors.secondary} />
+                  </Pressable>
 
                   {/* Option 2: Use my current location */}
-                  <TouchableOpacity
+                  <Pressable
                     style={[
                       styles.optionButton,
                       {
@@ -227,26 +224,26 @@ export const LocationSelectionModal: React.FC<LocationSelectionModalProps> = ({
                     ]}
                     onPress={handleRequestGPSLocation}
                     disabled={isLoading}
-                    accessibilityRole="button"
-                    accessibilityLabel="Use my current location"
-                    accessibilityHint="Request GPS location permission"
+                    accessibilityRole='button'
+                    accessibilityLabel='Use my current location'
+                    accessibilityHint='Request GPS location permission'
                   >
                     <View style={styles.optionIconContainer}>
-                      <Icon name="navigation" size={24} color={theme.colors.primary} />
+                      <Icon name='navigation' size={24} color={theme.colors.primary} />
                     </View>
                     <View style={styles.optionTextContainer}>
-                      <Text variant="body" size="md" weight="semibold">
+                      <Text variant='body' size='md' weight='semibold'>
                         Use my current location
                       </Text>
-                      <Text variant="body" size="sm" color="secondary">
+                      <Text variant='body' size='sm' color='secondary'>
                         We'll request permission
                       </Text>
                     </View>
-                    <Icon name="chevron-right" size={20} color={theme.colors.secondary} />
-                  </TouchableOpacity>
+                    <Icon name='chevron-right' size={20} color={theme.colors.secondary} />
+                  </Pressable>
 
                   {/* Option 3: Use default location (Sousse) */}
-                  <TouchableOpacity
+                  <Pressable
                     style={[
                       styles.optionButton,
                       {
@@ -257,35 +254,35 @@ export const LocationSelectionModal: React.FC<LocationSelectionModalProps> = ({
                     ]}
                     onPress={handleUseDefaultLocation}
                     disabled={isLoading}
-                    accessibilityRole="button"
-                    accessibilityLabel="Use default location in Sousse"
-                    accessibilityHint="Sets location to Sousse city center"
+                    accessibilityRole='button'
+                    accessibilityLabel='Use default location in Sousse'
+                    accessibilityHint='Sets location to Sousse city center'
                   >
                     <View style={styles.optionIconContainer}>
-                      <Icon name="home" size={24} color={theme.colors.primary} />
+                      <Icon name='home' size={24} color={theme.colors.primary} />
                     </View>
                     <View style={styles.optionTextContainer}>
-                      <Text variant="body" size="md" weight="semibold">
+                      <Text variant='body' size='md' weight='semibold'>
                         Use default location
                       </Text>
-                      <Text variant="body" size="sm" color="secondary">
+                      <Text variant='body' size='sm' color='secondary'>
                         Sousse city center
                       </Text>
                     </View>
-                    <Icon name="chevron-right" size={20} color={theme.colors.secondary} />
-                  </TouchableOpacity>
+                    <Icon name='chevron-right' size={20} color={theme.colors.secondary} />
+                  </Pressable>
 
                   {/* Divider */}
                   <View style={styles.dividerContainer}>
                     <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
-                    <Text variant="body" size="sm" color="secondary" style={styles.dividerText}>
+                    <Text variant='body' size='sm' color='secondary' style={styles.dividerText}>
                       OR
                     </Text>
                     <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
                   </View>
 
                   {/* Option 4: Search by city */}
-                  <TouchableOpacity
+                  <Pressable
                     style={[
                       styles.searchButton,
                       {
@@ -296,32 +293,27 @@ export const LocationSelectionModal: React.FC<LocationSelectionModalProps> = ({
                     ]}
                     onPress={handleSearchCityPress}
                     disabled={isLoading}
-                    accessibilityRole="button"
-                    accessibilityLabel="Search for a city"
-                    accessibilityHint="Opens city search modal"
+                    accessibilityRole='button'
+                    accessibilityLabel='Search for a city'
+                    accessibilityHint='Opens city search modal'
                   >
-                    <Icon name="search" size={20} color={theme.colors.secondary} />
+                    <Icon name='search' size={20} color={theme.colors.secondary} />
                     <Text
-                      variant="body"
-                      size="md"
-                      color="secondary"
+                      variant='body'
+                      size='md'
+                      color='secondary'
                       style={styles.searchPlaceholder}
                     >
                       Search by city or area...
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
 
                 {/* Loading Indicator */}
                 {isLoading && (
                   <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={theme.colors.primary} />
-                    <Text
-                      variant="body"
-                      size="sm"
-                      color="secondary"
-                      style={styles.loadingText}
-                    >
+                    <ActivityIndicator size='large' color={theme.colors.primary} />
+                    <Text variant='body' size='sm' color='secondary' style={styles.loadingText}>
                       Getting your location...
                     </Text>
                   </View>
@@ -337,11 +329,11 @@ export const LocationSelectionModal: React.FC<LocationSelectionModalProps> = ({
         visible={showCitySearch}
         onClose={() => setShowCitySearch(false)}
         onLocationSelect={handleCitySelect}
-        testID="city-search-modal"
+        testID='city-search-modal'
       />
     </>
   );
-};
+});
 
 // ============================================================================
 // Styles

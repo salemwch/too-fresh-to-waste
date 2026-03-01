@@ -10,6 +10,13 @@ import type { ThemeContextValue } from '../../../types';
 export const createTextStyles = (theme: ThemeContextValue) => {
   const { colors, typography } = theme;
 
+  // Defensive: Ensure fontWeight exists (prevents crash during theme hydration)
+  const fw = typography?.fontWeight ?? {
+    thin: '100' as const, light: '300' as const, regular: '400' as const,
+    medium: '500' as const, semibold: '600' as const, bold: '700' as const,
+    extrabold: '800' as const, black: '900' as const,
+  };
+
   return StyleSheet.create({
     // Base text style
     base: {
@@ -84,28 +91,28 @@ export const createTextStyles = (theme: ThemeContextValue) => {
 
     // Font weights
     thin: {
-      fontWeight: typography.fontWeight.thin,
+      fontWeight: fw.thin,
     },
     light: {
-      fontWeight: typography.fontWeight.light,
+      fontWeight: fw.light,
     },
     regular: {
-      fontWeight: typography.fontWeight.regular,
+      fontWeight: fw.regular,
     },
     medium: {
-      fontWeight: typography.fontWeight.medium,
+      fontWeight: fw.medium,
     },
     semibold: {
-      fontWeight: typography.fontWeight.semibold,
+      fontWeight: fw.semibold,
     },
     bold: {
-      fontWeight: typography.fontWeight.bold,
+      fontWeight: fw.bold,
     },
     extrabold: {
-      fontWeight: typography.fontWeight.extrabold,
+      fontWeight: fw.extrabold,
     },
     black: {
-      fontWeight: typography.fontWeight.black,
+      fontWeight: fw.black,
     },
 
     // Italic

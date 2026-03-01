@@ -24,7 +24,7 @@
  */
 
 import React, { forwardRef, useState, useCallback, useMemo, useEffect } from 'react';
-import { View, TextInput, TouchableOpacity } from 'react-native';
+import { View, TextInput, Pressable } from 'react-native';
 import CountryPicker from 'react-native-country-picker-modal';
 
 import {
@@ -48,8 +48,8 @@ import type { CountryCode } from 'libphonenumber-js';
 import type { NativeSyntheticEvent, TextInputKeyPressEventData } from 'react-native';
 import type { Country, CountryCode as RNCountryCode } from 'react-native-country-picker-modal';
 
-export const PhoneInput = forwardRef<TextInput, PhoneInputProps>(
-  (
+export const PhoneInput = React.memo(forwardRef<TextInput, PhoneInputProps>(
+  function PhoneInput(
     {
       value,
       onChangeText,
@@ -78,7 +78,7 @@ export const PhoneInput = forwardRef<TextInput, PhoneInputProps>(
       ...rest
     },
     ref,
-  ) => {
+  ) {
     const theme = useTheme();
     const [isFocused, setIsFocused] = useState(false);
     const [showPicker, setShowPicker] = useState(false);
@@ -321,7 +321,7 @@ export const PhoneInput = forwardRef<TextInput, PhoneInputProps>(
       const flagEmoji = getCountryFlagEmoji(internalCountry);
 
       return (
-        <TouchableOpacity
+        <Pressable
           style={[
             styles.countryPickerButton,
             disabled && styles.countryPickerDisabled,
@@ -329,7 +329,6 @@ export const PhoneInput = forwardRef<TextInput, PhoneInputProps>(
           ]}
           onPress={() => !disabled && !readOnly && setShowPicker(true)}
           disabled={disabled || readOnly}
-          activeOpacity={0.7}
           testID={`${testID}-country-picker`}
           accessibilityLabel='Select country code'
           accessibilityRole='button'
@@ -350,7 +349,7 @@ export const PhoneInput = forwardRef<TextInput, PhoneInputProps>(
           />
           <Text style={styles.flagEmoji}>{flagEmoji}</Text>
           <Text style={styles.callingCode}>{callingCode ? `+${callingCode}` : ''}</Text>
-        </TouchableOpacity>
+        </Pressable>
       );
     };
 
@@ -393,8 +392,6 @@ export const PhoneInput = forwardRef<TextInput, PhoneInputProps>(
       </View>
     );
   },
-);
-
-PhoneInput.displayName = 'PhoneInput';
+));
 
 export default PhoneInput;

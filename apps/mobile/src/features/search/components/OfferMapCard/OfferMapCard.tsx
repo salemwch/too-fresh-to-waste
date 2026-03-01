@@ -14,16 +14,11 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Image,
-} from 'react-native';
+import { View, StyleSheet, Pressable, Animated, Image } from 'react-native';
 
 import { Text, Icon, Card } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+
 import type { ProximitySearchResult, NearbyOffer } from '@/features/offers/hooks';
 
 const CARD_HEIGHT = 140;
@@ -44,12 +39,7 @@ export interface OfferMapCardProps {
 // Component
 // ============================================================================
 
-export const OfferMapCard: React.FC<OfferMapCardProps> = ({
-  offer,
-  visible,
-  onPress,
-  onClose,
-}) => {
+export const OfferMapCard: React.FC<OfferMapCardProps> = ({ offer, visible, onPress, onClose }) => {
   const theme = useTheme();
   const slideAnim = useRef(new Animated.Value(CARD_HEIGHT + 50)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -113,10 +103,9 @@ export const OfferMapCard: React.FC<OfferMapCardProps> = ({
       ]}
       pointerEvents={visible ? 'auto' : 'none'}
     >
-      <TouchableOpacity
-        activeOpacity={0.95}
+      <Pressable
         onPress={onPress}
-        accessibilityRole="button"
+        accessibilityRole='button'
         accessibilityLabel={`${item.title} from ${item.establishmentName}, ${distance.formatted} away`}
       >
         <Card
@@ -129,40 +118,53 @@ export const OfferMapCard: React.FC<OfferMapCardProps> = ({
           ]}
         >
           {/* Close Button */}
-          <TouchableOpacity
+          <Pressable
             style={[styles.closeButton, { backgroundColor: theme.colors.surface }]}
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Icon name="close" family="Ionicons" size={16} color={theme.colors.onSurfaceVariant} />
-          </TouchableOpacity>
+            <Icon name='close' family='Ionicons' size={16} color={theme.colors.onSurfaceVariant} />
+          </Pressable>
 
           <View style={styles.content}>
             {/* Offer Image with Merchant Logo */}
             <View style={styles.imageContainer}>
               {offerImage ? (
-                <Image
-                  source={{ uri: offerImage }}
-                  style={styles.offerImage}
-                  resizeMode="cover"
-                />
+                <Image source={{ uri: offerImage }} style={styles.offerImage} resizeMode='cover' />
               ) : (
-                <View style={[styles.imagePlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}>
-                  <Icon name="fast-food" family="Ionicons" size={32} color={theme.colors.onSurfaceVariant} />
+                <View
+                  style={[
+                    styles.imagePlaceholder,
+                    { backgroundColor: theme.colors.surfaceVariant },
+                  ]}
+                >
+                  <Icon
+                    name='fast-food'
+                    family='Ionicons'
+                    size={32}
+                    color={theme.colors.onSurfaceVariant}
+                  />
                 </View>
               )}
 
               {/* Merchant Logo Overlay */}
-              <View style={[styles.merchantLogoContainer, { backgroundColor: theme.colors.background }]}>
+              <View
+                style={[styles.merchantLogoContainer, { backgroundColor: theme.colors.background }]}
+              >
                 {merchantLogoUrl ? (
                   <Image
                     source={{ uri: merchantLogoUrl }}
                     style={styles.merchantLogo}
-                    resizeMode="cover"
+                    resizeMode='cover'
                   />
                 ) : (
-                  <View style={[styles.merchantLogoPlaceholder, { backgroundColor: theme.colors.primaryContainer }]}>
-                    <Text variant="label" size="sm" weight="bold" color="primary">
+                  <View
+                    style={[
+                      styles.merchantLogoPlaceholder,
+                      { backgroundColor: theme.colors.primaryContainer },
+                    ]}
+                  >
+                    <Text variant='label' size='sm' weight='bold' color='primary'>
                       {item.establishmentName.charAt(0).toUpperCase()}
                     </Text>
                   </View>
@@ -172,7 +174,12 @@ export const OfferMapCard: React.FC<OfferMapCardProps> = ({
               {/* Discount Badge */}
               {item.pricing.discountPercentage > 0 && (
                 <View style={[styles.discountBadge, { backgroundColor: theme.colors.accent }]}>
-                  <Text variant="label" size="xs" weight="bold" style={{ color: theme.colors.onAccent }}>
+                  <Text
+                    variant='label'
+                    size='xs'
+                    weight='bold'
+                    style={{ color: theme.colors.onAccent }}
+                  >
                     -{Math.round(item.pricing.discountPercentage)}%
                   </Text>
                 </View>
@@ -182,19 +189,36 @@ export const OfferMapCard: React.FC<OfferMapCardProps> = ({
             {/* Offer Details */}
             <View style={styles.details}>
               {/* Title */}
-              <Text variant="title" size="sm" weight="bold" numberOfLines={1}>
+              <Text variant='title' size='sm' weight='bold' numberOfLines={1}>
                 {item.title}
               </Text>
 
               {/* Merchant Name */}
-              <Text variant="body" size="sm" color="secondary" numberOfLines={1} style={styles.merchantName}>
+              <Text
+                variant='body'
+                size='sm'
+                color='secondary'
+                numberOfLines={1}
+                style={styles.merchantName}
+              >
                 {item.establishmentName}
               </Text>
 
               {/* Pickup Time */}
               <View style={styles.pickupRow}>
-                <Icon name="time-outline" family="Ionicons" size={14} color={theme.colors.primary} />
-                <Text variant="label" size="sm" color="primary" weight="medium" style={styles.pickupText}>
+                <Icon
+                  name='time-outline'
+                  family='Ionicons'
+                  size={14}
+                  color={theme.colors.primary}
+                />
+                <Text
+                  variant='label'
+                  size='sm'
+                  color='primary'
+                  weight='medium'
+                  style={styles.pickupText}
+                >
                   Pickup: {pickupTime}
                 </Text>
               </View>
@@ -202,17 +226,24 @@ export const OfferMapCard: React.FC<OfferMapCardProps> = ({
               {/* Bottom Row: Distance, Rating, Price */}
               <View style={styles.bottomRow}>
                 {/* Distance */}
-                <View style={[styles.distanceBadge, { backgroundColor: theme.colors.surfaceVariant }]}>
-                  <Icon name="location-sharp" family="Ionicons" size={12} color={theme.colors.primary} />
-                  <Text variant="label" size="xs" weight="semibold" style={styles.distanceText}>
+                <View
+                  style={[styles.distanceBadge, { backgroundColor: theme.colors.surfaceVariant }]}
+                >
+                  <Icon
+                    name='location-sharp'
+                    family='Ionicons'
+                    size={12}
+                    color={theme.colors.primary}
+                  />
+                  <Text variant='label' size='xs' weight='semibold' style={styles.distanceText}>
                     {distance.formatted}
                   </Text>
                 </View>
 
                 {/* Rating */}
                 <View style={styles.ratingContainer}>
-                  <Icon name="star" family="Ionicons" size={14} color="#FFB800" />
-                  <Text variant="label" size="sm" weight="semibold" style={styles.ratingText}>
+                  <Icon name='star' family='Ionicons' size={14} color='#FFB800' />
+                  <Text variant='label' size='sm' weight='semibold' style={styles.ratingText}>
                     4.5
                   </Text>
                 </View>
@@ -222,16 +253,13 @@ export const OfferMapCard: React.FC<OfferMapCardProps> = ({
 
                 {/* Pricing */}
                 <View style={styles.pricingContainer}>
-                  <Text
-                    variant="body"
-                    size="xs"
-                    color="secondary"
-                    style={styles.originalPrice}
-                  >
-                    {item.pricing.currency}{item.pricing.originalPrice.toFixed(2)}
+                  <Text variant='body' size='xs' color='secondary' style={styles.originalPrice}>
+                    {item.pricing.currency}
+                    {item.pricing.originalPrice.toFixed(2)}
                   </Text>
-                  <Text variant="title" size="md" weight="bold" color="success">
-                    {item.pricing.currency}{item.pricing.discountedPrice.toFixed(2)}
+                  <Text variant='title' size='md' weight='bold' color='success'>
+                    {item.pricing.currency}
+                    {item.pricing.discountedPrice.toFixed(2)}
                   </Text>
                 </View>
               </View>
@@ -240,10 +268,15 @@ export const OfferMapCard: React.FC<OfferMapCardProps> = ({
 
           {/* Arrow indicator */}
           <View style={styles.arrowContainer}>
-            <Icon name="chevron-forward" family="Ionicons" size={20} color={theme.colors.onSurfaceVariant} />
+            <Icon
+              name='chevron-forward'
+              family='Ionicons'
+              size={20}
+              color={theme.colors.onSurfaceVariant}
+            />
           </View>
         </Card>
-      </TouchableOpacity>
+      </Pressable>
     </Animated.View>
   );
 };

@@ -9,7 +9,7 @@
  */
 
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 
 import { Text, Icon, Card } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -60,7 +60,7 @@ export const FormErrorMessage: React.FC<FormErrorMessageProps> = ({
       </View>
 
       {onDismiss && (
-        <TouchableOpacity
+        <Pressable
           onPress={onDismiss}
           style={styles.dismissButton}
           accessibilityRole='button'
@@ -68,7 +68,7 @@ export const FormErrorMessage: React.FC<FormErrorMessageProps> = ({
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Icon name='close' family='Ionicons' size={20} color={theme.colors.onErrorContainer} />
-        </TouchableOpacity>
+        </Pressable>
       )}
     </Card>
   );

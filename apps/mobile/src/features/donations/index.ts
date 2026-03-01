@@ -6,6 +6,7 @@
 // Components
 export { ImpactMoment } from './components/ImpactMoment';
 export { ImpactBanner } from './components/ImpactBanner';
+export { SkeletonImpactBanner } from './components/SkeletonImpactBanner';
 
 // Hooks
 export { useDonationStats, useUserDonationStats } from './hooks/useDonations';
