@@ -2,11 +2,24 @@
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["package.json", "pnpm-lock.yaml", "tsconfig.base.json"],
   "globalEnv": ["NODE_ENV", "CI"],
+  "globalPassThroughEnv": ["BREVO_API_KEY", "SENTRY_AUTH_TOKEN"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "build/**", ".next/**", "android/app/build/outputs/**"],
-      "env": ["NODE_ENV"]
+      "env": [
+        "NODE_ENV",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_GA_MEASUREMENT_ID",
+        "NEXT_PUBLIC_ENABLE_ANALYTICS",
+        "NEXT_PUBLIC_ENABLE_PWA",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "NEXT_PUBLIC_GOOGLE_MAPS_KEY",
+        "NEXT_PUBLIC_PLAY_STORE_URL",
+        "NEXT_PUBLIC_APP_STORE_URL",
+        "NEXT_PUBLIC_GOOGLE_VERIFICATION"
+      ]
     },
     "dev": {
       "dependsOn": ["^build"],
