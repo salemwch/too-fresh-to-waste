@@ -104,7 +104,12 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(self)',
+            // Disable credential/identity APIs (prevents Chrome Android FedCM
+            // prompt triggered by Google Analytics loading Google Identity scripts).
+            // geolocation=(self): allow only same-origin GPS requests.
+            // identity-credentials-get=(): block FedCM sign-in prompts.
+            // publickey-credentials-get=(): block WebAuthn/passkey prompts.
+            value: 'camera=(), microphone=(), geolocation=(self), identity-credentials-get=(), publickey-credentials-get=()',
           },
         ],
       },
