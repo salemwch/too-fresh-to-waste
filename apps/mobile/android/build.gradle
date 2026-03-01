@@ -1,4 +1,3 @@
-// ============================================================================
 // TOP-LEVEL BUILD FILE - Food Waste Mobile App
 // ============================================================================
 // React Native 0.81.0 + Android Gradle Plugin 8.13.2
@@ -17,6 +16,14 @@
 // - AGP 8.8+ and React Native Kotlin DSL check rootProject.properties[]
 // - Legacy native modules (reanimated, maps) use rootProject.ext.*
 // - This ensures both access patterns work correctly
+
+// ============================================================================
+// PNPM MONOREPO: NODE_MODULES PATH (Single Source of Truth)
+// ============================================================================
+// With node-linker=hoisted (.npmrc), all packages are at the workspace root.
+// Define once here; reference as rootProject.ext.nodeModulesDir everywhere.
+// From apps/mobile/android/ → 3 levels up to C:\WFA\node_modules
+ext.nodeModulesDir = "$rootDir/../../../node_modules"
 
 buildscript {
     ext {
@@ -90,14 +97,14 @@ allprojects {
         // JSC (JavaScriptCore) repository - not used, Hermes enabled
         // Kept for reference if JSC needed in future
         maven {
-            url("$rootDir/../node_modules/jsc-android/dist")
+            url("${rootProject.ext.nodeModulesDir}/jsc-android/dist")
         }
 
         // React Native local Maven repository
         // Required for libraries that use com.facebook.react:react-native:+ dependency
         // Source: https://reactnative.dev/docs/integration-with-existing-apps
         maven {
-            url("$rootDir/../node_modules/react-native/android")
+            url("${rootProject.ext.nodeModulesDir}/react-native/android")
         }
     }
 
@@ -118,6 +125,7 @@ allprojects {
             // Force Google Play Services versions for compatibility
             // Firebase BOM 33.7.0 requires GMS 18.5.0+ / 21.3.0+
             // react-native-geolocation-service 5.3.1 compatible with GMS 21.3.0
+            // react-native-maps 1.15.6 (stable with RN 0.81.0) uses GMS Maps 18.0.x
             // Source: https://firebase.google.com/support/release-notes/android
             force("com.google.android.gms:play-services-base:18.5.0")
             force("com.google.android.gms:play-services-location:21.3.0")
@@ -221,8 +229,7 @@ subprojects {
                 // AGP 8+ requires buildFeatures.buildConfig = true when using custom BuildConfig fields
                 // Multiple React Native libraries need this patch
                 // Source: https://github.com/facebook/react-native/issues/40772
-                if (project.name == 'react-native-image-picker' ||
-                    project.name == 'react-native-vector-icons') {
+                if (project.name == 'react-native-image-picker') {
                     buildFeatures {
                         buildConfig = true
                     }

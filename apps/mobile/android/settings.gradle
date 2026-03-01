@@ -4,19 +4,17 @@
 // Source: https://github.com/react-native-community/template/blob/0.77-stable/template/android/settings.gradle
 // Monorepo: apps/mobile/android/settings.gradle
 //
-// React Native Gradle Plugin configuration:
-// - includeBuild appears twice: in pluginManagement{} and at root level
-// - PNPM stores plugin in workspace root virtual store: C:/WFA/node_modules/.pnpm/
-// - Relative path from apps/mobile/android/: ../../../node_modules/.pnpm/@react-native+gradle-plugin@0.81.0/
-// - Autolinking powered by @react-native-community/cli config command
+// PNPM uses node-linker=hoisted: all packages at workspace root node_modules/
+// Autolink powered by @react-native-community/cli config command
 
+// pluginManagement MUST be the first block in settings.gradle (Gradle requirement)
 pluginManagement {
+    includeBuild("../../../node_modules/@react-native/gradle-plugin")
     repositories {
         google()
         mavenCentral()
         gradlePluginPortal()
     }
-    includeBuild("../../../node_modules/.pnpm/@react-native+gradle-plugin@0.81.0/node_modules/@react-native/gradle-plugin")
 }
 
 plugins {
@@ -26,6 +24,10 @@ plugins {
 extensions.configure(com.facebook.react.ReactSettingsExtension) { reactSettings ->
     reactSettings.autolinkLibrariesFromCommand()
 }
+
+// Single source of truth for node_modules path in settings.gradle scope.
+// From apps/mobile/android/ → 3 levels up to monorepo root node_modules/
+def nodeModulesDir = "$rootDir/../../../node_modules"
 
 rootProject.name = 'FoodWasteApp'
 
@@ -38,9 +40,9 @@ include ':app'
 // Source: https://nitro.margelo.com/docs/minimum-requirements
 // ============================================================================
 include ':react-native-nitro-modules'
-project(':react-native-nitro-modules').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-nitro-modules/android')
+project(':react-native-nitro-modules').projectDir = new File("${nodeModulesDir}/react-native-nitro-modules/android")
 
 include ':react-native-mmkv'
-project(':react-native-mmkv').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-mmkv/android')
+project(':react-native-mmkv').projectDir = new File("${nodeModulesDir}/react-native-mmkv/android")
 
-includeBuild('../../../node_modules/.pnpm/@react-native+gradle-plugin@0.81.0/node_modules/@react-native/gradle-plugin')
+includeBuild("${nodeModulesDir}/@react-native/gradle-plugin")

@@ -30,8 +30,14 @@ android {
         applicationId "com.foodwasteapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0.0"
+        // Read from CI/CD env vars so each release can set VERSION_CODE/VERSION_NAME
+        // without touching source. Defaults to 1 / "1.0.0" for local builds.
+        // GitHub Actions example:
+        //   env:
+        //     VERSION_CODE: ${{ github.run_number }}
+        //     VERSION_NAME: "1.0.0"
+        versionCode = (System.getenv("VERSION_CODE") ?: "1").toInteger()
+        versionName = System.getenv("VERSION_NAME") ?: "1.0.0"
 
         // Enable MultiDex for large app
         multiDexEnabled true
@@ -163,8 +169,20 @@ kotlin {
 // Automatically links native dependencies discovered by autolinking
 // Adds implementation project(':module-name') dependencies for all React Native modules
 react {
+    // Paths derived from centralized nodeModulesDir (defined in root build.gradle).
+    // Required for pnpm node-linker=hoisted monorepo where all packages are at
+    // the workspace root node_modules/, not apps/mobile/node_modules/.
+    reactNativeDir = file("${rootProject.ext.nodeModulesDir}/react-native")
+    codegenDir = file("${rootProject.ext.nodeModulesDir}/@react-native/codegen")
     autolinkLibrariesWithApp()
 }
+
+// ============================================================================
+// REACT NATIVE VECTOR ICONS (SCOPED PACKAGES)
+// ============================================================================
+// Migrated to @react-native-vector-icons/* scoped packages (v12.x)
+// Font bundling is handled automatically via React Native auto-linking.
+// No manual vectorIconsFonts configuration required.
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
