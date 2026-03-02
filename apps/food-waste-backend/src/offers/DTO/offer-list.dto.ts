@@ -6,6 +6,7 @@ export enum CtaState {
     AVAILABLE = 'available',
     LOW_STOCK = 'low_stock',
     SOLD_OUT = 'sold_out',
+    NOT_STARTED = 'not_started',
 }
 
 /**
@@ -40,6 +41,9 @@ export class OfferCardDto {
     @IsNumber()
     @Min(0)
     availableQuantity: number; // Computed: totalQuantity - sold - reserved
+
+    @IsDateString()
+    availableFrom: Date; // When offer becomes available for ordering
 
     @IsDateString()
     availableUntil: Date;

@@ -88,6 +88,7 @@ export interface NearbyOffer {
   establishmentId: string;
   establishmentName: string;
   pricing: OfferPricing;
+  availableFrom: string;
   availableUntil: string;
   availableQuantity: number;
   categories: string[];
@@ -164,6 +165,7 @@ export interface MapOfferSummary {
   title: string;
   description: string;
   pricing: OfferPricing;
+  availableFrom: string;
   availableUntil: string;
   availableQuantity: number;
   categories: string[];

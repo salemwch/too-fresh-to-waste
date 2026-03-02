@@ -26,7 +26,8 @@ import { Badge } from '../../atoms/Badge';
 import { Card } from '../../atoms/Card';
 import { Text } from '../../atoms/Text';
 
-import { formatPickupTime, formatDistance, offerTypeLabels } from './OfferCard.types';
+import { formatPickupTime, formatDistance, formatStartTime, offerTypeLabels } from './OfferCard.types';
+import { CtaState } from '@/features/offers/types';
 
 import type { OfferCardProps } from './OfferCard.types';
 
@@ -47,6 +48,7 @@ const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000',
   SOLD_OUT_OVERLAY: 'rgba(0, 0, 0, 0.5)',
+  NOT_STARTED_OVERLAY: 'rgba(0, 82, 80, 0.45)', // Brand teal overlay for not-yet-available
 } as const;
 
 /**
@@ -107,6 +109,11 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
     );
     const distanceText = useMemo(() => formatDistance(offer.distance), [offer.distance]);
     const isOutOfStock = itemsLeft <= 0;
+    const isNotStarted = offer.ctaState === CtaState.NOT_STARTED;
+    const startTimeText = useMemo(
+      () => (isNotStarted ? formatStartTime(offer.availableFrom) : null),
+      [isNotStarted, offer.availableFrom],
+    );
 
     // Image source with fallback
     const imageSource = useMemo(() => {
@@ -188,7 +195,9 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       if (distanceText !== null && distanceText.length > 0) {
         label += `, ${distanceText} away`;
       }
-      if (itemsLeft > 0) {
+      if (isNotStarted && startTimeText !== null) {
+        label += `, starts at ${startTimeText}`;
+      } else if (itemsLeft > 0) {
         label += `, ${itemsLeft} items left`;
       } else {
         label += ', Sold out';
@@ -257,8 +266,15 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
           </View>
         )}
 
-        {/* Out of stock overlay */}
-        {isOutOfStock && (
+        {/* Not started overlay — shown instead of sold out when offer hasn't begun */}
+        {isNotStarted && startTimeText !== null && (
+          <View style={styles.notStartedOverlay}>
+            <Badge variant='info' size='md' label={`Starts at ${startTimeText}`} />
+          </View>
+        )}
+
+        {/* Sold out overlay — only when truly out of stock, not when not started */}
+        {isOutOfStock && !isNotStarted && (
           <View style={styles.soldOutOverlay}>
             <Badge variant='error' size='md' label='SOLD OUT' />
           </View>
@@ -406,7 +422,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
         variant='elevated'
         pressable={!!onPress && !disabled && !loading}
         onPress={handleCardPress}
-        disabled={disabled || isOutOfStock}
+        disabled={disabled || (isOutOfStock && !isNotStarted)}
         style={[styles.card, style]}
         testID={testID}
         accessibilityLabel={accessibilityLabelText}
@@ -543,6 +559,16 @@ const createStyles = (
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 3,
+    },
+    notStartedOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: COLORS.NOT_STARTED_OVERLAY,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     soldOutOverlay: {
       position: 'absolute',

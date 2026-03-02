@@ -49,6 +49,7 @@ interface OfferBase {
     totalQuantity: number;
     soldQuantity: number;
     reservedQuantity: number;
+    availableFrom: Date;
     availableUntil: Date;
     pickupTimeSlots?: Array<{
         startTime: string;

@@ -145,8 +145,16 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm }: ReactivateMod
 
   // Correct stale "from" value when day changes
   useEffect(() => {
-    if (fromOptions.length > 0 && !fromOptions.includes(pickupFrom)) {
-      setFrom(fromOptions[0] ?? '12:00');
+    if (day === 'today') {
+      // 'now' is always valid for today; only reset if current value is neither 'now' nor a valid future slot
+      if (pickupFrom !== 'now' && !fromOptions.includes(pickupFrom)) {
+        setFrom('now');
+      }
+    } else {
+      // 'now' is meaningless for tomorrow — fall back to first valid slot
+      if (pickupFrom === 'now' || !fromOptions.includes(pickupFrom)) {
+        setFrom(fromOptions[0] ?? '12:00');
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [day]);
@@ -158,11 +166,16 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm }: ReactivateMod
   }
 
   function handleConfirm() {
-    const overflow = pickupUntil === '00:00';
+    const overflow     = pickupUntil === '00:00';
+    const nowSnap      = new Date();
+    const pad          = (n: number) => String(n).padStart(2, '0');
+    const resolvedFrom = pickupFrom === 'now'
+      ? `${pad(nowSnap.getHours())}:${pad(nowSnap.getMinutes())}`
+      : pickupFrom;
     onConfirm({
-      availableFrom:    toISO(day, pickupFrom),
+      availableFrom:    pickupFrom === 'now' ? nowSnap.toISOString() : toISO(day, pickupFrom),
       availableUntil:   toISO(day, pickupUntil, overflow),
-      pickupTimeSlots:  [{ startTime: pickupFrom, endTime: pickupUntil }],
+      pickupTimeSlots:  [{ startTime: resolvedFrom, endTime: pickupUntil }],
       totalQuantity:    quantity,
       timezone:         Intl.DateTimeFormat().resolvedOptions().timeZone,
       isPickupToday:    day === 'today',
@@ -170,7 +183,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm }: ReactivateMod
     });
   }
 
-  const canConfirm = day === 'tomorrow' || fromOptions.length > 0;
+  const canConfirm = day === 'tomorrow' || fromOptions.length > 0 || pickupFrom === 'now';
 
   return (
     <div
@@ -267,13 +280,12 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm }: ReactivateMod
                 onChange={(e) => setFrom(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30"
               >
-                {fromOptions.length === 0 ? (
-                  <option disabled>No times available</option>
-                ) : (
-                  fromOptions.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))
+                {day === 'today' && (
+                  <option value="now">⚡ Right Now</option>
                 )}
+                {fromOptions.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
               </select>
             </div>
             <div className="flex-1">
@@ -294,7 +306,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm }: ReactivateMod
 
           {/* Live summary */}
           <p className="text-[11px] font-medium text-slate-600 tabular-nums">
-            {day === 'today' ? 'Today' : 'Tomorrow'} · {pickupFrom} – {pickupUntil === '00:00' ? '00:00 (midnight)' : pickupUntil}
+            {day === 'today' ? 'Today' : 'Tomorrow'} · {pickupFrom === 'now' ? '⚡ Now' : pickupFrom} – {pickupUntil === '00:00' ? '00:00 (midnight)' : pickupUntil}
           </p>
 
           {/* Quantity */}

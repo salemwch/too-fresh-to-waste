@@ -75,10 +75,13 @@ const mapOfferToListItem = (
     currency: offer.pricing.currency as 'TND',
   },
   availableQuantity: offer.availableQuantity,
+  availableFrom: offer.availableFrom,
   availableUntil: offer.availableUntil,
   establishment: { name: establishmentName },
   distance: distanceMeters,
-  ctaState: offer.availableQuantity > 0 ? CtaState.AVAILABLE : CtaState.SOLD_OUT,
+  ctaState: new Date() < new Date(offer.availableFrom)
+    ? CtaState.NOT_STARTED
+    : offer.availableQuantity > 0 ? CtaState.AVAILABLE : CtaState.SOLD_OUT,
   status: OfferStatus.ACTIVE,
 });
 

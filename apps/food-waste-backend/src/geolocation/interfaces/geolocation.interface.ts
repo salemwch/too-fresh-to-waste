@@ -131,6 +131,7 @@ export interface OfferGeoData {
     discountPercentage: number;
     currency: string;
   };
+  availableFrom: Date;
   availableUntil: Date;
   availableQuantity: number;
   categories: string[];
@@ -230,6 +231,7 @@ export interface MapOfferSummary {
     discountPercentage: number;
     currency: string;
   };
+  availableFrom: Date;
   availableUntil: Date;
   availableQuantity: number;
   categories: string[];

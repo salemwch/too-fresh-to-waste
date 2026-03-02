@@ -246,6 +246,27 @@ export const formatDistance = (distanceInMeters?: number): string | null => {
 };
 
 /**
+ * Helper function to format the start time for not-yet-started offers.
+ * Stored times are "display times" (Tunisia local) stored as UTC — extract UTC components directly.
+ *
+ * @param availableFrom - ISO timestamp of when the offer starts
+ * @returns Formatted "HH:MM" string or null on error
+ */
+export const formatStartTime = (availableFrom: string): string | null => {
+  try {
+    const from = new Date(availableFrom);
+    return from.toLocaleTimeString('en-US', {
+      timeZone: 'Africa/Tunis',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  } catch {
+    return null;
+  }
+};
+
+/**
  * Helper function to check if offer is expiring soon (< 2 hours)
  *
  * IMPORTANT: Stored times are "display times" (Tunisia local), NOT actual UTC.

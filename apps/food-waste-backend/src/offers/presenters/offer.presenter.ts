@@ -86,6 +86,7 @@ export class OfferPresenter {
                 currency: offer.pricing.currency,
             },
             availableQuantity: availableQty,
+            availableFrom: offer.availableFrom,
             availableUntil: offer.availableUntil,
             pickupTimeSlots: offer.pickupTimeSlots?.map(slot => ({
                 startTime: slot.startTime,
@@ -93,7 +94,7 @@ export class OfferPresenter {
             })),
             establishment: establishmentData,
             distance: finalDistance,
-            ctaState: this.calculateCtaState(availableQty, offer.totalQuantity),
+            ctaState: this.calculateCtaState(availableQty, offer.totalQuantity, offer.availableFrom),
             status: offer.status,
             // Favorite status (only when user is authenticated)
             isFavorite,
@@ -115,7 +116,12 @@ export class OfferPresenter {
      * @param total - Total quantity
      * @returns CTA state enum
      */
-    private static calculateCtaState(available: number, total: number): CtaState {
+    private static calculateCtaState(available: number, total: number, availableFrom: Date): CtaState {
+        // Offer hasn't started yet — takes priority over quantity checks
+        if (new Date() < new Date(availableFrom)) {
+            return CtaState.NOT_STARTED;
+        }
+
         if (available === 0) {
             return CtaState.SOLD_OUT;
         }

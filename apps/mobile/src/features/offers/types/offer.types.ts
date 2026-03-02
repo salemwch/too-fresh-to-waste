@@ -21,6 +21,7 @@ export enum CtaState {
   AVAILABLE = 'available',
   LOW_STOCK = 'low_stock',
   SOLD_OUT = 'sold_out',
+  NOT_STARTED = 'not_started',
 }
 
 // ============================================================================
@@ -185,6 +186,7 @@ export interface OfferListItem {
     currency: Currency;
   };
   availableQuantity: number; // ✅ Backend-computed (totalQuantity - soldQuantity - reservedQuantity)
+  availableFrom: Timestamp; // When offer becomes available for ordering
   availableUntil: Timestamp;
   pickupTimeSlots?: Array<{
     startTime: string; // HH:mm format (e.g., "12:15")
