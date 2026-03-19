@@ -56,7 +56,12 @@ pnpm-debug.log*
 **/android/build
 **/android/.gradle
 **/android/local.properties
+**/android/app/local.properties
 **/android/app/.cxx
+# Build log artifacts
+build-log.txt
+build2.log
+deps.txt
 
 # Keep Gradle wrapper files (important!)
 !**/android/gradle/wrapper/gradle-wrapper.jar
@@ -127,6 +132,20 @@ uploads/
 /coordinates.json
 /leaderboard.md
 /Plan.md
+
+# Local Claude project settings (machine-specific)
+.claude/settings.local.json
+
+# Runtime logs (never commit live server output)
+/logs.md
+
+# Planning / prototype notes (not source code)
+apps/web/dashboard.md
+apps/web/phase1.md
+apps/web/readl-data-dashboard.md
+
+# Backend ad-hoc test scratchpads (local only)
+apps/food-waste-backend/scripts/test-*.js
 
 # Windows reserved filenames (should never be tracked)
 nul
