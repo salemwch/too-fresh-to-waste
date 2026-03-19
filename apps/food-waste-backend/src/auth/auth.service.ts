@@ -458,11 +458,7 @@ export class AuthService {
 
         this.logger.log('User login successful', { userId: user._id, email: user.email });
 
-        // Clear failed login attempts in both Redis and MongoDB
-        await this.authSecurityService.clearLoginAttempts(ipAddress, loginDto.email);
-        await this.usersService.resetFailedLoginAttempts(user._id.toString());
-
-        // Generate tokens with JTI, family tracking, and device info
+        // Generate tokens (on critical path — needed for response)
         const deviceInfo: DeviceInfo = {
             ipAddress: requestInfo?.ipAddress || 'unknown',
             userAgent: requestInfo?.userAgent || 'unknown',
@@ -470,23 +466,30 @@ export class AuthService {
             browser: this.extractBrowser(requestInfo?.userAgent),
         };
 
-        const tokenPair = await this.tokenService.generateTokenPair(
-            user._id.toString(),
-            user.email,
-            user.role,
-            deviceInfo,
-            undefined, // No parent JTI (new login)
-            undefined, // No existing family (new login)
-            user.tokenRevocationVersion || 0,
-            loginDto.rememberMe ?? false,
-        );
-
-        await this.usersService.updateLastLogin(
-            user._id.toString(),
-            requestInfo?.ipAddress || 'unknown',
-            requestInfo?.userAgent || 'unknown',
-            requestInfo?.location
-        );
+        // Run token generation in parallel with cleanup + audit writes.
+        // Token generation is the only result needed for the response;
+        // clearing attempts and updating lastLogin are independent side effects.
+        const [tokenPair] = await Promise.all([
+            this.tokenService.generateTokenPair(
+                user._id.toString(),
+                user.email,
+                user.role,
+                deviceInfo,
+                undefined, // No parent JTI (new login)
+                undefined, // No existing family (new login)
+                user.tokenRevocationVersion || 0,
+                loginDto.rememberMe ?? false,
+            ),
+            // Side effects — independent, no return value needed
+            this.authSecurityService.clearLoginAttempts(ipAddress, loginDto.email),
+            this.usersService.resetFailedLoginAttempts(user._id.toString()),
+            this.usersService.updateLastLogin(
+                user._id.toString(),
+                requestInfo?.ipAddress || 'unknown',
+                requestInfo?.userAgent || 'unknown',
+                requestInfo?.location,
+            ),
+        ]);
 
         // ✅ SECURITY: Use DTO - only send what frontend needs (NO history/audit logs)
         // History endpoints should be separate: GET /users/me/login-history, GET /users/me/audit-log

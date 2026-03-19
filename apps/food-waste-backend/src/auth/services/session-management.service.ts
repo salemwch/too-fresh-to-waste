@@ -63,17 +63,17 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   ) {
     this.config = {
       maxConcurrentSessions:
-        this.configService.get<number>('SESSION_MAX_CONCURRENT') || 5,
+        Number(this.configService.get('SESSION_MAX_CONCURRENT')) || 5,
       sessionTimeout:
-        this.configService.get<number>('SESSION_TIMEOUT_MS') || 15 * 60 * 1000, // 15 min
+        Number(this.configService.get('SESSION_TIMEOUT_MS')) || 15 * 60 * 1000, // 15 min
       rememberMeDuration:
-        this.configService.get<number>('SESSION_REMEMBER_ME_MS') ||
+        Number(this.configService.get('SESSION_REMEMBER_ME_MS')) ||
         30 * 24 * 60 * 60 * 1000, // 30 days
       cleanupInterval:
-        this.configService.get<number>('SESSION_CLEANUP_INTERVAL_MS') ||
+        Number(this.configService.get('SESSION_CLEANUP_INTERVAL_MS')) ||
         5 * 60 * 1000, // 5 min
       suspiciousActivityThreshold:
-        this.configService.get<number>('SESSION_SUSPICIOUS_THRESHOLD') || 3,
+        Number(this.configService.get('SESSION_SUSPICIOUS_THRESHOLD')) || 3,
     };
   }
 
@@ -89,23 +89,16 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Create a new session for a user
-   * Stores session in Redis (fast lookup) and login history in MongoDB (audit trail)
+   * Create a new session for a user.
+   * Returns the session object immediately after generating it synchronously.
+   * All Redis/MongoDB I/O (store, enforce limit, audit) runs fire-and-forget
+   * so the login HTTP response is never blocked by remote Redis latency.
    */
   async createSession(request: CreateSessionRequest): Promise<SessionInfo> {
     const { userId, userAgent, ipAddress, deviceFingerprint, rememberMe } = request;
 
-    // Validate user exists
-    const user = await this.userModel.findById(userId);
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
-
-    // Parse device information
+    // Parse device information (synchronous — offline geoip lookup only)
     const deviceInfo = this.parseDeviceInfo(userAgent, ipAddress, deviceFingerprint);
-
-    // Check concurrent session limit
-    await this.enforceConcurrentSessionLimit(userId);
 
     // Generate session ID
     const sessionId = crypto.randomUUID();
@@ -116,7 +109,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
         (rememberMe ? this.config.rememberMeDuration : this.config.sessionTimeout),
     );
 
-    // Create session object
+    // Create session object (fully synchronous — no I/O)
     const session: SessionInfo = {
       sessionId,
       userId,
@@ -129,32 +122,59 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       lastActivityAt: new Date(),
     };
 
-    // Store in Redis (fast access)
-    await this.storeSessionInRedis(session);
+    // ── Fire-and-forget: all Redis/MongoDB I/O ────────────────────────────
+    // Session ID + device info are generated synchronously above, so we can
+    // return immediately. The remote Redis writes (store, enforce limit,
+    // audit trail) complete asynchronously — they are not required for the
+    // JWT tokens that actually authenticate subsequent requests.
+    this.persistSessionAsync(session, userId, ipAddress, userAgent, deviceInfo)
+      .catch((err) =>
+        this.logger.error(`Background session persistence failed: ${err.message}`),
+      );
 
-    // Store in user sessions map
-    await this.addSessionToUser(userId, sessionId);
+    this.logger.log(
+      `Session created for user ${userId}: \n${sessionId}`,
+    );
 
-    // Add to login history (MongoDB for audit trail)
-    await this.addLoginHistory(userId, {
+    return session;
+  }
+
+  /**
+   * Persist session data to Redis + MongoDB asynchronously.
+   * Called fire-and-forget from createSession so the login response is fast.
+   */
+  private async persistSessionAsync(
+    session: SessionInfo,
+    userId: string,
+    ipAddress: string,
+    userAgent: string,
+    deviceInfo: DeviceInfo,
+  ): Promise<void> {
+    // Enforce limit + store session — can run in parallel since enforce
+    // reads existing sessions while store writes the new one to a unique key.
+    await Promise.all([
+      this.enforceConcurrentSessionLimit(userId),
+      this.storeSessionInRedis(session),
+      this.addSessionToUser(userId, session.sessionId),
+    ]);
+
+    // Login history + activity logging are audit-only — fire-and-forget
+    this.addLoginHistory(userId, {
       ipAddress,
       userAgent,
       timestamp: new Date(),
       location: deviceInfo.location,
       success: true,
-    });
+    }).catch((err) =>
+      this.logger.warn(`Failed to write login history: ${err.message}`),
+    );
 
-    // Log activity
-    await this.logSessionActivity({
-      sessionId,
+    this.logSessionActivity({
+      sessionId: session.sessionId,
       activityType: 'login',
       timestamp: new Date(),
       metadata: { userId, ipAddress },
     });
-
-    this.logger.log(`Session created for user ${userId}: ${sessionId}`);
-
-    return session;
   }
 
   /**
@@ -248,20 +268,21 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Destroy a session (logout)
+   * Destroy a session (logout).
+   * Parallelises Redis DELETE + SREM to cut round-trips in half.
    */
   async destroySession(sessionId: string): Promise<void> {
     const session = await this.getSessionFromRedis(sessionId);
 
     if (session) {
-      // Remove from user sessions map
-      await this.removeSessionFromUser(session.userId, sessionId);
+      // Remove from user set + delete session key in parallel
+      await Promise.all([
+        this.removeSessionFromUser(session.userId, sessionId),
+        this.deleteSessionFromRedis(sessionId),
+      ]);
 
-      // Remove from Redis
-      await this.deleteSessionFromRedis(sessionId);
-
-      // Log activity
-      await this.logSessionActivity({
+      // Log activity (fire-and-forget — just a logger.debug call)
+      this.logSessionActivity({
         sessionId,
         activityType: 'logout',
         timestamp: new Date(),
@@ -285,20 +306,21 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Get all active sessions for a user
+   * Get all active sessions for a user.
+   * Parallelises Redis GETs to avoid sequential round-trips to remote Redis.
    */
   async getUserSessions(userId: string): Promise<SessionInfo[]> {
     const sessionIds = await this.getUserSessionIds(userId);
-    const sessions: SessionInfo[] = [];
+    if (sessionIds.length === 0) return [];
 
-    for (const sessionId of sessionIds) {
-      const session = await this.getSessionFromRedis(sessionId);
-      if (session && session.isActive) {
-        sessions.push(session);
-      }
-    }
+    // Fetch all sessions in parallel — each is an independent Redis GET
+    const results = await Promise.all(
+      sessionIds.map((id) => this.getSessionFromRedis(id)),
+    );
 
-    return sessions;
+    return results.filter(
+      (s): s is SessionInfo => s !== null && s.isActive,
+    );
   }
 
   /**
@@ -507,20 +529,19 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     userId: string,
     entry: LoginHistoryEntry,
   ): Promise<void> {
-    const user = await this.userModel.findById(userId);
-    if (!user) return;
-
-    if (!user.loginHistory) {
-      user.loginHistory = [];
-    }
-
-    user.loginHistory.unshift(entry as any);
-
-    if (user.loginHistory.length > USER_LOGIN_HISTORY_MAX) {
-      user.loginHistory = user.loginHistory.slice(0, USER_LOGIN_HISTORY_MAX);
-    }
-
-    await user.save();
+    // Atomic $push + $slice — no findById needed, single roundtrip
+    await this.userModel.updateOne(
+      { _id: userId },
+      {
+        $push: {
+          loginHistory: {
+            $each: [entry],
+            $position: 0,
+            $slice: USER_LOGIN_HISTORY_MAX,
+          },
+        },
+      },
+    );
   }
 
   /**
@@ -562,6 +583,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       const sessionJson = await redisClient.get(key);
       if (sessionJson) {
         const session: SessionInfo = JSON.parse(sessionJson as string);
+        session.expiresAt = new Date(session.expiresAt);
 
         if (new Date() > session.expiresAt) {
           await this.destroySession(session.sessionId);
@@ -612,7 +634,12 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       const sessionJson = await redisClient.get(key);
 
       if (sessionJson) {
-        return JSON.parse(sessionJson as string);
+        const session = JSON.parse(sessionJson as string);
+        // Reconstitute Date objects lost during JSON serialization
+        session.expiresAt = new Date(session.expiresAt);
+        session.createdAt = new Date(session.createdAt);
+        session.lastActivityAt = new Date(session.lastActivityAt);
+        return session;
       }
     } catch (error: any) {
       this.logger.warn(`Redis retrieval failed, using fallback: ${error.message}`);

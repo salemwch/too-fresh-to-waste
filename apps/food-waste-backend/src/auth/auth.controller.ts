@@ -170,7 +170,8 @@ export class AuthController {
     @Throttle({ default: { limit: 10, ttl: 300000 } })
     async verifyEmail(
         @Body() verifyEmailDto: VerifyEmailDto,
-        @Request() req: ExpressRequest
+        @Request() req: ExpressRequest,
+        @Response({ passthrough: true }) res: ExpressResponse,
     ) {
         try {
             // Extract request info for auto-login token generation
@@ -180,6 +181,12 @@ export class AuthController {
             };
 
             const result = await this.authService.verifyEmail(verifyEmailDto, requestInfo);
+
+            // Set HttpOnly cookies for web auto-login after email verification
+            if (result.tokens) {
+                this.setAuthCookies(res, result.tokens);
+            }
+
             return result;
         } catch (error) {
             if (error instanceof HttpException) {

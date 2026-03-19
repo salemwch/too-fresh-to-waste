@@ -60,7 +60,10 @@ export class CookieSecurityUtil {
         const defaultOptions: SecureCookieOptions = {
             httpOnly: true,              // ✓ CRITICAL: Prevent XSS access to cookies
             secure: isProduction,        // ✓ CRITICAL: HTTPS only in production
-            sameSite: 'strict',          // ✓ CRITICAL: Strongest CSRF protection
+            // 'lax' allows cookies on top-level navigations (e.g., email verification
+            // redirects from Gmail). 'strict' would block them because the redirect
+            // originates from an external site. 'lax' still prevents CSRF on POST/PUT/DELETE.
+            sameSite: 'lax',
             path: '/',
             domain: domain || undefined, // ✓ HIGH: Domain restriction (undefined = current domain only)
             signed: false,               // Optional: Enable for cookie integrity verification
@@ -104,7 +107,6 @@ export class CookieSecurityUtil {
         const options = this.getSecureOptions(isProduction, domain, {
             maxAge: expiresInMs,
             path: '/api',  // ✓ Restrict to API routes only (reduces attack surface)
-            sameSite: 'strict',  // ✓ Strictest CSRF protection for access tokens
         });
 
         res.cookie('access_token', token, options);
@@ -143,7 +145,6 @@ export class CookieSecurityUtil {
         const options = this.getSecureOptions(isProduction, domain, {
             maxAge: expiresInMs,
             path: '/api/v1/auth/refresh',  // ✓ CRITICAL: Only accessible by refresh endpoint
-            sameSite: 'strict',            // ✓ CRITICAL: Strictest CSRF protection (no cross-site access)
         });
 
         res.cookie('refresh_token', token, options);
