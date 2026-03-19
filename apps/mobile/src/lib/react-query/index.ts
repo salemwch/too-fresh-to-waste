@@ -1,6 +1,6 @@
 /**
  * TanStack Query - Central Export
- * Mobile-optimized React Query setup for React Native
+ * Mobile-optimized TanStack Query setup for React Native
  *
  * Usage:
  * ```tsx

@@ -126,7 +126,7 @@ class OffersService {
    */
   private handleError(error: unknown, url: string): never {
     if (axios.isAxiosError(error)) {
-      // Ignore cancellations — expected behavior from React Query
+      // Ignore cancellations — expected behavior from TanStack Query
       if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled') {
         Logger.debug('Request cancelled (expected)', { url });
         throw error;

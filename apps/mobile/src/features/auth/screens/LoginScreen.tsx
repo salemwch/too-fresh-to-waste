@@ -4,7 +4,7 @@
  */
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import {
   View,
@@ -14,6 +14,7 @@ import {
   Platform,
   Pressable,
   Image,
+  TextInput,
 } from 'react-native';
 
 import LeafLogo from '@/assets/images/leaf.png';
@@ -134,6 +135,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
   // Watch email for resend verification functionality
   const email = watch('email');
+
+  // Ref for password field — used to focus it when user submits email
+  const passwordRef = useRef<TextInput>(null);
 
   // Show password toggle
   const [showPassword, setShowPassword] = useState(false);
@@ -498,6 +502,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 autoCapitalize='none'
                 autoCorrect={false}
                 autoComplete='email'
+                textContentType='emailAddress'
+                returnKeyType='next'
+                onSubmitEditing={() => passwordRef.current?.focus()}
                 leftIcon={<Icon name='mail-outline' family='Ionicons' size='md' />}
                 hasError={!!formErrors.email}
                 errorText={formErrors.email?.message}
@@ -514,6 +521,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             name='password'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
+                ref={passwordRef}
                 label='Password'
                 placeholder='Enter your password'
                 value={value}
@@ -523,6 +531,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 autoCapitalize='none'
                 autoCorrect={false}
                 autoComplete='password'
+                textContentType='password'
+                returnKeyType='done'
+                onSubmitEditing={() => void handleSubmit(onSubmit)()}
                 leftIcon={<Icon name='lock-closed-outline' family='Ionicons' size='md' />}
                 rightIcon={
                   <Pressable onPress={() => setShowPassword(!showPassword)}>
@@ -582,10 +593,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   </Text>
                 </Pressable>
 
-                <Pressable
-                  onPress={handleNavigateToForgotPassword}
-                  disabled={isLoading}
-                >
+                <Pressable onPress={handleNavigateToForgotPassword} disabled={isLoading}>
                   <Text variant='body.small' color='primary' weight='medium'>
                     Forgot Password?
                   </Text>
@@ -621,10 +629,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <Text variant='body.medium' color={theme.colors.onSurfaceVariant}>
               Don&apos;t have an account?{' '}
             </Text>
-            <Pressable
-              onPress={handleNavigateToRegister}
-              disabled={isLoading}
-            >
+            <Pressable onPress={handleNavigateToRegister} disabled={isLoading}>
               <Text
                 variant='body.medium'
                 color={theme.colors.primary}
@@ -641,10 +646,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <Text variant='body.small' color={theme.colors.onSurfaceVariant}>
               Need to verify email?{' '}
             </Text>
-            <Pressable
-              onPress={() => setShowResendModal(true)}
-              disabled={isLoading}
-            >
+            <Pressable onPress={() => setShowResendModal(true)} disabled={isLoading}>
               <Text
                 variant='body.small'
                 color={theme.colors.primary}

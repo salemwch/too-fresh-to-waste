@@ -1,10 +1,7 @@
 /**
  * SkeletonPhoneVerificationModal
  * Shimmer skeleton shown while the order-creation API call is in flight
- * for UNVERIFIED users. Layout mirrors PhoneVerificationModal exactly
- * so the skeleton -> real-modal transition feels seamless.
- *
- * Uses native driver animations for 60fps performance.
+ * for UNVERIFIED users. Layout mirrors PhoneVerificationModal exactly.
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -17,6 +14,8 @@ import {
   Easing,
 } from 'react-native';
 
+import { SkeletonBox, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface SkeletonPhoneVerificationModalProps {
@@ -26,11 +25,10 @@ interface SkeletonPhoneVerificationModalProps {
 export const SkeletonPhoneVerificationModal: React.FC<SkeletonPhoneVerificationModalProps> = React.memo(({
   visible,
 }) => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const anim = useShimmerAnimation('pulse', visible);
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Entry / exit animation — mirrors PhoneVerificationModal bezier curves
   useEffect(() => {
     if (visible) {
       Animated.parallel([
@@ -52,127 +50,29 @@ export const SkeletonPhoneVerificationModal: React.FC<SkeletonPhoneVerificationM
     }
   }, [visible, fadeAnim, slideAnim]);
 
-  // Shimmer loop — same cadence as SkeletonOrderSuccessModal
-  useEffect(() => {
-    if (!visible) return;
-
-    const shimmer = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    shimmer.start();
-    return () => shimmer.stop();
-  }, [visible, shimmerAnim]);
-
-  const shimmerOpacity = shimmerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
-  });
-
-  const SkeletonBox = ({
-    width,
-    height,
-    borderRadius = 8,
-    style,
-  }: {
-    width: number | string;
-    height: number;
-    borderRadius?: number;
-    style?: any;
-  }) => (
-    <Animated.View
-      style={[
-        {
-          width,
-          height,
-          backgroundColor: '#E2E8F0',
-          borderRadius,
-          opacity: shimmerOpacity,
-        },
-        style,
-      ]}
-    />
-  );
-
   return (
     <Modal visible={visible} transparent animationType="none" statusBarTranslucent>
       <View style={styles.overlay}>
-        {/* Animated backdrop */}
         <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
 
-        {/* Animated bottom sheet */}
         <Animated.View
           style={[
             styles.sheet,
             { transform: [{ translateY: slideAnim }] },
           ]}
         >
-          {/* Title skeleton */}
-          <SkeletonBox
-            width={220}
-            height={26}
-            borderRadius={13}
-            style={styles.titleSkeleton}
-          />
+          <SkeletonBox animValue={anim} width={220} height={26} borderRadius={13} style={styles.titleSkeleton} />
+          <SkeletonBox animValue={anim} width="90%" height={14} borderRadius={7} style={styles.subtitleLine1} />
+          <SkeletonBox animValue={anim} width="70%" height={14} borderRadius={7} style={styles.subtitleLine2} />
+          <SkeletonBox animValue={anim} width={110} height={14} borderRadius={7} style={styles.labelSkeleton} />
 
-          {/* Subtitle skeleton — two lines */}
-          <SkeletonBox
-            width="90%"
-            height={14}
-            borderRadius={7}
-            style={styles.subtitleLine1}
-          />
-          <SkeletonBox
-            width="70%"
-            height={14}
-            borderRadius={7}
-            style={styles.subtitleLine2}
-          />
-
-          {/* Label skeleton */}
-          <SkeletonBox
-            width={110}
-            height={14}
-            borderRadius={7}
-            style={styles.labelSkeleton}
-          />
-
-          {/* Phone input row skeleton (prefix + input) */}
           <View style={styles.phoneRow}>
-            <SkeletonBox width={60} height={52} borderRadius={12} />
-            <SkeletonBox
-              width="100%"
-              height={52}
-              borderRadius={12}
-              style={styles.phoneInput}
-            />
+            <SkeletonBox animValue={anim} width={60} height={52} borderRadius={12} />
+            <SkeletonBox animValue={anim} width="100%" height={52} borderRadius={12} style={styles.phoneInput} />
           </View>
 
-          {/* CTA button skeleton */}
-          <SkeletonBox
-            width="100%"
-            height={52}
-            borderRadius={12}
-            style={styles.buttonSkeleton}
-          />
-
-          {/* Cancel link skeleton */}
-          <SkeletonBox
-            width={60}
-            height={14}
-            borderRadius={7}
-            style={styles.cancelSkeleton}
-          />
+          <SkeletonBox animValue={anim} width="100%" height={52} borderRadius={12} style={styles.buttonSkeleton} />
+          <SkeletonBox animValue={anim} width={60} height={14} borderRadius={7} style={styles.cancelSkeleton} />
         </Animated.View>
       </View>
     </Modal>
@@ -221,7 +121,7 @@ const styles = StyleSheet.create({
   },
   phoneInput: {
     flex: 1,
-    marginLeft: -1, // overlap like the real prefix/input join
+    marginLeft: -1,
   },
   buttonSkeleton: {
     marginTop: 8,

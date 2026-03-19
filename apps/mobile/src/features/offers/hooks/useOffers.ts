@@ -1,7 +1,7 @@
 /**
  * Offers Hooks
  *
- * React Query hooks for fetching and mutating offers data.
+ * TanStack Query hooks for fetching and mutating offers data.
  * Provides caching, automatic refetching, and optimistic updates.
  */
 
@@ -42,7 +42,7 @@ export const offerKeys = {
  * Fetch single offer by ID
  *
  * @param offerId - Offer ID to fetch
- * @param options - React Query options
+ * @param options - TanStack Query options
  * @returns Query result with offer data, loading state, and error
  *
  * @example
@@ -83,7 +83,7 @@ export function useOffer(
  *
  * @param params - Search and filter parameters
  * @param userLocation - Optional user location for distance calculation
- * @param options - React Query options
+ * @param options - TanStack Query options
  * @returns Query result with paginated offers
  *
  * @example
@@ -122,7 +122,7 @@ export function useOffers(
  * @param limit - Maximum number of featured offers (default 10)
  * @param userLocation - Optional user location for distance calculation
  * @param filters - Optional filter parameters (establishment type, cuisine, categories, offer type)
- * @param options - React Query options
+ * @param options - TanStack Query options
  * @returns Query result with featured offers
  *
  * @example
@@ -171,7 +171,7 @@ export function useFeaturedOffers(
  * @param limit - Maximum number of offers (default 10)
  * @param userLocation - Optional user location for distance calculation
  * @param filters - Optional filters (type, establishmentTypes, cuisineTypes, categories)
- * @param options - React Query options
+ * @param options - TanStack Query options
  * @returns Query result with urgent offers sorted by soonest expiring first
  *
  * @example
@@ -230,7 +230,7 @@ export function useUrgentOffers(
  *
  * @param limit - Maximum number of offers (default 20)
  * @param userLocation - Optional user location for distance calculation
- * @param options - React Query options
+ * @param options - TanStack Query options
  * @returns Query result with recommended offers
  *
  * @example
@@ -251,7 +251,7 @@ export function useRecommendedOffers(
         Logger.info('Recommended offers fetched', { count: validOffers.length });
         return validOffers;
       } catch (error: unknown) {
-        // Re-throw cancellation errors for React Query
+        // Re-throw cancellation errors for TanStack Query
         if (axios.isAxiosError(error)) {
           if (
             axios.isCancel(error) ||
@@ -283,7 +283,7 @@ export function useRecommendedOffers(
  * Fetch offers near a location
  *
  * @param params - Location parameters
- * @param options - React Query options
+ * @param options - TanStack Query options
  * @returns Query result with nearby offers
  *
  * @example
@@ -321,7 +321,7 @@ export function useNearbyOffersQuery(
  * @param establishmentId - Establishment ID
  * @param page - Page number
  * @param limit - Items per page
- * @param options - React Query options
+ * @param options - TanStack Query options
  * @returns Query result with establishment offers
  */
 export function useEstablishmentOffers(
@@ -356,7 +356,7 @@ export function useEstablishmentOffers(
  * @param limit - Maximum number of offers (default 20)
  * @param userLocation - Optional user location for distance calculation
  * @param filters - Optional filter parameters (establishment type, cuisine, categories, offer type)
- * @param options - React Query options
+ * @param options - TanStack Query options
  * @returns Query result with pickup today offers
  *
  * @example
@@ -412,7 +412,7 @@ export function usePickupTodayOffers(
  * @param limit - Maximum number of offers (default 20)
  * @param userLocation - Optional user location for distance calculation
  * @param filters - Optional filter parameters (establishment type, cuisine, categories, offer type)
- * @param options - React Query options
+ * @param options - TanStack Query options
  * @returns Query result with pickup tomorrow offers
  *
  * @example

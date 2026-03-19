@@ -23,7 +23,7 @@ const handleApiError = (error: unknown): Error => {
     const axiosError = error as AxiosError<{ message?: string }>;
 
     // Don't wrap cancellation errors
-    // React Query expects the original error to detect cancellations
+    // TanStack Query expects the original error to detect cancellations
     if (
       axios.isCancel(error) ||
       axiosError.code === 'ERR_CANCELED' ||

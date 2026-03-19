@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 
 import { SecureStorage } from '@/services/SecureStorage';
+import { backgroundStorage } from '@/utils/backgroundStorage';
 import { ErrorHandler } from '@/utils/errorHandler';
 import { Logger } from '@/utils/logger';
 
@@ -46,30 +47,23 @@ export const loginAsync = createAsyncThunk(
   'auth/login',
   async (request: LoginRequest, { rejectWithValue }) => {
     try {
-      Logger.info('Login attempt started', { email: request.email });
       const response = await authService.login(request);
 
-      // ✅ PRODUCTION: Synchronous token storage for CRITICAL auth operations
-      // Ensures tokens are in Keychain BEFORE Redux state updates
-      // Non-critical data (user profile) can still be background
-      const { backgroundStorage } = await import('@/utils/backgroundStorage');
-
-      // CRITICAL: Await token storage (Keychain is authoritative)
-      await backgroundStorage.executeAwaitable('login-tokens', async () => {
-        await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
-      });
-
-      Logger.info('[Auth] Tokens persisted to Keychain', { userId: response.user.userId });
-
-      // Non-critical: Fire-and-forget for user data and metadata
-      backgroundStorage.execute('login-user-data', async () => {
-        await SecureStorage.setUserData(JSON.stringify(response.user));
+      // Fire-and-forget ALL persistence on login.
+      // Tokens are placed in Redux state synchronously when loginAsync.fulfilled runs,
+      // so the active session reads from memory — not from Keychain.
+      // Keychain is only needed for cold-start re-hydration; the write window is
+      // milliseconds, so the risk of losing tokens before the write completes is
+      // negligible and the user can simply log in again. (Contrast with token
+      // REFRESH where the old token is immediately revoked — that write must be awaited.)
+      backgroundStorage.execute('login-persist', async () => {
         const expiresAt = new Date(Date.now() + response.tokens.expiresIn * 1000);
-        await SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString());
-      });
-
-      Logger.info('Login successful - navigating immediately, storage complete', {
-        userId: response.user.userId,
+        // All three writes are independent — run in parallel instead of sequential
+        await Promise.all([
+          SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken),
+          SecureStorage.setUserData(JSON.stringify(response.user)),
+          SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString()),
+        ]);
       });
       return response;
     } catch (error) {
@@ -113,8 +107,6 @@ export const loginAsync = createAsyncThunk(
         }
       }
 
-      console.log('[authSlice] Login error payload:', errorPayload);
-
       return rejectWithValue(errorPayload);
     }
   },
@@ -124,30 +116,11 @@ export const registerAsync = createAsyncThunk(
   'auth/register',
   async (request: RegisterRequest, { rejectWithValue }) => {
     try {
-      console.log('===== REDUX THUNK: registerAsync started =====');
       Logger.info('Registration attempt started', { email: request.email });
-      console.log('AuthSlice: Calling authService.register()...');
-
       const response = await authService.register(request);
-
-      console.log('AuthSlice: authService.register() returned:', response);
-      console.log('AuthSlice: Response structure check:', {
-        hasSuccess: 'success' in response,
-        hasMessage: 'message' in response,
-        hasUser: 'user' in response,
-        success: response.success,
-        message: response.message,
-        userId: response.user?.userId,
-      });
-
       Logger.info('Registration successful', { userId: response.user.userId });
-      console.log('===== REDUX THUNK: registerAsync returning success =====');
       return response;
     } catch (error) {
-      console.log('===== REDUX THUNK: registerAsync caught error =====');
-      console.error('AuthSlice: Registration error caught:', error);
-      console.error('AuthSlice: Error type:', typeof error);
-
       Logger.error('Registration failed', { email: request.email }, error as Error);
       // DO NOT call ErrorHandler.handle() - it shows red box
       // Registration errors should be handled gracefully in UI with inline messages
@@ -163,12 +136,7 @@ export const registerAsync = createAsyncThunk(
         errorMessage = error.message;
       }
 
-      const errorPayload = {
-        message: errorMessage,
-      };
-      console.log('AuthSlice: Rejecting with value:', errorPayload);
-      console.log('===== REDUX THUNK: registerAsync returning rejection =====');
-      return rejectWithValue(errorPayload);
+      return rejectWithValue({ message: errorMessage });
     }
   },
 );
@@ -180,15 +148,8 @@ export const verifyEmailAsync = createAsyncThunk(
       Logger.info('Email verification attempt started', { email: request.email });
       const response = await authService.verifyEmail(request);
 
-      // ✅ PRODUCTION: Synchronous token storage
-      const { backgroundStorage } = await import('@/utils/backgroundStorage');
-
-      // CRITICAL: Await token storage
-      await backgroundStorage.executeAwaitable('verify-email-tokens', async () => {
-        await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
-      });
-
-      Logger.info('[Auth] Email verified - tokens persisted', { userId: response.user.userId });
+      // CRITICAL: Await token storage directly
+      await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
 
       // Non-critical: Fire-and-forget
       backgroundStorage.execute('verify-email-user-data', async () => {
@@ -197,9 +158,7 @@ export const verifyEmailAsync = createAsyncThunk(
         await SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString());
       });
 
-      Logger.info('Email verification successful with auto-login - navigating immediately', {
-        userId: response.user.userId,
-      });
+      Logger.info('Email verified with auto-login', { userId: response.user.userId });
       return response;
     } catch (error) {
       Logger.error('Email verification failed', { email: request.email }, error as Error);
@@ -229,15 +188,8 @@ export const verifyMFAAsync = createAsyncThunk(
       Logger.info('MFA verification attempt started');
       const response = await authService.verifyMFA(request);
 
-      // ✅ PRODUCTION: Synchronous token storage
-      const { backgroundStorage } = await import('@/utils/backgroundStorage');
-
-      // CRITICAL: Await token storage
-      await backgroundStorage.executeAwaitable('mfa-tokens', async () => {
-        await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
-      });
-
-      Logger.info('[Auth] MFA verified - tokens persisted', { userId: response.user.userId });
+      // CRITICAL: Await token storage directly
+      await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
 
       // Non-critical: Fire-and-forget
       backgroundStorage.execute('mfa-user-data', async () => {
@@ -246,7 +198,7 @@ export const verifyMFAAsync = createAsyncThunk(
         await SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString());
       });
 
-      Logger.info('MFA verification successful - navigating immediately', { userId: response.user.userId });
+      Logger.info('MFA verified', { userId: response.user.userId });
       return response;
     } catch (error) {
       Logger.error('MFA verification failed', {}, error as Error);
@@ -295,16 +247,8 @@ export const refreshTokenAsync = createAsyncThunk(
       // persistence completes, we lose the new tokens and the old ones are
       // already revoked → user gets logged out on next app launch.
       //
-      // MUST AWAIT: Ensure new tokens are in Keychain BEFORE returning success.
-      const { backgroundStorage } = await import('@/utils/backgroundStorage');
-
       // ATOMIC: Await token storage - if this fails, the refresh should fail
-      await backgroundStorage.executeAwaitable('refresh-tokens-critical', async () => {
-        await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
-        Logger.info('[AUTH] New tokens persisted to Keychain after refresh', {
-          expiresIn: response.tokens.expiresIn,
-        });
-      });
+      await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
 
       // Non-critical metadata can be fire-and-forget
       backgroundStorage.execute('refresh-metadata', async () => {
@@ -513,11 +457,13 @@ export const loadStoredAuthAsync = createAsyncThunk(
       // Migrate from AsyncStorage to Keychain if needed (one-time migration)
       await SecureStorage.migrateFromAsyncStorage();
 
-      // ✅ PRODUCTION: Load tokens from Keychain WITH RETRY
-      // Keychain is authoritative - MMKV/Redux is only UI cache
-      const { accessToken, refreshToken } = await SecureStorage.getTokensWithRetry(3);
-      const userJson = await SecureStorage.getUserData();
-      const { expiresAt, lastLoginTime } = await SecureStorage.getSessionMetadata();
+      // Parallel reads: tokens, user data, and session metadata are independent
+      const [{ accessToken, refreshToken }, userJson, { expiresAt, lastLoginTime }] =
+        await Promise.all([
+          SecureStorage.getTokensWithRetry(3),
+          SecureStorage.getUserData(),
+          SecureStorage.getSessionMetadata(),
+        ]);
 
       Logger.info('[Auth] Loaded from Keychain', { hasTokens: !!(accessToken && refreshToken) });
 
@@ -539,14 +485,22 @@ export const loadStoredAuthAsync = createAsyncThunk(
         tokenType: 'Bearer',
       };
 
-      // Check if session is expired
+      // Check if the access token has expired on disk.
+      // NOTE: We intentionally do NOT clear storage or return null here.
+      // The refresh token may still be valid (it has a much longer TTL).
+      // Returning the tokens lets the Redux slice set flowState=AUTHENTICATED,
+      // the user sees the app immediately, and the reactive 401 handler in
+      // apiClient silently exchanges the stale access token for a new one on
+      // the first API call — completely transparent to the user.
+      // If the refresh token is also expired, apiClient dispatches forceLocalLogout
+      // which clears storage and sets flowState=SESSION_EXPIRED.
       if (typeof expiresAt === 'string' && expiresAt !== '') {
         const expiresAtDate = new Date(expiresAt);
         if (expiresAtDate <= new Date()) {
-          Logger.info('Stored session expired', { expiresAt });
-          // Clear expired data
-          await SecureStorage.clearAll();
-          return null;
+          Logger.info('[Auth] Access token expired on cold start — will refresh transparently', {
+            expiresAt,
+          });
+          // Fall through: return tokens so the reactive refresh can recover the session.
         }
       }
 
@@ -641,7 +595,7 @@ const authSlice = createSlice({
     // STATE-DRIVEN NAVIGATION: Manual flow state transitions
     setFlowState: (state, action: PayloadAction<AuthFlowState>) => {
       state.flowState = action.payload;
-      console.log('[STATE-DRIVEN NAV] Manual flow state change:', action.payload);
+      Logger.debug('[STATE-DRIVEN NAV] Manual flow state change', { flowState: action.payload });
     },
 
     // Transition from email verification to login (phone verification deferred)
@@ -653,11 +607,6 @@ const authSlice = createSlice({
         state.pendingVerificationEmail = undefined;
         // Clear user data, they need to login now
         state.user = null;
-
-        console.log(
-          '[STATE-DRIVEN NAV] Email verified, flowState =',
-          AuthFlowState.UNAUTHENTICATED,
-        );
       }
     },
 
@@ -669,11 +618,6 @@ const authSlice = createSlice({
         state.pendingVerificationPhone = undefined;
         // Clear user data, they need to login now
         state.user = null;
-
-        console.log(
-          '[STATE-DRIVEN NAV] Phone verified, flowState =',
-          AuthFlowState.UNAUTHENTICATED,
-        );
       }
     },
 
@@ -718,10 +662,6 @@ const authSlice = createSlice({
      * This prevents infinite loop: 401 → refresh fail → logout API → 401 → ...
      */
     forceLocalLogout: () => {
-      console.log(
-        '[STATE-DRIVEN NAV] Force local logout (no API call), flowState =',
-        AuthFlowState.SESSION_EXPIRED,
-      );
       // ✅ CRITICAL: Reset logout lock to allow future logout attempts
       logoutLock = null;
       return {
@@ -745,10 +685,6 @@ const authSlice = createSlice({
         // MFA required, don't set user/tokens yet
         state.flowState = AuthFlowState.MFA_REQUIRED;
         state.mfaToken = action.payload.mfaToken;
-        console.log(
-          '[STATE-DRIVEN NAV] Login requires MFA, flowState =',
-          AuthFlowState.MFA_REQUIRED,
-        );
         return;
       }
 
@@ -766,8 +702,6 @@ const authSlice = createSlice({
       state.pendingVerificationEmail = undefined;
       state.pendingVerificationPhone = undefined;
       state.mfaToken = undefined;
-
-      console.log('[STATE-DRIVEN NAV] Login successful, flowState =', AuthFlowState.AUTHENTICATED);
     });
 
     builder.addCase(loginAsync.rejected, (state, action) => {
@@ -805,10 +739,6 @@ const authSlice = createSlice({
           ? action.payload.user.email
           : undefined;
 
-      console.log(
-        '[STATE-DRIVEN NAV] Registration complete, flowState =',
-        AuthFlowState.REGISTRATION_PENDING,
-      );
     });
 
     builder.addCase(registerAsync.rejected, (state, action) => {
@@ -860,11 +790,6 @@ const authSlice = createSlice({
       // User goes directly to Home screen (not Login)
       state.flowState = AuthFlowState.AUTHENTICATED;
       state.pendingVerificationEmail = undefined;
-
-      console.log(
-        '[STATE-DRIVEN NAV] Email verified with auto-login, flowState =',
-        AuthFlowState.AUTHENTICATED,
-      );
     });
 
     builder.addCase(verifyEmailAsync.rejected, (state, action) => {
@@ -897,8 +822,6 @@ const authSlice = createSlice({
       // STATE-DRIVEN NAVIGATION: MFA verified, user is authenticated
       state.flowState = AuthFlowState.AUTHENTICATED;
       state.mfaToken = undefined;
-
-      console.log('[STATE-DRIVEN NAV] MFA verified, flowState =', AuthFlowState.AUTHENTICATED);
     });
 
     builder.addCase(verifyMFAAsync.rejected, (state, action) => {
@@ -927,11 +850,6 @@ const authSlice = createSlice({
       // but the refresh token (still in memory) successfully refreshes
       state.isAuthenticated = true;
       state.flowState = AuthFlowState.AUTHENTICATED;
-
-      console.log(
-        '[STATE-DRIVEN NAV] Token refresh successful, flowState =',
-        AuthFlowState.AUTHENTICATED,
-      );
     });
 
     builder.addCase(refreshTokenAsync.rejected, (state, action) => {
@@ -944,8 +862,6 @@ const authSlice = createSlice({
         state.isOffline = true;
         state.offlineMessage = 'No connection. Your session is safe — we\'ll retry when you\'re back online.';
         state.error = undefined;
-
-        console.log('[STATE-DRIVEN NAV] Token refresh failed (network), keeping session alive');
       } else {
         // AUTH ERROR (401/403/invalid token): Session truly expired.
         state.user = null;

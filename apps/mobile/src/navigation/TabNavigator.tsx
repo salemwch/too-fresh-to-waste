@@ -15,7 +15,8 @@
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React, { memo } from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -40,6 +41,7 @@ const Tab = createBottomTabNavigator<TabParamList>();
  */
 const TabNavigatorComponent: React.FC = () => {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   /**
    * Get icon name based on tab and focus state
@@ -79,12 +81,23 @@ const TabNavigatorComponent: React.FC = () => {
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
-          borderTopColor: theme.colors.outline,
-          borderTopWidth: 1,
-          height: Platform.OS === 'ios' ? 88 : 64,
+          borderTopWidth: 0,
+          borderTopColor: 'transparent',
+          elevation: 0,
+          shadowOpacity: 0,
+          shadowColor: 'transparent',
+          shadowOffset: { width: 0, height: 0 },
+          shadowRadius: 0,
+          // Height expands to cover the Android navigation bar inset so the
+          // tab bar background fills the full bottom edge in edge-to-edge mode.
+          height: Platform.OS === 'ios' ? 88 : 56 + insets.bottom,
           paddingBottom: Platform.OS === 'ios' ? 24 : 8,
           paddingTop: 8,
         },
+        tabBarBackground: () => (
+          <View style={{ flex: 1, backgroundColor: theme.colors.surface }} />
+        ),
+       
         tabBarLabelStyle: {
           fontFamily: theme.typography.fontFamily.secondary,
           fontSize: theme.typography.fontSize.xs,

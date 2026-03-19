@@ -13,6 +13,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -337,96 +338,110 @@ interface PrizeModalProps {
   targetCount: number;
 }
 
-const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, bagCount, targetCount }) => (
-  <Modal
-    visible={visible}
-    transparent
-    animationType='slide'
-    statusBarTranslucent
-    onRequestClose={onClose}
-  >
-    <Pressable style={styles.modalOverlay} onPress={onClose}>
-      {/* Inner Pressable stops tap-through closing when tapping inside sheet */}
-      <Pressable style={styles.modalSheet} onPress={() => undefined}>
-        <View style={styles.modalHandle} />
+const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, bagCount, targetCount }) => {
+  const insets = useSafeAreaInsets();
+  // Ensure enough breathing room above the device's gesture / nav bar
+  const sheetBottomPad = Math.max(insets.bottom, 16);
 
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <Text style={styles.modalTitle}>How the Grand Prize Works</Text>
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType='slide'
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <Pressable style={styles.modalOverlay} onPress={onClose}>
+        {/* Inner Pressable stops tap-through closing when tapping inside sheet */}
+        <Pressable
+          style={[styles.modalSheet, { paddingBottom: sheetBottomPad }]}
+          onPress={() => undefined}
+        >
+          <View style={styles.modalHandle} />
 
-          {/* Bag goal progress line */}
-          <View style={styles.modalGoalRow}>
-            <View style={styles.modalGoalDot} />
-            <Text style={styles.modalGoalTxt}>
-              Prizes unlock when the community saves{' '}
-              <Text style={styles.modalGoalBold}>{targetCount.toLocaleString()} bags</Text>
-              {bagCount > 0 && (
-                <>
-                  {'  ·  '}
-                  <Text style={styles.modalGoalCurrent}>{bagCount.toLocaleString()} saved so far</Text>
-                </>
-              )}
+          {/* Scrollable content — button intentionally kept outside so it never scrolls away */}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.modalScrollContent}
+          >
+            <Text style={styles.modalTitle}>How the Grand Prize Works</Text>
+
+            {/* Bag goal progress line */}
+            <View style={styles.modalGoalRow}>
+              <View style={styles.modalGoalDot} />
+              <Text style={styles.modalGoalTxt}>
+                Prizes unlock when the community saves{' '}
+                <Text style={styles.modalGoalBold}>{targetCount.toLocaleString()} bags</Text>
+                {bagCount > 0 && (
+                  <>
+                    {'  ·  '}
+                    <Text style={styles.modalGoalCurrent}>{bagCount.toLocaleString()} saved so far</Text>
+                  </>
+                )}
+              </Text>
+            </View>
+
+            <View style={styles.modalDivider} />
+
+            {/* Tier 1 */}
+            <View style={styles.modalTier}>
+              <View style={[styles.modalTierIcon, { backgroundColor: `${PRIMARY}12` }]}>
+                <Text style={styles.modalTierEmoji}>📱</Text>
+              </View>
+              <View style={styles.modalTierInfo}>
+                <Text style={styles.modalTierTitle}>Smartphone</Text>
+                <Text style={styles.modalTierRank}>Rank 1 – 5  ·  5 winners</Text>
+                <Text style={styles.modalTierDesc}>
+                  The top 5 point earners each receive a smartphone when the goal is reached.
+                </Text>
+              </View>
+            </View>
+
+            {/* Tier 2 */}
+            <View style={styles.modalTier}>
+              <View style={[styles.modalTierIcon, { backgroundColor: `${PRIMARY}0C` }]}>
+                <Text style={styles.modalTierEmoji}>⌚</Text>
+              </View>
+              <View style={styles.modalTierInfo}>
+                <Text style={styles.modalTierTitle}>Smart Watch</Text>
+                <Text style={styles.modalTierRank}>Rank 6 – 10  ·  5 winners</Text>
+                <Text style={styles.modalTierDesc}>
+                  Ranks 6 through 10 each receive a smart watch.
+                </Text>
+              </View>
+            </View>
+
+            {/* Tier 3 */}
+            <View style={styles.modalTier}>
+              <View style={[styles.modalTierIcon, { backgroundColor: '#F0FDF4' }]}>
+                <Text style={styles.modalTierEmoji}>🎁</Text>
+              </View>
+              <View style={styles.modalTierInfo}>
+                <Text style={styles.modalTierTitle}>15% Discount</Text>
+                <Text style={styles.modalTierRank}>Rank 11 and above</Text>
+                <Text style={styles.modalTierDesc}>
+                  Every other participant earns a 15% discount at any partner business —
+                  hotels, restaurants, bakeries and more. You choose where to use it.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.modalDivider} />
+
+            <Text style={styles.modalNote}>
+              Rankings are based on total loyalty points. Points are awarded each time you save a bag.
             </Text>
-          </View>
+          </ScrollView>
 
-          <View style={styles.modalDivider} />
-
-          {/* Tier 1 */}
-          <View style={styles.modalTier}>
-            <View style={[styles.modalTierIcon, { backgroundColor: `${PRIMARY}12` }]}>
-              <Text style={styles.modalTierEmoji}>📱</Text>
-            </View>
-            <View style={styles.modalTierInfo}>
-              <Text style={styles.modalTierTitle}>Smartphone</Text>
-              <Text style={styles.modalTierRank}>Rank 1 – 5  ·  5 winners</Text>
-              <Text style={styles.modalTierDesc}>
-                The top 5 point earners each receive a smartphone when the goal is reached.
-              </Text>
-            </View>
-          </View>
-
-          {/* Tier 2 */}
-          <View style={styles.modalTier}>
-            <View style={[styles.modalTierIcon, { backgroundColor: `${PRIMARY}0C` }]}>
-              <Text style={styles.modalTierEmoji}>⌚</Text>
-            </View>
-            <View style={styles.modalTierInfo}>
-              <Text style={styles.modalTierTitle}>Smart Watch</Text>
-              <Text style={styles.modalTierRank}>Rank 6 – 10  ·  5 winners</Text>
-              <Text style={styles.modalTierDesc}>
-                Ranks 6 through 10 each receive a smart watch.
-              </Text>
-            </View>
-          </View>
-
-          {/* Tier 3 */}
-          <View style={styles.modalTier}>
-            <View style={[styles.modalTierIcon, { backgroundColor: '#F0FDF4' }]}>
-              <Text style={styles.modalTierEmoji}>🎁</Text>
-            </View>
-            <View style={styles.modalTierInfo}>
-              <Text style={styles.modalTierTitle}>15% Discount</Text>
-              <Text style={styles.modalTierRank}>Rank 11 and above</Text>
-              <Text style={styles.modalTierDesc}>
-                Every other participant earns a 15% discount at any partner business —
-                hotels, restaurants, bakeries and more. You choose where to use it.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.modalDivider} />
-
-          <Text style={styles.modalNote}>
-            Rankings are based on total loyalty points. Points are awarded each time you save a bag.
-          </Text>
-
+          {/* Fixed action button — always visible regardless of scroll position */}
           <Pressable style={styles.modalBtn} onPress={onClose}>
             <Text style={styles.modalBtnTxt}>Got it!</Text>
           </Pressable>
-        </ScrollView>
+        </Pressable>
       </Pressable>
-    </Pressable>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 interface Props {
@@ -874,9 +889,12 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
-    paddingBottom: 40,
     paddingTop: 12,
     maxHeight: '85%',
+    // paddingBottom is set dynamically via useSafeAreaInsets
+  },
+  modalScrollContent: {
+    paddingBottom: 16,
   },
   modalHandle: {
     width: 40,

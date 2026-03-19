@@ -5,7 +5,7 @@
  * Pure derivation from Redux `auth.user` — no API calls, zero latency.
  *
  * Rationale: User data is populated on login/register/verify and kept
- * in sync via `updateProfileAsync` / `updateUser`. Adding React Query
+ * in sync via `updateProfileAsync` / `updateUser`. Adding TanStack Query
  * would create two sources of truth (Redux auth + RQ cache).
  */
 

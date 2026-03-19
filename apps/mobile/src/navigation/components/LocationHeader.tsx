@@ -21,7 +21,6 @@ import { View, Pressable, StyleSheet } from 'react-native';
 import { Icon, Text } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { useLocation } from '@/hooks/useLocation';
-import { HEADER_TOP_BREATHING_ROOM } from '@/navigation/headerConfig';
 
 // ============================================================================
 // Types
@@ -103,8 +102,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 8,
-    paddingTop: HEADER_TOP_BREATHING_ROOM,
-    paddingBottom: 4,
+    paddingVertical: 4,
   },
   locationIconCircle: {
     width: 28,

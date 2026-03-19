@@ -13,6 +13,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Config from 'react-native-config';
 import type { Storage } from 'redux-persist';
 
 import { Logger } from './logger';
@@ -59,9 +60,15 @@ function tryInitializeMMKV(): any {
 
     if (createMMKV && typeof createMMKV === 'function') {
       // ✅ V4 API: Use createMMKV() function
+      const encryptionKey = Config['STORAGE_ENCRYPTION_KEY'];
+      if (!encryptionKey || encryptionKey === 'default-key' || encryptionKey.startsWith('REPLACE_WITH')) {
+        Logger.warn('[Storage] STORAGE_ENCRYPTION_KEY is missing or placeholder — MMKV will not be encrypted');
+      }
       mmkvInstance = createMMKV({
         id: 'redux-persist-storage',
-        encryptionKey: 'food-waste-app-redux-encryption-key-v1',
+        ...(encryptionKey && encryptionKey !== 'default-key' && !encryptionKey.startsWith('REPLACE_WITH')
+          ? { encryptionKey }
+          : {}),
       });
       usingMMKV = true;
       Logger.info('[Storage] Using MMKV V4 (Nitro, fast, encrypted)');

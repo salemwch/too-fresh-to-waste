@@ -5,22 +5,24 @@ import { Icon } from '@/design-system/components/atoms';
 import type { ThemeContextValue } from '@/design-system/types';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Vertical padding constants
-//
-// With statusBarTranslucent: true the header background extends behind the
-// system status bar (~24dp on Android). paddingTop must exceed the status bar
-// height so content renders in the VISIBLE header area (below the bar).
-// Both title and back button share these values → same baseline.
-// ─────────────────────────────────────────────────────────────────────────────
-export const HEADER_TITLE_PADDING_TOP = Platform.OS === 'android' ? 40 : 30;
-export const HEADER_TITLE_PADDING_BOTTOM = Platform.OS === 'android' ? 16 : 13;
+import { AppHeader } from './components/AppHeader';
 
-// Kept for external consumers that imported the old constant name.
-export const HEADER_TOP_BREATHING_ROOM = HEADER_TITLE_PADDING_TOP;
+// ─────────────────────────────────────────────────────────────────────────────
+// Vertical padding constants (kept for external consumers)
+//
+// These are no longer used for header layout — AppHeader uses
+// useSafeAreaInsets().top which gives the real per-device status-bar height.
+// ─────────────────────────────────────────────────────────────────────────────
+export const HEADER_TITLE_PADDING_TOP = 0;
+export const HEADER_TITLE_PADDING_BOTTOM = 0;
+export const HEADER_TOP_BREATHING_ROOM = 0;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Header Title factory
+//
+// Creates the styled Text component passed to options.headerTitle.
+// AppHeader reads options.headerTitle and renders it inside its own layout,
+// so the font/color styling here is preserved exactly.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const createHeaderTitle = (
@@ -34,8 +36,7 @@ const createHeaderTitle = (
       View,
       {
         style: {
-          paddingTop: HEADER_TITLE_PADDING_TOP,
-          paddingBottom: HEADER_TITLE_PADDING_BOTTOM,
+          flex: 1,
           justifyContent: 'center',
         },
       },
@@ -71,26 +72,17 @@ const createHeaderTitle = (
 // ─────────────────────────────────────────────────────────────────────────────
 // Header Back Button
 //
-// NativeStack renders its header OUTSIDE the screen's React context tree, so
-// useNavigation() inside a headerLeft component resolves to the Tab navigator
-// (which has no back stack) rather than the NativeStack — causing the
-// "GO_BACK not handled" error.
-//
-// The correct approach: accept a `navigation` argument captured from the
-// `screenOptions={({ navigation }) => ...}` callback, where it is guaranteed
-// to be the NativeStack navigator's navigation object.
+// Kept for backward compatibility. AppHeader handles back navigation
+// internally via the `navigation` prop from NativeStackHeaderProps.
+// Stacks that pass headerLeft: makeHeaderBackButton(...) still work because
+// AppHeader reads options.headerLeft and calls it with { canGoBack, tintColor }.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Returns a headerLeft render function that calls navigation.goBack() on press.
  *
- * Usage in a Stack.Navigator:
- * ```tsx
- * screenOptions={({ navigation }) => ({
- *   ...getDefaultScreenOptions(theme),
- *   headerLeft: makeHeaderBackButton(navigation, theme.colors.onSurface),
- * })}
- * ```
+ * NOTE: AppHeader already provides a default back button. Only use this if you
+ * need to customise the back button icon or style on a specific screen.
  */
 export const makeHeaderBackButton =
   (navigation: { goBack: () => void }, defaultColor: string) =>
@@ -102,11 +94,10 @@ export const makeHeaderBackButton =
       {
         onPress: () => navigation.goBack(),
         style: {
-          paddingTop: HEADER_TITLE_PADDING_TOP,
-          paddingBottom: HEADER_TITLE_PADDING_BOTTOM,
           paddingLeft: Platform.OS === 'android' ? 8 : 4,
           paddingRight: 8,
           justifyContent: 'center',
+          alignSelf: 'center',
         },
         hitSlop: { top: 8, bottom: 8, left: 8, right: 8 },
         accessibilityRole: 'button',
@@ -128,15 +119,14 @@ export const makeHeaderBackButton =
 /**
  * Default screen options for NativeStack navigators.
  *
- * headerLeft is intentionally omitted here — pass it via the screenOptions
- * callback so the correct NativeStack navigation object is used:
+ * Sets `header` to the JS-based AppHeader which uses useSafeAreaInsets().top
+ * to position content below the status bar. This bypasses the native
+ * CustomToolbar inset dispatch which breaks on some Android OEM devices
+ * when WindowCompat.setDecorFitsSystemWindows(window, false) is enabled.
  *
- * ```tsx
- * screenOptions={({ navigation }) => ({
- *   ...getDefaultScreenOptions(theme),
- *   headerLeft: makeHeaderBackButton(navigation, theme.colors.onSurface),
- * })}
- * ```
+ * All existing per-screen overrides (headerTitle, headerLeft, headerRight set
+ * via navigation.setOptions() or per-screen options) continue to work because
+ * AppHeader reads from the merged options object at render time.
  */
 export const getDefaultScreenOptions = (
   theme: ThemeContextValue,
@@ -152,13 +142,15 @@ export const getDefaultScreenOptions = (
   },
   headerShadowVisible: false,
   animation: 'slide_from_right',
-  statusBarTranslucent: true,
+  statusBarStyle: 'dark',
   headerTitle: createHeaderTitle(
     theme.typography.fontFamily.primary,
     theme.typography.fontSize.xl,
     theme.typography.fontWeight?.bold ?? '700',
     theme.colors.onSurface,
   ),
+  // JS header — reads useSafeAreaInsets().top for correct per-device spacing.
+  header: (props) => React.createElement(AppHeader, props),
 });
 
 /**
@@ -186,12 +178,13 @@ export const getAuthScreenOptions = (theme: ThemeContextValue): NativeStackNavig
   },
   headerShadowVisible: false,
   animation: 'slide_from_right',
-  statusBarTranslucent: true,
+  statusBarStyle: 'dark',
   headerTitle: createHeaderTitle(
     theme.typography.fontFamily.primary,
     theme.typography.fontSize.lg,
     theme.typography.fontWeight?.semibold ?? '600',
     theme.colors.onSurface,
   ),
-  // Auth screens always have a back button provided by AuthStack directly.
+  // JS header — same safe-area approach as getDefaultScreenOptions.
+  header: (props) => React.createElement(AppHeader, props),
 });

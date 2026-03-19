@@ -108,7 +108,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
   const renderSkeletonItem = useCallback(
     ({ index }: { item: number; index: number }) => (
       <SkeletonOfferCard
-        imageAspectRatio={1.4}
+        imageAspectRatio={1.8}
         style={styles.offerCardItem}
         testID={`${testIDPrefix}-skeleton-${index}`}
       />
@@ -121,7 +121,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
       <FavoriteOfferCard
         offer={item}
         variant={variant}
-        imageAspectRatio={1.4}
+        imageAspectRatio={1.8}
         onPress={offer => onOfferPress(offer.id)}
         testID={`${testIDPrefix}-offer-${item.id}`}
         style={styles.offerCardItem}

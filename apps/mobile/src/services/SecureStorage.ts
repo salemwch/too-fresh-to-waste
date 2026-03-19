@@ -76,7 +76,9 @@ export class SecureStorage {
    * @param maxRetries - Maximum retry attempts (default 3)
    * @returns Access token or null if not found after retries
    */
-  static async getAccessTokenWithRetry(maxRetries: number = RETRY_CONFIG.MAX_RETRIES): Promise<string | null> {
+  static async getAccessTokenWithRetry(
+    maxRetries: number = RETRY_CONFIG.MAX_RETRIES,
+  ): Promise<string | null> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const credentials = await Keychain.getGenericPassword({
@@ -99,7 +101,11 @@ export class SecureStorage {
         );
 
         if (isLastAttempt) {
-          Logger.error('[SecureStorage] All retries exhausted for access token', {}, error as Error);
+          Logger.error(
+            '[SecureStorage] All retries exhausted for access token',
+            {},
+            error as Error,
+          );
           return null;
         }
 
@@ -142,7 +148,9 @@ export class SecureStorage {
    * @param maxRetries - Maximum retry attempts (default 3)
    * @returns Refresh token or null if not found after retries
    */
-  static async getRefreshTokenWithRetry(maxRetries: number = RETRY_CONFIG.MAX_RETRIES): Promise<string | null> {
+  static async getRefreshTokenWithRetry(
+    maxRetries: number = RETRY_CONFIG.MAX_RETRIES,
+  ): Promise<string | null> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const credentials = await Keychain.getGenericPassword({
@@ -165,7 +173,11 @@ export class SecureStorage {
         );
 
         if (isLastAttempt) {
-          Logger.error('[SecureStorage] All retries exhausted for refresh token', {}, error as Error);
+          Logger.error(
+            '[SecureStorage] All retries exhausted for refresh token',
+            {},
+            error as Error,
+          );
           return null;
         }
 
@@ -189,10 +201,7 @@ export class SecureStorage {
    * Store both tokens
    */
   static async setTokens(accessToken: string, refreshToken: string): Promise<void> {
-    await Promise.all([
-      this.setAccessToken(accessToken),
-      this.setRefreshToken(refreshToken),
-    ]);
+    await Promise.all([this.setAccessToken(accessToken), this.setRefreshToken(refreshToken)]);
   }
 
   /**
@@ -214,8 +223,8 @@ export class SecureStorage {
     ]);
 
     Logger.info('[SecureStorage] Tokens retrieved', {
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
+      hasAccessToken: !(accessToken == null),
+      hasRefreshToken: !(refreshToken == null),
     });
 
     return { accessToken, refreshToken };
@@ -360,7 +369,7 @@ export class SecureStorage {
     try {
       // Check if migration is needed
       const oldAccessToken = await AsyncStorage.getItem('auth_tokens');
-      if (!oldAccessToken) {
+      if (oldAccessToken == null) {
         Logger.debug('[SecureStorage] No old tokens to migrate');
         return;
       }
@@ -369,10 +378,10 @@ export class SecureStorage {
       const oldData = JSON.parse(oldAccessToken);
 
       // Migrate to secure storage
-      if (oldData.accessToken) {
+      if (Boolean(oldData.accessToken)) {
         await this.setAccessToken(oldData.accessToken);
       }
-      if (oldData.refreshToken) {
+      if (Boolean(oldData.refreshToken)) {
         await this.setRefreshToken(oldData.refreshToken);
       }
 

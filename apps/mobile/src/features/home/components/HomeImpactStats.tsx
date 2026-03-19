@@ -72,7 +72,7 @@ interface ImpactStats {
  *
  * Performance:
  * - Memoized with React.memo
- * - Cached API data (5min staleTime via React Query)
+ * - Cached API data (5min staleTime via TanStack Query)
  * - Only renders if user is authenticated
  *
  * @example

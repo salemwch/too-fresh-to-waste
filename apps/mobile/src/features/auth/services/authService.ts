@@ -73,21 +73,6 @@ class AuthService {
       const duration = Date.now() - startTime;
       NetworkLogger.logResponse(url, response.status, duration);
 
-      console.log('========================================');
-      console.log('🔍 AUTH SERVICE: Response Analysis');
-      console.log('========================================');
-      console.log('URL:', url);
-      console.log('Status:', response.status);
-      console.log('response.data keys:', Object.keys(response.data || {}));
-      console.log('response.data.data:', response.data.data);
-      console.log('response.data.data type:', typeof response.data.data);
-      console.log(
-        'response.data.data keys:',
-        response.data.data ? Object.keys(response.data.data) : 'null',
-      );
-      console.log('Full response.data:', JSON.stringify(response.data, null, 2));
-      console.log('========================================');
-
       return response.data.data;
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -329,44 +314,19 @@ class AuthService {
 
   // Authentication methods
   public async login(request: LoginRequest): Promise<LoginResponse> {
-    console.log('🌐 LOGIN: Full URL:', `${this.baseURL}/login`);
-    console.log('🌐 LOGIN: Attempting to connect to:', this.baseURL);
-    console.log('========================================');
-    console.log('🔐 LOGIN: Starting login process');
-    console.log('========================================');
-    console.log('Email:', request.email);
-    console.log('Base URL:', this.baseURL);
-    console.log('Full URL:', `${this.baseURL}/login`);
-    console.log('Timeout:', this.timeout);
-    console.log('========================================');
-
     Logger.info('Attempting user login', { email: request.email });
 
     try {
-      console.log('🌐 LOGIN: About to call makeRequest...');
       const response = await this.makeRequest<LoginResponse>('POST', '/login', {
         email: request.email,
         password: request.password,
         rememberMe: request.rememberMe,
       });
 
-      console.log('========================================');
-      console.log('✅ LOGIN: Response received successfully');
-      console.log('========================================');
-      console.log('User ID:', response.user.userId);
-      console.log('Has tokens:', !!response.tokens);
-      console.log('========================================');
-
       Logger.info('Login successful', { userId: response.user.userId });
       return response;
     } catch (error) {
-      console.log('========================================');
-      console.log('❌ LOGIN: Error occurred');
-      console.log('========================================');
-      console.log('Error:', error);
-      console.log('Error type:', typeof error);
-      console.log('Error keys:', error && typeof error === 'object' ? Object.keys(error) : 'N/A');
-      console.log('========================================');
+      Logger.error('Login failed', { email: request.email }, error as Error);
       throw error;
     }
   }

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -88,8 +88,6 @@ try {
  * Handles auth-dependent logic like favorites sync
  */
 function AppContent(): React.JSX.Element {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
   const dispatch = useDispatch<AppDispatch>();
   const flowState = useSelector((state: RootState) => state.auth.flowState);
   const userId = useSelector((state: RootState) => state.auth.user?.userId ?? null);
@@ -170,7 +168,7 @@ function AppContent(): React.JSX.Element {
     <>
       <OfflineBanner />
       <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        barStyle="dark-content"
         backgroundColor='transparent'
         translucent
       />
@@ -195,9 +193,6 @@ function AppContent(): React.JSX.Element {
  * 7. AppContent - Auth logic + RootNavigator
  */
 function App(): React.JSX.Element {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-
   // ✅ Initialize offline manager (network connectivity)
   useEffect(() => {
     Logger.info('[App] Initializing offline manager...');
@@ -304,7 +299,7 @@ function App(): React.JSX.Element {
           <PersistGate loading={null} persistor={persistor}>
             <RehydrationGate>
               <QueryProvider>
-                <ThemeProvider defaultTheme={isDarkMode ? 'dark' : 'light'}>
+                <ThemeProvider defaultTheme="light">
                   <AppContent />
                 </ThemeProvider>
               </QueryProvider>

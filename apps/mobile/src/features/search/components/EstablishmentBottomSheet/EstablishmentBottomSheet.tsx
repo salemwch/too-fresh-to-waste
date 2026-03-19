@@ -58,10 +58,15 @@ export interface EstablishmentBottomSheetProps {
 /**
  * Map a MapOfferSummary (from the establishment's embedded offers)
  * into an OfferListItem for FavoriteOfferCard.
+ *
+ * @param establishmentProfileImage - The establishment's profile image URI.
+ *   Passed explicitly because MapOfferSummary (a lightweight summary) does
+ *   not carry it — only the parent MapEstablishment does.
  */
 const mapOfferToListItem = (
   offer: MapOfferSummary,
   establishmentName: string,
+  establishmentProfileImage: string | null | undefined,
   distanceMeters: number,
 ): OfferListItem => ({
   id: offer._id,
@@ -77,7 +82,11 @@ const mapOfferToListItem = (
   availableQuantity: offer.availableQuantity,
   availableFrom: offer.availableFrom,
   availableUntil: offer.availableUntil,
-  establishment: { name: establishmentName },
+  establishment: {
+    name: establishmentName,
+    // Only set when non-null so exactOptionalPropertyTypes is satisfied
+    ...(establishmentProfileImage != null ? { profileImage: establishmentProfileImage } : {}),
+  },
   distance: distanceMeters,
   ctaState: new Date() < new Date(offer.availableFrom)
     ? CtaState.NOT_STARTED
@@ -145,7 +154,7 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
   const renderItem = useCallback(
     ({ item: offer }: { item: MapOfferSummary }) => {
       if (!item) return null;
-      const offerData = mapOfferToListItem(offer, item.name, distanceMeters);
+      const offerData = mapOfferToListItem(offer, item.name, item.profileImage, distanceMeters);
       return (
         <FavoriteOfferCard
           offer={offerData}

@@ -1,13 +1,16 @@
+import { CommonActions } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Pressable, Platform, Image } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+
 import { Text, Button, Icon } from '@/design-system/components/atoms';
 import { updateUser, selectIsPhoneVerified } from '@/features/auth/store/authSlice';
-import { useAppSelector, useAppDispatch } from '@/hooks';
 import { offersService } from '@/features/offers/services/offersService';
+import { useAppSelector, useAppDispatch } from '@/hooks';
+import { useSecureScreen } from '@/hooks/useSecureScreen';
+import { analytics } from '@/utils/analytics';
 import { showErrorToast, showInfoToast } from '@/utils/toast';
-import { CommonActions } from '@react-navigation/native';
 
 import { OrderSuccessModal } from '../components/OrderSuccessModal';
 import { PhoneVerificationModal } from '../components/PhoneVerificationModal';
@@ -15,8 +18,6 @@ import { SkeletonCheckoutScreen } from '../components/SkeletonCheckoutScreen';
 import { SkeletonOrderSuccessModal } from '../components/SkeletonOrderSuccessModal';
 import { SkeletonPhoneVerificationModal } from '../components/SkeletonPhoneVerificationModal';
 import { useCreateOrder } from '../hooks/useCreateOrder';
-import { analytics } from '@/utils/analytics';
-import { useSecureScreen } from '@/hooks/useSecureScreen';
 
 import type { CreateOrderDto, Order } from '../types/order.types';
 import type { MainStackParamList } from '@/navigation/types';
@@ -45,7 +46,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
   // ✅ State for order configuration
   const [quantity, setQuantity] = useState(initialQuantity);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<CreateOrderDto['paymentMethod']>('cash_on_pickup');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<CreateOrderDto['paymentMethod']>('cash_on_pickup');
   const [customerNotes] = useState('');
 
   // ✅ State for success modal
@@ -69,7 +71,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
         quantity,
       );
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offer?.id ?? (offer as any)?._id]);
 
   // ✅ Use smart order creation hook with callbacks
@@ -165,8 +167,16 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     console.log('📱 Device current time:', now.toISOString(), `(${now.getTime()})`);
     console.log('📅 Offer availableFrom:', offer.availableFrom);
     console.log('📅 Offer availableUntil:', offer.availableUntil);
-    console.log('⏰ Parsed offerStartTime:', offerStartTime.toISOString(), `(${offerStartTime.getTime()})`);
-    console.log('⏰ Parsed offerEndTime:', offerEndTime.toISOString(), `(${offerEndTime.getTime()})`);
+    console.log(
+      '⏰ Parsed offerStartTime:',
+      offerStartTime.toISOString(),
+      `(${offerStartTime.getTime()})`,
+    );
+    console.log(
+      '⏰ Parsed offerEndTime:',
+      offerEndTime.toISOString(),
+      `(${offerEndTime.getTime()})`,
+    );
 
     // ✅ Add safety buffer to ensure pickup time is in the future
     // INCREASED FROM 30s TO 120s to account for:
@@ -175,19 +185,35 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     // - Clock skew between device and server
     // - Validation delay on backend
     const nowWithBuffer = new Date(now.getTime() + 120 * 1000); // 120 seconds (2 minutes) buffer
-    console.log('⏱️  Now + 120s buffer:', nowWithBuffer.toISOString(), `(${nowWithBuffer.getTime()})`);
+    console.log(
+      '⏱️  Now + 120s buffer:',
+      nowWithBuffer.toISOString(),
+      `(${nowWithBuffer.getTime()})`,
+    );
 
     // ✅ Calculate the earliest valid pickup time
     // Use the later of: (now + buffer) or offer start time
     const earliestPickupTime = Math.max(nowWithBuffer.getTime(), offerStartTime.getTime());
-    console.log('🎯 Earliest pickup time (max of now+30s or offer start):', new Date(earliestPickupTime).toISOString(), `(${earliestPickupTime})`);
+    console.log(
+      '🎯 Earliest pickup time (max of now+30s or offer start):',
+      new Date(earliestPickupTime).toISOString(),
+      `(${earliestPickupTime})`,
+    );
 
     // ✅ CRITICAL: Check if offer has enough time remaining
     // We need at least 1 minute buffer before offer expires
     const minimumTimeBeforeExpiry = 60 * 1000; // 1 minute
     const latestAllowedPickup = offerEndTime.getTime() - minimumTimeBeforeExpiry;
-    console.log('⚠️  Latest allowed pickup (offer end - 1 min):', new Date(latestAllowedPickup).toISOString(), `(${latestAllowedPickup})`);
-    console.log('✅ Time remaining until offer expires:', Math.floor((offerEndTime.getTime() - now.getTime()) / 1000 / 60), 'minutes');
+    console.log(
+      '⚠️  Latest allowed pickup (offer end - 1 min):',
+      new Date(latestAllowedPickup).toISOString(),
+      `(${latestAllowedPickup})`,
+    );
+    console.log(
+      '✅ Time remaining until offer expires:',
+      Math.floor((offerEndTime.getTime() - now.getTime()) / 1000 / 60),
+      'minutes',
+    );
 
     if (earliestPickupTime >= latestAllowedPickup) {
       console.log('❌ REJECTED: Not enough time remaining!');
@@ -196,7 +222,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       console.log('================================================\n');
       showInfoToast(
         'Offer Expired',
-        'This offer has expired or doesn\'t have enough time remaining for pickup. Please choose another offer.',
+        "This offer has expired or doesn't have enough time remaining for pickup. Please choose another offer.",
       );
       // Stale data in cache — force a refresh so the UI reflects reality.
       await queryClient.invalidateQueries({ queryKey: ['offer', offerId] });
@@ -351,11 +377,6 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     );
   }
 
-  const establishmentName =
-    typeof offer.establishmentId === 'string'
-      ? 'Loading...'
-      : offer.establishmentId?.name || 'Unknown establishment';
-
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -368,139 +389,6 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
         {/* Main Content Card */}
         <View style={styles.mainCard}>
-          {/* Offer Details Section */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Icon name='restaurant' family='Ionicons' size={20} color='#005250' />
-              <Text style={styles.sectionTitle}>Your Surprise Bag</Text>
-            </View>
-
-            <View style={styles.offerDetailsCard}>
-              {/* Offer Image & Details Row */}
-              <View style={styles.offerImageRow}>
-                {/* Offer Image */}
-                {offer.images.length > 0 ? (
-                  <Image
-                    source={{ uri: offer.images[0] }}
-                    style={styles.offerImage}
-                    resizeMode='cover'
-                  />
-                ) : (
-                  <View style={styles.offerImagePlaceholder}>
-                    <Icon name='fast-food' family='Ionicons' size={32} color='#94A3B8' />
-                  </View>
-                )}
-
-                {/* Offer Details */}
-                <View style={styles.offerDetails}>
-                  <Text style={styles.offerTitle} numberOfLines={2}>
-                    {offer.title}
-                  </Text>
-                  <Text style={styles.offerEstablishment} numberOfLines={1}>
-                    {establishmentName}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Quantity Stepper Section */}
-              <View style={styles.quantitySection}>
-                <View style={styles.quantityLabelRow}>
-                  <Text style={styles.quantityLabel}>Quantity</Text>
-                  {offer.availableQuantity !== undefined && offer.availableQuantity <= 10 && (
-                    <Text style={styles.availabilityText}>{offer.availableQuantity} available</Text>
-                  )}
-                </View>
-
-                <View style={styles.quantityStepper}>
-                  {/* Decrease Button */}
-                  <Pressable
-                    onPress={handleDecreaseQuantity}
-                    disabled={quantity <= 1}
-                    style={[styles.quantityButton, quantity <= 1 && styles.quantityButtonDisabled]}
-                    accessibilityLabel='Decrease quantity'
-                    accessibilityRole='button'
-                  >
-                    <Icon
-                      name='remove'
-                      family='Ionicons'
-                      size={20}
-                      color={quantity <= 1 ? '#CBD5E1' : '#005250'}
-                    />
-                  </Pressable>
-
-                  {/* Quantity Display */}
-                  <View style={styles.quantityDisplay}>
-                    <Text style={styles.quantityValue}>{quantity}</Text>
-                    <Text style={styles.quantityBagText}>{quantity === 1 ? 'bag' : 'bags'}</Text>
-                  </View>
-
-                  {/* Increase Button */}
-                  <Pressable
-                    onPress={handleIncreaseQuantity}
-                    disabled={
-                      quantity >=
-                      Math.min(
-                        offer.availableQuantity ?? offer.totalQuantity - offer.soldQuantity,
-                        10,
-                      )
-                    }
-                    style={[
-                      styles.quantityButton,
-                      quantity >=
-                        Math.min(
-                          offer.availableQuantity ?? offer.totalQuantity - offer.soldQuantity,
-                          10,
-                        ) && styles.quantityButtonDisabled,
-                    ]}
-                    accessibilityLabel='Increase quantity'
-                    accessibilityRole='button'
-                  >
-                    <Icon
-                      name='add'
-                      family='Ionicons'
-                      size={20}
-                      color={
-                        quantity >=
-                        Math.min(
-                          offer.availableQuantity ?? offer.totalQuantity - offer.soldQuantity,
-                          10,
-                        )
-                          ? '#CBD5E1'
-                          : '#005250'
-                      }
-                    />
-                  </Pressable>
-                </View>
-              </View>
-
-              {/* Divider */}
-              <View style={styles.offerDivider} />
-
-              {/* Pickup Information */}
-              <View style={styles.pickupInfo}>
-                <View style={styles.pickupRow}>
-                  <Icon name='calendar' family='Ionicons' size={18} color='#64748B' />
-                  <Text style={styles.pickupText}>
-                    {new Date(offer.availableFrom).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </Text>
-                </View>
-                <View style={styles.pickupRow}>
-                  <Icon name='time' family='Ionicons' size={18} color='#64748B' />
-                  <Text style={styles.pickupText}>
-                    Pickup Time: {offer.pickupTimeSlots?.[0]?.startTime} -{' '}
-                    {offer.pickupTimeSlots?.[0]?.endTime}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Divider */}
-          <View style={styles.divider} />
 
           {/* Payment Method Section */}
           <View style={styles.section}>
@@ -509,112 +397,78 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               <Text style={styles.sectionTitle}>Payment Method</Text>
             </View>
 
-            {/* Pay on Pickup */}
-            <Pressable
-              style={[
-                styles.paymentMethodSelectable,
-                selectedPaymentMethod === 'cash_on_pickup' && styles.paymentMethodActive,
-              ]}
-              onPress={() => setSelectedPaymentMethod('cash_on_pickup')}
-              accessibilityLabel='Pay on Pickup'
-              accessibilityRole='button'
-            >
-              <View style={styles.paymentMethodContent}>
-                <View
-                  style={[
-                    styles.paymentIconContainer,
-                    selectedPaymentMethod === 'cash_on_pickup' && styles.paymentIconContainerActive,
-                  ]}
-                >
-                  <Icon
-                    name='cash'
-                    family='Ionicons'
-                    size={24}
-                    color={selectedPaymentMethod === 'cash_on_pickup' ? '#005250' : '#64748B'}
-                  />
-                </View>
-                <View style={styles.flexOne}>
-                  <Text
-                    style={
-                      selectedPaymentMethod === 'cash_on_pickup'
-                        ? styles.paymentMethodTitle
-                        : styles.paymentMethodTitleUnselected
-                    }
-                  >
-                    Pay on Pickup
-                  </Text>
-                  <Text style={styles.paymentMethodSubtitle}>Cash payment at restaurant</Text>
-                </View>
+            {/* Payment options — three equal tiles in a single row */}
+            <View style={styles.paymentMethodsRow}>
+              {/* Pay on Pickup */}
+              <Pressable
+                style={[
+                  styles.paymentMethodCard,
+                  selectedPaymentMethod === 'cash_on_pickup' && styles.paymentMethodCardActive,
+                ]}
+                onPress={() => setSelectedPaymentMethod('cash_on_pickup')}
+                accessibilityLabel='Pay on Pickup'
+                accessibilityRole='button'
+              >
                 {selectedPaymentMethod === 'cash_on_pickup' && (
-                  <View style={styles.selectedBadge}>
-                    <Icon name='checkmark-circle' family='Ionicons' size={24} color='#10B981' />
+                  <View style={styles.paymentCardCheck}>
+                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
                   </View>
                 )}
-              </View>
-            </Pressable>
-
-            {/* Pay on Delivery */}
-            <Pressable
-              style={[
-                styles.paymentMethodSelectable,
-                selectedPaymentMethod === 'pay_on_delivery' && styles.paymentMethodActive,
-              ]}
-              onPress={() => setSelectedPaymentMethod('pay_on_delivery')}
-              accessibilityLabel='Pay on Delivery'
-              accessibilityRole='button'
-            >
-              <View style={styles.paymentMethodContent}>
-                <View
+                <Icon
+                  name='cash'
+                  family='Ionicons'
+                  size={28}
+                  color={selectedPaymentMethod === 'cash_on_pickup' ? '#005250' : '#64748B'}
+                />
+                <Text
                   style={[
-                    styles.paymentIconContainer,
-                    selectedPaymentMethod === 'pay_on_delivery'
-                      ? styles.paymentIconContainerActive
-                      : styles.paymentIconContainerInactive,
+                    styles.paymentCardLabel,
+                    selectedPaymentMethod === 'cash_on_pickup' && styles.paymentCardLabelActive,
                   ]}
                 >
-                  <Icon
-                    name='bicycle'
-                    family='Ionicons'
-                    size={24}
-                    color={selectedPaymentMethod === 'pay_on_delivery' ? '#005250' : '#64748B'}
-                  />
-                </View>
-                <View style={styles.flexOne}>
-                  <Text
-                    style={
-                      selectedPaymentMethod === 'pay_on_delivery'
-                        ? styles.paymentMethodTitle
-                        : styles.paymentMethodTitleUnselected
-                    }
-                  >
-                    Pay on Delivery
-                  </Text>
-                  <Text style={styles.paymentMethodSubtitle}>Cash payment upon delivery</Text>
-                </View>
+                  {'Pay on\nPickup'}
+                </Text>
+              </Pressable>
+
+              {/* Pay on Delivery */}
+              <Pressable
+                style={[
+                  styles.paymentMethodCard,
+                  selectedPaymentMethod === 'pay_on_delivery' && styles.paymentMethodCardActive,
+                ]}
+                onPress={() => setSelectedPaymentMethod('pay_on_delivery')}
+                accessibilityLabel='Pay on Delivery'
+                accessibilityRole='button'
+              >
                 {selectedPaymentMethod === 'pay_on_delivery' && (
-                  <View style={styles.selectedBadge}>
-                    <Icon name='checkmark-circle' family='Ionicons' size={24} color='#10B981' />
+                  <View style={styles.paymentCardCheck}>
+                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
                   </View>
                 )}
-              </View>
-            </Pressable>
+                <Icon
+                  name='bicycle'
+                  family='Ionicons'
+                  size={28}
+                  color={selectedPaymentMethod === 'pay_on_delivery' ? '#005250' : '#64748B'}
+                />
+                <Text
+                  style={[
+                    styles.paymentCardLabel,
+                    selectedPaymentMethod === 'pay_on_delivery' && styles.paymentCardLabelActive,
+                  ]}
+                >
+                  {'Pay on\nDelivery'}
+                </Text>
+              </Pressable>
 
-            {/* Online Payment - Coming Soon */}
-            <View style={styles.paymentMethodDisabled}>
-              <View style={styles.paymentMethodContent}>
-                <View style={[styles.paymentIconContainer, styles.paymentIconContainerInactive]}>
-                  <Icon name='card' family='Ionicons' size={24} color='#94A3B8' />
-                </View>
-                <View style={styles.flexOne}>
-                  <View style={styles.rowCenter}>
-                    <Text style={styles.paymentMethodTitleDisabled}>Online Payment</Text>
-                    <View style={styles.comingSoonBadge}>
-                      <Text style={styles.comingSoonText}>Coming Soon</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.paymentMethodSubtitleDisabled}>
-                    Credit card, PayMe & more
-                  </Text>
+              {/* Online Payment — Coming Soon */}
+              <View style={[styles.paymentMethodCard, styles.paymentMethodCardDisabled]}>
+                <Icon name='card' family='Ionicons' size={28} color='#CBD5E1' />
+                <Text style={[styles.paymentCardLabel, styles.paymentCardLabelDisabled]}>
+                  {'Online\nPayment'}
+                </Text>
+                <View style={styles.comingSoonBadge}>
+                  <Text style={styles.comingSoonText}>Soon</Text>
                 </View>
               </View>
             </View>
@@ -807,217 +661,58 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 
-  // Offer Details
-  offerDetailsCard: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  offerImageRow: {
+  // Payment Methods — horizontal tile row
+  paymentMethodsRow: {
     flexDirection: 'row',
-    marginBottom: 16,
-  },
-  offerImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 12,
-    backgroundColor: '#E2E8F0',
-  },
-  offerImagePlaceholder: {
-    width: 90,
-    height: 90,
-    borderRadius: 12,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  offerDetails: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  offerTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-    lineHeight: 22,
-  },
-  offerEstablishment: {
-    fontSize: 14,
-    color: '#64748B',
-    marginTop: 2,
-  },
-
-  // Quantity Stepper
-  quantitySection: {
-    marginTop: 16,
-    marginBottom: 16,
-  },
-  quantityLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  quantityLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#475569',
-  },
-  availabilityText: {
-    fontSize: 13,
-    color: '#EF4444',
-    fontWeight: '600',
-  },
-  quantityStepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  quantityButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F0FDF4',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#D1FAE5',
-  },
-  quantityButtonDisabled: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-  },
-  quantityDisplay: {
-    marginHorizontal: 24,
-    alignItems: 'center',
-    minWidth: 60,
-  },
-  quantityValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#005250',
-    lineHeight: 28,
-  },
-  quantityBagText: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-    fontWeight: '500',
-  },
-
-  offerDivider: {
-    height: 1,
-    backgroundColor: '#E2E8F0',
-    marginBottom: 14,
-  },
-  pickupInfo: {
     gap: 10,
   },
-  pickupRow: {
-    flexDirection: 'row',
+  paymentMethodCard: {
+    flex: 1,
+    flexBasis: 0,
     alignItems: 'center',
-  },
-  pickupText: {
-    fontSize: 14,
-    color: '#475569',
-    marginLeft: 10,
-    fontWeight: '500',
-  },
-
-  // Payment Methods
-  paymentMethodSelectable: {
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    gap: 6,
+    position: 'relative',
   },
-  paymentMethodActive: {
-    backgroundColor: '#F0FDF4',
-    borderWidth: 2,
+  paymentMethodCardActive: {
     borderColor: '#10B981',
+    borderWidth: 2,
+    backgroundColor: '#F0FDF4',
   },
-  paymentMethodDisabled: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
+  paymentMethodCardDisabled: {
     borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
     opacity: 0.6,
   },
-  paymentMethodContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  paymentIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#D1FAE5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  paymentIconContainerActive: {
-    backgroundColor: '#D1FAE5',
-  },
-  paymentIconContainerInactive: {
-    backgroundColor: '#F1F5F9',
-  },
-  flexOne: {
-    flex: 1,
-  },
-  rowCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  paymentMethodTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 2,
-  },
-  paymentMethodTitleUnselected: {
-    fontSize: 16,
+  paymentCardLabel: {
+    fontSize: 11,
     fontWeight: '600',
     color: '#475569',
-    marginBottom: 2,
+    textAlign: 'center',
+    lineHeight: 16,
   },
-  paymentMethodSubtitle: {
-    fontSize: 13,
-    color: '#64748B',
+  paymentCardLabelActive: {
+    color: '#005250',
   },
-  paymentMethodTitleDisabled: {
-    fontSize: 16,
-    fontWeight: '600',
+  paymentCardLabelDisabled: {
     color: '#94A3B8',
-    marginBottom: 2,
   },
-  paymentMethodSubtitleDisabled: {
-    fontSize: 13,
-    color: '#CBD5E1',
-  },
-  selectedBadge: {
-    marginLeft: 'auto',
+  paymentCardCheck: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
   },
   comingSoonBadge: {
     backgroundColor: '#FEF3C7',
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    marginLeft: 8,
   },
   comingSoonText: {
     fontSize: 10,

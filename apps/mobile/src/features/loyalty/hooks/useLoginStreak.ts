@@ -4,7 +4,7 @@
  * Silently awards streak points (2 pts/day, max 20/month).
  *
  * On success with pointsAwarded > 0, optimistically updates the
- * React Query cache for instant UI feedback, then invalidates
+ * TanStack Query cache for instant UI feedback, then invalidates
  * both loyalty queries for eventual correctness.
  *
  * NOTE: Does NOT use AbortController — the POST is fire-and-forget,
@@ -20,7 +20,7 @@ import { loyaltyService } from '../services/loyaltyService';
 
 import type { LoyaltyAccount, GamificationStats } from '../types/loyalty.types';
 
-// Must match the keys in useLoyalty.ts — React Query matches by value.
+// Must match the keys in useLoyalty.ts — TanStack Query matches by value.
 const LOYALTY_ACCOUNT_KEY = ['loyalty', 'account'] as const;
 const GAMIFICATION_KEY = ['loyalty', 'gamification'] as const;
 

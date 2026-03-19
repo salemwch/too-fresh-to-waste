@@ -1,93 +1,36 @@
 /**
  * SkeletonEditProfileScreen Component
- * Loading skeleton displayed while profile is saving
- *
- * Mirrors the EditProfileScreen layout:
- * - Avatar circle + "Change Photo" button
- * - Personal Information section (4 input fields)
- * - Address section (4 input fields, last 2 side-by-side)
- * - Action buttons (Save + Cancel)
- *
- * Pattern: Opacity shimmer (0.3→0.7) — same as SkeletonCheckoutScreen
+ * Loading skeleton displayed while profile is saving.
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, ScrollView } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 
 import { useTheme } from '@/design-system/providers';
+import { SkeletonBox, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 
 export const SkeletonEditProfileScreen: React.FC = () => {
   const theme = useTheme();
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const anim = useShimmerAnimation('pulse');
 
-  useEffect(() => {
-    const shimmer = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    shimmer.start();
-
-    return () => shimmer.stop();
-  }, [shimmerAnim]);
-
-  const shimmerOpacity = shimmerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
-  });
-
-  const SkeletonBox = ({
-    width,
-    height,
-    borderRadius = 8,
-    style,
-  }: {
-    width: number | string;
-    height: number;
-    borderRadius?: number;
-    style?: object;
-  }) => (
-    <Animated.View
-      style={[
-        {
-          width,
-          height,
-          backgroundColor: theme.colors.outline,
-          borderRadius,
-          opacity: shimmerOpacity,
-        },
-        style,
-      ]}
-    />
-  );
-
-  /** Skeleton for a single input field (label + input box) */
   const SkeletonInput = ({ style }: { style?: object }) => (
     <View style={[styles.inputWrapper, style]}>
-      <SkeletonBox width={80} height={14} borderRadius={7} />
+      <SkeletonBox animValue={anim} width={80} height={14} borderRadius={7} color={theme.colors.outline} />
       <SkeletonBox
+        animValue={anim}
         width='100%'
         height={48}
         borderRadius={12}
+        color={theme.colors.outline}
         style={styles.inputBox}
       />
     </View>
   );
 
-  /** Section header skeleton (icon + title) */
   const SkeletonSectionHeader = () => (
     <View style={styles.sectionHeader}>
-      <SkeletonBox width={20} height={20} borderRadius={10} />
-      <SkeletonBox width={160} height={18} borderRadius={9} style={styles.sectionTitleBox} />
+      <SkeletonBox animValue={anim} width={20} height={20} borderRadius={10} color={theme.colors.outline} />
+      <SkeletonBox animValue={anim} width={160} height={18} borderRadius={9} color={theme.colors.outline} style={styles.sectionTitleBox} />
     </View>
   );
 
@@ -100,11 +43,13 @@ export const SkeletonEditProfileScreen: React.FC = () => {
         {/* Avatar Section */}
         <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
           <View style={styles.avatarSection}>
-            <SkeletonBox width={96} height={96} borderRadius={48} />
+            <SkeletonBox animValue={anim} width={96} height={96} borderRadius={48} color={theme.colors.outline} />
             <SkeletonBox
+              animValue={anim}
               width={140}
               height={36}
               borderRadius={18}
+              color={theme.colors.outline}
               style={styles.changePhotoBtn}
             />
           </View>
@@ -136,11 +81,13 @@ export const SkeletonEditProfileScreen: React.FC = () => {
 
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
-          <SkeletonBox width='100%' height={52} borderRadius={12} />
+          <SkeletonBox animValue={anim} width='100%' height={52} borderRadius={12} color={theme.colors.outline} />
           <SkeletonBox
+            animValue={anim}
             width='100%'
             height={44}
             borderRadius={12}
+            color={theme.colors.outline}
             style={styles.cancelBtn}
           />
         </View>

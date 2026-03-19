@@ -1,113 +1,41 @@
 /**
  * SkeletonImpactBanner Component
- * Professional shimmer loading placeholder for ImpactBanner (collapsed state)
- *
- * Features:
- * - Smooth shimmer animation matching SkeletonOfferCard pattern
- * - Matches collapsed ImpactBanner dimensions exactly
- * - Performance optimized with React.memo
+ * Shimmer loading placeholder for ImpactBanner (collapsed state).
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+
+import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 
 interface SkeletonImpactBannerProps {
-  /**
-   * Test ID for testing
-   */
   testID?: string;
 }
 
-/**
- * SkeletonImpactBanner - Shimmer loading placeholder for collapsed banner
- */
 const SkeletonImpactBannerComponent: React.FC<SkeletonImpactBannerProps> = ({
   testID = 'skeleton-impact-banner',
 }) => {
-  const shimmerAnimation = useRef(new Animated.Value(0)).current;
-
-  // Shimmer animation loop
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnimation, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnimation, {
-          toValue: 0,
-          duration: 0,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    animation.start();
-
-    return () => {
-      animation.stop();
-    };
-  }, [shimmerAnimation]);
-
-  // Shimmer gradient translation
-  const translateX = shimmerAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-300, 300],
-  });
-
-  /**
-   * Shimmer effect component
-   */
-  const Shimmer: React.FC<{ style?: any }> = ({ style: shimmerStyle }) => (
-    <View style={[styles.shimmerContainer, shimmerStyle]}>
-      <Animated.View
-        style={[
-          styles.shimmerGradientWrapper,
-          {
-            transform: [{ translateX }],
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={['#E5E7EB', '#F3F4F6', '#E5E7EB']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.shimmerGradient}
-        />
-      </Animated.View>
-    </View>
-  );
+  const anim = useShimmerAnimation();
 
   return (
     <View style={styles.container} testID={testID}>
       <View style={styles.banner}>
         <View style={styles.collapsedContent}>
-          {/* Icon placeholder */}
-          <Shimmer style={styles.iconSkeleton} />
-
-          {/* Text container */}
+          <ShimmerBlock animValue={anim} style={styles.iconSkeleton} />
           <View style={styles.textContainer}>
-            {/* Title skeleton */}
-            <Shimmer style={styles.titleSkeleton} />
-            {/* Subtitle skeleton */}
-            <Shimmer style={styles.subtitleSkeleton} />
+            <ShimmerBlock animValue={anim} style={styles.titleSkeleton} />
+            <ShimmerBlock animValue={anim} style={styles.subtitleSkeleton} />
           </View>
-
-          {/* Expand icon placeholder */}
-          <Shimmer style={styles.expandIconSkeleton} />
+          <ShimmerBlock animValue={anim} style={styles.expandIconSkeleton} />
         </View>
       </View>
     </View>
   );
 };
 
-// Export memoized component
 SkeletonImpactBannerComponent.displayName = 'SkeletonImpactBanner';
 export const SkeletonImpactBanner = React.memo(SkeletonImpactBannerComponent);
 
-// ==================== Styles ====================
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
@@ -152,18 +80,5 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     marginLeft: 8,
-  },
-  // Shimmer effect styles
-  shimmerContainer: {
-    backgroundColor: '#E5E7EB',
-    overflow: 'hidden',
-  },
-  shimmerGradientWrapper: {
-    width: '100%',
-    height: '100%',
-  },
-  shimmerGradient: {
-    width: 300,
-    height: '100%',
   },
 });

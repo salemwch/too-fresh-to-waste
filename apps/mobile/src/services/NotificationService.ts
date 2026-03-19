@@ -109,7 +109,7 @@ class NotificationService {
 
       await axios.post(
         `${environment.api.baseUrl}/notifications/device-token`,
-        { token, platform: Platform.OS },
+        { deviceToken: token, platform: Platform.OS },
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -141,7 +141,7 @@ class NotificationService {
 
       await axios.delete(`${environment.api.baseUrl}/notifications/device-token`, {
         headers: { Authorization: `Bearer ${accessToken}` },
-        data: { token },
+        data: { deviceToken: token },
         timeout: 10_000,
       });
 

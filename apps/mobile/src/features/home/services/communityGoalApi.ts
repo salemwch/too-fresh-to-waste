@@ -32,7 +32,7 @@ const handleApiError = (error: unknown): Error => {
 export const communityGoalApi = {
   /**
    * Get community bag goal statistics (public endpoint)
-   * @param signal — AbortSignal for React Query cancellation
+   * @param signal — AbortSignal for TanStack Query cancellation
    */
   async getStats(signal?: AbortSignal): Promise<CommunityBagGoalStats> {
     try {

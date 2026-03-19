@@ -45,6 +45,7 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
   // Safe accessors with fallbacks for undefined values
   const totalDonations = stats.totalDonations ?? 0;
   const contributorCount = stats.contributorCount ?? 0;
+  const mealCount = stats.mealCount ?? 0;
   const progressPercentage = stats.progressPercentage ?? 0;
   const targetAmount = stats.targetAmount ?? 0;
   const currency = stats.currency ?? 'TND';
@@ -86,6 +87,12 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
               <View style={styles.statItem}>
                 <Text style={styles.statLabel}>Contributors:</Text>
                 <Text style={styles.statValue}>{contributorCount.toLocaleString()} people</Text>
+              </View>
+
+              {/* Meals Funded */}
+              <View style={styles.statItem}>
+                <Text style={styles.statLabel}>Meals Funded:</Text>
+                <Text style={styles.statValue}>{mealCount.toLocaleString()} meals</Text>
               </View>
             </View>
 

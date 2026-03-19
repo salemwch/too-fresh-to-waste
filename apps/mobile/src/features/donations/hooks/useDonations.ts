@@ -1,6 +1,6 @@
 /**
  * Donation Hooks
- * React Query hooks for donation data fetching with caching and error handling
+ * TanStack Query hooks for donation data fetching with caching and error handling
  */
 
 import { useQuery } from '@tanstack/react-query';

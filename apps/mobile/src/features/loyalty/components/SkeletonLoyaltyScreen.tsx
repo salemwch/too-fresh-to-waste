@@ -1,90 +1,57 @@
 /**
  * SkeletonLoyaltyScreen
  * Shimmer loading placeholder for the loyalty screen.
- * Pattern: Animated.loop + LinearGradient translateX (matches SkeletonOfferCard).
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
 
 import { useTheme } from '@/design-system/providers';
+import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 
 const SkeletonLoyaltyScreenComponent: React.FC = () => {
   const theme = useTheme();
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 0,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [shimmerAnim]);
-
-  const translateX = shimmerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-300, 300],
-  });
-
-  const Shimmer: React.FC<{ style?: any }> = ({ style }) => (
-    <View style={[styles.shimmerBase, { backgroundColor: theme.colors.surfaceVariant }, style]}>
-      <Animated.View style={[styles.shimmerGradientWrap, { transform: [{ translateX }] }]}>
-        <LinearGradient
-          colors={[theme.colors.surfaceVariant, theme.colors.surface, theme.colors.surfaceVariant]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.shimmerGradient}
-        />
-      </Animated.View>
-    </View>
-  );
+  const anim = useShimmerAnimation();
+  const colors: [string, string, string] = [
+    theme.colors.surfaceVariant,
+    theme.colors.surface,
+    theme.colors.surfaceVariant,
+  ];
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Hero card placeholder */}
-      <Shimmer style={styles.heroCard} />
+      <ShimmerBlock animValue={anim} colors={colors} style={styles.heroCard} />
 
       {/* Impact stats row */}
       <View style={styles.statsRow}>
-        <Shimmer style={styles.statPill} />
-        <Shimmer style={styles.statPill} />
-        <Shimmer style={styles.statPill} />
+        <ShimmerBlock animValue={anim} colors={colors} style={styles.statPill} />
+        <ShimmerBlock animValue={anim} colors={colors} style={styles.statPill} />
+        <ShimmerBlock animValue={anim} colors={colors} style={styles.statPill} />
       </View>
 
       {/* How you earn grid */}
-      <Shimmer style={styles.sectionTitle} />
+      <ShimmerBlock animValue={anim} colors={colors} style={styles.sectionTitle} />
       <View style={styles.earnGrid}>
-        <Shimmer style={styles.earnCell} />
-        <Shimmer style={styles.earnCell} />
-        <Shimmer style={styles.earnCell} />
-        <Shimmer style={styles.earnCell} />
+        <ShimmerBlock animValue={anim} colors={colors} style={styles.earnCell} />
+        <ShimmerBlock animValue={anim} colors={colors} style={styles.earnCell} />
+        <ShimmerBlock animValue={anim} colors={colors} style={styles.earnCell} />
+        <ShimmerBlock animValue={anim} colors={colors} style={styles.earnCell} />
       </View>
 
       {/* Badges scroll */}
-      <Shimmer style={styles.sectionTitle} />
+      <ShimmerBlock animValue={anim} colors={colors} style={styles.sectionTitle} />
       <View style={styles.badgesRow}>
         {[0, 1, 2, 3, 4].map((i) => (
-          <Shimmer key={i} style={styles.badgeCircle} />
+          <ShimmerBlock key={i} animValue={anim} colors={colors} style={styles.badgeCircle} />
         ))}
       </View>
 
       {/* Activity list */}
-      <Shimmer style={styles.sectionTitle} />
-      <Shimmer style={styles.activityRow} />
-      <Shimmer style={styles.activityRow} />
-      <Shimmer style={styles.activityRow} />
+      <ShimmerBlock animValue={anim} colors={colors} style={styles.sectionTitle} />
+      <ShimmerBlock animValue={anim} colors={colors} style={styles.activityRow} />
+      <ShimmerBlock animValue={anim} colors={colors} style={styles.activityRow} />
+      <ShimmerBlock animValue={anim} colors={colors} style={styles.activityRow} />
     </View>
   );
 };
@@ -96,18 +63,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-  },
-  shimmerBase: {
-    overflow: 'hidden',
-    borderRadius: 12,
-  },
-  shimmerGradientWrap: {
-    width: '100%',
-    height: '100%',
-  },
-  shimmerGradient: {
-    width: 300,
-    height: '100%',
   },
   heroCard: {
     height: 200,

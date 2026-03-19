@@ -109,7 +109,7 @@ const executeOrderCreation = useCallback(...)
 - useCallback for event handlers
 - useRef for non-reactive data (pendingOrderDataRef)
 - Automatic request cancellation (AbortSignal)
-- React Query caching for offer data
+- TanStack Query caching for offer data
 
 ### 4. User Experience
 - No error toasts for phone verification (seamless modal)

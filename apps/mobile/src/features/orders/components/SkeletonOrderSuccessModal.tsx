@@ -1,102 +1,60 @@
 /**
  * SkeletonOrderSuccessModal
  * Shimmer skeleton shown while the order-creation API call is in flight.
- * Layout mirrors OrderSuccessModal exactly so the skeleton → real-modal
- * transition feels seamless with no jarring layout shift.
+ * Layout mirrors OrderSuccessModal exactly.
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Modal, Platform } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Modal, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+
+import { SkeletonBox, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 
 interface SkeletonOrderSuccessModalProps {
   visible: boolean;
 }
 
 export const SkeletonOrderSuccessModal: React.FC<SkeletonOrderSuccessModalProps> = React.memo(({ visible }) => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (!visible) return;
-
-    const shimmer = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
-        Animated.timing(shimmerAnim, { toValue: 0, duration: 1500, useNativeDriver: true }),
-      ]),
-    );
-    shimmer.start();
-    return () => shimmer.stop();
-  }, [visible, shimmerAnim]);
-
-  const shimmerOpacity = shimmerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
-  });
-
-  const SkeletonBox = ({
-    width,
-    height,
-    borderRadius = 8,
-    style,
-  }: {
-    width: number | string;
-    height: number;
-    borderRadius?: number;
-    style?: any;
-  }) => (
-    <Animated.View
-      style={[
-        {
-          width,
-          height,
-          backgroundColor: '#E2E8F0',
-          borderRadius,
-          opacity: shimmerOpacity,
-        },
-        style,
-      ]}
-    />
-  );
+  const anim = useShimmerAnimation('pulse', visible);
 
   return (
     <Modal visible={visible} transparent animationType="none" statusBarTranslucent>
       <View style={styles.backdrop}>
         <View style={styles.modalContainer}>
           <View style={styles.card}>
-            {/* Green gradient header – icon / title / subtitle */}
+            {/* Green gradient header */}
             <LinearGradient
               colors={['#10B981', '#059669', '#047857']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.header}
             >
-              <SkeletonBox width={64} height={64} borderRadius={32} style={styles.headerSkeleton} />
-              <SkeletonBox width={180} height={28} borderRadius={14} style={styles.headerTitleSkeleton} />
-              <SkeletonBox width={140} height={15} borderRadius={7} style={styles.headerSubtitleSkeleton} />
+              <SkeletonBox animValue={anim} width={64} height={64} borderRadius={32} style={styles.headerSkeleton} color="rgba(255, 255, 255, 0.25)" />
+              <SkeletonBox animValue={anim} width={180} height={28} borderRadius={14} style={styles.headerTitleSkeleton} color="rgba(255, 255, 255, 0.3)" />
+              <SkeletonBox animValue={anim} width={140} height={15} borderRadius={7} style={styles.headerSubtitleSkeleton} color="rgba(255, 255, 255, 0.2)" />
             </LinearGradient>
 
-            {/* Body – mirrors visible sections of OrderSuccessModal */}
+            {/* Body */}
             <View style={styles.body}>
               {/* Items + Total */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <SkeletonBox width={20} height={20} borderRadius={10} />
-                  <SkeletonBox width={120} height={16} borderRadius={8} style={{ marginLeft: 8 }} />
+                  <SkeletonBox animValue={anim} width={20} height={20} borderRadius={10} />
+                  <SkeletonBox animValue={anim} width={120} height={16} borderRadius={8} style={{ marginLeft: 8 }} />
                 </View>
                 <View style={styles.itemRow}>
-                  <SkeletonBox width={22} height={15} borderRadius={7} />
-                  <SkeletonBox width={120} height={15} borderRadius={7} style={{ marginLeft: 10, flex: 1 }} />
-                  <SkeletonBox width={60} height={15} borderRadius={7} />
+                  <SkeletonBox animValue={anim} width={22} height={15} borderRadius={7} />
+                  <SkeletonBox animValue={anim} width={120} height={15} borderRadius={7} style={{ marginLeft: 10, flex: 1 }} />
+                  <SkeletonBox animValue={anim} width={60} height={15} borderRadius={7} />
                 </View>
                 <View style={[styles.itemRow, { marginTop: 10 }]}>
-                  <SkeletonBox width={22} height={15} borderRadius={7} />
-                  <SkeletonBox width={100} height={15} borderRadius={7} style={{ marginLeft: 10, flex: 1 }} />
-                  <SkeletonBox width={60} height={15} borderRadius={7} />
+                  <SkeletonBox animValue={anim} width={22} height={15} borderRadius={7} />
+                  <SkeletonBox animValue={anim} width={100} height={15} borderRadius={7} style={{ marginLeft: 10, flex: 1 }} />
+                  <SkeletonBox animValue={anim} width={60} height={15} borderRadius={7} />
                 </View>
                 <View style={styles.totalRow}>
-                  <SkeletonBox width={42} height={17} borderRadius={8} />
-                  <SkeletonBox width={80} height={20} borderRadius={10} />
+                  <SkeletonBox animValue={anim} width={42} height={17} borderRadius={8} />
+                  <SkeletonBox animValue={anim} width={80} height={20} borderRadius={10} />
                 </View>
               </View>
 
@@ -105,30 +63,29 @@ export const SkeletonOrderSuccessModal: React.FC<SkeletonOrderSuccessModalProps>
               {/* Pickup Details */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <SkeletonBox width={20} height={20} borderRadius={10} />
-                  <SkeletonBox width={110} height={16} borderRadius={8} style={{ marginLeft: 8 }} />
+                  <SkeletonBox animValue={anim} width={20} height={20} borderRadius={10} />
+                  <SkeletonBox animValue={anim} width={110} height={16} borderRadius={8} style={{ marginLeft: 8 }} />
                 </View>
                 <View style={styles.pickupInfo}>
                   <View style={styles.pickupRow}>
-                    <SkeletonBox width={18} height={18} borderRadius={9} />
-                    <SkeletonBox width={150} height={14} borderRadius={7} style={{ marginLeft: 10 }} />
+                    <SkeletonBox animValue={anim} width={18} height={18} borderRadius={9} />
+                    <SkeletonBox animValue={anim} width={150} height={14} borderRadius={7} style={{ marginLeft: 10 }} />
                   </View>
                   <View style={styles.pickupRow}>
-                    <SkeletonBox width={18} height={18} borderRadius={9} />
-                    <SkeletonBox width={100} height={14} borderRadius={7} style={{ marginLeft: 10 }} />
+                    <SkeletonBox animValue={anim} width={18} height={18} borderRadius={9} />
+                    <SkeletonBox animValue={anim} width={100} height={14} borderRadius={7} style={{ marginLeft: 10 }} />
                   </View>
                   <View style={styles.pickupRow}>
-                    <SkeletonBox width={18} height={18} borderRadius={9} />
-                    <SkeletonBox width={130} height={14} borderRadius={7} style={{ marginLeft: 10 }} />
+                    <SkeletonBox animValue={anim} width={18} height={18} borderRadius={9} />
+                    <SkeletonBox animValue={anim} width={130} height={14} borderRadius={7} style={{ marginLeft: 10 }} />
                   </View>
                 </View>
               </View>
-
             </View>
 
             {/* Footer CTA */}
             <View style={styles.footer}>
-              <SkeletonBox width="100%" height={56} borderRadius={16} />
+              <SkeletonBox animValue={anim} width="100%" height={56} borderRadius={16} />
             </View>
           </View>
         </View>
@@ -165,27 +122,19 @@ const styles = StyleSheet.create({
       },
     }),
   },
-
-  // Header
   header: {
     paddingTop: 32,
     paddingBottom: 28,
     paddingHorizontal: 24,
     alignItems: 'center',
   },
-  headerSkeleton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-  },
+  headerSkeleton: {},
   headerTitleSkeleton: {
     marginTop: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   headerSubtitleSkeleton: {
     marginTop: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
-
-  // Body
   body: {
     padding: 24,
   },
@@ -202,8 +151,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2E8F0',
     marginVertical: 20,
   },
-
-  // Items
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -217,8 +164,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 2,
     borderTopColor: '#E2E8F0',
   },
-
-  // Pickup details
   pickupInfo: {
     backgroundColor: '#F8FAFC',
     borderRadius: 12,
@@ -231,8 +176,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-
-  // Footer
   footer: {
     padding: 20,
     paddingTop: 16,

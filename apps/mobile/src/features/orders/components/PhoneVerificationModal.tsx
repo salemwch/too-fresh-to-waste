@@ -127,7 +127,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
    * (Auto-send used a stale closure that caused the OTP view to not appear.)
    */
   useEffect(() => {
-    if (visible && user?.phoneNumber) {
+    if (visible && user?.phoneNumber != null) {
       setPhoneNumber(user.phoneNumber);
     }
   }, [visible, user?.phoneNumber]);
@@ -152,13 +152,14 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   /**
    * Cleanup on unmount
    */
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (countdownTimerRef.current) {
         clearTimeout(countdownTimerRef.current);
       }
-    };
-  }, []);
+    },
+    [],
+  );
 
   /**
    * Reset all state when modal closes
@@ -245,7 +246,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
    * Verify OTP code
    */
   const handleVerifyOTP = useCallback(async () => {
-    if (!otp || otp.length !== 6) {
+    if (otp?.length !== 6) {
       setError('Please enter the 6-digit code');
       return;
     }
@@ -254,13 +255,10 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
     setError(null);
 
     try {
-      const response = await apiClient.post<PhoneVerificationResponse>(
-        '/users/phone/verify',
-        {
-          phoneNumber,
-          code: otp,
-        },
-      );
+      const response = await apiClient.post<PhoneVerificationResponse>('/users/phone/verify', {
+        phoneNumber,
+        code: otp,
+      });
 
       // ✅ Phone verification endpoints use custom format (not BackendApiResponse)
       const result = response.data;
@@ -291,12 +289,9 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
     setError(null);
 
     try {
-      const response = await apiClient.post<PhoneVerificationResponse>(
-        '/users/phone/resend-code',
-        {
-          phoneNumber,
-        },
-      );
+      const response = await apiClient.post<PhoneVerificationResponse>('/users/phone/resend-code', {
+        phoneNumber,
+      });
 
       // ✅ Phone verification endpoints use custom format (not BackendApiResponse)
       const result = response.data;
@@ -358,11 +353,11 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
           </View>
           <TextInput
             style={[styles.input, styles.phoneInput]}
-            placeholder="20 123 456"
-            placeholderTextColor="#9CA3AF"
+            placeholder='20 123 456'
+            placeholderTextColor='#9CA3AF'
             value={phoneNumber.replace(COUNTRY_PREFIX, '')}
             onChangeText={handlePhoneChange}
-            keyboardType="phone-pad"
+            keyboardType='phone-pad'
             maxLength={8}
             autoFocus
             editable={!isLoading}
@@ -370,7 +365,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         </View>
       </View>
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error != null && <Text style={styles.errorText}>{error}</Text>}
 
       <Pressable
         style={[styles.button, isLoading && styles.buttonDisabled]}
@@ -378,7 +373,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         disabled={isLoading}
       >
         {isLoading ? (
-          <ActivityIndicator color="#FFFFFF" />
+          <ActivityIndicator color='#FFFFFF' />
         ) : (
           <Text style={styles.buttonText}>Send Verification Code</Text>
         )}
@@ -405,18 +400,18 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         <TextInput
           ref={otpInputRef}
           style={[styles.input, styles.otpInput]}
-          placeholder="123456"
-          placeholderTextColor="#9CA3AF"
+          placeholder='123456'
+          placeholderTextColor='#9CA3AF'
           value={otp}
           onChangeText={handleOTPChange}
-          keyboardType="number-pad"
+          keyboardType='number-pad'
           maxLength={6}
           autoFocus
           editable={!isLoading}
         />
       </View>
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {(error != null) && <Text style={styles.errorText}>{error}</Text>}
 
       {attemptsRemaining !== null && attemptsRemaining < 3 && (
         <Text style={styles.warningText}>⚠️ {attemptsRemaining} attempts remaining</Text>
@@ -428,7 +423,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         disabled={isLoading || otp.length !== 6}
       >
         {isLoading ? (
-          <ActivityIndicator color="#FFFFFF" />
+          <ActivityIndicator color='#FFFFFF' />
         ) : (
           <Text style={styles.buttonText}>Verify & Continue</Text>
         )}
@@ -477,7 +472,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   if (!visible) return null;
 
   return (
-    <Modal visible={visible} animationType="none" transparent onRequestClose={handleCloseAnimated}>
+    <Modal visible={visible} animationType='none' transparent onRequestClose={handleCloseAnimated}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.overlay}

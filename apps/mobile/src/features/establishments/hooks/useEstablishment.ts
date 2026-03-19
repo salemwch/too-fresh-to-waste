@@ -1,6 +1,6 @@
 /**
  * useEstablishment Hook
- * React Query hook for fetching establishment details
+ * TanStack Query hook for fetching establishment details
  */
 
 import { useQuery } from '@tanstack/react-query';

@@ -30,7 +30,8 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 
-import { Icon } from '@/design-system/components/atoms';
+import SurpriseBoxIcon from '../../../assets/images/surprise-box.svg';
+import HeartInHandsIcon from '../../../assets/images/RedHeartinHands IconMedicalCareLogo.svg';
 import { LocationPromptBanner } from '@/design-system/components/molecules';
 import { ManualLocationModal, LocationSelectionModal } from '@/design-system/components/organisms';
 import { useTheme } from '@/design-system/providers';
@@ -40,7 +41,6 @@ import { FilterBottomSheet } from '@/features/search/components';
 import { useAppDispatch } from '@/hooks/redux';
 import { useLocation } from '@/hooks/useLocation';
 import { LocationPickerBottomSheet, LocationHeader } from '@/navigation/components';
-import { HEADER_TOP_BREATHING_ROOM } from '@/navigation/headerConfig';
 import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
 import { transformLocationResultsToItems } from '@/utils/location';
 import { Logger } from '@/utils/logger';
@@ -328,14 +328,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       headerTitle: () => <LocationHeader onPress={() => setIsLocationPickerVisible(true)} />,
       headerRight: () => (
         <View style={styles.headerRightRow}>
+          <View
+            accessibilityLabel='Donation pool'
+            accessibilityRole='image'
+            style={styles.headerIconButtonRight}
+          >
+            <HeartInHandsIcon width={28} height={28} />
+          </View>
           <Pressable
             onPress={() => navigation.navigate('Leaderboard')}
             style={styles.headerIconButtonRight}
-            accessibilityLabel='Leaderboard'
+            accessibilityLabel='Grand prize leaderboard'
             accessibilityRole='button'
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Icon name='gift-outline' family='Ionicons' size={24} color='#1F2937' />
+            <SurpriseBoxIcon width={26} height={26} />
           </Pressable>
         </View>
       ),
@@ -849,8 +856,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 12,
-    paddingTop: HEADER_TOP_BREATHING_ROOM + 5,
-    paddingBottom: 4,
+    paddingVertical: 4,
   },
   headerIconButtonRight: {
     padding: 8,

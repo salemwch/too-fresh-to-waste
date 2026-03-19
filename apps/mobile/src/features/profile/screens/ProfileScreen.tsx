@@ -44,7 +44,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [loadingBiometric, setLoadingBiometric] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  // Loyalty points preview — shares React Query cache with LoyaltyScreen
+  // Loyalty points preview — shares TanStack Query cache with LoyaltyScreen
   const { account: loyaltyAccount } = useLoyalty();
   const availablePoints = loyaltyAccount?.availablePoints ?? null;
   const currentTier: TierName = loyaltyAccount?.currentTier ?? 'Bronze';
