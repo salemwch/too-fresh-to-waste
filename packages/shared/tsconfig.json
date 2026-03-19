@@ -9,6 +9,7 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "declaration": true,
     "declarationMap": true,
+    "declarationDir": "./dist",
     "sourceMap": true,
     "module": "commonjs",
     "target": "ES2020",
