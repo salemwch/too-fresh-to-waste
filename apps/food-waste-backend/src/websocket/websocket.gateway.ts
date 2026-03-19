@@ -19,7 +19,11 @@ import { WebSocketExceptionFilter } from './filters/websocket-exception.filter';
 @WSGateway({
   cors: {
     origin: [
+      // Backend self (health checks / same-origin WS)
       'http://localhost:3000',
+      // Web merchant dashboard (Next.js dev server)
+      'http://localhost:3001',
+      // Mobile app (React Native / Expo)
       'http://localhost:8081',
       'http://10.0.2.2:8081',
       'capacitor://localhost',
@@ -81,6 +85,11 @@ export class WebSocketGateway
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { room: string },
   ): void {
+    // Guard has already verified the JWT and set client.isAuthenticated / userId / role.
+    // Register in userSockets NOW so sendToUser() can reach this socket immediately.
+    // This avoids the race condition where the separate 'authenticate' event fires
+    // before verifyAsync() resolves and isAuthenticated is still false.
+    this.webSocketService.registerUserSocket(client);
     this.webSocketService.joinRoom(client, data.room);
     client.emit('room_joined', {
       room: data.room,

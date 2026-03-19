@@ -114,6 +114,40 @@ export class WebSocketService {
     }
   }
 
+  /**
+   * Register an already-authenticated socket in the userSockets map so that
+   * sendToUser() can reach it. Safe to call multiple times (idempotent).
+   * Call this from handleJoinRoom (post-guard) to avoid the race condition
+   * where the separate 'authenticate' event fires before the guard resolves.
+   */
+  registerUserSocket(socket: AuthenticatedSocket): void {
+    this.logger.log(
+      `[registerUserSocket] called — socketId=${socket.id} ` +
+      `isAuthenticated=${socket.isAuthenticated} userId=${socket.userId} role=${socket.role}`,
+    );
+
+    if (!socket.isAuthenticated || !socket.userId) {
+      this.logger.warn(
+        `[registerUserSocket] SKIPPED — socket ${socket.id} is not authenticated yet. ` +
+        `isAuthenticated=${socket.isAuthenticated} userId=${socket.userId}`,
+      );
+      return;
+    }
+
+    if (!this.userSockets.has(socket.userId)) {
+      this.userSockets.set(socket.userId, new Set());
+    }
+    this.userSockets.get(socket.userId)!.add(socket.id);
+
+    // Join user-specific room for direct targeting
+    socket.join(`user-${socket.userId}`);
+
+    this.logger.log(
+      `[registerUserSocket] SUCCESS — userId=${socket.userId} socketId=${socket.id} role=${socket.role} ` +
+      `totalRegisteredUsers=${this.userSockets.size}`,
+    );
+  }
+
   joinRoom(socket: AuthenticatedSocket, roomName: string): void {
     const room = Object.values(WEBSOCKET_ROOMS).find(r => r.name === roomName);
 
@@ -177,15 +211,39 @@ export class WebSocketService {
    */
   sendToUser(userId: string, event: string, data: any): void {
     const userSocketIds = this.userSockets.get(userId);
-    if (userSocketIds) {
-      for (const socketId of userSocketIds) {
-        const socket = this.connectedClients.get(socketId);
-        if (socket) {
-          socket.emit(event, this.wrapEventPayload(event, data, userId));
-        }
-      }
-      this.logger.debug(`Sent ${event} to user ${userId} (${userSocketIds.size} connections)`);
+
+    // ── diagnostic snapshot ───────────────────────────────────────────────────
+    this.logger.log(
+      `[sendToUser] event="${event}" targetUserId="${userId}" ` +
+      `totalConnected=${this.connectedClients.size} ` +
+      `registeredUsers=${this.userSockets.size} ` +
+      `userFound=${!!userSocketIds} ` +
+      `userSockets=[${[...this.userSockets.keys()].join(', ')}]`,
+    );
+    // ─────────────────────────────────────────────────────────────────────────
+
+    if (!userSocketIds || userSocketIds.size === 0) {
+      this.logger.warn(
+        `[sendToUser] MISS — user "${userId}" is not in userSockets. ` +
+        `Event "${event}" was NOT delivered. ` +
+        `Is the merchant dashboard open and connected?`,
+      );
+      return;
     }
+
+    let delivered = 0;
+    for (const socketId of userSocketIds) {
+      const socket = this.connectedClients.get(socketId);
+      if (socket) {
+        socket.emit(event, this.wrapEventPayload(event, data, userId));
+        delivered++;
+        this.logger.log(`[sendToUser] Emitted "${event}" to socketId=${socketId}`);
+      } else {
+        this.logger.warn(`[sendToUser] socketId=${socketId} in userSockets but NOT in connectedClients — stale entry`);
+      }
+    }
+
+    this.logger.log(`[sendToUser] "${event}" delivered to ${delivered}/${userSocketIds.size} sockets of user "${userId}"`);
   }
 
   /**

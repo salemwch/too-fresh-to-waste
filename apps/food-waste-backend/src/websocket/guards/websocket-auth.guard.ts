@@ -29,7 +29,8 @@ export class WebSocketAuthGuard implements CanActivate {
       }
 
       // Attach user information to the socket
-      client.userId = payload.userId;
+      // JWT uses `sub` (standard claim) for userId — fall back to `userId` for compat
+      client.userId = payload.sub ?? payload.userId;
       client.email = payload.email;
       client.role = payload.role;
       client.isAuthenticated = true;
@@ -44,16 +45,28 @@ export class WebSocketAuthGuard implements CanActivate {
 
   private extractTokenFromHandshake(client: any): string | null {
     try {
-      // Extract token from handshake auth or query
+      // Priority order:
+      // 1. Handshake auth object (mobile apps)
+      // 2. Query parameter (legacy fallback)
+      // 3. Authorization header (Bearer token)
+      // 4. HttpOnly cookie (web app — browser sends it with withCredentials: true)
       const token = client.handshake?.auth?.token ||
                    client.handshake?.query?.token ||
-                   client.handshake?.headers?.authorization?.replace('Bearer ', '');
+                   client.handshake?.headers?.authorization?.replace('Bearer ', '') ||
+                   this.extractTokenFromCookieHeader(client.handshake?.headers?.cookie);
 
       return token || null;
     } catch (error) {
       this.logger.error('Failed to extract token from handshake:', error);
       return null;
     }
+  }
+
+  /** Parse the raw Cookie header to extract the access_token value. */
+  private extractTokenFromCookieHeader(cookieHeader?: string): string | null {
+    if (!cookieHeader) return null;
+    const match = cookieHeader.match(/(?:^|;\s*)access_token=([^;]+)/);
+    return match?.[1] ? decodeURIComponent(match[1]) : null;
   }
 
   private async verifyToken(token: string): Promise<any> {
@@ -64,10 +77,12 @@ export class WebSocketAuthGuard implements CanActivate {
       }
       const payload = await this.jwtService.verifyAsync(token, { secret });
 
-      // Verify token structure
-      if (!payload.userId || !payload.email || !payload.role) {
+      // Verify token structure — JWT standard uses `sub` for userId
+      const userId = payload.sub ?? payload.userId;
+      if (!userId || !payload.email || !payload.role) {
         throw new Error('Invalid token payload structure');
       }
+      payload.userId = userId;
 
       return payload;
     } catch (error) {
