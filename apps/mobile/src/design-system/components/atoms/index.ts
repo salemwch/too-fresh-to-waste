@@ -38,3 +38,7 @@ export type { DistanceBadgeProps, DistanceBadgeVariant } from './DistanceBadge';
 // LocationStatusBadge
 export { LocationStatusBadge, default as LocationStatusBadgeDefault } from './LocationStatusBadge';
 export type { LocationStatusBadgeProps, LocationMode } from './LocationStatusBadge';
+
+// ShimmerBlock (skeleton loading primitives)
+export { ShimmerBlock, SkeletonBox, useShimmerAnimation } from './ShimmerBlock';
+export type { ShimmerBlockProps, SkeletonBoxProps } from './ShimmerBlock';

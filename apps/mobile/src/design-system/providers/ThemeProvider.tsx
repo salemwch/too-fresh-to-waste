@@ -43,7 +43,7 @@ const useThemeShadows = (colorScheme: ColorScheme) => {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children,
-  defaultTheme = 'auto',
+  defaultTheme = 'light',
   storageKey = THEME_STORAGE_KEY,
 }) => {
   const systemColorScheme = useColorScheme();

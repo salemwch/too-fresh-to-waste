@@ -1,49 +1,24 @@
 /**
  * SkeletonOfferCard Component
- * Professional shimmer loading placeholder for OfferCard
+ * Professional shimmer loading placeholder for OfferCard.
  *
- * Features:
- * - Smooth shimmer animation (Facebook/LinkedIn style)
- * - Matches OfferCard dimensions exactly
- * - Configurable aspect ratio and orientation
- * - Reusable across all offer loading states
- * - Performance optimized with React.memo
+ * Uses shared ShimmerBlock + useShimmerAnimation from design-system atoms.
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Card } from '../../atoms/Card';
+import { ShimmerBlock, useShimmerAnimation } from '../../atoms/ShimmerBlock';
 
 interface SkeletonOfferCardProps {
-  /**
-   * Image aspect ratio (matches OfferCard)
-   * @default 4/3 (1.333)
-   */
   imageAspectRatio?: number;
-
-  /**
-   * Card orientation
-   * @default 'vertical'
-   */
   orientation?: 'vertical' | 'horizontal';
-
-  /**
-   * Custom style for the card container
-   */
   style?: any;
-
-  /**
-   * Test ID for testing
-   */
   testID?: string;
 }
 
-/**
- * SkeletonOfferCard - Shimmer loading placeholder
- */
 const SkeletonOfferCardComponent: React.FC<SkeletonOfferCardProps> = ({
   imageAspectRatio = 4 / 3,
   orientation = 'vertical',
@@ -51,116 +26,62 @@ const SkeletonOfferCardComponent: React.FC<SkeletonOfferCardProps> = ({
   testID = 'skeleton-offer-card',
 }) => {
   const theme = useTheme();
-  const shimmerAnimation = useRef(new Animated.Value(0)).current;
+  const anim = useShimmerAnimation();
+  const colors: [string, string, string] = [
+    theme.colors.surfaceVariant,
+    theme.colors.surface,
+    theme.colors.surfaceVariant,
+  ];
 
-  // Shimmer animation loop
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnimation, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnimation, {
-          toValue: 0,
-          duration: 0,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    animation.start();
-
-    return () => {
-      animation.stop();
-    };
-  }, [shimmerAnimation]);
-
-  // Shimmer gradient translation
-  const translateX = shimmerAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-300, 300],
-  });
-
-  const styles = createStyles(theme, orientation, imageAspectRatio);
-
-  /**
-   * Shimmer effect component
-   */
-  const Shimmer: React.FC<{ style?: any }> = ({ style: shimmerStyle }) => (
-    <View style={[styles.shimmerContainer, shimmerStyle]}>
-      <Animated.View
-        style={[
-          styles.shimmerGradientWrapper,
-          {
-            transform: [{ translateX }],
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={[theme.colors.surfaceVariant, theme.colors.surface, theme.colors.surfaceVariant]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.shimmerGradient}
-        />
-      </Animated.View>
-    </View>
-  );
+  const dynamicStyles = createStyles(theme, orientation, imageAspectRatio);
 
   return (
-    <Card variant='elevated' style={[styles.card, style]} testID={testID}>
+    <Card variant='elevated' style={[dynamicStyles.card, style]} testID={testID}>
       {/* Image Skeleton */}
-      <View style={styles.imageContainer}>
-        <Shimmer style={styles.imageSkeleton} />
+      <View style={dynamicStyles.imageContainer}>
+        <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.imageSkeleton} />
 
         {/* Top left badge placeholder */}
-        <View style={styles.topLeftBadge}>
-          <Shimmer style={styles.badgeSkeleton} />
+        <View style={dynamicStyles.topLeftBadge}>
+          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.badgeSkeleton} />
         </View>
 
         {/* Top right rating badge placeholder */}
-        <View style={styles.topRightBadge}>
-          <Shimmer style={styles.ratingBadgeSkeleton} />
+        <View style={dynamicStyles.topRightBadge}>
+          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.ratingBadgeSkeleton} />
         </View>
 
         {/* Bottom left logo placeholder */}
-        <View style={styles.logoPlaceholder}>
-          <Shimmer style={styles.logoSkeleton} />
+        <View style={dynamicStyles.logoPlaceholder}>
+          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.logoSkeleton} />
         </View>
       </View>
 
       {/* Content Skeleton */}
-      <View style={styles.content}>
-        {/* Establishment name row */}
-        <View style={styles.establishmentRow}>
-          <Shimmer style={styles.establishmentNameSkeleton} />
-          <Shimmer style={styles.heartSkeleton} />
+      <View style={dynamicStyles.content}>
+        <View style={dynamicStyles.establishmentRow}>
+          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.establishmentNameSkeleton} />
+          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.heartSkeleton} />
         </View>
 
-        {/* Title */}
-        <Shimmer style={styles.titleSkeleton} />
+        <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.titleSkeleton} />
 
-        {/* Pickup time row */}
-        <View style={styles.pickupTimeRow}>
-          <Shimmer style={styles.pickupTimeSkeleton} />
-          <Shimmer style={styles.distanceSkeleton} />
+        <View style={dynamicStyles.pickupTimeRow}>
+          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.pickupTimeSkeleton} />
+          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.distanceSkeleton} />
         </View>
 
-        {/* Price row */}
-        <View style={styles.priceRow}>
-          <Shimmer style={styles.priceSkeleton} />
+        <View style={dynamicStyles.priceRow}>
+          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.priceSkeleton} />
         </View>
       </View>
     </Card>
   );
 };
 
-// Export memoized component
 export const SkeletonOfferCard = React.memo(SkeletonOfferCardComponent);
 SkeletonOfferCardComponent.displayName = 'SkeletonOfferCard';
 
-// ==================== Styles ====================
 const createStyles = (
   theme: ReturnType<typeof useTheme>,
   orientation: 'vertical' | 'horizontal',
@@ -279,19 +200,6 @@ const createStyles = (
       width: 60,
       height: 18,
       borderRadius: 4,
-    },
-    // Shimmer effect styles
-    shimmerContainer: {
-      backgroundColor: theme.colors.surfaceVariant,
-      overflow: 'hidden',
-    },
-    shimmerGradientWrapper: {
-      width: '100%',
-      height: '100%',
-    },
-    shimmerGradient: {
-      width: 300,
-      height: '100%',
     },
   });
 };
