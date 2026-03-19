@@ -1,7 +1,5 @@
 export { StatsCards, type StatCardItem } from './stats-cards';
 export { RevenueChart, type RevenueChartData } from './revenue-chart';
-export { CustomersByLocation, type LocationItem } from './customers-by-location';
-export { TrendingOffers, type TrendingOfferItem } from './trending-offers';
 export {
   RecentOrdersPanel,
   type RecentOrderItem,
@@ -12,3 +10,5 @@ export { StatsCardsSkeleton, RevenueChartSkeleton, PanelSkeleton } from './skele
 export { SurpriseBagPanel, type SurpriseBagPanelProps } from './surprise-bag-panel';
 export { OfferCard, type OfferCardProps } from './offer-card';
 export { MerchantOffersView } from './offers-page';
+export { RevenueDetailDialog, type RevenueDetailData } from './revenue-detail-dialog';
+export { DonationPoolCard } from './donation-pool-card';

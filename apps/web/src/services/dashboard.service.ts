@@ -8,19 +8,21 @@ import type {
   QuickStatsResponse,
   MerchantOffer,
   RevenueChartItem,
-  CustomerLocationItem,
   ChartGranularity,
   MyEstablishment,
   CreateSurpriseBagPayload,
   CreatedOfferResponse,
   ReactivateOfferPayload,
+  DonationStats,
+  CommunityBagGoalStats,
 } from '@/types/dashboard';
 
 const ORDERS_BASE          = '/orders';
-
 const OFFERS_BASE          = '/offers';
 const ANALYTICS_BASE       = '/analytics';
 const ESTABLISHMENTS_BASE  = '/establishments';
+const DONATIONS_BASE       = '/donations';
+const COMMUNITY_GOAL_BASE  = '/community-goal';
 
 export const dashboardService = {
   /**
@@ -108,17 +110,6 @@ export const dashboardService = {
     return apiClient.get<BackendEnvelope<RevenueChartItem[]>>(
       `${ORDERS_BASE}/merchant-revenue-chart`,
       { params: { granularity, value } },
-    );
-  },
-
-  /**
-   * GET /orders/merchant-customer-locations?limit=&startDate=
-   * Customer city distribution from merchant orders within the given time window.
-   */
-  getCustomerLocations(limit = 5, startDate?: Date) {
-    return apiClient.get<BackendEnvelope<CustomerLocationItem[]>>(
-      `${ORDERS_BASE}/merchant-customer-locations`,
-      { params: { limit, ...(startDate && { startDate: startDate.toISOString() }) } },
     );
   },
 
@@ -211,6 +202,30 @@ export const dashboardService = {
     return apiClient.patch<BackendEnvelope<MerchantOffer>>(
       `${OFFERS_BASE}/${offerId}/reactivate`,
       payload,
+    );
+  },
+
+  // ── Donation Pool ──────────────────────────────────────────────────────
+
+  /**
+   * GET /donations/stats
+   * Public donation pool statistics (no auth required).
+   */
+  getDonationStats() {
+    return apiClient.get<BackendEnvelope<DonationStats>>(
+      `${DONATIONS_BASE}/stats`,
+    );
+  },
+
+  // ── Community Bag Goal ─────────────────────────────────────────────────
+
+  /**
+   * GET /community-goal/stats
+   * Public community bag goal progress (no auth required).
+   */
+  getCommunityGoalStats() {
+    return apiClient.get<BackendEnvelope<CommunityBagGoalStats>>(
+      `${COMMUNITY_GOAL_BASE}/stats`,
     );
   },
 };

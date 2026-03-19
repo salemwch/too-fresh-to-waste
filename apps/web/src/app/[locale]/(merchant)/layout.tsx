@@ -5,6 +5,7 @@ import { RoleGuard } from '@/components/guards/role-guard';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { merchantNavItems } from '@/config/navigation.config';
+import { useMerchantOrdersSocket } from '@/hooks/use-merchant-orders-socket';
 import { UserRole } from '@foodwaste/shared';
 
 interface MerchantLayoutProps {
@@ -12,6 +13,10 @@ interface MerchantLayoutProps {
 }
 
 export default function MerchantLayout({ children }: MerchantLayoutProps) {
+  // Mount the WebSocket connection at layout level so the notification bell
+  // in the header receives new-order events from any merchant page.
+  useMerchantOrdersSocket();
+
   return (
     <AuthGuard>
       <RoleGuard allowedRoles={[UserRole.MERCHANT]}>

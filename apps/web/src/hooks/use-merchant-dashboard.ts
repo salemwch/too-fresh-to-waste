@@ -8,12 +8,13 @@ import type {
   OrderStatus,
   MerchantOffer,
   RevenueChartItem,
-  CustomerLocationItem,
   PaginationMeta,
   ChartGranularity,
   MyEstablishment,
   CreateSurpriseBagPayload,
   ReactivateOfferPayload,
+  DonationStats,
+  CommunityBagGoalStats,
 } from '@/types/dashboard';
 
 // ─── Query keys (central, predictable) ─────────────────────────────────────
@@ -34,10 +35,10 @@ export const dashboardKeys = {
   offersStatusCount: (status: string) =>
     [...dashboardKeys.all, 'offers-count', status] as const,
   activeOfferCount: () => [...dashboardKeys.all, 'active-offer-count'] as const,
+  donationStats: () => [...dashboardKeys.all, 'donation-stats'] as const,
+  communityGoal: () => [...dashboardKeys.all, 'community-goal'] as const,
   revenueChart: (granularity: ChartGranularity, value: number) =>
     [...dashboardKeys.all, 'revenue-chart', granularity, value] as const,
-  customerLocations: (limit: number, startDate?: string) =>
-    [...dashboardKeys.all, 'customer-locations', limit, startDate ?? 'all-time'] as const,
   myEstablishment: () => [...dashboardKeys.all, 'my-establishment'] as const,
 };
 
@@ -140,21 +141,6 @@ export function useRevenueChart(granularity: ChartGranularity, value: number) {
 }
 
 /**
- * Customer locations from merchant orders within the given time window.
- * Backend: GET /orders/merchant-customer-locations?limit=&startDate=
- */
-export function useCustomerLocations(limit = 5, startDate?: Date) {
-  return useQuery({
-    queryKey: dashboardKeys.customerLocations(limit, startDate?.toISOString()),
-    queryFn: async (): Promise<CustomerLocationItem[]> => {
-      const response = await dashboardService.getCustomerLocations(limit, startDate);
-      return response.data.data;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-/**
  * The first establishment owned by the authenticated merchant.
  * Backend: GET /establishments/my-establishment
  * Stale for 10 min — establishments rarely change.
@@ -168,6 +154,36 @@ export function useMyEstablishment() {
       return Array.isArray(list) && list.length > 0 ? (list[0] ?? null) : null;
     },
     staleTime: 10 * 60 * 1000,
+  });
+}
+
+/**
+ * Community donation pool statistics (public endpoint).
+ * Backend: GET /donations/stats
+ */
+export function useDonationStats() {
+  return useQuery({
+    queryKey: dashboardKeys.donationStats(),
+    queryFn: async (): Promise<DonationStats> => {
+      const response = await dashboardService.getDonationStats();
+      return response.data.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Community bag goal progress (public endpoint).
+ * Backend: GET /community-goal/stats
+ */
+export function useCommunityGoalStats() {
+  return useQuery({
+    queryKey: dashboardKeys.communityGoal(),
+    queryFn: async (): Promise<CommunityBagGoalStats> => {
+      const response = await dashboardService.getCommunityGoalStats();
+      return response.data.data;
+    },
+    staleTime: 30 * 1000,
   });
 }
 

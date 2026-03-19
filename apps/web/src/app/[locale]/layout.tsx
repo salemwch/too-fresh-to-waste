@@ -218,18 +218,6 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         )}
 
         <NextIntlClientProvider messages={messages}>
-          {/* Skip to content link for accessibility */}
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded"
-          >
-            {locale === 'ar'
-              ? '\u0627\u0646\u062a\u0642\u0644 \u0625\u0644\u0649 \u0627\u0644\u0645\u062d\u062a\u0648\u0649 \u0627\u0644\u0631\u0626\u064a\u0633\u064a'
-              : locale === 'fr'
-                ? 'Aller au contenu principal'
-                : 'Skip to main content'}
-          </a>
-
           <AppProviders>
             {children}
           </AppProviders>

@@ -19,7 +19,6 @@ import {
   Wifi,
 } from 'lucide-react';
 import { useMerchantOrders, useOrderDetail, useCancelOrder, HISTORY_STATUSES } from '@/hooks/use-merchant-dashboard';
-import { useMerchantOrdersSocket } from '@/hooks/use-merchant-orders-socket';
 import type { MerchantOrder, OrderStatus, PopulatedUser } from '@/types/dashboard';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -460,9 +459,6 @@ export default function MerchantOrdersPage() {
   const [tab, setTab] = useState<'active' | 'history'>('active');
   const [search, setSearch] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-
-  // Real-time WebSocket updates
-  useMerchantOrdersSocket();
 
   const { data, isLoading } = useMerchantOrders();
   const allOrders = data?.orders ?? [];

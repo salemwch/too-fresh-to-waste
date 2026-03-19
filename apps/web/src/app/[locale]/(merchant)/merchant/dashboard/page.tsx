@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/lib/auth';
@@ -8,8 +8,6 @@ import { DollarSign, ShoppingBag, Package, Zap } from 'lucide-react';
 import {
   StatsCards,
   RevenueChart,
-  CustomersByLocation,
-  TrendingOffers,
   RecentOrdersPanel,
   DateFilter,
   StatsCardsSkeleton,
@@ -18,26 +16,22 @@ import {
   SurpriseBagPanel,
   type StatCardItem,
   type RevenueChartData,
-  type LocationItem,
-  type TrendingOfferItem,
   type RecentOrderItem,
+  RevenueDetailDialog,
+  type RevenueDetailData,
 } from '@/components/dashboard/merchant';
 import {
   useOrderStats,
   useMerchantRecentOrders,
-  useMerchantOffers,
   useActiveOfferCount,
   useRevenueChart,
-  useCustomerLocations,
 } from '@/hooks/use-merchant-dashboard';
 import {
   type DatePreset,
   type ChartGranularity,
   type OrderStatsResponse,
   type MerchantOrder,
-  type MerchantOffer,
   type RevenueChartItem,
-  type CustomerLocationItem,
   type OrderStatus as BackendOrderStatus,
   PRESET_CONFIG,
 } from '@/types/dashboard';
@@ -53,6 +47,18 @@ function formatCurrency(value: number): string {
 }
 
 function formatCompactCurrency(value: number): string {
+  return `${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ${CURRENCY}`;
+}
+
+/** Abbreviate large values: 1234 → "1.2K", 1500000 → "1.5M", 850 → "850" */
+function formatAbbreviatedCurrency(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1)}M ${CURRENCY}`;
+  }
+  if (abs >= 1_000) {
+    return `${(value / 1_000).toFixed(1)}K ${CURRENCY}`;
+  }
   return `${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ${CURRENCY}`;
 }
 
@@ -95,8 +101,9 @@ function buildStatsCards(
 
   return [
     {
+      id: 'revenue',
       label: t('merchant.totalRevenue'),
-      value: formatCurrency(stats.totalRevenue),
+      value: formatAbbreviatedCurrency(stats.totalRevenue),
       icon: DollarSign,
       iconBg: 'bg-indigo-50',
       iconColor: 'text-indigo-600',
@@ -109,20 +116,23 @@ function buildStatsCards(
         label: `${stats.completedOrders} ${t('merchant.completed')}`,
       },
       ...(revenueSparkline.length >= 2 ? { sparkline: revenueSparkline } : {}),
+      clickable: true,
     },
     {
+      id: 'bags',
       label: t('merchant.bagsSaved'),
-      value: stats.completedOrders.toLocaleString(),
+      value: (stats.bagsSaved ?? stats.completedOrders).toLocaleString(),
       icon: ShoppingBag,
       iconBg: 'bg-orange-50',
       iconColor: 'text-orange-600',
       trend: {
-        value: stats.cancelledOrders,
-        direction: stats.cancelledOrders === 0 ? 'up' : 'down',
-        label: `${stats.cancelledOrders} ${t('merchant.cancelled')}`,
+        value: stats.completedOrders,
+        direction: stats.completedOrders > 0 ? 'up' : 'down',
+        label: `${stats.completedOrders} ${t('merchant.completed')}`,
       },
     },
     {
+      id: 'offers',
       label: t('merchant.activeOffers'),
       value: offerCount.toLocaleString(),
       icon: Package,
@@ -176,32 +186,6 @@ function buildRevenueChartData(
   };
 }
 
-const LOCATION_COLORS: Array<{ color: string; textColor: string }> = [
-  { color: 'bg-blue-100',    textColor: 'text-blue-700' },
-  { color: 'bg-purple-100',  textColor: 'text-purple-700' },
-  { color: 'bg-orange-100',  textColor: 'text-orange-700' },
-  { color: 'bg-emerald-100', textColor: 'text-emerald-700' },
-  { color: 'bg-rose-100',    textColor: 'text-rose-700' },
-];
-
-function buildLocations(data: CustomerLocationItem[]): LocationItem[] {
-  return data.map((loc, i) => {
-    const colors = LOCATION_COLORS[i % LOCATION_COLORS.length]!;
-    return { name: loc.city, value: loc.count, ...colors };
-  });
-}
-
-function buildTrendingOffers(offers: MerchantOffer[]): TrendingOfferItem[] {
-  return offers.map((offer) => ({
-    id: offer.id,
-    name: offer.title,
-    image: offer.image || '/images/bag.png',
-    price: formatCurrency(offer.pricing.discountedPrice),
-    rating: offer.establishment.averageRating ?? 0,
-    orderCount: offer.availableQuantity,
-  }));
-}
-
 function buildRecentOrders(orders: MerchantOrder[]): RecentOrderItem[] {
   return orders.map((order) => {
     const customer = order.customerId;
@@ -241,16 +225,17 @@ export default function MerchantDashboardPage() {
 
   // ── Panel state ─────────────────────────────────────────────────────────
   const [panelOpen, setPanelOpen] = useState(false);
+  const [revenueDialogOpen, setRevenueDialogOpen] = useState(false);
 
   // ── Global date filter ──────────────────────────────────────────────────
-  const [datePreset, setDatePreset] = useState<DatePreset>('9m');
+  const [datePreset, setDatePreset] = useState<DatePreset>('30d');
 
   /** Derive granularity and slot-count from the selected preset. */
   const { granularity, value } = PRESET_CONFIG[datePreset];
 
   /**
    * Start of the visible window, midnight local time.
-   * Used to scope orderStats and customerLocations to the same window as the chart.
+   * Used to scope orderStats to the same window as the chart.
    */
   const startDate = useMemo(() => {
     const d = new Date();
@@ -269,12 +254,9 @@ export default function MerchantDashboardPage() {
   // ── Data fetching (all scoped to the same time window) ──────────────────
   const orderStatsQuery    = useOrderStats(startDate);
   const revenueQuery       = useRevenueChart(granularity, value);
-  const locationsQuery     = useCustomerLocations(5, startDate);
   // Recent orders and active offers are always "current" — not time-scoped
-  const recentOrdersQuery  = useMerchantRecentOrders(1, 6);
-  const offersQuery        = useMerchantOffers(1, 8);
+  const recentOrdersQuery  = useMerchantRecentOrders(1, 5);
   const activeOfferCountQuery = useActiveOfferCount();
-
   // ── Data transformation (memoised) ─────────────────────────────────────
   const stats = useMemo(() => {
     if (!orderStatsQuery.data) return null;
@@ -288,21 +270,31 @@ export default function MerchantDashboardPage() {
     return buildRevenueChartData(revenueQuery.data, orderStatsQuery.data, granularity);
   }, [revenueQuery.data, orderStatsQuery.data, granularity]);
 
-  const locations = useMemo(() => {
-    if (!locationsQuery.data) return [];
-    return buildLocations(locationsQuery.data);
-  }, [locationsQuery.data]);
-
-  const trendingOffers = useMemo(() => {
-    if (!offersQuery.data?.offers) return [];
-    return buildTrendingOffers(offersQuery.data.offers);
-  }, [offersQuery.data]);
-
   const recentOrders = useMemo(() => {
     if (!recentOrdersQuery.data?.orders) return [];
     return buildRecentOrders(recentOrdersQuery.data.orders);
   }, [recentOrdersQuery.data]);
 
+
+  // ── Revenue detail popup data ────────────────────────────────────────
+  const revenueDetailData = useMemo<RevenueDetailData | null>(() => {
+    if (!orderStatsQuery.data) return null;
+    const s = orderStatsQuery.data;
+    const cfg = PRESET_CONFIG[datePreset];
+    return {
+      totalRevenue: s.totalRevenue,
+      completedOrders: s.completedOrders,
+      cancelledOrders: s.cancelledOrders,
+      totalOrders: s.totalOrders,
+      averageOrderValue: s.averageOrderValue,
+      bagsSaved: s.bagsSaved ?? s.completedOrders,
+      periodLabel: `Last ${cfg.label} (${cfg.granularity} view)`,
+    };
+  }, [orderStatsQuery.data, datePreset]);
+
+  const handleStatCardClick = useCallback((id: string) => {
+    if (id === 'revenue') setRevenueDialogOpen(true);
+  }, []);
 
   const statusLabels = {
     pending:   t('merchant.pending'),
@@ -319,6 +311,13 @@ export default function MerchantDashboardPage() {
 
       {/* Surprise Bag panel (portal-rendered) */}
       <SurpriseBagPanel open={panelOpen} onClose={() => setPanelOpen(false)} />
+
+      {/* Revenue breakdown dialog */}
+      <RevenueDetailDialog
+        open={revenueDialogOpen}
+        onOpenChange={setRevenueDialogOpen}
+        data={revenueDetailData}
+      />
 
       {/* ── Critical error (stats unavailable) ── */}
       {orderStatsQuery.error && (
@@ -370,7 +369,7 @@ export default function MerchantDashboardPage() {
           {/* KPI Stats */}
           {orderStatsQuery.isLoading || !stats
             ? <StatsCardsSkeleton />
-            : <StatsCards stats={stats} />}
+            : <StatsCards stats={stats} onCardClick={handleStatCardClick} />}
 
           {/* Revenue Chart */}
           {revenueQuery.isLoading || !revenueData
@@ -389,34 +388,12 @@ export default function MerchantDashboardPage() {
               />
             )}
 
-          {/* Bottom row: Location + Trending */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {locationsQuery.isLoading
-              ? <PanelSkeleton rows={5} />
-              : (
-                <CustomersByLocation
-                  locations={locations}
-                  title={t('merchant.customersByLocation')}
-                />
-              )}
-
-            {offersQuery.isLoading
-              ? <PanelSkeleton rows={4} />
-              : (
-                <TrendingOffers
-                  offers={trendingOffers}
-                  title={t('merchant.trendingOffers')}
-                  orderLabel={t('merchant.orderLabel')}
-                  viewAllHref="/merchant/offers"
-                />
-              )}
-          </div>
         </div>
 
         {/* Right sidebar — starts at the same vertical level as KPI cards */}
         <div className="lg:col-span-4 xl:col-span-3">
           {recentOrdersQuery.isLoading
-            ? <PanelSkeleton rows={6} />
+            ? <PanelSkeleton rows={5} />
             : (
               <RecentOrdersPanel
                 orders={recentOrders}

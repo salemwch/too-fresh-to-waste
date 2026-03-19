@@ -5,7 +5,7 @@ import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/lib/auth';
 
 export function useCurrentUser() {
-  const { accessToken, setUser, setLoading } = useAuthStore();
+  const { isAuthenticated, setUser, setLoading } = useAuthStore();
 
   return useQuery({
     queryKey: ['auth', 'me'],
@@ -15,7 +15,7 @@ export function useCurrentUser() {
       setUser(user);
       return user;
     },
-    enabled: !!accessToken,
+    enabled: isAuthenticated,
     retry: false,
     staleTime: 5 * 60 * 1000,
     meta: {

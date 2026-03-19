@@ -2,48 +2,119 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import type { ApiError } from '@foodwaste/shared';
 import { useAuthStore } from './auth';
 
-const API_BASE_URL =
-  (process.env['NEXT_PUBLIC_API_URL'] as string | undefined) ??
-  'http://localhost:3000';
+const API_BASE_URL = (() => {
+  const url = process.env['NEXT_PUBLIC_API_URL'];
+  if (!url && process.env.NODE_ENV === 'production') {
+    throw new Error('NEXT_PUBLIC_API_URL is required in production');
+  }
+  return url ?? 'http://localhost:3000';
+})();
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15_000,
-  withCredentials: true,
+  withCredentials: true, // Browser auto-sends HttpOnly cookies set by backend
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Track whether a token refresh is in progress
+// ─── Refresh mutex + request queue ───────────────────────────────────────────
+// Single boolean flag + queue shared by BOTH the reactive interceptor and the
+// proactive AuthProvider interval.  Only one refresh is ever in-flight.
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (token: string) => void;
+  resolve: (result: string) => void;
   reject: (error: unknown) => void;
 }> = [];
 
-function processQueue(error: unknown, token: string | null) {
+function processQueue(error: unknown, result: string | null) {
   failedQueue.forEach((promise) => {
     if (error) {
       promise.reject(error);
-    } else if (token) {
-      promise.resolve(token);
+    } else if (result) {
+      promise.resolve(result);
     }
   });
   failedQueue = [];
 }
 
-// Request interceptor — attach access token
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const { accessToken } = useAuthStore.getState();
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+/**
+ * Shared token-refresh entry point used by BOTH the reactive 401 interceptor
+ * and the proactive AuthProvider interval.
+ *
+ * Guarantees:
+ * - Only ONE refresh request is ever in-flight (mutex + queue).
+ * - The refresh token is sent automatically via the HttpOnly cookie
+ *   (browser attaches it because withCredentials=true and path matches).
+ * - On success: backend sets new HttpOnly cookies via Set-Cookie header.
+ * - On hard failure (401/403): calls logout() to clear the session.
+ * - On network/server errors: throws without touching the session.
+ */
+export async function performRefreshOnce(): Promise<string> {
+  // If a refresh is already in-flight, queue and wait for its result.
+  if (isRefreshing) {
+    return new Promise<string>((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    });
+  }
+
+  isRefreshing = true;
+
+  try {
+    if (process.env.NODE_ENV === 'development') {
+      console.info('[API] performRefreshOnce — starting token refresh');
     }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+
+    // Empty body — the backend reads the refresh token from the HttpOnly cookie.
+    // See auth.controller.ts: req.cookies?.['refresh_token'] fallback.
+    await axios.post(
+      `${API_BASE_URL}/auth/refresh`,
+      {},
+      { withCredentials: true },
+    );
+
+    // Backend already set new HttpOnly cookies via Set-Cookie header.
+    // Broadcast to other tabs so they know tokens were refreshed.
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('wfa_tokens_ts', String(Date.now()));
+      }
+    } catch { /* ignore — private browsing may restrict localStorage writes */ }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.info('[API] performRefreshOnce — token refresh succeeded');
+    }
+
+    processQueue(null, 'refreshed');
+    return 'refreshed';
+  } catch (err) {
+    processQueue(err, null);
+
+    // Only log out on hard auth rejections (401/403).
+    // Network errors, timeouts, and 5xx keep the session alive so the next
+    // request or interval tick can retry.
+    const status = (err as { response?: { status?: number } })?.response?.status;
+    if (status === 401 || status === 403) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[API] performRefreshOnce — refresh token rejected, logging out', { status });
+      }
+      useAuthStore.getState().logout();
+    } else {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[API] performRefreshOnce — network/server error, keeping session', { status });
+      }
+    }
+
+    throw err;
+  } finally {
+    isRefreshing = false;
+  }
+}
+
+// No request interceptor needed — browser auto-sends HttpOnly cookies.
+// The backend JWT strategy extracts the access_token cookie as fallback
+// after checking the Authorization header (mobile path).
 
 // Response interceptor — handle 401 with token refresh
 apiClient.interceptors.response.use(
@@ -58,69 +129,20 @@ apiClient.interceptors.response.use(
       !originalRequest.url?.includes('/auth/login') &&
       !originalRequest.url?.includes('/auth/refresh')
     ) {
-      if (isRefreshing) {
-        // Queue this request until the refresh completes
-        return new Promise<string>((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return apiClient(originalRequest);
-        });
-      }
-
       originalRequest._retry = true;
-      isRefreshing = true;
 
       if (process.env.NODE_ENV === 'development') {
         console.warn(
           `[API] 401 on ${originalRequest.method?.toUpperCase()} ${originalRequest.url} — attempting token refresh`,
-          { hasAccessToken: !!useAuthStore.getState().accessToken, hasRefreshToken: !!useAuthStore.getState().refreshToken },
         );
       }
 
       try {
-        const { refreshToken } = useAuthStore.getState();
-        if (!refreshToken) {
-          throw new Error('[API] No refresh token available');
-        }
-
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refreshToken,
-        });
-
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-          response.data.data.tokens;
-
-        useAuthStore.getState().setTokens(newAccessToken, newRefreshToken);
-
-        if (process.env.NODE_ENV === 'development') {
-          console.info('[API] Token refresh succeeded — retrying original request');
-        }
-
-        processQueue(null, newAccessToken);
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        await performRefreshOnce();
+        // Retry — browser auto-sends the fresh HttpOnly cookie
         return apiClient(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
-
-        // Only destroy the session when the refresh endpoint itself explicitly
-        // rejects the token (401/403). For network errors, timeouts, or 5xx
-        // do NOT logout — the merchant stays in and the next request will retry.
-        const status = (refreshError as { response?: { status?: number } })?.response?.status;
-        if (status === 401 || status === 403) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error('[API] Refresh token rejected by server — logging out', { status });
-          }
-          useAuthStore.getState().logout();
-        } else {
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('[API] Token refresh failed due to network/server error — keeping session', { status });
-          }
-        }
-
         return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
       }
     }
 

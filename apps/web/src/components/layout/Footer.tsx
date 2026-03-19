@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
+import { seoConfig } from '@/config/seo.config';
 
 // Footer link type
 interface FooterLink {
@@ -64,7 +65,7 @@ export default function Footer() {
   const socialLinks = [
     {
       name: 'Facebook',
-      href: 'https://www.facebook.com/profile.php?id=61585767061906',
+      href: seoConfig.socialUrls.facebook,
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -78,7 +79,7 @@ export default function Footer() {
     },
     {
       name: 'Instagram',
-      href: 'https://www.instagram.com/toofreshtowaste.tn/',
+      href: seoConfig.socialUrls.instagram,
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -118,7 +119,7 @@ export default function Footer() {
     },
     {
       name: 'X (Twitter)',
-      href: 'https://x.com/TooFresh2Waste',
+      href: seoConfig.socialUrls.x,
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -136,7 +137,7 @@ export default function Footer() {
     },
     {
       name: 'LinkedIn',
-      href: 'https://www.linkedin.com/company/too-fresh-to-waste/?viewAsMember=true',
+      href: seoConfig.socialUrls.linkedin,
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -230,7 +231,7 @@ export default function Footer() {
         <p className="text-white/70 text-xs sm:text-sm">
           Created By{' '}
           <a
-            href="https://www.linkedin.com/in/salem-wachwacha-h/"
+            href={seoConfig.creatorUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-white/90 hover:text-white transition-colors underline"

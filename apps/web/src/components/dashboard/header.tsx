@@ -1,11 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Search, Bell, Moon } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { LanguageSwitcherCompact } from '@/components/LanguageSwitcher';
 import { MobileNav } from './mobile-nav';
 import { Breadcrumbs } from './breadcrumbs';
 import { UserNav } from './user-nav';
+import { NotificationBell } from './notification-panel';
+import { DonationDropdown } from './donation-dropdown';
 import type { NavItem } from '@/config/navigation.config';
 
 interface DashboardHeaderProps {
@@ -44,14 +46,10 @@ export function DashboardHeader({ navItems }: DashboardHeaderProps) {
         />
 
         {/* Notification bell */}
-        <button className="w-7 h-7 rounded-full bg-slate-50 flex items-center justify-center hover:bg-slate-100 transition-colors">
-          <Bell className="w-3.5 h-3.5 text-slate-600" />
-        </button>
+        <NotificationBell />
 
-        {/* Dark mode toggle */}
-        <button className="w-7 h-7 rounded-full bg-slate-50 flex items-center justify-center hover:bg-slate-100 transition-colors">
-          <Moon className="w-3.5 h-3.5 text-slate-600" />
-        </button>
+        {/* Donation pool dropdown */}
+        <DonationDropdown />
 
         {/* Profile dropdown */}
         <div className="hidden sm:flex items-center pl-2 border-l border-slate-200">

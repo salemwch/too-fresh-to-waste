@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/lib/auth';
 import { authService } from '@/services/auth.service';
 import type { LoginRequest, RegisterRequest } from '@foodwaste/shared';
@@ -11,14 +12,17 @@ export function useAuth() {
   const store = useAuthStore();
   const router = useRouter();
   const locale = useLocale();
+  const queryClient = useQueryClient();
 
   const login = useCallback(
     async (data: LoginRequest) => {
       store.setLoading(true);
       try {
         const response = await authService.login(data);
-        const { user, tokens } = response.data.data;
-        store.setTokens(tokens.accessToken, tokens.refreshToken);
+        const { user } = response.data.data;
+        // Backend already set HttpOnly cookies via Set-Cookie header.
+        // Just mark the session as authenticated and store the user.
+        store.setAuthenticated(true, user.role);
         store.setUser(user);
         return response.data.data;
       } finally {
@@ -49,10 +53,12 @@ export function useAuth() {
     } catch {
       // Logout should always clear local state even if API fails
     } finally {
+      // Clear all TanStack Query caches (user profile, orders, etc.)
+      queryClient.clear();
       store.logout();
       router.replace(`/${locale}/login`);
     }
-  }, [store, router, locale]);
+  }, [store, router, locale, queryClient]);
 
   return {
     user: store.user,

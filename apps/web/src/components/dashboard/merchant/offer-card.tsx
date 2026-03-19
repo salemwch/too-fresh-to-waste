@@ -73,6 +73,7 @@ export function OfferCard({
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const cfg = (STATUS_CONFIG[offer.status] ?? STATUS_CONFIG['draft'])!;
 
+  const isDraft = offer.status === 'draft';
   const isInactive = ['expired', 'cancelled', 'sold_out', 'suspended'].includes(offer.status);
 
   // Revenue: only if soldQuantity is available from the backend
@@ -193,11 +194,24 @@ export function OfferCard({
   return (
     <div
       className={cn(
-        'bg-white rounded-xl border border-slate-200 overflow-hidden',
-        'transition-shadow duration-150 hover:shadow-md hover:border-slate-300',
+        'bg-white rounded-xl border overflow-hidden',
+        'transition-shadow duration-150 hover:shadow-md',
+        isDraft
+          ? 'border-red-300 border-dashed border-2 hover:border-red-400'
+          : 'border-slate-200 hover:border-slate-300',
         isInactive && 'opacity-75',
       )}
     >
+      {/* ── Draft banner ── */}
+      {isDraft && (
+        <div className="flex items-center gap-1.5 px-4 py-1.5 bg-red-50 border-b border-dashed border-red-200">
+          <AlertCircle className="h-3 w-3 text-red-500 shrink-0" />
+          <span className="text-[11px] font-semibold text-red-600">
+            Not published — invisible to customers
+          </span>
+        </div>
+      )}
+
       {/* ── Card body ── */}
       <div className="flex gap-4 p-4">
 

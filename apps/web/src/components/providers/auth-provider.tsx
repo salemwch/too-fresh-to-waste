@@ -1,15 +1,16 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import {
-  useAuthStore,
-  readPersistedAccessToken,
-  readPersistedRefreshToken,
-  readCachedUser,
-} from '@/lib/auth';
+import { usePathname } from 'next/navigation';
+import { useAuthStore } from '@/lib/auth';
+import { performRefreshOnce } from '@/lib/api-client';
 import { authService } from '@/services/auth.service';
 
-const REFRESH_INTERVAL_MS = 13 * 60 * 1000; // 13 minutes
+const REFRESH_INTERVAL_MS = 13 * 60 * 1000; // 13 minutes — access token TTL is 15 min
+
+// Pages that handle their own auth flow — skip rehydration to avoid
+// spurious 401s before HttpOnly cookies are set by the backend.
+const AUTH_FLOW_PAGES = ['/verify-callback'];
 
 // Returns true only when the backend explicitly rejected the token (not a network issue).
 function isHardAuthError(err: unknown): boolean {
@@ -18,59 +19,45 @@ function isHardAuthError(err: unknown): boolean {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { setUser, setTokens, setLoading, logout, refreshToken } = useAuthStore();
+  const { setUser, setLoading } = useAuthStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pathname = usePathname();
 
   // ── Rehydrate session on mount ─────────────────────────────────────────────
+  // No tokens are read from JS — the browser auto-sends HttpOnly cookies.
+  // We verify the session by calling GET /auth/me (cookie-authenticated).
+  // Skip on auth-flow pages (e.g. verify-callback) which set cookies themselves.
   useEffect(() => {
+    const isAuthFlowPage = AUTH_FLOW_PAGES.some((p) => pathname.includes(p));
+    if (isAuthFlowPage) {
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
 
     async function rehydrate() {
-      const cookieAccessToken  = readPersistedAccessToken();
-      const storedRefreshToken = readPersistedRefreshToken();
-      const cachedUser         = readCachedUser();
-
-      // Step 1: restore persisted tokens into the Zustand store BEFORE any
-      //         authenticated API call — the request interceptor reads from here.
-      if (cookieAccessToken || storedRefreshToken) {
-        useAuthStore.setState({
-          ...(cookieAccessToken  ? { accessToken:  cookieAccessToken  } : {}),
-          ...(storedRefreshToken ? { refreshToken: storedRefreshToken } : {}),
-        });
-      }
-
-      // Step 2: optimistically restore the cached user so the dashboard renders
-      //         immediately and the merchant is never flashed to the login page
-      //         during a slow network call.
-      if (cachedUser && (cookieAccessToken || storedRefreshToken)) {
-        useAuthStore.setState({ user: cachedUser, isAuthenticated: true });
-        setLoading(false); // unblock the UI now; background verify below
-      }
-
-      // Step 3: verify token validity and refresh user profile in the background.
+      // Verify session validity with the backend (browser sends HttpOnly cookie).
+      // No localStorage cache — TanStack Query + Zustand store are the only
+      // in-memory sources for user data. The loading skeleton stays visible
+      // until this call resolves.
       try {
         const response = await authService.getProfile();
         if (!cancelled) {
-          setUser(response.data.data); // also updates localStorage cache
+          const user = response.data.data;
+          setUser(user);
+          useAuthStore.getState().setAuthenticated(true, user.role);
         }
       } catch (err) {
         if (!cancelled) {
           if (isHardAuthError(err)) {
-            // Backend explicitly rejected the token (401/403) — it is truly invalid.
-            // Only then clear the session so the merchant is asked to re-login.
-            if (cookieAccessToken || storedRefreshToken) {
-              useAuthStore.getState().logout();
-            } else {
-              setUser(null);
-            }
-          }
-          // For network errors, timeouts, 5xx — do NOT logout.
-          // If we have a cached user they stay on the dashboard (stale but usable).
-          // If there is no cache and no tokens, setUser(null) keeps isAuthenticated=false.
-          else if (!cachedUser && !(cookieAccessToken || storedRefreshToken)) {
+            // Backend explicitly rejected the session — clear everything.
+            useAuthStore.getState().logout();
+          } else {
+            // Network error — not authenticated (no offline fallback)
             setUser(null);
           }
-          // else: network error + valid tokens + cached user → stay logged in silently.
         }
       } finally {
         if (!cancelled) {
@@ -84,8 +71,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Proactive token refresh every 13 minutes ───────────────────────────────
+  // Uses the same performRefreshOnce() mutex as the reactive 401 interceptor,
+  // guaranteeing only ONE refresh is ever in-flight regardless of which code
+  // path triggers it.
   useEffect(() => {
-    if (!refreshToken) {
+    if (!isAuthenticated) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -94,20 +84,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     async function refreshTokens() {
-      const currentRefreshToken = useAuthStore.getState().refreshToken;
-      if (!currentRefreshToken) return;
-
       try {
-        const response = await authService.refresh({ refreshToken: currentRefreshToken });
-        const { accessToken, refreshToken: newRefreshToken } = response.data.data.tokens;
-        setTokens(accessToken, newRefreshToken);
-      } catch (err) {
-        // Only end the session when the server explicitly rejects the refresh token.
-        // A network blip, timeout, or 5xx must NOT log the merchant out — the next
-        // interval will retry automatically.
-        if (isHardAuthError(err)) {
-          logout();
-        }
+        await performRefreshOnce();
+      } catch {
+        // Hard auth errors (401/403) are handled inside performRefreshOnce (calls logout()).
+        // Network/server errors are swallowed — the next interval tick will retry.
       }
     }
 
@@ -115,7 +96,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [refreshToken]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
+
+  // ── Cross-tab synchronisation ────────────────────────────────────────────────
+  // When another tab successfully rotates the tokens, it writes a timestamp to
+  // localStorage. The storage event fires in every OTHER open tab.
+  // Since tokens are HttpOnly, we just re-verify the session to sync user state.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== 'wfa_tokens_ts') return;
+      // Another tab refreshed — HttpOnly cookies already updated by backend.
+      // Re-verify our session to update user state if needed.
+      authService.getProfile().then((res) => {
+        useAuthStore.getState().setUser(res.data.data);
+      }).catch(() => {
+        // If profile fails, session may have been invalidated
+      });
+    };
+
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   return <>{children}</>;
 }

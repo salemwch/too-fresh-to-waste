@@ -58,18 +58,26 @@ export const seoConfig = {
   twitterCard: 'summary_large_image' as const,
   twitterHandle: '@toofreshwaste_tn',
 
-  // Contact - Tunisia
-  email: 'contact@toofreshwaste.tn',
-  phone: '+216-XX-XXX-XXX', // Update with actual number
-  whatsapp: '+216XXXXXXXX', // Popular in Tunisia
+  // Contact - Tunisia (set via env vars or override per-environment)
+  email: process.env['NEXT_PUBLIC_CONTACT_EMAIL'] || 'contact@toofreshwaste.tn',
+  phone: process.env['NEXT_PUBLIC_BUSINESS_PHONE'] || '',
+  whatsapp: process.env['NEXT_PUBLIC_BUSINESS_WHATSAPP'] || '',
 
-  // Social media handles
+  // Social media — full URLs centralised here; consumed by Footer, SEO, etc.
   social: {
     facebook: 'toofreshwastetunisie',
     instagram: 'toofreshwaste_tn',
     linkedin: 'company/too-fresh-to-waste-tunisia',
-    tiktok: '@toofreshwaste_tn', // Growing platform in Tunisia
+    tiktok: '@toofreshwaste_tn',
   },
+  socialUrls: {
+    facebook: process.env['NEXT_PUBLIC_SOCIAL_FACEBOOK'] || 'https://www.facebook.com/profile.php?id=61585767061906',
+    instagram: process.env['NEXT_PUBLIC_SOCIAL_INSTAGRAM'] || 'https://www.instagram.com/toofreshtowaste.tn/',
+    x: process.env['NEXT_PUBLIC_SOCIAL_X'] || 'https://x.com/TooFresh2Waste',
+    linkedin: process.env['NEXT_PUBLIC_SOCIAL_LINKEDIN'] || 'https://www.linkedin.com/company/too-fresh-to-waste/',
+  },
+  // Creator attribution
+  creatorUrl: process.env['NEXT_PUBLIC_CREATOR_URL'] || 'https://www.linkedin.com/in/salem-wachwacha-h/',
 
   // Business info for structured data
   business: {
@@ -83,7 +91,7 @@ export const seoConfig = {
       en: "Tunisia's first anti-food waste app. Connect with local restaurants to save food and save up to 70%.",
     },
     address: {
-      streetAddress: '[Your Tunisia Address]', // Update with actual
+      streetAddress: process.env['NEXT_PUBLIC_BUSINESS_ADDRESS'] || '',
       addressLocality: 'Tunis',
       addressRegion: 'Tunis',
       postalCode: '1000',
@@ -108,11 +116,10 @@ export const seoConfig = {
     priceRange: 'TND',
   },
 
-  // App store links
+  // App store links (set via env vars — placeholder IDs must be replaced before launch)
   appLinks: {
-    ios: 'https://apps.apple.com/tn/app/too-fresh-to-waste/id0000000000', // Update with actual
-    android:
-      'https://play.google.com/store/apps/details?id=com.toofreshwaste', // Update with actual
+    ios: process.env['NEXT_PUBLIC_APP_STORE_URL'] || '',
+    android: process.env['NEXT_PUBLIC_PLAY_STORE_URL'] || '',
   },
 
   // Verification codes (set via environment variables)

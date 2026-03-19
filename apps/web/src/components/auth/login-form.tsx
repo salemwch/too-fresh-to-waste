@@ -51,8 +51,15 @@ export function LoginForm() {
       } else {
         router.push(`/${locale}`);
       }
-    } catch {
-      setError(t('loginError'));
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401 || status === 400) {
+        // Backend explicitly rejected credentials
+        setError(t('loginError'));
+      } else {
+        // Network error, timeout, 5xx — not a credentials issue
+        setError(t('networkError'));
+      }
     }
   }
 

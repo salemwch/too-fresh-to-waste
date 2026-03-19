@@ -2,6 +2,31 @@ const createNextIntlPlugin = require('next-intl/plugin');
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
+// Extract origin from NEXT_PUBLIC_API_URL for CSP connect-src.
+// CSP path matching requires a trailing slash for prefix match;
+// using only the origin avoids the issue entirely.
+function getApiOrigin() {
+  const raw = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return 'http://localhost:3000';
+  }
+}
+
+// WebSocket origin (ws: / wss:) must be listed separately in connect-src
+// because some browsers do not automatically match ws: against http: origins.
+function getApiWsOrigin() {
+  const raw = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  try {
+    const url = new URL(raw);
+    const proto = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${proto}//${url.host}`;
+  } catch {
+    return 'ws://localhost:3000';
+  }
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // React strict mode for better practices
@@ -63,9 +88,10 @@ const nextConfig = {
   trailingSlash: false,
 
   // Allow local network IPs to access the Next.js dev server without
-  // cross-origin warnings (Next.js 15+ requirement)
+  // cross-origin warnings (Next.js 15+ requirement).
+  // Set DEV_ALLOWED_ORIGINS to a comma-separated list of IPs/hostnames.
   ...(process.env.NODE_ENV === 'development' && {
-    allowedDevOrigins: ['192.168.1.4'],
+    allowedDevOrigins: (process.env.DEV_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean),
   }),
 
   // Security headers
@@ -110,6 +136,24 @@ const nextConfig = {
             // identity-credentials-get=(): block FedCM sign-in prompts.
             // publickey-credentials-get=(): block WebAuthn/passkey prompts.
             value: 'camera=(), microphone=(), geolocation=(self), identity-credentials-get=(), publickey-credentials-get=()',
+          },
+          {
+            key: 'Content-Security-Policy',
+            // unsafe-inline: required by Next.js for build-time injected <script> tags
+            // unsafe-eval: required by Next.js dev overlay + Google Analytics dependencies
+            // TODO: migrate to nonce-based CSP when Next.js supports it natively
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "img-src 'self' data: blob: https: http://localhost:*",
+              "font-src 'self' https://fonts.gstatic.com",
+              "connect-src 'self' https://api.brevo.com https://www.google-analytics.com https://region1.google-analytics.com " + getApiOrigin() + " " + getApiWsOrigin(),
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "object-src 'none'",
+            ].join('; '),
           },
         ],
       },

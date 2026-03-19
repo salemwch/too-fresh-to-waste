@@ -78,6 +78,8 @@ export interface OrderStatsResponse {
   completedOrders: number;
   cancelledOrders: number;
   averageOrderValue: number;
+  /** Sum of items[].quantity for picked_up orders (actual bag count) */
+  bagsSaved: number;
 }
 
 // ─── Merchant Orders ────────────────────────────────────────────────────────
@@ -227,13 +229,6 @@ export interface RevenueChartItem {
 
 /** @deprecated Renamed to RevenueChartItem. */
 export type MonthlyRevenueItem = RevenueChartItem;
-
-// ─── Customer Locations ─────────────────────────────────────────────────────
-
-export interface CustomerLocationItem {
-  city: string;
-  count: number;
-}
 
 // ─── My Establishment ────────────────────────────────────────────────────────
 
@@ -396,4 +391,34 @@ export interface ReactivateOfferPayload {
   timezone?: string;
   isPickupToday?: boolean;
   isPickupTomorrow?: boolean;
+}
+
+// ─── Donation Pool ──────────────────────────────────────────────────────────
+
+export type DonationPoolStatus = 'active' | 'funded' | 'distributed' | 'archived';
+
+export interface DonationStats {
+  totalDonations: number;
+  targetAmount: number;
+  mealCount: number;
+  contributorCount: number;
+  progressPercentage: number;
+  status: DonationPoolStatus;
+  cause: string;
+  currency: string;
+  targetDate?: string;
+}
+
+// ─── Community Bag Goal ─────────────────────────────────────────────────────
+
+export type CommunityGoalStatus = 'active' | 'completed' | 'archived';
+
+export interface CommunityBagGoalStats {
+  currentCount: number;
+  targetCount: number;
+  progressPercentage: number;
+  remaining: number;
+  cycleNumber: number;
+  status: CommunityGoalStatus;
+  lastUpdatedAt: string;
 }

@@ -1,35 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+import { z } from 'zod';
 
-// Rate limiting map (in-memory, for production use Redis or similar)
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+// ─── Brevo configuration (centralised, no hardcoded values in route body) ─────
+const BREVO_API_BASE = process.env['BREVO_API_BASE_URL'] || 'https://api.brevo.com/v3';
+const BREVO_LIST_ID = parseInt(process.env['BREVO_LIST_ID'] || '2', 10);
+const SENDER_EMAIL = process.env['BREVO_SENDER_EMAIL'] || 'noreply@toofreshtowaste.com';
+const SUPPORT_EMAIL = process.env['BREVO_SUPPORT_EMAIL'] || 'support@toofreshtowaste.com';
+const SITE_URL = process.env['NEXT_PUBLIC_SITE_URL'] || 'http://localhost:3001';
 
-// Subscription tracking (in-memory, persists for server lifetime)
-const subscribedEmails = new Set<string>();
-
-const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes in ms
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+// Production: Upstash Redis (survives serverless cold starts, shared across instances)
+// Development: in-memory fallback (no Redis required locally)
 const RATE_LIMIT_MAX_REQUESTS = 5;
+const RATE_LIMIT_WINDOW_SECONDS = 15 * 60; // 15 minutes
 
-function getRateLimitKey(request: NextRequest): string {
-  // Get IP from various headers (supports proxies/CDN)
+const upstashUrl = process.env['UPSTASH_REDIS_REST_URL'];
+const upstashToken = process.env['UPSTASH_REDIS_REST_TOKEN'];
+
+const ratelimit =
+  upstashUrl && upstashToken
+    ? new Ratelimit({
+        redis: new Redis({ url: upstashUrl, token: upstashToken }),
+        limiter: Ratelimit.slidingWindow(RATE_LIMIT_MAX_REQUESTS, `${RATE_LIMIT_WINDOW_SECONDS} s`),
+        prefix: 'newsletter',
+        analytics: true,
+      })
+    : null;
+
+// In-memory fallback for local development (NOT production-safe)
+const memoryRateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function getClientIp(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for');
   const realIp = request.headers.get('x-real-ip');
-  const ip = forwarded?.split(',')[0] || realIp || 'unknown';
-  return `newsletter:${ip}`;
+  return forwarded?.split(',')[0]?.trim() || realIp || 'unknown';
 }
 
-function checkRateLimit(key: string): { allowed: boolean; remaining: number } {
-  const now = Date.now();
-  const record = rateLimitMap.get(key);
+async function checkRateLimit(
+  request: NextRequest,
+): Promise<{ allowed: boolean; remaining: number }> {
+  const ip = getClientIp(request);
 
-  // Clean up expired entries
-  if (record && now > record.resetTime) {
-    rateLimitMap.delete(key);
+  // Production path — Redis-backed, survives cold starts
+  if (ratelimit) {
+    const result = await ratelimit.limit(ip);
+    return { allowed: result.success, remaining: result.remaining };
   }
 
-  const current = rateLimitMap.get(key);
+  // Development fallback — in-memory only
+  const key = `newsletter:${ip}`;
+  const now = Date.now();
+  const record = memoryRateLimitMap.get(key);
+
+  if (record && now > record.resetTime) {
+    memoryRateLimitMap.delete(key);
+  }
+
+  const current = memoryRateLimitMap.get(key);
 
   if (!current) {
-    rateLimitMap.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    memoryRateLimitMap.set(key, {
+      count: 1,
+      resetTime: now + RATE_LIMIT_WINDOW_SECONDS * 1000,
+    });
     return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 };
   }
 
@@ -41,24 +76,22 @@ function checkRateLimit(key: string): { allowed: boolean; remaining: number } {
   return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - current.count };
 }
 
-// Clean up rate limit map every hour
-setInterval(
-  () => {
-    const now = Date.now();
-    for (const [key, value] of rateLimitMap.entries()) {
-      if (now > value.resetTime) {
-        rateLimitMap.delete(key);
-      }
-    }
-  },
-  60 * 60 * 1000,
-);
+// Subscription tracking (in-memory, persists for server lifetime)
+const subscribedEmails = new Set<string>();
 
 export async function POST(request: NextRequest) {
   try {
-    // Check rate limit
-    const rateLimitKey = getRateLimitKey(request);
-    const rateLimit = checkRateLimit(rateLimitKey);
+    // ─── CSRF protection: reject cross-origin requests ─────────────────────
+    const origin = request.headers.get('origin');
+    if (origin && origin !== SITE_URL) {
+      return NextResponse.json(
+        { error: 'Cross-origin requests are not allowed.' },
+        { status: 403 },
+      );
+    }
+
+    // Check rate limit (Redis in production, in-memory in dev)
+    const rateLimit = await checkRateLimit(request);
 
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -67,24 +100,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse request body
-    const body = await request.json();
-    const { email } = body;
+    // Parse and validate request body with zod
+    const bodySchema = z.object({
+      email: z.string().email('Invalid email format').max(254, 'Email is too long'),
+    });
 
-    // Validate email
-    if (!email || typeof email !== 'string') {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    const parsed = bodySchema.safeParse(await request.json());
+    if (!parsed.success) {
+      const message = parsed.error.errors[0]?.message ?? 'Invalid input';
+      return NextResponse.json({ error: message }, { status: 400 });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
-    }
-
-    // Email length validation
-    if (email.length > 254) {
-      return NextResponse.json({ error: 'Email is too long' }, { status: 400 });
-    }
+    const { email } = parsed.data;
 
     // Check if Brevo API key is configured
     const brevoApiKey = process.env['BREVO_API_KEY'];
@@ -113,7 +140,7 @@ export async function POST(request: NextRequest) {
     // Check if contact already exists in Brevo
     try {
       const checkContactResponse = await fetch(
-        `https://api.brevo.com/v3/contacts/${encodeURIComponent(sanitizedEmail)}`,
+        `${BREVO_API_BASE}/contacts/${encodeURIComponent(sanitizedEmail)}`,
         {
           method: 'GET',
           headers: {
@@ -146,7 +173,7 @@ export async function POST(request: NextRequest) {
 
     // Add to Brevo contacts list
     try {
-      const addContactResponse = await fetch('https://api.brevo.com/v3/contacts', {
+      const addContactResponse = await fetch(`${BREVO_API_BASE}/contacts`, {
         method: 'POST',
         headers: {
           accept: 'application/json',
@@ -155,7 +182,7 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           email: sanitizedEmail,
-          listIds: [2], // Add to list ID 2 (you may need to adjust this)
+          listIds: [BREVO_LIST_ID],
           updateEnabled: false, // Don't update if already exists
           attributes: {
             SUBSCRIBED_AT: new Date().toISOString(),
@@ -191,7 +218,7 @@ export async function POST(request: NextRequest) {
     subscribedEmails.add(sanitizedEmail);
 
     // Send notification to support email
-    const supportEmailResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
+    const supportEmailResponse = await fetch(`${BREVO_API_BASE}/smtp/email`, {
       method: 'POST',
       headers: {
         accept: 'application/json',
@@ -201,11 +228,11 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         sender: {
           name: 'Too Fresh To Waste',
-          email: 'noreply@toofreshtowaste.com',
+          email: SENDER_EMAIL,
         },
         to: [
           {
-            email: 'support@toofreshtowaste.com',
+            email: SUPPORT_EMAIL,
             name: 'Too Fresh To Waste Support',
           },
         ],
@@ -226,7 +253,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send welcome email to subscriber
-    const welcomeEmailResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
+    const welcomeEmailResponse = await fetch(`${BREVO_API_BASE}/smtp/email`, {
       method: 'POST',
       headers: {
         accept: 'application/json',
@@ -236,7 +263,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         sender: {
           name: 'Too Fresh To Waste',
-          email: 'noreply@toofreshtowaste.com',
+          email: SENDER_EMAIL,
         },
         to: [
           {
@@ -289,7 +316,7 @@ export async function POST(request: NextRequest) {
                         </p>
 
                         <div style="text-align: center; margin: 30px 0;">
-                          <a href="https://toofreshtowaste.com" style="background-color: #005250; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
+                          <a href="${SITE_URL}" style="background-color: #005250; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
                             Visit Our Website
                           </a>
                         </div>
@@ -342,10 +369,11 @@ export async function POST(request: NextRequest) {
 
 // Handle OPTIONS for CORS preflight
 export async function OPTIONS() {
+  const allowedOrigin = SITE_URL;
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': allowedOrigin,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },

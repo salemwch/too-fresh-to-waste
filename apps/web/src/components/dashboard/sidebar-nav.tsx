@@ -4,6 +4,8 @@ import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { cn } from '@foodwaste/ui';
+import { useNotificationStore } from '@/lib/notification-store';
+import { useOfferStatusCount } from '@/hooks/use-merchant-dashboard';
 import type { NavItem } from '@/config/navigation.config';
 
 interface SidebarNavProps {
@@ -15,6 +17,8 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
   const pathname = usePathname();
   const locale = useLocale();
   const t = useTranslations('dashboard.nav');
+  const unreadOrderCount = useNotificationStore((s) => s.unreadCount);
+  const { data: draftOfferCount = 0 } = useOfferStatusCount('draft');
 
   return (
     <nav className="flex flex-col gap-0.5 px-3">
@@ -45,11 +49,33 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
               />
               {!collapsed && <span>{t(item.titleKey)}</span>}
             </div>
-            {item.badge && !collapsed && (
-              <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
-                {item.badge}
-              </span>
-            )}
+            {!collapsed && (() => {
+              // Orders: live unread count (red — urgent).
+              if (item.titleKey === 'orders' && unreadOrderCount > 0) {
+                return (
+                  <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-medium">
+                    {unreadOrderCount > 99 ? '99+' : unreadOrderCount}
+                  </span>
+                );
+              }
+              // Offers: draft count (amber — needs attention).
+              if (item.titleKey === 'offers' && draftOfferCount > 0) {
+                return (
+                  <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
+                    {draftOfferCount > 99 ? '99+' : draftOfferCount}
+                  </span>
+                );
+              }
+              // Static badge from nav config.
+              if (item.badge) {
+                return (
+                  <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
+                    {item.badge}
+                  </span>
+                );
+              }
+              return null;
+            })()}
           </Link>
         );
       })}

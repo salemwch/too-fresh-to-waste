@@ -55,7 +55,8 @@ function VerifyCallbackInner() {
           userRole === UserRole.MERCHANT || userRole === UserRole.ADMIN;
 
         if (isMerchant && data.tokens && data.user) {
-          store.setTokens(data.tokens.accessToken, data.tokens.refreshToken);
+          // Backend sets HttpOnly cookies via Set-Cookie header on verify-email.
+          store.setAuthenticated(true, data.user.role);
           store.setUser(data.user);
 
           setState('success-merchant');

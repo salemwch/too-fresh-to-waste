@@ -5,6 +5,8 @@ import { cn } from '@foodwaste/ui';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface StatCardItem {
+  /** Unique identifier for the card (used to route click events). */
+  id?: string;
   label: string;
   value: string;
   icon: LucideIcon;
@@ -22,10 +24,14 @@ export interface StatCardItem {
    * At least 2 values are needed to draw a line.
    */
   sparkline?: number[];
+  /** When true the card renders as an interactive, clickable surface. */
+  clickable?: boolean;
 }
 
 interface StatsCardsProps {
   stats: StatCardItem[];
+  /** Fires when a card with `clickable: true` is clicked. Receives the card `id`. */
+  onCardClick?: (id: string) => void;
 }
 
 // ─── Sparkline SVG ──────────────────────────────────────────────────────────
@@ -94,7 +100,7 @@ function Sparkline({
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
-export function StatsCards({ stats }: StatsCardsProps) {
+export function StatsCards({ stats, onCardClick }: StatsCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {stats.map((stat) => {
@@ -102,11 +108,19 @@ export function StatsCards({ stats }: StatsCardsProps) {
         const TrendIcon = stat.trend.direction === 'up' ? ArrowUpRight : ArrowDownRight;
         const isPositive = stat.trend.direction === 'up';
         const hasSparkline = stat.sparkline && stat.sparkline.length >= 2;
+        const isClickable = stat.clickable && stat.id && onCardClick;
 
         return (
           <div
             key={stat.label}
-            className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow"
+            role={isClickable ? 'button' : undefined}
+            tabIndex={isClickable ? 0 : undefined}
+            onClick={isClickable ? () => onCardClick(stat.id!) : undefined}
+            onKeyDown={isClickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCardClick(stat.id!); } } : undefined}
+            className={cn(
+              'bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all',
+              isClickable && 'cursor-pointer hover:ring-2 hover:ring-indigo-200 active:scale-[0.98]',
+            )}
           >
             {/* Top row: value + icon */}
             <div className="flex justify-between items-start mb-2">

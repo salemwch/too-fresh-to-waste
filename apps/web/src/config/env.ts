@@ -1,9 +1,19 @@
-const getEnvVar = (key: string, fallback?: string): string => {
-  const value = process.env[key] || fallback;
-  if (!value) {
-    throw new Error(`Missing environment variable: ${key}`);
+const isProd = process.env.NODE_ENV === 'production';
+
+/**
+ * Read an env var. In production the variable MUST exist (no localhost fallbacks).
+ * In development a fallback is accepted so the app boots without a full .env.
+ */
+const getEnvVar = (key: string, devFallback?: string): string => {
+  const value = process.env[key];
+  if (value) return value;
+
+  if (isProd) {
+    throw new Error(`Missing required environment variable in production: ${key}`);
   }
-  return value;
+
+  if (devFallback) return devFallback;
+  throw new Error(`Missing environment variable: ${key}`);
 };
 
 export const env = {
@@ -21,8 +31,3 @@ export const env = {
   sentryDsn: process.env['NEXT_PUBLIC_SENTRY_DSN'],
   googleMapsKey: process.env['NEXT_PUBLIC_GOOGLE_MAPS_KEY'],
 } as const;
-
-// Validate required variables on startup
-if (typeof window === 'undefined') {
-  console.log('✅ Environment variables validated');
-}
