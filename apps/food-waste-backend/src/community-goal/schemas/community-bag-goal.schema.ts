@@ -24,7 +24,6 @@ export class CommunityBagGoal {
     required: true,
     enum: CommunityGoalStatus,
     default: CommunityGoalStatus.ACTIVE,
-    index: true,
   })
   status: CommunityGoalStatus;
 

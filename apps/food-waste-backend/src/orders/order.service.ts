@@ -72,6 +72,7 @@ interface OrderStatsResult {
     completedOrders: number;
     cancelledOrders: number;
     averageOrderValue: number;
+    bagsSaved: number;
 }
 
 export type ChartGranularity = 'day' | 'week' | 'month';
@@ -111,6 +112,8 @@ export interface OrderStatsResponse {
     completedOrders: number;
     cancelledOrders: number;
     averageOrderValue: number;
+    /** Sum of items[].quantity for picked_up orders (actual bag count, not order count) */
+    bagsSaved: number;
 }
 
 
@@ -196,13 +199,16 @@ export class OrdersService {
             for (const order of ordersToExpire) {
                 try {
                     // Release reserved quantity
-                    await Promise.all(
+                    const releasedOffers = await Promise.all(
                         order.items.map((item: any) =>
                             this.offerModel.findByIdAndUpdate(item.offerId, {
                                 $inc: { reservedQuantity: -item.quantity },
-                            }),
+                            }, { new: true }),
                         ),
                     );
+
+                    // Revert sold_out → active if bags became available
+                    await this.autoUpdateOfferSoldOutStatus(releasedOffers as OfferDocument[]);
 
                     // Mark order as expired
                     await this.orderModel.findByIdAndUpdate(order._id, {
@@ -275,14 +281,20 @@ export class OrdersService {
                 try {
                     await session.withTransaction(async () => {
                         // 1. Release reserved inventory
-                        await Promise.all(
+                        const releasedOffers = await Promise.all(
                             order.items.map((item: any) =>
                                 this.offerModel.findByIdAndUpdate(
                                     item.offerId,
                                     { $inc: { reservedQuantity: -item.quantity } },
-                                    { session },
+                                    { session, new: true },
                                 ),
                             ),
+                        );
+
+                        // Revert sold_out → active if bags became available
+                        await this.autoUpdateOfferSoldOutStatus(
+                            releasedOffers as OfferDocument[],
+                            session,
                         );
 
                         // 2. Process refund via RefundService
@@ -363,11 +375,12 @@ export class OrdersService {
                     await this.validateAndBuildOrderItems(createOrderDto, session);
                 // reservedQuantity and currentOrders target independent fields;
                 // flatten into a single Promise.all to eliminate serial round-trips.
-                await Promise.all([
+                // Return updated offers to check for sold-out status.
+                const updatedOffers = await Promise.all([
                     ...updates.map(update =>
                         this.offerModel.findByIdAndUpdate(update.offerId, {
                             $inc: { reservedQuantity: update.quantity }
-                        }, { session })
+                        }, { session, new: true })
                     ),
                     ...updates.map(update =>
                         this.offerModel.findOneAndUpdate(
@@ -381,6 +394,14 @@ export class OrdersService {
                         )
                     ),
                 ]);
+
+                // Auto-transition to SOLD_OUT when all bags are reserved/sold.
+                // Mongoose pre-save hooks don't fire for findByIdAndUpdate,
+                // so we check manually after the quantity increment.
+                await this.autoUpdateOfferSoldOutStatus(
+                    updatedOffers.slice(0, updates.length) as OfferDocument[],
+                    session,
+                );
 
                 // 5. Calculate pricing
                 // No service fee - customer pays exact bag price
@@ -530,6 +551,11 @@ private generatePickupCode(): string {
             ? `${customer.firstName} ${customer.lastName}`
             : 'Customer';
 
+        this.appLogger.log(
+            `[notifyMerchantNewOrder] order="${order.orderNumber}" merchantId="${merchantId}" customer="${customerName}"`,
+            'OrderService',
+        );
+
         const payload = {
             orderId: order._id.toString(),
             orderNumber: order.orderNumber,
@@ -549,7 +575,11 @@ private generatePickupCode(): string {
         };
 
         // 1. WebSocket — real-time dashboard update
-        this.webSocketService.sendToUser(merchantId, 'ORDER_STATUS_UPDATED', payload);
+        this.appLogger.log(
+            `[notifyMerchantNewOrder] calling sendToUser(merchantId="${merchantId}", event="order:new")`,
+            'OrderService',
+        );
+        this.webSocketService.sendToUser(merchantId, 'order:new', payload);
 
         // 2. Push notification — visible even when app is in background
         await this.notificationService.sendNotification({
@@ -1102,14 +1132,20 @@ private generatePickupCode(): string {
             try {
                 await session.withTransaction(async () => {
                     // 1. Release reserved inventory
-                    await Promise.all(
+                    const releasedOffers = await Promise.all(
                         order.items.map(item =>
                             this.offerModel.findByIdAndUpdate(
                                 item.offerId,
                                 { $inc: { reservedQuantity: -item.quantity } },
-                                { session },
+                                { session, new: true },
                             ),
                         ),
+                    );
+
+                    // Revert sold_out → active if bags became available again
+                    await this.autoUpdateOfferSoldOutStatus(
+                        releasedOffers as OfferDocument[],
+                        session,
                     );
 
                     // 2. Process refund via RefundService
@@ -1158,7 +1194,7 @@ private generatePickupCode(): string {
         // Merchant cancellation or legacy order cancellation (PENDING/CONFIRMED)
         // For merchant cancellation of RESERVED orders: no refund processed here
         // (merchant should contact support for edge cases)
-        await Promise.all([
+        const [, ...releasedOffers] = await Promise.all([
             this.orderModel.findByIdAndUpdate(orderId, {
                 status: OrderStatus.CANCELLED,
                 cancellationReason: cancelDto.reason,
@@ -1169,9 +1205,12 @@ private generatePickupCode(): string {
             ...order.items.map(item =>
                 this.offerModel.findByIdAndUpdate(item.offerId, {
                     $inc: { reservedQuantity: -item.quantity }
-                })
+                }, { new: true })
             )
         ]);
+
+        // Revert sold_out → active if bags became available again
+        await this.autoUpdateOfferSoldOutStatus(releasedOffers as OfferDocument[]);
 
         return this.findById(orderId);
     }
@@ -1244,7 +1283,17 @@ private generatePickupCode(): string {
                     cancelledOrders: {
                         $sum: { $cond: [{ $eq: ['$status', OrderStatus.CANCELLED] }, 1, 0] }
                     },
-                    averageOrderValue: { $avg: '$pricing.total' }
+                    averageOrderValue: { $avg: '$pricing.total' },
+                    // Sum actual bag quantities from items[] for picked_up orders only
+                    bagsSaved: {
+                        $sum: {
+                            $cond: [
+                                { $eq: ['$status', OrderStatus.PICKED_UP] },
+                                { $sum: '$items.quantity' },
+                                0,
+                            ],
+                        },
+                    },
                 }
             }
         ]);
@@ -1258,7 +1307,8 @@ private generatePickupCode(): string {
             readyOrders: 0,
             completedOrders: 0,
             cancelledOrders: 0,
-            averageOrderValue: 0
+            averageOrderValue: 0,
+            bagsSaved: 0,
         };
     }
 
@@ -1530,13 +1580,17 @@ private generatePickupCode(): string {
             // Update each expired order in batch
             for (const order of expiredOrders) {
                 try {
-                    await Promise.all(
+                    const releasedOffers = await Promise.all(
                         order.items.map((item: any) =>
                             this.offerModel.findByIdAndUpdate(item.offerId, {
                                 $inc: { reservedQuantity: -item.quantity }
-                            })
+                            }, { new: true })
                         )
                     );
+
+                    // Revert sold_out → active if bags became available
+                    await this.autoUpdateOfferSoldOutStatus(releasedOffers as OfferDocument[]);
+
                     await this.orderModel.findByIdAndUpdate(order._id, {
                         status: OrderStatus.EXPIRED,
                         expiredAt: now,
@@ -1687,6 +1741,48 @@ private generatePickupCode(): string {
             },
             { $project: { _populatedOffers: 0 } },
         ];
+    }
+
+    /**
+     * After any quantity change (reserve, release, sold), check each offer and
+     * atomically transition:
+     *   ACTIVE   → SOLD_OUT  when availableQuantity <= 0
+     *   SOLD_OUT → ACTIVE    when availableQuantity > 0
+     *
+     * Mongoose pre-save hooks don't fire for findByIdAndUpdate, so this must
+     * be called explicitly after every $inc on reservedQuantity / soldQuantity.
+     */
+    private async autoUpdateOfferSoldOutStatus(
+        offers: (OfferDocument | null)[],
+        session?: ClientSession,
+    ): Promise<void> {
+        for (const offer of offers) {
+            if (!offer) continue;
+            const available = offer.totalQuantity - offer.reservedQuantity - offer.soldQuantity;
+
+            const opts = session ? { session } : {};
+            if (available <= 0 && offer.status === OfferStatus.ACTIVE) {
+                await this.offerModel.findByIdAndUpdate(
+                    offer._id,
+                    { status: OfferStatus.SOLD_OUT },
+                    opts,
+                );
+                this.appLogger.log(
+                    `Offer ${offer._id} auto-transitioned to SOLD_OUT (available=${available})`,
+                    'OrderService',
+                );
+            } else if (available > 0 && offer.status === OfferStatus.SOLD_OUT) {
+                await this.offerModel.findByIdAndUpdate(
+                    offer._id,
+                    { status: OfferStatus.ACTIVE },
+                    opts,
+                );
+                this.appLogger.log(
+                    `Offer ${offer._id} auto-reverted to ACTIVE (available=${available})`,
+                    'OrderService',
+                );
+            }
+        }
     }
 
     private async validateAndBuildOrderItems(

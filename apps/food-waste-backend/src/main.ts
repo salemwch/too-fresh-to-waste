@@ -399,16 +399,25 @@ This API provides comprehensive endpoints for:
     // REDIS IO ADAPTER — enables WebSocket horizontal scaling
     // Socket.IO events are synced across instances via Redis pub/sub.
     // Without this, multi-instance deployments drop WebSocket messages.
+    //
+    // ⚠️  Only enabled in production. In development the in-memory adapter
+    // is used so that the remote Redislabs pub/sub latency / channel-sync
+    // quirks don't interfere with the Socket.IO namespace handshake (which
+    // manifests as "Invalid namespace" on the client).
     // ========================================================================
-    const redisIoAdapter = new RedisIoAdapter(app, appConfigService);
-    try {
-        await redisIoAdapter.connectToRedis();
-        app.useWebSocketAdapter(redisIoAdapter);
-        logger.startup('Redis IO adapter enabled for WebSocket horizontal scaling');
-    } catch (err) {
-        logger.security(
-            `Redis IO adapter failed — falling back to in-memory adapter (single-instance only): ${(err as Error).message}`,
-        );
+    if (isProduction) {
+        const redisIoAdapter = new RedisIoAdapter(app, appConfigService);
+        try {
+            await redisIoAdapter.connectToRedis();
+            app.useWebSocketAdapter(redisIoAdapter);
+            logger.startup('Redis IO adapter enabled for WebSocket horizontal scaling');
+        } catch (err) {
+            logger.security(
+                `Redis IO adapter failed — falling back to in-memory adapter (single-instance only): ${(err as Error).message}`,
+            );
+        }
+    } else {
+        logger.startup('Development mode — using in-memory Socket.IO adapter (Redis IO adapter skipped)');
     }
 
     await app.listen(port, '0.0.0.0');

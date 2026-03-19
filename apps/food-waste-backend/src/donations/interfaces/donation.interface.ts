@@ -77,7 +77,7 @@ export interface BadgeCriteria {
 export const DONATION_CONSTANTS = {
     PLATFORM_FEE_PERCENTAGE: 0.25,     // 25% platform fee
     DONATION_PERCENTAGE: 0.05,         // 5% of platform fee goes to donations
-    MEAL_COST_ESTIMATE_TND: 5.0,      // Estimated cost per meal in TND
+    MEAL_COST_ESTIMATE_TND: 2.5,      // Estimated cost per meal in TND (1 meal per 2.5 TND)
     DEFAULT_TARGET_AMOUNT: 300,        // Default pool target (changed from 1000)
     DEFAULT_CURRENCY: 'TND',           // Default currency
 } as const;

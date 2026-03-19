@@ -25,7 +25,11 @@ interface GeoapifyFeatureProperties {
   country: string;
   country_code: string;
   state?: string;
+  county?: string;
   city?: string;
+  district?: string;
+  suburb?: string;
+  name?: string;
   postcode?: string;
   street?: string;
   housenumber?: string;
@@ -115,6 +119,15 @@ export class GeoapifyService {
         };
       }
 
+      // Log raw Geoapify fields for debugging locality resolution
+      const primary = features[0].properties;
+      this.logger.debug(
+        `Geoapify raw fields: name=${primary.name}, suburb=${primary.suburb}, ` +
+        `district=${primary.district}, city=${primary.city}, county=${primary.county}, ` +
+        `state=${primary.state}, result_type=${primary.result_type}, ` +
+        `formatted=${primary.formatted}`,
+      );
+
       const addresses = features.map((f) => this.mapPropertiesToAddress(f.properties));
       const primaryAddress = addresses[0];
 
@@ -198,9 +211,17 @@ export class GeoapifyService {
       ? `${props.housenumber}, ${props.street ?? ''}`
       : props.street ?? '';
 
+    // Prefer the most granular locality available.
+    // Geoapify hierarchy: name → suburb → district → city → county → state
+    // For small towns (e.g. Messadine within M'saken delegation, Sousse governorate):
+    //   name="Messadine", district="Msaken", city="Sousse", state="Sousse"
+    // Without this chain, users see the broad administrative region instead of their locality.
+    const city =
+      props.suburb || props.name || props.district || props.city || props.county || props.state || '';
+
     return {
       street: street || undefined,
-      city: props.city || props.state || '',
+      city,
       postalCode: props.postcode || '',
       country: props.country || '',
       formattedAddress: props.formatted || '',

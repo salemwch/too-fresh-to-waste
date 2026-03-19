@@ -1760,7 +1760,9 @@ export class OffersService {
             const end = slot.endTime.split(':');
 
             const startMinutes = parseInt(start[0]) * 60 + parseInt(start[1]);
-            const endMinutes = parseInt(end[0]) * 60 + parseInt(end[1]);
+            // Treat 00:00 end time as midnight (end of day = 1440 minutes)
+            const rawEnd = parseInt(end[0]) * 60 + parseInt(end[1]);
+            const endMinutes = rawEnd === 0 ? 1440 : rawEnd;
 
             if (startMinutes >= endMinutes) {
                 throw new BadRequestException('Pickup slot start time must be before end time');

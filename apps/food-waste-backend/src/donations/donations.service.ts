@@ -24,7 +24,6 @@ import {
 import {
     CreateDonationInput,
     DONATION_CONSTANTS,
-    BADGE_THRESHOLDS,
 } from './interfaces/donation.interface';
 
 /**
@@ -281,7 +280,7 @@ export class DonationsService {
             const stats: DonationStatsResponseDto = {
                 totalDonations: parseFloat(pool.currentAmount.toFixed(2)),
                 targetAmount: pool.targetAmount,
-                mealCount: pool.mealCount,
+                mealCount: this.calculateMealCount(pool.currentAmount),
                 contributorCount: pool.contributorCount,
                 progressPercentage: parseFloat(
                     ((pool.currentAmount / pool.targetAmount) * 100).toFixed(2),
@@ -357,10 +356,10 @@ export class DonationsService {
         const pool = await this.getActivePool();
 
         const setFields: Record<string, unknown> = {};
-        if (updates.targetAmount != null) {
+        if (updates.targetAmount !== null) {
             setFields['targetAmount'] = updates.targetAmount;
         }
-        if (updates.cause != null) {
+        if (updates.cause !== null) {
             setFields['cause'] = updates.cause;
         }
 
