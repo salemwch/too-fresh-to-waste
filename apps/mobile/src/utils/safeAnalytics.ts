@@ -83,4 +83,3 @@ class SafeAnalyticsService {
 }
 
 export const SafeAnalytics = new SafeAnalyticsService();
-export default SafeAnalytics;

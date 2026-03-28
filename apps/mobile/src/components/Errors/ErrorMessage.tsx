@@ -15,7 +15,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text, Icon, Button, Card } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 
-export type ErrorSeverity = 'error' | 'warning' | 'info';
+type ErrorSeverity = 'error' | 'warning' | 'info';
 
 interface ErrorMessageProps {
   message: string;

@@ -7,7 +7,7 @@
 
 import type { TierName } from '../types/loyalty.types';
 
-export interface TierConfig {
+interface TierConfig {
   name: TierName;
   gradientStart: string;
   gradientEnd: string;
@@ -23,7 +23,7 @@ export interface TierConfig {
  * Ordered tier configs — index 0 is lowest, 3 is highest.
  * Thresholds are approximate; the backend is the source of truth for tier assignment.
  */
-export const TIER_CONFIGS: Record<TierName, TierConfig> = {
+const TIER_CONFIGS: Record<TierName, TierConfig> = {
   Bronze: {
     name: 'Bronze',
     gradientStart: '#B87333',

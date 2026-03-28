@@ -306,4 +306,3 @@ const styles = StyleSheet.create({
 
 ManualLocationModal.displayName = 'ManualLocationModal';
 
-export default ManualLocationModal;

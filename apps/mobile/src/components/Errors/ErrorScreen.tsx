@@ -15,7 +15,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text, Button, Card } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 
-export type ErrorType = 'network' | 'notFound' | 'unauthorized' | 'serverError' | 'unknown';
+type ErrorType = 'network' | 'notFound' | 'unauthorized' | 'serverError' | 'unknown';
 
 interface ErrorScreenProps {
   type?: ErrorType;

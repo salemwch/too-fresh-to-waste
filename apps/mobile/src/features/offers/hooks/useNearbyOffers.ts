@@ -39,7 +39,7 @@ import {
  * Query key factory for nearby offers queries.
  * Enables targeted cache invalidation and proper cache separation.
  */
-export const nearbyOffersKeys = {
+const nearbyOffersKeys = {
   /** Base key for all nearby offers queries */
   all: ['nearbyOffers'] as const,
 
@@ -64,7 +64,7 @@ export const nearbyOffersKeys = {
 // useNearbyOffers Hook
 // ============================================================================
 
-export interface UseNearbyOffersOptions {
+interface UseNearbyOffersOptions {
   /** Whether the query is enabled (default: true when params provided) */
   enabled?: boolean;
   /** Stale time in ms (default: 5 minutes) */
@@ -229,14 +229,14 @@ export function useMapEstablishments(
 // ============================================================================
 
 export type {
-  NearbyOffersParams,
+  
   ProximitySearchResult,
   NearbyOffer,
   NearbyEstablishment,
   MapEstablishment,
   MapOfferSummary,
-  DistanceInfo,
-  GeoData,
-  AddressInfo,
-  OfferPricing,
+  
+  
+  
+  
 } from '../services/nearbyOffersService';

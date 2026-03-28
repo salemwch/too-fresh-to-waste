@@ -31,7 +31,7 @@ export interface IOptOutMetadata {
   [key: string]: string | number | boolean | Date | undefined;
 }
 
-export interface IOptOutAuditEntry {
+interface IOptOutAuditEntry {
   action: 'opt_out' | 'opt_in' | 'status_change' | 'expired' | 'revoked' | 'created' | 'updated';
   timestamp: Date;
   reason?: string;
@@ -49,7 +49,7 @@ export interface IMessageStats {
   totalMessagesFailed: number;
 }
 
-export interface IProcessingInfo {
+interface IProcessingInfo {
   processingStarted?: Date;
   processingCompleted?: Date;
   processingStatus: 'pending' | 'processing' | 'completed' | 'failed';

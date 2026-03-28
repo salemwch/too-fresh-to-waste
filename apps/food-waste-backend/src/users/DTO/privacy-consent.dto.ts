@@ -20,7 +20,7 @@ import {
 
 import { ConsentType, ConsentStatus, LegalBasis } from '../interfaces/privacy-consent.interface';
 
-export class ConsentRecordDto {
+class ConsentRecordDto {
   @ApiProperty({ enum: ConsentType, description: 'Type of consent' })
   @IsEnum(ConsentType)
   consentType!: ConsentType;
@@ -244,7 +244,7 @@ export class ConsentWithdrawalDto {
   stopProcessingImmediately?: boolean;
 }
 
-export class PrivacySettingsResponseDto {
+class PrivacySettingsResponseDto {
   @ApiProperty({ description: 'Current privacy settings' })
   @IsObject()
   privacySettings!: Record<string, unknown>;

@@ -20,7 +20,7 @@ import {
 
 // ==================== Base DTOs ====================
 
-export class TimeRangeDto {
+class TimeRangeDto {
   @ApiProperty({
     description: 'Start date for the analytics period',
     example: '2024-01-01T00:00:00.000Z',
@@ -40,7 +40,7 @@ export class TimeRangeDto {
   endDate!: string;
 }
 
-export class DateGranularityDto {
+class DateGranularityDto {
   @ApiProperty({
     description: 'Time period granularity',
     enum: ['hour', 'day', 'week', 'month', 'quarter', 'year'],
@@ -59,7 +59,7 @@ export class DateGranularityDto {
   timezone?: string = 'UTC';
 }
 
-export class LocationFilterDto {
+class LocationFilterDto {
   @ApiPropertyOptional({
     description: 'City name',
     example: 'Paris',
@@ -358,7 +358,7 @@ export class UserAnalyticsRequestDto {
   includeBehaviorPatterns?: boolean = true;
 }
 
-export class EstablishmentAnalyticsRequestDto {
+class EstablishmentAnalyticsRequestDto {
   @ApiProperty({
     description: 'Analytics filters',
     type: AnalyticsFiltersDto,
@@ -389,7 +389,7 @@ export class EstablishmentAnalyticsRequestDto {
   topPerformersLimit?: number = 10;
 }
 
-export class SustainabilityAnalyticsRequestDto {
+class SustainabilityAnalyticsRequestDto {
   @ApiProperty({
     description: 'Analytics filters',
     type: AnalyticsFiltersDto,
@@ -424,7 +424,7 @@ export class SustainabilityAnalyticsRequestDto {
   includeEstablishmentRankings?: boolean = true;
 }
 
-export class PredictiveAnalyticsRequestDto {
+class PredictiveAnalyticsRequestDto {
   @ApiProperty({
     description: 'Analytics filters',
     type: AnalyticsFiltersDto,
@@ -477,7 +477,7 @@ export class PredictiveAnalyticsRequestDto {
 
 // ==================== Dashboard Configuration DTOs ====================
 
-export class WidgetVisualizationDto {
+class WidgetVisualizationDto {
   @ApiPropertyOptional({
     description: 'Chart type',
     enum: [
@@ -645,7 +645,7 @@ export class WidgetVisualizationDto {
   displayOptions?: Record<string, string | number | boolean> | undefined;
 }
 
-export class WidgetPositionDto {
+class WidgetPositionDto {
   @ApiProperty({
     description: 'Row position',
     example: 1,
@@ -773,7 +773,7 @@ export class CreateWidgetDto {
   position!: WidgetPositionDto;
 }
 
-export class DashboardPermissionsDto {
+class DashboardPermissionsDto {
   @ApiProperty({
     description: 'Roles that can view this dashboard',
     example: ['admin', 'merchant'],
@@ -851,7 +851,7 @@ export class CreateDashboardDto {
 
 // ==================== Export DTOs ====================
 
-export class ExportOptionsDto {
+class ExportOptionsDto {
   @ApiProperty({
     description: 'Export format',
     enum: ['pdf', 'excel', 'csv', 'json'],
@@ -902,7 +902,7 @@ export class ExportOptionsDto {
   language?: string = 'en';
 }
 
-export class ExportRequestDto {
+class ExportRequestDto {
   @ApiProperty({
     description: 'Analytics sections to include',
     example: ['business_metrics', 'user_analytics', 'sustainability'],
@@ -934,7 +934,7 @@ export class ExportRequestDto {
 
 // ==================== Alert Configuration DTOs ====================
 
-export class CreateAlertRuleDto {
+class CreateAlertRuleDto {
   @ApiProperty({
     description: 'Alert rule name',
     example: 'High Order Volume Alert',

@@ -10,7 +10,7 @@ import { EstablishmentType, OfferType } from '@/features/offers/types/offer.type
 // Establishment Types with Icons
 // ============================================================================
 
-export interface EstablishmentTypeOption {
+interface EstablishmentTypeOption {
   value: EstablishmentType;
   label: string;
   icon: string;
@@ -31,7 +31,7 @@ export const ESTABLISHMENT_TYPE_OPTIONS: EstablishmentTypeOption[] = [
 // Cuisine Types with Flag Icons
 // ============================================================================
 
-export interface CuisineTypeOption {
+interface CuisineTypeOption {
   value: string;
   label: string;
   flag: string;
@@ -51,7 +51,7 @@ export const CUISINE_TYPE_OPTIONS: CuisineTypeOption[] = [
 // Food Categories
 // ============================================================================
 
-export interface CategoryOption {
+interface CategoryOption {
   value: string;
   label: string;
   icon?: string;
@@ -76,7 +76,7 @@ export const CATEGORY_OPTIONS: CategoryOption[] = [
 // Offer Types with Icons
 // ============================================================================
 
-export interface OfferTypeOption {
+interface OfferTypeOption {
   value: OfferType | null;
   label: string;
   icon: string;

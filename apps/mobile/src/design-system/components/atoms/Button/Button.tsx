@@ -208,4 +208,3 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
   },
 );
 
-export default Button;

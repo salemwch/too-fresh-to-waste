@@ -137,4 +137,3 @@ export const Card = forwardRef<
   },
 );
 
-export default Card;

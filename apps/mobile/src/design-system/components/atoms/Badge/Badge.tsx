@@ -131,4 +131,3 @@ export const Badge = forwardRef<
   },
 );
 
-export default Badge;

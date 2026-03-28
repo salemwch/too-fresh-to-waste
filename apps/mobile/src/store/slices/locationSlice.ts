@@ -716,8 +716,8 @@ const locationSlice = createSlice({
 // ============================================================================
 
 export const {
-  setCoordinates,
-  setPermissionStatus,
+  
+  
   setManualLocation,
   setPreferredRadius,
   dismissPrompt,

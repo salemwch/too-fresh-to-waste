@@ -6,7 +6,7 @@
 import { Platform } from 'react-native';
 
 // Font Family Tokens
-export const fontFamily = {
+const fontFamily = {
   primary: Platform.select({
     ios: 'SF Pro Display',
     android: 'Roboto',
@@ -27,7 +27,7 @@ export const fontFamily = {
 } as const;
 
 // Font Weight Tokens
-export const fontWeight = {
+const fontWeight = {
   thin: '100' as const,
   light: '300' as const,
   regular: '400' as const,
@@ -39,7 +39,7 @@ export const fontWeight = {
 } as const;
 
 // Font Size Scale - Following 8pt grid system
-export const fontSize = {
+const fontSize = {
   xs: 10,
   sm: 12,
   base: 14,
@@ -56,7 +56,7 @@ export const fontSize = {
 
 // Line Height Scale - Optimized for readability
 // Note: React Native on Android needs higher lineHeight than web/iOS to prevent text clipping
-export const lineHeight = {
+const lineHeight = {
   none: 1,
   tight: 1.25, // Increased from 1.2 to prevent text clipping on Android
   snug: 1.4, // Increased from 1.3 to prevent text clipping on Android
@@ -67,7 +67,7 @@ export const lineHeight = {
 } as const;
 
 // Letter Spacing - Platform-specific adjustments
-export const letterSpacing = {
+const letterSpacing = {
   tighter: -0.5,
   tight: -0.25,
   normal: 0,
@@ -77,7 +77,7 @@ export const letterSpacing = {
 } as const;
 
 // Typography Styles - Semantic Design Tokens
-export const typographyStyles = {
+const typographyStyles = {
   // Display Styles - Large headers, hero text
   display: {
     large: {
@@ -250,7 +250,7 @@ export const typographyStyles = {
 } as const;
 
 // Platform-specific adjustments
-export const platformTypography = {
+const platformTypography = {
   ios: {
     // iOS uses different line height calculations
     adjustments: {

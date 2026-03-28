@@ -19,7 +19,7 @@ import { phoneNumberValidator, requiredPhoneNumberValidator } from '../phone';
  */
 
 // Email validation with strict TLD checking
-export const emailValidator = yup
+const emailValidator = yup
   .string()
   .required('Email is required')
   .email('Please enter a valid email address')
@@ -33,7 +33,7 @@ export const emailValidator = yup
   });
 
 // Password validation
-export const passwordValidator = yup
+const passwordValidator = yup
   .string()
   .required('Password is required')
   .min(12, 'Password must be at least 12 characters')
@@ -46,25 +46,25 @@ export const passwordValidator = yup
 // Uses phoneNumberValidator from phone utilities for consistent validation with backend
 
 // Phone validator (optional)
-export const phoneValidator = phoneNumberValidator({
+const phoneValidator = phoneNumberValidator({
   defaultCountry: 'TN',
   allowNationalFormat: true,
   message: 'Please provide a valid phone number',
 }).nullable();
 
 // Required phone validator
-export const requiredPhoneValidator = requiredPhoneNumberValidator({
+const requiredPhoneValidator = requiredPhoneNumberValidator({
   defaultCountry: 'TN',
   allowNationalFormat: true,
   message: 'Phone number is required',
 });
 
 // Required string
-export const requiredStringValidator = (fieldName: string) =>
+const requiredStringValidator = (fieldName: string) =>
   yup.string().required(`${fieldName} is required`).trim();
 
 // Name validation (no numbers only, allows letters with spaces/hyphens)
-export const nameValidator = (fieldName: string) =>
+const nameValidator = (fieldName: string) =>
   yup
     .string()
     .required(`${fieldName} is required`)
@@ -77,14 +77,14 @@ export const nameValidator = (fieldName: string) =>
     );
 
 // Price validation
-export const priceValidator = yup
+const priceValidator = yup
   .number()
   .required('Price is required')
   .positive('Price must be greater than 0')
   .max(10000, 'Price cannot exceed $10,000');
 
 // Quantity validation
-export const quantityValidator = yup
+const quantityValidator = yup
   .number()
   .required('Quantity is required')
   .integer('Quantity must be a whole number')
@@ -101,7 +101,7 @@ export const loginSchema = yup.object({
   rememberMe: yup.boolean(),
 });
 
-export const registerSchema = yup.object({
+const registerSchema = yup.object({
   firstName: nameValidator('First name'),
   lastName: nameValidator('Last name'),
   email: emailValidator,
@@ -146,7 +146,7 @@ export const resetPasswordSchema = yup.object({
  * Offer Schemas
  */
 
-export const createOfferSchema = yup.object({
+const createOfferSchema = yup.object({
   title: requiredStringValidator('Title')
     .min(5, 'Title must be at least 5 characters')
     .max(100, 'Title is too long'),
@@ -174,7 +174,7 @@ export const createOfferSchema = yup.object({
   dietaryInfo: yup.array().of(yup.string()),
 });
 
-export const editOfferSchema = createOfferSchema.shape({
+const editOfferSchema = createOfferSchema.shape({
   // Allow editing with relaxed constraints
   pickupStartTime: yup.date().required('Pickup start time is required'),
 });
@@ -183,7 +183,7 @@ export const editOfferSchema = createOfferSchema.shape({
  * Establishment Schemas
  */
 
-export const createEstablishmentSchema = yup.object({
+const createEstablishmentSchema = yup.object({
   name: requiredStringValidator('Establishment name')
     .min(3, 'Name must be at least 3 characters')
     .max(100, 'Name is too long'),
@@ -213,13 +213,13 @@ export const createEstablishmentSchema = yup.object({
   }),
 });
 
-export const editEstablishmentSchema = createEstablishmentSchema;
+const editEstablishmentSchema = createEstablishmentSchema;
 
 /**
  * Profile Schemas
  */
 
-export const editProfileSchema = yup.object({
+const editProfileSchema = yup.object({
   firstName: nameValidator('First name'),
   lastName: nameValidator('Last name'),
   email: emailValidator,
@@ -239,7 +239,7 @@ export const editProfileSchema = yup.object({
     .nullable(),
 });
 
-export const changePasswordSchema = yup.object({
+const changePasswordSchema = yup.object({
   currentPassword: yup.string().required('Current password is required'),
   newPassword: passwordValidator,
   confirmNewPassword: yup
@@ -252,7 +252,7 @@ export const changePasswordSchema = yup.object({
  * Checkout Schema
  */
 
-export const checkoutSchema = yup.object({
+const checkoutSchema = yup.object({
   paymentMethod: requiredStringValidator('Payment method').oneOf(
     ['credit_card', 'debit_card', 'paypal', 'apple_pay', 'google_pay'],
     'Invalid payment method',
@@ -272,7 +272,7 @@ export const checkoutSchema = yup.object({
  * Search Schema
  */
 
-export const searchFiltersSchema = yup.object({
+const searchFiltersSchema = yup.object({
   query: yup.string().trim(),
   category: yup.string().nullable(),
   minPrice: yup.number().positive().nullable(),

@@ -14,7 +14,7 @@ import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 
 import type { UserRole } from '@/features/auth/types';
 
-export interface ProtectedRouteProps {
+interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRoles?: UserRole[];
   fallback?: React.ReactNode;

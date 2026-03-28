@@ -451,4 +451,3 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
   );
 };
 
-export default PasswordStrengthIndicator;

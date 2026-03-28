@@ -5,7 +5,7 @@ import { Expose, Type } from 'class-transformer';
 // stripped by plainToInstance({ excludeExtraneousValues: true }).
 // ---------------------------------------------------------------------------
 
-export class OrderItemResponseDto {
+class OrderItemResponseDto {
   @Expose() offerId!: string;
   @Expose() offerTitle!: string;
   @Expose() quantity!: number;
@@ -15,7 +15,7 @@ export class OrderItemResponseDto {
   @Expose() discountAmount!: number;
 }
 
-export class PricingResponseDto {
+class PricingResponseDto {
   @Expose() subtotal!: number;
   @Expose() discountAmount!: number;
   @Expose() taxAmount!: number;
@@ -24,20 +24,20 @@ export class PricingResponseDto {
   @Expose() currency!: string;
 }
 
-export class PaymentDetailsResponseDto {
+class PaymentDetailsResponseDto {
   @Expose() method!: string;
   @Expose() amount!: number;
   @Expose() currency!: string;
 }
 
-export class EstablishmentAddressResponseDto {
+class EstablishmentAddressResponseDto {
   @Expose() street!: string;
   @Expose() city!: string;
   @Expose() postalCode!: string;
   @Expose() country!: string;
 }
 
-export class PopulatedUserResponseDto {
+class PopulatedUserResponseDto {
   @Expose() _id!: string;
   @Expose() firstName!: string;
   @Expose() lastName!: string;
@@ -46,7 +46,7 @@ export class PopulatedUserResponseDto {
   @Expose() avatar!: string;
 }
 
-export class PopulatedEstablishmentResponseDto {
+class PopulatedEstablishmentResponseDto {
   @Expose() _id!: string;
   @Expose() name!: string;
   @Expose() address!: Record<string, unknown>;
@@ -61,7 +61,7 @@ export class PopulatedEstablishmentResponseDto {
 // merchant is the presence of pickupCode.
 // ---------------------------------------------------------------------------
 
-export class ConsumerPickupDetailsDto {
+class ConsumerPickupDetailsDto {
   @Expose() timeSlot!: { startTime: string; endTime: string };
   @Expose() scheduledDate!: string;
   @Expose() actualPickupTime!: string;
@@ -70,7 +70,7 @@ export class ConsumerPickupDetailsDto {
   // pickupCode is deliberately absent — stripped by excludeExtraneousValues
 }
 
-export class MerchantPickupDetailsDto extends ConsumerPickupDetailsDto {
+class MerchantPickupDetailsDto extends ConsumerPickupDetailsDto {
   @Expose() pickupCode!: string;
 }
 

@@ -26,7 +26,7 @@ import type { AppStateStatus } from 'react-native';
  * - Connection type (wifi, cellular, etc.)
  * - Internet reachability
  */
-export const setupOnlineManager = () => {
+const setupOnlineManager = () => {
   Logger.info('Setting up TanStack Query Online Manager');
 
   onlineManager.setEventListener(setOnline => {
@@ -64,7 +64,7 @@ export const setupOnlineManager = () => {
  * - App becomes inactive
  * - App goes to background
  */
-export const setupFocusManager = () => {
+const setupFocusManager = () => {
   Logger.info('Setting up TanStack Query Focus Manager');
 
   /**

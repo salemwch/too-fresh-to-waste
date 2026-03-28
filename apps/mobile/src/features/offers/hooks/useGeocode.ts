@@ -29,7 +29,7 @@ import {
 // Query Key Factory
 // ============================================================================
 
-export const geocodeKeys = {
+const geocodeKeys = {
   /** Base key for all geocode queries */
   all: ['geocode'] as const,
 
@@ -45,7 +45,7 @@ export const geocodeKeys = {
 // useLocationSearch Hook
 // ============================================================================
 
-export interface UseLocationSearchOptions {
+interface UseLocationSearchOptions {
   /** Minimum query length to trigger search (default: 3) */
   minLength?: number;
   /** Maximum results to return (default: 5) */
@@ -82,7 +82,7 @@ export function useLocationSearch(query: string, options: UseLocationSearchOptio
 // useReverseGeocode Hook
 // ============================================================================
 
-export interface UseReverseGeocodeOptions {
+interface UseReverseGeocodeOptions {
   /** Preferred language for results (default: 'en') */
   language?: string;
   /** Whether query is enabled */
@@ -124,4 +124,4 @@ export function useReverseGeocode(
 // Re-export Types
 // ============================================================================
 
-export type { GeocodeResult, GeoCoordinates, AddressInfo };
+export type { GeocodeResult,   };

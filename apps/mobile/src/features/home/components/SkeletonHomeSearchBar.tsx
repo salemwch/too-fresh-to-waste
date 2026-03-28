@@ -12,7 +12,7 @@ import { View, StyleSheet } from 'react-native';
 
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 
-export interface SkeletonHomeSearchBarProps {
+interface SkeletonHomeSearchBarProps {
   testID?: string;
 }
 

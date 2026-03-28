@@ -19,7 +19,7 @@ import type { Offer, OfferListItem, OfferSearchParams, OffersResponse } from '..
 // Query Keys (for cache management)
 // ============================================================================
 
-export const offerKeys = {
+const offerKeys = {
   all: ['offers'] as const,
   lists: () => [...offerKeys.all, 'list'] as const,
   list: (filters: OfferSearchParams) => [...offerKeys.lists(), filters] as const,

@@ -22,7 +22,7 @@ import { useTheme } from '@/design-system/providers';
 
 export type ViewMode = 'map' | 'list';
 
-export interface MapListToggleProps {
+interface MapListToggleProps {
   value: ViewMode;
   onChange: (mode: ViewMode) => void;
   style?: object;
@@ -170,4 +170,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MapListToggle;

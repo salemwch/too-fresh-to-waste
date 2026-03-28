@@ -57,7 +57,7 @@ export interface PaginationMeta {
  * @deprecated Backend changed from statusCode to status as of 2026-02-02
  * @see BackendApiResponse for current interface
  */
-export interface ApiResponseWrapper<T> {
+interface ApiResponseWrapper<T> {
   /** @deprecated Use BackendApiResponse.status instead */
   statusCode: number;
   data: T;

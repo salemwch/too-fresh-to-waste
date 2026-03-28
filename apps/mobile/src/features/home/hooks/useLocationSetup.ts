@@ -29,7 +29,7 @@ import { Logger } from '@/utils/logger';
 /**
  * Return type for useLocationSetup hook
  */
-export interface UseLocationSetupResult {
+interface UseLocationSetupResult {
   /** Whether to show location selection modal (first-time setup) */
   showLocationSelectionModal: boolean;
   /** Whether to show manual location modal (GPS fallback) */

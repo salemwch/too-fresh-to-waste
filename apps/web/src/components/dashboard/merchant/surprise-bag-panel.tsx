@@ -112,7 +112,7 @@ function autoDescription(title: string, qty: number): string {
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
-export interface SurpriseBagPanelProps {
+interface SurpriseBagPanelProps {
   open: boolean;
   onClose: () => void;
 }

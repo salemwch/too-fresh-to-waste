@@ -31,7 +31,7 @@ import type { FilterState } from '@/features/search/types/filter.types';
 // Types
 // ============================================================================
 
-export interface HomeSearchBarProps {
+interface HomeSearchBarProps {
   /** Current search query */
   searchQuery: string;
   /** Callback when search query changes */

@@ -42,7 +42,7 @@ import { showErrorToast, showSuccessToast, showInfoToast } from '@/utils/toast';
  * Alert button configuration
  * Matches React Native Alert.AlertButton interface
  */
-export interface AlertButton {
+interface AlertButton {
   text?: string;
   onPress?: () => void | Promise<void>;
   style?: 'default' | 'cancel' | 'destructive';
@@ -51,12 +51,12 @@ export interface AlertButton {
 /**
  * Alert type for determining Toast style in production
  */
-export type AlertType = 'success' | 'error' | 'info' | 'warning';
+type AlertType = 'success' | 'error' | 'info' | 'warning';
 
 /**
  * Alert options for customizing behavior
  */
-export interface AlertOptions {
+interface AlertOptions {
   /** Alert type (determines Toast style in production) */
   type?: AlertType;
 
@@ -222,7 +222,7 @@ export function showInfoAlert(title: string, message?: string, duration?: number
  * showWarningAlert('Unsaved Changes', 'Your changes will be lost');
  * ```
  */
-export function showWarningAlert(title: string, message?: string, duration?: number): void {
+function showWarningAlert(title: string, message?: string, duration?: number): void {
   showAlert(title, message, undefined, { type: 'warning', ...(duration !== undefined && { duration }) });
 }
 
@@ -362,4 +362,3 @@ export function getAlertTypeFromContext(title: string, message?: string): AlertT
 // Export
 // ============================================================================
 
-export default showAlert;

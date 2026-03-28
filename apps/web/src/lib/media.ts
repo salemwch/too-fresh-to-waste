@@ -28,7 +28,7 @@ try {
 /** Hostnames that only work from within the Android emulator. */
 const EMULATOR_HOSTS = new Set(['10.0.2.2', '10.0.3.2']);
 
-export function resolveMediaUrl(url?: string | null): string | undefined {
+function resolveMediaUrl(url?: string | null): string | undefined {
   if (!url) return undefined;
 
   try {

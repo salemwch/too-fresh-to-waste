@@ -50,11 +50,6 @@ export function getLocaleConfig(locale: Locale) {
   return localeConfig[locale] || localeConfig[defaultLocale];
 }
 
-// Check if locale is RTL
-export function isRTL(locale: Locale): boolean {
-  return getLocaleConfig(locale).direction === 'rtl';
-}
-
 // Validate locale
 export function isValidLocale(locale: string): locale is Locale {
   return locales.includes(locale as Locale);

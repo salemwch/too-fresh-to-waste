@@ -131,4 +131,3 @@ export const Text = forwardRef<RNText, TextProps>(
   },
 );
 
-export default Text;

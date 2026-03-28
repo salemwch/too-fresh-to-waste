@@ -22,7 +22,7 @@ import type { ProximitySearchResult, NearbyOffer } from '@/features/offers/hooks
 // Types
 // ============================================================================
 
-export interface OfferMarkerProps {
+interface OfferMarkerProps {
   offer: ProximitySearchResult<NearbyOffer>;
   isSelected: boolean;
   onPress: () => void;
@@ -170,4 +170,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default OfferMarker;

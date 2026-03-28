@@ -11,7 +11,7 @@ export type LegalDocumentType =
 
 const BASE = '/establishments';
 
-export interface UpdateEstablishmentData {
+interface UpdateEstablishmentData {
   name?: string;
   description?: string;
   type?: string;

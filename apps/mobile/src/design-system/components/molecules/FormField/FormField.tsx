@@ -295,4 +295,3 @@ export const FormField = React.memo<FormFieldProps>(function FormField({
   );
 });
 
-export default FormField;

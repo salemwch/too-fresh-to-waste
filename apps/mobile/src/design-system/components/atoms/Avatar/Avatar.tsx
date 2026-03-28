@@ -181,4 +181,3 @@ export const Avatar = forwardRef<
   },
 );
 
-export default Avatar;

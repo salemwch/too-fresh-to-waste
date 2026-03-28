@@ -16,7 +16,7 @@ import {
 import { AdminAction } from '../interfaces/admin-analytics.interface';
 
 // Base Analytics Period DTO
-export class AnalyticsPeriodResponseDto {
+class AnalyticsPeriodResponseDto {
   @ApiProperty({
     description: 'Start date of the analytics period',
     example: '2024-01-01T00:00:00.000Z',
@@ -45,7 +45,7 @@ export class AnalyticsPeriodResponseDto {
 }
 
 // User Analytics Response DTO
-export class UserAnalyticsResponseDto {
+class UserAnalyticsResponseDto {
   @ApiProperty({
     description: 'Total number of registered users',
     example: 15420,
@@ -129,7 +129,7 @@ export class UserAnalyticsResponseDto {
 }
 
 // Establishment Performance DTO
-export class EstablishmentPerformanceResponseDto {
+class EstablishmentPerformanceResponseDto {
   @ApiProperty({
     description: 'Establishment unique identifier',
     example: '507f1f77bcf86cd799439011',
@@ -193,7 +193,7 @@ export class EstablishmentPerformanceResponseDto {
 }
 
 // Establishment Analytics Response DTO
-export class EstablishmentAnalyticsResponseDto {
+class EstablishmentAnalyticsResponseDto {
   @ApiProperty({
     description: 'Total number of establishments',
     example: 1250,
@@ -270,7 +270,7 @@ export class EstablishmentAnalyticsResponseDto {
 }
 
 // Order Trend DTO
-export class OrderTrendResponseDto {
+class OrderTrendResponseDto {
   @ApiProperty({
     description: 'Date in YYYY-MM-DD format',
     example: '2024-01-15',
@@ -298,7 +298,7 @@ export class OrderTrendResponseDto {
 }
 
 // Order Analytics Response DTO
-export class OrderAnalyticsResponseDto {
+class OrderAnalyticsResponseDto {
   @ApiProperty({
     description: 'Total number of orders',
     example: 25680,
@@ -375,7 +375,7 @@ export class OrderAnalyticsResponseDto {
 }
 
 // Category Stats DTO
-export class CategoryStatsResponseDto {
+class CategoryStatsResponseDto {
   @ApiProperty({
     description: 'Category name',
     example: 'prepared_meals',
@@ -435,7 +435,7 @@ export class CategoryStatsResponseDto {
 }
 
 // Waste Reduction Metrics DTO
-export class WasteReductionMetricsResponseDto {
+class WasteReductionMetricsResponseDto {
   @ApiProperty({
     description: 'Total kilograms of food saved from waste',
     example: 15420.5,
@@ -474,7 +474,7 @@ export class WasteReductionMetricsResponseDto {
 }
 
 // Offer Analytics Response DTO
-export class OfferAnalyticsResponseDto {
+class OfferAnalyticsResponseDto {
   @ApiProperty({
     description: 'Total number of offers created',
     example: 8750,
@@ -542,7 +542,7 @@ export class OfferAnalyticsResponseDto {
 }
 
 // Review Analytics Response DTO
-export class ReviewAnalyticsResponseDto {
+class ReviewAnalyticsResponseDto {
   @ApiProperty({
     description: 'Total number of reviews',
     example: 18750,
@@ -602,7 +602,7 @@ export class ReviewAnalyticsResponseDto {
 }
 
 // Establishment Revenue DTO
-export class EstablishmentRevenueResponseDto {
+class EstablishmentRevenueResponseDto {
   @ApiProperty({
     description: 'Establishment unique identifier',
     example: '507f1f77bcf86cd799439011',
@@ -646,7 +646,7 @@ export class EstablishmentRevenueResponseDto {
 }
 
 // Revenue Analytics Response DTO
-export class RevenueAnalyticsResponseDto {
+class RevenueAnalyticsResponseDto {
   @ApiProperty({
     description: 'Total platform revenue in cents',
     example: 2456000,
@@ -790,7 +790,7 @@ export class PlatformAnalyticsResponseDto {
 }
 
 // Audit Log Response DTOs
-export class AdminActivityStatsResponseDto {
+class AdminActivityStatsResponseDto {
   @ApiProperty({
     description: 'Admin user ID',
     example: '507f1f77bcf86cd799439011',
@@ -815,7 +815,7 @@ export class AdminActivityStatsResponseDto {
   count!: number;
 }
 
-export class DailyActivityStatsResponseDto {
+class DailyActivityStatsResponseDto {
   @ApiProperty({
     description: 'Date in YYYY-MM-DD format',
     example: '2024-01-15',
@@ -833,7 +833,7 @@ export class DailyActivityStatsResponseDto {
   count!: number;
 }
 
-export class AuditStatisticsPeriodResponseDto {
+class AuditStatisticsPeriodResponseDto {
   @ApiProperty({
     description: 'Number of days analyzed',
     example: 30,

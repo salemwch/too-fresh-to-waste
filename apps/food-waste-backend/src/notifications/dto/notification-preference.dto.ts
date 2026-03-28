@@ -12,7 +12,7 @@ import {
   Max,
 } from 'class-validator';
 
-export class ChannelPreferencesDto {
+class ChannelPreferencesDto {
   @ApiProperty({ description: 'Enable push notifications for this channel' })
   @IsBoolean()
   push!: boolean;
@@ -26,7 +26,7 @@ export class ChannelPreferencesDto {
   sms!: boolean;
 }
 
-export class QuietHoursDto {
+class QuietHoursDto {
   @ApiProperty({ description: 'Enable quiet hours' })
   @IsBoolean()
   enabled!: boolean;
@@ -44,7 +44,7 @@ export class QuietHoursDto {
   timezone!: string;
 }
 
-export class SavedLocationDto {
+class SavedLocationDto {
   @ApiProperty({ description: 'Location name/label' })
   @IsString()
   name!: string;
@@ -64,7 +64,7 @@ export class SavedLocationDto {
   radius!: number;
 }
 
-export class LocationPreferencesDto {
+class LocationPreferencesDto {
   @ApiProperty({ description: 'Default radius for nearby offers in kilometers' })
   @IsNumber()
   @Min(1)

@@ -154,7 +154,7 @@ export class UserDonationStatsResponseDto {
 /**
  * Query DTO for donation history filtering
  */
-export class DonationHistoryQueryDto {
+class DonationHistoryQueryDto {
   @ApiPropertyOptional({
     description: 'Page number for pagination',
     example: 1,

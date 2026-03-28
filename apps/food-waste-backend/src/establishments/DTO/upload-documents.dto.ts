@@ -10,7 +10,7 @@ export { DocumentType };
  * DTO for uploading legal documents to an establishment
  * Supports multiple document types with metadata
  */
-export class UploadDocumentsDto {
+class UploadDocumentsDto {
   @ApiProperty({
     enum: DocumentType,
     description: 'Type of document being uploaded',
@@ -63,7 +63,7 @@ export class UploadDocumentsDto {
 /**
  * Response DTO for successful document upload
  */
-export interface UploadDocumentResponse {
+interface UploadDocumentResponse {
   success: boolean;
   message: string;
   document: {

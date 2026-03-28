@@ -19,7 +19,6 @@ import { OfferStatus, OfferType } from '@foodwaste/shared';
  */
 export enum CtaState {
   AVAILABLE = 'available',
-  LOW_STOCK = 'low_stock',
   SOLD_OUT = 'sold_out',
   NOT_STARTED = 'not_started',
 }

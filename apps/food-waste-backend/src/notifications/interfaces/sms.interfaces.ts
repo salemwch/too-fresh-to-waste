@@ -64,14 +64,14 @@ export interface PhoneValidationResult {
   errorMessage?: string | undefined;
 }
 
-export interface OptOutStatus {
+interface OptOutStatus {
   phoneNumber: string;
   isOptedOut: boolean;
   optedOutAt?: Date;
   reason?: string;
 }
 
-export interface SmsMetrics {
+interface SmsMetrics {
   sent: number;
   delivered: number;
   failed: number;

@@ -38,7 +38,7 @@ const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
 // Types
 // ============================================================================
 
-export interface EstablishmentBottomSheetProps {
+interface EstablishmentBottomSheetProps {
   /** Whether the sheet is visible */
   visible: boolean;
   /** The selected establishment (null when hidden) */
@@ -421,4 +421,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EstablishmentBottomSheet;

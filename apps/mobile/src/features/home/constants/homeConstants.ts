@@ -72,7 +72,7 @@ export const HOME_STORAGE_KEYS = {
  * Browse by category configuration
  * Each category has an ID, display name, and emoji icon
  */
-export const HOME_CATEGORIES = [
+const HOME_CATEGORIES = [
   {
     id: 'bakery',
     name: 'Bakery',
@@ -150,7 +150,7 @@ export const OFFER_SECTIONS = {
 /**
  * Type-safe offer section key union
  */
-export type OfferSectionKey = keyof typeof OFFER_SECTIONS;
+type OfferSectionKey = keyof typeof OFFER_SECTIONS;
 
 // ============================================================================
 // Analytics Event Names

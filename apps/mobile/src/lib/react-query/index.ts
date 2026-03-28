@@ -9,44 +9,23 @@
  */
 
 // Core exports
-export { QueryProvider, useQueryClient } from './QueryProvider';
-export { queryClient } from './queryClient';
-export { initializePlatformManagers, getNetworkState } from './platformSetup';
-export { initializeQueryDevTools, queryDebugUtils } from './devtools';
+export { QueryProvider,  } from './QueryProvider';
+;
+;
+;
 
 // Custom hooks
 export {
   useQueryWithFocus,
-  useMutationWithOptimistic,
-  useNetworkAwareQuery,
-  useInvalidateQueries,
-  usePrefetchQuery,
-  useQuerySubscription,
+  
+  
+  
+  
+  
 } from './hooks';
 
 // Re-export commonly used TanStack Query hooks and utilities
-export {
-  useQuery,
-  useMutation,
-  useQueries,
-  useInfiniteQuery,
-  useSuspenseQuery,
-  useSuspenseInfiniteQuery,
-  useSuspenseQueries,
-  useIsFetching,
-  useIsMutating,
-  useMutationState,
-  useIsRestoring,
-  type QueryKey,
-  type UseQueryOptions,
-  type UseMutationOptions,
-  type UseInfiniteQueryOptions,
-  type QueryClient,
-  type QueryFunction,
-  type QueryObserverResult,
-  type MutationFunction,
-  type InfiniteData,
-} from '@tanstack/react-query';
+;
 
 /**
  * TanStack Query Setup Summary:

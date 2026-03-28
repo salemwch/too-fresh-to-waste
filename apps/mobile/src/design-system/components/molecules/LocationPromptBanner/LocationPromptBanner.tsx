@@ -191,4 +191,3 @@ const styles = StyleSheet.create({
 
 LocationPromptBanner.displayName = 'LocationPromptBanner';
 
-export default LocationPromptBanner;

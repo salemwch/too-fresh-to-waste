@@ -44,7 +44,7 @@ function pickupLabel(offer: MerchantOffer): string {
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
-export interface OfferCardProps {
+interface OfferCardProps {
   offer: MerchantOffer;
   isEstablishmentApproved: boolean;
   isPending: boolean;

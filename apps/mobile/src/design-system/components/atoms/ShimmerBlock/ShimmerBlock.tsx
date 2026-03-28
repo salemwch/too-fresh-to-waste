@@ -19,7 +19,7 @@ import type { ViewStyle, DimensionValue } from 'react-native';
 
 const DEFAULT_COLORS: [string, string, string] = ['#E5E7EB', '#F3F4F6', '#E5E7EB'];
 
-export interface ShimmerBlockProps {
+interface ShimmerBlockProps {
   animValue: Animated.Value;
   width?: DimensionValue;
   height?: DimensionValue;

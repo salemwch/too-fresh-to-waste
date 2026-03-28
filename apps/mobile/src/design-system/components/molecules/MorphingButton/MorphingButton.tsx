@@ -58,7 +58,7 @@ const CheckIcon = ({ show }: { show: { value: number } }) => {
 };
 
 // ─── props (unchanged) ───────────────────────────────────────────────────────
-export interface MorphingButtonProps {
+interface MorphingButtonProps {
   /** Text displayed in idle state */
   label: string;
   /** Text displayed after success animation (used for accessibility) */

@@ -18,7 +18,7 @@ const HTML_ENTITIES: Record<string, string> = {
  * Runs iteratively until the string is stable, handling double/triple
  * encoding (e.g. &amp;amp; → &amp; → &).
  */
-export function decodeHtmlEntities(str: string): string {
+function decodeHtmlEntities(str: string): string {
   if (!str) return str;
   const pattern = /&(?:amp|lt|gt|quot|apos|#x27|#x2F|#39);/g;
   let result = str;

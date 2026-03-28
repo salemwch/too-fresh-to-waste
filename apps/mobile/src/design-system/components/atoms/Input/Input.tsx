@@ -273,4 +273,3 @@ export const Input = forwardRef<TextInput, InputProps>(
   },
 );
 
-export default Input;

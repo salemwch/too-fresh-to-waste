@@ -27,7 +27,7 @@ import type { User } from '@/features/auth/types';
  * User profile update request
  * All fields are optional - only send fields you want to update
  */
-export interface UpdateUserProfileDto {
+interface UpdateUserProfileDto {
   firstName?: string;
   lastName?: string;
   phoneNumber?: string;
@@ -42,7 +42,7 @@ export interface UpdateUserProfileDto {
 /**
  * Profile image upload response
  */
-export interface ProfileImageUploadResponse {
+interface ProfileImageUploadResponse {
   profileImage: string;
   user: User;
 }
@@ -50,7 +50,7 @@ export interface ProfileImageUploadResponse {
 /**
  * User location update request
  */
-export interface UpdateLocationDto {
+interface UpdateLocationDto {
   latitude: number;
   longitude: number;
   locationName?: string;
@@ -60,7 +60,7 @@ export interface UpdateLocationDto {
 /**
  * User location update response
  */
-export interface LocationUpdateResponse {
+interface LocationUpdateResponse {
   latitude: number;
   longitude: number;
   locationName?: string;

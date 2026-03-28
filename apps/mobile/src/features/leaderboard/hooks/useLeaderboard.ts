@@ -3,7 +3,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { leaderboardService } from '../services/leaderboardService';
 import type { LeaderboardResponse } from '../types/leaderboard.types';
 
-export const LEADERBOARD_QUERY_KEY = ['loyalty', 'leaderboard'] as const;
+const LEADERBOARD_QUERY_KEY = ['loyalty', 'leaderboard'] as const;
 
 const PAGE_SIZE = 50;
 

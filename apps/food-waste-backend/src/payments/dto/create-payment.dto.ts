@@ -13,7 +13,7 @@ import {
 
 import { Currency, PaymentMethod } from '../schemas/payment.schema';
 
-export class CardDetailsDto {
+class CardDetailsDto {
   @IsNotEmpty()
   @IsString()
   cardNumber!: string;

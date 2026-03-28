@@ -72,7 +72,7 @@ const CONFIG = {
  *
  * Call this once in App.tsx on mount
  */
-export const initializeOfflineManager = (): void => {
+const initializeOfflineManager = (): void => {
   // Clean up existing listener if any
   if (state.unsubscribe) {
     state.unsubscribe();
@@ -119,7 +119,7 @@ export const initializeOfflineManager = (): void => {
  * Clean up offline manager
  * Call this when unmounting app (testing/cleanup)
  */
-export const cleanupOfflineManager = (): void => {
+const cleanupOfflineManager = (): void => {
   if (state.unsubscribe) {
     state.unsubscribe();
     state.unsubscribe = null;
@@ -132,7 +132,7 @@ export const cleanupOfflineManager = (): void => {
  *
  * @returns True if offline, false if online
  */
-export const isOffline = (): boolean => {
+const isOffline = (): boolean => {
   return state.isOffline;
 };
 
@@ -141,7 +141,7 @@ export const isOffline = (): boolean => {
  *
  * @returns True if online, false if offline
  */
-export const isOnline = (): boolean => {
+const isOnline = (): boolean => {
   return !state.isOffline;
 };
 
@@ -150,7 +150,7 @@ export const isOnline = (): boolean => {
  *
  * Rate limiting prevents toast spam when multiple network calls fail simultaneously
  */
-export const showOfflineToastIfNeeded = (): void => {
+const showOfflineToastIfNeeded = (): void => {
   const now = Date.now();
 
   // Rate limit: Don't show toast if one was shown recently
@@ -195,7 +195,7 @@ const showOnlineToast = (): void => {
  *
  * @returns Current offline manager state
  */
-export const getOfflineState = (): Readonly<OfflineManagerState> => ({
+const getOfflineState = (): Readonly<OfflineManagerState> => ({
   ...state,
 });
 

@@ -7,7 +7,7 @@ import { map } from 'rxjs/operators';
  * Standardized API response format
  * ✅ CANONICAL: Matches BackendApiResponse in frontend
  */
-export interface ResponseFormat<T> {
+interface ResponseFormat<T> {
   status: number;
   message?: string;
   data: T;

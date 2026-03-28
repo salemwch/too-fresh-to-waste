@@ -114,4 +114,3 @@ const styles = StyleSheet.create({
 
 NearbyOffersEmptyState.displayName = 'NearbyOffersEmptyState';
 
-export default NearbyOffersEmptyState;

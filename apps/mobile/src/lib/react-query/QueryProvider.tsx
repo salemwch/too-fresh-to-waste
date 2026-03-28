@@ -172,7 +172,7 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({
  * Hook to access query client
  * Convenience hook for accessing the query client instance
  */
-export { useQueryClient } from '@tanstack/react-query';
+;
 
 /**
  * Styles for error fallback

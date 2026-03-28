@@ -143,12 +143,3 @@ export function getCanonicalUrl(path: string, locale: Locale): string {
   return `${baseUrl}${localePath}${cleanPath === '/' ? '' : cleanPath}`;
 }
 
-// Helper to generate alternate URLs for hreflang
-export function getAlternateUrls(path: string): Array<{ locale: Locale; url: string }> {
-  return seoConfig.locales.map((locale) => ({
-    locale,
-    url: getCanonicalUrl(path, locale),
-  }));
-}
-
-export type SeoConfig = typeof seoConfig;

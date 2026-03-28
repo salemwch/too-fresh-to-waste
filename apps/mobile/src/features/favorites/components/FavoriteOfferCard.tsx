@@ -48,4 +48,3 @@ export const FavoriteOfferCard: React.FC<Omit<OfferCardProps, 'onFavorite'>> = p
   );
 };
 
-export default FavoriteOfferCard;

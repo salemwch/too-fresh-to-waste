@@ -14,7 +14,6 @@ import type {
   CreateSurpriseBagPayload,
   ReactivateOfferPayload,
   DonationStats,
-  CommunityBagGoalStats,
 } from '@/types/dashboard';
 
 // ─── Query keys (central, predictable) ─────────────────────────────────────
@@ -44,12 +43,12 @@ export const dashboardKeys = {
 
 // ─── Result types ───────────────────────────────────────────────────────────
 
-export interface MerchantOrdersResult {
+interface MerchantOrdersResult {
   orders: MerchantOrder[];
   meta: PaginationMeta | undefined;
 }
 
-export interface MerchantOffersResult {
+interface MerchantOffersResult {
   offers: MerchantOffer[];
   meta: PaginationMeta | undefined;
 }
@@ -87,24 +86,6 @@ export function useMerchantRecentOrders(page = 1, limit = 6) {
       };
     },
     staleTime: 60 * 1000,
-  });
-}
-
-/**
- * Merchant's offers (paginated) — not date-scoped (shows active/all offers).
- * Backend: GET /offers/my-offers
- */
-export function useMerchantOffers(page = 1, limit = 8) {
-  return useQuery({
-    queryKey: dashboardKeys.offers(page, limit),
-    queryFn: async (): Promise<MerchantOffersResult> => {
-      const response = await dashboardService.getMerchantOffers(page, limit);
-      return {
-        offers: response.data.data,
-        meta: response.data.meta,
-      };
-    },
-    staleTime: 2 * 60 * 1000,
   });
 }
 
@@ -169,21 +150,6 @@ export function useDonationStats() {
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
-  });
-}
-
-/**
- * Community bag goal progress (public endpoint).
- * Backend: GET /community-goal/stats
- */
-export function useCommunityGoalStats() {
-  return useQuery({
-    queryKey: dashboardKeys.communityGoal(),
-    queryFn: async (): Promise<CommunityBagGoalStats> => {
-      const response = await dashboardService.getCommunityGoalStats();
-      return response.data.data;
-    },
-    staleTime: 30 * 1000,
   });
 }
 

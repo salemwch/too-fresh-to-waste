@@ -10,7 +10,7 @@ export type DatePreset =
   | '4w' | '8w'  | '12w'       // weekly granularity
   | '3m' | '6m'  | '9m' | '12m'; // monthly granularity
 
-export interface PresetConfig {
+interface PresetConfig {
   /** Aggregation granularity sent to the backend. */
   granularity: ChartGranularity;
   /** Number of slots (days / weeks / months). */
@@ -227,9 +227,6 @@ export interface RevenueChartItem {
   orderCount: number;
 }
 
-/** @deprecated Renamed to RevenueChartItem. */
-export type MonthlyRevenueItem = RevenueChartItem;
-
 // ─── My Establishment ────────────────────────────────────────────────────────
 
 export interface DocumentMetadata {
@@ -334,14 +331,6 @@ export interface CreateSurpriseBagPayload {
 }
 
 // ─── Merchant Offers ────────────────────────────────────────────────────────
-
-export type OfferStatusValue =
-  | 'draft'
-  | 'active'
-  | 'sold_out'
-  | 'expired'
-  | 'cancelled'
-  | 'suspended';
 
 export interface OfferPricing {
   originalPrice: number;

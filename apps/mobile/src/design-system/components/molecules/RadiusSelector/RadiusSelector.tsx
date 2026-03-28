@@ -114,4 +114,3 @@ const styles = StyleSheet.create({
 
 RadiusSelector.displayName = 'RadiusSelector';
 
-export default RadiusSelector;

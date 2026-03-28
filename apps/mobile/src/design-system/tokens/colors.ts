@@ -30,7 +30,7 @@
  * - Clean, spacious layouts
  */
 
-export const baseColors = {
+const baseColors = {
   // Brand Colors - Primary Identity (Teal)
   primary: {
     50: '#E6F4F4', // HSL(178°, 45%, 93%) - Very light teal for subtle backgrounds
@@ -124,7 +124,7 @@ export const baseColors = {
 } as const;
 
 // Food-Specific Color Tokens
-export const foodColors = {
+const foodColors = {
   freshness: {
     fresh: '#005250', // Uses primary brand color for consistency
     moderate: '#FF9800',
@@ -155,7 +155,7 @@ export const foodColors = {
 
 // Harmonious Colors - Color Theory Based on Primary Teal (#005250)
 // These colors create professional visual harmony with the primary brand color
-export const harmoniousColors = {
+const harmoniousColors = {
   // Complementary (opposite on color wheel - 180°) - Maximum contrast
   rose: '#D8455E', // HSL(348°, 65%, 55%) - Warm rose for contrast with teal
 
@@ -179,7 +179,7 @@ export const harmoniousColors = {
 } as const;
 
 // Status Colors for Order Lifecycle
-export const statusColors = {
+const statusColors = {
   pending: '#FF9800',
   confirmed: '#2196F3',
   preparing: '#9C27B0',
@@ -192,7 +192,7 @@ export const statusColors = {
 } as const;
 
 // Accessibility & Contrast Colors
-export const accessibilityColors = {
+const accessibilityColors = {
   contrast: {
     high: '#000000',
     medium: '#616161',
@@ -213,7 +213,7 @@ export const accessibilityColors = {
 } as const;
 
 // Theme-specific color mappings
-export const lightThemeColors = {
+const lightThemeColors = {
   // Surface colors
   background: baseColors.neutral[0],
   surface: baseColors.neutral[50],
@@ -283,7 +283,7 @@ export const lightThemeColors = {
   harmonious: harmoniousColors,
 } as const;
 
-export const darkThemeColors = {
+const darkThemeColors = {
   // Surface colors
   background: '#121212',
   surface: '#1E1E1E',

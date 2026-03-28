@@ -24,7 +24,7 @@ export enum BiometricType {
 /**
  * Biometric error codes
  */
-export enum BiometricError {
+enum BiometricError {
   NOT_SUPPORTED = 'NOT_SUPPORTED',
   NOT_ENROLLED = 'NOT_ENROLLED',
   AUTHENTICATION_FAILED = 'AUTHENTICATION_FAILED',
@@ -36,7 +36,7 @@ export enum BiometricError {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 
-export interface BiometricAuthResult {
+interface BiometricAuthResult {
   success: boolean;
   error?: BiometricError;
   biometricType?: BiometricType;

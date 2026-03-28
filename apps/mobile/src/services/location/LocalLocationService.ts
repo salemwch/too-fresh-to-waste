@@ -44,7 +44,7 @@ interface SearchableLocation {
 /**
  * LocalLocationService - Singleton class for local location search
  */
-export class LocalLocationService {
+class LocalLocationService {
   private static instance: LocalLocationService | null = null;
 
   private searchableLocations: SearchableLocation[] = [];

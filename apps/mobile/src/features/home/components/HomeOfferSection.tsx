@@ -28,7 +28,7 @@ import type { OfferListItem } from '@/features/offers/types/offer.types';
 // Types
 // ============================================================================
 
-export interface HomeOfferSectionProps {
+interface HomeOfferSectionProps {
   /** Section title (e.g., "Urgent Deals ⚡") */
   title: string;
   /** Array of offers to display */

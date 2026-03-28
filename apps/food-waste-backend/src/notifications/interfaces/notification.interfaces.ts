@@ -122,7 +122,7 @@ export interface INotificationContext {
   };
 }
 
-export interface INotificationTemplate {
+interface INotificationTemplate {
   render(variables: ITemplateVariables, language?: string): Promise<{
     subject: string;
     body: string;
@@ -130,7 +130,7 @@ export interface INotificationTemplate {
   }>;
 }
 
-export interface INotificationQueue {
+interface INotificationQueue {
   add(job: ISendNotificationRequest, options?: INotificationMetadata): Promise<void>;
   addBulk(jobs: ISendNotificationRequest[], options?: INotificationMetadata): Promise<void>;
   process(concurrency: number): void;

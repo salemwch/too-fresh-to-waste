@@ -32,7 +32,7 @@ import { Logger } from '@/utils/logger';
 import { SecureStorage } from '@/services/SecureStorage';
 import { navigateFromNotification, type NotificationNavData } from '@/navigation/navigationRef';
 
-export type ForegroundMessageHandler = (
+type ForegroundMessageHandler = (
   data: NotificationNavData,
   title: string,
   body: string,

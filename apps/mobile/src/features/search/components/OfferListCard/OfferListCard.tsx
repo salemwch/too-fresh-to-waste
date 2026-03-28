@@ -29,7 +29,7 @@ const IMAGE_HEIGHT = 130;
 // Types
 // ============================================================================
 
-export interface OfferListCardProps {
+interface OfferListCardProps {
   offer: ProximitySearchResult<NearbyOffer>;
   onPress: () => void;
   style?: object;
@@ -315,4 +315,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default OfferListCard;

@@ -381,4 +381,4 @@ class NativeModuleDebugger {
 export const NativeModuleLogger = new NativeModuleDebugger();
 
 // Export types
-export type { NativeModuleInfo, NativeEventLog };
+;

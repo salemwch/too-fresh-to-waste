@@ -33,7 +33,7 @@ import { IsValidPhoneNumber } from '../../common/validators/is-valid-phone-numbe
 /**
  * Nested DTO for address components from Google Places API
  */
-export class AddressComponentsDto {
+class AddressComponentsDto {
   @ApiPropertyOptional({ example: 'Avenue Habib Bourguiba' })
   @IsOptional()
   @IsString()
@@ -63,7 +63,7 @@ export class AddressComponentsDto {
  * Business information captured from Google Places during merchant signup.
  * Validated with class-validator decorators for nested DTO support.
  */
-export class BusinessInfoDto {
+class BusinessInfoDto {
   @ApiProperty({
     description: 'Business name from Google Places',
     example: 'Cafe De Tunis',

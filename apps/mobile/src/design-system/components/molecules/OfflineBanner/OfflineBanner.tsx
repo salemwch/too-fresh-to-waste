@@ -17,7 +17,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import Icon from '@/design-system/components/atoms/Icon/Icon';
 
-export interface OfflineBannerProps {
+interface OfflineBannerProps {
   /** Whether banner is visible */
   visible: boolean;
 

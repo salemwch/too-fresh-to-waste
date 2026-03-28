@@ -652,4 +652,3 @@ const createStyles = (
   });
 };
 
-export default OfferCard;

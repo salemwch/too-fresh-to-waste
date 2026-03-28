@@ -15,7 +15,7 @@ import type { CountryCode } from 'libphonenumber-js';
 /**
  * Phone number validation options
  */
-export interface PhoneValidatorOptions {
+interface PhoneValidatorOptions {
   /**
    * Default country code for validation
    * @default 'TN' (Tunisia - matches backend)

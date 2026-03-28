@@ -2,7 +2,7 @@ import { IsOptional, IsString, IsBoolean, IsNumber, IsEnum, Min, Max, ValidateNe
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export class PlatformSettingsDto {
+class PlatformSettingsDto {
   @ApiPropertyOptional({
     description: 'Enable maintenance mode',
     example: false
@@ -96,7 +96,7 @@ export class PlatformSettingsDto {
   autoRefundTimeoutHours?: number;
 }
 
-export class NotificationSettingsDto {
+class NotificationSettingsDto {
   @ApiPropertyOptional({
     description: 'Enable email notifications',
     example: true
@@ -154,7 +154,7 @@ export class NotificationSettingsDto {
   promotionalEmailsEnabled?: boolean;
 }
 
-export class SecuritySettingsDto {
+class SecuritySettingsDto {
   @ApiPropertyOptional({
     description: 'Maximum login attempts before lockout',
     example: 5,
@@ -248,7 +248,7 @@ export class SecuritySettingsDto {
   twoFactorAuthRequired?: boolean;
 }
 
-export class PaymentSettingsDto {
+class PaymentSettingsDto {
   @ApiPropertyOptional({
     description: 'Enable Stripe payments',
     example: true

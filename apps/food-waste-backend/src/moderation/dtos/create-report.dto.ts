@@ -40,7 +40,7 @@ export class CreateReportDto {
   evidence?: string[];
 }
 
-export class UpdateReportDto {
+class UpdateReportDto {
   @IsOptional()
   @IsEnum(ReportReason, { message: 'Invalid report reason' })
   reason?: ReportReason;

@@ -10,11 +10,11 @@ export * from './motion';
 export * from './shadows';
 
 // Re-export as a unified tokens object
-export { colorTokens as colors } from './colors';
-export { typographyTokens as typography } from './typography';
-export { spacingTokens as spacing } from './spacing';
-export { motionTokens as motion } from './motion';
-export { shadowTokens as shadows } from './shadows';
+;
+;
+;
+;
+;
 
 // Combined design tokens for easy access
 import { colorTokens } from './colors';

@@ -158,7 +158,7 @@ const PICKUP_ERROR_CODES: ReadonlySet<string> = new Set([
 /**
  * Shape of the error payload thrown by the backend for pickup failures
  */
-export interface PickupErrorResponse {
+interface PickupErrorResponse {
   statusCode: number;
   message: string;
   code: PickupErrorCode;

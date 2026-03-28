@@ -69,7 +69,7 @@ function generateSessionToken(): string {
 // Query Key Factory
 // ============================================================================
 
-export const geocodeKeys = {
+const geocodeKeys = {
   /** Base key for all geocode queries */
   all: ['geocode', 'v2'] as const,
 
@@ -81,7 +81,7 @@ export const geocodeKeys = {
 // useLocationSearch Hook (Hybrid + Session Token)
 // ============================================================================
 
-export interface UseLocationSearchOptions {
+interface UseLocationSearchOptions {
   /** Minimum query length to trigger search (default: 2) */
   minLength?: number;
   /** Maximum results to return (default: 10) */
@@ -194,4 +194,4 @@ export function useLocationSearch(
 // Re-export Types
 // ============================================================================
 
-export type { ILocationResult };
+;

@@ -43,7 +43,7 @@ export class GeoCoordinateDto {
   longitude!: number;
 }
 
-export class GeoPointDto {
+class GeoPointDto {
   @ApiProperty({
     description: 'GeoJSON type',
     example: 'Point',
@@ -194,7 +194,7 @@ export class DistanceCalculationDto {
   unit?: DistanceUnit = DistanceUnit.KILOMETERS;
 }
 
-export class GeoBoundsDto {
+class GeoBoundsDto {
   @ApiProperty({
     description: 'Northeast corner coordinates',
     type: GeoCoordinateDto,
@@ -308,7 +308,7 @@ export class ReverseGeocodingDto {
   zoom?: number = 18;
 }
 
-export class GeofenceDto {
+class GeofenceDto {
   @ApiProperty({
     description: 'Geofence name',
     example: 'Restaurant pickup zone',
@@ -466,7 +466,7 @@ export class UpdateLocationPreferencesDto {
   defaultLocation?: GeoCoordinateDto;
 }
 
-export class ComprehensiveSearchOptionsDto {
+class ComprehensiveSearchOptionsDto {
   @ApiPropertyOptional({
     description: 'Include establishments in search results',
     example: true,
@@ -554,7 +554,7 @@ export class ComprehensiveSearchDto {
   options!: ComprehensiveSearchOptionsDto;
 }
 
-export class RouteCalculationDto {
+class RouteCalculationDto {
   @ApiProperty({
     description: 'Origin coordinates',
     type: GeoCoordinateDto,

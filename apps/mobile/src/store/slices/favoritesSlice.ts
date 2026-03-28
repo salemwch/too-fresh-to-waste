@@ -28,7 +28,7 @@ import type { FavoriteType } from '@/features/favorites/types';
 // Types
 // ============================================================================
 
-export interface FavoriteItem {
+interface FavoriteItem {
   itemId: string;
   type: FavoriteType;
   addedAt: number; // Unix timestamp
@@ -69,7 +69,7 @@ const initialState: FavoritesState = {
 /**
  * Check if an item is favorited
  */
-export const checkIsFavorite = createAsyncThunk<
+const checkIsFavorite = createAsyncThunk<
   { itemId: string; isFavorite: boolean },
   { type: FavoriteType; itemId: string },
   { rejectValue: string }
@@ -87,7 +87,7 @@ export const checkIsFavorite = createAsyncThunk<
 /**
  * Toggle favorite status (add or remove)
  */
-export const toggleFavorite = createAsyncThunk<
+const toggleFavorite = createAsyncThunk<
   { itemId: string; isFavorite: boolean; type: FavoriteType },
   { type: FavoriteType; itemId: string; itemName?: string; itemImage?: string },
   { rejectValue: string }
@@ -106,7 +106,7 @@ export const toggleFavorite = createAsyncThunk<
 /**
  * Batch check favorite status for multiple items
  */
-export const batchCheckFavorites = createAsyncThunk<
+const batchCheckFavorites = createAsyncThunk<
   Record<string, boolean>,
   Array<{ type: FavoriteType; itemId: string }>,
   { rejectValue: string }
@@ -373,7 +373,7 @@ const favoritesSlice = createSlice({
 // Actions
 // ============================================================================
 
-export const { addFavoriteOptimistic, removeFavoriteOptimistic, clearFavorites, clearError } =
+export const { addFavoriteOptimistic, removeFavoriteOptimistic, clearFavorites,  } =
   favoritesSlice.actions;
 
 // ============================================================================

@@ -49,7 +49,7 @@ const DEFAULT_CENTER = {
 // Types
 // ============================================================================
 
-export interface LocationSelectionModalProps {
+interface LocationSelectionModalProps {
   /** Whether modal is visible */
   visible: boolean;
   /** Callback when location is selected */

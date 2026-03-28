@@ -33,7 +33,7 @@ import { OfferStatus as Status } from '@/features/offers/types/offer.types';
 /**
  * Coordinates for location-based queries
  */
-export interface Coordinates {
+interface Coordinates {
   latitude: number;
   longitude: number;
 }
@@ -41,7 +41,7 @@ export interface Coordinates {
 /**
  * Loading states for each offer section
  */
-export interface OffersLoadingState {
+interface OffersLoadingState {
   urgent: boolean;
   hottest: boolean;
   pickupToday: boolean;
@@ -51,7 +51,7 @@ export interface OffersLoadingState {
 /**
  * Error states for each offer section
  */
-export interface OffersErrorState {
+interface OffersErrorState {
   urgent: Error | null;
   hottest: Error | null;
   pickupToday: Error | null;
@@ -61,7 +61,7 @@ export interface OffersErrorState {
 /**
  * Refetch functions for each offer section
  */
-export interface OffersRefetchFunctions {
+interface OffersRefetchFunctions {
   urgent: () => void;
   hottest: () => void;
   pickupToday: () => void;
@@ -72,7 +72,7 @@ export interface OffersRefetchFunctions {
 /**
  * Return type for useHomeOffers hook
  */
-export interface UseHomeOffersResult {
+interface UseHomeOffersResult {
   /** Urgent offers (expiring within 1 hour) */
   urgentOffers: OfferListItem[] | undefined;
   /** Hottest deals (70%+ discount) */

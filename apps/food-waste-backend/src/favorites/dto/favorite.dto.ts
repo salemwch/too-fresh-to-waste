@@ -17,7 +17,7 @@ import { EstablishmentType } from '../../common/enums';
 import { ListVisibility } from '../schemas/favorite-list.schema';
 import { FavoriteType } from '../schemas/favorite.schema';
 
-export class FavoritePreferenceDto {
+class FavoritePreferenceDto {
   @ApiProperty({ required: false, default: true })
   @IsOptional()
   @IsBoolean()

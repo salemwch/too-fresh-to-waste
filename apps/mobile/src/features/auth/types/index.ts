@@ -206,7 +206,7 @@ export interface RegisterFormData {
   // Terms and privacy automatically accepted on registration
 }
 
-export interface ValidationError {
+interface ValidationError {
   readonly field: string;
   readonly message: string;
 }
@@ -219,7 +219,7 @@ export interface FormState<T> {
 }
 
 // Social Auth Types
-export enum SocialProvider {
+enum SocialProvider {
   GOOGLE = 'google',
   FACEBOOK = 'facebook',
   APPLE = 'apple',
@@ -239,7 +239,7 @@ export interface Session {
   readonly isActive: boolean;
 }
 
-export interface DeviceInfo {
+interface DeviceInfo {
   readonly platform: string;
   readonly version: string;
   readonly deviceId: string;

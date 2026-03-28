@@ -28,7 +28,7 @@ const IMAGE_WIDTH = 120;
 // Types
 // ============================================================================
 
-export interface OfferMapCardProps {
+interface OfferMapCardProps {
   offer: ProximitySearchResult<NearbyOffer> | null;
   visible: boolean;
   onPress: () => void;
@@ -423,4 +423,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default OfferMapCard;

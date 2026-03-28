@@ -214,7 +214,7 @@ export class UserSearchDto {
   limit?: number = 20;
 }
 
-export class AdminUserOverviewDto {
+class AdminUserOverviewDto {
   @ApiPropertyOptional({
     description: 'Include detailed user statistics',
     example: true,

@@ -15,7 +15,7 @@ import {
 
 import { BadgeType } from '../schemas/loyalty-account.schema';
 
-export class BadgeDto {
+class BadgeDto {
   @ApiProperty({ enum: BadgeType })
   @IsEnum(BadgeType)
   type!: BadgeType;
@@ -49,7 +49,7 @@ export class CreateLoyaltyAccountDto {
   referredBy?: string;
 }
 
-export class UpdateLoyaltyAccountDto {
+class UpdateLoyaltyAccountDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
@@ -135,7 +135,7 @@ export class AddPointsDto {
   bypassMultiplier?: boolean;
 }
 
-export class RedeemPointsDto {
+class RedeemPointsDto {
   @ApiProperty()
   @IsNumber()
   @Min(1)

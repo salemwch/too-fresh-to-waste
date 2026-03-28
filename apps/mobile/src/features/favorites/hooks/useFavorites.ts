@@ -24,7 +24,7 @@ import type { RootState } from '@/store';
 /**
  * Query keys for favorites
  */
-export const favoritesKeys = {
+const favoritesKeys = {
   all: ['favorites'] as const,
   lists: () => [...favoritesKeys.all, 'list'] as const,
   list: (filters?: FavoritesFilterRequest) => [...favoritesKeys.lists(), filters] as const,
@@ -76,7 +76,7 @@ export const useFavoritesStats = () =>
 /**
  * Hook to check if an item is favorited
  */
-export const useIsFavorite = (type: FavoriteType, itemId: string) => {
+const useIsFavorite = (type: FavoriteType, itemId: string) => {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
   // Get from Redux for instant feedback
@@ -106,7 +106,7 @@ export const useIsFavorite = (type: FavoriteType, itemId: string) => {
 /**
  * Hook to toggle favorite status with optimistic updates
  */
-export const useToggleFavorite = () => {
+const useToggleFavorite = () => {
   const queryClient = useQueryClient();
 
   return useMutation({

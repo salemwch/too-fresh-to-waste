@@ -5,7 +5,7 @@ import { IsString, IsOptional, ValidateNested } from 'class-validator';
  * CSP Violation Report DTO
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP#violation_report_syntax
  */
-export class CspReportBodyDto {
+class CspReportBodyDto {
   @IsString()
   @IsOptional()
   'document-uri'?: string;

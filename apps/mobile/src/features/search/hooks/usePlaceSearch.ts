@@ -54,14 +54,14 @@ function generateSessionToken(): string {
 // Types
 // ============================================================================
 
-export interface PlaceSearchResult {
+interface PlaceSearchResult {
   /** Google Places autocomplete results (placeholder coords until selected) */
   googleResults: ILocationResult[];
   /** App registered establishments from MongoDB */
   appResults: ProximitySearchResult<NearbyEstablishment>[];
 }
 
-export interface UsePlaceSearchOptions {
+interface UsePlaceSearchOptions {
   /** Minimum query length to trigger search (default: 2) */
   minLength?: number;
   /** Debounce delay in ms (default: 300) */
@@ -78,7 +78,7 @@ export interface UsePlaceSearchOptions {
 // Query Key Factory
 // ============================================================================
 
-export const placeSearchKeys = {
+const placeSearchKeys = {
   all: ['placeSearch'] as const,
   search: (query: string, center: GeoCoordinates) =>
     [...placeSearchKeys.all, query, center.latitude, center.longitude] as const,

@@ -48,7 +48,7 @@ export class LocationDto {
   source?: 'gps' | 'ip' | 'manual';
 }
 
-export class PriceRangeDto {
+class PriceRangeDto {
   @ApiProperty({ example: 0, description: 'Minimum price', minimum: 0 })
   @IsNumber()
   @Min(0)
@@ -60,7 +60,7 @@ export class PriceRangeDto {
   max!: number;
 }
 
-export class DiscountRangeDto {
+class DiscountRangeDto {
   @ApiProperty({
     example: 20,
     description: 'Minimum discount percentage',
@@ -84,7 +84,7 @@ export class DiscountRangeDto {
   max!: number;
 }
 
-export class TimeSlotDto {
+class TimeSlotDto {
   @ApiProperty({ example: '16:00', pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$' })
   @IsString()
   startTime!: string;
@@ -94,7 +94,7 @@ export class TimeSlotDto {
   endTime!: string;
 }
 
-export class SearchDto {
+class SearchDto {
   @ApiProperty({
     example: 'bakery items',
     description: 'Search query text',
@@ -289,7 +289,7 @@ export class SuggestionDto {
   includePersonalized?: boolean;
 }
 
-export class SearchFiltersDto {
+class SearchFiltersDto {
   @ApiPropertyOptional({
     description: 'Location for filter options',
     type: LocationDto,
@@ -316,7 +316,7 @@ export class SearchFiltersDto {
   includeStats?: boolean;
 }
 
-export class SearchAnalyticsDto {
+class SearchAnalyticsDto {
   @ApiProperty({
     example: 'bakery items',
     description: 'Search query that was clicked',

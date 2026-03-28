@@ -26,7 +26,7 @@ import { Logger } from './logger';
 /**
  * Token validation result
  */
-export interface TokenValidationResult {
+interface TokenValidationResult {
   /** Whether the token is valid (not expired) */
   isValid: boolean;
   /** Reason for invalidity (if applicable) */

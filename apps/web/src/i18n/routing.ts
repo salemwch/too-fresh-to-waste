@@ -22,5 +22,5 @@ export const routing = defineRouting({
 });
 
 // Navigation helpers with locale awareness
-export const { Link, redirect, usePathname, useRouter, getPathname } =
+export const { Link,  usePathname, useRouter,  } =
   createNavigation(routing);

@@ -38,7 +38,7 @@ interface HybridSearchConfig {
 /**
  * HybridLocationService - Combines local and remote location searches
  */
-export class HybridLocationService {
+class HybridLocationService {
   private readonly DEFAULT_MIN_LOCAL_RESULTS = 3;
   private readonly DEFAULT_MAX_RESULTS = 10;
 

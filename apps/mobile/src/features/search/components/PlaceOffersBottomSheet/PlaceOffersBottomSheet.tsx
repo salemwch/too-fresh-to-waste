@@ -34,7 +34,7 @@ const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
 // Types
 // ============================================================================
 
-export interface PlaceOffersBottomSheetProps {
+interface PlaceOffersBottomSheetProps {
   /** Whether the sheet is visible */
   visible: boolean;
   /** Selected place name */
@@ -325,4 +325,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PlaceOffersBottomSheet;

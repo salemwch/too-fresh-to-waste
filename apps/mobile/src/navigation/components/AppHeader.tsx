@@ -44,7 +44,7 @@ const TOOLBAR_HEIGHT = 56;
 const BACK_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
 
 // Re-export so stacks can reference the type if needed.
-export type AppHeaderProps = NativeStackHeaderProps;
+type AppHeaderProps = NativeStackHeaderProps;
 
 export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route, back }) => {
   const insets = useSafeAreaInsets();

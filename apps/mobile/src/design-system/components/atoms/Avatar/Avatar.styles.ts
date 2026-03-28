@@ -23,7 +23,7 @@ export const getAvatarSize = (size: AvatarSize, theme: ThemeContextValue): numbe
   return sizeMap[size];
 };
 
-export const getAvatarBorderRadius = (
+const getAvatarBorderRadius = (
   variant: AvatarVariant,
   size: number,
   theme: ThemeContextValue,

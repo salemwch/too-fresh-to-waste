@@ -414,4 +414,3 @@ const styles = StyleSheet.create({
 // Export
 // ============================================================================
 
-export default RehydrationGate;

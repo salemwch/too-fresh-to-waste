@@ -130,7 +130,7 @@ export class OfferCardDto {
  * @deprecated Use OfferCardDto instead
  * This DTO leaked merchant PII and internal metrics
  */
-export class OfferListDto {
+class OfferListDto {
   id?: string;
   title?: string;
   type?: string;

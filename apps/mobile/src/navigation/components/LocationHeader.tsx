@@ -26,7 +26,7 @@ import { useLocation } from '@/hooks/useLocation';
 // Types
 // ============================================================================
 
-export interface LocationHeaderProps {
+interface LocationHeaderProps {
   /**
    * Custom onPress handler
    * If not provided, no action occurs

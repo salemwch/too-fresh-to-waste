@@ -121,4 +121,3 @@ const styles = StyleSheet.create({
 
 LocationStatusBadge.displayName = 'LocationStatusBadge';
 
-export default LocationStatusBadge;

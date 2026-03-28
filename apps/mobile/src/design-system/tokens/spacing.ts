@@ -7,7 +7,7 @@
 const SPACING_UNIT = 8;
 
 // Core spacing scale
-export const spacing = {
+const spacing = {
   0: 0,
   xxs: SPACING_UNIT * 0.25, // 2px - Extra extra small (minimal gaps, Badge padding)
   xs: SPACING_UNIT * 0.5, // 4px
@@ -23,7 +23,7 @@ export const spacing = {
 } as const;
 
 // Semantic spacing tokens for common use cases
-export const semanticSpacing = {
+const semanticSpacing = {
   // Component internal spacing
   component: {
     paddingHorizontal: spacing.md,
@@ -68,7 +68,7 @@ export const semanticSpacing = {
 } as const;
 
 // Border radius tokens
-export const radius = {
+const radius = {
   none: 0,
   xs: 2,
   sm: 4,
@@ -81,7 +81,7 @@ export const radius = {
 } as const;
 
 // Elevation/Shadow spacing
-export const elevation = {
+const elevation = {
   none: 0,
   xs: 1,
   sm: 2,
@@ -93,14 +93,14 @@ export const elevation = {
 } as const;
 
 // Touch target sizing - Accessibility compliant
-export const touchTarget = {
+const touchTarget = {
   minimum: 44, // iOS/Android minimum touch target
   comfortable: 48, // Comfortable touch target
   large: 56, // Large touch target for primary actions
 } as const;
 
 // Component-specific sizing
-export const sizing = {
+const sizing = {
   // Button heights
   button: {
     sm: 32,
@@ -161,7 +161,7 @@ export const sizing = {
 } as const;
 
 // Layout spacing - Screen breakpoints and container widths
-export const layout = {
+const layout = {
   // Container max widths
   container: {
     sm: 640,
@@ -192,7 +192,7 @@ export const layout = {
 } as const;
 
 // Animation/Motion spacing
-export const motion = {
+const motion = {
   // Animation distances
   distance: {
     xs: 4,

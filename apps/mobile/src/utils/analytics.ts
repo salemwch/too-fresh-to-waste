@@ -24,11 +24,11 @@ import { Logger } from './logger';
 
 // ─── Public property shape ────────────────────────────────────────────────────
 
-export interface EventProperties {
+interface EventProperties {
   [key: string]: string | number | boolean | string[] | undefined;
 }
 
-export interface FilterAppliedProperties {
+interface FilterAppliedProperties {
   offerType?: string;
   establishmentCount: number;
   establishmentTypes: string[];
@@ -41,14 +41,14 @@ export interface FilterAppliedProperties {
   [key: string]: string | number | boolean | string[] | undefined;
 }
 
-export interface FilterRemovedProperties {
+interface FilterRemovedProperties {
   filterType: 'offerType' | 'establishmentType' | 'cuisineType' | 'category';
   value: string;
   source: string;
   [key: string]: string | number | boolean | string[] | undefined;
 }
 
-export interface FiltersClearedProperties {
+interface FiltersClearedProperties {
   previousFilterCount: number;
   source: string;
   [key: string]: string | number | boolean | string[] | undefined;

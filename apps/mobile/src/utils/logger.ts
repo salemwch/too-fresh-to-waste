@@ -2,7 +2,7 @@ import crashlytics from '@react-native-firebase/crashlytics';
 
 import { environment } from '@/config/environment';
 
-export enum LogLevel {
+enum LogLevel {
   DEBUG = 0,
   INFO = 1,
   WARN = 2,
@@ -322,4 +322,4 @@ export class NetworkLogger {
 export const Logger = new LoggerService();
 
 // Export for easy testing
-export { LoggerService };
+;

@@ -26,7 +26,7 @@ interface UseCreateOrderState {
 /**
  * Phone verification modal state
  */
-export interface PhoneVerificationModalState {
+interface PhoneVerificationModalState {
   isVisible: boolean;
   requiresPhoneSetup: boolean;
   requiresPhoneVerification: boolean;

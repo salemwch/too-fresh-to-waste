@@ -61,7 +61,7 @@ export class GetNotificationsQueryDto {
   search?: string;
 }
 
-export class MarkNotificationDto {
+class MarkNotificationDto {
   @ApiPropertyOptional({ description: 'Specific notification ID to mark' })
   @IsOptional()
   @IsString()

@@ -123,7 +123,7 @@ export class GetAuditLogsQueryDto {
   endDate?: string;
 }
 
-export class BulkActionDto {
+class BulkActionDto {
   @ApiPropertyOptional({
     description: 'Array of entity IDs to perform action on',
     example: ['507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012']

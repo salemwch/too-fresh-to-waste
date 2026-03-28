@@ -4,8 +4,5 @@
  */
 
 export { PasswordStrengthIndicator } from './PasswordStrengthIndicator';
-export { default } from './PasswordStrengthIndicator';
-export type {
-  PasswordStrengthIndicatorProps,
-  PasswordStrengthState,
-} from './PasswordStrengthIndicator.types';
+;
+;

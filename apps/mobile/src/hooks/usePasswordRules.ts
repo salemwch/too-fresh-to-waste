@@ -43,7 +43,7 @@ export interface PasswordValidationContext {
   phoneNumber?: string;
 }
 
-export interface PasswordRule {
+interface PasswordRule {
   id: string;
   label: string;
   description: string;
@@ -53,7 +53,7 @@ export interface PasswordRule {
   color: string;
 }
 
-export interface PasswordStrength {
+interface PasswordStrength {
   score: number; // 0-4 (0 = very weak, 4 = very strong)
   label: string;
   color: string;
@@ -61,7 +61,7 @@ export interface PasswordStrength {
   crackTime?: string; // From zxcvbn (e.g., "3 days", "6 months")
 }
 
-export interface PasswordValidationResult {
+interface PasswordValidationResult {
   rules: PasswordRule[];
   strength: PasswordStrength;
   isValid: boolean;
@@ -372,4 +372,3 @@ export const usePasswordRules = (
   return result;
 };
 
-export default usePasswordRules;

@@ -174,7 +174,7 @@ export type MFAVerificationScreenNavigationProp = NativeStackNavigationProp<
  */
 export type MainStackNavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
-export type OfferDetailsScreenNavigationProp = NativeStackNavigationProp<
+type OfferDetailsScreenNavigationProp = NativeStackNavigationProp<
   MainStackParamList,
   'OfferDetails'
 >;
@@ -190,7 +190,7 @@ export type OrdersListScreenNavigationProp = CompositeNavigationProp<
   >
 >;
 
-export type OrderDetailsFromOrdersStackNavigationProp = CompositeNavigationProp<
+type OrderDetailsFromOrdersStackNavigationProp = CompositeNavigationProp<
   NativeStackNavigationProp<OrdersStackParamList, 'OrderDetails'>,
   CompositeNavigationProp<
     BottomTabNavigationProp<TabParamList, 'Orders'>,
@@ -198,7 +198,7 @@ export type OrderDetailsFromOrdersStackNavigationProp = CompositeNavigationProp<
   >
 >;
 
-export type CheckoutScreenNavigationProp = NativeStackNavigationProp<
+type CheckoutScreenNavigationProp = NativeStackNavigationProp<
   MainStackParamList,
   'Checkout'
 >;
@@ -269,9 +269,9 @@ export type ResetPasswordRouteProp = RouteProp<AuthStackParamList, 'ResetPasswor
 export type VerifyEmailRouteProp = RouteProp<AuthStackParamList, 'VerifyEmail'>;
 export type VerifyPhoneRouteProp = RouteProp<AuthStackParamList, 'VerifyPhone'>;
 export type MFAVerificationRouteProp = RouteProp<AuthStackParamList, 'MFAVerification'>;
-export type OfferDetailsRouteProp = RouteProp<MainStackParamList, 'OfferDetails'>;
-export type OrderDetailsRouteProp = RouteProp<OrdersStackParamList, 'OrderDetails'>;
-export type CheckoutRouteProp = RouteProp<MainStackParamList, 'Checkout'>;
+type OfferDetailsRouteProp = RouteProp<MainStackParamList, 'OfferDetails'>;
+type OrderDetailsRouteProp = RouteProp<OrdersStackParamList, 'OrderDetails'>;
+type CheckoutRouteProp = RouteProp<MainStackParamList, 'Checkout'>;
 export type EstablishmentDetailsRouteProp = RouteProp<MainStackParamList, 'EstablishmentDetails'>;
 export type NearbyOffersRouteProp = RouteProp<MainStackParamList, 'NearbyOffers'>;
 

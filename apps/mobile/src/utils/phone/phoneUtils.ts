@@ -65,7 +65,7 @@ export const SUPPORTED_COUNTRIES: CountryCode[] = [
  * console.log(phone?.number); // '+12133734253'
  * ```
  */
-export const parsePhone = (
+const parsePhone = (
   phoneNumber: string,
   defaultCountry: CountryCode = DEFAULT_COUNTRY,
 ): PhoneNumber | null => {
@@ -251,7 +251,7 @@ export const getCountryCode = (
  * formatAsYouType('21337', 'US'); // '(213) 37'
  * ```
  */
-export const formatAsYouType = (value: string, country: CountryCode = DEFAULT_COUNTRY): string => {
+const formatAsYouType = (value: string, country: CountryCode = DEFAULT_COUNTRY): string => {
   const formatter = new AsYouType(country);
   return formatter.input(value);
 };
@@ -317,7 +317,7 @@ export const getPhoneValidationError = (
  * getCallingCode('FR'); // '33'
  * ```
  */
-export const getCallingCode = (country: CountryCode): string | undefined => {
+const getCallingCode = (country: CountryCode): string | undefined => {
   try {
     // Use getExampleNumber to get metadata, then extract calling code
     const exampleNumber = getExampleNumber(country, examples);
@@ -387,7 +387,7 @@ export const isE164Number = (value: string): value is E164Number => /^\+[1-9]\d{
  * getMaxPhoneLength('US'); // 10 (United States)
  * ```
  */
-export const getMaxPhoneLength = (country: CountryCode): number => {
+const getMaxPhoneLength = (country: CountryCode): number => {
   try {
     // Get an example mobile number for the country
     const exampleNumber = getExampleNumber(country, examples);
@@ -421,7 +421,7 @@ export const getMaxPhoneLength = (country: CountryCode): number => {
  * validatePhoneLengthForCountry('123456789012345', 'TN'); // 'TOO_LONG'
  * ```
  */
-export const validatePhoneLengthForCountry = (
+const validatePhoneLengthForCountry = (
   phoneNumber: string,
   country: CountryCode,
 ): 'TOO_SHORT' | 'TOO_LONG' | 'INVALID_COUNTRY' | undefined => {

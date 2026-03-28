@@ -17,7 +17,7 @@ import {
   NotificationTrigger,
 } from '../types/notification.types';
 
-export class LocationTargetDto {
+class LocationTargetDto {
   @ApiProperty({ description: 'Latitude coordinate' })
   @IsNumber()
   latitude!: number;
@@ -31,7 +31,7 @@ export class LocationTargetDto {
   radius!: number;
 }
 
-export class RecurringScheduleDto {
+class RecurringScheduleDto {
   @ApiProperty({ enum: ['daily', 'weekly', 'monthly'] })
   @IsEnum(['daily', 'weekly', 'monthly'])
   frequency!: 'daily' | 'weekly' | 'monthly';
@@ -42,7 +42,7 @@ export class RecurringScheduleDto {
   endDate?: string;
 }
 
-export class NotificationPayloadDto {
+class NotificationPayloadDto {
   @ApiProperty({ description: 'Notification title' })
   @IsString()
   title!: string;
@@ -77,7 +77,7 @@ export class NotificationPayloadDto {
   clickAction?: string;
 }
 
-export class NotificationTargetDto {
+class NotificationTargetDto {
   @ApiPropertyOptional({ description: 'Single user ID to target' })
   @IsOptional()
   @IsString()
@@ -115,7 +115,7 @@ export class NotificationTargetDto {
   location?: LocationTargetDto;
 }
 
-export class NotificationScheduleDto {
+class NotificationScheduleDto {
   @ApiPropertyOptional({ description: 'When to send the notification (ISO date string)' })
   @IsOptional()
   @IsDateString()

@@ -90,4 +90,3 @@ const styles = StyleSheet.create({
 
 DistanceBadge.displayName = 'DistanceBadge';
 
-export default DistanceBadge;

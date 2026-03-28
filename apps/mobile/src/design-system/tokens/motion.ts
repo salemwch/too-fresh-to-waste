@@ -4,7 +4,7 @@
  */
 
 // Duration tokens - Following Material Design and iOS HIG
-export const duration = {
+const duration = {
   instant: 0,
   fast: 150, // Quick feedback, hover states
   normal: 250, // Standard transitions
@@ -14,7 +14,7 @@ export const duration = {
 } as const;
 
 // Easing functions - Natural motion curves
-export const easing = {
+const easing = {
   // Standard curves
   linear: 'linear',
   ease: 'ease',
@@ -39,7 +39,7 @@ export const easing = {
 } as const;
 
 // Spring configurations for React Native Reanimated
-export const spring = {
+const spring = {
   // Gentle springs
   gentle: {
     damping: 15,
@@ -77,7 +77,7 @@ export const spring = {
 } as const;
 
 // Animation presets for common interactions
-export const animations = {
+const animations = {
   // Fade animations
   fade: {
     in: {
@@ -238,7 +238,7 @@ export const animations = {
 } as const;
 
 // Gesture configurations
-export const gestures = {
+const gestures = {
   // Pan gesture thresholds
   pan: {
     threshold: 10,
@@ -262,7 +262,7 @@ export const gestures = {
 } as const;
 
 // Platform-specific motion preferences
-export const platformMotion = {
+const platformMotion = {
   ios: {
     // iOS prefers more subtle animations
     reducedMotion: {

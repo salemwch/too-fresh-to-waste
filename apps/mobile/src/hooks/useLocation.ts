@@ -49,7 +49,7 @@ import { useAppDispatch, useAppSelector } from './redux';
 // Types
 // ============================================================================
 
-export interface UseLocationReturn {
+interface UseLocationReturn {
   // ─────────────────────────────────────────────────────────────────────────
   // State
   // ─────────────────────────────────────────────────────────────────────────
@@ -293,4 +293,4 @@ export function useLocation(): UseLocationReturn {
 // Re-export types for convenience
 // ============================================================================
 
-export type { LocationCoordinates, LocationResult, LocationSource, PermissionStatus };
+;

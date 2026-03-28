@@ -35,7 +35,7 @@ const MODAL_HEIGHT = SCREEN_HEIGHT * 0.65;
 // Types
 // ============================================================================
 
-export interface LocationFilterModalProps {
+interface LocationFilterModalProps {
   visible: boolean;
   onClose: () => void;
   currentRadius: number;
@@ -571,4 +571,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LocationFilterModal;

@@ -22,16 +22,16 @@ import { Logger } from '@/utils/logger';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type QueueItemType = 'FAVORITE_TOGGLE';
+type QueueItemType = 'FAVORITE_TOGGLE';
 
-export interface FavoriteTogglePayload {
+interface FavoriteTogglePayload {
   favoriteType: string; // FavoriteType enum value (string)
   offerId: string;
   offerName?: string;
   offerImage?: string;
 }
 
-export interface QueueItem {
+interface QueueItem {
   /** Stable id = type + ":" + offerId so duplicates collapse */
   id: string;
   type: QueueItemType;

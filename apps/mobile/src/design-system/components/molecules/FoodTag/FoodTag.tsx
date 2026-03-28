@@ -296,4 +296,3 @@ export const FoodTag: React.FC<FoodTagProps> = ({
   );
 };
 
-export default FoodTag;

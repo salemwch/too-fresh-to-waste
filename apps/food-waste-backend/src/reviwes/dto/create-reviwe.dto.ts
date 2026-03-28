@@ -23,7 +23,7 @@ import {
 
 import { ReviewImages, ReviewStatus, ReviewType, SentimentType } from '../schemas/reviwe.schema';
 
-export class DetailedRatingsDto {
+class DetailedRatingsDto {
   @ApiPropertyOptional({
     description: 'Food quality rating',
     minimum: 1,

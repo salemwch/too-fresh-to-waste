@@ -187,4 +187,3 @@ export const getResponsiveValue = <T,>(
   return value;
 };
 
-export default ThemeProvider;

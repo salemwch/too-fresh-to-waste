@@ -19,7 +19,7 @@ import { parsePhoneNumber, isValidPhoneNumber, CountryCode } from 'libphonenumbe
 /**
  * Options for phone number validation
  */
-export interface PhoneNumberValidationOptions extends ValidationOptions {
+interface PhoneNumberValidationOptions extends ValidationOptions {
   /**
    * Default country code to use when validating numbers without country code
    * Example: 'US', 'TN', 'FR', etc.
@@ -45,7 +45,7 @@ export interface PhoneNumberValidationOptions extends ValidationOptions {
  * Custom validator constraint for phone numbers
  */
 @ValidatorConstraint({ name: 'isValidPhoneNumber', async: false })
-export class IsValidPhoneNumberConstraint implements ValidatorConstraintInterface {
+class IsValidPhoneNumberConstraint implements ValidatorConstraintInterface {
   /**
    * Validates the phone number using libphonenumber-js
    *
@@ -170,7 +170,7 @@ export function IsValidPhoneNumber(options?: PhoneNumberValidationOptions): Prop
  * @param defaultCountry - Optional default country code
  * @returns Parsed phone number object or null if invalid
  */
-export function parseAndValidatePhoneNumber(phoneNumber: string, defaultCountry?: CountryCode) {
+function parseAndValidatePhoneNumber(phoneNumber: string, defaultCountry?: CountryCode) {
   try {
     const parsed = parsePhoneNumber(phoneNumber, defaultCountry);
 

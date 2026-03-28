@@ -19,7 +19,7 @@ import { Animated } from 'react-native';
 
 import type { ViewStyle, DimensionValue } from 'react-native';
 
-export interface SkeletonBoxProps {
+interface SkeletonBoxProps {
   animValue: Animated.Value;
   width: DimensionValue;
   height: number;

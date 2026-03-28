@@ -1,6 +1,6 @@
 import Config from 'react-native-config';
 
-export interface EnvironmentConfig {
+interface EnvironmentConfig {
   readonly app: {
     readonly name: string;
     readonly version: string;
@@ -187,7 +187,7 @@ if (__DEV__) {
 // Type guard for environment checking
 export const isDevelopment = (): boolean => environment.environment === 'development';
 export const isStaging = (): boolean => environment.environment === 'staging';
-export const isProduction = (): boolean => environment.isProduction;
+const isProduction = (): boolean => environment.isProduction;
 
 // Security checks
 export const isDebugBuild = (): boolean => __DEV__ || environment.environment === 'development';
@@ -248,4 +248,3 @@ export const validateEnvironmentConfig = (): { isValid: boolean; errors: string[
 // Note: shouldEnableDebugging and isProduction are now available as properties on the environment object
 
 // Export default for easy importing
-export default environment;

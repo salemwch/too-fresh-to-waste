@@ -6,7 +6,7 @@
 import { Platform } from 'react-native';
 
 // iOS Shadow Tokens - Uses shadowColor, shadowOffset, shadowOpacity, shadowRadius
-export const iosShadows = {
+const iosShadows = {
   none: {
     shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 0 },
@@ -58,7 +58,7 @@ export const iosShadows = {
 } as const;
 
 // Android Elevation Tokens - Uses elevation property
-export const androidElevations = {
+const androidElevations = {
   none: 0,
   xs: 1,
   sm: 2,
@@ -70,7 +70,7 @@ export const androidElevations = {
 
 // Cross-platform shadow system
 // Using non-null assertion since Platform.select always returns a value (has default)
-export const shadows = Platform.select({
+const shadows = Platform.select({
   ios: {
     none: iosShadows.none,
     xs: iosShadows.xs,
@@ -93,7 +93,7 @@ export const shadows = Platform.select({
 });
 
 // Component-specific shadow presets
-export const componentShadows = {
+const componentShadows = {
   // Card shadows
   card: {
     resting: shadows.sm,
@@ -143,7 +143,7 @@ export const componentShadows = {
 
 // Dark theme shadow adjustments
 // Using non-null assertion since Platform.select always returns a value (has default)
-export const darkShadows = Platform.select({
+const darkShadows = Platform.select({
   ios: {
     none: iosShadows.none,
     xs: {
@@ -200,7 +200,7 @@ export const darkShadows = Platform.select({
 });
 
 // Utility function to get platform-appropriate shadow
-export const getShadow = (level: keyof typeof shadows, isDark = false) =>
+const getShadow = (level: keyof typeof shadows, isDark = false) =>
   isDark ? darkShadows[level] : shadows[level];
 
 // Export all shadow tokens

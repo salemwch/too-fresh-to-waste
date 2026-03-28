@@ -16,7 +16,7 @@ import type {
 /**
  * Safe address data without MongoDB internals
  */
-export interface SafeAddress {
+interface SafeAddress {
   street: string;
   city: string;
   postalCode: string;
@@ -30,7 +30,7 @@ export interface SafeAddress {
 /**
  * Safe business hours data
  */
-export interface SafeBusinessHours {
+interface SafeBusinessHours {
   monday: { open: string; close: string; closed: boolean };
   tuesday: { open: string; close: string; closed: boolean };
   wednesday: { open: string; close: string; closed: boolean };
@@ -43,7 +43,7 @@ export interface SafeBusinessHours {
 /**
  * Safe establishment data returned to client
  */
-export interface SafeEstablishmentResponse {
+interface SafeEstablishmentResponse {
   /** Establishment unique identifier */
   id: string;
 

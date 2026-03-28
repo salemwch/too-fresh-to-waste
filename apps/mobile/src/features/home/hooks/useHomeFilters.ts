@@ -40,7 +40,7 @@ import {
 /**
  * Return type for useHomeFilters hook
  */
-export interface UseHomeFiltersResult {
+interface UseHomeFiltersResult {
   /** Current filter state */
   filters: FilterState;
   /** Raw search query (not debounced) */

@@ -12,7 +12,7 @@ import { AxiosError } from 'axios';
 /**
  * Error categories determine app behavior
  */
-export enum ErrorCategory {
+enum ErrorCategory {
   /** Auth failure - logout required (401, 403, 404 on auth endpoints) */
   AUTH_FAILURE = 'AUTH_FAILURE',
 
@@ -29,7 +29,7 @@ export enum ErrorCategory {
 /**
  * Categorized error with metadata
  */
-export interface CategorizedError {
+interface CategorizedError {
   category: ErrorCategory;
   originalError: AxiosError | Error;
   message: string;

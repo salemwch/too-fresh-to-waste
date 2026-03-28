@@ -82,7 +82,7 @@ export interface ApiError {
 }
 
 // Location types
-export interface Location {
+interface Location {
   latitude: number;
   longitude: number;
 }
@@ -107,7 +107,7 @@ export interface ImageAsset {
 }
 
 // Form types
-export interface FormField<T = string> {
+interface FormField<T = string> {
   value: T;
   error?: string;
   touched: boolean;
@@ -136,7 +136,7 @@ export interface SearchFilters {
 }
 
 // Permission types
-export enum Permission {
+enum Permission {
   LOCATION = 'LOCATION',
   CAMERA = 'CAMERA',
   PHOTO_LIBRARY = 'PHOTO_LIBRARY',
@@ -296,10 +296,4 @@ export type Currency = 'TND' | 'EUR' | 'USD'; // Tunisian Dinar, Euro, US Dollar
 export type Language = 'en' | 'fr' | 'ar'; // English, French, Arabic
 
 // Re-export types from features
-export type {
-  User,
-  UserRole,
-  AuthTokens,
-  LoginRequest,
-  RegisterRequest,
-} from '@/features/auth/types';
+;

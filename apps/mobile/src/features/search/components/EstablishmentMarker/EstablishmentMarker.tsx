@@ -81,7 +81,7 @@ const CONTAINER_HEIGHT = MARKER_SIZE + SHADOW_MARGIN_TOP + SHADOW_HEIGHT + CONTA
 // Types
 // ============================================================================
 
-export interface EstablishmentMarkerProps {
+interface EstablishmentMarkerProps {
   establishment: ProximitySearchResult<MapEstablishment>;
   isSelected: boolean;
   onPress: () => void;
@@ -294,4 +294,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EstablishmentMarker;

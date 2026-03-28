@@ -38,7 +38,7 @@ interface AutocompleteSuggestion {
 /**
  * RemoteLocationService - Handles remote location searches via backend proxy
  */
-export class RemoteLocationService {
+class RemoteLocationService {
   private readonly baseURL: string;
   private readonly timeout: number;
 

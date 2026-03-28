@@ -185,7 +185,7 @@ const CommunityBagGoalBannerComponent: React.FC<CommunityBagGoalBannerProps> = (
 
 CommunityBagGoalBannerComponent.displayName = 'CommunityBagGoalBanner';
 export const CommunityBagGoalBanner = React.memo(CommunityBagGoalBannerComponent);
-export type { CommunityBagGoalBannerProps };
+;
 
 // ============================================================================
 // Styles

@@ -41,7 +41,7 @@ const CO2_PER_MEAL_KG = 2.5;
 // Types
 // ============================================================================
 
-export interface HomeImpactStatsProps {
+interface HomeImpactStatsProps {
   // No props needed - authentication state handled internally
 }
 

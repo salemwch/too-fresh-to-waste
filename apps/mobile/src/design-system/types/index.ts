@@ -14,7 +14,7 @@ import type {
 } from 'react-native';
 
 // Re-export icon types
-export type { IconFamily, IconComponent, IconComponentProps } from './icon.types';
+export type { IconFamily, IconComponent,  } from './icon.types';
 
 // Component size variants
 export type ComponentSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -142,7 +142,7 @@ export interface StyleSystemProps {
 }
 
 // Animation types
-export type AnimationType =
+type AnimationType =
   | 'fade'
   | 'scale'
   | 'slide'
@@ -177,7 +177,7 @@ export interface ThemeContextValue {
 }
 
 // Component style types
-export type ComponentStyle = ViewStyle | TextStyle | ImageStyle;
+type ComponentStyle = ViewStyle | TextStyle | ImageStyle;
 
 export interface ThemedStyle {
   light: ComponentStyle;
