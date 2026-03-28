@@ -20,9 +20,9 @@ export function useAuth() {
       try {
         const response = await authService.login(data);
         const { user } = response.data.data;
-        // Backend already set HttpOnly cookies via Set-Cookie header.
-        // Just mark the session as authenticated and store the user.
-        store.setAuthenticated(true, user.role);
+        // Backend sets HttpOnly cookies (access_token, refresh_token) via
+        // Set-Cookie header. No tokens are stored in JavaScript memory.
+        store.setAuthenticated(true);
         store.setUser(user);
         return response.data.data;
       } finally {

@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!cancelled) {
           const user = response.data.data;
           setUser(user);
-          useAuthStore.getState().setAuthenticated(true, user.role);
+          useAuthStore.getState().setAuthenticated(true);
         }
       } catch (err) {
         if (!cancelled) {

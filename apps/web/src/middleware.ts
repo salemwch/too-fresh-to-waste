@@ -1,23 +1,58 @@
 import createMiddleware from 'next-intl/middleware';
 import { type NextRequest, NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 import { routing } from './i18n/routing';
 import { defaultLocale, type Locale, isValidLocale } from './i18n/config';
 
 // Cookie name for storing user's locale preference
 const LOCALE_COOKIE_NAME = 'NEXT_LOCALE';
 
-// Non-sensitive presence flag set by the frontend after login.
-// Value is the user's role (e.g. "merchant", "admin") or "1" as fallback.
-// The actual auth tokens are HttpOnly cookies managed by the backend.
-const AUTH_FLAG_COOKIE = 'wfa_authenticated';
-
-// Routes that require authentication (checked at middleware level via cookie presence)
+// Routes that require authentication (checked at middleware level via JWT verification)
 const PROTECTED_PATH_PATTERNS = ['/merchant/', '/admin/'];
 
 // Create the next-intl middleware with custom locale detection
 const intlMiddleware = createMiddleware(routing);
 
-export default function middleware(request: NextRequest) {
+/**
+ * Verify the access_token HttpOnly cookie using jose (Edge Runtime compatible).
+ * Returns the JWT payload on success, or null if missing/invalid/expired.
+ *
+ * The access_token cookie is set by the NestJS backend with HttpOnly + SameSite=Lax.
+ * Next.js middleware runs server-side, so it CAN read HttpOnly cookies from the
+ * incoming request — no client-side JavaScript is involved.
+ */
+async function verifySession(
+  request: NextRequest,
+): Promise<{ role: string; userId: string } | null> {
+  const token = request.cookies.get('access_token')?.value;
+  if (!token) return null;
+
+  const secret = process.env['JWT_SECRET'];
+  if (!secret) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(
+        '[middleware] JWT_SECRET is not set — falling back to unauthenticated. ' +
+          'Add JWT_SECRET to apps/web/.env.local (same value as the backend).',
+      );
+    }
+    return null;
+  }
+
+  try {
+    const encodedSecret = new TextEncoder().encode(secret);
+    const { payload } = await jwtVerify(token, encodedSecret);
+    // NestJS JWT uses `sub` for userId, `role` for role
+    const userId = (payload.sub ?? payload['userId']) as string | undefined;
+    const role = payload['role'] as string | undefined;
+    if (!userId || !role) return null;
+    return { role, userId };
+  } catch {
+    // Token expired, signature mismatch, malformed — treat as unauthenticated
+    return null;
+  }
+}
+
+export default async function middleware(request: NextRequest) {
   // Get the pathname
   const { pathname } = request.nextUrl;
 
@@ -43,12 +78,13 @@ export default function middleware(request: NextRequest) {
     ? pathname.replace(/^\/[a-z]{2}/, '')
     : pathname;
 
-  // ── Read auth presence flag ────────────────────────────────────────────────
-  // This is a lightweight, non-sensitive cookie (value = role or "1").
-  // Real authorization is enforced server-side by NestJS guards.
-  const authFlagValue = request.cookies.get(AUTH_FLAG_COOKIE)?.value;
-  const isAuthenticated = !!authFlagValue;
-  const role = authFlagValue && authFlagValue !== '1' ? authFlagValue : null;
+  // ── Verify JWT from HttpOnly cookie (server-side, jose) ──────────────────
+  // This replaces the insecure wfa_authenticated flag cookie with real JWT
+  // signature verification at the Edge. The access_token cookie is HttpOnly,
+  // so it is never accessible to client-side JavaScript.
+  const session = await verifySession(request);
+  const isAuthenticated = !!session;
+  const role = session?.role ?? null;
 
   // Auto-redirect authenticated users from public root to their dashboard.
   const isRootPath = pathWithoutLocale === '/' || pathWithoutLocale === '';

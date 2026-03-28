@@ -56,7 +56,7 @@ function VerifyCallbackInner() {
 
         if (isMerchant && data.tokens && data.user) {
           // Backend sets HttpOnly cookies via Set-Cookie header on verify-email.
-          store.setAuthenticated(true, data.user.role);
+          store.setAuthenticated(true);
           store.setUser(data.user);
 
           setState('success-merchant');

@@ -84,13 +84,10 @@ export function useMerchantOrdersSocket() {
     if (!isAuthenticated) return;
 
     const socket = io(BACKEND_WS_URL, {
-      // Browser auto-sends HttpOnly access_token cookie.
-      // Backend WebSocketAuthGuard extracts it from the cookie header.
+      // The access_token HttpOnly cookie (path: /) is sent automatically by
+      // the browser on every same-site request. The WebSocketAuthGuard
+      // extracts it from handshake.headers.cookie. No tokens in JS memory.
       withCredentials: true,
-      // Use polling first so Socket.IO can complete the session/namespace
-      // handshake, then upgrade to WebSocket. Forcing websocket-only causes
-      // "Invalid namespace" with NestJS custom adapters because the upgrade
-      // happens before the namespace registration is finalised.
       transports: ['polling', 'websocket'],
       reconnectionAttempts: 5,
       reconnectionDelay: 2000,

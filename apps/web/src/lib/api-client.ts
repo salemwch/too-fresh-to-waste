@@ -75,6 +75,7 @@ export async function performRefreshOnce(): Promise<string> {
     );
 
     // Backend already set new HttpOnly cookies via Set-Cookie header.
+    // No tokens are captured in JavaScript memory.
     // Broadcast to other tabs so they know tokens were refreshed.
     try {
       if (typeof window !== 'undefined') {

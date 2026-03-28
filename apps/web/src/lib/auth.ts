@@ -1,27 +1,6 @@
 import { create } from 'zustand';
 import type { UserResponse } from '@foodwaste/shared';
 
-// ─── Authenticated presence flag ───────────────────────────────────────────────
-// Non-sensitive cookie (value = user role, e.g. "merchant") that tells Next.js
-// middleware whether the user likely has a valid session and their role for
-// routing decisions. The actual auth tokens are HttpOnly cookies set by the
-// backend — completely inaccessible to JavaScript (XSS-proof).
-const AUTH_FLAG_COOKIE = 'wfa_authenticated';
-
-function setAuthFlag(role?: string) {
-  if (typeof document === 'undefined') return;
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-  const value = role || '1';
-  // 7 days matches the refresh token cookie lifetime set by the backend
-  document.cookie = `${AUTH_FLAG_COOKIE}=${encodeURIComponent(value)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax${secure}`;
-}
-
-function clearAuthFlag() {
-  if (typeof document === 'undefined') return;
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-  document.cookie = `${AUTH_FLAG_COOKIE}=; path=/; max-age=0; SameSite=Lax${secure}`;
-}
-
 // ─── Legacy localStorage cleanup ────────────────────────────────────────────
 // Previous versions cached the user profile in localStorage under 'wfa_user'.
 // Remove it once on load so no PII lingers in client-side storage.
@@ -44,8 +23,7 @@ interface AuthState {
 
 interface AuthActions {
   setUser: (user: UserResponse | null) => void;
-  /** Mark session as authenticated. Optionally pass the user role for middleware routing. */
-  setAuthenticated: (isAuthenticated: boolean, role?: string) => void;
+  setAuthenticated: (isAuthenticated: boolean) => void;
   setLoading: (isLoading: boolean) => void;
   logout: () => void;
 }
@@ -53,6 +31,17 @@ interface AuthActions {
 type AuthStore = AuthState & AuthActions;
 
 // ─── Store ───────────────────────────────────────────────────────────────────
+//
+// Auth tokens are NEVER stored in JavaScript memory.
+// The backend sets HttpOnly cookies (access_token, refresh_token) that are
+// completely inaccessible to client-side code (XSS-proof).
+//
+// Route protection is handled by Next.js middleware, which verifies the JWT
+// server-side using jose — no client-side flag cookies needed.
+//
+// This store only holds the user profile (for UI rendering) and a boolean
+// flag for client-side conditional rendering (e.g. show/hide nav items).
+// The isAuthenticated flag is set by AuthProvider after GET /auth/me succeeds.
 export const useAuthStore = create<AuthStore>((set) => ({
   // State — isLoading starts TRUE so AuthGuard shows a skeleton until the
   // AuthProvider's rehydration effect completes. Without this, the guard sees
@@ -68,19 +57,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
     set({ user, isAuthenticated: !!user });
   },
 
-  setAuthenticated: (isAuthenticated, role?) => {
-    if (isAuthenticated) {
-      setAuthFlag(role);
-    } else {
-      clearAuthFlag();
-    }
+  setAuthenticated: (isAuthenticated) => {
     set({ isAuthenticated });
   },
 
   setLoading: (isLoading) => set({ isLoading }),
 
   logout: () => {
-    clearAuthFlag();
     set({
       user: null,
       isAuthenticated: false,
