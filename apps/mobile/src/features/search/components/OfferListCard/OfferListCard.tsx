@@ -53,8 +53,7 @@ const OfferListCardComponent: React.FC<OfferListCardProps> = ({ offer, onPress, 
       })
     : 'Today';
 
-  // Mock merchant logo - in real app, this would come from the offer data
-  const merchantLogoUrl = null;
+  const merchantLogoUrl = item.establishmentLogo ?? null;
 
   return (
     <Pressable

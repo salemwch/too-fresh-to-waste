@@ -8,6 +8,8 @@ import React from 'react';
 import { ThemeProvider } from '../../../providers';
 
 import { Text } from './Text';
+import type { TypographyVariant } from '../../../types';
+import type { TextProps } from './Text.types';
 
 describe('Text', () => {
   const renderWithTheme = (component: React.ReactElement) =>
@@ -38,7 +40,7 @@ describe('Text', () => {
     ];
 
     variants.forEach(variant => {
-      const { getByText } = renderWithTheme(<Text variant={variant as any}>{variant}</Text>);
+      const { getByText } = renderWithTheme(<Text variant={variant as TypographyVariant}>{variant}</Text>);
       expect(getByText(variant)).toBeTruthy();
     });
   });
@@ -103,7 +105,7 @@ describe('Text', () => {
     ];
 
     weights.forEach(weight => {
-      const { getByText } = renderWithTheme(<Text weight={weight as any}>{weight} weight</Text>);
+      const { getByText } = renderWithTheme(<Text weight={weight as TextProps['weight']}>{weight} weight</Text>);
       expect(getByText(`${weight} weight`)).toBeTruthy();
     });
   });

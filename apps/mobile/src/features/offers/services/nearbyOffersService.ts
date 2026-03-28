@@ -87,6 +87,7 @@ export interface NearbyOffer {
   description?: string;
   establishmentId: string;
   establishmentName: string;
+  establishmentLogo: string | null;
   pricing: OfferPricing;
   availableFrom: string;
   availableUntil: string;

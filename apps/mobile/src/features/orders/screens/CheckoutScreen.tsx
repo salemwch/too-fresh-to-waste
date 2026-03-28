@@ -1,7 +1,7 @@
 import { CommonActions } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
+import { View, StyleSheet, Pressable, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { Text, Button, Icon } from '@/design-system/components/atoms';
@@ -15,8 +15,6 @@ import { showErrorToast, showInfoToast } from '@/utils/toast';
 import { OrderSuccessModal } from '../components/OrderSuccessModal';
 import { PhoneVerificationModal } from '../components/PhoneVerificationModal';
 import { SkeletonCheckoutScreen } from '../components/SkeletonCheckoutScreen';
-import { SkeletonOrderSuccessModal } from '../components/SkeletonOrderSuccessModal';
-import { SkeletonPhoneVerificationModal } from '../components/SkeletonPhoneVerificationModal';
 import { useCreateOrder } from '../hooks/useCreateOrder';
 
 import type { CreateOrderDto, Order } from '../types/order.types';
@@ -45,7 +43,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   const isPhoneVerified = useAppSelector(selectIsPhoneVerified);
 
   // ✅ State for order configuration
-  const [quantity, setQuantity] = useState(initialQuantity);
+  const [quantity] = useState(initialQuantity);
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<CreateOrderDto['paymentMethod']>('cash_on_pickup');
   const [customerNotes] = useState('');
@@ -104,39 +102,6 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       console.error('❌ Order creation failed:', error.message);
     },
   });
-
-  /**
-   * Handle quantity increase
-   * ✅ Validates against available stock
-   */
-  const handleIncreaseQuantity = useCallback(() => {
-    if (!offer) return;
-
-    const availableQuantity = offer.availableQuantity ?? offer.totalQuantity - offer.soldQuantity;
-    const maxQuantity = Math.min(availableQuantity, 10); // Business rule: max 10 per order
-
-    if (quantity >= maxQuantity) {
-      showInfoToast(
-        'Maximum Quantity Reached',
-        availableQuantity <= 10
-          ? `Only ${availableQuantity} bags available for this offer.`
-          : 'Maximum 10 bags per order.',
-      );
-      return;
-    }
-
-    setQuantity(prev => prev + 1);
-  }, [offer, quantity]);
-
-  /**
-   * Handle quantity decrease
-   * ✅ Minimum quantity is 1
-   */
-  const handleDecreaseQuantity = useCallback(() => {
-    if (quantity > 1) {
-      setQuantity(prev => prev - 1);
-    }
-  }, [quantity]);
 
   /**
    * Handle order confirmation
@@ -379,191 +344,177 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Complete Your Order</Text>
-          <Text style={styles.headerSubtitle}>Review details before confirming</Text>
-        </View>
-
-        {/* Main Content Card */}
-        <View style={styles.mainCard}>
-
-          {/* Payment Method Section */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Icon name='wallet' family='Ionicons' size={20} color='#005250' />
-              <Text style={styles.sectionTitle}>Payment Method</Text>
-            </View>
-
-            {/* Payment options — three equal tiles in a single row */}
-            <View style={styles.paymentMethodsRow}>
-              {/* Pay on Pickup */}
-              <Pressable
-                style={[
-                  styles.paymentMethodCard,
-                  selectedPaymentMethod === 'cash_on_pickup' && styles.paymentMethodCardActive,
-                ]}
-                onPress={() => setSelectedPaymentMethod('cash_on_pickup')}
-                accessibilityLabel='Pay on Pickup'
-                accessibilityRole='button'
-              >
-                {selectedPaymentMethod === 'cash_on_pickup' && (
-                  <View style={styles.paymentCardCheck}>
-                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
-                  </View>
-                )}
-                <Icon
-                  name='cash'
-                  family='Ionicons'
-                  size={28}
-                  color={selectedPaymentMethod === 'cash_on_pickup' ? '#005250' : '#64748B'}
-                />
-                <Text
-                  style={[
-                    styles.paymentCardLabel,
-                    selectedPaymentMethod === 'cash_on_pickup' && styles.paymentCardLabelActive,
-                  ]}
-                >
-                  {'Pay on\nPickup'}
-                </Text>
-              </Pressable>
-
-              {/* Pay on Delivery */}
-              <Pressable
-                style={[
-                  styles.paymentMethodCard,
-                  selectedPaymentMethod === 'pay_on_delivery' && styles.paymentMethodCardActive,
-                ]}
-                onPress={() => setSelectedPaymentMethod('pay_on_delivery')}
-                accessibilityLabel='Pay on Delivery'
-                accessibilityRole='button'
-              >
-                {selectedPaymentMethod === 'pay_on_delivery' && (
-                  <View style={styles.paymentCardCheck}>
-                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
-                  </View>
-                )}
-                <Icon
-                  name='bicycle'
-                  family='Ionicons'
-                  size={28}
-                  color={selectedPaymentMethod === 'pay_on_delivery' ? '#005250' : '#64748B'}
-                />
-                <Text
-                  style={[
-                    styles.paymentCardLabel,
-                    selectedPaymentMethod === 'pay_on_delivery' && styles.paymentCardLabelActive,
-                  ]}
-                >
-                  {'Pay on\nDelivery'}
-                </Text>
-              </Pressable>
-
-              {/* Online Payment — Coming Soon */}
-              <View style={[styles.paymentMethodCard, styles.paymentMethodCardDisabled]}>
-                <Icon name='card' family='Ionicons' size={28} color='#CBD5E1' />
-                <Text style={[styles.paymentCardLabel, styles.paymentCardLabelDisabled]}>
-                  {'Online\nPayment'}
-                </Text>
-                <View style={styles.comingSoonBadge}>
-                  <Text style={styles.comingSoonText}>Soon</Text>
-                </View>
-              </View>
-            </View>
+      {/* Main Content Card */}
+      <View style={styles.mainCard}>
+        {/* Payment Method Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Icon name='wallet' family='Ionicons' size={20} color='#005250' />
+            <Text style={styles.sectionTitle}>Payment Method</Text>
           </View>
 
-          {/* Divider */}
-          <View style={styles.divider} />
-
-          {/* Price Summary Section */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Icon name='receipt' family='Ionicons' size={20} color='#005250' />
-              <Text style={styles.sectionTitle}>Order Summary</Text>
-            </View>
-
-            <View style={styles.priceBreakdown}>
-              {/* Subtotal */}
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Subtotal</Text>
-                <Text style={styles.priceValue}>
-                  {subtotal.toFixed(2)} {currency}
-                </Text>
-              </View>
-
-              {/* Service Fee */}
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Service Fee</Text>
-                <Text style={styles.priceValue}>
-                  {serviceFee.toFixed(2)} {currency}
-                </Text>
-              </View>
-
-              {/* Savings Badge */}
-              {savings > 0 && (
-                <View style={styles.savingsBadge}>
-                  <Icon name='trending-down' family='Ionicons' size={16} color='#10B981' />
-                  <Text style={styles.savingsText}>
-                    You save {savings.toFixed(2)} {currency}
-                  </Text>
+          {/* Payment options — three equal tiles in a single row */}
+          <View style={styles.paymentMethodsRow}>
+            {/* Pay on Pickup */}
+            <Pressable
+              style={[
+                styles.paymentMethodCard,
+                selectedPaymentMethod === 'cash_on_pickup' && styles.paymentMethodCardActive,
+              ]}
+              onPress={() => setSelectedPaymentMethod('cash_on_pickup')}
+              accessibilityLabel='Pay on Pickup'
+              accessibilityRole='button'
+            >
+              {selectedPaymentMethod === 'cash_on_pickup' && (
+                <View style={styles.paymentCardCheck}>
+                  <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
                 </View>
               )}
+              <Icon
+                name='cash'
+                family='Ionicons'
+                size={28}
+                color={selectedPaymentMethod === 'cash_on_pickup' ? '#005250' : '#64748B'}
+              />
+              <Text
+                style={[
+                  styles.paymentCardLabel,
+                  selectedPaymentMethod === 'cash_on_pickup' && styles.paymentCardLabelActive,
+                ]}
+              >
+                {'Pay on\nPickup'}
+              </Text>
+            </Pressable>
 
-              {/* Total */}
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total Amount</Text>
-                <Text style={styles.totalValue}>
-                  {total.toFixed(2)} {currency}
-                </Text>
+            {/* Pay on Delivery */}
+            <Pressable
+              style={[
+                styles.paymentMethodCard,
+                selectedPaymentMethod === 'pay_on_delivery' && styles.paymentMethodCardActive,
+              ]}
+              onPress={() => setSelectedPaymentMethod('pay_on_delivery')}
+              accessibilityLabel='Pay on Delivery'
+              accessibilityRole='button'
+            >
+              {selectedPaymentMethod === 'pay_on_delivery' && (
+                <View style={styles.paymentCardCheck}>
+                  <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
+                </View>
+              )}
+              <Icon
+                name='bicycle'
+                family='Ionicons'
+                size={28}
+                color={selectedPaymentMethod === 'pay_on_delivery' ? '#005250' : '#64748B'}
+              />
+              <Text
+                style={[
+                  styles.paymentCardLabel,
+                  selectedPaymentMethod === 'pay_on_delivery' && styles.paymentCardLabelActive,
+                ]}
+              >
+                {'Pay on\nDelivery'}
+              </Text>
+            </Pressable>
+
+            {/* Online Payment — Coming Soon */}
+            <View style={[styles.paymentMethodCard, styles.paymentMethodCardDisabled]}>
+              <Icon name='card' family='Ionicons' size={28} color='#CBD5E1' />
+              <Text style={[styles.paymentCardLabel, styles.paymentCardLabelDisabled]}>
+                {'Online\nPayment'}
+              </Text>
+              <View style={styles.comingSoonBadge}>
+                <Text style={styles.comingSoonText}>Soon</Text>
               </View>
             </View>
           </View>
-
-          {/* Error Message */}
-          {orderError != null && (
-            <View style={styles.errorBanner}>
-              <Icon name='warning' family='Ionicons' size={20} color='#EF4444' />
-              <Text style={styles.errorText}>{orderError}</Text>
-            </View>
-          )}
-
-          {/* Confirm Button with Gradient */}
-          <Pressable
-            onPress={() => {
-              void handleConfirmOrder();
-            }}
-            disabled={isCreatingOrder}
-            style={styles.confirmButtonWrapper}
-          >
-            <LinearGradient
-              colors={['#005250', '#007B77']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.confirmButton, isCreatingOrder && styles.confirmButtonDisabled]}
-            >
-              <Icon name='checkmark-circle' family='Ionicons' size={24} color='#FFFFFF' />
-              <Text style={styles.confirmButtonText}>
-                Confirm Order • {total.toFixed(2)} {currency}
-              </Text>
-            </LinearGradient>
-          </Pressable>
-
-          {/* Cancel Button */}
-          <Pressable
-            onPress={() => navigation.goBack()}
-            disabled={isCreatingOrder}
-            style={styles.cancelButton}
-          >
-            <Text style={styles.cancelButtonText}>Cancel Order</Text>
-          </Pressable>
         </View>
-      </ScrollView>
 
-      {/* Context-aware skeleton: show the correct shape based on verification status */}
-      <SkeletonOrderSuccessModal visible={isCreatingOrder && isPhoneVerified} />
-      <SkeletonPhoneVerificationModal visible={isCreatingOrder && !isPhoneVerified} />
+        {/* Divider */}
+        <View style={styles.divider} />
+
+        {/* Price Summary Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Icon name='receipt' family='Ionicons' size={20} color='#005250' />
+            <Text style={styles.sectionTitle}>Order Summary</Text>
+          </View>
+
+          <View style={styles.priceBreakdown}>
+            {/* Subtotal */}
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Subtotal</Text>
+              <Text style={styles.priceValue}>
+                {subtotal.toFixed(2)} {currency}
+              </Text>
+            </View>
+
+            {/* Service Fee */}
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Service Fee</Text>
+              <Text style={styles.priceValue}>
+                {serviceFee.toFixed(2)} {currency}
+              </Text>
+            </View>
+
+            {/* Savings Badge */}
+            {savings > 0 && (
+              <View style={styles.savingsBadge}>
+                <Icon name='trending-down' family='Ionicons' size={16} color='#10B981' />
+                <Text style={styles.savingsText}>
+                  You save {savings.toFixed(2)} {currency}
+                </Text>
+              </View>
+            )}
+
+            {/* Total */}
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total Amount</Text>
+              <Text style={styles.totalValue}>
+                {total.toFixed(2)} {currency}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Error Message */}
+        {orderError != null && (
+          <View style={styles.errorBanner}>
+            <Icon name='warning' family='Ionicons' size={20} color='#EF4444' />
+            <Text style={styles.errorText}>{orderError}</Text>
+          </View>
+        )}
+
+        {/* Confirm Button with Gradient */}
+        <Pressable
+          onPress={() => {
+            void handleConfirmOrder();
+          }}
+          disabled={isCreatingOrder}
+          style={styles.confirmButtonWrapper}
+        >
+          <LinearGradient
+            colors={['#005250', '#007B77']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.confirmButton, isCreatingOrder && styles.confirmButtonDisabled]}
+          >
+            <Icon name='checkmark-circle' family='Ionicons' size={24} color='#FFFFFF' />
+            <Text style={styles.confirmButtonText}>
+              Confirm Order • {total.toFixed(2)} {currency}
+            </Text>
+          </LinearGradient>
+        </Pressable>
+
+        {/* Cancel Button */}
+        <Pressable
+          onPress={() => navigation.goBack()}
+          disabled={isCreatingOrder}
+          style={styles.cancelButton}
+        >
+          <Text style={styles.cancelButtonText}>Cancel Order</Text>
+        </Pressable>
+      </View>
 
       {/* Phone Verification Modal */}
       <PhoneVerificationModal
@@ -574,9 +525,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
         onVerificationComplete={handleVerificationComplete}
       />
 
-      {/* Order Success Modal - Must be dismissed manually */}
+      {/* Single morph modal: opens with loading state, morphs to content */}
       <OrderSuccessModal
-        visible={successModalVisible}
+        visible={(isCreatingOrder && isPhoneVerified) || successModalVisible}
+        loading={isCreatingOrder && !successModalVisible}
         order={createdOrder}
         onDismiss={handleSuccessModalDismiss}
       />
@@ -588,9 +540,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
-  },
-  scrollContent: {
-    paddingBottom: 32,
   },
   errorContainer: {
     flex: 1,
@@ -606,30 +555,11 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
 
-  // Header
-
-  headerContent: {
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#005250',
-    marginTop: 12,
-    letterSpacing: -0.5,
-    lineHeight: 34,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.85)',
-    marginTop: 6,
-  },
-
   // Main Card
   mainCard: {
     backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
-    marginTop: -16,
+    marginTop: 13,
     borderRadius: 24,
     padding: 20,
     ...Platform.select({
@@ -782,7 +712,7 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: '#E2E8F0',
-    marginVertical: 24,
+    marginVertical: 12,
   },
 
   // Error Banner

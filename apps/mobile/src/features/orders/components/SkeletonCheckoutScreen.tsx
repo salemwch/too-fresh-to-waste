@@ -5,7 +5,6 @@
 
 import React from 'react';
 import { View, StyleSheet, ScrollView, Platform } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 
 import { SkeletonBox, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 
@@ -15,20 +14,6 @@ export const SkeletonCheckoutScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header Skeleton */}
-        <LinearGradient
-          colors={['#005250', '#007B77', '#005250']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.headerGradient}
-        >
-          <View style={styles.headerContent}>
-            <SkeletonBox animValue={anim} width={40} height={40} borderRadius={20} />
-            <SkeletonBox animValue={anim} width={200} height={28} style={{ marginTop: 12 }} borderRadius={14} />
-            <SkeletonBox animValue={anim} width={150} height={14} style={{ marginTop: 6 }} borderRadius={7} />
-          </View>
-        </LinearGradient>
-
         {/* Main Card Skeleton */}
         <View style={styles.mainCard}>
           {/* Offer Details Section */}
@@ -140,27 +125,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 32,
-  },
-  headerGradient: {
-    paddingTop: 24,
-    paddingBottom: 32,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  headerContent: {
-    alignItems: 'center',
+    paddingTop: 16,
   },
   mainCard: {
     backgroundColor: '#FFFFFF',

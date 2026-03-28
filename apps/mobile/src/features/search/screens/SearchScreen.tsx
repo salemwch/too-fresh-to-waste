@@ -25,6 +25,7 @@ import {
 import MapView, { Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { environment } from '@/config/environment';
 import { Text, Input, Icon } from '@/design-system/components/atoms';
 import { SkeletonOfferCard } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
@@ -41,9 +42,7 @@ import { OfferType, CtaState, OfferStatus } from '@/features/offers/types/offer.
 import { useAppDispatch } from '@/hooks/redux';
 import { useLocation } from '@/hooks/useLocation';
 import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
-import { environment } from '@/config/environment';
 import { Logger } from '@/utils/logger';
-import type { ILocationResult } from '@/types/location.types';
 
 import {
   LocationFilterModal,
@@ -57,6 +56,7 @@ import { usePlaceSearch } from '../hooks/usePlaceSearch';
 
 import type { OfferListItem } from '@/features/offers/types/offer.types';
 import type { SearchScreenNavigationProp } from '@/navigation/types';
+import type { ILocationResult } from '@/types/location.types';
 import type { Region } from 'react-native-maps';
 
 // ============================================================================
@@ -108,11 +108,15 @@ const mapSearchResultToOfferListItem = (
     availableUntil: item.availableUntil,
     establishment: {
       name: item.establishmentName,
+      ...(item.establishmentLogo ? { profileImage: item.establishmentLogo } : {}),
     },
     distance: distanceInMeters,
-    ctaState: new Date() < new Date(item.availableFrom)
-      ? CtaState.NOT_STARTED
-      : item.availableQuantity > 0 ? CtaState.AVAILABLE : CtaState.SOLD_OUT,
+    ctaState:
+      new Date() < new Date(item.availableFrom)
+        ? CtaState.NOT_STARTED
+        : item.availableQuantity > 0
+          ? CtaState.AVAILABLE
+          : CtaState.SOLD_OUT,
     status: OfferStatus.ACTIVE,
   };
 };
@@ -260,7 +264,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       let coords = place.coords;
 
       // Resolve coordinates via Place Details (billed call, concludes session)
-      if (place.googlePlaceId) {
+      if (place.googlePlaceId != null) {
         const resolved = await resolveGooglePlace(place.googlePlaceId);
         if (resolved) {
           coords = resolved.coords;
@@ -303,9 +307,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
         longitude: est.coordinates?.longitude ?? establishment.geoData.coordinates.longitude,
       };
 
-      const address = est.address?.formattedAddress
-        ?? est.address?.city
-        ?? '';
+      const address = est.address?.formattedAddress ?? est.address?.city ?? '';
 
       setSelectedPlace({ name: est.name, address, coordinates: estCoords });
       setManualLocationValue(estCoords, est.name);
@@ -403,10 +405,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
           Logger.info('[SearchScreen] Reverse geocoding completed - HomeScreen header updated');
         })
         .catch((error: unknown) => {
-          Logger.warn(
-            '[SearchScreen] Reverse geocoding failed, header will show fallback',
-            { error: String(error) },
-          );
+          Logger.warn('[SearchScreen] Reverse geocoding failed, header will show fallback', {
+            error: String(error),
+          });
         });
     } catch (error) {
       Logger.error('[SearchScreen] Failed to get current location:', {}, error as Error);
@@ -443,7 +444,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     [navigation],
   );
 
-  const handleMapPress = useCallback(() => {
+  const handleMapPress = useCallback((event?: { nativeEvent?: { action?: string } }) => {
+    // On Android, MapView.onPress fires for marker taps too.
+    // Only clear selection when the background map itself is tapped.
+    if (event?.nativeEvent?.action === 'marker-press') return;
     setSelectedEstablishment(null);
   }, []);
 
@@ -539,12 +543,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
         {showLoading ? (
           <View style={styles.placeResultsLoading}>
             <ActivityIndicator size='small' color={theme.colors.primary} />
-            <Text
-              variant='body'
-              size='sm'
-              color='secondary'
-              style={styles.placeResultsLoadingText}
-            >
+            <Text variant='body' size='sm' color='secondary' style={styles.placeResultsLoadingText}>
               Searching...
             </Text>
           </View>
@@ -559,12 +558,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
             {/* App Establishments Section */}
             {appResults.length > 0 && (
               <>
-                <Text
-                  variant='label'
-                  size='xs'
-                  color='secondary'
-                  style={styles.placeResultsHeader}
-                >
+                <Text variant='label' size='xs' color='secondary' style={styles.placeResultsHeader}>
                   In WasteFood
                 </Text>
                 {appResults.slice(0, 4).map((est, index) => (
@@ -618,12 +612,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
             {/* Google Places Section */}
             {googleResults.length > 0 && (
               <>
-                <Text
-                  variant='label'
-                  size='xs'
-                  color='secondary'
-                  style={styles.placeResultsHeader}
-                >
+                <Text variant='label' size='xs' color='secondary' style={styles.placeResultsHeader}>
                   More places
                 </Text>
                 {googleResults.slice(0, 4).map((place, index) => (
@@ -632,8 +621,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                     style={[
                       styles.placeResultItem,
                       { borderBottomColor: theme.colors.outline },
-                      index === Math.min(googleResults.length - 1, 3) &&
-                        styles.placeResultItemLast,
+                      index === Math.min(googleResults.length - 1, 3) && styles.placeResultItemLast,
                     ]}
                     onPress={() => handleGooglePlaceSelect(place)}
                   >
@@ -784,7 +772,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                   establishment={selectedEstablishment}
                   onClose={() => setSelectedEstablishment(null)}
                   onOfferPress={handleEstablishmentOfferPress}
-                  bottomInset={insets.bottom + 49}
+                  bottomInset={0}
                 />
               )}
 
@@ -811,10 +799,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
           renderItem={renderListItem}
           ListHeaderComponent={renderListHeader}
           ListEmptyComponent={renderListEmpty}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingTop: insets.top + 120 },
-          ]}
+          contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 120 }]}
           showsVerticalScrollIndicator={false}
           removeClippedSubviews
           maxToRenderPerBatch={6}
@@ -880,7 +865,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
         {/* Toggle Row */}
         <View style={styles.toggleRow}>
           <MapListToggle value={viewMode} onChange={handleViewModeChange} />
-
         </View>
       </View>
 
