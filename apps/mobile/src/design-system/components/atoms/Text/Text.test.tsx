@@ -8,6 +8,7 @@ import React from 'react';
 import { ThemeProvider } from '../../../providers';
 
 import { Text } from './Text';
+import type { TextProps } from './Text.types';
 import type { TypographyVariant } from '../../../types';
 import type { TextProps } from './Text.types';
 
@@ -93,7 +94,7 @@ describe('Text', () => {
   });
 
   it('applies font weight', () => {
-    const weights = [
+    const weights: NonNullable<TextProps['weight']>[] = [
       'thin',
       'light',
       'regular',
@@ -105,7 +106,7 @@ describe('Text', () => {
     ];
 
     weights.forEach(weight => {
-      const { getByText } = renderWithTheme(<Text weight={weight as TextProps['weight']}>{weight} weight</Text>);
+      const { getByText } = renderWithTheme(<Text weight={weight}>{weight} weight</Text>);
       expect(getByText(`${weight} weight`)).toBeTruthy();
     });
   });
