@@ -4,7 +4,7 @@
  */
 export abstract class BaseAdminSystemEvent {
   public readonly timestamp: Date;
-  public readonly correlationId?: string;
+  public readonly correlationId?: string | undefined;
 
   constructor(
     public readonly adminId: string,

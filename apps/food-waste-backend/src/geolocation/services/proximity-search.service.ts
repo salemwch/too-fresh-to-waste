@@ -1,28 +1,33 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types, PipelineStage } from 'mongoose';
+import { Model, Types, PipelineStage, FilterQuery } from 'mongoose';
+
+import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
+import {
+  Establishment,
+  EstablishmentDocument,
+  EstablishmentStatus,
+} from '../../establishments/schemas/establishment.schema';
+import { Offer, OfferDocument, OfferStatus } from '../../offers/schemas/offer.schema';
+import { ProximitySearchDto } from '../dto/geolocation.dto';
 import {
   ProximitySearchResult,
   EstablishmentGeoData,
   OfferGeoData,
   MapEstablishmentGeoData,
   GeoCoordinate,
-  DistanceUnit
+  DistanceUnit,
 } from '../interfaces/geolocation.interface';
-import { ProximitySearchDto } from '../dto/geolocation.dto';
 import { DistanceCalculator } from '../utils/distance.util';
-import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
-import { Establishment, EstablishmentDocument, EstablishmentStatus } from '../../establishments/schemas/establishment.schema';
-import { Offer, OfferDocument, OfferStatus } from '../../offers/schemas/offer.schema';
 
 export interface ProximitySearchOptions {
-  includeEstablishments?: boolean;
-  includeOffers?: boolean;
-  establishmentTypes?: string[];
-  offerCategories?: string[];
-  minRating?: number;
-  maxPrice?: number;
-  onlyActive?: boolean;
+  includeEstablishments?: boolean | undefined;
+  includeOffers?: boolean | undefined;
+  establishmentTypes?: string[] | undefined;
+  offerCategories?: string[] | undefined;
+  minRating?: number | undefined;
+  maxPrice?: number | undefined;
+  onlyActive?: boolean | undefined;
 }
 
 @Injectable()
@@ -31,7 +36,8 @@ export class ProximitySearchService {
   private readonly regexUtil = new RegexSecurityUtil();
 
   constructor(
-    @InjectModel(Establishment.name) private readonly establishmentModel: Model<EstablishmentDocument>,
+    @InjectModel(Establishment.name)
+    private readonly establishmentModel: Model<EstablishmentDocument>,
     @InjectModel(Offer.name) private readonly offerModel: Model<OfferDocument>,
   ) {}
 
@@ -40,20 +46,22 @@ export class ProximitySearchService {
    */
   async searchEstablishments(
     searchDto: ProximitySearchDto,
-    options: ProximitySearchOptions = {}
+    options: ProximitySearchOptions = {},
   ): Promise<ProximitySearchResult<EstablishmentGeoData>[]> {
     try {
       if (!DistanceCalculator.isValidCoordinate(searchDto.center)) {
         throw new BadRequestException('Invalid search center coordinates');
       }
 
-      this.logger.log(`Searching establishments within ${searchDto.radius}m of ${searchDto.center.latitude}, ${searchDto.center.longitude}`);
+      this.logger.log(
+        `Searching establishments within ${searchDto.radius}m of ${searchDto.center.latitude}, ${searchDto.center.longitude}`,
+      );
 
       // Convert center to GeoJSON point for MongoDB query
       const centerPoint = DistanceCalculator.coordinateToPoint(searchDto.center);
 
       // Build MongoDB aggregation pipeline
-      const pipeline: any[] = [];
+      const pipeline: PipelineStage[] = [];
 
       // Convert radius from meters to radians for $centerSphere
       // Earth's radius is ~6378.1 km = 6378100 meters
@@ -61,17 +69,20 @@ export class ProximitySearchService {
 
       // Match stage - filter by location and other criteria
       // Using $geoWithin with $centerSphere instead of $near (works in aggregation pipelines)
-      const matchConditions: any = {
+      const matchConditions: FilterQuery<EstablishmentDocument> = {
         'address.coordinates': {
           $geoWithin: {
             $centerSphere: [
               [centerPoint.coordinates[0], centerPoint.coordinates[1]], // [lng, lat]
-              radiusInRadians
-            ]
-          }
+              radiusInRadians,
+            ],
+          },
         },
-        status: options.onlyActive !== false ? EstablishmentStatus.ACTIVE : { $ne: EstablishmentStatus.REJECTED },
-        isActive: true
+        status:
+          options.onlyActive !== false
+            ? EstablishmentStatus.ACTIVE
+            : { $ne: EstablishmentStatus.REJECTED },
+        isActive: true,
       };
 
       // Add category filters
@@ -91,8 +102,8 @@ export class ProximitySearchService {
       // Exclude specific IDs
       if (searchDto.excludeIds && searchDto.excludeIds.length > 0) {
         const excludeObjectIds = searchDto.excludeIds
-          .filter(id => Types.ObjectId.isValid(id))
-          .map(id => new Types.ObjectId(id));
+          .filter((id) => Types.ObjectId.isValid(id))
+          .map((id) => new Types.ObjectId(id));
 
         if (excludeObjectIds.length > 0) {
           matchConditions._id = { $nin: excludeObjectIds };
@@ -101,10 +112,7 @@ export class ProximitySearchService {
 
       // Text search on establishment name (reuses RegexSecurityUtil for ReDoS protection)
       if (searchDto.query) {
-        const searchFields = this.regexUtil.buildMultiFieldSearch(
-          searchDto.query,
-          ['name'],
-        );
+        const searchFields = this.regexUtil.buildMultiFieldSearch(searchDto.query, ['name']);
         if (searchFields.length > 0) {
           matchConditions.$or = searchFields;
         }
@@ -121,7 +129,7 @@ export class ProximitySearchService {
                 lon1: { $arrayElemAt: ['$address.coordinates.coordinates', 0] },
                 lat1: { $arrayElemAt: ['$address.coordinates.coordinates', 1] },
                 lon2: centerPoint.coordinates[0],
-                lat2: centerPoint.coordinates[1]
+                lat2: centerPoint.coordinates[1],
               },
               in: {
                 $multiply: [
@@ -132,24 +140,24 @@ export class ProximitySearchService {
                         {
                           $multiply: [
                             { $sin: { $degreesToRadians: '$$lat1' } },
-                            { $sin: { $degreesToRadians: '$$lat2' } }
-                          ]
+                            { $sin: { $degreesToRadians: '$$lat2' } },
+                          ],
                         },
                         {
                           $multiply: [
                             { $cos: { $degreesToRadians: '$$lat1' } },
                             { $cos: { $degreesToRadians: '$$lat2' } },
-                            { $cos: { $degreesToRadians: { $subtract: ['$$lon2', '$$lon1'] } } }
-                          ]
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
+                            { $cos: { $degreesToRadians: { $subtract: ['$$lon2', '$$lon1'] } } },
+                          ],
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
       });
 
       // Sort by distance if requested
@@ -177,23 +185,23 @@ export class ProximitySearchService {
           isVerified: 1,
           images: { $slice: ['$images', 3] }, // First 3 images only
           distance: 1,
-          coordinates: '$address.coordinates.coordinates'
-        }
+          coordinates: '$address.coordinates.coordinates',
+        },
       });
 
       const establishments = await this.establishmentModel.aggregate(pipeline);
 
       // Transform results to ProximitySearchResult format
-      const results: ProximitySearchResult<EstablishmentGeoData>[] = establishments.map(est => {
+      const results: ProximitySearchResult<EstablishmentGeoData>[] = establishments.map((est) => {
         const coordinates: GeoCoordinate = {
           longitude: est.coordinates[0],
-          latitude: est.coordinates[1]
+          latitude: est.coordinates[1],
         };
 
         const distance = DistanceCalculator.calculateDistance(
           searchDto.center,
           coordinates,
-          DistanceUnit.METERS
+          DistanceUnit.METERS,
         );
 
         const establishmentData: EstablishmentGeoData = {
@@ -205,13 +213,13 @@ export class ProximitySearchService {
             city: est.address.city,
             postalCode: est.address.postalCode,
             country: est.address.country,
-            formattedAddress: `${est.address.street}, ${est.address.city} ${est.address.postalCode}`
+            formattedAddress: `${est.address.street}, ${est.address.city} ${est.address.postalCode}`,
           },
           coordinates,
           averageRating: est.averageRating,
           totalOffers: est.totalOffers,
           isActive: est.isActive,
-          isVerified: est.isVerified
+          isVerified: est.isVerified,
         };
 
         return {
@@ -219,14 +227,13 @@ export class ProximitySearchService {
           distance,
           geoData: {
             coordinates,
-            address: establishmentData.address
-          }
+            address: establishmentData.address,
+          },
         };
       });
 
       this.logger.log(`Found ${results.length} establishments within radius`);
       return results;
-
     } catch (error) {
       this.logger.error('Failed to search establishments:', error);
       throw error;
@@ -238,33 +245,35 @@ export class ProximitySearchService {
    */
   async searchOffers(
     searchDto: ProximitySearchDto,
-    options: ProximitySearchOptions = {}
+    options: ProximitySearchOptions = {},
   ): Promise<ProximitySearchResult<OfferGeoData>[]> {
     try {
       if (!DistanceCalculator.isValidCoordinate(searchDto.center)) {
         throw new BadRequestException('Invalid search center coordinates');
       }
 
-      this.logger.log(`Searching offers within ${searchDto.radius}m of ${searchDto.center.latitude}, ${searchDto.center.longitude}`);
+      this.logger.log(
+        `Searching offers within ${searchDto.radius}m of ${searchDto.center.latitude}, ${searchDto.center.longitude}`,
+      );
 
       // First, get establishments within the search radius
       const establishmentResults = await this.searchEstablishments(searchDto, {
         ...options,
-        onlyActive: true
+        onlyActive: true,
       });
 
       if (establishmentResults.length === 0) {
         return [];
       }
 
-      const establishmentIds = establishmentResults.map(est => new Types.ObjectId(est.item._id));
+      const establishmentIds = establishmentResults.map((est) => new Types.ObjectId(est.item._id));
 
       // Build offer query
-      const offerMatchConditions: any = {
+      const offerMatchConditions: FilterQuery<OfferDocument> = {
         establishmentId: { $in: establishmentIds },
         status: OfferStatus.ACTIVE,
         isActive: true,
-        availableUntil: { $gte: new Date() }
+        availableUntil: { $gte: new Date() },
       };
 
       // Add category filters
@@ -289,8 +298,8 @@ export class ProximitySearchService {
       // Exclude specific IDs
       if (searchDto.excludeIds && searchDto.excludeIds.length > 0) {
         const excludeObjectIds = searchDto.excludeIds
-          .filter(id => Types.ObjectId.isValid(id))
-          .map(id => new Types.ObjectId(id));
+          .filter((id) => Types.ObjectId.isValid(id))
+          .map((id) => new Types.ObjectId(id));
 
         if (excludeObjectIds.length > 0) {
           offerMatchConditions._id = { $nin: excludeObjectIds };
@@ -298,10 +307,10 @@ export class ProximitySearchService {
       }
 
       // Execute offer query with establishment lookup
-      const offerPipeline: any[] = [
+      const offerPipeline: PipelineStage[] = [
         { $match: offerMatchConditions },
 
-        // Lookup establishment data
+        // Lookup establishment data (with merchant profile image via ownerId → users)
         {
           $lookup: {
             from: 'establishments',
@@ -310,47 +319,60 @@ export class ProximitySearchService {
             as: 'establishment',
             pipeline: [
               {
+                $lookup: {
+                  from: 'users',
+                  localField: 'ownerId',
+                  foreignField: '_id',
+                  pipeline: [{ $project: { profileImage: 1, avatar: 1 } }],
+                  as: 'ownerData',
+                },
+              },
+              {
                 $project: {
                   name: 1,
                   type: 1,
                   address: 1,
-                  averageRating: 1
-                }
-              }
-            ]
-          }
+                  averageRating: 1,
+                  profileImage: {
+                    $ifNull: [
+                      { $arrayElemAt: ['$ownerData.profileImage', 0] },
+                      { $ifNull: [{ $arrayElemAt: ['$ownerData.avatar', 0] }, null] },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
         },
 
         { $unwind: '$establishment' },
 
         // Text query filter: match offer title OR establishment name
-        ...(searchDto.query ? (() => {
-          const searchFields = this.regexUtil.buildMultiFieldSearch(
-            searchDto.query,
-            ['title', 'description', 'establishment.name'],
-          );
-          return searchFields.length > 0
-            ? [{ $match: { $or: searchFields } }]
-            : [];
-        })() : []),
+        ...(searchDto.query
+          ? (() => {
+              const searchFields = this.regexUtil.buildMultiFieldSearch(searchDto.query, [
+                'title',
+                'description',
+                'establishment.name',
+              ]);
+              return searchFields.length > 0 ? [{ $match: { $or: searchFields } }] : [];
+            })()
+          : []),
 
         // Add virtual fields for available quantity
         {
           $addFields: {
             availableQuantity: {
-              $subtract: [
-                '$totalQuantity',
-                { $add: ['$reservedQuantity', '$soldQuantity'] }
-              ]
-            }
-          }
+              $subtract: ['$totalQuantity', { $add: ['$reservedQuantity', '$soldQuantity'] }],
+            },
+          },
         },
 
         // Filter out sold out offers
         {
           $match: {
-            availableQuantity: { $gt: 0 }
-          }
+            availableQuantity: { $gt: 0 },
+          },
         },
 
         // Project needed fields
@@ -369,9 +391,10 @@ export class ProximitySearchService {
             pickupTimeSlots: 1,
             'establishment.name': 1,
             'establishment.address': 1,
-            'establishment.averageRating': 1
-          }
-        }
+            'establishment.averageRating': 1,
+            'establishment.profileImage': 1,
+          },
+        },
       ];
 
       // Apply pagination
@@ -383,11 +406,14 @@ export class ProximitySearchService {
       const offers = await this.offerModel.aggregate(offerPipeline);
 
       // Create a map of establishment coordinates for quick lookup
-      const establishmentCoordMap = new Map<string, { coordinates: GeoCoordinate; address: any }>();
-      establishmentResults.forEach(est => {
+      const establishmentCoordMap = new Map<
+        string,
+        { coordinates: GeoCoordinate; address: EstablishmentGeoData['address'] }
+      >();
+      establishmentResults.forEach((est) => {
         establishmentCoordMap.set(est.item._id, {
           coordinates: est.item.coordinates,
-          address: est.item.address
+          address: est.item.address,
         });
       });
 
@@ -396,12 +422,14 @@ export class ProximitySearchService {
 
       for (const offer of offers) {
         const establishmentGeoData = establishmentCoordMap.get(offer.establishmentId.toString());
-        if (!establishmentGeoData) {continue;}
+        if (!establishmentGeoData) {
+          continue;
+        }
 
         const distance = DistanceCalculator.calculateDistance(
           searchDto.center,
           establishmentGeoData.coordinates,
-          DistanceUnit.METERS
+          DistanceUnit.METERS,
         );
 
         const offerData: OfferGeoData = {
@@ -409,6 +437,7 @@ export class ProximitySearchService {
           title: offer.title,
           establishmentId: offer.establishmentId.toString(),
           establishmentName: offer.establishment.name,
+          establishmentLogo: offer.establishment.profileImage ?? null,
           coordinates: establishmentGeoData.coordinates,
           address: establishmentGeoData.address,
           pricing: offer.pricing,
@@ -416,7 +445,7 @@ export class ProximitySearchService {
           availableUntil: offer.availableUntil,
           availableQuantity: offer.availableQuantity,
           categories: offer.categories,
-          images: offer.images
+          images: offer.images,
         };
 
         results.push({
@@ -424,8 +453,8 @@ export class ProximitySearchService {
           distance,
           geoData: {
             coordinates: establishmentGeoData.coordinates,
-            address: establishmentGeoData.address
-          }
+            address: establishmentGeoData.address,
+          },
         });
       }
 
@@ -436,7 +465,6 @@ export class ProximitySearchService {
 
       this.logger.log(`Found ${results.length} offers within radius`);
       return results;
-
     } catch (error) {
       this.logger.error('Failed to search offers:', error);
       throw error;
@@ -448,7 +476,7 @@ export class ProximitySearchService {
    */
   async searchAll(
     searchDto: ProximitySearchDto,
-    options: ProximitySearchOptions = {}
+    options: ProximitySearchOptions = {},
   ): Promise<{
     establishments: ProximitySearchResult<EstablishmentGeoData>[];
     offers: ProximitySearchResult<OfferGeoData>[];
@@ -456,16 +484,17 @@ export class ProximitySearchService {
   }> {
     try {
       const [establishments, offers] = await Promise.all([
-        options.includeEstablishments !== false ? this.searchEstablishments(searchDto, options) : [],
-        options.includeOffers !== false ? this.searchOffers(searchDto, options) : []
+        options.includeEstablishments !== false
+          ? this.searchEstablishments(searchDto, options)
+          : [],
+        options.includeOffers !== false ? this.searchOffers(searchDto, options) : [],
       ]);
 
       return {
         establishments,
         offers,
-        totalResults: establishments.length + offers.length
+        totalResults: establishments.length + offers.length,
       };
-
     } catch (error) {
       this.logger.error('Failed to search all:', error);
       throw error;
@@ -477,7 +506,7 @@ export class ProximitySearchService {
    */
   async getNearbyEstablishments(
     offerId: string,
-    radius: number = 2000 // 2km default
+    radius: number = 2000, // 2km default
   ): Promise<ProximitySearchResult<EstablishmentGeoData>[]> {
     try {
       // Fetch offer with establishment data via $lookup (single round-trip)
@@ -511,7 +540,7 @@ export class ProximitySearchService {
 
       const centerCoordinates: GeoCoordinate = {
         longitude: establishment.address.coordinates.coordinates[0],
-        latitude: establishment.address.coordinates.coordinates[1]
+        latitude: establishment.address.coordinates.coordinates[1],
       };
 
       // Search nearby establishments excluding the current one
@@ -519,11 +548,10 @@ export class ProximitySearchService {
         center: centerCoordinates,
         radius,
         excludeIds: [establishment._id.toString()],
-        limit: 10
+        limit: 10,
       };
 
       return await this.searchEstablishments(searchDto, { onlyActive: true });
-
     } catch (error) {
       this.logger.error('Failed to get nearby establishments:', error);
       throw error;
@@ -535,21 +563,20 @@ export class ProximitySearchService {
    */
   async getEstablishmentsInDeliveryRadius(
     userLocation: GeoCoordinate,
-    maxRadius: number = 10000 // 10km default
+    maxRadius: number = 10000, // 10km default
   ): Promise<ProximitySearchResult<EstablishmentGeoData>[]> {
     try {
       const searchDto: ProximitySearchDto = {
         center: userLocation,
         radius: maxRadius,
         sortByDistance: true,
-        limit: 50
+        limit: 50,
       };
 
       return await this.searchEstablishments(searchDto, {
         onlyActive: true,
-        includeEstablishments: true
+        includeEstablishments: true,
       });
-
     } catch (error) {
       this.logger.error('Failed to get establishments in delivery radius:', error);
       throw error;
@@ -562,7 +589,7 @@ export class ProximitySearchService {
    */
   async searchMapEstablishments(
     searchDto: ProximitySearchDto,
-    options: ProximitySearchOptions = {}
+    options: ProximitySearchOptions = {},
   ): Promise<ProximitySearchResult<MapEstablishmentGeoData>[]> {
     try {
       if (!DistanceCalculator.isValidCoordinate(searchDto.center)) {
@@ -578,7 +605,7 @@ export class ProximitySearchService {
       const now = new Date();
 
       // ── Match: geo + active ────────────────────────────────────────────
-      const matchConditions: any = {
+      const matchConditions: FilterQuery<EstablishmentDocument> = {
         'address.coordinates': {
           $geoWithin: {
             $centerSphere: [
@@ -587,7 +614,10 @@ export class ProximitySearchService {
             ],
           },
         },
-        status: options.onlyActive !== false ? EstablishmentStatus.ACTIVE : { $ne: EstablishmentStatus.REJECTED },
+        status:
+          options.onlyActive !== false
+            ? EstablishmentStatus.ACTIVE
+            : { $ne: EstablishmentStatus.REJECTED },
         isActive: true,
       };
 
@@ -599,16 +629,20 @@ export class ProximitySearchService {
       }
       if (searchDto.excludeIds?.length) {
         const ids = searchDto.excludeIds
-          .filter(id => Types.ObjectId.isValid(id))
-          .map(id => new Types.ObjectId(id));
-        if (ids.length) matchConditions._id = { $nin: ids };
+          .filter((id) => Types.ObjectId.isValid(id))
+          .map((id) => new Types.ObjectId(id));
+        if (ids.length) {
+          matchConditions._id = { $nin: ids };
+        }
       }
       if (searchDto.query) {
         const fields = this.regexUtil.buildMultiFieldSearch(searchDto.query, ['name']);
-        if (fields.length) matchConditions.$or = fields;
+        if (fields.length) {
+          matchConditions.$or = fields;
+        }
       }
 
-      const pipeline: any[] = [
+      const pipeline: PipelineStage[] = [
         { $match: matchConditions },
 
         // ── Lookup merchant profile image from users ───────────────────
@@ -735,54 +769,56 @@ export class ProximitySearchService {
       const establishments = await this.establishmentModel.aggregate(pipeline);
 
       // ── Transform to ProximitySearchResult ──────────────────────────
-      const results: ProximitySearchResult<MapEstablishmentGeoData>[] = establishments.map(est => {
-        const coordinates: GeoCoordinate = {
-          longitude: est.coordinates[0],
-          latitude: est.coordinates[1],
-        };
+      const results: ProximitySearchResult<MapEstablishmentGeoData>[] = establishments.map(
+        (est) => {
+          const coordinates: GeoCoordinate = {
+            longitude: est.coordinates[0],
+            latitude: est.coordinates[1],
+          };
 
-        const distance = DistanceCalculator.calculateDistance(
-          searchDto.center,
-          coordinates,
-          DistanceUnit.METERS,
-        );
+          const distance = DistanceCalculator.calculateDistance(
+            searchDto.center,
+            coordinates,
+            DistanceUnit.METERS,
+          );
 
-        const itemData: MapEstablishmentGeoData = {
-          _id: est._id.toString(),
-          name: est.name,
-          type: est.type,
-          profileImage: est.profileImage ?? null,
-          coordinates,
-          address: {
-            street: est.address.street,
-            city: est.address.city,
-            postalCode: est.address.postalCode,
-            country: est.address.country,
-            formattedAddress: `${est.address.street}, ${est.address.city} ${est.address.postalCode}`,
-          },
-          averageRating: est.averageRating ?? 0,
-          totalReviews: est.totalReviews ?? 0,
-          isVerified: est.isVerified ?? false,
-          activeOfferCount: est.activeOfferCount,
-          offers: (est.activeOffers ?? []).map((o: any) => ({
-            _id: o._id.toString(),
-            title: o.title,
-            description: o.description ?? '',
-            pricing: o.pricing,
-            availableFrom: o.availableFrom,
-            availableUntil: o.availableUntil,
-            availableQuantity: o.availableQuantity,
-            categories: o.categories ?? [],
-            images: o.images ?? [],
-          })),
-        };
+          const itemData: MapEstablishmentGeoData = {
+            _id: est._id.toString(),
+            name: est.name,
+            type: est.type,
+            profileImage: est.profileImage ?? null,
+            coordinates,
+            address: {
+              street: est.address.street,
+              city: est.address.city,
+              postalCode: est.address.postalCode,
+              country: est.address.country,
+              formattedAddress: `${est.address.street}, ${est.address.city} ${est.address.postalCode}`,
+            },
+            averageRating: est.averageRating ?? 0,
+            totalReviews: est.totalReviews ?? 0,
+            isVerified: est.isVerified ?? false,
+            activeOfferCount: est.activeOfferCount,
+            offers: (est.activeOffers ?? []).map((o: OfferDocument) => ({
+              _id: o._id.toString(),
+              title: o.title,
+              description: o.description ?? '',
+              pricing: o.pricing,
+              availableFrom: o.availableFrom,
+              availableUntil: o.availableUntil,
+              availableQuantity: o.availableQuantity,
+              categories: o.categories ?? [],
+              images: o.images ?? [],
+            })),
+          };
 
-        return {
-          item: itemData,
-          distance,
-          geoData: { coordinates, address: itemData.address },
-        };
-      });
+          return {
+            item: itemData,
+            distance,
+            geoData: { coordinates, address: itemData.address },
+          };
+        },
+      );
 
       this.logger.log(`Found ${results.length} map establishments within radius`);
       return results;

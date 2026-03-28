@@ -22,10 +22,10 @@ export interface Distance {
 export enum DistanceUnit {
   METERS = 'meters',
   KILOMETERS = 'kilometers',
-  MILES = 'miles'
+  MILES = 'miles',
 }
 
-export interface ProximitySearchResult<T = any> {
+export interface ProximitySearchResult<T = unknown> {
   item: T;
   distance: Distance;
   geoData: {
@@ -35,11 +35,11 @@ export interface ProximitySearchResult<T = any> {
 }
 
 export interface AddressInfo {
-  street?: string;
+  street?: string | undefined;
   city: string;
   postalCode: string;
   country: string;
-  formattedAddress?: string;
+  formattedAddress?: string | undefined;
 }
 
 export interface GeocodingResult {
@@ -54,7 +54,7 @@ export enum GeocodingAccuracy {
   ROOFTOP = 'rooftop',
   RANGE_INTERPOLATED = 'range_interpolated',
   GEOMETRIC_CENTER = 'geometric_center',
-  APPROXIMATE = 'approximate'
+  APPROXIMATE = 'approximate',
 }
 
 export interface ReverseGeocodingResult {
@@ -67,7 +67,7 @@ export interface GeofenceConfig {
   center: GeoCoordinate;
   radius: number; // in meters
   name: string;
-  description?: string;
+  description?: string | undefined;
 }
 
 export interface GeofenceResult {
@@ -123,6 +123,7 @@ export interface OfferGeoData {
   title: string;
   establishmentId: string;
   establishmentName: string;
+  establishmentLogo: string | null;
   coordinates: GeoCoordinate;
   address: AddressInfo;
   pricing: {
@@ -139,7 +140,7 @@ export interface OfferGeoData {
 }
 
 export interface UserLocationPreferences {
-  defaultLocation?: GeoCoordinate;
+  defaultLocation?: GeoCoordinate | undefined;
   searchRadius: number; // in meters
   savedLocations: SavedLocation[];
   locationHistory: LocationHistoryEntry[];
@@ -160,7 +161,7 @@ export enum LocationCategory {
   HOME = 'home',
   WORK = 'work',
   FAVORITE = 'favorite',
-  OTHER = 'other'
+  OTHER = 'other',
 }
 
 export interface LocationHistoryEntry {
@@ -175,7 +176,7 @@ export enum LocationSource {
   NETWORK = 'network',
   PASSIVE = 'passive',
   MANUAL = 'manual',
-  IP = 'ip'
+  IP = 'ip',
 }
 
 export interface GeoAnalytics {

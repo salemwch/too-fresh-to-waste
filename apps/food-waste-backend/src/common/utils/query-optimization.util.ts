@@ -19,15 +19,15 @@
  * Prevents accidental exposure of sensitive data
  */
 export const USER_EXCLUDED_FIELDS = [
-    '-password',
-    '-refreshTokens',
-    '-emailVerificationToken',
-    '-phoneVerificationCode',
-    '-passwordResetToken',
-    '-mfaSettings.methods.secret', // Exclude MFA secrets but keep other MFA data
-    '-mfaSettings.backupCodes',
-    '-mfaSettings.emergencyTokens',
-    '-securitySettings.passwordHistory', // Don't expose password history
+  '-password',
+  '-refreshTokens',
+  '-emailVerificationToken',
+  '-phoneVerificationCode',
+  '-passwordResetToken',
+  '-mfaSettings.methods.secret', // Exclude MFA secrets but keep other MFA data
+  '-mfaSettings.backupCodes',
+  '-mfaSettings.emergencyTokens',
+  '-securitySettings.passwordHistory', // Don't expose password history
 ].join(' ');
 
 /**
@@ -41,17 +41,17 @@ export const USER_PUBLIC_FIELDS = 'firstName lastName avatar email';
  * Includes metadata but excludes sensitive security data
  */
 export const USER_DETAIL_FIELDS = [
-    'firstName',
-    'lastName',
-    'email',
-    'phoneNumber',
-    'avatar',
-    'role',
-    'status',
-    'isEmailVerified',
-    'isPhoneVerified',
-    'createdAt',
-    'lastLoginAt',
+  'firstName',
+  'lastName',
+  'email',
+  'phoneNumber',
+  'avatar',
+  'role',
+  'status',
+  'isEmailVerified',
+  'isPhoneVerified',
+  'createdAt',
+  'lastLoginAt',
 ].join(' ');
 
 /**
@@ -59,34 +59,34 @@ export const USER_DETAIL_FIELDS = [
  * Optimized for minimal payload while showing essential info
  */
 export const ESTABLISHMENT_LIST_FIELDS = [
-    'name',
-    'address',
-    'type',
-    'averageRating',
-    'totalReviews',
-    'isVerified',
-    'images',
+  'name',
+  'address',
+  'type',
+  'averageRating',
+  'totalReviews',
+  'isVerified',
+  'images',
 ].join(' ');
 
 /**
  * Establishment fields for detail views
  */
 export const ESTABLISHMENT_DETAIL_FIELDS = [
-    'name',
-    'address',
-    'type',
-    'description',
-    'phoneNumber',
-    'email',
-    'website',
-    'averageRating',
-    'totalReviews',
-    'totalOffers',
-    'isVerified',
-    'images',
-    'openingHours',
-    'acceptsReservations',
-    'createdAt',
+  'name',
+  'address',
+  'type',
+  'description',
+  'phoneNumber',
+  'email',
+  'website',
+  'averageRating',
+  'totalReviews',
+  'totalOffers',
+  'isVerified',
+  'images',
+  'openingHours',
+  'acceptsReservations',
+  'createdAt',
 ].join(' ');
 
 /**
@@ -94,49 +94,49 @@ export const ESTABLISHMENT_DETAIL_FIELDS = [
  * ✅ CRITICAL: merchantId is required for .populate() to get merchant profileImage for OfferCard logo
  */
 export const OFFER_LIST_FIELDS = [
-    'title',
-    'type',
-    'images',
-    'pricing',
-    'totalQuantity',
-    'soldQuantity',
-    'reservedQuantity',
-    'availableFrom',
-    'availableUntil',
-    'establishmentId',    // Required for .populate() → establishment name, address, rating
-    'merchantId',         // ✅ FIX: Required for .populate() → merchant profileImage (OfferCard logo)
-    'status',
-    'pickupTimeSlots',    // ✅ FIX: Added for OfferCard display (pickup time windows)
-    'isFeaturedManual',   // ✅ FIX: Added for featuring metadata
-    'isFeaturedAuto',     // ✅ FIX: Added for featuring metadata
-    'featuredAt',         // ✅ FIX: Added for featuring metadata
-    'isPickupToday',      // ✅ Pickup categorization
-    'isPickupTomorrow',   // ✅ Pickup categorization
+  'title',
+  'type',
+  'images',
+  'pricing',
+  'totalQuantity',
+  'soldQuantity',
+  'reservedQuantity',
+  'availableFrom',
+  'availableUntil',
+  'establishmentId', // Required for .populate() → establishment name, address, rating
+  'merchantId', // ✅ FIX: Required for .populate() → merchant profileImage (OfferCard logo)
+  'status',
+  'pickupTimeSlots', // ✅ FIX: Added for OfferCard display (pickup time windows)
+  'isFeaturedManual', // ✅ FIX: Added for featuring metadata
+  'isFeaturedAuto', // ✅ FIX: Added for featuring metadata
+  'featuredAt', // ✅ FIX: Added for featuring metadata
+  'isPickupToday', // ✅ Pickup categorization
+  'isPickupTomorrow', // ✅ Pickup categorization
 ].join(' ');
 
 /**
  * Offer fields for detail views
  */
 export const OFFER_DETAIL_FIELDS = [
-    'title',
-    'description',
-    'type',
-    'images',
-    'pricing',
-    'totalQuantity',
-    'soldQuantity',
-    'reservedQuantity',
-    'categories',
-    'tags',
-    'dietaryInfo',
-    'allergens',
-    'estimatedWeight',
-    'pickupTimeSlots',
-    'availableFrom',
-    'availableUntil',
-    'establishmentId',
-    'status',
-    'viewCount',
+  'title',
+  'description',
+  'type',
+  'images',
+  'pricing',
+  'totalQuantity',
+  'soldQuantity',
+  'reservedQuantity',
+  'categories',
+  'tags',
+  'dietaryInfo',
+  'allergens',
+  'estimatedWeight',
+  'pickupTimeSlots',
+  'availableFrom',
+  'availableUntil',
+  'establishmentId',
+  'status',
+  'viewCount',
 ].join(' ');
 
 /**
@@ -149,111 +149,120 @@ export const OFFER_DETAIL_FIELDS = [
  *    - establishmentId for .populate() → name, images
  */
 export const ORDER_LIST_FIELDS = [
-    'orderNumber',
-    'customerId',
-    'establishmentId',
-    'status',
-    'paymentStatus',
-    'pricing',
-    'items.offerId',
-    'items.offerTitle',
-    'items.quantity',
-    'items.unitPrice',
-    'items.totalPrice',
-    'items.originalPrice',
-    'items.discountAmount',
-    'pickupDetails.timeSlot',
-    'pickupDetails.scheduledDate',
-    'expiresAt',
-    'donationAmount',
-    'createdAt',
+  'orderNumber',
+  'customerId',
+  'establishmentId',
+  'status',
+  'paymentStatus',
+  'pricing',
+  'items.offerId',
+  'items.offerTitle',
+  'items.quantity',
+  'items.unitPrice',
+  'items.totalPrice',
+  'items.originalPrice',
+  'items.discountAmount',
+  'pickupDetails.timeSlot',
+  'pickupDetails.scheduledDate',
+  'expiresAt',
+  'donationAmount',
+  'createdAt',
 ].join(' ');
 
 /**
  * Order fields for detail views
  */
 export const ORDER_DETAIL_FIELDS = [
-    'orderNumber',
-    'customerId',
-    'establishmentId',
-    'merchantId',
-    'items',
-    'status',
-    'paymentStatus',
-    'paymentDetails',
-    'pricing',
-    'pickupDetails',
-    'establishmentAddress',
-    'customerNotes',
-    'merchantNotes',
-    'expiresAt',
-    'createdAt',
-    'updatedAt',
+  'orderNumber',
+  'customerId',
+  'establishmentId',
+  'merchantId',
+  'items',
+  'status',
+  'paymentStatus',
+  'paymentDetails',
+  'pricing',
+  'pickupDetails',
+  'establishmentAddress',
+  'customerNotes',
+  'merchantNotes',
+  'expiresAt',
+  'createdAt',
+  'updatedAt',
 ].join(' ');
+
+/**
+ * Minimal structural interface for Mongoose query builder methods.
+ * Avoids deep generic coupling to Mongoose internals while preserving type safety.
+ */
+interface MongooseQueryLike {
+  lean(): this;
+  select(fields: string | string[]): this;
+}
 
 /**
  * Helper class for query optimization
  * Provides chainable methods for consistent query building
  */
 export class QueryOptimizer {
-    /**
-     * Apply lean() to query for read-only operations
-     * Returns plain JavaScript objects instead of Mongoose documents
-     *
-     * Performance impact:
-     * - 10-15% faster query execution
-     * - 50% less memory usage
-     * - Cannot use Mongoose methods (save(), populate(), etc.)
-     *
-     * @param query - Mongoose query object
-     * @returns Query with lean() applied
-     */
-    static applyLean<T>(query: any): any {
-        return query.lean();
-    }
+  /**
+   * Apply lean() to query for read-only operations
+   * Returns plain JavaScript objects instead of Mongoose documents
+   *
+   * Performance impact:
+   * - 10-15% faster query execution
+   * - 50% less memory usage
+   * - Cannot use Mongoose methods (save(), populate(), etc.)
+   *
+   * @param query - Mongoose query object
+   * @returns Query with lean() applied
+   */
+  static applyLean<T extends MongooseQueryLike>(query: T): T {
+    return query.lean();
+  }
 
-    /**
-     * Apply field selection to reduce payload size
-     *
-     * @param query - Mongoose query object
-     * @param fields - Space-separated field names or array of fields
-     * @returns Query with select() applied
-     */
-    static applySelect<T>(query: any, fields: string | string[]): any {
-        return query.select(fields);
-    }
+  /**
+   * Apply field selection to reduce payload size
+   *
+   * @param query - Mongoose query object
+   * @param fields - Space-separated field names or array of fields
+   * @returns Query with select() applied
+   */
+  static applySelect<T extends MongooseQueryLike>(query: T, fields: string | string[]): T {
+    return query.select(fields);
+  }
 
-    /**
-     * Apply both lean() and select() for maximum optimization
-     *
-     * @param query - Mongoose query object
-     * @param fields - Fields to select
-     * @returns Optimized query
-     */
-    static optimize<T>(query: any, fields: string | string[]): any {
-        return query.select(fields).lean();
-    }
+  /**
+   * Apply both lean() and select() for maximum optimization
+   *
+   * @param query - Mongoose query object
+   * @param fields - Fields to select
+   * @returns Optimized query
+   */
+  static optimize<T extends MongooseQueryLike>(query: T, fields: string | string[]): T {
+    return query.select(fields).lean();
+  }
 
-    /**
-     * Get pagination metadata
-     *
-     * @param total - Total count of documents
-     * @param page - Current page number
-     * @param limit - Items per page
-     * @returns Pagination metadata object
-     */
-    static getPaginationMeta(total: number, page: number, limit: number) {
-        const totalPages = Math.ceil(total / limit);
+  /**
+   * Get pagination metadata
+   *
+   * @param total - Total count of documents
+   * @param page - Current page number
+   * @param limit - Items per page
+   * @returns Pagination metadata object
+   */
+  static getPaginationMeta(total: number, page: number, limit: number) {
+    const totalPages = Math.ceil(total / limit);
 
-        return {
-            page,
-            limit,
-            total,
-            totalPages,
-            hasNext: page < totalPages,
-            hasPrev: page > 1,
-        };
-    }
+    return {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    };
+  }
 }
 
 /**
@@ -267,36 +276,29 @@ export class QueryOptimizer {
  * ```
  */
 export function MonitorQuery(operationName: string, thresholdMs: number = 1000) {
-    return function (
-        target: any,
-        propertyKey: string,
-        descriptor: PropertyDescriptor
-    ) {
-        const originalMethod = descriptor.value;
+  return function (_target: object, _propertyKey: string, descriptor: PropertyDescriptor) {
+    const originalMethod = descriptor.value as (...args: unknown[]) => Promise<unknown>;
 
-        descriptor.value = async function (...args: any[]) {
-            const start = Date.now();
-            try {
-                const result = await originalMethod.apply(this, args);
-                const duration = Date.now() - start;
+    descriptor.value = async function (this: unknown, ...args: unknown[]) {
+      const start = Date.now();
+      try {
+        const result = await originalMethod.apply(this, args);
+        const duration = Date.now() - start;
 
-                if (duration > thresholdMs) {
-                    console.warn(
-                        `[SLOW QUERY] ${operationName} took ${duration}ms (threshold: ${thresholdMs}ms)`
-                    );
-                }
+        if (duration > thresholdMs) {
+          console.warn(
+            `[SLOW QUERY] ${operationName} took ${duration}ms (threshold: ${thresholdMs}ms)`,
+          );
+        }
 
-                return result;
-            } catch (error) {
-                const duration = Date.now() - start;
-                console.error(
-                    `[QUERY ERROR] ${operationName} failed after ${duration}ms`,
-                    error
-                );
-                throw error;
-            }
-        };
-
-        return descriptor;
+        return result;
+      } catch (error) {
+        const duration = Date.now() - start;
+        console.error(`[QUERY ERROR] ${operationName} failed after ${duration}ms`, error);
+        throw error;
+      }
     };
+
+    return descriptor;
+  };
 }

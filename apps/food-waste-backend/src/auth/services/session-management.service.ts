@@ -15,6 +15,8 @@
  * @since 2025-11-21
  */
 
+import * as crypto from 'crypto';
+
 import {
   Injectable,
   Logger,
@@ -25,11 +27,11 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import * as crypto from 'crypto';
 import * as geoip from 'geoip-lite';
-import { RedisService } from '../../redis/redis.service';
-import { User, UserDocument } from '../../users/schemas/user.schema';
+import { Model } from 'mongoose';
+// @ts-expect-error no types available for geoip-lite
+
+import { USER_LOGIN_HISTORY_MAX } from '../../common/constants/database-indexes.constant';
 import {
   SessionInfo,
   DeviceInfo,
@@ -39,7 +41,8 @@ import {
   SessionValidationResult,
   SessionActivity,
 } from '../../common/security/interfaces/session.interface';
-import { USER_LOGIN_HISTORY_MAX } from '../../common/constants/database-indexes.constant';
+import { RedisService } from '../../redis/redis.service';
+import { User, UserDocument } from '../../users/schemas/user.schema';
 
 /**
  * Unified Session Management Service
@@ -62,22 +65,18 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {
     this.config = {
-      maxConcurrentSessions:
-        Number(this.configService.get('SESSION_MAX_CONCURRENT')) || 5,
-      sessionTimeout:
-        Number(this.configService.get('SESSION_TIMEOUT_MS')) || 15 * 60 * 1000, // 15 min
+      maxConcurrentSessions: Number(this.configService.get('SESSION_MAX_CONCURRENT')) || 5,
+      sessionTimeout: Number(this.configService.get('SESSION_TIMEOUT_MS')) || 15 * 60 * 1000, // 15 min
       rememberMeDuration:
-        Number(this.configService.get('SESSION_REMEMBER_ME_MS')) ||
-        30 * 24 * 60 * 60 * 1000, // 30 days
+        Number(this.configService.get('SESSION_REMEMBER_ME_MS')) || 30 * 24 * 60 * 60 * 1000, // 30 days
       cleanupInterval:
-        Number(this.configService.get('SESSION_CLEANUP_INTERVAL_MS')) ||
-        5 * 60 * 1000, // 5 min
+        Number(this.configService.get('SESSION_CLEANUP_INTERVAL_MS')) || 5 * 60 * 1000, // 5 min
       suspiciousActivityThreshold:
         Number(this.configService.get('SESSION_SUSPICIOUS_THRESHOLD')) || 3,
     };
   }
 
-  async onModuleInit(): Promise<void> {
+  onModuleInit(): void {
     this.logger.log('Initializing Unified Session Management Service...');
     this.startCleanupTimer();
   }
@@ -105,8 +104,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
 
     // Calculate expiration
     const expiresAt = new Date(
-      Date.now() +
-        (rememberMe ? this.config.rememberMeDuration : this.config.sessionTimeout),
+      Date.now() + (rememberMe ? this.config.rememberMeDuration : this.config.sessionTimeout),
     );
 
     // Create session object (fully synchronous — no I/O)
@@ -127,16 +125,14 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     // return immediately. The remote Redis writes (store, enforce limit,
     // audit trail) complete asynchronously — they are not required for the
     // JWT tokens that actually authenticate subsequent requests.
-    this.persistSessionAsync(session, userId, ipAddress, userAgent, deviceInfo)
-      .catch((err) =>
-        this.logger.error(`Background session persistence failed: ${err.message}`),
-      );
-
-    this.logger.log(
-      `Session created for user ${userId}: \n${sessionId}`,
+    this.persistSessionAsync(session, userId, ipAddress, userAgent, deviceInfo).catch((err) =>
+      this.logger.error(`Background session persistence failed: ${err.message}`),
     );
 
-    return session;
+    this.logger.log(`Session created for user ${userId}: \n${sessionId}`);
+
+    const result = await Promise.resolve(session);
+    return result;
   }
 
   /**
@@ -165,9 +161,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       timestamp: new Date(),
       location: deviceInfo.location,
       success: true,
-    }).catch((err) =>
-      this.logger.warn(`Failed to write login history: ${err.message}`),
-    );
+    }).catch((err) => this.logger.warn(`Failed to write login history: ${err.message}`));
 
     this.logSessionActivity({
       sessionId: session.sessionId,
@@ -219,7 +213,9 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
         session,
       };
     } catch (error) {
-      this.logger.error(`Session validation error: ${error.message}`);
+      this.logger.error(
+        `Session validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       return {
         isValid: false,
         error: 'Validation error',
@@ -258,7 +254,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     await this.storeSessionInRedis(session);
 
     // Log activity
-    await this.logSessionActivity({
+    this.logSessionActivity({
       sessionId,
       activityType: 'refresh',
       timestamp: new Date(),
@@ -311,16 +307,19 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
    */
   async getUserSessions(userId: string): Promise<SessionInfo[]> {
     const sessionIds = await this.getUserSessionIds(userId);
-    if (sessionIds.length === 0) return [];
+    if (sessionIds.length === 0) {
+      return [];
+    }
 
     // Fetch all sessions in parallel — each is an independent Redis GET
     const results = await Promise.all(
-      sessionIds.map((id) => this.getSessionFromRedis(id)),
+      sessionIds.map(async (id) => {
+        const session = await this.getSessionFromRedis(id);
+        return session;
+      }),
     );
 
-    return results.filter(
-      (s): s is SessionInfo => s !== null && s.isActive,
-    );
+    return results.filter((s): s is SessionInfo => s !== null && s.isActive);
   }
 
   /**
@@ -372,7 +371,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
 
       // Log suspicious activity
       for (const session of sessions) {
-        await this.logSessionActivity({
+        this.logSessionActivity({
           sessionId: session.sessionId,
           activityType: 'suspicious',
           timestamp: new Date(),
@@ -454,9 +453,15 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   private getLocationFromIP(ipAddress: string): string | undefined {
     try {
       // Skip invalid/local IPs that won't have geolocation
-      if (!ipAddress || ipAddress === 'unknown' || ipAddress.startsWith('192.168.') ||
-          ipAddress.startsWith('10.') || ipAddress.startsWith('172.') ||
-          ipAddress === '127.0.0.1' || ipAddress === '::1') {
+      if (
+        !ipAddress ||
+        ipAddress === 'unknown' ||
+        ipAddress.startsWith('192.168.') ||
+        ipAddress.startsWith('10.') ||
+        ipAddress.startsWith('172.') ||
+        ipAddress === '127.0.0.1' ||
+        ipAddress === '::1'
+      ) {
         this.logger.debug(`Skipping geolocation for local/invalid IP: ${ipAddress}`);
         return undefined;
       }
@@ -468,7 +473,9 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
         return `${geo.city || 'Unknown'}, ${geo.country || 'Unknown'}`;
       }
     } catch (error) {
-      this.logger.warn(`Failed to lookup IP location (non-blocking): ${error.message}`);
+      this.logger.warn(
+        `Failed to lookup IP location (non-blocking): ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
     return undefined;
   }
@@ -477,11 +484,21 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
    * Extract platform from user agent
    */
   private extractPlatform(userAgent: string): string {
-    if (/android/i.test(userAgent)) return 'Android';
-    if (/iphone|ipad|ipod/i.test(userAgent)) return 'iOS';
-    if (/windows/i.test(userAgent)) return 'Windows';
-    if (/mac/i.test(userAgent)) return 'macOS';
-    if (/linux/i.test(userAgent)) return 'Linux';
+    if (/android/i.test(userAgent)) {
+      return 'Android';
+    }
+    if (/iphone|ipad|ipod/i.test(userAgent)) {
+      return 'iOS';
+    }
+    if (/windows/i.test(userAgent)) {
+      return 'Windows';
+    }
+    if (/mac/i.test(userAgent)) {
+      return 'macOS';
+    }
+    if (/linux/i.test(userAgent)) {
+      return 'Linux';
+    }
     return 'Unknown';
   }
 
@@ -489,10 +506,18 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
    * Extract browser from user agent
    */
   private extractBrowser(userAgent: string): string {
-    if (/chrome/i.test(userAgent)) return 'Chrome';
-    if (/safari/i.test(userAgent)) return 'Safari';
-    if (/firefox/i.test(userAgent)) return 'Firefox';
-    if (/edge/i.test(userAgent)) return 'Edge';
+    if (/chrome/i.test(userAgent)) {
+      return 'Chrome';
+    }
+    if (/safari/i.test(userAgent)) {
+      return 'Safari';
+    }
+    if (/firefox/i.test(userAgent)) {
+      return 'Firefox';
+    }
+    if (/edge/i.test(userAgent)) {
+      return 'Edge';
+    }
     return 'Unknown';
   }
 
@@ -516,7 +541,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       sessions.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
       if (sessions.length > 0) {
-        await this.destroySession(sessions[0].sessionId);
+        await this.destroySession(sessions[0]!.sessionId);
         this.logger.log(`Removed oldest session for user ${userId} due to limit`);
       }
     }
@@ -525,10 +550,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   /**
    * Add login history entry to user document
    */
-  private async addLoginHistory(
-    userId: string,
-    entry: LoginHistoryEntry,
-  ): Promise<void> {
+  private async addLoginHistory(userId: string, entry: LoginHistoryEntry): Promise<void> {
     // Atomic $push + $slice — no findById needed, single roundtrip
     await this.userModel.updateOne(
       { _id: userId },
@@ -547,11 +569,9 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   /**
    * Log session activity
    */
-  private async logSessionActivity(activity: SessionActivity): Promise<void> {
+  private logSessionActivity(activity: SessionActivity): void {
     // Could be expanded to store in dedicated activity log collection
-    this.logger.debug(
-      `Session activity: ${activity.activityType} for ${activity.sessionId}`,
-    );
+    this.logger.debug(`Session activity: ${activity.activityType} for ${activity.sessionId}`);
   }
 
   /**
@@ -562,7 +582,9 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       try {
         await this.cleanupExpiredSessions();
       } catch (error) {
-        this.logger.error(`Session cleanup error: ${error.message}`);
+        this.logger.error(
+          `Session cleanup error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
       }
     }, this.config.cleanupInterval);
 
@@ -582,7 +604,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     for (const key of keys) {
       const sessionJson = await redisClient.get(key);
       if (sessionJson) {
-        const session: SessionInfo = JSON.parse(sessionJson as string);
+        const session: SessionInfo = JSON.parse(sessionJson);
         session.expiresAt = new Date(session.expiresAt);
 
         if (new Date() > session.expiresAt) {
@@ -608,18 +630,20 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     try {
       const redisClient = await this.redisService.getClient();
       const key = `session:${session.sessionId}`;
-      const ttl = Math.ceil(
-        (session.expiresAt.getTime() - Date.now()) / 1000,
-      );
+      const ttl = Math.ceil((session.expiresAt.getTime() - Date.now()) / 1000);
 
       if (ttl <= 0) {
-        this.logger.warn(`Session ${session.sessionId} already expired (ttl=${ttl}s), skipping Redis store`);
+        this.logger.warn(
+          `Session ${session.sessionId} already expired (ttl=${ttl}s), skipping Redis store`,
+        );
         return;
       }
 
-      await redisClient.setEx(key, ttl, JSON.stringify(session) as any);
-    } catch (error: any) {
-      this.logger.warn(`Redis storage failed, using fallback: ${error.message}`);
+      await redisClient.setEx(key, ttl, JSON.stringify(session));
+    } catch (error: unknown) {
+      this.logger.warn(
+        `Redis storage failed, using fallback: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       this.fallbackSessions.set(session.sessionId, session);
     }
   }
@@ -634,15 +658,17 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       const sessionJson = await redisClient.get(key);
 
       if (sessionJson) {
-        const session = JSON.parse(sessionJson as string);
+        const session = JSON.parse(sessionJson);
         // Reconstitute Date objects lost during JSON serialization
         session.expiresAt = new Date(session.expiresAt);
         session.createdAt = new Date(session.createdAt);
         session.lastActivityAt = new Date(session.lastActivityAt);
         return session;
       }
-    } catch (error: any) {
-      this.logger.warn(`Redis retrieval failed, using fallback: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.warn(
+        `Redis retrieval failed, using fallback: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       return this.fallbackSessions.get(sessionId) || null;
     }
 
@@ -658,7 +684,9 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       const key = `session:${sessionId}`;
       await redisClient.del(key);
     } catch (error) {
-      this.logger.warn(`Redis deletion failed, using fallback: ${error.message}`);
+      this.logger.warn(
+        `Redis deletion failed, using fallback: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       this.fallbackSessions.delete(sessionId);
     }
   }
@@ -672,7 +700,9 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       const key = `user:sessions:${userId}`;
       await redisClient.sAdd(key, sessionId);
     } catch (error) {
-      this.logger.warn(`Redis sAdd failed, using fallback: ${error.message}`);
+      this.logger.warn(
+        `Redis sAdd failed, using fallback: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       if (!this.fallbackUserSessions.has(userId)) {
         this.fallbackUserSessions.set(userId, new Set());
       }
@@ -689,7 +719,9 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       const key = `user:sessions:${userId}`;
       await redisClient.sRem(key, sessionId);
     } catch (error) {
-      this.logger.warn(`Redis sRem failed, using fallback: ${error.message}`);
+      this.logger.warn(
+        `Redis sRem failed, using fallback: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       this.fallbackUserSessions.get(userId)?.delete(sessionId);
     }
   }
@@ -703,7 +735,9 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       const key = `user:sessions:${userId}`;
       return await redisClient.sMembers(key);
     } catch (error) {
-      this.logger.warn(`Redis sMembers failed, using fallback: ${error.message}`);
+      this.logger.warn(
+        `Redis sMembers failed, using fallback: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       return Array.from(this.fallbackUserSessions.get(userId) || []);
     }
   }

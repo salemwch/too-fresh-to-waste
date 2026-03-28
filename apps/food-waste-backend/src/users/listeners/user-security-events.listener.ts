@@ -9,10 +9,11 @@
  * @module users/listeners
  */
 
+import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { plainToClass } from 'class-transformer';
+
 import {
   UserPasswordChangedEvent,
   UserAccountLockedEvent,
@@ -33,8 +34,8 @@ export class UserSecurityEventsListener {
    * LEGACY: EventEmitter2 handler for password changes
    */
   @OnEvent('user.password.changed')
-  async handlePasswordChangedLegacy(event: UserPasswordChangedEvent): Promise<void> {
-    await this.processPasswordChanged(event);
+  handlePasswordChangedLegacy(event: UserPasswordChangedEvent): void {
+    this.processPasswordChanged(event);
   }
 
   /**
@@ -52,16 +53,13 @@ export class UserSecurityEventsListener {
       },
     },
   })
-  async handlePasswordChangedRabbitMQ(msg: object): Promise<void | Nack> {
+  handlePasswordChangedRabbitMQ(msg: object): void | Nack {
     try {
       const event = plainToClass(UserPasswordChangedEvent, msg);
-      await this.processPasswordChanged(event);
+      this.processPasswordChanged(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.password.changed event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.password.changed event`, error);
       return new Nack(true); // Requeue for retry - critical security event
     }
   }
@@ -70,23 +68,19 @@ export class UserSecurityEventsListener {
    * Shared logic: Handle password change events
    * Log security event for monitoring suspicious activity
    */
-  private async processPasswordChanged(event: UserPasswordChangedEvent): Promise<void> {
+  private processPasswordChanged(event: UserPasswordChangedEvent): void {
     try {
-      this.logger.log(
-        `Password changed for user ${event.email} from IP ${event.ipAddress}`,
-      );
+      this.logger.log(`Password changed for user ${event.email} from IP ${event.ipAddress}`);
 
       // TODO: Add integration with security monitoring service
       // TODO: Send security alert email to user
       // TODO: Invalidate all existing sessions except current
 
-      this.logger.debug(
-        `Password change event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`Password change event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.password.changed event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.password.changed event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // Don't throw - event listeners should not break the flow
     }
@@ -100,8 +94,8 @@ export class UserSecurityEventsListener {
    * LEGACY: EventEmitter2 handler for account locked
    */
   @OnEvent('user.account.locked')
-  async handleAccountLockedLegacy(event: UserAccountLockedEvent): Promise<void> {
-    await this.processAccountLocked(event);
+  handleAccountLockedLegacy(event: UserAccountLockedEvent): void {
+    this.processAccountLocked(event);
   }
 
   /**
@@ -119,16 +113,13 @@ export class UserSecurityEventsListener {
       },
     },
   })
-  async handleAccountLockedRabbitMQ(msg: object): Promise<void | Nack> {
+  handleAccountLockedRabbitMQ(msg: object): void | Nack {
     try {
       const event = plainToClass(UserAccountLockedEvent, msg);
-      await this.processAccountLocked(event);
+      this.processAccountLocked(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.account.locked event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.account.locked event`, error);
       return new Nack(true); // Requeue for retry - critical security event
     }
   }
@@ -137,7 +128,7 @@ export class UserSecurityEventsListener {
    * Shared logic: Handle account locked events
    * Alert admins for potential brute-force attacks
    */
-  private async processAccountLocked(event: UserAccountLockedEvent): Promise<void> {
+  private processAccountLocked(event: UserAccountLockedEvent): void {
     try {
       this.logger.warn(
         `Account locked for user ${event.email} after ${event.failedAttempts} failed attempts from IP ${event.ipAddress}`,
@@ -147,13 +138,11 @@ export class UserSecurityEventsListener {
       // TODO: Notify admins if multiple accounts locked from same IP
       // TODO: Consider IP blocking if threshold exceeded
 
-      this.logger.debug(
-        `Account locked event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`Account locked event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.account.locked event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.account.locked event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -166,8 +155,8 @@ export class UserSecurityEventsListener {
    * LEGACY: EventEmitter2 handler for account unlocked
    */
   @OnEvent('user.account.unlocked')
-  async handleAccountUnlockedLegacy(event: UserAccountUnlockedEvent): Promise<void> {
-    await this.processAccountUnlocked(event);
+  handleAccountUnlockedLegacy(event: UserAccountUnlockedEvent): void {
+    this.processAccountUnlocked(event);
   }
 
   /**
@@ -185,16 +174,13 @@ export class UserSecurityEventsListener {
       },
     },
   })
-  async handleAccountUnlockedRabbitMQ(msg: object): Promise<void | Nack> {
+  handleAccountUnlockedRabbitMQ(msg: object): void | Nack {
     try {
       const event = plainToClass(UserAccountUnlockedEvent, msg);
-      await this.processAccountUnlocked(event);
+      this.processAccountUnlocked(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.account.unlocked event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.account.unlocked event`, error);
       return new Nack(false); // Don't requeue - non-critical event
     }
   }
@@ -203,22 +189,18 @@ export class UserSecurityEventsListener {
    * Shared logic: Handle account unlocked events
    * Log admin action for audit trail
    */
-  private async processAccountUnlocked(event: UserAccountUnlockedEvent): Promise<void> {
+  private processAccountUnlocked(event: UserAccountUnlockedEvent): void {
     try {
-      this.logger.log(
-        `Account unlocked for user ${event.email} by admin ${event.unlockedBy}`,
-      );
+      this.logger.log(`Account unlocked for user ${event.email} by admin ${event.unlockedBy}`);
 
       // TODO: Send notification email to user
       // TODO: Log admin action in audit trail
 
-      this.logger.debug(
-        `Account unlocked event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`Account unlocked event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.account.unlocked event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.account.unlocked event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -231,8 +213,8 @@ export class UserSecurityEventsListener {
    * LEGACY: EventEmitter2 handler for MFA enabled
    */
   @OnEvent('user.mfa.enabled')
-  async handleMfaEnabledLegacy(event: UserMfaEnabledEvent): Promise<void> {
-    await this.processMfaEnabled(event);
+  handleMfaEnabledLegacy(event: UserMfaEnabledEvent): void {
+    this.processMfaEnabled(event);
   }
 
   /**
@@ -250,16 +232,13 @@ export class UserSecurityEventsListener {
       },
     },
   })
-  async handleMfaEnabledRabbitMQ(msg: object): Promise<void | Nack> {
+  handleMfaEnabledRabbitMQ(msg: object): void | Nack {
     try {
       const event = plainToClass(UserMfaEnabledEvent, msg);
-      await this.processMfaEnabled(event);
+      this.processMfaEnabled(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.mfa.enabled event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.mfa.enabled event`, error);
       return new Nack(true); // Requeue for retry - critical security event
     }
   }
@@ -268,11 +247,9 @@ export class UserSecurityEventsListener {
    * Shared logic: Handle MFA enabled events
    * Log security enhancement for compliance
    */
-  private async processMfaEnabled(event: UserMfaEnabledEvent): Promise<void> {
+  private processMfaEnabled(event: UserMfaEnabledEvent): void {
     try {
-      this.logger.log(
-        `MFA enabled for user ${event.email} using method: ${event.mfaMethod}`,
-      );
+      this.logger.log(`MFA enabled for user ${event.email} using method: ${event.mfaMethod}`);
 
       // TODO: Send security confirmation email
       // TODO: Update user security score
@@ -281,8 +258,8 @@ export class UserSecurityEventsListener {
       this.logger.debug(`MFA enabled event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.mfa.enabled event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.mfa.enabled event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -295,8 +272,8 @@ export class UserSecurityEventsListener {
    * LEGACY: EventEmitter2 handler for MFA disabled
    */
   @OnEvent('user.mfa.disabled')
-  async handleMfaDisabledLegacy(event: UserMfaDisabledEvent): Promise<void> {
-    await this.processMfaDisabled(event);
+  handleMfaDisabledLegacy(event: UserMfaDisabledEvent): void {
+    this.processMfaDisabled(event);
   }
 
   /**
@@ -314,16 +291,13 @@ export class UserSecurityEventsListener {
       },
     },
   })
-  async handleMfaDisabledRabbitMQ(msg: object): Promise<void | Nack> {
+  handleMfaDisabledRabbitMQ(msg: object): void | Nack {
     try {
       const event = plainToClass(UserMfaDisabledEvent, msg);
-      await this.processMfaDisabled(event);
+      this.processMfaDisabled(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.mfa.disabled event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.mfa.disabled event`, error);
       return new Nack(false); // Don't requeue - non-critical event
     }
   }
@@ -332,7 +306,7 @@ export class UserSecurityEventsListener {
    * Shared logic: Handle MFA disabled events
    * Alert for security downgrade
    */
-  private async processMfaDisabled(event: UserMfaDisabledEvent): Promise<void> {
+  private processMfaDisabled(event: UserMfaDisabledEvent): void {
     try {
       this.logger.warn(`MFA disabled for user ${event.email}`);
 
@@ -340,13 +314,11 @@ export class UserSecurityEventsListener {
       // TODO: Alert admins for high-value merchant accounts
       // TODO: Update user security score
 
-      this.logger.debug(
-        `MFA disabled event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`MFA disabled event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.mfa.disabled event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.mfa.disabled event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }

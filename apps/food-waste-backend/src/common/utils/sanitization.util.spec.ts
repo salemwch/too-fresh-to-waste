@@ -1,5 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+
 import { SanitizationUtil } from './sanitization.util';
+
+import type { TestingModule } from '@nestjs/testing';
 
 describe('SanitizationUtil - Enterprise Security Tests', () => {
   let sanitizationUtil: SanitizationUtil;
@@ -35,7 +38,7 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
         '<body onload="steal()">',
       ];
 
-      inputs.forEach(input => {
+      inputs.forEach((input) => {
         const result = sanitizationUtil.sanitizeHtml(input);
         expect(result).not.toContain('onerror');
         expect(result).not.toContain('onclick');
@@ -52,12 +55,9 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
     });
 
     it('should block object and embed tags', () => {
-      const inputs = [
-        '<object data="malicious.swf"></object>',
-        '<embed src="malicious.swf">',
-      ];
+      const inputs = ['<object data="malicious.swf"></object>', '<embed src="malicious.swf">'];
 
-      inputs.forEach(input => {
+      inputs.forEach((input) => {
         const result = sanitizationUtil.sanitizeHtml(input);
         expect(result).not.toContain('<object');
         expect(result).not.toContain('<embed');
@@ -85,8 +85,8 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
 
     it('should handle empty and null inputs gracefully', () => {
       expect(sanitizationUtil.sanitizeHtml('')).toBe('');
-      expect(sanitizationUtil.sanitizeHtml(null as any)).toBe('');
-      expect(sanitizationUtil.sanitizeHtml(undefined as any)).toBe('');
+      expect(sanitizationUtil.sanitizeHtml(null as unknown as string)).toBe('');
+      expect(sanitizationUtil.sanitizeHtml(undefined as unknown as string)).toBe('');
     });
 
     it('should block data: URIs in iframes', () => {
@@ -184,7 +184,7 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
     it('should allow safe relative URLs', () => {
       const urls = ['/path/to/resource', './relative/path'];
 
-      urls.forEach(url => {
+      urls.forEach((url) => {
         const result = sanitizationUtil.sanitizeUrl(url);
         expect(result).toBe(url);
       });
@@ -199,8 +199,8 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
 
     it('should handle empty and null inputs', () => {
       expect(sanitizationUtil.sanitizeUrl('')).toBe('');
-      expect(sanitizationUtil.sanitizeUrl(null as any)).toBe('');
-      expect(sanitizationUtil.sanitizeUrl(undefined as any)).toBe('');
+      expect(sanitizationUtil.sanitizeUrl(null as unknown as string)).toBe('');
+      expect(sanitizationUtil.sanitizeUrl(undefined as unknown as string)).toBe('');
     });
   });
 
@@ -214,7 +214,7 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
       const result = sanitizationUtil.sanitizeObjectRecursively(obj);
 
       expect(result).toHaveProperty('name');
-      expect((result as any).name).not.toContain('<script>');
+      expect((result as Record<string, unknown>)['name']).not.toContain('<script>');
     });
 
     it('should sanitize nested objects', () => {
@@ -227,7 +227,9 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
         },
       };
 
-      const result = sanitizationUtil.sanitizeObjectRecursively(obj) as any;
+      const result = sanitizationUtil.sanitizeObjectRecursively(obj) as {
+        user: { name: string; address: { street: string } };
+      };
 
       expect(result.user.name).not.toContain('<script>');
       expect(result.user.address.street).not.toContain('onerror');
@@ -236,7 +238,7 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
     it('should sanitize arrays', () => {
       const arr = ['<script>alert(1)</script>', 'safe', '<img onerror=alert(1)>'];
 
-      const result = sanitizationUtil.sanitizeObjectRecursively(arr) as any;
+      const result = sanitizationUtil.sanitizeObjectRecursively(arr) as string[];
 
       expect(result[0]).not.toContain('<script>');
       expect(result[1]).toBe('safe');
@@ -251,12 +253,12 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
         empty: null,
       };
 
-      const result = sanitizationUtil.sanitizeObjectRecursively(obj) as any;
+      const result = sanitizationUtil.sanitizeObjectRecursively(obj) as Record<string, unknown>;
 
-      expect(result.count).toBe(42);
-      expect(result.active).toBe(true);
-      expect(result.ratio).toBe(3.14);
-      expect(result.empty).toBeNull();
+      expect(result['count']).toBe(42);
+      expect(result['active']).toBe(true);
+      expect(result['ratio']).toBe(3.14);
+      expect(result['empty']).toBeNull();
     });
 
     it('should block prototype pollution via __proto__', () => {
@@ -265,7 +267,10 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
         name: 'test',
       };
 
-      const result = sanitizationUtil.sanitizeObjectRecursively(malicious) as any;
+      const result = sanitizationUtil.sanitizeObjectRecursively(malicious) as Record<
+        string,
+        unknown
+      >;
 
       // __proto__ key should not exist as own property
       expect(Object.prototype.hasOwnProperty.call(result, '__proto__')).toBe(false);
@@ -278,7 +283,10 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
         name: 'test',
       };
 
-      const result = sanitizationUtil.sanitizeObjectRecursively(malicious) as any;
+      const result = sanitizationUtil.sanitizeObjectRecursively(malicious) as Record<
+        string,
+        unknown
+      >;
 
       // constructor key should not exist as own property (or should be removed)
       expect(Object.prototype.hasOwnProperty.call(result, 'constructor')).toBe(false);
@@ -298,13 +306,9 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
     });
 
     it('should detect event handlers', () => {
-      const suspicious = [
-        'onclick=alert(1)',
-        'onerror=steal()',
-        'onload=malicious()',
-      ];
+      const suspicious = ['onclick=alert(1)', 'onerror=steal()', 'onload=malicious()'];
 
-      suspicious.forEach(content => {
+      suspicious.forEach((content) => {
         expect(sanitizationUtil.containsSuspiciousContent(content)).toBe(true);
       });
     });
@@ -327,15 +331,17 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
       ];
 
       // Most safe content should pass (angle brackets might trigger in last case, which is acceptable)
-      expect(sanitizationUtil.containsSuspiciousContent(safe[0])).toBe(false);
-      expect(sanitizationUtil.containsSuspiciousContent(safe[1])).toBe(false);
-      expect(sanitizationUtil.containsSuspiciousContent(safe[2])).toBe(false);
+      expect(sanitizationUtil.containsSuspiciousContent(safe[0]!)).toBe(false);
+      expect(sanitizationUtil.containsSuspiciousContent(safe[1]!)).toBe(false);
+      expect(sanitizationUtil.containsSuspiciousContent(safe[2]!)).toBe(false);
     });
 
     it('should handle empty and null inputs', () => {
       expect(sanitizationUtil.containsSuspiciousContent('')).toBe(false);
-      expect(sanitizationUtil.containsSuspiciousContent(null as any)).toBe(false);
-      expect(sanitizationUtil.containsSuspiciousContent(undefined as any)).toBe(false);
+      expect(sanitizationUtil.containsSuspiciousContent(null as unknown as string)).toBe(false);
+      expect(sanitizationUtil.containsSuspiciousContent(undefined as unknown as string)).toBe(
+        false,
+      );
     });
   });
 
@@ -386,12 +392,14 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
     });
 
     it('should handle deeply nested objects', () => {
-      let obj: any = { value: '<script>XSS</script>' };
+      let obj: { value?: string; nested?: unknown } = { value: '<script>XSS</script>' };
       for (let i = 0; i < 10; i++) {
         obj = { nested: obj };
       }
 
-      const result = sanitizationUtil.sanitizeObjectRecursively(obj);
+      const result = sanitizationUtil.sanitizeObjectRecursively(
+        obj as unknown as Parameters<typeof sanitizationUtil.sanitizeObjectRecursively>[0],
+      );
 
       expect(result).toBeDefined();
     });
@@ -404,7 +412,7 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
     });
 
     it('should handle mixed content types in arrays', () => {
-      const mixed: any = [
+      const mixed: (string | number | boolean | null | Record<string, string> | string[])[] = [
         'string',
         123,
         true,
@@ -413,10 +421,12 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
         ['nested', 'array'],
       ];
 
-      const result = sanitizationUtil.sanitizeObjectRecursively(mixed);
+      const result = sanitizationUtil.sanitizeObjectRecursively(
+        mixed as unknown as Parameters<typeof sanitizationUtil.sanitizeObjectRecursively>[0],
+      );
 
       expect(Array.isArray(result)).toBe(true);
-      expect((result as any[]).length).toBe(6);
+      expect((result as unknown[]).length).toBe(6);
     });
   });
 

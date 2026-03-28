@@ -1,9 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
 import { DateTime } from 'luxon';
-import { NotificationPreference, NotificationPreferenceDocument } from '../schemas/notification-preference.schema';
+import { Model, Types, FilterQuery } from 'mongoose';
+
 import { UpdateNotificationPreferencesDto } from '../dto/notification-preference.dto';
+import {
+  NotificationPreference,
+  NotificationPreferenceDocument,
+} from '../schemas/notification-preference.schema';
 import { NotificationChannel } from '../types/notification.types';
 
 @Injectable()
@@ -27,10 +31,7 @@ export class NotificationPreferencesService {
     return preferences;
   }
 
-  async updatePreferences(
-    userId: string,
-    updateDto: UpdateNotificationPreferencesDto
-  ) {
+  async updatePreferences(userId: string, updateDto: UpdateNotificationPreferencesDto) {
     let preferences = await this.preferencesModel
       .findOne({ userId: new Types.ObjectId(userId) })
       .exec();
@@ -41,7 +42,10 @@ export class NotificationPreferencesService {
 
     // Update fields if provided
     if (updateDto.channels !== undefined) {
-      const channelsMap = new Map<NotificationChannel, { push: boolean; email: boolean; sms: boolean }>();
+      const channelsMap = new Map<
+        NotificationChannel,
+        { push: boolean; email: boolean; sms: boolean }
+      >();
       Object.entries(updateDto.channels).forEach(([key, value]) => {
         if (Object.values(NotificationChannel).includes(key as NotificationChannel)) {
           channelsMap.set(key as NotificationChannel, value);
@@ -136,7 +140,7 @@ export class NotificationPreferencesService {
   async enableChannel(
     userId: string,
     channel: NotificationChannel,
-    types: { push?: boolean; email?: boolean; sms?: boolean }
+    types: { push?: boolean; email?: boolean; sms?: boolean },
   ) {
     let preferences = await this.preferencesModel
       .findOne({ userId: new Types.ObjectId(userId) })
@@ -146,11 +150,15 @@ export class NotificationPreferencesService {
       preferences = await this.createDefaultPreferences(userId);
     }
 
-    const currentChannelPrefs = preferences.channels.get(channel) || { push: true, email: true, sms: false };
+    const currentChannelPrefs = preferences.channels.get(channel) || {
+      push: true,
+      email: true,
+      sms: false,
+    };
 
     preferences.channels.set(channel, {
       push: types.push ?? currentChannelPrefs.push,
-      email: types.email ??  currentChannelPrefs.email,
+      email: types.email ?? currentChannelPrefs.email,
       sms: types.sms ?? currentChannelPrefs.sms,
     });
 
@@ -160,7 +168,7 @@ export class NotificationPreferencesService {
   async disableChannel(
     userId: string,
     channel: NotificationChannel,
-    types: { push?: boolean; email?: boolean; sms?: boolean }
+    types: { push?: boolean; email?: boolean; sms?: boolean },
   ) {
     let preferences = await this.preferencesModel
       .findOne({ userId: new Types.ObjectId(userId) })
@@ -170,7 +178,11 @@ export class NotificationPreferencesService {
       preferences = await this.createDefaultPreferences(userId);
     }
 
-    const currentChannelPrefs = preferences.channels.get(channel) || { push: true, email: true, sms: false };
+    const currentChannelPrefs = preferences.channels.get(channel) || {
+      push: true,
+      email: true,
+      sms: false,
+    };
 
     preferences.channels.set(channel, {
       push: types.push !== undefined ? !types.push : currentChannelPrefs.push,
@@ -188,7 +200,7 @@ export class NotificationPreferencesService {
       startTime: string;
       endTime: string;
       timezone: string;
-    }
+    },
   ) {
     // Validate and normalize quiet hours configuration
     const validatedQuietHours = this.validateQuietHoursConfig(quietHours);
@@ -208,8 +220,8 @@ export class NotificationPreferencesService {
 
     this.logger.log(
       `Updated quiet hours for user ${userId}: enabled=${validatedQuietHours.enabled}, ` +
-      `start=${validatedQuietHours.startTime}, end=${validatedQuietHours.endTime}, ` +
-      `timezone=${validatedQuietHours.timezone}`
+        `start=${validatedQuietHours.startTime}, end=${validatedQuietHours.endTime}, ` +
+        `timezone=${validatedQuietHours.timezone}`,
     );
 
     return preferences.save();
@@ -222,7 +234,7 @@ export class NotificationPreferencesService {
       latitude: number;
       longitude: number;
       radius: number;
-    }
+    },
   ) {
     let preferences = await this.preferencesModel
       .findOne({ userId: new Types.ObjectId(userId) })
@@ -236,7 +248,7 @@ export class NotificationPreferencesService {
       preferences.locationPreferences = {
         radius: 5,
         enableNearbyOffers: true,
-        savedLocations: []
+        savedLocations: [],
       };
     }
 
@@ -253,9 +265,8 @@ export class NotificationPreferencesService {
       return preferences || this.createDefaultPreferences(userId);
     }
 
-    preferences.locationPreferences.savedLocations = preferences.locationPreferences.savedLocations.filter(
-      loc => loc.name !== locationName
-    );
+    preferences.locationPreferences.savedLocations =
+      preferences.locationPreferences.savedLocations.filter((loc) => loc.name !== locationName);
 
     return preferences.save();
   }
@@ -263,26 +274,34 @@ export class NotificationPreferencesService {
   async canSendNotification(
     userId: string,
     channel: NotificationChannel,
-    type: 'push' | 'email' | 'sms'
+    type: 'push' | 'email' | 'sms',
   ): Promise<boolean> {
     const preferences = await this.getPreferences(userId);
 
     // Check global settings first
     switch (type) {
       case 'push':
-        if (!preferences.globalPushEnabled) {return false;}
+        if (!preferences.globalPushEnabled) {
+          return false;
+        }
         break;
       case 'email':
-        if (!preferences.globalEmailEnabled) {return false;}
+        if (!preferences.globalEmailEnabled) {
+          return false;
+        }
         break;
       case 'sms':
-        if (!preferences.globalSmsEnabled) {return false;}
+        if (!preferences.globalSmsEnabled) {
+          return false;
+        }
         break;
     }
 
     // Check channel-specific settings
     const channelPrefs = preferences.channels.get(channel);
-    if (!channelPrefs) {return true;} // Default to true if no specific preference
+    if (!channelPrefs) {
+      return true;
+    } // Default to true if no specific preference
 
     return channelPrefs[type] || false;
   }
@@ -307,7 +326,7 @@ export class NotificationPreferencesService {
     } catch (error) {
       this.logger.error(
         `Error checking quiet hours for user ${userId}: ${(error as Error).message}`,
-        (error as Error).stack
+        (error as Error).stack,
       );
       // Fail safe: assume not in quiet hours if there's an error
       return false;
@@ -315,9 +334,9 @@ export class NotificationPreferencesService {
   }
 
   async getUsersWithDeviceTokens(userIds?: string[]): Promise<Map<string, string[]>> {
-    const query: any = {};
+    const query: FilterQuery<NotificationPreferenceDocument> = {};
     if (userIds) {
-      query.userId = { $in: userIds.map(id => new Types.ObjectId(id)) };
+      query.userId = { $in: userIds.map((id) => new Types.ObjectId(id)) };
     }
 
     const preferences = await this.preferencesModel
@@ -327,7 +346,7 @@ export class NotificationPreferencesService {
 
     const userTokensMap = new Map<string, string[]>();
 
-    preferences.forEach(pref => {
+    preferences.forEach((pref) => {
       if (pref.deviceTokens && pref.deviceTokens.length > 0) {
         userTokensMap.set(pref.userId.toString(), pref.deviceTokens);
       }
@@ -337,11 +356,13 @@ export class NotificationPreferencesService {
   }
 
   async cleanupInvalidTokens(invalidTokens: string[]): Promise<void> {
-    if (invalidTokens.length === 0) {return;}
+    if (invalidTokens.length === 0) {
+      return;
+    }
 
     await this.preferencesModel.updateMany(
       { deviceTokens: { $in: invalidTokens } },
-      { $pullAll: { deviceTokens: invalidTokens } }
+      { $pullAll: { deviceTokens: invalidTokens } },
     );
 
     this.logger.log(`Cleaned up ${invalidTokens.length} invalid device tokens`);
@@ -368,8 +389,8 @@ export class NotificationPreferencesService {
         {
           timezone,
           errorType: (error as Error).constructor.name,
-          context: 'timezone_validation'
-        }
+          context: 'timezone_validation',
+        },
       );
       return false;
     }
@@ -382,11 +403,7 @@ export class NotificationPreferencesService {
    * @param timezone - IANA timezone identifier
    * @returns boolean indicating if currently in quiet hours
    */
-  private checkQuietHoursInTimezone(
-    startTime: string,
-    endTime: string,
-    timezone: string
-  ): boolean {
+  private checkQuietHoursInTimezone(startTime: string, endTime: string, timezone: string): boolean {
     try {
       // Get current time in the specified timezone
       const now = DateTime.now().setZone(timezone);
@@ -400,7 +417,7 @@ export class NotificationPreferencesService {
       const [startHour, startMinute] = this.parseTimeString(startTime);
       const [endHour, endMinute] = this.parseTimeString(endTime);
 
-      if (startHour === null || endHour === null) {
+      if (startHour === null || startMinute === null || endHour === null || endMinute === null) {
         this.logger.warn(`Invalid time format: start=${startTime}, end=${endTime}`);
         return false;
       }
@@ -410,14 +427,14 @@ export class NotificationPreferencesService {
         hour: startHour,
         minute: startMinute,
         second: 0,
-        millisecond: 0
+        millisecond: 0,
       });
 
       let endDateTime = now.set({
         hour: endHour,
         minute: endMinute,
         second: 0,
-        millisecond: 0
+        millisecond: 0,
       });
 
       // Handle overnight quiet hours (e.g., 22:00 to 08:00)
@@ -431,14 +448,13 @@ export class NotificationPreferencesService {
         endDateTime = endDateTime.plus({ days: 1 });
         const nowPlusDay = now.plus({ days: 1 });
         return nowPlusDay <= endDateTime;
-      } else {
-        // Normal quiet hours within the same day
-        return now >= startDateTime && now <= endDateTime;
       }
+      // Normal quiet hours within the same day
+      return now >= startDateTime && now <= endDateTime;
     } catch (error) {
       this.logger.error(
         `Error in checkQuietHoursInTimezone: ${(error as Error).message}`,
-        (error as Error).stack
+        (error as Error).stack,
       );
       return false;
     }
@@ -460,27 +476,25 @@ export class NotificationPreferencesService {
         return [null, null];
       }
 
-      const hour = parseInt(timeParts[0], 10);
-      const minute = parseInt(timeParts[1], 10);
+      const [hourPart, minutePart] = timeParts;
+      if (hourPart === undefined || minutePart === undefined) {
+        return [null, null];
+      }
+
+      const hour = parseInt(hourPart, 10);
+      const minute = parseInt(minutePart, 10);
 
       // Validate hour and minute ranges
-      if (
-        isNaN(hour) || isNaN(minute) ||
-        hour < 0 || hour > 23 ||
-        minute < 0 || minute > 59
-      ) {
+      if (isNaN(hour) || isNaN(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
         return [null, null];
       }
 
       return [hour, minute];
     } catch {
-      this.logger.warn(
-        `Time string parsing failed for '${timeString}'`,
-        {
-          timeString,
-          context: 'time_parsing'
-        }
-      );
+      this.logger.warn(`Time string parsing failed for '${timeString}'`, {
+        timeString,
+        context: 'time_parsing',
+      });
       return [null, null];
     }
   }
@@ -510,13 +524,13 @@ export class NotificationPreferencesService {
       'Pacific/Auckland',
     ];
 
-    return commonTimezones.map(tz => {
+    return commonTimezones.map((tz) => {
       try {
         const dt = DateTime.now().setZone(tz);
         return {
           label: `${tz.replace('_', ' ')} (${dt.offsetNameShort})`,
           value: tz,
-          offset: dt.offsetNameShort || '+00:00'
+          offset: dt.offsetNameShort || '+00:00',
         };
       } catch (error) {
         // Log timezone processing errors and provide fallback
@@ -526,13 +540,13 @@ export class NotificationPreferencesService {
             timezone: tz,
             errorType: (error as Error).constructor.name,
             stack: (error as Error).stack,
-            context: 'common_timezone_processing'
-          }
+            context: 'common_timezone_processing',
+          },
         );
         return {
           label: tz,
           value: tz,
-          offset: '+00:00'
+          offset: '+00:00',
         };
       }
     });
@@ -567,7 +581,7 @@ export class NotificationPreferencesService {
       const [startHour, startMinute] = this.parseTimeString(quietHours.startTime);
       const [endHour, endMinute] = this.parseTimeString(quietHours.endTime);
 
-      if (startHour === null || endHour === null) {
+      if (startHour === null || startMinute === null || endHour === null || endMinute === null) {
         this.logger.warn('Invalid time format in quiet hours configuration');
         return null;
       }
@@ -586,12 +600,12 @@ export class NotificationPreferencesService {
         enabled: quietHours.enabled,
         startTime: normalizedStartTime,
         endTime: normalizedEndTime,
-        timezone: quietHours.timezone
+        timezone: quietHours.timezone,
       };
     } catch (error) {
       this.logger.error(
         `Error validating quiet hours config: ${(error as Error).message}`,
-        (error as Error).stack
+        (error as Error).stack,
       );
       return null;
     }
@@ -618,13 +632,13 @@ export class NotificationPreferencesService {
         enabled: false,
         startTime: '22:00',
         endTime: '08:00',
-        timezone: 'UTC'
+        timezone: 'UTC',
       },
       locationPreferences: {
         radius: 5,
         enableNearbyOffers: true,
-        savedLocations: []
-      }
+        savedLocations: [],
+      },
     });
 
     await preferences.save();

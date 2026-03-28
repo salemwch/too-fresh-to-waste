@@ -1,7 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ExecutionContext, BadRequestException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { QueryComplexityGuard, QueryComplexity, QUERY_COMPLEXITY_KEY } from './query-complexity.guard';
+import { Test } from '@nestjs/testing';
+
+import { QueryComplexityGuard } from './query-complexity.guard';
+
+import type { ExecutionContext } from '@nestjs/common';
+import type { TestingModule } from '@nestjs/testing';
 
 /**
  * Comprehensive test suite for QueryComplexityGuard
@@ -33,8 +37,11 @@ describe('QueryComplexityGuard', () => {
     jest.clearAllMocks();
   });
 
-  const createMockExecutionContext = (body: any = {}, query: any = {}): ExecutionContext => {
-    return {
+  const createMockExecutionContext = (
+    body: Record<string, unknown> = {},
+    query: Record<string, unknown> = {},
+  ): ExecutionContext =>
+    ({
       switchToHttp: () => ({
         getRequest: () => ({
           body,
@@ -44,8 +51,7 @@ describe('QueryComplexityGuard', () => {
       }),
       getHandler: jest.fn(),
       getClass: jest.fn(),
-    } as any;
-  };
+    }) as unknown as ExecutionContext;
 
   describe('Basic Query Validation', () => {
     it('should allow simple queries', async () => {
@@ -88,11 +94,7 @@ describe('QueryComplexityGuard', () => {
 
       const context = createMockExecutionContext({
         filter: {
-          $or: [
-            { name: 'test1' },
-            { name: 'test2' },
-            { name: 'test3' },
-          ],
+          $or: [{ name: 'test1' }, { name: 'test2' }, { name: 'test3' }],
         },
       });
 
@@ -125,10 +127,7 @@ describe('QueryComplexityGuard', () => {
           $or: [
             { name: 'test1' },
             {
-              $or: [
-                { age: 20 },
-                { age: 30 },
-              ],
+              $or: [{ age: 20 }, { age: 30 }],
             },
           ],
         },
@@ -147,10 +146,7 @@ describe('QueryComplexityGuard', () => {
         filter: {
           $or: [
             {
-              $and: [
-                { status: 'active' },
-                { verified: true },
-              ],
+              $and: [{ status: 'active' }, { verified: true }],
             },
           ],
         },
@@ -194,10 +190,7 @@ describe('QueryComplexityGuard', () => {
         filter: {
           $or: [
             {
-              $and: [
-                { field1: 'value' },
-                { field2: 'value' },
-              ],
+              $and: [{ field1: 'value' }, { field2: 'value' }],
             },
           ],
         },
@@ -310,10 +303,7 @@ describe('QueryComplexityGuard', () => {
           field1: 'value1',
           field2: 'value2',
           field3: { $gte: 10 },
-          $or: [
-            { status: 'active' },
-            { status: 'pending' },
-          ],
+          $or: [{ status: 'active' }, { status: 'pending' }],
         },
       });
 
@@ -395,9 +385,7 @@ describe('QueryComplexityGuard', () => {
                 {
                   $or: [
                     {
-                      $or: [
-                        { field: 'value' },
-                      ],
+                      $or: [{ field: 'value' }],
                     },
                   ],
                 },
@@ -420,7 +408,7 @@ describe('QueryComplexityGuard', () => {
         {
           status: { $in: ['active', 'pending'] },
           name: { $regex: 'test' },
-        }
+        },
       );
 
       await expect(guard.canActivate(context)).resolves.toBe(true);
@@ -430,10 +418,7 @@ describe('QueryComplexityGuard', () => {
   describe('analyzeQueryComplexity', () => {
     it('should return correct statistics', () => {
       const query = {
-        $or: [
-          { name: 'test1' },
-          { name: 'test2' },
-        ],
+        $or: [{ name: 'test1' }, { name: 'test2' }],
         status: { $in: ['a', 'b', 'c'] },
         email: { $regex: 'test@' },
       };
@@ -480,9 +465,9 @@ describe('QueryComplexityGuard', () => {
 
       expect(stats.passed).toBe(false);
       expect(stats.violations.length).toBeGreaterThan(0);
-      expect(stats.violations.some(v => v.includes('$or conditions'))).toBe(true);
-      expect(stats.violations.some(v => v.includes('$in array size'))).toBe(true);
-      expect(stats.violations.some(v => v.includes('$regex'))).toBe(true);
+      expect(stats.violations.some((v) => v.includes('$or conditions'))).toBe(true);
+      expect(stats.violations.some((v) => v.includes('$in array size'))).toBe(true);
+      expect(stats.violations.some((v) => v.includes('$regex'))).toBe(true);
     });
   });
 
@@ -497,11 +482,7 @@ describe('QueryComplexityGuard', () => {
 
       const context = createMockExecutionContext({
         filter: {
-          $or: [
-            { field1: 'value' },
-            { field2: 'value' },
-            { field3: 'value' },
-          ],
+          $or: [{ field1: 'value' }, { field2: 'value' }, { field3: 'value' }],
         },
       });
 
@@ -549,9 +530,7 @@ describe('QueryComplexityGuard', () => {
 
       const context = createMockExecutionContext({
         filter: {
-          $or: [
-            { items: { $elemMatch: { status: 'active' } } },
-          ],
+          $or: [{ items: { $elemMatch: { status: 'active' } } }],
         },
       });
 
@@ -577,12 +556,15 @@ describe('QueryComplexityGuard', () => {
         }),
         getHandler: jest.fn(),
         getClass: jest.fn(),
-      } as any;
+      } as unknown as ExecutionContext;
 
       await guard.canActivate(context);
 
       expect(mockRequest).toHaveProperty('queryComplexityStats');
-      expect(mockRequest['queryComplexityStats']).toHaveProperty('passed', true);
+      expect((mockRequest as Record<string, unknown>)['queryComplexityStats']).toHaveProperty(
+        'passed',
+        true,
+      );
     });
   });
 });

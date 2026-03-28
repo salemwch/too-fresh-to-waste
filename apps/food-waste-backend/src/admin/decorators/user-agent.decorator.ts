@@ -1,9 +1,9 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { Request } from 'express';
+import { createParamDecorator } from '@nestjs/common';
 
-export const UserAgent = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): string => {
-    const request: Request = ctx.switchToHttp().getRequest();
-    return request.headers['user-agent'] || 'Unknown';
-  },
-);
+import type { ExecutionContext } from '@nestjs/common';
+import type { Request } from 'express';
+
+export const UserAgent = createParamDecorator((_data: unknown, ctx: ExecutionContext): string => {
+  const request: Request = ctx.switchToHttp().getRequest();
+  return request.headers['user-agent'] || 'Unknown';
+});

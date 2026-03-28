@@ -1,5 +1,7 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { TenantContext } from '../interfaces/authorization.interface';
+import { createParamDecorator } from '@nestjs/common';
+
+import type { TenantContext } from '../interfaces/authorization.interface';
+import type { ExecutionContext } from '@nestjs/common';
 
 /**
  * Tenant Context Decorator
@@ -12,10 +14,10 @@ import { TenantContext } from '../interfaces/authorization.interface';
  * }
  */
 export const TenantCtx = createParamDecorator(
-    (data: unknown, ctx: ExecutionContext): TenantContext | null => {
-        const request = ctx.switchToHttp().getRequest();
-        return request.tenantContext || null;
-    },
+  (_data: unknown, ctx: ExecutionContext): TenantContext | null => {
+    const request = ctx.switchToHttp().getRequest();
+    return request.tenantContext || null;
+  },
 );
 
 /**
@@ -29,8 +31,8 @@ export const TenantCtx = createParamDecorator(
  * }
  */
 export const TenantId = createParamDecorator(
-    (data: unknown, ctx: ExecutionContext): string | null => {
-        const request = ctx.switchToHttp().getRequest();
-        return request.tenantContext?.tenantId?.toString() || null;
-    },
+  (_data: unknown, ctx: ExecutionContext): string | null => {
+    const request = ctx.switchToHttp().getRequest();
+    return request.tenantContext?.tenantId?.toString() || null;
+  },
 );

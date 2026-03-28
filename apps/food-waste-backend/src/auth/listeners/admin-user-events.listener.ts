@@ -1,7 +1,8 @@
+import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { plainToClass } from 'class-transformer';
+
 import {
   AdminUserSuspendedEvent,
   AdminUserBlockedEvent,
@@ -22,9 +23,7 @@ import { SessionManagementService } from '../services/session-management.service
 export class AdminUserEventsListener {
   private readonly logger = new Logger(AdminUserEventsListener.name);
 
-  constructor(
-    private readonly sessionManagementService: SessionManagementService,
-  ) {}
+  constructor(private readonly sessionManagementService: SessionManagementService) {}
 
   // ============================================
   // USER SUSPENDED HANDLERS
@@ -73,18 +72,13 @@ export class AdminUserEventsListener {
     reason: 'suspended' | 'blocked' | 'deleted',
   ): Promise<void> {
     try {
-      this.logger.log(
-        `User ${userId} ${reason} by admin ${adminEmail}. Revoking all sessions.`,
-      );
+      this.logger.log(`User ${userId} ${reason} by admin ${adminEmail}. Revoking all sessions.`);
 
       await this.sessionManagementService.destroyAllUserSessions(userId);
 
       this.logger.log(`Successfully revoked all sessions for ${reason} user ${userId}`);
     } catch (error) {
-      this.logger.error(
-        `Failed to revoke sessions for ${reason} user ${userId}:`,
-        error,
-      );
+      this.logger.error(`Failed to revoke sessions for ${reason} user ${userId}:`, error);
       // Don't throw - session revocation failure shouldn't block the operation
     }
   }
@@ -198,10 +192,7 @@ export class AdminUserEventsListener {
 
       this.logger.log(`Successfully cleaned up auth data for deleted user ${userId}`);
     } catch (error) {
-      this.logger.error(
-        `Failed to clean up auth data for deleted user ${userId}:`,
-        error,
-      );
+      this.logger.error(`Failed to clean up auth data for deleted user ${userId}:`, error);
       // Don't throw - deletion should proceed even if cleanup fails
     }
   }
@@ -214,7 +205,7 @@ export class AdminUserEventsListener {
    * LEGACY: EventEmitter2 handler for user activation
    */
   @OnEvent('admin.user.activated')
-  async handleUserActivatedLegacy(event: AdminUserActivatedEvent): Promise<void> {
+  handleUserActivatedLegacy(event: AdminUserActivatedEvent): void {
     this.logger.log(
       `User ${event.userId} activated by admin ${event.adminEmail}. User can now log in again.`,
     );
@@ -241,7 +232,7 @@ export class AdminUserEventsListener {
       this.logger.log(
         `User ${event.userId} activated by admin ${event.adminEmail}. User can now log in again.`,
       );
-      // Auto-ACK on success
+      await Promise.resolve(); // satisfy require-await — no async I/O needed here
     } catch (error) {
       this.logger.error(`RabbitMQ: Failed to process user.activated event`, error);
       return new Nack(false); // Don't requeue - just log

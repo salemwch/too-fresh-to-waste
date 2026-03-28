@@ -1,8 +1,9 @@
 import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
 import { Injectable, Logger } from '@nestjs/common';
-import { SearchIndexService } from '../services/search-index.service';
+import { Job } from 'bull';
+
 import { SearchAnalyticsService } from '../services/search-analytics.service';
+import { SearchIndexService } from '../services/search-index.service';
 
 @Injectable()
 @Processor('search-indexing')
@@ -10,8 +11,8 @@ export class SearchProcessor {
   private readonly logger = new Logger(SearchProcessor.name);
 
   constructor(
-    private searchIndexService: SearchIndexService,
-    private searchAnalyticsService: SearchAnalyticsService,
+    private readonly searchIndexService: SearchIndexService,
+    private readonly searchAnalyticsService: SearchAnalyticsService,
   ) {}
 
   @Process('index-offer')
@@ -51,7 +52,7 @@ export class SearchProcessor {
   }
 
   @Process('rebuild-index')
-  async rebuildIndex(job: Job) {
+  async rebuildIndex(_job: Job) {
     try {
       this.logger.log('Processing full index rebuild...');
       await this.searchIndexService.rebuildIndex();
@@ -64,13 +65,15 @@ export class SearchProcessor {
   }
 
   @Process('record-search')
-  async recordSearch(job: Job<{
-    query: string;
-    userId?: string;
-    filters?: any;
-    resultsCount?: number;
-    location?: { latitude: number; longitude: number };
-  }>) {
+  async recordSearch(
+    job: Job<{
+      query: string;
+      userId?: string;
+      filters?: Record<string, unknown>;
+      resultsCount?: number;
+      location?: { latitude: number; longitude: number };
+    }>,
+  ) {
     try {
       const { query, userId, filters, resultsCount, location } = job.data;
       await this.searchAnalyticsService.recordSearchQuery(
@@ -88,7 +91,7 @@ export class SearchProcessor {
   }
 
   @Process('cleanup-analytics')
-  async cleanupAnalytics(job: Job<{ olderThanDays: number }>) {
+  cleanupAnalytics(job: Job<{ olderThanDays: number }>) {
     try {
       this.logger.log(`Cleaning up search analytics older than ${job.data.olderThanDays} days`);
       // Implementation would clean up old search queries

@@ -6,23 +6,23 @@
  */
 
 import { Injectable, Inject } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 // Import interfaces instead of concrete classes
-import { IUsersService, USERS_SERVICE_TOKEN } from '../users/interfaces';
+import { PhoneNumberService } from '../common/services/phone-number.service';
 import { IEmailService, EMAIL_SERVICE_TOKEN } from '../email/interfaces';
+import { IUsersService, USERS_SERVICE_TOKEN } from '../users/interfaces';
+
+import { RegisterDto } from './DTO/register.dto';
 import {
   IPasswordPolicyService,
   PASSWORD_POLICY_SERVICE_TOKEN,
 } from './interfaces/password-policy-service.interface';
-import {
-  ITokenService,
-  TOKEN_SERVICE_TOKEN,
-} from './interfaces/token-service.interface';
+import { ITokenService, TOKEN_SERVICE_TOKEN } from './interfaces/token-service.interface';
 
 // Import concrete types only for specific NestJS classes or when required
-import { PhoneNumberService } from '../common/services/phone-number.service';
+
 import { AuthSecurityService } from './services/auth-security.service';
 import { CaptchaService } from './services/captcha.service';
 
@@ -72,29 +72,36 @@ export class AuthServiceRefactored {
 
     // NestJS-specific services (JwtService, ConfigService) remain concrete
     // These are framework dependencies, not business logic
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly _jwtService: JwtService,
+    private readonly _configService: ConfigService,
 
     // Services without interfaces yet (migration in progress)
-    private readonly phoneNumberService: PhoneNumberService,
-    private readonly authSecurityService: AuthSecurityService,
-    private readonly captchaService: CaptchaService,
-  ) {}
+    private readonly _phoneNumberService: PhoneNumberService,
+    private readonly _authSecurityService: AuthSecurityService,
+    private readonly _captchaService: CaptchaService,
+  ) {
+    void this._jwtService;
+    void this._configService;
+    void this._phoneNumberService;
+    void this._authSecurityService;
+    void this._captchaService;
+  }
 
   /**
    * Example method using interface-based dependencies
    * The implementation doesn't know or care about concrete classes
    */
-  async register(registerDto: any): Promise<any> {
+  async register(registerDto: RegisterDto): Promise<{
+    success: boolean;
+    user: Awaited<ReturnType<IUsersService['create']>>;
+    tokens: { accessToken: string; refreshToken: string };
+  }> {
     // Validate password using interface
-    const passwordValidation = this.passwordPolicyService.validatePassword(
-      registerDto.password,
-      {
-        email: registerDto.email,
-        firstName: registerDto.firstName,
-        lastName: registerDto.lastName,
-      }
-    );
+    const passwordValidation = this.passwordPolicyService.validatePassword(registerDto.password, {
+      email: registerDto.email,
+      firstName: registerDto.firstName,
+      lastName: registerDto.lastName,
+    });
 
     if (!passwordValidation.isValid) {
       throw new Error('Password validation failed');
@@ -110,7 +117,7 @@ export class AuthServiceRefactored {
     const { accessToken, refreshToken } = await this.tokenService.generateTokens(
       user._id.toString(),
       user.email,
-      user.role
+      user.role,
     );
 
     return {

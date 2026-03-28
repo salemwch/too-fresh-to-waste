@@ -22,49 +22,49 @@ export enum StockUpdateReason {
 @Schema({ _id: false })
 export class StockMovement {
   @Prop({ required: true })
-  quantity: number;
+  quantity!: number;
 
   @Prop({ required: true })
-  previousQuantity: number;
+  previousQuantity!: number;
 
   @Prop({ required: true })
-  newQuantity: number;
+  newQuantity!: number;
 
   @Prop({ required: true, enum: StockUpdateReason })
-  reason: StockUpdateReason;
+  reason!: StockUpdateReason;
 
   @Prop()
-  notes?: string;
+  notes?: string | undefined;
 
   @Prop({ type: Types.ObjectId, ref: 'Order' })
-  orderId?: Types.ObjectId;
+  orderId?: Types.ObjectId | undefined;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
-  updatedBy?: Types.ObjectId;
+  updatedBy?: Types.ObjectId | undefined;
 
   @Prop({ required: true, default: Date.now })
-  timestamp: Date;
+  timestamp!: Date;
 }
 
 @Schema({ _id: false })
 export class StockAlert {
   @Prop({ required: true })
-  type: string;
+  type!: string;
 
   @Prop({ required: true })
-  threshold: number;
+  threshold!: number;
 
   @Prop({ required: true })
-  currentLevel: number;
+  currentLevel!: number;
 
   @Prop({ required: true })
-  message: string;
+  message!: string;
 
   @Prop({ required: true, default: Date.now })
-  createdAt: Date;
+  createdAt!: Date;
 
   @Prop({ default: false })
-  acknowledged: boolean;
+  acknowledged!: boolean;
 
   @Prop()
   acknowledgedAt?: Date;
@@ -76,67 +76,67 @@ export class StockAlert {
 @Schema({ timestamps: true })
 export class InventoryItem {
   @Prop({ required: true, type: Types.ObjectId, ref: 'Offer' })
-  offerId: Types.ObjectId;
+  offerId!: Types.ObjectId;
 
   @Prop({ required: true, type: Types.ObjectId, ref: 'Establishment' })
-  establishmentId: Types.ObjectId;
+  establishmentId!: Types.ObjectId;
 
   @Prop({ required: true })
-  name: string;
+  name!: string;
 
   @Prop()
   description?: string;
 
   @Prop({ required: true, min: 0 })
-  currentStock: number;
+  currentStock!: number;
 
   @Prop({ required: true, min: 0 })
-  initialStock: number;
+  initialStock!: number;
 
   @Prop({ default: 0, min: 0 })
-  reservedStock: number;
+  reservedStock!: number;
 
   @Prop({ required: true, min: 0 })
-  availableStock: number;
+  availableStock!: number;
 
   @Prop({ min: 1, default: 5 })
-  lowStockThreshold: number;
+  lowStockThreshold!: number;
 
   @Prop({ required: true, enum: InventoryStatus, default: InventoryStatus.AVAILABLE })
-  status: InventoryStatus;
+  status!: InventoryStatus;
 
   @Prop({ required: true })
-  expiryDate: Date;
+  expiryDate!: Date;
 
   @Prop()
   batchNumber?: string;
 
   @Prop({ required: true, min: 0 })
-  originalPrice: number;
+  originalPrice!: number;
 
   @Prop({ required: true, min: 0 })
-  discountedPrice: number;
+  discountedPrice!: number;
 
   @Prop({ min: 0, max: 100 })
-  discountPercentage: number;
+  discountPercentage!: number;
 
   @Prop([String])
-  categories: string[];
+  categories!: string[];
 
   @Prop([String])
-  tags: string[];
+  tags!: string[];
 
   @Prop({ default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Prop({ default: true })
-  autoUpdateStatus: boolean;
+  autoUpdateStatus!: boolean;
 
   @Prop([StockMovement])
-  stockHistory: StockMovement[];
+  stockHistory!: StockMovement[];
 
   @Prop([StockAlert])
-  alerts: StockAlert[];
+  alerts!: StockAlert[];
 
   @Prop()
   lastStockCheck?: Date;
@@ -148,10 +148,10 @@ export class InventoryItem {
   estimatedSoldBy?: Date;
 
   @Prop({ default: 0 })
-  totalSold: number;
+  totalSold!: number;
 
   @Prop({ default: 0 })
-  totalRevenue: number;
+  totalRevenue!: number;
 
   @Prop()
   location?: string;
@@ -176,7 +176,7 @@ InventoryItemSchema.index({ currentStock: 1, lowStockThreshold: 1 });
 InventoryItemSchema.index({ createdAt: -1 });
 
 // Pre-save middleware to calculate available stock and update status
-InventoryItemSchema.pre('save', function(this: InventoryItemDocument) {
+InventoryItemSchema.pre('save', function (this: InventoryItemDocument) {
   // Calculate available stock
   this.availableStock = Math.max(0, this.currentStock - this.reservedStock);
 
@@ -195,6 +195,8 @@ InventoryItemSchema.pre('save', function(this: InventoryItemDocument) {
 
   // Calculate discount percentage
   if (this.originalPrice > 0) {
-    this.discountPercentage = Math.round(((this.originalPrice - this.discountedPrice) / this.originalPrice) * 100);
+    this.discountPercentage = Math.round(
+      ((this.originalPrice - this.discountedPrice) / this.originalPrice) * 100,
+    );
   }
 });

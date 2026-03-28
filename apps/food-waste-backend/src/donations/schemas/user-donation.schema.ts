@@ -7,21 +7,21 @@ export type UserDonationDocument = UserDonation & Document;
  * Badge types for gamification
  */
 export enum DonationBadge {
-    FIRST_STEP = 'first_step',
-    COMMUNITY_HELPER = 'community_helper',
-    IMPACT_MAKER = 'impact_maker',
-    FOOD_HERO = 'food_hero',
-    CHAMPION = 'champion',
+  FIRST_STEP = 'first_step',
+  COMMUNITY_HELPER = 'community_helper',
+  IMPACT_MAKER = 'impact_maker',
+  FOOD_HERO = 'food_hero',
+  CHAMPION = 'champion',
 }
 
 /**
  * Metadata for user donation tracking
  */
 export interface UserDonationMetadata {
-    deviceInfo?: string;
-    platform?: 'mobile' | 'web';
-    sessionId?: string;
-    campaignId?: string;
+  deviceInfo?: string;
+  platform?: 'mobile' | 'web';
+  sessionId?: string;
+  campaignId?: string;
 }
 
 /**
@@ -31,41 +31,41 @@ export interface UserDonationMetadata {
  */
 @Schema({ timestamps: true })
 export class UserDonation {
-    @Prop({ required: true, type: Types.ObjectId, ref: 'User', index: true })
-    userId: Types.ObjectId;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'User', index: true })
+  userId!: Types.ObjectId;
 
-    @Prop({ required: true, type: Types.ObjectId, ref: 'Order' })
-    orderId: Types.ObjectId;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'Order' })
+  orderId!: Types.ObjectId;
 
-    @Prop({ required: true, type: Types.ObjectId, ref: 'DonationPool', index: true })
-    donationPoolId: Types.ObjectId;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'DonationPool', index: true })
+  donationPoolId!: Types.ObjectId;
 
-    @Prop({ required: true, min: 0 })
-    amount: number;
+  @Prop({ required: true, min: 0 })
+  amount!: number;
 
-    @Prop({ required: true, default: 'TND' })
-    currency: string;
+  @Prop({ required: true, default: 'TND' })
+  currency!: string;
 
-    @Prop({ type: Date, required: true, default: Date.now, index: true })
-    contributedAt: Date;
+  @Prop({ type: Date, required: true, default: Date.now, index: true })
+  contributedAt!: Date;
 
-    @Prop({ default: false })
-    isAnonymous: boolean;
+  @Prop({ default: false })
+  isAnonymous!: boolean;
 
-    @Prop({ type: [String], enum: DonationBadge, default: [] })
-    badgesEarned: DonationBadge[];
+  @Prop({ type: [String], enum: DonationBadge, default: [] })
+  badgesEarned!: DonationBadge[];
 
-    @Prop({ type: Object })
-    metadata?: UserDonationMetadata;
+  @Prop({ type: Object })
+  metadata?: UserDonationMetadata;
 
-    @Prop({ default: false })
-    isDeleted: boolean;
+  @Prop({ default: false })
+  isDeleted!: boolean;
 
-    @Prop({ type: Date })
-    deletedAt?: Date;
+  @Prop({ type: Date })
+  deletedAt?: Date;
 
-    @Prop({ type: String })
-    deletedBy?: string;
+  @Prop({ type: String })
+  deletedBy?: string;
 }
 
 export const UserDonationSchema = SchemaFactory.createForClass(UserDonation);
@@ -83,16 +83,19 @@ UserDonationSchema.index({ createdAt: -1 });
 // Bypass with: .setOptions({ includeDeleted: true })
 // =============================================================================
 
-UserDonationSchema.pre<Query<any, UserDonationDocument>>(/^find/, function (next) {
-    if (!(this as any).getOptions()?.includeDeleted) {
-        this.where({ isDeleted: { $ne: true } });
+UserDonationSchema.pre<Query<UserDonationDocument[], UserDonationDocument>>(
+  /^find/,
+  function (next) {
+    if (!this.getOptions()?.['includeDeleted']) {
+      this.where({ isDeleted: { $ne: true } });
     }
     next();
-});
+  },
+);
 
 UserDonationSchema.pre('aggregate', function () {
-    const options = (this as any).options || {};
-    if (!options.includeDeleted) {
-        this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
-    }
+  const options = (this as { options?: Record<string, unknown> }).options || {};
+  if (!options['includeDeleted']) {
+    this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+  }
 });

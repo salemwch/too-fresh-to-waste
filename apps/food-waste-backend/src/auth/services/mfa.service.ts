@@ -1,8 +1,9 @@
 import { Injectable, Logger, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from '../../users/user.service';
-import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
+import * as speakeasy from 'speakeasy';
+
+import { UsersService } from '../../users/user.service';
 
 export interface MfaSetupResponse {
   secret: string;
@@ -25,7 +26,7 @@ export interface MfaStatus {
     email: boolean;
     backupCodes: boolean;
   };
-  lastUsed?: Date;
+  lastUsed?: Date | undefined;
   trustedDevices: number;
 }
 
@@ -36,9 +37,11 @@ export class MfaService {
   private readonly BACKUP_CODES_COUNT = 10;
 
   constructor(
-    private readonly configService: ConfigService,
+    private readonly _configService: ConfigService,
     private readonly usersService: UsersService,
-  ) {}
+  ) {
+    void this._configService;
+  }
 
   async setupTotp(userId: string): Promise<MfaSetupResponse> {
     try {
@@ -70,7 +73,7 @@ export class MfaService {
       // Store the secret temporarily (not yet activated)
       await this.usersService.updateMfaSettings(userId, {
         pendingTotpSecret: secret.base32,
-        backupCodes: backupCodes.map(code => this.hashBackupCode(code)),
+        backupCodes: backupCodes.map((code) => this.hashBackupCode(code)),
       });
 
       this.logger.log(`TOTP setup initiated for user ${userId}`);
@@ -167,7 +170,9 @@ export class MfaService {
       }
 
       const hashedCode = this.hashBackupCode(code);
-      const codeIndex = user.mfaSettings.backupCodes.findIndex(storedCode => storedCode === hashedCode);
+      const codeIndex = user.mfaSettings.backupCodes.findIndex(
+        (storedCode) => storedCode === hashedCode,
+      );
 
       if (codeIndex === -1) {
         this.logger.warn(`Invalid backup code used for user ${userId}`);
@@ -186,7 +191,9 @@ export class MfaService {
         lastUsedAt: new Date(),
       });
 
-      this.logger.log(`Backup code used for user ${userId}, ${updatedBackupCodes.length} codes remaining`);
+      this.logger.log(
+        `Backup code used for user ${userId}, ${updatedBackupCodes.length} codes remaining`,
+      );
 
       return {
         isValid: true,
@@ -207,7 +214,7 @@ export class MfaService {
       }
 
       const newBackupCodes = this.generateBackupCodes();
-      const hashedCodes = newBackupCodes.map(code => this.hashBackupCode(code));
+      const hashedCodes = newBackupCodes.map((code) => this.hashBackupCode(code));
 
       await this.usersService.updateMfaSettings(userId, {
         backupCodes: hashedCodes,
@@ -247,7 +254,7 @@ export class MfaService {
       return {
         isEnabled: user.mfaSettings?.isEnabled || false,
         methods: {
-          totp: !!(user.mfaSettings?.totpSecret),
+          totp: !!user.mfaSettings?.totpSecret,
           sms: false, // Not implemented yet
           email: false, // Not implemented yet
           backupCodes: !!(user.mfaSettings?.backupCodes && user.mfaSettings.backupCodes.length > 0),
@@ -264,7 +271,7 @@ export class MfaService {
   async requiresMfa(userId: string): Promise<boolean> {
     try {
       const user = await this.usersService.findById(userId);
-      return !!(user?.mfaSettings?.isEnabled);
+      return !!user?.mfaSettings?.isEnabled;
     } catch (error) {
       this.logger.error(`Error checking MFA requirement for user ${userId}:`, error);
       return false;
@@ -279,7 +286,7 @@ export class MfaService {
       }
 
       const emergencyTokens = this.generateBackupCodes();
-      const hashedTokens = emergencyTokens.map(token => this.hashBackupCode(token));
+      const hashedTokens = emergencyTokens.map((token) => this.hashBackupCode(token));
 
       await this.usersService.updateMfaSettings(userId, {
         emergencyTokens: hashedTokens,

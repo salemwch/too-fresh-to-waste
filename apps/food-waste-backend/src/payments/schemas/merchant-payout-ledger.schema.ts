@@ -10,9 +10,9 @@ export type MerchantPayoutLedgerDocument = MerchantPayoutLedger & Document;
  * - FAILED: Bank transfer failed (will retry)
  */
 export enum LedgerStatus {
-    PENDING_SETTLEMENT = 'pending_settlement',
-    PAID_OUT = 'paid_out',
-    FAILED = 'failed',
+  PENDING_SETTLEMENT = 'pending_settlement',
+  PAID_OUT = 'paid_out',
+  FAILED = 'failed',
 }
 
 /**
@@ -25,80 +25,80 @@ export enum LedgerStatus {
  */
 @Schema({ timestamps: true })
 export class MerchantPayoutLedger {
-    // =============================================================================
-    // REFERENCES
-    // =============================================================================
+  // =============================================================================
+  // REFERENCES
+  // =============================================================================
 
-    @Prop({ required: true, type: Types.ObjectId, ref: 'User', index: true })
-    merchantId: Types.ObjectId;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'User', index: true })
+  merchantId!: Types.ObjectId;
 
-    @Prop({ required: true })
-    merchantName: string;
+  @Prop({ required: true })
+  merchantName!: string;
 
-    @Prop({ required: true })
-    merchantEmail: string;
+  @Prop({ required: true })
+  merchantEmail!: string;
 
-    @Prop({ required: true, type: Types.ObjectId, ref: 'Order' })  // ✅ Removed unique: true (schema-level at line 136)
-    orderId: Types.ObjectId;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'Order' }) // ✅ Removed unique: true (schema-level at line 136)
+  orderId!: Types.ObjectId;
 
-    @Prop({ required: true, type: Types.ObjectId, ref: 'Payment' })
-    paymentId: Types.ObjectId;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'Payment' })
+  paymentId!: Types.ObjectId;
 
-    @Prop({ required: true, type: Types.ObjectId, ref: 'Establishment' })
-    establishmentId: Types.ObjectId;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'Establishment' })
+  establishmentId!: Types.ObjectId;
 
-    // =============================================================================
-    // FINANCIAL AMOUNTS
-    // =============================================================================
+  // =============================================================================
+  // FINANCIAL AMOUNTS
+  // =============================================================================
 
-    @Prop({ required: true, min: 0 })
-    orderTotal: number;
+  @Prop({ required: true, min: 0 })
+  orderTotal!: number;
 
-    @Prop({ required: true, min: 0 })
-    merchantAmount: number;
+  @Prop({ required: true, min: 0 })
+  merchantAmount!: number;
 
-    @Prop({ required: true, min: 0 })
-    platformFee: number;
+  @Prop({ required: true, min: 0 })
+  platformFee!: number;
 
-    @Prop({ type: String, default: 'TND' })
-    currency: string;
+  @Prop({ type: String, default: 'TND' })
+  currency!: string;
 
-    // =============================================================================
-    // STATUS TRACKING
-    // =============================================================================
+  // =============================================================================
+  // STATUS TRACKING
+  // =============================================================================
 
-    @Prop({
-        type: String,
-        enum: LedgerStatus,
-        default: LedgerStatus.PENDING_SETTLEMENT,
-        index: true
-    })
-    status: LedgerStatus;
+  @Prop({
+    type: String,
+    enum: LedgerStatus,
+    default: LedgerStatus.PENDING_SETTLEMENT,
+    index: true,
+  })
+  status!: LedgerStatus;
 
-    @Prop({ required: true })
-    earnedAt: Date;
+  @Prop({ required: true })
+  earnedAt!: Date;
 
-    @Prop()
-    paidOutAt?: Date;
+  @Prop()
+  paidOutAt?: Date;
 
-    @Prop()
-    transferRef?: string;
+  @Prop()
+  transferRef?: string;
 
-    @Prop()
-    batchId?: string;
+  @Prop()
+  batchId?: string;
 
-    // =============================================================================
-    // ERROR HANDLING & RETRY
-    // =============================================================================
+  // =============================================================================
+  // ERROR HANDLING & RETRY
+  // =============================================================================
 
-    @Prop({ default: 0 })
-    retryCount: number;
+  @Prop({ default: 0 })
+  retryCount!: number;
 
-    @Prop()
-    lastError?: string;
+  @Prop()
+  lastError?: string;
 
-    @Prop()
-    nextRetryAt?: Date;
+  @Prop()
+  nextRetryAt?: Date;
 }
 
 export const MerchantPayoutLedgerSchema = SchemaFactory.createForClass(MerchantPayoutLedger);

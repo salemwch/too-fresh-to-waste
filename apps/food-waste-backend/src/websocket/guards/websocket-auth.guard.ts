@@ -1,6 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+
+import { UserRole } from '../../common/enums/user.enum';
 import { AuthenticatedSocket } from '../interfaces/websocket.interface';
 
 @Injectable()
@@ -30,9 +32,14 @@ export class WebSocketAuthGuard implements CanActivate {
 
       // Attach user information to the socket
       // JWT uses `sub` (standard claim) for userId — fall back to `userId` for compat
-      client.userId = payload.sub ?? payload.userId;
+      const resolvedUserId = payload.sub ?? payload.userId;
+      if (!resolvedUserId) {
+        this.logger.warn(`WebSocket token missing userId for client: ${client.id}`);
+        return false;
+      }
+      client.userId = resolvedUserId;
       client.email = payload.email;
-      client.role = payload.role;
+      client.role = payload.role as UserRole;
       client.isAuthenticated = true;
 
       this.logger.log(`WebSocket authenticated: ${payload.email} (${client.id})`);
@@ -43,17 +50,19 @@ export class WebSocketAuthGuard implements CanActivate {
     }
   }
 
-  private extractTokenFromHandshake(client: any): string | null {
+  private extractTokenFromHandshake(client: AuthenticatedSocket): string | null {
     try {
       // Priority order:
       // 1. Handshake auth object (mobile apps)
       // 2. Query parameter (legacy fallback)
       // 3. Authorization header (Bearer token)
       // 4. HttpOnly cookie (web app — browser sends it with withCredentials: true)
-      const token = client.handshake?.auth?.token ||
-                   client.handshake?.query?.token ||
-                   client.handshake?.headers?.authorization?.replace('Bearer ', '') ||
-                   this.extractTokenFromCookieHeader(client.handshake?.headers?.cookie);
+      const queryToken = client.handshake?.query?.['token'];
+      const token =
+        (client.handshake?.auth?.['token'] as string | undefined) ||
+        (Array.isArray(queryToken) ? queryToken[0] : queryToken) ||
+        client.handshake?.headers?.authorization?.replace('Bearer ', '') ||
+        this.extractTokenFromCookieHeader(client.handshake?.headers?.cookie);
 
       return token || null;
     } catch (error) {
@@ -64,12 +73,16 @@ export class WebSocketAuthGuard implements CanActivate {
 
   /** Parse the raw Cookie header to extract the access_token value. */
   private extractTokenFromCookieHeader(cookieHeader?: string): string | null {
-    if (!cookieHeader) return null;
+    if (!cookieHeader) {
+      return null;
+    }
     const match = cookieHeader.match(/(?:^|;\s*)access_token=([^;]+)/);
     return match?.[1] ? decodeURIComponent(match[1]) : null;
   }
 
-  private async verifyToken(token: string): Promise<any> {
+  private async verifyToken(
+    token: string,
+  ): Promise<{ sub?: string; userId?: string; email: string; role: string } | null> {
     try {
       const secret = this.configService.get<string>('JWT_SECRET');
       if (!secret) {

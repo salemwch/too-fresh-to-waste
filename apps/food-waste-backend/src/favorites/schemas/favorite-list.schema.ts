@@ -10,37 +10,37 @@ export enum ListVisibility {
 @Schema({ _id: false })
 export class ListItem {
   @Prop({ required: true, type: Types.ObjectId, refPath: 'type' })
-  itemId: Types.ObjectId;
+  itemId!: Types.ObjectId;
 
   @Prop({ required: true })
-  type: string; // 'establishment' or 'offer'
+  type!: string; // 'establishment' or 'offer'
 
   @Prop()
-  addedAt: Date;
+  addedAt!: Date;
 
   @Prop()
-  notes?: string;
+  notes?: string | undefined;
 
   @Prop({ default: 0 })
-  position: number;
+  position!: number;
 }
 
 @Schema({ timestamps: true })
 export class FavoriteList {
   @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
-  userId: Types.ObjectId;
+  userId!: Types.ObjectId;
 
   @Prop({ required: true })
-  name: string;
+  name!: string;
 
   @Prop()
   description?: string;
 
   @Prop({ enum: ListVisibility, default: ListVisibility.PRIVATE })
-  visibility: ListVisibility;
+  visibility!: ListVisibility;
 
   @Prop([ListItem])
-  items: ListItem[];
+  items!: ListItem[];
 
   @Prop([{ type: Types.ObjectId, ref: 'User' }])
   sharedWith?: Types.ObjectId[];
@@ -52,16 +52,16 @@ export class FavoriteList {
   coverImage?: string;
 
   @Prop([String])
-  tags: string[];
+  tags!: string[];
 
   @Prop({ default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Prop({ default: 0 })
-  viewCount: number;
+  viewCount!: number;
 
   @Prop({ default: 0 })
-  shareCount: number;
+  shareCount!: number;
 
   @Prop()
   lastAccessedAt?: Date;

@@ -8,14 +8,14 @@ export enum ConsentType {
   GPS_LOCATION = 'gps_location',
   ANALYTICS_TRACKING = 'analytics_tracking',
   THIRD_PARTY_SHARING = 'third_party_sharing',
-  PROFILING = 'profiling'
+  PROFILING = 'profiling',
 }
 
 export enum ConsentStatus {
   GIVEN = 'given',
   WITHDRAWN = 'withdrawn',
   PENDING = 'pending',
-  EXPIRED = 'expired'
+  EXPIRED = 'expired',
 }
 
 export enum LegalBasis {
@@ -32,7 +32,7 @@ export enum LegalBasis {
   GDPR_PUBLIC_TASK = 'gdpr_public_task',
   GDPR_LEGITIMATE_INTERESTS = 'gdpr_legitimate_interests',
   CCPA_BUSINESS_PURPOSE = 'ccpa_business_purpose',
-  CCPA_SERVICE_PROVIDER = 'ccpa_service_provider'
+  CCPA_SERVICE_PROVIDER = 'ccpa_service_provider',
 }
 
 export interface IConsentRecord {
@@ -106,10 +106,10 @@ export interface IUserDataExport {
     email: string;
     firstName: string;
     lastName: string;
-    phoneNumber?: string;
-    profileImage?: string;
+    phoneNumber?: string | undefined;
+    profileImage?: string | undefined;
     createdAt: Date;
-    lastLoginAt?: Date;
+    lastLoginAt?: Date | undefined;
   };
 
   // Privacy Settings
@@ -121,14 +121,16 @@ export interface IUserDataExport {
       timestamp: Date;
       ipAddress: string;
       userAgent: string;
-      location?: string;
+      location?: string | undefined;
     }>;
-    locationHistory?: Array<{
-      timestamp: Date;
-      latitude: number;
-      longitude: number;
-      accuracy: number;
-    }>;
+    locationHistory?:
+      | Array<{
+          timestamp: Date;
+          latitude: number;
+          longitude: number;
+          accuracy: number;
+        }>
+      | undefined;
   };
 
   // Application Data
@@ -207,7 +209,7 @@ export interface ISystemComplianceOverview {
     restrictionRequests: number;
     objectionRequests: number;
     pendingRequests: number;
-    lastExportDate?: Date;
+    lastExportDate?: Date | undefined;
   };
   auditSummary: {
     lastAudit: Date;

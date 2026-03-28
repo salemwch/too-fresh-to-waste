@@ -1,71 +1,78 @@
-import { ISystemConfig, IConfigValidationResult } from '../interfaces/system-config.interface';
+import type { SystemConfigDocument } from '../../admin/schemas/system-config.schema';
+import type { ISystemConfig, IConfigValidationResult } from '../interfaces/system-config.interface';
 
 export class SystemConfigMapper {
-  static toInterface(document: any): ISystemConfig {
+  static toInterface(document: SystemConfigDocument): ISystemConfig {
     if (!document) {
       throw new Error('Document cannot be null or undefined');
     }
 
+    const doc = document as unknown as { createdAt?: Date; updatedAt?: Date };
+
     return {
-      id: document._id?.toString() || document.id,
+      id: document._id?.toString() || (document as unknown as { id?: string }).id || '',
       version: document.version,
       isActive: document.isActive,
       platformSettings: {
         maintenanceMode: document.platformSettings?.maintenanceMode || false,
         allowNewRegistrations: document.platformSettings?.allowNewRegistrations ?? true,
-        maxOrdersPerDay: document.platformSettings?.maxOrdersPerDay || 1000,
-        defaultCurrency: document.platformSettings?.defaultCurrency || 'EUR',
-        supportedLanguages: document.platformSettings?.supportedLanguages || ['en', 'fr'],
+        maxOrdersPerDay: document.platformSettings?.maxOrderValue || 1000,
+        defaultCurrency: 'EUR',
+        supportedLanguages: ['en', 'fr'],
         businessHours: {
-          start: document.platformSettings?.businessHours?.start || '08:00',
-          end: document.platformSettings?.businessHours?.end || '22:00',
-          timezone: document.platformSettings?.businessHours?.timezone || 'Europe/Paris',
+          start: '08:00',
+          end: '22:00',
+          timezone: 'Europe/Paris',
         },
       },
       notificationSettings: {
-        emailNotifications: document.notificationSettings?.emailNotifications ?? true,
-        pushNotifications: document.notificationSettings?.pushNotifications ?? true,
-        smsNotifications: document.notificationSettings?.smsNotifications ?? true,
-        emailTemplates: document.notificationSettings?.emailTemplates || {},
-        notificationRetryAttempts: document.notificationSettings?.notificationRetryAttempts || 3,
+        emailNotifications: document.notificationSettings?.emailEnabled ?? true,
+        pushNotifications: document.notificationSettings?.pushNotificationsEnabled ?? true,
+        smsNotifications: document.notificationSettings?.smsEnabled ?? false,
+        emailTemplates: {},
+        notificationRetryAttempts: 3,
         quietHours: {
-          start: document.notificationSettings?.quietHours?.start || '22:00',
-          end: document.notificationSettings?.quietHours?.end || '08:00',
+          start: '22:00',
+          end: '08:00',
         },
       },
       securitySettings: {
         passwordMinLength: document.securitySettings?.passwordMinLength || 8,
         passwordRequireNumbers: document.securitySettings?.passwordRequireNumbers ?? true,
-        passwordRequireSymbols: document.securitySettings?.passwordRequireSymbols ?? true,
-        sessionTimeoutMinutes: document.securitySettings?.sessionTimeoutMinutes || 30,
+        passwordRequireSymbols: document.securitySettings?.passwordRequireSpecialChar ?? true,
+        sessionTimeoutMinutes: document.securitySettings?.sessionTimeout || 30,
         maxLoginAttempts: document.securitySettings?.maxLoginAttempts || 10,
-        lockoutDurationMinutes: document.securitySettings?.lockoutDurationMinutes || 15,
-        requireTwoFactor: document.securitySettings?.requireTwoFactor || false,
-        allowedFileTypes: document.securitySettings?.allowedFileTypes || ['jpg', 'jpeg', 'png', 'pdf'],
-        maxFileSize: document.securitySettings?.maxFileSize || 5242880, // 5MB
+        lockoutDurationMinutes: document.securitySettings?.accountLockoutDuration || 15,
+        requireTwoFactor: document.securitySettings?.twoFactorAuthRequired || false,
+        allowedFileTypes: ['jpg', 'jpeg', 'png', 'pdf'],
+        maxFileSize: 5242880,
       },
       paymentSettings: {
         stripeEnabled: document.paymentSettings?.stripeEnabled ?? true,
         paypalEnabled: document.paymentSettings?.paypalEnabled ?? false,
-        applePay: document.paymentSettings?.applePay ?? true,
-        googlePay: document.paymentSettings?.googlePay ?? true,
-        minimumOrderAmount: document.paymentSettings?.minimumOrderAmount || 5,
-        processingFeePercentage: document.paymentSettings?.processingFeePercentage || 2.9,
+        applePay: false,
+        googlePay: false,
+        minimumOrderAmount: document.paymentSettings?.minimumPayoutAmount || 5,
+        processingFeePercentage: 2.9,
         refundProcessingDays: document.paymentSettings?.refundProcessingDays || 7,
-        autoRefundEnabled: document.paymentSettings?.autoRefundEnabled ?? false,
+        autoRefundEnabled: document.paymentSettings?.automaticPayouts ?? false,
       },
-      description: document.description,
-      createdBy: document.createdBy?.toString() || document.adminId?.toString() || '',
-      createdAt: document.createdAt || new Date(),
-      updatedAt: document.updatedAt || new Date(),
+      ...(document.description !== undefined ? { description: document.description } : {}),
+      createdBy: document.lastModifiedBy || '',
+      createdAt: doc.createdAt ?? new Date(),
+      updatedAt: doc.updatedAt ?? new Date(),
     };
   }
 
-  static toInterfaceArray(documents: any[]): ISystemConfig[] {
-    return documents.map(doc => this.toInterface(doc));
+  static toInterfaceArray(documents: SystemConfigDocument[]): ISystemConfig[] {
+    return documents.map((doc) => this.toInterface(doc));
   }
 
-  static toValidationResult(result: any): IConfigValidationResult {
+  static toValidationResult(result: {
+    isValid?: boolean;
+    errors?: string[];
+    warnings?: string[];
+  }): IConfigValidationResult {
     return {
       isValid: result.isValid || false,
       errors: result.errors || [],

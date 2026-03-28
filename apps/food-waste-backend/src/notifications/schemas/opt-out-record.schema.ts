@@ -6,16 +6,10 @@ interface IOptOutRecordMethods {
     action: string,
     reason?: string,
     userId?: Types.ObjectId,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>,
   ): Promise<OptOutRecordDocument>;
   isExpired(): boolean;
   canReceiveMessageType(messageType: string): boolean;
-}
-
-interface IOptOutRecordModel {
-  findActiveOptOuts(): Promise<OptOutRecordDocument[]>;
-  findByPhoneNumbers(phoneNumbers: string[]): Promise<OptOutRecordDocument[]>;
-  cleanupExpired(): Promise<any>;
 }
 
 export type OptOutRecordDocument = OptOutRecord & Document & IOptOutRecordMethods;
@@ -30,14 +24,14 @@ export enum OptOutReason {
   BOUNCED_MESSAGE = 'bounced_message',
   FRAUD_PREVENTION = 'fraud_prevention',
   GDPR_REQUEST = 'gdpr_request',
-  CCPA_REQUEST = 'ccpa_request'
+  CCPA_REQUEST = 'ccpa_request',
 }
 
 export enum OptOutStatus {
   ACTIVE = 'active',
   PENDING = 'pending',
   EXPIRED = 'expired',
-  REVOKED = 'revoked'
+  REVOKED = 'revoked',
 }
 
 export enum OptOutScope {
@@ -46,12 +40,12 @@ export enum OptOutScope {
   TRANSACTIONAL_ONLY = 'transactional_only',
   ORDER_UPDATES = 'order_updates',
   PROMOTIONAL = 'promotional',
-  SECURITY_ALERTS = 'security_alerts'
+  SECURITY_ALERTS = 'security_alerts',
 }
 
 @Schema({
   timestamps: true,
-  collection: 'sms_opt_out_records'
+  collection: 'sms_opt_out_records',
 })
 export class OptOutRecord {
   @Prop({
@@ -60,38 +54,38 @@ export class OptOutRecord {
       validator(v: string) {
         return /^\+[1-9]\d{1,14}$/.test(v);
       },
-      message: 'Phone number must be in E.164 format'
-    }
+      message: 'Phone number must be in E.164 format',
+    },
   })
-  phoneNumber: string;
+  phoneNumber!: string;
 
   @Prop({
     required: true,
     enum: OptOutStatus,
     default: OptOutStatus.ACTIVE,
-    index: true
+    index: true,
   })
-  status: OptOutStatus;
+  status!: OptOutStatus;
 
   @Prop({ required: true, default: true })
-  isOptedOut: boolean;
+  isOptedOut!: boolean;
 
   @Prop({
     required: true,
     enum: OptOutScope,
-    default: OptOutScope.ALL_SMS
+    default: OptOutScope.ALL_SMS,
   })
-  scope: OptOutScope;
+  scope!: OptOutScope;
 
   @Prop({
     required: true,
     enum: OptOutReason,
-    default: OptOutReason.USER_REQUESTED
+    default: OptOutReason.USER_REQUESTED,
   })
-  reason: OptOutReason;
+  reason!: OptOutReason;
 
   @Prop({ required: true, default: Date.now })
-  optedOutAt: Date;
+  optedOutAt!: Date;
 
   @Prop()
   optedInAt?: Date;
@@ -125,44 +119,46 @@ export class OptOutRecord {
   };
 
   @Prop({
-    type: [{
-      action: { type: String, required: true },
-      timestamp: { type: Date, default: Date.now },
-      reason: String,
-      userId: { type: Types.ObjectId, ref: 'User' },
-      ipAddress: String,
-      userAgent: String,
-      metadata: Object
-    }],
-    default: []
+    type: [
+      {
+        action: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+        reason: String,
+        userId: { type: Types.ObjectId, ref: 'User' },
+        ipAddress: String,
+        userAgent: String,
+        metadata: Object,
+      },
+    ],
+    default: [],
   })
-  auditLog: Array<{
+  auditLog!: Array<{
     action: 'opt_out' | 'opt_in' | 'status_change' | 'expired' | 'revoked' | 'created' | 'updated';
     timestamp: Date;
     reason?: string;
     userId?: Types.ObjectId;
     ipAddress?: string;
     userAgent?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }>;
 
   @Prop({ default: 0 })
-  retryCount: number;
+  retryCount!: number;
 
   @Prop()
   lastVerifiedAt?: Date;
 
   @Prop({ default: false })
-  isVerified: boolean;
+  isVerified!: boolean;
 
   @Prop()
   verificationToken?: string;
 
   @Prop({ type: [String], default: [] })
-  blockedSenders: string[];
+  blockedSenders!: string[];
 
   @Prop({ type: [String], default: [] })
-  allowedSenders: string[];
+  allowedSenders!: string[];
 
   @Prop({
     type: {
@@ -170,8 +166,8 @@ export class OptOutRecord {
       lastMessageDelivered: Date,
       totalMessagesSent: { type: Number, default: 0 },
       totalMessagesDelivered: { type: Number, default: 0 },
-      totalMessagesFailed: { type: Number, default: 0 }
-    }
+      totalMessagesFailed: { type: Number, default: 0 },
+    },
   })
   messageStats?: {
     lastMessageSent?: Date;
@@ -187,8 +183,8 @@ export class OptOutRecord {
       processingCompleted: Date,
       processingStatus: { type: String, enum: ['pending', 'processing', 'completed', 'failed'] },
       processingErrors: [String],
-      batchId: String
-    }
+      batchId: String,
+    },
   })
   processingInfo?: {
     processingStarted?: Date;
@@ -199,10 +195,10 @@ export class OptOutRecord {
   };
 
   @Prop()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Prop()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 export const OptOutRecordSchema = SchemaFactory.createForClass(OptOutRecord);
@@ -219,11 +215,11 @@ OptOutRecordSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 OptOutRecordSchema.index({
   phoneNumber: 'text',
   reason: 'text',
-  source: 'text'
+  source: 'text',
 });
 
 // Pre-save middleware to handle audit logging
-OptOutRecordSchema.pre('save', function(next) {
+OptOutRecordSchema.pre('save', function (next) {
   if (this.isNew) {
     this.auditLog.push({
       action: 'created',
@@ -232,8 +228,8 @@ OptOutRecordSchema.pre('save', function(next) {
       metadata: {
         isOptedOut: this.isOptedOut,
         reason: this.reason,
-        scope: this.scope
-      }
+        scope: this.scope,
+      },
     });
   } else if (this.isModified('isOptedOut')) {
     this.auditLog.push({
@@ -243,8 +239,8 @@ OptOutRecordSchema.pre('save', function(next) {
       metadata: {
         previousStatus: !this.isOptedOut,
         newStatus: this.isOptedOut,
-        scope: this.scope
-      }
+        scope: this.scope,
+      },
     });
   }
 
@@ -252,7 +248,7 @@ OptOutRecordSchema.pre('save', function(next) {
 });
 
 // Virtual for masked phone number
-OptOutRecordSchema.virtual('maskedPhoneNumber').get(function() {
+OptOutRecordSchema.virtual('maskedPhoneNumber').get(function () {
   if (!this.phoneNumber || this.phoneNumber.length < 4) {
     return '****';
   }
@@ -262,28 +258,30 @@ OptOutRecordSchema.virtual('maskedPhoneNumber').get(function() {
 });
 
 // Instance methods
-OptOutRecordSchema.methods.addAuditEntry = function(
+OptOutRecordSchema.methods['addAuditEntry'] = function (
   action: string,
   reason?: string,
   userId?: Types.ObjectId,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>,
 ) {
-  this.auditLog.push({
+  this['auditLog'].push({
     action,
     timestamp: new Date(),
     reason,
     userId,
-    metadata
+    metadata,
   });
-  return this.save();
+  return this['save']();
 };
 
-OptOutRecordSchema.methods.isExpired = function(): boolean {
-  return this.expiresAt ? new Date() > this.expiresAt : false;
+OptOutRecordSchema.methods['isExpired'] = function (): boolean {
+  return this['expiresAt'] ? new Date() > this['expiresAt'] : false;
 };
 
-OptOutRecordSchema.methods.canReceiveMessageType = function(messageType: string): boolean {
-  if (!this.isOptedOut) {return true;}
+OptOutRecordSchema.methods['canReceiveMessageType'] = function (messageType: string): boolean {
+  if (!this['isOptedOut']) {
+    return true;
+  }
 
   // Always allow critical security messages
   if (messageType === 'security_alert' || messageType === 'fraud_alert') {
@@ -291,7 +289,7 @@ OptOutRecordSchema.methods.canReceiveMessageType = function(messageType: string)
   }
 
   // Check scope-specific permissions
-  switch (this.scope) {
+  switch (this['scope']) {
     case OptOutScope.ALL_SMS:
       return false;
     case OptOutScope.MARKETING_ONLY:
@@ -310,33 +308,30 @@ OptOutRecordSchema.methods.canReceiveMessageType = function(messageType: string)
 };
 
 // Static methods
-OptOutRecordSchema.statics.findActiveOptOuts = function() {
+OptOutRecordSchema.statics['findActiveOptOuts'] = function () {
   return this.find({
     status: OptOutStatus.ACTIVE,
     isOptedOut: true,
-    $or: [
-      { expiresAt: { $exists: false } },
-      { expiresAt: { $gt: new Date() } }
-    ]
+    $or: [{ expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }],
   });
 };
 
-OptOutRecordSchema.statics.findByPhoneNumbers = function(phoneNumbers: string[]) {
+OptOutRecordSchema.statics['findByPhoneNumbers'] = function (phoneNumbers: string[]) {
   return this.find({
     phoneNumber: { $in: phoneNumbers },
-    status: OptOutStatus.ACTIVE
+    status: OptOutStatus.ACTIVE,
   });
 };
 
-OptOutRecordSchema.statics.cleanupExpired = function() {
+OptOutRecordSchema.statics['cleanupExpired'] = function () {
   return this.updateMany(
     {
       expiresAt: { $lte: new Date() },
-      status: { $ne: OptOutStatus.EXPIRED }
+      status: { $ne: OptOutStatus.EXPIRED },
     },
     {
       status: OptOutStatus.EXPIRED,
-      isOptedOut: false
-    }
+      isOptedOut: false,
+    },
   );
 };

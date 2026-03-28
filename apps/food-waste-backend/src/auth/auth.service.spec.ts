@@ -1,16 +1,21 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from './auth.service';
-import { UsersService } from '../users/user.service';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { EmailService } from '../email/email.service';
-import { PasswordPolicyService } from './services/password-policy.service';
 import { ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import { UserRole, UserStatus } from '../common/enums/user.enum';
-import { RegisterDto } from './DTO/register.dto';
-import { VerifyEmailDto } from './DTO/verify-email.dto';
-import { LoginDto } from './DTO/login.dto';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { Test } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
+
+import { UserRole, UserStatus } from '../common/enums/user.enum';
+import { EmailService } from '../email/email.service';
+import { UsersService } from '../users/user.service';
+
+import { AuthService } from './auth.service';
+import { PasswordPolicyService } from './services/password-policy.service';
+
+import type { LoginDto } from './DTO/login.dto';
+import type { RegisterDto } from './DTO/register.dto';
+import type { VerifyEmailDto } from './DTO/verify-email.dto';
+import type { UserDocument } from '../users/schemas/user.schema';
+import type { TestingModule } from '@nestjs/testing';
 
 // Mock bcrypt module
 jest.mock('bcrypt', () => ({
@@ -35,7 +40,7 @@ describe('AuthService', () => {
   const mockRefreshToken = 'mock.refresh.token';
 
   // Helper function to create mock users with proper toObject implementation
-  const createMockUser = (overrides: any = {}) => {
+  const createMockUser = (overrides: Record<string, unknown> = {}) => {
     const baseUserObject = {
       id: mockUserId,
       email: mockUserEmail,
@@ -53,12 +58,12 @@ describe('AuthService', () => {
       accountLockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-      ...overrides
+      ...overrides,
     };
 
     return {
       ...baseUserObject,
-      toObject: jest.fn().mockReturnValue(baseUserObject)
+      toObject: jest.fn().mockReturnValue(baseUserObject),
     };
   };
 
@@ -69,17 +74,17 @@ describe('AuthService', () => {
     password: mockPassword,
     firstName: 'John',
     lastName: 'Doe',
-    phoneNumber: '+21620123456'
+    phoneNumber: '+21620123456',
   };
 
   const mockVerifyEmailDto: VerifyEmailDto = {
     email: mockUserEmail,
-    token: mockVerificationToken
+    token: mockVerificationToken,
   };
 
   const mockLoginDto: LoginDto = {
     email: mockUserEmail,
-    password: mockPassword
+    password: mockPassword,
   };
 
   beforeEach(async () => {
@@ -151,17 +156,21 @@ describe('AuthService', () => {
     describe('Positive Tests - Valid Registration', () => {
       it('should_RegisterUserSuccessfully_When_ValidDataProvided', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null);
+        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null as unknown as UserDocument);
         jest.spyOn(passwordPolicyService, 'validatePasswordStrength').mockImplementation();
-        jest.spyOn(usersService, 'create').mockResolvedValue(createMockUser() as any);
-        jest.spyOn(emailService, 'sendVerificationEmail').mockResolvedValue(undefined);
+        jest
+          .spyOn(usersService, 'create')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
+        jest.spyOn(emailService, 'sendVerificationEmail').mockResolvedValue(true);
 
         // Act
         const result = await service.register(mockRegisterDto);
 
         // Assert
         expect(result.success).toBe(true);
-        expect(result.message).toBe('Registration successful. Please check your email to verify your account before logging in.');
+        expect(result.message).toBe(
+          'Registration successful. Please check your email to verify your account before logging in.',
+        );
         expect(result.user.userId).toBe(mockUserId);
         expect(result.user.email).toBe(mockUserEmail);
         expect(usersService.findByEmail).toHaveBeenCalledWith(mockUserEmail);
@@ -174,10 +183,12 @@ describe('AuthService', () => {
         // Arrange
         const merchantRegisterDto = { ...mockRegisterDto, role: UserRole.MERCHANT };
         const merchantUser = createMockUser({ role: UserRole.MERCHANT });
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null);
+        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null as unknown as UserDocument);
         jest.spyOn(passwordPolicyService, 'validatePasswordStrength').mockImplementation();
-        jest.spyOn(usersService, 'create').mockResolvedValue(merchantUser as any);
-        jest.spyOn(emailService, 'sendVerificationEmail').mockResolvedValue(undefined);
+        jest
+          .spyOn(usersService, 'create')
+          .mockResolvedValue(merchantUser as unknown as UserDocument);
+        jest.spyOn(emailService, 'sendVerificationEmail').mockResolvedValue(true);
 
         // Act
         const result = await service.register(merchantRegisterDto);
@@ -186,35 +197,43 @@ describe('AuthService', () => {
         expect(result.success).toBe(true);
         expect(usersService.create).toHaveBeenCalledWith(
           expect.objectContaining({
-            role: UserRole.MERCHANT
-          })
+            role: UserRole.MERCHANT,
+          }),
         );
       });
 
       it('should_RegisterSuccessfully_When_EmailServiceFails', async () => {
         // Arrange - Email service failure should not prevent registration
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null);
+        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null as unknown as UserDocument);
         jest.spyOn(passwordPolicyService, 'validatePasswordStrength').mockImplementation();
-        jest.spyOn(usersService, 'create').mockResolvedValue(createMockUser() as any);
-        jest.spyOn(emailService, 'sendVerificationEmail').mockRejectedValue(new Error('Email service down'));
+        jest
+          .spyOn(usersService, 'create')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
+        jest
+          .spyOn(emailService, 'sendVerificationEmail')
+          .mockRejectedValue(new Error('Email service down'));
 
         // Act
         const result = await service.register(mockRegisterDto);
 
         // Assert
         expect(result.success).toBe(true);
-        expect(result.message).toBe('Registration successful. Please check your email to verify your account before logging in.');
+        expect(result.message).toBe(
+          'Registration successful. Please check your email to verify your account before logging in.',
+        );
       });
     });
 
     describe('Negative Tests - Invalid Registration', () => {
       it('should_ThrowConflictException_When_UserAlreadyExists', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
 
         // Act & Assert
         await expect(service.register(mockRegisterDto)).rejects.toThrow(
-          new ConflictException('User with this email already exists')
+          new ConflictException('User with this email already exists'),
         );
         expect(passwordPolicyService.validatePasswordStrength).not.toHaveBeenCalled();
         expect(usersService.create).not.toHaveBeenCalled();
@@ -222,7 +241,7 @@ describe('AuthService', () => {
 
       it('should_ThrowError_When_PasswordPolicyValidationFails', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null);
+        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null as unknown as UserDocument);
         jest.spyOn(passwordPolicyService, 'validatePasswordStrength').mockImplementation(() => {
           throw new BadRequestException('Password does not meet security requirements');
         });
@@ -235,9 +254,11 @@ describe('AuthService', () => {
       it('should_RejectAdminRole_When_AdminRoleProvided', async () => {
         // Arrange
         const adminRegisterDto = { ...mockRegisterDto, role: UserRole.ADMIN };
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null);
+        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null as unknown as UserDocument);
         jest.spyOn(passwordPolicyService, 'validatePasswordStrength').mockImplementation();
-        jest.spyOn(usersService, 'create').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'create')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
 
         // Act
         await service.register(adminRegisterDto);
@@ -245,8 +266,8 @@ describe('AuthService', () => {
         // Assert - Admin role should be ignored and default to CONSUMER
         expect(usersService.create).toHaveBeenCalledWith(
           expect.objectContaining({
-            role: UserRole.CONSUMER
-          })
+            role: UserRole.CONSUMER,
+          }),
         );
       });
     });
@@ -259,11 +280,13 @@ describe('AuthService', () => {
           password: 'Min123!@#',
           firstName: 'A',
           lastName: 'B',
-          phoneNumber: '+21620123456'
+          phoneNumber: '+21620123456',
         };
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null);
+        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null as unknown as UserDocument);
         jest.spyOn(passwordPolicyService, 'validatePasswordStrength').mockImplementation();
-        jest.spyOn(usersService, 'create').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'create')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
 
         // Act
         const result = await service.register(minimalRegisterDto);
@@ -273,17 +296,19 @@ describe('AuthService', () => {
         expect(usersService.create).toHaveBeenCalledWith(
           expect.objectContaining({
             email: 'min@test.com',
-            role: UserRole.CONSUMER
-          })
+            role: UserRole.CONSUMER,
+          }),
         );
       });
 
       it('should_HandleOptionalPhoneNumber_When_PhoneNumberProvided', async () => {
         // Arrange
         const phoneRegisterDto = { ...mockRegisterDto, phoneNumber: '+1234567890' };
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null);
+        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null as unknown as UserDocument);
         jest.spyOn(passwordPolicyService, 'validatePasswordStrength').mockImplementation();
-        jest.spyOn(usersService, 'create').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'create')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
 
         // Act
         const result = await service.register(phoneRegisterDto);
@@ -292,8 +317,8 @@ describe('AuthService', () => {
         expect(result.success).toBe(true);
         expect(usersService.create).toHaveBeenCalledWith(
           expect.objectContaining({
-            phoneNumber: '+1234567890'
-          })
+            phoneNumber: '+1234567890',
+          }),
         );
       });
     });
@@ -301,17 +326,23 @@ describe('AuthService', () => {
     describe('Exception Tests - System Failures', () => {
       it('should_ThrowError_When_DatabaseCreateFails', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null);
+        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null as unknown as UserDocument);
         jest.spyOn(passwordPolicyService, 'validatePasswordStrength').mockImplementation();
-        jest.spyOn(usersService, 'create').mockRejectedValue(new Error('Database connection failed'));
+        jest
+          .spyOn(usersService, 'create')
+          .mockRejectedValue(new Error('Database connection failed'));
 
         // Act & Assert
-        await expect(service.register(mockRegisterDto)).rejects.toThrow('Database connection failed');
+        await expect(service.register(mockRegisterDto)).rejects.toThrow(
+          'Database connection failed',
+        );
       });
 
       it('should_ThrowError_When_DatabaseFindFails', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockRejectedValue(new Error('Database query failed'));
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockRejectedValue(new Error('Database query failed'));
 
         // Act & Assert
         await expect(service.register(mockRegisterDto)).rejects.toThrow('Database query failed');
@@ -323,25 +354,34 @@ describe('AuthService', () => {
     describe('Positive Tests - Valid Email Verification', () => {
       it('should_VerifyEmailSuccessfully_When_ValidTokenProvided', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmailVerificationToken').mockResolvedValue(mockUser as any);
+        jest
+          .spyOn(usersService, 'findByEmailVerificationToken')
+          .mockResolvedValue(mockUser as unknown as UserDocument);
         jest.spyOn(usersService, 'verifyEmail').mockResolvedValue(undefined);
-        jest.spyOn(emailService, 'sendWelcomeEmail').mockResolvedValue(undefined);
+        jest.spyOn(emailService, 'sendWelcomeEmail').mockResolvedValue(true);
 
         // Act
         const result = await service.verifyEmail(mockVerifyEmailDto);
 
         // Assert
         expect(result.message).toBe('Email verified successfully. You can now log in.');
-        expect(usersService.findByEmailVerificationToken).toHaveBeenCalledWith(mockUserEmail, mockVerificationToken);
+        expect(usersService.findByEmailVerificationToken).toHaveBeenCalledWith(
+          mockUserEmail,
+          mockVerificationToken,
+        );
         expect(usersService.verifyEmail).toHaveBeenCalledWith(mockUserId);
         expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(mockUser);
       });
 
       it('should_VerifyEmailSuccessfully_When_WelcomeEmailFails', async () => {
         // Arrange - Welcome email failure should not prevent verification
-        jest.spyOn(usersService, 'findByEmailVerificationToken').mockResolvedValue(mockUser as any);
+        jest
+          .spyOn(usersService, 'findByEmailVerificationToken')
+          .mockResolvedValue(mockUser as unknown as UserDocument);
         jest.spyOn(usersService, 'verifyEmail').mockResolvedValue(undefined);
-        jest.spyOn(emailService, 'sendWelcomeEmail').mockRejectedValue(new Error('Email service unavailable'));
+        jest
+          .spyOn(emailService, 'sendWelcomeEmail')
+          .mockRejectedValue(new Error('Email service unavailable'));
 
         // Act
         const result = await service.verifyEmail(mockVerifyEmailDto);
@@ -355,11 +395,13 @@ describe('AuthService', () => {
     describe('Negative Tests - Invalid Email Verification', () => {
       it('should_ThrowBadRequestException_When_InvalidTokenProvided', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmailVerificationToken').mockResolvedValue(null);
+        jest
+          .spyOn(usersService, 'findByEmailVerificationToken')
+          .mockResolvedValue(null as unknown as UserDocument);
 
         // Act & Assert
         await expect(service.verifyEmail(mockVerifyEmailDto)).rejects.toThrow(
-          new BadRequestException('Invalid or expired verification token')
+          new BadRequestException('Invalid or expired verification token'),
         );
         expect(usersService.verifyEmail).not.toHaveBeenCalled();
         expect(emailService.sendWelcomeEmail).not.toHaveBeenCalled();
@@ -368,22 +410,26 @@ describe('AuthService', () => {
       it('should_ThrowBadRequestException_When_ExpiredTokenProvided', async () => {
         // Arrange
         const invalidVerifyDto = { email: mockUserEmail, token: 'expired_token' };
-        jest.spyOn(usersService, 'findByEmailVerificationToken').mockResolvedValue(null);
+        jest
+          .spyOn(usersService, 'findByEmailVerificationToken')
+          .mockResolvedValue(null as unknown as UserDocument);
 
         // Act & Assert
         await expect(service.verifyEmail(invalidVerifyDto)).rejects.toThrow(
-          new BadRequestException('Invalid or expired verification token')
+          new BadRequestException('Invalid or expired verification token'),
         );
       });
 
       it('should_ThrowBadRequestException_When_WrongEmailProvided', async () => {
         // Arrange
         const wrongEmailDto = { email: 'wrong@email.com', token: mockVerificationToken };
-        jest.spyOn(usersService, 'findByEmailVerificationToken').mockResolvedValue(null);
+        jest
+          .spyOn(usersService, 'findByEmailVerificationToken')
+          .mockResolvedValue(null as unknown as UserDocument);
 
         // Act & Assert
         await expect(service.verifyEmail(wrongEmailDto)).rejects.toThrow(
-          new BadRequestException('Invalid or expired verification token')
+          new BadRequestException('Invalid or expired verification token'),
         );
       });
     });
@@ -392,7 +438,9 @@ describe('AuthService', () => {
       it('should_HandleEmptyToken_When_EmptyStringProvided', async () => {
         // Arrange
         const emptyTokenDto = { email: mockUserEmail, token: '' };
-        jest.spyOn(usersService, 'findByEmailVerificationToken').mockResolvedValue(null);
+        jest
+          .spyOn(usersService, 'findByEmailVerificationToken')
+          .mockResolvedValue(null as unknown as UserDocument);
 
         // Act & Assert
         await expect(service.verifyEmail(emptyTokenDto)).rejects.toThrow(BadRequestException);
@@ -401,7 +449,9 @@ describe('AuthService', () => {
       it('should_HandleSpecialCharactersInToken_When_InvalidTokenFormat', async () => {
         // Arrange
         const specialCharTokenDto = { email: mockUserEmail, token: 'invalid@#$%token' };
-        jest.spyOn(usersService, 'findByEmailVerificationToken').mockResolvedValue(null);
+        jest
+          .spyOn(usersService, 'findByEmailVerificationToken')
+          .mockResolvedValue(null as unknown as UserDocument);
 
         // Act & Assert
         await expect(service.verifyEmail(specialCharTokenDto)).rejects.toThrow(BadRequestException);
@@ -411,15 +461,21 @@ describe('AuthService', () => {
     describe('Exception Tests - System Failures', () => {
       it('should_ThrowError_When_DatabaseFindFails', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmailVerificationToken').mockRejectedValue(new Error('Database connection failed'));
+        jest
+          .spyOn(usersService, 'findByEmailVerificationToken')
+          .mockRejectedValue(new Error('Database connection failed'));
 
         // Act & Assert
-        await expect(service.verifyEmail(mockVerifyEmailDto)).rejects.toThrow('Database connection failed');
+        await expect(service.verifyEmail(mockVerifyEmailDto)).rejects.toThrow(
+          'Database connection failed',
+        );
       });
 
       it('should_ThrowError_When_VerificationUpdateFails', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmailVerificationToken').mockResolvedValue(mockUser as any);
+        jest
+          .spyOn(usersService, 'findByEmailVerificationToken')
+          .mockResolvedValue(mockUser as unknown as UserDocument);
         jest.spyOn(usersService, 'verifyEmail').mockRejectedValue(new Error('Update failed'));
 
         // Act & Assert
@@ -432,7 +488,7 @@ describe('AuthService', () => {
     const mockRequestInfo = {
       ipAddress: '192.168.1.1',
       userAgent: 'Mozilla/5.0 Test Browser',
-      location: 'Test Location'
+      location: 'Test Location',
     };
 
     beforeEach(() => {
@@ -443,13 +499,16 @@ describe('AuthService', () => {
     describe('Positive Tests - Valid Login', () => {
       it('should_LoginSuccessfully_When_ValidCredentialsProvided', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
         (bcrypt.compare as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
         // Setup specific tokens for this test
-        jest.spyOn(jwtService, 'signAsync')
+        jest
+          .spyOn(jwtService, 'signAsync')
           .mockResolvedValueOnce(mockAccessToken)
           .mockResolvedValueOnce(mockRefreshToken);
 
@@ -459,17 +518,24 @@ describe('AuthService', () => {
         // Assert
         expect(result.success).toBe(true);
         expect(result.message).toBe('Login successful');
-        expect(result.user.userId).toBe(mockUserId);
-        expect(result.tokens.accessToken).toBe(mockAccessToken);
-        expect(result.tokens.refreshToken).toBe(mockRefreshToken);
+        expect(result.user!.userId).toBe(mockUserId);
+        expect(result.tokens!.accessToken).toBe(mockAccessToken);
+        expect(result.tokens!.refreshToken).toBe(mockRefreshToken);
         expect(usersService.resetFailedLoginAttempts).toHaveBeenCalledWith(mockUserId);
         expect(usersService.addRefreshToken).toHaveBeenCalledWith(mockUserId, mockRefreshToken);
-        expect(usersService.updateLastLogin).toHaveBeenCalledWith(mockUserId, '192.168.1.1', 'Mozilla/5.0 Test Browser', 'Test Location');
+        expect(usersService.updateLastLogin).toHaveBeenCalledWith(
+          mockUserId,
+          '192.168.1.1',
+          'Mozilla/5.0 Test Browser',
+          'Test Location',
+        );
       });
 
       it('should_LoginSuccessfully_When_NoRequestInfoProvided', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
         (bcrypt.compare as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
@@ -480,13 +546,20 @@ describe('AuthService', () => {
 
         // Assert
         expect(result.success).toBe(true);
-        expect(usersService.updateLastLogin).toHaveBeenCalledWith(mockUserId, 'unknown', 'unknown', undefined);
+        expect(usersService.updateLastLogin).toHaveBeenCalledWith(
+          mockUserId,
+          'unknown',
+          'unknown',
+          undefined,
+        );
       });
 
       it('should_LoginSuccessfully_When_PartialRequestInfoProvided', async () => {
         // Arrange
         const partialRequestInfo = { ipAddress: '192.168.1.1' };
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
         (bcrypt.compare as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
@@ -497,50 +570,63 @@ describe('AuthService', () => {
 
         // Assert
         expect(result.success).toBe(true);
-        expect(usersService.updateLastLogin).toHaveBeenCalledWith(mockUserId, '192.168.1.1', 'unknown', undefined);
+        expect(usersService.updateLastLogin).toHaveBeenCalledWith(
+          mockUserId,
+          '192.168.1.1',
+          'unknown',
+          undefined,
+        );
       });
     });
 
     describe('Negative Tests - Invalid Login', () => {
       it('should_ThrowUnauthorizedException_When_UserNotFound', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null);
+        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null as unknown as UserDocument);
 
         // Act & Assert
         await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
-          new UnauthorizedException('Invalid credentials')
+          new UnauthorizedException('Invalid credentials'),
         );
       });
 
       it('should_ThrowUnauthorizedException_When_EmailNotVerified', async () => {
         // Arrange
         const unverifiedUser = createMockUser({ isEmailVerified: false });
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(unverifiedUser as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(unverifiedUser as unknown as UserDocument);
 
         // Act & Assert
         await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
-          new UnauthorizedException('Please verify your email before logging in')
+          new UnauthorizedException('Please verify your email before logging in'),
         );
       });
 
       it('should_ThrowUnauthorizedException_When_AccountLocked', async () => {
         // Arrange
         const lockedUser = createMockUser({
-          accountLockedUntil: new Date(Date.now() + 60000) // 1 minute from now
+          accountLockedUntil: new Date(Date.now() + 60000), // 1 minute from now
         });
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(lockedUser as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(lockedUser as unknown as UserDocument);
 
         // Act & Assert
-        await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(UnauthorizedException);
+        await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
+          UnauthorizedException,
+        );
       });
 
       it('should_ThrowUnauthorizedException_When_AccountSuspended', async () => {
         // Arrange
         const suspendedUser = createMockUser({ status: UserStatus.SUSPENDED });
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(suspendedUser as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(suspendedUser as unknown as UserDocument);
 
         // Act & Assert
-        const error = await service.login(mockLoginDto, mockRequestInfo).catch(e => e);
+        const error = await service.login(mockLoginDto, mockRequestInfo).catch((e) => e);
         expect(error).toBeInstanceOf(UnauthorizedException);
         expect(error.response.message).toBe('Account is suspended');
         expect(error.response.type).toBe('ACCOUNT_SUSPENDED');
@@ -549,43 +635,53 @@ describe('AuthService', () => {
       it('should_ThrowUnauthorizedException_When_AccountInactive', async () => {
         // Arrange
         const inactiveUser = createMockUser({ status: UserStatus.BLOCKED });
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(inactiveUser as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(inactiveUser as unknown as UserDocument);
 
         // Act & Assert
         await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
-          new UnauthorizedException('Account is not active')
+          new UnauthorizedException('Account is not active'),
         );
       });
 
       it('should_ThrowUnauthorizedException_When_InvalidPassword', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
         (bcrypt.compare as jest.Mock).mockResolvedValue(false);
         jest.spyOn(usersService, 'incrementFailedLoginAttempts').mockResolvedValue(undefined);
 
         // Act & Assert
-        const error = await service.login(mockLoginDto, mockRequestInfo).catch(e => e);
+        const error = await service.login(mockLoginDto, mockRequestInfo).catch((e) => e);
         expect(error).toBeInstanceOf(UnauthorizedException);
         expect(error.response.message).toBe('The password you entered is incorrect');
         expect(error.response.type).toBe('INVALID_PASSWORD');
         // Audit counter persisted to MongoDB
         expect(usersService.incrementFailedLoginAttempts).toHaveBeenCalledWith(
-          mockUserId, '192.168.1.1', 'Mozilla/5.0 Test Browser',
+          mockUserId,
+          '192.168.1.1',
+          'Mozilla/5.0 Test Browser',
         );
       });
 
       it('should_LockAccount_When_TooManyFailedAttempts', async () => {
         // Arrange – lockout decision now comes from AuthSecurityService (Redis).
         // This test verifies the audit trail is still written on every failed attempt.
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
         (bcrypt.compare as jest.Mock).mockResolvedValue(false);
         jest.spyOn(usersService, 'incrementFailedLoginAttempts').mockResolvedValue(undefined);
 
         // Act & Assert
-        const error = await service.login(mockLoginDto, mockRequestInfo).catch(e => e);
+        const error = await service.login(mockLoginDto, mockRequestInfo).catch((e) => e);
         expect(error).toBeInstanceOf(UnauthorizedException);
         expect(usersService.incrementFailedLoginAttempts).toHaveBeenCalledWith(
-          mockUserId, '192.168.1.1', 'Mozilla/5.0 Test Browser',
+          mockUserId,
+          '192.168.1.1',
+          'Mozilla/5.0 Test Browser',
         );
       });
     });
@@ -594,9 +690,11 @@ describe('AuthService', () => {
       it('should_HandleAccountLockExpiry_When_LockTimeExpired', async () => {
         // Arrange - Account was locked but lock time has expired
         const expiredLockUser = createMockUser({
-          accountLockedUntil: new Date(Date.now() - 60000) // 1 minute ago
+          accountLockedUntil: new Date(Date.now() - 60000), // 1 minute ago
         });
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(expiredLockUser as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(expiredLockUser as unknown as UserDocument);
         (bcrypt.compare as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
@@ -612,7 +710,9 @@ describe('AuthService', () => {
       it('should_HandleCaseInsensitiveEmail_When_DifferentCaseProvided', async () => {
         // Arrange
         const upperCaseLoginDto = { ...mockLoginDto, email: 'TEST@EXAMPLE.COM' };
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
         (bcrypt.compare as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
@@ -630,15 +730,21 @@ describe('AuthService', () => {
     describe('Exception Tests - System Failures', () => {
       it('should_ThrowError_When_DatabaseFindFails', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockRejectedValue(new Error('Database connection failed'));
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockRejectedValue(new Error('Database connection failed'));
 
         // Act & Assert
-        await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow('Database connection failed');
+        await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
+          'Database connection failed',
+        );
       });
 
       it('should_ThrowError_When_PasswordComparisonFails', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
         (bcrypt.compare as jest.Mock).mockRejectedValue(new Error('bcrypt error'));
 
         // Act & Assert
@@ -650,13 +756,19 @@ describe('AuthService', () => {
 
       it('should_ThrowError_When_AddRefreshTokenFails', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
         (bcrypt.compare as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
-        jest.spyOn(usersService, 'addRefreshToken').mockRejectedValue(new Error('Failed to save refresh token'));
+        jest
+          .spyOn(usersService, 'addRefreshToken')
+          .mockRejectedValue(new Error('Failed to save refresh token'));
 
         // Act & Assert
-        await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow('Failed to save refresh token');
+        await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
+          'Failed to save refresh token',
+        );
       });
     });
 
@@ -664,27 +776,35 @@ describe('AuthService', () => {
       it('should_HandleTimeoutGracefully_When_DatabaseSlowResponse', async () => {
         // Arrange
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Database timeout')), 100)
+          setTimeout(() => reject(new Error('Database timeout')), 100),
         );
-        jest.spyOn(usersService, 'findByEmail').mockImplementation(() => timeoutPromise as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockImplementation(async () => timeoutPromise as unknown as Promise<UserDocument>);
 
         // Act & Assert
-        await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow('Database timeout');
+        await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
+          'Database timeout',
+        );
       }, 5000);
 
       it('should_HandleConcurrentTokenGeneration_When_MultipleSignAsyncCalls', async () => {
         // Arrange
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
         (bcrypt.compare as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
         // Mock JWT service to have realistic delays
-        jest.spyOn(jwtService, 'signAsync')
-          .mockImplementation(async () => new Promise(resolve =>
-            setTimeout(() => resolve(mockAccessToken), 50)
-          ));
+        jest.spyOn(jwtService, 'signAsync').mockImplementation(async () => {
+          const token = await new Promise<string>((resolve) =>
+            setTimeout(() => resolve(mockAccessToken), 50),
+          );
+          return token;
+        });
 
         // Act
         const result = await service.login(mockLoginDto, mockRequestInfo);
@@ -698,7 +818,9 @@ describe('AuthService', () => {
     describe('Regression Tests - Previously Found Bugs', () => {
       it('should_NotExposePassword_When_UserObjectReturned', async () => {
         // Arrange - Regression test for password exposure
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(createMockUser() as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
         (bcrypt.compare as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
@@ -717,8 +839,10 @@ describe('AuthService', () => {
       it('should_HandleMissingToObjectMethod_When_UserDocumentLacksMethod', async () => {
         // Arrange - Regression test for missing toObject method
         const userWithoutToObject = { ...mockUser };
-        delete (userWithoutToObject as any).toObject;
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(userWithoutToObject as any);
+        delete (userWithoutToObject as { toObject?: jest.Mock }).toObject;
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(userWithoutToObject as unknown as UserDocument);
 
         // Act & Assert - Should handle gracefully without crashing
         await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow();
@@ -727,7 +851,9 @@ describe('AuthService', () => {
       it('should_HandleNullAccountLockedUntil_When_NeverLocked', async () => {
         // Arrange - Regression test for null accountLockedUntil handling
         const userNeverLocked = createMockUser({ accountLockedUntil: null });
-        jest.spyOn(usersService, 'findByEmail').mockResolvedValue(userNeverLocked as any);
+        jest
+          .spyOn(usersService, 'findByEmail')
+          .mockResolvedValue(userNeverLocked as unknown as UserDocument);
         (bcrypt.compare as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);

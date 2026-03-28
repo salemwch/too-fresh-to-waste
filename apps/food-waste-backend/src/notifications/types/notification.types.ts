@@ -2,7 +2,7 @@ export enum NotificationType {
   PUSH = 'push',
   EMAIL = 'email',
   SMS = 'sms',
-  IN_APP = 'in_app'
+  IN_APP = 'in_app',
 }
 
 export enum NotificationChannel {
@@ -11,7 +11,7 @@ export enum NotificationChannel {
   PICKUP_REMINDERS = 'pickup_reminders',
   SECURITY = 'security',
   OFFERS = 'offers',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
 }
 
 export enum NotificationStatus {
@@ -19,14 +19,14 @@ export enum NotificationStatus {
   SENT = 'sent',
   DELIVERED = 'delivered',
   FAILED = 'failed',
-  READ = 'read'
+  READ = 'read',
 }
 
 export enum NotificationPriority {
   LOW = 'low',
   MEDIUM = 'medium',
   HIGH = 'high',
-  CRITICAL = 'critical'
+  CRITICAL = 'critical',
 }
 
 export enum NotificationTrigger {
@@ -42,13 +42,13 @@ export enum NotificationTrigger {
   SECURITY_ALERT = 'security_alert',
   ESTABLISHMENT_APPROVED = 'establishment_approved',
   ESTABLISHMENT_REJECTED = 'establishment_rejected',
-  NEW_REVIEW = 'new_review'
+  NEW_REVIEW = 'new_review',
 }
 
 export interface NotificationPayload {
   title: string;
   body: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   image?: string;
   sound?: string;
   badge?: number;
@@ -56,15 +56,17 @@ export interface NotificationPayload {
 }
 
 export interface NotificationTarget {
-  userId?: string;
-  userIds?: string[];
-  establishmentId?: string;
-  segment?: string;
-  location?: {
-    latitude: number;
-    longitude: number;
-    radius: number; // in km
-  };
+  userId?: string | undefined;
+  userIds?: string[] | undefined;
+  establishmentId?: string | undefined;
+  segment?: string | undefined;
+  location?:
+    | {
+        latitude: number;
+        longitude: number;
+        radius: number; // in km
+      }
+    | undefined;
 }
 
 export interface NotificationSchedule {

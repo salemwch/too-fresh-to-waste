@@ -1,7 +1,6 @@
-import { UserDocument, UserStatus } from '../schemas/user.schema';
-import { CreateUserDto } from '../DTO/create-user.dto';
-import { UpdateUserDto } from '../DTO/update-user.dto';
-import { User } from '../schemas/user.schema';
+import type { CreateUserDto } from '../DTO/create-user.dto';
+import type { UpdateUserDto } from '../DTO/update-user.dto';
+import type { UserDocument, UserStatus, User } from '../schemas/user.schema';
 
 /**
  * Interface for Users Service
@@ -20,8 +19,12 @@ export interface IUsersService {
    * @returns Created user document
    */
   create(
-    createUserDto: CreateUserDto & { emailVerificationToken?: string; emailVerificationExpires?: Date; profileImage?: string },
-    auditData?: { ipAddress: string; userAgent: string }
+    createUserDto: CreateUserDto & {
+      emailVerificationToken?: string;
+      emailVerificationExpires?: Date;
+      profileImage?: string;
+    },
+    auditData?: { ipAddress: string; userAgent: string },
   ): Promise<UserDocument>;
 
   /**
@@ -30,8 +33,18 @@ export interface IUsersService {
   findAll(
     page?: number,
     limit?: number,
-    includeDeleted?: boolean
-  ): Promise<{ users: User[]; total: number; pagination: any }>;
+    includeDeleted?: boolean,
+  ): Promise<{
+    users: User[];
+    total: number;
+    pagination: {
+      page: number;
+      limit: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }>;
 
   /**
    * Find user by ID
@@ -41,7 +54,7 @@ export interface IUsersService {
   /**
    * Find user by email
    */
-  findByEmail(email: string): Promise<UserDocument>;
+  findByEmail(email: string): Promise<UserDocument | null>;
 
   /**
    * Find user by ID (alternative signature for MFA service)
@@ -69,7 +82,7 @@ export interface IUsersService {
   updatePassword(
     userId: string,
     newPassword: string,
-    auditData?: { ipAddress: string; userAgent: string }
+    auditData?: { ipAddress: string; userAgent: string },
   ): Promise<void>;
 
   /**
@@ -114,18 +127,14 @@ export interface IUsersService {
     userId: string,
     ipAddress: string,
     userAgent: string,
-    location?: string
+    location?: string,
   ): Promise<void>;
 
   /**
    * Atomic increment of the failed-login audit counter.
    * Lockout decisions are owned by AuthSecurityService (Redis).
    */
-  incrementFailedLoginAttempts(
-    userId: string,
-    ipAddress: string,
-    userAgent: string,
-  ): Promise<void>;
+  incrementFailedLoginAttempts(userId: string, ipAddress: string, userAgent: string): Promise<void>;
 
   /**
    * Reset failed login attempts
@@ -143,16 +152,13 @@ export interface IUsersService {
   softDelete(
     id: string,
     reason: string,
-    auditData: { ipAddress: string; userAgent: string }
+    auditData: { ipAddress: string; userAgent: string },
   ): Promise<void>;
 
   /**
    * Restore soft-deleted user
    */
-  restore(
-    id: string,
-    auditData: { ipAddress: string; userAgent: string }
-  ): Promise<User>;
+  restore(id: string, auditData: { ipAddress: string; userAgent: string }): Promise<User>;
 }
 
 /**

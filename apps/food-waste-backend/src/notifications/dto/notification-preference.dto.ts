@@ -1,57 +1,67 @@
-import { IsBoolean, IsOptional, IsString, IsObject, IsArray, ValidateNested, IsNumber, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsOptional,
+  IsString,
+  IsObject,
+  IsArray,
+  ValidateNested,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class ChannelPreferencesDto {
   @ApiProperty({ description: 'Enable push notifications for this channel' })
   @IsBoolean()
-  push: boolean;
+  push!: boolean;
 
   @ApiProperty({ description: 'Enable email notifications for this channel' })
   @IsBoolean()
-  email: boolean;
+  email!: boolean;
 
   @ApiProperty({ description: 'Enable SMS notifications for this channel' })
   @IsBoolean()
-  sms: boolean;
+  sms!: boolean;
 }
 
 export class QuietHoursDto {
   @ApiProperty({ description: 'Enable quiet hours' })
   @IsBoolean()
-  enabled: boolean;
+  enabled!: boolean;
 
   @ApiProperty({ description: 'Start time in HH:MM format (24h)' })
   @IsString()
-  startTime: string;
+  startTime!: string;
 
   @ApiProperty({ description: 'End time in HH:MM format (24h)' })
   @IsString()
-  endTime: string;
+  endTime!: string;
 
   @ApiProperty({ description: 'Timezone for quiet hours' })
   @IsString()
-  timezone: string;
+  timezone!: string;
 }
 
 export class SavedLocationDto {
   @ApiProperty({ description: 'Location name/label' })
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiProperty({ description: 'Latitude coordinate' })
   @IsNumber()
-  latitude: number;
+  latitude!: number;
 
   @ApiProperty({ description: 'Longitude coordinate' })
   @IsNumber()
-  longitude: number;
+  longitude!: number;
 
   @ApiProperty({ description: 'Notification radius in kilometers' })
   @IsNumber()
   @Min(1)
   @Max(50)
-  radius: number;
+  radius!: number;
 }
 
 export class LocationPreferencesDto {
@@ -59,24 +69,24 @@ export class LocationPreferencesDto {
   @IsNumber()
   @Min(1)
   @Max(100)
-  radius: number;
+  radius!: number;
 
   @ApiProperty({ description: 'Enable notifications for nearby offers' })
   @IsBoolean()
-  enableNearbyOffers: boolean;
+  enableNearbyOffers!: boolean;
 
   @ApiProperty({ description: 'Saved locations for notifications', type: [SavedLocationDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => SavedLocationDto)
-  savedLocations: SavedLocationDto[];
+  savedLocations!: SavedLocationDto[];
 }
 
 export class UpdateNotificationPreferencesDto {
   @ApiPropertyOptional({
     description: 'Channel-specific notification preferences',
     type: 'object',
-    additionalProperties: { $ref: '#/components/schemas/ChannelPreferencesDto' }
+    additionalProperties: { $ref: '#/components/schemas/ChannelPreferencesDto' },
   })
   @IsOptional()
   @IsObject()
@@ -103,17 +113,20 @@ export class UpdateNotificationPreferencesDto {
   @Type(() => QuietHoursDto)
   quietHours?: QuietHoursDto;
 
-  @ApiPropertyOptional({ description: 'User\'s preferred language code' })
+  @ApiPropertyOptional({ description: "User's preferred language code" })
   @IsOptional()
   @IsString()
   language?: string;
 
-  @ApiPropertyOptional({ description: 'User\'s timezone' })
+  @ApiPropertyOptional({ description: "User's timezone" })
   @IsOptional()
   @IsString()
   timezone?: string;
 
-  @ApiPropertyOptional({ description: 'Location-based notification preferences', type: LocationPreferencesDto })
+  @ApiPropertyOptional({
+    description: 'Location-based notification preferences',
+    type: LocationPreferencesDto,
+  })
   @IsOptional()
   @ValidateNested()
   @Type(() => LocationPreferencesDto)
@@ -123,7 +136,7 @@ export class UpdateNotificationPreferencesDto {
 export class AddDeviceTokenDto {
   @ApiProperty({ description: 'FCM device token for push notifications' })
   @IsString()
-  deviceToken: string;
+  deviceToken!: string;
 
   @ApiPropertyOptional({ description: 'Device platform (ios, android, web)' })
   @IsOptional()
@@ -139,5 +152,5 @@ export class AddDeviceTokenDto {
 export class RemoveDeviceTokenDto {
   @ApiProperty({ description: 'FCM device token to remove' })
   @IsString()
-  deviceToken: string;
+  deviceToken!: string;
 }

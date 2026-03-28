@@ -2,7 +2,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+
 import { User } from '../users/schemas/user.schema';
+
 import { IEmailService, EmailOptions } from './interfaces/email-service.interface';
 
 /**
@@ -18,67 +20,69 @@ import { IEmailService, EmailOptions } from './interfaces/email-service.interfac
  */
 @Injectable()
 export class EmailService implements IEmailService {
-    private readonly logger = new Logger(EmailService.name);
-    private transporter: nodemailer.Transporter;
+  private readonly logger = new Logger(EmailService.name);
+  private transporter!: nodemailer.Transporter;
 
-    constructor(private readonly configService: ConfigService) {
-        this.createTransporter();
+  constructor(private readonly configService: ConfigService) {
+    this.createTransporter();
+  }
+
+  private createTransporter() {
+    const smtpConfig = {
+      host: this.configService.get<string>('SMTP_HOST'),
+      port: this.configService.get<number>('SMTP_PORT') || 587,
+      secure: this.configService.get<number>('SMTP_PORT') === 465, //
+      auth: {
+        user: this.configService.get<string>('SMTP_USER'),
+        pass: this.configService.get<string>('SMTP_PASS'),
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    };
+
+    this.transporter = nodemailer.createTransport(smtpConfig);
+
+    this.transporter.verify((error, _success) => {
+      if (error) {
+        this.logger.error('Email service connection failed:', error);
+      } else {
+        this.logger.log('Email service is ready to send messages');
+      }
+    });
+  }
+
+  async sendEmail(emailOptions: EmailOptions): Promise<boolean> {
+    try {
+      const smtpUser = this.configService.get<string>('SMTP_USER') || 'noreply@foodwaste.com';
+      const fromName = this.configService.get<string>('SMTP_FROM_NAME', 'Too Fresh To Waste');
+      const fromEmail = this.configService.get<string>('SMTP_FROM_EMAIL') || smtpUser;
+      const mailOptions = {
+        from: `"${fromName}" <${fromEmail}>`,
+        ...emailOptions,
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      this.logger.log(`Email sent successfully to ${emailOptions.to}: ${info.messageId}`);
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to send email to ${emailOptions.to}:`, error);
+      return false;
     }
+  }
 
-    private createTransporter() {
-        const smtpConfig = {
-            host: this.configService.get<string>('SMTP_HOST'),
-            port: this.configService.get<number>('SMTP_PORT') || 587,
-            secure: this.configService.get<number>('SMTP_PORT') === 465, //
-            auth: {
-                user: this.configService.get<string>('SMTP_USER'),
-                pass: this.configService.get<string>('SMTP_PASS'),
-            },
-          tls: {
-            rejectUnauthorized: false,
-          },
-        };
+  // eslint-disable-next-line require-await
+  async sendVerificationEmail(user: User, verificationToken: string): Promise<boolean> {
+    // PRODUCTION-READY: Use HTTPS redirect endpoint (works in ALL email clients)
+    // Backend serves smart redirect page that:
+    // 1. Attempts to open mobile app (deep link)
+    // 2. Falls back to web verification if app not installed
+    // 3. Works on desktop, mobile, all email clients (Gmail, Outlook, Apple Mail, etc.)
+    const backendUrl = this.configService.get<string>('BACKEND_URL', 'http://localhost:3000');
+    const verificationUrl = `${backendUrl}/api/v1/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
 
-        this.transporter = nodemailer.createTransport(smtpConfig);
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        this.transporter.verify((error, success) => {
-            if (error) {
-                this.logger.error('Email service connection failed:', error);
-            } else {
-                this.logger.log('Email service is ready to send messages');
-            }
-        });
-    }
-
-    async sendEmail(emailOptions: EmailOptions): Promise<boolean> {
-        try {
-            const mailOptions = {
-                from: `"${this.configService.get<string>('SMTP_FROM_NAME', 'Too Fresh To Waste')}" <${this.configService.get<string>('SMTP_USER')}>`,
-                ...emailOptions,
-            };
-
-            const info = await this.transporter.sendMail(mailOptions);
-            this.logger.log(`Email sent successfully to ${emailOptions.to}: ${info.messageId}`);
-            return true;
-        } catch (error) {
-            this.logger.error(`Failed to send email to ${emailOptions.to}:`, error);
-            return false;
-        }
-    }
-
-    // eslint-disable-next-line require-await
-    async sendVerificationEmail(user: User, verificationToken: string): Promise<boolean> {
-        // PRODUCTION-READY: Use HTTPS redirect endpoint (works in ALL email clients)
-        // Backend serves smart redirect page that:
-        // 1. Attempts to open mobile app (deep link)
-        // 2. Falls back to web verification if app not installed
-        // 3. Works on desktop, mobile, all email clients (Gmail, Outlook, Apple Mail, etc.)
-        const backendUrl = this.configService.get<string>('BACKEND_URL', 'http://localhost:3000');
-        const verificationUrl = `${backendUrl}/api/v1/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
-
-        const html = this.generateVerificationEmailTemplate(user.firstName, verificationUrl);
-        const text = `
+    const html = this.generateVerificationEmailTemplate(user.firstName, verificationUrl);
+    const text = `
       Hello ${user.firstName},
 
       Welcome to Too Fresh To Waste! Please verify your email address by clicking this link:
@@ -92,18 +96,18 @@ export class EmailService implements IEmailService {
       The Too Fresh To Waste Team
     `;
 
-        return this.sendEmail({
-            to: user.email,
-            subject: 'Verify your Too Fresh To Waste account',
-            html,
-            text,
-        });
-    }
+    return this.sendEmail({
+      to: user.email,
+      subject: 'Verify your Too Fresh To Waste account',
+      html,
+      text,
+    });
+  }
 
-    // eslint-disable-next-line require-await
-    async sendWelcomeEmail(user: User): Promise<boolean> {
-        const html = this.generateWelcomeEmailTemplate(user.firstName);
-        const text = `
+  // eslint-disable-next-line require-await
+  async sendWelcomeEmail(user: User): Promise<boolean> {
+    const html = this.generateWelcomeEmailTemplate(user.firstName);
+    const text = `
       Hello ${user.firstName},
 
       Welcome to Too Fresh To Waste! Your account has been successfully verified.
@@ -119,22 +123,22 @@ export class EmailService implements IEmailService {
       The Too Fresh To Waste Team
     `;
 
-        return this.sendEmail({
-            to: user.email,
-            subject: 'Welcome to Too Fresh To Waste - Account Verified!',
-            html,
-            text,
-        });
-    }
+    return this.sendEmail({
+      to: user.email,
+      subject: 'Welcome to Too Fresh To Waste - Account Verified!',
+      html,
+      text,
+    });
+  }
 
-    // eslint-disable-next-line require-await
-    async sendPasswordResetEmail(user: User, resetToken: string): Promise<boolean> {
-        // PRODUCTION-READY: Use HTTPS redirect endpoint (same as email verification)
-        const backendUrl = this.configService.get<string>('BACKEND_URL', 'http://localhost:3000');
-        const resetUrl = `${backendUrl}/api/v1/auth/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
+  // eslint-disable-next-line require-await
+  async sendPasswordResetEmail(user: User, resetToken: string): Promise<boolean> {
+    // PRODUCTION-READY: Use HTTPS redirect endpoint (same as email verification)
+    const backendUrl = this.configService.get<string>('BACKEND_URL', 'http://localhost:3000');
+    const resetUrl = `${backendUrl}/api/v1/auth/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
 
-        const html = this.generatePasswordResetEmailTemplate(user.firstName, resetUrl);
-        const text = `
+    const html = this.generatePasswordResetEmailTemplate(user.firstName, resetUrl);
+    const text = `
       Hello ${user.firstName},
 
       You requested a password reset for your Too Fresh To Waste account.
@@ -149,16 +153,16 @@ export class EmailService implements IEmailService {
       The Too Fresh To Waste Team
     `;
 
-        return this.sendEmail({
-            to: user.email,
-            subject: 'Reset your Too Fresh To Waste password',
-            html,
-            text,
-        });
-    }
+    return this.sendEmail({
+      to: user.email,
+      subject: 'Reset your Too Fresh To Waste password',
+      html,
+      text,
+    });
+  }
 
-    private generateVerificationEmailTemplate(firstName: string, verificationUrl: string): string {
-        return `
+  private generateVerificationEmailTemplate(firstName: string, verificationUrl: string): string {
+    return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -224,10 +228,10 @@ export class EmailService implements IEmailService {
         </body>
       </html>
     `;
-    }
+  }
 
-    private generateWelcomeEmailTemplate(firstName: string): string {
-        return `
+  private generateWelcomeEmailTemplate(firstName: string): string {
+    return `
       <!DOCTYPE html>
       <html>
         <head>
@@ -275,10 +279,10 @@ export class EmailService implements IEmailService {
         </body>
       </html>
     `;
-    }
+  }
 
-    private generatePasswordResetEmailTemplate(firstName: string, resetUrl: string): string {
-        return `
+  private generatePasswordResetEmailTemplate(firstName: string, resetUrl: string): string {
+    return `
       <!DOCTYPE html>
       <html>
         <head>
@@ -319,5 +323,5 @@ export class EmailService implements IEmailService {
         </body>
       </html>
     `;
-    }
+  }
 }

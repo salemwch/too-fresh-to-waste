@@ -1,22 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { SearchQuery, SearchQueryDocument } from '../schemas/search-query.schema';
+
 import { PopularSearch, PopularSearchDocument } from '../schemas/popular-search.schema';
+import { SearchQuery, SearchQueryDocument } from '../schemas/search-query.schema';
 
 @Injectable()
 export class SearchAnalyticsService {
   private readonly logger = new Logger(SearchAnalyticsService.name);
 
   constructor(
-    @InjectModel(SearchQuery.name) private searchQueryModel: Model<SearchQueryDocument>,
-    @InjectModel(PopularSearch.name) private popularSearchModel: Model<PopularSearchDocument>,
+    @InjectModel(SearchQuery.name) private readonly searchQueryModel: Model<SearchQueryDocument>,
+    @InjectModel(PopularSearch.name)
+    private readonly popularSearchModel: Model<PopularSearchDocument>,
   ) {}
 
   async recordSearchQuery(
     query: string,
     userId?: string,
-    filters?: any,
+    filters?: Record<string, unknown>,
     resultsCount?: number,
     location?: { latitude: number; longitude: number },
   ): Promise<void> {
@@ -26,10 +28,12 @@ export class SearchAnalyticsService {
         userId,
         filters,
         resultsCount: resultsCount || 0,
-        location: location ? {
-          type: 'Point',
-          coordinates: [location.longitude, location.latitude],
-        } : undefined,
+        location: location
+          ? {
+              type: 'Point',
+              coordinates: [location.longitude, location.latitude],
+            }
+          : undefined,
         timestamp: new Date(),
       });
 
@@ -40,7 +44,13 @@ export class SearchAnalyticsService {
     }
   }
 
-  async getSearchAnalytics(period: 'day' | 'week' | 'month' = 'day'): Promise<any> {
+  async getSearchAnalytics(period: 'day' | 'week' | 'month' = 'day'): Promise<{
+    totalSearches: number;
+    uniqueQueryCount: number;
+    averageResults: number;
+    zeroResultQueries: number;
+    zeroResultRate: number;
+  }> {
     try {
       const startDate = this.getStartDate(period);
 
@@ -77,20 +87,22 @@ export class SearchAnalyticsService {
         },
       ]);
 
-      return analytics[0] || {
-        totalSearches: 0,
-        uniqueQueryCount: 0,
-        averageResults: 0,
-        zeroResultQueries: 0,
-        zeroResultRate: 0,
-      };
+      return (
+        analytics[0] || {
+          totalSearches: 0,
+          uniqueQueryCount: 0,
+          averageResults: 0,
+          zeroResultQueries: 0,
+          zeroResultRate: 0,
+        }
+      );
     } catch (error) {
       this.logger.error('Error getting search analytics:', error);
       throw error;
     }
   }
 
-  async getTopSearchQueries(limit: number = 10): Promise<any[]> {
+  async getTopSearchQueries(limit: number = 10): Promise<PopularSearchDocument[]> {
     try {
       return await this.popularSearchModel
         .find()
@@ -103,7 +115,9 @@ export class SearchAnalyticsService {
     }
   }
 
-  async getSearchTrends(period: 'day' | 'week' | 'month' = 'week'): Promise<any[]> {
+  async getSearchTrends(
+    period: 'day' | 'week' | 'month' = 'week',
+  ): Promise<Record<string, unknown>[]> {
     try {
       const startDate = this.getStartDate(period);
 

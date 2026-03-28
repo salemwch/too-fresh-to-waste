@@ -5,7 +5,11 @@
  * @module common/events
  */
 
-import { EstablishmentStatus, EstablishmentType, DocumentType } from '../enums/establishment.enum';
+import type {
+  EstablishmentStatus,
+  EstablishmentType,
+  DocumentType,
+} from '../enums/establishment.enum';
 
 /**
  * Base class for all establishment-related events
@@ -13,7 +17,7 @@ import { EstablishmentStatus, EstablishmentType, DocumentType } from '../enums/e
  */
 export abstract class BaseEstablishmentEvent {
   public readonly timestamp: Date;
-  public readonly correlationId?: string;
+  public readonly correlationId?: string | undefined;
 
   constructor(
     public readonly establishmentId: string,
@@ -120,7 +124,7 @@ export class EstablishmentDocumentUploadedEvent extends BaseEstablishmentEvent {
       fileName: string;
       fileSize: number;
       mimeType: string;
-      expiryDate?: Date;
+      expiryDate?: Date | undefined;
     },
     correlationId?: string,
   ) {

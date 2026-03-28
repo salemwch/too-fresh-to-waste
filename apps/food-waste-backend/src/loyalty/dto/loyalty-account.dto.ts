@@ -1,35 +1,47 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsNumber, Min, IsBoolean, IsEnum, IsArray, ValidateNested, IsDate, IsMongoId } from 'class-validator';
 import { Type } from 'class-transformer';
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  Min,
+  IsBoolean,
+  IsEnum,
+  IsArray,
+  ValidateNested,
+  IsDate,
+  IsMongoId,
+} from 'class-validator';
+
 import { BadgeType } from '../schemas/loyalty-account.schema';
 
 export class BadgeDto {
   @ApiProperty({ enum: BadgeType })
   @IsEnum(BadgeType)
-  type: BadgeType;
+  type!: BadgeType;
 
   @ApiProperty()
   @IsDate()
   @Type(() => Date)
-  earnedAt: Date;
+  earnedAt!: Date;
 
   @ApiProperty()
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiProperty()
   @IsString()
-  description: string;
+  description!: string;
 
   @ApiProperty()
   @IsString()
-  iconUrl: string;
+  iconUrl!: string;
 }
 
 export class CreateLoyaltyAccountDto {
   @ApiProperty()
   @IsMongoId()
-  userId: string;
+  userId!: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -72,11 +84,11 @@ export class AddPointsDto {
   @ApiProperty()
   @IsNumber()
   @Min(1)
-  amount: number;
+  amount!: number;
 
   @ApiProperty()
   @IsString()
-  reason: string;
+  reason!: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -94,13 +106,19 @@ export class AddPointsDto {
   @Type(() => Date)
   expiresAt?: Date;
 
-  @ApiProperty({ required: false, description: 'Order total amount in TND for tracking totalAmountSpent' })
+  @ApiProperty({
+    required: false,
+    description: 'Order total amount in TND for tracking totalAmountSpent',
+  })
   @IsOptional()
   @IsNumber()
   @Min(0)
   orderAmount?: number;
 
-  @ApiProperty({ required: false, description: 'Number of bags in the order (for tracking totalBagsSaved)' })
+  @ApiProperty({
+    required: false,
+    description: 'Number of bags in the order (for tracking totalBagsSaved)',
+  })
   @IsOptional()
   @IsNumber()
   @Min(1)
@@ -108,7 +126,8 @@ export class AddPointsDto {
 
   @ApiProperty({
     required: false,
-    description: 'When true, skip the tier multiplier and award the exact amount. Use for gamification points (login streak, purchase streak, referrals, reviews).',
+    description:
+      'When true, skip the tier multiplier and award the exact amount. Use for gamification points (login streak, purchase streak, referrals, reviews).',
     default: false,
   })
   @IsOptional()
@@ -120,11 +139,11 @@ export class RedeemPointsDto {
   @ApiProperty()
   @IsNumber()
   @Min(1)
-  amount: number;
+  amount!: number;
 
   @ApiProperty()
   @IsString()
-  reason: string;
+  reason!: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -134,46 +153,50 @@ export class RedeemPointsDto {
 
 export class LoyaltyStatsDto {
   @ApiProperty()
-  totalPoints: number;
+  totalPoints!: number;
 
   @ApiProperty()
-  availablePoints: number;
+  availablePoints!: number;
 
   @ApiProperty()
-  lifetimePointsEarned: number;
+  lifetimePointsEarned!: number;
 
   @ApiProperty()
-  totalOrdersCount: number;
+  totalOrdersCount!: number;
 
   @ApiProperty({ description: 'Total bags saved (actual bag count, not order count)' })
-  totalBagsSaved: number;
+  totalBagsSaved!: number;
 
   @ApiProperty()
-  totalAmountSpent: number;
+  totalAmountSpent!: number;
 
   @ApiProperty()
-  currentTier: string;
+  currentTier!: string;
 
   @ApiProperty()
-  badgeCount: number;
+  badgeCount!: number;
 
   @ApiProperty()
-  referralCount: number;
+  referralCount!: number;
 
   @ApiProperty()
-  joinedAt: Date;
+  joinedAt!: Date;
 
   @ApiProperty({ required: false })
-  lastActivity?: Date;
+  lastActivity?: Date | undefined;
 }
 
 export class DonatePointsDto {
   @ApiProperty({ description: 'Number of points to donate', minimum: 1 })
   @IsNumber()
   @Min(1)
-  amount: number;
+  amount!: number;
 
-  @ApiProperty({ description: 'Optional: Make donation anonymous', required: false, default: false })
+  @ApiProperty({
+    description: 'Optional: Make donation anonymous',
+    required: false,
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   isAnonymous?: boolean;
@@ -186,23 +209,23 @@ export class DonatePointsDto {
 
 export class DonatePointsResponseDto {
   @ApiProperty()
-  success: boolean;
+  success!: boolean;
 
   @ApiProperty()
-  pointsDonated: number;
+  pointsDonated!: number;
 
   @ApiProperty()
-  donationAmount: number;
+  donationAmount!: number;
 
   @ApiProperty()
-  currency: string;
+  currency!: string;
 
   @ApiProperty()
-  estimatedMeals: number;
+  estimatedMeals!: number;
 
   @ApiProperty()
-  remainingPoints: number;
+  remainingPoints!: number;
 
   @ApiProperty()
-  message: string;
+  message!: string;
 }

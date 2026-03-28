@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { Notification } from '../schemas/notification.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, UpdateQuery } from 'mongoose';
+
 import { INotificationAnalytics, NotificationMetrics } from '../interfaces/notification.interfaces';
+import { Notification } from '../schemas/notification.schema';
 
 @Injectable()
 export class NotificationAnalyticsService implements INotificationAnalytics {
@@ -26,7 +27,7 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
       type: payload.type,
       trigger: payload.trigger,
       success: payload.success,
-      userId: payload.userId
+      userId: payload.userId,
     });
   }
 
@@ -34,11 +35,11 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
   async handleNotificationDelivered(payload: {
     notificationId: string;
     deliveredAt: Date;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }) {
     await this.track('delivered', payload.notificationId, {
       deliveredAt: payload.deliveredAt,
-      ...payload.metadata
+      ...payload.metadata,
     });
   }
 
@@ -50,7 +51,7 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
   }) {
     await this.track('opened', payload.notificationId, {
       openedAt: payload.openedAt,
-      userId: payload.userId
+      userId: payload.userId,
     });
   }
 
@@ -64,35 +65,35 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
     await this.track('clicked', payload.notificationId, {
       clickedAt: payload.clickedAt,
       clickAction: payload.clickAction,
-      userId: payload.userId
+      userId: payload.userId,
     });
   }
 
   async track(
     event: string,
     notificationId: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
     try {
       this.logger.log(`Tracking ${event} for notification ${notificationId}`, metadata);
 
       // Update notification record with tracking data
-      const updateData: any = {};
+      const updateData: UpdateQuery<Notification> = {};
 
       switch (event) {
         case 'delivered':
-          updateData.deliveredAt = metadata?.deliveredAt || new Date();
+          updateData.deliveredAt = metadata?.['deliveredAt'] || new Date();
           updateData.status = 'delivered';
           break;
         case 'opened':
         case 'read':
-          updateData.readAt = metadata?.openedAt || new Date();
+          updateData.readAt = metadata?.['openedAt'] || new Date();
           updateData.isRead = true;
           updateData.status = 'read';
           break;
         case 'clicked':
           if (!updateData.readAt) {
-            updateData.readAt = metadata?.clickedAt || new Date();
+            updateData.readAt = metadata?.['clickedAt'] || new Date();
             updateData.isRead = true;
           }
           break;
@@ -107,10 +108,10 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
               'metadata.trackingEvents': {
                 event,
                 timestamp: new Date(),
-                ...metadata
-              }
-            }
-          }
+                ...metadata,
+              },
+            },
+          },
         );
       }
 
@@ -118,9 +119,8 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
       this.eventEmitter.emit('analytics.tracked', {
         event,
         notificationId,
-        metadata
+        metadata,
       });
-
     } catch (error) {
       this.logger.error(`Failed to track ${event} for notification ${notificationId}:`, error);
     }
@@ -133,50 +133,50 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
           $match: {
             createdAt: {
               $gte: timeRange.from,
-              $lte: timeRange.to
-            }
-          }
+              $lte: timeRange.to,
+            },
+          },
         },
         {
           $group: {
             _id: null,
             totalSent: {
               $sum: {
-                $cond: [{ $in: ['$status', ['sent', 'delivered', 'read']] }, 1, 0]
-              }
+                $cond: [{ $in: ['$status', ['sent', 'delivered', 'read']] }, 1, 0],
+              },
             },
             totalDelivered: {
               $sum: {
-                $cond: [{ $in: ['$status', ['delivered', 'read']] }, 1, 0]
-              }
+                $cond: [{ $in: ['$status', ['delivered', 'read']] }, 1, 0],
+              },
             },
             totalFailed: {
               $sum: {
-                $cond: [{ $eq: ['$status', 'failed'] }, 1, 0]
-              }
+                $cond: [{ $eq: ['$status', 'failed'] }, 1, 0],
+              },
             },
             totalOpened: {
               $sum: {
-                $cond: [{ $eq: ['$isRead', true] }, 1, 0]
-              }
+                $cond: [{ $eq: ['$isRead', true] }, 1, 0],
+              },
             },
             byChannel: {
               $push: {
                 channel: '$channel',
                 type: '$type',
                 status: '$status',
-                isRead: '$isRead'
-              }
+                isRead: '$isRead',
+              },
             },
             byTrigger: {
               $push: {
                 trigger: '$trigger',
                 status: '$status',
-                isRead: '$isRead'
-              }
-            }
-          }
-        }
+                isRead: '$isRead',
+              },
+            },
+          },
+        },
       ];
 
       const result = await this.notificationModel.aggregate(pipeline);
@@ -192,11 +192,15 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
       const byTrigger = this.processGroupedStats(data.byTrigger, 'trigger');
 
       // Calculate rates
-      const deliveryRate = data.totalSent > 0 ?
-        Math.round((data.totalDelivered / data.totalSent) * 100 * 100) / 100 : 0;
+      const deliveryRate =
+        data.totalSent > 0
+          ? Math.round((data.totalDelivered / data.totalSent) * 100 * 100) / 100
+          : 0;
 
-      const openRate = data.totalDelivered > 0 ?
-        Math.round((data.totalOpened / data.totalDelivered) * 100 * 100) / 100 : 0;
+      const openRate =
+        data.totalDelivered > 0
+          ? Math.round((data.totalOpened / data.totalDelivered) * 100 * 100) / 100
+          : 0;
 
       return {
         totalSent: data.totalSent,
@@ -208,9 +212,8 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
         openRate,
         clickRate: 0, // Would need additional tracking for clicks
         byChannel,
-        byTrigger
+        byTrigger,
       };
-
     } catch (error) {
       this.logger.error('Failed to get notification metrics:', error);
       return this.getEmptyMetrics();
@@ -219,7 +222,7 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
 
   async getChannelMetrics(
     channel: string,
-    timeRange: { from: Date; to: Date }
+    timeRange: { from: Date; to: Date },
   ): Promise<{
     sent: number;
     delivered: number;
@@ -234,35 +237,35 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
           channel,
           createdAt: {
             $gte: timeRange.from,
-            $lte: timeRange.to
-          }
-        }
+            $lte: timeRange.to,
+          },
+        },
       },
       {
         $group: {
           _id: null,
           sent: {
             $sum: {
-              $cond: [{ $in: ['$status', ['sent', 'delivered', 'read']] }, 1, 0]
-            }
+              $cond: [{ $in: ['$status', ['sent', 'delivered', 'read']] }, 1, 0],
+            },
           },
           delivered: {
             $sum: {
-              $cond: [{ $in: ['$status', ['delivered', 'read']] }, 1, 0]
-            }
+              $cond: [{ $in: ['$status', ['delivered', 'read']] }, 1, 0],
+            },
           },
           failed: {
             $sum: {
-              $cond: [{ $eq: ['$status', 'failed'] }, 1, 0]
-            }
+              $cond: [{ $eq: ['$status', 'failed'] }, 1, 0],
+            },
           },
           opened: {
             $sum: {
-              $cond: [{ $eq: ['$isRead', true] }, 1, 0]
-            }
-          }
-        }
-      }
+              $cond: [{ $eq: ['$isRead', true] }, 1, 0],
+            },
+          },
+        },
+      },
     ];
 
     const result = await this.notificationModel.aggregate(pipeline);
@@ -272,19 +275,21 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
     }
 
     const data = result[0];
-    const deliveryRate = data.sent > 0 ? Math.round((data.delivered / data.sent) * 100 * 100) / 100 : 0;
-    const openRate = data.delivered > 0 ? Math.round((data.opened / data.delivered) * 100 * 100) / 100 : 0;
+    const deliveryRate =
+      data.sent > 0 ? Math.round((data.delivered / data.sent) * 100 * 100) / 100 : 0;
+    const openRate =
+      data.delivered > 0 ? Math.round((data.opened / data.delivered) * 100 * 100) / 100 : 0;
 
     return {
       ...data,
       deliveryRate,
-      openRate
+      openRate,
     };
   }
 
   async getTriggerMetrics(
     trigger: string,
-    timeRange: { from: Date; to: Date }
+    timeRange: { from: Date; to: Date },
   ): Promise<{
     sent: number;
     delivered: number;
@@ -299,35 +304,35 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
           trigger,
           createdAt: {
             $gte: timeRange.from,
-            $lte: timeRange.to
-          }
-        }
+            $lte: timeRange.to,
+          },
+        },
       },
       {
         $group: {
           _id: null,
           sent: {
             $sum: {
-              $cond: [{ $in: ['$status', ['sent', 'delivered', 'read']] }, 1, 0]
-            }
+              $cond: [{ $in: ['$status', ['sent', 'delivered', 'read']] }, 1, 0],
+            },
           },
           delivered: {
             $sum: {
-              $cond: [{ $in: ['$status', ['delivered', 'read']] }, 1, 0]
-            }
+              $cond: [{ $in: ['$status', ['delivered', 'read']] }, 1, 0],
+            },
           },
           failed: {
             $sum: {
-              $cond: [{ $eq: ['$status', 'failed'] }, 1, 0]
-            }
+              $cond: [{ $eq: ['$status', 'failed'] }, 1, 0],
+            },
           },
           opened: {
             $sum: {
-              $cond: [{ $eq: ['$isRead', true] }, 1, 0]
-            }
-          }
-        }
-      }
+              $cond: [{ $eq: ['$isRead', true] }, 1, 0],
+            },
+          },
+        },
+      },
     ];
 
     const result = await this.notificationModel.aggregate(pipeline);
@@ -337,26 +342,30 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
     }
 
     const data = result[0];
-    const deliveryRate = data.sent > 0 ? Math.round((data.delivered / data.sent) * 100 * 100) / 100 : 0;
-    const openRate = data.delivered > 0 ? Math.round((data.opened / data.delivered) * 100 * 100) / 100 : 0;
+    const deliveryRate =
+      data.sent > 0 ? Math.round((data.delivered / data.sent) * 100 * 100) / 100 : 0;
+    const openRate =
+      data.delivered > 0 ? Math.round((data.opened / data.delivered) * 100 * 100) / 100 : 0;
 
     return {
       ...data,
       deliveryRate,
-      openRate
+      openRate,
     };
   }
 
-  getTimeSeriesMetrics(
+  async getTimeSeriesMetrics(
     timeRange: { from: Date; to: Date },
-    groupBy: 'hour' | 'day' | 'week' | 'month' = 'day'
-  ): Promise<Array<{
-    period: string;
-    sent: number;
-    delivered: number;
-    failed: number;
-    opened: number;
-  }>> {
+    groupBy: 'hour' | 'day' | 'week' | 'month' = 'day',
+  ): Promise<
+    Array<{
+      period: string;
+      sent: number;
+      delivered: number;
+      failed: number;
+      opened: number;
+    }>
+  > {
     const groupStage = this.getTimeGroupStage(groupBy);
 
     // Define pipeline with proper MongoDB typing
@@ -364,9 +373,9 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
       $match: {
         createdAt: {
           $gte: timeRange.from,
-          $lte: timeRange.to
-        }
-      }
+          $lte: timeRange.to,
+        },
+      },
     };
 
     const groupStage_pipeline = {
@@ -374,29 +383,29 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
         _id: groupStage,
         sent: {
           $sum: {
-            $cond: [{ $in: ['$status', ['sent', 'delivered', 'read']] }, 1, 0]
-          }
+            $cond: [{ $in: ['$status', ['sent', 'delivered', 'read']] }, 1, 0],
+          },
         },
         delivered: {
           $sum: {
-            $cond: [{ $in: ['$status', ['delivered', 'read']] }, 1, 0]
-          }
+            $cond: [{ $in: ['$status', ['delivered', 'read']] }, 1, 0],
+          },
         },
         failed: {
           $sum: {
-            $cond: [{ $eq: ['$status', 'failed'] }, 1, 0]
-          }
+            $cond: [{ $eq: ['$status', 'failed'] }, 1, 0],
+          },
         },
         opened: {
           $sum: {
-            $cond: [{ $eq: ['$isRead', true] }, 1, 0]
-          }
-        }
-      }
+            $cond: [{ $eq: ['$isRead', true] }, 1, 0],
+          },
+        },
+      },
     };
 
     const sortStage = {
-      $sort: { _id: 1 as const }
+      $sort: { _id: 1 as const },
     };
 
     const projectStage = {
@@ -406,23 +415,30 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
         delivered: 1 as const,
         failed: 1 as const,
         opened: 1 as const,
-        _id: 0 as const
-      }
+        _id: 0 as const,
+      },
     };
 
     const pipeline = [matchStage, groupStage_pipeline, sortStage, projectStage];
 
-    return this.notificationModel.aggregate(pipeline).exec();
+    const metrics = await this.notificationModel.aggregate(pipeline).exec();
+    return metrics;
   }
 
   private processGroupedStats(
-    data: Array<any>,
-    groupField: string
-  ): Record<string, { sent: number; delivered: number; failed: number; opened: number; clicked: number }> {
-    const stats: Record<string, { sent: number; delivered: number; failed: number; opened: number; clicked: number }> = {};
+    data: Array<{ status: string; isRead?: boolean; [key: string]: unknown }>,
+    groupField: string,
+  ): Record<
+    string,
+    { sent: number; delivered: number; failed: number; opened: number; clicked: number }
+  > {
+    const stats: Record<
+      string,
+      { sent: number; delivered: number; failed: number; opened: number; clicked: number }
+    > = {};
 
-    data.forEach(item => {
-      const key = item[groupField];
+    data.forEach((item) => {
+      const key = item[groupField] as string;
       if (!stats[key]) {
         stats[key] = { sent: 0, delivered: 0, failed: 0, opened: 0, clicked: 0 };
       }
@@ -444,36 +460,41 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
     return stats;
   }
 
-  private getTimeGroupStage(groupBy: string): any {
+  private getTimeGroupStage(
+    groupBy: string,
+  ): Record<
+    string,
+    { $year?: string; $month?: string; $dayOfMonth?: string; $hour?: string; $week?: string }
+  > {
     switch (groupBy) {
       case 'hour':
         return {
           year: { $year: '$createdAt' },
           month: { $month: '$createdAt' },
           day: { $dayOfMonth: '$createdAt' },
-          hour: { $hour: '$createdAt' }
+          hour: { $hour: '$createdAt' },
         };
       case 'day':
         return {
           year: { $year: '$createdAt' },
           month: { $month: '$createdAt' },
-          day: { $dayOfMonth: '$createdAt' }
+          day: { $dayOfMonth: '$createdAt' },
         };
       case 'week':
         return {
           year: { $year: '$createdAt' },
-          week: { $week: '$createdAt' }
+          week: { $week: '$createdAt' },
         };
       case 'month':
         return {
           year: { $year: '$createdAt' },
-          month: { $month: '$createdAt' }
+          month: { $month: '$createdAt' },
         };
       default:
         return {
           year: { $year: '$createdAt' },
           month: { $month: '$createdAt' },
-          day: { $dayOfMonth: '$createdAt' }
+          day: { $dayOfMonth: '$createdAt' },
         };
     }
   }
@@ -489,7 +510,7 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
       openRate: 0,
       clickRate: 0,
       byChannel: {},
-      byTrigger: {}
+      byTrigger: {},
     };
   }
 }

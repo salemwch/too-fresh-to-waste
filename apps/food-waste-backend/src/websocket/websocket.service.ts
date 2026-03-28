@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
+
+import { UserRole } from '../common/enums/user.enum';
+
 import {
   AuthenticatedSocket,
   WebSocketEventPayload,
@@ -7,17 +10,16 @@ import {
   WEBSOCKET_ROOMS,
   OrderStatusUpdate,
   OfferUpdate,
-  NotificationEvent
+  NotificationEvent,
 } from './interfaces/websocket.interface';
-import { UserRole } from '../common/enums/user.enum';
 
 @Injectable()
 export class WebSocketService {
   private readonly logger = new Logger(WebSocketService.name);
   private server!: Server;
-  private connectedClients = new Map<string, AuthenticatedSocket>();
-  private userSockets = new Map<string, Set<string>>(); // userId -> Set of socketIds
-  private roomParticipants = new Map<string, Set<string>>(); // room -> Set of socketIds
+  private readonly connectedClients = new Map<string, AuthenticatedSocket>();
+  private readonly userSockets = new Map<string, Set<string>>(); // userId -> Set of socketIds
+  private readonly roomParticipants = new Map<string, Set<string>>(); // room -> Set of socketIds
 
   setServer(server: Server): void {
     this.server = server;
@@ -52,8 +54,8 @@ export class WebSocketService {
     });
 
     // Handle authentication (for late authentication)
-    socket.on(WebSocketEvents.AUTHENTICATE, async (data: { token: string }) => {
-      await this.authenticateSocket(socket, data.token);
+    socket.on(WebSocketEvents.AUTHENTICATE, (data: { token: string }) => {
+      this.authenticateSocket(socket, data.token);
     });
   }
 
@@ -85,7 +87,7 @@ export class WebSocketService {
     }
   }
 
-  private async authenticateSocket(socket: AuthenticatedSocket, token: string): Promise<void> {
+  private authenticateSocket(socket: AuthenticatedSocket, _token: string): void {
     // This would typically verify the JWT token
     // For now, we'll assume the guard has already done this
     if (socket.isAuthenticated && socket.userId) {
@@ -96,14 +98,14 @@ export class WebSocketService {
       this.userSockets.get(socket.userId)!.add(socket.id);
 
       // Join default rooms
-      this.joinRoom(socket, WEBSOCKET_ROOMS['GLOBAL'].name);
+      this.joinRoom(socket, WEBSOCKET_ROOMS['GLOBAL']!.name);
       this.joinRoom(socket, `user-${socket.userId}`);
 
       // Role-based room joining
       if (socket.role === UserRole.MERCHANT) {
-        this.joinRoom(socket, WEBSOCKET_ROOMS['MERCHANT_DASHBOARD'].name);
+        this.joinRoom(socket, WEBSOCKET_ROOMS['MERCHANT_DASHBOARD']!.name);
       } else if (socket.role === UserRole.ADMIN) {
-        this.joinRoom(socket, WEBSOCKET_ROOMS['ADMIN_ALERTS'].name);
+        this.joinRoom(socket, WEBSOCKET_ROOMS['ADMIN_ALERTS']!.name);
       }
 
       socket.emit('authenticated', {
@@ -123,13 +125,13 @@ export class WebSocketService {
   registerUserSocket(socket: AuthenticatedSocket): void {
     this.logger.log(
       `[registerUserSocket] called — socketId=${socket.id} ` +
-      `isAuthenticated=${socket.isAuthenticated} userId=${socket.userId} role=${socket.role}`,
+        `isAuthenticated=${socket.isAuthenticated} userId=${socket.userId} role=${socket.role}`,
     );
 
     if (!socket.isAuthenticated || !socket.userId) {
       this.logger.warn(
         `[registerUserSocket] SKIPPED — socket ${socket.id} is not authenticated yet. ` +
-        `isAuthenticated=${socket.isAuthenticated} userId=${socket.userId}`,
+          `isAuthenticated=${socket.isAuthenticated} userId=${socket.userId}`,
       );
       return;
     }
@@ -144,12 +146,12 @@ export class WebSocketService {
 
     this.logger.log(
       `[registerUserSocket] SUCCESS — userId=${socket.userId} socketId=${socket.id} role=${socket.role} ` +
-      `totalRegisteredUsers=${this.userSockets.size}`,
+        `totalRegisteredUsers=${this.userSockets.size}`,
     );
   }
 
   joinRoom(socket: AuthenticatedSocket, roomName: string): void {
-    const room = Object.values(WEBSOCKET_ROOMS).find(r => r.name === roomName);
+    const room = Object.values(WEBSOCKET_ROOMS).find((r) => r.name === roomName);
 
     if (!room) {
       socket.emit(WebSocketEvents.ERROR, {
@@ -209,24 +211,24 @@ export class WebSocketService {
   /**
    * Send event to a specific user (all their connected sockets)
    */
-  sendToUser(userId: string, event: string, data: any): void {
+  sendToUser(userId: string, event: string, data: unknown): void {
     const userSocketIds = this.userSockets.get(userId);
 
     // ── diagnostic snapshot ───────────────────────────────────────────────────
     this.logger.log(
       `[sendToUser] event="${event}" targetUserId="${userId}" ` +
-      `totalConnected=${this.connectedClients.size} ` +
-      `registeredUsers=${this.userSockets.size} ` +
-      `userFound=${!!userSocketIds} ` +
-      `userSockets=[${[...this.userSockets.keys()].join(', ')}]`,
+        `totalConnected=${this.connectedClients.size} ` +
+        `registeredUsers=${this.userSockets.size} ` +
+        `userFound=${!!userSocketIds} ` +
+        `userSockets=[${[...this.userSockets.keys()].join(', ')}]`,
     );
     // ─────────────────────────────────────────────────────────────────────────
 
     if (!userSocketIds || userSocketIds.size === 0) {
       this.logger.warn(
         `[sendToUser] MISS — user "${userId}" is not in userSockets. ` +
-        `Event "${event}" was NOT delivered. ` +
-        `Is the merchant dashboard open and connected?`,
+          `Event "${event}" was NOT delivered. ` +
+          `Is the merchant dashboard open and connected?`,
       );
       return;
     }
@@ -239,17 +241,21 @@ export class WebSocketService {
         delivered++;
         this.logger.log(`[sendToUser] Emitted "${event}" to socketId=${socketId}`);
       } else {
-        this.logger.warn(`[sendToUser] socketId=${socketId} in userSockets but NOT in connectedClients — stale entry`);
+        this.logger.warn(
+          `[sendToUser] socketId=${socketId} in userSockets but NOT in connectedClients — stale entry`,
+        );
       }
     }
 
-    this.logger.log(`[sendToUser] "${event}" delivered to ${delivered}/${userSocketIds.size} sockets of user "${userId}"`);
+    this.logger.log(
+      `[sendToUser] "${event}" delivered to ${delivered}/${userSocketIds.size} sockets of user "${userId}"`,
+    );
   }
 
   /**
    * Send event to a specific room
    */
-  sendToRoom(roomName: string, event: string, data: any): void {
+  sendToRoom(roomName: string, event: string, data: unknown): void {
     if (this.server) {
       this.server.to(roomName).emit(event, this.wrapEventPayload(event, data));
       this.logger.debug(`Sent ${event} to room ${roomName}`);
@@ -259,7 +265,7 @@ export class WebSocketService {
   /**
    * Send event to all connected clients
    */
-  broadcast(event: string, data: any): void {
+  broadcast(event: string, data: unknown): void {
     if (this.server) {
       this.server.emit(event, this.wrapEventPayload(event, data));
       this.logger.debug(`Broadcasted ${event} to all clients`);
@@ -269,8 +275,8 @@ export class WebSocketService {
   /**
    * Send event to users with specific role
    */
-  sendToRole(role: UserRole, event: string, data: any): void {
-    for (const [socketId, socket] of this.connectedClients.entries()) {
+  sendToRole(role: UserRole, event: string, data: unknown): void {
+    for (const [_socketId, socket] of this.connectedClients.entries()) {
       if (socket.role === role) {
         socket.emit(event, this.wrapEventPayload(event, data, socket.userId));
       }
@@ -289,7 +295,11 @@ export class WebSocketService {
     this.sendToUser(update.merchantId, WebSocketEvents.ORDER_STATUS_UPDATED, update);
 
     // Send to admin room for monitoring
-    this.sendToRoom(WEBSOCKET_ROOMS['ADMIN_ALERTS'].name, WebSocketEvents.ORDER_STATUS_UPDATED, update);
+    this.sendToRoom(
+      WEBSOCKET_ROOMS['ADMIN_ALERTS']!.name,
+      WebSocketEvents.ORDER_STATUS_UPDATED,
+      update,
+    );
   }
 
   /**
@@ -317,8 +327,9 @@ export class WebSocketService {
     roomCounts: Record<string, number>;
     userCounts: number;
   } {
-    const authenticatedConnections = Array.from(this.connectedClients.values())
-      .filter(socket => socket.isAuthenticated).length;
+    const authenticatedConnections = Array.from(this.connectedClients.values()).filter(
+      (socket) => socket.isAuthenticated,
+    ).length;
 
     const roomCounts: Record<string, number> = {};
     for (const [roomName, participants] of this.roomParticipants.entries()) {
@@ -345,15 +356,17 @@ export class WebSocketService {
    */
   getRoomParticipants(roomName: string): string[] {
     const participants = this.roomParticipants.get(roomName);
-    if (!participants) return [];
+    if (!participants) {
+      return [];
+    }
 
     return Array.from(participants)
-      .map(socketId => this.connectedClients.get(socketId))
-      .filter(socket => socket && socket.userId)
-      .map(socket => socket!.userId);
+      .map((socketId) => this.connectedClients.get(socketId))
+      .filter((socket) => socket?.userId)
+      .map((socket) => socket!.userId);
   }
 
-  private wrapEventPayload(event: string, data: any, userId?: string): WebSocketEventPayload {
+  private wrapEventPayload(event: string, data: unknown, userId?: string): WebSocketEventPayload {
     return {
       event,
       data,

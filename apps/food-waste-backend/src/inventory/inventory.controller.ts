@@ -1,21 +1,12 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Patch,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
-import { InventoryService } from './inventory.service';
+
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
 import { GetUser } from '../common/decorators/get-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/user.enum';
+
 import {
   CreateInventoryItemDto,
   UpdateInventoryItemDto,
@@ -26,6 +17,7 @@ import {
   InventoryFiltersDto,
   AcknowledgeAlertDto,
 } from './dto/inventory.dto';
+import { InventoryService } from './inventory.service';
 
 @ApiTags('Inventory')
 @ApiBearerAuth()
@@ -40,26 +32,29 @@ export class InventoryController {
   @ApiOperation({ summary: 'Create inventory item' })
   @ApiResponse({ status: 201, description: 'Inventory item created successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Establishment or Admin role required' })
-   createInventoryItem(
+  async createInventoryItem(
     @Body() createDto: CreateInventoryItemDto,
     @GetUser('id') userId: string,
   ) {
-    return this.inventoryService.createInventoryItem(createDto, userId);
+    const result = await this.inventoryService.createInventoryItem(createDto, userId);
+    return result;
   }
 
   @Get()
   @ApiOperation({ summary: 'Get inventory items with filters' })
   @ApiResponse({ status: 200, description: 'Inventory items retrieved successfully' })
-   getInventoryItems(@Query() filters: InventoryFiltersDto) {
-    return this.inventoryService.getInventoryItems(filters);
+  async getInventoryItems(@Query() filters: InventoryFiltersDto) {
+    const result = await this.inventoryService.getInventoryItems(filters);
+    return result;
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get inventory item by ID' })
   @ApiResponse({ status: 200, description: 'Inventory item retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Inventory item not found' })
-   getInventoryItem(@Param('id') id: string) {
-    return this.inventoryService.getInventoryItem(id);
+  async getInventoryItem(@Param('id') id: string) {
+    const result = await this.inventoryService.getInventoryItem(id);
+    return result;
   }
 
   @Put(':id')
@@ -69,7 +64,7 @@ export class InventoryController {
   @ApiResponse({ status: 200, description: 'Inventory item updated successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Establishment or Admin role required' })
   @ApiResponse({ status: 404, description: 'Inventory item not found' })
-   updateInventoryItem(
+  updateInventoryItem(
     @Param('id') _id: string,
     @Body() _updateDto: UpdateInventoryItemDto,
     @GetUser('id') _userId: string,
@@ -85,12 +80,13 @@ export class InventoryController {
   @ApiResponse({ status: 200, description: 'Stock updated successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Establishment or Admin role required' })
   @ApiResponse({ status: 404, description: 'Inventory item not found' })
-   updateStock(
+  async updateStock(
     @Param('id') id: string,
     @Body() updateDto: StockUpdateDto,
     @GetUser('id') userId: string,
   ) {
-    return this.inventoryService.updateStock(id, updateDto, userId);
+    const result = await this.inventoryService.updateStock(id, updateDto, userId);
+    return result;
   }
 
   @Post(':id/reserve')
@@ -100,12 +96,13 @@ export class InventoryController {
   @ApiResponse({ status: 200, description: 'Stock reserved successfully' })
   @ApiResponse({ status: 400, description: 'Insufficient available stock' })
   @ApiResponse({ status: 404, description: 'Inventory item not found' })
-   reserveStock(
+  async reserveStock(
     @Param('id') id: string,
     @Body() reserveDto: ReserveStockDto,
     @GetUser('id') userId: string,
   ) {
-    return this.inventoryService.reserveStock(id, reserveDto, userId);
+    const result = await this.inventoryService.reserveStock(id, reserveDto, userId);
+    return result;
   }
 
   @Post(':id/release')
@@ -115,12 +112,13 @@ export class InventoryController {
   @ApiResponse({ status: 200, description: 'Stock released successfully' })
   @ApiResponse({ status: 400, description: 'Cannot release more stock than reserved' })
   @ApiResponse({ status: 404, description: 'Inventory item not found' })
-   releaseStock(
+  async releaseStock(
     @Param('id') id: string,
     @Body() releaseDto: ReleaseStockDto,
     @GetUser('id') userId: string,
   ) {
-    return this.inventoryService.releaseStock(id, releaseDto, userId);
+    const result = await this.inventoryService.releaseStock(id, releaseDto, userId);
+    return result;
   }
 
   @Post(':id/confirm-sale')
@@ -130,12 +128,13 @@ export class InventoryController {
   @ApiResponse({ status: 200, description: 'Sale confirmed successfully' })
   @ApiResponse({ status: 400, description: 'Insufficient reserved stock' })
   @ApiResponse({ status: 404, description: 'Inventory item not found' })
-   confirmSale(
+  async confirmSale(
     @Param('id') id: string,
     @Body() body: { quantity: number; orderId: string },
     @GetUser('id') userId: string,
   ) {
-    return this.inventoryService.confirmSale(id, body.quantity, body.orderId, userId);
+    const result = await this.inventoryService.confirmSale(id, body.quantity, body.orderId, userId);
+    return result;
   }
 
   @Post('bulk-update')
@@ -144,11 +143,9 @@ export class InventoryController {
   @ApiOperation({ summary: 'Bulk update stock for multiple items' })
   @ApiResponse({ status: 200, description: 'Bulk update completed successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Establishment or Admin role required' })
-   bulkUpdateStock(
-    @Body() bulkUpdateDto: BulkUpdateStockDto,
-    @GetUser('id') userId: string,
-  ) {
-    return this.inventoryService.bulkUpdateStock(bulkUpdateDto, userId);
+  async bulkUpdateStock(@Body() bulkUpdateDto: BulkUpdateStockDto, @GetUser('id') userId: string) {
+    const result = await this.inventoryService.bulkUpdateStock(bulkUpdateDto, userId);
+    return result;
   }
 
   @Get('analytics/overview')
@@ -158,8 +155,9 @@ export class InventoryController {
   @ApiResponse({ status: 200, description: 'Analytics retrieved successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Establishment or Admin role required' })
   @ApiQuery({ name: 'establishmentId', required: false })
-   getInventoryAnalytics(@Query('establishmentId') establishmentId?: string) {
-    return this.inventoryService.getInventoryAnalytics(establishmentId);
+  async getInventoryAnalytics(@Query('establishmentId') establishmentId?: string) {
+    const result = await this.inventoryService.getInventoryAnalytics(establishmentId);
+    return result;
   }
 
   @Get('alerts/active')
@@ -177,20 +175,20 @@ export class InventoryController {
     const result = await this.inventoryService.getInventoryItems(filters);
 
     // Extract items with unacknowledged alerts
-    const itemsWithAlerts = result.items.filter(item =>
-      item.alerts && item.alerts.some(alert => !alert.acknowledged)
+    const itemsWithAlerts = result.items.filter(
+      (item) => item.alerts && item.alerts.some((alert) => !alert.acknowledged),
     );
 
     return {
-      alerts: itemsWithAlerts.flatMap(item =>
+      alerts: itemsWithAlerts.flatMap((item) =>
         item.alerts
-          .filter(alert => !alert.acknowledged)
-          .map(alert => ({
+          .filter((alert) => !alert.acknowledged)
+          .map((alert) => ({
             ...alert,
             itemId: item._id,
             itemName: item.name,
             establishmentId: item.establishmentId,
-          }))
+          })),
       ),
       totalItems: itemsWithAlerts.length,
     };
@@ -202,7 +200,7 @@ export class InventoryController {
   @ApiOperation({ summary: 'Acknowledge inventory alert' })
   @ApiResponse({ status: 200, description: 'Alert acknowledged successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Establishment or Admin role required' })
-   acknowledgeAlert(
+  acknowledgeAlert(
     @Param('alertId') _alertId: string,
     @Body() _acknowledgeDto: AcknowledgeAlertDto,
     @GetUser('id') _userId: string,
@@ -217,7 +215,7 @@ export class InventoryController {
   @ApiOperation({ summary: 'Get low stock report' })
   @ApiResponse({ status: 200, description: 'Low stock report generated successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Establishment or Admin role required' })
-   getLowStockReport(@Query('establishmentId') establishmentId?: string) {
+  async getLowStockReport(@Query('establishmentId') establishmentId?: string) {
     const filters: InventoryFiltersDto = {
       establishmentId,
       lowStock: true,
@@ -225,7 +223,8 @@ export class InventoryController {
       limit: 100,
       sortBy: 'currentStock',
     };
-    return this.inventoryService.getInventoryItems(filters);
+    const result = await this.inventoryService.getInventoryItems(filters);
+    return result;
   }
 
   @Get('reports/expiring')
@@ -234,8 +233,12 @@ export class InventoryController {
   @ApiOperation({ summary: 'Get expiring items report' })
   @ApiResponse({ status: 200, description: 'Expiring items report generated successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Establishment or Admin role required' })
-  @ApiQuery({ name: 'days', required: false, description: 'Number of days ahead to check (default: 3)' })
-   getExpiringItemsReport(
+  @ApiQuery({
+    name: 'days',
+    required: false,
+    description: 'Number of days ahead to check (default: 3)',
+  })
+  async getExpiringItemsReport(
     @Query('establishmentId') establishmentId?: string,
     @Query('days') days?: number,
   ) {
@@ -247,7 +250,8 @@ export class InventoryController {
       limit: 100,
       sortBy: 'expiryDate',
     };
-    return this.inventoryService.getInventoryItems(filters);
+    const result = await this.inventoryService.getInventoryItems(filters);
+    return result;
   }
 
   @Get(':id/history')
@@ -262,8 +266,8 @@ export class InventoryController {
     return {
       itemId: item._id,
       itemName: item.name,
-      stockHistory: item.stockHistory.sort((a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      stockHistory: item.stockHistory.sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       ),
     };
   }

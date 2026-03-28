@@ -1,11 +1,30 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { SearchSuggestion, SearchSuggestionDocument, SuggestionType, SuggestionSource } from '../schemas/search-suggestion.schema';
-import { PopularSearch, PopularSearchDocument, PopularityPeriod } from '../schemas/popular-search.schema';
-import { SearchQuery, SearchQueryDocument } from '../schemas/search-query.schema';
-import { SearchCacheService } from './search-cache.service';
+import { Model, PipelineStage } from 'mongoose';
+
 import { LocationDto, SuggestionDto } from '../dto/search.dto';
+import {
+  PopularSearch,
+  PopularSearchDocument,
+  PopularityPeriod,
+} from '../schemas/popular-search.schema';
+import { SearchQuery, SearchQueryDocument } from '../schemas/search-query.schema';
+import {
+  SearchSuggestion,
+  SearchSuggestionDocument,
+  SuggestionType,
+  SuggestionSource,
+} from '../schemas/search-suggestion.schema';
+
+import { SearchCacheService } from './search-cache.service';
+
+interface SuggestionResult {
+  text: string;
+  type: SuggestionType;
+  source: SuggestionSource;
+  score: number;
+  metadata?: Record<string, unknown>;
+}
 
 @Injectable()
 export class SearchSuggestionService {
@@ -13,11 +32,11 @@ export class SearchSuggestionService {
 
   constructor(
     @InjectModel(SearchSuggestion.name)
-    private suggestionModel: Model<SearchSuggestionDocument>,
+    private readonly suggestionModel: Model<SearchSuggestionDocument>,
     @InjectModel(PopularSearch.name)
-    private popularSearchModel: Model<PopularSearchDocument>,
+    private readonly popularSearchModel: Model<PopularSearchDocument>,
     @InjectModel(SearchQuery.name)
-    private searchQueryModel: Model<SearchQueryDocument>,
+    private readonly searchQueryModel: Model<SearchQueryDocument>,
     private readonly cacheService: SearchCacheService,
   ) {}
 
@@ -28,26 +47,31 @@ export class SearchSuggestionService {
     suggestionDto: SuggestionDto,
     userId?: string,
   ): Promise<{
-    suggestions: Array<{
-      text: string;
-      type: SuggestionType;
-      source: SuggestionSource;
-      score: number;
-      metadata?: any;
-    }>;
+    suggestions: SuggestionResult[];
     trending: string[];
     personalized: string[];
   }> {
-    const { query, limit = 10, types, location, includeTrending = true, includePersonalized = true } = suggestionDto;
+    const {
+      query,
+      limit = 10,
+      types,
+      location,
+      includeTrending = true,
+      includePersonalized = true,
+    } = suggestionDto;
 
     const cacheKey = `suggestions:${query}:${limit}:${types?.join(',')}:${userId || 'anon'}`;
     const cached = await this.cacheService.get(cacheKey);
     if (cached) {
-      return cached;
+      return cached as {
+        suggestions: SuggestionResult[];
+        trending: string[];
+        personalized: string[];
+      };
     }
 
     try {
-      const suggestions: any[] = [];
+      const suggestions: SuggestionResult[] = [];
 
       // 1. Get text-based suggestions
       const textSuggestions = await this.getTextSuggestions(query, types, limit);
@@ -62,7 +86,7 @@ export class SearchSuggestionService {
         const locationSuggestions = await this.getLocationBasedSuggestions(
           query,
           location,
-          limit / 3
+          limit / 3,
         );
         suggestions.push(...locationSuggestions);
       }
@@ -92,7 +116,6 @@ export class SearchSuggestionService {
       // Cache for 5 minutes
       await this.cacheService.set(cacheKey, result, 300);
       return result;
-
     } catch (error) {
       this.logger.error('Failed to get suggestions:', error);
       return {
@@ -109,9 +132,9 @@ export class SearchSuggestionService {
   private async getTextSuggestions(
     query: string,
     types?: string[],
-    limit: number = 10
-  ): Promise<any[]> {
-    const pipeline: any[] = [
+    limit: number = 10,
+  ): Promise<SuggestionResult[]> {
+    const pipeline: PipelineStage[] = [
       {
         $match: {
           isActive: true,
@@ -183,7 +206,10 @@ export class SearchSuggestionService {
   /**
    * Get suggestions from popular searches
    */
-  private async getPopularSuggestions(query: string, limit: number = 5): Promise<any[]> {
+  private async getPopularSuggestions(
+    query: string,
+    limit: number = 5,
+  ): Promise<SuggestionResult[]> {
     const popularResults = await this.popularSearchModel.aggregate([
       {
         $match: {
@@ -230,8 +256,8 @@ export class SearchSuggestionService {
   private async getLocationBasedSuggestions(
     query: string,
     location: LocationDto,
-    limit: number = 5
-  ): Promise<any[]> {
+    limit: number = 5,
+  ): Promise<SuggestionResult[]> {
     const { longitude, latitude, radius = 5000 } = location;
 
     const locationResults = await this.suggestionModel.aggregate([
@@ -281,7 +307,7 @@ export class SearchSuggestionService {
   private async getPersonalizedSuggestions(
     userId: string,
     query: string,
-    limit: number = 5
+    limit: number = 5,
   ): Promise<string[]> {
     const userHistory = await this.searchQueryModel.aggregate([
       {
@@ -308,11 +334,11 @@ export class SearchSuggestionService {
                   {
                     $divide: [
                       { $subtract: ['$lastUsed', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)] },
-                      30 * 24 * 60 * 60 * 1000
-                    ]
+                      30 * 24 * 60 * 60 * 1000,
+                    ],
                   },
-                  0.4
-                ]
+                  0.4,
+                ],
               },
             ],
           },
@@ -323,33 +349,34 @@ export class SearchSuggestionService {
       { $project: { _id: 1 } },
     ]);
 
-    return userHistory.map(item => item._id);
+    return userHistory.map((item) => item._id);
   }
 
   /**
    * Get trending suggestions
    */
   private async getTrendingSuggestions(limit: number = 5): Promise<string[]> {
-    const trending = await this.popularSearchModel.find({
-      isActive: true,
-      period: PopularityPeriod.DAILY,
-      trendDirection: 'rising',
-      trendScore: { $gt: 0.5 },
-    })
-    .sort({ trendScore: -1 })
-    .limit(limit)
-    .select('query')
-    .lean();
+    const trending = await this.popularSearchModel
+      .find({
+        isActive: true,
+        period: PopularityPeriod.DAILY,
+        trendDirection: 'rising',
+        trendScore: { $gt: 0.5 },
+      })
+      .sort({ trendScore: -1 })
+      .limit(limit)
+      .select('query')
+      .lean();
 
-    return trending.map(item => item.query);
+    return trending.map((item) => item.query);
   }
 
   /**
    * Remove duplicates and rank suggestions by relevance
    */
-  private deduplicateAndRank(suggestions: any[], query: string): any[] {
+  private deduplicateAndRank(suggestions: SuggestionResult[], query: string): SuggestionResult[] {
     const seen = new Set<string>();
-    const unique: any[] = [];
+    const unique: SuggestionResult[] = [];
 
     for (const suggestion of suggestions) {
       const key = `${suggestion.text.toLowerCase()}_${suggestion.type}`;
@@ -375,7 +402,7 @@ export class SearchSuggestionService {
     text: string,
     type: SuggestionType,
     source: SuggestionSource,
-    metadata?: any
+    metadata?: Record<string, unknown>,
   ): Promise<SearchSuggestionDocument> {
     const existing = await this.suggestionModel.findOne({ text, type });
 
@@ -404,18 +431,22 @@ export class SearchSuggestionService {
    */
   async updateSuggestionMetrics(text: string, clicked: boolean, converted: boolean): Promise<void> {
     const suggestion = await this.suggestionModel.findOne({ text });
-    if (!suggestion) return;
+    if (!suggestion) {
+      return;
+    }
 
     suggestion.frequency += 1;
     suggestion.lastUsed = new Date();
 
     if (clicked) {
-      const newCtr = (suggestion.clickThroughRate * suggestion.frequency + 1) / (suggestion.frequency + 1);
+      const newCtr =
+        (suggestion.clickThroughRate * suggestion.frequency + 1) / (suggestion.frequency + 1);
       suggestion.clickThroughRate = newCtr;
     }
 
     if (converted) {
-      const newCr = (suggestion.conversionRate * suggestion.frequency + 1) / (suggestion.frequency + 1);
+      const newCr =
+        (suggestion.conversionRate * suggestion.frequency + 1) / (suggestion.frequency + 1);
       suggestion.conversionRate = newCr;
     }
 
@@ -438,7 +469,7 @@ export class SearchSuggestionService {
       { $project: { text: 1 } },
     ]);
 
-    return categories.map(cat => cat.text);
+    return categories.map((cat) => cat.text);
   }
 
   /**
@@ -450,7 +481,7 @@ export class SearchSuggestionService {
         { expiresAt: { $lt: new Date() } },
         {
           frequency: { $lt: 5 },
-          createdAt: { $lt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) }
+          createdAt: { $lt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) },
         },
       ],
     });

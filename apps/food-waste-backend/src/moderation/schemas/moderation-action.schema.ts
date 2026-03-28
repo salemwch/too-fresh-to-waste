@@ -4,118 +4,125 @@ import { Document, Types } from 'mongoose';
 export type ModerationActionDocument = ModerationAction & Document;
 
 export enum ModerationActionType {
-    WARN = 'warn',
-    SUSPEND = 'suspend',
-    BAN = 'ban',
-    DELETE_CONTENT = 'delete_content',
-    HIDE_CONTENT = 'hide_content',
-    RESTRICT_FEATURES = 'restrict_features',
-    REQUIRE_VERIFICATION = 'require_verification',
-    DEMONETIZE = 'demonetize',
+  WARN = 'warn',
+  SUSPEND = 'suspend',
+  BAN = 'ban',
+  DELETE_CONTENT = 'delete_content',
+  HIDE_CONTENT = 'hide_content',
+  RESTRICT_FEATURES = 'restrict_features',
+  REQUIRE_VERIFICATION = 'require_verification',
+  DEMONETIZE = 'demonetize',
 }
 
 export enum ModerationActionStatus {
-    ACTIVE = 'active',
-    EXPIRED = 'expired',
-    REVOKED = 'revoked',
-    APPEALED = 'appealed',
+  ACTIVE = 'active',
+  EXPIRED = 'expired',
+  REVOKED = 'revoked',
+  APPEALED = 'appealed',
 }
 
 export enum ModerationSeverity {
-    MINOR = 'minor',
-    MODERATE = 'moderate',
-    SEVERE = 'severe',
-    CRITICAL = 'critical',
+  MINOR = 'minor',
+  MODERATE = 'moderate',
+  SEVERE = 'severe',
+  CRITICAL = 'critical',
 }
 
 @Schema({ timestamps: true })
 export class ModerationAction {
-    @Prop({ type: String, enum: ModerationActionType, required: true, index: true })
-    actionType: ModerationActionType;
+  @Prop({ type: String, enum: ModerationActionType, required: true, index: true })
+  actionType!: ModerationActionType;
 
-    @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
-    targetUserId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
+  targetUserId!: Types.ObjectId;
 
-    @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-    moderatorId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  moderatorId!: Types.ObjectId;
 
-    @Prop({ type: Types.ObjectId, ref: 'Report' })
-    relatedReportId?: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Report' })
+  relatedReportId?: Types.ObjectId;
 
-    @Prop({ type: String, enum: ModerationSeverity, required: true, index: true })
-    severity: ModerationSeverity;
+  @Prop({ type: String, enum: ModerationSeverity, required: true, index: true })
+  severity!: ModerationSeverity;
 
-    @Prop({ required: true, maxlength: 1000 })
-    reason: string;
+  @Prop({ required: true, maxlength: 1000 })
+  reason!: string;
 
-    @Prop({ maxlength: 2000 })
-    details?: string;
+  @Prop({ maxlength: 2000 })
+  details?: string;
 
-    @Prop({ type: String, enum: ModerationActionStatus, default: ModerationActionStatus.ACTIVE, index: true })
-    status: ModerationActionStatus;
+  @Prop({
+    type: String,
+    enum: ModerationActionStatus,
+    default: ModerationActionStatus.ACTIVE,
+    index: true,
+  })
+  status!: ModerationActionStatus;
 
-    @Prop({ index: true })
-    expiresAt?: Date;
+  @Prop({ index: true })
+  expiresAt?: Date | undefined;
 
-    @Prop()
-    revokedAt?: Date;
+  @Prop()
+  revokedAt?: Date | undefined;
 
-    @Prop({ type: Types.ObjectId, ref: 'User' })
-    revokedBy?: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  revokedBy?: Types.ObjectId | undefined;
 
-    @Prop({ maxlength: 500 })
-    revocationReason?: string;
+  @Prop({ maxlength: 500 })
+  revocationReason?: string | undefined;
 
-    @Prop({ type: [String], default: [] })
-    affectedFeatures: string[];
+  @Prop({ type: [String], default: [] })
+  affectedFeatures!: string[];
 
-    @Prop({
-        type: {
-            ipAddress: String,
-            userAgent: String,
-            location: {
-                country: String,
-                region: String,
-                city: String
-            }
-        }
-    })
-    actionContext?: {
-        ipAddress?: string;
-        userAgent?: string;
-        location?: {
-            country?: string;
-            region?: string;
-            city?: string;
-        };
+  @Prop({
+    type: {
+      ipAddress: String,
+      userAgent: String,
+      location: {
+        country: String,
+        region: String,
+        city: String,
+      },
+    },
+  })
+  actionContext?: {
+    ipAddress?: string;
+    userAgent?: string;
+    location?: {
+      country?: string;
+      region?: string;
+      city?: string;
     };
+  };
 
-    @Prop({ type: Object, default: {} })
-    metadata: Record<string, any>;
+  @Prop({ type: Object, default: {} })
+  metadata!: Record<string, unknown>;
 
-    @Prop({ default: false })
-    isAppealable: boolean;
+  @Prop({ default: false })
+  isAppealable!: boolean;
 
-    @Prop({ default: false })
-    isSystemAction: boolean;
+  @Prop({ default: false })
+  isSystemAction!: boolean;
 
-    @Prop({
-        type: [{
-            field: String,
-            oldValue: String,
-            newValue: String,
-            changedBy: { type: Types.ObjectId, ref: 'User' },
-            changedAt: { type: Date, default: Date.now }
-        }],
-        default: []
-    })
-    auditTrail: Array<{
-        field: string;
-        oldValue?: string;
-        newValue?: string;
-        changedBy: Types.ObjectId;
-        changedAt: Date;
-    }>;
+  @Prop({
+    type: [
+      {
+        field: String,
+        oldValue: String,
+        newValue: String,
+        changedBy: { type: Types.ObjectId, ref: 'User' },
+        changedAt: { type: Date, default: Date.now },
+      },
+    ],
+    default: [],
+  })
+  auditTrail!: Array<{
+    field: string;
+    oldValue?: string | undefined;
+    newValue?: string | undefined;
+    changedBy: Types.ObjectId;
+    changedAt: Date;
+  }>;
 }
 
 export const ModerationActionSchema = SchemaFactory.createForClass(ModerationAction);

@@ -1,5 +1,5 @@
-import * as argon2 from 'argon2';
 import { Logger } from '@nestjs/common';
+import * as argon2 from 'argon2';
 
 /**
  * Argon2 Hash Utility
@@ -95,28 +95,31 @@ export function parseArgon2Hash(hashString: string): Argon2Parameters {
     }
 
     // Extract variant (argon2i, argon2d, argon2id)
-    const variantMatch = parts[1].match(/^argon2(i|d|id)$/);
+    const variantPart = parts[1] ?? '';
+    const variantMatch = variantPart.match(/^argon2(i|d|id)$/);
     if (!variantMatch) {
-      throw new Error(`Invalid Argon2 variant: ${parts[1]}`);
+      throw new Error(`Invalid Argon2 variant: ${variantPart}`);
     }
-    const variant = `argon2${variantMatch[1]}` as 'argon2i' | 'argon2d' | 'argon2id';
+    const variant = `argon2${variantMatch[1] ?? 'id'}` as 'argon2i' | 'argon2d' | 'argon2id';
 
     // Extract version
-    const versionMatch = parts[2].match(/^v=(\d+)$/);
+    const versionPart = parts[2] ?? '';
+    const versionMatch = versionPart.match(/^v=(\d+)$/);
     if (!versionMatch) {
-      throw new Error(`Invalid version format: ${parts[2]}`);
+      throw new Error(`Invalid version format: ${versionPart}`);
     }
-    const version = parseInt(versionMatch[1], 10);
+    const version = parseInt(versionMatch[1] ?? '0', 10);
 
     // Extract memory, time, and parallelism parameters
-    const paramsMatch = parts[3].match(/^m=(\d+),t=(\d+),p=(\d+)$/);
+    const paramsPart = parts[3] ?? '';
+    const paramsMatch = paramsPart.match(/^m=(\d+),t=(\d+),p=(\d+)$/);
     if (!paramsMatch) {
-      throw new Error(`Invalid parameters format: ${parts[3]}`);
+      throw new Error(`Invalid parameters format: ${paramsPart}`);
     }
 
-    const memoryCost = parseInt(paramsMatch[1], 10);
-    const timeCost = parseInt(paramsMatch[2], 10);
-    const parallelism = parseInt(paramsMatch[3], 10);
+    const memoryCost = parseInt(paramsMatch[1] ?? '0', 10);
+    const timeCost = parseInt(paramsMatch[2] ?? '0', 10);
+    const parallelism = parseInt(paramsMatch[3] ?? '0', 10);
 
     return {
       variant,
@@ -124,14 +127,16 @@ export function parseArgon2Hash(hashString: string): Argon2Parameters {
       memoryCost,
       timeCost,
       parallelism,
-      salt: parts[4],
-      hash: parts[5],
+      salt: parts[4] ?? '',
+      hash: parts[5] ?? '',
     };
   } catch (error) {
     logger.error('Failed to parse Argon2 hash', {
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
-    throw new Error(`Failed to parse Argon2 hash: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to parse Argon2 hash: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
   }
 }
 
@@ -157,15 +162,15 @@ export function verifyArgon2Parameters(hashString: string): Argon2Verification {
   let meetsMemoryRequirement = true;
   if (params.memoryCost < RECOMMENDED_ARGON2_PARAMS.MIN_MEMORY_COST) {
     warnings.push(
-      `Memory cost ${params.memoryCost} KiB is below minimum ${RECOMMENDED_ARGON2_PARAMS.MIN_MEMORY_COST} KiB`
+      `Memory cost ${params.memoryCost} KiB is below minimum ${RECOMMENDED_ARGON2_PARAMS.MIN_MEMORY_COST} KiB`,
     );
     suggestions.push(
-      `Increase memory cost to at least ${RECOMMENDED_ARGON2_PARAMS.RECOMMENDED_MEMORY_COST} KiB (64 MiB)`
+      `Increase memory cost to at least ${RECOMMENDED_ARGON2_PARAMS.RECOMMENDED_MEMORY_COST} KiB (64 MiB)`,
     );
     meetsMemoryRequirement = false;
   } else if (params.memoryCost < RECOMMENDED_ARGON2_PARAMS.RECOMMENDED_MEMORY_COST) {
     suggestions.push(
-      `Consider increasing memory cost to ${RECOMMENDED_ARGON2_PARAMS.RECOMMENDED_MEMORY_COST} KiB for better security`
+      `Consider increasing memory cost to ${RECOMMENDED_ARGON2_PARAMS.RECOMMENDED_MEMORY_COST} KiB for better security`,
     );
   }
 
@@ -173,15 +178,15 @@ export function verifyArgon2Parameters(hashString: string): Argon2Verification {
   let meetsTimeRequirement = true;
   if (params.timeCost < RECOMMENDED_ARGON2_PARAMS.MIN_TIME_COST) {
     warnings.push(
-      `Time cost ${params.timeCost} is below minimum ${RECOMMENDED_ARGON2_PARAMS.MIN_TIME_COST}`
+      `Time cost ${params.timeCost} is below minimum ${RECOMMENDED_ARGON2_PARAMS.MIN_TIME_COST}`,
     );
     suggestions.push(
-      `Increase time cost to at least ${RECOMMENDED_ARGON2_PARAMS.RECOMMENDED_TIME_COST}`
+      `Increase time cost to at least ${RECOMMENDED_ARGON2_PARAMS.RECOMMENDED_TIME_COST}`,
     );
     meetsTimeRequirement = false;
   } else if (params.timeCost < RECOMMENDED_ARGON2_PARAMS.RECOMMENDED_TIME_COST) {
     suggestions.push(
-      `Consider increasing time cost to ${RECOMMENDED_ARGON2_PARAMS.RECOMMENDED_TIME_COST} for better security`
+      `Consider increasing time cost to ${RECOMMENDED_ARGON2_PARAMS.RECOMMENDED_TIME_COST} for better security`,
     );
   }
 
@@ -189,7 +194,7 @@ export function verifyArgon2Parameters(hashString: string): Argon2Verification {
   let meetsParallelismRequirement = true;
   if (params.parallelism < RECOMMENDED_ARGON2_PARAMS.MIN_PARALLELISM) {
     warnings.push(
-      `Parallelism ${params.parallelism} is below minimum ${RECOMMENDED_ARGON2_PARAMS.MIN_PARALLELISM}`
+      `Parallelism ${params.parallelism} is below minimum ${RECOMMENDED_ARGON2_PARAMS.MIN_PARALLELISM}`,
     );
     meetsParallelismRequirement = false;
   }

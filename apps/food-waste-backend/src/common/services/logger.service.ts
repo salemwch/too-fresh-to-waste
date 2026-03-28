@@ -1,9 +1,10 @@
-import { Injectable, LoggerService, Scope, Optional } from '@nestjs/common';
+import * as path from 'path';
+
+import { Injectable, LoggerService, Scope } from '@nestjs/common';
+import * as Sentry from '@sentry/node';
+import { v4 as uuidv4 } from 'uuid';
 import * as winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import * as Sentry from '@sentry/node';
 
 /**
  * ENTERPRISE-GRADE STRUCTURED LOGGING SERVICE
@@ -33,33 +34,34 @@ export enum LogLevel {
 }
 
 export interface LogMetadata {
-  correlationId?: string;
-  userId?: string;
-  requestId?: string;
-  method?: string;
-  path?: string;
-  statusCode?: number;
-  duration?: number;
-  errorId?: string;
-  [key: string]: any;
+  correlationId?: string | undefined;
+  userId?: string | undefined;
+  requestId?: string | undefined;
+  method?: string | undefined;
+  path?: string | undefined;
+  statusCode?: number | undefined;
+  duration?: number | undefined;
+  errorId?: string | undefined;
+  contentLength?: number | undefined;
+  [key: string]: unknown;
 }
 
 /**
  * Custom format for production: sanitizes stack traces
  */
 const sanitizeStackTrace = winston.format((info) => {
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = process.env['NODE_ENV'] === 'production';
 
-  if (isProduction && info.stack && typeof info.stack === 'string') {
+  if (isProduction && info['stack'] && typeof info['stack'] === 'string') {
     // In production, remove absolute file paths from stack traces
     // Replace: at ClassName.methodName (C:\Users\...\file.ts:123:45)
     // With: at ClassName.methodName (file.ts:123:45)
-    info.stack = info.stack
+    info['stack'] = info['stack']
       .split('\n')
-      .map((line: string) => {
+      .map((line: string) =>
         // Remove absolute paths but keep relative file info
-        return line.replace(/\(([A-Z]:\\[^)]+\\)?([^\\)]+)\)/g, '($2)');
-      })
+        line.replace(/\(([A-Z]:\\[^)]+\\)?([^\\)]+)\)/g, '($2)'),
+      )
       .join('\n');
   }
 
@@ -78,12 +80,10 @@ export class AppLoggerService implements LoggerService {
    * Use setContext() to set the logging context after injection.
    */
   constructor() {
-    this.isProduction = process.env.NODE_ENV === 'production';
-    this.sentryEnabled = !!process.env.SENTRY_DSN;
+    this.isProduction = process.env['NODE_ENV'] === 'production';
+    this.sentryEnabled = !!process.env['SENTRY_DSN'];
 
-    const logLevel = this.isProduction
-      ? LogLevel.INFO
-      : process.env.LOG_LEVEL || LogLevel.DEBUG;
+    const logLevel = this.isProduction ? LogLevel.INFO : process.env['LOG_LEVEL'] || LogLevel.DEBUG;
 
     // Define log format
     const logFormat = winston.format.combine(
@@ -91,7 +91,16 @@ export class AppLoggerService implements LoggerService {
       winston.format.errors({ stack: true }),
       sanitizeStackTrace(),
       winston.format.metadata({
-        fillWith: ['correlationId', 'userId', 'requestId', 'method', 'path', 'statusCode', 'duration', 'errorId'],
+        fillWith: [
+          'correlationId',
+          'userId',
+          'requestId',
+          'method',
+          'path',
+          'statusCode',
+          'duration',
+          'errorId',
+        ],
       }),
       this.isProduction
         ? winston.format.json() // Structured JSON for production aggregators
@@ -99,12 +108,13 @@ export class AppLoggerService implements LoggerService {
             winston.format.colorize(),
             winston.format.printf(({ timestamp, level, message, context, metadata, stack }) => {
               const ctx = context ? `[${context}]` : '';
-              const meta = Object.keys(metadata || {}).length > 0
-                ? `\n${JSON.stringify(metadata, null, 2)}`
-                : '';
+              const meta =
+                Object.keys(metadata || {}).length > 0
+                  ? `\n${JSON.stringify(metadata, null, 2)}`
+                  : '';
               const stackTrace = stack ? `\n${stack}` : '';
               return `${timestamp} ${level} ${ctx} ${message}${meta}${stackTrace}`;
-            })
+            }),
           ),
     );
 
@@ -119,7 +129,7 @@ export class AppLoggerService implements LoggerService {
 
     // File transports (production only)
     if (this.isProduction) {
-      const logsDir = process.env.LOGS_DIR || path.join(process.cwd(), 'logs');
+      const logsDir = process.env['LOGS_DIR'] || path.join(process.cwd(), 'logs');
 
       // Combined logs (all levels)
       transports.push(
@@ -130,7 +140,7 @@ export class AppLoggerService implements LoggerService {
           maxFiles: '14d', // Keep logs for 14 days
           level: logLevel,
           format: winston.format.json(),
-        })
+        }),
       );
 
       // Error logs (error level only)
@@ -142,7 +152,7 @@ export class AppLoggerService implements LoggerService {
           maxFiles: '30d', // Keep error logs for 30 days
           level: 'error',
           format: winston.format.json(),
-        })
+        }),
       );
     }
 
@@ -173,11 +183,11 @@ export class AppLoggerService implements LoggerService {
   /**
    * Build metadata object with context
    */
-  private buildMetadata(metadata?: LogMetadata, context?: string): any {
+  private buildMetadata(metadata?: LogMetadata, context?: string): LogMetadata {
     return {
       context: context || this.context,
       ...metadata,
-      environment: process.env.NODE_ENV,
+      environment: process.env['NODE_ENV'],
       timestamp: new Date().toISOString(),
     };
   }
@@ -188,10 +198,7 @@ export class AppLoggerService implements LoggerService {
    */
   error(message: string, trace?: string | Error, context?: string, metadata?: LogMetadata): string {
     const errorId = this.generateErrorId();
-    const meta = this.buildMetadata(
-      { ...metadata, errorId },
-      context
-    );
+    const meta = this.buildMetadata({ ...metadata, errorId }, context);
 
     // Log to Winston
     if (trace instanceof Error) {
@@ -228,7 +235,7 @@ export class AppLoggerService implements LoggerService {
    * Send error to Sentry with enriched context
    * @private
    */
-  private sendToSentry(error: Error, message: string, metadata: any): void {
+  private sendToSentry(error: Error, message: string, metadata: LogMetadata): void {
     if (!this.sentryEnabled) {
       return;
     }
@@ -398,7 +405,7 @@ export class AppLoggerService implements LoggerService {
    * Close logger and flush pending logs
    */
   async close(): Promise<void> {
-    return new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       this.logger.end(() => {
         resolve();
       });

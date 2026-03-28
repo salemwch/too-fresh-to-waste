@@ -1,18 +1,25 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { ReviewModerationService } from '../services/review-moderation.service';
+
 import { AppLoggerService } from '../common/services/logger.service';
+import {
+  ReviewModerationService,
+  ReviewModerationData,
+} from '../services/review-moderation.service';
 
 @Processor('review-moderation')
 export class ReviewModerationProcessor {
-    constructor(
-        private readonly moderationService: ReviewModerationService,
-        private readonly appLogger: AppLoggerService
-    ) { }
+  constructor(
+    private readonly moderationService: ReviewModerationService,
+    private readonly appLogger: AppLoggerService,
+  ) {}
 
-    @Process('moderate')
-    async moderateReview(job: Job<any>): Promise<void> {
-        const moderated = await this.moderationService.moderateReview(job.data);
-        this.appLogger.log(`Moderated review: ${JSON.stringify(moderated)}`, 'ReviewModerationProcessor');
-    }
+  @Process('moderate')
+  async moderateReview(job: Job<ReviewModerationData>): Promise<void> {
+    const moderated = await this.moderationService.moderateReview(job.data);
+    this.appLogger.log(
+      `Moderated review: ${JSON.stringify(moderated)}`,
+      'ReviewModerationProcessor',
+    );
+  }
 }

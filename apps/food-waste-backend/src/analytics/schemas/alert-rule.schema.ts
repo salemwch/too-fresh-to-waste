@@ -25,7 +25,7 @@ export interface AlertCondition {
 
 @Schema({
   timestamps: true,
-  collection: 'alert_rules'
+  collection: 'alert_rules',
 })
 export class AlertRule {
   @Prop({
@@ -33,23 +33,23 @@ export class AlertRule {
     required: true,
     trim: true,
     maxlength: 100,
-    index: true
+    index: true,
   })
-  name: string;
+  name!: string;
 
   @Prop({
     type: String,
     required: true,
-    maxlength: 500
+    maxlength: 500,
   })
-  description: string;
+  description!: string;
 
   @Prop({
     type: String,
     required: true,
-    index: true
+    index: true,
   })
-  metric: string;
+  metric!: string;
 
   @Prop({
     type: {
@@ -57,188 +57,190 @@ export class AlertRule {
       operator: {
         type: String,
         enum: ['greater_than', 'less_than', 'equals', 'percent_change', 'threshold_breach'],
-        required: true
+        required: true,
       },
       value: { type: Number, required: true },
       timeWindow: { type: Number, required: true, min: 1, max: 1440 },
       aggregation: {
         type: String,
         enum: ['sum', 'avg', 'min', 'max', 'count'],
-        default: 'avg'
-      }
+        default: 'avg',
+      },
     },
-    required: true
+    required: true,
   })
-  condition: AlertCondition;
+  condition!: AlertCondition;
 
   @Prop({
     type: String,
     enum: ['low', 'medium', 'high', 'critical'],
     required: true,
     default: 'medium',
-    index: true
+    index: true,
   })
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity!: 'low' | 'medium' | 'high' | 'critical';
 
   @Prop({
-    type: [{
-      type: {
-        type: String,
-        enum: ['email', 'webhook', 'sms', 'slack'],
-        required: true
+    type: [
+      {
+        type: {
+          type: String,
+          enum: ['email', 'webhook', 'sms', 'slack'],
+          required: true,
+        },
+        config: {
+          emails: [String],
+          webhookUrl: String,
+          phoneNumbers: [String],
+          slackChannel: String,
+          slackWebhook: String,
+        },
       },
-      config: {
-        emails: [String],
-        webhookUrl: String,
-        phoneNumbers: [String],
-        slackChannel: String,
-        slackWebhook: String
-      }
-    }],
+    ],
     required: true,
     validate: {
-      validator: function(channels: NotificationChannel[]) {
+      validator(channels: NotificationChannel[]) {
         return channels.length > 0;
       },
-      message: 'At least one notification channel is required'
-    }
+      message: 'At least one notification channel is required',
+    },
   })
-  notificationChannels: NotificationChannel[];
+  notificationChannels!: NotificationChannel[];
 
   @Prop({
     type: Boolean,
     default: true,
-    index: true
+    index: true,
   })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Prop({
     type: Object,
-    default: {}
+    default: {},
   })
-  filters: Record<string, string | number | boolean | string[] | number[]>; // Additional filters for the alert
+  filters!: Record<string, string | number | boolean | string[] | number[]>; // Additional filters for the alert
 
   @Prop({
     type: Number,
     default: 0,
     min: 0,
-    max: 60
+    max: 60,
   })
-  cooldownMinutes: number; // Prevent alert spam
+  cooldownMinutes!: number; // Prevent alert spam
 
   @Prop({
     type: Date,
-    index: true
+    index: true,
   })
   lastTriggered?: Date;
 
   @Prop({
-    type: Date
+    type: Date,
   })
   lastEvaluated?: Date;
 
   @Prop({
     type: Number,
     default: 0,
-    min: 0
+    min: 0,
   })
-  triggerCount: number;
+  triggerCount!: number;
 
   @Prop({
     type: Types.ObjectId,
     ref: 'User',
     required: true,
-    index: true
+    index: true,
   })
-  createdBy: Types.ObjectId;
+  createdBy!: Types.ObjectId;
 
   @Prop({
     type: [String],
-    default: []
+    default: [],
   })
-  tags: string[];
+  tags!: string[];
 
   @Prop({
     type: Object,
-    default: {}
+    default: {},
   })
-  metadata: Record<string, string | number | boolean | Date>;
+  metadata!: Record<string, string | number | boolean | Date>;
 }
 
 @Schema({
   timestamps: true,
-  collection: 'alerts'
+  collection: 'alerts',
 })
 export class Alert {
   @Prop({
     type: Types.ObjectId,
     ref: 'AlertRule',
     required: true,
-    index: true
+    index: true,
   })
-  ruleId: Types.ObjectId;
+  ruleId!: Types.ObjectId;
 
   @Prop({
     type: String,
-    required: true
+    required: true,
   })
-  ruleName: string;
+  ruleName!: string;
 
   @Prop({
     type: String,
     enum: ['low', 'medium', 'high', 'critical'],
     required: true,
-    index: true
+    index: true,
   })
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity!: 'low' | 'medium' | 'high' | 'critical';
 
   @Prop({
     type: String,
     required: true,
-    maxlength: 1000
+    maxlength: 1000,
   })
-  message: string;
+  message!: string;
 
   @Prop({
     type: Number,
-    required: true
+    required: true,
   })
-  currentValue: number;
+  currentValue!: number;
 
   @Prop({
     type: Number,
-    required: true
+    required: true,
   })
-  threshold: number;
+  threshold!: number;
 
   @Prop({
     type: Date,
     required: true,
-    index: true
+    index: true,
   })
-  triggeredAt: Date;
+  triggeredAt!: Date;
 
   @Prop({
     type: Date,
-    index: true
+    index: true,
   })
   acknowledgedAt?: Date;
 
   @Prop({
     type: Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   })
   acknowledgedBy?: Types.ObjectId;
 
   @Prop({
     type: Date,
-    index: true
+    index: true,
   })
   resolvedAt?: Date;
 
   @Prop({
     type: Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   })
   resolvedBy?: Types.ObjectId;
 
@@ -247,26 +249,28 @@ export class Alert {
     enum: ['triggered', 'acknowledged', 'resolved', 'expired'],
     required: true,
     default: 'triggered',
-    index: true
+    index: true,
   })
-  status: 'triggered' | 'acknowledged' | 'resolved' | 'expired';
+  status!: 'triggered' | 'acknowledged' | 'resolved' | 'expired';
 
   @Prop({
     type: Object,
-    default: {}
+    default: {},
   })
-  metadata: Record<string, string | number | boolean | Date>;
+  metadata!: Record<string, string | number | boolean | Date>;
 
   @Prop({
-    type: [{
-      channel: String,
-      sentAt: Date,
-      success: Boolean,
-      error: String
-    }],
-    default: []
+    type: [
+      {
+        channel: String,
+        sentAt: Date,
+        success: Boolean,
+        error: String,
+      },
+    ],
+    default: [],
   })
-  notifications: Array<{
+  notifications!: Array<{
     channel: string;
     sentAt: Date;
     success: boolean;
@@ -275,16 +279,16 @@ export class Alert {
 
   @Prop({
     type: String,
-    maxlength: 1000
+    maxlength: 1000,
   })
   resolutionNotes?: string;
 
   @Prop({
     type: Date,
     default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from creation
-    index: { expireAfterSeconds: 0 }
+    index: { expireAfterSeconds: 0 },
   })
-  expiresAt: Date;
+  expiresAt!: Date;
 }
 
 export const AlertRuleSchema = SchemaFactory.createForClass(AlertRule);
@@ -301,13 +305,13 @@ AlertSchema.index({ severity: 1, status: 1 });
 AlertSchema.index({ status: 1, expiresAt: 1 });
 
 // Middleware
-AlertRuleSchema.pre('save', function() {
+AlertRuleSchema.pre('save', function () {
   if (this.isModified('condition') || this.isModified('filters')) {
-    this.lastEvaluated = undefined; // Force re-evaluation
+    delete (this as { lastEvaluated?: Date }).lastEvaluated; // Force re-evaluation
   }
 });
 
-AlertSchema.pre('save', function() {
+AlertSchema.pre('save', function () {
   // Auto-resolve expired alerts
   if (this.expiresAt && this.expiresAt < new Date() && this.status === 'triggered') {
     this.status = 'expired';

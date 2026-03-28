@@ -1,32 +1,42 @@
-import { IsNotEmpty, IsOptional, IsEnum, IsString, MaxLength,  IsBoolean, IsDateString, IsArray } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  IsString,
+  MaxLength,
+  IsBoolean,
+  IsDateString,
+  IsArray,
+} from 'class-validator';
+
 import { UserRole, UserStatus } from '../../common/enums/user.enum';
 
 export class UpdateUserStatusDto {
   @ApiProperty({
     enum: UserStatus,
     description: 'New user status',
-    example: UserStatus.SUSPENDED
+    example: UserStatus.SUSPENDED,
   })
   @IsNotEmpty()
   @IsEnum(UserStatus)
-  status: UserStatus;
+  status!: UserStatus;
 
   @ApiProperty({
     description: 'Reason for status change',
     example: 'Violation of community guidelines',
-    maxLength: 500
+    maxLength: 500,
   })
   @IsNotEmpty()
   @IsString()
   @MaxLength(500)
-  reason: string;
+  reason!: string;
 
   @ApiPropertyOptional({
     description: 'Internal admin notes',
     example: 'User reported multiple times for inappropriate behavior',
-    maxLength: 1000
+    maxLength: 1000,
   })
   @IsOptional()
   @IsString()
@@ -35,63 +45,63 @@ export class UpdateUserStatusDto {
 
   @ApiPropertyOptional({
     description: 'Send notification to user',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
-  sendNotification?: boolean = true;
+  sendNotification?: boolean | undefined;
 
   @ApiPropertyOptional({
     description: 'Automatic reactivation date (for temporary suspensions)',
-    example: '2024-12-31T23:59:59.999Z'
+    example: '2024-12-31T23:59:59.999Z',
   })
   @IsOptional()
   @IsDateString()
-  reactivationDate?: string;
+  reactivationDate?: string | undefined;
 }
 
 export class BulkUserActionDto {
   @ApiProperty({
     description: 'Array of user IDs to perform action on',
-    example: ['507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012']
+    example: ['507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012'],
   })
   @IsNotEmpty()
   @IsArray()
   @IsString({ each: true })
-  userIds: string[];
+  userIds!: string[];
 
   @ApiProperty({
     enum: UserStatus,
     description: 'Status to apply to all users',
-    example: UserStatus.SUSPENDED
+    example: UserStatus.SUSPENDED,
   })
   @IsNotEmpty()
   @IsEnum(UserStatus)
-  status: UserStatus;
+  status!: UserStatus;
 
   @ApiProperty({
     description: 'Reason for bulk action',
     example: 'Bulk suspension due to policy violation',
-    maxLength: 500
+    maxLength: 500,
   })
   @IsNotEmpty()
   @IsString()
   @MaxLength(500)
-  reason: string;
+  reason!: string;
 
   @ApiPropertyOptional({
     description: 'Send notification to all affected users',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
-  sendNotification?: boolean = true;
+  sendNotification?: boolean | undefined;
 }
 
 export class UserSearchDto {
   @ApiPropertyOptional({
     description: 'Search term for name or email',
-    example: 'john.doe@example.com'
+    example: 'john.doe@example.com',
   })
   @IsOptional()
   @IsString()
@@ -100,7 +110,7 @@ export class UserSearchDto {
   @ApiPropertyOptional({
     enum: UserRole,
     description: 'Filter by user role',
-    example: UserRole.MERCHANT
+    example: UserRole.MERCHANT,
   })
   @IsOptional()
   @IsEnum(UserRole)
@@ -109,7 +119,7 @@ export class UserSearchDto {
   @ApiPropertyOptional({
     enum: UserStatus,
     description: 'Filter by user status',
-    example: UserStatus.ACTIVE
+    example: UserStatus.ACTIVE,
   })
   @IsOptional()
   @IsEnum(UserStatus)
@@ -117,7 +127,7 @@ export class UserSearchDto {
 
   @ApiPropertyOptional({
     description: 'Filter by email verification status',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -125,7 +135,7 @@ export class UserSearchDto {
 
   @ApiPropertyOptional({
     description: 'Filter by phone verification status',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -133,7 +143,7 @@ export class UserSearchDto {
 
   @ApiPropertyOptional({
     description: 'Filter by city',
-    example: 'Paris'
+    example: 'Paris',
   })
   @IsOptional()
   @IsString()
@@ -141,7 +151,7 @@ export class UserSearchDto {
 
   @ApiPropertyOptional({
     description: 'Filter by country',
-    example: 'France'
+    example: 'France',
   })
   @IsOptional()
   @IsString()
@@ -149,7 +159,7 @@ export class UserSearchDto {
 
   @ApiPropertyOptional({
     description: 'Registration date from (ISO string)',
-    example: '2024-01-01T00:00:00.000Z'
+    example: '2024-01-01T00:00:00.000Z',
   })
   @IsOptional()
   @IsDateString()
@@ -157,7 +167,7 @@ export class UserSearchDto {
 
   @ApiPropertyOptional({
     description: 'Registration date to (ISO string)',
-    example: '2024-12-31T23:59:59.999Z'
+    example: '2024-12-31T23:59:59.999Z',
   })
   @IsOptional()
   @IsDateString()
@@ -165,7 +175,7 @@ export class UserSearchDto {
 
   @ApiPropertyOptional({
     description: 'Last login date from (ISO string)',
-    example: '2024-01-01T00:00:00.000Z'
+    example: '2024-01-01T00:00:00.000Z',
   })
   @IsOptional()
   @IsDateString()
@@ -173,7 +183,7 @@ export class UserSearchDto {
 
   @ApiPropertyOptional({
     description: 'Sort field',
-    example: 'createdAt'
+    example: 'createdAt',
   })
   @IsOptional()
   @IsString()
@@ -181,7 +191,7 @@ export class UserSearchDto {
 
   @ApiPropertyOptional({
     description: 'Sort order',
-    example: 'desc'
+    example: 'desc',
   })
   @IsOptional()
   @IsEnum(['asc', 'desc'])
@@ -189,7 +199,7 @@ export class UserSearchDto {
 
   @ApiPropertyOptional({
     description: 'Page number',
-    example: 1
+    example: 1,
   })
   @IsOptional()
   @Type(() => Number)
@@ -197,7 +207,7 @@ export class UserSearchDto {
 
   @ApiPropertyOptional({
     description: 'Items per page',
-    example: 20
+    example: 20,
   })
   @IsOptional()
   @Type(() => Number)
@@ -207,7 +217,7 @@ export class UserSearchDto {
 export class AdminUserOverviewDto {
   @ApiPropertyOptional({
     description: 'Include detailed user statistics',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -215,7 +225,7 @@ export class AdminUserOverviewDto {
 
   @ApiPropertyOptional({
     description: 'Period for statistics calculation',
-    example: 'month'
+    example: 'month',
   })
   @IsOptional()
   @IsEnum(['day', 'week', 'month', 'quarter', 'year'])

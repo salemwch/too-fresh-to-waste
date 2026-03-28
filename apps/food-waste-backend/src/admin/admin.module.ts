@@ -1,21 +1,28 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 // Modules
 import { CommonModule } from '../common/common.module';
+import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
+import { Order, OrderSchema } from '../orders/schemas/order.schema';
+import { Review, ReviewSchema } from '../reviwes/schemas/reviwe.schema';
+import { User, UserSchema } from '../users/schemas/user.schema';
 import { UsersModule } from '../users/user.module';
 
 // Schemas
+import {
+  AdminAnalyticsController,
+  UserManagementController,
+  EstablishmentManagementController,
+  SystemConfigController,
+} from './controllers';
+import { AdminOnlyGuard } from './guards/admin-only.guard';
 import { AdminAuditLog, AdminAuditLogSchema } from './schemas/admin-audit-log.schema';
 import { SystemConfig, SystemConfigSchema } from './schemas/system-config.schema';
 
 // Import existing schemas that admin module needs
-import { User, UserSchema } from '../users/schemas/user.schema';
-import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
-import { Order, OrderSchema } from '../orders/schemas/order.schema';
-import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
-import { Review, ReviewSchema } from '../reviwes/schemas/reviwe.schema';
 
 // Services
 import {
@@ -23,19 +30,12 @@ import {
   AdminAuditService,
   UserManagementService,
   EstablishmentManagementService,
-  SystemConfigService
+  SystemConfigService,
 } from './services';
 
 // Controllers
-import {
-  AdminAnalyticsController,
-  UserManagementController,
-  EstablishmentManagementController,
-  SystemConfigController
-} from './controllers';
 
 // Guards
-import { AdminOnlyGuard } from './guards/admin-only.guard';
 
 @Module({
   imports: [

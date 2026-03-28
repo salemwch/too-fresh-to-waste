@@ -7,107 +7,111 @@
  * Reference: OWASP API Security Top 10 - API3:2023 Excessive Data Exposure
  */
 
-import { EstablishmentStatus, EstablishmentType } from '../schemas/establishment.schema';
+import type {
+  EstablishmentDocument,
+  EstablishmentStatus,
+  EstablishmentType,
+} from '../schemas/establishment.schema';
 
 /**
  * Safe address data without MongoDB internals
  */
 export interface SafeAddress {
-    street: string;
-    city: string;
-    postalCode: string;
-    country: string;
-    coordinates: {
-        type: 'Point';
-        coordinates: [number, number]; // [longitude, latitude]
-    };
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  coordinates: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
+  };
 }
 
 /**
  * Safe business hours data
  */
 export interface SafeBusinessHours {
-    monday: { open: string; close: string; closed: boolean };
-    tuesday: { open: string; close: string; closed: boolean };
-    wednesday: { open: string; close: string; closed: boolean };
-    thursday: { open: string; close: string; closed: boolean };
-    friday: { open: string; close: string; closed: boolean };
-    saturday: { open: string; close: string; closed: boolean };
-    sunday: { open: string; close: string; closed: boolean };
+  monday: { open: string; close: string; closed: boolean };
+  tuesday: { open: string; close: string; closed: boolean };
+  wednesday: { open: string; close: string; closed: boolean };
+  thursday: { open: string; close: string; closed: boolean };
+  friday: { open: string; close: string; closed: boolean };
+  saturday: { open: string; close: string; closed: boolean };
+  sunday: { open: string; close: string; closed: boolean };
 }
 
 /**
  * Safe establishment data returned to client
  */
 export interface SafeEstablishmentResponse {
-    /** Establishment unique identifier */
-    id: string;
+  /** Establishment unique identifier */
+  id: string;
 
-    /** Business name */
-    name: string;
+  /** Business name */
+  name: string;
 
-    /** Business description */
-    description: string;
+  /** Business description */
+  description: string;
 
-    /** Establishment type */
-    type: EstablishmentType;
+  /** Establishment type */
+  type: EstablishmentType;
 
-    /** Approval status */
-    status: EstablishmentStatus;
+  /** Approval status */
+  status: EstablishmentStatus;
 
-    /** Full address with coordinates */
-    address: SafeAddress;
+  /** Full address with coordinates */
+  address: SafeAddress;
 
-    /** Contact phone number */
-    phoneNumber: string;
+  /** Contact phone number */
+  phoneNumber: string;
 
-    /** Contact email */
-    email: string;
+  /** Contact email */
+  email: string;
 
-    /** Business website (optional) */
-    website?: string;
+  /** Business website (optional) */
+  website?: string | undefined;
 
-    /** Images URLs */
-    images: string[];
+  /** Images URLs */
+  images: string[];
 
-    /** Cuisine types (for restaurants) */
-    cuisineTypes?: string[];
+  /** Cuisine types (for restaurants) */
+  cuisineTypes?: string[] | undefined;
 
-    /** Business operating hours (optional) */
-    businessHours?: SafeBusinessHours;
+  /** Business operating hours (optional) */
+  businessHours?: SafeBusinessHours | undefined;
 
-    /** Average rating (0-5) */
-    averageRating: number;
+  /** Average rating (0-5) */
+  averageRating: number;
 
-    /** Total reviews count */
-    totalReviews: number;
+  /** Total reviews count */
+  totalReviews: number;
 
-    /** Active offers count */
-    totalOffers: number;
+  /** Active offers count */
+  totalOffers: number;
 
-    /** Completed orders count */
-    completedOrders: number;
+  /** Completed orders count */
+  completedOrders: number;
 
-    /** Operational status */
-    isActive: boolean;
+  /** Operational status */
+  isActive: boolean;
 
-    /** Admin verification status */
-    isVerified: boolean;
+  /** Admin verification status */
+  isVerified: boolean;
 
-    /** Accepts reservations flag */
-    acceptsReservations: boolean;
+  /** Accepts reservations flag */
+  acceptsReservations: boolean;
 
-    /** Verification timestamp (optional) */
-    verifiedAt?: Date;
+  /** Verification timestamp (optional) */
+  verifiedAt?: Date | undefined;
 
-    /** Rejection reason (if rejected) */
-    rejectionReason?: string;
+  /** Rejection reason (if rejected) */
+  rejectionReason?: string | undefined;
 
-    /** Creation timestamp */
-    createdAt: Date;
+  /** Creation timestamp */
+  createdAt: Date;
 
-    /** Last update timestamp */
-    updatedAt: Date;
+  /** Last update timestamp */
+  updatedAt: Date;
 }
 
 /**
@@ -116,81 +120,85 @@ export interface SafeEstablishmentResponse {
  * @param establishmentDoc - Mongoose establishment document
  * @returns Safe establishment data for client
  */
-export function mapToSafeEstablishmentResponse(establishmentDoc: any): SafeEstablishmentResponse {
-    // Clean address by removing MongoDB _id field
-    const safeAddress: SafeAddress = {
-        street: establishmentDoc.address.street,
-        city: establishmentDoc.address.city,
-        postalCode: establishmentDoc.address.postalCode,
-        country: establishmentDoc.address.country,
-        coordinates: {
-            type: 'Point',
-            coordinates: establishmentDoc.address.coordinates.coordinates,
-        },
-    };
+export function mapToSafeEstablishmentResponse(
+  establishmentDoc: EstablishmentDocument,
+): SafeEstablishmentResponse {
+  // Clean address by removing MongoDB _id field
+  const safeAddress: SafeAddress = {
+    street: establishmentDoc.address.street,
+    city: establishmentDoc.address.city,
+    postalCode: establishmentDoc.address.postalCode,
+    country: establishmentDoc.address.country,
+    coordinates: {
+      type: 'Point',
+      coordinates: establishmentDoc.address.coordinates.coordinates,
+    },
+  };
 
-    // Clean business hours by removing _id if present
-    const safeBusinessHours: SafeBusinessHours | undefined = establishmentDoc.businessHours ? {
+  // Clean business hours by removing _id if present
+  const safeBusinessHours: SafeBusinessHours | undefined = establishmentDoc.businessHours
+    ? {
         monday: {
-            open: establishmentDoc.businessHours.monday.open,
-            close: establishmentDoc.businessHours.monday.close,
-            closed: establishmentDoc.businessHours.monday.closed,
+          open: establishmentDoc.businessHours.monday.open,
+          close: establishmentDoc.businessHours.monday.close,
+          closed: establishmentDoc.businessHours.monday.closed,
         },
         tuesday: {
-            open: establishmentDoc.businessHours.tuesday.open,
-            close: establishmentDoc.businessHours.tuesday.close,
-            closed: establishmentDoc.businessHours.tuesday.closed,
+          open: establishmentDoc.businessHours.tuesday.open,
+          close: establishmentDoc.businessHours.tuesday.close,
+          closed: establishmentDoc.businessHours.tuesday.closed,
         },
         wednesday: {
-            open: establishmentDoc.businessHours.wednesday.open,
-            close: establishmentDoc.businessHours.wednesday.close,
-            closed: establishmentDoc.businessHours.wednesday.closed,
+          open: establishmentDoc.businessHours.wednesday.open,
+          close: establishmentDoc.businessHours.wednesday.close,
+          closed: establishmentDoc.businessHours.wednesday.closed,
         },
         thursday: {
-            open: establishmentDoc.businessHours.thursday.open,
-            close: establishmentDoc.businessHours.thursday.close,
-            closed: establishmentDoc.businessHours.thursday.closed,
+          open: establishmentDoc.businessHours.thursday.open,
+          close: establishmentDoc.businessHours.thursday.close,
+          closed: establishmentDoc.businessHours.thursday.closed,
         },
         friday: {
-            open: establishmentDoc.businessHours.friday.open,
-            close: establishmentDoc.businessHours.friday.close,
-            closed: establishmentDoc.businessHours.friday.closed,
+          open: establishmentDoc.businessHours.friday.open,
+          close: establishmentDoc.businessHours.friday.close,
+          closed: establishmentDoc.businessHours.friday.closed,
         },
         saturday: {
-            open: establishmentDoc.businessHours.saturday.open,
-            close: establishmentDoc.businessHours.saturday.close,
-            closed: establishmentDoc.businessHours.saturday.closed,
+          open: establishmentDoc.businessHours.saturday.open,
+          close: establishmentDoc.businessHours.saturday.close,
+          closed: establishmentDoc.businessHours.saturday.closed,
         },
         sunday: {
-            open: establishmentDoc.businessHours.sunday.open,
-            close: establishmentDoc.businessHours.sunday.close,
-            closed: establishmentDoc.businessHours.sunday.closed,
+          open: establishmentDoc.businessHours.sunday.open,
+          close: establishmentDoc.businessHours.sunday.close,
+          closed: establishmentDoc.businessHours.sunday.closed,
         },
-    } : undefined;
+      }
+    : undefined;
 
-    return {
-        id: establishmentDoc._id?.toString() || establishmentDoc.id,
-        name: establishmentDoc.name,
-        description: establishmentDoc.description,
-        type: establishmentDoc.type,
-        status: establishmentDoc.status,
-        address: safeAddress,
-        phoneNumber: establishmentDoc.phoneNumber,
-        email: establishmentDoc.email,
-        website: establishmentDoc.website,
-        images: establishmentDoc.images || [],
-        cuisineTypes: establishmentDoc.cuisineTypes,
-        businessHours: safeBusinessHours,
-        averageRating: establishmentDoc.averageRating || 0,
-        totalReviews: establishmentDoc.totalReviews || 0,
-        totalOffers: establishmentDoc.totalOffers || 0,
-        completedOrders: establishmentDoc.completedOrders || 0,
-        isActive: establishmentDoc.isActive,
-        isVerified: establishmentDoc.isVerified,
-        acceptsReservations: establishmentDoc.acceptsReservations,
-        verifiedAt: establishmentDoc.verifiedAt,
-        rejectionReason: establishmentDoc.rejectionReason,
-        createdAt: establishmentDoc.createdAt,
-        updatedAt: establishmentDoc.updatedAt,
-    };
+  return {
+    id: establishmentDoc._id?.toString() || establishmentDoc.id,
+    name: establishmentDoc.name,
+    description: establishmentDoc.description,
+    type: establishmentDoc.type,
+    status: establishmentDoc.status,
+    address: safeAddress,
+    phoneNumber: establishmentDoc.phoneNumber,
+    email: establishmentDoc.email,
+    website: establishmentDoc.website,
+    images: establishmentDoc.images || [],
+    cuisineTypes: establishmentDoc.cuisineTypes,
+    businessHours: safeBusinessHours,
+    averageRating: establishmentDoc.averageRating || 0,
+    totalReviews: establishmentDoc.totalReviews || 0,
+    totalOffers: establishmentDoc.totalOffers || 0,
+    completedOrders: establishmentDoc.completedOrders || 0,
+    isActive: establishmentDoc.isActive,
+    isVerified: establishmentDoc.isVerified,
+    acceptsReservations: establishmentDoc.acceptsReservations,
+    verifiedAt: establishmentDoc.verifiedAt,
+    rejectionReason: establishmentDoc.rejectionReason,
+    createdAt: (establishmentDoc as unknown as { createdAt?: Date }).createdAt ?? new Date(),
+    updatedAt: (establishmentDoc as unknown as { updatedAt?: Date }).updatedAt ?? new Date(),
+  };
 }

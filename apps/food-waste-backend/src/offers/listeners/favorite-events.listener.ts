@@ -9,12 +9,13 @@
  * @module offers/listeners
  */
 
+import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
-import { plainToClass } from 'class-transformer';
 import { InjectModel } from '@nestjs/mongoose';
+import { plainToClass } from 'class-transformer';
 import { Model } from 'mongoose';
+
 import { FavoriteAddedEvent, FavoriteRemovedEvent } from '../../common/events';
 import { Offer, OfferDocument } from '../schemas/offer.schema';
 
@@ -80,9 +81,11 @@ export class FavoriteEventsListener {
         `Incremented favorite count for offer ${event.offerId} (user: ${event.userId})`,
       );
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
-        `Failed to increment favorite count for offer ${event.offerId}: ${error.message}`,
-        error.stack,
+        `Failed to increment favorite count for offer ${event.offerId}: ${message}`,
+        stack,
       );
       // Don't throw - event listeners should not break the flow
     }
@@ -141,9 +144,11 @@ export class FavoriteEventsListener {
         `Decremented favorite count for offer ${event.offerId} (user: ${event.userId})`,
       );
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
-        `Failed to decrement favorite count for offer ${event.offerId}: ${error.message}`,
-        error.stack,
+        `Failed to decrement favorite count for offer ${event.offerId}: ${message}`,
+        stack,
       );
       // Don't throw - event listeners should not break the flow
     }

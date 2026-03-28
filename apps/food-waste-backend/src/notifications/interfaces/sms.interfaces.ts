@@ -1,6 +1,13 @@
 export interface TwilioWebhookData {
   MessageSid: string;
-  MessageStatus: 'queued' | 'sent' | 'delivered' | 'failed' | 'undelivered' | 'receiving' | 'received';
+  MessageStatus:
+    | 'queued'
+    | 'sent'
+    | 'delivered'
+    | 'failed'
+    | 'undelivered'
+    | 'receiving'
+    | 'received';
   ErrorCode?: string;
   ErrorMessage?: string;
   AccountSid: string;
@@ -52,9 +59,9 @@ export interface ReminderData {
 
 export interface PhoneValidationResult {
   isValid: boolean;
-  formatted?: string;
-  country?: string;
-  errorMessage?: string;
+  formatted?: string | undefined;
+  country?: string | undefined;
+  errorMessage?: string | undefined;
 }
 
 export interface OptOutStatus {

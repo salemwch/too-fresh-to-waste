@@ -1,3 +1,5 @@
+import * as crypto from 'crypto';
+
 import {
   Injectable,
   CanActivate,
@@ -7,13 +9,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
-import * as crypto from 'crypto';
 import { Request } from 'express';
 
 export const CSRF_EXEMPT_KEY = 'csrf_exempt';
-export const CsrfExempt = () => Reflector.createDecorator<boolean>({
-  key: CSRF_EXEMPT_KEY,
-});
+export const CsrfExempt = () =>
+  Reflector.createDecorator<boolean>({
+    key: CSRF_EXEMPT_KEY,
+  });
 
 @Injectable()
 export class CsrfGuard implements CanActivate {
@@ -24,7 +26,8 @@ export class CsrfGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly configService: ConfigService,
   ) {
-    this.csrfTokenSecret = this.configService.get<string>('CSRF_SECRET') || 'default-csrf-secret-change-in-production';
+    this.csrfTokenSecret =
+      this.configService.get<string>('CSRF_SECRET') || 'default-csrf-secret-change-in-production';
   }
 
   canActivate(context: ExecutionContext): boolean {
@@ -48,7 +51,7 @@ export class CsrfGuard implements CanActivate {
 
     // Skip CSRF for API requests with valid bearer tokens (for mobile apps)
     const authHeader = request.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    if (authHeader?.startsWith('Bearer ')) {
       return true;
     }
 
@@ -73,12 +76,16 @@ export class CsrfGuard implements CanActivate {
       const providedToken = csrfTokenFromHeader || csrfTokenFromBody;
 
       if (!providedToken || !csrfTokenFromCookie) {
-        this.logger.warn(`CSRF token missing - IP: ${request.ip}, Method: ${request.method}, URL: ${request.url}`);
+        this.logger.warn(
+          `CSRF token missing - IP: ${request.ip}, Method: ${request.method}, URL: ${request.url}`,
+        );
         throw new ForbiddenException('CSRF token required');
       }
 
       if (!this.validateCsrfToken(providedToken, csrfTokenFromCookie)) {
-        this.logger.warn(`Invalid CSRF token - IP: ${request.ip}, Method: ${request.method}, URL: ${request.url}`);
+        this.logger.warn(
+          `Invalid CSRF token - IP: ${request.ip}, Method: ${request.method}, URL: ${request.url}`,
+        );
         throw new ForbiddenException('Invalid CSRF token');
       }
 
@@ -93,10 +100,7 @@ export class CsrfGuard implements CanActivate {
     const timestamp = Date.now().toString();
     const randomBytes = crypto.randomBytes(16).toString('hex');
     const data = `${timestamp}:${randomBytes}`;
-    const signature = crypto
-      .createHmac('sha256', this.csrfTokenSecret)
-      .update(data)
-      .digest('hex');
+    const signature = crypto.createHmac('sha256', this.csrfTokenSecret).update(data).digest('hex');
 
     return `${data}:${signature}`;
   }
@@ -113,7 +117,7 @@ export class CsrfGuard implements CanActivate {
         return false;
       }
 
-      const [timestamp, randomBytes, signature] = parts;
+      const [timestamp = '', randomBytes = '', signature = ''] = parts;
       const data = `${timestamp}:${randomBytes}`;
 
       // Verify signature
@@ -127,7 +131,7 @@ export class CsrfGuard implements CanActivate {
       }
 
       // Check token age (1 hour expiry)
-      const tokenAge = Date.now() - parseInt(timestamp);
+      const tokenAge = Date.now() - parseInt(timestamp, 10);
       const maxAge = 60 * 60 * 1000; // 1 hour
 
       if (tokenAge > maxAge) {

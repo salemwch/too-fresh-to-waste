@@ -10,12 +10,15 @@
  * @see https://socket.io/docs/v4/redis-adapter/
  * @see https://github.com/socketio/socket.io-redis-adapter
  */
+import { Logger } from '@nestjs/common';
 import { IoAdapter } from '@nestjs/platform-socket.io';
-import { INestApplication, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { createClient } from 'redis';
-import { ServerOptions } from 'socket.io';
+
+import type { INestApplication } from '@nestjs/common';
+import type { ConfigService } from '@nestjs/config';
+import type { RedisClientOptions } from 'redis';
+import type { Server, ServerOptions } from 'socket.io';
 
 export class RedisIoAdapter extends IoAdapter {
   private readonly logger = new Logger(RedisIoAdapter.name);
@@ -34,7 +37,7 @@ export class RedisIoAdapter extends IoAdapter {
     const password = this.configService.get<string>('REDIS_PASSWORD');
     const username = this.configService.get<string>('REDIS_USERNAME');
 
-    const clientOptions: any = {
+    const clientOptions: RedisClientOptions = {
       socket: { host, port },
     };
 
@@ -48,22 +51,16 @@ export class RedisIoAdapter extends IoAdapter {
     const pubClient = createClient(clientOptions);
     const subClient = pubClient.duplicate();
 
-    pubClient.on('error', (err) =>
-      this.logger.error(`Redis pub client error: ${err.message}`),
-    );
-    subClient.on('error', (err) =>
-      this.logger.error(`Redis sub client error: ${err.message}`),
-    );
+    pubClient.on('error', (err) => this.logger.error(`Redis pub client error: ${err.message}`));
+    subClient.on('error', (err) => this.logger.error(`Redis sub client error: ${err.message}`));
 
     await Promise.all([pubClient.connect(), subClient.connect()]);
 
     this.adapterConstructor = createAdapter(pubClient, subClient);
-    this.logger.log(
-      `Redis IO adapter connected to ${host}:${port} (pub/sub channels ready)`,
-    );
+    this.logger.log(`Redis IO adapter connected to ${host}:${port} (pub/sub channels ready)`);
   }
 
-  createIOServer(port: number, options?: ServerOptions): any {
+  override createIOServer(port: number, options?: ServerOptions): Server {
     const server = super.createIOServer(port, options);
 
     if (this.adapterConstructor) {

@@ -7,18 +7,21 @@
  * @since 2025-11-21
  */
 
-import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { getModelToken } from '@nestjs/mongoose';
-import { SessionManagementService } from './session-management.service';
+import { Test } from '@nestjs/testing';
+
 import { RedisService } from '../../redis/redis.service';
 import { User } from '../../users/schemas/user.schema';
-import { CreateSessionRequest } from '../../common/security/interfaces/session.interface';
+
+import { SessionManagementService } from './session-management.service';
+
+import type { CreateSessionRequest } from '../../common/security/interfaces/session.interface';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('SessionManagementService', () => {
   let service: SessionManagementService;
-  let redisService: jest.Mocked<RedisService>;
-  let userModel: any;
+  let userModel: { findById: jest.Mock };
 
   const mockRedisClient = {
     setEx: jest.fn(),
@@ -53,7 +56,7 @@ describe('SessionManagementService', () => {
                 SESSION_CLEANUP_INTERVAL_MS: 5 * 60 * 1000,
                 SESSION_SUSPICIOUS_THRESHOLD: 3,
               };
-              return config[key];
+              return (config as Record<string, number>)[key];
             }),
           },
         },
@@ -73,7 +76,7 @@ describe('SessionManagementService', () => {
     }).compile();
 
     service = module.get<SessionManagementService>(SessionManagementService);
-    redisService = module.get(RedisService);
+    module.get(RedisService);
     userModel = module.get(getModelToken(User.name));
 
     // Reset mocks
@@ -139,17 +142,19 @@ describe('SessionManagementService', () => {
     it('should enforce concurrent session limit', async () => {
       const existingSessions = ['session-1', 'session-2', 'session-3', 'session-4', 'session-5'];
       mockRedisClient.sMembers.mockResolvedValue(existingSessions);
-      mockRedisClient.get.mockResolvedValue(JSON.stringify({
-        sessionId: 'session-1',
-        userId: 'user-123',
-        createdAt: new Date(Date.now() - 10000),
-        expiresAt: new Date(Date.now() + 10000),
-        isActive: true,
-        deviceInfo: {},
-        accessToken: '',
-        refreshToken: '',
-        lastActivityAt: new Date(),
-      }));
+      mockRedisClient.get.mockResolvedValue(
+        JSON.stringify({
+          sessionId: 'session-1',
+          userId: 'user-123',
+          createdAt: new Date(Date.now() - 10000),
+          expiresAt: new Date(Date.now() + 10000),
+          isActive: true,
+          deviceInfo: {},
+          accessToken: '',
+          refreshToken: '',
+          lastActivityAt: new Date(),
+        }),
+      );
 
       const request: CreateSessionRequest = {
         userId: 'user-123',
@@ -260,7 +265,9 @@ describe('SessionManagementService', () => {
 
       expect(refreshed.accessToken).toBe('new-token');
       expect(refreshed.refreshToken).toBe('new-refresh');
-      expect(refreshed.lastActivityAt.getTime()).toBeGreaterThan(mockSession.lastActivityAt.getTime());
+      expect(refreshed.lastActivityAt.getTime()).toBeGreaterThan(
+        mockSession.lastActivityAt.getTime(),
+      );
       expect(mockRedisClient.setEx).toHaveBeenCalled();
     });
 
@@ -297,17 +304,19 @@ describe('SessionManagementService', () => {
   describe('destroyAllUserSessions', () => {
     it('should destroy all sessions for a user', async () => {
       mockRedisClient.sMembers.mockResolvedValue(['session-1', 'session-2', 'session-3']);
-      mockRedisClient.get.mockResolvedValue(JSON.stringify({
-        sessionId: 'session-1',
-        userId: 'user-123',
-        expiresAt: new Date(),
-        isActive: true,
-        deviceInfo: {},
-        accessToken: '',
-        refreshToken: '',
-        createdAt: new Date(),
-        lastActivityAt: new Date(),
-      }));
+      mockRedisClient.get.mockResolvedValue(
+        JSON.stringify({
+          sessionId: 'session-1',
+          userId: 'user-123',
+          expiresAt: new Date(),
+          isActive: true,
+          deviceInfo: {},
+          accessToken: '',
+          refreshToken: '',
+          createdAt: new Date(),
+          lastActivityAt: new Date(),
+        }),
+      );
 
       await service.destroyAllUserSessions('user-123');
 

@@ -1,13 +1,15 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { Test } from '@nestjs/testing';
 import { of, throwError } from 'rxjs';
-import { AxiosResponse } from 'axios';
+
 import { CaptchaService } from './captcha.service';
+
+import type { TestingModule } from '@nestjs/testing';
+import type { AxiosResponse } from 'axios';
 
 describe('CaptchaService', () => {
   let service: CaptchaService;
-  let configService: ConfigService;
   let httpService: HttpService;
 
   const mockConfigService = {
@@ -36,7 +38,6 @@ describe('CaptchaService', () => {
     }).compile();
 
     service = module.get<CaptchaService>(CaptchaService);
-    configService = module.get<ConfigService>(ConfigService);
     httpService = module.get<HttpService>(HttpService);
   });
 
@@ -50,10 +51,16 @@ describe('CaptchaService', () => {
 
   describe('CAPTCHA Disabled', () => {
     beforeEach(() => {
-      mockConfigService.get.mockImplementation((key: string, defaultValue?: any) => {
-        if (key === 'CAPTCHA_ENABLED') return false;
-        if (key === 'RECAPTCHA_SECRET_KEY') return '';
-        if (key === 'RECAPTCHA_MIN_SCORE') return 0.5;
+      mockConfigService.get.mockImplementation((key: string, defaultValue?: unknown) => {
+        if (key === 'CAPTCHA_ENABLED') {
+          return false;
+        }
+        if (key === 'RECAPTCHA_SECRET_KEY') {
+          return '';
+        }
+        if (key === 'RECAPTCHA_MIN_SCORE') {
+          return 0.5;
+        }
         return defaultValue;
       });
     });
@@ -71,10 +78,16 @@ describe('CaptchaService', () => {
 
   describe('CAPTCHA Enabled - No Secret Key', () => {
     beforeEach(() => {
-      mockConfigService.get.mockImplementation((key: string, defaultValue?: any) => {
-        if (key === 'CAPTCHA_ENABLED') return true;
-        if (key === 'RECAPTCHA_SECRET_KEY') return '';
-        if (key === 'RECAPTCHA_MIN_SCORE') return 0.5;
+      mockConfigService.get.mockImplementation((key: string, defaultValue?: unknown) => {
+        if (key === 'CAPTCHA_ENABLED') {
+          return true;
+        }
+        if (key === 'RECAPTCHA_SECRET_KEY') {
+          return '';
+        }
+        if (key === 'RECAPTCHA_MIN_SCORE') {
+          return 0.5;
+        }
         return defaultValue;
       });
     });
@@ -92,10 +105,16 @@ describe('CaptchaService', () => {
 
   describe('CAPTCHA Enabled - With Secret Key', () => {
     beforeEach(() => {
-      mockConfigService.get.mockImplementation((key: string, defaultValue?: any) => {
-        if (key === 'CAPTCHA_ENABLED') return true;
-        if (key === 'RECAPTCHA_SECRET_KEY') return 'test-secret-key';
-        if (key === 'RECAPTCHA_MIN_SCORE') return 0.5;
+      mockConfigService.get.mockImplementation((key: string, defaultValue?: unknown) => {
+        if (key === 'CAPTCHA_ENABLED') {
+          return true;
+        }
+        if (key === 'RECAPTCHA_SECRET_KEY') {
+          return 'test-secret-key';
+        }
+        if (key === 'RECAPTCHA_MIN_SCORE') {
+          return 0.5;
+        }
         return defaultValue;
       });
     });
@@ -132,7 +151,7 @@ describe('CaptchaService', () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        config: {} as any,
+        config: {} as AxiosResponse['config'],
       };
 
       mockHttpService.post.mockReturnValue(of(mockResponse));
@@ -153,7 +172,7 @@ describe('CaptchaService', () => {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           timeout: 5000,
-        }
+        },
       );
     });
 
@@ -168,7 +187,7 @@ describe('CaptchaService', () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        config: {} as any,
+        config: {} as AxiosResponse['config'],
       };
 
       mockHttpService.post.mockReturnValue(of(mockResponse));
@@ -193,7 +212,7 @@ describe('CaptchaService', () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        config: {} as any,
+        config: {} as AxiosResponse['config'],
       };
 
       mockHttpService.post.mockReturnValue(of(mockResponse));
@@ -215,7 +234,7 @@ describe('CaptchaService', () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        config: {} as any,
+        config: {} as AxiosResponse['config'],
       };
 
       mockHttpService.post.mockReturnValue(of(mockResponse));
@@ -229,9 +248,7 @@ describe('CaptchaService', () => {
     });
 
     it('should handle network errors gracefully (fail-open)', async () => {
-      mockHttpService.post.mockReturnValue(
-        throwError(() => new Error('Network error'))
-      );
+      mockHttpService.post.mockReturnValue(throwError(() => new Error('Network error')));
 
       const result = await service.verifyCaptcha('token');
 
@@ -252,7 +269,7 @@ describe('CaptchaService', () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        config: {} as any,
+        config: {} as AxiosResponse['config'],
       };
 
       mockHttpService.post.mockReturnValue(of(mockResponse));
@@ -272,10 +289,16 @@ describe('CaptchaService', () => {
 
   describe('getStatus', () => {
     it('should return correct status', () => {
-      mockConfigService.get.mockImplementation((key: string, defaultValue?: any) => {
-        if (key === 'CAPTCHA_ENABLED') return true;
-        if (key === 'RECAPTCHA_SECRET_KEY') return 'test-secret';
-        if (key === 'RECAPTCHA_MIN_SCORE') return 0.5;
+      mockConfigService.get.mockImplementation((key: string, defaultValue?: unknown) => {
+        if (key === 'CAPTCHA_ENABLED') {
+          return true;
+        }
+        if (key === 'RECAPTCHA_SECRET_KEY') {
+          return 'test-secret';
+        }
+        if (key === 'RECAPTCHA_MIN_SCORE') {
+          return 0.5;
+        }
         return defaultValue;
       });
 
@@ -292,10 +315,16 @@ describe('CaptchaService', () => {
 
   describe('clearCache', () => {
     it('should clear verification cache', async () => {
-      mockConfigService.get.mockImplementation((key: string, defaultValue?: any) => {
-        if (key === 'CAPTCHA_ENABLED') return true;
-        if (key === 'RECAPTCHA_SECRET_KEY') return 'test-secret';
-        if (key === 'RECAPTCHA_MIN_SCORE') return 0.5;
+      mockConfigService.get.mockImplementation((key: string, defaultValue?: unknown) => {
+        if (key === 'CAPTCHA_ENABLED') {
+          return true;
+        }
+        if (key === 'RECAPTCHA_SECRET_KEY') {
+          return 'test-secret';
+        }
+        if (key === 'RECAPTCHA_MIN_SCORE') {
+          return 0.5;
+        }
         return defaultValue;
       });
 
@@ -307,7 +336,7 @@ describe('CaptchaService', () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        config: {} as any,
+        config: {} as AxiosResponse['config'],
       };
 
       mockHttpService.post.mockReturnValue(of(mockResponse));
@@ -324,10 +353,16 @@ describe('CaptchaService', () => {
 
   describe('Error Code Handling', () => {
     beforeEach(() => {
-      mockConfigService.get.mockImplementation((key: string, defaultValue?: any) => {
-        if (key === 'CAPTCHA_ENABLED') return true;
-        if (key === 'RECAPTCHA_SECRET_KEY') return 'test-secret';
-        if (key === 'RECAPTCHA_MIN_SCORE') return 0.5;
+      mockConfigService.get.mockImplementation((key: string, defaultValue?: unknown) => {
+        if (key === 'CAPTCHA_ENABLED') {
+          return true;
+        }
+        if (key === 'RECAPTCHA_SECRET_KEY') {
+          return 'test-secret';
+        }
+        if (key === 'RECAPTCHA_MIN_SCORE') {
+          return 0.5;
+        }
         return defaultValue;
       });
     });
@@ -341,7 +376,7 @@ describe('CaptchaService', () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        config: {} as any,
+        config: {} as AxiosResponse['config'],
       };
 
       mockHttpService.post.mockReturnValue(of(mockResponse));
@@ -363,7 +398,7 @@ describe('CaptchaService', () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        config: {} as any,
+        config: {} as AxiosResponse['config'],
       };
 
       mockHttpService.post.mockReturnValue(of(mockResponse));
@@ -385,7 +420,7 @@ describe('CaptchaService', () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        config: {} as any,
+        config: {} as AxiosResponse['config'],
       };
 
       mockHttpService.post.mockReturnValue(of(mockResponse));

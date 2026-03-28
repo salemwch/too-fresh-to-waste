@@ -1,31 +1,34 @@
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+
 import { SanitizationUtil } from '../utils/sanitization.util';
 
 // Sanitizable input types for request processing
 type SanitizableValue = string | number | boolean | null | undefined;
 
 interface SanitizableObject {
-    [key: string]: SanitizableValue | SanitizableValue[] | SanitizableObject | SanitizableObject[];
+  [key: string]: SanitizableValue | SanitizableValue[] | SanitizableObject | SanitizableObject[];
 }
 
 interface NotificationRequestBody extends SanitizableObject {
-    payload?: SanitizableObject;
-    title?: string;
-    body?: string;
-    message?: string;
-    content?: string;
-    description?: string;
+  payload?: SanitizableObject;
+  title?: string;
+  body?: string;
+  message?: string;
+  content?: string;
+  description?: string;
 }
 
 interface QueryParams {
-    [key: string]: string | string[] | undefined;
+  [key: string]: string | string[] | undefined;
 }
 
 // Type guard to check if a value is a valid query parameter type
 function isValidQueryParam(value: unknown): value is string | string[] {
-    return typeof value === 'string' ||
-           (Array.isArray(value) && value.every(item => typeof item === 'string'));
+  return (
+    typeof value === 'string' ||
+    (Array.isArray(value) && value.every((item) => typeof item === 'string'))
+  );
 }
 
 @Injectable()
@@ -34,7 +37,7 @@ export class SanitizationMiddleware implements NestMiddleware {
 
   constructor(private readonly sanitizationUtil: SanitizationUtil) {}
 
-  use(req: Request, res: Response, next: NextFunction): void {
+  use(req: Request, _res: Response, next: NextFunction): void {
     try {
       // Sanitize request body for notification-related endpoints
       if (this.isNotificationEndpoint(req.path) && req.body) {
@@ -48,7 +51,7 @@ export class SanitizationMiddleware implements NestMiddleware {
             method: req.method,
             ip: req.ip,
             userAgent: req.get('User-Agent'),
-            suspiciousContent: true
+            suspiciousContent: true,
           });
         }
       }
@@ -70,10 +73,10 @@ export class SanitizationMiddleware implements NestMiddleware {
       '/api/v1/notifications',
       '/api/v1/notification',
       '/notifications',
-      '/notification'
+      '/notification',
     ];
 
-    return notificationPaths.some(notifPath => path.includes(notifPath));
+    return notificationPaths.some((notifPath) => path.includes(notifPath));
   }
 
   private sanitizeRequestBody(body: unknown): NotificationRequestBody {
@@ -86,19 +89,25 @@ export class SanitizationMiddleware implements NestMiddleware {
 
     // Sanitize notification payload fields
     if (sanitized.payload) {
-      sanitized.payload = this.sanitizationUtil.sanitizeNotificationPayload(sanitized.payload) as SanitizableObject;
+      sanitized.payload = this.sanitizationUtil.sanitizeNotificationPayload(
+        sanitized.payload,
+      ) as SanitizableObject;
     }
 
     // Sanitize common string fields
-    ['title', 'body', 'message', 'content', 'description'].forEach(field => {
+    ['title', 'body', 'message', 'content', 'description'].forEach((field) => {
       if (sanitized[field] && typeof sanitized[field] === 'string') {
         sanitized[field] = this.sanitizationUtil.sanitizeText(sanitized[field]);
       }
     });
 
     // Sanitize nested objects recursively
-    Object.keys(sanitized).forEach(key => {
-      if (typeof sanitized[key] === 'object' && sanitized[key] !== null && !Array.isArray(sanitized[key])) {
+    Object.keys(sanitized).forEach((key) => {
+      if (
+        typeof sanitized[key] === 'object' &&
+        sanitized[key] !== null &&
+        !Array.isArray(sanitized[key])
+      ) {
         sanitized[key] = this.sanitizeRequestBody(sanitized[key]);
       }
     });
@@ -109,7 +118,7 @@ export class SanitizationMiddleware implements NestMiddleware {
   private sanitizeQueryParams(query: QueryParams): QueryParams {
     const sanitized: QueryParams = {};
 
-    Object.keys(query).forEach(key => {
+    Object.keys(query).forEach((key) => {
       const sanitizedKey = this.sanitizationUtil.sanitizeText(key);
       const value = query[key];
 
@@ -117,9 +126,7 @@ export class SanitizationMiddleware implements NestMiddleware {
         if (typeof value === 'string') {
           sanitized[sanitizedKey] = this.sanitizationUtil.sanitizeText(value);
         } else if (Array.isArray(value)) {
-          sanitized[sanitizedKey] = value.map(item =>
-            this.sanitizationUtil.sanitizeText(item)
-          );
+          sanitized[sanitizedKey] = value.map((item) => this.sanitizationUtil.sanitizeText(item));
         }
       } else {
         // Skip invalid query parameters

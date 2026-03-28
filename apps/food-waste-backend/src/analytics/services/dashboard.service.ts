@@ -4,14 +4,23 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
-  ConflictException
+  ConflictException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { DashboardConfig, DashboardConfigDocument, WidgetPosition, Widget } from '../schemas/dashboard-config.schema';
+
 import { CreateDashboardDto, CreateWidgetDto } from '../dto/analytics.dto';
-import { DashboardConfig as IDashboardConfig, DashboardTemplate } from '../interfaces/analytics.interface';
+import {
+  DashboardConfig as IDashboardConfig,
+  DashboardTemplate,
+} from '../interfaces/analytics.interface';
+import {
+  DashboardConfig,
+  DashboardConfigDocument,
+  WidgetPosition,
+  Widget,
+} from '../schemas/dashboard-config.schema';
 @Injectable()
 export class DashboardService {
   private readonly logger = new Logger(DashboardService.name);
@@ -19,7 +28,7 @@ export class DashboardService {
   constructor(
     @InjectModel(DashboardConfig.name)
     private readonly dashboardModel: Model<DashboardConfigDocument>,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // ==================== Dashboard CRUD Operations ====================
@@ -30,7 +39,7 @@ export class DashboardService {
   async createDashboard(
     createDashboardDto: CreateDashboardDto,
     userId: string,
-    userRole: string
+    userRole: string,
   ): Promise<IDashboardConfig> {
     try {
       // Validate user permissions
@@ -43,8 +52,8 @@ export class DashboardService {
         name: createDashboardDto.name,
         $or: [
           { userId: new Types.ObjectId(userId) },
-          { userId: { $exists: false } } // Global dashboards
-        ]
+          { userId: { $exists: false } }, // Global dashboards
+        ],
       });
 
       if (existingDashboard) {
@@ -59,16 +68,16 @@ export class DashboardService {
         await this.dashboardModel.updateMany(
           {
             userId: new Types.ObjectId(userId),
-            isDefault: true
+            isDefault: true,
           },
-          { $set: { isDefault: false } }
+          { $set: { isDefault: false } },
         );
       }
 
       // Generate widget IDs
-      const widgets = createDashboardDto.widgets.map(widget => ({
+      const widgets = createDashboardDto.widgets.map((widget) => ({
         ...widget,
-        id: new Types.ObjectId().toString()
+        id: new Types.ObjectId().toString(),
       }));
 
       // Create dashboard
@@ -81,11 +90,11 @@ export class DashboardService {
         userId: new Types.ObjectId(userId),
         permissions: createDashboardDto.permissions || {
           viewRoles: [userRole],
-          editRoles: [userRole]
+          editRoles: [userRole],
         },
         createdBy: new Types.ObjectId(userId),
         tags: [],
-        version: 1
+        version: 1,
       });
 
       const savedDashboard = await dashboard.save();
@@ -96,11 +105,10 @@ export class DashboardService {
       this.eventEmitter.emit('analytics.dashboard.created', {
         dashboardId: savedDashboard._id,
         userId,
-        category: createDashboardDto.category
+        category: createDashboardDto.category,
       });
 
       return this.mapToInterface(savedDashboard);
-
     } catch (error) {
       this.logger.error('Failed to create dashboard:', error);
       throw error;
@@ -113,7 +121,7 @@ export class DashboardService {
   async getDashboard(
     dashboardId: string,
     userId: string,
-    userRole: string
+    userRole: string,
   ): Promise<IDashboardConfig> {
     try {
       const dashboard = await this.dashboardModel.findById(dashboardId);
@@ -132,12 +140,11 @@ export class DashboardService {
         { _id: dashboardId },
         {
           $inc: { viewCount: 1 },
-          $set: { lastViewedAt: new Date() }
-        }
+          $set: { lastViewedAt: new Date() },
+        },
       );
 
       return this.mapToInterface(dashboard);
-
     } catch (error) {
       this.logger.error('Failed to get dashboard:', error);
       throw error;
@@ -151,22 +158,24 @@ export class DashboardService {
     userId: string,
     userRole: string,
     category?: string,
-    includePublic: boolean = true
+    includePublic: boolean = true,
   ): Promise<IDashboardConfig[]> {
     try {
       const query: Record<string, unknown> = {
         $or: [
           { userId: new Types.ObjectId(userId) },
-          ...(includePublic ? [
-            { 'permissions.viewRoles': userRole },
-            { userId: { $exists: false } } // Global dashboards
-          ] : [])
+          ...(includePublic
+            ? [
+                { 'permissions.viewRoles': userRole },
+                { userId: { $exists: false } }, // Global dashboards
+              ]
+            : []),
         ],
-        isActive: true
+        isActive: true,
       };
 
       if (category) {
-        query.category = category;
+        query['category'] = category;
       }
 
       const dashboards = await this.dashboardModel
@@ -174,8 +183,7 @@ export class DashboardService {
         .sort({ isDefault: -1, updatedAt: -1 })
         .limit(50);
 
-      return dashboards.map(d => this.mapToInterface(d));
-
+      return dashboards.map((d) => this.mapToInterface(d));
     } catch (error) {
       this.logger.error('Failed to get dashboards:', error);
       throw error;
@@ -189,7 +197,7 @@ export class DashboardService {
     dashboardId: string,
     updates: Partial<CreateDashboardDto>,
     userId: string,
-    userRole: string
+    userRole: string,
   ): Promise<IDashboardConfig> {
     try {
       const dashboard = await this.dashboardModel.findById(dashboardId);
@@ -207,9 +215,9 @@ export class DashboardService {
       if (updates.widgets) {
         this.validateWidgets(updates.widgets);
         // Update widget IDs for new widgets
-        updates.widgets = updates.widgets.map(widget => ({
+        updates.widgets = updates.widgets.map((widget) => ({
           ...widget,
-          id: widget.id || new Types.ObjectId().toString()
+          id: widget.id || new Types.ObjectId().toString(),
         }));
       }
 
@@ -219,9 +227,9 @@ export class DashboardService {
           {
             userId: dashboard.userId,
             isDefault: true,
-            _id: { $ne: dashboardId }
+            _id: { $ne: dashboardId },
           },
-          { $set: { isDefault: false } }
+          { $set: { isDefault: false } },
         );
       }
 
@@ -231,10 +239,14 @@ export class DashboardService {
         {
           ...updates,
           updatedBy: new Types.ObjectId(userId),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
-        { new: true }
+        { new: true },
       );
+
+      if (!updatedDashboard) {
+        throw new NotFoundException('Dashboard not found');
+      }
 
       this.logger.log(`Dashboard updated: ${updatedDashboard.name} by user ${userId}`);
 
@@ -242,11 +254,10 @@ export class DashboardService {
       this.eventEmitter.emit('analytics.dashboard.updated', {
         dashboardId,
         userId,
-        changes: Object.keys(updates)
+        changes: Object.keys(updates),
       });
 
       return this.mapToInterface(updatedDashboard);
-
     } catch (error) {
       this.logger.error('Failed to update dashboard:', error);
       throw error;
@@ -256,11 +267,7 @@ export class DashboardService {
   /**
    * Delete dashboard
    */
-  async deleteDashboard(
-    dashboardId: string,
-    userId: string,
-    userRole: string
-  ): Promise<void> {
+  async deleteDashboard(dashboardId: string, userId: string, userRole: string): Promise<void> {
     try {
       const dashboard = await this.dashboardModel.findById(dashboardId);
 
@@ -280,9 +287,9 @@ export class DashboardService {
           $set: {
             isActive: false,
             updatedBy: new Types.ObjectId(userId),
-            updatedAt: new Date()
-          }
-        }
+            updatedAt: new Date(),
+          },
+        },
       );
 
       this.logger.log(`Dashboard deleted: ${dashboard.name} by user ${userId}`);
@@ -291,9 +298,8 @@ export class DashboardService {
       this.eventEmitter.emit('analytics.dashboard.deleted', {
         dashboardId,
         userId,
-        dashboardName: dashboard.name
+        dashboardName: dashboard.name,
       });
-
     } catch (error) {
       this.logger.error('Failed to delete dashboard:', error);
       throw error;
@@ -309,7 +315,7 @@ export class DashboardService {
     dashboardId: string,
     widget: CreateWidgetDto,
     userId: string,
-    userRole: string
+    userRole: string,
   ): Promise<IDashboardConfig> {
     try {
       const dashboard = await this.dashboardModel.findById(dashboardId);
@@ -332,7 +338,7 @@ export class DashboardService {
 
       const newWidget = {
         ...widget,
-        id: new Types.ObjectId().toString()
+        id: new Types.ObjectId().toString(),
       };
 
       const updatedDashboard = await this.dashboardModel.findByIdAndUpdate(
@@ -341,21 +347,24 @@ export class DashboardService {
           $push: { widgets: newWidget },
           $set: {
             updatedBy: new Types.ObjectId(userId),
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         },
-        { new: true }
+        { new: true },
       );
+
+      if (!updatedDashboard) {
+        throw new NotFoundException('Dashboard not found');
+      }
 
       // Emit event
       this.eventEmitter.emit('analytics.widget.added', {
         dashboardId,
         widgetId: newWidget.id,
-        userId
+        userId,
       });
 
       return this.mapToInterface(updatedDashboard);
-
     } catch (error) {
       this.logger.error('Failed to add widget:', error);
       throw error;
@@ -370,7 +379,7 @@ export class DashboardService {
     widgetId: string,
     updates: Partial<CreateWidgetDto>,
     userId: string,
-    userRole: string
+    userRole: string,
   ): Promise<IDashboardConfig> {
     try {
       const dashboard = await this.dashboardModel.findById(dashboardId);
@@ -383,16 +392,16 @@ export class DashboardService {
         throw new ForbiddenException('Insufficient permissions to edit dashboard');
       }
 
-      const widgetIndex = dashboard.widgets.findIndex(w => w.id === widgetId);
+      const widgetIndex = dashboard.widgets.findIndex((w) => w.id === widgetId);
       if (widgetIndex === -1) {
         throw new NotFoundException('Widget not found');
       }
 
       // Update the widget
       const updatedWidget = {
-        ...dashboard.widgets[widgetIndex],
+        ...dashboard.widgets[widgetIndex]!,
         ...updates,
-        id: widgetId // Preserve ID
+        id: widgetId, // Preserve ID
       };
 
       dashboard.widgets[widgetIndex] = updatedWidget;
@@ -403,11 +412,10 @@ export class DashboardService {
       this.eventEmitter.emit('analytics.widget.updated', {
         dashboardId,
         widgetId,
-        userId
+        userId,
       });
 
       return this.mapToInterface(updatedDashboard);
-
     } catch (error) {
       this.logger.error('Failed to update widget:', error);
       throw error;
@@ -421,7 +429,7 @@ export class DashboardService {
     dashboardId: string,
     widgetId: string,
     userId: string,
-    userRole: string
+    userRole: string,
   ): Promise<IDashboardConfig> {
     try {
       const dashboard = await this.dashboardModel.findById(dashboardId);
@@ -440,10 +448,10 @@ export class DashboardService {
           $pull: { widgets: { id: widgetId } },
           $set: {
             updatedBy: new Types.ObjectId(userId),
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         },
-        { new: true }
+        { new: true },
       );
 
       if (!updatedDashboard) {
@@ -454,11 +462,10 @@ export class DashboardService {
       this.eventEmitter.emit('analytics.widget.removed', {
         dashboardId,
         widgetId,
-        userId
+        userId,
       });
 
       return this.mapToInterface(updatedDashboard);
-
     } catch (error) {
       this.logger.error('Failed to remove widget:', error);
       throw error;
@@ -470,21 +477,17 @@ export class DashboardService {
   /**
    * Get default dashboard for user
    */
-  async getDefaultDashboard(
-    userId: string,
-    userRole: string
-  ): Promise<IDashboardConfig | null> {
+  async getDefaultDashboard(userId: string, userRole: string): Promise<IDashboardConfig | null> {
     try {
       const dashboard = await this.dashboardModel.findOne({
         $or: [
           { userId: new Types.ObjectId(userId), isDefault: true },
-          { userId: { $exists: false }, isDefault: true, 'permissions.viewRoles': userRole }
+          { userId: { $exists: false }, isDefault: true, 'permissions.viewRoles': userRole },
         ],
-        isActive: true
+        isActive: true,
       });
 
       return dashboard ? this.mapToInterface(dashboard) : null;
-
     } catch (error) {
       this.logger.error('Failed to get default dashboard:', error);
       return null;
@@ -494,11 +497,7 @@ export class DashboardService {
   /**
    * Set dashboard as default
    */
-  async setDefaultDashboard(
-    dashboardId: string,
-    userId: string,
-    userRole: string
-  ): Promise<void> {
+  async setDefaultDashboard(dashboardId: string, userId: string, userRole: string): Promise<void> {
     try {
       const dashboard = await this.dashboardModel.findById(dashboardId);
 
@@ -514,19 +513,15 @@ export class DashboardService {
       await this.dashboardModel.updateMany(
         {
           userId: dashboard.userId || new Types.ObjectId(userId),
-          isDefault: true
+          isDefault: true,
         },
-        { $set: { isDefault: false } }
+        { $set: { isDefault: false } },
       );
 
       // Set new default
-      await this.dashboardModel.updateOne(
-        { _id: dashboardId },
-        { $set: { isDefault: true } }
-      );
+      await this.dashboardModel.updateOne({ _id: dashboardId }, { $set: { isDefault: true } });
 
       this.logger.log(`Set default dashboard: ${dashboard.name} for user ${userId}`);
-
     } catch (error) {
       this.logger.error('Failed to set default dashboard:', error);
       throw error;
@@ -549,7 +544,9 @@ export class DashboardService {
     for (const widget of widgets) {
       const posKey = `${widget.position.row}-${widget.position.column}`;
       if (positions.has(posKey)) {
-        throw new BadRequestException(`Widget position conflict at row ${widget.position.row}, column ${widget.position.column}`);
+        throw new BadRequestException(
+          `Widget position conflict at row ${widget.position.row}, column ${widget.position.column}`,
+        );
       }
       positions.add(posKey);
 
@@ -571,9 +568,10 @@ export class DashboardService {
   private validateWidgetPosition(position: WidgetPosition, existingWidgets: Widget[]): void {
     // Check for conflicts with existing widgets
     for (const widget of existingWidgets) {
-      if (widget.position.row === position.row &&
-          widget.position.column === position.column) {
-        throw new BadRequestException(`Position conflict at row ${position.row}, column ${position.column}`);
+      if (widget.position.row === position.row && widget.position.column === position.column) {
+        throw new BadRequestException(
+          `Position conflict at row ${position.row}, column ${position.column}`,
+        );
       }
     }
   }
@@ -585,10 +583,10 @@ export class DashboardService {
   private canViewDashboard(
     dashboard: DashboardConfigDocument,
     userId: string,
-    userRole: string
+    userRole: string,
   ): boolean {
     // Owner can always view
-    if (dashboard.userId && dashboard.userId.toString() === userId) {
+    if (dashboard.userId?.toString() === userId) {
       return true;
     }
 
@@ -613,10 +611,10 @@ export class DashboardService {
   private canEditDashboard(
     dashboard: DashboardConfigDocument,
     userId: string,
-    userRole: string
+    userRole: string,
   ): boolean {
     // Owner can always edit
-    if (dashboard.userId && dashboard.userId.toString() === userId) {
+    if (dashboard.userId?.toString() === userId) {
       return true;
     }
 
@@ -635,22 +633,22 @@ export class DashboardService {
       name: dashboard.name,
       description: dashboard.description,
       category: dashboard.category,
-      widgets: dashboard.widgets.map(w => ({
+      widgets: dashboard.widgets.map((w) => ({
         id: w.id,
         type: w.type,
         title: w.title,
-        description: w.description,
+        ...(w.description !== undefined ? { description: w.description } : {}),
         dataSource: w.dataSource,
         visualization: w.visualization,
         filters: w.filters,
-        refreshInterval: w.refreshInterval,
-        position: w.position
+        ...(w.refreshInterval !== undefined ? { refreshInterval: w.refreshInterval } : {}),
+        position: w.position,
       })),
       isDefault: dashboard.isDefault,
       userId: dashboard.userId?.toString(),
       permissions: dashboard.permissions,
       createdAt: dashboard.createdAt || new Date(),
-      updatedAt: dashboard.updatedAt || new Date()
+      updatedAt: dashboard.updatedAt || new Date(),
     };
   }
 
@@ -666,7 +664,7 @@ export class DashboardService {
       for (const template of templates) {
         const existing = await this.dashboardModel.findOne({
           name: template.name,
-          userId: { $exists: false }
+          userId: { $exists: false },
         });
 
         if (!existing) {
@@ -676,7 +674,6 @@ export class DashboardService {
           this.logger.log(`Created default template: ${template.name}`);
         }
       }
-
     } catch (error) {
       this.logger.error('Failed to create default templates:', error);
     }
@@ -691,7 +688,7 @@ export class DashboardService {
         category: 'business',
         preview: 'Revenue tracking, order metrics, and business KPIs dashboard',
         widgetCount: 6,
-        requiredRole: 'merchant'
+        requiredRole: 'merchant',
       },
       {
         id: 'sustainability-template',
@@ -700,7 +697,7 @@ export class DashboardService {
         category: 'sustainability',
         preview: 'Food saved, carbon footprint, and environmental impact tracking',
         widgetCount: 5,
-        requiredRole: 'merchant'
+        requiredRole: 'merchant',
       },
       {
         id: 'operations-template',
@@ -709,7 +706,7 @@ export class DashboardService {
         category: 'operations',
         preview: 'Order processing, establishment metrics, and operational KPIs',
         widgetCount: 7,
-        requiredRole: 'admin'
+        requiredRole: 'admin',
       },
       {
         id: 'customer-template',
@@ -718,7 +715,7 @@ export class DashboardService {
         category: 'customer',
         preview: 'User growth, retention rates, and customer journey analysis',
         widgetCount: 6,
-        requiredRole: 'admin'
+        requiredRole: 'admin',
       },
       {
         id: 'financial-template',
@@ -727,8 +724,8 @@ export class DashboardService {
         category: 'financial',
         preview: 'Revenue analysis, payment processing, and financial KPIs',
         widgetCount: 5,
-        requiredRole: 'admin'
-      }
+        requiredRole: 'admin',
+      },
     ];
   }
 
@@ -743,14 +740,14 @@ export class DashboardService {
       widgets: this.getTemplateWidgets(template.id, template.widgetCount),
       isDefault: false,
       permissions: {
-        viewRoles: [template.requiredRole],
-        editRoles: ['admin']
+        viewRoles: [template.requiredRole!],
+        editRoles: ['admin'],
       },
       createdBy: systemUserId,
       tags: ['template', template.category],
       version: 1,
       isActive: true,
-      viewCount: 0
+      viewCount: 0,
     };
   }
 
@@ -766,7 +763,7 @@ export class DashboardService {
           visualization: { chartType: 'bar', colorScheme: ['#4f46e5'] },
           filters: { period: 'today' },
           refreshInterval: 300,
-          position: { row: 1, column: 1, width: 3, height: 2 }
+          position: { row: 1, column: 1, width: 3, height: 2 },
         },
         {
           id: new Types.ObjectId().toString(),
@@ -777,7 +774,7 @@ export class DashboardService {
           visualization: { chartType: 'line', xAxis: 'date', yAxis: 'count' },
           filters: { period: 'week' },
           refreshInterval: 600,
-          position: { row: 1, column: 4, width: 6, height: 3 }
+          position: { row: 1, column: 4, width: 6, height: 3 },
         },
         {
           id: new Types.ObjectId().toString(),
@@ -788,7 +785,7 @@ export class DashboardService {
           visualization: { chartType: 'donut', colorScheme: ['#10b981'] },
           filters: { status: 'active' },
           refreshInterval: 300,
-          position: { row: 1, column: 10, width: 3, height: 2 }
+          position: { row: 1, column: 10, width: 3, height: 2 },
         },
         {
           id: new Types.ObjectId().toString(),
@@ -799,7 +796,7 @@ export class DashboardService {
           visualization: { chartType: 'pie', colorScheme: ['#f59e0b', '#ef4444', '#8b5cf6'] },
           filters: { period: 'month' },
           refreshInterval: 1440,
-          position: { row: 4, column: 1, width: 6, height: 3 }
+          position: { row: 4, column: 1, width: 6, height: 3 },
         },
         {
           id: new Types.ObjectId().toString(),
@@ -810,7 +807,7 @@ export class DashboardService {
           visualization: { displayOptions: { pageSize: 10 } },
           filters: { limit: 10 },
           refreshInterval: 60,
-          position: { row: 4, column: 7, width: 6, height: 3 }
+          position: { row: 4, column: 7, width: 6, height: 3 },
         },
         {
           id: new Types.ObjectId().toString(),
@@ -821,8 +818,8 @@ export class DashboardService {
           visualization: { chartType: 'bar', colorScheme: ['#06b6d4'] },
           filters: { period: 'month' },
           refreshInterval: 1440,
-          position: { row: 7, column: 1, width: 4, height: 2 }
-        }
+          position: { row: 7, column: 1, width: 4, height: 2 },
+        },
       ],
       'sustainability-template': [
         {
@@ -834,7 +831,7 @@ export class DashboardService {
           visualization: { chartType: 'bar', colorScheme: ['#10b981'] },
           filters: { period: 'today' },
           refreshInterval: 300,
-          position: { row: 1, column: 1, width: 4, height: 2 }
+          position: { row: 1, column: 1, width: 4, height: 2 },
         },
         {
           id: new Types.ObjectId().toString(),
@@ -845,7 +842,7 @@ export class DashboardService {
           visualization: { chartType: 'area', colorScheme: ['#059669'] },
           filters: { period: 'week' },
           refreshInterval: 600,
-          position: { row: 1, column: 5, width: 4, height: 2 }
+          position: { row: 1, column: 5, width: 4, height: 2 },
         },
         {
           id: new Types.ObjectId().toString(),
@@ -856,7 +853,7 @@ export class DashboardService {
           visualization: { chartType: 'donut', colorScheme: ['#065f46'] },
           filters: { period: 'month' },
           refreshInterval: 1440,
-          position: { row: 1, column: 9, width: 4, height: 2 }
+          position: { row: 1, column: 9, width: 4, height: 2 },
         },
         {
           id: new Types.ObjectId().toString(),
@@ -867,7 +864,7 @@ export class DashboardService {
           visualization: { chartType: 'line', xAxis: 'date', yAxis: 'impact_score' },
           filters: { period: 'quarter' },
           refreshInterval: 1440,
-          position: { row: 3, column: 1, width: 8, height: 3 }
+          position: { row: 3, column: 1, width: 8, height: 3 },
         },
         {
           id: new Types.ObjectId().toString(),
@@ -878,9 +875,9 @@ export class DashboardService {
           visualization: { displayOptions: { zoomLevel: 10 } },
           filters: { period: 'week' },
           refreshInterval: 1440,
-          position: { row: 3, column: 9, width: 4, height: 3 }
-        }
-      ]
+          position: { row: 3, column: 9, width: 4, height: 3 },
+        },
+      ],
     };
 
     // Get widgets for the specific template, or create generic ones
@@ -895,7 +892,7 @@ export class DashboardService {
     const widgetTypes: Array<'metric' | 'chart' | 'table'> = ['metric', 'chart', 'table'];
 
     for (let i = 0; i < count; i++) {
-      const type = widgetTypes[i % widgetTypes.length];
+      const type = widgetTypes[i % widgetTypes.length]!;
       const row = Math.floor(i / 3) * 3 + 1;
       const column = (i % 3) * 4 + 1;
 
@@ -907,11 +904,11 @@ export class DashboardService {
         dataSource: 'sample_data',
         visualization: {
           chartType: type === 'chart' ? 'bar' : undefined,
-          colorScheme: ['#6366f1']
+          colorScheme: ['#6366f1'],
         },
         filters: { period: 'day' },
         refreshInterval: 300,
-        position: { row, column, width: 4, height: 2 }
+        position: { row, column, width: 4, height: 2 },
       });
     }
 

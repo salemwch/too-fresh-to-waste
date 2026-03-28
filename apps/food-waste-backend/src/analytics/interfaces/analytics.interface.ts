@@ -1,5 +1,3 @@
-
-
 export interface TimeRange {
   startDate: Date;
   endDate: Date;
@@ -124,11 +122,14 @@ export interface SustainabilityAnalytics {
   carbonFootprintReduced: MetricValue; // in kg CO2
   waterSaved: MetricValue; // in liters
   wasteDiversionRate: MetricValue; // percentage
-  impactByCategory: Record<string, {
-    foodSaved: number;
-    carbonReduced: number;
-    waterSaved: number;
-  }>;
+  impactByCategory: Record<
+    string,
+    {
+      foodSaved: number;
+      carbonReduced: number;
+      waterSaved: number;
+    }
+  >;
   impactTimeSeries: TimeSeries[];
   establishmentImpactRanking: Array<{
     establishmentId: string;
@@ -253,32 +254,34 @@ export interface CohortAnalytics {
 
 export interface AnalyticsFilters {
   dateRange: TimeRange;
-  establishmentIds?: string[];
-  userIds?: string[];
-  categories?: string[];
-  locations?: Array<{
-    city?: string;
-    country?: string;
-    coordinates?: [number, number];
-    radius?: number; // in km
-  }>;
-  userRoles?: string[];
-  establishmentTypes?: string[];
-  orderStatuses?: string[];
-  paymentMethods?: string[];
-  minOrderValue?: number;
-  maxOrderValue?: number;
+  establishmentIds?: string[] | undefined;
+  userIds?: string[] | undefined;
+  categories?: string[] | undefined;
+  locations?:
+    | Array<{
+        city?: string;
+        country?: string;
+        coordinates?: [number, number];
+        radius?: number; // in km
+      }>
+    | undefined;
+  userRoles?: string[] | undefined;
+  establishmentTypes?: string[] | undefined;
+  orderStatuses?: string[] | undefined;
+  paymentMethods?: string[] | undefined;
+  minOrderValue?: number | undefined;
+  maxOrderValue?: number | undefined;
   granularity: DateGranularity;
 }
 
 export interface AggregationOptions {
-  groupBy?: string[];
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-  limit?: number;
-  offset?: number;
-  includeProjections?: boolean;
-  includeComparisons?: boolean;
+  groupBy?: string[] | undefined;
+  sortBy?: string | undefined;
+  sortOrder?: 'asc' | 'desc' | undefined;
+  limit?: number | undefined;
+  offset?: number | undefined;
+  includeProjections?: boolean | undefined;
+  includeComparisons?: boolean | undefined;
 }
 
 // ==================== Controller Response Interfaces ====================
@@ -318,24 +321,36 @@ export interface CacheStatistics {
 // ==================== Dashboard Configuration Interfaces ====================
 
 export interface WidgetVisualization {
-  chartType?: 'line' | 'bar' | 'pie' | 'donut' | 'area' | 'scatter' | 'stacked_bar' | 'radial_bar' | 'heatmap';
-  xAxis?: string;
-  yAxis?: string | string[];
-  colorScheme?: string[];
-  colorBy?: string;
-  field?: string;
-  value?: string;
-  metrics?: string[];
-  columns?: string[];
-  sorting?: {
-    column: string;
-    direction: 'asc' | 'desc';
-  };
-  mapType?: 'heat' | 'marker' | 'cluster';
-  centerLat?: number;
-  centerLng?: number;
-  zoom?: number;
-  displayOptions?: Record<string, string | number | boolean>;
+  chartType?:
+    | 'line'
+    | 'bar'
+    | 'pie'
+    | 'donut'
+    | 'area'
+    | 'scatter'
+    | 'stacked_bar'
+    | 'radial_bar'
+    | 'heatmap'
+    | undefined;
+  xAxis?: string | undefined;
+  yAxis?: string | string[] | undefined;
+  colorScheme?: string[] | undefined;
+  colorBy?: string | undefined;
+  field?: string | undefined;
+  value?: string | undefined;
+  metrics?: string[] | undefined;
+  columns?: string[] | undefined;
+  sorting?:
+    | {
+        column: string;
+        direction: 'asc' | 'desc';
+      }
+    | undefined;
+  mapType?: 'heat' | 'marker' | 'cluster' | undefined;
+  centerLat?: number | undefined;
+  centerLng?: number | undefined;
+  zoom?: number | undefined;
+  displayOptions?: Record<string, string | number | boolean> | undefined;
 }
 
 export interface Widget {
@@ -375,15 +390,17 @@ export interface WidgetConfig {
 export interface DashboardConfig {
   id: string;
   name: string;
-  description?: string;
+  description?: string | undefined;
   category: 'business' | 'operations' | 'sustainability' | 'customer' | 'financial';
   widgets: Widget[];
-  isDefault?: boolean;
-  userId?: string; // for personal dashboards
-  permissions?: {
-    viewRoles: string[];
-    editRoles: string[];
-  };
+  isDefault?: boolean | undefined;
+  userId?: string | undefined; // for personal dashboards
+  permissions?:
+    | {
+        viewRoles: string[];
+        editRoles: string[];
+      }
+    | undefined;
   createdAt: Date;
   updatedAt: Date;
 }

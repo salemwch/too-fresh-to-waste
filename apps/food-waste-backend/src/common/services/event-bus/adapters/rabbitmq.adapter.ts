@@ -1,6 +1,7 @@
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+
 import { IEventBus } from '../event-bus.interface';
 
 /**
@@ -23,10 +24,7 @@ export class RabbitMQAdapter implements IEventBus {
     private readonly amqpConnection: AmqpConnection,
     private readonly configService: ConfigService,
   ) {
-    this.exchange = this.configService.get<string>(
-      'RABBITMQ_EXCHANGE',
-      'foodwaste.events',
-    );
+    this.exchange = this.configService.get<string>('RABBITMQ_EXCHANGE', 'foodwaste.events');
   }
 
   /**
@@ -51,7 +49,7 @@ export class RabbitMQAdapter implements IEventBus {
     } catch (error) {
       this.logger.error(
         `Failed to publish event ${eventName} to RabbitMQ`,
-        error.stack,
+        error instanceof Error ? error.stack : undefined,
       );
       throw error;
     }

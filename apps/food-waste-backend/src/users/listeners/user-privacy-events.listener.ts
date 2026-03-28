@@ -9,10 +9,11 @@
  * @module users/listeners
  */
 
+import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { plainToClass } from 'class-transformer';
+
 import { UserPrivacyConsentUpdatedEvent } from '../events/user.events';
 
 @Injectable()
@@ -27,10 +28,8 @@ export class UserPrivacyEventsListener {
    * LEGACY: EventEmitter2 handler for privacy consent updates
    */
   @OnEvent('user.privacy_consent.updated')
-  async handlePrivacyConsentUpdatedLegacy(
-    event: UserPrivacyConsentUpdatedEvent,
-  ): Promise<void> {
-    await this.processPrivacyConsentUpdate(event);
+  handlePrivacyConsentUpdatedLegacy(event: UserPrivacyConsentUpdatedEvent): void {
+    this.processPrivacyConsentUpdate(event);
   }
 
   /**
@@ -48,16 +47,13 @@ export class UserPrivacyEventsListener {
       },
     },
   })
-  async handlePrivacyConsentUpdatedRabbitMQ(msg: object): Promise<void | Nack> {
+  handlePrivacyConsentUpdatedRabbitMQ(msg: object): void | Nack {
     try {
       const event = plainToClass(UserPrivacyConsentUpdatedEvent, msg);
-      await this.processPrivacyConsentUpdate(event);
+      this.processPrivacyConsentUpdate(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.privacy_consent.updated event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.privacy_consent.updated event`, error);
       return new Nack(true); // Requeue for retry - important for compliance
     }
   }
@@ -65,13 +61,9 @@ export class UserPrivacyEventsListener {
   /**
    * Shared logic: Process privacy consent updates
    */
-  private async processPrivacyConsentUpdate(
-    event: UserPrivacyConsentUpdatedEvent,
-  ): Promise<void> {
+  private processPrivacyConsentUpdate(event: UserPrivacyConsentUpdatedEvent): void {
     try {
-      this.logger.log(
-        `Privacy consent updated for user ${event.email}: ${event.consentType}`,
-      );
+      this.logger.log(`Privacy consent updated for user ${event.email}: ${event.consentType}`);
 
       // TODO: Update compliance dashboard
       // TODO: Track consent changes for audit trail
@@ -81,13 +73,11 @@ export class UserPrivacyEventsListener {
       //   - Location tracking based on locationTrackingConsent
       // TODO: Send consent confirmation email
 
-      this.logger.debug(
-        `Privacy consent update event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`Privacy consent update event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.privacy_consent.updated event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.privacy_consent.updated event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // Don't throw - event listeners should not break the flow
     }

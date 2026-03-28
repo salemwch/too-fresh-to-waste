@@ -1,16 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+
+import { WebSocketEvents, WEBSOCKET_ROOMS } from '../websocket/interfaces/websocket.interface';
+import { WebSocketService } from '../websocket/websocket.service';
+
 import {
   CommunityBagGoal,
   CommunityBagGoalDocument,
   CommunityGoalStatus,
 } from './schemas/community-bag-goal.schema';
-import { WebSocketService } from '../websocket/websocket.service';
-import {
-  WebSocketEvents,
-  WEBSOCKET_ROOMS,
-} from '../websocket/interfaces/websocket.interface';
 
 import type { CommunityBagGoalStats } from '@foodwaste/shared';
 
@@ -18,12 +17,12 @@ const DEFAULT_TARGET = 8000;
 
 /** Lean (POJO) representation returned by .lean() or .toObject() */
 interface GoalLean {
-  _id?: any;
+  _id?: unknown;
   currentCount: number;
   targetCount: number;
   cycleNumber: number;
   status: string;
-  createdBy?: any;
+  createdBy?: unknown;
   completedAt?: Date;
   resetAt?: Date;
   updatedAt?: Date;
@@ -69,13 +68,13 @@ export class CommunityGoalService {
     }
 
     // Atomic $inc — safe under concurrent writes
-    const updatedGoal = await this.goalModel
+    const updatedGoal = (await this.goalModel
       .findOneAndUpdate(
         { status: CommunityGoalStatus.ACTIVE },
         { $inc: { currentCount: count } },
         { new: true, lean: true },
       )
-      .exec() as GoalLean | null;
+      .exec()) as GoalLean | null;
 
     if (!updatedGoal) {
       this.logger.warn('No active goal found during increment, creating default');
@@ -96,17 +95,14 @@ export class CommunityGoalService {
   /**
    * Admin: Set a new target on the active goal.
    */
-  async setGoalTarget(
-    targetCount: number,
-    adminId: string,
-  ): Promise<CommunityBagGoalStats> {
-    const goal = await this.goalModel
+  async setGoalTarget(targetCount: number, adminId: string): Promise<CommunityBagGoalStats> {
+    const goal = (await this.goalModel
       .findOneAndUpdate(
         { status: CommunityGoalStatus.ACTIVE },
         { $set: { targetCount } },
         { new: true, lean: true },
       )
-      .exec() as GoalLean | null;
+      .exec()) as GoalLean | null;
 
     if (!goal) {
       const newGoal = await this.goalModel.create({
@@ -119,9 +115,7 @@ export class CommunityGoalService {
       return this.toStats(newGoal.toObject() as GoalLean);
     }
 
-    this.logger.log(
-      `Admin ${adminId} updated goal target to ${targetCount}`,
-    );
+    this.logger.log(`Admin ${adminId} updated goal target to ${targetCount}`);
 
     const stats = this.toStats(goal);
     this.broadcastUpdate(stats);
@@ -132,13 +126,13 @@ export class CommunityGoalService {
    * Admin: Reset the current count to 0 on the active goal.
    */
   async resetGoal(adminId: string): Promise<CommunityBagGoalStats> {
-    const goal = await this.goalModel
+    const goal = (await this.goalModel
       .findOneAndUpdate(
         { status: CommunityGoalStatus.ACTIVE },
         { $set: { currentCount: 0, resetAt: new Date() } },
         { new: true, lean: true },
       )
-      .exec() as GoalLean | null;
+      .exec()) as GoalLean | null;
 
     if (!goal) {
       this.logger.warn('No active goal to reset');
@@ -173,7 +167,7 @@ export class CommunityGoalService {
     ]);
 
     return {
-      goals: goals.map(g => this.toStats(g)),
+      goals: goals.map((g) => this.toStats(g)),
       total,
     };
   }
@@ -186,11 +180,9 @@ export class CommunityGoalService {
    * only one concurrent writer wins the ACTIVE → COMPLETED transition.
    * Overflow bags carry over to the new cycle.
    */
-  private async completeAndResetGoal(
-    completedGoal: GoalLean,
-  ): Promise<CommunityBagGoalStats> {
+  private async completeAndResetGoal(completedGoal: GoalLean): Promise<CommunityBagGoalStats> {
     // Atomically mark as COMPLETED (only if still ACTIVE)
-    const transitioned = await this.goalModel
+    const transitioned = (await this.goalModel
       .findOneAndUpdate(
         { _id: completedGoal._id, status: CommunityGoalStatus.ACTIVE },
         {
@@ -201,7 +193,7 @@ export class CommunityGoalService {
         },
         { new: true, lean: true },
       )
-      .exec() as GoalLean | null;
+      .exec()) as GoalLean | null;
 
     // Another writer already transitioned — just return current stats
     if (!transitioned) {
@@ -209,10 +201,7 @@ export class CommunityGoalService {
     }
 
     // Carry over overflow bags
-    const overflow = Math.max(
-      0,
-      transitioned.currentCount - transitioned.targetCount,
-    );
+    const overflow = Math.max(0, transitioned.currentCount - transitioned.targetCount);
 
     const newGoal = await this.goalModel.create({
       currentCount: overflow,
@@ -227,7 +216,7 @@ export class CommunityGoalService {
 
     // Broadcast goal completion event
     this.webSocketService.sendToRoom(
-      WEBSOCKET_ROOMS['GLOBAL'].name,
+      WEBSOCKET_ROOMS['GLOBAL']!.name,
       WebSocketEvents.COMMUNITY_GOAL_COMPLETED,
       this.toStats(transitioned),
     );
@@ -253,12 +242,7 @@ export class CommunityGoalService {
   private toStats(goal: GoalLean): CommunityBagGoalStats {
     const progressPercentage =
       goal.targetCount > 0
-        ? Math.min(
-            100,
-            parseFloat(
-              ((goal.currentCount / goal.targetCount) * 100).toFixed(2),
-            ),
-          )
+        ? Math.min(100, parseFloat(((goal.currentCount / goal.targetCount) * 100).toFixed(2)))
         : 0;
 
     return {
@@ -274,7 +258,7 @@ export class CommunityGoalService {
 
   private broadcastUpdate(stats: CommunityBagGoalStats): void {
     this.webSocketService.sendToRoom(
-      WEBSOCKET_ROOMS['GLOBAL'].name,
+      WEBSOCKET_ROOMS['GLOBAL']!.name,
       WebSocketEvents.COMMUNITY_BAG_UPDATED,
       stats,
     );

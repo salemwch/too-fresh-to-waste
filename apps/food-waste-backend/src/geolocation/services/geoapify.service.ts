@@ -1,6 +1,7 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosError, AxiosInstance } from 'axios';
+
 import {
   GeocodingResult,
   ReverseGeocodingResult,
@@ -120,16 +121,16 @@ export class GeoapifyService {
       }
 
       // Log raw Geoapify fields for debugging locality resolution
-      const primary = features[0].properties;
+      const primary = features[0]!.properties;
       this.logger.debug(
         `Geoapify raw fields: name=${primary.name}, suburb=${primary.suburb}, ` +
-        `district=${primary.district}, city=${primary.city}, county=${primary.county}, ` +
-        `state=${primary.state}, result_type=${primary.result_type}, ` +
-        `formatted=${primary.formatted}`,
+          `district=${primary.district}, city=${primary.city}, county=${primary.county}, ` +
+          `state=${primary.state}, result_type=${primary.result_type}, ` +
+          `formatted=${primary.formatted}`,
       );
 
       const addresses = features.map((f) => this.mapPropertiesToAddress(f.properties));
-      const primaryAddress = addresses[0];
+      const primaryAddress = addresses[0]!;
 
       this.logger.log(
         `Reverse geocode completed: ${primaryAddress.city}, ${primaryAddress.country}`,
@@ -142,10 +143,7 @@ export class GeoapifyService {
       };
     } catch (error) {
       this.handleError(error, 'reverseGeocode');
-      throw new HttpException(
-        'Reverse geocoding failed',
-        HttpStatus.BAD_GATEWAY,
-      );
+      throw new HttpException('Reverse geocoding failed', HttpStatus.BAD_GATEWAY);
     }
   }
 
@@ -175,7 +173,7 @@ export class GeoapifyService {
       };
 
       if (countryCode) {
-        params.filter = `countrycode:${countryCode.toLowerCase()}`;
+        params['filter'] = `countrycode:${countryCode.toLowerCase()}`;
       }
 
       const response = await this.axiosInstance.get<GeoapifyResponse>('/search', {
@@ -195,10 +193,7 @@ export class GeoapifyService {
       return results;
     } catch (error) {
       this.handleError(error, 'geocodeAddress');
-      throw new HttpException(
-        'Forward geocoding failed',
-        HttpStatus.BAD_GATEWAY,
-      );
+      throw new HttpException('Forward geocoding failed', HttpStatus.BAD_GATEWAY);
     }
   }
 
@@ -209,7 +204,7 @@ export class GeoapifyService {
   private mapPropertiesToAddress(props: GeoapifyFeatureProperties): AddressInfo {
     const street = props.housenumber
       ? `${props.housenumber}, ${props.street ?? ''}`
-      : props.street ?? '';
+      : (props.street ?? '');
 
     // Prefer the most granular locality available.
     // Geoapify hierarchy: name → suburb → district → city → county → state
@@ -217,7 +212,13 @@ export class GeoapifyService {
     //   name="Messadine", district="Msaken", city="Sousse", state="Sousse"
     // Without this chain, users see the broad administrative region instead of their locality.
     const city =
-      props.suburb || props.name || props.district || props.city || props.county || props.state || '';
+      props.suburb ||
+      props.name ||
+      props.district ||
+      props.city ||
+      props.county ||
+      props.state ||
+      '';
 
     return {
       street: street || undefined,
@@ -278,10 +279,7 @@ export class GeoapifyService {
       }
 
       if (status === 429) {
-        throw new HttpException(
-          'Geoapify rate limit exceeded',
-          HttpStatus.TOO_MANY_REQUESTS,
-        );
+        throw new HttpException('Geoapify rate limit exceeded', HttpStatus.TOO_MANY_REQUESTS);
       }
     } else {
       this.logger.error(`Error in ${context}:`, error);

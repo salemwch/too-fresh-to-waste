@@ -1,11 +1,12 @@
 import { Catch, ArgumentsHost } from '@nestjs/common';
 import { BaseWsExceptionFilter, WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
+
 import { WebSocketEvents } from '../interfaces/websocket.interface';
 
 @Catch()
 export class WebSocketExceptionFilter extends BaseWsExceptionFilter {
-  catch(exception: any, host: ArgumentsHost) {
+  override catch(exception: unknown, host: ArgumentsHost) {
     const client: Socket = host.switchToWs().getClient();
 
     let error = {
@@ -17,10 +18,16 @@ export class WebSocketExceptionFilter extends BaseWsExceptionFilter {
 
     if (exception instanceof WsException) {
       const errorObject = exception.getError();
+      const errorDetails =
+        typeof errorObject === 'object' && errorObject !== null
+          ? (errorObject as { message?: string; code?: string })
+          : {};
       error = {
         ...error,
-        message: typeof errorObject === 'string' ? errorObject : errorObject['message'] || error.message,
-        code: typeof errorObject === 'object' ? errorObject['code'] || 'WS_EXCEPTION' : 'WS_EXCEPTION',
+        message:
+          typeof errorObject === 'string' ? errorObject : errorDetails.message || error.message,
+        code:
+          typeof errorObject === 'string' ? 'WS_EXCEPTION' : errorDetails.code || 'WS_EXCEPTION',
       };
     } else if (exception instanceof Error) {
       error = {

@@ -1,9 +1,16 @@
-import { Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { extname } from 'path';
+
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
 import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
-import { extname } from 'path';
+
 import { FirebaseAdminService } from './firebase-admin.service';
 
 export interface UploadedFileInfo {
@@ -34,13 +41,13 @@ export interface UploadOptions {
 @Injectable()
 export class FirebaseStorageService {
   private readonly logger = new Logger(FirebaseStorageService.name);
-  private storage: admin.storage.Storage;
-  private bucket: any;
-  private defaultBucketName: string;
+  private storage!: admin.storage.Storage;
+  private bucket!: ReturnType<admin.storage.Storage['bucket']>;
+  private defaultBucketName!: string;
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly firebaseAdminService: FirebaseAdminService
+    private readonly firebaseAdminService: FirebaseAdminService,
   ) {
     this.initializeStorage();
   }
@@ -51,7 +58,9 @@ export class FirebaseStorageService {
       const app = this.firebaseAdminService.getApp();
 
       if (!app || !this.firebaseAdminService.isInitialized()) {
-        this.logger.warn('Firebase Admin SDK not yet initialized. Storage will be initialized lazily.');
+        this.logger.warn(
+          'Firebase Admin SDK not yet initialized. Storage will be initialized lazily.',
+        );
         return;
       }
 
@@ -80,7 +89,9 @@ export class FirebaseStorageService {
       this.initializeStorage();
 
       if (!this.storage || !this.bucket) {
-        throw new InternalServerErrorException('Firebase Storage is not available. Check Firebase configuration.');
+        throw new InternalServerErrorException(
+          'Firebase Storage is not available. Check Firebase configuration.',
+        );
       }
     }
   }
@@ -90,7 +101,7 @@ export class FirebaseStorageService {
    */
   async uploadFile(
     file: Express.Multer.File,
-    options: UploadOptions = {}
+    options: UploadOptions = {},
   ): Promise<UploadedFileInfo> {
     try {
       this.ensureInitialized();
@@ -154,10 +165,11 @@ export class FirebaseStorageService {
 
       this.logger.debug(`✅ File uploaded successfully: ${fileName}`);
       return uploadInfo;
-
     } catch (error) {
       this.logger.error('❌ Failed to upload file:', error);
-      throw new InternalServerErrorException(`File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new InternalServerErrorException(
+        `File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -166,13 +178,16 @@ export class FirebaseStorageService {
    */
   async uploadFiles(
     files: Express.Multer.File[],
-    options: UploadOptions = {}
+    options: UploadOptions = {},
   ): Promise<UploadedFileInfo[]> {
     if (!files || files.length === 0) {
       return [];
     }
 
-    const uploadPromises = files.map(async file => this.uploadFile(file, options));
+    const uploadPromises = files.map(async (file) => {
+      const result = await this.uploadFile(file, options);
+      return result;
+    });
 
     try {
       const results = await Promise.allSettled(uploadPromises);
@@ -195,7 +210,6 @@ export class FirebaseStorageService {
 
       this.logger.log(`✅ Uploaded ${successful.length}/${files.length} files successfully`);
       return successful;
-
     } catch (error) {
       this.logger.error('❌ Batch file upload failed:', error);
       throw new InternalServerErrorException('Batch file upload failed');
@@ -219,7 +233,9 @@ export class FirebaseStorageService {
       }
 
       this.logger.error(`❌ Failed to delete file ${fileName}:`, error);
-      throw new InternalServerErrorException(`File deletion failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new InternalServerErrorException(
+        `File deletion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -231,7 +247,9 @@ export class FirebaseStorageService {
       return;
     }
 
-    const deletePromises = fileNames.map(async fileName => this.deleteFile(fileName));
+    const deletePromises = fileNames.map(async (fileName) => {
+      await this.deleteFile(fileName);
+    });
 
     try {
       await Promise.allSettled(deletePromises);
@@ -245,7 +263,7 @@ export class FirebaseStorageService {
   /**
    * Get file metadata
    */
-  async getFileMetadata(fileName: string): Promise<any> {
+  async getFileMetadata(fileName: string): Promise<Record<string, unknown>> {
     try {
       this.ensureInitialized();
       const fileRef = this.bucket.file(fileName);
@@ -253,14 +271,19 @@ export class FirebaseStorageService {
       return metadata;
     } catch (error) {
       this.logger.error(`❌ Failed to get metadata for ${fileName}:`, error);
-      throw new InternalServerErrorException(`Failed to get file metadata: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new InternalServerErrorException(
+        `Failed to get file metadata: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
   /**
    * Generate signed URL for private files
    */
-  async getSignedUrl(fileName: string, expiresIn: number = 7 * 24 * 60 * 60 * 1000): Promise<string> {
+  async getSignedUrl(
+    fileName: string,
+    expiresIn: number = 7 * 24 * 60 * 60 * 1000,
+  ): Promise<string> {
     try {
       this.ensureInitialized();
       const fileRef = this.bucket.file(fileName);
@@ -271,7 +294,9 @@ export class FirebaseStorageService {
       return url;
     } catch (error) {
       this.logger.error(`❌ Failed to generate signed URL for ${fileName}:`, error);
-      throw new InternalServerErrorException(`Failed to generate signed URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new InternalServerErrorException(
+        `Failed to generate signed URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -302,7 +327,10 @@ export class FirebaseStorageService {
     }
 
     // Check file size (configurable via env, default 10MB)
-    const maxSizeMB = parseInt(this.configService.get<string>('FIREBASE_MAX_FILE_SIZE_MB', '10'), 10);
+    const maxSizeMB = parseInt(
+      this.configService.get<string>('FIREBASE_MAX_FILE_SIZE_MB', '10'),
+      10,
+    );
     const maxSize = maxSizeMB * 1024 * 1024;
     if (file.size > maxSize) {
       throw new BadRequestException(`File size exceeds ${maxSizeMB}MB limit`);
@@ -331,7 +359,7 @@ export class FirebaseStorageService {
 
   private async processImage(
     buffer: Buffer,
-    options: ImageProcessingOptions
+    options: ImageProcessingOptions,
   ): Promise<{ buffer: Buffer; mimeType: string; extension: string }> {
     try {
       let sharpInstance = sharp(buffer);
@@ -368,9 +396,7 @@ export class FirebaseStorageService {
           extension = '.png';
           break;
         case 'webp':
-          processedBuffer = await sharpInstance
-            .webp({ quality })
-            .toBuffer();
+          processedBuffer = await sharpInstance.webp({ quality }).toBuffer();
           mimeType = 'image/webp';
           extension = '.webp';
           break;
@@ -381,7 +407,9 @@ export class FirebaseStorageService {
       return { buffer: processedBuffer, mimeType, extension };
     } catch (error) {
       this.logger.error('❌ Image processing failed:', error);
-      throw new InternalServerErrorException(`Image processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new InternalServerErrorException(
+        `Image processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 

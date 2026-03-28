@@ -1,11 +1,11 @@
-import { IsString, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsString, IsArray } from 'class-validator';
 
 export class CoordinatesDto {
-    @IsString()
-    type: string;
+  @IsString()
+  type!: string;
 
-    @IsArray()
-    @Type(() => Number)
-    coordinates: number[];
+  @IsArray()
+  @Type(() => Number)
+  coordinates!: number[];
 }

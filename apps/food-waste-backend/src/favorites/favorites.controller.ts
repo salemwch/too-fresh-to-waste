@@ -11,12 +11,19 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
-import { FavoritesService } from './favorites.service';
+
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetUser } from '../common/decorators/get-user.decorator';
-import { FavoriteType } from './schemas/favorite.schema';
+
 import {
   AddFavoriteDto,
   UpdateFavoriteDto,
@@ -30,6 +37,8 @@ import {
   RecommendationsResponseDto,
   TrendsResponseDto,
 } from './dto/favorite.dto';
+import { FavoritesService } from './favorites.service';
+import { FavoriteType } from './schemas/favorite.schema';
 
 @ApiTags('Favorites')
 @ApiBearerAuth()
@@ -42,21 +51,17 @@ export class FavoritesController {
   @ApiOperation({ summary: 'Add item to favorites' })
   @ApiResponse({ status: 201, description: 'Item added to favorites successfully' })
   @ApiResponse({ status: 409, description: 'Item is already in favorites' })
-  addFavorite(
-    @GetUser('id') userId: string,
-    @Body() addFavoriteDto: AddFavoriteDto,
-  ) {
-    return this.favoritesService.addFavorite(userId, addFavoriteDto);
+  async addFavorite(@GetUser('id') userId: string, @Body() addFavoriteDto: AddFavoriteDto) {
+    const result = await this.favoritesService.addFavorite(userId, addFavoriteDto);
+    return result;
   }
 
   @Get()
   @ApiOperation({ summary: 'Get user favorites' })
   @ApiResponse({ status: 200, description: 'Favorites retrieved successfully' })
-   getUserFavorites(
-    @GetUser('id') userId: string,
-    @Query() filters: FavoritesFilterDto,
-  ) {
-    return this.favoritesService.getUserFavorites(userId, filters);
+  async getUserFavorites(@GetUser('id') userId: string, @Query() filters: FavoritesFilterDto) {
+    const result = await this.favoritesService.getUserFavorites(userId, filters);
+    return result;
   }
 
   @Delete(':id')
@@ -64,11 +69,9 @@ export class FavoritesController {
   @ApiOperation({ summary: 'Remove favorite by ID' })
   @ApiResponse({ status: 204, description: 'Favorite removed successfully' })
   @ApiResponse({ status: 404, description: 'Favorite not found' })
-   removeFavorite(
-    @GetUser('id') userId: string,
-    @Param('id') favoriteId: string,
-  ) {
-    return this.favoritesService.removeFavorite(userId, favoriteId);
+  async removeFavorite(@GetUser('id') userId: string, @Param('id') favoriteId: string) {
+    const result = await this.favoritesService.removeFavorite(userId, favoriteId);
+    return result;
   }
 
   @Delete('item/:type/:itemId')
@@ -77,24 +80,26 @@ export class FavoritesController {
   @ApiResponse({ status: 204, description: 'Favorite removed successfully' })
   @ApiResponse({ status: 404, description: 'Favorite not found' })
   @ApiParam({ name: 'type', enum: FavoriteType })
-   removeFavoriteByItem(
+  async removeFavoriteByItem(
     @GetUser('id') userId: string,
     @Param('type') type: FavoriteType,
     @Param('itemId') itemId: string,
   ) {
-    return this.favoritesService.removeFavoriteByItem(userId, type, itemId);
+    const result = await this.favoritesService.removeFavoriteByItem(userId, type, itemId);
+    return result;
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update favorite settings' })
   @ApiResponse({ status: 200, description: 'Favorite updated successfully' })
   @ApiResponse({ status: 404, description: 'Favorite not found' })
-   updateFavorite(
+  async updateFavorite(
     @GetUser('id') userId: string,
     @Param('id') favoriteId: string,
     @Body() updateDto: UpdateFavoriteDto,
   ) {
-    return this.favoritesService.updateFavorite(userId, favoriteId, updateDto);
+    const result = await this.favoritesService.updateFavorite(userId, favoriteId, updateDto);
+    return result;
   }
 
   @Get('check/:type/:itemId')
@@ -183,8 +188,9 @@ export class FavoritesController {
   @Get('stats')
   @ApiOperation({ summary: 'Get user favorites statistics' })
   @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
-   getFavoriteStats(@GetUser('id') userId: string) {
-    return this.favoritesService.getFavoriteStats(userId);
+  async getFavoriteStats(@GetUser('id') userId: string) {
+    const result = await this.favoritesService.getFavoriteStats(userId);
+    return result;
   }
 
   @Get('debug/count')
@@ -196,8 +202,15 @@ export class FavoritesController {
 
     const [totalFavorites, activeFavorites, offerFavorites] = await Promise.all([
       this.favoritesService['favoriteModel'].countDocuments({ userId: userObjectId }),
-      this.favoritesService['favoriteModel'].countDocuments({ userId: userObjectId, isActive: true }),
-      this.favoritesService['favoriteModel'].countDocuments({ userId: userObjectId, type: 'offer', isActive: true }),
+      this.favoritesService['favoriteModel'].countDocuments({
+        userId: userObjectId,
+        isActive: true,
+      }),
+      this.favoritesService['favoriteModel'].countDocuments({
+        userId: userObjectId,
+        type: 'offer',
+        isActive: true,
+      }),
     ]);
 
     return {
@@ -214,41 +227,42 @@ export class FavoritesController {
   @ApiOperation({ summary: 'Create favorite list' })
   @ApiResponse({ status: 201, description: 'Favorite list created successfully' })
   @ApiResponse({ status: 409, description: 'List with this name already exists' })
-   createFavoriteList(
+  async createFavoriteList(
     @GetUser('id') userId: string,
     @Body() createDto: CreateFavoriteListDto,
   ) {
-    return this.favoritesService.createFavoriteList(userId, createDto);
+    const result = await this.favoritesService.createFavoriteList(userId, createDto);
+    return result;
   }
 
   @Get('lists')
   @ApiOperation({ summary: 'Get user favorite lists' })
   @ApiResponse({ status: 200, description: 'Favorite lists retrieved successfully' })
-   getUserFavoriteLists(@GetUser('id') userId: string) {
-    return this.favoritesService.getUserFavoriteLists(userId);
+  async getUserFavoriteLists(@GetUser('id') userId: string) {
+    const result = await this.favoritesService.getUserFavoriteLists(userId);
+    return result;
   }
 
   @Get('lists/:id')
   @ApiOperation({ summary: 'Get favorite list by ID' })
   @ApiResponse({ status: 200, description: 'Favorite list retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Favorite list not found or access denied' })
-   getFavoriteList(
-    @GetUser('id') userId: string,
-    @Param('id') listId: string,
-  ) {
-    return this.favoritesService.getFavoriteList(userId, listId);
+  async getFavoriteList(@GetUser('id') userId: string, @Param('id') listId: string) {
+    const result = await this.favoritesService.getFavoriteList(userId, listId);
+    return result;
   }
 
   @Put('lists/:id')
   @ApiOperation({ summary: 'Update favorite list' })
   @ApiResponse({ status: 200, description: 'Favorite list updated successfully' })
   @ApiResponse({ status: 404, description: 'Favorite list not found' })
-   updateFavoriteList(
+  async updateFavoriteList(
     @GetUser('id') userId: string,
     @Param('id') listId: string,
     @Body() updateDto: UpdateFavoriteListDto,
   ) {
-    return this.favoritesService.updateFavoriteList(userId, listId, updateDto);
+    const result = await this.favoritesService.updateFavoriteList(userId, listId, updateDto);
+    return result;
   }
 
   @Post('lists/:id/items')
@@ -256,12 +270,13 @@ export class FavoritesController {
   @ApiResponse({ status: 201, description: 'Item added to list successfully' })
   @ApiResponse({ status: 404, description: 'Favorite list not found' })
   @ApiResponse({ status: 409, description: 'Item is already in this list' })
-   addToFavoriteList(
+  async addToFavoriteList(
     @GetUser('id') userId: string,
     @Param('id') listId: string,
     @Body() addToListDto: AddToListDto,
   ) {
-    return this.favoritesService.addToFavoriteList(userId, listId, addToListDto);
+    const result = await this.favoritesService.addToFavoriteList(userId, listId, addToListDto);
+    return result;
   }
 
   @Delete('lists/:id/items/:itemId/:type')
@@ -269,25 +284,27 @@ export class FavoritesController {
   @ApiOperation({ summary: 'Remove item from favorite list' })
   @ApiResponse({ status: 204, description: 'Item removed from list successfully' })
   @ApiResponse({ status: 404, description: 'Favorite list not found' })
-   removeFromFavoriteList(
+  async removeFromFavoriteList(
     @GetUser('id') userId: string,
     @Param('id') listId: string,
     @Param('itemId') itemId: string,
     @Param('type') type: string,
   ) {
-    return this.favoritesService.removeFromFavoriteList(userId, listId, itemId, type);
+    const result = await this.favoritesService.removeFromFavoriteList(userId, listId, itemId, type);
+    return result;
   }
 
   @Post('lists/:id/share')
   @ApiOperation({ summary: 'Share favorite list with other users' })
   @ApiResponse({ status: 200, description: 'List shared successfully' })
   @ApiResponse({ status: 404, description: 'Favorite list not found' })
-   shareList(
+  async shareList(
     @GetUser('id') userId: string,
     @Param('id') listId: string,
     @Body() shareDto: ShareListDto,
   ) {
-    return this.favoritesService.shareList(userId, listId, shareDto);
+    const result = await this.favoritesService.shareList(userId, listId, shareDto);
+    return result;
   }
 
   @Get('recommendations/based-on-favorites')
@@ -295,18 +312,39 @@ export class FavoritesController {
   @ApiResponse({
     status: 200,
     description: 'Recommendations retrieved successfully',
-    type: RecommendationsResponseDto
+    type: RecommendationsResponseDto,
   })
-  @ApiQuery({ name: 'limit', required: false, description: 'Number of recommendations (1-50)', type: Number })
-  @ApiQuery({ name: 'type', required: false, description: 'Filter by favorite type', enum: FavoriteType })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of recommendations (1-50)',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    description: 'Filter by favorite type',
+    enum: FavoriteType,
+  })
   @ApiQuery({ name: 'category', required: false, description: 'Filter by category', type: String })
-  @ApiQuery({ name: 'maxDistance', required: false, description: 'Maximum distance in km', type: Number })
-  @ApiQuery({ name: 'minConfidence', required: false, description: 'Minimum confidence score (0-1)', type: Number })
-  getRecommendationsBasedOnFavorites(
+  @ApiQuery({
+    name: 'maxDistance',
+    required: false,
+    description: 'Maximum distance in km',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'minConfidence',
+    required: false,
+    description: 'Minimum confidence score (0-1)',
+    type: Number,
+  })
+  async getRecommendationsBasedOnFavorites(
     @GetUser('id') userId: string,
     @Query() filters: RecommendationFiltersDto,
   ): Promise<RecommendationsResponseDto> {
-    return this.favoritesService.getRecommendationsBasedOnFavorites(userId, filters);
+    const result = await this.favoritesService.getRecommendationsBasedOnFavorites(userId, filters);
+    return result;
   }
 
   @Get('trends/popular')
@@ -314,29 +352,42 @@ export class FavoritesController {
   @ApiResponse({
     status: 200,
     description: 'Trends retrieved successfully',
-    type: TrendsResponseDto
+    type: TrendsResponseDto,
   })
   @ApiQuery({
     name: 'period',
     required: false,
     description: 'Time period for trends analysis',
-    enum: ['day', 'week', 'month', 'quarter', 'year']
+    enum: ['day', 'week', 'month', 'quarter', 'year'],
   })
-  @ApiQuery({ name: 'limit', required: false, description: 'Number of trends to return (1-100)', type: Number })
-  @ApiQuery({ name: 'type', required: false, description: 'Filter by favorite type', enum: FavoriteType })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of trends to return (1-100)',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    description: 'Filter by favorite type',
+    enum: FavoriteType,
+  })
   @ApiQuery({ name: 'category', required: false, description: 'Filter by category', type: String })
-  @ApiQuery({ name: 'minFavoriteCount', required: false, description: 'Minimum favorite count threshold', type: Number })
-  getPopularTrends(@Query() filters: TrendsFiltersDto): Promise<TrendsResponseDto> {
-    return this.favoritesService.getPopularTrends(filters);
+  @ApiQuery({
+    name: 'minFavoriteCount',
+    required: false,
+    description: 'Minimum favorite count threshold',
+    type: Number,
+  })
+  async getPopularTrends(@Query() filters: TrendsFiltersDto): Promise<TrendsResponseDto> {
+    const result = await this.favoritesService.getPopularTrends(filters);
+    return result;
   }
 
   @Post('bulk/add')
   @ApiOperation({ summary: 'Bulk add multiple items to favorites' })
   @ApiResponse({ status: 201, description: 'Items added to favorites successfully' })
-  async bulkAddFavorites(
-    @GetUser('id') userId: string,
-    @Body() items: AddFavoriteDto[],
-  ) {
+  async bulkAddFavorites(@GetUser('id') userId: string, @Body() items: AddFavoriteDto[]) {
     const results = [];
 
     for (const item of items) {
@@ -344,14 +395,18 @@ export class FavoritesController {
         const favorite = await this.favoritesService.addFavorite(userId, item);
         results.push({ success: true, favorite });
       } catch (error) {
-        results.push({ success: false, error: error instanceof Error ? error.message : 'Unknown error', item });
+        results.push({
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          item,
+        });
       }
     }
 
     return {
       totalProcessed: items.length,
-      successful: results.filter(r => r.success).length,
-      failed: results.filter(r => !r.success).length,
+      successful: results.filter((r) => r.success).length,
+      failed: results.filter((r) => !r.success).length,
       results,
     };
   }

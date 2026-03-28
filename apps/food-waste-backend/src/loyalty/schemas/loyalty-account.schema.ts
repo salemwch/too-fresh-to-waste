@@ -19,58 +19,58 @@ export enum BadgeType {
 @Schema({ _id: false })
 export class Badge {
   @Prop({ required: true, enum: BadgeType })
-  type: BadgeType;
+  type!: BadgeType;
 
   @Prop({ required: true })
-  earnedAt: Date;
+  earnedAt!: Date;
 
   @Prop({ required: true })
-  name: string;
+  name!: string;
 
   @Prop({ required: true })
-  description: string;
+  description!: string;
 
   @Prop({ required: true })
-  iconUrl: string;
+  iconUrl!: string;
 }
 
 @Schema({ _id: false })
 export class PointTransaction {
   @Prop({ required: true })
-  amount: number;
+  amount!: number;
 
   @Prop({ required: true, enum: ['earned', 'redeemed', 'expired', 'donated'] })
-  type: string;
+  type!: string;
 
   @Prop({ required: true })
-  reason: string;
+  reason!: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Order' })
-  orderId?: Types.ObjectId;
+  orderId?: Types.ObjectId | undefined;
 
   @Prop({ type: Types.ObjectId, ref: 'Offer' })
-  offerId?: Types.ObjectId;
+  offerId?: Types.ObjectId | undefined;
 
   @Prop({ required: true, default: Date.now })
-  createdAt: Date;
+  createdAt!: Date;
 
   @Prop()
-  expiresAt?: Date;
+  expiresAt?: Date | undefined;
 }
 
 @Schema({ _id: false })
 export class Tier {
   @Prop({ required: true })
-  name: string;
+  name!: string;
 
   @Prop({ required: true })
-  minPoints: number;
+  minPoints!: number;
 
   @Prop({ required: true })
-  multiplier: number;
+  multiplier!: number;
 
   @Prop([String])
-  benefits: string[];
+  benefits!: string[];
 }
 
 // =============================================================================
@@ -78,33 +78,33 @@ export class Tier {
 // =============================================================================
 
 export enum FriendReferralStatus {
-  PENDING = 'pending',           // Friend signed up, hasn't bought 10 bags yet
-  COMPLETED = 'completed',       // Friend bought 10 bags, points awarded
-  EXPIRED = 'expired',           // First month passed without 10 bags
+  PENDING = 'pending', // Friend signed up, hasn't bought 10 bags yet
+  COMPLETED = 'completed', // Friend bought 10 bags, points awarded
+  EXPIRED = 'expired', // First month passed without 10 bags
 }
 
 @Schema({ _id: false })
 export class FriendReferral {
   @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
-  friendUserId: Types.ObjectId;
+  friendUserId!: Types.ObjectId;
 
   @Prop({ required: true })
-  referredAt: Date;
+  referredAt!: Date;
 
   @Prop({ required: true })
-  expiresAt: Date; // 30 days from referredAt
+  expiresAt!: Date; // 30 days from referredAt
 
   @Prop({ required: true, default: 0 })
-  friendBagCount: number;
+  friendBagCount!: number;
 
   @Prop({ required: true, enum: FriendReferralStatus, default: FriendReferralStatus.PENDING })
-  status: FriendReferralStatus;
+  status!: FriendReferralStatus;
 
   @Prop()
   completedAt?: Date;
 
   @Prop({ default: 0 })
-  pointsAwarded: number;
+  pointsAwarded!: number;
 }
 
 // =============================================================================
@@ -112,36 +112,36 @@ export class FriendReferral {
 // =============================================================================
 
 export enum BusinessReferralStatus {
-  PENDING = 'pending',           // Business signed up, hasn't sold 30 orders yet
-  COMPLETED = 'completed',       // Business sold 30 orders, points awarded
-  EXPIRED = 'expired',           // First month passed without 30 orders
+  PENDING = 'pending', // Business signed up, hasn't sold 30 orders yet
+  COMPLETED = 'completed', // Business sold 30 orders, points awarded
+  EXPIRED = 'expired', // First month passed without 30 orders
 }
 
 @Schema({ _id: false })
 export class BusinessReferral {
   @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
-  businessUserId: Types.ObjectId;
+  businessUserId!: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'Establishment' })
   establishmentId?: Types.ObjectId;
 
   @Prop({ required: true })
-  referredAt: Date;
+  referredAt!: Date;
 
   @Prop({ required: true })
-  expiresAt: Date; // 30 days from referredAt
+  expiresAt!: Date; // 30 days from referredAt
 
   @Prop({ required: true, default: 0 })
-  businessOrderCount: number;
+  businessOrderCount!: number;
 
   @Prop({ required: true, enum: BusinessReferralStatus, default: BusinessReferralStatus.PENDING })
-  status: BusinessReferralStatus;
+  status!: BusinessReferralStatus;
 
   @Prop()
   completedAt?: Date;
 
   @Prop({ default: 0 })
-  pointsAwarded: number;
+  pointsAwarded!: number;
 }
 
 // =============================================================================
@@ -151,19 +151,19 @@ export class BusinessReferral {
 @Schema({ _id: false })
 export class LoginStreak {
   @Prop({ required: true, default: 0 })
-  currentStreak: number; // Days in current streak
+  currentStreak!: number; // Days in current streak
 
   @Prop()
   lastLoginDate?: Date; // Last login date (used to check if streak continues)
 
   @Prop({ default: 0 })
-  pointsEarnedThisMonth: number; // Max 20 points/month (10 days × 2 pts)
+  pointsEarnedThisMonth!: number; // Max 20 points/month (10 days × 2 pts)
 
   @Prop()
   monthlyResetDate?: Date; // When this month's streak points reset
 
   @Prop({ default: 0 })
-  longestStreak: number; // Historical best
+  longestStreak!: number; // Historical best
 }
 
 // =============================================================================
@@ -173,19 +173,19 @@ export class LoginStreak {
 @Schema({ _id: false })
 export class PurchaseStreak {
   @Prop({ required: true, default: 0 })
-  bagsThisPeriod: number; // Bags bought in current 15-day period
+  bagsThisPeriod!: number; // Bags bought in current 15-day period
 
   @Prop()
   periodStartDate?: Date; // When current 15-day period started
 
   @Prop({ default: false })
-  completedThisMonth: boolean; // Already earned 10 pts this month?
+  completedThisMonth!: boolean; // Already earned 10 pts this month?
 
   @Prop()
   monthlyResetDate?: Date; // When monthly completion flag resets
 
   @Prop({ default: 0 })
-  totalStreaksCompleted: number; // Historical count
+  totalStreaksCompleted!: number; // Historical count
 }
 
 // =============================================================================
@@ -195,13 +195,13 @@ export class PurchaseStreak {
 @Schema({ _id: false })
 export class ReviewTracking {
   @Prop({ type: [Types.ObjectId], ref: 'Order', default: [] })
-  reviewedOrderIds: Types.ObjectId[]; // Orders already reviewed (prevent duplicate points)
+  reviewedOrderIds!: Types.ObjectId[]; // Orders already reviewed (prevent duplicate points)
 
   @Prop({ default: 0 })
-  totalReviewsCount: number;
+  totalReviewsCount!: number;
 
   @Prop({ default: 0 })
-  totalReviewPoints: number;
+  totalReviewPoints!: number;
 }
 
 // =============================================================================
@@ -211,50 +211,50 @@ export class ReviewTracking {
 @Schema({ timestamps: true })
 export class LoyaltyAccount {
   @Prop({ required: true, type: Types.ObjectId, ref: 'User', unique: true })
-  userId: Types.ObjectId;
+  userId!: Types.ObjectId;
 
   @Prop({ required: true, default: 0, min: 0 })
-  totalPoints: number;
+  totalPoints!: number;
 
   @Prop({ required: true, default: 0, min: 0 })
-  availablePoints: number;
+  availablePoints!: number;
 
   @Prop({ required: true, default: 0, min: 0 })
-  lifetimePointsEarned: number;
+  lifetimePointsEarned!: number;
 
   @Prop({ required: true, default: 0, min: 0 })
-  totalOrdersCount: number;
+  totalOrdersCount!: number;
 
   @Prop({ required: true, default: 0, min: 0 })
-  totalBagsSaved: number;
+  totalBagsSaved!: number;
 
   @Prop({ required: true, default: 0, min: 0 })
-  totalAmountSpent: number;
+  totalAmountSpent!: number;
 
   @Prop({ required: true, default: 'Bronze' })
-  currentTier: string;
+  currentTier!: string;
 
   @Prop([Badge])
-  badges: Badge[];
+  badges!: Badge[];
 
   @Prop([PointTransaction])
-  pointsHistory: PointTransaction[];
+  pointsHistory!: PointTransaction[];
 
   // Legacy referral (simple signup bonus - now deprecated)
   @Prop({ type: Types.ObjectId, ref: 'User' })
   referredBy?: Types.ObjectId;
 
   @Prop({ default: 0 })
-  referralCount: number;
+  referralCount!: number;
 
   @Prop({ default: Date.now })
-  joinedAt: Date;
+  joinedAt!: Date;
 
   @Prop()
   lastActivity?: Date;
 
   @Prop({ default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   // =============================================================================
   // GAMIFICATION: Referral Code
@@ -268,41 +268,41 @@ export class LoyaltyAccount {
   // =============================================================================
 
   @Prop({ type: [FriendReferral], default: [] })
-  friendReferrals: FriendReferral[];
+  friendReferrals!: FriendReferral[];
 
   @Prop({ default: 0 })
-  friendReferralsCompleted: number;
+  friendReferralsCompleted!: number;
 
   // =============================================================================
   // GAMIFICATION: Business Referrals
   // =============================================================================
 
   @Prop({ type: [BusinessReferral], default: [] })
-  businessReferrals: BusinessReferral[];
+  businessReferrals!: BusinessReferral[];
 
   @Prop({ default: 0 })
-  businessReferralsCompleted: number;
+  businessReferralsCompleted!: number;
 
   // =============================================================================
   // GAMIFICATION: Login Streak
   // =============================================================================
 
   @Prop({ type: LoginStreak, default: () => ({}) })
-  loginStreak: LoginStreak;
+  loginStreak!: LoginStreak;
 
   // =============================================================================
   // GAMIFICATION: Purchase Streak
   // =============================================================================
 
   @Prop({ type: PurchaseStreak, default: () => ({}) })
-  purchaseStreak: PurchaseStreak;
+  purchaseStreak!: PurchaseStreak;
 
   // =============================================================================
   // GAMIFICATION: Review Tracking
   // =============================================================================
 
   @Prop({ type: ReviewTracking, default: () => ({}) })
-  reviewTracking: ReviewTracking;
+  reviewTracking!: ReviewTracking;
 }
 
 export type LoyaltyAccountDocument = LoyaltyAccount & Document;

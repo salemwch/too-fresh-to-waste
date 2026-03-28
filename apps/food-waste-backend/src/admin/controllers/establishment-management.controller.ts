@@ -8,8 +8,7 @@ import {
   Query,
   UseGuards,
   HttpStatus,
-  Logger,
-  Req
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,240 +16,292 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
-  ApiQuery
+  ApiQuery,
 } from '@nestjs/swagger';
+
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { AdminOnlyGuard } from '../guards/admin-only.guard';
-import { EstablishmentManagementService } from '../services/establishment-management.service';
+import {
+  IEstablishment,
+  IEstablishmentOverview,
+  IEstablishmentStats,
+  IEstablishmentListResponse,
+} from '../../common/interfaces/establishment.interface';
+import { IpAddress, UserAgent } from '../decorators';
 import {
   ApproveEstablishmentDto,
   UpdateEstablishmentStatusDto,
   EstablishmentSearchDto,
-  EstablishmentStatsDto
+  EstablishmentStatsDto,
 } from '../dto/establishment-management.dto';
-import { IpAddress, UserAgent } from '../decorators';
-import { IEstablishment, IEstablishmentOverview, IEstablishmentStats, IEstablishmentListResponse } from '../../common/interfaces/establishment.interface';
+import { AdminOnlyGuard } from '../guards/admin-only.guard';
+import { EstablishmentManagementService } from '../services/establishment-management.service';
 
 @ApiTags('Admin Establishment Management')
 @Controller('admin/establishments')
 @UseGuards(JwtAuthGuard, AdminOnlyGuard)
 @ApiBearerAuth()
 export class EstablishmentManagementController {
-  private readonly logger = new Logger(EstablishmentManagementController.name);
-
-  constructor(
-    private readonly establishmentManagementService: EstablishmentManagementService,
-  ) {}
+  constructor(private readonly establishmentManagementService: EstablishmentManagementService) {}
 
   @Get('overview')
   @ApiOperation({
     summary: 'Get establishment overview',
-    description: 'Get overview statistics and metrics for all establishments'
+    description: 'Get overview statistics and metrics for all establishments',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Establishment overview retrieved successfully'
+    description: 'Establishment overview retrieved successfully',
   })
-  getEstablishmentOverview(): Promise<IEstablishmentOverview> {
-    return this.establishmentManagementService.getEstablishmentOverview();
+  async getEstablishmentOverview(): Promise<IEstablishmentOverview> {
+    const result = await this.establishmentManagementService.getEstablishmentOverview();
+    return result;
   }
 
   @Get('pending-approvals')
   @ApiOperation({
     summary: 'Get pending establishment approvals',
-    description: 'Retrieve establishments waiting for approval'
+    description: 'Retrieve establishments waiting for approval',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Pending approvals retrieved successfully'
+    description: 'Pending approvals retrieved successfully',
   })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum number of results (default: 50)' })
-  getPendingApprovals(
-    @Query('limit') limit?: number
-  ): Promise<IEstablishment[]> {
-    return this.establishmentManagementService.getPendingApprovals(limit || 50);
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum number of results (default: 50)',
+  })
+  async getPendingApprovals(@Query('limit') limit?: number): Promise<IEstablishment[]> {
+    const result = await this.establishmentManagementService.getPendingApprovals(limit || 50);
+    return result;
   }
 
   @Get('search')
   @ApiOperation({
     summary: 'Search establishments',
-    description: 'Search and filter establishments with pagination'
+    description: 'Search and filter establishments with pagination',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Establishments retrieved successfully'
+    description: 'Establishments retrieved successfully',
   })
-  @ApiQuery({ name: 'search', required: false, description: 'Search term for name, description, or email' })
-  @ApiQuery({ name: 'status', required: false, enum: ['pending', 'active', 'suspended', 'rejected', 'inactive'] })
-  @ApiQuery({ name: 'type', required: false, enum: ['restaurant', 'bakery', 'grocery_store', 'cafe', 'fast_food', 'supermarket', 'other'] })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search term for name, description, or email',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['pending', 'active', 'suspended', 'rejected', 'inactive'],
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: ['restaurant', 'bakery', 'grocery_store', 'cafe', 'fast_food', 'supermarket', 'other'],
+  })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  searchEstablishments(
-    @Query() query: EstablishmentSearchDto
+  async searchEstablishments(
+    @Query() query: EstablishmentSearchDto,
   ): Promise<IEstablishmentListResponse> {
-    return this.establishmentManagementService.searchEstablishments(query);
+    const result = await this.establishmentManagementService.searchEstablishments(query);
+    return result;
   }
 
   @Get(':establishmentId')
   @ApiOperation({
     summary: 'Get establishment by ID',
-    description: 'Retrieve detailed information about a specific establishment'
+    description: 'Retrieve detailed information about a specific establishment',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Establishment retrieved successfully'
+    description: 'Establishment retrieved successfully',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Establishment not found'
+    description: 'Establishment not found',
   })
   @ApiParam({ name: 'establishmentId', description: 'Establishment ID' })
-   getEstablishmentById(
-    @Param('establishmentId') establishmentId: string
+  async getEstablishmentById(
+    @Param('establishmentId') establishmentId: string,
   ): Promise<IEstablishment> {
-    return  this.establishmentManagementService.getEstablishmentById(establishmentId);
+    const result = await this.establishmentManagementService.getEstablishmentById(establishmentId);
+    return result;
   }
 
   @Post(':establishmentId/approve')
   @ApiOperation({
     summary: 'Approve or reject establishment',
-    description: 'Approve or reject a pending establishment application'
+    description: 'Approve or reject a pending establishment application',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Establishment approval status updated successfully'
+    description: 'Establishment approval status updated successfully',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Establishment not found'
+    description: 'Establishment not found',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Only pending establishments can be approved or rejected'
+    description: 'Only pending establishments can be approved or rejected',
   })
   @ApiParam({ name: 'establishmentId', description: 'Establishment ID' })
-   approveEstablishment(
+  async approveEstablishment(
     @Param('establishmentId') establishmentId: string,
     @Body() approveDto: ApproveEstablishmentDto,
     @Req() req: { user: { userId: string; email: string } },
     @IpAddress() ipAddress: string,
-    @UserAgent() userAgent: string
+    @UserAgent() userAgent: string,
   ): Promise<IEstablishment> {
     const admin = req.user;
 
-    return  this.establishmentManagementService.approveEstablishment(
+    const result = await this.establishmentManagementService.approveEstablishment(
       establishmentId,
       approveDto,
       admin.userId,
       admin.email,
       ipAddress,
-      userAgent
+      userAgent,
     );
+    return result;
   }
 
   @Patch(':establishmentId/status')
   @ApiOperation({
     summary: 'Update establishment status',
-    description: 'Update the status of a specific establishment (suspend, activate, etc.)'
+    description: 'Update the status of a specific establishment (suspend, activate, etc.)',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Establishment status updated successfully'
+    description: 'Establishment status updated successfully',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Establishment not found'
+    description: 'Establishment not found',
   })
   @ApiParam({ name: 'establishmentId', description: 'Establishment ID' })
-   updateEstablishmentStatus(
+  async updateEstablishmentStatus(
     @Param('establishmentId') establishmentId: string,
     @Body() updateDto: UpdateEstablishmentStatusDto,
     @Req() req: { user: { userId: string; email: string } },
     @IpAddress() ipAddress: string,
-    @UserAgent() userAgent: string
+    @UserAgent() userAgent: string,
   ): Promise<IEstablishment> {
     const admin = req.user;
 
-    return  this.establishmentManagementService.updateEstablishmentStatus(
+    const result = await this.establishmentManagementService.updateEstablishmentStatus(
       establishmentId,
       updateDto,
       admin.userId,
       admin.email,
       ipAddress,
-      userAgent
+      userAgent,
     );
+    return result;
   }
 
   @Get(':establishmentId/stats')
   @ApiOperation({
     summary: 'Get establishment statistics',
-    description: 'Get detailed statistics for a specific establishment'
+    description: 'Get detailed statistics for a specific establishment',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Establishment statistics retrieved successfully'
+    description: 'Establishment statistics retrieved successfully',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Establishment not found'
+    description: 'Establishment not found',
   })
   @ApiParam({ name: 'establishmentId', description: 'Establishment ID' })
-  @ApiQuery({ name: 'startDate', required: false, type: String, description: 'Start date for statistics (ISO string)' })
-  @ApiQuery({ name: 'endDate', required: false, type: String, description: 'End date for statistics (ISO string)' })
-  @ApiQuery({ name: 'includeDetails', required: false, type: Boolean, description: 'Include detailed breakdown' })
-   getEstablishmentStats(
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    type: String,
+    description: 'Start date for statistics (ISO string)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: String,
+    description: 'End date for statistics (ISO string)',
+  })
+  @ApiQuery({
+    name: 'includeDetails',
+    required: false,
+    type: Boolean,
+    description: 'Include detailed breakdown',
+  })
+  async getEstablishmentStats(
     @Param('establishmentId') establishmentId: string,
-    @Query() statsDto: EstablishmentStatsDto
+    @Query() statsDto: EstablishmentStatsDto,
   ): Promise<IEstablishmentStats> {
-    return  this.establishmentManagementService.getEstablishmentStats(establishmentId, statsDto);
+    const result = await this.establishmentManagementService.getEstablishmentStats(
+      establishmentId,
+      statsDto,
+    );
+    return result;
   }
 
   @Get(':establishmentId/activity')
   @ApiOperation({
     summary: 'Get establishment activity',
-    description: 'Get activity history for a specific establishment'
+    description: 'Get activity history for a specific establishment',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Establishment activity retrieved successfully'
+    description: 'Establishment activity retrieved successfully',
   })
   @ApiParam({ name: 'establishmentId', description: 'Establishment ID' })
-  @ApiQuery({ name: 'days', required: false, type: Number, description: 'Number of days to look back (default: 30)' })
-   getEstablishmentActivity(
+  @ApiQuery({
+    name: 'days',
+    required: false,
+    type: Number,
+    description: 'Number of days to look back (default: 30)',
+  })
+  async getEstablishmentActivity(
     @Param('establishmentId') establishmentId: string,
-    @Query('days') days: number = 30
+    @Query('days') days: number = 30,
   ): Promise<unknown[]> {
-    return  this.establishmentManagementService.getEstablishmentActivity(establishmentId, days);
+    const result = await this.establishmentManagementService.getEstablishmentActivity(
+      establishmentId,
+      days,
+    );
+    return result;
   }
 
   @Post(':establishmentId/verify-documents')
   @ApiOperation({
     summary: 'Manually verify establishment documents',
-    description: 'Manually mark establishment documents as verified'
+    description: 'Manually mark establishment documents as verified',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Establishment documents verified successfully'
+    description: 'Establishment documents verified successfully',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Establishment not found'
+    description: 'Establishment not found',
   })
   @ApiParam({ name: 'establishmentId', description: 'Establishment ID' })
-   verifyEstablishmentDocuments(
+  async verifyEstablishmentDocuments(
     @Param('establishmentId') establishmentId: string,
     @Req() req: { user: { userId: string; email: string } },
     @IpAddress() ipAddress: string,
-    @UserAgent() userAgent: string
+    @UserAgent() userAgent: string,
   ): Promise<IEstablishment> {
     const admin = req.user;
 
-    return  this.establishmentManagementService.verifyEstablishmentDocuments(
+    const result = await this.establishmentManagementService.verifyEstablishmentDocuments(
       establishmentId,
       admin.userId,
       admin.email,
       ipAddress,
-      userAgent
+      userAgent,
     );
+    return result;
   }
 }

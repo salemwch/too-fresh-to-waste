@@ -1,7 +1,7 @@
 import { Controller, Get, Query, Res, Logger } from '@nestjs/common';
-import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { Response } from 'express';
 
 /**
  * AuthRedirectController
@@ -21,72 +21,72 @@ import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 @ApiTags('auth-redirect')
 @Controller('auth')
 export class AuthRedirectController {
-    private readonly logger = new Logger(AuthRedirectController.name);
+  private readonly logger = new Logger(AuthRedirectController.name);
 
-    constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {}
 
-    @Get('verify-email')
-    @ApiOperation({ summary: 'Email verification redirect handler' })
-    @ApiQuery({ name: 'token', required: true, description: 'Email verification token' })
-    @ApiQuery({ name: 'email', required: true, description: 'User email address' })
-    async verifyEmailRedirect(
-        @Query('token') token: string,
-        @Query('email') email: string,
-        @Res() res: Response,
-    ) {
-        this.logger.log(`Email verification redirect accessed for: ${email}`);
+  @Get('verify-email')
+  @ApiOperation({ summary: 'Email verification redirect handler' })
+  @ApiQuery({ name: 'token', required: true, description: 'Email verification token' })
+  @ApiQuery({ name: 'email', required: true, description: 'User email address' })
+  verifyEmailRedirect(
+    @Query('token') token: string,
+    @Query('email') email: string,
+    @Res() res: Response,
+  ) {
+    this.logger.log(`Email verification redirect accessed for: ${email}`);
 
-        // Deep link for mobile app
-        const deepLink = `foodwaste://auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
+    // Deep link for mobile app
+    const deepLink = `foodwaste://auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
 
-        // Web frontend callback URL (verify-callback page handles POST + auto-login)
-        const webFrontendUrl = this.configService.get<string>('WEB_FRONTEND_URL', '');
-        const webCallbackUrl = webFrontendUrl
-            ? `${webFrontendUrl}/verify-callback?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`
-            : '';
+    // Web frontend callback URL (verify-callback page handles POST + auto-login)
+    const webFrontendUrl = this.configService.get<string>('WEB_FRONTEND_URL', '');
+    const webCallbackUrl = webFrontendUrl
+      ? `${webFrontendUrl}/verify-callback?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`
+      : '';
 
-        const html = this.generateSmartRedirectPage(deepLink, webCallbackUrl, token, email);
+    const html = this.generateSmartRedirectPage(deepLink, webCallbackUrl, token, email);
 
-        res.setHeader('Content-Type', 'text/html');
-        res.send(html);
-    }
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+  }
 
-    @Get('reset-password')
-    @ApiOperation({ summary: 'Password reset redirect handler' })
-    @ApiQuery({ name: 'token', required: true, description: 'Password reset token' })
-    @ApiQuery({ name: 'email', required: true, description: 'User email address' })
-    async resetPasswordRedirect(
-        @Query('token') token: string,
-        @Query('email') email: string,
-        @Res() res: Response,
-    ) {
-        this.logger.log(`Password reset redirect accessed for: ${email}`);
+  @Get('reset-password')
+  @ApiOperation({ summary: 'Password reset redirect handler' })
+  @ApiQuery({ name: 'token', required: true, description: 'Password reset token' })
+  @ApiQuery({ name: 'email', required: true, description: 'User email address' })
+  resetPasswordRedirect(
+    @Query('token') token: string,
+    @Query('email') email: string,
+    @Res() res: Response,
+  ) {
+    this.logger.log(`Password reset redirect accessed for: ${email}`);
 
-        const deepLink = `foodwaste://auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
-        const webFallbackUrl = `${this.configService.get<string>('WEB_FRONTEND_URL', 'https://yourapp.com')}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+    const deepLink = `foodwaste://auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+    const webFallbackUrl = `${this.configService.get<string>('WEB_FRONTEND_URL', 'https://yourapp.com')}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
 
-        const html = this.generatePasswordResetRedirectPage(deepLink, webFallbackUrl, token, email);
+    const html = this.generatePasswordResetRedirectPage(deepLink, webFallbackUrl, token, email);
 
-        res.setHeader('Content-Type', 'text/html');
-        res.send(html);
-    }
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+  }
 
-    /**
-     * Generate smart redirect page
-     * Attempts deep link first (for mobile), then auto-redirects to web callback.
-     * Flow: deep link attempt → 1.5s timeout → redirect to web verify-callback page
-     */
-    private generateSmartRedirectPage(
-        deepLink: string,
-        webCallbackUrl: string,
-        token: string,
-        email: string,
-    ): string {
-        const webBtnHtml = webCallbackUrl
-            ? '<a href="' + webCallbackUrl + '" class="btn" style="background:#e5e7eb;color:#333;">Verify in Browser</a>'
-            : '';
+  /**
+   * Generate smart redirect page
+   * Attempts deep link first (for mobile), then auto-redirects to web callback.
+   * Flow: deep link attempt → 1.5s timeout → redirect to web verify-callback page
+   */
+  private generateSmartRedirectPage(
+    deepLink: string,
+    webCallbackUrl: string,
+    _token: string,
+    _email: string,
+  ): string {
+    const webBtnHtml = webCallbackUrl
+      ? `<a href="${webCallbackUrl}" class="btn" style="background:#e5e7eb;color:#333;">Verify in Browser</a>`
+      : '';
 
-        return `
+    return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -196,15 +196,15 @@ export class AuthRedirectController {
 </body>
 </html>
         `;
-    }
+  }
 
-    private generatePasswordResetRedirectPage(
-        deepLink: string,
-        webFallbackUrl: string,
-        token: string,
-        email: string,
-    ): string {
-        return `
+  private generatePasswordResetRedirectPage(
+    deepLink: string,
+    webFallbackUrl: string,
+    _token: string,
+    _email: string,
+  ): string {
+    return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -307,5 +307,5 @@ export class AuthRedirectController {
 </body>
 </html>
         `;
-    }
+  }
 }

@@ -1,21 +1,25 @@
-import { IsNotEmpty, IsOptional, IsEnum, IsString, MaxLength, IsBoolean } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { EstablishmentStatus, EstablishmentType } from '../../common/interfaces/establishment.interface';
+import { Type } from 'class-transformer';
+import { IsNotEmpty, IsOptional, IsEnum, IsString, MaxLength, IsBoolean } from 'class-validator';
+
+import {
+  EstablishmentStatus,
+  EstablishmentType,
+} from '../../common/interfaces/establishment.interface';
 
 export class ApproveEstablishmentDto {
   @ApiProperty({
     description: 'Approval decision',
-    example: true
+    example: true,
   })
   @IsNotEmpty()
   @IsBoolean()
-  approved: boolean;
+  approved!: boolean;
 
   @ApiPropertyOptional({
     description: 'Reason for approval or rejection',
     example: 'All documents verified and business license is valid',
-    maxLength: 500
+    maxLength: 500,
   })
   @IsOptional()
   @IsString()
@@ -25,7 +29,7 @@ export class ApproveEstablishmentDto {
   @ApiPropertyOptional({
     description: 'Internal admin notes',
     example: 'Verified SIRET number with INSEE database',
-    maxLength: 1000
+    maxLength: 1000,
   })
   @IsOptional()
   @IsString()
@@ -34,7 +38,7 @@ export class ApproveEstablishmentDto {
 
   @ApiPropertyOptional({
     description: 'Send notification to establishment owner',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -45,26 +49,26 @@ export class UpdateEstablishmentStatusDto {
   @ApiProperty({
     enum: EstablishmentStatus,
     description: 'New establishment status',
-    example: EstablishmentStatus.SUSPENDED
+    example: EstablishmentStatus.SUSPENDED,
   })
   @IsNotEmpty()
   @IsEnum(EstablishmentStatus)
-  status: EstablishmentStatus;
+  status!: EstablishmentStatus;
 
   @ApiProperty({
     description: 'Reason for status change',
     example: 'Multiple customer complaints about food quality',
-    maxLength: 500
+    maxLength: 500,
   })
   @IsNotEmpty()
   @IsString()
   @MaxLength(500)
-  reason: string;
+  reason!: string;
 
   @ApiPropertyOptional({
     description: 'Internal admin notes',
     example: 'Requires re-inspection before reactivation',
-    maxLength: 1000
+    maxLength: 1000,
   })
   @IsOptional()
   @IsString()
@@ -73,7 +77,7 @@ export class UpdateEstablishmentStatusDto {
 
   @ApiPropertyOptional({
     description: 'Send notification to establishment owner',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -81,7 +85,7 @@ export class UpdateEstablishmentStatusDto {
 
   @ApiPropertyOptional({
     description: 'Automatic reactivation date (for temporary suspensions)',
-    example: '2024-12-31T23:59:59.999Z'
+    example: '2024-12-31T23:59:59.999Z',
   })
   @IsOptional()
   reactivationDate?: Date;
@@ -90,7 +94,7 @@ export class UpdateEstablishmentStatusDto {
 export class EstablishmentSearchDto {
   @ApiPropertyOptional({
     description: 'Search term for name or description',
-    example: 'Pizza Restaurant'
+    example: 'Pizza Restaurant',
   })
   @IsOptional()
   @IsString()
@@ -99,7 +103,7 @@ export class EstablishmentSearchDto {
   @ApiPropertyOptional({
     enum: EstablishmentStatus,
     description: 'Filter by establishment status',
-    example: EstablishmentStatus.PENDING
+    example: EstablishmentStatus.PENDING,
   })
   @IsOptional()
   @IsEnum(EstablishmentStatus)
@@ -108,7 +112,7 @@ export class EstablishmentSearchDto {
   @ApiPropertyOptional({
     enum: EstablishmentType,
     description: 'Filter by establishment type',
-    example: EstablishmentType.RESTAURANT
+    example: EstablishmentType.RESTAURANT,
   })
   @IsOptional()
   @IsEnum(EstablishmentType)
@@ -116,7 +120,7 @@ export class EstablishmentSearchDto {
 
   @ApiPropertyOptional({
     description: 'Filter by city',
-    example: 'Paris'
+    example: 'Paris',
   })
   @IsOptional()
   @IsString()
@@ -124,7 +128,7 @@ export class EstablishmentSearchDto {
 
   @ApiPropertyOptional({
     description: 'Filter by verification status',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -132,7 +136,7 @@ export class EstablishmentSearchDto {
 
   @ApiPropertyOptional({
     description: 'Filter by active status',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -140,7 +144,7 @@ export class EstablishmentSearchDto {
 
   @ApiPropertyOptional({
     description: 'Sort field',
-    example: 'createdAt'
+    example: 'createdAt',
   })
   @IsOptional()
   @IsString()
@@ -148,7 +152,7 @@ export class EstablishmentSearchDto {
 
   @ApiPropertyOptional({
     description: 'Sort order',
-    example: 'desc'
+    example: 'desc',
   })
   @IsOptional()
   @IsEnum(['asc', 'desc'])
@@ -156,7 +160,7 @@ export class EstablishmentSearchDto {
 
   @ApiPropertyOptional({
     description: 'Page number',
-    example: 1
+    example: 1,
   })
   @IsOptional()
   @Type(() => Number)
@@ -164,7 +168,7 @@ export class EstablishmentSearchDto {
 
   @ApiPropertyOptional({
     description: 'Items per page',
-    example: 20
+    example: 20,
   })
   @IsOptional()
   @Type(() => Number)
@@ -174,21 +178,21 @@ export class EstablishmentSearchDto {
 export class EstablishmentStatsDto {
   @ApiPropertyOptional({
     description: 'Start date for statistics (ISO string)',
-    example: '2024-01-01T00:00:00.000Z'
+    example: '2024-01-01T00:00:00.000Z',
   })
   @IsOptional()
   startDate?: string;
 
   @ApiPropertyOptional({
     description: 'End date for statistics (ISO string)',
-    example: '2024-12-31T23:59:59.999Z'
+    example: '2024-12-31T23:59:59.999Z',
   })
   @IsOptional()
   endDate?: string;
 
   @ApiPropertyOptional({
     description: 'Include detailed breakdown',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()

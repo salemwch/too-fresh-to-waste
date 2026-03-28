@@ -1,24 +1,26 @@
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
-import { SearchController } from './search.controller';
-import { SearchService } from './search.service';
-import { SearchCacheService } from './services/search-cache.service';
-import { SearchSuggestionService } from './services/search-suggestion.service';
-import { SearchAnalyticsService } from './services/search-analytics.service';
-import { SearchIndexService } from './services/search-index.service';
-import { SearchProcessor } from './processors/search.processor';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 
-// Import existing schemas
-import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
+import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 
-// New search-specific schemas
+import { SearchProcessor } from './processors/search.processor';
+import { PopularSearch, PopularSearchSchema } from './schemas/popular-search.schema';
 import { SearchQuery, SearchQuerySchema } from './schemas/search-query.schema';
 import { SearchSuggestion, SearchSuggestionSchema } from './schemas/search-suggestion.schema';
-import { PopularSearch, PopularSearchSchema } from './schemas/popular-search.schema';
+import { SearchController } from './search.controller';
+import { SearchService } from './search.service';
+import { SearchAnalyticsService } from './services/search-analytics.service';
+import { SearchCacheService } from './services/search-cache.service';
+import { SearchIndexService } from './services/search-index.service';
+import { SearchSuggestionService } from './services/search-suggestion.service';
+
+// Import existing schemas
+
+// New search-specific schemas
 
 @Module({
   imports: [
@@ -36,7 +38,7 @@ import { PopularSearch, PopularSearchSchema } from './schemas/popular-search.sch
       useFactory: (configService: ConfigService) => ({
         redis: {
           host: configService.get('REDIS_HOST') || 'localhost',
-          port: parseInt(configService.get('REDIS_PORT')) || 6379,
+          port: parseInt(configService.get<string>('REDIS_PORT') ?? '6379', 10) || 6379,
           password: configService.get('REDIS_PASSWORD'),
           username: configService.get('REDIS_USERNAME'),
           // Explicitly disable TLS for search indexing queue
@@ -58,7 +60,7 @@ import { PopularSearch, PopularSearchSchema } from './schemas/popular-search.sch
       useFactory: (configService: ConfigService) => ({
         redis: {
           host: configService.get('REDIS_HOST') || 'localhost',
-          port: parseInt(configService.get('REDIS_PORT')) || 6379,
+          port: parseInt(configService.get<string>('REDIS_PORT') ?? '6379', 10) || 6379,
           password: configService.get('REDIS_PASSWORD'),
           username: configService.get('REDIS_USERNAME'),
           // Explicitly disable TLS for search analytics queue
@@ -85,11 +87,6 @@ import { PopularSearch, PopularSearchSchema } from './schemas/popular-search.sch
     SearchSuggestionService,
     SearchProcessor,
   ],
-  exports: [
-    SearchService,
-    SearchSuggestionService,
-    SearchAnalyticsService,
-    SearchIndexService,
-  ],
+  exports: [SearchService, SearchSuggestionService, SearchAnalyticsService, SearchIndexService],
 })
 export class SearchModule {}

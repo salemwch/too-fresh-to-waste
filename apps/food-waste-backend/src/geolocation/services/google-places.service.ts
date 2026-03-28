@@ -99,13 +99,15 @@ export interface GoogleLocationResult {
   source: 'GOOGLE';
   formattedAddress: string;
   googlePlaceId: string;
-  addressComponents?: {
-    street?: string;
-    city?: string;
-    postalCode?: string;
-    country?: string;
-  };
-  types?: string[];
+  addressComponents?:
+    | {
+        street?: string | undefined;
+        city?: string | undefined;
+        postalCode?: string | undefined;
+        country?: string | undefined;
+      }
+    | undefined;
+  types?: string[] | undefined;
 }
 
 /** Autocomplete suggestion (no coordinates - used for session token flow) */
@@ -116,7 +118,7 @@ export interface GoogleAutocompleteSuggestion {
   subtext: string;
   source: 'GOOGLE';
   googlePlaceId: string;
-  types?: string[];
+  types?: string[] | undefined;
 }
 
 /**
@@ -175,27 +177,17 @@ export class GooglePlacesService {
     limit?: number,
   ): Promise<GoogleAutocompleteSuggestion[]> {
     try {
-      this.logger.debug(
-        `Autocomplete: "${query}" (session: ${sessionToken ? 'yes' : 'no'})`,
-      );
+      this.logger.debug(`Autocomplete: "${query}" (session: ${sessionToken ? 'yes' : 'no'})`);
 
       if (!query || query.trim().length < 2) {
         return [];
       }
 
-      const predictions = await this.fetchAutocompletePredictions(
-        query,
-        sessionToken,
-        limit,
-      );
+      const predictions = await this.fetchAutocompletePredictions(query, sessionToken, limit);
 
-      const suggestions = predictions.map((p) =>
-        this.normalizePredictionToSuggestion(p),
-      );
+      const suggestions = predictions.map((p) => this.normalizePredictionToSuggestion(p));
 
-      this.logger.log(
-        `Autocomplete completed: "${query}" - ${suggestions.length} suggestions`,
-      );
+      this.logger.log(`Autocomplete completed: "${query}" - ${suggestions.length} suggestions`);
       return suggestions;
     } catch (error) {
       this.handleError(error, 'autocomplete');
@@ -217,9 +209,7 @@ export class GooglePlacesService {
     sessionToken?: string,
   ): Promise<GoogleLocationResult | null> {
     try {
-      this.logger.debug(
-        `Place Details: ${placeId} (session: ${sessionToken ? 'yes' : 'no'})`,
-      );
+      this.logger.debug(`Place Details: ${placeId} (session: ${sessionToken ? 'yes' : 'no'})`);
 
       if (!placeId) {
         this.logger.warn('getPlaceDetailsById called without placeId');
@@ -263,7 +253,7 @@ export class GooglePlacesService {
       };
 
       if (sessionToken) {
-        body.sessionToken = sessionToken;
+        body['sessionToken'] = sessionToken;
       }
 
       const response = await this.axiosInstance.post<AutocompleteResponse>(
@@ -297,18 +287,15 @@ export class GooglePlacesService {
       };
 
       if (sessionToken) {
-        params.sessionToken = sessionToken;
+        params['sessionToken'] = sessionToken;
       }
 
-      const response = await this.axiosInstance.get<PlaceDetailsResponse>(
-        `/places/${placeId}`,
-        {
-          params,
-          headers: {
-            'X-Goog-FieldMask': PLACE_DETAILS_FIELD_MASK,
-          },
+      const response = await this.axiosInstance.get<PlaceDetailsResponse>(`/places/${placeId}`, {
+        params,
+        headers: {
+          'X-Goog-FieldMask': PLACE_DETAILS_FIELD_MASK,
         },
-      );
+      });
 
       return response.data;
     } catch (error) {
@@ -329,8 +316,7 @@ export class GooglePlacesService {
     prediction: PlacePrediction,
   ): GoogleAutocompleteSuggestion {
     const mainText = prediction.structuredFormat.mainText.text;
-    const secondaryText =
-      prediction.structuredFormat.secondaryText?.text || 'Tunisia';
+    const secondaryText = prediction.structuredFormat.secondaryText?.text || 'Tunisia';
 
     return {
       id: `GOOGLE_${prediction.placeId}`,
@@ -349,20 +335,14 @@ export class GooglePlacesService {
    * name and types are NOT available here (Essentials SKU).
    * The frontend merges them from the autocomplete response.
    */
-  private normalizeDetailsToLocationResult(
-    details: PlaceDetailsResponse,
-  ): GoogleLocationResult {
-    const addressComponents = this.parseAddressComponents(
-      details.addressComponents,
-    );
+  private normalizeDetailsToLocationResult(details: PlaceDetailsResponse): GoogleLocationResult {
+    const addressComponents = this.parseAddressComponents(details.addressComponents);
 
     const governorate = details.addressComponents?.find((c) =>
       c.types.includes('administrative_area_level_1'),
     );
 
-    const subtext = governorate
-      ? `${governorate.longText}, Tunisia`
-      : 'Tunisia';
+    const subtext = governorate ? `${governorate.longText}, Tunisia` : 'Tunisia';
 
     return {
       id: `GOOGLE_${details.id}`,

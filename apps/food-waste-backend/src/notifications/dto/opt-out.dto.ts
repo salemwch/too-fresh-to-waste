@@ -1,7 +1,22 @@
-import { IsString, IsBoolean, IsEnum, IsOptional, IsPhoneNumber, IsIP, IsMongoId, ValidateNested, IsArray, IsDate, IsNumber, Min, Max } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type, Transform } from 'class-transformer';
+import {
+  IsString,
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsPhoneNumber,
+  IsIP,
+  IsMongoId,
+  ValidateNested,
+  IsArray,
+  IsDate,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 import { Types } from 'mongoose';
+
 import { OptOutReason, OptOutScope, OptOutStatus } from '../schemas/opt-out-record.schema';
 
 export interface IOptOutMetadata {
@@ -23,12 +38,12 @@ export interface IOptOutAuditEntry {
   userId?: Types.ObjectId;
   ipAddress?: string;
   userAgent?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IMessageStats {
-  lastMessageSent?: Date;
-  lastMessageDelivered?: Date;
+  lastMessageSent?: Date | undefined;
+  lastMessageDelivered?: Date | undefined;
   totalMessagesSent: number;
   totalMessagesDelivered: number;
   totalMessagesFailed: number;
@@ -45,16 +60,16 @@ export interface IProcessingInfo {
 export class OptOutRequestDto {
   @ApiProperty({
     description: 'Phone number in E.164 format',
-    example: '+1234567890'
+    example: '+1234567890',
   })
   @IsString()
-  @IsPhoneNumber(null, { message: 'Phone number must be in valid international format' })
-  phoneNumber: string;
+  @IsPhoneNumber(undefined, { message: 'Phone number must be in valid international format' })
+  phoneNumber!: string;
 
   @ApiPropertyOptional({
     description: 'Reason for opting out',
     enum: OptOutReason,
-    default: OptOutReason.USER_REQUESTED
+    default: OptOutReason.USER_REQUESTED,
   })
   @IsOptional()
   @IsEnum(OptOutReason)
@@ -63,7 +78,7 @@ export class OptOutRequestDto {
   @ApiPropertyOptional({
     description: 'Scope of opt-out',
     enum: OptOutScope,
-    default: OptOutScope.ALL_SMS
+    default: OptOutScope.ALL_SMS,
   })
   @IsOptional()
   @IsEnum(OptOutScope)
@@ -71,7 +86,7 @@ export class OptOutRequestDto {
 
   @ApiPropertyOptional({
     description: 'User ID if applicable',
-    example: '507f1f77bcf86cd799439011'
+    example: '507f1f77bcf86cd799439011',
   })
   @IsOptional()
   @IsMongoId()
@@ -79,14 +94,14 @@ export class OptOutRequestDto {
 
   @ApiPropertyOptional({
     description: 'Client IP address',
-    example: '192.168.1.1'
+    example: '192.168.1.1',
   })
   @IsOptional()
   @IsIP()
   ipAddress?: string;
 
   @ApiPropertyOptional({
-    description: 'User agent string'
+    description: 'User agent string',
   })
   @IsOptional()
   @IsString()
@@ -94,14 +109,14 @@ export class OptOutRequestDto {
 
   @ApiPropertyOptional({
     description: 'Source of the opt-out request',
-    example: 'web_form'
+    example: 'web_form',
   })
   @IsOptional()
   @IsString()
   source?: string;
 
   @ApiPropertyOptional({
-    description: 'Additional metadata'
+    description: 'Additional metadata',
   })
   @IsOptional()
   @ValidateNested()
@@ -112,15 +127,15 @@ export class OptOutRequestDto {
 export class OptInRequestDto {
   @ApiProperty({
     description: 'Phone number in E.164 format',
-    example: '+1234567890'
+    example: '+1234567890',
   })
   @IsString()
-  @IsPhoneNumber(null, { message: 'Phone number must be in valid international format' })
-  phoneNumber: string;
+  @IsPhoneNumber(undefined, { message: 'Phone number must be in valid international format' })
+  phoneNumber!: string;
 
   @ApiPropertyOptional({
     description: 'User ID if applicable',
-    example: '507f1f77bcf86cd799439011'
+    example: '507f1f77bcf86cd799439011',
   })
   @IsOptional()
   @IsMongoId()
@@ -128,14 +143,14 @@ export class OptInRequestDto {
 
   @ApiPropertyOptional({
     description: 'Client IP address',
-    example: '192.168.1.1'
+    example: '192.168.1.1',
   })
   @IsOptional()
   @IsIP()
   ipAddress?: string;
 
   @ApiPropertyOptional({
-    description: 'User agent string'
+    description: 'User agent string',
   })
   @IsOptional()
   @IsString()
@@ -143,14 +158,14 @@ export class OptInRequestDto {
 
   @ApiPropertyOptional({
     description: 'Source of the opt-in request',
-    example: 'web_form'
+    example: 'web_form',
   })
   @IsOptional()
   @IsString()
   source?: string;
 
   @ApiPropertyOptional({
-    description: 'Additional metadata'
+    description: 'Additional metadata',
   })
   @IsOptional()
   @ValidateNested()
@@ -161,16 +176,19 @@ export class OptInRequestDto {
 export class BulkOptOutCheckDto {
   @ApiProperty({
     description: 'Array of phone numbers to check',
-    example: ['+1234567890', '+0987654321']
+    example: ['+1234567890', '+0987654321'],
   })
   @IsArray()
   @IsString({ each: true })
-  @IsPhoneNumber(null, { each: true, message: 'All phone numbers must be in valid international format' })
-  phoneNumbers: string[];
+  @IsPhoneNumber(undefined, {
+    each: true,
+    message: 'All phone numbers must be in valid international format',
+  })
+  phoneNumbers!: string[];
 
   @ApiPropertyOptional({
     description: 'Include detailed audit information',
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -178,7 +196,7 @@ export class BulkOptOutCheckDto {
 
   @ApiPropertyOptional({
     description: 'Include message statistics',
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -188,7 +206,7 @@ export class BulkOptOutCheckDto {
 export class OptOutQueryDto {
   @ApiPropertyOptional({
     description: 'Filter by phone number (exact match)',
-    example: '+1234567890'
+    example: '+1234567890',
   })
   @IsOptional()
   @IsString()
@@ -196,7 +214,7 @@ export class OptOutQueryDto {
 
   @ApiPropertyOptional({
     description: 'Filter by user ID',
-    example: '507f1f77bcf86cd799439011'
+    example: '507f1f77bcf86cd799439011',
   })
   @IsOptional()
   @IsMongoId()
@@ -204,7 +222,7 @@ export class OptOutQueryDto {
 
   @ApiPropertyOptional({
     description: 'Filter by status',
-    enum: OptOutStatus
+    enum: OptOutStatus,
   })
   @IsOptional()
   @IsEnum(OptOutStatus)
@@ -212,7 +230,7 @@ export class OptOutQueryDto {
 
   @ApiPropertyOptional({
     description: 'Filter by reason',
-    enum: OptOutReason
+    enum: OptOutReason,
   })
   @IsOptional()
   @IsEnum(OptOutReason)
@@ -220,7 +238,7 @@ export class OptOutQueryDto {
 
   @ApiPropertyOptional({
     description: 'Filter by scope',
-    enum: OptOutScope
+    enum: OptOutScope,
   })
   @IsOptional()
   @IsEnum(OptOutScope)
@@ -228,7 +246,7 @@ export class OptOutQueryDto {
 
   @ApiPropertyOptional({
     description: 'Filter by opt-out status',
-    default: true
+    default: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -237,7 +255,7 @@ export class OptOutQueryDto {
 
   @ApiPropertyOptional({
     description: 'Start date for filtering (ISO 8601)',
-    example: '2024-01-01T00:00:00Z'
+    example: '2024-01-01T00:00:00Z',
   })
   @IsOptional()
   @IsDate()
@@ -246,7 +264,7 @@ export class OptOutQueryDto {
 
   @ApiPropertyOptional({
     description: 'End date for filtering (ISO 8601)',
-    example: '2024-12-31T23:59:59Z'
+    example: '2024-12-31T23:59:59Z',
   })
   @IsOptional()
   @IsDate()
@@ -256,7 +274,7 @@ export class OptOutQueryDto {
   @ApiPropertyOptional({
     description: 'Page number for pagination',
     minimum: 1,
-    default: 1
+    default: 1,
   })
   @IsOptional()
   @IsNumber()
@@ -268,7 +286,7 @@ export class OptOutQueryDto {
     description: 'Number of records per page',
     minimum: 1,
     maximum: 1000,
-    default: 50
+    default: 50,
   })
   @IsOptional()
   @IsNumber()
@@ -280,7 +298,7 @@ export class OptOutQueryDto {
   @ApiPropertyOptional({
     description: 'Sort field',
     enum: ['createdAt', 'updatedAt', 'optedOutAt', 'phoneNumber'],
-    default: 'createdAt'
+    default: 'createdAt',
   })
   @IsOptional()
   @IsString()
@@ -289,7 +307,7 @@ export class OptOutQueryDto {
   @ApiPropertyOptional({
     description: 'Sort order',
     enum: ['asc', 'desc'],
-    default: 'desc'
+    default: 'desc',
   })
   @IsOptional()
   @IsString()
@@ -297,7 +315,7 @@ export class OptOutQueryDto {
 
   @ApiPropertyOptional({
     description: 'Search term for text search',
-    example: '+123'
+    example: '+123',
   })
   @IsOptional()
   @IsString()
@@ -305,7 +323,7 @@ export class OptOutQueryDto {
 
   @ApiPropertyOptional({
     description: 'Include detailed audit information',
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -314,7 +332,7 @@ export class OptOutQueryDto {
 
   @ApiPropertyOptional({
     description: 'Include message statistics',
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -325,88 +343,88 @@ export class OptOutQueryDto {
 export class OptOutStatusResponseDto {
   @ApiProperty({
     description: 'Masked phone number',
-    example: '*******890'
+    example: '*******890',
   })
-  phoneNumber: string;
+  phoneNumber!: string;
 
   @ApiProperty({
-    description: 'Whether the number is opted out'
+    description: 'Whether the number is opted out',
   })
-  isOptedOut: boolean;
+  isOptedOut!: boolean;
 
   @ApiProperty({
     description: 'Current status',
-    enum: OptOutStatus
+    enum: OptOutStatus,
   })
-  status: OptOutStatus;
+  status!: OptOutStatus;
 
   @ApiProperty({
     description: 'Scope of opt-out',
-    enum: OptOutScope
+    enum: OptOutScope,
   })
-  scope: OptOutScope;
+  scope!: OptOutScope;
 
   @ApiPropertyOptional({
-    description: 'Date when opted out'
+    description: 'Date when opted out',
   })
-  optedOutAt?: Date;
+  optedOutAt?: Date | undefined;
 
   @ApiPropertyOptional({
-    description: 'Date when opted in (if applicable)'
+    description: 'Date when opted in (if applicable)',
   })
-  optedInAt?: Date;
+  optedInAt?: Date | undefined;
 
   @ApiPropertyOptional({
     description: 'Reason for opt-out',
-    enum: OptOutReason
+    enum: OptOutReason,
   })
-  reason?: OptOutReason;
+  reason?: OptOutReason | undefined;
 
   @ApiPropertyOptional({
-    description: 'Expiration date of opt-out'
+    description: 'Expiration date of opt-out',
   })
-  expiresAt?: Date;
+  expiresAt?: Date | undefined;
 
   @ApiPropertyOptional({
-    description: 'Whether the record is expired'
+    description: 'Whether the record is expired',
   })
-  isExpired?: boolean;
+  isExpired?: boolean | undefined;
 
   @ApiPropertyOptional({
-    description: 'User ID if available'
+    description: 'User ID if available',
   })
-  userId?: string;
+  userId?: string | undefined;
 
   @ApiPropertyOptional({
-    description: 'Source of the opt-out'
+    description: 'Source of the opt-out',
   })
-  source?: string;
+  source?: string | undefined;
 
   @ApiPropertyOptional({
-    description: 'Additional metadata'
+    description: 'Additional metadata',
   })
-  metadata?: IOptOutMetadata;
+  metadata?: IOptOutMetadata | undefined;
 
   @ApiPropertyOptional({
     description: 'Audit log entries',
-    type: [Object]
+    type: [Object],
   })
-  auditLog?: IOptOutAuditEntry[];
+  auditLog?: IOptOutAuditEntry[] | undefined;
 
   @ApiPropertyOptional({
-    description: 'Message statistics'
+    description: 'Message statistics',
   })
-  messageStats?: IMessageStats;
+  messageStats?: IMessageStats | undefined;
 
   @ApiProperty({
-    description: 'Record creation date'
+    description: 'Record creation date',
   })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({
-    description: 'Record last update date'
+    description: 'Record last update date',
   })
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 export class BulkOptOutStatusResponseDto {
@@ -414,38 +432,38 @@ export class BulkOptOutStatusResponseDto {
     description: 'Map of phone numbers to their opt-out status',
     type: 'object',
     additionalProperties: {
-      $ref: '#/components/schemas/OptOutStatusResponseDto'
-    }
+      $ref: '#/components/schemas/OptOutStatusResponseDto',
+    },
   })
-  results: Record<string, OptOutStatusResponseDto>;
+  results!: Record<string, OptOutStatusResponseDto>;
 
   @ApiProperty({
-    description: 'Total number of phone numbers processed'
+    description: 'Total number of phone numbers processed',
   })
-  totalProcessed: number;
+  totalProcessed!: number;
 
   @ApiProperty({
-    description: 'Number of opted out phone numbers'
+    description: 'Number of opted out phone numbers',
   })
-  totalOptedOut: number;
+  totalOptedOut!: number;
 
   @ApiProperty({
-    description: 'Number of active phone numbers'
+    description: 'Number of active phone numbers',
   })
-  totalActive: number;
+  totalActive!: number;
 
   @ApiProperty({
-    description: 'Number of phone numbers with errors'
+    description: 'Number of phone numbers with errors',
   })
-  totalErrors: number;
+  totalErrors!: number;
 
   @ApiProperty({
-    description: 'Processing timestamp'
+    description: 'Processing timestamp',
   })
-  processedAt: Date;
+  processedAt!: Date;
 
   @ApiPropertyOptional({
-    description: 'Processing time in milliseconds'
+    description: 'Processing time in milliseconds',
   })
   processingTimeMs?: number;
 }
@@ -453,14 +471,14 @@ export class BulkOptOutStatusResponseDto {
 export class OptOutListResponseDto {
   @ApiProperty({
     description: 'Array of opt-out records',
-    type: [OptOutStatusResponseDto]
+    type: [OptOutStatusResponseDto],
   })
-  data: OptOutStatusResponseDto[];
+  data!: OptOutStatusResponseDto[];
 
   @ApiProperty({
-    description: 'Pagination metadata'
+    description: 'Pagination metadata',
   })
-  pagination: {
+  pagination!: {
     page: number;
     limit: number;
     total: number;
@@ -470,38 +488,38 @@ export class OptOutListResponseDto {
   };
 
   @ApiProperty({
-    description: 'Query metadata'
+    description: 'Query metadata',
   })
-  query: {
-    filters: Record<string, any>;
+  query!: {
+    filters: Record<string, unknown>;
     sort: { field: string; order: string };
-    search?: string;
+    search?: string | undefined;
   };
 
   @ApiProperty({
-    description: 'Response timestamp'
+    description: 'Response timestamp',
   })
-  timestamp: Date;
+  timestamp!: Date;
 }
 
 export class OptOutOperationResponseDto {
   @ApiProperty({
-    description: 'Whether the operation was successful'
+    description: 'Whether the operation was successful',
   })
-  success: boolean;
+  success!: boolean;
 
   @ApiProperty({
-    description: 'Operation result message'
+    description: 'Operation result message',
   })
-  message: string;
+  message!: string;
 
   @ApiProperty({
-    description: 'Masked phone number'
+    description: 'Masked phone number',
   })
-  phoneNumber: string;
+  phoneNumber!: string;
 
   @ApiPropertyOptional({
-    description: 'Operation details'
+    description: 'Operation details',
   })
   details?: {
     previousStatus?: boolean;
@@ -512,12 +530,12 @@ export class OptOutOperationResponseDto {
   };
 
   @ApiProperty({
-    description: 'Operation timestamp'
+    description: 'Operation timestamp',
   })
-  timestamp: Date;
+  timestamp!: Date;
 
   @ApiPropertyOptional({
-    description: 'Operation ID for tracking'
+    description: 'Operation ID for tracking',
   })
   operationId?: string;
 }

@@ -10,7 +10,7 @@ import {
   HttpStatus,
   ValidationPipe,
   UsePipes,
-  BadRequestException
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,26 +18,24 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiQuery,
-  ApiBody
+  ApiBody,
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { GetUser } from '../../common/decorators/get-user.decorator';
-import { AnalyticsService } from '../services/analytics.service';
-
 import {
   BusinessMetricsRequestDto,
   UserAnalyticsRequestDto,
-  AnalyticsFiltersDto
+  AnalyticsFiltersDto,
 } from '../dto/analytics.dto';
-
 import {
   BusinessMetrics,
   UserAnalytics,
   RealTimeMetrics,
   QuickStatsResponse,
-  CacheStatistics
+  CacheStatistics,
 } from '../interfaces/analytics.interface';
+import { AnalyticsService } from '../services/analytics.service';
 
 @ApiTags('Analytics')
 @Controller('analytics')
@@ -47,7 +45,7 @@ import {
 export class AnalyticsController {
   private readonly logger = new Logger(AnalyticsController.name);
 
-  constructor(private readonly analyticsService: AnalyticsService) { }
+  constructor(private readonly analyticsService: AnalyticsService) {}
 
   // ==================== Business Metrics ====================
 
@@ -55,11 +53,12 @@ export class AnalyticsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get comprehensive business metrics',
-    description: 'Retrieve key business performance indicators including revenue, orders, conversion rates, and sustainability impact'
+    description:
+      'Retrieve key business performance indicators including revenue, orders, conversion rates, and sustainability impact',
   })
   @ApiBody({
     description: 'Business metrics request parameters',
-    type: BusinessMetricsRequestDto
+    type: BusinessMetricsRequestDto,
   })
   @ApiResponse({
     status: 200,
@@ -70,11 +69,11 @@ export class AnalyticsController {
         totalRevenue: {
           type: 'object',
           properties: {
-            value: { type: 'number', example: 125000.50 },
+            value: { type: 'number', example: 125000.5 },
             previousValue: { type: 'number', example: 118000.25 },
             changePercentage: { type: 'number', example: 5.93 },
-            trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'up' }
-          }
+            trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'up' },
+          },
         },
         totalOrders: {
           type: 'object',
@@ -82,49 +81,50 @@ export class AnalyticsController {
             value: { type: 'number', example: 1250 },
             previousValue: { type: 'number', example: 1180 },
             changePercentage: { type: 'number', example: 5.93 },
-            trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'up' }
-          }
+            trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'up' },
+          },
         },
         averageOrderValue: {
           type: 'object',
           properties: {
             value: { type: 'number', example: 15.25 },
-            trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'stable' }
-          }
+            trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'stable' },
+          },
         },
         conversionRate: {
           type: 'object',
           properties: {
             value: { type: 'number', example: 85.5 },
-            trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'up' }
-          }
+            trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'up' },
+          },
         },
         foodWasteSaved: {
           type: 'object',
           properties: {
             value: { type: 'number', example: 2500 },
-            trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'up' }
-          }
+            trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'up' },
+          },
         },
         carbonFootprintReduced: {
           type: 'object',
           properties: {
             value: { type: 'number', example: 6250 },
-            trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'up' }
-          }
-        }
-      }
-    }
+            trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'up' },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 400, description: 'Invalid request parameters' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  getBusinessMetrics(
+  async getBusinessMetrics(
     @Body() request: BusinessMetricsRequestDto,
-    @GetUser('id') userId: string
+    @GetUser('id') userId: string,
   ): Promise<BusinessMetrics> {
     this.logger.log(`Getting business metrics for user ${userId}`);
-    return this.analyticsService.getBusinessMetrics(request);
+    const result = await this.analyticsService.getBusinessMetrics(request);
+    return result;
   }
 
   // ==================== User Analytics ====================
@@ -133,11 +133,11 @@ export class AnalyticsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get user analytics and behavior insights',
-    description: 'Retrieve user growth, demographics, location data, and behavior patterns'
+    description: 'Retrieve user growth, demographics, location data, and behavior patterns',
   })
   @ApiBody({
     description: 'User analytics request parameters',
-    type: UserAnalyticsRequestDto
+    type: UserAnalyticsRequestDto,
   })
   @ApiResponse({
     status: 200,
@@ -150,33 +150,33 @@ export class AnalyticsController {
           properties: {
             value: { type: 'number', example: 15000 },
             changePercentage: { type: 'number', example: 12.5 },
-            trend: { type: 'string', example: 'up' }
-          }
+            trend: { type: 'string', example: 'up' },
+          },
         },
         activeUsers: {
           type: 'object',
           properties: {
             value: { type: 'number', example: 8500 },
-            trend: { type: 'string', example: 'up' }
-          }
+            trend: { type: 'string', example: 'up' },
+          },
         },
         newUsers: {
           type: 'object',
           properties: {
             value: { type: 'number', example: 1200 },
-            trend: { type: 'string', example: 'up' }
-          }
+            trend: { type: 'string', example: 'up' },
+          },
         },
         retentionRate: {
           type: 'object',
           properties: {
             value: { type: 'number', example: 68.5 },
-            trend: { type: 'string', example: 'stable' }
-          }
+            trend: { type: 'string', example: 'stable' },
+          },
         },
         usersByRole: {
           type: 'object',
-          example: { consumer: 14200, merchant: 800 }
+          example: { consumer: 14200, merchant: 800 },
         },
         usersByLocation: {
           type: 'array',
@@ -189,10 +189,10 @@ export class AnalyticsController {
               coordinates: {
                 type: 'array',
                 items: { type: 'number' },
-                example: [2.3522, 48.8566]
-              }
-            }
-          }
+                example: [2.3522, 48.8566],
+              },
+            },
+          },
         },
         userGrowthSeries: {
           type: 'array',
@@ -201,19 +201,20 @@ export class AnalyticsController {
             properties: {
               timestamp: { type: 'string', format: 'date-time' },
               value: { type: 'number' },
-              label: { type: 'string' }
-            }
-          }
-        }
-      }
-    }
+              label: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
   })
-  getUserAnalytics(
+  async getUserAnalytics(
     @Body() request: UserAnalyticsRequestDto,
-    @GetUser('id') userId: string
+    @GetUser('id') userId: string,
   ): Promise<UserAnalytics> {
     this.logger.log(`Getting user analytics for user ${userId}`);
-    return this.analyticsService.getUserAnalytics(request);
+    const result = await this.analyticsService.getUserAnalytics(request);
+    return result;
   }
 
   // ==================== Real-time Metrics ====================
@@ -221,7 +222,8 @@ export class AnalyticsController {
   @Get('real-time')
   @ApiOperation({
     summary: 'Get real-time system metrics',
-    description: 'Retrieve current system status including active users, today\'s orders, revenue, and system health'
+    description:
+      "Retrieve current system status including active users, today's orders, revenue, and system health",
   })
   @ApiResponse({
     status: 200,
@@ -239,16 +241,17 @@ export class AnalyticsController {
           properties: {
             responseTime: { type: 'number', example: 45 },
             errorRate: { type: 'number', example: 0.1 },
-            uptime: { type: 'number', example: 99.9 }
-          }
+            uptime: { type: 'number', example: 99.9 },
+          },
         },
-        lastUpdated: { type: 'string', format: 'date-time' }
-      }
-    }
+        lastUpdated: { type: 'string', format: 'date-time' },
+      },
+    },
   })
-  getRealTimeMetrics(@GetUser('id') userId: string): Promise<RealTimeMetrics> {
+  async getRealTimeMetrics(@GetUser('id') userId: string): Promise<RealTimeMetrics> {
     this.logger.log(`Getting real-time metrics for user ${userId}`);
-    return this.analyticsService.getRealTimeMetrics();
+    const result = await this.analyticsService.getRealTimeMetrics();
+    return result;
   }
 
   // ==================== Quick Metrics ====================
@@ -256,7 +259,7 @@ export class AnalyticsController {
   @Get('quick-stats')
   @ApiOperation({
     summary: 'Get quick overview statistics',
-    description: 'Retrieve key metrics for dashboard widgets and quick overview displays'
+    description: 'Retrieve key metrics for dashboard widgets and quick overview displays',
   })
   @ApiQuery({ name: 'period', enum: ['today', 'week', 'month', 'quarter'], required: false })
   @ApiQuery({ name: 'category', type: 'string', required: false })
@@ -274,16 +277,16 @@ export class AnalyticsController {
           type: 'object',
           properties: {
             foodSaved: { type: 'number' },
-            carbonReduced: { type: 'number' }
-          }
-        }
-      }
-    }
+            carbonReduced: { type: 'number' },
+          },
+        },
+      },
+    },
   })
   async getQuickStats(
     @GetUser('id') userId: string,
     @Query('period') period: string = 'month',
-    @Query('category') category?: string
+    @Query('category') category?: string,
   ): Promise<QuickStatsResponse> {
     this.logger.log(`Getting quick stats for user ${userId}, period: ${period}`);
 
@@ -305,7 +308,8 @@ export class AnalyticsController {
         startDate = new Date(now.getFullYear(), quarterStart, 1);
         break;
       }
-      default: { // month
+      default: {
+        // month
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       }
     }
@@ -314,14 +318,14 @@ export class AnalyticsController {
       filters: {
         dateRange: {
           startDate: startDate.toISOString(),
-          endDate: now.toISOString()
+          endDate: now.toISOString(),
         },
         granularity: {
-          period: 'day'
+          period: 'day',
         },
-        ...(category && { categories: [category] })
+        ...(category && { categories: [category] }),
       },
-      includeSustainability: true
+      includeSustainability: true,
     };
 
     const metrics = await this.analyticsService.getBusinessMetrics(request);
@@ -332,10 +336,10 @@ export class AnalyticsController {
       averageOrderValue: metrics.averageOrderValue.value,
       sustainability: {
         foodSaved: metrics.foodWasteSaved.value,
-        carbonReduced: metrics.carbonFootprintReduced.value
+        carbonReduced: metrics.carbonFootprintReduced.value,
       },
       period,
-      generatedAt: new Date()
+      generatedAt: new Date(),
     };
   }
 
@@ -345,7 +349,7 @@ export class AnalyticsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Invalidate analytics cache',
-    description: 'Clear cached analytics data for fresh calculations'
+    description: 'Clear cached analytics data for fresh calculations',
   })
   @ApiQuery({ name: 'category', type: 'string', required: false })
   @ApiQuery({ name: 'tags', type: 'string', required: false, description: 'Comma-separated tags' })
@@ -354,14 +358,14 @@ export class AnalyticsController {
   async invalidateCache(
     @Query('category') category?: string,
     @Query('tags') tags?: string,
-    @GetUser('role') userRole?: string
+    @GetUser('role') userRole?: string,
   ): Promise<void> {
     // Only admin can invalidate cache
     if (userRole !== 'admin') {
       throw new BadRequestException('Only administrators can invalidate cache');
     }
 
-    const tagArray = tags ? tags.split(',').map(t => t.trim()) : undefined;
+    const tagArray = tags ? tags.split(',').map((t) => t.trim()) : undefined;
     await this.analyticsService.invalidateCache(category, tagArray);
 
     this.logger.log(`Cache invalidated - category: ${category}, tags: ${tags}`);
@@ -370,7 +374,7 @@ export class AnalyticsController {
   @Get('cache/stats')
   @ApiOperation({
     summary: 'Get cache statistics',
-    description: 'Retrieve analytics cache performance and usage statistics'
+    description: 'Retrieve analytics cache performance and usage statistics',
   })
   @ApiResponse({
     status: 200,
@@ -387,26 +391,27 @@ export class AnalyticsController {
               category: { type: 'string' },
               count: { type: 'number' },
               totalSize: { type: 'number' },
-              avgComputationTime: { type: 'number' }
-            }
-          }
+              avgComputationTime: { type: 'number' },
+            },
+          },
         },
         hitRates: {
           type: 'object',
           properties: {
             totalHits: { type: 'number' },
-            avgHitRate: { type: 'number' }
-          }
-        }
-      }
-    }
+            avgHitRate: { type: 'number' },
+          },
+        },
+      },
+    },
   })
-  getCacheStats(@GetUser('role') userRole: string): Promise<CacheStatistics> {
+  async getCacheStats(@GetUser('role') userRole: string): Promise<CacheStatistics> {
     if (userRole !== 'admin') {
       throw new BadRequestException('Only administrators can view cache statistics');
     }
 
-    return this.analyticsService.getCacheStatistics();
+    const result = await this.analyticsService.getCacheStatistics();
+    return result;
   }
 
   // ==================== Data Validation ====================
@@ -415,11 +420,11 @@ export class AnalyticsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Validate analytics filters',
-    description: 'Validate analytics filter parameters before submitting analytics requests'
+    description: 'Validate analytics filter parameters before submitting analytics requests',
   })
   @ApiBody({
     description: 'Analytics filters to validate',
-    type: AnalyticsFiltersDto
+    type: AnalyticsFiltersDto,
   })
   @ApiResponse({
     status: 200,
@@ -430,14 +435,14 @@ export class AnalyticsController {
         isValid: { type: 'boolean' },
         errors: {
           type: 'array',
-          items: { type: 'string' }
+          items: { type: 'string' },
         },
         warnings: {
           type: 'array',
-          items: { type: 'string' }
-        }
-      }
-    }
+          items: { type: 'string' },
+        },
+      },
+    },
   })
   validateFilters(@Body() filters: AnalyticsFiltersDto): {
     isValid: boolean;
@@ -467,7 +472,9 @@ export class AnalyticsController {
 
     // Check establishment filter size
     if (filters.establishmentIds && filters.establishmentIds.length > 50) {
-      warnings.push('Large number of establishments selected - consider filtering for better performance');
+      warnings.push(
+        'Large number of establishments selected - consider filtering for better performance',
+      );
     }
 
     // Check granularity vs date range
@@ -478,7 +485,7 @@ export class AnalyticsController {
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
@@ -487,7 +494,7 @@ export class AnalyticsController {
   @Get('health')
   @ApiOperation({
     summary: 'Analytics service health check',
-    description: 'Check the health and status of the analytics service'
+    description: 'Check the health and status of the analytics service',
   })
   @ApiResponse({
     status: 200,
@@ -502,12 +509,12 @@ export class AnalyticsController {
           properties: {
             database: { type: 'string', example: 'connected' },
             cache: { type: 'string', example: 'enabled' },
-            eventEmitter: { type: 'string', example: 'active' }
-          }
+            eventEmitter: { type: 'string', example: 'active' },
+          },
         },
-        version: { type: 'string', example: '1.0.0' }
-      }
-    }
+        version: { type: 'string', example: '1.0.0' },
+      },
+    },
   })
   getHealth(): {
     status: string;
@@ -526,9 +533,9 @@ export class AnalyticsController {
       services: {
         database: 'connected',
         cache: 'enabled',
-        eventEmitter: 'active'
+        eventEmitter: 'active',
       },
-      version: '1.0.0'
+      version: '1.0.0',
     };
   }
 }

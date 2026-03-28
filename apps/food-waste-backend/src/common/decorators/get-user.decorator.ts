@@ -1,9 +1,22 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { createParamDecorator } from '@nestjs/common';
+
+import type { UserRole } from '../enums/user.enum';
+import type { ExecutionContext } from '@nestjs/common';
+import type { Request } from 'express';
 
 export interface AuthUser {
   userId: string;
   email: string;
-  role: string;
+  role: UserRole;
+}
+
+/**
+ * Express Request extended with the authenticated user payload.
+ * Use this as the type for `@Request() req` parameters in controllers
+ * that sit behind JwtAuthGuard.
+ */
+export interface AuthenticatedRequest extends Request {
+  user: AuthUser;
 }
 
 export const GetUser = createParamDecorator(
@@ -22,7 +35,7 @@ export const GetUser = createParamDecorator(
 
     // If specific property is requested, return that property
     if (data && typeof data === 'string' && data in user) {
-      return user[data as keyof AuthUser];
+      return user[data];
     }
 
     // Return the entire user object

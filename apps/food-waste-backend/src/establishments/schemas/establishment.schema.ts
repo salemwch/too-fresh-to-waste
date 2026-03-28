@@ -1,9 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
-import { Document, Types } from 'mongoose';
-import { CoordinatesDto } from '../DTO/cordinates.dto';
+import { Document, Types, Query } from 'mongoose';
+
 import { EstablishmentType, EstablishmentStatus } from '../../common/enums/establishment.enum';
+import { CoordinatesDto } from '../DTO/cordinates.dto';
 
 export type EstablishmentDocument = Establishment & Document;
 
@@ -11,40 +12,40 @@ export type EstablishmentDocument = Establishment & Document;
 export { EstablishmentType, EstablishmentStatus };
 
 export interface BusinessHours {
-    monday: { open: string; close: string; closed: boolean };
-    tuesday: { open: string; close: string; closed: boolean };
-    wednesday: { open: string; close: string; closed: boolean };
-    thursday: { open: string; close: string; closed: boolean };
-    friday: { open: string; close: string; closed: boolean };
-    saturday: { open: string; close: string; closed: boolean };
-    sunday: { open: string; close: string; closed: boolean };
+  monday: { open: string; close: string; closed: boolean };
+  tuesday: { open: string; close: string; closed: boolean };
+  wednesday: { open: string; close: string; closed: boolean };
+  thursday: { open: string; close: string; closed: boolean };
+  friday: { open: string; close: string; closed: boolean };
+  saturday: { open: string; close: string; closed: boolean };
+  sunday: { open: string; close: string; closed: boolean };
 }
 
 export interface Address {
-    street: string;
-    city: string;
-    postalCode: string;
-    country: string;
-    coordinates: {
-        type: string;
-        coordinates: [number, number];
-    };
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  coordinates: {
+    type: string;
+    coordinates: [number, number];
+  };
 }
 
 /**
  * Document metadata for tracking uploaded files
  */
 export interface DocumentMetadata {
-    fileName: string;
-    fileSize: number;
-    mimeType: string;
-    uploadedAt: Date;
-    uploadedBy?: string;
-    verified?: boolean;
-    verifiedAt?: Date;
-    verifiedBy?: string;
-    expiryDate?: Date;
-    notes?: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedAt: Date;
+  uploadedBy?: string | undefined;
+  verified?: boolean | undefined;
+  verifiedAt?: Date | undefined;
+  verifiedBy?: string | undefined;
+  expiryDate?: Date | undefined;
+  notes?: string | undefined;
 }
 
 /**
@@ -52,288 +53,300 @@ export interface DocumentMetadata {
  * Supports both document IDs/numbers and uploaded file URLs
  */
 export interface LegalDocuments {
-    // Business registration numbers (text)
-    siret?: string;
-    license?: string;
-    vatNumber?: string;
+  // Business registration numbers (text)
+  siret?: string | undefined;
+  license?: string | undefined;
+  vatNumber?: string | undefined;
 
-    // Uploaded document URLs with metadata
-    businessLicenseUrl?: string;
-    businessLicenseMetadata?: DocumentMetadata;
+  // Uploaded document URLs with metadata
+  businessLicenseUrl?: string | undefined;
+  businessLicenseMetadata?: DocumentMetadata | undefined;
 
-    foodSafetyLicenseUrl?: string;
-    foodSafetyLicenseMetadata?: DocumentMetadata;
+  foodSafetyLicenseUrl?: string | undefined;
+  foodSafetyLicenseMetadata?: DocumentMetadata | undefined;
 
-    insuranceDocumentUrl?: string;
-    insuranceDocumentMetadata?: DocumentMetadata;
+  insuranceDocumentUrl?: string | undefined;
+  insuranceDocumentMetadata?: DocumentMetadata | undefined;
 
-    taxCertificateUrl?: string;
-    taxCertificateMetadata?: DocumentMetadata;
+  taxCertificateUrl?: string | undefined;
+  taxCertificateMetadata?: DocumentMetadata | undefined;
 
-    ownerIdDocumentUrl?: string;
-    ownerIdDocumentMetadata?: DocumentMetadata;
+  ownerIdDocumentUrl?: string | undefined;
+  ownerIdDocumentMetadata?: DocumentMetadata | undefined;
 
-    // Additional documents
-    additionalDocuments?: Array<{
+  // Additional documents
+  additionalDocuments?:
+    | Array<{
         type: string;
         url: string;
         metadata: DocumentMetadata;
-    }>;
+      }>
+    | undefined;
 }
 
 @Schema({ timestamps: true })
 export class Establishment {
-    @Prop({ required: true, trim: true, minlength: 2, maxlength: 100 })
-    name: string;
+  @Prop({ required: true, trim: true, minlength: 2, maxlength: 100 })
+  name!: string;
 
-    @Prop({ required: true, trim: true, maxlength: 500 })
-    description: string;
+  @Prop({ required: true, trim: true, maxlength: 500 })
+  description!: string;
 
-    @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
-    ownerId: Types.ObjectId;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
+  ownerId!: Types.ObjectId;
 
-    @Prop({ type: String, enum: EstablishmentType, required: true })
-    type: EstablishmentType;
+  @Prop({ type: String, enum: EstablishmentType, required: true })
+  type!: EstablishmentType;
 
-    @Prop({ type: String, enum: EstablishmentStatus, default: EstablishmentStatus.PENDING })
-    status: EstablishmentStatus;
+  @Prop({ type: String, enum: EstablishmentStatus, default: EstablishmentStatus.PENDING })
+  status!: EstablishmentStatus;
 
-    @ValidateNested()
-    @Type(() => CoordinatesDto)
-    coordinates: CoordinatesDto;
-    @Prop({
-        required: true,
-        type: {
-            street: { type: String, required: true },
-            city: { type: String, required: true },
-            postalCode: { type: String, required: true },
-            country: { type: String, required: true },
-            coordinates: {
-                type: { type: String, enum: ['Point'], default: 'Point' },
-                coordinates: {
-                    type: [Number],
-                    required: true,
-                    validate: {
-                        validator (coords: number[]) {
-                            return coords.length === 2 &&
-                                coords[0] >= -180 && coords[0] <= 180 &&
-                                coords[1] >= -90 && coords[1] <= 90;
-                        },
-                        message: 'Invalid coordinates format'
-                    }
-                }
-            }
-        }
-    })
-    address: Address;
-
-    @Prop({
-        required: true,
-        match: [/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number']
-    })
-    phoneNumber: string;
-
-    @Prop({
-        required: true,
-        lowercase: true,
-        match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
-    })
-    email: string;
-
-    @Prop()
-    googlePlaceId?: string;
-
-    @Prop()
-    website?: string;
-
-    @Prop({ type: [String], default: [] })
-    images: string[];
-
-    @Prop({ type: [String], default: [] })
-    cuisineTypes: string[];
-
-    @Prop({
-        type: {
-            monday: { open: String, close: String, closed: { type: Boolean, default: false } },
-            tuesday: { open: String, close: String, closed: { type: Boolean, default: false } },
-            wednesday: { open: String, close: String, closed: { type: Boolean, default: false } },
-            thursday: { open: String, close: String, closed: { type: Boolean, default: false } },
-            friday: { open: String, close: String, closed: { type: Boolean, default: false } },
-            saturday: { open: String, close: String, closed: { type: Boolean, default: false } },
-            sunday: { open: String, close: String, closed: { type: Boolean, default: false } },
-        }
-    })
-    businessHours?: BusinessHours;
-
-    @Prop({
-        type: {
-            // Business registration numbers
-            siret: String,
-            license: String,
-            vatNumber: String,
-
-            // Document URLs
-            businessLicenseUrl: String,
-            businessLicenseMetadata: {
-                fileName: String,
-                fileSize: Number,
-                mimeType: String,
-                uploadedAt: Date,
-                uploadedBy: String,
-                verified: Boolean,
-                verifiedAt: Date,
-                verifiedBy: String,
-                expiryDate: Date,
-                notes: String,
+  @ValidateNested()
+  @Type(() => CoordinatesDto)
+  coordinates!: CoordinatesDto;
+  @Prop({
+    required: true,
+    type: {
+      street: { type: String, required: true },
+      city: { type: String, required: true },
+      postalCode: { type: String, required: true },
+      country: { type: String, required: true },
+      coordinates: {
+        type: { type: String, enum: ['Point'], default: 'Point' },
+        coordinates: {
+          type: [Number],
+          required: true,
+          validate: {
+            validator(coords: number[]) {
+              return (
+                coords.length === 2 &&
+                coords[0]! >= -180 &&
+                coords[0]! <= 180 &&
+                coords[1]! >= -90 &&
+                coords[1]! <= 90
+              );
             },
-
-            foodSafetyLicenseUrl: String,
-            foodSafetyLicenseMetadata: {
-                fileName: String,
-                fileSize: Number,
-                mimeType: String,
-                uploadedAt: Date,
-                uploadedBy: String,
-                verified: Boolean,
-                verifiedAt: Date,
-                verifiedBy: String,
-                expiryDate: Date,
-                notes: String,
-            },
-
-            insuranceDocumentUrl: String,
-            insuranceDocumentMetadata: {
-                fileName: String,
-                fileSize: Number,
-                mimeType: String,
-                uploadedAt: Date,
-                uploadedBy: String,
-                verified: Boolean,
-                verifiedAt: Date,
-                verifiedBy: String,
-                expiryDate: Date,
-                notes: String,
-            },
-
-            taxCertificateUrl: String,
-            taxCertificateMetadata: {
-                fileName: String,
-                fileSize: Number,
-                mimeType: String,
-                uploadedAt: Date,
-                uploadedBy: String,
-                verified: Boolean,
-                verifiedAt: Date,
-                verifiedBy: String,
-                expiryDate: Date,
-                notes: String,
-            },
-
-            ownerIdDocumentUrl: String,
-            ownerIdDocumentMetadata: {
-                fileName: String,
-                fileSize: Number,
-                mimeType: String,
-                uploadedAt: Date,
-                uploadedBy: String,
-                verified: Boolean,
-                verifiedAt: Date,
-                verifiedBy: String,
-                expiryDate: Date,
-                notes: String,
-            },
-
-            // Additional documents array
-            additionalDocuments: [{
-                type: String,
-                url: String,
-                metadata: {
-                    fileName: String,
-                    fileSize: Number,
-                    mimeType: String,
-                    uploadedAt: Date,
-                    uploadedBy: String,
-                    verified: Boolean,
-                    verifiedAt: Date,
-                    verifiedBy: String,
-                    expiryDate: Date,
-                    notes: String,
-                }
-            }],
-        }
-    })
-    legalDocuments?: LegalDocuments;
-
-    @Prop({ default: 0, min: 0, max: 5 })
-    averageRating: number;
-
-    @Prop({ default: 0, min: 0 })
-    totalReviews: number;
-
-    @Prop({ default: 0, min: 0 })
-    totalOffers: number;
-
-    @Prop({ default: 0, min: 0 })
-    completedOrders: number;
-
-    @Prop({ default: true })
-    isActive: boolean;
-
-    @Prop({ default: false })
-    isVerified: boolean;
-
-    @Prop({ default: false })
-    acceptsReservations: boolean;
-
-    @Prop()
-    rejectionReason?: string;
-
-    @Prop()
-    verifiedAt?: Date;
-
-    @Prop()
-    lastActiveAt?: Date;
-
-    @Prop({
-        type: {
-            scheduledReactivation: {
-                jobId: String,
-                scheduledFor: Date,
-                scheduledAt: Date,
-                status: { type: String, enum: ['pending', 'completed', 'cancelled', 'failed'], default: 'pending' },
-                cancelledAt: Date,
-                completedAt: Date,
-                failedAt: Date,
-                error: String
-            }
+            message: 'Invalid coordinates format',
+          },
         },
-        default: {}
-    })
-    metadata?: {
-        scheduledReactivation?: {
-            jobId: string;
-            scheduledFor: Date;
-            scheduledAt: Date;
-            status: 'pending' | 'completed' | 'cancelled' | 'failed';
-            cancelledAt?: Date;
-            completedAt?: Date;
-            failedAt?: Date;
-            error?: string;
-        };
+      },
+    },
+  })
+  address!: Address;
+
+  @Prop({
+    required: true,
+    match: [/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number'],
+  })
+  phoneNumber!: string;
+
+  @Prop({
+    required: true,
+    lowercase: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email'],
+  })
+  email!: string;
+
+  @Prop()
+  googlePlaceId?: string;
+
+  @Prop()
+  website?: string;
+
+  @Prop({ type: [String], default: [] })
+  images!: string[];
+
+  @Prop({ type: [String], default: [] })
+  cuisineTypes!: string[];
+
+  @Prop({
+    type: {
+      monday: { open: String, close: String, closed: { type: Boolean, default: false } },
+      tuesday: { open: String, close: String, closed: { type: Boolean, default: false } },
+      wednesday: { open: String, close: String, closed: { type: Boolean, default: false } },
+      thursday: { open: String, close: String, closed: { type: Boolean, default: false } },
+      friday: { open: String, close: String, closed: { type: Boolean, default: false } },
+      saturday: { open: String, close: String, closed: { type: Boolean, default: false } },
+      sunday: { open: String, close: String, closed: { type: Boolean, default: false } },
+    },
+  })
+  businessHours?: BusinessHours;
+
+  @Prop({
+    type: {
+      // Business registration numbers
+      siret: String,
+      license: String,
+      vatNumber: String,
+
+      // Document URLs
+      businessLicenseUrl: String,
+      businessLicenseMetadata: {
+        fileName: String,
+        fileSize: Number,
+        mimeType: String,
+        uploadedAt: Date,
+        uploadedBy: String,
+        verified: Boolean,
+        verifiedAt: Date,
+        verifiedBy: String,
+        expiryDate: Date,
+        notes: String,
+      },
+
+      foodSafetyLicenseUrl: String,
+      foodSafetyLicenseMetadata: {
+        fileName: String,
+        fileSize: Number,
+        mimeType: String,
+        uploadedAt: Date,
+        uploadedBy: String,
+        verified: Boolean,
+        verifiedAt: Date,
+        verifiedBy: String,
+        expiryDate: Date,
+        notes: String,
+      },
+
+      insuranceDocumentUrl: String,
+      insuranceDocumentMetadata: {
+        fileName: String,
+        fileSize: Number,
+        mimeType: String,
+        uploadedAt: Date,
+        uploadedBy: String,
+        verified: Boolean,
+        verifiedAt: Date,
+        verifiedBy: String,
+        expiryDate: Date,
+        notes: String,
+      },
+
+      taxCertificateUrl: String,
+      taxCertificateMetadata: {
+        fileName: String,
+        fileSize: Number,
+        mimeType: String,
+        uploadedAt: Date,
+        uploadedBy: String,
+        verified: Boolean,
+        verifiedAt: Date,
+        verifiedBy: String,
+        expiryDate: Date,
+        notes: String,
+      },
+
+      ownerIdDocumentUrl: String,
+      ownerIdDocumentMetadata: {
+        fileName: String,
+        fileSize: Number,
+        mimeType: String,
+        uploadedAt: Date,
+        uploadedBy: String,
+        verified: Boolean,
+        verifiedAt: Date,
+        verifiedBy: String,
+        expiryDate: Date,
+        notes: String,
+      },
+
+      // Additional documents array
+      additionalDocuments: [
+        {
+          type: String,
+          url: String,
+          metadata: {
+            fileName: String,
+            fileSize: Number,
+            mimeType: String,
+            uploadedAt: Date,
+            uploadedBy: String,
+            verified: Boolean,
+            verifiedAt: Date,
+            verifiedBy: String,
+            expiryDate: Date,
+            notes: String,
+          },
+        },
+      ],
+    },
+  })
+  legalDocuments?: LegalDocuments;
+
+  @Prop({ default: 0, min: 0, max: 5 })
+  averageRating!: number;
+
+  @Prop({ default: 0, min: 0 })
+  totalReviews!: number;
+
+  @Prop({ default: 0, min: 0 })
+  totalOffers!: number;
+
+  @Prop({ default: 0, min: 0 })
+  completedOrders!: number;
+
+  @Prop({ default: true })
+  isActive!: boolean;
+
+  @Prop({ default: false })
+  isVerified!: boolean;
+
+  @Prop({ default: false })
+  acceptsReservations!: boolean;
+
+  @Prop()
+  rejectionReason?: string;
+
+  @Prop()
+  verifiedAt?: Date;
+
+  @Prop()
+  lastActiveAt?: Date;
+
+  @Prop({
+    type: {
+      scheduledReactivation: {
+        jobId: String,
+        scheduledFor: Date,
+        scheduledAt: Date,
+        status: {
+          type: String,
+          enum: ['pending', 'completed', 'cancelled', 'failed'],
+          default: 'pending',
+        },
+        cancelledAt: Date,
+        completedAt: Date,
+        failedAt: Date,
+        error: String,
+      },
+    },
+    default: {},
+  })
+  metadata?: {
+    scheduledReactivation?: {
+      jobId: string;
+      scheduledFor: Date;
+      scheduledAt: Date;
+      status: 'pending' | 'completed' | 'cancelled' | 'failed';
+      cancelledAt?: Date;
+      completedAt?: Date;
+      failedAt?: Date;
+      error?: string;
     };
+  };
 
-    // Soft Delete Fields
-    @Prop({ default: false })
-    isDeleted: boolean;
+  // Soft Delete Fields
+  @Prop({ default: false })
+  isDeleted!: boolean;
 
-    @Prop()
-    deletedAt?: Date;
+  @Prop()
+  deletedAt?: Date;
 
-    @Prop({ type: String })
-    deletedBy?: string;
+  @Prop({ type: String })
+  deletedBy?: string;
 
-    @Prop()
-    deletionReason?: string;
+  @Prop()
+  deletionReason?: string;
 }
 
 export const EstablishmentSchema = SchemaFactory.createForClass(Establishment);
@@ -414,10 +427,10 @@ EstablishmentSchema.index({ phoneNumber: 1 });
  * - Use case: "Top-rated restaurants near you"
  */
 EstablishmentSchema.index({
-    isActive: 1,
-    isVerified: 1,
-    status: 1,
-    averageRating: -1
+  isActive: 1,
+  isVerified: 1,
+  status: 1,
+  averageRating: -1,
 });
 
 /**
@@ -427,9 +440,9 @@ EstablishmentSchema.index({
  * - Query pattern: $geoNear aggregation with type and rating filters
  */
 EstablishmentSchema.index({
-    type: 1,
-    isActive: 1,
-    averageRating: -1
+  type: 1,
+  isActive: 1,
+  averageRating: -1,
 });
 
 /**
@@ -459,9 +472,9 @@ EstablishmentSchema.index({ lastActiveAt: 1, isActive: 1 }, { sparse: true });
  * - Query pattern: find({ ownerId }).aggregate(completedOrders, totalOffers, averageRating)
  */
 EstablishmentSchema.index({
-    ownerId: 1,
-    completedOrders: -1,
-    averageRating: -1
+  ownerId: 1,
+  completedOrders: -1,
+  averageRating: -1,
 });
 
 /**
@@ -476,10 +489,13 @@ EstablishmentSchema.index({ status: 1, rejectionReason: 1 }, { sparse: true });
  * - Optimizes queries for establishments with missing documents
  * - Query pattern: find({ 'legalDocuments.businessLicenseUrl': { $exists: false } })
  */
-EstablishmentSchema.index({
+EstablishmentSchema.index(
+  {
     'legalDocuments.businessLicenseMetadata.verified': 1,
-    'legalDocuments.foodSafetyLicenseMetadata.verified': 1
-}, { sparse: true });
+    'legalDocuments.foodSafetyLicenseMetadata.verified': 1,
+  },
+  { sparse: true },
+);
 
 /**
  * City + Type Discovery Index
@@ -493,10 +509,13 @@ EstablishmentSchema.index({ 'address.city': 1, type: 1, isActive: 1 });
  * - Manages automated reactivation jobs
  * - Query pattern: find({ 'metadata.scheduledReactivation.status': 'pending' })
  */
-EstablishmentSchema.index({
+EstablishmentSchema.index(
+  {
     'metadata.scheduledReactivation.status': 1,
-    'metadata.scheduledReactivation.scheduledFor': 1
-}, { sparse: true });
+    'metadata.scheduledReactivation.scheduledFor': 1,
+  },
+  { sparse: true },
+);
 
 /**
  * Soft Delete Recovery Index
@@ -510,26 +529,27 @@ EstablishmentSchema.index({ isDeleted: 1, deletedAt: 1 }, { sparse: true });
 // PRE-QUERY MIDDLEWARE - Auto-filter soft-deleted records
 // =============================================================================
 
-import { Query } from 'mongoose';
-
 /**
  * Pre-find middleware to automatically exclude soft-deleted establishments
  * Applies to: find, findOne, findOneAndUpdate, etc.
  */
-EstablishmentSchema.pre<Query<any, EstablishmentDocument>>(/^find/, function (next) {
-    if (!(this as any).getOptions()?.includeDeleted) {
-        this.where({ isDeleted: { $ne: true } });
+EstablishmentSchema.pre<Query<EstablishmentDocument[], EstablishmentDocument>>(
+  /^find/,
+  function (next) {
+    if (!this.getOptions()?.['includeDeleted']) {
+      this.where({ isDeleted: { $ne: true } });
     }
     next();
-});
+  },
+);
 
 /**
  * Pre-aggregate middleware to exclude soft-deleted establishments
  * Bypass with: .setOptions({ includeDeleted: true })
  */
 EstablishmentSchema.pre('aggregate', function () {
-    const options = (this as any).options || {};
-    if (!options.includeDeleted) {
-        this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
-    }
+  const options = (this as { options?: Record<string, unknown> }).options || {};
+  if (!options['includeDeleted']) {
+    this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+  }
 });

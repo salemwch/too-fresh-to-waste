@@ -13,15 +13,17 @@
  * - Monitoring systems
  */
 
-import { Controller, Get, Version, VERSION_NEUTRAL } from '@nestjs/common';
+import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   HealthCheck,
   HealthCheckService,
   MongooseHealthIndicator,
   MemoryHealthIndicator,
 } from '@nestjs/terminus';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+
 import { Public } from '../common/decorators/public.decorator';
+
 import { RedisHealthIndicator } from './indicators/redis.health';
 
 @ApiTags('Health')
@@ -59,20 +61,33 @@ export class HealthController {
     status: 503,
     description: 'One or more health checks failed',
   })
-  check() {
-    return this.health.check([
+  async check() {
+    const result = await this.health.check([
       // Database health
-      () => this.db.pingCheck('database', { timeout: 3000 }),
+      async () => {
+        const r = await this.db.pingCheck('database', { timeout: 3000 });
+        return r;
+      },
 
       // Redis health
-      () => this.redis.isHealthy('redis'),
+      async () => {
+        const r = await this.redis.isHealthy('redis');
+        return r;
+      },
 
       // Memory health (heap < 150MB)
-      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
+      async () => {
+        const r = await this.memory.checkHeap('memory_heap', 150 * 1024 * 1024);
+        return r;
+      },
 
       // Memory health (RSS < 150MB)
-      () => this.memory.checkRSS('memory_rss', 150 * 1024 * 1024),
+      async () => {
+        const r = await this.memory.checkRSS('memory_rss', 150 * 1024 * 1024);
+        return r;
+      },
     ]);
+    return result;
   }
 
   /**
@@ -100,7 +115,7 @@ export class HealthController {
       status: 'ok',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      environment: process.env.NODE_ENV,
+      environment: process.env['NODE_ENV'],
     };
   }
 
@@ -129,10 +144,17 @@ export class HealthController {
     status: 503,
     description: 'Application is not ready',
   })
-  readiness() {
-    return this.health.check([
-      () => this.db.pingCheck('database', { timeout: 3000 }),
-      () => this.redis.isHealthy('redis'),
+  async readiness() {
+    const result = await this.health.check([
+      async () => {
+        const r = await this.db.pingCheck('database', { timeout: 3000 });
+        return r;
+      },
+      async () => {
+        const r = await this.redis.isHealthy('redis');
+        return r;
+      },
     ]);
+    return result;
   }
 }

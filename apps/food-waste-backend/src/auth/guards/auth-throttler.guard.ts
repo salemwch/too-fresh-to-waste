@@ -1,6 +1,12 @@
 import { Injectable, ExecutionContext, Logger } from '@nestjs/common';
-import { ThrottlerGuard, ThrottlerException } from '@nestjs/throttler';
 import { Reflector } from '@nestjs/core';
+import {
+  ThrottlerGuard,
+  ThrottlerException,
+  ThrottlerModuleOptions,
+  ThrottlerStorage,
+} from '@nestjs/throttler';
+import { Request } from 'express';
 
 /**
  * Enhanced Throttler Guard for Authentication Endpoints
@@ -18,8 +24,8 @@ export class AuthThrottlerGuard extends ThrottlerGuard {
   private readonly logger = new Logger(AuthThrottlerGuard.name);
 
   constructor(
-    options: any,
-    storageService: any,
+    options: ThrottlerModuleOptions,
+    storageService: ThrottlerStorage,
     reflector: Reflector,
   ) {
     super(options, storageService, reflector);
@@ -29,7 +35,7 @@ export class AuthThrottlerGuard extends ThrottlerGuard {
    * Generate unique key for rate limiting
    * Combines IP with user identifier for precise tracking
    */
-  protected generateKey(context: ExecutionContext, suffix: string): string {
+  protected override generateKey(context: ExecutionContext, suffix: string): string {
     const request = context.switchToHttp().getRequest();
     const ip = this.extractIp(request);
     const userIdentifier = this.extractUserIdentifier(request);
@@ -44,21 +50,18 @@ export class AuthThrottlerGuard extends ThrottlerGuard {
   /**
    * Get tracker for rate limit storage
    */
-  protected async getTracker(req: Record<string, any>): Promise<string> {
-    const ip = this.extractIp(req);
-    const userIdentifier = this.extractUserIdentifier(req);
+  protected override async getTracker(req: Record<string, unknown>): Promise<string> {
+    const ip = this.extractIp(req as unknown as Request);
+    const userIdentifier = this.extractUserIdentifier(req as unknown as Request);
 
-    if (userIdentifier) {
-      return `${ip}-${userIdentifier}`;
-    }
-
-    return ip;
+    const tracker = await Promise.resolve(userIdentifier ? `${ip}-${userIdentifier}` : ip);
+    return tracker;
   }
 
   /**
    * Custom throttle exception with helpful message
    */
-  protected throwThrottlingException(context: ExecutionContext): Promise<void> {
+  protected override async throwThrottlingException(context: ExecutionContext): Promise<void> {
     const request = context.switchToHttp().getRequest();
     const ip = this.extractIp(request);
     const endpoint = request.url;
@@ -69,18 +72,17 @@ export class AuthThrottlerGuard extends ThrottlerGuard {
       userAgent: request.headers?.['user-agent']?.substring(0, 100),
     });
 
-    throw new ThrottlerException(
-      'Too many requests. Please wait before trying again.',
-    );
+    await Promise.resolve();
+    throw new ThrottlerException('Too many requests. Please wait before trying again.');
   }
 
   /**
    * Extract IP address from request
    */
-  private extractIp(request: any): string {
+  private extractIp(request: Request): string {
     return (
       request.ip ||
-      request.headers?.['x-forwarded-for']?.split(',')[0]?.trim() ||
+      (request.headers?.['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ||
       request.connection?.remoteAddress ||
       'unknown'
     );
@@ -90,7 +92,7 @@ export class AuthThrottlerGuard extends ThrottlerGuard {
    * Extract user identifier from request body
    * Supports: email (login/register) and refresh token (refresh endpoint)
    */
-  private extractUserIdentifier(request: any): string | null {
+  private extractUserIdentifier(request: Request): string | null {
     // Email for login/register endpoints
     if (request.body?.email) {
       return request.body.email.toLowerCase();
@@ -102,9 +104,7 @@ export class AuthThrottlerGuard extends ThrottlerGuard {
       try {
         const tokenParts = request.body.refreshToken.split('.');
         if (tokenParts.length === 3) {
-          const payload = JSON.parse(
-            Buffer.from(tokenParts[1], 'base64').toString('utf-8'),
-          );
+          const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString('utf-8'));
           // Use 'sub' (subject/userId) from JWT payload
           if (payload.sub) {
             return `user:${payload.sub}`;

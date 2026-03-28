@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { NotificationPreference } from '../schemas/notification-preference.schema';
-import { INotificationProvider, NotificationResult } from '../interfaces/notification.interfaces';
-import { NotificationTarget, NotificationPayload } from '../types/notification.types';
-import { FirebaseAdminService } from '../../common/services/firebase-admin.service';
 import * as admin from 'firebase-admin';
+import { Model } from 'mongoose';
+
+import { FirebaseAdminService } from '../../common/services/firebase-admin.service';
+import { INotificationProvider, NotificationResult } from '../interfaces/notification.interfaces';
+import { NotificationPreference } from '../schemas/notification-preference.schema';
+import { NotificationTarget, NotificationPayload } from '../types/notification.types';
 @Injectable()
 export class PushNotificationService implements INotificationProvider {
   private readonly logger = new Logger(PushNotificationService.name);
@@ -17,6 +18,7 @@ export class PushNotificationService implements INotificationProvider {
     private readonly configService: ConfigService,
     private readonly firebaseAdminService: FirebaseAdminService,
   ) {
+    void this.configService;
     // Firebase is now initialized by FirebaseAdminService
   }
 
@@ -29,7 +31,10 @@ export class PushNotificationService implements INotificationProvider {
     }
   }
 
-  async send(payload: NotificationPayload, target: NotificationTarget): Promise<NotificationResult> {
+  async send(
+    payload: NotificationPayload,
+    target: NotificationTarget,
+  ): Promise<NotificationResult> {
     try {
       this.ensureFirebaseInitialized();
       const deviceTokens = await this.getDeviceTokens(target);
@@ -37,35 +42,49 @@ export class PushNotificationService implements INotificationProvider {
       if (deviceTokens.length === 0) {
         return {
           success: false,
-          error: 'No device tokens found for target'
+          error: 'No device tokens found for target',
         };
       }
 
-      const message = this.buildFirebaseMessage(payload, deviceTokens[0]);
+      const firstToken = deviceTokens[0];
+      if (!firstToken) {
+        return {
+          success: false,
+          error: 'No device tokens found for target',
+        };
+      }
+
+      const message = this.buildFirebaseMessage(payload, firstToken);
 
       const messageId = await this.sendFirebaseMessage(message);
 
       return {
         success: true,
         messageId,
-        deliveryStatus: 'sent'
+        deliveryStatus: 'sent',
       };
     } catch (error) {
-      this.logger.error(`Push notification failed: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Push notification failed: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       return {
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       };
     }
   }
 
-  async sendBulk(payload: NotificationPayload, targets: NotificationTarget[]): Promise<NotificationResult[]> {
+  async sendBulk(
+    payload: NotificationPayload,
+    targets: NotificationTarget[],
+  ): Promise<NotificationResult[]> {
     this.ensureFirebaseInitialized();
     const allTokens = new Set<string>();
 
     for (const target of targets) {
       const tokens = await this.getDeviceTokens(target);
-      tokens.forEach(token => allTokens.add(token));
+      tokens.forEach((token) => allTokens.add(token));
     }
 
     if (allTokens.size === 0) {
@@ -78,10 +97,13 @@ export class PushNotificationService implements INotificationProvider {
 
       return this.processBulkResponse(response, Array.from(allTokens));
     } catch (error) {
-      this.logger.error(`Bulk push notification failed: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Bulk push notification failed: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       return Array.from(allTokens).map(() => ({
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       }));
     }
   }
@@ -95,13 +117,16 @@ export class PushNotificationService implements INotificationProvider {
       return {
         success: true,
         messageId,
-        deliveryStatus: 'sent'
+        deliveryStatus: 'sent',
       };
     } catch (error) {
-      this.logger.error(`Topic push notification failed: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Topic push notification failed: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       return {
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       };
     }
   }
@@ -112,7 +137,10 @@ export class PushNotificationService implements INotificationProvider {
       await admin.messaging().subscribeToTopic(deviceTokens, topic);
       this.logger.log(`Subscribed ${deviceTokens.length} devices to topic: ${topic}`);
     } catch (error) {
-      this.logger.error(`Failed to subscribe to topic: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Failed to subscribe to topic: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
     }
   }
 
@@ -122,7 +150,10 @@ export class PushNotificationService implements INotificationProvider {
       await admin.messaging().unsubscribeFromTopic(deviceTokens, topic);
       this.logger.log(`Unsubscribed ${deviceTokens.length} devices from topic: ${topic}`);
     } catch (error) {
-      this.logger.error(`Failed to unsubscribe from topic: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Failed to unsubscribe from topic: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
     }
   }
 
@@ -139,13 +170,16 @@ export class PushNotificationService implements INotificationProvider {
     return [];
   }
 
-  private buildFirebaseMessage(payload: NotificationPayload, token: string): any {
+  private buildFirebaseMessage(
+    payload: NotificationPayload,
+    token: string,
+  ): admin.messaging.TokenMessage {
     return {
       token,
       notification: {
         title: payload.title,
         body: payload.body,
-        image: payload.image,
+        ...(payload.image !== undefined ? { imageUrl: payload.image } : {}),
       },
       data: this.sanitizeData(payload.data || {}),
       android: {
@@ -167,12 +201,12 @@ export class PushNotificationService implements INotificationProvider {
               body: payload.body,
             },
             sound: payload.sound || 'default',
-            badge: payload.badge,
-            category: payload.clickAction,
+            ...(payload.badge !== undefined ? { badge: payload.badge } : {}),
+            ...(payload.clickAction !== undefined ? { category: payload.clickAction } : {}),
           },
         },
         fcmOptions: {
-          image: payload.image,
+          ...(payload.image !== undefined ? { imageUrl: payload.image } : {}),
         },
       },
       webpush: {
@@ -180,57 +214,62 @@ export class PushNotificationService implements INotificationProvider {
           title: payload.title,
           body: payload.body,
           icon: '/icon-192x192.png',
-          image: payload.image,
+          ...(payload.image !== undefined ? { image: payload.image } : {}),
           badge: '/badge-72x72.png',
           tag: 'food-waste-notification',
           requireInteraction: false,
         },
         fcmOptions: {
-          link: payload.clickAction,
+          ...(payload.clickAction !== undefined ? { link: payload.clickAction } : {}),
         },
       },
     };
   }
 
-  private buildMulticastMessage(payload: NotificationPayload, tokens: string[]): any {
-    const message = this.buildFirebaseMessage(payload, '');
-    delete message.token;
-    return {
-      ...message,
-      tokens,
-    };
+  private buildMulticastMessage(
+    payload: NotificationPayload,
+    tokens: string[],
+  ): admin.messaging.MulticastMessage {
+    const { token: _, ...base } = this.buildFirebaseMessage(payload, '');
+    return { ...base, tokens };
   }
 
-  private buildTopicMessage(payload: NotificationPayload, topic: string): any {
-    const message = this.buildFirebaseMessage(payload, '');
-    delete message.token;
-    return {
-      ...message,
-      topic,
-    };
+  private buildTopicMessage(
+    payload: NotificationPayload,
+    topic: string,
+  ): admin.messaging.TopicMessage {
+    const { token: _, ...base } = this.buildFirebaseMessage(payload, '');
+    return { ...base, topic };
   }
 
-  private async sendFirebaseMessage(message: any): Promise<string> {
+  private async sendFirebaseMessage(message: admin.messaging.Message): Promise<string> {
     const response = await admin.messaging().send(message);
     return response;
   }
 
-  private async sendMulticastMessage(message: any): Promise<any> {
+  private async sendMulticastMessage(
+    message: admin.messaging.MulticastMessage,
+  ): Promise<admin.messaging.BatchResponse> {
     const response = await admin.messaging().sendEachForMulticast(message);
     return response;
   }
 
-  private processBulkResponse(response: any, tokens: string[]): NotificationResult[] {
-    return response.responses.map((result: any, index: number) => ({
-      success: result.success,
-      messageId: result.messageId,
-      error: result.error?.message,
-      deliveryStatus: result.success ? 'sent' : 'failed',
-      metadata: { token: tokens[index] }
-    }));
+  private processBulkResponse(
+    response: admin.messaging.BatchResponse,
+    tokens: string[],
+  ): NotificationResult[] {
+    return response.responses.map(
+      (result: admin.messaging.SendResponse, index: number): NotificationResult => ({
+        success: result.success,
+        ...(result.messageId !== undefined ? { messageId: result.messageId } : {}),
+        ...(result.error?.message !== undefined ? { error: result.error.message } : {}),
+        deliveryStatus: result.success ? 'sent' : 'failed',
+        ...(tokens[index] !== undefined ? { metadata: { deviceToken: tokens[index] } } : {}),
+      }),
+    );
   }
 
-  private sanitizeData(data: Record<string, any>): Record<string, string> {
+  private sanitizeData(data: Record<string, unknown>): Record<string, string> {
     const sanitized: Record<string, string> = {};
 
     Object.entries(data).forEach(([key, value]) => {

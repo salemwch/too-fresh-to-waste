@@ -1,18 +1,14 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, Optional } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+  Optional,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model} from 'mongoose';
-import { EventBusService } from '../../common/services/event-bus/event-bus.service';
-import { User, UserDocument } from '../../users/schemas/user.schema';
-import { UsersService } from '../../users/user.service';
+import { Model } from 'mongoose';
+
 import { UserStatus } from '../../common/enums/user.enum';
-import { UpdateUserStatusDto, BulkUserActionDto, UserSearchDto } from '../dto/user-management.dto';
-import { AdminAuditService, AuditableObject } from './admin-audit.service';
-import { AdminAction } from '../interfaces/admin-analytics.interface';
-import { NotificationService } from '../../notifications/services/notification.service';
-import { ISendNotificationRequest } from '../../notifications/interfaces/notification.interfaces';
-import { IUser } from '../../common/interfaces/user.interface';
-import { UserMapper } from '../../common/mappers/user.mapper';
-import { LeanDocument } from '../../common/types/mongoose.types';
 import {
   AdminUserStatusChangedEvent,
   AdminUserActivatedEvent,
@@ -21,6 +17,18 @@ import {
   AdminUserDeletedEvent,
   AdminBulkUserActionEvent,
 } from '../../common/events/admin-user.events';
+import { IUser } from '../../common/interfaces/user.interface';
+import { UserMapper } from '../../common/mappers/user.mapper';
+import { EventBusService } from '../../common/services/event-bus/event-bus.service';
+import { LeanDocument } from '../../common/types/mongoose.types';
+import { ISendNotificationRequest } from '../../notifications/interfaces/notification.interfaces';
+import { NotificationService } from '../../notifications/services/notification.service';
+import { User, UserDocument } from '../../users/schemas/user.schema';
+import { UsersService } from '../../users/user.service';
+import { UpdateUserStatusDto, BulkUserActionDto, UserSearchDto } from '../dto/user-management.dto';
+import { AdminAction } from '../interfaces/admin-analytics.interface';
+
+import { AdminAuditService, AuditableObject } from './admin-audit.service';
 
 export interface UserListResponse {
   users: LeanDocument<UserDocument>[];
@@ -61,7 +69,7 @@ export interface UserActivityData {
     lastName: string;
     email: string;
     createdAt: Date;
-    lastLoginAt?: Date;
+    lastLoginAt?: Date | undefined;
   };
   period: {
     startDate: Date;
@@ -72,13 +80,13 @@ export interface UserActivityData {
     totalActions: number;
     statusChanges: number;
     loginAttempts: number;
-    lastActivity?: Date;
+    lastActivity?: Date | undefined;
     accountAge: number;
     activityScore: number;
   };
   metrics: {
     averageActionsPerDay: number;
-    mostActiveDay?: string;
+    mostActiveDay?: string | undefined;
     activityTrend: 'increasing' | 'decreasing' | 'stable';
     riskScore: number;
   };
@@ -144,29 +152,20 @@ export class UserManagementService {
     try {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-      const [
-        totalUsers,
-        userStats,
-        recentRegistrations,
-        topActiveUsers
-      ] = await Promise.all([
+      const [totalUsers, userStats, recentRegistrations, topActiveUsers] = await Promise.all([
         this.userModel.countDocuments(),
 
         this.userModel.aggregate([
           {
             $facet: {
-              usersByRole: [
-                { $group: { _id: '$role', count: { $sum: 1 } } }
-              ],
-              usersByStatus: [
-                { $group: { _id: '$status', count: { $sum: 1 } } }
-              ],
+              usersByRole: [{ $group: { _id: '$role', count: { $sum: 1 } } }],
+              usersByStatus: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
               activeUsers: [
                 { $match: { lastLoginAt: { $gte: thirtyDaysAgo } } },
-                { $count: 'count' }
-              ]
-            }
-          }
+                { $count: 'count' },
+              ],
+            },
+          },
         ]),
 
         this.userModel
@@ -179,12 +178,12 @@ export class UserManagementService {
         this.userModel
           .find({
             lastLoginAt: { $gte: thirtyDaysAgo },
-            status: UserStatus.ACTIVE
+            status: UserStatus.ACTIVE,
           })
           .sort({ lastLoginAt: -1 })
           .limit(10)
           .select('firstName lastName email lastLoginAt')
-          .lean()
+          .lean(),
       ]);
 
       const stats = userStats[0];
@@ -199,9 +198,8 @@ export class UserManagementService {
         usersByRole,
         usersByStatus,
         recentRegistrations,
-        topActiveUsers: topActiveUsers as Array<Record<string, unknown>>
+        topActiveUsers: topActiveUsers as Array<Record<string, unknown>>,
       };
-
     } catch (error) {
       this.logger.error('Failed to get user overview:', error);
       throw error;
@@ -224,34 +222,34 @@ export class UserManagementService {
         registeredBefore,
         lastLoginAfter,
         sortBy = 'createdAt',
-        sortOrder = 'desc'
+        sortOrder = 'desc',
       } = query;
 
       // Build filter conditions
       const filter: Record<string, unknown> = {};
 
       if (search) {
-        filter.$or = [
+        filter['$or'] = [
           { firstName: { $regex: search, $options: 'i' } },
           { lastName: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } }
+          { email: { $regex: search, $options: 'i' } },
         ];
       }
 
       if (role) {
-        filter.role = role;
+        filter['role'] = role;
       }
 
       if (status) {
-        filter.status = status;
+        filter['status'] = status;
       }
 
       if (isEmailVerified !== undefined) {
-        filter.isEmailVerified = isEmailVerified;
+        filter['isEmailVerified'] = isEmailVerified;
       }
 
       if (isPhoneVerified !== undefined) {
-        filter.isPhoneVerified = isPhoneVerified;
+        filter['isPhoneVerified'] = isPhoneVerified;
       }
 
       if (city) {
@@ -265,16 +263,16 @@ export class UserManagementService {
       if (registeredAfter || registeredBefore) {
         const createdAtFilter: Record<string, Date> = {};
         if (registeredAfter) {
-          createdAtFilter.$gte = new Date(registeredAfter);
+          createdAtFilter['$gte'] = new Date(registeredAfter);
         }
         if (registeredBefore) {
-          createdAtFilter.$lte = new Date(registeredBefore);
+          createdAtFilter['$lte'] = new Date(registeredBefore);
         }
-        filter.createdAt = createdAtFilter;
+        filter['createdAt'] = createdAtFilter;
       }
 
       if (lastLoginAfter) {
-        filter.lastLoginAt = { $gte: new Date(lastLoginAfter) };
+        filter['lastLoginAt'] = { $gte: new Date(lastLoginAfter) };
       }
 
       // Calculate pagination
@@ -291,10 +289,12 @@ export class UserManagementService {
           .sort(sort)
           .skip(skip)
           .limit(limit)
-          .select('-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken')
+          .select(
+            '-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken',
+          )
           .lean()
           .exec(),
-        this.userModel.countDocuments(filter)
+        this.userModel.countDocuments(filter),
       ]);
 
       const totalPages = Math.ceil(total / limit);
@@ -306,9 +306,8 @@ export class UserManagementService {
         limit,
         totalPages,
         hasNext: page < totalPages,
-        hasPrev: page > 1
+        hasPrev: page > 1,
       };
-
     } catch (error) {
       this.logger.error('Failed to search users:', error);
       throw error;
@@ -319,7 +318,9 @@ export class UserManagementService {
     try {
       const user = await this.userModel
         .findById(userId)
-        .select('-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken')
+        .select(
+          '-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken',
+        )
         .lean()
         .exec();
 
@@ -327,8 +328,9 @@ export class UserManagementService {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
 
-      return UserMapper.toInterface(user);
-
+      return UserMapper.toInterface(
+        user as unknown as Parameters<typeof UserMapper.toInterface>[0],
+      );
     } catch (error) {
       this.logger.error(`Failed to get user ${userId}:`, error);
       throw error;
@@ -341,7 +343,7 @@ export class UserManagementService {
     adminId: string,
     adminEmail: string,
     ipAddress: string,
-    userAgent: string
+    userAgent: string,
   ): Promise<IUser> {
     try {
       const user = await this.userModel.findById(userId);
@@ -353,7 +355,7 @@ export class UserManagementService {
       const previousStatus = user.status;
       const previousValue = {
         status: user.status,
-        updatedAt: user.updatedAt
+        updatedAt: user.updatedAt,
       };
 
       // Update user status
@@ -372,15 +374,15 @@ export class UserManagementService {
           status: updateDto.status,
           reason: updateDto.reason,
           adminNotes: updateDto.adminNotes,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         reason: updateDto.reason,
         ipAddress,
-        userAgent
+        userAgent,
       });
 
       this.logger.log(
-        `User ${userId} status changed from ${previousStatus} to ${updateDto.status} by admin ${adminEmail}. Reason: ${updateDto.reason}`
+        `User ${userId} status changed from ${previousStatus} to ${updateDto.status} by admin ${adminEmail}. Reason: ${updateDto.reason}`,
       );
 
       // Emit domain event for cross-module reactions
@@ -390,8 +392,9 @@ export class UserManagementService {
         await this.sendStatusChangeNotification(user, updateDto, previousStatus);
       }
 
-      return UserMapper.toInterface(updatedUser);
-
+      return UserMapper.toInterface(
+        updatedUser as unknown as Parameters<typeof UserMapper.toInterface>[0],
+      );
     } catch (error) {
       this.logger.error(`Failed to update user ${userId} status:`, error);
       throw error;
@@ -403,14 +406,14 @@ export class UserManagementService {
     adminId: string,
     adminEmail: string,
     ipAddress: string,
-    userAgent: string
+    userAgent: string,
   ): Promise<BulkActionResult> {
     const result: BulkActionResult = {
       success: false,
       processedCount: 0,
       successCount: 0,
       failureCount: 0,
-      failures: []
+      failures: [],
     };
 
     try {
@@ -421,7 +424,7 @@ export class UserManagementService {
       const { userIds, status, reason, sendNotification } = bulkActionDto;
 
       this.logger.log(
-        `Starting bulk user status update: ${userIds.length} users to ${status} by admin ${adminEmail}`
+        `Starting bulk user status update: ${userIds.length} users to ${status} by admin ${adminEmail}`,
       );
 
       for (const userId of userIds) {
@@ -433,21 +436,20 @@ export class UserManagementService {
             {
               status,
               reason,
-              sendNotification
+              ...(sendNotification !== undefined ? { sendNotification } : {}),
             },
             adminId,
             adminEmail,
             ipAddress,
-            userAgent
+            userAgent,
           );
 
           result.successCount++;
-
         } catch (error) {
           result.failureCount++;
           result.failures.push({
             userId,
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: error instanceof Error ? error.message : 'Unknown error',
           });
 
           this.logger.warn(`Failed to update user ${userId} in bulk operation:`, error);
@@ -468,15 +470,15 @@ export class UserManagementService {
           reason,
           processedCount: result.processedCount,
           successCount: result.successCount,
-          failureCount: result.failureCount
+          failureCount: result.failureCount,
         },
         reason: `Bulk user status update: ${result.successCount}/${result.processedCount} successful`,
         ipAddress,
-        userAgent
+        userAgent,
       });
 
       this.logger.log(
-        `Bulk user status update completed: ${result.successCount}/${result.processedCount} successful`
+        `Bulk user status update completed: ${result.successCount}/${result.processedCount} successful`,
       );
 
       // Emit bulk operation event for async processing
@@ -494,7 +496,6 @@ export class UserManagementService {
       }
 
       return result;
-
     } catch (error) {
       this.logger.error('Bulk user status update failed:', error);
       throw error;
@@ -508,7 +509,7 @@ export class UserManagementService {
     adminEmail: string,
     ipAddress: string,
     userAgent: string,
-    hardDelete: boolean = false
+    hardDelete: boolean = false,
   ): Promise<boolean> {
     try {
       // Validate admin information first to avoid unnecessary DB calls
@@ -530,13 +531,7 @@ export class UserManagementService {
         // Emit deletion event for cascade cleanup (hard-delete path only)
         await this.eventBus.emit(
           'admin.user.deleted',
-          new AdminUserDeletedEvent(
-            userId,
-            adminId,
-            adminEmail,
-            true,
-            reason,
-          ),
+          new AdminUserDeletedEvent(userId, adminId, adminEmail, true, reason),
         );
       } else {
         // Delegate to UsersService.softDelete() — single source of truth
@@ -559,15 +554,14 @@ export class UserManagementService {
         newValue: { deleted: true, hardDelete, reason },
         reason,
         ipAddress,
-        userAgent
+        userAgent,
       });
 
       this.logger.log(
-        `User ${userId} ${hardDelete ? 'permanently deleted' : 'soft deleted'} by admin ${adminEmail}. Reason: ${reason}`
+        `User ${userId} ${hardDelete ? 'permanently deleted' : 'soft deleted'} by admin ${adminEmail}. Reason: ${reason}`,
       );
 
       return true;
-
     } catch (error) {
       this.logger.error(`Failed to delete user ${userId}:`, error);
       throw error;
@@ -579,12 +573,18 @@ export class UserManagementService {
       const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
       const endDate = new Date();
 
-      this.logger.log(`Fetching activity for user ${userId} from ${startDate.toISOString()} to ${endDate.toISOString()}`);
+      this.logger.log(
+        `Fetching activity for user ${userId} from ${startDate.toISOString()} to ${endDate.toISOString()}`,
+      );
 
       // Execute all activity queries in parallel for performance
       const [auditLogs, user] = await Promise.all([
-        this.auditService.getAuditLogsByTarget('user', userId, 100) as unknown as any,
-        this.userModel.findById(userId).select('firstName lastName email createdAt lastLoginAt').lean().exec()
+        this.auditService.getAuditLogsByTarget('user', userId, 100),
+        this.userModel
+          .findById(userId)
+          .select('firstName lastName email createdAt lastLoginAt')
+          .lean()
+          .exec(),
       ]);
 
       if (!user) {
@@ -592,10 +592,18 @@ export class UserManagementService {
       }
 
       // Process audit logs to extract meaningful activity
-      const processedActivity = this.processAuditLogsForActivity(auditLogs, startDate, endDate);
+      const processedActivity = this.processAuditLogsForActivity(
+        auditLogs as unknown as Array<AuditLogEntry>,
+        startDate,
+        endDate,
+      );
 
       // Build comprehensive activity summary
-      const activitySummary = this.buildActivitySummary(processedActivity, user as unknown as UserDocument & { createdAt: Date }, days);
+      const activitySummary = this.buildActivitySummary(
+        processedActivity,
+        user as unknown as UserDocument & { createdAt: Date },
+        days,
+      );
 
       // Calculate activity metrics
       const metrics = this.calculateActivityMetrics(processedActivity, days);
@@ -610,36 +618,47 @@ export class UserManagementService {
           lastName: user.lastName,
           email: user.email,
           createdAt: (user as unknown as { createdAt: Date }).createdAt,
-          lastLoginAt: (user as unknown as { lastLoginAt?: Date }).lastLoginAt
+          lastLoginAt: (user as unknown as { lastLoginAt?: Date }).lastLoginAt,
         },
         period: {
           startDate,
           endDate,
-          days
+          days,
         },
         summary: activitySummary,
         metrics,
         recentEvents,
         auditTrail: processedActivity.slice(0, 20), // Most recent 20 events
-        totalEvents: processedActivity.length
+        totalEvents: processedActivity.length,
       };
 
-      this.logger.log(`Successfully compiled activity data for user ${userId}: ${result.totalEvents} events`);
+      this.logger.log(
+        `Successfully compiled activity data for user ${userId}: ${result.totalEvents} events`,
+      );
       return result;
-
     } catch (error) {
       this.logger.error(`Failed to get activity for user ${userId}:`, error);
       throw error;
     }
   }
-  private async sendStatusChangeNotification(user: UserDocument, updateDto: UpdateUserStatusDto, previousStatus: UserStatus): Promise<void> {
+  private async sendStatusChangeNotification(
+    user: UserDocument,
+    updateDto: UpdateUserStatusDto,
+    previousStatus: UserStatus,
+  ): Promise<void> {
     try {
       const { status, reason, adminNotes } = updateDto;
 
-      this.logger.log(`Sending status change notification to user ${user._id}: ${previousStatus} -> ${status}`);
+      this.logger.log(
+        `Sending status change notification to user ${user._id}: ${previousStatus} -> ${status}`,
+      );
 
       // Determine notification content based on status change
-      const notificationContent = this.getStatusChangeNotificationContent(status, reason, adminNotes);
+      const notificationContent = this.getStatusChangeNotificationContent(
+        status,
+        reason,
+        adminNotes,
+      );
 
       if (!notificationContent) {
         this.logger.warn(`No notification content configured for status change to ${status}`);
@@ -659,7 +678,7 @@ export class UserManagementService {
         type: 'email',
         trigger: `user_status_${status.toLowerCase()}`,
         target: {
-          userId: userIdString
+          userId: userIdString,
         },
         payload: {
           title: notificationContent.title,
@@ -670,8 +689,8 @@ export class UserManagementService {
             newStatus: status,
             reason: reason || 'No reason provided',
             adminNotes: adminNotes || '',
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         },
         priority: this.getNotificationPriority(status),
         templateId: `user_status_${status.toLowerCase()}`,
@@ -683,15 +702,15 @@ export class UserManagementService {
           newStatus: this.getStatusDisplayName(status),
           reason: reason || 'No reason provided',
           adminNotes: adminNotes || '',
-          supportEmail: process.env.SUPPORT_EMAIL || 'support@foodwaste.com',
-          appName: process.env.APP_NAME || 'Food Waste Management',
-          timestamp: new Date().toLocaleString()
+          supportEmail: process.env['SUPPORT_EMAIL'] || 'support@foodwaste.com',
+          appName: process.env['APP_NAME'] || 'Food Waste Management',
+          timestamp: new Date().toLocaleString(),
         },
         metadata: {
           source: 'admin_user_management',
           adminAction: 'status_change',
-          statusChange: [`from:${previousStatus}`, `to:${status}`]
-        }
+          statusChange: [`from:${previousStatus}`, `to:${status}`],
+        },
       };
 
       // Send notification using the notification service
@@ -703,26 +722,34 @@ export class UserManagementService {
       const result = await this.notificationService.sendNotification(notificationRequest);
 
       if (result.success) {
-        this.logger.log(`Status change notification sent successfully to user ${user._id}. Message ID: ${result.messageId}`);
+        this.logger.log(
+          `Status change notification sent successfully to user ${user._id}. Message ID: ${result.messageId}`,
+        );
       } else {
-        this.logger.error(`Failed to send status change notification to user ${user._id}: ${result.error}`);
+        this.logger.error(
+          `Failed to send status change notification to user ${user._id}: ${result.error}`,
+        );
       }
 
       // For critical status changes, also send push notification if available
       if (this.isCriticalStatusChange(status)) {
         await this.sendCriticalStatusPushNotification(user, status, reason);
       }
-
     } catch (error) {
       this.logger.error(`Failed to send status change notification for user ${user._id}:`, error);
       // Don't throw error - notification failure shouldn't block status update
     }
   }
-  private formatGroupedResults(results: Array<{ _id: string; count: number }>): Record<string, number> {
-    return results.reduce((acc, item) => {
-      acc[item._id] = item.count;
-      return acc;
-    }, {} as Record<string, number>);
+  private formatGroupedResults(
+    results: Array<{ _id: string; count: number }>,
+  ): Record<string, number> {
+    return results.reduce(
+      (acc, item) => {
+        acc[item._id] = item.count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   }
   private getActionForStatusChange(status: UserStatus): AdminAction {
     switch (status) {
@@ -736,32 +763,58 @@ export class UserManagementService {
         return AdminAction.USER_UPDATED;
     }
   }
-  private processAuditLogsForActivity(auditLogs: Array<AuditLogEntry>, startDate: Date, endDate: Date): ProcessedAuditEvent[] {
+  private processAuditLogsForActivity(
+    auditLogs: Array<AuditLogEntry>,
+    startDate: Date,
+    endDate: Date,
+  ): ProcessedAuditEvent[] {
     return auditLogs
-      .filter(log => {
-        const logDate = new Date(log.timestamp || log.createdAt);
+      .filter((log) => {
+        const logDate = new Date(log.timestamp ?? log.createdAt ?? 0);
         return logDate >= startDate && logDate <= endDate;
       })
-      .map(log => ({
-        id: log._id?.toString() || Math.random().toString(36),
-        action: log.action || 'UNKNOWN_ACTION',
-        timestamp: new Date(log.timestamp || log.createdAt),
-        adminEmail: log.adminEmail,
-        description: this.generateActivityDescription(log),
-        severity: this.determineEventSeverity(log.action),
-        changes: this.extractChanges(log)
-      }))
+      .map((log) => {
+        const changes = this.extractChanges(log);
+        return {
+          id: log._id?.toString() || Math.random().toString(36),
+          action: log.action || 'UNKNOWN_ACTION',
+          timestamp: new Date(log.timestamp ?? log.createdAt ?? 0),
+          ...(log.adminEmail !== undefined ? { adminEmail: log.adminEmail } : {}),
+          description: this.generateActivityDescription(log),
+          severity: this.determineEventSeverity(log.action || 'UNKNOWN_ACTION'),
+          ...(changes !== undefined ? { changes } : {}),
+        };
+      })
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
-  private buildActivitySummary(events: ProcessedAuditEvent[], user: UserDocument & { createdAt: Date }, days: number): UserActivityData['summary'] {
-    const statusChanges = events.filter(e => e.action && (e.action.includes('STATUS') || e.action.includes('SUSPENDED') || e.action.includes('ACTIVATED'))).length;
-    const loginAttempts = events.filter(e => e.action && (e.action.includes('LOGIN') || e.action.includes('AUTH'))).length;
-    const lastActivity = events.length > 0 ? events[0].timestamp : undefined;
-    const accountAge = Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+  private buildActivitySummary(
+    events: ProcessedAuditEvent[],
+    user: UserDocument & { createdAt: Date },
+    days: number,
+  ): UserActivityData['summary'] {
+    const statusChanges = events.filter(
+      (e) =>
+        e.action &&
+        (e.action.includes('STATUS') ||
+          e.action.includes('SUSPENDED') ||
+          e.action.includes('ACTIVATED')),
+    ).length;
+    const loginAttempts = events.filter(
+      (e) => e.action && (e.action.includes('LOGIN') || e.action.includes('AUTH')),
+    ).length;
+    const lastActivity = events[0]?.timestamp;
+    const accountAge = Math.floor(
+      (Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24),
+    );
 
     // Calculate activity score based on events and account age
-    const activityScore = this.calculateActivityScore(events.length, statusChanges, accountAge, days);
+    const activityScore = this.calculateActivityScore(
+      events.length,
+      statusChanges,
+      accountAge,
+      days,
+    );
 
     return {
       totalActions: events.length,
@@ -769,24 +822,31 @@ export class UserManagementService {
       loginAttempts,
       lastActivity,
       accountAge,
-      activityScore
+      activityScore,
     };
   }
-  private calculateActivityMetrics(events: ProcessedAuditEvent[], days: number): UserActivityData['metrics'] {
+  private calculateActivityMetrics(
+    events: ProcessedAuditEvent[],
+    days: number,
+  ): UserActivityData['metrics'] {
     const averageActionsPerDay = events.length / Math.max(days, 1);
 
     // Group events by day to find most active day
-    const eventsByDay = events.reduce((acc, event) => {
-      const day = event.timestamp.toDateString();
-      acc[day] = (acc[day] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const eventsByDay = events.reduce(
+      (acc, event) => {
+        const day = event.timestamp.toDateString();
+        acc[day] = (acc[day] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     // Fix: Safely handle empty events array
     const keys = Object.keys(eventsByDay);
-    const mostActiveDay = keys.length > 0
-      ? keys.reduce((a, b) => eventsByDay[a] > eventsByDay[b] ? a : b)
-      : undefined;
+    const mostActiveDay =
+      keys.length > 0
+        ? keys.reduce((a, b) => ((eventsByDay[a] ?? 0) > (eventsByDay[b] ?? 0) ? a : b))
+        : undefined;
 
     // Calculate trend (simplified)
     // Note: events should be sorted by timestamp descending for this to work correctly
@@ -818,19 +878,19 @@ export class UserManagementService {
       averageActionsPerDay,
       mostActiveDay,
       activityTrend,
-      riskScore
+      riskScore,
     };
   }
   private extractRecentEvents(events: ProcessedAuditEvent[], limit: number): ActivityEvent[] {
-    return events.slice(0, limit).map(event => ({
+    return events.slice(0, limit).map((event) => ({
       type: this.categorizeEventType(event.action),
       description: event.description,
       timestamp: event.timestamp,
       severity: event.severity,
       metadata: {
         adminEmail: event.adminEmail,
-        changes: event.changes
-      }
+        changes: event.changes,
+      },
     }));
   }
 
@@ -839,9 +899,8 @@ export class UserManagementService {
     const adminEmail = log.adminEmail;
 
     // Helper function to format admin attribution
-    const formatAdminAttribution = (baseMessage: string): string => {
-      return adminEmail ? `${baseMessage} by ${adminEmail}` : baseMessage;
-    };
+    const formatAdminAttribution = (baseMessage: string): string =>
+      adminEmail ? `${baseMessage} by ${adminEmail}` : baseMessage;
 
     switch (action) {
       case 'USER_ACTIVATED':
@@ -873,19 +932,27 @@ export class UserManagementService {
     // Normalize action to lowercase for comparison
     const normalizedAction = action.toLowerCase();
 
-    if (criticalActions.some(a => normalizedAction.includes(a))) {return 'critical';}
-    if (highActions.some(a => normalizedAction.includes(a))) {return 'high';}
-    if (mediumActions.some(a => normalizedAction.includes(a))) {return 'medium';}
+    if (criticalActions.some((a) => normalizedAction.includes(a))) {
+      return 'critical';
+    }
+    if (highActions.some((a) => normalizedAction.includes(a))) {
+      return 'high';
+    }
+    if (mediumActions.some((a) => normalizedAction.includes(a))) {
+      return 'medium';
+    }
     return 'low';
   }
 
   private extractChanges(log: AuditLogEntry): ProcessedAuditEvent['changes'] {
-    if (!log.previousValue || !log.newValue) {return undefined;}
+    if (!log.previousValue || !log.newValue) {
+      return undefined;
+    }
 
     const changes: AuditChange[] = [];
 
     // Extract meaningful changes from audit log
-    Object.keys(log.newValue).forEach(key => {
+    Object.keys(log.newValue).forEach((key) => {
       const oldValue = log.previousValue?.[key];
       const newValue = log.newValue?.[key];
 
@@ -893,7 +960,7 @@ export class UserManagementService {
         changes.push({
           field: key,
           oldValue,
-          newValue
+          newValue,
         });
       }
     });
@@ -901,9 +968,14 @@ export class UserManagementService {
     return changes.length > 0 ? changes : undefined;
   }
 
-  private calculateActivityScore(totalEvents: number, statusChanges: number, accountAge: number, days: number): number {
+  private calculateActivityScore(
+    totalEvents: number,
+    statusChanges: number,
+    accountAge: number,
+    days: number,
+  ): number {
     // Base score from activity frequency
-    let score = Math.min(totalEvents / days * 10, 50);
+    let score = Math.min((totalEvents / days) * 10, 50);
 
     // Penalty for frequent status changes (suspicious)
     if (statusChanges > 3) {
@@ -927,14 +999,14 @@ export class UserManagementService {
     let riskScore = 0;
 
     // Count critical and high severity events
-    const criticalEvents = events.filter(e => e?.severity === 'critical').length;
-    const highEvents = events.filter(e => e?.severity === 'high').length;
+    const criticalEvents = events.filter((e) => e?.severity === 'critical').length;
+    const highEvents = events.filter((e) => e?.severity === 'high').length;
 
     riskScore += criticalEvents * 30;
     riskScore += highEvents * 15;
 
     // Check for rapid status changes (suspicious pattern) - case insensitive
-    const statusEvents = events.filter(e => {
+    const statusEvents = events.filter((e) => {
       if (typeof e?.action !== 'string') {
         return false;
       }
@@ -956,10 +1028,18 @@ export class UserManagementService {
     if (upperAction.includes('LOGIN') || upperAction.includes('AUTH')) {
       return 'login';
     }
-    if (upperAction.includes('STATUS') || upperAction.includes('SUSPENDED') || upperAction.includes('ACTIVATED')) {
+    if (
+      upperAction.includes('STATUS') ||
+      upperAction.includes('SUSPENDED') ||
+      upperAction.includes('ACTIVATED')
+    ) {
       return 'status_change';
     }
-    if (upperAction.includes('UPDATED') || upperAction.includes('PROFILE') || upperAction.includes('UPDATE')) {
+    if (
+      upperAction.includes('UPDATED') ||
+      upperAction.includes('PROFILE') ||
+      upperAction.includes('UPDATE')
+    ) {
       return 'profile_update';
     }
     if (upperAction.includes('SECURITY') || upperAction.includes('BREACH')) {
@@ -969,7 +1049,11 @@ export class UserManagementService {
   }
 
   // Helper methods for sendStatusChangeNotification
-  private getStatusChangeNotificationContent(status: UserStatus, reason?: string, adminNotes?: string): StatusNotificationContent | null {
+  private getStatusChangeNotificationContent(
+    status: UserStatus,
+    reason?: string,
+    adminNotes?: string,
+  ): StatusNotificationContent | null {
     // Helper function to format additional notes
     const formatAdditionalInfo = (): string => {
       const parts: string[] = [];
@@ -989,25 +1073,25 @@ export class UserManagementService {
         return {
           title: 'Account Activated',
           body: `Your account has been activated and you can now access all platform features.${additionalInfo}`,
-          urgency: 'medium'
+          urgency: 'medium',
         };
       case UserStatus.SUSPENDED:
         return {
           title: 'Account Suspended',
           body: `Your account has been temporarily suspended.${additionalInfo || ' Please contact support for more information.'}`,
-          urgency: 'critical'
+          urgency: 'critical',
         };
       case UserStatus.BLOCKED:
         return {
           title: 'Account Blocked',
           body: `Your account has been blocked.${additionalInfo || ' Please contact support for assistance.'}`,
-          urgency: 'critical'
+          urgency: 'critical',
         };
       case UserStatus.PENDING:
         return {
           title: 'Account Under Review',
           body: `Your account status has been changed to pending review.${additionalInfo || ' We will notify you once the review is complete.'}`,
-          urgency: 'medium'
+          urgency: 'medium',
         };
       default:
         return null;
@@ -1044,7 +1128,11 @@ export class UserManagementService {
     return status === UserStatus.BLOCKED || status === UserStatus.SUSPENDED;
   }
 
-  private async sendCriticalStatusPushNotification(user: UserDocument, status: UserStatus, reason?: string): Promise<void> {
+  private async sendCriticalStatusPushNotification(
+    user: UserDocument,
+    status: UserStatus,
+    reason?: string,
+  ): Promise<void> {
     if (!this.notificationService) {
       this.logger.warn('NotificationService not available for push notification');
       return;
@@ -1061,29 +1149,33 @@ export class UserManagementService {
         type: 'push',
         trigger: `user_status_${status.toLowerCase()}_critical`,
         target: {
-          userId: user._id.toString()
+          userId: user._id.toString(),
         },
         payload: {
           title: 'Important Account Update',
           body: this.formatStatusChangeMessage(status, reason),
           sound: 'default',
-          badge: 1
+          badge: 1,
         },
         priority: 'critical',
         metadata: {
           critical: true,
-          statusChange: status
-        }
+          statusChange: status,
+        },
       };
 
       const result = await this.notificationService.sendNotification(pushRequest);
 
       if (result?.success) {
-        this.logger.log(`Critical push notification sent to user ${user._id} for status change to ${status}`);
+        this.logger.log(
+          `Critical push notification sent to user ${user._id} for status change to ${status}`,
+        );
       } else if (result) {
         this.logger.error(`Failed to send critical push notification: ${result.error}`);
       } else {
-        this.logger.warn('Notification service returned null/undefined result for critical push notification');
+        this.logger.warn(
+          'Notification service returned null/undefined result for critical push notification',
+        );
       }
     } catch (error) {
       this.logger.error(`Error sending critical push notification:`, error);
@@ -1120,12 +1212,7 @@ export class UserManagementService {
         case UserStatus.ACTIVE:
           await this.eventBus.emit(
             'admin.user.activated',
-            new AdminUserActivatedEvent(
-              userId,
-              adminId,
-              adminEmail,
-              updateDto.reason,
-            ),
+            new AdminUserActivatedEvent(userId, adminId, adminEmail, updateDto.reason),
           );
           break;
 
@@ -1156,7 +1243,9 @@ export class UserManagementService {
           break;
       }
 
-      this.logger.debug(`Emitted status change events for user ${userId}: ${previousStatus} → ${updateDto.status}`);
+      this.logger.debug(
+        `Emitted status change events for user ${userId}: ${previousStatus} → ${updateDto.status}`,
+      );
     } catch (error) {
       // Don't fail the operation if event emission fails
       this.logger.error(`Failed to emit user status events for ${userId}:`, error);
@@ -1178,5 +1267,4 @@ export class UserManagementService {
         return 'activate';
     }
   }
-
 }

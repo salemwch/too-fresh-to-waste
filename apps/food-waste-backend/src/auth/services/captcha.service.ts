@@ -1,6 +1,6 @@
+import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
 /**
@@ -20,9 +20,9 @@ interface RecaptchaResponse {
  */
 export interface CaptchaVerificationResult {
   isValid: boolean;
-  score?: number;
-  error?: string;
-  hostname?: string;
+  score?: number | undefined;
+  error?: string | undefined;
+  hostname?: string | undefined;
 }
 
 /**
@@ -66,14 +66,14 @@ export class CaptchaService {
     if (this.isEnabled && !this.secretKey) {
       this.logger.warn(
         '⚠️ CAPTCHA is enabled but RECAPTCHA_SECRET_KEY is not configured. ' +
-        'CAPTCHA verification will be skipped. Set RECAPTCHA_SECRET_KEY environment variable.'
+          'CAPTCHA verification will be skipped. Set RECAPTCHA_SECRET_KEY environment variable.',
       );
     }
 
     this.logger.log(
       `✅ CaptchaService initialized - ` +
-      `Enabled: ${this.isEnabled}, ` +
-      `Min Score: ${this.minScoreThreshold}`
+        `Enabled: ${this.isEnabled}, ` +
+        `Min Score: ${this.minScoreThreshold}`,
     );
   }
 
@@ -164,16 +164,13 @@ export class CaptchaService {
       this.cacheVerification(token, isValid);
 
       // Log verification result
-      this.logger.log(
-        `CAPTCHA verification ${isValid ? 'passed' : 'failed'}`,
-        {
-          score,
-          threshold: this.minScoreThreshold,
-          action: response.action,
-          hostname: response.hostname,
-          remoteIp,
-        }
-      );
+      this.logger.log(`CAPTCHA verification ${isValid ? 'passed' : 'failed'}`, {
+        score,
+        threshold: this.minScoreThreshold,
+        action: response.action,
+        hostname: response.hostname,
+        remoteIp,
+      });
 
       return {
         isValid,
@@ -183,7 +180,7 @@ export class CaptchaService {
     } catch (error) {
       this.logger.error(
         'CAPTCHA verification error:',
-        error instanceof Error ? error.stack : error
+        error instanceof Error ? error.stack : error,
       );
 
       // Fail-open: Allow request if CAPTCHA service is down
@@ -199,10 +196,7 @@ export class CaptchaService {
   /**
    * Call Google reCAPTCHA API
    */
-  private async callRecaptchaApi(
-    token: string,
-    remoteIp?: string,
-  ): Promise<RecaptchaResponse> {
+  private async callRecaptchaApi(token: string, remoteIp?: string): Promise<RecaptchaResponse> {
     const params = new URLSearchParams({
       secret: this.secretKey,
       response: token,
@@ -217,7 +211,7 @@ export class CaptchaService {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         timeout: 5000, // 5 second timeout
-      }
+      },
     );
 
     const response = await firstValueFrom(response$);
@@ -266,7 +260,7 @@ export class CaptchaService {
    * Get human-readable error message from reCAPTCHA error codes
    */
   private getErrorMessage(errorCodes?: string[]): string {
-    if (errorCodes?.length === 0) {
+    if (!errorCodes?.length) {
       return 'CAPTCHA verification failed';
     }
 
@@ -279,7 +273,7 @@ export class CaptchaService {
       'timeout-or-duplicate': 'CAPTCHA token has expired or was already used',
     };
 
-    const firstError = errorCodes[0];
+    const firstError = errorCodes[0] ?? '';
     return errorMessages[firstError] || 'CAPTCHA verification failed';
   }
 

@@ -10,20 +10,21 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { LoyaltyService } from './loyalty.service';
-import { GamificationService } from './services/gamification.service';
+
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
 import { GetUser } from '../common/decorators/get-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/user.enum';
+
 import {
   CreateLoyaltyAccountDto,
   AddPointsDto,
-  LoyaltyStatsDto,
   DonatePointsDto,
   DonatePointsResponseDto,
 } from './dto/loyalty-account.dto';
+import { LoyaltyService } from './loyalty.service';
+import { GamificationService } from './services/gamification.service';
 
 /**
  * LoyaltyController
@@ -80,11 +81,9 @@ export class LoyaltyController {
   @ApiOperation({ summary: 'Add points to user account (Admin only)' })
   @ApiResponse({ status: 200, description: 'Points added successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
-  addPoints(
-    @Param('userId') userId: string,
-    @Body() addPointsDto: AddPointsDto,
-  ) {
-    return this.loyaltyService.addPoints(userId, addPointsDto);
+  async addPoints(@Param('userId') userId: string, @Body() addPointsDto: AddPointsDto) {
+    const result = await this.loyaltyService.addPoints(userId, addPointsDto);
+    return result;
   }
 
   // =============================================================================
@@ -95,7 +94,8 @@ export class LoyaltyController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Donate points to community food relief',
-    description: 'Convert loyalty points to TND and donate to the community food relief pool. 500 points = 5 TND.',
+    description:
+      'Convert loyalty points to TND and donate to the community food relief pool. 500 points = 5 TND.',
   })
   @ApiResponse({
     status: 200,
@@ -104,11 +104,12 @@ export class LoyaltyController {
   })
   @ApiResponse({ status: 400, description: 'Insufficient points' })
   @ApiResponse({ status: 404, description: 'Loyalty account not found' })
-  donatePoints(
+  async donatePoints(
     @GetUser('id') userId: string,
     @Body() donateDto: DonatePointsDto,
   ): Promise<DonatePointsResponseDto> {
-    return this.loyaltyService.donatePoints(userId, donateDto);
+    const result = await this.loyaltyService.donatePoints(userId, donateDto);
+    return result;
   }
 
   @Get('donations/history')
@@ -132,7 +133,7 @@ export class LoyaltyController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get or generate referral code',
-    description: 'Get the user\'s unique referral code for sharing with friends and businesses',
+    description: "Get the user's unique referral code for sharing with friends and businesses",
   })
   @ApiResponse({ status: 200, description: 'Referral code retrieved successfully' })
   async getReferralCode(@GetUser('id') userId: string) {
@@ -148,7 +149,7 @@ export class LoyaltyController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get gamification progress',
-    description: 'Get user\'s progress on all gamification features: referrals, streaks, reviews',
+    description: "Get user's progress on all gamification features: referrals, streaks, reviews",
   })
   @ApiResponse({ status: 200, description: 'Gamification stats retrieved successfully' })
   async getGamificationStats(@GetUser('id') userId: string) {
@@ -164,7 +165,8 @@ export class LoyaltyController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Record daily login for streak',
-    description: 'Record a login for daily streak tracking. Awards 2 pts/day for 10-day streaks (max 20 pts/month)',
+    description:
+      'Record a login for daily streak tracking. Awards 2 pts/day for 10-day streaks (max 20 pts/month)',
   })
   @ApiResponse({ status: 200, description: 'Login recorded' })
   async recordLogin(@GetUser('id') userId: string) {
@@ -172,9 +174,10 @@ export class LoyaltyController {
     return {
       streakDays: result.streakDays,
       pointsAwarded: result.pointsAwarded,
-      message: result.pointsAwarded > 0
-        ? `Day ${result.streakDays} streak! +${result.pointsAwarded} points`
-        : `Day ${result.streakDays} streak (already logged in today or max reached)`,
+      message:
+        result.pointsAwarded > 0
+          ? `Day ${result.streakDays} streak! +${result.pointsAwarded} points`
+          : `Day ${result.streakDays} streak (already logged in today or max reached)`,
     };
   }
 
@@ -186,15 +189,16 @@ export class LoyaltyController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get loyalty leaderboard',
-    description: 'Returns top users ranked by total loyalty points. Also returns the calling user\'s entry when they fall outside the top N.',
+    description:
+      "Returns top users ranked by total loyalty points. Also returns the calling user's entry when they fall outside the top N.",
   })
   @ApiResponse({ status: 200, description: 'Leaderboard retrieved successfully' })
   async getLeaderboard(
     @GetUser('id') userId: string,
-    @Query('limit')  limit?: string,
+    @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
-    const parsedLimit  = limit  ? Math.min(Math.max(parseInt(limit,  10) || 50, 1), 100) : 50;
+    const parsedLimit = limit ? Math.min(Math.max(parseInt(limit, 10) || 50, 1), 100) : 50;
     const parsedOffset = offset ? Math.max(parseInt(offset, 10) || 0, 0) : 0;
     const data = await this.loyaltyService.getLeaderboard(userId, parsedLimit, parsedOffset);
     return { message: 'Leaderboard retrieved successfully', data };

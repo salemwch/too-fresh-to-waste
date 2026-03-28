@@ -3,20 +3,24 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as nodemailer from 'nodemailer';
-import { NotificationPreference } from '../schemas/notification-preference.schema';
+
 import { INotificationProvider, NotificationResult } from '../interfaces/notification.interfaces';
+import { NotificationPreference } from '../schemas/notification-preference.schema';
 import { NotificationTarget, NotificationPayload } from '../types/notification.types';
+
+import type Mail from 'nodemailer/lib/mailer';
 
 @Injectable()
 export class EmailNotificationService implements INotificationProvider {
   private readonly logger = new Logger(EmailNotificationService.name);
-  private transporter: nodemailer.Transporter;
+  private transporter!: nodemailer.Transporter;
 
   constructor(
     @InjectModel(NotificationPreference.name)
     private readonly preferencesModel: Model<NotificationPreference>,
     private readonly configService: ConfigService,
   ) {
+    void this.preferencesModel;
     this.initializeTransporter();
   }
 
@@ -43,14 +47,17 @@ export class EmailNotificationService implements INotificationProvider {
     });
   }
 
-  async send(payload: NotificationPayload, target: NotificationTarget): Promise<NotificationResult> {
+  async send(
+    payload: NotificationPayload,
+    target: NotificationTarget,
+  ): Promise<NotificationResult> {
     try {
-      const emailAddress = await this.getEmailAddress(target);
+      const emailAddress = this.getEmailAddress(target);
 
       if (!emailAddress) {
         return {
           success: false,
-          error: 'No email address found for target'
+          error: 'No email address found for target',
         };
       }
 
@@ -64,31 +71,38 @@ export class EmailNotificationService implements INotificationProvider {
         metadata: {
           accepted: info.accepted,
           rejected: info.rejected,
-          response: info.response
-        }
+          response: info.response,
+        },
       };
     } catch (error) {
-      this.logger.error(`Email notification failed: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Email notification failed: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       return {
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       };
     }
   }
 
-  sendBulk(payload: NotificationPayload, targets: NotificationTarget[]): Promise<NotificationResult[]> {
+  async sendBulk(
+    payload: NotificationPayload,
+    targets: NotificationTarget[],
+  ): Promise<NotificationResult[]> {
     const emailPromises = targets.map(async (target) => {
       try {
         return await this.send(payload, target);
       } catch (error) {
         return {
           success: false,
-          error: (error as Error).message
+          error: (error as Error).message,
         };
       }
     });
 
-    return Promise.all(emailPromises);
+    const result = await Promise.all(emailPromises);
+    return result;
   }
 
   async sendTemplateEmail(
@@ -101,16 +115,16 @@ export class EmailNotificationService implements INotificationProvider {
     options?: {
       from?: string;
       replyTo?: string;
-      attachments?: any[];
-    }
+      attachments?: Mail.Attachment[];
+    },
   ): Promise<NotificationResult> {
     try {
-      const emailAddress = await this.getEmailAddress(target);
+      const emailAddress = this.getEmailAddress(target);
 
       if (!emailAddress) {
         return {
           success: false,
-          error: 'No email address found for target'
+          error: 'No email address found for target',
         };
       }
 
@@ -137,22 +151,25 @@ export class EmailNotificationService implements INotificationProvider {
         metadata: {
           accepted: info.accepted,
           rejected: info.rejected,
-          response: info.response
-        }
+          response: info.response,
+        },
       };
     } catch (error) {
-      this.logger.error(`Template email failed: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Template email failed: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       return {
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       };
     }
   }
 
-  sendTransactionalEmail(
+  async sendTransactionalEmail(
     type: 'order_confirmation' | 'pickup_reminder' | 'password_reset' | 'welcome',
-    data: Record<string, any>,
-    target: NotificationTarget
+    data: Record<string, unknown>,
+    target: NotificationTarget,
   ): Promise<NotificationResult> {
     const templates = {
       order_confirmation: {
@@ -175,21 +192,22 @@ export class EmailNotificationService implements INotificationProvider {
 
     const template = templates[type];
     if (!template) {
-      return Promise.resolve({ success: false, error: `Unknown email template type: ${type}` });
+      return { success: false, error: `Unknown email template type: ${type}` };
     }
 
-    return this.sendTemplateEmail(template, target);
+    const result = await this.sendTemplateEmail(template, target);
+    return result;
   }
 
-  private getEmailAddress(target: NotificationTarget): Promise<string | null> {
+  private getEmailAddress(target: NotificationTarget): string | null {
     if (target.userId) {
       // Get user email from user collection or preferences
       // This would typically require injecting the User model
       // For now, return a placeholder
-      return Promise.resolve(`user_${target.userId}@example.com`);
+      return `user_${target.userId}@example.com`;
     }
 
-    return Promise.resolve(null);
+    return null;
   }
 
   private buildEmailMessage(payload: NotificationPayload, emailAddress: string) {
@@ -251,53 +269,56 @@ export class EmailNotificationService implements INotificationProvider {
   }
 
   private stripHtml(html: string): string {
-    return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    return html
+      .replace(/<[^>]*>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   // Template methods - these would typically be in separate template files
-  private getOrderConfirmationTemplate(data: Record<string, any>): string {
+  private getOrderConfirmationTemplate(data: Record<string, unknown>): string {
     return `
       <h2>Order Confirmed!</h2>
-      <p>Hi ${data.userName},</p>
-      <p>Your order for "${data.offerTitle}" has been confirmed.</p>
+      <p>Hi ${data['userName']},</p>
+      <p>Your order for "${data['offerTitle']}" has been confirmed.</p>
       <p><strong>Pickup Details:</strong></p>
       <ul>
-        <li>Location: ${data.establishmentName}</li>
-        <li>Address: ${data.pickupAddress}</li>
-        <li>Time: ${data.pickupTime}</li>
-        <li>Order ID: ${data.orderId}</li>
+        <li>Location: ${data['establishmentName']}</li>
+        <li>Address: ${data['pickupAddress']}</li>
+        <li>Time: ${data['pickupTime']}</li>
+        <li>Order ID: ${data['orderId']}</li>
       </ul>
       <p>Please arrive during the specified pickup window and present your QR code.</p>
     `;
   }
 
-  private getPickupReminderTemplate(data: Record<string, any>): string {
+  private getPickupReminderTemplate(data: Record<string, unknown>): string {
     return `
       <h2>Pickup Reminder</h2>
-      <p>Hi ${data.userName},</p>
-      <p>This is a reminder that your order "${data.offerTitle}" is ready for pickup!</p>
-      <p><strong>Pickup Window:</strong> ${data.pickupTime}</p>
-      <p><strong>Location:</strong> ${data.establishmentName}, ${data.pickupAddress}</p>
+      <p>Hi ${data['userName']},</p>
+      <p>This is a reminder that your order "${data['offerTitle']}" is ready for pickup!</p>
+      <p><strong>Pickup Window:</strong> ${data['pickupTime']}</p>
+      <p><strong>Location:</strong> ${data['establishmentName']}, ${data['pickupAddress']}</p>
       <p>Don't forget to bring your QR code!</p>
     `;
   }
 
-  private getPasswordResetTemplate(data: Record<string, any>): string {
+  private getPasswordResetTemplate(data: Record<string, unknown>): string {
     return `
       <h2>Password Reset Request</h2>
-      <p>Hi ${data.userName},</p>
+      <p>Hi ${data['userName']},</p>
       <p>You requested a password reset for your Too Fresh To Waste account.</p>
       <p>Click the button below to reset your password:</p>
-      <a href="${data.resetLink}" class="button">Reset Password</a>
+      <a href="${data['resetLink']}" class="button">Reset Password</a>
       <p>This link will expire in 1 hour.</p>
       <p>If you didn't request this, you can safely ignore this email.</p>
     `;
   }
 
-  private getWelcomeTemplate(data: Record<string, any>): string {
+  private getWelcomeTemplate(data: Record<string, unknown>): string {
     return `
       <h2>Welcome to Too Fresh To Waste!</h2>
-      <p>Hi ${data.userName},</p>
+      <p>Hi ${data['userName']},</p>
       <p>Welcome to our community dedicated to reducing food waste!</p>
       <p>You can now:</p>
       <ul>
@@ -306,7 +327,7 @@ export class EmailNotificationService implements INotificationProvider {
         <li>Support local businesses</li>
       </ul>
       <p>Start exploring offers in your area!</p>
-      <a href="${data.appLink}" class="button">Start Exploring</a>
+      <a href="${data['appLink']}" class="button">Start Exploring</a>
     `;
   }
 }

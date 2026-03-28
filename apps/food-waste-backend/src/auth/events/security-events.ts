@@ -27,16 +27,18 @@ export interface SecurityEventPayload {
   severity: SecuritySeverity;
   timestamp: Date;
   ipAddress: string;
-  userAgent?: string;
-  email?: string;
-  userId?: string;
-  details: Record<string, any>;
-  metadata?: {
-    location?: string;
-    attemptCount?: number;
-    threshold?: number;
-    blockedUntil?: Date;
-  };
+  userAgent?: string | undefined;
+  email?: string | undefined;
+  userId?: string | undefined;
+  details: Record<string, unknown>;
+  metadata?:
+    | {
+        location?: string | undefined;
+        attemptCount?: number | undefined;
+        threshold?: number | undefined;
+        blockedUntil?: Date | undefined;
+      }
+    | undefined;
 }
 
 export class SecurityEvent {
@@ -44,7 +46,7 @@ export class SecurityEvent {
     public readonly type: SecurityEventType,
     public readonly severity: SecuritySeverity,
     public readonly ipAddress: string,
-    public readonly details: Record<string, any>,
+    public readonly details: Record<string, unknown>,
     public readonly email?: string,
     public readonly userId?: string,
     public readonly userAgent?: string,

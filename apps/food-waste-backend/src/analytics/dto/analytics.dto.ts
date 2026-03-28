@@ -1,3 +1,5 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsOptional,
@@ -15,8 +17,6 @@ import {
   ArrayMinSize,
   ArrayMaxSize,
 } from 'class-validator';
-import { Type} from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 // ==================== Base DTOs ====================
 
@@ -24,35 +24,35 @@ export class TimeRangeDto {
   @ApiProperty({
     description: 'Start date for the analytics period',
     example: '2024-01-01T00:00:00.000Z',
-    format: 'date-time'
+    format: 'date-time',
   })
   @IsNotEmpty()
   @IsDateString()
-  startDate: string;
+  startDate!: string;
 
   @ApiProperty({
     description: 'End date for the analytics period',
     example: '2024-12-31T23:59:59.999Z',
-    format: 'date-time'
+    format: 'date-time',
   })
   @IsNotEmpty()
   @IsDateString()
-  endDate: string;
+  endDate!: string;
 }
 
 export class DateGranularityDto {
   @ApiProperty({
     description: 'Time period granularity',
     enum: ['hour', 'day', 'week', 'month', 'quarter', 'year'],
-    example: 'day'
+    example: 'day',
   })
   @IsNotEmpty()
   @IsEnum(['hour', 'day', 'week', 'month', 'quarter', 'year'])
-  period: 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
+  period!: 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
 
   @ApiPropertyOptional({
     description: 'Timezone for date calculations',
-    example: 'UTC'
+    example: 'UTC',
   })
   @IsOptional()
   @IsString()
@@ -62,7 +62,7 @@ export class DateGranularityDto {
 export class LocationFilterDto {
   @ApiPropertyOptional({
     description: 'City name',
-    example: 'Paris'
+    example: 'Paris',
   })
   @IsOptional()
   @IsString()
@@ -70,7 +70,7 @@ export class LocationFilterDto {
 
   @ApiPropertyOptional({
     description: 'Country name',
-    example: 'France'
+    example: 'France',
   })
   @IsOptional()
   @IsString()
@@ -79,7 +79,7 @@ export class LocationFilterDto {
   @ApiPropertyOptional({
     description: 'Coordinates [longitude, latitude]',
     example: [2.3522, 48.8566],
-    type: [Number]
+    type: [Number],
   })
   @IsOptional()
   @IsArray()
@@ -92,7 +92,7 @@ export class LocationFilterDto {
     description: 'Radius in kilometers',
     example: 10,
     minimum: 0.1,
-    maximum: 100
+    maximum: 100,
   })
   @IsOptional()
   @IsNumber()
@@ -106,17 +106,17 @@ export class LocationFilterDto {
 export class AnalyticsFiltersDto {
   @ApiProperty({
     description: 'Date range for analytics',
-    type: TimeRangeDto
+    type: TimeRangeDto,
   })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => TimeRangeDto)
-  dateRange: TimeRangeDto;
+  dateRange!: TimeRangeDto;
 
   @ApiPropertyOptional({
     description: 'Filter by specific establishment IDs',
     example: ['64b1c2e5f123456789abcdef'],
-    type: [String]
+    type: [String],
   })
   @IsOptional()
   @IsArray()
@@ -126,7 +126,7 @@ export class AnalyticsFiltersDto {
   @ApiPropertyOptional({
     description: 'Filter by specific user IDs',
     example: ['64b1c2e5f123456789abcdef'],
-    type: [String]
+    type: [String],
   })
   @IsOptional()
   @IsArray()
@@ -136,7 +136,7 @@ export class AnalyticsFiltersDto {
   @ApiPropertyOptional({
     description: 'Filter by categories',
     example: ['breakfast', 'lunch', 'dinner'],
-    type: [String]
+    type: [String],
   })
   @IsOptional()
   @IsArray()
@@ -145,7 +145,7 @@ export class AnalyticsFiltersDto {
 
   @ApiPropertyOptional({
     description: 'Location filters',
-    type: [LocationFilterDto]
+    type: [LocationFilterDto],
   })
   @IsOptional()
   @IsArray()
@@ -156,7 +156,7 @@ export class AnalyticsFiltersDto {
   @ApiPropertyOptional({
     description: 'Filter by user roles',
     example: ['consumer', 'merchant'],
-    type: [String]
+    type: [String],
   })
   @IsOptional()
   @IsArray()
@@ -167,7 +167,7 @@ export class AnalyticsFiltersDto {
   @ApiPropertyOptional({
     description: 'Filter by establishment types',
     example: ['restaurant', 'bakery'],
-    type: [String]
+    type: [String],
   })
   @IsOptional()
   @IsArray()
@@ -177,7 +177,7 @@ export class AnalyticsFiltersDto {
   @ApiPropertyOptional({
     description: 'Filter by order statuses',
     example: ['completed', 'pending'],
-    type: [String]
+    type: [String],
   })
   @IsOptional()
   @IsArray()
@@ -187,7 +187,7 @@ export class AnalyticsFiltersDto {
   @ApiPropertyOptional({
     description: 'Filter by payment methods',
     example: ['card', 'apple_pay'],
-    type: [String]
+    type: [String],
   })
   @IsOptional()
   @IsArray()
@@ -196,8 +196,8 @@ export class AnalyticsFiltersDto {
 
   @ApiPropertyOptional({
     description: 'Minimum order value filter',
-    example: 5.00,
-    minimum: 0
+    example: 5.0,
+    minimum: 0,
   })
   @IsOptional()
   @IsNumber()
@@ -206,8 +206,8 @@ export class AnalyticsFiltersDto {
 
   @ApiPropertyOptional({
     description: 'Maximum order value filter',
-    example: 50.00,
-    minimum: 0
+    example: 50.0,
+    minimum: 0,
   })
   @IsOptional()
   @IsNumber()
@@ -216,12 +216,12 @@ export class AnalyticsFiltersDto {
 
   @ApiProperty({
     description: 'Date granularity for time-based analytics',
-    type: DateGranularityDto
+    type: DateGranularityDto,
   })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => DateGranularityDto)
-  granularity: DateGranularityDto;
+  granularity!: DateGranularityDto;
 }
 
 // ==================== Aggregation Options DTOs ====================
@@ -230,7 +230,7 @@ export class AggregationOptionsDto {
   @ApiPropertyOptional({
     description: 'Fields to group results by',
     example: ['establishment', 'category'],
-    type: [String]
+    type: [String],
   })
   @IsOptional()
   @IsArray()
@@ -239,7 +239,7 @@ export class AggregationOptionsDto {
 
   @ApiPropertyOptional({
     description: 'Field to sort results by',
-    example: 'revenue'
+    example: 'revenue',
   })
   @IsOptional()
   @IsString()
@@ -248,7 +248,7 @@ export class AggregationOptionsDto {
   @ApiPropertyOptional({
     description: 'Sort order',
     enum: ['asc', 'desc'],
-    example: 'desc'
+    example: 'desc',
   })
   @IsOptional()
   @IsEnum(['asc', 'desc'])
@@ -258,7 +258,7 @@ export class AggregationOptionsDto {
     description: 'Maximum number of results',
     example: 100,
     minimum: 1,
-    maximum: 1000
+    maximum: 1000,
   })
   @IsOptional()
   @IsNumber()
@@ -269,7 +269,7 @@ export class AggregationOptionsDto {
   @ApiPropertyOptional({
     description: 'Number of results to skip',
     example: 0,
-    minimum: 0
+    minimum: 0,
   })
   @IsOptional()
   @IsNumber()
@@ -278,7 +278,7 @@ export class AggregationOptionsDto {
 
   @ApiPropertyOptional({
     description: 'Include projected future values',
-    example: false
+    example: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -286,7 +286,7 @@ export class AggregationOptionsDto {
 
   @ApiPropertyOptional({
     description: 'Include period-over-period comparisons',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -298,16 +298,16 @@ export class AggregationOptionsDto {
 export class BusinessMetricsRequestDto {
   @ApiProperty({
     description: 'Analytics filters',
-    type: AnalyticsFiltersDto
+    type: AnalyticsFiltersDto,
   })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => AnalyticsFiltersDto)
-  filters: AnalyticsFiltersDto;
+  filters!: AnalyticsFiltersDto;
 
   @ApiPropertyOptional({
     description: 'Aggregation options',
-    type: AggregationOptionsDto
+    type: AggregationOptionsDto,
   })
   @IsOptional()
   @ValidateNested()
@@ -316,7 +316,7 @@ export class BusinessMetricsRequestDto {
 
   @ApiPropertyOptional({
     description: 'Include sustainability metrics',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -326,16 +326,16 @@ export class BusinessMetricsRequestDto {
 export class UserAnalyticsRequestDto {
   @ApiProperty({
     description: 'Analytics filters',
-    type: AnalyticsFiltersDto
+    type: AnalyticsFiltersDto,
   })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => AnalyticsFiltersDto)
-  filters: AnalyticsFiltersDto;
+  filters!: AnalyticsFiltersDto;
 
   @ApiPropertyOptional({
     description: 'Include demographic breakdown',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -343,7 +343,7 @@ export class UserAnalyticsRequestDto {
 
   @ApiPropertyOptional({
     description: 'Include location analytics',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -351,7 +351,7 @@ export class UserAnalyticsRequestDto {
 
   @ApiPropertyOptional({
     description: 'Include user behavior patterns',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -361,16 +361,16 @@ export class UserAnalyticsRequestDto {
 export class EstablishmentAnalyticsRequestDto {
   @ApiProperty({
     description: 'Analytics filters',
-    type: AnalyticsFiltersDto
+    type: AnalyticsFiltersDto,
   })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => AnalyticsFiltersDto)
-  filters: AnalyticsFiltersDto;
+  filters!: AnalyticsFiltersDto;
 
   @ApiPropertyOptional({
     description: 'Include performance rankings',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -380,7 +380,7 @@ export class EstablishmentAnalyticsRequestDto {
     description: 'Number of top performers to include',
     example: 10,
     minimum: 1,
-    maximum: 100
+    maximum: 100,
   })
   @IsOptional()
   @IsNumber()
@@ -392,16 +392,16 @@ export class EstablishmentAnalyticsRequestDto {
 export class SustainabilityAnalyticsRequestDto {
   @ApiProperty({
     description: 'Analytics filters',
-    type: AnalyticsFiltersDto
+    type: AnalyticsFiltersDto,
   })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => AnalyticsFiltersDto)
-  filters: AnalyticsFiltersDto;
+  filters!: AnalyticsFiltersDto;
 
   @ApiPropertyOptional({
     description: 'Include carbon footprint calculations',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -409,7 +409,7 @@ export class SustainabilityAnalyticsRequestDto {
 
   @ApiPropertyOptional({
     description: 'Include water impact calculations',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -417,7 +417,7 @@ export class SustainabilityAnalyticsRequestDto {
 
   @ApiPropertyOptional({
     description: 'Include establishment impact rankings',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -427,28 +427,28 @@ export class SustainabilityAnalyticsRequestDto {
 export class PredictiveAnalyticsRequestDto {
   @ApiProperty({
     description: 'Analytics filters',
-    type: AnalyticsFiltersDto
+    type: AnalyticsFiltersDto,
   })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => AnalyticsFiltersDto)
-  filters: AnalyticsFiltersDto;
+  filters!: AnalyticsFiltersDto;
 
   @ApiProperty({
     description: 'Prediction horizon in days',
     example: 30,
     minimum: 1,
-    maximum: 365
+    maximum: 365,
   })
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
   @Max(365)
-  predictionHorizonDays: number;
+  predictionHorizonDays!: number;
 
   @ApiPropertyOptional({
     description: 'Include demand forecasting',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -456,7 +456,7 @@ export class PredictiveAnalyticsRequestDto {
 
   @ApiPropertyOptional({
     description: 'Include churn prediction',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -466,7 +466,7 @@ export class PredictiveAnalyticsRequestDto {
     description: 'Confidence level for predictions',
     example: 0.95,
     minimum: 0.5,
-    maximum: 0.99
+    maximum: 0.99,
   })
   @IsOptional()
   @IsNumber()
@@ -480,189 +480,221 @@ export class PredictiveAnalyticsRequestDto {
 export class WidgetVisualizationDto {
   @ApiPropertyOptional({
     description: 'Chart type',
-    enum: ['line', 'bar', 'pie', 'donut', 'area', 'scatter', 'stacked_bar', 'radial_bar', 'heatmap'],
-    example: 'line'
+    enum: [
+      'line',
+      'bar',
+      'pie',
+      'donut',
+      'area',
+      'scatter',
+      'stacked_bar',
+      'radial_bar',
+      'heatmap',
+    ],
+    example: 'line',
   })
   @IsOptional()
-  @IsEnum(['line', 'bar', 'pie', 'donut', 'area', 'scatter', 'stacked_bar', 'radial_bar', 'heatmap'])
-  chartType?: 'line' | 'bar' | 'pie' | 'donut' | 'area' | 'scatter' | 'stacked_bar' | 'radial_bar' | 'heatmap';
+  @IsEnum([
+    'line',
+    'bar',
+    'pie',
+    'donut',
+    'area',
+    'scatter',
+    'stacked_bar',
+    'radial_bar',
+    'heatmap',
+  ])
+  chartType?:
+    | 'line'
+    | 'bar'
+    | 'pie'
+    | 'donut'
+    | 'area'
+    | 'scatter'
+    | 'stacked_bar'
+    | 'radial_bar'
+    | 'heatmap'
+    | undefined;
 
   @ApiPropertyOptional({
     description: 'X-axis field',
-    example: 'date'
+    example: 'date',
   })
   @IsOptional()
   @IsString()
-  xAxis?: string;
+  xAxis?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Y-axis field(s) - can be single field or array for multi-axis charts',
     example: 'revenue',
     oneOf: [
       { type: 'string', example: 'revenue' },
-      { type: 'array', items: { type: 'string' }, example: ['revenue', 'orders'] }
-    ]
+      { type: 'array', items: { type: 'string' }, example: ['revenue', 'orders'] },
+    ],
   })
   @IsOptional()
-  yAxis?: string | string[];
+  yAxis?: string | string[] | undefined;
 
   @ApiPropertyOptional({
     description: 'Color scheme',
-    example: ['#3B82F6', '#EF4444', '#10B981']
+    example: ['#3B82F6', '#EF4444', '#10B981'],
   })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  colorScheme?: string[];
+  colorScheme?: string[] | undefined;
 
   @ApiPropertyOptional({
     description: 'Field to color by (for scatter plots and other charts)',
-    example: 'category'
+    example: 'category',
   })
   @IsOptional()
   @IsString()
-  colorBy?: string;
+  colorBy?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Field for pie/donut charts',
-    example: 'payment_method'
+    example: 'payment_method',
   })
   @IsOptional()
   @IsString()
-  field?: string;
+  field?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Value field for heatmaps',
-    example: 'order_count'
+    example: 'order_count',
   })
   @IsOptional()
   @IsString()
-  value?: string;
+  value?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Metrics array for radial bar charts',
-    example: ['metric1', 'metric2', 'metric3']
+    example: ['metric1', 'metric2', 'metric3'],
   })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  metrics?: string[];
+  metrics?: string[] | undefined;
 
   @ApiPropertyOptional({
     description: 'Table columns configuration',
-    example: ['name', 'value', 'change']
+    example: ['name', 'value', 'change'],
   })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  columns?: string[];
+  columns?: string[] | undefined;
 
   @ApiPropertyOptional({
     description: 'Sorting configuration for tables',
-    example: { column: 'value', direction: 'desc' }
+    example: { column: 'value', direction: 'desc' },
   })
   @IsOptional()
   @IsObject()
-  sorting?: {
-    column: string;
-    direction: 'asc' | 'desc';
-  };
+  sorting?:
+    | {
+        column: string;
+        direction: 'asc' | 'desc';
+      }
+    | undefined;
 
   @ApiPropertyOptional({
     description: 'Map type for geographic visualizations',
     enum: ['heat', 'marker', 'cluster'],
-    example: 'heat'
+    example: 'heat',
   })
   @IsOptional()
   @IsEnum(['heat', 'marker', 'cluster'])
-  mapType?: 'heat' | 'marker' | 'cluster';
+  mapType?: 'heat' | 'marker' | 'cluster' | undefined;
 
   @ApiPropertyOptional({
     description: 'Map center latitude',
-    example: 40.7128
+    example: 40.7128,
   })
   @IsOptional()
   @IsNumber()
-  centerLat?: number;
+  centerLat?: number | undefined;
 
   @ApiPropertyOptional({
     description: 'Map center longitude',
-    example: -74.0060
+    example: -74.006,
   })
   @IsOptional()
   @IsNumber()
-  centerLng?: number;
+  centerLng?: number | undefined;
 
   @ApiPropertyOptional({
     description: 'Map zoom level',
     example: 10,
     minimum: 1,
-    maximum: 20
+    maximum: 20,
   })
   @IsOptional()
   @IsNumber()
   @Min(1)
   @Max(20)
-  zoom?: number;
+  zoom?: number | undefined;
 
   @ApiPropertyOptional({
-    description: 'Additional display options'
+    description: 'Additional display options',
   })
   @IsOptional()
   @IsObject()
-  displayOptions?: Record<string, string | number | boolean>;
+  displayOptions?: Record<string, string | number | boolean> | undefined;
 }
 
 export class WidgetPositionDto {
   @ApiProperty({
     description: 'Row position',
     example: 1,
-    minimum: 1
+    minimum: 1,
   })
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
-  row: number;
+  row!: number;
 
   @ApiProperty({
     description: 'Column position',
     example: 1,
-    minimum: 1
+    minimum: 1,
   })
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
-  column: number;
+  column!: number;
 
   @ApiProperty({
     description: 'Widget width',
     example: 2,
     minimum: 1,
-    maximum: 12
+    maximum: 12,
   })
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
   @Max(12)
-  width: number;
+  width!: number;
 
   @ApiProperty({
     description: 'Widget height',
     example: 1,
     minimum: 1,
-    maximum: 6
+    maximum: 6,
   })
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
   @Max(6)
-  height: number;
+  height!: number;
 }
 
 export class CreateWidgetDto {
   @ApiPropertyOptional({
     description: 'Widget ID (for updates)',
-    example: '64b1c2e5f123456789abcdef'
+    example: '64b1c2e5f123456789abcdef',
   })
   @IsOptional()
   @IsString()
@@ -671,23 +703,23 @@ export class CreateWidgetDto {
   @ApiProperty({
     description: 'Widget type',
     enum: ['metric', 'chart', 'table', 'map', 'heatmap'],
-    example: 'chart'
+    example: 'chart',
   })
   @IsNotEmpty()
   @IsEnum(['metric', 'chart', 'table', 'map', 'heatmap'])
-  type: 'metric' | 'chart' | 'table' | 'map' | 'heatmap';
+  type!: 'metric' | 'chart' | 'table' | 'map' | 'heatmap';
 
   @ApiProperty({
     description: 'Widget title',
-    example: 'Revenue Trend'
+    example: 'Revenue Trend',
   })
   @IsNotEmpty()
   @IsString()
-  title: string;
+  title!: string;
 
   @ApiPropertyOptional({
     description: 'Widget description',
-    example: 'Monthly revenue trend over the selected period'
+    example: 'Monthly revenue trend over the selected period',
   })
   @IsOptional()
   @IsString()
@@ -695,35 +727,35 @@ export class CreateWidgetDto {
 
   @ApiProperty({
     description: 'Data source identifier',
-    example: 'revenue_analytics'
+    example: 'revenue_analytics',
   })
   @IsNotEmpty()
   @IsString()
-  dataSource: string;
+  dataSource!: string;
 
   @ApiProperty({
     description: 'Visualization configuration',
-    type: WidgetVisualizationDto
+    type: WidgetVisualizationDto,
   })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => WidgetVisualizationDto)
-  visualization: WidgetVisualizationDto;
+  visualization!: WidgetVisualizationDto;
 
   @ApiProperty({
     description: 'Widget filters - flexible filters to support various widget types',
     type: 'object',
     additionalProperties: true,
-    example: {}
+    example: {},
   })
   @IsObject()
-  filters: Record<string, string | number | boolean | string[] | number[]>;
+  filters!: Record<string, string | number | boolean | string[] | number[]>;
 
   @ApiPropertyOptional({
     description: 'Refresh interval in minutes',
     example: 15,
     minimum: 1,
-    maximum: 1440
+    maximum: 1440,
   })
   @IsOptional()
   @IsNumber()
@@ -733,48 +765,48 @@ export class CreateWidgetDto {
 
   @ApiProperty({
     description: 'Widget position and size',
-    type: WidgetPositionDto
+    type: WidgetPositionDto,
   })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => WidgetPositionDto)
-  position: WidgetPositionDto;
+  position!: WidgetPositionDto;
 }
 
 export class DashboardPermissionsDto {
   @ApiProperty({
     description: 'Roles that can view this dashboard',
     example: ['admin', 'merchant'],
-    type: [String]
+    type: [String],
   })
   @IsNotEmpty()
   @IsArray()
   @IsString({ each: true })
-  viewRoles: string[];
+  viewRoles!: string[];
 
   @ApiProperty({
     description: 'Roles that can edit this dashboard',
     example: ['admin'],
-    type: [String]
+    type: [String],
   })
   @IsNotEmpty()
   @IsArray()
   @IsString({ each: true })
-  editRoles: string[];
+  editRoles!: string[];
 }
 
 export class CreateDashboardDto {
   @ApiProperty({
     description: 'Dashboard name',
-    example: 'Business Overview'
+    example: 'Business Overview',
   })
   @IsNotEmpty()
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({
     description: 'Dashboard description',
-    example: 'Key business metrics and trends'
+    example: 'Key business metrics and trends',
   })
   @IsOptional()
   @IsString()
@@ -783,25 +815,25 @@ export class CreateDashboardDto {
   @ApiProperty({
     description: 'Dashboard category',
     enum: ['business', 'operations', 'sustainability', 'customer', 'financial'],
-    example: 'business'
+    example: 'business',
   })
   @IsNotEmpty()
   @IsEnum(['business', 'operations', 'sustainability', 'customer', 'financial'])
-  category: 'business' | 'operations' | 'sustainability' | 'customer' | 'financial';
+  category!: 'business' | 'operations' | 'sustainability' | 'customer' | 'financial';
 
   @ApiProperty({
     description: 'Dashboard widgets',
-    type: [CreateWidgetDto]
+    type: [CreateWidgetDto],
   })
   @IsNotEmpty()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateWidgetDto)
-  widgets: CreateWidgetDto[];
+  widgets!: CreateWidgetDto[];
 
   @ApiPropertyOptional({
     description: 'Set as default dashboard',
-    example: false
+    example: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -809,12 +841,12 @@ export class CreateDashboardDto {
 
   @ApiPropertyOptional({
     description: 'Dashboard permissions',
-    type: DashboardPermissionsDto
+    type: DashboardPermissionsDto,
   })
   @IsOptional()
   @ValidateNested()
   @Type(() => DashboardPermissionsDto)
-  permissions?: DashboardPermissionsDto;
+  permissions?: DashboardPermissionsDto | undefined;
 }
 
 // ==================== Export DTOs ====================
@@ -823,15 +855,15 @@ export class ExportOptionsDto {
   @ApiProperty({
     description: 'Export format',
     enum: ['pdf', 'excel', 'csv', 'json'],
-    example: 'excel'
+    example: 'excel',
   })
   @IsNotEmpty()
   @IsEnum(['pdf', 'excel', 'csv', 'json'])
-  format: 'pdf' | 'excel' | 'csv' | 'json';
+  format!: 'pdf' | 'excel' | 'csv' | 'json';
 
   @ApiPropertyOptional({
     description: 'Include charts in export',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -839,7 +871,7 @@ export class ExportOptionsDto {
 
   @ApiPropertyOptional({
     description: 'Include raw data in export',
-    example: false
+    example: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -847,7 +879,7 @@ export class ExportOptionsDto {
 
   @ApiPropertyOptional({
     description: 'Date format for export',
-    example: 'YYYY-MM-DD'
+    example: 'YYYY-MM-DD',
   })
   @IsOptional()
   @IsString()
@@ -855,7 +887,7 @@ export class ExportOptionsDto {
 
   @ApiPropertyOptional({
     description: 'Currency for monetary values',
-    example: 'EUR'
+    example: 'EUR',
   })
   @IsOptional()
   @IsString()
@@ -863,7 +895,7 @@ export class ExportOptionsDto {
 
   @ApiPropertyOptional({
     description: 'Language for export',
-    example: 'en'
+    example: 'en',
   })
   @IsOptional()
   @IsString()
@@ -874,30 +906,30 @@ export class ExportRequestDto {
   @ApiProperty({
     description: 'Analytics sections to include',
     example: ['business_metrics', 'user_analytics', 'sustainability'],
-    type: [String]
+    type: [String],
   })
   @IsNotEmpty()
   @IsArray()
   @IsString({ each: true })
-  sections: string[];
+  sections!: string[];
 
   @ApiProperty({
     description: 'Analytics filters',
-    type: AnalyticsFiltersDto
+    type: AnalyticsFiltersDto,
   })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => AnalyticsFiltersDto)
-  filters: AnalyticsFiltersDto;
+  filters!: AnalyticsFiltersDto;
 
   @ApiProperty({
     description: 'Export options',
-    type: ExportOptionsDto
+    type: ExportOptionsDto,
   })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => ExportOptionsDto)
-  options: ExportOptionsDto;
+  options!: ExportOptionsDto;
 }
 
 // ==================== Alert Configuration DTOs ====================
@@ -905,64 +937,64 @@ export class ExportRequestDto {
 export class CreateAlertRuleDto {
   @ApiProperty({
     description: 'Alert rule name',
-    example: 'High Order Volume Alert'
+    example: 'High Order Volume Alert',
   })
   @IsNotEmpty()
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiProperty({
     description: 'Alert rule description',
-    example: 'Triggers when order volume exceeds threshold'
+    example: 'Triggers when order volume exceeds threshold',
   })
   @IsNotEmpty()
   @IsString()
-  description: string;
+  description!: string;
 
   @ApiProperty({
     description: 'Metric to monitor',
-    example: 'orders_per_hour'
+    example: 'orders_per_hour',
   })
   @IsNotEmpty()
   @IsString()
-  metric: string;
+  metric!: string;
 
   @ApiProperty({
     description: 'Alert condition',
     enum: ['greater_than', 'less_than', 'equals', 'percent_change'],
-    example: 'greater_than'
+    example: 'greater_than',
   })
   @IsNotEmpty()
   @IsEnum(['greater_than', 'less_than', 'equals', 'percent_change'])
-  condition: 'greater_than' | 'less_than' | 'equals' | 'percent_change';
+  condition!: 'greater_than' | 'less_than' | 'equals' | 'percent_change';
 
   @ApiProperty({
     description: 'Alert threshold value',
-    example: 100
+    example: 100,
   })
   @IsNotEmpty()
   @IsNumber()
-  threshold: number;
+  threshold!: number;
 
   @ApiProperty({
     description: 'Time window in minutes',
     example: 60,
     minimum: 1,
-    maximum: 1440
+    maximum: 1440,
   })
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
   @Max(1440)
-  timeWindow: number;
+  timeWindow!: number;
 
   @ApiProperty({
     description: 'Notification channels',
     example: ['email', 'webhook'],
-    type: [String]
+    type: [String],
   })
   @IsNotEmpty()
   @IsArray()
   @IsString({ each: true })
-  notificationChannels: string[];
+  notificationChannels!: string[];
 }

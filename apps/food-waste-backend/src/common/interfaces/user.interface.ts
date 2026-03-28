@@ -6,19 +6,19 @@ export interface IUser {
   readonly email: string;
   readonly firstName: string;
   readonly lastName: string;
-  readonly phone?: string;
+  readonly phone?: string | undefined;
   readonly role: UserRole;
   readonly status: UserStatus;
   readonly emailVerified: boolean;
   readonly phoneVerified: boolean;
-  readonly avatar?: string;
+  readonly avatar?: string | undefined;
   readonly preferences: IUserPreferences;
-  readonly address?: IUserAddress;
+  readonly address?: IUserAddress | undefined;
   readonly loyaltyPoints: number;
   readonly totalOrders: number;
   readonly totalSpent: number;
-  readonly averageRating?: number;
-  readonly lastLoginAt?: Date;
+  readonly averageRating?: number | undefined;
+  readonly lastLoginAt?: Date | undefined;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -51,9 +51,9 @@ export interface IDietaryPreferences {
 }
 
 export interface IDeliveryPreferences {
-  readonly defaultAddress?: string;
+  readonly defaultAddress?: string | undefined;
   readonly preferredTimeSlots: string[];
-  readonly instructions?: string;
+  readonly instructions?: string | undefined;
 }
 
 export interface IUserAddress {
@@ -63,10 +63,12 @@ export interface IUserAddress {
   readonly postalCode: string;
   readonly country: string;
   readonly isDefault: boolean;
-  readonly coordinates?: {
-    readonly latitude: number;
-    readonly longitude: number;
-  };
+  readonly coordinates?:
+    | {
+        readonly latitude: number;
+        readonly longitude: number;
+      }
+    | undefined;
 }
 
 // UserRole and UserStatus enums are now imported from '../enums/user.enum'

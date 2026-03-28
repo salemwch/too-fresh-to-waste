@@ -9,11 +9,12 @@
  * @module donations/listeners
  */
 
+import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { plainToClass } from 'class-transformer';
 import { Types } from 'mongoose';
+
 import { OrderCompletedEvent } from '../../common/events';
 import { DonationsService } from '../donations.service';
 
@@ -56,10 +57,7 @@ export class OrderEventsListener {
       await this.processOrderDonation(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process order.completed event for donations`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process order.completed event for donations`, error);
       return new Nack(true); // Requeue for retry
     }
   }
@@ -84,14 +82,12 @@ export class OrderEventsListener {
           },
         });
 
-        this.logger.log(
-          `Created donation of ${donationAmount} TND for order ${event.orderId}`,
-        );
+        this.logger.log(`Created donation of ${donationAmount} TND for order ${event.orderId}`);
       }
     } catch (error) {
       this.logger.error(
-        `Failed to process order.completed event for donations ${event.orderId}: ${error.message}`,
-        error.stack,
+        `Failed to process order.completed event for donations ${event.orderId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // Don't throw - event listeners should not break the flow
     }

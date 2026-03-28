@@ -1,5 +1,3 @@
-
-
 import {
   Controller,
   Post,
@@ -13,21 +11,17 @@ import {
   HttpException,
   Ip,
   Headers,
-  Res
+  Res,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiBody
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { createObjectCsvStringifier } from 'csv-writer';
 import { Response } from 'express';
+import { Builder } from 'xml2js';
+
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
+import { AuthUser } from '../../common/decorators/get-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { UserRole } from '../schemas/user.schema';
-import { PrivacyComplianceService } from '../services/privacy-compliance.service';
 import {
   TunisianPrivacyConsentDto,
   InternationalPrivacyConsentDto,
@@ -36,10 +30,14 @@ import {
   DataDeletionRequestDto,
   ConsentWithdrawalDto,
 } from '../DTO/privacy-consent.dto';
-import { IUserDataExport, ISystemComplianceOverview, IAnonymizationResult } from '../interfaces/privacy-consent.interface';
-import { AuthUser } from '../../common/decorators/get-user.decorator';
-import { Builder } from 'xml2js';
-import { createObjectCsvStringifier } from 'csv-writer';
+import {
+  IUserDataExport,
+  ISystemComplianceOverview,
+  IAnonymizationResult,
+} from '../interfaces/privacy-consent.interface';
+import { UserRole } from '../schemas/user.schema';
+import { PrivacyComplianceService } from '../services/privacy-compliance.service';
+// @ts-expect-error no types available for xml2js
 
 interface AuthenticatedRequest {
   user: AuthUser;
@@ -68,20 +66,19 @@ interface DataDeletionResponse {
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class PrivacyController {
-  constructor(
-    private readonly privacyService: PrivacyComplianceService
-  ) {}
+  constructor(private readonly privacyService: PrivacyComplianceService) {}
 
   // 🇹🇳 TUNISIA COMPLIANCE ENDPOINTS
 
   @Post('consent/tunisia')
   @ApiOperation({
     summary: '🇹🇳 Record Tunisian Privacy Consent',
-    description: 'Record user consent according to Tunisia Law No. 2004-63 on Personal Data Protection'
+    description:
+      'Record user consent according to Tunisia Law No. 2004-63 on Personal Data Protection',
   })
   @ApiResponse({
     status: 201,
-    description: 'Consent recorded successfully in compliance with Tunisia Law'
+    description: 'Consent recorded successfully in compliance with Tunisia Law',
   })
   @ApiResponse({ status: 400, description: 'Invalid consent data' })
   @ApiBody({ type: TunisianPrivacyConsentDto })
@@ -89,29 +86,29 @@ export class PrivacyController {
     @Request() req: AuthenticatedRequest,
     @Body() consentData: TunisianPrivacyConsentDto,
     @Ip() ipAddress: string,
-    @Headers('user-agent') userAgent: string = 'Unknown'
+    @Headers('user-agent') userAgent: string = 'Unknown',
   ): Promise<{ message: string; compliance: string; timestamp: Date }> {
     try {
       await this.privacyService.recordTunisianConsent(
         req.user.userId,
         consentData,
         ipAddress,
-        userAgent
+        userAgent,
       );
 
       return {
         message: '🇹🇳 Consent recorded successfully under Tunisia Law No. 2004-63',
         compliance: 'Tunisia Personal Data Protection Law',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new HttpException(
         {
           message: 'Failed to record consent',
           error: (error as Error).message,
-          compliance: 'Tunisia Law No. 2004-63'
+          compliance: 'Tunisia Law No. 2004-63',
         },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
@@ -119,11 +116,11 @@ export class PrivacyController {
   @Get('compliance/tunisia')
   @ApiOperation({
     summary: '🇹🇳 Check Tunisia Law Compliance',
-    description: 'Validate user compliance with Tunisia Law No. 2004-63'
+    description: 'Validate user compliance with Tunisia Law No. 2004-63',
   })
   @ApiResponse({
     status: 200,
-    description: 'Compliance status retrieved successfully'
+    description: 'Compliance status retrieved successfully',
   })
   async checkTunisianCompliance(@Request() req: AuthenticatedRequest): Promise<{
     compliant: boolean;
@@ -132,19 +129,20 @@ export class PrivacyController {
     recommendations: string[];
   }> {
     try {
-      const complianceResult: TunisianComplianceResponse = await this.privacyService.validateTunisianCompliance(req.user.userId);
+      const complianceResult: TunisianComplianceResponse =
+        await this.privacyService.validateTunisianCompliance(req.user.userId);
 
       return {
         ...complianceResult,
-        law: '🇹🇳 Tunisia Law No. 2004-63 on Personal Data Protection'
+        law: '🇹🇳 Tunisia Law No. 2004-63 on Personal Data Protection',
       };
     } catch (error) {
       throw new HttpException(
         {
           message: 'Failed to check compliance',
-          error: (error as Error).message
+          error: (error as Error).message,
         },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -154,18 +152,18 @@ export class PrivacyController {
   @Post('consent/international')
   @ApiOperation({
     summary: '🌍 Record International Privacy Consent',
-    description: 'Record user consent under GDPR, CCPA and other international privacy laws'
+    description: 'Record user consent under GDPR, CCPA and other international privacy laws',
   })
   @ApiResponse({
     status: 201,
-    description: 'International consent recorded successfully'
+    description: 'International consent recorded successfully',
   })
   @ApiBody({ type: InternationalPrivacyConsentDto })
   async recordInternationalConsent(
     @Request() req: AuthenticatedRequest,
     @Body() consentData: InternationalPrivacyConsentDto,
     @Ip() ipAddress: string,
-    @Headers('user-agent') userAgent: string = 'Unknown'
+    @Headers('user-agent') userAgent: string = 'Unknown',
   ): Promise<{
     message: string;
     compliance: string[];
@@ -176,7 +174,7 @@ export class PrivacyController {
         req.user.userId,
         consentData,
         ipAddress,
-        userAgent
+        userAgent,
       );
 
       return {
@@ -184,17 +182,17 @@ export class PrivacyController {
         compliance: [
           '🇹🇳 Tunisia Law No. 2004-63',
           '🇪🇺 GDPR (General Data Protection Regulation)',
-          '🇺🇸 CCPA (California Consumer Privacy Act)'
+          '🇺🇸 CCPA (California Consumer Privacy Act)',
         ],
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new HttpException(
         {
           message: 'Failed to record international consent',
-          error: (error as Error).message
+          error: (error as Error).message,
         },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
@@ -202,7 +200,7 @@ export class PrivacyController {
   @Patch('settings')
   @ApiOperation({
     summary: '🇹🇳🌍 Update Privacy Settings',
-    description: 'Update privacy settings for both Tunisia and international compliance'
+    description: 'Update privacy settings for both Tunisia and international compliance',
   })
   @ApiResponse({ status: 200, description: 'Privacy settings updated successfully' })
   @ApiBody({ type: UpdatePrivacySettingsDto })
@@ -210,7 +208,7 @@ export class PrivacyController {
     @Request() req: AuthenticatedRequest,
     @Body() updateData: UpdatePrivacySettingsDto,
     @Ip() ipAddress: string,
-    @Headers('user-agent') userAgent: string = 'Unknown'
+    @Headers('user-agent') userAgent: string = 'Unknown',
   ): Promise<{ message: string; updated: string[] }> {
     try {
       const updated: string[] = [];
@@ -220,7 +218,7 @@ export class PrivacyController {
           req.user.userId,
           updateData.tunisianCompliance,
           ipAddress,
-          userAgent
+          userAgent,
         );
         updated.push('🇹🇳 Tunisia compliance');
       }
@@ -230,22 +228,22 @@ export class PrivacyController {
           req.user.userId,
           updateData.internationalCompliance,
           ipAddress,
-          userAgent
+          userAgent,
         );
         updated.push('🌍 International compliance');
       }
 
       return {
         message: 'Privacy settings updated successfully',
-        updated
+        updated,
       };
     } catch (error) {
       throw new HttpException(
         {
           message: 'Failed to update privacy settings',
-          error: (error as Error).message
+          error: (error as Error).message,
         },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
@@ -255,13 +253,13 @@ export class PrivacyController {
   @Post('consent/withdraw')
   @ApiOperation({
     summary: '🔄 Withdraw Consent',
-    description: 'Withdraw specific consent (GDPR Article 7(3), Tunisia Law Article 13)'
+    description: 'Withdraw specific consent (GDPR Article 7(3), Tunisia Law Article 13)',
   })
   @ApiResponse({ status: 200, description: 'Consent withdrawn successfully' })
   @ApiBody({ type: ConsentWithdrawalDto })
   async withdrawConsent(
     @Request() req: AuthenticatedRequest,
-    @Body() withdrawalData: ConsentWithdrawalDto
+    @Body() withdrawalData: ConsentWithdrawalDto,
   ): Promise<ConsentWithdrawalResponse> {
     try {
       await this.privacyService.withdrawConsent(req.user.userId, withdrawalData);
@@ -270,16 +268,16 @@ export class PrivacyController {
         message: 'Consent withdrawn successfully',
         legalBasis: [
           '🇹🇳 Tunisia Law No. 2004-63 Article 13 - Right to withdraw consent',
-          '🌍 GDPR Article 7(3) - Right to withdraw consent at any time'
-        ]
+          '🌍 GDPR Article 7(3) - Right to withdraw consent at any time',
+        ],
       };
     } catch (error) {
       throw new HttpException(
         {
           message: 'Failed to withdraw consent',
-          error: (error as Error).message
+          error: (error as Error).message,
         },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
@@ -287,12 +285,13 @@ export class PrivacyController {
   @Post('data/export')
   @ApiOperation({
     summary: '📤 Export Personal Data',
-    description: 'Export all personal data (GDPR Article 20 - Data Portability, Tunisia Law Article 15)'
+    description:
+      'Export all personal data (GDPR Article 20 - Data Portability, Tunisia Law Article 15)',
   })
   @ApiResponse({
     status: 200,
     description: 'Data export completed successfully',
-    type: 'file'
+    type: 'file',
   })
   @ApiBody({ type: DataExportRequestDto })
   async exportData(
@@ -307,7 +306,7 @@ export class PrivacyController {
         req.user.userId,
         exportRequest,
         ipAddress,
-        userAgent
+        userAgent,
       );
 
       const filename = `data-export-${req.user.userId}-${new Date().toISOString().split('T')[0]}.${exportRequest.format}`;
@@ -329,9 +328,9 @@ export class PrivacyController {
       throw new HttpException(
         {
           message: 'Failed to export data',
-          error: (error as Error).message
+          error: (error as Error).message,
         },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -339,7 +338,8 @@ export class PrivacyController {
   @Delete('data/delete')
   @ApiOperation({
     summary: '🗑️ Request Data Deletion',
-    description: 'Request account deletion or anonymization (GDPR Article 17 - Right to be Forgotten)'
+    description:
+      'Request account deletion or anonymization (GDPR Article 17 - Right to be Forgotten)',
   })
   @ApiResponse({ status: 200, description: 'Data deletion request processed successfully' })
   @ApiBody({ type: DataDeletionRequestDto })
@@ -347,29 +347,29 @@ export class PrivacyController {
     @Request() req: AuthenticatedRequest,
     @Body() deletionRequest: DataDeletionRequestDto,
     @Ip() ipAddress: string,
-    @Headers('user-agent') userAgent: string = 'Unknown'
+    @Headers('user-agent') userAgent: string = 'Unknown',
   ): Promise<DataDeletionResponse> {
     try {
       const deletionResult: IAnonymizationResult = await this.privacyService.processDataDeletion(
         req.user.userId,
         deletionRequest,
         ipAddress,
-        userAgent
+        userAgent,
       );
 
       return {
         message: 'Data deletion request processed successfully',
         deletionResult,
         legalBasis: '🇹🇳 Tunisia Law No. 2004-63 + 🌍 GDPR Article 17 - Right to be Forgotten',
-        processingTime: deletionRequest.immediateProcessing ? 'Immediate' : 'Within 30 days'
+        processingTime: deletionRequest.immediateProcessing ? 'Immediate' : 'Within 30 days',
       };
     } catch (error) {
       throw new HttpException(
         {
           message: 'Failed to process data deletion',
-          error: (error as Error).message
+          error: (error as Error).message,
         },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
@@ -381,21 +381,22 @@ export class PrivacyController {
   @Roles(UserRole.ADMIN, UserRole.MODERATOR)
   @ApiOperation({
     summary: '👨‍💼 Admin: Privacy Compliance Overview',
-    description: 'Get overall privacy compliance statistics (Admin only)'
+    description: 'Get overall privacy compliance statistics (Admin only)',
   })
   @ApiResponse({ status: 200, description: 'Compliance overview retrieved successfully' })
   async getComplianceOverview(): Promise<ISystemComplianceOverview> {
     try {
-      const complianceOverview: ISystemComplianceOverview = await this.privacyService.getSystemComplianceOverview();
+      const complianceOverview: ISystemComplianceOverview =
+        await this.privacyService.getSystemComplianceOverview();
 
       return complianceOverview;
     } catch (error) {
       throw new HttpException(
         {
           message: 'Failed to retrieve compliance overview',
-          error: (error as Error).message
+          error: (error as Error).message,
         },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -404,10 +405,14 @@ export class PrivacyController {
 
   private getContentType(format: string): string {
     switch (format) {
-      case 'json': return 'application/json';
-      case 'csv': return 'text/csv';
-      case 'xml': return 'application/xml';
-      default: return 'application/octet-stream';
+      case 'json':
+        return 'application/json';
+      case 'csv':
+        return 'text/csv';
+      case 'xml':
+        return 'application/xml';
+      default:
+        return 'application/octet-stream';
     }
   }
 
@@ -440,7 +445,7 @@ export class PrivacyController {
       {
         field: 'legalBasis',
         value: data.exportMetadata.legal_notices.tunisia_law,
-      }
+      },
     );
 
     // Convert to CSV string with header

@@ -31,12 +31,12 @@ export class RegexSecurityUtil {
    * Examples: (a+)+, (a|a)+, (a*)*
    */
   private readonly REDOS_PATTERNS = [
-    /(\w\+)+/,              // Nested quantifiers (a+)+
-    /(\w\*)+/,              // Nested star quantifiers (a*)+
-    /(\w\*)\*/,             // Double stars (a*)*
-    /(\w\+)\+/,             // Double plus (a+)+
-    /(\w\{\d+,\})+/,        // Nested range quantifiers {n,}+
-    /(\w\|\w)+\+/,          // Alternation with quantifiers (a|b)+
+    /(\w\+)+/, // Nested quantifiers (a+)+
+    /(\w\*)+/, // Nested star quantifiers (a*)+
+    /(\w\*)\*/, // Double stars (a*)*
+    /(\w\+)\+/, // Double plus (a+)+
+    /(\w\{\d+,\})+/, // Nested range quantifiers {n,}+
+    /(\w\|\w)+\+/, // Alternation with quantifiers (a|b)+
   ];
 
   /**
@@ -61,7 +61,7 @@ export class RegexSecurityUtil {
     const trimmed = input.trim();
     if (trimmed.length > this.MAX_PATTERN_LENGTH) {
       this.logger.warn(
-        `Regex pattern truncated from ${trimmed.length} to ${this.MAX_PATTERN_LENGTH} characters`
+        `Regex pattern truncated from ${trimmed.length} to ${this.MAX_PATTERN_LENGTH} characters`,
       );
       return this.escapeSpecialChars(trimmed.substring(0, this.MAX_PATTERN_LENGTH));
     }
@@ -102,7 +102,7 @@ export class RegexSecurityUtil {
     // Validate the escaped pattern before returning
     if (!this.isPatternSafe(escaped)) {
       this.logger.error(
-        `Potentially dangerous regex pattern blocked: ${input.substring(0, 50)}...`
+        `Potentially dangerous regex pattern blocked: ${input.substring(0, 50)}...`,
       );
       return null;
     }
@@ -147,7 +147,7 @@ export class RegexSecurityUtil {
     const nestingDepth = this.calculateNestingDepth(pattern);
     if (nestingDepth > this.MAX_NESTING_DEPTH) {
       this.logger.warn(
-        `Pattern nesting depth (${nestingDepth}) exceeds maximum (${this.MAX_NESTING_DEPTH})`
+        `Pattern nesting depth (${nestingDepth}) exceeds maximum (${this.MAX_NESTING_DEPTH})`,
       );
       return false;
     }
@@ -204,7 +204,7 @@ export class RegexSecurityUtil {
    */
   buildMultiFieldSearch(
     searchTerm: string,
-    fields: string[]
+    fields: string[],
   ): Array<Record<string, { $regex: string; $options: string }>> {
     if (!searchTerm || !Array.isArray(fields) || fields.length === 0) {
       return [];
@@ -216,7 +216,7 @@ export class RegexSecurityUtil {
       return [];
     }
 
-    return fields.map(field => ({
+    return fields.map((field) => ({
       [field]: regexQuery,
     }));
   }
@@ -235,7 +235,9 @@ export class RegexSecurityUtil {
       new RegExp(pattern);
       return this.isPatternSafe(pattern);
     } catch (error) {
-      this.logger.error(`Invalid regex pattern: ${error.message}`);
+      this.logger.error(
+        `Invalid regex pattern: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       return false;
     }
   }

@@ -1,12 +1,15 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getModelToken } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { BadRequestException, ConflictException, Logger } from '@nestjs/common';
+import { getModelToken } from '@nestjs/mongoose';
+import { Test } from '@nestjs/testing';
 import * as argon2 from 'argon2';
 
+import { User, UserRole, UserStatus } from '../schemas/user.schema';
 import { UsersService } from '../user.service';
-import { User, UserDocument, UserRole, UserStatus } from '../schemas/user.schema';
-import { CreateUserDto } from '../DTO/create-user.dto';
+
+import type { CreateUserDto } from '../DTO/create-user.dto';
+import type { UserDocument } from '../schemas/user.schema';
+import type { TestingModule } from '@nestjs/testing';
+import type { Model } from 'mongoose';
 
 // Mock argon2 module
 jest.mock('argon2');
@@ -34,9 +37,9 @@ describe('UsersService - create method', () => {
 
   const mockHashedPassword = '$argon2id$v=19$m=65536,t=3,p=1$mockhashedpassword';
 
-  let mockSavedUser: any;
+  let mockSavedUser: Record<string, unknown>;
 
-  const createMockUser = (overrides: any = {}) => ({
+  const createMockUser = (overrides: Record<string, unknown> = {}) => ({
     _id: '507f1f77bcf86cd799439011',
     email: 'test@example.com',
     firstName: 'John',
@@ -93,7 +96,7 @@ describe('UsersService - create method', () => {
             }),
             {
               findOne: jest.fn(),
-            }
+            },
           ),
         },
         {
@@ -109,7 +112,9 @@ describe('UsersService - create method', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    userModel = module.get<Model<UserDocument>>(getModelToken(User.name)) as jest.Mocked<Model<UserDocument>>;
+    userModel = module.get<Model<UserDocument>>(getModelToken(User.name)) as jest.Mocked<
+      Model<UserDocument>
+    >;
     logger = module.get<Logger>(Logger) as jest.Mocked<Logger>;
 
     // Setup default mocks
@@ -166,7 +171,7 @@ describe('UsersService - create method', () => {
             userAgent: auditData.userAgent,
             details: { registrationMethod: 'standard' },
           }),
-        ])
+        ]),
       );
     });
 
@@ -228,18 +233,18 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Email is required and cannot be empty')
+        new BadRequestException('Email is required and cannot be empty'),
       );
     });
 
     it('should_ThrowBadRequestException_When_EmailIsUndefined', async () => {
       // Arrange
-      const createUserDto = { ...mockValidCreateUserDto };
+      const createUserDto = { ...mockValidCreateUserDto } as Partial<CreateUserDto>;
       delete createUserDto.email;
 
       // Act & Assert
-      await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Email is required and cannot be empty')
+      await expect(service.create(createUserDto as CreateUserDto)).rejects.toThrow(
+        new BadRequestException('Email is required and cannot be empty'),
       );
     });
 
@@ -249,7 +254,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Password is required and cannot be empty')
+        new BadRequestException('Password is required and cannot be empty'),
       );
     });
 
@@ -259,7 +264,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('First name is required and cannot be empty')
+        new BadRequestException('First name is required and cannot be empty'),
       );
     });
 
@@ -269,7 +274,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Last name is required and cannot be empty')
+        new BadRequestException('Last name is required and cannot be empty'),
       );
     });
 
@@ -277,11 +282,11 @@ describe('UsersService - create method', () => {
       // Arrange
       const createUserDto = { ...mockValidCreateUserDto };
       const existingUser = { email: createUserDto.email, deletedAt: null };
-      userModel.findOne.mockResolvedValue(existingUser as UserDocument);
+      userModel.findOne.mockResolvedValue(existingUser as unknown as UserDocument);
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new ConflictException('User with this email already exists')
+        new ConflictException('User with this email already exists'),
       );
     });
   });
@@ -293,7 +298,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Email is required and cannot be empty')
+        new BadRequestException('Email is required and cannot be empty'),
       );
     });
 
@@ -336,26 +341,28 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('User creation failed due to system error')
+        new BadRequestException('User creation failed due to system error'),
       );
       expect(logger.error).toHaveBeenCalledWith(
         `User creation failed for email: ${createUserDto.email}`,
-        expect.any(String)
+        expect.any(String),
       );
     });
 
     it('should_ThrowBadRequestException_When_DatabaseSaveFails', async () => {
       // Arrange
       const createUserDto = { ...mockValidCreateUserDto };
-      (mockSavedUser.save as jest.Mock).mockRejectedValue(new Error('Database save failed'));
+      (mockSavedUser as { save: jest.Mock })['save'].mockRejectedValue(
+        new Error('Database save failed'),
+      );
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('User creation failed due to system error')
+        new BadRequestException('User creation failed due to system error'),
       );
       expect(logger.error).toHaveBeenCalledWith(
         `User creation failed for email: ${createUserDto.email}`,
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -443,7 +450,7 @@ describe('UsersService - create method', () => {
       await service.create(createUserDto);
 
       // Assert
-      expect(mockSavedUser.save).toHaveBeenCalledTimes(1);
+      expect((mockSavedUser as { save: jest.Mock })['save']).toHaveBeenCalledTimes(1);
     });
 
     it('should_LogSuccessMessage_When_UserCreatedSuccessfully', async () => {
@@ -478,10 +485,7 @@ describe('UsersService - create method', () => {
       const createUserDto2 = { ...mockValidCreateUserDto, email: 'user2@test.com' };
 
       // Act
-      const promises = [
-        service.create(createUserDto1),
-        service.create(createUserDto2),
-      ];
+      const promises = [service.create(createUserDto1), service.create(createUserDto2)];
       const results = await Promise.all(promises);
 
       // Assert
@@ -495,23 +499,25 @@ describe('UsersService - create method', () => {
     it('should_NotLeakSensitiveDataInErrors_When_SystemErrorOccurs', async () => {
       // Arrange
       const createUserDto = { ...mockValidCreateUserDto };
-      const sensitiveError = new Error('Database connection string: mongodb://admin:secret@localhost');
-      (mockSavedUser.save as jest.Mock).mockRejectedValue(sensitiveError);
+      const sensitiveError = new Error(
+        'Database connection string: mongodb://admin:secret@localhost',
+      );
+      (mockSavedUser as { save: jest.Mock })['save'].mockRejectedValue(sensitiveError);
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('User creation failed due to system error')
+        new BadRequestException('User creation failed due to system error'),
       );
 
       // Verify sensitive data is not exposed
-      const thrownError = await service.create(createUserDto).catch(err => err);
+      const thrownError = await service.create(createUserDto).catch((err) => err);
       expect(thrownError.message).not.toContain('secret');
       expect(thrownError.message).not.toContain('mongodb://');
     });
 
     it('should_HandleNullCreateUserDto_When_NullDataProvided', async () => {
       // Arrange
-      const createUserDto = null as any;
+      const createUserDto = null as unknown as CreateUserDto;
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(BadRequestException);
@@ -519,7 +525,7 @@ describe('UsersService - create method', () => {
 
     it('should_HandleUndefinedCreateUserDto_When_UndefinedDataProvided', async () => {
       // Arrange
-      const createUserDto = undefined as any;
+      const createUserDto = undefined as unknown as CreateUserDto;
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(BadRequestException);

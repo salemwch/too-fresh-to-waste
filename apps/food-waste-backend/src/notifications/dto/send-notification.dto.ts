@@ -1,26 +1,40 @@
-import { IsString, IsOptional, IsEnum, IsObject, IsArray, ValidateNested,  IsNumber, IsDateString } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { NotificationType,  NotificationPriority, NotificationTrigger } from '../types/notification.types';
+import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsObject,
+  IsArray,
+  ValidateNested,
+  IsNumber,
+  IsDateString,
+} from 'class-validator';
+
+import {
+  NotificationType,
+  NotificationPriority,
+  NotificationTrigger,
+} from '../types/notification.types';
 
 export class LocationTargetDto {
   @ApiProperty({ description: 'Latitude coordinate' })
   @IsNumber()
-  latitude: number;
+  latitude!: number;
 
   @ApiProperty({ description: 'Longitude coordinate' })
   @IsNumber()
-  longitude: number;
+  longitude!: number;
 
   @ApiProperty({ description: 'Search radius in kilometers' })
   @IsNumber()
-  radius: number;
+  radius!: number;
 }
 
 export class RecurringScheduleDto {
   @ApiProperty({ enum: ['daily', 'weekly', 'monthly'] })
   @IsEnum(['daily', 'weekly', 'monthly'])
-  frequency: 'daily' | 'weekly' | 'monthly';
+  frequency!: 'daily' | 'weekly' | 'monthly';
 
   @ApiPropertyOptional({ description: 'When to stop recurring (ISO date string)' })
   @IsOptional()
@@ -31,16 +45,16 @@ export class RecurringScheduleDto {
 export class NotificationPayloadDto {
   @ApiProperty({ description: 'Notification title' })
   @IsString()
-  title: string;
+  title!: string;
 
   @ApiProperty({ description: 'Notification body/message' })
   @IsString()
-  body: string;
+  body!: string;
 
   @ApiPropertyOptional({ description: 'Additional data to include with notification' })
   @IsOptional()
   @IsObject()
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 
   @ApiPropertyOptional({ description: 'Image URL for notification' })
   @IsOptional()
@@ -91,14 +105,14 @@ export class NotificationTargetDto {
     properties: {
       latitude: { type: 'number' },
       longitude: { type: 'number' },
-      radius: { type: 'number', description: 'Radius in kilometers' }
-    }
+      radius: { type: 'number', description: 'Radius in kilometers' },
+    },
   })
   @IsOptional()
   @IsObject()
   @ValidateNested()
   @Type(() => LocationTargetDto)
-  location?: any;
+  location?: LocationTargetDto;
 }
 
 export class NotificationScheduleDto {
@@ -117,34 +131,34 @@ export class NotificationScheduleDto {
     type: 'object',
     properties: {
       frequency: { type: 'string', enum: ['daily', 'weekly', 'monthly'] },
-      endDate: { type: 'string', format: 'date-time' }
-    }
+      endDate: { type: 'string', format: 'date-time' },
+    },
   })
   @IsOptional()
   @IsObject()
   @ValidateNested()
   @Type(() => RecurringScheduleDto)
-  recurring?: any;
+  recurring?: RecurringScheduleDto;
 }
 
 export class SendNotificationDto {
   @ApiProperty({ enum: NotificationType, description: 'Type of notification to send' })
   @IsEnum(NotificationType)
-  type: NotificationType;
+  type!: NotificationType;
 
   @ApiProperty({ enum: NotificationTrigger, description: 'What triggered this notification' })
   @IsEnum(NotificationTrigger)
-  trigger: NotificationTrigger;
+  trigger!: NotificationTrigger;
 
   @ApiProperty({ description: 'Target recipients', type: NotificationTargetDto })
   @ValidateNested()
   @Type(() => NotificationTargetDto)
-  target: NotificationTargetDto;
+  target!: NotificationTargetDto;
 
   @ApiProperty({ description: 'Notification content', type: NotificationPayloadDto })
   @ValidateNested()
   @Type(() => NotificationPayloadDto)
-  payload: NotificationPayloadDto;
+  payload!: NotificationPayloadDto;
 
   @ApiPropertyOptional({ enum: NotificationPriority, description: 'Notification priority' })
   @IsOptional()
@@ -165,10 +179,10 @@ export class SendNotificationDto {
   @ApiPropertyOptional({ description: 'Variables for template rendering' })
   @IsOptional()
   @IsObject()
-  templateVariables?: Record<string, any>;
+  templateVariables?: Record<string, unknown>;
 
   @ApiPropertyOptional({ description: 'Additional metadata' })
   @IsOptional()
   @IsObject()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }

@@ -1,15 +1,15 @@
-import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { Model, Types } from 'mongoose';
+
+import { LoyaltyService } from '../loyalty.service';
 import {
   LoyaltyAccount,
   LoyaltyAccountDocument,
   FriendReferralStatus,
   BusinessReferralStatus,
-  BadgeType,
 } from '../schemas/loyalty-account.schema';
-import { LoyaltyService } from '../loyalty.service';
 
 /**
  * Gamification Constants
@@ -101,15 +101,26 @@ export class GamificationService {
       return newAccount;
     } catch (error) {
       // Handle duplicate key error gracefully (race condition)
-      if (error.code === 11000) {
-        this.logger.warn(`Duplicate loyalty account creation attempt for user: ${userId} (race condition handled)`);
-        const existingAccount = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
-        return existingAccount;
+      const errorCode =
+        typeof error === 'object' && error !== null && 'code' in error
+          ? (error as { code?: number }).code
+          : undefined;
+
+      if (errorCode === 11000) {
+        this.logger.warn(
+          `Duplicate loyalty account creation attempt for user: ${userId} (race condition handled)`,
+        );
+        const existingAccount = await this.loyaltyModel.findOne({
+          userId: new Types.ObjectId(userId),
+        });
+        if (existingAccount) {
+          return existingAccount;
+        }
       }
 
       this.logger.error(
-        `Failed to create loyalty account for user ${userId}: ${error.message}`,
-        error.stack,
+        `Failed to create loyalty account for user ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw error;
     }
@@ -142,7 +153,7 @@ export class GamificationService {
       const random = Math.random().toString(36).substring(2, 6).toUpperCase();
       code = `${prefix}${random}`;
       attempts++;
-    } while (await this.loyaltyModel.exists({ referralCode: code }) && attempts < 10);
+    } while ((await this.loyaltyModel.exists({ referralCode: code })) && attempts < 10);
 
     if (attempts >= 10) {
       // Fallback to fully random
@@ -175,7 +186,8 @@ export class GamificationService {
    * Find referrer by referral code
    */
   async findReferrerByCode(code: string): Promise<LoyaltyAccountDocument | null> {
-    return this.loyaltyModel.findOne({ referralCode: code.toUpperCase() });
+    const result = await this.loyaltyModel.findOne({ referralCode: code.toUpperCase() });
+    return result;
   }
 
   // =============================================================================
@@ -196,7 +208,7 @@ export class GamificationService {
 
     // Check if this friend is already referred
     const existingReferral = referrerAccount.friendReferrals?.find(
-      r => r.friendUserId.toString() === friendUserId,
+      (r) => r.friendUserId.toString() === friendUserId,
     );
 
     if (existingReferral) {
@@ -205,7 +217,9 @@ export class GamificationService {
     }
 
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(
+      now.getTime() + GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
+    );
 
     await this.loyaltyModel.findByIdAndUpdate(referrerAccount._id, {
       $push: {
@@ -236,12 +250,18 @@ export class GamificationService {
 
     for (const referrer of referrers) {
       const referralIndex = referrer.friendReferrals.findIndex(
-        r => r.friendUserId.toString() === friendUserId && r.status === FriendReferralStatus.PENDING,
+        (r) =>
+          r.friendUserId.toString() === friendUserId && r.status === FriendReferralStatus.PENDING,
       );
 
-      if (referralIndex === -1) continue;
+      if (referralIndex === -1) {
+        continue;
+      }
 
       const referral = referrer.friendReferrals[referralIndex];
+      if (!referral) {
+        continue;
+      }
       const newBagCount = referral.friendBagCount + bagsCount;
 
       // Check if threshold reached
@@ -254,10 +274,10 @@ export class GamificationService {
         });
 
         // Update referral status
-        referrer.friendReferrals[referralIndex].friendBagCount = newBagCount;
-        referrer.friendReferrals[referralIndex].status = FriendReferralStatus.COMPLETED;
-        referrer.friendReferrals[referralIndex].completedAt = new Date();
-        referrer.friendReferrals[referralIndex].pointsAwarded = GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_POINTS;
+        referral.friendBagCount = newBagCount;
+        referral.status = FriendReferralStatus.COMPLETED;
+        referral.completedAt = new Date();
+        referral.pointsAwarded = GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_POINTS;
         referrer.friendReferralsCompleted = (referrer.friendReferralsCompleted || 0) + 1;
 
         await referrer.save();
@@ -297,7 +317,7 @@ export class GamificationService {
 
     // Check if this business is already referred
     const existingReferral = referrerAccount.businessReferrals?.find(
-      r => r.businessUserId.toString() === businessUserId,
+      (r) => r.businessUserId.toString() === businessUserId,
     );
 
     if (existingReferral) {
@@ -306,7 +326,9 @@ export class GamificationService {
     }
 
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(
+      now.getTime() + GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
+    );
 
     await this.loyaltyModel.findByIdAndUpdate(referrerAccount._id, {
       $push: {
@@ -322,7 +344,9 @@ export class GamificationService {
       },
     });
 
-    this.logger.log(`Registered business referral: ${businessUserId} referred by ${referrerUserId}`);
+    this.logger.log(
+      `Registered business referral: ${businessUserId} referred by ${referrerUserId}`,
+    );
   }
 
   /**
@@ -338,12 +362,19 @@ export class GamificationService {
 
     for (const referrer of referrers) {
       const referralIndex = referrer.businessReferrals.findIndex(
-        r => r.businessUserId.toString() === businessUserId && r.status === BusinessReferralStatus.PENDING,
+        (r) =>
+          r.businessUserId.toString() === businessUserId &&
+          r.status === BusinessReferralStatus.PENDING,
       );
 
-      if (referralIndex === -1) continue;
+      if (referralIndex === -1) {
+        continue;
+      }
 
       const referral = referrer.businessReferrals[referralIndex];
+      if (!referral) {
+        continue;
+      }
       const newOrderCount = referral.businessOrderCount + 1;
 
       // Check if threshold reached
@@ -356,10 +387,10 @@ export class GamificationService {
         });
 
         // Update referral status
-        referrer.businessReferrals[referralIndex].businessOrderCount = newOrderCount;
-        referrer.businessReferrals[referralIndex].status = BusinessReferralStatus.COMPLETED;
-        referrer.businessReferrals[referralIndex].completedAt = new Date();
-        referrer.businessReferrals[referralIndex].pointsAwarded = GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_POINTS;
+        referral.businessOrderCount = newOrderCount;
+        referral.status = BusinessReferralStatus.COMPLETED;
+        referral.completedAt = new Date();
+        referral.pointsAwarded = GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_POINTS;
         referrer.businessReferralsCompleted = (referrer.businessReferralsCompleted || 0) + 1;
 
         await referrer.save();
@@ -370,7 +401,10 @@ export class GamificationService {
       } else {
         // Just update order count
         await this.loyaltyModel.updateOne(
-          { _id: referrer._id, 'businessReferrals.businessUserId': new Types.ObjectId(businessUserId) },
+          {
+            _id: referrer._id,
+            'businessReferrals.businessUserId': new Types.ObjectId(businessUserId),
+          },
           { $set: { 'businessReferrals.$.businessOrderCount': newOrderCount } },
         );
       }
@@ -503,7 +537,9 @@ export class GamificationService {
 
     if (!updated) {
       // Atomic filter rejected → already logged in within 24h (concurrent request won)
-      this.logger.debug(`Login streak already recorded within 24h for user ${userId} (concurrent guard)`);
+      this.logger.debug(
+        `Login streak already recorded within 24h for user ${userId} (concurrent guard)`,
+      );
       return { streakDays: streak.currentStreak, pointsAwarded: 0 };
     }
 
@@ -531,7 +567,10 @@ export class GamificationService {
    * Update purchase streak when user picks up bags
    * Called from OrderService when pickup is confirmed
    */
-  async updatePurchaseStreak(userId: string, bagsCount: number): Promise<{ completed: boolean; pointsAwarded: number }> {
+  async updatePurchaseStreak(
+    userId: string,
+    bagsCount: number,
+  ): Promise<{ completed: boolean; pointsAwarded: number }> {
     const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
     if (!account) {
       return { completed: false, pointsAwarded: 0 };
@@ -539,7 +578,7 @@ export class GamificationService {
 
     const now = new Date();
     const monthStartUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-    let purchaseStreak = account.purchaseStreak || {
+    const purchaseStreak = account.purchaseStreak || {
       bagsThisPeriod: 0,
       completedThisMonth: false,
       totalStreaksCompleted: 0,
@@ -558,7 +597,10 @@ export class GamificationService {
 
     // Check if period needs reset (15 days passed)
     if (purchaseStreak.periodStartDate) {
-      const periodEnd = new Date(purchaseStreak.periodStartDate.getTime() + GAMIFICATION_CONSTANTS.PURCHASE_STREAK_DAYS * 24 * 60 * 60 * 1000);
+      const periodEnd = new Date(
+        purchaseStreak.periodStartDate.getTime() +
+          GAMIFICATION_CONSTANTS.PURCHASE_STREAK_DAYS * 24 * 60 * 60 * 1000,
+      );
       if (now > periodEnd) {
         // Period expired, reset
         purchaseStreak.bagsThisPeriod = 0;
@@ -618,13 +660,20 @@ export class GamificationService {
     }
 
     // Check if already reviewed this order
-    const reviewTracking = account.reviewTracking || { reviewedOrderIds: [], totalReviewsCount: 0, totalReviewPoints: 0 };
-    if (reviewTracking.reviewedOrderIds?.some(id => id.toString() === orderId)) {
+    const reviewTracking = account.reviewTracking || {
+      reviewedOrderIds: [],
+      totalReviewsCount: 0,
+      totalReviewPoints: 0,
+    };
+    if (reviewTracking.reviewedOrderIds?.some((id) => id.toString() === orderId)) {
       return { awarded: false, pointsAwarded: 0, reason: 'Already reviewed this order' };
     }
 
     // Check minimum word count
-    const wordCount = reviewText.trim().split(/\s+/).filter(w => w.length > 0).length;
+    const wordCount = reviewText
+      .trim()
+      .split(/\s+/)
+      .filter((w) => w.length > 0).length;
     if (wordCount < GAMIFICATION_CONSTANTS.REVIEW_MIN_WORDS) {
       return {
         awarded: false,
@@ -644,7 +693,10 @@ export class GamificationService {
     });
 
     // Update review tracking
-    reviewTracking.reviewedOrderIds = [...(reviewTracking.reviewedOrderIds || []), new Types.ObjectId(orderId)];
+    reviewTracking.reviewedOrderIds = [
+      ...(reviewTracking.reviewedOrderIds || []),
+      new Types.ObjectId(orderId),
+    ];
     reviewTracking.totalReviewsCount = (reviewTracking.totalReviewsCount || 0) + 1;
     reviewTracking.totalReviewPoints = (reviewTracking.totalReviewPoints || 0) + pointsAwarded;
 
@@ -671,22 +723,26 @@ export class GamificationService {
     return {
       referralCode: account.referralCode,
       friendReferrals: {
-        pending: account.friendReferrals?.filter(r => r.status === FriendReferralStatus.PENDING).length || 0,
+        pending:
+          account.friendReferrals?.filter((r) => r.status === FriendReferralStatus.PENDING)
+            .length || 0,
         completed: account.friendReferralsCompleted || 0,
         pendingDetails: account.friendReferrals
-          ?.filter(r => r.status === FriendReferralStatus.PENDING)
-          .map(r => ({
+          ?.filter((r) => r.status === FriendReferralStatus.PENDING)
+          .map((r) => ({
             friendBagCount: r.friendBagCount,
             bagsRequired: GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_BAGS_REQUIRED,
             expiresAt: r.expiresAt,
           })),
       },
       businessReferrals: {
-        pending: account.businessReferrals?.filter(r => r.status === BusinessReferralStatus.PENDING).length || 0,
+        pending:
+          account.businessReferrals?.filter((r) => r.status === BusinessReferralStatus.PENDING)
+            .length || 0,
         completed: account.businessReferralsCompleted || 0,
         pendingDetails: account.businessReferrals
-          ?.filter(r => r.status === BusinessReferralStatus.PENDING)
-          .map(r => ({
+          ?.filter((r) => r.status === BusinessReferralStatus.PENDING)
+          .map((r) => ({
             businessOrderCount: r.businessOrderCount,
             ordersRequired: GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_ORDERS_REQUIRED,
             expiresAt: r.expiresAt,
@@ -708,7 +764,14 @@ export class GamificationService {
         ),
         bagsRequired: GAMIFICATION_CONSTANTS.PURCHASE_STREAK_BAGS_REQUIRED,
         daysRemaining: account.purchaseStreak?.periodStartDate
-          ? Math.max(0, GAMIFICATION_CONSTANTS.PURCHASE_STREAK_DAYS - Math.floor((Date.now() - account.purchaseStreak.periodStartDate.getTime()) / (24 * 60 * 60 * 1000)))
+          ? Math.max(
+              0,
+              GAMIFICATION_CONSTANTS.PURCHASE_STREAK_DAYS -
+                Math.floor(
+                  (Date.now() - account.purchaseStreak.periodStartDate.getTime()) /
+                    (24 * 60 * 60 * 1000),
+                ),
+            )
           : GAMIFICATION_CONSTANTS.PURCHASE_STREAK_DAYS,
         completedThisMonth: account.purchaseStreak?.completedThisMonth || false,
         totalStreaksCompleted: account.purchaseStreak?.totalStreaksCompleted || 0,
@@ -740,7 +803,9 @@ export class GamificationService {
         $set: { 'friendReferrals.$[elem].status': FriendReferralStatus.EXPIRED },
       },
       {
-        arrayFilters: [{ 'elem.status': FriendReferralStatus.PENDING, 'elem.expiresAt': { $lt: now } }],
+        arrayFilters: [
+          { 'elem.status': FriendReferralStatus.PENDING, 'elem.expiresAt': { $lt: now } },
+        ],
       },
     );
 
@@ -754,7 +819,9 @@ export class GamificationService {
         $set: { 'businessReferrals.$[elem].status': BusinessReferralStatus.EXPIRED },
       },
       {
-        arrayFilters: [{ 'elem.status': BusinessReferralStatus.PENDING, 'elem.expiresAt': { $lt: now } }],
+        arrayFilters: [
+          { 'elem.status': BusinessReferralStatus.PENDING, 'elem.expiresAt': { $lt: now } },
+        ],
       },
     );
 

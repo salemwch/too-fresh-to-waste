@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException, Logger, ConflictException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, PipelineStage, FlattenMaps } from 'mongoose';
-import { EventBusService } from '../common/services/event-bus/event-bus.service';
+
 import { FavoriteAddedEvent, FavoriteRemovedEvent } from '../common/events';
-import { Favorite, FavoriteDocument, FavoriteType } from './schemas/favorite.schema';
-import { FavoriteList, FavoriteListDocument, ListVisibility, ListItem } from './schemas/favorite-list.schema';
-import { OfferPresenter } from '../offers/presenters/offer.presenter';
+import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { QueryOptimizer } from '../common/utils/query-optimization.util';
+import { EstablishmentDocument } from '../establishments/schemas/establishment.schema';
+import { OfferPresenter } from '../offers/presenters/offer.presenter';
 
 /**
  * Lean result types for Favorites documents
@@ -17,6 +17,8 @@ import { QueryOptimizer } from '../common/utils/query-optimization.util';
  */
 export type FavoriteLean = FlattenMaps<Favorite> & { _id: unknown };
 export type FavoriteListLean = FlattenMaps<FavoriteList> & { _id: unknown };
+import { OfferDocument } from '../offers/schemas/offer.schema';
+
 import {
   AddFavoriteDto,
   UpdateFavoriteDto,
@@ -33,6 +35,13 @@ import {
   RecommendationFiltersDto,
   TrendsFiltersDto,
 } from './dto/favorite.dto';
+import {
+  FavoriteList,
+  FavoriteListDocument,
+  ListVisibility,
+  ListItem,
+} from './schemas/favorite-list.schema';
+import { Favorite, FavoriteDocument, FavoriteType } from './schemas/favorite.schema';
 
 @Injectable()
 export class FavoritesService {
@@ -41,8 +50,8 @@ export class FavoritesService {
   constructor(
     @InjectModel(Favorite.name) private readonly favoriteModel: Model<FavoriteDocument>,
     @InjectModel(FavoriteList.name) private readonly favoriteListModel: Model<FavoriteListDocument>,
-    @InjectModel('Offer') private readonly offerModel: Model<any>,
-    @InjectModel('Establishment') private readonly establishmentModel: Model<any>,
+    @InjectModel('Offer') private readonly offerModel: Model<OfferDocument>,
+    @InjectModel('Establishment') private readonly establishmentModel: Model<EstablishmentDocument>,
     private readonly eventBus: EventBusService,
   ) {}
 
@@ -80,47 +89,51 @@ export class FavoritesService {
         itemId: new Types.ObjectId(addFavoriteDto.itemId),
         itemName: addFavoriteDto.itemName,
         itemImage: addFavoriteDto.itemImage,
-        preferences: addFavoriteDto.preferences ? {
-          notifications: addFavoriteDto.preferences.notifications ?? true,
-          emailAlerts: addFavoriteDto.preferences.emailAlerts ?? true,
-          pushNotifications: addFavoriteDto.preferences.pushNotifications ?? true,
-          preferredTimes: addFavoriteDto.preferences.preferredTimes ?? [],
-          preferredDays: addFavoriteDto.preferences.preferredDays ?? [],
-          maxDistance: addFavoriteDto.preferences.maxDistance ?? 5,
-        } : {
-          notifications: true,
-          emailAlerts: true,
-          pushNotifications: true,
-          preferredTimes: [],
-          preferredDays: [],
-          maxDistance: 5,
-        },
+        preferences: addFavoriteDto.preferences
+          ? {
+              notifications: addFavoriteDto.preferences.notifications ?? true,
+              emailAlerts: addFavoriteDto.preferences.emailAlerts ?? true,
+              pushNotifications: addFavoriteDto.preferences.pushNotifications ?? true,
+              preferredTimes: addFavoriteDto.preferences.preferredTimes ?? [],
+              preferredDays: addFavoriteDto.preferences.preferredDays ?? [],
+              maxDistance: addFavoriteDto.preferences.maxDistance ?? 5,
+            }
+          : {
+              notifications: true,
+              emailAlerts: true,
+              pushNotifications: true,
+              preferredTimes: [],
+              preferredDays: [],
+              maxDistance: 5,
+            },
         tags: addFavoriteDto.tags || [],
         notes: addFavoriteDto.notes,
       });
 
       const saved = await favorite.save();
-      await this.updateInteractionCount((saved._id as Types.ObjectId).toString());
+      await this.updateInteractionCount(saved._id.toString());
 
       // Emit event for offers module to update favorite count
       try {
         await this.eventBus.emit(
           'favorite.added',
-          new FavoriteAddedEvent(
-            (saved._id as Types.ObjectId).toString(),
-            userId,
-            addFavoriteDto.itemId,
-            new Date(),
-          ),
+          new FavoriteAddedEvent(saved._id.toString(), userId, addFavoriteDto.itemId, new Date()),
         );
       } catch (eventError) {
-        this.logger.error(`Failed to emit favorite.added event: ${eventError.message}`);
+        this.logger.error(
+          `Failed to emit favorite.added event: ${eventError instanceof Error ? eventError.message : 'Unknown error'}`,
+        );
       }
 
-      this.logger.log(`Favorite added: ${addFavoriteDto.type} ${addFavoriteDto.itemId} for user ${userId}`);
+      this.logger.log(
+        `Favorite added: ${addFavoriteDto.type} ${addFavoriteDto.itemId} for user ${userId}`,
+      );
       return saved;
     } catch (error) {
-      this.logger.error(`Error adding favorite: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error adding favorite: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -143,20 +156,20 @@ export class FavoritesService {
       try {
         await this.eventBus.emit(
           'favorite.removed',
-          new FavoriteRemovedEvent(
-            favoriteId,
-            userId,
-            result.itemId.toString(),
-            new Date(),
-          ),
+          new FavoriteRemovedEvent(favoriteId, userId, result.itemId.toString(), new Date()),
         );
       } catch (eventError) {
-        this.logger.error(`Failed to emit favorite.removed event: ${eventError.message}`);
+        this.logger.error(
+          `Failed to emit favorite.removed event: ${eventError instanceof Error ? eventError.message : 'Unknown error'}`,
+        );
       }
 
       this.logger.log(`Favorite removed: ${favoriteId} for user ${userId}`);
     } catch (error) {
-      this.logger.error(`Error removing favorite: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error removing favorite: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -178,12 +191,19 @@ export class FavoritesService {
 
       this.logger.log(`Favorite removed: ${type} ${itemId} for user ${userId}`);
     } catch (error) {
-      this.logger.error(`Error removing favorite by item: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error removing favorite by item: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
-  async updateFavorite(userId: string, favoriteId: string, updateDto: UpdateFavoriteDto): Promise<FavoriteDocument> {
+  async updateFavorite(
+    userId: string,
+    favoriteId: string,
+    updateDto: UpdateFavoriteDto,
+  ): Promise<FavoriteDocument> {
     try {
       const favorite = await this.favoriteModel.findOneAndUpdate(
         {
@@ -207,12 +227,18 @@ export class FavoritesService {
       this.logger.log(`Favorite updated: ${favoriteId} for user ${userId}`);
       return favorite;
     } catch (error) {
-      this.logger.error(`Error updating favorite: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error updating favorite: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
-  async getUserFavorites(userId: string, filters: FavoritesFilterDto): Promise<{
+  async getUserFavorites(
+    userId: string,
+    filters: FavoritesFilterDto,
+  ): Promise<{
     favorites: (Omit<FavoriteLean, 'itemId'> & { itemId: unknown })[];
     total: number;
     page: number;
@@ -221,7 +247,9 @@ export class FavoritesService {
     hasPrev: boolean;
   }> {
     try {
-      this.logger.log(`🔍 [getUserFavorites] START | userId: ${userId} | filters: ${JSON.stringify(filters)}`);
+      this.logger.log(
+        `🔍 [getUserFavorites] START | userId: ${userId} | filters: ${JSON.stringify(filters)}`,
+      );
 
       const query: Record<string, unknown> = {
         userId: new Types.ObjectId(userId),
@@ -229,11 +257,11 @@ export class FavoritesService {
       };
 
       if (filters.type) {
-        query.type = filters.type;
+        query['type'] = filters.type;
       }
 
       if (filters.tag) {
-        query.tags = { $in: [filters.tag] };
+        query['tags'] = { $in: [filters.tag] };
       }
 
       this.logger.log(`🔍 [getUserFavorites] Query: ${JSON.stringify(query)}`);
@@ -245,7 +273,9 @@ export class FavoritesService {
       const [favorites, total] = await Promise.all([
         this.favoriteModel
           .find(query)
-          .select('userId type itemId itemName itemImage addedAt interactionCount lastInteraction isActive tags')
+          .select(
+            'userId type itemId itemName itemImage addedAt interactionCount lastInteraction isActive tags',
+          )
           .sort(filters.sortBy || '-addedAt')
           .skip(skip)
           .limit(limit)
@@ -254,18 +284,20 @@ export class FavoritesService {
         this.favoriteModel.countDocuments(query),
       ]);
 
-      this.logger.log(`✅ [getUserFavorites] RESULT | total: ${total} | favoritesCount: ${favorites.length} | page: ${page}`);
+      this.logger.log(
+        `✅ [getUserFavorites] RESULT | total: ${total} | favoritesCount: ${favorites.length} | page: ${page}`,
+      );
 
       // Batch-fetch all referenced items via aggregate $lookup (replaces N+1 loop)
       // Before: 20 favorites × 3 queries each = 60 DB round-trips
       // After:  2 aggregates total (offers + establishments)
       const offerItemIds = favorites
-        .filter(f => f.type === FavoriteType.OFFER)
-        .map(f => new Types.ObjectId(String(f.itemId)));
+        .filter((f) => f.type === FavoriteType.OFFER)
+        .map((f) => new Types.ObjectId(String(f.itemId)));
 
       const establishmentItemIds = favorites
-        .filter(f => f.type === FavoriteType.ESTABLISHMENT)
-        .map(f => new Types.ObjectId(String(f.itemId)));
+        .filter((f) => f.type === FavoriteType.ESTABLISHMENT)
+        .map((f) => new Types.ObjectId(String(f.itemId)));
 
       const [batchedOffers, batchedEstablishments] = await Promise.all([
         offerItemIds.length > 0
@@ -298,37 +330,46 @@ export class FavoritesService {
             ])
           : [],
         establishmentItemIds.length > 0
-          ? this.establishmentModel.aggregate([
-              { $match: { _id: { $in: establishmentItemIds } } },
-            ])
+          ? this.establishmentModel.aggregate([{ $match: { _id: { $in: establishmentItemIds } } }])
           : [],
       ]);
 
       // O(1) lookup maps
       const offerMap = new Map(
-        batchedOffers.map((o: Record<string, unknown>) => [String(o._id), o]),
+        batchedOffers.map((o: Record<string, unknown>) => [String(o['_id']), o]),
       );
       const estMap = new Map(
-        batchedEstablishments.map((e: Record<string, unknown>) => [String(e._id), e]),
+        batchedEstablishments.map((e: Record<string, unknown>) => [String(e['_id']), e]),
       );
 
       // Map favorites to populated data
-      const populatedFavorites = favorites.map(favorite => {
-        let populatedItem: ReturnType<typeof OfferPresenter.toCardDto> | Record<string, unknown> | null = null;
+      const populatedFavorites = favorites.map((favorite) => {
+        let populatedItem:
+          | ReturnType<typeof OfferPresenter.toCardDto>
+          | Record<string, unknown>
+          | null = null;
 
         try {
           if (favorite.type === FavoriteType.OFFER) {
             const offer = offerMap.get(String(favorite.itemId));
             if (offer) {
-              populatedItem = OfferPresenter.toCardDto(offer as Parameters<typeof OfferPresenter.toCardDto>[0], undefined, true);
+              populatedItem = OfferPresenter.toCardDto(
+                offer as Parameters<typeof OfferPresenter.toCardDto>[0],
+                undefined,
+                true,
+              );
             } else {
-              this.logger.warn(`[getUserFavorites] Offer not found for favorite: ${String(favorite._id)}, offerId: ${String(favorite.itemId)}`);
+              this.logger.warn(
+                `[getUserFavorites] Offer not found for favorite: ${String(favorite._id)}, offerId: ${String(favorite.itemId)}`,
+              );
             }
           } else if (favorite.type === FavoriteType.ESTABLISHMENT) {
             populatedItem = estMap.get(String(favorite.itemId)) ?? null;
           }
         } catch (error) {
-          this.logger.warn(`Failed to populate ${favorite.type} ${String(favorite.itemId)}: ${error instanceof Error ? error.message : 'Unknown'}`);
+          this.logger.warn(
+            `Failed to populate ${favorite.type} ${String(favorite.itemId)}: ${error instanceof Error ? error.message : 'Unknown'}`,
+          );
         }
 
         return {
@@ -345,14 +386,15 @@ export class FavoritesService {
 
       if (filters.establishmentType) {
         const targetType = filters.establishmentType;
-        filteredFavorites = populatedFavorites.filter((fav, index) => {
-          const originalFavorite = favorites[index];
+        filteredFavorites = populatedFavorites.filter((_fav, index) => {
+          const originalFavorite = favorites[index]!;
 
           if (originalFavorite.type === FavoriteType.OFFER) {
             // Lookup the raw aggregated offer by the original itemId
             const offer = offerMap.get(String(originalFavorite.itemId));
             if (offer) {
-              const estType = (offer as any).establishmentId?.type;
+              const estRef = offer['establishmentId'] as Record<string, unknown> | undefined;
+              const estType = estRef?.['type'];
               return estType === targetType;
             }
             return false;
@@ -360,7 +402,7 @@ export class FavoritesService {
 
           if (originalFavorite.type === FavoriteType.ESTABLISHMENT) {
             const est = estMap.get(String(originalFavorite.itemId));
-            return est ? (est as any).type === targetType : false;
+            return est ? est['type'] === targetType : false;
           }
 
           return false;
@@ -378,7 +420,10 @@ export class FavoritesService {
         hasPrev: paginationMeta.hasPrev,
       };
     } catch (error) {
-      this.logger.error(`Error fetching user favorites: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error fetching user favorites: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -394,12 +439,18 @@ export class FavoritesService {
 
       return !!favorite;
     } catch (error) {
-      this.logger.error(`Error checking favorite status: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error checking favorite status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       return false;
     }
   }
 
-  async createFavoriteList(userId: string, createDto: CreateFavoriteListDto): Promise<FavoriteListDocument> {
+  async createFavoriteList(
+    userId: string,
+    createDto: CreateFavoriteListDto,
+  ): Promise<FavoriteListDocument> {
     try {
       const existingList = await this.favoriteListModel.findOne({
         userId: new Types.ObjectId(userId),
@@ -420,7 +471,10 @@ export class FavoritesService {
       this.logger.log(`Favorite list created: ${createDto.name} for user ${userId}`);
       return saved;
     } catch (error) {
-      this.logger.error(`Error creating favorite list: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error creating favorite list: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -437,7 +491,7 @@ export class FavoritesService {
   async getUserFavoriteLists(
     userId: string,
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
   ): Promise<{ lists: FavoriteListLean[]; total: number }> {
     try {
       // ✅ ENTERPRISE: DOS protection - limit max page size
@@ -452,18 +506,23 @@ export class FavoritesService {
       const [lists, total] = await Promise.all([
         this.favoriteListModel
           .find(query)
-          .select('name description visibility items.length shareCount viewCount createdAt updatedAt') // ✅ Only essential fields
+          .select(
+            'name description visibility items.length shareCount viewCount createdAt updatedAt',
+          ) // ✅ Only essential fields
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(safeLimit)
           .lean() // ✅ ENTERPRISE: 50% memory reduction
           .exec(),
-        this.favoriteListModel.countDocuments(query)
+        this.favoriteListModel.countDocuments(query),
       ]);
 
       return { lists, total };
     } catch (error) {
-      this.logger.error(`Error fetching user favorite lists: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error fetching user favorite lists: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -488,9 +547,7 @@ export class FavoritesService {
           $lookup: {
             from: 'offers',
             let: { itemIds: '$items.itemId' },
-            pipeline: [
-              { $match: { $expr: { $in: ['$_id', '$$itemIds'] } } },
-            ],
+            pipeline: [{ $match: { $expr: { $in: ['$_id', '$$itemIds'] } } }],
             as: '_offerLookup',
           },
         },
@@ -499,9 +556,7 @@ export class FavoritesService {
           $lookup: {
             from: 'establishments',
             let: { itemIds: '$items.itemId' },
-            pipeline: [
-              { $match: { $expr: { $in: ['$_id', '$$itemIds'] } } },
-            ],
+            pipeline: [{ $match: { $expr: { $in: ['$_id', '$$itemIds'] } } }],
             as: '_establishmentLookup',
           },
         },
@@ -521,18 +576,32 @@ export class FavoritesService {
                           vars: {
                             offerMatch: {
                               $arrayElemAt: [
-                                { $filter: { input: '$_offerLookup', as: 'o', cond: { $eq: ['$$o._id', '$$item.itemId'] } } },
+                                {
+                                  $filter: {
+                                    input: '$_offerLookup',
+                                    as: 'o',
+                                    cond: { $eq: ['$$o._id', '$$item.itemId'] },
+                                  },
+                                },
                                 0,
                               ],
                             },
                             estMatch: {
                               $arrayElemAt: [
-                                { $filter: { input: '$_establishmentLookup', as: 'e', cond: { $eq: ['$$e._id', '$$item.itemId'] } } },
+                                {
+                                  $filter: {
+                                    input: '$_establishmentLookup',
+                                    as: 'e',
+                                    cond: { $eq: ['$$e._id', '$$item.itemId'] },
+                                  },
+                                },
                                 0,
                               ],
                             },
                           },
-                          in: { $ifNull: ['$$offerMatch', { $ifNull: ['$$estMatch', '$$item.itemId'] }] },
+                          in: {
+                            $ifNull: ['$$offerMatch', { $ifNull: ['$$estMatch', '$$item.itemId'] }],
+                          },
                         },
                       },
                     },
@@ -563,7 +632,10 @@ export class FavoritesService {
 
       return list;
     } catch (error) {
-      this.logger.error(`Error fetching favorite list: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error fetching favorite list: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -590,12 +662,19 @@ export class FavoritesService {
       this.logger.log(`Favorite list updated: ${listId} for user ${userId}`);
       return list;
     } catch (error) {
-      this.logger.error(`Error updating favorite list: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error updating favorite list: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
-  async addToFavoriteList(userId: string, listId: string, addToListDto: AddToListDto): Promise<FavoriteListDocument> {
+  async addToFavoriteList(
+    userId: string,
+    listId: string,
+    addToListDto: AddToListDto,
+  ): Promise<FavoriteListDocument> {
     try {
       const list = await this.favoriteListModel.findOne({
         _id: new Types.ObjectId(listId),
@@ -607,8 +686,8 @@ export class FavoritesService {
       }
 
       // Check if item is already in the list
-      const existingItem = list.items.find(item =>
-        item.itemId.toString() === addToListDto.itemId && item.type === addToListDto.type
+      const existingItem = list.items.find(
+        (item) => item.itemId.toString() === addToListDto.itemId && item.type === addToListDto.type,
       );
 
       if (existingItem) {
@@ -629,12 +708,20 @@ export class FavoritesService {
       this.logger.log(`Item added to favorite list: ${addToListDto.itemId} to list ${listId}`);
       return updated;
     } catch (error) {
-      this.logger.error(`Error adding to favorite list: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error adding to favorite list: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
-  async removeFromFavoriteList(userId: string, listId: string, itemId: string, type: string): Promise<FavoriteListDocument> {
+  async removeFromFavoriteList(
+    userId: string,
+    listId: string,
+    itemId: string,
+    type: string,
+  ): Promise<FavoriteListDocument> {
     try {
       const list = await this.favoriteListModel.findOneAndUpdate(
         {
@@ -659,14 +746,21 @@ export class FavoritesService {
       this.logger.log(`Item removed from favorite list: ${itemId} from list ${listId}`);
       return list;
     } catch (error) {
-      this.logger.error(`Error removing from favorite list: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error removing from favorite list: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
-  async shareList(userId: string, listId: string, shareDto: ShareListDto): Promise<FavoriteListDocument> {
+  async shareList(
+    userId: string,
+    listId: string,
+    shareDto: ShareListDto,
+  ): Promise<FavoriteListDocument> {
     try {
-      const userIds = shareDto.userIds.map(id => new Types.ObjectId(id));
+      const userIds = shareDto.userIds.map((id) => new Types.ObjectId(id));
 
       const list = await this.favoriteListModel.findOneAndUpdate(
         {
@@ -688,7 +782,10 @@ export class FavoritesService {
       this.logger.log(`List shared: ${listId} with ${shareDto.userIds.length} users`);
       return list;
     } catch (error) {
-      this.logger.error(`Error sharing list: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error sharing list: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -714,7 +811,9 @@ export class FavoritesService {
               _id: null,
               totalLists: { $sum: 1 },
               activeLists: { $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] } },
-              sharedLists: { $sum: { $cond: [{ $eq: ['$visibility', ListVisibility.SHARED] }, 1, 0] } },
+              sharedLists: {
+                $sum: { $cond: [{ $eq: ['$visibility', ListVisibility.SHARED] }, 1, 0] },
+              },
             },
           },
         ]),
@@ -767,7 +866,10 @@ export class FavoritesService {
 
       return stats;
     } catch (error) {
-      this.logger.error(`Error generating favorite stats: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error generating favorite stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -779,7 +881,10 @@ export class FavoritesService {
         $set: { lastInteraction: new Date() },
       });
     } catch (error) {
-      this.logger.error(`Error updating interaction count: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error updating interaction count: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
     }
   }
 
@@ -790,7 +895,7 @@ export class FavoritesService {
    */
   async getRecommendationsBasedOnFavorites(
     userId: string,
-    filters: RecommendationFiltersDto = {}
+    filters: RecommendationFiltersDto = {},
   ): Promise<RecommendationsResponseDto> {
     try {
       this.logger.log(`Generating recommendations for user: ${userId}`);
@@ -832,19 +937,23 @@ export class FavoritesService {
       const mergedRecommendations = this.mergeRecommendations(
         contentRecommendations,
         collaborativeRecommendations,
-        userPreferences
+        userPreferences,
       );
 
       // Filter by confidence threshold and limit
       const filteredRecommendations = mergedRecommendations
-        .filter(rec => rec.similarityScore >= (filters.minConfidence ?? 0.5))
+        .filter((rec) => rec.similarityScore >= (filters.minConfidence ?? 0.5))
         .slice(0, filters.limit ?? 10);
 
-      const confidence = filteredRecommendations.length > 0
-        ? filteredRecommendations.reduce((sum, rec) => sum + rec.similarityScore, 0) / filteredRecommendations.length
-        : 0;
+      const confidence =
+        filteredRecommendations.length > 0
+          ? filteredRecommendations.reduce((sum, rec) => sum + rec.similarityScore, 0) /
+            filteredRecommendations.length
+          : 0;
 
-      this.logger.log(`Generated ${filteredRecommendations.length} recommendations for user: ${userId}`);
+      this.logger.log(
+        `Generated ${filteredRecommendations.length} recommendations for user: ${userId}`,
+      );
 
       return {
         recommendations: filteredRecommendations,
@@ -855,7 +964,10 @@ export class FavoritesService {
         confidence: Math.round(confidence * 100) / 100,
       };
     } catch (error) {
-      this.logger.error(`Error generating recommendations: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error generating recommendations: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -875,14 +987,14 @@ export class FavoritesService {
       const currentPeriodPipeline = this.buildTrendsAggregationPipeline(
         startDate,
         endDate,
-        filters
+        filters,
       );
 
       // Build aggregation pipeline for previous period comparison
       const previousPeriodPipeline = this.buildTrendsAggregationPipeline(
         previousPeriod.startDate,
         previousPeriod.endDate,
-        filters
+        filters,
       );
 
       // Execute both aggregations
@@ -896,14 +1008,14 @@ export class FavoritesService {
 
       // Sort by trend score and apply limit
       trendsWithGrowth.sort((a, b) => b.trendScore - a.trendScore);
-      const sortedTrends = trendsWithGrowth
-        .slice(0, filters.limit ?? 20)
-        .map((trend, index) => ({
-          ...trend,
-          rank: index + 1,
-        }));
+      const sortedTrends = trendsWithGrowth.slice(0, filters.limit ?? 20).map((trend, index) => ({
+        ...trend,
+        rank: index + 1,
+      }));
 
-      this.logger.log(`Generated ${sortedTrends.length} trends for period: ${filters.period || 'week'}`);
+      this.logger.log(
+        `Generated ${sortedTrends.length} trends for period: ${filters.period || 'week'}`,
+      );
 
       return {
         trends: sortedTrends,
@@ -914,7 +1026,10 @@ export class FavoritesService {
         periodEndDate: endDate,
       };
     } catch (error) {
-      this.logger.error(`Error generating trends: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error generating trends: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -940,7 +1055,7 @@ export class FavoritesService {
       preferences.favoriteTypes.set(favorite.type, typeCount + 1);
 
       // Tag preferences
-      for (const tag of favorite.tags) {
+      for (const tag of favorite.tags ?? []) {
         const tagCount = preferences.commonTags.get(tag) ?? 0;
         preferences.commonTags.set(tag, tagCount + 1);
       }
@@ -964,7 +1079,7 @@ export class FavoritesService {
   private async getContentBasedRecommendations(
     userId: string,
     userPreferences: UserPreferences,
-    filters: RecommendationFiltersDto
+    filters: RecommendationFiltersDto,
   ): Promise<RecommendationDto[]> {
     try {
       // Get user's favorite item IDs to exclude from recommendations
@@ -997,7 +1112,13 @@ export class FavoritesService {
         },
         {
           $addFields: {
-            flatTags: { $reduce: { input: '$allTags', initialValue: [], in: { $concatArrays: ['$$value', '$$this'] } } },
+            flatTags: {
+              $reduce: {
+                input: '$allTags',
+                initialValue: [],
+                in: { $concatArrays: ['$$value', '$$this'] },
+              },
+            },
           },
         },
         { $limit: 100 }, // Limit for performance
@@ -1007,14 +1128,17 @@ export class FavoritesService {
 
       // Score items based on content similarity
       const recommendations: RecommendationDto[] = similarItems
-        .map(item => {
+        .map((item) => {
           const tagSimilarity = this.calculateTagSimilarity(
             Array.from(userPreferences.commonTags.keys()),
-            item.flatTags
+            item.flatTags,
           );
           const popularityScore = Math.min(item.favoriteCount / 10, 1); // Normalize popularity
-          const interactionScore = Math.min((item.avgInteraction || 0) / userPreferences.avgInteractionCount, 1);
-          const contentScore = (tagSimilarity * 0.6) + (popularityScore * 0.3) + (interactionScore * 0.1);
+          const interactionScore = Math.min(
+            (item.avgInteraction || 0) / userPreferences.avgInteractionCount,
+            1,
+          );
+          const contentScore = tagSimilarity * 0.6 + popularityScore * 0.3 + interactionScore * 0.1;
 
           return {
             itemId: item._id.itemId.toString(),
@@ -1024,15 +1148,17 @@ export class FavoritesService {
             score: Math.round(contentScore * 100) / 100,
             reason: `Based on your interest in ${Array.from(userPreferences.commonTags.keys()).slice(0, 3).join(', ')}`,
             category: 'content-based',
-            tags: item.flatTags.filter((tag): tag is string => typeof tag === 'string'),
+            tags: item.flatTags.filter((tag: unknown): tag is string => typeof tag === 'string'),
             similarityScore: Math.round(contentScore * 100) / 100,
           };
         })
-        .filter(rec => rec.score > 0.3); // Minimum content similarity threshold
+        .filter((rec) => rec.score > 0.3); // Minimum content similarity threshold
 
       return recommendations;
     } catch (error) {
-      this.logger.error(`Error in content-based recommendations: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Error in content-based recommendations: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       return [];
     }
   }
@@ -1043,10 +1169,10 @@ export class FavoritesService {
   private async getCollaborativeRecommendations(
     userId: string,
     userFavorites: FavoriteLean[],
-    filters: RecommendationFiltersDto
+    filters: RecommendationFiltersDto,
   ): Promise<RecommendationDto[]> {
     try {
-      const userItemIds = userFavorites.map(f => f.itemId);
+      const userItemIds = userFavorites.map((f) => f.itemId);
 
       // Find users with similar favorites (collaborative filtering)
       const similarUsers = await this.favoriteModel.aggregate([
@@ -1079,7 +1205,7 @@ export class FavoritesService {
         return [];
       }
 
-      const similarUserIds = similarUsers.map(u => u._id);
+      const similarUserIds = similarUsers.map((u) => u._id);
 
       // Get items favorited by similar users that current user hasn't favorited
       const collaborativeItems = await this.favoriteModel.aggregate([
@@ -1107,7 +1233,13 @@ export class FavoritesService {
         },
         {
           $addFields: {
-            flatTags: { $reduce: { input: '$tags', initialValue: [], in: { $concatArrays: ['$$value', '$$this'] } } },
+            flatTags: {
+              $reduce: {
+                input: '$tags',
+                initialValue: [],
+                in: { $concatArrays: ['$$value', '$$this'] },
+              },
+            },
           },
         },
         { $sort: { favoriteCount: -1 } },
@@ -1115,11 +1247,11 @@ export class FavoritesService {
       ]);
 
       // Score collaborative recommendations
-      const recommendations: RecommendationDto[] = collaborativeItems.map(item => {
+      const recommendations: RecommendationDto[] = collaborativeItems.map((item) => {
         const userSimilarityScore = item.userIds.length / similarUsers.length;
         const popularityScore = Math.min(item.favoriteCount / 10, 1);
 
-        const collaborativeScore = (userSimilarityScore * 0.7) + (popularityScore * 0.3);
+        const collaborativeScore = userSimilarityScore * 0.7 + popularityScore * 0.3;
 
         return {
           itemId: item._id.itemId.toString(),
@@ -1129,14 +1261,18 @@ export class FavoritesService {
           score: Math.round(collaborativeScore * 100) / 100,
           reason: `Popular among users with similar tastes`,
           category: 'collaborative-filtering',
-          tags: [...new Set(item.flatTags.flat())].filter((tag): tag is string => typeof tag === 'string'), // Remove duplicates and ensure strings
+          tags: [...new Set(item.flatTags.flat())].filter(
+            (tag): tag is string => typeof tag === 'string',
+          ), // Remove duplicates and ensure strings
           similarityScore: Math.round(collaborativeScore * 100) / 100,
         };
       });
 
       return recommendations;
     } catch (error) {
-      this.logger.error(`Error in collaborative recommendations: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Error in collaborative recommendations: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       return [];
     }
   }
@@ -1147,7 +1283,7 @@ export class FavoritesService {
   private mergeRecommendations(
     contentRecommendations: RecommendationDto[],
     collaborativeRecommendations: RecommendationDto[],
-    _userPreferences: UserPreferences
+    _userPreferences: UserPreferences,
   ): RecommendationDto[] {
     const mergedMap = new Map<string, RecommendationDto>();
 
@@ -1166,7 +1302,10 @@ export class FavoritesService {
         // Boost score for items recommended by both algorithms
         existing.score = (existing.score + rec.score * 0.8) * 1.2;
         existing.reason = `${existing.reason} and ${rec.reason.toLowerCase()}`;
-        existing.similarityScore = Math.min((existing.similarityScore + rec.similarityScore) / 2 * 1.2, 1);
+        existing.similarityScore = Math.min(
+          ((existing.similarityScore + rec.similarityScore) / 2) * 1.2,
+          1,
+        );
       } else {
         mergedMap.set(rec.itemId, {
           ...rec,
@@ -1176,20 +1315,21 @@ export class FavoritesService {
     }
 
     // Convert to array and sort by final score
-    return Array.from(mergedMap.values())
-      .sort((a, b) => b.score - a.score);
+    return Array.from(mergedMap.values()).sort((a, b) => b.score - a.score);
   }
 
   /**
    * Calculate similarity between two sets of tags using Jaccard similarity
    */
   private calculateTagSimilarity(userTags: string[], itemTags: string[]): number {
-    if (userTags.length === 0 || itemTags.length === 0) {return 0;}
+    if (userTags.length === 0 || itemTags.length === 0) {
+      return 0;
+    }
 
     const userTagSet = new Set(userTags);
     const itemTagSet = new Set(itemTags);
 
-    const intersection = new Set([...userTagSet].filter(tag => itemTagSet.has(tag)));
+    const intersection = new Set([...userTagSet].filter((tag) => itemTagSet.has(tag)));
     const union = new Set([...userTagSet, ...itemTagSet]);
 
     return union.size > 0 ? intersection.size / union.size : 0;
@@ -1235,7 +1375,10 @@ export class FavoritesService {
   /**
    * Get previous period dates for growth rate calculation
    */
-  private getPreviousPeriodDates(period: string, currentStartDate: Date): { startDate: Date; endDate: Date } {
+  private getPreviousPeriodDates(
+    period: string,
+    currentStartDate: Date,
+  ): { startDate: Date; endDate: Date } {
     const endDate = new Date(currentStartDate);
     let startDate: Date;
 
@@ -1276,7 +1419,7 @@ export class FavoritesService {
   private buildTrendsAggregationPipeline(
     startDate: Date,
     endDate: Date,
-    filters: TrendsFiltersDto
+    filters: TrendsFiltersDto,
   ): PipelineStage[] {
     const matchStage: Record<string, unknown> = {
       isActive: true,
@@ -1284,7 +1427,7 @@ export class FavoritesService {
     };
 
     if (filters.type) {
-      matchStage.type = filters.type;
+      matchStage['type'] = filters.type;
     }
 
     const pipeline: PipelineStage[] = [
@@ -1307,7 +1450,13 @@ export class FavoritesService {
       {
         $addFields: {
           uniqueUserCount: { $size: '$uniqueUsers' },
-          flatTags: { $reduce: { input: '$tags', initialValue: [], in: { $concatArrays: ['$$value', '$$this'] } } },
+          flatTags: {
+            $reduce: {
+              input: '$tags',
+              initialValue: [],
+              in: { $concatArrays: ['$$value', '$$this'] },
+            },
+          },
         },
       },
       {
@@ -1327,26 +1476,32 @@ export class FavoritesService {
   /**
    * Calculate trend scores with growth rate analysis
    */
-  private calculateTrendScores(currentTrends: TrendData[], previousTrends: TrendData[]): TrendItemDto[] {
+  private calculateTrendScores(
+    currentTrends: TrendData[],
+    previousTrends: TrendData[],
+  ): TrendItemDto[] {
     const previousTrendsMap = new Map(
-      previousTrends.map(trend => [trend._id.itemId.toString(), trend])
+      previousTrends.map((trend) => [trend._id.itemId.toString(), trend]),
     );
 
-    return currentTrends.map(current => {
+    return currentTrends.map((current) => {
       const previous = previousTrendsMap.get(current._id.itemId.toString());
       const previousCount = previous?.favoriteCount ?? 0;
 
       // Calculate growth rate
-      const growthRate = previousCount > 0
-        ? ((current.favoriteCount - previousCount) / previousCount) * 100
-        : current.favoriteCount > 0 ? 100 : 0;
+      const growthRate =
+        previousCount > 0
+          ? ((current.favoriteCount - previousCount) / previousCount) * 100
+          : current.favoriteCount > 0
+            ? 100
+            : 0;
 
       // Calculate trend score (weighted combination of current popularity and growth)
       const popularityScore = Math.min(current.favoriteCount / 50, 1); // Normalize to 0-1
       const growthScore = Math.min(Math.max(growthRate / 100, -1), 2); // Cap growth impact
       const diversityScore = Math.min(current.uniqueUserCount / current.favoriteCount, 1);
 
-      const trendScore = (popularityScore * 0.4) + (growthScore * 0.4) + (diversityScore * 0.2);
+      const trendScore = popularityScore * 0.4 + growthScore * 0.4 + diversityScore * 0.2;
 
       // Get popular tags (most common tags for this item)
       const tagCounts = new Map<string, number>();
@@ -1355,7 +1510,7 @@ export class FavoritesService {
       });
 
       const popularTags = Array.from(tagCounts.entries())
-        .sort(([,a], [,b]) => b - a)
+        .sort(([, a], [, b]) => b - a)
         .slice(0, 5)
         .map(([tag]) => tag);
 
@@ -1363,12 +1518,12 @@ export class FavoritesService {
         itemId: current._id.itemId.toString(),
         type: current._id.type,
         itemName: current._id.itemName,
-        itemImage: current._id.itemImage,
+        ...(current._id.itemImage !== undefined ? { itemImage: current._id.itemImage } : {}),
         favoriteCount: current.favoriteCount,
         growthRate: Math.round(growthRate * 100) / 100,
         rank: 0, // Will be set later after sorting
         popularTags,
-        averageRating: undefined, // Could be populated from establishment/offer data
+        // averageRating omitted — could be populated from establishment/offer data
         trendScore: Math.round(Math.max(trendScore, 0) * 100) / 100,
       };
     });
@@ -1400,7 +1555,7 @@ export class FavoritesService {
         .lean()
         .exec();
 
-      return favorites.map(fav => fav.itemId.toString());
+      return favorites.map((fav) => fav.itemId.toString());
     } catch (error) {
       this.logger.error('Failed to get user favorite offer IDs', { userId, error });
       return []; // Graceful degradation: return empty array on error
@@ -1431,7 +1586,9 @@ export class FavoritesService {
     itemName?: string,
     itemImage?: string,
   ): Promise<boolean> {
-    this.logger.log(`🔄 [toggleFavorite] START | userId: ${userId} | type: ${type} | itemId: ${itemId}`);
+    this.logger.log(
+      `🔄 [toggleFavorite] START | userId: ${userId} | type: ${type} | itemId: ${itemId}`,
+    );
 
     // Start MongoDB session for transaction
     const session = await this.favoriteModel.db.startSession();
@@ -1446,10 +1603,12 @@ export class FavoritesService {
           type,
         },
         null,
-        { session }
+        { session },
       );
 
-      this.logger.log(`🔍 [toggleFavorite] Existing favorite check | found: ${!!existing} | isActive: ${existing?.isActive}`);
+      this.logger.log(
+        `🔍 [toggleFavorite] Existing favorite check | found: ${!!existing} | isActive: ${existing?.isActive}`,
+      );
 
       if (existing && existing.isActive) {
         // REMOVE favorite (soft delete)
@@ -1461,13 +1620,13 @@ export class FavoritesService {
           await this.offerModel.findByIdAndUpdate(
             itemId,
             { $inc: { favoriteCount: -1 } },
-            { session }
+            { session },
           );
         } else if (type === FavoriteType.ESTABLISHMENT) {
           await this.establishmentModel.findByIdAndUpdate(
             itemId,
             { $inc: { favoriteCount: -1 } },
-            { session }
+            { session },
           );
         }
 
@@ -1481,59 +1640,64 @@ export class FavoritesService {
         });
 
         await session.commitTransaction();
-        this.logger.log(`✅ [toggleFavorite] REMOVED | userId: ${userId} | itemId: ${itemId} | committed: true`);
-        return false;
-      } else {
-        // ADD favorite (upsert to handle race conditions)
-        const favorite = await this.favoriteModel.findOneAndUpdate(
-          { userId: new Types.ObjectId(userId), itemId: new Types.ObjectId(itemId), type },
-          {
-            $set: {
-              userId: new Types.ObjectId(userId),
-              itemId: new Types.ObjectId(itemId),
-              type,
-              itemName,
-              itemImage,
-              isActive: true,
-              addedAt: new Date(),
-            },
-          },
-          { upsert: true, new: true, session }
+        this.logger.log(
+          `✅ [toggleFavorite] REMOVED | userId: ${userId} | itemId: ${itemId} | committed: true`,
         );
-
-        // Atomically increment favoriteCount on offer
-        if (type === FavoriteType.OFFER) {
-          await this.offerModel.findByIdAndUpdate(
-            itemId,
-            { $inc: { favoriteCount: 1 } },
-            { session }
-          );
-        } else if (type === FavoriteType.ESTABLISHMENT) {
-          await this.establishmentModel.findByIdAndUpdate(
-            itemId,
-            { $inc: { favoriteCount: 1 } },
-            { session }
-          );
-        }
-
-        // Emit event
-        await this.eventBus.emit('favorite.added', {
-          favoriteId: favorite._id.toString(),
-          userId,
-          itemId,
-          type,
-          addedAt: new Date(),
-        });
-
-        await session.commitTransaction();
-        this.logger.log(`✅ [toggleFavorite] ADDED | userId: ${userId} | itemId: ${itemId} | favoriteId: ${favorite._id} | committed: true`);
-
-        // ✅ DIAGNOSTIC: Verify favorite was actually saved
-        const verification = await this.favoriteModel.findById(favorite._id);
-        this.logger.log(`🔍 [toggleFavorite] Post-commit verification | found: ${!!verification} | isActive: ${verification?.isActive}`);
-
-        return true;
+        return false;
       }
+      // ADD favorite (upsert to handle race conditions)
+      const favorite = await this.favoriteModel.findOneAndUpdate(
+        { userId: new Types.ObjectId(userId), itemId: new Types.ObjectId(itemId), type },
+        {
+          $set: {
+            userId: new Types.ObjectId(userId),
+            itemId: new Types.ObjectId(itemId),
+            type,
+            itemName,
+            itemImage,
+            isActive: true,
+            addedAt: new Date(),
+          },
+        },
+        { upsert: true, new: true, session },
+      );
+
+      // Atomically increment favoriteCount on offer
+      if (type === FavoriteType.OFFER) {
+        await this.offerModel.findByIdAndUpdate(
+          itemId,
+          { $inc: { favoriteCount: 1 } },
+          { session },
+        );
+      } else if (type === FavoriteType.ESTABLISHMENT) {
+        await this.establishmentModel.findByIdAndUpdate(
+          itemId,
+          { $inc: { favoriteCount: 1 } },
+          { session },
+        );
+      }
+
+      // Emit event
+      await this.eventBus.emit('favorite.added', {
+        favoriteId: favorite._id.toString(),
+        userId,
+        itemId,
+        type,
+        addedAt: new Date(),
+      });
+
+      await session.commitTransaction();
+      this.logger.log(
+        `✅ [toggleFavorite] ADDED | userId: ${userId} | itemId: ${itemId} | favoriteId: ${favorite._id} | committed: true`,
+      );
+
+      // ✅ DIAGNOSTIC: Verify favorite was actually saved
+      const verification = await this.favoriteModel.findById(favorite._id);
+      this.logger.log(
+        `🔍 [toggleFavorite] Post-commit verification | found: ${!!verification} | isActive: ${verification?.isActive}`,
+      );
+
+      return true;
     } catch (error) {
       // Rollback on error
       await session.abortTransaction();

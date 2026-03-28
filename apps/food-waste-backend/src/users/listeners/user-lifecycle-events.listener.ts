@@ -6,10 +6,11 @@
  * @module users/listeners
  */
 
+import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { plainToClass } from 'class-transformer';
+
 import {
   UserRegisteredEvent,
   UserEmailVerifiedEvent,
@@ -32,8 +33,8 @@ export class UserLifecycleEventsListener {
    * Handle user registration events (Legacy EventEmitter)
    */
   @OnEvent('user.registered')
-  async handleUserRegisteredLegacy(event: UserRegisteredEvent): Promise<void> {
-    await this.processUserRegistered(event);
+  handleUserRegisteredLegacy(event: UserRegisteredEvent): void {
+    this.processUserRegistered(event);
   }
 
   /**
@@ -51,16 +52,13 @@ export class UserLifecycleEventsListener {
       },
     },
   })
-  async handleUserRegistered(msg: object): Promise<void | Nack> {
+  handleUserRegistered(msg: object): void | Nack {
     try {
       const event = plainToClass(UserRegisteredEvent, msg);
-      await this.processUserRegistered(event);
+      this.processUserRegistered(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.registered event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.registered event`, error);
       return new Nack(true); // Requeue for retry
     }
   }
@@ -69,9 +67,7 @@ export class UserLifecycleEventsListener {
    * Process user registration logic
    * @private
    */
-  private async processUserRegistered(
-    event: UserRegisteredEvent,
-  ): Promise<void> {
+  private processUserRegistered(event: UserRegisteredEvent): void {
     try {
       this.logger.log(
         `New user registered: ${event.email} (${event.role}) at ${event.registeredAt}`,
@@ -82,13 +78,11 @@ export class UserLifecycleEventsListener {
       // TODO: Track registration analytics
       // TODO: Initialize user preferences with defaults
 
-      this.logger.debug(
-        `User registration event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`User registration event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.registered event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.registered event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // Don't throw - event listeners should not break the flow
     }
@@ -98,8 +92,8 @@ export class UserLifecycleEventsListener {
    * Handle email verification events (Legacy EventEmitter)
    */
   @OnEvent('user.email.verified')
-  async handleEmailVerifiedLegacy(event: UserEmailVerifiedEvent): Promise<void> {
-    await this.processEmailVerified(event);
+  handleEmailVerifiedLegacy(event: UserEmailVerifiedEvent): void {
+    this.processEmailVerified(event);
   }
 
   /**
@@ -117,16 +111,13 @@ export class UserLifecycleEventsListener {
       },
     },
   })
-  async handleEmailVerified(msg: object): Promise<void | Nack> {
+  handleEmailVerified(msg: object): void | Nack {
     try {
       const event = plainToClass(UserEmailVerifiedEvent, msg);
-      await this.processEmailVerified(event);
+      this.processEmailVerified(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.email.verified event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.email.verified event`, error);
       return new Nack(true); // Requeue for retry
     }
   }
@@ -135,9 +126,7 @@ export class UserLifecycleEventsListener {
    * Process email verification logic
    * @private
    */
-  private async processEmailVerified(
-    event: UserEmailVerifiedEvent,
-  ): Promise<void> {
+  private processEmailVerified(event: UserEmailVerifiedEvent): void {
     try {
       this.logger.log(`Email verified for user: ${event.email}`);
 
@@ -146,13 +135,11 @@ export class UserLifecycleEventsListener {
       // TODO: Track verification analytics
       // TODO: Award verification achievement/badge
 
-      this.logger.debug(
-        `Email verification event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`Email verification event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.email.verified event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.email.verified event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // Don't throw - event listeners should not break the flow
     }
@@ -162,8 +149,8 @@ export class UserLifecycleEventsListener {
    * Handle phone verification events (Legacy EventEmitter)
    */
   @OnEvent('user.phone.verified')
-  async handlePhoneVerifiedLegacy(event: UserPhoneVerifiedEvent): Promise<void> {
-    await this.processPhoneVerified(event);
+  handlePhoneVerifiedLegacy(event: UserPhoneVerifiedEvent): void {
+    this.processPhoneVerified(event);
   }
 
   /**
@@ -181,16 +168,13 @@ export class UserLifecycleEventsListener {
       },
     },
   })
-  async handlePhoneVerified(msg: object): Promise<void | Nack> {
+  handlePhoneVerified(msg: object): void | Nack {
     try {
       const event = plainToClass(UserPhoneVerifiedEvent, msg);
-      await this.processPhoneVerified(event);
+      this.processPhoneVerified(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.phone.verified event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.phone.verified event`, error);
       return new Nack(true); // Requeue for retry
     }
   }
@@ -199,26 +183,20 @@ export class UserLifecycleEventsListener {
    * Process phone verification logic
    * @private
    */
-  private async processPhoneVerified(
-    event: UserPhoneVerifiedEvent,
-  ): Promise<void> {
+  private processPhoneVerified(event: UserPhoneVerifiedEvent): void {
     try {
-      this.logger.log(
-        `Phone verified for user: ${event.userId} (${event.phoneNumber})`,
-      );
+      this.logger.log(`Phone verified for user: ${event.userId} (${event.phoneNumber})`);
 
       // TODO: Send SMS confirmation
       // TODO: Enable SMS notifications
       // TODO: Update user trust score
       // TODO: Track verification analytics
 
-      this.logger.debug(
-        `Phone verification event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`Phone verification event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.phone.verified event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.phone.verified event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // Don't throw - event listeners should not break the flow
     }
@@ -228,8 +206,8 @@ export class UserLifecycleEventsListener {
    * Handle user status change events (Legacy EventEmitter)
    */
   @OnEvent('user.status.changed')
-  async handleStatusChangedLegacy(event: UserStatusChangedEvent): Promise<void> {
-    await this.processStatusChanged(event);
+  handleStatusChangedLegacy(event: UserStatusChangedEvent): void {
+    this.processStatusChanged(event);
   }
 
   /**
@@ -247,16 +225,13 @@ export class UserLifecycleEventsListener {
       },
     },
   })
-  async handleStatusChanged(msg: object): Promise<void | Nack> {
+  handleStatusChanged(msg: object): void | Nack {
     try {
       const event = plainToClass(UserStatusChangedEvent, msg);
-      await this.processStatusChanged(event);
+      this.processStatusChanged(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.status.changed event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.status.changed event`, error);
       return new Nack(true); // Requeue for retry - critical event
     }
   }
@@ -265,9 +240,7 @@ export class UserLifecycleEventsListener {
    * Process user status change logic
    * @private
    */
-  private async processStatusChanged(
-    event: UserStatusChangedEvent,
-  ): Promise<void> {
+  private processStatusChanged(event: UserStatusChangedEvent): void {
     try {
       this.logger.log(
         `User status changed: ${event.email} from ${event.oldStatus} to ${event.newStatus}`,
@@ -278,13 +251,11 @@ export class UserLifecycleEventsListener {
       // - DELETED: Trigger data cleanup (handled by deletion events)
       // - ACTIVE: Re-enable user access
 
-      this.logger.debug(
-        `Status change event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`Status change event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.status.changed event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.status.changed event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // Don't throw - event listeners should not break the flow
     }
@@ -294,10 +265,8 @@ export class UserLifecycleEventsListener {
    * Handle data deletion request events (Legacy EventEmitter)
    */
   @OnEvent('user.data_deletion.requested')
-  async handleDataDeletionRequestedLegacy(
-    event: UserDataDeletionRequestedEvent,
-  ): Promise<void> {
-    await this.processDataDeletionRequested(event);
+  handleDataDeletionRequestedLegacy(event: UserDataDeletionRequestedEvent): void {
+    this.processDataDeletionRequested(event);
   }
 
   /**
@@ -315,16 +284,13 @@ export class UserLifecycleEventsListener {
       },
     },
   })
-  async handleDataDeletionRequested(msg: object): Promise<void | Nack> {
+  handleDataDeletionRequested(msg: object): void | Nack {
     try {
       const event = plainToClass(UserDataDeletionRequestedEvent, msg);
-      await this.processDataDeletionRequested(event);
+      this.processDataDeletionRequested(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.data_deletion.requested event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.data_deletion.requested event`, error);
       return new Nack(true); // Requeue - compliance critical
     }
   }
@@ -333,26 +299,20 @@ export class UserLifecycleEventsListener {
    * Process data deletion request logic
    * @private
    */
-  private async processDataDeletionRequested(
-    event: UserDataDeletionRequestedEvent,
-  ): Promise<void> {
+  private processDataDeletionRequested(event: UserDataDeletionRequestedEvent): void {
     try {
-      this.logger.log(
-        `Data deletion requested for user ${event.email}: ${event.deletionType}`,
-      );
+      this.logger.log(`Data deletion requested for user ${event.email}: ${event.deletionType}`);
 
       // TODO: Send confirmation email with 30-day grace period
       // TODO: Schedule deletion job
       // TODO: Notify admins for compliance tracking
       // TODO: Log in compliance audit trail
 
-      this.logger.debug(
-        `Data deletion request event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`Data deletion request event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.data_deletion.requested event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.data_deletion.requested event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // Don't throw - event listeners should not break the flow
     }
@@ -362,10 +322,8 @@ export class UserLifecycleEventsListener {
    * Handle data deletion completion events (Legacy EventEmitter)
    */
   @OnEvent('user.data_deletion.completed')
-  async handleDataDeletionCompletedLegacy(
-    event: UserDataDeletionCompletedEvent,
-  ): Promise<void> {
-    await this.processDataDeletionCompleted(event);
+  handleDataDeletionCompletedLegacy(event: UserDataDeletionCompletedEvent): void {
+    this.processDataDeletionCompleted(event);
   }
 
   /**
@@ -383,16 +341,13 @@ export class UserLifecycleEventsListener {
       },
     },
   })
-  async handleDataDeletionCompleted(msg: object): Promise<void | Nack> {
+  handleDataDeletionCompleted(msg: object): void | Nack {
     try {
       const event = plainToClass(UserDataDeletionCompletedEvent, msg);
-      await this.processDataDeletionCompleted(event);
+      this.processDataDeletionCompleted(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.data_deletion.completed event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.data_deletion.completed event`, error);
       return new Nack(true); // Requeue - compliance critical
     }
   }
@@ -401,26 +356,20 @@ export class UserLifecycleEventsListener {
    * Process data deletion completion logic
    * @private
    */
-  private async processDataDeletionCompleted(
-    event: UserDataDeletionCompletedEvent,
-  ): Promise<void> {
+  private processDataDeletionCompleted(event: UserDataDeletionCompletedEvent): void {
     try {
-      this.logger.log(
-        `Data deletion completed for user ${event.userId}: ${event.deletionType}`,
-      );
+      this.logger.log(`Data deletion completed for user ${event.userId}: ${event.deletionType}`);
 
       // TODO: Send deletion confirmation email (if email retained)
       // TODO: Update compliance dashboard
       // TODO: Archive deletion audit logs
       // TODO: Remove user from all caches
 
-      this.logger.debug(
-        `Data deletion completion event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`Data deletion completion event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.data_deletion.completed event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.data_deletion.completed event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // Don't throw - event listeners should not break the flow
     }
@@ -430,8 +379,8 @@ export class UserLifecycleEventsListener {
    * Handle account restoration events (Legacy EventEmitter)
    */
   @OnEvent('user.account.restored')
-  async handleAccountRestoredLegacy(event: UserAccountRestoredEvent): Promise<void> {
-    await this.processAccountRestored(event);
+  handleAccountRestoredLegacy(event: UserAccountRestoredEvent): void {
+    this.processAccountRestored(event);
   }
 
   /**
@@ -449,16 +398,13 @@ export class UserLifecycleEventsListener {
       },
     },
   })
-  async handleAccountRestored(msg: object): Promise<void | Nack> {
+  handleAccountRestored(msg: object): void | Nack {
     try {
       const event = plainToClass(UserAccountRestoredEvent, msg);
-      await this.processAccountRestored(event);
+      this.processAccountRestored(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.account.restored event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.account.restored event`, error);
       return new Nack(false); // Don't requeue - non-critical notification
     }
   }
@@ -467,26 +413,20 @@ export class UserLifecycleEventsListener {
    * Process account restoration logic
    * @private
    */
-  private async processAccountRestored(
-    event: UserAccountRestoredEvent,
-  ): Promise<void> {
+  private processAccountRestored(event: UserAccountRestoredEvent): void {
     try {
-      this.logger.log(
-        `Account restored for user ${event.email} by admin ${event.restoredBy}`,
-      );
+      this.logger.log(`Account restored for user ${event.email} by admin ${event.restoredBy}`);
 
       // TODO: Send account restoration notification email
       // TODO: Restore soft-deleted orders/data
       // TODO: Re-enable user access
       // TODO: Log admin action in audit trail
 
-      this.logger.debug(
-        `Account restoration event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`Account restoration event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.account.restored event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.account.restored event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // Don't throw - event listeners should not break the flow
     }
@@ -496,8 +436,8 @@ export class UserLifecycleEventsListener {
    * Handle profile update events (Legacy EventEmitter)
    */
   @OnEvent('user.profile.updated')
-  async handleProfileUpdatedLegacy(event: UserProfileUpdatedEvent): Promise<void> {
-    await this.processProfileUpdated(event);
+  handleProfileUpdatedLegacy(event: UserProfileUpdatedEvent): void {
+    this.processProfileUpdated(event);
   }
 
   /**
@@ -515,16 +455,13 @@ export class UserLifecycleEventsListener {
       },
     },
   })
-  async handleProfileUpdated(msg: object): Promise<void | Nack> {
+  handleProfileUpdated(msg: object): void | Nack {
     try {
       const event = plainToClass(UserProfileUpdatedEvent, msg);
-      await this.processProfileUpdated(event);
+      this.processProfileUpdated(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.profile.updated event`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.profile.updated event`, error);
       return new Nack(false); // Don't requeue - non-critical cache update
     }
   }
@@ -533,25 +470,19 @@ export class UserLifecycleEventsListener {
    * Process profile update logic
    * @private
    */
-  private async processProfileUpdated(
-    event: UserProfileUpdatedEvent,
-  ): Promise<void> {
+  private processProfileUpdated(event: UserProfileUpdatedEvent): void {
     try {
-      this.logger.log(
-        `Profile updated for user ${event.email}: ${event.updatedFields.join(', ')}`,
-      );
+      this.logger.log(`Profile updated for user ${event.email}: ${event.updatedFields.join(', ')}`);
 
       // TODO: Invalidate user cache
       // TODO: Update search index if name/email changed
       // TODO: Track profile completion percentage
 
-      this.logger.debug(
-        `Profile update event processed for user: ${event.userId}`,
-      );
+      this.logger.debug(`Profile update event processed for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process user.profile.updated event for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to process user.profile.updated event for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // Don't throw - event listeners should not break the flow
     }

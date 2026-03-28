@@ -10,7 +10,7 @@
  * - Industry standard across MongoDB ecosystem
  */
 
-import { SchemaOptions } from 'mongoose';
+import type { SchemaOptions, Schema } from 'mongoose';
 
 /**
  * Standard toJSON configuration for all schemas
@@ -28,31 +28,31 @@ import { SchemaOptions } from 'mongoose';
  * ```
  */
 export function getStandardToJSON(): NonNullable<SchemaOptions['toJSON']> {
-    return {
-        virtuals: true,        // ✅ CRITICAL: Include custom virtuals (availableQuantity, isExpired, isSoldOut, etc.)
-        versionKey: false,     // Remove __v field
-        transform (_doc, ret) {
-            // ✅ Delete _id and keep 'id' virtual for API consistency
-            // This codebase convention: use 'id' (not '_id') in API responses
-            delete ret._id;
-            return ret;
-        }
-    };
+  return {
+    virtuals: true, // ✅ CRITICAL: Include custom virtuals (availableQuantity, isExpired, isSoldOut, etc.)
+    versionKey: false, // Remove __v field
+    transform(_doc, ret) {
+      // ✅ Delete _id and keep 'id' virtual for API consistency
+      // This codebase convention: use 'id' (not '_id') in API responses
+      delete (ret as { _id?: unknown })._id;
+      return ret;
+    },
+  };
 }
 
 /**
  * Standard toObject configuration for all schemas
  */
 export function getStandardToObject(): NonNullable<SchemaOptions['toObject']> {
-    return {
-        virtuals: true,        // ✅ CRITICAL: Include custom virtuals
-        versionKey: false,     // Remove __v field
-        transform (_doc, ret) {
-            // ✅ Delete _id and keep 'id' virtual for API consistency
-            delete ret._id;
-            return ret;
-        }
-    };
+  return {
+    virtuals: true, // ✅ CRITICAL: Include custom virtuals
+    versionKey: false, // Remove __v field
+    transform(_doc, ret) {
+      // ✅ Delete _id and keep 'id' virtual for API consistency
+      delete (ret as { _id?: unknown })._id;
+      return ret;
+    },
+  };
 }
 
 /**
@@ -64,7 +64,8 @@ export function getStandardToObject(): NonNullable<SchemaOptions['toObject']> {
  * applyStandardSchemaConfig(MySchema);
  * ```
  */
-export function applyStandardSchemaConfig(schema: any): void {
-    schema.set('toJSON', getStandardToJSON());
-    schema.set('toObject', getStandardToObject());
+export function applyStandardSchemaConfig(schema: Schema): void {
+  // Cast required: Schema.set() generic bounds differ from SchemaOptions standalone types
+  (schema as { set(key: string, value: unknown): void }).set('toJSON', getStandardToJSON());
+  (schema as { set(key: string, value: unknown): void }).set('toObject', getStandardToObject());
 }

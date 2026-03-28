@@ -1,5 +1,6 @@
-import { Socket } from 'socket.io';
 import { UserRole } from '../../common/enums/user.enum';
+
+import type { Socket } from 'socket.io';
 
 export interface AuthenticatedSocket extends Socket {
   userId: string;
@@ -10,10 +11,10 @@ export interface AuthenticatedSocket extends Socket {
 
 export interface WebSocketEventPayload {
   event: string;
-  data: any;
+  data: unknown;
   timestamp: Date;
   userId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface OrderStatusUpdate {
@@ -46,7 +47,7 @@ export interface NotificationEvent {
   type: 'order' | 'offer' | 'system' | 'merchant' | 'promotion';
   title: string;
   message: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   priority: 'low' | 'medium' | 'high' | 'urgent';
   readAt?: Date;
   createdAt: Date;

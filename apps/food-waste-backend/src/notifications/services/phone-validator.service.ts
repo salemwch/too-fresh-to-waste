@@ -9,8 +9,10 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PhoneValidationResult } from '../interfaces/sms.interfaces';
+import { CountryCode } from 'libphonenumber-js';
+
 import { PhoneNumberService } from '../../common/services/phone-number.service';
+import { PhoneValidationResult } from '../interfaces/sms.interfaces';
 
 @Injectable()
 export class PhoneValidatorService {
@@ -41,7 +43,7 @@ export class PhoneValidatorService {
     // Use PhoneNumberService for robust formatting
     const normalized = this.phoneNumberService.normalizePhoneNumber(
       phoneNumber,
-      countryCode as any
+      countryCode as CountryCode | undefined,
     );
 
     if (normalized) {
@@ -61,20 +63,20 @@ export class PhoneValidatorService {
       if (!phoneNumber) {
         return {
           isValid: false,
-          errorMessage: 'Phone number is required'
+          errorMessage: 'Phone number is required',
         };
       }
 
       // Use PhoneNumberService for validation
       const validation = this.phoneNumberService.validatePhoneNumber(
         phoneNumber,
-        countryCode as any
+        countryCode as CountryCode | undefined,
       );
 
       if (!validation.isValid) {
         return {
           isValid: false,
-          errorMessage: validation.error || 'Invalid phone number format'
+          errorMessage: validation.error || 'Invalid phone number format',
         };
       }
 
@@ -82,12 +84,12 @@ export class PhoneValidatorService {
         isValid: true,
         formatted: validation.details?.formatted.e164,
         country: validation.details?.country,
-        errorMessage: undefined
+        errorMessage: undefined,
       };
     } catch (error) {
       return {
         isValid: false,
-        errorMessage: (error as Error).message
+        errorMessage: (error as Error).message,
       };
     }
   }

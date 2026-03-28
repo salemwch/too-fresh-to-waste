@@ -1,8 +1,9 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
-import * as fs from 'fs';
-import * as path from 'path';
 
 @Injectable()
 export class FirebaseAdminService implements OnModuleInit {
@@ -11,11 +12,11 @@ export class FirebaseAdminService implements OnModuleInit {
 
   constructor(private readonly configService: ConfigService) {}
 
-  async onModuleInit(): Promise<void> {
-    await this.initializeFirebase();
+  onModuleInit(): void {
+    this.initializeFirebase();
   }
 
-  private async initializeFirebase(): Promise<void> {
+  private initializeFirebase(): void {
     if (this.initialized) {
       return;
     }
@@ -34,7 +35,9 @@ export class FirebaseAdminService implements OnModuleInit {
         // Option 2: Load from JSON string (fallback for legacy config)
         serviceAccountObj = this.parseServiceAccountFromJson(serviceAccountJson);
       } else {
-        this.logger.warn('Firebase service account not configured. Set FIREBASE_SERVICE_ACCOUNT_PATH or FIREBASE_SERVICE_ACCOUNT');
+        this.logger.warn(
+          'Firebase service account not configured. Set FIREBASE_SERVICE_ACCOUNT_PATH or FIREBASE_SERVICE_ACCOUNT',
+        );
         return;
       }
 
@@ -50,7 +53,9 @@ export class FirebaseAdminService implements OnModuleInit {
 
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccountObj),
-          projectId: serviceAccountObj.projectId,
+          ...(serviceAccountObj.projectId !== undefined
+            ? { projectId: serviceAccountObj.projectId }
+            : {}),
           storageBucket,
         });
       }
@@ -66,7 +71,7 @@ export class FirebaseAdminService implements OnModuleInit {
    * Get the initialized Firebase Admin app
    */
   getApp(): admin.app.App | null {
-    return admin.apps.length > 0 ? admin.apps[0] : null;
+    return admin.apps[0] ?? null;
   }
 
   /**
@@ -100,7 +105,6 @@ export class FirebaseAdminService implements OnModuleInit {
 
       this.logger.debug(`Loaded Firebase service account from: ${absolutePath}`);
       return serviceAccountObj;
-
     } catch (error) {
       if (error instanceof SyntaxError) {
         throw new Error(`Invalid JSON in Firebase service account file: ${serviceAccountPath}`);
@@ -121,7 +125,6 @@ export class FirebaseAdminService implements OnModuleInit {
 
       this.logger.debug('Parsed Firebase service account from environment variable');
       return serviceAccountObj;
-
     } catch (error) {
       if (error instanceof SyntaxError) {
         throw new Error('Invalid JSON format in FIREBASE_SERVICE_ACCOUNT environment variable');
@@ -133,19 +136,21 @@ export class FirebaseAdminService implements OnModuleInit {
   /**
    * Convert raw service account JSON to Firebase ServiceAccount interface
    */
-  private convertRawServiceAccount(raw: any): admin.ServiceAccount {
+  private convertRawServiceAccount(raw: Record<string, unknown>): admin.ServiceAccount {
     // Fix private key formatting by replacing \\n with actual newlines
-    let privateKey = raw.private_key || raw.privateKey;
-    if (privateKey && typeof privateKey === 'string') {
-      privateKey = privateKey.replace(/\\n/g, '\n');
+    let privateKeyRaw = (raw['private_key'] ?? raw['privateKey']) as string | undefined;
+    if (privateKeyRaw && typeof privateKeyRaw === 'string') {
+      privateKeyRaw = privateKeyRaw.replace(/\\n/g, '\n');
     }
 
     // Convert to Firebase ServiceAccount interface
     // Only include properties that exist in Firebase's ServiceAccount interface
+    const projectId = (raw['project_id'] ?? raw['projectId']) as string | undefined;
+    const clientEmail = (raw['client_email'] ?? raw['clientEmail']) as string | undefined;
     const serviceAccount: admin.ServiceAccount = {
-      projectId: raw.project_id || raw.projectId,
-      privateKey,
-      clientEmail: raw.client_email || raw.clientEmail
+      ...(projectId !== undefined ? { projectId } : {}),
+      ...(privateKeyRaw !== undefined ? { privateKey: privateKeyRaw } : {}),
+      ...(clientEmail !== undefined ? { clientEmail } : {}),
     };
 
     return serviceAccount;
@@ -159,7 +164,7 @@ export class FirebaseAdminService implements OnModuleInit {
     const requiredFields = [
       { key: 'projectId', value: serviceAccountObj.projectId },
       { key: 'privateKey', value: serviceAccountObj.privateKey },
-      { key: 'clientEmail', value: serviceAccountObj.clientEmail }
+      { key: 'clientEmail', value: serviceAccountObj.clientEmail },
     ];
 
     for (const field of requiredFields) {
@@ -169,13 +174,13 @@ export class FirebaseAdminService implements OnModuleInit {
     }
 
     // Validate private key format
-    const privateKey = serviceAccountObj.privateKey;
+    const privateKey = serviceAccountObj.privateKey ?? '';
     if (!this.isValidPrivateKeyFormat(privateKey)) {
       throw new Error('Invalid private key format - must be a valid PEM formatted private key');
     }
 
     // Validate email format
-    if (!this.isValidEmailFormat(serviceAccountObj.clientEmail)) {
+    if (!this.isValidEmailFormat(serviceAccountObj.clientEmail ?? '')) {
       throw new Error('Invalid client email format');
     }
   }
@@ -184,10 +189,12 @@ export class FirebaseAdminService implements OnModuleInit {
    * Validate private key format
    */
   private isValidPrivateKeyFormat(privateKey: string): boolean {
-    return privateKey &&
-           privateKey.includes('-----BEGIN PRIVATE KEY-----') &&
-           privateKey.includes('-----END PRIVATE KEY-----') &&
-           privateKey.length > 100; // Basic length check
+    return (
+      !!privateKey &&
+      privateKey.includes('-----BEGIN PRIVATE KEY-----') &&
+      privateKey.includes('-----END PRIVATE KEY-----') &&
+      privateKey.length > 100
+    ); // Basic length check
   }
 
   /**
@@ -217,7 +224,7 @@ export class FirebaseAdminService implements OnModuleInit {
     }
 
     // Log stack trace in debug mode
-    if (error instanceof Error && process.env.NODE_ENV === 'development') {
+    if (error instanceof Error && process.env['NODE_ENV'] === 'development') {
       this.logger.debug(error.stack);
     }
   }

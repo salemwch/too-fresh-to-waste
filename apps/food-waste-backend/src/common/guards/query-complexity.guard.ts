@@ -1,5 +1,12 @@
-import { Injectable, CanActivate, ExecutionContext, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Request } from 'express';
 
 /**
  * Enterprise-grade MongoDB query complexity limits
@@ -71,13 +78,13 @@ export const QUERY_COMPLEXITY_KEY = 'query_complexity';
  * @Get('search')
  * async search(@Query() dto: SearchDto) { ... }
  */
-export const QueryComplexity = (config: QueryComplexityConfig = {}) => {
-  return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
+export const QueryComplexity =
+  (config: QueryComplexityConfig = {}) =>
+  (_target: object, _propertyKey?: string, descriptor?: PropertyDescriptor) => {
     if (descriptor) {
       Reflect.defineMetadata(QUERY_COMPLEXITY_KEY, config, descriptor.value);
     }
   };
-};
 
 /**
  * Query complexity statistics for logging and monitoring
@@ -117,13 +124,13 @@ export class QueryComplexityGuard implements CanActivate {
   /**
    * Validate query complexity before allowing request
    */
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
 
     // Get configuration from decorator or use defaults
     const decoratorConfig = this.reflector.get<QueryComplexityConfig>(
       QUERY_COMPLEXITY_KEY,
-      context.getHandler()
+      context.getHandler(),
     );
 
     const config = { ...this.DEFAULT_CONFIG, ...decoratorConfig };
@@ -147,7 +154,7 @@ export class QueryComplexityGuard implements CanActivate {
     // Block if complexity exceeds limits
     if (!stats.passed) {
       this.logger.warn(
-        `Query complexity limit exceeded: ${stats.violations.join(', ')} | Route: ${request.url}`
+        `Query complexity limit exceeded: ${stats.violations.join(', ')} | Route: ${request.url}`,
       );
 
       throw new BadRequestException({
@@ -171,7 +178,7 @@ export class QueryComplexityGuard implements CanActivate {
   /**
    * Extract MongoDB query object from request
    */
-  private extractQueryObject(request: any): any {
+  private extractQueryObject(request: Request): Record<string, unknown> | null {
     // Check body for query (POST/PUT requests)
     if (request.body && typeof request.body === 'object') {
       if (request.body.query) {
@@ -199,22 +206,22 @@ export class QueryComplexityGuard implements CanActivate {
   /**
    * Check if object contains MongoDB query operators
    */
-  private hasMongoOperators(obj: any): boolean {
+  private hasMongoOperators(obj: unknown): boolean {
     if (!obj || typeof obj !== 'object') {
       return false;
     }
 
     const mongoOperators = ['$or', '$and', '$in', '$regex', '$ne', '$gt', '$gte', '$lt', '$lte'];
 
-    return Object.keys(obj).some(key => mongoOperators.includes(key));
+    return Object.keys(obj as Record<string, unknown>).some((key) => mongoOperators.includes(key));
   }
 
   /**
    * Analyze query complexity and return statistics
    */
   public analyzeQueryComplexity(
-    query: any,
-    config: Required<QueryComplexityConfig>
+    query: unknown,
+    config: Required<QueryComplexityConfig>,
   ): QueryComplexityStats {
     const stats: QueryComplexityStats = {
       nestingDepth: 0,
@@ -233,14 +240,14 @@ export class QueryComplexityGuard implements CanActivate {
     if (stats.nestingDepth > config.maxNestingDepth) {
       stats.passed = false;
       stats.violations.push(
-        `Nesting depth (${stats.nestingDepth}) exceeds maximum (${config.maxNestingDepth})`
+        `Nesting depth (${stats.nestingDepth}) exceeds maximum (${config.maxNestingDepth})`,
       );
     }
 
     if (stats.orConditionCount > config.maxOrConditions) {
       stats.passed = false;
       stats.violations.push(
-        `$or conditions (${stats.orConditionCount}) exceed maximum (${config.maxOrConditions})`
+        `$or conditions (${stats.orConditionCount}) exceed maximum (${config.maxOrConditions})`,
       );
     }
 
@@ -248,14 +255,14 @@ export class QueryComplexityGuard implements CanActivate {
     if (maxInSize > config.maxInArraySize) {
       stats.passed = false;
       stats.violations.push(
-        `$in array size (${maxInSize}) exceeds maximum (${config.maxInArraySize})`
+        `$in array size (${maxInSize}) exceeds maximum (${config.maxInArraySize})`,
       );
     }
 
     if (stats.totalConditions > config.maxTotalConditions) {
       stats.passed = false;
       stats.violations.push(
-        `Total conditions (${stats.totalConditions}) exceed maximum (${config.maxTotalConditions})`
+        `Total conditions (${stats.totalConditions}) exceed maximum (${config.maxTotalConditions})`,
       );
     }
 
@@ -267,7 +274,7 @@ export class QueryComplexityGuard implements CanActivate {
     if (stats.regexCount > config.maxRegexConditions) {
       stats.passed = false;
       stats.violations.push(
-        `$regex conditions (${stats.regexCount}) exceed maximum (${config.maxRegexConditions})`
+        `$regex conditions (${stats.regexCount}) exceed maximum (${config.maxRegexConditions})`,
       );
     }
 
@@ -277,7 +284,7 @@ export class QueryComplexityGuard implements CanActivate {
   /**
    * Recursively traverse query to calculate complexity metrics
    */
-  private traverseQuery(obj: any, depth: number, stats: QueryComplexityStats): void {
+  private traverseQuery(obj: unknown, depth: number, stats: QueryComplexityStats): void {
     if (!obj || typeof obj !== 'object') {
       return;
     }
@@ -294,7 +301,7 @@ export class QueryComplexityGuard implements CanActivate {
     }
 
     // Process object keys
-    for (const [key, value] of Object.entries(obj)) {
+    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
       stats.totalConditions++;
 
       // Handle $or operator

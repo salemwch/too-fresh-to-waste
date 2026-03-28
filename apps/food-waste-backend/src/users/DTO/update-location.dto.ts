@@ -19,7 +19,7 @@ export class UpdateLocationDto {
     maximum: 90,
   })
   @IsLatitude({ message: 'Latitude must be between -90 and 90' })
-  latitude: number;
+  latitude!: number;
 
   @ApiProperty({
     description: 'Longitude coordinate',
@@ -28,7 +28,7 @@ export class UpdateLocationDto {
     maximum: 180,
   })
   @IsLongitude({ message: 'Longitude must be between -180 and 180' })
-  longitude: number;
+  longitude!: number;
 
   @ApiProperty({
     description: 'Display name for the location (e.g., "Sousse, Tunisia")',

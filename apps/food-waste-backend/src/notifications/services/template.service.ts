@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, FilterQuery } from 'mongoose';
+
 import { NotificationTemplate } from '../schemas/notification-template.schema';
 
 @Injectable()
@@ -14,9 +15,9 @@ export class TemplateService {
 
   render(
     template: NotificationTemplate,
-    variables: Record<string, any>,
-    language: string = 'en'
-  ): { subject: string; body: string; htmlBody?: string } {
+    variables: Record<string, unknown>,
+    language: string = 'en',
+  ): { subject: string; body: string; htmlBody?: string | undefined } {
     try {
       // Get localized content or fall back to default
       const content = this.getLocalizedContent(template, language);
@@ -24,49 +25,53 @@ export class TemplateService {
       return {
         subject: this.interpolateVariables(content.subject, variables),
         body: this.interpolateVariables(content.body, variables),
-        htmlBody: content.htmlBody ? this.interpolateVariables(content.htmlBody, variables) : undefined
+        htmlBody: content.htmlBody
+          ? this.interpolateVariables(content.htmlBody, variables)
+          : undefined,
       };
     } catch (error) {
-      this.logger.error(`Template rendering failed: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Template rendering failed: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       throw error;
     }
   }
 
-  createTemplate(templateData: Partial<NotificationTemplate>): Promise<NotificationTemplate> {
+  async createTemplate(templateData: Partial<NotificationTemplate>): Promise<NotificationTemplate> {
     const template = new this.templateModel(templateData);
-    return template.save();
+    const saved = await template.save();
+    return saved;
   }
 
-  updateTemplate(
+  async updateTemplate(
     templateId: string,
-    updateData: Partial<NotificationTemplate>
-  ): Promise<NotificationTemplate> {
-    return this.templateModel.findByIdAndUpdate(
-      templateId,
-      updateData,
-      { new: true }
-    );
+    updateData: Partial<NotificationTemplate>,
+  ): Promise<NotificationTemplate | null> {
+    const updated = await this.templateModel
+      .findByIdAndUpdate(templateId, updateData, { new: true })
+      .exec();
+    return updated;
   }
 
-  getTemplate(name: string): Promise<NotificationTemplate | null> {
-    return this.templateModel.findOne({ name, isActive: true });
+  async getTemplate(name: string): Promise<NotificationTemplate | null> {
+    const template = await this.templateModel.findOne({ name, isActive: true });
+    return template;
   }
 
-  getTemplatesByTrigger(trigger: string): Promise<NotificationTemplate[]> {
-    return this.templateModel.find({ trigger, isActive: true });
+  async getTemplatesByTrigger(trigger: string): Promise<NotificationTemplate[]> {
+    const templates = await this.templateModel.find({ trigger, isActive: true });
+    return templates;
   }
 
   async deleteTemplate(templateId: string): Promise<void> {
-    await this.templateModel.findByIdAndUpdate(
-      templateId,
-      { isActive: false }
-    );
+    await this.templateModel.findByIdAndUpdate(templateId, { isActive: false });
   }
 
   async cloneTemplate(
     templateId: string,
     newName: string,
-    modifications?: Partial<NotificationTemplate>
+    modifications?: Partial<NotificationTemplate>,
   ): Promise<NotificationTemplate> {
     const originalTemplate = await this.templateModel.findById(templateId);
 
@@ -81,7 +86,7 @@ export class TemplateService {
       version: '1.0',
       createdAt: undefined,
       updatedAt: undefined,
-      ...modifications
+      ...modifications,
     };
 
     const cloned = new this.templateModel(clonedData);
@@ -95,11 +100,21 @@ export class TemplateService {
     const errors: string[] = [];
 
     // Check required fields
-    if (!template.name) {errors.push('Template name is required');}
-    if (!template.subject) {errors.push('Template subject is required');}
-    if (!template.body) {errors.push('Template body is required');}
-    if (!template.trigger) {errors.push('Template trigger is required');}
-    if (!template.type) {errors.push('Template type is required');}
+    if (!template.name) {
+      errors.push('Template name is required');
+    }
+    if (!template.subject) {
+      errors.push('Template subject is required');
+    }
+    if (!template.body) {
+      errors.push('Template body is required');
+    }
+    if (!template.trigger) {
+      errors.push('Template trigger is required');
+    }
+    if (!template.type) {
+      errors.push('Template type is required');
+    }
 
     // Check for undefined variables in template
     const variables = this.extractVariables(template.subject || '');
@@ -109,9 +124,7 @@ export class TemplateService {
     }
 
     // Validate variable syntax
-    const invalidVariables = variables.filter(variable =>
-      !this.isValidVariableSyntax(variable)
-    );
+    const invalidVariables = variables.filter((variable) => !this.isValidVariableSyntax(variable));
 
     if (invalidVariables.length > 0) {
       errors.push(`Invalid variable syntax: ${invalidVariables.join(', ')}`);
@@ -119,15 +132,15 @@ export class TemplateService {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
   async previewTemplate(
     templateId: string,
-    sampleVariables: Record<string, any>,
-    language: string = 'en'
-  ): Promise<{ subject: string; body: string; htmlBody?: string }> {
+    sampleVariables: Record<string, unknown>,
+    language: string = 'en',
+  ): Promise<{ subject: string; body: string; htmlBody?: string | undefined }> {
     const template = await this.templateModel.findById(templateId);
 
     if (!template) {
@@ -146,19 +159,19 @@ export class TemplateService {
 
     const variables = new Set<string>();
 
-    this.extractVariables(template.subject).forEach(v => variables.add(v));
-    this.extractVariables(template.body).forEach(v => variables.add(v));
+    this.extractVariables(template.subject).forEach((v) => variables.add(v));
+    this.extractVariables(template.body).forEach((v) => variables.add(v));
 
     if (template.htmlBody) {
-      this.extractVariables(template.htmlBody).forEach(v => variables.add(v));
+      this.extractVariables(template.htmlBody).forEach((v) => variables.add(v));
     }
 
     return Array.from(variables);
   }
 
   async bulkUpdateTemplates(
-    filter: Record<string, any>,
-    updateData: Partial<NotificationTemplate>
+    filter: FilterQuery<NotificationTemplate>,
+    updateData: Partial<NotificationTemplate>,
   ): Promise<{ modifiedCount: number }> {
     const result = await this.templateModel.updateMany(filter, updateData);
     return { modifiedCount: result.modifiedCount };
@@ -166,15 +179,15 @@ export class TemplateService {
 
   private getLocalizedContent(
     template: NotificationTemplate,
-    language: string
-  ): { subject: string; body: string; htmlBody?: string } {
+    language: string,
+  ): { subject: string; body: string; htmlBody?: string | undefined } {
     const localized = template.localization?.get(language);
 
     if (localized) {
       return {
         subject: localized.subject,
         body: localized.body,
-        htmlBody: localized.htmlBody
+        htmlBody: localized.htmlBody,
       };
     }
 
@@ -182,11 +195,11 @@ export class TemplateService {
     return {
       subject: template.subject,
       body: template.body,
-      htmlBody: template.htmlBody
+      htmlBody: template.htmlBody,
     };
   }
 
-  private interpolateVariables(text: string, variables: Record<string, any>): string {
+  private interpolateVariables(text: string, variables: Record<string, unknown>): string {
     return text.replace(/\{\{(\w+)\}\}/g, (match, variableName) => {
       const value = variables[variableName];
 
@@ -201,7 +214,7 @@ export class TemplateService {
 
   private extractVariables(text: string): string[] {
     const matches = text.match(/\{\{(\w+)\}\}/g) || [];
-    return matches.map(match => match.replace(/\{\{|\}\}/g, ''));
+    return matches.map((match) => match.replace(/\{\{|\}\}/g, ''));
   }
 
   private isValidVariableSyntax(variable: string): boolean {
@@ -231,7 +244,7 @@ export class TemplateService {
           <p>Please arrive during the specified pickup window and present your QR code.</p>
         `,
         isActive: true,
-        version: '1.0'
+        version: '1.0',
       },
       {
         name: 'pickup_reminder_push',
@@ -240,7 +253,7 @@ export class TemplateService {
         subject: 'Pickup Reminder',
         body: 'Your order from {{establishmentName}} is ready! Pickup in the next {{timeRemaining}}.',
         isActive: true,
-        version: '1.0'
+        version: '1.0',
       },
       {
         name: 'new_offer_nearby_push',
@@ -249,7 +262,7 @@ export class TemplateService {
         subject: 'New Offer Near You!',
         body: '{{establishmentName}} has a new surprise box for {{originalPrice}} ({{discountPercentage}}% off)!',
         isActive: true,
-        version: '1.0'
+        version: '1.0',
       },
       {
         name: 'urgent_pickup_sms',
@@ -258,8 +271,8 @@ export class TemplateService {
         subject: 'Urgent Pickup Reminder',
         body: 'URGENT: Your order at {{establishmentName}} expires in {{timeRemaining}}. Order: {{orderId}}',
         isActive: true,
-        version: '1.0'
-      }
+        version: '1.0',
+      },
     ];
 
     for (const templateData of defaultTemplates) {

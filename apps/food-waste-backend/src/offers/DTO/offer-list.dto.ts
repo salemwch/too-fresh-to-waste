@@ -1,12 +1,22 @@
-import { IsString, IsNumber, IsEnum, IsDateString, IsOptional, Min, Max, ValidateNested, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsNumber,
+  IsEnum,
+  IsDateString,
+  IsOptional,
+  Min,
+  ValidateNested,
+  IsBoolean,
+} from 'class-validator';
+
 import { OfferStatus, OfferType, Currency } from '../schemas/offer.schema';
 
 export enum CtaState {
-    AVAILABLE = 'available',
-    LOW_STOCK = 'low_stock',
-    SOLD_OUT = 'sold_out',
-    NOT_STARTED = 'not_started',
+  AVAILABLE = 'available',
+  LOW_STOCK = 'low_stock',
+  SOLD_OUT = 'sold_out',
+  NOT_STARTED = 'not_started',
 }
 
 /**
@@ -17,101 +27,103 @@ export enum CtaState {
  * ✅ UX: Includes computed CTA state for frontend
  */
 export class OfferCardDto {
-    @IsString()
-    id: string;
+  @IsString()
+  id!: string;
 
-    @IsString()
-    title: string;
+  @IsString()
+  title!: string;
 
-    @IsEnum(OfferType)
-    type: OfferType;
+  @IsEnum(OfferType)
+  type!: OfferType;
 
-    @IsOptional()
-    @IsString()
-    image?: string; // First image only for card display
+  @IsOptional()
+  @IsString()
+  image?: string | undefined; // First image only for card display
 
-    @ValidateNested()
-    pricing: {
-        originalPrice: number; // Included for UI strikethrough display (not sensitive)
-        discountedPrice: number;
-        discountPercentage: number;
-        currency: Currency;
-    };
+  @ValidateNested()
+  pricing!: {
+    originalPrice: number; // Included for UI strikethrough display (not sensitive)
+    discountedPrice: number;
+    discountPercentage: number;
+    currency: Currency;
+  };
 
-    @IsNumber()
-    @Min(0)
-    availableQuantity: number; // Computed: totalQuantity - sold - reserved
+  @IsNumber()
+  @Min(0)
+  availableQuantity!: number; // Computed: totalQuantity - sold - reserved
 
-    @IsDateString()
-    availableFrom: Date; // When offer becomes available for ordering
+  @IsDateString()
+  availableFrom!: Date; // When offer becomes available for ordering
 
-    @IsDateString()
-    availableUntil: Date;
+  @IsDateString()
+  availableUntil!: Date;
 
-    @IsOptional()
-    @ValidateNested({ each: true })
-    @Type(() => Object)
-    pickupTimeSlots?: Array<{
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => Object)
+  pickupTimeSlots?:
+    | Array<{
         startTime: string;
         endTime: string;
-    }>;
+      }>
+    | undefined;
 
-    @ValidateNested()
-    establishment: {
-        name: string;
-        averageRating?: number; // 0-5 rating for display
-        totalReviews?: number; // Number of reviews
-        profileImage?: string; // Merchant profile image/logo
-    };
+  @ValidateNested()
+  establishment!: {
+    name: string;
+    averageRating?: number | undefined; // 0-5 rating for display
+    totalReviews?: number | undefined; // Number of reviews
+    profileImage?: string | undefined; // Merchant profile image/logo
+  };
 
-    @IsOptional()
-    @IsNumber()
-    distance?: number; // Only present for geolocation queries
+  @IsOptional()
+  @IsNumber()
+  distance?: number | undefined; // Only present for geolocation queries
 
-    @IsEnum(CtaState)
-    ctaState: CtaState; // Computed state for UI
+  @IsEnum(CtaState)
+  ctaState!: CtaState; // Computed state for UI
 
-    @IsEnum(OfferStatus)
-    status: OfferStatus;
+  @IsEnum(OfferStatus)
+  status!: OfferStatus;
 
-    // =========================================================================
-    // FAVORITE STATUS (for authenticated users)
-    // =========================================================================
+  // =========================================================================
+  // FAVORITE STATUS (for authenticated users)
+  // =========================================================================
 
-    @IsOptional()
-    @IsBoolean()
-    isFavorite?: boolean; // True if current user has favorited (only when authenticated)
+  @IsOptional()
+  @IsBoolean()
+  isFavorite?: boolean | undefined; // True if current user has favorited (only when authenticated)
 
-    // =========================================================================
-    // FEATURING METADATA
-    // =========================================================================
+  // =========================================================================
+  // FEATURING METADATA
+  // =========================================================================
 
-    @IsBoolean()
-    isFeatured: boolean; // Computed: isFeaturedManual || isFeaturedAuto
+  @IsBoolean()
+  isFeatured!: boolean; // Computed: isFeaturedManual || isFeaturedAuto
 
-    @IsOptional()
-    @IsBoolean()
-    isFeaturedManual?: boolean; // True if manually featured by admin
+  @IsOptional()
+  @IsBoolean()
+  isFeaturedManual?: boolean | undefined; // True if manually featured by admin
 
-    @IsOptional()
-    @IsBoolean()
-    isFeaturedAuto?: boolean; // True if auto-featured by cron (urgency-based)
+  @IsOptional()
+  @IsBoolean()
+  isFeaturedAuto?: boolean | undefined; // True if auto-featured by cron (urgency-based)
 
-    @IsOptional()
-    @IsDateString()
-    featuredAt?: Date; // When the offer was featured (manual or auto)
+  @IsOptional()
+  @IsDateString()
+  featuredAt?: Date | undefined; // When the offer was featured (manual or auto)
 
-    // =========================================================================
-    // PICKUP CATEGORIZATION
-    // =========================================================================
+  // =========================================================================
+  // PICKUP CATEGORIZATION
+  // =========================================================================
 
-    @IsOptional()
-    @IsBoolean()
-    isPickupToday?: boolean; // True if merchant set this offer for "Pickup Today" section
+  @IsOptional()
+  @IsBoolean()
+  isPickupToday?: boolean | undefined; // True if merchant set this offer for "Pickup Today" section
 
-    @IsOptional()
-    @IsBoolean()
-    isPickupTomorrow?: boolean; // True if merchant set this offer for "Pickup Tomorrow" section
+  @IsOptional()
+  @IsBoolean()
+  isPickupTomorrow?: boolean | undefined; // True if merchant set this offer for "Pickup Tomorrow" section
 }
 
 /**
@@ -119,26 +131,26 @@ export class OfferCardDto {
  * This DTO leaked merchant PII and internal metrics
  */
 export class OfferListDto {
-    id?: string;
-    title?: string;
-    type?: string;
-    images?: string[];
-    pricing?: {
-        originalPrice?: number;
-        discountedPrice?: number;
-        discountPercentage?: number;
-    };
-    totalQuantity?: number;
-    soldQuantity?: number;
-    reservedQuantity?: number;
-    availableFrom?: Date;
-    availableUntil?: Date;
-    establishmentId?: string;
-    establishmentName?: string;
-    establishmentAddress?: any;
-    status?: OfferStatus;
-    distance?: number;
-    merchantFirstName?: string;
-    merchantLastName?: string;
-    createdAt?: Date;
+  id?: string;
+  title?: string;
+  type?: string;
+  images?: string[];
+  pricing?: {
+    originalPrice?: number;
+    discountedPrice?: number;
+    discountPercentage?: number;
+  };
+  totalQuantity?: number;
+  soldQuantity?: number;
+  reservedQuantity?: number;
+  availableFrom?: Date;
+  availableUntil?: Date;
+  establishmentId?: string;
+  establishmentName?: string;
+  establishmentAddress?: Record<string, unknown>;
+  status?: OfferStatus;
+  distance?: number;
+  merchantFirstName?: string;
+  merchantLastName?: string;
+  createdAt?: Date;
 }

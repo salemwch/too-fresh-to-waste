@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, PipelineStage } from 'mongoose';
-import { AdminAuditLog, AdminAuditLogDocument } from '../schemas/admin-audit-log.schema';
+
+import { LeanDocument } from '../../common/types/mongoose.types';
 import { GetAuditLogsQueryDto } from '../dto/admin-analytics.dto';
 import { AdminAction } from '../interfaces/admin-analytics.interface';
-import { LeanDocument } from '../../common/types/mongoose.types';
+import { AdminAuditLog, AdminAuditLogDocument } from '../schemas/admin-audit-log.schema';
 
 // Type definitions for audit data
 type AuditableValue =
@@ -38,19 +39,9 @@ interface AuditLogFilter {
 }
 
 // Statistics interfaces
-interface _ActionTypeStats {
-  _id: AdminAction;
-  count: number;
-}
-
 interface AdminActivityStats {
   _id: Types.ObjectId;
   adminEmail: string;
-  count: number;
-}
-
-interface _TargetTypeStats {
-  _id: TargetType;
   count: number;
 }
 
@@ -74,18 +65,20 @@ export interface AuditStatisticsResult {
 
 // Export format types
 type ExportFormat = 'json' | 'csv';
-type ExportResult<T extends ExportFormat> = T extends 'csv' ? string : LeanDocument<AdminAuditLogDocument>[];
+type ExportResult<T extends ExportFormat> = T extends 'csv'
+  ? string
+  : LeanDocument<AdminAuditLogDocument>[];
 
 // Base interface for audit action parameters
 interface BaseAuditActionParams {
   adminId: string;
   adminEmail: string;
   action: AdminAction;
-  previousValue?: AuditableObject;
-  newValue?: AuditableObject;
-  reason?: string;
-  ipAddress?: string;
-  userAgent?: string;
+  previousValue?: AuditableObject | undefined;
+  newValue?: AuditableObject | undefined;
+  reason?: string | undefined;
+  ipAddress?: string | undefined;
+  userAgent?: string | undefined;
 }
 
 // User-specific audit action parameters
@@ -108,17 +101,22 @@ export interface CreateAuditLogData {
   adminEmail: string;
   action: AdminAction;
   targetType: TargetType;
-  targetId?: string;
-  previousValue?: AuditableObject;
-  newValue?: AuditableObject;
-  reason?: string;
+  targetId?: string | undefined;
+  previousValue?: AuditableObject | undefined;
+  newValue?: AuditableObject | undefined;
+  reason?: string | undefined;
   ipAddress: string;
   userAgent: string;
-  metadata?: AuditableObject;
+  metadata?: AuditableObject | undefined;
 }
 
 // Export the parameter interfaces for external use
-export type { BaseAuditActionParams, UserAuditActionParams, EstablishmentAuditActionParams, SystemAuditActionParams };
+export type {
+  BaseAuditActionParams,
+  UserAuditActionParams,
+  EstablishmentAuditActionParams,
+  SystemAuditActionParams,
+};
 
 export interface AuditLogResponse {
   logs: LeanDocument<AdminAuditLogDocument>[];
@@ -156,23 +154,18 @@ export class AdminAuditService {
         ipAddress: sanitizedData.ipAddress,
         userAgent: sanitizedData.userAgent,
         metadata: sanitizedData.metadata,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       const savedLog = await auditLog.save();
 
       this.logger.log(
-        `Audit log created: ${
-        data.action
-        } by ${
-        data.adminEmail
-        } on ${
-        data.targetType
-        }${data.targetId ? `:${  data.targetId}` : ''}`
+        `Audit log created: ${data.action} by ${data.adminEmail} on ${
+          data.targetType
+        }${data.targetId ? `:${data.targetId}` : ''}`,
       );
 
       return savedLog;
-
     } catch (error) {
       this.logger.error('Failed to create audit log:', error);
       throw error;
@@ -189,7 +182,7 @@ export class AdminAuditService {
         targetType,
         targetId,
         startDate,
-        endDate
+        endDate,
       } = query;
 
       // Build filter conditions
@@ -245,16 +238,18 @@ export class AdminAuditService {
         limit,
         totalPages,
         hasNext: page < totalPages,
-        hasPrev: page > 1
+        hasPrev: page > 1,
       };
-
     } catch (error) {
       this.logger.error('Failed to retrieve audit logs:', error);
       throw error;
     }
   }
 
-  async getAuditLogsByAdmin(adminId: string, limit: number = 50): Promise<LeanDocument<AdminAuditLogDocument>[]> {
+  async getAuditLogsByAdmin(
+    adminId: string,
+    limit: number = 50,
+  ): Promise<LeanDocument<AdminAuditLogDocument>[]> {
     try {
       return await this.auditLogModel
         .find({ adminId: new Types.ObjectId(adminId) })
@@ -262,14 +257,17 @@ export class AdminAuditService {
         .limit(limit)
         .lean()
         .exec();
-
     } catch (error) {
       this.logger.error(`Failed to retrieve audit logs for admin ${adminId}:`, error);
       throw error;
     }
   }
 
-  async getAuditLogsByTarget(targetType: string, targetId: string, limit: number = 20): Promise<LeanDocument<AdminAuditLogDocument>[]> {
+  async getAuditLogsByTarget(
+    targetType: string,
+    targetId: string,
+    limit: number = 20,
+  ): Promise<LeanDocument<AdminAuditLogDocument>[]> {
     try {
       return await this.auditLogModel.aggregate<LeanDocument<AdminAuditLogDocument>>([
         { $match: { targetType, targetId } },
@@ -277,14 +275,16 @@ export class AdminAuditService {
         { $limit: limit },
         ...this.getAdminLookupStages(),
       ]);
-
     } catch (error) {
       this.logger.error(`Failed to retrieve audit logs for ${targetType}:${targetId}:`, error);
       throw error;
     }
   }
 
-  async getRecentActivity(hours: number = 24, limit: number = 100): Promise<LeanDocument<AdminAuditLogDocument>[]> {
+  async getRecentActivity(
+    hours: number = 24,
+    limit: number = 100,
+  ): Promise<LeanDocument<AdminAuditLogDocument>[]> {
     try {
       const startTime = new Date(Date.now() - hours * 60 * 60 * 1000);
 
@@ -294,7 +294,6 @@ export class AdminAuditService {
         { $limit: limit },
         ...this.getAdminLookupStages(),
       ]);
-
     } catch (error) {
       this.logger.error('Failed to retrieve recent activity:', error);
       throw error;
@@ -305,11 +304,11 @@ export class AdminAuditService {
     try {
       const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-      const pipeline: PipelineStage[]  = [
+      const pipeline: PipelineStage[] = [
         {
           $match: {
-            timestamp: { $gte: startDate }
-          }
+            timestamp: { $gte: startDate },
+          },
         },
         {
           $facet: {
@@ -317,10 +316,10 @@ export class AdminAuditService {
               {
                 $group: {
                   _id: '$action',
-                  count: { $sum: 1 }
-                }
+                  count: { $sum: 1 },
+                },
               },
-              { $sort: { count: -1 } }
+              { $sort: { count: -1 } },
             ],
 
             activityByAdmin: [
@@ -328,40 +327,38 @@ export class AdminAuditService {
                 $group: {
                   _id: '$adminId',
                   adminEmail: { $first: '$adminEmail' },
-                  count: { $sum: 1 }
-                }
+                  count: { $sum: 1 },
+                },
               },
               { $sort: { count: -1 } },
-              { $limit: 10 }
+              { $limit: 10 },
             ],
 
             targetsByType: [
               {
                 $group: {
                   _id: '$targetType',
-                  count: { $sum: 1 }
-                }
+                  count: { $sum: 1 },
+                },
               },
-              { $sort: { count: -1 } }
+              { $sort: { count: -1 } },
             ],
 
             dailyActivity: [
               {
                 $group: {
                   _id: {
-                    $dateToString: { format: "%Y-%m-%d", date: "$timestamp" }
+                    $dateToString: { format: '%Y-%m-%d', date: '$timestamp' },
                   },
-                  count: { $sum: 1 }
-                }
+                  count: { $sum: 1 },
+                },
               },
-              { $sort: { '_id': 1 } }
+              { $sort: { _id: 1 } },
             ],
 
-            totalActions: [
-              { $count: 'total' }
-            ]
-          }
-        }
+            totalActions: [{ $count: 'total' }],
+          },
+        },
       ];
 
       const [result] = await this.auditLogModel.aggregate(pipeline);
@@ -375,10 +372,9 @@ export class AdminAuditService {
         period: {
           days,
           startDate,
-          endDate: new Date()
-        }
+          endDate: new Date(),
+        },
       };
-
     } catch (error) {
       this.logger.error('Failed to calculate audit statistics:', error);
       throw error;
@@ -390,13 +386,12 @@ export class AdminAuditService {
       const cutoffDate = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
 
       const result = await this.auditLogModel.deleteMany({
-        timestamp: { $lt: cutoffDate }
+        timestamp: { $lt: cutoffDate },
       });
 
       this.logger.log(`Deleted ${result.deletedCount} audit logs older than ${olderThanDays} days`);
 
       return result.deletedCount;
-
     } catch (error) {
       this.logger.error('Failed to delete old audit logs:', error);
       throw error;
@@ -406,7 +401,7 @@ export class AdminAuditService {
   async exportAuditLogs<T extends ExportFormat>(
     startDate: Date,
     endDate: Date,
-    format: T = 'json' as T
+    format: T = 'json' as T,
   ): Promise<ExportResult<T>> {
     try {
       const logs = await this.auditLogModel.aggregate<LeanDocument<AdminAuditLogDocument>>([
@@ -420,7 +415,6 @@ export class AdminAuditService {
       }
 
       return logs as unknown as ExportResult<T>;
-
     } catch (error) {
       this.logger.error('Failed to export audit logs:', error);
       throw error;
@@ -438,13 +432,15 @@ export class AdminAuditService {
       }
 
       if (Array.isArray(obj)) {
-        return obj.map(item => sanitizeObject(item));
+        return obj.map((item) => sanitizeObject(item));
       }
 
-      const sanitized: Record<string, AuditableValue> = { ...(obj as Record<string, SanitizableValue>) } as Record<string, AuditableValue>;
+      const sanitized: Record<string, AuditableValue> = {
+        ...(obj as Record<string, SanitizableValue>),
+      } as Record<string, AuditableValue>;
 
       for (const [key, value] of Object.entries(sanitized)) {
-        if (sensitiveFields.some(field => key.toLowerCase().includes(field))) {
+        if (sensitiveFields.some((field) => key.toLowerCase().includes(field))) {
           sanitized[key] = '[REDACTED]';
         } else if (typeof value === 'object' && value !== null) {
           sanitized[key] = sanitizeObject(value);
@@ -456,19 +452,24 @@ export class AdminAuditService {
 
     return {
       ...data,
-      previousValue: data.previousValue ? sanitizeObject(data.previousValue) as AuditableObject : undefined,
-      newValue: data.newValue ? sanitizeObject(data.newValue) as AuditableObject : undefined,
-      metadata: data.metadata ? sanitizeObject(data.metadata) as AuditableObject : undefined
+      previousValue: data.previousValue
+        ? (sanitizeObject(data.previousValue) as AuditableObject)
+        : undefined,
+      newValue: data.newValue ? (sanitizeObject(data.newValue) as AuditableObject) : undefined,
+      metadata: data.metadata ? (sanitizeObject(data.metadata) as AuditableObject) : undefined,
     };
   }
 
   private formatGroupedResults<T extends string>(
-    results: Array<{ _id: T; count: number }>
+    results: Array<{ _id: T; count: number }>,
   ): Record<T, number> {
-    return results.reduce((acc, item) => {
-      acc[item._id] = item.count;
-      return acc;
-    }, {} as Record<T, number>);
+    return results.reduce(
+      (acc, item) => {
+        acc[item._id] = item.count;
+        return acc;
+      },
+      {} as Record<T, number>,
+    );
   }
 
   /**
@@ -500,7 +501,9 @@ export class AdminAuditService {
   }
 
   private convertLogsToCSV(logs: LeanDocument<AdminAuditLogDocument>[]): string {
-    if (logs.length === 0) {return '';}
+    if (logs.length === 0) {
+      return '';
+    }
 
     const headers = [
       'Timestamp',
@@ -509,20 +512,22 @@ export class AdminAuditService {
       'Target Type',
       'Target ID',
       'Reason',
-      'IP Address'
+      'IP Address',
     ];
 
     const csvRows = [
       headers.join(','),
-      ...logs.map(log => [
-        log.timestamp.toISOString(),
-        log.adminEmail,
-        log.action,
-        log.targetType,
-        log.targetId || '',
-        (log.reason || '').replace(/,/g, ';'), // Escape commas
-        log.ipAddress
-      ].join(','))
+      ...logs.map((log) =>
+        [
+          log.timestamp.toISOString(),
+          log.adminEmail,
+          log.action,
+          log.targetType,
+          log.targetId || '',
+          (log.reason || '').replace(/,/g, ';'), // Escape commas
+          log.ipAddress,
+        ].join(','),
+      ),
     ];
 
     return csvRows.join('\n');
@@ -538,7 +543,7 @@ export class AdminAuditService {
       newValue,
       reason,
       ipAddress = '0.0.0.0',
-      userAgent = 'Unknown'
+      userAgent = 'Unknown',
     } = params;
 
     const result = await this.createAuditLog({
@@ -551,13 +556,15 @@ export class AdminAuditService {
       newValue,
       reason,
       ipAddress,
-      userAgent
+      userAgent,
     });
 
     return result;
   }
 
-  async logEstablishmentAction(params: EstablishmentAuditActionParams): Promise<AdminAuditLogDocument> {
+  async logEstablishmentAction(
+    params: EstablishmentAuditActionParams,
+  ): Promise<AdminAuditLogDocument> {
     const {
       adminId,
       adminEmail,
@@ -567,7 +574,7 @@ export class AdminAuditService {
       newValue,
       reason,
       ipAddress = '0.0.0.0',
-      userAgent = 'Unknown'
+      userAgent = 'Unknown',
     } = params;
 
     const result = await this.createAuditLog({
@@ -580,7 +587,7 @@ export class AdminAuditService {
       newValue,
       reason,
       ipAddress,
-      userAgent
+      userAgent,
     });
 
     return result;
@@ -595,7 +602,7 @@ export class AdminAuditService {
       newValue,
       reason,
       ipAddress = '0.0.0.0',
-      userAgent = 'Unknown'
+      userAgent = 'Unknown',
     } = params;
 
     const result = await this.createAuditLog({
@@ -607,7 +614,7 @@ export class AdminAuditService {
       newValue,
       reason,
       ipAddress,
-      userAgent
+      userAgent,
     });
 
     return result;
@@ -615,29 +622,31 @@ export class AdminAuditService {
 
   async logBatchActions(actions: CreateAuditLogData[]): Promise<AdminAuditLogDocument[]> {
     try {
-      const sanitizedActions = actions.map(action => this.sanitizeAuditData(action));
+      const sanitizedActions = actions.map((action) => this.sanitizeAuditData(action));
 
-      const auditLogs = sanitizedActions.map(data => new this.auditLogModel({
-        adminId: new Types.ObjectId(data.adminId),
-        adminEmail: data.adminEmail,
-        action: data.action,
-        targetType: data.targetType,
-        targetId: data.targetId,
-        previousValue: data.previousValue,
-        newValue: data.newValue,
-        reason: data.reason,
-        ipAddress: data.ipAddress,
-        userAgent: data.userAgent,
-        metadata: data.metadata,
-        timestamp: new Date()
-      }));
+      const auditLogs = sanitizedActions.map(
+        (data) =>
+          new this.auditLogModel({
+            adminId: new Types.ObjectId(data.adminId),
+            adminEmail: data.adminEmail,
+            action: data.action,
+            targetType: data.targetType,
+            targetId: data.targetId,
+            previousValue: data.previousValue,
+            newValue: data.newValue,
+            reason: data.reason,
+            ipAddress: data.ipAddress,
+            userAgent: data.userAgent,
+            metadata: data.metadata,
+            timestamp: new Date(),
+          }),
+      );
 
       const savedLogs = await this.auditLogModel.insertMany(auditLogs);
 
       this.logger.log(`Batch audit log created: ${actions.length} actions`);
 
       return savedLogs;
-
     } catch (error) {
       this.logger.error('Failed to create batch audit logs:', error);
       throw error;

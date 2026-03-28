@@ -1,6 +1,12 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
-import { ThrottlerGuard, ThrottlerModuleOptions, ThrottlerStorage, ThrottlerLimitDetail } from '@nestjs/throttler';
 import { Reflector } from '@nestjs/core';
+import {
+  ThrottlerGuard,
+  ThrottlerModuleOptions,
+  ThrottlerStorage,
+  ThrottlerLimitDetail,
+} from '@nestjs/throttler';
+import { Request } from 'express';
 
 /**
  * PickupThrottlerGuard
@@ -18,34 +24,36 @@ import { Reflector } from '@nestjs/core';
  */
 @Injectable()
 export class PickupThrottlerGuard extends ThrottlerGuard {
-    constructor(
-        options: ThrottlerModuleOptions,
-        storageService: ThrottlerStorage,
-        reflector: Reflector,
-    ) {
-        super(options, storageService, reflector);
-    }
+  constructor(
+    options: ThrottlerModuleOptions,
+    storageService: ThrottlerStorage,
+    reflector: Reflector,
+  ) {
+    super(options, storageService, reflector);
+  }
 
-    /**
-     * Generate a unique key for rate limiting
-     * Combines IP + OrderId + UserId for precise tracking
-     */
-    protected async getTracker(req: Record<string, any>): Promise<string> {
-        const ip = req.ip || req.connection?.remoteAddress || 'unknown';
-        const userId = req.user?.userId || 'anonymous';
-        const orderId = req.params?.id || 'unknown';
+  /**
+   * Generate a unique key for rate limiting
+   * Combines IP + OrderId + UserId for precise tracking
+   */
+  protected override async getTracker(req: Record<string, unknown>): Promise<string> {
+    // Cast to typed Express Request for safe property access
+    const request = req as unknown as Request & { user?: { userId?: string } };
+    const ip = request.ip || request.socket?.remoteAddress || 'unknown';
+    const userId = request.user?.userId || 'anonymous';
+    const orderId = request.params?.['id'] || 'unknown';
 
-        // Key format: pickup-{ip}-{orderId}-{userId}
-        return `pickup-${ip}-${orderId}-${userId}`;
-    }
+    // Key format: pickup-{ip}-{orderId}-{userId}
+    return `pickup-${ip}-${orderId}-${userId}`;
+  }
 
-    /**
-     * Override to provide custom error message
-     */
-    protected async getErrorMessage(
-        _context: ExecutionContext,
-        _throttlerLimitDetail: ThrottlerLimitDetail,
-    ): Promise<string> {
-        return 'Too many pickup attempts. Please wait before trying again. If you need assistance, contact the merchant directly.';
-    }
+  /**
+   * Override to provide custom error message
+   */
+  protected override async getErrorMessage(
+    _context: ExecutionContext,
+    _throttlerLimitDetail: ThrottlerLimitDetail,
+  ): Promise<string> {
+    return 'Too many pickup attempts. Please wait before trying again. If you need assistance, contact the merchant directly.';
+  }
 }

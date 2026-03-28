@@ -1,30 +1,38 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { UserRole } from '../../common/enums/user.enum';
 
+import { UserRole } from '../../common/enums/user.enum';
 
 @Injectable()
 export class ModerationAccessGuard implements CanActivate {
-    constructor(private readonly reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {
+    void this.reflector;
+  }
 
-    canActivate(context: ExecutionContext): boolean {
-        const request = context.switchToHttp().getRequest();
-        const user = request.user;
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
 
-        if (!user) {
-            throw new UnauthorizedException('Authentication required');
-        }
-
-        const allowedRoles = [UserRole.ADMIN, UserRole.MODERATOR];
-
-        if (!allowedRoles.includes(user.role)) {
-            throw new ForbiddenException('Access denied. Admin or Moderator privileges required');
-        }
-
-        request.moderatorRole = user.role;
-
-        return true;
+    if (!user) {
+      throw new UnauthorizedException('Authentication required');
     }
+
+    const allowedRoles = [UserRole.ADMIN, UserRole.MODERATOR];
+
+    if (!allowedRoles.includes(user.role)) {
+      throw new ForbiddenException('Access denied. Admin or Moderator privileges required');
+    }
+
+    request.moderatorRole = user.role;
+
+    return true;
+  }
 }
 
 /**
@@ -32,20 +40,20 @@ export class ModerationAccessGuard implements CanActivate {
  */
 @Injectable()
 export class AdminOnlyModerationGuard implements CanActivate {
-    canActivate(context: ExecutionContext): boolean {
-        const request = context.switchToHttp().getRequest();
-        const user = request.user;
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
 
-        if (!user) {
-            throw new UnauthorizedException('Authentication required');
-        }
-
-        if (user.role !== UserRole.ADMIN) {
-            throw new ForbiddenException('Admin privileges required for this action');
-        }
-
-        return true;
+    if (!user) {
+      throw new UnauthorizedException('Authentication required');
     }
+
+    if (user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Admin privileges required for this action');
+    }
+
+    return true;
+  }
 }
 
 /**
@@ -54,25 +62,25 @@ export class AdminOnlyModerationGuard implements CanActivate {
  */
 @Injectable()
 export class ReportOwnershipGuard implements CanActivate {
-    canActivate(context: ExecutionContext): boolean {
-        const request = context.switchToHttp().getRequest();
-        const user = request.user;
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
 
-        if (!user) {
-            throw new UnauthorizedException('Authentication required');
-        }
-
-        // Admins have full access
-        if (user.role === UserRole.ADMIN) {
-            return true;
-        }
-
-        // For moderators, we'll check ownership in the service layer
-        // This guard just ensures they have moderation access
-        if (user.role !== UserRole.MODERATOR) {
-            throw new ForbiddenException('Moderation privileges required');
-        }
-
-        return true;
+    if (!user) {
+      throw new UnauthorizedException('Authentication required');
     }
+
+    // Admins have full access
+    if (user.role === UserRole.ADMIN) {
+      return true;
+    }
+
+    // For moderators, we'll check ownership in the service layer
+    // This guard just ensures they have moderation access
+    if (user.role !== UserRole.MODERATOR) {
+      throw new ForbiddenException('Moderation privileges required');
+    }
+
+    return true;
+  }
 }

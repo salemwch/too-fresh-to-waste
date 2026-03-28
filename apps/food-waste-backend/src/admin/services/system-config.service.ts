@@ -1,13 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { EventBusService } from '../../common/services/event-bus/event-bus.service';
-import { SystemConfig, SystemConfigDocument } from '../schemas/system-config.schema';
-import { UpdateSystemConfigDto } from '../dto/system-config.dto';
-import { AdminAuditService, AuditableObject } from './admin-audit.service';
-import { AdminAction } from '../interfaces/admin-analytics.interface';
-import { ISystemConfig } from '../../common/interfaces/system-config.interface';
-import { SystemConfigMapper } from '../../common/mappers/system-config.mapper';
+
 import {
   AdminSystemConfigChangedEvent,
   AdminSystemConfigRolledBackEvent,
@@ -15,6 +9,14 @@ import {
   AdminSecurityConfigChangedEvent,
   AdminPaymentConfigChangedEvent,
 } from '../../common/events/admin-system.events';
+import { ISystemConfig } from '../../common/interfaces/system-config.interface';
+import { SystemConfigMapper } from '../../common/mappers/system-config.mapper';
+import { EventBusService } from '../../common/services/event-bus/event-bus.service';
+import { UpdateSystemConfigDto } from '../dto/system-config.dto';
+import { AdminAction } from '../interfaces/admin-analytics.interface';
+import { SystemConfig, SystemConfigDocument } from '../schemas/system-config.schema';
+
+import { AdminAuditService, AuditableObject } from './admin-audit.service';
 
 export interface ConfigValidationResult {
   isValid: boolean;
@@ -65,7 +67,7 @@ export interface ConfigExportData {
     automaticPayouts?: boolean;
     refundProcessingDays?: number;
   };
-  description?: string;
+  description?: string | undefined;
 }
 
 export interface ConfigImportData {
@@ -164,7 +166,7 @@ export class SystemConfigService {
     try {
       // Check cache first
       const now = Date.now();
-      if (this.configCache && (now - this.cacheTimestamp) < this.CACHE_TTL) {
+      if (this.configCache && now - this.cacheTimestamp < this.CACHE_TTL) {
         return this.configCache;
       }
 
@@ -184,7 +186,6 @@ export class SystemConfigService {
       this.cacheTimestamp = 0;
 
       return mappedConfig;
-
     } catch (error) {
       this.logger.error('Failed to get system configuration:', error);
       throw error;
@@ -196,7 +197,7 @@ export class SystemConfigService {
     adminId: string,
     adminEmail: string,
     ipAddress: string,
-    userAgent: string
+    userAgent: string,
   ): Promise<ISystemConfig> {
     try {
       // Get the raw document for internal processing
@@ -215,7 +216,9 @@ export class SystemConfigService {
       const validationResult = this.validateConfig(updateDto, currentConfig);
 
       if (!validationResult.isValid) {
-        throw new BadRequestException(`Configuration validation failed: ${validationResult.errors.join(', ')}`);
+        throw new BadRequestException(
+          `Configuration validation failed: ${validationResult.errors.join(', ')}`,
+        );
       }
 
       // Log warnings if any
@@ -227,17 +230,14 @@ export class SystemConfigService {
         platformSettings: currentConfig.platformSettings,
         notificationSettings: currentConfig.notificationSettings,
         securitySettings: currentConfig.securitySettings,
-        paymentSettings: currentConfig.paymentSettings
+        paymentSettings: currentConfig.paymentSettings,
       } as unknown as AuditableObject;
 
       // Create new version of configuration
       const newVersion = this.generateNewVersion(currentConfig.version);
 
       // Deactivate current configuration
-      await this.configModel.updateOne(
-        { _id: currentConfigDoc._id },
-        { isActive: false }
-      );
+      await this.configModel.updateOne({ _id: currentConfigDoc._id }, { isActive: false });
 
       // Create new configuration with updates
       const updatedConfig = new this.configModel({
@@ -245,23 +245,23 @@ export class SystemConfigService {
         version: newVersion,
         platformSettings: {
           ...currentConfig.platformSettings,
-          ...updateDto.platformSettings
+          ...updateDto.platformSettings,
         },
         notificationSettings: {
           ...currentConfig.notificationSettings,
-          ...updateDto.notificationSettings
+          ...updateDto.notificationSettings,
         },
         securitySettings: {
           ...currentConfig.securitySettings,
-          ...updateDto.securitySettings
+          ...updateDto.securitySettings,
         },
         paymentSettings: {
           ...currentConfig.paymentSettings,
-          ...updateDto.paymentSettings
+          ...updateDto.paymentSettings,
         },
         description: updateDto.description,
         lastModifiedBy: adminEmail,
-        isActive: true
+        isActive: true,
       });
 
       const savedConfig = await updatedConfig.save();
@@ -280,14 +280,16 @@ export class SystemConfigService {
           platformSettings: savedConfig.platformSettings as unknown as AuditableObject,
           notificationSettings: savedConfig.notificationSettings as unknown as AuditableObject,
           securitySettings: savedConfig.securitySettings as unknown as AuditableObject,
-          paymentSettings: savedConfig.paymentSettings as unknown as AuditableObject
+          paymentSettings: savedConfig.paymentSettings as unknown as AuditableObject,
         } as AuditableObject,
         reason: updateDto.description || 'System configuration updated',
         ipAddress,
-        userAgent
+        userAgent,
       });
 
-      this.logger.log(`System configuration updated to version ${newVersion} by admin ${adminEmail}`);
+      this.logger.log(
+        `System configuration updated to version ${newVersion} by admin ${adminEmail}`,
+      );
 
       // Emit domain events for cache invalidation and service refresh
       await this.emitConfigChangedEvents(
@@ -299,7 +301,6 @@ export class SystemConfigService {
       );
 
       return SystemConfigMapper.toInterface(savedConfig);
-
     } catch (error) {
       this.logger.error('Failed to update system configuration:', error);
       throw error;
@@ -315,7 +316,6 @@ export class SystemConfigService {
         .exec();
 
       return SystemConfigMapper.toInterfaceArray(configs);
-
     } catch (error) {
       this.logger.error('Failed to get configuration history:', error);
       throw error;
@@ -327,7 +327,7 @@ export class SystemConfigService {
     adminId: string,
     adminEmail: string,
     ipAddress: string,
-    userAgent: string
+    userAgent: string,
   ): Promise<ISystemConfig> {
     try {
       const targetConfig = await this.configModel
@@ -348,10 +348,7 @@ export class SystemConfigService {
       }
 
       // Deactivate current configuration
-      await this.configModel.updateOne(
-        { _id: currentConfigDoc._id },
-        { isActive: false }
-      );
+      await this.configModel.updateOne({ _id: currentConfigDoc._id }, { isActive: false });
 
       // Create new configuration based on target version
       const rollbackConfig = new this.configModel({
@@ -363,7 +360,7 @@ export class SystemConfigService {
         paymentSettings: targetConfig.paymentSettings,
         description: `Rollback to version ${version}`,
         lastModifiedBy: adminEmail,
-        isActive: true
+        isActive: true,
       });
 
       const savedConfig = await rollbackConfig.save();
@@ -378,7 +375,7 @@ export class SystemConfigService {
         action: AdminAction.SYSTEM_CONFIG_UPDATED,
         previousValue: {
           currentVersion: currentConfigDoc.version,
-          action: 'rollback'
+          action: 'rollback',
         },
         newValue: {
           newVersion: savedConfig.version,
@@ -386,14 +383,16 @@ export class SystemConfigService {
           platformSettings: savedConfig.platformSettings as unknown as AuditableObject,
           notificationSettings: savedConfig.notificationSettings as unknown as AuditableObject,
           securitySettings: savedConfig.securitySettings as unknown as AuditableObject,
-          paymentSettings: savedConfig.paymentSettings as unknown as AuditableObject
+          paymentSettings: savedConfig.paymentSettings as unknown as AuditableObject,
         } as AuditableObject,
         reason: `Rolled back configuration to version ${version}`,
         ipAddress,
-        userAgent
+        userAgent,
       });
 
-      this.logger.log(`System configuration rolled back to version ${version} by admin ${adminEmail}`);
+      this.logger.log(
+        `System configuration rolled back to version ${version} by admin ${adminEmail}`,
+      );
 
       // Emit rollback event for emergency cache clearing
       await this.eventBus.emit(
@@ -408,7 +407,6 @@ export class SystemConfigService {
       );
 
       return SystemConfigMapper.toInterface(savedConfig);
-
     } catch (error) {
       this.logger.error(`Failed to rollback to configuration version ${version}:`, error);
       throw error;
@@ -447,11 +445,10 @@ export class SystemConfigService {
         notificationSettings: config.notificationSettings,
         securitySettings: config.securitySettings,
         paymentSettings: config.paymentSettings,
-        description: config.description
+        description: config.description,
       };
 
       return exportData;
-
     } catch (error) {
       this.logger.error('Failed to export configuration:', error);
       throw error;
@@ -463,7 +460,7 @@ export class SystemConfigService {
       const result: ConfigValidationResult = {
         isValid: true,
         errors: [],
-        warnings: []
+        warnings: [],
       };
 
       // Type guard to ensure importData is an object
@@ -476,37 +473,43 @@ export class SystemConfigService {
       const data = importData as Record<string, unknown>;
 
       // Validate required fields
-      if (!data.platformSettings || typeof data.platformSettings !== 'object') {
+      if (!data['platformSettings'] || typeof data['platformSettings'] !== 'object') {
         result.errors.push('Platform settings are required and must be an object');
       }
 
-      if (!data.notificationSettings || typeof data.notificationSettings !== 'object') {
+      if (!data['notificationSettings'] || typeof data['notificationSettings'] !== 'object') {
         result.errors.push('Notification settings are required and must be an object');
       }
 
-      if (!data.securitySettings || typeof data.securitySettings !== 'object') {
+      if (!data['securitySettings'] || typeof data['securitySettings'] !== 'object') {
         result.errors.push('Security settings are required and must be an object');
       }
 
-      if (!data.paymentSettings || typeof data.paymentSettings !== 'object') {
+      if (!data['paymentSettings'] || typeof data['paymentSettings'] !== 'object') {
         result.errors.push('Payment settings are required and must be an object');
       }
 
       // Validate specific settings if they exist and are objects
-      if (data.platformSettings && typeof data.platformSettings === 'object') {
-        const platformValidation = this.validatePlatformSettings(data.platformSettings as PlatformSettingsPartial);
+      if (data['platformSettings'] && typeof data['platformSettings'] === 'object') {
+        const platformValidation = this.validatePlatformSettings(
+          data['platformSettings'] as PlatformSettingsPartial,
+        );
         result.errors.push(...platformValidation.errors);
         result.warnings.push(...platformValidation.warnings);
       }
 
-      if (data.securitySettings && typeof data.securitySettings === 'object') {
-        const securityValidation = this.validateSecuritySettings(data.securitySettings as SecuritySettingsPartial);
+      if (data['securitySettings'] && typeof data['securitySettings'] === 'object') {
+        const securityValidation = this.validateSecuritySettings(
+          data['securitySettings'] as SecuritySettingsPartial,
+        );
         result.errors.push(...securityValidation.errors);
         result.warnings.push(...securityValidation.warnings);
       }
 
-      if (data.paymentSettings && typeof data.paymentSettings === 'object') {
-        const paymentValidation = this.validatePaymentSettings(data.paymentSettings as PaymentSettingsPartial);
+      if (data['paymentSettings'] && typeof data['paymentSettings'] === 'object') {
+        const paymentValidation = this.validatePaymentSettings(
+          data['paymentSettings'] as PaymentSettingsPartial,
+        );
         result.errors.push(...paymentValidation.errors);
         result.warnings.push(...paymentValidation.warnings);
       }
@@ -514,13 +517,12 @@ export class SystemConfigService {
       result.isValid = result.errors.length === 0;
 
       return result;
-
     } catch (error) {
       this.logger.error('Failed to validate configuration import:', error);
       return {
         isValid: false,
         errors: ['Failed to validate configuration'],
-        warnings: []
+        warnings: [],
       };
     }
   }
@@ -530,14 +532,16 @@ export class SystemConfigService {
     adminId: string,
     adminEmail: string,
     ipAddress: string,
-    userAgent: string
+    userAgent: string,
   ): Promise<ISystemConfig> {
     try {
       // Validate import data
-      const validationResult =  this.validateConfigImport(importData);
+      const validationResult = this.validateConfigImport(importData);
 
       if (!validationResult.isValid) {
-        throw new BadRequestException(`Import validation failed: ${validationResult.errors.join(', ')}`);
+        throw new BadRequestException(
+          `Import validation failed: ${validationResult.errors.join(', ')}`,
+        );
       }
 
       // Type guard after validation
@@ -548,15 +552,16 @@ export class SystemConfigService {
       const data = importData as ConfigImportData;
 
       const updateDto: UpdateSystemConfigDto = {
-        platformSettings: data.platformSettings,
-        notificationSettings: data.notificationSettings,
-        securitySettings: data.securitySettings,
-        paymentSettings: data.paymentSettings,
-        description: `Imported configuration from version ${data.version || 'unknown'}`
+        ...(data.platformSettings !== undefined ? { platformSettings: data.platformSettings } : {}),
+        ...(data.notificationSettings !== undefined
+          ? { notificationSettings: data.notificationSettings }
+          : {}),
+        ...(data.securitySettings !== undefined ? { securitySettings: data.securitySettings } : {}),
+        ...(data.paymentSettings !== undefined ? { paymentSettings: data.paymentSettings } : {}),
+        description: `Imported configuration from version ${data.version || 'unknown'}`,
       };
 
       return await this.updateSystemConfig(updateDto, adminId, adminEmail, ipAddress, userAgent);
-
     } catch (error) {
       this.logger.error('Failed to import configuration:', error);
       throw error;
@@ -578,7 +583,7 @@ export class SystemConfigService {
         minOrderValue: 1,
         maxOrderValue: 1000,
         platformCommissionRate: 15,
-        autoRefundTimeoutHours: 24
+        autoRefundTimeoutHours: 24,
       },
       notificationSettings: {
         emailEnabled: true,
@@ -587,7 +592,7 @@ export class SystemConfigService {
         adminEmailAlerts: true,
         orderConfirmationEnabled: true,
         orderReminderEnabled: true,
-        promotionalEmailsEnabled: true
+        promotionalEmailsEnabled: true,
       },
       securitySettings: {
         maxLoginAttempts: 10,
@@ -598,7 +603,7 @@ export class SystemConfigService {
         passwordRequireNumbers: true,
         passwordRequireUppercase: true,
         sessionTimeout: 480,
-        twoFactorAuthRequired: false
+        twoFactorAuthRequired: false,
       },
       paymentSettings: {
         stripeEnabled: true,
@@ -606,13 +611,13 @@ export class SystemConfigService {
         minimumPayoutAmount: 10,
         payoutFrequency: 'weekly',
         automaticPayouts: true,
-        refundProcessingDays: 3
+        refundProcessingDays: 3,
       },
       description: 'Default system configuration',
       isActive: true,
       createdBy: 'system',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
 
     const savedConfig = await defaultConfig.save();
@@ -623,12 +628,12 @@ export class SystemConfigService {
 
   private validateConfig(
     updateDto: UpdateSystemConfigDto,
-    _currentConfig: ISystemConfig
+    _currentConfig: ISystemConfig,
   ): ConfigValidationResult {
     const result: ConfigValidationResult = {
       isValid: true,
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     // Validate platform settings
@@ -736,9 +741,9 @@ export class SystemConfigService {
 
   private generateNewVersion(currentVersion: string, suffix?: string): string {
     const versionParts = currentVersion.split('.');
-    const major = parseInt(versionParts[0]) || 1;
-    const minor = parseInt(versionParts[1]) || 0;
-    const patch = parseInt(versionParts[2]) || 0;
+    const major = parseInt(versionParts[0] ?? '1', 10) || 1;
+    const minor = parseInt(versionParts[1] ?? '0', 10) || 0;
+    const patch = parseInt(versionParts[2] ?? '0', 10) || 0;
 
     const newPatch = patch + 1;
     const newVersion = `${major}.${minor}.${newPatch}`;
@@ -766,14 +771,19 @@ export class SystemConfigService {
       if (updateDto.platformSettings) {
         Object.keys(updateDto.platformSettings).forEach((key) => {
           changedFields.push(`platformSettings.${key}`);
-          previousValues[`platformSettings.${key}`] = previousConfig.platformSettings?.[key];
-          newValues[`platformSettings.${key}`] = updateDto.platformSettings![key];
+          previousValues[`platformSettings.${key}`] = (
+            previousConfig.platformSettings as unknown as Record<string, unknown> | undefined
+          )?.[key];
+          newValues[`platformSettings.${key}`] = (
+            updateDto.platformSettings as Record<string, unknown>
+          )[key];
         });
 
         // Check for maintenance mode change (critical)
         if (
           updateDto.platformSettings.maintenanceMode !== undefined &&
-          updateDto.platformSettings.maintenanceMode !== previousConfig.platformSettings?.maintenanceMode
+          updateDto.platformSettings.maintenanceMode !==
+            previousConfig.platformSettings?.maintenanceMode
         ) {
           await this.eventBus.emit(
             'admin.system.maintenance_mode_changed',
@@ -792,8 +802,12 @@ export class SystemConfigService {
         Object.keys(updateDto.securitySettings).forEach((key) => {
           securityChangedFields.push(key);
           changedFields.push(`securitySettings.${key}`);
-          previousValues[`securitySettings.${key}`] = previousConfig.securitySettings?.[key];
-          newValues[`securitySettings.${key}`] = updateDto.securitySettings![key];
+          previousValues[`securitySettings.${key}`] = (
+            previousConfig.securitySettings as unknown as Record<string, unknown> | undefined
+          )?.[key];
+          newValues[`securitySettings.${key}`] = (
+            updateDto.securitySettings as Record<string, unknown>
+          )[key];
         });
 
         // Emit specific security config changed event
@@ -816,8 +830,12 @@ export class SystemConfigService {
         Object.keys(updateDto.paymentSettings).forEach((key) => {
           paymentChangedFields.push(key);
           changedFields.push(`paymentSettings.${key}`);
-          previousValues[`paymentSettings.${key}`] = previousConfig.paymentSettings?.[key];
-          newValues[`paymentSettings.${key}`] = updateDto.paymentSettings![key];
+          previousValues[`paymentSettings.${key}`] = (
+            previousConfig.paymentSettings as unknown as Record<string, unknown> | undefined
+          )?.[key];
+          newValues[`paymentSettings.${key}`] = (
+            updateDto.paymentSettings as Record<string, unknown>
+          )[key];
         });
 
         // Emit specific payment config changed event
@@ -838,8 +856,12 @@ export class SystemConfigService {
       if (updateDto.notificationSettings) {
         Object.keys(updateDto.notificationSettings).forEach((key) => {
           changedFields.push(`notificationSettings.${key}`);
-          previousValues[`notificationSettings.${key}`] = previousConfig.notificationSettings?.[key];
-          newValues[`notificationSettings.${key}`] = updateDto.notificationSettings![key];
+          previousValues[`notificationSettings.${key}`] = (
+            previousConfig.notificationSettings as unknown as Record<string, unknown> | undefined
+          )?.[key];
+          newValues[`notificationSettings.${key}`] = (
+            updateDto.notificationSettings as Record<string, unknown>
+          )[key];
         });
       }
 

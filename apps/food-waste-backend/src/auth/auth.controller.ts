@@ -1,53 +1,57 @@
 import {
-    Controller,
-    Post,
-    Body,
-    UseGuards,
-    Request,
-    Response,
-    HttpCode,
-    HttpStatus,
-    Get,
-    Delete,
-    HttpException,
-    Logger,
-    ForbiddenException,
-    Param,
-    BadRequestException,
-    InternalServerErrorException,
-    NotFoundException,
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Response,
+  HttpCode,
+  HttpStatus,
+  Get,
+  Delete,
+  HttpException,
+  Logger,
+  ForbiddenException,
+  Param,
+  BadRequestException,
+  InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
-import { Response as ExpressResponse, Request as ExpressRequest } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import {
-    ApiTags,
-    ApiOperation,
-    ApiOkResponse,
-    ApiCreatedResponse as ApiCreatedResponseSwagger,
-    ApiBadRequestResponse,
-    ApiUnauthorizedResponse,
-    ApiForbiddenResponse,
-    ApiTooManyRequestsResponse,
+  ApiTags,
+  ApiOperation,
+  ApiOkResponse,
+  ApiCreatedResponse as ApiCreatedResponseSwagger,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+  ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { Response as ExpressResponse, Request as ExpressRequest } from 'express';
+import { UsersService } from 'src/users/user.service';
+
+import { AuthenticatedRequest } from '../common/decorators/get-user.decorator';
+import { Public } from '../common/decorators/public.decorator';
+import { CookieSecurityUtil } from '../common/utils/cookie-security.util';
+
 import { AuthService, RegisterResponse, LoginResponse } from './auth.service';
+import { ForgotPasswordDto } from './DTO/forget-password.dto';
+import { LoginDto } from './DTO/login.dto';
+import { RegisterDto } from './DTO/register.dto';
+import { ResetPasswordDto } from './DTO/reset-password.dto';
+import { VerifyEmailDto } from './DTO/verify-email.dto';
+import { AuthThrottlerGuard } from './guards/auth-throttler.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CsrfService } from './services/csrf.service';
 import { SessionManagementService } from './services/session-management.service';
 import { PasswordPolicyService } from './services/password-policy.service';
 import { MfaService } from './services/mfa.service';
-import { CookieSecurityUtil } from '../common/utils/cookie-security.util';
 
 
-import { UsersService } from 'src/users/user.service';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { AuthThrottlerGuard } from './guards/auth-throttler.guard';
-import { RegisterDto } from './DTO/register.dto';
-import { LoginDto } from './DTO/login.dto';
-import { ForgotPasswordDto } from './DTO/forget-password.dto';
-import { ResetPasswordDto } from './DTO/reset-password.dto';
-import { VerifyEmailDto } from './DTO/verify-email.dto';
-import { Public } from '../common/decorators/public.decorator';
+
 
 /**
  * AUTHENTICATION CONTROLLER
@@ -67,25 +71,25 @@ import { Public } from '../common/decorators/public.decorator';
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-    private readonly logger = new Logger(AuthController.name);
+  private readonly logger = new Logger(AuthController.name);
 
-    constructor(
-        private readonly authService: AuthService,
-        private readonly configService: ConfigService,
-        private readonly jwtService: JwtService,
-        private readonly csrfService: CsrfService,
-        private readonly sessionManagementService: SessionManagementService,
-        private readonly passwordPolicyService: PasswordPolicyService,
-        private readonly mfaService: MfaService,
-        private readonly usersService: UsersService,
-    ) { }
-    @Post('register')
-    @Public()
-    @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 10, ttl: 600000 } }) // 10 attempts per 10 minutes
-    @ApiOperation({
-        summary: 'Register new user account',
-        description: `Creates a new user account with email verification flow.
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
+    private readonly csrfService: CsrfService,
+    private readonly sessionManagementService: SessionManagementService,
+    private readonly passwordPolicyService: PasswordPolicyService,
+    private readonly mfaService: MfaService,
+    private readonly usersService: UsersService,
+  ) {}
+  @Post('register')
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 600000 } }) // 10 attempts per 10 minutes
+  @ApiOperation({
+    summary: 'Register new user account',
+    description: `Creates a new user account with email verification flow.
 
 **Features:**
 - Email uniqueness validation
@@ -105,145 +109,147 @@ export class AuthController {
 - PII sanitization
 - Brute-force protection
 - CAPTCHA integration (production)`,
-    })
-    @ApiCreatedResponseSwagger({
-        description: 'User registered successfully. Verification email sent.',
-        schema: {
-            example: {
-                success: true,
-                message: 'User registered successfully',
-                user: {
-                    userId: '507f1f77bcf86cd799439011',
-                    email: 'user@example.com',
-                    firstName: 'John',
-                    lastName: 'Doe',
-                    isEmailVerified: false,
-                    createdAt: '2025-01-21T10:30:00.000Z',
-                },
-            },
+  })
+  @ApiCreatedResponseSwagger({
+    description: 'User registered successfully. Verification email sent.',
+    schema: {
+      example: {
+        success: true,
+        message: 'User registered successfully',
+        user: {
+          userId: '507f1f77bcf86cd799439011',
+          email: 'user@example.com',
+          firstName: 'John',
+          lastName: 'Doe',
+          isEmailVerified: false,
+          createdAt: '2025-01-21T10:30:00.000Z',
         },
-    })
-    @ApiBadRequestResponse({
-        description: 'Invalid input data or email already exists',
-        schema: {
-            example: {
-                status: 400,
-                message: ['email must be a valid email', 'password is too weak'],
-                error: 'Bad Request',
-                timestamp: '2025-01-21T10:30:00.000Z',
-                path: '/api/v1/auth/register',
-                method: 'POST',
-            },
-        },
-    })
-    @ApiTooManyRequestsResponse({
-        description: 'Rate limit exceeded (10 attempts per 10 minutes)',
-        schema: {
-            example: {
-                status: 429,
-                message: 'ThrottlerException: Too Many Requests',
-                timestamp: '2025-01-21T10:30:00.000Z',
-                path: '/api/v1/auth/register',
-                method: 'POST',
-            },
-        },
-    })
-    async register(@Body() registerDto: RegisterDto): Promise<RegisterResponse> {
-        this.logger.log(`Registration attempt for email: ${registerDto.email}`);
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid input data or email already exists',
+    schema: {
+      example: {
+        status: 400,
+        message: ['email must be a valid email', 'password is too weak'],
+        error: 'Bad Request',
+        timestamp: '2025-01-21T10:30:00.000Z',
+        path: '/api/v1/auth/register',
+        method: 'POST',
+      },
+    },
+  })
+  @ApiTooManyRequestsResponse({
+    description: 'Rate limit exceeded (10 attempts per 10 minutes)',
+    schema: {
+      example: {
+        status: 429,
+        message: 'ThrottlerException: Too Many Requests',
+        timestamp: '2025-01-21T10:30:00.000Z',
+        path: '/api/v1/auth/register',
+        method: 'POST',
+      },
+    },
+  })
+  async register(@Body() registerDto: RegisterDto): Promise<RegisterResponse> {
+    this.logger.log(`Registration attempt for email: ${registerDto.email}`);
 
-        try {
-            return await this.authService.register(registerDto);
-        } catch (error) {
-            this.logger.error(
-                `Registration failed for email: ${registerDto.email}`,
-                (error as Error).stack,
-            );
-            // Re-throw the original exception to preserve status code (409 for ConflictException, 400 for BadRequestException)
-            // Global exception filter will format the response
-            throw error;
-        }
+    try {
+      return await this.authService.register(registerDto);
+    } catch (error) {
+      this.logger.error(
+        `Registration failed for email: ${registerDto.email}`,
+        (error as Error).stack,
+      );
+      // Re-throw the original exception to preserve status code (409 for ConflictException, 400 for BadRequestException)
+      // Global exception filter will format the response
+      throw error;
     }
-    @Post('verify-email')
-    @Public()
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 10, ttl: 300000 } })
-    async verifyEmail(
-        @Body() verifyEmailDto: VerifyEmailDto,
-        @Request() req: ExpressRequest,
-        @Response({ passthrough: true }) res: ExpressResponse,
-    ) {
-        try {
-            // Extract request info for auto-login token generation
-            const requestInfo = {
-                ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
-                userAgent: req.headers['user-agent'] || 'unknown',
-            };
+  }
+  @Post('verify-email')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 300000 } })
+  async verifyEmail(
+    @Body() verifyEmailDto: VerifyEmailDto,
+    @Request() req: ExpressRequest,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ) {
+    try {
+      // Extract request info for auto-login token generation
+      const requestInfo = {
+        ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      };
 
-            const result = await this.authService.verifyEmail(verifyEmailDto, requestInfo);
+      const result = await this.authService.verifyEmail(verifyEmailDto, requestInfo);
 
-            // Set HttpOnly cookies for web auto-login after email verification
-            if (result.tokens) {
-                this.setAuthCookies(res, result.tokens);
-            }
+      // Set HttpOnly cookies for web auto-login after email verification
+      if (result.tokens) {
+        this.setAuthCookies(res, result.tokens);
+      }
 
-            return result;
-        } catch (error) {
-            if (error instanceof HttpException) {
-                throw error;
-            }
+      return result;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
 
-            this.logger.error('Email verification error', {
-                errorName: (error as Error)?.name,
-                errorMessage: (error as Error)?.message,
-                email: verifyEmailDto.email,
-            });
+      this.logger.error('Email verification error', {
+        errorName: (error as Error)?.name,
+        errorMessage: (error as Error)?.message,
+        email: verifyEmailDto.email,
+      });
 
-            throw new InternalServerErrorException({
-                message: 'Email verification failed. Please try again.',
-            });
-        }
+      throw new InternalServerErrorException({
+        message: 'Email verification failed. Please try again.',
+      });
     }
+  }
 
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 600000 } }) // 3 attempts / 10 minutes
+  async resendVerification(@Body('email') email: string): Promise<{ message: string }> {
+    try {
+      if (!email || typeof email !== 'string') {
+        throw new BadRequestException('Valid email is required.');
+      }
 
-    @Post('resend-verification')
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 10, ttl: 600000 } }) // 3 attempts / 10 minutes
-    async resendVerification(@Body('email') email: string): Promise<{ message: string }> {
-        try {
-            if (!email || typeof email !== 'string') {
-                throw new BadRequestException('Valid email is required.');
-            }
+      await this.authService.resendVerificationEmail(email);
 
-            await this.authService.resendVerificationEmail(email);
+      return { message: 'Verification email resent successfully.' };
+    } catch (error) {
+      const errorName = error instanceof Error ? error.name : undefined;
+      const errorMessage = error instanceof Error ? error.message : undefined;
 
-            return { message: 'Verification email resent successfully.' };
-        } catch (error) {
-            // Handle specific known errors from AuthService
-            if (error.name === 'UserNotFoundError') {
-                throw new BadRequestException('No account found with that email.');
-            }
+      // Handle specific known errors from AuthService
+      if (errorName === 'UserNotFoundError') {
+        throw new BadRequestException('No account found with that email.');
+      }
 
-            if (error.name === 'AlreadyVerifiedError') {
-                throw new BadRequestException('Account is already verified.');
-            }
+      if (errorName === 'AlreadyVerifiedError') {
+        throw new BadRequestException('Account is already verified.');
+      }
 
-            // Unexpected error
-            throw new InternalServerErrorException({
-                message: 'Failed to resend verification email.',
-                details: error.message,
-            });
-        }
+      // Unexpected error
+      throw new InternalServerErrorException({
+        message: 'Failed to resend verification email.',
+        details: errorMessage,
+      });
     }
+  }
 
-    @Post('login')
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 10, ttl: 900000 } }) // 10 attempts per 15 minutes
-    @ApiOperation({
-        summary: 'Authenticate user and obtain JWT tokens',
-        description: `Authenticates user credentials and returns JWT access/refresh tokens with session tracking.
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 900000 } }) // 10 attempts per 15 minutes
+  @ApiOperation({
+    summary: 'Authenticate user and obtain JWT tokens',
+    description: `Authenticates user credentials and returns JWT access/refresh tokens with session tracking.
 
 **Security Features:**
 - IP-based brute-force protection
@@ -260,150 +266,166 @@ export class AuthController {
 - Refresh token (7 days expiry)
 - Session ID
 - Device information`,
-    })
-    @ApiOkResponse({
-        description: 'Login successful. Tokens set in HTTP-only cookies.',
-        schema: {
-            example: {
-                success: true,
-                user: {
-                    userId: '507f1f77bcf86cd799439011',
-                    email: 'user@example.com',
-                    firstName: 'John',
-                    role: 'user',
-                },
-                tokens: {
-                    accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-                    refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-                },
-                sessionId: 'sess_abc123def456',
-                deviceInfo: {
-                    deviceName: 'Chrome on Windows',
-                    platform: 'Windows',
-                    browser: 'Chrome',
-                },
-            },
+  })
+  @ApiOkResponse({
+    description: 'Login successful. Tokens set in HTTP-only cookies.',
+    schema: {
+      example: {
+        success: true,
+        user: {
+          userId: '507f1f77bcf86cd799439011',
+          email: 'user@example.com',
+          firstName: 'John',
+          role: 'user',
         },
-    })
-    @ApiBadRequestResponse({ description: 'Invalid email or password' })
-    @ApiForbiddenResponse({ description: 'Account locked due to suspicious activity or too many failed attempts' })
-    @ApiUnauthorizedResponse({ description: 'Email not verified' })
-    @ApiTooManyRequestsResponse({ description: 'Rate limit exceeded' })
-    async login(
-        @Body() loginDto: LoginDto,
-        @Request() req: ExpressRequest,
-        @Response({ passthrough: true }) res: ExpressResponse,
-    ): Promise<LoginResponse> {
-        const requestInfo = {
-            ipAddress: req.ip || req.socket?.remoteAddress || 'unknown',
-            userAgent: req.get('User-Agent') || 'unknown',
-        };
+        tokens: {
+          accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+          refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        },
+        sessionId: 'sess_abc123def456',
+        deviceInfo: {
+          deviceName: 'Chrome on Windows',
+          platform: 'Windows',
+          browser: 'Chrome',
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Invalid email or password' })
+  @ApiForbiddenResponse({
+    description: 'Account locked due to suspicious activity or too many failed attempts',
+  })
+  @ApiUnauthorizedResponse({ description: 'Email not verified' })
+  @ApiTooManyRequestsResponse({ description: 'Rate limit exceeded' })
+  async login(
+    @Body() loginDto: LoginDto,
+    @Request() req: ExpressRequest,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ): Promise<LoginResponse> {
+    const requestInfo = {
+      ipAddress: req.ip || req.socket?.remoteAddress || 'unknown',
+      userAgent: req.get('User-Agent') || 'unknown',
+    };
 
-        // All security checks (IP block, suspicious activity, attempt limits)
-        // and credential verification live in AuthService — controller is routing only.
-        const loginResponse = await this.authService.login(loginDto, requestInfo);
+    // All security checks (IP block, suspicious activity, attempt limits)
+    // and credential verification live in AuthService — controller is routing only.
+    const loginResponse = await this.authService.login(loginDto, requestInfo);
 
-        // Create session with device tracking
-        const sessionInfo = await this.sessionManagementService.createSession({
-            userId: loginResponse.user.userId,
-            userAgent: requestInfo.userAgent,
-            ipAddress: requestInfo.ipAddress,
-            rememberMe: loginDto.rememberMe || false,
-        });
-
-        this.setAuthCookies(res, loginResponse.tokens, sessionInfo.sessionId);
-
-        return {
-            ...loginResponse,
-            sessionId: sessionInfo.sessionId,
-            deviceInfo: {
-                deviceName: sessionInfo.deviceInfo.deviceName,
-                platform: sessionInfo.deviceInfo.platform,
-                browser: sessionInfo.deviceInfo.browser,
-            },
-        };
+    if (!loginResponse.user || !loginResponse.tokens) {
+      throw new InternalServerErrorException(
+        'Login failed to return the required user session data.',
+      );
     }
 
+    // Create session with device tracking
+    const sessionInfo = await this.sessionManagementService.createSession({
+      userId: loginResponse.user.userId,
+      userAgent: requestInfo.userAgent,
+      ipAddress: requestInfo.ipAddress,
+      rememberMe: loginDto.rememberMe || false,
+    });
 
-    @Post('forgot-password')
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 10, ttl: 900000 } }) // 3 attempts per 15 minutes
-    async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-        try {
-            const result = await this.authService.forgotPassword(forgotPasswordDto);
+    this.setAuthCookies(res, loginResponse.tokens, sessionInfo.sessionId);
 
-            return {
-                success: true,
-                message: 'Password reset instructions sent successfully.',
-                data: result ?? null,
-            };
-        } catch (error) {
-            // Handle and rethrow specific error types for cleaner client responses
-            if (error.name === 'UserNotFoundError') {
-                throw new NotFoundException('No account found with the provided email.');
-            }
+    return {
+      ...loginResponse,
+      sessionId: sessionInfo.sessionId,
+      deviceInfo: {
+        deviceName: sessionInfo.deviceInfo.deviceName,
+        platform: sessionInfo.deviceInfo.platform,
+        browser: sessionInfo.deviceInfo.browser,
+      },
+    };
+  }
 
-            if (error.name === 'EmailSendError') {
-                throw new InternalServerErrorException('Failed to send reset email. Please try again later.');
-            }
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 900000 } }) // 3 attempts per 15 minutes
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    try {
+      const result = await this.authService.forgotPassword(forgotPasswordDto);
 
-            // Fallback for unexpected errors
-            throw new InternalServerErrorException('An unexpected error occurred.');
-        }
+      return {
+        success: true,
+        message: 'Password reset instructions sent successfully.',
+        data: result ?? null,
+      };
+    } catch (error) {
+      const errorName = error instanceof Error ? error.name : undefined;
+
+      // Handle and rethrow specific error types for cleaner client responses
+      if (errorName === 'UserNotFoundError') {
+        throw new NotFoundException('No account found with the provided email.');
+      }
+
+      if (errorName === 'EmailSendError') {
+        throw new InternalServerErrorException(
+          'Failed to send reset email. Please try again later.',
+        );
+      }
+
+      // Fallback for unexpected errors
+      throw new InternalServerErrorException('An unexpected error occurred.');
     }
+  }
 
-    @Post('reset-password')
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 10, ttl: 900000 } }) // 3 attempts per 15 minutes
-    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-        try {
-            const result = await this.authService.resetPassword(resetPasswordDto);
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 900000 } }) // 3 attempts per 15 minutes
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    try {
+      const result = await this.authService.resetPassword(resetPasswordDto);
 
-            return {
-                success: true,
-                message: 'Password has been reset successfully.',
-                data: result ?? null,
-            };
-        } catch (error) {
-            this.logger.error('Password reset error', {
-                errorName: error?.name,
-                errorMessage: error?.message,
-                email: resetPasswordDto.email,
-            });
+      return {
+        success: true,
+        message: 'Password has been reset successfully.',
+        data: result ?? null,
+      };
+    } catch (error) {
+      const errorName = error instanceof Error ? error.name : undefined;
+      const errorMessage = error instanceof Error ? error.message : undefined;
 
-            // Re-throw all HTTP exceptions as-is (includes BadRequestException, NotFoundException, etc.)
-            if (error instanceof HttpException) {
-                throw error;
-            }
+      this.logger.error('Password reset error', {
+        errorName,
+        errorMessage,
+        email: resetPasswordDto.email,
+      });
 
-            // Handle known custom error types for better client feedback
-            if (error?.name === 'InvalidOrExpiredTokenError') {
-                throw new BadRequestException('The reset token is invalid or has expired.');
-            }
+      // Re-throw all HTTP exceptions as-is (includes BadRequestException, NotFoundException, etc.)
+      if (error instanceof HttpException) {
+        throw error;
+      }
 
-            if (error?.name === 'UserNotFoundError') {
-                throw new NotFoundException('No user found for this token.');
-            }
+      // Handle known custom error types for better client feedback
+      if (errorName === 'InvalidOrExpiredTokenError') {
+        throw new BadRequestException('The reset token is invalid or has expired.');
+      }
 
-            if (error?.name === 'PasswordPolicyError') {
-                throw new BadRequestException(error.message || 'New password does not meet security requirements.');
-            }
+      if (errorName === 'UserNotFoundError') {
+        throw new NotFoundException('No user found for this token.');
+      }
 
-            // Fallback: Unexpected failure
-            throw new InternalServerErrorException('Failed to reset password. Please try again later.');
-        }
+      if (errorName === 'PasswordPolicyError') {
+        throw new BadRequestException(
+          errorMessage || 'New password does not meet security requirements.',
+        );
+      }
+
+      // Fallback: Unexpected failure
+      throw new InternalServerErrorException('Failed to reset password. Please try again later.');
     }
+  }
 
-    @Post('refresh')
-    @Public() // ✅ Remove guard to accept refresh token from request body
-    @UseGuards(AuthThrottlerGuard)
-    @Throttle({ default: { limit: 10, ttl: 3600000 } }) // 10 attempts per hour per IP+userId
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({
-        summary: 'Refresh access token using refresh token',
-        description: `Exchanges a valid refresh token for new access/refresh token pair.
+  @Post('refresh')
+  @Public() // ✅ Remove guard to accept refresh token from request body
+  @UseGuards(AuthThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 3600000 } }) // 10 attempts per hour per IP+userId
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Refresh access token using refresh token',
+    description: `Exchanges a valid refresh token for new access/refresh token pair.
 
 **Token Rotation Security:**
 - Old refresh token is IMMEDIATELY REVOKED after use
@@ -417,619 +439,623 @@ export class AuthController {
 **Mobile Support:**
 - Send refresh token in request body: \`{ "refreshToken": "..." }\`
 - Web apps can also use HTTP-only cookies`,
-    })
-    @ApiOkResponse({
-        description: 'Tokens refreshed successfully',
-        schema: {
-            example: {
-                message: 'Tokens refreshed successfully',
-                tokens: {
-                    accessToken: 'eyJhbGciOiJIUzI1NiIs...',
-                    refreshToken: 'eyJhbGciOiJIUzI1NiIs...',
-                    expiresIn: 900,
-                },
-            },
+  })
+  @ApiOkResponse({
+    description: 'Tokens refreshed successfully',
+    schema: {
+      example: {
+        message: 'Tokens refreshed successfully',
+        tokens: {
+          accessToken: 'eyJhbGciOiJIUzI1NiIs...',
+          refreshToken: 'eyJhbGciOiJIUzI1NiIs...',
+          expiresIn: 900,
         },
-    })
-    @ApiBadRequestResponse({ description: 'Refresh token missing or invalid' })
-    @ApiUnauthorizedResponse({ description: 'Refresh token expired or revoked' })
-    @ApiTooManyRequestsResponse({ description: 'Rate limit exceeded (10/hour)' })
-    async refresh(
-        @Request() req: ExpressRequest,
-        @Body() body: { refreshToken?: string },
-        @Response({ passthrough: true }) res: ExpressResponse,
-    ) {
-        const ip = req.ip || req.socket?.remoteAddress || 'unknown';
-        const userAgent = req.get('User-Agent') || 'unknown';
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Refresh token missing or invalid' })
+  @ApiUnauthorizedResponse({ description: 'Refresh token expired or revoked' })
+  @ApiTooManyRequestsResponse({ description: 'Rate limit exceeded (10/hour)' })
+  async refresh(
+    @Request() req: ExpressRequest,
+    @Body() body: { refreshToken?: string },
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ) {
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    const userAgent = req.get('User-Agent') || 'unknown';
 
-        // ✅ Support both mobile (body) and web (cookies)
-        // Priority: 1. Request body (mobile), 2. Cookies (web), 3. Header
-        const refreshToken = body?.refreshToken ||
-                            req.cookies?.['refresh_token'] ||
-                            (req.user as any)?.refreshToken;
+    // ✅ Support both mobile (body) and web (cookies)
+    // Priority: 1. Request body (mobile), 2. Cookies (web), 3. Header
+    const refreshToken =
+      body?.refreshToken ||
+      req.cookies?.['refresh_token'] ||
+      ((req.user as Record<string, unknown>)?.['refreshToken'] as string | undefined);
 
-        if (!refreshToken) {
-            this.logger.warn('Token refresh attempted without refresh token', { ip });
-            throw new BadRequestException('Refresh token is required in request body or cookies');
-        }
+    if (!refreshToken) {
+      this.logger.warn('Token refresh attempted without refresh token', { ip });
+      throw new BadRequestException('Refresh token is required in request body or cookies');
+    }
 
-        // Validate and decode refresh token to get userId
-        const decoded = await this.authService.validateRefreshToken(refreshToken);
+    // Validate and decode refresh token to get userId
+    const decoded = await this.authService.validateRefreshToken(refreshToken);
 
-        if (!decoded) {
-            this.logger.warn('Token refresh failed - invalid/expired token', {
-                ip,
-                userAgent: userAgent.substring(0, 100),
-            });
-            throw new BadRequestException('Invalid or expired refresh token');
-        }
+    if (!decoded) {
+      this.logger.warn('Token refresh failed - invalid/expired token', {
+        ip,
+        userAgent: userAgent.substring(0, 100),
+      });
+      throw new BadRequestException('Invalid or expired refresh token');
+    }
 
-        const tokens = await this.authService.refreshTokens(
-            decoded.userId,
-            refreshToken,
+    const tokens = await this.authService.refreshTokens(decoded.userId, refreshToken);
+
+    // ✅ Security logging for audit trail
+    this.logger.log('Tokens refreshed successfully', {
+      userId: decoded.userId,
+      ip,
+    });
+
+    // Set cookies for web compatibility
+    this.setAuthCookies(res, tokens);
+
+    // ✅ Return tokens in response body for mobile app
+    return {
+      message: 'Tokens refreshed successfully',
+      tokens: {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresIn: 900, // 15 minutes in seconds
+      },
+    };
+  }
+
+  /**
+   * GRACEFUL LOGOUT ENDPOINT
+   *
+   * CRITICAL: This endpoint ALWAYS returns 200 OK regardless of token validity.
+   *
+   * Rationale (Industry Best Practice - Facebook, Google, Auth0):
+   * - User's goal is "I want to be logged out"
+   * - If token is valid → Invalidate it → Goal achieved → 200
+   * - If token is invalid → Already invalid → Goal achieved → 200
+   * - If token is missing → Nothing to invalidate → Goal achieved → 200
+   * - If token is expired → Already unusable → Goal achieved → 200
+   *
+   * This prevents infinite loops in mobile apps where:
+   * 401 → refresh fails → logout API → 401 → refresh fails → ...
+   *
+   * @security Logout is idempotent - calling it multiple times has same effect
+   */
+  @Post('logout')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  async logout(
+    @Request() req: ExpressRequest,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ): Promise<{ success: boolean; message: string }> {
+    const sessionId = req.cookies?.['session_id'];
+    const refreshToken = req.cookies?.['refresh_token'];
+    const userId = this.extractUserIdFromAuthHeader(req.headers.authorization);
+
+    // Execute cleanup operations in parallel (fire-and-forget, ~2x faster)
+    await Promise.allSettled([
+      this.destroySessionSafely(sessionId),
+      this.invalidateTokensSafely(userId, refreshToken),
+    ]);
+    this.clearCookiesSafely(res);
+
+    return { success: true, message: 'Logout successful' };
+  }
+
+  /**
+   * Extract user ID from Authorization header without verification.
+   * Uses decode() not verify() - safe for expired/invalid tokens.
+   */
+  private extractUserIdFromAuthHeader(authHeader: string | undefined): string | undefined {
+    if (!authHeader?.startsWith('Bearer ')) {
+      return undefined;
+    }
+
+    try {
+      const token = authHeader.substring(7);
+      const decoded = this.jwtService.decode(token);
+      return decoded?.sub;
+    } catch (error) {
+      this.logger.debug('Could not decode token during logout', {
+        error: this.getErrorMessage(error),
+      });
+      return undefined;
+    }
+  }
+
+  /**
+   * Destroy session safely - never throws, logs errors.
+   */
+  private async destroySessionSafely(sessionId: string | undefined): Promise<void> {
+    if (!sessionId) {
+      return;
+    }
+
+    try {
+      await this.sessionManagementService.destroySession(sessionId);
+    } catch (error) {
+      this.logger.warn('Failed to destroy session during logout', {
+        sessionId,
+        error: this.getErrorMessage(error),
+      });
+    }
+  }
+
+  /**
+   * Invalidate tokens safely - never throws, logs errors.
+   */
+  private async invalidateTokensSafely(
+    userId: string | undefined,
+    refreshToken: string | undefined,
+  ): Promise<void> {
+    if (!userId) {
+      this.logger.log('Logout: no valid token to invalidate');
+      return;
+    }
+
+    try {
+      await this.authService.logout(userId, refreshToken);
+      this.logger.log('Logout: tokens invalidated', { userId });
+    } catch (error) {
+      this.logger.warn('Failed to invalidate tokens during logout', {
+        userId,
+        error: this.getErrorMessage(error),
+      });
+    }
+  }
+
+  /**
+   * Clear auth cookies safely - never throws, logs errors.
+   */
+  private clearCookiesSafely(res: ExpressResponse): void {
+    try {
+      this.clearAuthCookies(res);
+    } catch (error) {
+      this.logger.warn('Failed to clear cookies during logout', {
+        error: this.getErrorMessage(error),
+      });
+    }
+  }
+
+  /**
+   * Extract error message from unknown error type.
+   */
+  private getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : 'Unknown error';
+  }
+
+  @Post('logout-all')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async logoutAll(
+    @Request() req: AuthenticatedRequest,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ): Promise<{ success: boolean; message: string }> {
+    const userId = req.user.userId;
+
+    this.logger.log('Logout from all devices initiated', { userId });
+
+    // Terminate all user sessions and invalidate tokens
+    await Promise.allSettled([
+      this.sessionManagementService.destroyAllUserSessions(userId),
+      this.authService.logout(userId, req.cookies?.['refresh_token']),
+    ]);
+
+    this.clearCookiesSafely(res);
+
+    return { success: true, message: 'Logged out from all devices' };
+  }
+
+  @Get('sessions')
+  @UseGuards(JwtAuthGuard)
+  async getActiveSessions(@Request() req: AuthenticatedRequest) {
+    const sessions = await this.sessionManagementService.getUserSessions(req.user.userId);
+
+    return {
+      success: true,
+      sessions: sessions.map((session) => ({
+        sessionId: session.sessionId,
+        deviceInfo: {
+          deviceName: session.deviceInfo.deviceName,
+          platform: session.deviceInfo.platform,
+          browser: session.deviceInfo.browser,
+          ipAddress: session.deviceInfo.ipAddress,
+          isTrusted: session.deviceInfo.isTrusted,
+        },
+        createdAt: session.createdAt,
+        lastActivityAt: session.lastActivityAt,
+        expiresAt: session.expiresAt,
+        isCurrentSession: session.sessionId === req.cookies?.['session_id'],
+      })),
+    };
+  }
+
+  @Post('terminate-session/:sessionId')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async terminateSession(
+    @Param('sessionId') sessionId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    // Verify the session belongs to the current user
+    const userSessions = await this.sessionManagementService.getUserSessions(req.user.userId);
+    const sessionExists = userSessions.some((session) => session.sessionId === sessionId);
+
+    if (!sessionExists) {
+      throw new ForbiddenException('Session not found or does not belong to user');
+    }
+
+    await this.sessionManagementService.destroySession(sessionId);
+
+    return {
+      success: true,
+      message: 'Session terminated successfully',
+    };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Request() req: AuthenticatedRequest) {
+    const user = await this.usersService.findOne(req.user.userId);
+    return user;
+  }
+
+  /**
+   * SELF-DELETE ACCOUNT
+   *
+   * Allows authenticated users to soft-delete their own account.
+   * - Soft-deletes user (GDPR-compliant, data retained for legal period)
+   * - Destroys all active sessions
+   * - Clears auth cookies
+   *
+   * @security Requires valid JWT. User can only delete their own account.
+   */
+  @Delete('me')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Delete own account (self-service)',
+    description:
+      "Soft-deletes the authenticated user's account, destroys all sessions, and clears cookies.",
+  })
+  @ApiOkResponse({
+    description: 'Account deleted successfully',
+    schema: {
+      example: {
+        success: true,
+        message: 'Account deleted successfully',
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT token' })
+  async deleteAccount(
+    @Request() req: ExpressRequest,
+    @Body() body: { reason?: string },
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ): Promise<{ success: boolean; message: string }> {
+    const userId = (req.user as { userId: string }).userId;
+    const reason = body?.reason || 'User requested account deletion';
+    const ipAddress = req.ip || req.socket?.remoteAddress || 'unknown';
+    const userAgent = req.get('User-Agent') || 'unknown';
+
+    this.logger.log('Account self-deletion initiated', { userId, reason });
+
+    try {
+      // 1. Soft-delete user (sets status=DELETED, invalidates tokens, appends audit log)
+      await this.usersService.softDelete(userId, reason, { ipAddress, userAgent });
+
+      // 2. Destroy all active sessions for this user
+      await this.sessionManagementService.destroyAllUserSessions(userId);
+
+      // 3. Clear auth cookies
+      this.clearAuthCookies(res);
+
+      this.logger.log('Account self-deletion completed', { userId });
+
+      return { success: true, message: 'Account deleted successfully' };
+    } catch (error) {
+      this.logger.error('Account self-deletion failed', {
+        userId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Failed to delete account. Please try again.');
+    }
+  }
+
+  @Get('csrf-token')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  getCsrfToken(@Response({ passthrough: true }) res: ExpressResponse) {
+    const { token, expiresAt } = this.csrfService.generateToken();
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+
+    res.cookie('csrf-token', token, {
+      httpOnly: false, // Frontend needs to read this
+      secure: isProduction,
+      sameSite: isProduction ? 'strict' : 'lax',
+      maxAge: 60 * 60 * 1000, // 1 hour
+    });
+
+    return {
+      token,
+      expiresAt,
+      message: 'CSRF token generated successfully',
+    };
+  }
+
+  @Post('check-password-strength')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  checkPasswordStrength(
+    @Body() body: { password: string; email?: string; firstName?: string; lastName?: string },
+  ) {
+    const result = this.passwordPolicyService.validatePassword(body.password, {
+      email: body.email,
+      firstName: body.firstName,
+      lastName: body.lastName,
+    });
+
+    return {
+      success: true,
+      strength: {
+        score: result.score,
+        isValid: result.isValid,
+        feedback: result.feedback,
+        suggestions: result.suggestions,
+        crackTime: result.crackTime,
+      },
+    };
+  }
+
+  @Get('password-policy')
+  @Public()
+  getPasswordPolicy() {
+    const policy = this.passwordPolicyService.getPasswordPolicy();
+
+    return {
+      success: true,
+      policy: {
+        minLength: policy.minLength,
+        requireUppercase: policy.requireUppercase,
+        requireLowercase: policy.requireLowercase,
+        requireNumbers: policy.requireNumbers,
+        requireSpecialChars: policy.requireSpecialChars,
+        specialCharacters: policy.specialCharacters,
+        minScore: policy.minScore,
+      },
+    };
+  }
+
+  @Post('generate-password')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  generateSecurePassword(@Body() body: { length?: number }) {
+    const length = body.length || 16;
+    const password = this.passwordPolicyService.generateSecurePassword(length);
+
+    return {
+      success: true,
+      password,
+      strength: this.passwordPolicyService.validatePassword(password),
+    };
+  }
+
+  // MFA Endpoints
+  @Post('mfa/setup')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async setupMfa(@Request() req: AuthenticatedRequest) {
+    const setup = await this.mfaService.setupTotp(req.user.userId);
+
+    return {
+      success: true,
+      message: 'MFA setup initiated. Please verify with the generated code.',
+      qrCode: setup.qrCode,
+      backupCodes: setup.backupCodes,
+      manualEntryKey: setup.manualEntryKey,
+    };
+  }
+
+  @Post('mfa/verify-setup')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async verifyMfaSetup(@Request() req: AuthenticatedRequest, @Body() body: { token: string }) {
+    const isValid = await this.mfaService.verifyTotpSetup(req.user.userId, body.token);
+
+    if (!isValid) {
+      throw new BadRequestException('Invalid verification code');
+    }
+
+    return {
+      success: true,
+      message: 'MFA has been successfully enabled for your account',
+    };
+  }
+
+  @Post('mfa/verify')
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 300000 } })
+  @HttpCode(HttpStatus.OK)
+  async verifyMfa(@Body() body: { userId: string; token: string }) {
+    const result = await this.mfaService.verifyTotp(body.userId, body.token);
+
+    return {
+      success: result.isValid,
+      message: result.isValid ? 'MFA verification successful' : 'Invalid MFA code',
+      backupCodeUsed: result.backupCodeUsed,
+      remainingBackupCodes: result.remainingAttempts,
+    };
+  }
+
+  @Post('mfa/disable')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async disableMfa(@Request() req: AuthenticatedRequest, @Body() body: { token: string }) {
+    await this.mfaService.disableMfa(req.user.userId, body.token);
+
+    return {
+      success: true,
+      message: 'MFA has been disabled for your account',
+    };
+  }
+
+  @Get('mfa/status')
+  @UseGuards(JwtAuthGuard)
+  async getMfaStatus(@Request() req: AuthenticatedRequest) {
+    const status = await this.mfaService.getMfaStatus(req.user.userId);
+
+    return {
+      success: true,
+      mfa: status,
+    };
+  }
+
+  @Post('mfa/backup-codes/regenerate')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async regenerateBackupCodes(@Request() req: AuthenticatedRequest) {
+    const backupCodes = await this.mfaService.regenerateBackupCodes(req.user.userId);
+
+    return {
+      success: true,
+      message: 'New backup codes generated. Please store them securely.',
+      backupCodes,
+    };
+  }
+
+  @Post('mfa/emergency-tokens')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async generateEmergencyTokens(@Request() req: AuthenticatedRequest) {
+    const emergencyTokens = await this.mfaService.generateEmergencyTokens(req.user.userId);
+
+    return {
+      success: true,
+      message: 'Emergency tokens generated. Use these only in case of emergency.',
+      emergencyTokens,
+    };
+  }
+
+  /**
+   * ENTERPRISE-GRADE COOKIE SETTER
+   *
+   * Sets authentication cookies with MANDATORY security attributes:
+   * ✓ HttpOnly - Prevents XSS cookie theft (CRITICAL)
+   * ✓ Secure - HTTPS only in production (CRITICAL)
+   * ✓ SameSite - Prevents CSRF attacks (CRITICAL)
+   * ✓ Domain - Restricts cookie scope to prevent subdomain leakage (HIGH)
+   * ✓ Path - Minimal scope to reduce attack surface
+   *
+   * Addresses audit findings in PRODUCTION_READINESS_AUDIT_REPORT.md:379-413
+   *
+   * @param res - Express response object
+   * @param tokens - Access and refresh JWT tokens
+   * @param sessionId - Optional session identifier
+   */
+  private setAuthCookies(
+    res: ExpressResponse,
+    tokens: { accessToken: string; refreshToken: string },
+    sessionId?: string,
+  ) {
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    const domain = this.configService.get<string>('COOKIE_DOMAIN');
+
+    try {
+      // ✓ CRITICAL: Set access token with enterprise-grade security
+      CookieSecurityUtil.setAccessTokenCookie(
+        res,
+        tokens.accessToken,
+        isProduction,
+        domain,
+        15 * 60 * 1000, // 15 minutes (short-lived)
+      );
+
+      // ✓ CRITICAL: Set refresh token with maximum security
+      CookieSecurityUtil.setRefreshTokenCookie(
+        res,
+        tokens.refreshToken,
+        isProduction,
+        domain,
+        7 * 24 * 60 * 60 * 1000, // 7 days (long-lived but revocable)
+      );
+
+      // ✓ Set session cookie if provided
+      if (sessionId) {
+        CookieSecurityUtil.setSessionCookie(
+          res,
+          sessionId,
+          isProduction,
+          domain,
+          7 * 24 * 60 * 60 * 1000, // 7 days
         );
+      }
 
-        // ✅ Security logging for audit trail
-        this.logger.log('Tokens refreshed successfully', {
-            userId: decoded.userId,
-            ip,
-        });
-
-        // Set cookies for web compatibility
-        this.setAuthCookies(res, tokens);
-
-        // ✅ Return tokens in response body for mobile app
-        return {
-            message: 'Tokens refreshed successfully',
-            tokens: {
-                accessToken: tokens.accessToken,
-                refreshToken: tokens.refreshToken,
-                expiresIn: 900, // 15 minutes in seconds
-            },
-        };
-    }
-
-    /**
-     * GRACEFUL LOGOUT ENDPOINT
-     *
-     * CRITICAL: This endpoint ALWAYS returns 200 OK regardless of token validity.
-     *
-     * Rationale (Industry Best Practice - Facebook, Google, Auth0):
-     * - User's goal is "I want to be logged out"
-     * - If token is valid → Invalidate it → Goal achieved → 200
-     * - If token is invalid → Already invalid → Goal achieved → 200
-     * - If token is missing → Nothing to invalidate → Goal achieved → 200
-     * - If token is expired → Already unusable → Goal achieved → 200
-     *
-     * This prevents infinite loops in mobile apps where:
-     * 401 → refresh fails → logout API → 401 → refresh fails → ...
-     *
-     * @security Logout is idempotent - calling it multiple times has same effect
-     */
-    @Post('logout')
-    @Public()
-    @HttpCode(HttpStatus.OK)
-    async logout(
-        @Request() req: ExpressRequest,
-        @Response({ passthrough: true }) res: ExpressResponse,
-    ): Promise<{ success: boolean; message: string }> {
-        const sessionId = req.cookies?.['session_id'];
-        const refreshToken = req.cookies?.['refresh_token'];
-        const userId = this.extractUserIdFromAuthHeader(req.headers.authorization);
-
-        // Execute cleanup operations in parallel (fire-and-forget, ~2x faster)
-        await Promise.allSettled([
-            this.destroySessionSafely(sessionId),
-            this.invalidateTokensSafely(userId, refreshToken),
-        ]);
-        this.clearCookiesSafely(res);
-
-        return { success: true, message: 'Logout successful' };
-    }
-
-    /**
-     * Extract user ID from Authorization header without verification.
-     * Uses decode() not verify() - safe for expired/invalid tokens.
-     */
-    private extractUserIdFromAuthHeader(authHeader: string | undefined): string | undefined {
-        if (!authHeader?.startsWith('Bearer ')) {
-            return undefined;
-        }
-
-        try {
-            const token = authHeader.substring(7);
-            const decoded = this.jwtService.decode(token) as { sub?: string } | null;
-            return decoded?.sub;
-        } catch (error) {
-            this.logger.debug('Could not decode token during logout', {
-                error: this.getErrorMessage(error)
-            });
-            return undefined;
-        }
-    }
-
-    /**
-     * Destroy session safely - never throws, logs errors.
-     */
-    private async destroySessionSafely(sessionId: string | undefined): Promise<void> {
-        if (!sessionId) {
-            return;
-        }
-
-        try {
-            await this.sessionManagementService.destroySession(sessionId);
-        } catch (error) {
-            this.logger.warn('Failed to destroy session during logout', {
-                sessionId,
-                error: this.getErrorMessage(error)
-            });
-        }
-    }
-
-    /**
-     * Invalidate tokens safely - never throws, logs errors.
-     */
-    private async invalidateTokensSafely(
-        userId: string | undefined,
-        refreshToken: string | undefined,
-    ): Promise<void> {
-        if (!userId) {
-            this.logger.log('Logout: no valid token to invalidate');
-            return;
-        }
-
-        try {
-            await this.authService.logout(userId, refreshToken);
-            this.logger.log('Logout: tokens invalidated', { userId });
-        } catch (error) {
-            this.logger.warn('Failed to invalidate tokens during logout', {
-                userId,
-                error: this.getErrorMessage(error)
-            });
-        }
-    }
-
-    /**
-     * Clear auth cookies safely - never throws, logs errors.
-     */
-    private clearCookiesSafely(res: ExpressResponse): void {
-        try {
-            this.clearAuthCookies(res);
-        } catch (error) {
-            this.logger.warn('Failed to clear cookies during logout', {
-                error: this.getErrorMessage(error)
-            });
-        }
-    }
-
-    /**
-     * Extract error message from unknown error type.
-     */
-    private getErrorMessage(error: unknown): string {
-        return error instanceof Error ? error.message : 'Unknown error';
-    }
-
-    @Post('logout-all')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async logoutAll(
-        @Request() req,
-        @Response({ passthrough: true }) res: ExpressResponse,
-    ): Promise<{ success: boolean; message: string }> {
-        const userId = req.user.userId;
-
-        this.logger.log('Logout from all devices initiated', { userId });
-
-        // Terminate all user sessions and invalidate tokens
-        await Promise.allSettled([
-            this.sessionManagementService.destroyAllUserSessions(userId),
-            this.authService.logout(userId, req.cookies?.['refresh_token']),
-        ]);
-
-        this.clearCookiesSafely(res);
-
-        return { success: true, message: 'Logged out from all devices' };
-    }
-
-    @Get('sessions')
-    @UseGuards(JwtAuthGuard)
-    async getActiveSessions(@Request() req) {
-        const sessions = await this.sessionManagementService.getUserSessions(req.user.userId);
-
-        return {
-            success: true,
-            sessions: sessions.map(session => ({
-                sessionId: session.sessionId,
-                deviceInfo: {
-                    deviceName: session.deviceInfo.deviceName,
-                    platform: session.deviceInfo.platform,
-                    browser: session.deviceInfo.browser,
-                    ipAddress: session.deviceInfo.ipAddress,
-                    isTrusted: session.deviceInfo.isTrusted,
-                },
-                createdAt: session.createdAt,
-                lastActivityAt: session.lastActivityAt,
-                expiresAt: session.expiresAt,
-                isCurrentSession: session.sessionId === req.cookies?.['session_id']
-            }))
-        };
-    }
-
-    @Post('terminate-session/:sessionId')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async terminateSession(
-        @Param('sessionId') sessionId: string,
-        @Request() req,
-    ) {
-        // Verify the session belongs to the current user
-        const userSessions = await this.sessionManagementService.getUserSessions(req.user.userId);
-        const sessionExists = userSessions.some(session => session.sessionId === sessionId);
-
-        if (!sessionExists) {
-            throw new ForbiddenException('Session not found or does not belong to user');
-        }
-
-        await this.sessionManagementService.destroySession(sessionId);
-
-        return {
-            success: true,
-            message: 'Session terminated successfully'
-        };
-    }
-
-    @Get('me')
-    @UseGuards(JwtAuthGuard)
-    async getProfile(@Request() req) {
-        const user = await this.usersService.findOne(req.user.userId);
-        return user;
-    }
-
-    /**
-     * SELF-DELETE ACCOUNT
-     *
-     * Allows authenticated users to soft-delete their own account.
-     * - Soft-deletes user (GDPR-compliant, data retained for legal period)
-     * - Destroys all active sessions
-     * - Clears auth cookies
-     *
-     * @security Requires valid JWT. User can only delete their own account.
-     */
-    @Delete('me')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({
-        summary: 'Delete own account (self-service)',
-        description: 'Soft-deletes the authenticated user\'s account, destroys all sessions, and clears cookies.',
-    })
-    @ApiOkResponse({
-        description: 'Account deleted successfully',
-        schema: {
-            example: {
-                success: true,
-                message: 'Account deleted successfully',
-            },
+      this.logger.log('Authentication cookies set with enterprise-grade security', {
+        hasAccessToken: !!tokens.accessToken,
+        hasRefreshToken: !!tokens.refreshToken,
+        hasSession: !!sessionId,
+        isProduction,
+        domain: domain || 'current-domain-only',
+        securityAttributes: {
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: 'strict',
         },
-    })
-    @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT token' })
-    async deleteAccount(
-        @Request() req: ExpressRequest,
-        @Body() body: { reason?: string },
-        @Response({ passthrough: true }) res: ExpressResponse,
-    ): Promise<{ success: boolean; message: string }> {
-        const userId = (req.user as { userId: string }).userId;
-        const reason = body?.reason || 'User requested account deletion';
-        const ipAddress = req.ip || req.socket?.remoteAddress || 'unknown';
-        const userAgent = req.get('User-Agent') || 'unknown';
-
-        this.logger.log('Account self-deletion initiated', { userId, reason });
-
-        try {
-            // 1. Soft-delete user (sets status=DELETED, invalidates tokens, appends audit log)
-            await this.usersService.softDelete(userId, reason, { ipAddress, userAgent });
-
-            // 2. Destroy all active sessions for this user
-            await this.sessionManagementService.destroyAllUserSessions(userId);
-
-            // 3. Clear auth cookies
-            this.clearAuthCookies(res);
-
-            this.logger.log('Account self-deletion completed', { userId });
-
-            return { success: true, message: 'Account deleted successfully' };
-        } catch (error) {
-            this.logger.error('Account self-deletion failed', {
-                userId,
-                error: error instanceof Error ? error.message : 'Unknown error',
-            });
-
-            if (error instanceof HttpException) {
-                throw error;
-            }
-
-            throw new InternalServerErrorException('Failed to delete account. Please try again.');
-        }
+      });
+    } catch (error) {
+      this.logger.error('Failed to set secure cookies', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        isProduction,
+        domain,
+      });
+      throw new InternalServerErrorException('Failed to set authentication cookies');
     }
+  }
 
-    @Get('csrf-token')
-    @Public()
-    @HttpCode(HttpStatus.OK)
-    getCsrfToken(@Response({ passthrough: true }) res: ExpressResponse) {
-        const { token, expiresAt } = this.csrfService.generateToken();
-        const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+  /**
+   * SECURE COOKIE CLEARER
+   *
+   * Clears authentication cookies during logout with proper security attributes.
+   * IMPORTANT: Must use exact same path and domain as when cookies were set,
+   * otherwise cookies will not be properly cleared.
+   *
+   * @param res - Express response object
+   */
+  private clearAuthCookies(res: ExpressResponse) {
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    const domain = this.configService.get<string>('COOKIE_DOMAIN');
 
-        res.cookie('csrf-token', token, {
-            httpOnly: false, // Frontend needs to read this
-            secure: isProduction,
-            sameSite: isProduction ? 'strict' : 'lax',
-            maxAge: 60 * 60 * 1000, // 1 hour
-        });
+    try {
+      // ✓ Clear all authentication cookies using enterprise-grade utility
+      CookieSecurityUtil.clearAuthCookies(res, isProduction, domain);
 
-        return {
-            token,
-            expiresAt,
-            message: 'CSRF token generated successfully'
-        };
+      // ✓ Also clear session cookie with matching attributes
+      const sessionOptions = CookieSecurityUtil.getSecureOptions(isProduction, domain, {
+        maxAge: 0,
+        path: '/',
+      });
+      res.clearCookie('session_id', sessionOptions);
+
+      this.logger.log('Authentication cookies cleared securely', {
+        isProduction,
+        domain: domain || 'current-domain-only',
+      });
+    } catch (error) {
+      this.logger.error('Failed to clear cookies', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      // Don't throw error - logout should succeed even if cookie clearing fails
     }
-
-    @Post('check-password-strength')
-    @Public()
-    @HttpCode(HttpStatus.OK)
-    checkPasswordStrength(@Body() body: { password: string; email?: string; firstName?: string; lastName?: string }) {
-        const result = this.passwordPolicyService.validatePassword(body.password, {
-            email: body.email,
-            firstName: body.firstName,
-            lastName: body.lastName,
-        });
-
-        return {
-            success: true,
-            strength: {
-                score: result.score,
-                isValid: result.isValid,
-                feedback: result.feedback,
-                suggestions: result.suggestions,
-                crackTime: result.crackTime,
-            },
-        };
-    }
-
-    @Get('password-policy')
-    @Public()
-    getPasswordPolicy() {
-        const policy = this.passwordPolicyService.getPasswordPolicy();
-
-        return {
-            success: true,
-            policy: {
-                minLength: policy.minLength,
-                requireUppercase: policy.requireUppercase,
-                requireLowercase: policy.requireLowercase,
-                requireNumbers: policy.requireNumbers,
-                requireSpecialChars: policy.requireSpecialChars,
-                specialCharacters: policy.specialCharacters,
-                minScore: policy.minScore,
-            },
-        };
-    }
-
-    @Post('generate-password')
-    @Public()
-    @HttpCode(HttpStatus.OK)
-    generateSecurePassword(@Body() body: { length?: number }) {
-        const length = body.length || 16;
-        const password = this.passwordPolicyService.generateSecurePassword(length);
-
-        return {
-            success: true,
-            password,
-            strength: this.passwordPolicyService.validatePassword(password),
-        };
-    }
-
-    // MFA Endpoints
-    @Post('mfa/setup')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async setupMfa(@Request() req) {
-        const setup = await this.mfaService.setupTotp(req.user.userId);
-
-        return {
-            success: true,
-            message: 'MFA setup initiated. Please verify with the generated code.',
-            qrCode: setup.qrCode,
-            backupCodes: setup.backupCodes,
-            manualEntryKey: setup.manualEntryKey,
-        };
-    }
-
-    @Post('mfa/verify-setup')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async verifyMfaSetup(@Request() req, @Body() body: { token: string }) {
-        const isValid = await this.mfaService.verifyTotpSetup(req.user.userId, body.token);
-
-        if (!isValid) {
-            throw new BadRequestException('Invalid verification code');
-        }
-
-        return {
-            success: true,
-            message: 'MFA has been successfully enabled for your account',
-        };
-    }
-
-    @Post('mfa/verify')
-    @Public()
-    @UseGuards(ThrottlerGuard)
-    @Throttle({ default: { limit: 10, ttl: 300000 } })
-    @HttpCode(HttpStatus.OK)
-    async verifyMfa(@Body() body: { userId: string; token: string }) {
-        const result = await this.mfaService.verifyTotp(body.userId, body.token);
-
-        return {
-            success: result.isValid,
-            message: result.isValid ? 'MFA verification successful' : 'Invalid MFA code',
-            backupCodeUsed: result.backupCodeUsed,
-            remainingBackupCodes: result.remainingAttempts,
-        };
-    }
-
-    @Post('mfa/disable')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async disableMfa(@Request() req, @Body() body: { token: string }) {
-        await this.mfaService.disableMfa(req.user.userId, body.token);
-
-        return {
-            success: true,
-            message: 'MFA has been disabled for your account',
-        };
-    }
-
-    @Get('mfa/status')
-    @UseGuards(JwtAuthGuard)
-    async getMfaStatus(@Request() req) {
-        const status = await this.mfaService.getMfaStatus(req.user.userId);
-
-        return {
-            success: true,
-            mfa: status,
-        };
-    }
-
-    @Post('mfa/backup-codes/regenerate')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async regenerateBackupCodes(@Request() req) {
-        const backupCodes = await this.mfaService.regenerateBackupCodes(req.user.userId);
-
-        return {
-            success: true,
-            message: 'New backup codes generated. Please store them securely.',
-            backupCodes,
-        };
-    }
-
-    @Post('mfa/emergency-tokens')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async generateEmergencyTokens(@Request() req) {
-        const emergencyTokens = await this.mfaService.generateEmergencyTokens(req.user.userId);
-
-        return {
-            success: true,
-            message: 'Emergency tokens generated. Use these only in case of emergency.',
-            emergencyTokens,
-        };
-    }
-
-    /**
-     * ENTERPRISE-GRADE COOKIE SETTER
-     *
-     * Sets authentication cookies with MANDATORY security attributes:
-     * ✓ HttpOnly - Prevents XSS cookie theft (CRITICAL)
-     * ✓ Secure - HTTPS only in production (CRITICAL)
-     * ✓ SameSite - Prevents CSRF attacks (CRITICAL)
-     * ✓ Domain - Restricts cookie scope to prevent subdomain leakage (HIGH)
-     * ✓ Path - Minimal scope to reduce attack surface
-     *
-     * Addresses audit findings in PRODUCTION_READINESS_AUDIT_REPORT.md:379-413
-     *
-     * @param res - Express response object
-     * @param tokens - Access and refresh JWT tokens
-     * @param sessionId - Optional session identifier
-     */
-    private setAuthCookies(res: ExpressResponse, tokens: { accessToken: string; refreshToken: string }, sessionId?: string) {
-        const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-        const domain = this.configService.get<string>('COOKIE_DOMAIN');
-
-        try {
-            // ✓ CRITICAL: Set access token with enterprise-grade security
-            CookieSecurityUtil.setAccessTokenCookie(
-                res,
-                tokens.accessToken,
-                isProduction,
-                domain,
-                15 * 60 * 1000  // 15 minutes (short-lived)
-            );
-
-            // ✓ CRITICAL: Set refresh token with maximum security
-            CookieSecurityUtil.setRefreshTokenCookie(
-                res,
-                tokens.refreshToken,
-                isProduction,
-                domain,
-                7 * 24 * 60 * 60 * 1000  // 7 days (long-lived but revocable)
-            );
-
-            // ✓ Set session cookie if provided
-            if (sessionId) {
-                CookieSecurityUtil.setSessionCookie(
-                    res,
-                    sessionId,
-                    isProduction,
-                    domain,
-                    7 * 24 * 60 * 60 * 1000  // 7 days
-                );
-            }
-
-            this.logger.log('Authentication cookies set with enterprise-grade security', {
-                hasAccessToken: !!tokens.accessToken,
-                hasRefreshToken: !!tokens.refreshToken,
-                hasSession: !!sessionId,
-                isProduction,
-                domain: domain || 'current-domain-only',
-                securityAttributes: {
-                    httpOnly: true,
-                    secure: isProduction,
-                    sameSite: 'strict',
-                }
-            });
-        } catch (error) {
-            this.logger.error('Failed to set secure cookies', {
-                error: error instanceof Error ? error.message : 'Unknown error',
-                isProduction,
-                domain,
-            });
-            throw new InternalServerErrorException('Failed to set authentication cookies');
-        }
-    }
-
-
-    /**
-     * SECURE COOKIE CLEARER
-     *
-     * Clears authentication cookies during logout with proper security attributes.
-     * IMPORTANT: Must use exact same path and domain as when cookies were set,
-     * otherwise cookies will not be properly cleared.
-     *
-     * @param res - Express response object
-     */
-    private clearAuthCookies(res: ExpressResponse) {
-        const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-        const domain = this.configService.get<string>('COOKIE_DOMAIN');
-
-        try {
-            // ✓ Clear all authentication cookies using enterprise-grade utility
-            CookieSecurityUtil.clearAuthCookies(res, isProduction, domain);
-
-            // ✓ Also clear session cookie with matching attributes
-            const sessionOptions = CookieSecurityUtil.getSecureOptions(isProduction, domain, {
-                maxAge: 0,
-                path: '/',
-            });
-            res.clearCookie('session_id', sessionOptions);
-
-            this.logger.log('Authentication cookies cleared securely', {
-                isProduction,
-                domain: domain || 'current-domain-only',
-            });
-        } catch (error) {
-            this.logger.error('Failed to clear cookies', {
-                error: error instanceof Error ? error.message : 'Unknown error',
-            });
-            // Don't throw error - logout should succeed even if cookie clearing fails
-        }
-    }
+  }
 }

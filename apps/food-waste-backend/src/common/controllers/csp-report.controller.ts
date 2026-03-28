@@ -2,7 +2,7 @@ import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
-import { Public } from '../../common/decorators/public.decorator';
+import { Public } from '../decorators/public.decorator';
 import { CspReportDto } from '../dto/csp-report.dto';
 import { AppLoggerService } from '../services/logger.service';
 
@@ -50,7 +50,8 @@ export class CspReportController {
    */
   @ApiOperation({
     summary: 'Receive CSP violation report',
-    description: 'Public endpoint for browsers to report Content Security Policy violations. Rate limited to 100 reports per minute per IP.'
+    description:
+      'Public endpoint for browsers to report Content Security Policy violations. Rate limited to 100 reports per minute per IP.',
   })
   @ApiBody({ type: CspReportDto, description: 'CSP violation report from browser' })
   @ApiResponse({ status: 204, description: 'Report received and logged successfully' })
@@ -59,7 +60,7 @@ export class CspReportController {
   @Public() // CSP reports come from browsers, not authenticated users
   @HttpCode(HttpStatus.NO_CONTENT)
   @Throttle({ default: { limit: 100, ttl: 60000 } }) // 100 reports per minute per IP
-  async receiveReport(@Body() report: CspReportDto): Promise<void> {
+  receiveReport(@Body() report: CspReportDto): void {
     const cspReport = report?.['csp-report'];
 
     // Guard against malformed or empty CSP reports
@@ -89,6 +90,7 @@ export class CspReportController {
     // if (this.isCriticalViolation(cspReport)) {
     //     await this.alertingService.sendSecurityAlert('CSP_VIOLATION', cspReport);
     // }
+    void this._isCriticalViolation;
   }
 
   /**
@@ -97,7 +99,7 @@ export class CspReportController {
    * @param report CSP violation report
    * @returns true if violation indicates active attack
    */
-  private isCriticalViolation(report: CspReportDto['csp-report']): boolean {
+  private _isCriticalViolation(report: CspReportDto['csp-report']): boolean {
     const criticalDirectives = [
       'script-src', // Inline script injection
       'object-src', // Plugin-based attacks
@@ -105,6 +107,6 @@ export class CspReportController {
     ];
 
     const violatedDirective = report['violated-directive'] ?? '';
-    return criticalDirectives.some(directive => violatedDirective.includes(directive));
+    return criticalDirectives.some((directive) => violatedDirective.includes(directive));
   }
 }

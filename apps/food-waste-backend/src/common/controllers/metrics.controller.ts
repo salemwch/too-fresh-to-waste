@@ -16,30 +16,29 @@
 
 import { Controller, Get, Header } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiExcludeEndpoint } from '@nestjs/swagger';
-import { Public } from '../../common/decorators/public.decorator';
+
+import { Public } from '../decorators/public.decorator';
 import { PrometheusMetricsService } from '../services/prometheus-metrics.service';
 
 @ApiTags('Monitoring')
 @Controller('metrics')
 export class MetricsController {
-    constructor(
-        private readonly metricsService: PrometheusMetricsService
-    ) {}
+  constructor(private readonly metricsService: PrometheusMetricsService) {}
 
-    /**
-     * Prometheus Metrics Endpoint
-     *
-     * Returns all application metrics in Prometheus exposition format.
-     * This endpoint is scraped by Prometheus at regular intervals.
-     *
-     * @returns Metrics in Prometheus format
-     */
-    @Get()
-    @Public()
-    @Header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8')
-    @ApiOperation({
-        summary: 'Get Prometheus metrics',
-        description: `
+  /**
+   * Prometheus Metrics Endpoint
+   *
+   * Returns all application metrics in Prometheus exposition format.
+   * This endpoint is scraped by Prometheus at regular intervals.
+   *
+   * @returns Metrics in Prometheus format
+   */
+  @Get()
+  @Public()
+  @Header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8')
+  @ApiOperation({
+    summary: 'Get Prometheus metrics',
+    description: `
 Returns application metrics in Prometheus exposition format.
 
 **Metrics Categories:**
@@ -55,13 +54,13 @@ Returns application metrics in Prometheus exposition format.
 This endpoint is public but should be restricted at the infrastructure level.
 Configure your firewall/VPC to only allow access from Prometheus servers.
         `,
-    })
-    @ApiResponse({
-        status: 200,
-        description: 'Metrics returned in Prometheus format',
-        content: {
-            'text/plain': {
-                example: `# HELP http_requests_total Total number of HTTP requests
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Metrics returned in Prometheus format',
+    content: {
+      'text/plain': {
+        example: `# HELP http_requests_total Total number of HTTP requests
 # TYPE http_requests_total counter
 http_requests_total{method="GET",route="/api/v1/offers",status_code="200"} 1234
 
@@ -76,11 +75,12 @@ http_request_duration_seconds_count{method="GET",route="/api/v1/offers",status_c
 # TYPE nodejs_heap_size_total_bytes gauge
 nodejs_heap_size_total_bytes 50331648
 `,
-            },
-        },
-    })
-    @ApiExcludeEndpoint(false) // Include in Swagger docs
-    async getMetrics(): Promise<string> {
-        return await this.metricsService.getMetrics();
-    }
+      },
+    },
+  })
+  @ApiExcludeEndpoint(false) // Include in Swagger docs
+  async getMetrics(): Promise<string> {
+    const metrics = await this.metricsService.getMetrics();
+    return metrics;
+  }
 }

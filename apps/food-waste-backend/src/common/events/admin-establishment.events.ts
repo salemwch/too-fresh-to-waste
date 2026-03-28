@@ -1,4 +1,4 @@
-import { EstablishmentStatus } from '../enums/establishment.enum';
+import type { EstablishmentStatus } from '../enums/establishment.enum';
 
 /**
  * Base class for all admin establishment-related events
@@ -6,7 +6,7 @@ import { EstablishmentStatus } from '../enums/establishment.enum';
  */
 export abstract class BaseAdminEstablishmentEvent {
   public readonly timestamp: Date;
-  public readonly correlationId?: string;
+  public readonly correlationId?: string | undefined;
 
   constructor(
     public readonly establishmentId: string,

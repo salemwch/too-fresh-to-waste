@@ -1,9 +1,43 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, PipelineStage } from 'mongoose';
+
+import {
+  Establishment,
+  EstablishmentDocument,
+} from '../../establishments/schemas/establishment.schema';
 import { Offer, OfferDocument } from '../../offers/schemas/offer.schema';
-import { Establishment, EstablishmentDocument } from '../../establishments/schemas/establishment.schema';
+
 import { SearchCacheService } from './search-cache.service';
+
+/** Shape of an offer after the $lookup aggregation replaces establishmentId with the full doc. */
+interface PopulatedOfferResult {
+  _id: Types.ObjectId;
+  title: string;
+  description: string;
+  categories?: string[];
+  establishmentId?: {
+    name?: string;
+    address?: {
+      coordinates?: unknown;
+      city?: string;
+      street?: string;
+    };
+  };
+  pricing?: {
+    originalPrice?: number;
+    discountedPrice?: number;
+    discountPercentage?: number;
+  };
+  availableQuantity?: number;
+  availableFrom?: Date;
+  availableUntil?: Date;
+  status?: string;
+  isFeaturedManual?: boolean;
+  isFeaturedAuto?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 @Injectable()
 export class SearchIndexService {
@@ -11,7 +45,8 @@ export class SearchIndexService {
 
   constructor(
     @InjectModel(Offer.name) private readonly offerModel: Model<OfferDocument>,
-    @InjectModel(Establishment.name) private readonly establishmentModel: Model<EstablishmentDocument>,
+    @InjectModel(Establishment.name)
+    private readonly establishmentModel: Model<EstablishmentDocument>,
     private readonly searchCacheService: SearchCacheService,
   ) {}
 
@@ -30,9 +65,7 @@ export class SearchIndexService {
         $lookup: {
           from: 'establishments',
           let: { refId: '$establishmentId' },
-          pipeline: [
-            { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
-          ],
+          pipeline: [{ $match: { $expr: { $eq: ['$_id', '$$refId'] } } }],
           as: '_establishmentDoc',
         },
       },
@@ -69,9 +102,7 @@ export class SearchIndexService {
 
   async indexEstablishment(establishmentId: string): Promise<void> {
     try {
-      const establishment = await this.establishmentModel
-        .findById(establishmentId)
-        .exec();
+      const establishment = await this.establishmentModel.findById(establishmentId).exec();
 
       if (!establishment) {
         this.logger.warn(`Establishment ${establishmentId} not found for indexing`);
@@ -116,23 +147,31 @@ export class SearchIndexService {
       }
 
       // Index all active establishments
-      const establishments = await this.establishmentModel
-        .find({ isActive: true })
-        .exec();
+      const establishments = await this.establishmentModel.find({ isActive: true }).exec();
 
       for (const establishment of establishments) {
         const searchDocument = this.createEstablishmentSearchDocument(establishment);
-        await this.updateSearchIndex('establishments', establishment._id.toString(), searchDocument);
+        await this.updateSearchIndex(
+          'establishments',
+          establishment._id.toString(),
+          searchDocument,
+        );
       }
 
-      this.logger.log(`Search index rebuilt successfully. Indexed ${offers.length} offers and ${establishments.length} establishments`);
+      this.logger.log(
+        `Search index rebuilt successfully. Indexed ${offers.length} offers and ${establishments.length} establishments`,
+      );
     } catch (error) {
       this.logger.error('Error rebuilding search index:', error);
       throw error;
     }
   }
 
-  async getIndexStats(): Promise<any> {
+  async getIndexStats(): Promise<{
+    totalOffers: number;
+    totalEstablishments: number;
+    lastUpdated: Date;
+  }> {
     try {
       const offerCount = await this.offerModel.countDocuments({ status: 'active' });
       const establishmentCount = await this.establishmentModel.countDocuments({ isActive: true });
@@ -152,7 +191,7 @@ export class SearchIndexService {
     }
   }
 
-  private createOfferSearchDocument(offer: any): any {
+  private createOfferSearchDocument(offer: PopulatedOfferResult): Record<string, unknown> {
     return {
       id: offer._id.toString(),
       type: 'offer',
@@ -172,15 +211,19 @@ export class SearchIndexService {
         from: offer.availableFrom,
         until: offer.availableUntil,
       },
-      searchText: `${offer.title} ${offer.description} ${offer.categories?.join(' ') || ''} ${offer.establishmentId?.name || ''}`.toLowerCase(),
+      searchText:
+        `${offer.title} ${offer.description} ${offer.categories?.join(' ') || ''} ${offer.establishmentId?.name || ''}`.toLowerCase(),
       status: offer.status,
-      isFeatured: offer.isFeatured || false,
+      isFeatured: (offer.isFeaturedManual || offer.isFeaturedAuto) ?? false,
       createdAt: offer.createdAt,
       updatedAt: offer.updatedAt,
     };
   }
 
-  private createEstablishmentSearchDocument(establishment: any): any {
+  private createEstablishmentSearchDocument(
+    establishment: EstablishmentDocument,
+  ): Record<string, unknown> {
+    const withTimestamps = establishment as unknown as { createdAt?: Date; updatedAt?: Date };
     return {
       id: establishment._id.toString(),
       type: 'establishment',
@@ -190,17 +233,22 @@ export class SearchIndexService {
       address: establishment.address || {},
       location: establishment.address?.coordinates || null,
       rating: {
-        average: establishment.rating?.average || 0,
-        count: establishment.rating?.count || 0,
+        average: establishment.averageRating || 0,
+        count: establishment.totalReviews || 0,
       },
-      searchText: `${establishment.name} ${establishment.description || ''} ${establishment.cuisineTypes?.join(' ') || ''} ${establishment.address?.city || ''} ${establishment.address?.street || ''}`.toLowerCase(),
+      searchText:
+        `${establishment.name} ${establishment.description || ''} ${establishment.cuisineTypes?.join(' ') || ''} ${establishment.address?.city || ''} ${establishment.address?.street || ''}`.toLowerCase(),
       isActive: establishment.isActive,
-      createdAt: establishment.createdAt,
-      updatedAt: establishment.updatedAt,
+      createdAt: withTimestamps.createdAt,
+      updatedAt: withTimestamps.updatedAt,
     };
   }
 
-  private async updateSearchIndex(type: string, id: string, document: any): Promise<void> {
+  private async updateSearchIndex(
+    type: string,
+    id: string,
+    document: Record<string, unknown>,
+  ): Promise<void> {
     const key = `search:${type}:${id}`;
     await this.searchCacheService.setCache(key, document, 3600); // 1 hour TTL
   }

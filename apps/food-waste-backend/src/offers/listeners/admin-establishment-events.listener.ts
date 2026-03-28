@@ -1,7 +1,8 @@
+import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { plainToClass } from 'class-transformer';
+
 import {
   AdminEstablishmentSuspendedEvent,
   AdminEstablishmentReactivatedEvent,
@@ -21,9 +22,7 @@ import { OffersService } from '../offers.service';
 export class AdminEstablishmentEventsListener {
   private readonly logger = new Logger(AdminEstablishmentEventsListener.name);
 
-  constructor(
-    private readonly offersService: OffersService,
-  ) {}
+  constructor(private readonly offersService: OffersService) {}
 
   // ============================================
   // ESTABLISHMENT SUSPENDED HANDLERS
@@ -58,7 +57,10 @@ export class AdminEstablishmentEventsListener {
       await this.deactivateEstablishmentOffers(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(`CRITICAL: RabbitMQ failed to process admin.establishment.suspended event`, error);
+      this.logger.error(
+        `CRITICAL: RabbitMQ failed to process admin.establishment.suspended event`,
+        error,
+      );
       return new Nack(true); // Requeue for retry - critical for preventing orders from suspended merchants
     }
   }
@@ -66,7 +68,9 @@ export class AdminEstablishmentEventsListener {
   /**
    * Shared logic: Deactivate all offers when establishment is suspended
    */
-  private async deactivateEstablishmentOffers(event: AdminEstablishmentSuspendedEvent): Promise<void> {
+  private async deactivateEstablishmentOffers(
+    event: AdminEstablishmentSuspendedEvent,
+  ): Promise<void> {
     try {
       this.logger.log(
         `Establishment ${event.establishmentId} (${event.establishmentName}) suspended by admin ${event.adminEmail}. Deactivating all offers.`,
@@ -111,8 +115,8 @@ export class AdminEstablishmentEventsListener {
    * LEGACY: EventEmitter2 handler for establishment reactivation
    */
   @OnEvent('admin.establishment.reactivated')
-  async handleEstablishmentReactivatedLegacy(event: AdminEstablishmentReactivatedEvent): Promise<void> {
-    await this.logEstablishmentReactivation(event);
+  handleEstablishmentReactivatedLegacy(event: AdminEstablishmentReactivatedEvent): void {
+    this.logEstablishmentReactivation(event);
   }
 
   /**
@@ -130,10 +134,10 @@ export class AdminEstablishmentEventsListener {
       },
     },
   })
-  async handleEstablishmentReactivatedRabbitMQ(msg: object): Promise<void | Nack> {
+  handleEstablishmentReactivatedRabbitMQ(msg: object): void | Nack {
     try {
       const event = plainToClass(AdminEstablishmentReactivatedEvent, msg);
-      await this.logEstablishmentReactivation(event);
+      this.logEstablishmentReactivation(event);
       // Auto-ACK on success
     } catch (error) {
       this.logger.error(`RabbitMQ: Failed to process admin.establishment.reactivated event`, error);
@@ -144,7 +148,7 @@ export class AdminEstablishmentEventsListener {
   /**
    * Shared logic: Log establishment reactivation (offers remain deactivated until merchant reactivates)
    */
-  private async logEstablishmentReactivation(event: AdminEstablishmentReactivatedEvent): Promise<void> {
+  private logEstablishmentReactivation(event: AdminEstablishmentReactivatedEvent): void {
     try {
       this.logger.log(
         `Establishment ${event.establishmentId} (${event.establishmentName}) reactivated by admin ${event.adminEmail}.`,
@@ -173,8 +177,8 @@ export class AdminEstablishmentEventsListener {
    * LEGACY: EventEmitter2 handler for establishment approval
    */
   @OnEvent('admin.establishment.approved')
-  async handleEstablishmentApprovedLegacy(event: AdminEstablishmentApprovedEvent): Promise<void> {
-    await this.logEstablishmentApproval(event);
+  handleEstablishmentApprovedLegacy(event: AdminEstablishmentApprovedEvent): void {
+    this.logEstablishmentApproval(event);
   }
 
   /**
@@ -192,10 +196,10 @@ export class AdminEstablishmentEventsListener {
       },
     },
   })
-  async handleEstablishmentApprovedRabbitMQ(msg: object): Promise<void | Nack> {
+  handleEstablishmentApprovedRabbitMQ(msg: object): void | Nack {
     try {
       const event = plainToClass(AdminEstablishmentApprovedEvent, msg);
-      await this.logEstablishmentApproval(event);
+      this.logEstablishmentApproval(event);
       // Auto-ACK on success
     } catch (error) {
       this.logger.error(`RabbitMQ: Failed to process admin.establishment.approved event`, error);
@@ -206,7 +210,7 @@ export class AdminEstablishmentEventsListener {
   /**
    * Shared logic: Log establishment approval (merchant can now create offers)
    */
-  private async logEstablishmentApproval(event: AdminEstablishmentApprovedEvent): Promise<void> {
+  private logEstablishmentApproval(event: AdminEstablishmentApprovedEvent): void {
     try {
       this.logger.log(
         `Establishment ${event.establishmentId} (${event.establishmentName}) approved by admin ${event.adminEmail}. Merchant can now create offers.`,

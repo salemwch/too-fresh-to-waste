@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types, PipelineStage, FlattenMaps } from 'mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { InventoryItem, InventoryItemDocument, InventoryStatus, StockUpdateReason, StockMovement, StockAlert } from './schemas/inventory-item.schema';
+import { Model, Types, PipelineStage, FlattenMaps } from 'mongoose';
+
 import {
   CreateInventoryItemDto,
   StockUpdateDto,
@@ -11,6 +11,14 @@ import {
   BulkUpdateStockDto,
   InventoryFiltersDto,
 } from './dto/inventory.dto';
+import {
+  InventoryItem,
+  InventoryItemDocument,
+  InventoryStatus,
+  StockUpdateReason,
+  StockMovement,
+  StockAlert,
+} from './schemas/inventory-item.schema';
 
 /** Plain-object shape returned by aggregate pipelines (no Mongoose Document methods). */
 export type InventoryItemLean = FlattenMaps<InventoryItem> & { _id: Types.ObjectId };
@@ -20,10 +28,13 @@ export class InventoryService {
   private readonly logger = new Logger(InventoryService.name);
 
   constructor(
-    @InjectModel(InventoryItem.name) private inventoryModel: Model<InventoryItemDocument>,
+    @InjectModel(InventoryItem.name) private readonly inventoryModel: Model<InventoryItemDocument>,
   ) {}
 
-  async createInventoryItem(createDto: CreateInventoryItemDto, userId?: string): Promise<InventoryItemDocument> {
+  async createInventoryItem(
+    createDto: CreateInventoryItemDto,
+    userId?: string,
+  ): Promise<InventoryItemDocument> {
     try {
       const inventoryItem = new this.inventoryModel({
         ...createDto,
@@ -33,22 +44,27 @@ export class InventoryService {
         availableStock: createDto.initialStock,
         lastUpdatedBy: userId ? new Types.ObjectId(userId) : undefined,
         lastStockCheck: new Date(),
-        stockHistory: [{
-          quantity: createDto.initialStock,
-          previousQuantity: 0,
-          newQuantity: createDto.initialStock,
-          reason: StockUpdateReason.RESTOCKED,
-          notes: 'Initial stock',
-          timestamp: new Date(),
-          updatedBy: userId ? new Types.ObjectId(userId) : undefined,
-        }],
+        stockHistory: [
+          {
+            quantity: createDto.initialStock,
+            previousQuantity: 0,
+            newQuantity: createDto.initialStock,
+            reason: StockUpdateReason.RESTOCKED,
+            notes: 'Initial stock',
+            timestamp: new Date(),
+            updatedBy: userId ? new Types.ObjectId(userId) : undefined,
+          },
+        ],
       });
 
       const saved = await inventoryItem.save();
       this.logger.log(`Inventory item created: ${saved._id}`);
       return saved;
     } catch (error) {
-      this.logger.error(`Error creating inventory item: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error creating inventory item: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -63,26 +79,26 @@ export class InventoryService {
       const matchConditions: Record<string, unknown> = {};
 
       if (filters.establishmentId) {
-        matchConditions.establishmentId = new Types.ObjectId(filters.establishmentId);
+        matchConditions['establishmentId'] = new Types.ObjectId(filters.establishmentId);
       }
 
       if (filters.status) {
-        matchConditions.status = filters.status;
+        matchConditions['status'] = filters.status;
       }
 
       if (filters.category) {
-        matchConditions.categories = { $in: [filters.category] };
+        matchConditions['categories'] = { $in: [filters.category] };
       }
 
       if (filters.lowStock) {
-        matchConditions.$expr = { $lte: ['$currentStock', '$lowStockThreshold'] };
+        matchConditions['$expr'] = { $lte: ['$currentStock', '$lowStockThreshold'] };
       }
 
       if (filters.expiringSoon) {
         const daysAhead = filters.expiringInDays || 3;
         const expiryThreshold = new Date();
         expiryThreshold.setDate(expiryThreshold.getDate() + daysAhead);
-        matchConditions.expiryDate = { $lte: expiryThreshold, $gt: new Date() };
+        matchConditions['expiryDate'] = { $lte: expiryThreshold, $gt: new Date() };
       }
 
       const page = filters.page || 1;
@@ -116,7 +132,10 @@ export class InventoryService {
         totalPages: Math.ceil(totalResult / limit),
       };
     } catch (error) {
-      this.logger.error(`Error fetching inventory items: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error fetching inventory items: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -125,7 +144,8 @@ export class InventoryService {
    * Get inventory item with populated offer/establishment (for API responses).
    */
   async getInventoryItem(id: string): Promise<InventoryItemLean> {
-    return this.findByIdWithLookups(id);
+    const result = await this.findByIdWithLookups(id);
+    return result;
   }
 
   /**
@@ -141,7 +161,11 @@ export class InventoryService {
     return item;
   }
 
-  async updateStock(id: string, updateDto: StockUpdateDto, userId?: string): Promise<InventoryItemLean> {
+  async updateStock(
+    id: string,
+    updateDto: StockUpdateDto,
+    userId?: string,
+  ): Promise<InventoryItemLean> {
     try {
       const item = await this.getInventoryItemRaw(id);
       const previousQuantity = item.currentStock;
@@ -168,7 +192,7 @@ export class InventoryService {
           },
           $push: { stockHistory: stockMovement },
         },
-        { new: true }
+        { new: true },
       );
 
       await this.checkAndCreateAlerts(mutatedItem!);
@@ -176,12 +200,19 @@ export class InventoryService {
       this.logger.log(`Stock updated for item ${id}: ${previousQuantity} -> ${newQuantity}`);
       return this.findByIdWithLookups(id);
     } catch (error) {
-      this.logger.error(`Error updating stock: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error updating stock: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
-  async reserveStock(id: string, reserveDto: ReserveStockDto, userId?: string): Promise<InventoryItemLean> {
+  async reserveStock(
+    id: string,
+    reserveDto: ReserveStockDto,
+    userId?: string,
+  ): Promise<InventoryItemLean> {
     try {
       const item = await this.getInventoryItemRaw(id);
 
@@ -207,18 +238,25 @@ export class InventoryService {
             },
           },
         },
-        { new: true }
+        { new: true },
       );
 
       this.logger.log(`Reserved ${reserveDto.quantity} units for order ${reserveDto.orderId}`);
       return this.findByIdWithLookups(id);
     } catch (error) {
-      this.logger.error(`Error reserving stock: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error reserving stock: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
-  async releaseStock(id: string, releaseDto: ReleaseStockDto, userId?: string): Promise<InventoryItemLean> {
+  async releaseStock(
+    id: string,
+    releaseDto: ReleaseStockDto,
+    userId?: string,
+  ): Promise<InventoryItemLean> {
     try {
       const item = await this.getInventoryItemRaw(id);
 
@@ -243,18 +281,26 @@ export class InventoryService {
             },
           },
         },
-        { new: true }
+        { new: true },
       );
 
       this.logger.log(`Released ${releaseDto.quantity} units from reservation`);
       return this.findByIdWithLookups(id);
     } catch (error) {
-      this.logger.error(`Error releasing stock: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error releasing stock: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
-  async confirmSale(id: string, quantity: number, orderId: string, userId?: string): Promise<InventoryItemLean> {
+  async confirmSale(
+    id: string,
+    quantity: number,
+    orderId: string,
+    userId?: string,
+  ): Promise<InventoryItemLean> {
     try {
       const item = await this.getInventoryItemRaw(id);
 
@@ -287,7 +333,7 @@ export class InventoryService {
             },
           },
         },
-        { new: true }
+        { new: true },
       );
 
       await this.checkAndCreateAlerts(mutatedItem!);
@@ -295,12 +341,18 @@ export class InventoryService {
       this.logger.log(`Sale confirmed: ${quantity} units for order ${orderId}`);
       return this.findByIdWithLookups(id);
     } catch (error) {
-      this.logger.error(`Error confirming sale: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error confirming sale: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
-  async bulkUpdateStock(bulkUpdateDto: BulkUpdateStockDto, userId?: string): Promise<InventoryItemLean[]> {
+  async bulkUpdateStock(
+    bulkUpdateDto: BulkUpdateStockDto,
+    userId?: string,
+  ): Promise<InventoryItemLean[]> {
     try {
       const results: InventoryItemLean[] = [];
 
@@ -312,7 +364,7 @@ export class InventoryService {
             reason: bulkUpdateDto.reason,
             notes: bulkUpdateDto.notes,
           },
-          userId
+          userId,
         );
         results.push(updated);
       }
@@ -320,12 +372,15 @@ export class InventoryService {
       this.logger.log(`Bulk update completed for ${results.length} items`);
       return results;
     } catch (error) {
-      this.logger.error(`Error in bulk update: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error in bulk update: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
-  async getInventoryAnalytics(establishmentId?: string): Promise<any> {
+  async getInventoryAnalytics(establishmentId?: string): Promise<Record<string, unknown>> {
     try {
       const matchStage = establishmentId
         ? { $match: { establishmentId: new Types.ObjectId(establishmentId) } }
@@ -345,26 +400,29 @@ export class InventoryService {
             averageDiscount: { $avg: '$discountPercentage' },
             lowStockItems: {
               $sum: {
-                $cond: [{ $lte: ['$currentStock', '$lowStockThreshold'] }, 1, 0]
-              }
+                $cond: [{ $lte: ['$currentStock', '$lowStockThreshold'] }, 1, 0],
+              },
             },
             outOfStockItems: {
               $sum: {
-                $cond: [{ $eq: ['$currentStock', 0] }, 1, 0]
-              }
+                $cond: [{ $eq: ['$currentStock', 0] }, 1, 0],
+              },
             },
             expiredItems: {
               $sum: {
-                $cond: [{ $lt: ['$expiryDate', new Date()] }, 1, 0]
-              }
+                $cond: [{ $lt: ['$expiryDate', new Date()] }, 1, 0],
+              },
             },
-          }
-        }
+          },
+        },
       ]);
 
       return analytics[0] || {};
     } catch (error) {
-      this.logger.error(`Error generating analytics: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error generating analytics: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -387,7 +445,10 @@ export class InventoryService {
 
       this.logger.log(`Checked ${expiringItems.length} expiring items`);
     } catch (error) {
-      this.logger.error(`Error checking expiring items: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error checking expiring items: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
     }
   }
 
@@ -422,12 +483,15 @@ export class InventoryService {
               },
             },
           },
-        ]
+        ],
       );
 
       this.logger.log(`Updated ${result.modifiedCount} expired items`);
     } catch (error) {
-      this.logger.error(`Error updating expired items: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error updating expired items: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
     }
   }
 
@@ -492,7 +556,10 @@ export class InventoryService {
     return item;
   }
 
-  private async checkAndCreateAlerts(item: InventoryItemDocument, alertType?: string): Promise<void> {
+  private async checkAndCreateAlerts(
+    item: InventoryItemDocument,
+    alertType?: string,
+  ): Promise<void> {
     const alerts: StockAlert[] = [];
 
     // Low stock alert

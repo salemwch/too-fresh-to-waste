@@ -9,10 +9,11 @@
  * @module loyalty/listeners
  */
 
+import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { plainToClass } from 'class-transformer';
+
 import { UserRegisteredEvent } from '../../common/events';
 import { GamificationService } from '../services/gamification.service';
 
@@ -55,10 +56,7 @@ export class UserEventsListener {
       await this.processUserRegistration(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process user.registered event for loyalty`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process user.registered event for loyalty`, error);
       return new Nack(true); // Requeue for retry
     }
   }
@@ -75,7 +73,9 @@ export class UserEventsListener {
    */
   private async processUserRegistration(event: UserRegisteredEvent): Promise<void> {
     try {
-      this.logger.log(`Processing user.registered event for user: ${event.userId} (role: ${event.role})`);
+      this.logger.log(
+        `Processing user.registered event for user: ${event.userId} (role: ${event.role})`,
+      );
 
       // Loyalty accounts are only for consumers — merchants/admins don't earn points
       if (event.role === 'merchant' || event.role === 'admin') {
@@ -90,8 +90,8 @@ export class UserEventsListener {
       this.logger.log(`Successfully created loyalty account for user: ${event.userId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to create loyalty account for user ${event.userId}: ${error.message}`,
-        error.stack,
+        `Failed to create loyalty account for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // CRITICAL: Don't throw - event listeners should not break registration flow
       // User can still use the app, loyalty account will be created lazily on first order

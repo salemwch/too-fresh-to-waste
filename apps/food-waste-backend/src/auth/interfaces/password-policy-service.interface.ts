@@ -33,11 +33,11 @@ export interface PasswordPolicyConfig {
  * Context for password validation
  */
 export interface PasswordValidationContext {
-  email?: string;
-  firstName?: string;
-  lastName?: string;
+  email?: string | undefined;
+  firstName?: string | undefined;
+  lastName?: string | undefined;
   /** Array of hashed previous passwords for history validation */
-  previousPasswords?: string[];
+  previousPasswords?: string[] | undefined;
 }
 
 /**
@@ -56,10 +56,7 @@ export interface IPasswordPolicyService {
    * @param context Validation context (user info for personal data checks)
    * @returns Password strength result with feedback
    */
-  validatePassword(
-    password: string,
-    context?: PasswordValidationContext
-  ): PasswordStrengthResult;
+  validatePassword(password: string, context?: PasswordValidationContext): PasswordStrengthResult;
 
   /**
    * Validate password strength and throw exception if invalid
@@ -67,10 +64,7 @@ export interface IPasswordPolicyService {
    * @param context Validation context
    * @throws BadRequestException if password is invalid
    */
-  validatePasswordStrength(
-    password: string,
-    context?: PasswordValidationContext
-  ): void;
+  validatePasswordStrength(password: string, context?: PasswordValidationContext): void;
 
   /**
    * Validate password with history checking
@@ -80,7 +74,7 @@ export interface IPasswordPolicyService {
    */
   validatePasswordWithHistory(
     password: string,
-    context?: PasswordValidationContext
+    context?: PasswordValidationContext,
   ): Promise<PasswordStrengthResult>;
 
   /**
@@ -91,7 +85,7 @@ export interface IPasswordPolicyService {
    */
   validatePasswordStrengthWithHistory(
     password: string,
-    context?: PasswordValidationContext
+    context?: PasswordValidationContext,
   ): Promise<void>;
 
   /**

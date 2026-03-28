@@ -1,24 +1,34 @@
+import * as crypto from 'crypto';
+
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { INotificationProvider, NotificationResult } from '../interfaces/notification.interfaces';
-import { NotificationTarget, NotificationPayload, NotificationStatus } from '../types/notification.types';
-import { TwilioWebhookData, TwilioMessageResponse, OrderData, ReminderData } from '../interfaces/sms.interfaces';
-import { PhoneValidatorService } from './phone-validator.service';
-import { OptOutManagerService } from './opt-out-manager.service';
-import { OptOutRequestDto, OptInRequestDto } from '../dto/opt-out.dto';
-import { OptOutReason, OptOutScope } from '../schemas/opt-out-record.schema';
+import { InjectModel } from '@nestjs/mongoose';
 import { Throttle } from '@nestjs/throttler';
-import { User, UserDocument } from '../../users/schemas/user.schema';
-import { RedisClientType } from 'redis';
-import * as crypto from 'crypto';
-import { RedisService } from '../../redis/redis.service';
-
+import { Model } from 'mongoose';
 import { Twilio } from 'twilio';
 
-type RedisClient = RedisClientType;
+import { RedisService } from '../../redis/redis.service';
+import { User, UserDocument } from '../../users/schemas/user.schema';
+import { OptOutRequestDto, OptInRequestDto } from '../dto/opt-out.dto';
+import { INotificationProvider, NotificationResult } from '../interfaces/notification.interfaces';
+import {
+  TwilioWebhookData,
+  TwilioMessageResponse,
+  OrderData,
+  ReminderData,
+} from '../interfaces/sms.interfaces';
+import { OptOutReason, OptOutScope } from '../schemas/opt-out-record.schema';
+import {
+  NotificationTarget,
+  NotificationPayload,
+  NotificationStatus,
+} from '../types/notification.types';
+
+import { OptOutManagerService } from './opt-out-manager.service';
+import { PhoneValidatorService } from './phone-validator.service';
+
+type RedisClient = Awaited<ReturnType<RedisService['getClient']>>;
 
 // Enterprise-grade interfaces for type safety
 interface IBalanceData {
@@ -37,28 +47,10 @@ interface IUsageEstimateData {
   reliability: string;
 }
 
-interface IRedisConfig {
-  host: string;
-  port: number;
-  password?: string;
-  username: string;
-  database: number;
-  retryDelayOnFailover: number;
-  retryDelayOnClusterDown: number;
-  maxRetriesPerRequest: number;
-  lazyConnect: boolean;
-  connectTimeout: number;
-  commandTimeout: number;
-  tls?: {
-    rejectUnauthorized: boolean;
-    checkServerIdentity: () => undefined;
-  };
-}
-
 @Injectable()
 export class SmsNotificationService implements INotificationProvider {
   private readonly logger = new Logger(SmsNotificationService.name);
-  private twilioClient: Twilio | null;
+  private twilioClient!: Twilio | null;
   private readonly fromNumber: string;
   private readonly requirePhoneVerification: boolean;
 
@@ -70,16 +62,19 @@ export class SmsNotificationService implements INotificationProvider {
     private readonly redisService: RedisService,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {
-    this.fromNumber = this.configService.get<string>('TWILIO_PHONE_NUMBER');
-    this.requirePhoneVerification = this.configService.get<boolean>('SMS_REQUIRE_PHONE_VERIFICATION', true);
+    this.fromNumber = this.configService.get<string>('TWILIO_PHONE_NUMBER') ?? '';
+    this.requirePhoneVerification = this.configService.get<boolean>(
+      'SMS_REQUIRE_PHONE_VERIFICATION',
+      true,
+    );
 
     this.logger.log('✅ SmsNotificationService initialized with shared RedisService');
 
     // Initialize Twilio asynchronously (non-blocking)
-    this.initializeTwilio().catch(error => {
+    this.initializeTwilio().catch((error) => {
       this.logger.error('Failed to initialize Twilio service', {
         error: (error as Error).message,
-        impact: 'service_degraded'
+        impact: 'service_degraded',
       });
       this.twilioClient = null;
     });
@@ -117,19 +112,18 @@ export class SmsNotificationService implements INotificationProvider {
           this.logger.warn('Twilio credentials not configured - running in development mode', {
             reason: credentialValidation.reason,
             developmentMode: true,
-            serviceStatus: 'mock'
+            serviceStatus: 'mock',
           });
           this.twilioClient = null;
           return;
-        } else {
-          // In production, credential issues are critical
-          this.logger.error('Twilio credentials validation failed in production environment', {
-            reason: credentialValidation.reason,
-            environment: 'production',
-            securityEvent: true
-          });
-          throw new Error(`Twilio service initialization failed: ${credentialValidation.reason}`);
         }
+        // In production, credential issues are critical
+        this.logger.error('Twilio credentials validation failed in production environment', {
+          reason: credentialValidation.reason,
+          environment: 'production',
+          securityEvent: true,
+        });
+        throw new Error(`Twilio service initialization failed: ${credentialValidation.reason}`);
       }
 
       // Validate phone number configuration
@@ -140,16 +134,21 @@ export class SmsNotificationService implements INotificationProvider {
 
         this.logger.error(errorMsg, {
           phoneNumberConfigured: !!this.fromNumber,
-          phoneNumberMasked: this.fromNumber ? this.phoneValidator.maskPhoneNumber(this.fromNumber) : null,
+          phoneNumberMasked: this.fromNumber
+            ? this.phoneValidator.maskPhoneNumber(this.fromNumber)
+            : null,
           requiredFormat: 'E.164 (+1234567890)',
-          environment: process.env.NODE_ENV
+          environment: process.env['NODE_ENV'],
         });
 
         if (isDevelopmentMode) {
-          this.logger.warn(`Phone number configuration error in development mode - continuing with degraded service: ${errorMsg}`, {
-            serviceStatus: 'degraded',
-            developmentMode: true
-          });
+          this.logger.warn(
+            `Phone number configuration error in development mode - continuing with degraded service: ${errorMsg}`,
+            {
+              serviceStatus: 'degraded',
+              developmentMode: true,
+            },
+          );
           this.twilioClient = null;
           return;
         }
@@ -166,10 +165,9 @@ export class SmsNotificationService implements INotificationProvider {
       this.logger.log('Twilio service initialized successfully', {
         initializationTime: Date.now() - initStartTime,
         phoneNumberMasked: this.phoneValidator.maskPhoneNumber(this.fromNumber),
-        environment: process.env.NODE_ENV,
-        serviceStatus: 'operational'
+        environment: process.env['NODE_ENV'],
+        serviceStatus: 'operational',
       });
-
     } catch (error) {
       const errorMessage = (error as Error).message;
       const errorStack = (error as Error).stack;
@@ -179,8 +177,8 @@ export class SmsNotificationService implements INotificationProvider {
         error: errorMessage,
         errorStack,
         initializationTime: Date.now() - initStartTime,
-        environment: process.env.NODE_ENV,
-        serviceStatus: 'failed'
+        environment: process.env['NODE_ENV'],
+        serviceStatus: 'failed',
       });
 
       // Emit failure event for monitoring systems
@@ -188,16 +186,19 @@ export class SmsNotificationService implements INotificationProvider {
         service: 'twilio',
         error: errorMessage,
         timestamp: new Date(),
-        environment: process.env.NODE_ENV
+        environment: process.env['NODE_ENV'],
       });
 
       // In development mode, allow the service to continue in degraded mode
       if (isDevelopmentMode) {
-        this.logger.warn('Twilio service failed to initialize in development mode - continuing with degraded service', {
-          error: errorMessage,
-          serviceStatus: 'degraded',
-          developmentMode: true
-        });
+        this.logger.warn(
+          'Twilio service failed to initialize in development mode - continuing with degraded service',
+          {
+            error: errorMessage,
+            serviceStatus: 'degraded',
+            developmentMode: true,
+          },
+        );
         this.twilioClient = null;
         return;
       }
@@ -209,11 +210,14 @@ export class SmsNotificationService implements INotificationProvider {
   /**
    * Validates Twilio credentials format and security requirements
    */
-  private validateTwilioCredentials(accountSid?: string, authToken?: string): { isValid: boolean; reason: string } {
+  private validateTwilioCredentials(
+    accountSid?: string,
+    authToken?: string,
+  ): { isValid: boolean; reason: string } {
     if (!accountSid || !authToken) {
       return {
         isValid: false,
-        reason: 'Missing required credentials (TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN)'
+        reason: 'Missing required credentials (TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN)',
       };
     }
 
@@ -222,11 +226,11 @@ export class SmsNotificationService implements INotificationProvider {
       this.logger.warn('Invalid Twilio Account SID format detected', {
         sidLength: accountSid.length,
         sidPrefix: accountSid.substring(0, 2),
-        securityEvent: true
+        securityEvent: true,
       });
       return {
         isValid: false,
-        reason: 'Account SID format is invalid (must be AC followed by 32 hex characters)'
+        reason: 'Account SID format is invalid (must be AC followed by 32 hex characters)',
       };
     }
 
@@ -234,23 +238,23 @@ export class SmsNotificationService implements INotificationProvider {
     if (!/^[a-fA-F0-9]{32}$/.test(authToken)) {
       this.logger.warn('Invalid Twilio Auth Token format detected', {
         tokenLength: authToken.length,
-        securityEvent: true
+        securityEvent: true,
       });
       return {
         isValid: false,
-        reason: 'Auth Token format is invalid (must be 32 hex characters)'
+        reason: 'Auth Token format is invalid (must be 32 hex characters)',
       };
     }
 
     // Additional security validation - check for common security issues
     if (accountSid.includes('test') || authToken.includes('test')) {
       this.logger.warn('Test credentials detected in configuration', {
-        environment: process.env.NODE_ENV,
-        securityEvent: true
+        environment: process.env['NODE_ENV'],
+        securityEvent: true,
       });
       return {
         isValid: false,
-        reason: 'Test credentials detected - production requires valid Twilio credentials'
+        reason: 'Test credentials detected - production requires valid Twilio credentials',
       };
     }
 
@@ -261,7 +265,9 @@ export class SmsNotificationService implements INotificationProvider {
    * Validates phone number format for Twilio compatibility
    */
   private validatePhoneNumberFormat(phoneNumber: string): boolean {
-    if (!phoneNumber) {return false;}
+    if (!phoneNumber) {
+      return false;
+    }
 
     // E.164 format validation
     const e164Regex = /^\+[1-9]\d{1,14}$/;
@@ -271,7 +277,7 @@ export class SmsNotificationService implements INotificationProvider {
       this.logger.warn('Invalid phone number format for Twilio service', {
         phoneNumberMasked: this.phoneValidator.maskPhoneNumber(phoneNumber),
         requiredFormat: 'E.164',
-        actualFormat: phoneNumber.charAt(0) === '+' ? 'E.164-like' : 'Non-E.164'
+        actualFormat: phoneNumber.startsWith('+') ? 'E.164-like' : 'Non-E.164',
       });
     }
 
@@ -285,7 +291,7 @@ export class SmsNotificationService implements INotificationProvider {
   private async initializeTwilioClientWithRetry(
     accountSid: string,
     authToken: string,
-    maxRetries: number = 3
+    maxRetries: number = 3,
   ): Promise<void> {
     let lastError: Error | null = null;
 
@@ -293,7 +299,7 @@ export class SmsNotificationService implements INotificationProvider {
       try {
         this.logger.debug(`Twilio client initialization attempt ${attempt}/${maxRetries}`, {
           attempt,
-          maxRetries
+          maxRetries,
         });
 
         // Create Twilio client instance
@@ -302,11 +308,10 @@ export class SmsNotificationService implements INotificationProvider {
         // If we reach here without exception, initialization succeeded
         this.logger.debug('Twilio client instance created successfully', {
           attempt,
-          clientInitialized: !!this.twilioClient
+          clientInitialized: !!this.twilioClient,
         });
 
         return;
-
       } catch (error) {
         lastError = error as Error;
         const isLastAttempt = attempt === maxRetries;
@@ -316,7 +321,7 @@ export class SmsNotificationService implements INotificationProvider {
           maxRetries,
           error: lastError.message,
           isLastAttempt,
-          willRetry: !isLastAttempt
+          willRetry: !isLastAttempt,
         });
 
         if (isLastAttempt) {
@@ -325,7 +330,7 @@ export class SmsNotificationService implements INotificationProvider {
 
         // Exponential backoff delay: 1s, 2s, 4s
         const delayMs = Math.pow(2, attempt - 1) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delayMs));
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
 
@@ -333,10 +338,12 @@ export class SmsNotificationService implements INotificationProvider {
     this.logger.error('Failed to initialize Twilio client after all retry attempts', {
       maxRetries,
       finalError: lastError?.message,
-      finalErrorStack: lastError?.stack
+      finalErrorStack: lastError?.stack,
     });
 
-    throw new Error(`Twilio client initialization failed after ${maxRetries} attempts: ${lastError?.message}`);
+    throw new Error(
+      `Twilio client initialization failed after ${maxRetries} attempts: ${lastError?.message}`,
+    );
   }
 
   /**
@@ -352,20 +359,22 @@ export class SmsNotificationService implements INotificationProvider {
 
     try {
       this.logger.debug('Starting Twilio connectivity verification', {
-        serviceCheck: 'account_details'
+        serviceCheck: 'account_details',
       });
 
       // Test 1: Verify account access and details
-      const account = await this.twilioClient.api.v2010.accounts(this.twilioClient.accountSid).fetch();
+      const account = await this.twilioClient.api.v2010
+        .accounts(this.twilioClient.accountSid)
+        .fetch();
 
-      if (!account || account.status !== 'active') {
+      if (account?.status !== 'active') {
         throw new Error(`Twilio account is not active (status: ${account?.status || 'unknown'})`);
       }
 
       this.logger.debug('Twilio account verification successful', {
         accountStatus: account.status,
         accountType: account.type,
-        connectivityCheck: 'passed'
+        connectivityCheck: 'passed',
       });
 
       // Test 2: Verify phone number ownership and capabilities
@@ -380,7 +389,7 @@ export class SmsNotificationService implements INotificationProvider {
         connectivityTime,
         accountStatus: account.status,
         phoneNumberVerified: true,
-        serviceHealth: 'operational'
+        serviceHealth: 'operational',
       });
 
       // Emit success event for monitoring
@@ -388,9 +397,8 @@ export class SmsNotificationService implements INotificationProvider {
         service: 'twilio',
         connectivityTime,
         timestamp: new Date(),
-        status: 'healthy'
+        status: 'healthy',
       });
-
     } catch (error) {
       const connectivityTime = Date.now() - connectivityStartTime;
       const errorMessage = (error as Error).message;
@@ -398,7 +406,7 @@ export class SmsNotificationService implements INotificationProvider {
       this.logger.error('Twilio connectivity verification failed', {
         error: errorMessage,
         connectivityTime,
-        serviceHealth: 'degraded'
+        serviceHealth: 'degraded',
       });
 
       // Emit failure event for monitoring
@@ -407,7 +415,7 @@ export class SmsNotificationService implements INotificationProvider {
         error: errorMessage,
         connectivityTime,
         timestamp: new Date(),
-        status: 'unhealthy'
+        status: 'unhealthy',
       });
 
       throw new Error(`Twilio connectivity verification failed: ${errorMessage}`);
@@ -419,29 +427,41 @@ export class SmsNotificationService implements INotificationProvider {
    */
   private async verifyPhoneNumberCapabilities(): Promise<void> {
     try {
-      const phoneNumber = await this.twilioClient!.incomingPhoneNumbers
-        .list({ phoneNumber: this.fromNumber, limit: 1 });
+      const phoneNumber = await this.twilioClient!.incomingPhoneNumbers.list({
+        phoneNumber: this.fromNumber,
+        limit: 1,
+      });
 
       if (!phoneNumber || phoneNumber.length === 0) {
-        throw new Error(`Phone number ${this.phoneValidator.maskPhoneNumber(this.fromNumber)} is not owned by this Twilio account`);
+        throw new Error(
+          `Phone number ${this.phoneValidator.maskPhoneNumber(this.fromNumber)} is not owned by this Twilio account`,
+        );
       }
 
-      const capabilities = phoneNumber[0].capabilities;
+      const twilioPhoneNumber = phoneNumber[0];
+      if (!twilioPhoneNumber) {
+        throw new Error(
+          `Phone number ${this.phoneValidator.maskPhoneNumber(this.fromNumber)} is not owned by this Twilio account`,
+        );
+      }
+
+      const capabilities = twilioPhoneNumber.capabilities;
       if (!capabilities.sms) {
-        throw new Error(`Phone number ${this.phoneValidator.maskPhoneNumber(this.fromNumber)} does not support SMS`);
+        throw new Error(
+          `Phone number ${this.phoneValidator.maskPhoneNumber(this.fromNumber)} does not support SMS`,
+        );
       }
 
       this.logger.debug('Phone number capabilities verified', {
         phoneNumberMasked: this.phoneValidator.maskPhoneNumber(this.fromNumber),
         smsCapable: capabilities.sms,
         voiceCapable: capabilities.voice,
-        mmsCapable: capabilities.mms
+        mmsCapable: capabilities.mms,
       });
-
     } catch (error) {
       this.logger.error('Phone number verification failed', {
         phoneNumberMasked: this.phoneValidator.maskPhoneNumber(this.fromNumber),
-        error: (error as Error).message
+        error: (error as Error).message,
       });
       throw error;
     }
@@ -456,7 +476,9 @@ export class SmsNotificationService implements INotificationProvider {
 
     try {
       // Fetch account details for service monitoring
-      const account = await this.twilioClient!.api.v2010.accounts(this.twilioClient!.accountSid).fetch();
+      const account = await this.twilioClient!.api.v2010.accounts(
+        this.twilioClient!.accountSid,
+      ).fetch();
 
       // Check account balance if available
       await this.checkAccountBalance();
@@ -473,7 +495,7 @@ export class SmsNotificationService implements INotificationProvider {
         accountStatus: account.status,
         accountType: account.type,
         limitsCheckTime,
-        serviceMonitoring: 'operational'
+        serviceMonitoring: 'operational',
       });
 
       // Emit monitoring event for external systems
@@ -482,9 +504,8 @@ export class SmsNotificationService implements INotificationProvider {
         accountStatus: account.status,
         limitsCheckTime,
         timestamp: new Date(),
-        status: 'healthy'
+        status: 'healthy',
       });
-
     } catch (error) {
       const limitsCheckTime = Date.now() - limitsCheckStartTime;
       const errorMessage = (error as Error).message;
@@ -493,7 +514,7 @@ export class SmsNotificationService implements INotificationProvider {
         error: errorMessage,
         limitsCheckTime,
         impact: 'monitoring_degraded',
-        serviceStatus: 'partially_available'
+        serviceStatus: 'partially_available',
       });
 
       // Emit warning event but don't throw - this is monitoring only
@@ -502,7 +523,7 @@ export class SmsNotificationService implements INotificationProvider {
         error: errorMessage,
         limitsCheckTime,
         timestamp: new Date(),
-        status: 'degraded'
+        status: 'degraded',
       });
     }
   }
@@ -514,12 +535,14 @@ export class SmsNotificationService implements INotificationProvider {
   private async checkAccountBalance(): Promise<void> {
     try {
       // Fetch balance information using the correct Twilio API
-      const balances = await this.twilioClient!.api.v2010.accounts(this.twilioClient!.accountSid).balance.fetch();
+      const balances = await this.twilioClient!.api.v2010.accounts(
+        this.twilioClient!.accountSid,
+      ).balance.fetch();
 
       if (!balances) {
         this.logger.debug('Balance information not available', {
           reason: 'api_limitation',
-          impact: 'monitoring_only'
+          impact: 'monitoring_only',
         });
         return;
       }
@@ -543,12 +566,18 @@ export class SmsNotificationService implements INotificationProvider {
       this.logger.debug('Account balance retrieved successfully', {
         balance: currentBalance,
         currency,
-        balanceStatus: currentBalance > 0 ? 'positive' : 'zero_or_negative'
+        balanceStatus: currentBalance > 0 ? 'positive' : 'zero_or_negative',
       });
 
       // Enterprise-grade balance monitoring with configurable thresholds
-      const lowBalanceThreshold = this.configService.get<number>('TWILIO_LOW_BALANCE_THRESHOLD', 10.0);
-      const criticalBalanceThreshold = this.configService.get<number>('TWILIO_CRITICAL_BALANCE_THRESHOLD', 2.0);
+      const lowBalanceThreshold = this.configService.get<number>(
+        'TWILIO_LOW_BALANCE_THRESHOLD',
+        10.0,
+      );
+      const criticalBalanceThreshold = this.configService.get<number>(
+        'TWILIO_CRITICAL_BALANCE_THRESHOLD',
+        2.0,
+      );
 
       if (currentBalance <= criticalBalanceThreshold) {
         this.logger.error('Critical Twilio account balance detected', {
@@ -556,7 +585,7 @@ export class SmsNotificationService implements INotificationProvider {
           currency,
           threshold: criticalBalanceThreshold,
           severity: 'critical',
-          action_required: 'immediate_attention'
+          action_required: 'immediate_attention',
         });
 
         // Emit critical alert for immediate attention
@@ -566,16 +595,15 @@ export class SmsNotificationService implements INotificationProvider {
           currency,
           threshold: criticalBalanceThreshold,
           timestamp: new Date(),
-          severity: 'critical'
+          severity: 'critical',
         });
-
       } else if (currentBalance <= lowBalanceThreshold) {
         this.logger.warn('Low Twilio account balance detected', {
           balance: currentBalance,
           currency,
           threshold: lowBalanceThreshold,
           severity: 'warning',
-          action_required: 'monitoring'
+          action_required: 'monitoring',
         });
 
         // Emit warning for proactive monitoring
@@ -585,15 +613,14 @@ export class SmsNotificationService implements INotificationProvider {
           currency,
           threshold: lowBalanceThreshold,
           timestamp: new Date(),
-          severity: 'warning'
+          severity: 'warning',
         });
       }
-
     } catch (error) {
       this.logger.debug('Balance check unavailable (non-critical)', {
         error: (error as Error).message,
         reason: 'api_limitation_or_permissions',
-        impact: 'monitoring_only'
+        impact: 'monitoring_only',
       });
       // Don't throw - balance information may not always be available
     }
@@ -608,12 +635,11 @@ export class SmsNotificationService implements INotificationProvider {
       // Use the correct Twilio API structure for usage records
       // Note: Twilio usage API structure varies by SDK version
       await this.checkUsageRecordsWithFallback();
-
     } catch (error) {
       this.logger.debug('Usage limits check unavailable (non-critical)', {
         error: (error as Error).message,
         reason: 'api_limitation_or_permissions',
-        impact: 'monitoring_only'
+        impact: 'monitoring_only',
       });
       // Don't throw - usage information may not always be available
     }
@@ -627,11 +653,10 @@ export class SmsNotificationService implements INotificationProvider {
     try {
       // Primary approach: Use correct Twilio usage API with proper parameter structure
       await this.fetchUsageWithCorrectAPI();
-
     } catch (primaryError) {
       this.logger.debug('Primary usage API failed, trying alternative approaches', {
         error: (primaryError as Error).message,
-        fallbackAttempt: 'alternative_monitoring'
+        fallbackAttempt: 'alternative_monitoring',
       });
 
       // Fallback approach: Use message-based monitoring instead
@@ -650,7 +675,7 @@ export class SmsNotificationService implements INotificationProvider {
     try {
       // Method 1: Try with minimal parameters (most compatible)
       const usage = await this.twilioClient!.usage.records.list({
-        limit: 20
+        limit: 20,
       });
 
       if (usage && usage.length > 0) {
@@ -664,16 +689,15 @@ export class SmsNotificationService implements INotificationProvider {
 
       this.logger.debug('No recent usage records found, trying alternative method', {
         totalRecords: usage?.length || 0,
-        period: 'recent'
+        period: 'recent',
       });
 
       // Method 2: Try today's usage with different approach
       await this.fetchTodaysUsage();
-
     } catch (apiError) {
       this.logger.debug('Usage API call failed with error', {
         error: (apiError as Error).message,
-        errorType: (apiError as Error).constructor.name
+        errorType: (apiError as Error).constructor.name,
       });
 
       // Method 3: Use account balance changes as usage indicator
@@ -686,21 +710,20 @@ export class SmsNotificationService implements INotificationProvider {
    * Production-grade filtering with comprehensive SMS category detection
    */
   private filterSMSUsageRecords(records: unknown[], startDate: Date): unknown[] {
-    const isValidRecord = (record: unknown): record is {
+    const isValidRecord = (
+      record: unknown,
+    ): record is {
       category: string;
       startDate?: string | Date;
       endDate?: string | Date;
       count?: string;
       price?: string;
       priceUnit?: string;
-    } => {
-      return (
-        typeof record === 'object' &&
-        record !== null &&
-        'category' in record &&
-        typeof (record as { category: unknown }).category === 'string'
-      );
-    };
+    } =>
+      typeof record === 'object' &&
+      record !== null &&
+      'category' in record &&
+      typeof (record as { category: unknown }).category === 'string';
 
     const validRecords = records.filter(isValidRecord);
 
@@ -711,12 +734,12 @@ export class SmsNotificationService implements INotificationProvider {
       'sms-inbound',
       'sms-messages',
       'sms-messages-outbound',
-      'sms-messages-inbound'
+      'sms-messages-inbound',
     ];
 
-    const smsRecords = validRecords.filter(record => {
-      const isSMSCategory = smsCategories.some(category =>
-        record.category.toLowerCase().includes(category.toLowerCase())
+    const smsRecords = validRecords.filter((record) => {
+      const isSMSCategory = smsCategories.some((category) =>
+        record.category.toLowerCase().includes(category.toLowerCase()),
       );
 
       if (!isSMSCategory) {
@@ -740,8 +763,8 @@ export class SmsNotificationService implements INotificationProvider {
     this.logger.debug('SMS usage records filtered', {
       totalRecords: validRecords.length,
       smsRecords: smsRecords.length,
-      categories: smsRecords.map(r => r.category),
-      dateFilter: startDate.toISOString()
+      categories: smsRecords.map((r) => r.category),
+      dateFilter: startDate.toISOString(),
     });
 
     return smsRecords;
@@ -758,7 +781,7 @@ export class SmsNotificationService implements INotificationProvider {
 
       // Get today's usage with minimal parameters
       const todayUsage = await this.twilioClient!.usage.records.list({
-        limit: 50
+        limit: 50,
       });
 
       if (todayUsage && todayUsage.length > 0) {
@@ -768,7 +791,7 @@ export class SmsNotificationService implements INotificationProvider {
         if (recentSMSActivity.length > 0) {
           this.logger.debug('Recent SMS activity detected', {
             recordsFound: recentSMSActivity.length,
-            period: 'today'
+            period: 'today',
           });
 
           this.processUsageRecords(recentSMSActivity);
@@ -776,14 +799,13 @@ export class SmsNotificationService implements INotificationProvider {
         }
       }
 
-      this.logger.debug('No recent SMS usage found in today\'s records', {
-        totalRecords: todayUsage?.length || 0
+      this.logger.debug("No recent SMS usage found in today's records", {
+        totalRecords: todayUsage?.length || 0,
       });
-
     } catch (error) {
-      this.logger.debug('Today\'s usage fetch failed (non-critical)', {
+      this.logger.debug("Today's usage fetch failed (non-critical)", {
         error: (error as Error).message,
-        fallback: 'activity_proxy'
+        fallback: 'activity_proxy',
       });
     }
   }
@@ -795,12 +817,14 @@ export class SmsNotificationService implements INotificationProvider {
   private async estimateUsageFromAccountChanges(): Promise<void> {
     try {
       // Fetch current account balance using correct API
-      const account = await this.twilioClient!.api.v2010.accounts(this.twilioClient!.accountSid).fetch();
+      const account = await this.twilioClient!.api.v2010.accounts(
+        this.twilioClient!.accountSid,
+      ).fetch();
 
-      if (!account || !account.balance) {
+      if (!account?.balance) {
         this.logger.debug('Account balance not available for usage estimation', {
           accountExists: !!account,
-          balanceExists: !!(account?.balance)
+          balanceExists: !!account?.balance,
         });
         return;
       }
@@ -810,20 +834,19 @@ export class SmsNotificationService implements INotificationProvider {
       if (typeof balanceValue !== 'string' && typeof balanceValue !== 'number') {
         this.logger.warn('Invalid balance type received from Twilio API', {
           balanceType: typeof balanceValue,
-          balanceValue: balanceValue
+          balanceValue,
         });
         return;
       }
 
-      const currentBalance = typeof balanceValue === 'string'
-        ? parseFloat(balanceValue)
-        : balanceValue;
+      const currentBalance =
+        typeof balanceValue === 'string' ? parseFloat(balanceValue) : balanceValue;
 
       // Validate parsed balance
       if (isNaN(currentBalance)) {
         this.logger.warn('Invalid balance value received from Twilio API', {
           balanceValue,
-          parsedValue: currentBalance
+          parsedValue: currentBalance,
         });
         return;
       }
@@ -852,7 +875,7 @@ export class SmsNotificationService implements INotificationProvider {
             estimatedSMSCount,
             estimatedHourlyRate: estimatedHourlyRate.toFixed(2),
             averageSMSCost,
-            estimationMethod: 'balance_tracking'
+            estimationMethod: 'balance_tracking',
           });
 
           // Store usage estimate in Redis
@@ -863,7 +886,7 @@ export class SmsNotificationService implements INotificationProvider {
             hoursElapsed,
             averageSMSCost,
             timestamp: currentTimestamp,
-            reliability: 'medium'
+            reliability: 'medium',
           });
 
           // Check if estimated usage exceeds thresholds
@@ -878,7 +901,7 @@ export class SmsNotificationService implements INotificationProvider {
             currentBalance,
             timestamp: new Date(),
             method: 'balance_tracking',
-            reliability: 'medium'
+            reliability: 'medium',
           });
         }
       }
@@ -887,21 +910,20 @@ export class SmsNotificationService implements INotificationProvider {
       await this.storeBalanceInRedis(balanceKey, {
         balance: currentBalance,
         timestamp: currentTimestamp,
-        accountSid: this.twilioClient!.accountSid
+        accountSid: this.twilioClient!.accountSid,
       });
 
       this.logger.debug('Account balance stored for future usage estimation', {
         balance: currentBalance,
         timestamp: new Date(currentTimestamp).toISOString(),
         estimationMethod: 'balance_tracking',
-        redisAvailable: !!(await this.getRedisClient())
+        redisAvailable: !!(await this.getRedisClient()),
       });
-
     } catch (error) {
       this.logger.debug('Balance-based usage estimation failed (non-critical)', {
         error: (error as Error).message,
         errorType: (error as Error).constructor.name,
-        impact: 'monitoring_degraded'
+        impact: 'monitoring_degraded',
       });
     }
   }
@@ -912,7 +934,7 @@ export class SmsNotificationService implements INotificationProvider {
    */
   private async getBalanceFromRedis(key: string): Promise<IBalanceData | null> {
     const redisClient = await this.getRedisClient();
-        if (!redisClient) {
+    if (!redisClient) {
       return null;
     }
 
@@ -930,7 +952,7 @@ export class SmsNotificationService implements INotificationProvider {
         this.logger.warn('Failed to parse balance data from Redis', {
           key,
           error: (parseError as Error).message,
-          dataLength: data.length
+          dataLength: data.length,
         });
         return null;
       }
@@ -943,12 +965,12 @@ export class SmsNotificationService implements INotificationProvider {
 
         const record = obj as Record<string, unknown>;
         return (
-          typeof record.balance === 'number' &&
-          typeof record.timestamp === 'number' &&
-          typeof record.accountSid === 'string' &&
-          !isNaN(record.balance) &&
-          !isNaN(record.timestamp) &&
-          record.accountSid.length > 0
+          typeof record['balance'] === 'number' &&
+          typeof record['timestamp'] === 'number' &&
+          typeof record['accountSid'] === 'string' &&
+          !isNaN(record['balance']) &&
+          !isNaN(record['timestamp']) &&
+          record['accountSid'].length > 0
         );
       };
 
@@ -959,14 +981,16 @@ export class SmsNotificationService implements INotificationProvider {
       this.logger.warn('Invalid balance data structure in Redis', {
         key,
         dataType: typeof parsed,
-        dataStructure: parsed && typeof parsed === 'object' ? Object.keys(parsed as Record<string, unknown>) : 'not_object'
+        dataStructure:
+          parsed && typeof parsed === 'object'
+            ? Object.keys(parsed as Record<string, unknown>)
+            : 'not_object',
       });
       return null;
-
     } catch (error) {
       this.logger.debug('Failed to retrieve balance from Redis', {
         key,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
       return null;
     }
@@ -978,7 +1002,7 @@ export class SmsNotificationService implements INotificationProvider {
    */
   private async storeBalanceInRedis(key: string, data: IBalanceData): Promise<void> {
     const redisClient = await this.getRedisClient();
-        if (!redisClient) {
+    if (!redisClient) {
       return;
     }
 
@@ -991,13 +1015,12 @@ export class SmsNotificationService implements INotificationProvider {
       this.logger.debug('Balance data stored in Redis', {
         key,
         balance: data.balance,
-        ttlHours
+        ttlHours,
       });
-
     } catch (error) {
       this.logger.debug('Failed to store balance in Redis', {
         key,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -1008,7 +1031,7 @@ export class SmsNotificationService implements INotificationProvider {
    */
   private async storeUsageEstimate(key: string, data: IUsageEstimateData): Promise<void> {
     const redisClient = await this.getRedisClient();
-        if (!redisClient) {
+    if (!redisClient) {
       return;
     }
 
@@ -1028,13 +1051,12 @@ export class SmsNotificationService implements INotificationProvider {
       this.logger.debug('Usage estimate stored in Redis', {
         key,
         estimatedSMSCount: data.estimatedSMSCount,
-        reliability: data.reliability
+        reliability: data.reliability,
       });
-
     } catch (error) {
       this.logger.debug('Failed to store usage estimate in Redis', {
         key,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -1045,7 +1067,7 @@ export class SmsNotificationService implements INotificationProvider {
    */
   private checkEstimatedUsageThresholds(
     estimatedSMSCount: number,
-    estimatedHourlyRate: number
+    estimatedHourlyRate: number,
   ): void {
     const hourlyThreshold = this.configService.get<number>('TWILIO_ESTIMATED_HOURLY_THRESHOLD', 50);
     const dailyThreshold = this.configService.get<number>('TWILIO_ESTIMATED_DAILY_THRESHOLD', 500);
@@ -1058,7 +1080,7 @@ export class SmsNotificationService implements INotificationProvider {
         estimatedHourlyRate: estimatedHourlyRate.toFixed(2),
         threshold: hourlyThreshold,
         estimationMethod: 'balance_tracking',
-        severity: 'warning'
+        severity: 'warning',
       });
 
       this.eventEmitter.emit('sms.service.usage.estimated.high', {
@@ -1068,7 +1090,7 @@ export class SmsNotificationService implements INotificationProvider {
         estimatedSMSCount,
         timestamp: new Date(),
         severity: 'warning',
-        type: 'hourly'
+        type: 'hourly',
       });
     }
 
@@ -1077,7 +1099,7 @@ export class SmsNotificationService implements INotificationProvider {
         estimatedDailyUsage: estimatedDailyUsage.toFixed(0),
         threshold: dailyThreshold,
         estimationMethod: 'balance_tracking',
-        severity: 'warning'
+        severity: 'warning',
       });
 
       this.eventEmitter.emit('sms.service.usage.estimated.high', {
@@ -1087,7 +1109,7 @@ export class SmsNotificationService implements INotificationProvider {
         estimatedHourlyRate,
         timestamp: new Date(),
         severity: 'warning',
-        type: 'daily'
+        type: 'daily',
       });
     }
   }
@@ -1098,33 +1120,33 @@ export class SmsNotificationService implements INotificationProvider {
    */
   private processUsageRecords(usage: unknown[]): void {
     // Type guard for usage record validation
-    const isValidUsageRecord = (record: unknown): record is {
+    const isValidUsageRecord = (
+      record: unknown,
+    ): record is {
       category: string;
       count?: string;
       price?: string;
       priceUnit?: string;
-    } => {
-      return (
-        typeof record === 'object' &&
-        record !== null &&
-        'category' in record &&
-        typeof (record as { category: unknown }).category === 'string'
-      );
-    };
+    } =>
+      typeof record === 'object' &&
+      record !== null &&
+      'category' in record &&
+      typeof (record as { category: unknown }).category === 'string';
 
     const validRecords = usage.filter(isValidUsageRecord);
 
-    const smsUsage = validRecords.find(record =>
-      record.category === 'sms' ||
-      record.category === 'sms-outbound' ||
-      record.category === 'sms-inbound'
+    const smsUsage = validRecords.find(
+      (record) =>
+        record.category === 'sms' ||
+        record.category === 'sms-outbound' ||
+        record.category === 'sms-inbound',
     );
 
     if (!smsUsage) {
       this.logger.debug('No SMS usage records found in the response', {
         totalRecords: usage.length,
         validRecords: validRecords.length,
-        categories: validRecords.map(r => r.category).join(', ')
+        categories: validRecords.map((r) => r.category).join(', '),
       });
       return;
     }
@@ -1138,12 +1160,15 @@ export class SmsNotificationService implements INotificationProvider {
       monthlyCost: usageCost,
       currency,
       period: 'current_month',
-      category: smsUsage.category
+      category: smsUsage.category,
     });
 
     // Configurable usage thresholds for monitoring
     const highUsageThreshold = this.configService.get<number>('TWILIO_HIGH_USAGE_THRESHOLD', 1000);
-    const criticalUsageThreshold = this.configService.get<number>('TWILIO_CRITICAL_USAGE_THRESHOLD', 5000);
+    const criticalUsageThreshold = this.configService.get<number>(
+      'TWILIO_CRITICAL_USAGE_THRESHOLD',
+      5000,
+    );
 
     if (usageCount > criticalUsageThreshold) {
       this.logger.error('Critical SMS usage detected for current month', {
@@ -1152,7 +1177,7 @@ export class SmsNotificationService implements INotificationProvider {
         cost: usageCost,
         currency,
         severity: 'critical',
-        monitoring: 'immediate_attention_required'
+        monitoring: 'immediate_attention_required',
       });
 
       this.eventEmitter.emit('sms.service.usage.critical', {
@@ -1163,9 +1188,8 @@ export class SmsNotificationService implements INotificationProvider {
         threshold: criticalUsageThreshold,
         timestamp: new Date(),
         period: 'monthly',
-        severity: 'critical'
+        severity: 'critical',
       });
-
     } else if (usageCount > highUsageThreshold) {
       this.logger.warn('High SMS usage detected for current month', {
         usage: usageCount,
@@ -1173,7 +1197,7 @@ export class SmsNotificationService implements INotificationProvider {
         cost: usageCost,
         currency,
         severity: 'warning',
-        monitoring: 'capacity_planning'
+        monitoring: 'capacity_planning',
       });
 
       this.eventEmitter.emit('sms.service.usage.high', {
@@ -1184,7 +1208,7 @@ export class SmsNotificationService implements INotificationProvider {
         threshold: highUsageThreshold,
         timestamp: new Date(),
         period: 'monthly',
-        severity: 'warning'
+        severity: 'warning',
       });
     }
 
@@ -1195,7 +1219,7 @@ export class SmsNotificationService implements INotificationProvider {
       cost: usageCost,
       currency,
       timestamp: new Date(),
-      period: 'monthly'
+      period: 'monthly',
     });
   }
 
@@ -1208,7 +1232,7 @@ export class SmsNotificationService implements INotificationProvider {
       // Get recent messages as a proxy for usage
       const recentMessages = await this.twilioClient!.messages.list({
         limit: 100,
-        dateSentAfter: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
+        dateSentAfter: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
       });
 
       const messageCount = recentMessages.length;
@@ -1216,18 +1240,21 @@ export class SmsNotificationService implements INotificationProvider {
       this.logger.debug('Account activity check completed (usage proxy)', {
         recentMessageCount: messageCount,
         period: 'last_30_days',
-        monitoringMethod: 'message_count_proxy'
+        monitoringMethod: 'message_count_proxy',
       });
 
       // Basic threshold monitoring using message count
-      const highActivityThreshold = this.configService.get<number>('TWILIO_HIGH_ACTIVITY_THRESHOLD', 500);
+      const highActivityThreshold = this.configService.get<number>(
+        'TWILIO_HIGH_ACTIVITY_THRESHOLD',
+        500,
+      );
 
       if (messageCount > highActivityThreshold) {
         this.logger.warn('High account activity detected (proxy monitoring)', {
           messageCount,
           threshold: highActivityThreshold,
           period: 'last_30_days',
-          monitoring: 'activity_based'
+          monitoring: 'activity_based',
         });
 
         this.eventEmitter.emit('sms.service.activity.high', {
@@ -1236,15 +1263,14 @@ export class SmsNotificationService implements INotificationProvider {
           threshold: highActivityThreshold,
           timestamp: new Date(),
           period: 'last_30_days',
-          monitoringType: 'proxy'
+          monitoringType: 'proxy',
         });
       }
-
     } catch (error) {
       this.logger.debug('Account activity check failed (non-critical)', {
         error: (error as Error).message,
         reason: 'api_limitation_or_permissions',
-        impact: 'monitoring_only'
+        impact: 'monitoring_only',
       });
     }
   }
@@ -1265,14 +1291,17 @@ export class SmsNotificationService implements INotificationProvider {
       const responseTime = Date.now() - rateLimitCheckStart;
 
       // Monitor for unusually slow responses which might indicate rate limiting
-      const slowResponseThreshold = this.configService.get<number>('TWILIO_SLOW_RESPONSE_THRESHOLD', 2000);
+      const slowResponseThreshold = this.configService.get<number>(
+        'TWILIO_SLOW_RESPONSE_THRESHOLD',
+        2000,
+      );
 
       if (responseTime > slowResponseThreshold) {
         this.logger.warn('Slow Twilio API response detected', {
           responseTime,
           threshold: slowResponseThreshold,
           possibleCause: 'rate_limiting_or_network_issues',
-          monitoring: 'performance_degradation'
+          monitoring: 'performance_degradation',
         });
 
         this.eventEmitter.emit('sms.service.response.slow', {
@@ -1280,19 +1309,18 @@ export class SmsNotificationService implements INotificationProvider {
           responseTime,
           threshold: slowResponseThreshold,
           timestamp: new Date(),
-          status: 'degraded'
+          status: 'degraded',
         });
       } else {
         this.logger.debug('API rate limit status check passed', {
           responseTime,
-          performance: 'normal'
+          performance: 'normal',
         });
       }
-
     } catch (error) {
       this.logger.debug('Rate limit status check failed (non-critical)', {
         error: (error as Error).message,
-        impact: 'monitoring_only'
+        impact: 'monitoring_only',
       });
       // Don't throw - this is monitoring only
     }
@@ -1316,14 +1344,16 @@ export class SmsNotificationService implements INotificationProvider {
           details: {
             error: 'Twilio client not initialized',
             serviceStatus: 'down',
-            lastCheck: new Date()
+            lastCheck: new Date(),
           },
-          timestamp: new Date()
+          timestamp: new Date(),
         };
       }
 
       // Quick connectivity test
-      const account = await this.twilioClient.api.v2010.accounts(this.twilioClient.accountSid).fetch();
+      const account = await this.twilioClient.api.v2010
+        .accounts(this.twilioClient.accountSid)
+        .fetch();
 
       const healthCheckTime = Date.now() - healthCheckStartTime;
 
@@ -1334,11 +1364,10 @@ export class SmsNotificationService implements INotificationProvider {
           responseTime: healthCheckTime,
           phoneNumber: this.phoneValidator.maskPhoneNumber(this.fromNumber),
           serviceStatus: 'operational',
-          lastCheck: new Date()
+          lastCheck: new Date(),
         },
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-
     } catch (error) {
       const healthCheckTime = Date.now() - healthCheckStartTime;
 
@@ -1348,15 +1377,18 @@ export class SmsNotificationService implements INotificationProvider {
           error: (error as Error).message,
           responseTime: healthCheckTime,
           serviceStatus: 'error',
-          lastCheck: new Date()
+          lastCheck: new Date(),
         },
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     }
   }
 
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 SMS per minute per target
-  async send(payload: NotificationPayload, target: NotificationTarget): Promise<NotificationResult> {
+  async send(
+    payload: NotificationPayload,
+    target: NotificationTarget,
+  ): Promise<NotificationResult> {
     try {
       if (!payload?.title || !payload?.body) {
         throw new BadRequestException('SMS payload requires title and body');
@@ -1366,7 +1398,7 @@ export class SmsNotificationService implements INotificationProvider {
       if (!phoneNumber) {
         return {
           success: false,
-          error: 'No phone number found for target'
+          error: 'No phone number found for target',
         };
       }
 
@@ -1375,7 +1407,7 @@ export class SmsNotificationService implements INotificationProvider {
       if (optOutStatus.isOptedOut) {
         return {
           success: false,
-          error: 'User has opted out of SMS notifications'
+          error: 'User has opted out of SMS notifications',
         };
       }
 
@@ -1390,23 +1422,26 @@ export class SmsNotificationService implements INotificationProvider {
           to: this.phoneValidator.maskPhoneNumber(result.to),
           from: result.from,
           status: result.status,
-          price: result.price,
-          priceUnit: result.priceUnit
-        }
+          price: result.price ?? undefined,
+          priceUnit: result.priceUnit ?? undefined,
+        },
       };
     } catch (error) {
       this.logger.error(`SMS notification failed: ${(error as Error).message}`, {
         target: target.userId || 'unknown',
-        error: (error as Error).stack
+        error: (error as Error).stack,
       });
       return {
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       };
     }
   }
 
-  async sendBulk(payload: NotificationPayload, targets: NotificationTarget[]): Promise<NotificationResult[]> {
+  async sendBulk(
+    payload: NotificationPayload,
+    targets: NotificationTarget[],
+  ): Promise<NotificationResult[]> {
     if (!targets?.length) {
       return [];
     }
@@ -1428,17 +1463,19 @@ export class SmsNotificationService implements INotificationProvider {
           this.logger.error(`Bulk SMS failed for target: ${(error as Error).message}`);
           return {
             success: false,
-            error: (error as Error).message
+            error: (error as Error).message,
           };
         }
       });
 
       const batchResults = await Promise.allSettled(batchPromises);
-      const processedResults = batchResults.map(result =>
-        result.status === 'fulfilled' ? result.value : {
-          success: false,
-          error: 'Promise rejected'
-        }
+      const processedResults = batchResults.map((result) =>
+        result.status === 'fulfilled'
+          ? result.value
+          : {
+              success: false,
+              error: 'Promise rejected',
+            },
       );
 
       results.push(...processedResults);
@@ -1461,17 +1498,17 @@ export class SmsNotificationService implements INotificationProvider {
     let message = `Your Too Fresh To Waste verification code is: ${code}. This code will expire in 10 minutes.`;
 
     // In production, append the SMS Retriever hash for Android autofill security
-    if (smsRetrieverHash && smsRetrieverHash.trim().length === 11) {
+    if (smsRetrieverHash?.trim().length === 11) {
       message = `<#> Your Too Fresh To Waste verification code is: ${code}. This code will expire in 10 minutes. ${smsRetrieverHash}`;
 
       this.logger.debug('SMS sent with Android SMS Retriever hash for enhanced security', {
         phoneNumberMasked: this.phoneValidator.maskPhoneNumber(phoneNumber),
-        hashIncluded: true
+        hashIncluded: true,
       });
     } else if (this.configService.get<string>('NODE_ENV') === 'production') {
       this.logger.warn('SMS_RETRIEVER_HASH not configured in production - using basic format', {
         environment: 'production',
-        recommendation: 'Add SMS_RETRIEVER_HASH to .env for enhanced security'
+        recommendation: 'Add SMS_RETRIEVER_HASH to .env for enhanced security',
       });
     }
 
@@ -1485,14 +1522,17 @@ export class SmsNotificationService implements INotificationProvider {
         metadata: {
           type: 'verification',
           to: result.to,
-          smsRetrieverHashUsed: !!smsRetrieverHash
-        }
+          smsRetrieverHashUsed: !!smsRetrieverHash,
+        },
       };
     } catch (error) {
-      this.logger.error(`Verification SMS failed: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Verification SMS failed: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       return {
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       };
     }
   }
@@ -1509,19 +1549,25 @@ export class SmsNotificationService implements INotificationProvider {
         deliveryStatus: 'sent',
         metadata: {
           type: 'pickup_code',
-          orderId: orderData.orderId
-        }
+          orderId: orderData.orderId,
+        },
       };
     } catch (error) {
-      this.logger.error(`Pickup code SMS failed: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Pickup code SMS failed: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       return {
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       };
     }
   }
 
-  async sendUrgentReminder(phoneNumber: string, reminderData: ReminderData): Promise<NotificationResult> {
+  async sendUrgentReminder(
+    phoneNumber: string,
+    reminderData: ReminderData,
+  ): Promise<NotificationResult> {
     const message = `URGENT: Your food order expires in ${reminderData.timeLeft}! Pickup at ${reminderData.establishmentName}. Order: ${reminderData.orderId}`;
 
     try {
@@ -1533,14 +1579,17 @@ export class SmsNotificationService implements INotificationProvider {
         deliveryStatus: 'sent',
         metadata: {
           type: 'urgent_reminder',
-          orderId: reminderData.orderId
-        }
+          orderId: reminderData.orderId,
+        },
       };
     } catch (error) {
-      this.logger.error(`Urgent reminder SMS failed: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Urgent reminder SMS failed: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       return {
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       };
     }
   }
@@ -1559,7 +1608,7 @@ export class SmsNotificationService implements INotificationProvider {
       if (!/^[0-9a-fA-F]{24}$/.test(target.userId)) {
         this.logger.warn('getPhoneNumber called with invalid userId format', {
           userId: target.userId,
-          userIdLength: target.userId?.length
+          userIdLength: target.userId?.length,
         });
         return null;
       }
@@ -1569,7 +1618,7 @@ export class SmsNotificationService implements INotificationProvider {
         .findOne({
           _id: target.userId,
           deletedAt: null, // Exclude soft-deleted users
-          status: { $in: ['active', 'pending'] } // Only include active/pending users
+          status: { $in: ['active', 'pending'] }, // Only include active/pending users
         })
         .select('phoneNumber isPhoneVerified')
         .lean()
@@ -1579,7 +1628,7 @@ export class SmsNotificationService implements INotificationProvider {
       if (!user) {
         this.logger.log('User not found for phone number retrieval', {
           userId: target.userId,
-          queryDuration: Date.now() - startTime
+          queryDuration: Date.now() - startTime,
         });
         return null;
       }
@@ -1588,7 +1637,7 @@ export class SmsNotificationService implements INotificationProvider {
       if (!user.phoneNumber || user.phoneNumber.trim() === '') {
         this.logger.debug('User has no phone number registered', {
           userId: target.userId,
-          hasPhoneNumber: !!user.phoneNumber
+          hasPhoneNumber: !!user.phoneNumber,
         });
         return null;
       }
@@ -1599,7 +1648,7 @@ export class SmsNotificationService implements INotificationProvider {
           userId: target.userId,
           phoneNumberExists: !!user.phoneNumber,
           isVerified: user.isPhoneVerified,
-          requireVerification: this.requirePhoneVerification
+          requireVerification: this.requirePhoneVerification,
         });
         return null;
       }
@@ -1612,7 +1661,7 @@ export class SmsNotificationService implements INotificationProvider {
           userId: target.userId,
           phoneNumberMasked: this.phoneValidator.maskPhoneNumber(user.phoneNumber),
           validationError: validation.errorMessage,
-          queryDuration: Date.now() - startTime
+          queryDuration: Date.now() - startTime,
         });
         return null;
       }
@@ -1622,21 +1671,21 @@ export class SmsNotificationService implements INotificationProvider {
         userId: target.userId,
         phoneNumberMasked: this.phoneValidator.maskPhoneNumber(validation.formatted!),
         isVerified: user.isPhoneVerified,
-        queryDuration: Date.now() - startTime
+        queryDuration: Date.now() - startTime,
       });
 
       return validation.formatted!;
-
     } catch (error) {
       const errorMessage = (error as Error).message;
       const errorStack = (error as Error).stack;
+      const errorType = error instanceof Error ? error.constructor.name : typeof error;
 
       this.logger.error('Failed to retrieve phone number from database', {
         userId: target.userId,
         error: errorMessage,
-        errorStack: errorStack,
+        errorStack,
         queryDuration: Date.now() - startTime,
-        errorType: error.constructor.name
+        errorType,
       });
 
       return null;
@@ -1649,9 +1698,9 @@ export class SmsNotificationService implements INotificationProvider {
 
     // Truncate if too long, leaving space for potential link
     if (message.length > 140 && payload.clickAction) {
-      message = message.substring(0, 137) + '...';
+      message = `${message.substring(0, 137)}...`;
     } else if (message.length > 160) {
-      message = message.substring(0, 157) + '...';
+      message = `${message.substring(0, 157)}...`;
     }
 
     // Add link if provided
@@ -1662,7 +1711,11 @@ export class SmsNotificationService implements INotificationProvider {
     return message;
   }
 
-  private async sendSmsWithRetry(phoneNumber: string, message: string, retries: number = 3): Promise<TwilioMessageResponse> {
+  private async sendSmsWithRetry(
+    phoneNumber: string,
+    message: string,
+    retries: number = 3,
+  ): Promise<TwilioMessageResponse> {
     const validation = this.phoneValidator.validateAndFormat(phoneNumber);
     if (!validation.isValid) {
       throw new BadRequestException(`Invalid phone number: ${validation.errorMessage}`);
@@ -1673,7 +1726,9 @@ export class SmsNotificationService implements INotificationProvider {
         return await this.sendSms(validation.formatted!, message);
       } catch (error) {
         const isLastAttempt = attempt === retries;
-        this.logger.warn(`SMS send attempt ${attempt}/${retries} failed: ${(error as Error).message}`);
+        this.logger.warn(
+          `SMS send attempt ${attempt}/${retries} failed: ${(error as Error).message}`,
+        );
 
         if (isLastAttempt) {
           throw error;
@@ -1696,7 +1751,7 @@ export class SmsNotificationService implements INotificationProvider {
       // Mock implementation for development
       this.logger.log('Mock SMS sent', {
         to: this.phoneValidator.maskPhoneNumber(phoneNumber),
-        messageLength: message.length
+        messageLength: message.length,
       });
 
       return {
@@ -1719,7 +1774,7 @@ export class SmsNotificationService implements INotificationProvider {
         accountSid: 'dev-account',
         apiVersion: '2010-04-01',
         messagingServiceSid: null,
-        subresourceUris: {}
+        subresourceUris: {},
       } as TwilioMessageResponse;
     }
 
@@ -1727,7 +1782,7 @@ export class SmsNotificationService implements INotificationProvider {
       // Development mode fallback when Twilio isn't configured
       if (!this.twilioClient) {
         this.logger.warn('Twilio client not available - using development mode');
-        await new Promise(resolve => setTimeout(resolve, 100)); // Simulate API delay
+        await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate API delay
 
         return {
           sid: `DEV_SM${Date.now()}${Math.random().toString(36).substring(7)}`,
@@ -1749,17 +1804,18 @@ export class SmsNotificationService implements INotificationProvider {
           accountSid: 'dev-account',
           apiVersion: '2010-04-01',
           messagingServiceSid: null,
-          subresourceUris: {}
+          subresourceUris: {},
         } as TwilioMessageResponse;
       }
 
       // Real Twilio implementation
 
+      const webhookUrl = this.configService.get('TWILIO_WEBHOOK_URL');
       const result = await this.twilioClient.messages.create({
         body: message,
         from: this.fromNumber,
         to: phoneNumber,
-        statusCallback: this.configService.get('TWILIO_WEBHOOK_URL'),
+        ...(webhookUrl !== undefined ? { statusCallback: webhookUrl } : {}),
       });
 
       const mappedResult: TwilioMessageResponse = {
@@ -1782,14 +1838,14 @@ export class SmsNotificationService implements INotificationProvider {
         accountSid: result.accountSid,
         apiVersion: result.apiVersion,
         messagingServiceSid: result.messagingServiceSid,
-        subresourceUris: result.subresourceUris
+        subresourceUris: result.subresourceUris,
       };
 
       return mappedResult;
     } catch (error) {
       this.logger.error('Twilio SMS error', {
         error: (error as Error).message,
-        to: this.phoneValidator.maskPhoneNumber(phoneNumber)
+        to: this.phoneValidator.maskPhoneNumber(phoneNumber),
       });
       throw error;
     }
@@ -1798,7 +1854,7 @@ export class SmsNotificationService implements INotificationProvider {
   async handleDeliveryStatus(
     webhookData: TwilioWebhookData,
     webhookUrl: string,
-    signature: string
+    signature: string,
   ): Promise<void> {
     const startTime = Date.now();
 
@@ -1806,14 +1862,19 @@ export class SmsNotificationService implements INotificationProvider {
       // Input validation
       if (!webhookData?.MessageSid || !webhookData?.MessageStatus) {
         this.logger.warn('Invalid webhook data received', { webhookData });
-        throw new BadRequestException('Invalid webhook data: missing required fields (MessageSid, MessageStatus)');
+        throw new BadRequestException(
+          'Invalid webhook data: missing required fields (MessageSid, MessageStatus)',
+        );
       }
 
       // Validate Twilio webhook signature for security
-      const params = Object.entries(webhookData).reduce((acc, [key, value]) => {
-        acc[key] = String(value);
-        return acc;
-      }, {} as Record<string, string>);
+      const params = Object.entries(webhookData).reduce(
+        (acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
 
       const isSignatureValid = this.validateTwilioSignature(webhookUrl, params, signature);
       if (!isSignatureValid) {
@@ -1832,21 +1893,22 @@ export class SmsNotificationService implements INotificationProvider {
         errorCode: ErrorCode,
         price: Price,
         priceUnit: PriceUnit,
-        processingStartTime: startTime
+        processingStartTime: startTime,
       });
 
       // Update notification status in database
       const updateData: Record<string, unknown> = {
         status: notificationStatus,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Set delivery timestamp based on status
       if (MessageStatus === 'delivered') {
-        updateData.deliveredAt = new Date();
+        updateData['deliveredAt'] = new Date();
       } else if (MessageStatus === 'failed' || MessageStatus === 'undelivered') {
-        updateData.failedAt = new Date();
-        updateData.errorMessage = ErrorMessage || `SMS delivery failed with status: ${MessageStatus}`;
+        updateData['failedAt'] = new Date();
+        updateData['errorMessage'] =
+          ErrorMessage || `SMS delivery failed with status: ${MessageStatus}`;
       }
 
       // Update metadata with delivery information
@@ -1872,16 +1934,16 @@ export class SmsNotificationService implements INotificationProvider {
       const updateResult = await this.userModel.db.collection('notifications').updateOne(
         {
           'metadata.messageId': MessageSid,
-          type: 'sms'
+          type: 'sms',
         },
-        { $set: updateData }
+        { $set: updateData },
       );
 
       if (updateResult.matchedCount === 0) {
         this.logger.warn('No notification found for Twilio message ID', {
           messageId: MessageSid,
           twilioStatus: MessageStatus,
-          searchedField: 'metadata.messageId'
+          searchedField: 'metadata.messageId',
         });
         return;
       }
@@ -1889,7 +1951,7 @@ export class SmsNotificationService implements INotificationProvider {
       if (updateResult.modifiedCount === 0) {
         this.logger.debug('Notification already up to date', {
           messageId: MessageSid,
-          twilioStatus: MessageStatus
+          twilioStatus: MessageStatus,
         });
         return;
       }
@@ -1902,16 +1964,16 @@ export class SmsNotificationService implements INotificationProvider {
           errorMessage: ErrorMessage,
           twilioStatus: MessageStatus,
           price: Price,
-          priceUnit: PriceUnit
+          priceUnit: PriceUnit,
         });
 
         // Handle failed messages with enterprise-grade retry and error management
-        if (this.shouldRetryMessage(ErrorCode)) {
+        if (ErrorCode && this.shouldRetryMessage(ErrorCode)) {
           await this.scheduleRetry(MessageSid, ErrorCode, MessageStatus);
         }
 
         // Handle phone number issues and update opt-out status
-        if (this.isPhoneNumberIssue(ErrorCode)) {
+        if (ErrorCode && this.isPhoneNumberIssue(ErrorCode)) {
           await this.handlePhoneNumberIssue(MessageSid, ErrorCode, ErrorMessage);
         }
       } else if (MessageStatus === 'delivered') {
@@ -1919,7 +1981,7 @@ export class SmsNotificationService implements INotificationProvider {
           messageId: MessageSid,
           price: Price,
           priceUnit: PriceUnit,
-          processingTime: Date.now() - startTime
+          processingTime: Date.now() - startTime,
         });
       }
 
@@ -1929,7 +1991,7 @@ export class SmsNotificationService implements INotificationProvider {
         errorMessage: ErrorMessage,
         price: Price,
         priceUnit: PriceUnit,
-        processingTime: Date.now() - startTime
+        processingTime: Date.now() - startTime,
       });
 
       this.logger.log('SMS delivery status update completed', {
@@ -1937,23 +1999,25 @@ export class SmsNotificationService implements INotificationProvider {
         twilioStatus: MessageStatus,
         notificationStatus,
         recordsUpdated: updateResult.modifiedCount,
-        processingTime: Date.now() - startTime
+        processingTime: Date.now() - startTime,
       });
-
     } catch (error) {
       const errorMessage = (error as Error).message;
       const errorStack = (error as Error).stack;
+      const errorType = error instanceof Error ? error.constructor.name : typeof error;
 
       this.logger.error('Failed to handle SMS delivery status update', {
-        webhookData: webhookData ? {
-          MessageSid: webhookData.MessageSid,
-          MessageStatus: webhookData.MessageStatus,
-          ErrorCode: webhookData.ErrorCode
-        } : null,
+        webhookData: webhookData
+          ? {
+              MessageSid: webhookData.MessageSid,
+              MessageStatus: webhookData.MessageStatus,
+              ErrorCode: webhookData.ErrorCode,
+            }
+          : null,
         error: errorMessage,
         errorStack,
         processingTime: Date.now() - startTime,
-        errorType: error.constructor.name
+        errorType,
       });
 
       // Re-throw the error to ensure webhook failure is properly signaled
@@ -1961,39 +2025,20 @@ export class SmsNotificationService implements INotificationProvider {
     }
   }
 
-  private mapTwilioStatusToNotificationStatus(twilioStatus: TwilioWebhookData['MessageStatus']): NotificationStatus {
+  private mapTwilioStatusToNotificationStatus(
+    twilioStatus: TwilioWebhookData['MessageStatus'],
+  ): NotificationStatus {
     const statusMap: Record<TwilioWebhookData['MessageStatus'], NotificationStatus> = {
-      'queued': NotificationStatus.PENDING,
-      'sent': NotificationStatus.SENT,
-      'receiving': NotificationStatus.SENT,
-      'received': NotificationStatus.SENT,
-      'delivered': NotificationStatus.DELIVERED,
-      'failed': NotificationStatus.FAILED,
-      'undelivered': NotificationStatus.FAILED
+      queued: NotificationStatus.PENDING,
+      sent: NotificationStatus.SENT,
+      receiving: NotificationStatus.SENT,
+      received: NotificationStatus.SENT,
+      delivered: NotificationStatus.DELIVERED,
+      failed: NotificationStatus.FAILED,
+      undelivered: NotificationStatus.FAILED,
     };
 
     return statusMap[twilioStatus] || NotificationStatus.FAILED;
-  }
-
-  /**
-   * Generates expected Twilio webhook signature
-   */
-  private generateExpectedSignature(webhookData: TwilioWebhookData, authToken: string, webhookUrl: string): string {
-    // Construct the data string as Twilio does
-    const dataString = Object.keys(webhookData)
-      .sort()
-      .map(key => `${key}${webhookData[key as keyof TwilioWebhookData]}`)
-      .join('');
-
-    const dataWithUrl = webhookUrl + dataString;
-
-    // Create HMAC SHA1 signature
-    const signature = crypto
-      .createHmac('sha1', authToken)
-      .update(dataWithUrl)
-      .digest('base64');
-
-    return signature;
   }
 
   /**
@@ -2024,7 +2069,7 @@ export class SmsNotificationService implements INotificationProvider {
     this.logger.debug('Retry decision for SMS message', {
       errorCode,
       shouldRetry,
-      retryableErrorCodes: Array.from(retryableErrorCodes)
+      retryableErrorCodes: Array.from(retryableErrorCodes),
     });
 
     return shouldRetry;
@@ -2037,13 +2082,13 @@ export class SmsNotificationService implements INotificationProvider {
   private async scheduleRetry(
     messageId: string,
     errorCode: string,
-    _status: string
+    _status: string,
   ): Promise<void> {
     try {
       // Get notification for retry tracking
       const notification = await this.userModel.db.collection('notifications').findOne({
         'metadata.messageId': messageId,
-        type: 'sms'
+        type: 'sms',
       });
 
       if (!notification) {
@@ -2051,8 +2096,8 @@ export class SmsNotificationService implements INotificationProvider {
         return;
       }
 
-      const currentRetries = notification.metadata?.retryCount ?? 0;
-      const maxRetries = notification.metadata?.maxRetries ?? 3;
+      const currentRetries = notification['metadata']?.['retryCount'] ?? 0;
+      const maxRetries = notification['metadata']?.['maxRetries'] ?? 3;
 
       // Check if max retries exceeded
       if (currentRetries >= maxRetries) {
@@ -2060,7 +2105,7 @@ export class SmsNotificationService implements INotificationProvider {
           messageId,
           currentRetries,
           maxRetries,
-          errorCode
+          errorCode,
         });
 
         // Mark as permanently failed
@@ -2072,9 +2117,9 @@ export class SmsNotificationService implements INotificationProvider {
               'metadata.permanentlyFailed': true,
               'metadata.finalErrorCode': errorCode,
               'metadata.maxRetriesExceeded': true,
-              failedAt: new Date()
-            }
-          }
+              failedAt: new Date(),
+            },
+          },
         );
         return;
       }
@@ -2094,9 +2139,9 @@ export class SmsNotificationService implements INotificationProvider {
             'metadata.lastRetryErrorCode': errorCode,
             'metadata.nextRetryAt': retryAt,
             'metadata.retryReason': `Automatic retry for error ${errorCode}`,
-            updatedAt: new Date()
-          }
-        }
+            updatedAt: new Date(),
+          },
+        },
       );
 
       this.logger.log('SMS retry scheduled', {
@@ -2105,7 +2150,7 @@ export class SmsNotificationService implements INotificationProvider {
         currentRetries: currentRetries + 1,
         maxRetries,
         retryAt: retryAt.toISOString(),
-        retryDelayMs
+        retryDelayMs,
       });
 
       // Emit event for retry scheduler (if using job queues)
@@ -2114,15 +2159,14 @@ export class SmsNotificationService implements INotificationProvider {
         retryAt,
         retryCount: currentRetries + 1,
         errorCode,
-        notificationId: notification._id
+        notificationId: notification._id,
       });
-
     } catch (error) {
       this.logger.error('Failed to schedule SMS retry', {
         messageId,
         errorCode,
         error: (error as Error).message,
-        errorStack: (error as Error).stack
+        errorStack: (error as Error).stack,
       });
     }
   }
@@ -2163,24 +2207,24 @@ export class SmsNotificationService implements INotificationProvider {
   private async handlePhoneNumberIssue(
     messageId: string,
     errorCode: string,
-    errorMessage?: string
+    errorMessage?: string,
   ): Promise<void> {
     try {
       // Get notification to find associated phone number
       const notification = await this.userModel.db.collection('notifications').findOne({
         'metadata.messageId': messageId,
-        type: 'sms'
+        type: 'sms',
       });
 
-      if (!notification?.metadata?.phone) {
+      if (!notification?.['metadata']?.['phone']) {
         this.logger.warn('Cannot handle phone number issue - phone number not found', {
           messageId,
-          errorCode
+          errorCode,
         });
         return;
       }
 
-      const phoneNumber = notification.metadata.phone as string;
+      const phoneNumber = notification['metadata']['phone'] as string;
 
       // Handle different types of phone number issues
       switch (errorCode) {
@@ -2205,7 +2249,7 @@ export class SmsNotificationService implements INotificationProvider {
           this.logger.debug('Phone number issue handled generically', {
             phoneNumber: this.phoneValidator.maskPhoneNumber(phoneNumber),
             errorCode,
-            messageId
+            messageId,
           });
       }
 
@@ -2216,15 +2260,14 @@ export class SmsNotificationService implements INotificationProvider {
         phoneNumberMasked: this.phoneValidator.maskPhoneNumber(phoneNumber),
         errorCode,
         messageId,
-        action: 'phone_number_issue_resolved'
+        action: 'phone_number_issue_resolved',
       });
-
     } catch (error) {
       this.logger.error('Failed to handle phone number issue', {
         messageId,
         errorCode,
         error: (error as Error).message,
-        errorStack: (error as Error).stack
+        errorStack: (error as Error).stack,
       });
     }
   }
@@ -2235,7 +2278,7 @@ export class SmsNotificationService implements INotificationProvider {
   private async markPhoneNumberInvalid(
     phoneNumber: string,
     errorCode: string,
-    errorMessage?: string
+    errorMessage?: string,
   ): Promise<void> {
     // Update user's phone verification status
     await this.userModel.updateMany(
@@ -2246,15 +2289,15 @@ export class SmsNotificationService implements INotificationProvider {
           'phoneValidation.isValid': false,
           'phoneValidation.errorCode': errorCode,
           'phoneValidation.errorMessage': errorMessage,
-          'phoneValidation.lastChecked': new Date()
-        }
-      }
+          'phoneValidation.lastChecked': new Date(),
+        },
+      },
     );
 
     this.logger.warn('Phone number marked as invalid', {
       phoneNumberMasked: this.phoneValidator.maskPhoneNumber(phoneNumber),
       errorCode,
-      errorMessage
+      errorMessage,
     });
   }
 
@@ -2264,7 +2307,7 @@ export class SmsNotificationService implements INotificationProvider {
   private async markPhoneNumberUnreachable(
     phoneNumber: string,
     errorCode: string,
-    errorMessage?: string
+    errorMessage?: string,
   ): Promise<void> {
     // Update phone reachability status
     await this.userModel.updateMany(
@@ -2273,14 +2316,14 @@ export class SmsNotificationService implements INotificationProvider {
         $set: {
           'phoneValidation.isReachable': false,
           'phoneValidation.lastUnreachableAt': new Date(),
-          'phoneValidation.unreachableReason': `${errorCode}: ${errorMessage}`
-        }
-      }
+          'phoneValidation.unreachableReason': `${errorCode}: ${errorMessage}`,
+        },
+      },
     );
 
     this.logger.warn('Phone number marked as unreachable', {
       phoneNumberMasked: this.phoneValidator.maskPhoneNumber(phoneNumber),
-      errorCode
+      errorCode,
     });
   }
 
@@ -2290,7 +2333,7 @@ export class SmsNotificationService implements INotificationProvider {
   private async handlePhoneNumberOptOut(
     phoneNumber: string,
     errorCode: string,
-    errorMessage?: string
+    errorMessage?: string,
   ): Promise<void> {
     const reason = `Automatic opt-out due to carrier restriction: ${errorCode} - ${errorMessage}`;
 
@@ -2304,8 +2347,8 @@ export class SmsNotificationService implements INotificationProvider {
         errorCode,
         errorMessage: errorMessage || 'Carrier restriction',
         twilioWebhookProcessing: true,
-        automatedOptOut: true
-      }
+        automatedOptOut: true,
+      },
     };
 
     // Use the existing opt-out manager
@@ -2314,7 +2357,7 @@ export class SmsNotificationService implements INotificationProvider {
     this.logger.warn('Phone number automatically opted out', {
       phoneNumberMasked: this.phoneValidator.maskPhoneNumber(phoneNumber),
       errorCode,
-      reason
+      reason,
     });
   }
 
@@ -2324,7 +2367,7 @@ export class SmsNotificationService implements INotificationProvider {
   private async updateUserPhoneNumberStatus(
     phoneNumber: string,
     errorCode: string,
-    errorMessage?: string
+    errorMessage?: string,
   ): Promise<void> {
     await this.userModel.updateMany(
       { phoneNumber },
@@ -2334,13 +2377,13 @@ export class SmsNotificationService implements INotificationProvider {
             errorCode,
             errorMessage,
             occurredAt: new Date(),
-            source: 'twilio_webhook'
-          }
+            source: 'twilio_webhook',
+          },
         },
         $set: {
-          'phoneValidation.lastIssueAt': new Date()
-        }
-      }
+          'phoneValidation.lastIssueAt': new Date(),
+        },
+      },
     );
   }
 
@@ -2352,12 +2395,12 @@ export class SmsNotificationService implements INotificationProvider {
     messageId: string,
     status: string,
     metadata: {
-      errorCode?: string;
-      errorMessage?: string;
-      price?: string;
-      priceUnit?: string;
+      errorCode?: string | undefined;
+      errorMessage?: string | undefined;
+      price?: string | undefined;
+      priceUnit?: string | undefined;
       processingTime: number;
-    }
+    },
   ): void {
     try {
       // Emit analytics event for the notification analytics service
@@ -2368,8 +2411,8 @@ export class SmsNotificationService implements INotificationProvider {
         metadata: {
           ...metadata,
           channel: 'sms',
-          provider: 'twilio'
-        }
+          provider: 'twilio',
+        },
       });
 
       // Track specific delivery events
@@ -2383,8 +2426,8 @@ export class SmsNotificationService implements INotificationProvider {
               provider: 'twilio',
               cost: metadata.price ? parseFloat(metadata.price) : 0,
               currency: metadata.priceUnit || 'USD',
-              processingTime: metadata.processingTime
-            }
+              processingTime: metadata.processingTime,
+            },
           });
           break;
 
@@ -2398,8 +2441,8 @@ export class SmsNotificationService implements INotificationProvider {
             metadata: {
               channel: 'sms',
               provider: 'twilio',
-              processingTime: metadata.processingTime
-            }
+              processingTime: metadata.processingTime,
+            },
           });
           break;
 
@@ -2409,8 +2452,8 @@ export class SmsNotificationService implements INotificationProvider {
             sentAt: new Date(),
             metadata: {
               channel: 'sms',
-              provider: 'twilio'
-            }
+              provider: 'twilio',
+            },
           });
           break;
       }
@@ -2422,7 +2465,7 @@ export class SmsNotificationService implements INotificationProvider {
           cost: parseFloat(metadata.price),
           currency: metadata.priceUnit,
           status,
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       }
 
@@ -2430,27 +2473,26 @@ export class SmsNotificationService implements INotificationProvider {
         messageId,
         status,
         hasPrice: !!metadata.price,
-        processingTime: metadata.processingTime
+        processingTime: metadata.processingTime,
       });
-
     } catch (error) {
       this.logger.error('Failed to track SMS delivery analytics', {
         messageId,
         status,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
       // Don't throw - analytics failures shouldn't break the main flow
     }
   }
 
   // Deprecated: Use PhoneValidatorService instead
-  validatePhoneNumber(phoneNumber: string): Promise<boolean> {
-    return Promise.resolve(this.phoneValidator.validatePhoneNumber(phoneNumber));
+  validatePhoneNumber(phoneNumber: string): boolean {
+    return this.phoneValidator.validatePhoneNumber(phoneNumber);
   }
 
   // Deprecated: Use PhoneValidatorService instead
-  formatPhoneNumber(phoneNumber: string, countryCode: string = 'US'): Promise<string> {
-    return Promise.resolve(this.phoneValidator.formatPhoneNumber(phoneNumber, countryCode));
+  formatPhoneNumber(phoneNumber: string, countryCode: string = 'US'): string {
+    return this.phoneValidator.formatPhoneNumber(phoneNumber, countryCode);
   }
 
   // Deprecated: Use OptOutManagerService instead
@@ -2469,14 +2511,15 @@ export class SmsNotificationService implements INotificationProvider {
         source: 'sms_stop_keyword',
         metadata: {
           requestType: 'stop_keyword',
-          automatedProcessing: true
-        }
+          automatedProcessing: true,
+        },
       };
 
       await this.optOutManager.handleOptOut(optOutRequest);
 
       // Send confirmation message
-      const confirmationMessage = "You've been unsubscribed from SMS notifications. Reply START to resubscribe.";
+      const confirmationMessage =
+        "You've been unsubscribed from SMS notifications. Reply START to resubscribe.";
       await this.sendSms(phoneNumber, confirmationMessage);
     } catch (error) {
       this.logger.error(`Failed to handle opt-out: ${(error as Error).message}`);
@@ -2492,14 +2535,15 @@ export class SmsNotificationService implements INotificationProvider {
         source: 'sms_start_keyword',
         metadata: {
           requestType: 'start_keyword',
-          automatedProcessing: true
-        }
+          automatedProcessing: true,
+        },
       };
 
       await this.optOutManager.handleOptIn(optInRequest);
 
       // Send welcome message
-      const welcomeMessage = "You're now subscribed to Too Fresh To Waste SMS notifications. Reply STOP to unsubscribe.";
+      const welcomeMessage =
+        "You're now subscribed to Too Fresh To Waste SMS notifications. Reply STOP to unsubscribe.";
       await this.sendSms(phoneNumber, welcomeMessage);
     } catch (error) {
       this.logger.error(`Failed to handle opt-in: ${(error as Error).message}`);
@@ -2507,8 +2551,8 @@ export class SmsNotificationService implements INotificationProvider {
     }
   }
 
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  private async delay(ms: number): Promise<void> {
+    await new Promise<void>((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -2526,7 +2570,7 @@ export class SmsNotificationService implements INotificationProvider {
   private validateTwilioSignature(
     url: string,
     params: Record<string, string>,
-    signature: string
+    signature: string,
   ): boolean {
     try {
       const authToken = this.configService.get<string>('TWILIO_AUTH_TOKEN');
@@ -2544,7 +2588,7 @@ export class SmsNotificationService implements INotificationProvider {
       // Sort parameters alphabetically by key and create URL-encoded string
       const sortedParams = Object.keys(params)
         .sort()
-        .map(key => `${key}=${params[key]}`)
+        .map((key) => `${key}=${params[key]}`)
         .join('&');
 
       // Create the string to sign: URL + sorted parameters
@@ -2563,7 +2607,7 @@ export class SmsNotificationService implements INotificationProvider {
         this.logger.warn(`Invalid webhook signature received from ${this.extractSourceIP(url)}`, {
           expectedLength: expectedSignature.length,
           receivedLength: signature.length,
-          url: this.sanitizeUrlForLogging(url)
+          url: this.sanitizeUrlForLogging(url),
         });
       }
 
@@ -2571,7 +2615,7 @@ export class SmsNotificationService implements INotificationProvider {
     } catch (error) {
       this.logger.error('Webhook signature validation failed', {
         error: (error as Error).message,
-        url: this.sanitizeUrlForLogging(url)
+        url: this.sanitizeUrlForLogging(url),
       });
       return false;
     }

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+
 import { IEventBus } from '../event-bus.interface';
 
 /**
@@ -30,7 +31,7 @@ export class EventEmitter2Adapter implements IEventBus {
    * @param payload - Event data
    */
   async emit(eventName: string, payload: object): Promise<void> {
-    this.eventEmitter.emit(eventName, payload);
+    await Promise.resolve(this.eventEmitter.emit(eventName, payload));
     this.logger.debug(`Published event to EventEmitter2: ${eventName}`);
   }
 }

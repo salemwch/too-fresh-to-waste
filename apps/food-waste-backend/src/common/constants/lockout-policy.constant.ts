@@ -18,7 +18,11 @@ export const BASE_LOCKOUT_DURATION = 5 * 60 * 1000;
  *   30+   attempts → 30 min  (6×)
  */
 export function calculateLockoutDuration(attemptCount: number): number {
-  if (attemptCount < 20) return BASE_LOCKOUT_DURATION;
-  if (attemptCount < 30) return BASE_LOCKOUT_DURATION * 3;
+  if (attemptCount < 20) {
+    return BASE_LOCKOUT_DURATION;
+  }
+  if (attemptCount < 30) {
+    return BASE_LOCKOUT_DURATION * 3;
+  }
   return BASE_LOCKOUT_DURATION * 6;
 }

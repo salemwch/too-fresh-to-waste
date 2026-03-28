@@ -1,25 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EventBusService } from '../../common/services/event-bus/event-bus.service';
-import { RedisService } from '../../redis/redis.service';
-import { RedisClientType } from 'redis';
-import {
-  SecurityEvent,
-  SecurityEventType,
-  SecuritySeverity,
-} from '../events/security-events';
+
 import {
   MAX_LOGIN_ATTEMPTS,
   BASE_LOCKOUT_DURATION,
   calculateLockoutDuration,
 } from '../../common/constants/lockout-policy.constant';
+import { EventBusService } from '../../common/services/event-bus/event-bus.service';
+import { RedisService } from '../../redis/redis.service';
+import { SecurityEvent, SecurityEventType, SecuritySeverity } from '../events/security-events';
 
-type RedisClient = RedisClientType;
+type RedisClient = Awaited<ReturnType<RedisService['getClient']>>;
 
 interface AttemptData {
   count: number;
   lastAttempt: string; // ISO string in Redis
-  blockedUntil?: string; // ISO string in Redis
+  blockedUntil?: string | undefined; // ISO string in Redis
 }
 
 interface RequestData {
@@ -30,23 +26,28 @@ interface RequestData {
 interface AttemptResult {
   count: number;
   blocked: boolean;
-  blockedUntil?: Date;
+  blockedUntil?: Date | undefined;
 }
 
 // Type guards for runtime type safety
 function isAttemptData(obj: unknown): obj is AttemptData {
-  return typeof obj === 'object' &&
-         obj !== null &&
-         typeof (obj as AttemptData).count === 'number' &&
-         typeof (obj as AttemptData).lastAttempt === 'string' &&
-         ((obj as AttemptData).blockedUntil === undefined || typeof (obj as AttemptData).blockedUntil === 'string');
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    typeof (obj as AttemptData).count === 'number' &&
+    typeof (obj as AttemptData).lastAttempt === 'string' &&
+    ((obj as AttemptData).blockedUntil === undefined ||
+      typeof (obj as AttemptData).blockedUntil === 'string')
+  );
 }
 
 function isRequestData(obj: unknown): obj is RequestData {
-  return typeof obj === 'object' &&
-         obj !== null &&
-         typeof (obj as RequestData).count === 'number' &&
-         typeof (obj as RequestData).resetTime === 'string';
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    typeof (obj as RequestData).count === 'number' &&
+    typeof (obj as RequestData).resetTime === 'string'
+  );
 }
 
 @Injectable()
@@ -64,7 +65,10 @@ export class AuthSecurityService {
   private readonly RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
 
   // Fallback in-memory storage for development/offline mode
-  private readonly fallbackAttempts = new Map<string, { count: number; lastAttempt: Date; blockedUntil?: Date }>();
+  private readonly fallbackAttempts = new Map<
+    string,
+    { count: number; lastAttempt: Date; blockedUntil?: Date | undefined }
+  >();
   private readonly fallbackRequests = new Map<string, { count: number; resetTime: Date }>();
   private readonly fallbackBlockedIps = new Map<string, Date>();
 
@@ -76,11 +80,14 @@ export class AuthSecurityService {
   } as const;
 
   constructor(
-    private readonly configService: ConfigService,
+    private readonly _configService: ConfigService,
     private readonly redisService: RedisService,
     private readonly eventBus: EventBusService,
   ) {
-    this.logger.log('✅ AuthSecurityService initialized with shared RedisService and EventBusService');
+    void this._configService;
+    this.logger.log(
+      '✅ AuthSecurityService initialized with shared RedisService and EventBusService',
+    );
   }
 
   /**
@@ -103,9 +110,9 @@ export class AuthSecurityService {
     email: string,
   ): Promise<{
     allowed: boolean;
-    remainingAttempts?: number;
-    blockedUntil?: Date;
-    captchaRequired?: boolean;
+    remainingAttempts?: number | undefined;
+    blockedUntil?: Date | undefined;
+    captchaRequired?: boolean | undefined;
   }> {
     const ipKey = `ip:${ip}`;
     const emailKey = `email:${email}`;
@@ -117,7 +124,9 @@ export class AuthSecurityService {
       // DEBUG: Log actual attempt counts and MAX value
       this.logger.debug(`[LOGIN CHECK] IP: ${ip}, Email: ${email}`);
       this.logger.debug(`[LOGIN CHECK] MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS}`);
-      this.logger.debug(`[LOGIN CHECK] IP attempts: ${ipAttempts.count}, blocked: ${ipAttempts.blocked}`);
+      this.logger.debug(
+        `[LOGIN CHECK] IP attempts: ${ipAttempts.count}, blocked: ${ipAttempts.blocked}`,
+      );
 
       if (ipAttempts.blocked) {
         this.logger.warn(`Login blocked for IP ${ip} until ${ipAttempts.blockedUntil}`);
@@ -136,7 +145,9 @@ export class AuthSecurityService {
 
       // Check email-based attempts
       const emailAttempts = await this.getAttempts(emailKey);
-      this.logger.debug(`[LOGIN CHECK] Email attempts: ${emailAttempts.count}, blocked: ${emailAttempts.blocked}`);
+      this.logger.debug(
+        `[LOGIN CHECK] Email attempts: ${emailAttempts.count}, blocked: ${emailAttempts.blocked}`,
+      );
 
       if (emailAttempts.blocked) {
         this.logger.warn(`Login blocked for email ${email} until ${emailAttempts.blockedUntil}`);
@@ -155,7 +166,7 @@ export class AuthSecurityService {
 
       const remainingAttempts = Math.min(
         MAX_LOGIN_ATTEMPTS - ipAttempts.count,
-        MAX_LOGIN_ATTEMPTS - emailAttempts.count
+        MAX_LOGIN_ATTEMPTS - emailAttempts.count,
       );
 
       // Check if CAPTCHA is required (PRODUCTION-READY IMPROVEMENT)
@@ -164,7 +175,7 @@ export class AuthSecurityService {
 
       if (captchaRequired && maxAttempts < MAX_LOGIN_ATTEMPTS) {
         this.logger.warn(
-          `CAPTCHA required for ${email} from IP ${ip} after ${maxAttempts} failed attempts`
+          `CAPTCHA required for ${email} from IP ${ip} after ${maxAttempts} failed attempts`,
         );
 
         // Emit security event for CAPTCHA requirement (PRODUCTION-READY IMPROVEMENT)
@@ -184,12 +195,15 @@ export class AuthSecurityService {
     }
   }
 
-  async recordFailedLoginAttempt(ip: string, email: string): Promise<{
+  async recordFailedLoginAttempt(
+    ip: string,
+    email: string,
+  ): Promise<{
     currentAttempts: number;
     maxAttempts: number;
     attemptsRemaining: number;
     isLocked: boolean;
-    blockedUntil?: Date;
+    blockedUntil?: Date | undefined;
   }> {
     const ipKey = `ip:${ip}`;
     const emailKey = `email:${email}`;
@@ -208,12 +222,18 @@ export class AuthSecurityService {
       const blockedUntil = ipAttempts.blockedUntil || emailAttempts.blockedUntil;
 
       this.logger.debug(`[RECORD ATTEMPT] IP: ${ip}, Email: ${email}`);
-      this.logger.debug(`[RECORD ATTEMPT] IP count: ${ipAttempts.count}, Email count: ${emailAttempts.count}`);
-      this.logger.debug(`[RECORD ATTEMPT] MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS}, isLocked: ${isLocked}`);
+      this.logger.debug(
+        `[RECORD ATTEMPT] IP count: ${ipAttempts.count}, Email count: ${emailAttempts.count}`,
+      );
+      this.logger.debug(
+        `[RECORD ATTEMPT] MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS}, isLocked: ${isLocked}`,
+      );
 
       // Check for suspicious activity and emit events
       if (ipAttempts && ipAttempts.count >= this.SUSPICIOUS_ACTIVITY_THRESHOLD) {
-        this.logger.warn(`Suspicious activity detected from IP ${ip}: ${ipAttempts.count} failed attempts`);
+        this.logger.warn(
+          `Suspicious activity detected from IP ${ip}: ${ipAttempts.count} failed attempts`,
+        );
 
         await this.emitSecurityEvent(
           SecurityEventType.BRUTE_FORCE_DETECTED,
@@ -301,48 +321,52 @@ export class AuthSecurityService {
           await redisClient.del(this.REDIS_KEYS.BLOCKED_IPS + ip);
         }
         return false;
-      } else {
-        const blockedUntil = this.fallbackBlockedIps.get(ip);
-        if (blockedUntil && new Date() < blockedUntil) {
-          return true;
-        }
-        // Clean up expired blocks
-        if (blockedUntil && new Date() >= blockedUntil) {
-          this.fallbackBlockedIps.delete(ip);
-        }
-        return false;
       }
+      const blockedUntil = this.fallbackBlockedIps.get(ip);
+      if (blockedUntil && new Date() < blockedUntil) {
+        return true;
+      }
+      // Clean up expired blocks
+      if (blockedUntil && new Date() >= blockedUntil) {
+        this.fallbackBlockedIps.delete(ip);
+      }
+      return false;
     } catch (error) {
       this.logger.error('Error checking IP block status:', error);
       return false;
     }
   }
 
-  async blockIp(ip: string, duration: number = BASE_LOCKOUT_DURATION, reason?: string): Promise<void> {
+  async blockIp(
+    ip: string,
+    duration: number = BASE_LOCKOUT_DURATION,
+    reason?: string,
+  ): Promise<void> {
     try {
       const blockedUntil = new Date(Date.now() + duration);
       const redisClient = await this.getRedisClient();
 
       if (redisClient) {
         const ttlSeconds = Math.ceil(duration / 1000);
-        await redisClient.setEx(this.REDIS_KEYS.BLOCKED_IPS + ip, ttlSeconds, blockedUntil.toISOString());
+        await redisClient.setEx(
+          this.REDIS_KEYS.BLOCKED_IPS + ip,
+          ttlSeconds,
+          blockedUntil.toISOString(),
+        );
       } else {
         this.fallbackBlockedIps.set(ip, blockedUntil);
       }
 
-      this.logger.warn(`IP ${ip} blocked until ${blockedUntil}. Reason: ${reason || 'security violation'}`);
+      this.logger.warn(
+        `IP ${ip} blocked until ${blockedUntil}. Reason: ${reason || 'security violation'}`,
+      );
 
       // Emit security event for IP blocking (PRODUCTION-READY IMPROVEMENT)
-      this.emitSecurityEvent(
-        SecurityEventType.IP_BLOCKED,
-        SecuritySeverity.HIGH,
-        ip,
-        {
-          reason: reason || 'security violation',
-          duration,
-          blockedUntil: blockedUntil.toISOString(),
-        },
-      );
+      this.emitSecurityEvent(SecurityEventType.IP_BLOCKED, SecuritySeverity.HIGH, ip, {
+        reason: reason || 'security violation',
+        duration,
+        blockedUntil: blockedUntil.toISOString(),
+      });
     } catch (error) {
       this.logger.error('Error blocking IP:', error);
     }
@@ -372,9 +396,8 @@ export class AuthSecurityService {
       const redisClient = await this.getRedisClient();
       if (redisClient) {
         return await this.getRedisAttempts(key);
-      } else {
-        return this.getInMemoryAttempts(key);
       }
+      return this.getInMemoryAttempts(key);
     } catch (error) {
       this.logger.error(`Error getting attempts for key ${key}:`, error);
       return this.createDefaultAttemptResult();
@@ -413,7 +436,9 @@ export class AuthSecurityService {
 
   private async retrieveRedisAttemptData(key: string): Promise<AttemptData | null> {
     const redisClient = await this.getRedisClient();
-    if (!redisClient) {return null;}
+    if (!redisClient) {
+      return null;
+    }
 
     const attemptDataStr = await redisClient.get(this.REDIS_KEYS.ATTEMPTS + key);
 
@@ -458,7 +483,7 @@ export class AuthSecurityService {
 
   private handleExpiredInMemoryAttempt(
     key: string,
-    attemptData: { count: number; lastAttempt: Date; blockedUntil?: Date }
+    attemptData: { count: number; lastAttempt: Date; blockedUntil?: Date | undefined },
   ): boolean {
     if (!attemptData.blockedUntil) {
       return false;
@@ -477,11 +502,12 @@ export class AuthSecurityService {
     const isBlocked = count >= MAX_LOGIN_ATTEMPTS;
 
     if (isBlocked) {
-      const blockedUntilDate = typeof blockedUntil === 'string' ? new Date(blockedUntil) : blockedUntil;
+      const blockedUntilDate =
+        typeof blockedUntil === 'string' ? new Date(blockedUntil) : blockedUntil;
       return {
         count,
         blocked: true,
-        blockedUntil: blockedUntilDate
+        blockedUntil: blockedUntilDate,
       };
     }
 
@@ -503,16 +529,15 @@ export class AuthSecurityService {
         now,
         this.RATE_LIMIT_THRESHOLD,
         this.RATE_LIMIT_WINDOW_MS,
-        ip
-      );
-    } else {
-      return this.checkRateLimitInMemory(
         ip,
-        now,
-        this.RATE_LIMIT_THRESHOLD,
-        this.RATE_LIMIT_WINDOW_MS
       );
     }
+    return this.checkRateLimitInMemory(
+      ip,
+      now,
+      this.RATE_LIMIT_THRESHOLD,
+      this.RATE_LIMIT_WINDOW_MS,
+    );
   }
 
   private async checkRateLimitWithRedis(
@@ -520,10 +545,12 @@ export class AuthSecurityService {
     now: Date,
     threshold: number,
     windowSizeMs: number,
-    ip: string
+    ip: string,
   ): Promise<boolean> {
     const redisClient = await this.getRedisClient();
-    if (!redisClient) {return false;}
+    if (!redisClient) {
+      return false;
+    }
 
     const requestDataStr = await redisClient.get(requestKey);
     let requestData: RequestData | null = null;
@@ -532,33 +559,29 @@ export class AuthSecurityService {
       requestData = this.parseRequestData(requestDataStr, ip);
     }
 
-    const shouldResetWindow = !requestData ||
-      now.getTime() - new Date(requestData.resetTime).getTime() > windowSizeMs;
+    const shouldResetWindow =
+      !requestData || now.getTime() - new Date(requestData.resetTime).getTime() > windowSizeMs;
 
     if (shouldResetWindow) {
       requestData = { count: 1, resetTime: now.toISOString() };
     } else {
-      requestData.count++;
+      requestData!.count++;
     }
 
     await redisClient.setEx(requestKey, 60, JSON.stringify(requestData));
+    const currentRequestData = requestData!;
 
-    if (requestData.count > threshold) {
+    if (currentRequestData.count > threshold) {
       this.logger.warn(
-        `Rate limit exceeded: ${requestData.count} requests from IP ${ip} in 1 minute (threshold: ${threshold})`
+        `Rate limit exceeded: ${currentRequestData.count} requests from IP ${ip} in 1 minute (threshold: ${threshold})`,
       );
 
       // Emit security event for rate limit exceeded (PRODUCTION-READY IMPROVEMENT)
-      this.emitSecurityEvent(
-        SecurityEventType.RATE_LIMIT_EXCEEDED,
-        SecuritySeverity.HIGH,
-        ip,
-        {
-          requestCount: requestData.count,
-          threshold,
-          windowSeconds: 60,
-        },
-      );
+      this.emitSecurityEvent(SecurityEventType.RATE_LIMIT_EXCEEDED, SecuritySeverity.HIGH, ip, {
+        requestCount: currentRequestData.count,
+        threshold,
+        windowSeconds: 60,
+      });
 
       return true;
     }
@@ -570,11 +593,11 @@ export class AuthSecurityService {
     ip: string,
     now: Date,
     threshold: number,
-    windowSizeMs: number
+    windowSizeMs: number,
   ): boolean {
     const requestData = this.fallbackRequests.get(ip);
-    const shouldResetWindow = !requestData ||
-      now.getTime() - requestData.resetTime.getTime() > windowSizeMs;
+    const shouldResetWindow =
+      !requestData || now.getTime() - requestData.resetTime.getTime() > windowSizeMs;
 
     if (shouldResetWindow) {
       this.fallbackRequests.set(ip, { count: 1, resetTime: now });
@@ -586,20 +609,15 @@ export class AuthSecurityService {
     const currentCount = this.fallbackRequests.get(ip)?.count || 0;
     if (currentCount > threshold) {
       this.logger.warn(
-        `Rate limit exceeded: ${currentCount} requests from IP ${ip} in 1 minute (threshold: ${threshold})`
+        `Rate limit exceeded: ${currentCount} requests from IP ${ip} in 1 minute (threshold: ${threshold})`,
       );
 
       // Emit security event for rate limit exceeded (PRODUCTION-READY IMPROVEMENT)
-      this.emitSecurityEvent(
-        SecurityEventType.RATE_LIMIT_EXCEEDED,
-        SecuritySeverity.HIGH,
-        ip,
-        {
-          requestCount: currentCount,
-          threshold,
-          windowSeconds: 60,
-        },
-      );
+      this.emitSecurityEvent(SecurityEventType.RATE_LIMIT_EXCEEDED, SecuritySeverity.HIGH, ip, {
+        requestCount: currentCount,
+        threshold,
+        windowSeconds: 60,
+      });
 
       return true;
     }
@@ -620,16 +638,9 @@ export class AuthSecurityService {
   }
 
   private checkSuspiciousUserAgent(ip: string, userAgent: string): boolean {
-    const suspiciousPatterns = [
-      /bot/i,
-      /crawler/i,
-      /spider/i,
-      /python/i,
-      /curl/i,
-      /wget/i
-    ];
+    const suspiciousPatterns = [/bot/i, /crawler/i, /spider/i, /python/i, /curl/i, /wget/i];
 
-    const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(userAgent));
+    const isSuspicious = suspiciousPatterns.some((pattern) => pattern.test(userAgent));
     if (isSuspicious) {
       this.logger.warn(`Suspicious user agent from IP ${ip}: ${userAgent}`);
       return true;
@@ -658,12 +669,14 @@ export class AuthSecurityService {
     const updatedData = this.calculateUpdatedAttemptData(existingData, now);
     const ttlSeconds = this.calculateTtlSeconds(updatedData);
     const redisClient = await this.getRedisClient();
-    if (!redisClient) {return;}
+    if (!redisClient) {
+      return;
+    }
 
     await redisClient.setEx(
       this.REDIS_KEYS.ATTEMPTS + key,
       ttlSeconds,
-      JSON.stringify(updatedData)
+      JSON.stringify(updatedData),
     );
   }
 
@@ -676,7 +689,9 @@ export class AuthSecurityService {
 
   private async getRedisAttemptData(key: string): Promise<AttemptData | null> {
     const redisClient = await this.getRedisClient();
-    if (!redisClient) {return null;}
+    if (!redisClient) {
+      return null;
+    }
 
     const attemptDataStr = await redisClient.get(this.REDIS_KEYS.ATTEMPTS + key);
 
@@ -702,14 +717,13 @@ export class AuthSecurityService {
   }
 
   private calculateUpdatedInMemoryAttemptData(
-    existingData: { count: number; lastAttempt: Date; blockedUntil?: Date } | undefined,
-    now: Date
-  ): { count: number; lastAttempt: Date; blockedUntil?: Date } {
+    existingData: { count: number; lastAttempt: Date; blockedUntil?: Date | undefined } | undefined,
+    now: Date,
+  ): { count: number; lastAttempt: Date; blockedUntil?: Date | undefined } {
     if (!existingData) {
       return {
         count: 1,
         lastAttempt: now,
-        blockedUntil: undefined
       };
     }
 
@@ -721,7 +735,7 @@ export class AuthSecurityService {
     return {
       count: newCount,
       lastAttempt: now,
-      blockedUntil
+      ...(blockedUntil !== undefined ? { blockedUntil } : {}),
     };
   }
 
@@ -729,7 +743,6 @@ export class AuthSecurityService {
     return {
       count: 1,
       lastAttempt: now.toISOString(),
-      blockedUntil: undefined
     };
   }
 
@@ -742,7 +755,7 @@ export class AuthSecurityService {
     return {
       count: newCount,
       lastAttempt: now.toISOString(),
-      blockedUntil
+      ...(blockedUntil !== undefined ? { blockedUntil } : {}),
     };
   }
 
@@ -771,7 +784,7 @@ export class AuthSecurityService {
     type: SecurityEventType,
     severity: SecuritySeverity,
     ipAddress: string,
-    details: Record<string, any>,
+    details: Record<string, unknown>,
     email?: string,
     userAgent?: string,
   ): Promise<void> {
@@ -785,9 +798,15 @@ export class AuthSecurityService {
         undefined, // userId not available in auth-security service
         userAgent,
         {
-          attemptCount: details.attemptCount || details.attempts,
-          threshold: details.threshold,
-          blockedUntil: details.blockedUntil ? new Date(details.blockedUntil) : undefined,
+          ...((details['attemptCount'] || details['attempts']) !== undefined
+            ? { attemptCount: (details['attemptCount'] ?? details['attempts']) as number }
+            : {}),
+          ...(details['threshold'] !== undefined
+            ? { threshold: details['threshold'] as number }
+            : {}),
+          ...(details['blockedUntil']
+            ? { blockedUntil: new Date(details['blockedUntil'] as string | number) }
+            : {}),
         },
       );
 

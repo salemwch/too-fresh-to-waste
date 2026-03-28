@@ -1,11 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, PipelineStage } from 'mongoose';
-import { User, UserDocument } from '../../users/schemas/user.schema';
-import { Establishment, EstablishmentDocument } from '../../establishments/schemas/establishment.schema';
-import { Order, OrderDocument } from '../../orders/schemas/order.schema';
+
+import {
+  Establishment,
+  EstablishmentDocument,
+} from '../../establishments/schemas/establishment.schema';
 import { Offer, OfferDocument } from '../../offers/schemas/offer.schema';
+import { Order, OrderDocument } from '../../orders/schemas/order.schema';
 import { Review, ReviewDocument, ReviewStatus } from '../../reviwes/schemas/reviwe.schema';
+import { User, UserDocument } from '../../users/schemas/user.schema';
 import { GetAnalyticsQueryDto, AnalyticsPeriodType } from '../dto/admin-analytics.dto';
 import {
   PlatformAnalytics,
@@ -20,7 +24,7 @@ import {
   OrderTrend,
   CategoryStats,
   WasteReductionMetrics,
-  EstablishmentRevenue
+  EstablishmentRevenue,
 } from '../interfaces/admin-analytics.interface';
 
 @Injectable()
@@ -29,7 +33,8 @@ export class AdminAnalyticsService {
 
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-    @InjectModel(Establishment.name) private readonly establishmentModel: Model<EstablishmentDocument>,
+    @InjectModel(Establishment.name)
+    private readonly establishmentModel: Model<EstablishmentDocument>,
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
     @InjectModel(Offer.name) private readonly offerModel: Model<OfferDocument>,
     @InjectModel(Review.name) private readonly reviewModel: Model<ReviewDocument>,
@@ -39,7 +44,9 @@ export class AdminAnalyticsService {
     try {
       const period = this.calculateAnalyticsPeriod(query);
 
-      this.logger.log(`Generating platform analytics for period: ${period.periodType} (${period.startDate} - ${period.endDate})`);
+      this.logger.log(
+        `Generating platform analytics for period: ${period.periodType} (${period.startDate} - ${period.endDate})`,
+      );
 
       // Execute all analytics queries in parallel for better performance
       const [
@@ -48,14 +55,14 @@ export class AdminAnalyticsService {
         orderAnalytics,
         offerAnalytics,
         reviewAnalytics,
-        revenueAnalytics
+        revenueAnalytics,
       ] = await Promise.all([
         this.getUserAnalytics(period, query.includeDetails),
         this.getEstablishmentAnalytics(period, query.includeDetails),
         this.getOrderAnalytics(period, query.includeDetails),
         this.getOfferAnalytics(period, query.includeDetails),
         this.getReviewAnalytics(period, query.includeDetails),
-        this.getRevenueAnalytics(period, query.includeDetails)
+        this.getRevenueAnalytics(period, query.includeDetails),
       ]);
 
       return {
@@ -65,16 +72,18 @@ export class AdminAnalyticsService {
         offers: offerAnalytics,
         reviews: reviewAnalytics,
         revenue: revenueAnalytics,
-        period
+        period,
       };
-
     } catch (error) {
       this.logger.error('Failed to generate platform analytics:', error);
       throw error;
     }
   }
 
-  private async getUserAnalytics(period: AnalyticsPeriod, includeDetails: boolean = false): Promise<UserAnalytics> {
+  private async getUserAnalytics(
+    period: AnalyticsPeriod,
+    includeDetails: boolean = false,
+  ): Promise<UserAnalytics> {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -84,37 +93,21 @@ export class AdminAnalyticsService {
     const pipeline: PipelineStage[] = [
       {
         $facet: {
-          totalUsers: [{ $count: "count" }],
+          totalUsers: [{ $count: 'count' }],
 
-          activeUsers: [
-            { $match: { lastLoginAt: { $gte: monthStart } } },
-            { $count: "count" }
-          ],
+          activeUsers: [{ $match: { lastLoginAt: { $gte: monthStart } } }, { $count: 'count' }],
 
-          newUsersToday: [
-            { $match: { createdAt: { $gte: todayStart } } },
-            { $count: "count" }
-          ],
+          newUsersToday: [{ $match: { createdAt: { $gte: todayStart } } }, { $count: 'count' }],
 
-          newUsersThisWeek: [
-            { $match: { createdAt: { $gte: weekStart } } },
-            { $count: "count" }
-          ],
+          newUsersThisWeek: [{ $match: { createdAt: { $gte: weekStart } } }, { $count: 'count' }],
 
-          newUsersThisMonth: [
-            { $match: { createdAt: { $gte: monthStart } } },
-            { $count: "count" }
-          ],
+          newUsersThisMonth: [{ $match: { createdAt: { $gte: monthStart } } }, { $count: 'count' }],
 
-          usersByRole: [
-            { $group: { _id: "$role", count: { $sum: 1 } } }
-          ],
+          usersByRole: [{ $group: { _id: '$role', count: { $sum: 1 } } }],
 
-          usersByStatus: [
-            { $group: { _id: "$status", count: { $sum: 1 } } }
-          ]
-        }
-      }
+          usersByStatus: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
+        },
+      },
     ];
 
     // Add detailed analytics if requested
@@ -122,11 +115,11 @@ export class AdminAnalyticsService {
       pipeline.push({
         $addFields: {
           detailedAnalytics: {
-            topActiveUsers: "$activeUsers",
-            userGrowthTrend: "$newUsersThisMonth",
-            retentionMetrics: "$usersByStatus"
-          }
-        }
+            topActiveUsers: '$activeUsers',
+            userGrowthTrend: '$newUsersThisMonth',
+            retentionMetrics: '$usersByStatus',
+          },
+        },
       });
     }
 
@@ -141,45 +134,35 @@ export class AdminAnalyticsService {
       usersByRole: this.formatGroupedResults(analyticsResult.usersByRole),
       usersByStatus: this.formatGroupedResults(analyticsResult.usersByStatus),
       retentionRate: await this.calculateRetentionRate(period),
-      averageSessionDuration: await this.calculateAverageSessionDuration(period)
+      averageSessionDuration: await this.calculateAverageSessionDuration(period),
     };
   }
 
-  private async getEstablishmentAnalytics(period: AnalyticsPeriod, includeDetails: boolean = false): Promise<EstablishmentAnalytics> {
+  private async getEstablishmentAnalytics(
+    _period: AnalyticsPeriod,
+    includeDetails: boolean = false,
+  ): Promise<EstablishmentAnalytics> {
     const pipeline = [
       {
         $facet: {
-          totalEstablishments: [{ $count: "count" }],
+          totalEstablishments: [{ $count: 'count' }],
 
           activeEstablishments: [
             { $match: { status: 'active', isActive: true } },
-            { $count: "count" }
+            { $count: 'count' },
           ],
 
-          pendingApproval: [
-            { $match: { status: 'pending' } },
-            { $count: "count" }
-          ],
+          pendingApproval: [{ $match: { status: 'pending' } }, { $count: 'count' }],
 
-          rejectedEstablishments: [
-            { $match: { status: 'rejected' } },
-            { $count: "count" }
-          ],
+          rejectedEstablishments: [{ $match: { status: 'rejected' } }, { $count: 'count' }],
 
-          suspendedEstablishments: [
-            { $match: { status: 'suspended' } },
-            { $count: "count" }
-          ],
+          suspendedEstablishments: [{ $match: { status: 'suspended' } }, { $count: 'count' }],
 
-          establishmentsByType: [
-            { $group: { _id: "$type", count: { $sum: 1 } } }
-          ],
+          establishmentsByType: [{ $group: { _id: '$type', count: { $sum: 1 } } }],
 
-          averageRating: [
-            { $group: { _id: null, avgRating: { $avg: "$averageRating" } } }
-          ]
-        }
-      }
+          averageRating: [{ $group: { _id: null, avgRating: { $avg: '$averageRating' } } }],
+        },
+      },
     ];
 
     const [analyticsResult] = await this.establishmentModel.aggregate(pipeline);
@@ -198,31 +181,30 @@ export class AdminAnalyticsService {
       suspendedEstablishments: analyticsResult.suspendedEstablishments[0]?.count || 0,
       establishmentsByType: this.formatGroupedResults(analyticsResult.establishmentsByType),
       averageRating: Math.round((analyticsResult.averageRating[0]?.avgRating || 0) * 100) / 100,
-      topPerformingEstablishments
+      topPerformingEstablishments,
     };
   }
 
-  private async getOrderAnalytics(period: AnalyticsPeriod, includeDetails: boolean = false): Promise<OrderAnalytics> {
+  private async getOrderAnalytics(
+    period: AnalyticsPeriod,
+    includeDetails: boolean = false,
+  ): Promise<OrderAnalytics> {
     const matchStage = {
       createdAt: {
         $gte: period.startDate,
-        $lte: period.endDate
-      }
+        $lte: period.endDate,
+      },
     };
 
     const pipeline = [
       { $match: matchStage },
       {
         $facet: {
-          totalOrders: [{ $count: "count" }],
+          totalOrders: [{ $count: 'count' }],
 
-          ordersByStatus: [
-            { $group: { _id: "$status", count: { $sum: 1 } } }
-          ],
+          ordersByStatus: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
 
-          averageOrderValue: [
-            { $group: { _id: null, avgValue: { $avg: "$totalAmount" } } }
-          ],
+          averageOrderValue: [{ $group: { _id: null, avgValue: { $avg: '$totalAmount' } } }],
 
           completionRate: [
             {
@@ -231,14 +213,14 @@ export class AdminAnalyticsService {
                 total: { $sum: 1 },
                 completed: {
                   $sum: {
-                    $cond: [{ $eq: ["$status", "completed"] }, 1, 0]
-                  }
-                }
-              }
-            }
-          ]
-        }
-      }
+                    $cond: [{ $eq: ['$status', 'completed'] }, 1, 0],
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
     ];
 
     const [analyticsResult] = await this.orderModel.aggregate(pipeline);
@@ -261,40 +243,41 @@ export class AdminAnalyticsService {
       cancelledOrders: statusResults['cancelled'] || 0,
       pendingOrders: statusResults['pending'] || 0,
       ordersByStatus: statusResults,
-      averageOrderValue: Math.round((analyticsResult.averageOrderValue[0]?.avgValue || 0) * 100) / 100,
+      averageOrderValue:
+        Math.round((analyticsResult.averageOrderValue[0]?.avgValue || 0) * 100) / 100,
       orderCompletionRate: completionRate,
-      orderTrends
+      orderTrends,
     };
   }
 
-  private async getOfferAnalytics(period: AnalyticsPeriod, includeDetails: boolean = false): Promise<OfferAnalytics> {
+  private async getOfferAnalytics(
+    period: AnalyticsPeriod,
+    includeDetails: boolean = false,
+  ): Promise<OfferAnalytics> {
     const matchStage = {
       createdAt: {
         $gte: period.startDate,
-        $lte: period.endDate
-      }
+        $lte: period.endDate,
+      },
     };
 
     const pipeline = [
       { $match: matchStage },
       {
         $facet: {
-          totalOffers: [{ $count: "count" }],
+          totalOffers: [{ $count: 'count' }],
 
           activeOffers: [
             { $match: { status: 'active', expiresAt: { $gte: new Date() } } },
-            { $count: "count" }
+            { $count: 'count' },
           ],
 
           expiredOffers: [
             { $match: { $or: [{ status: 'expired' }, { expiresAt: { $lt: new Date() } }] } },
-            { $count: "count" }
+            { $count: 'count' },
           ],
 
-          soldOffers: [
-            { $match: { status: 'sold' } },
-            { $count: "count" }
-          ],
+          soldOffers: [{ $match: { status: 'sold' } }, { $count: 'count' }],
 
           averageDiscount: [
             {
@@ -303,16 +286,21 @@ export class AdminAnalyticsService {
                 avgDiscount: {
                   $avg: {
                     $multiply: [
-                      { $divide: [{ $subtract: ["$originalPrice", "$discountedPrice"] }, "$originalPrice"] },
-                      100
-                    ]
-                  }
-                }
-              }
-            }
-          ]
-        }
-      }
+                      {
+                        $divide: [
+                          { $subtract: ['$originalPrice', '$discountedPrice'] },
+                          '$originalPrice',
+                        ],
+                      },
+                      100,
+                    ],
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
     ];
 
     const [analyticsResult] = await this.offerModel.aggregate(pipeline);
@@ -322,13 +310,13 @@ export class AdminAnalyticsService {
       totalKgSaved: 0,
       totalMealsSaved: 0,
       co2ReductionKg: 0,
-      estimatedValue: 0
+      estimatedValue: 0,
     };
 
     if (includeDetails) {
       [mostPopularCategories, wasteReductionImpact] = await Promise.all([
         this.getMostPopularCategories(10),
-        this.calculateWasteReductionImpact(period)
+        this.calculateWasteReductionImpact(period),
       ]);
     }
 
@@ -337,43 +325,47 @@ export class AdminAnalyticsService {
       activeOffers: analyticsResult.activeOffers[0]?.count || 0,
       expiredOffers: analyticsResult.expiredOffers[0]?.count || 0,
       soldOffers: analyticsResult.soldOffers[0]?.count || 0,
-      averageDiscount: Math.round((analyticsResult.averageDiscount[0]?.avgDiscount || 0) * 100) / 100,
+      averageDiscount:
+        Math.round((analyticsResult.averageDiscount[0]?.avgDiscount || 0) * 100) / 100,
       mostPopularCategories,
-      wasteReductionImpact
+      wasteReductionImpact,
     };
   }
 
-  private async getReviewAnalytics(period: AnalyticsPeriod, includeDetails: boolean = false): Promise<ReviewAnalytics> {
+  private async getReviewAnalytics(
+    period: AnalyticsPeriod,
+    includeDetails: boolean = false,
+  ): Promise<ReviewAnalytics> {
     try {
       const matchStage = {
         createdAt: {
           $gte: period.startDate,
-          $lte: period.endDate
-        }
+          $lte: period.endDate,
+        },
       };
 
       const pipeline: PipelineStage[] = [
         { $match: matchStage },
         {
           $facet: {
-            totalReviews: [{ $count: "count" }],
+            totalReviews: [{ $count: 'count' }],
 
             averageRating: [
               {
                 $group: {
                   _id: null,
-                  avgRating: { $avg: "$overallRating" }
-                }
-              }
+                  avgRating: { $avg: '$overallRating' },
+                },
+              },
             ],
 
             ratingDistribution: [
               {
                 $group: {
-                  _id: "$overallRating",
-                  count: { $sum: 1 }
-                }
-              }
+                  _id: '$overallRating',
+                  count: { $sum: 1 },
+                },
+              },
             ],
 
             flaggedReviews: [
@@ -382,11 +374,11 @@ export class AdminAnalyticsService {
                   $or: [
                     { status: ReviewStatus.FLAGGED },
                     { status: ReviewStatus.SPAM },
-                    { 'reports.0': { $exists: true } }
-                  ]
-                }
+                    { 'reports.0': { $exists: true } },
+                  ],
+                },
               },
-              { $count: "count" }
+              { $count: 'count' },
             ],
 
             moderationQueue: [
@@ -394,50 +386,56 @@ export class AdminAnalyticsService {
                 $match: {
                   $or: [
                     { status: ReviewStatus.PENDING },
-                    { 'moderationInfo.manualModerationRequired': true }
-                  ]
-                }
+                    { 'moderationInfo.manualModerationRequired': true },
+                  ],
+                },
               },
-              { $count: "count" }
+              { $count: 'count' },
             ],
 
             reviewsWithResponses: [
               {
                 $match: {
-                  'responses.0': { $exists: true }
-                }
+                  'responses.0': { $exists: true },
+                },
               },
-              { $count: "count" }
+              { $count: 'count' },
             ],
 
             sentimentAnalysis: [
               {
                 $match: {
-                  'sentimentAnalysis.sentiment': { $exists: true }
-                }
+                  'sentimentAnalysis.sentiment': { $exists: true },
+                },
               },
               {
                 $group: {
-                  _id: "$sentimentAnalysis.sentiment",
+                  _id: '$sentimentAnalysis.sentiment',
                   count: { $sum: 1 },
-                  avgConfidence: { $avg: "$sentimentAnalysis.confidence" }
-                }
-              }
-            ]
-          }
-        }
+                  avgConfidence: { $avg: '$sentimentAnalysis.confidence' },
+                },
+              },
+            ],
+          },
+        },
       ];
 
       const [analyticsResult] = await this.reviewModel.aggregate(pipeline);
 
       const totalReviews = analyticsResult.totalReviews[0]?.count || 0;
       const reviewsWithResponses = analyticsResult.reviewsWithResponses[0]?.count || 0;
-      const responseRate = totalReviews > 0 ? Math.round((reviewsWithResponses / totalReviews) * 10000) / 100 : 0;
+      const responseRate =
+        totalReviews > 0 ? Math.round((reviewsWithResponses / totalReviews) * 10000) / 100 : 0;
 
       const ratingDistribution = this.formatGroupedResults(analyticsResult.ratingDistribution);
 
-      let topReviewedEstablishments: Array<{id: string, name: string, reviewCount: number, avgRating: number}> = [];
-      let sentimentTrends: Record<string, {count: number, avgConfidence: number}> = {};
+      let topReviewedEstablishments: Array<{
+        id: string;
+        name: string;
+        reviewCount: number;
+        avgRating: number;
+      }> = [];
+      let sentimentTrends: Record<string, { count: number; avgConfidence: number }> = {};
 
       if (includeDetails) {
         // Get top reviewed establishments
@@ -445,18 +443,18 @@ export class AdminAnalyticsService {
           { $match: { ...matchStage, status: ReviewStatus.APPROVED } },
           {
             $group: {
-              _id: "$establishmentId",
+              _id: '$establishmentId',
               reviewCount: { $sum: 1 },
-              avgRating: { $avg: "$overallRating" }
-            }
+              avgRating: { $avg: '$overallRating' },
+            },
           },
           {
             $lookup: {
               from: 'establishments',
               localField: '_id',
               foreignField: '_id',
-              as: 'establishment'
-            }
+              as: 'establishment',
+            },
           },
           { $unwind: '$establishment' },
           {
@@ -464,23 +462,29 @@ export class AdminAnalyticsService {
               id: { $toString: '$_id' },
               name: '$establishment.name',
               reviewCount: 1,
-              avgRating: { $round: ['$avgRating', 2] }
-            }
+              avgRating: { $round: ['$avgRating', 2] },
+            },
           },
           { $sort: { reviewCount: -1 } },
-          { $limit: 10 }
+          { $limit: 10 },
         ]);
 
         topReviewedEstablishments = topEstablishmentsResult;
 
         // Format sentiment trends
-        sentimentTrends = (analyticsResult.sentimentAnalysis || []).reduce((acc: Record<string, {count: number, avgConfidence: number}>, item: {_id: string, count: number, avgConfidence: number}) => {
-          acc[item._id] = {
-            count: item.count,
-            avgConfidence: Math.round(item.avgConfidence * 10000) / 100
-          };
-          return acc;
-        }, {});
+        sentimentTrends = (analyticsResult.sentimentAnalysis || []).reduce(
+          (
+            acc: Record<string, { count: number; avgConfidence: number }>,
+            item: { _id: string; count: number; avgConfidence: number },
+          ) => {
+            acc[item._id] = {
+              count: item.count,
+              avgConfidence: Math.round(item.avgConfidence * 10000) / 100,
+            };
+            return acc;
+          },
+          {},
+        );
       }
 
       return {
@@ -493,23 +497,25 @@ export class AdminAnalyticsService {
         ...(includeDetails && {
           topReviewedEstablishments,
           sentimentTrends,
-          totalResponseCount: reviewsWithResponses
-        })
+          totalResponseCount: reviewsWithResponses,
+        }),
       };
-
     } catch (error) {
       this.logger.error('Failed to generate review analytics:', error);
       throw error;
     }
   }
 
-  private async getRevenueAnalytics(period: AnalyticsPeriod, includeDetails: boolean = false): Promise<RevenueAnalytics> {
+  private async getRevenueAnalytics(
+    period: AnalyticsPeriod,
+    includeDetails: boolean = false,
+  ): Promise<RevenueAnalytics> {
     const matchStage = {
       createdAt: {
         $gte: period.startDate,
-        $lte: period.endDate
+        $lte: period.endDate,
       },
-      status: 'completed'
+      status: 'completed',
     };
 
     const pipeline = [
@@ -517,11 +523,11 @@ export class AdminAnalyticsService {
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: "$totalAmount" },
+          totalRevenue: { $sum: '$totalAmount' },
           totalOrders: { $sum: 1 },
-          platformCommission: { $sum: { $multiply: ["$totalAmount", 0.15] } }
-        }
-      }
+          platformCommission: { $sum: { $multiply: ['$totalAmount', 0.15] } },
+        },
+      },
     ];
 
     const [revenueResult] = await this.orderModel.aggregate(pipeline);
@@ -531,23 +537,20 @@ export class AdminAnalyticsService {
     const now = new Date();
     const todayRevenue = await this.getRevenueForPeriod(
       new Date(now.getFullYear(), now.getMonth(), now.getDate()),
-      now
+      now,
     );
 
     const weekRevenue = await this.getRevenueForPeriod(
       new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-      now
+      now,
     );
 
     const monthRevenue = await this.getRevenueForPeriod(
       new Date(now.getFullYear(), now.getMonth(), 1),
-      now
+      now,
     );
 
-    const yearRevenue = await this.getRevenueForPeriod(
-      new Date(now.getFullYear(), 0, 1),
-      now
-    );
+    const yearRevenue = await this.getRevenueForPeriod(new Date(now.getFullYear(), 0, 1), now);
 
     let revenueByEstablishment: EstablishmentRevenue[] = [];
 
@@ -562,9 +565,10 @@ export class AdminAnalyticsService {
       revenueThisMonth: monthRevenue,
       revenueThisYear: yearRevenue,
       platformCommission: result.platformCommission,
-      averageTransactionValue: result.totalOrders > 0 ? result.totalRevenue / result.totalOrders : 0,
+      averageTransactionValue:
+        result.totalOrders > 0 ? result.totalRevenue / result.totalOrders : 0,
       revenueByEstablishment,
-      revenueGrowthRate: await this.calculateRevenueGrowthRate(period)
+      revenueGrowthRate: await this.calculateRevenueGrowthRate(period),
     };
   }
 
@@ -598,7 +602,9 @@ export class AdminAnalyticsService {
         startDate = new Date(now.getFullYear(), 0, 1);
         break;
       case AnalyticsPeriodType.CUSTOM:
-        startDate = query.startDate ? new Date(query.startDate) : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        startDate = query.startDate
+          ? new Date(query.startDate)
+          : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         endDate = query.endDate ? new Date(query.endDate) : now;
         break;
       default:
@@ -608,15 +614,20 @@ export class AdminAnalyticsService {
     return {
       startDate,
       endDate,
-      periodType: query.period || AnalyticsPeriodType.WEEK
+      periodType: query.period || AnalyticsPeriodType.WEEK,
     };
   }
 
-  private formatGroupedResults(results: Array<{ _id: string; count: number }>): Record<string, number> {
-    return results.reduce((acc, item) => {
-      acc[item._id] = item.count;
-      return acc;
-    }, {} as Record<string, number>);
+  private formatGroupedResults(
+    results: Array<{ _id: string; count: number }>,
+  ): Record<string, number> {
+    return results.reduce(
+      (acc, item) => {
+        acc[item._id] = item.count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   }
 
   private async calculateRetentionRate(period: AnalyticsPeriod): Promise<number> {
@@ -629,23 +640,23 @@ export class AdminAnalyticsService {
       const currentPeriodActiveUsers = await this.userModel.distinct('_id', {
         lastLoginAt: {
           $gte: period.startDate,
-          $lte: period.endDate
+          $lte: period.endDate,
         },
-        status: 'active'
+        status: 'active',
       });
 
       // Users active in the previous period
       const previousPeriodActiveUsers = await this.userModel.distinct('_id', {
         lastLoginAt: {
           $gte: previousPeriodStart,
-          $lte: previousPeriodEnd
+          $lte: previousPeriodEnd,
         },
-        status: 'active'
+        status: 'active',
       });
 
       // Users who were active in both periods (retained users)
-      const retainedUsersCount = currentPeriodActiveUsers.filter(userId =>
-        previousPeriodActiveUsers.some(prevUserId => prevUserId.toString() === userId.toString())
+      const retainedUsersCount = currentPeriodActiveUsers.filter((userId) =>
+        previousPeriodActiveUsers.some((prevUserId) => prevUserId.toString() === userId.toString()),
       ).length;
 
       // Calculate retention rate
@@ -658,7 +669,6 @@ export class AdminAnalyticsService {
       const retentionRate = (retainedUsersCount / previousPeriodUserCount) * 100;
 
       return Math.round(retentionRate * 100) / 100;
-
     } catch (error) {
       this.logger.error('Failed to calculate retention rate:', error);
       return 0;
@@ -672,50 +682,50 @@ export class AdminAnalyticsService {
           $match: {
             createdAt: {
               $gte: period.startDate,
-              $lte: period.endDate
+              $lte: period.endDate,
             },
-            status: { $in: ['completed', 'pending', 'processing'] }
-          }
+            status: { $in: ['completed', 'pending', 'processing'] },
+          },
         },
         {
           $group: {
             _id: {
-              userId: "$userId",
+              userId: '$userId',
               date: {
                 $dateToString: {
-                  format: "%Y-%m-%d",
-                  date: "$createdAt"
-                }
-              }
+                  format: '%Y-%m-%d',
+                  date: '$createdAt',
+                },
+              },
             },
-            firstActivity: { $min: "$createdAt" },
-            lastActivity: { $max: "$createdAt" },
-            activityCount: { $sum: 1 }
-          }
+            firstActivity: { $min: '$createdAt' },
+            lastActivity: { $max: '$createdAt' },
+            activityCount: { $sum: 1 },
+          },
         },
         {
           $addFields: {
             sessionDurationMinutes: {
               $divide: [
-                { $subtract: ["$lastActivity", "$firstActivity"] },
-                1000 * 60 // Convert to minutes
-              ]
-            }
-          }
+                { $subtract: ['$lastActivity', '$firstActivity'] },
+                1000 * 60, // Convert to minutes
+              ],
+            },
+          },
         },
         {
           $match: {
             activityCount: { $gte: 2 }, // Only consider sessions with multiple activities
-            sessionDurationMinutes: { $gte: 1, $lte: 480 } // Between 1 minute and 8 hours
-          }
+            sessionDurationMinutes: { $gte: 1, $lte: 480 }, // Between 1 minute and 8 hours
+          },
         },
         {
           $group: {
             _id: null,
-            avgSessionDuration: { $avg: "$sessionDurationMinutes" },
-            totalSessions: { $sum: 1 }
-          }
-        }
+            avgSessionDuration: { $avg: '$sessionDurationMinutes' },
+            totalSessions: { $sum: 1 },
+          },
+        },
       ];
 
       const sessionResults = await this.orderModel.aggregate(sessionEstimationPipeline);
@@ -729,7 +739,6 @@ export class AdminAnalyticsService {
       const averageDuration = sessionResults[0].avgSessionDuration || 0;
 
       return Math.round(averageDuration * 100) / 100;
-
     } catch (error) {
       this.logger.error('Failed to calculate average session duration:', error);
       return 0;
@@ -744,10 +753,10 @@ export class AdminAnalyticsService {
           $match: {
             lastLoginAt: {
               $gte: period.startDate,
-              $lte: period.endDate
+              $lte: period.endDate,
             },
-            status: 'active'
-          }
+            status: 'active',
+          },
         },
         {
           $group: {
@@ -756,13 +765,13 @@ export class AdminAnalyticsService {
             avgTimeSinceLastLogin: {
               $avg: {
                 $divide: [
-                  { $subtract: [new Date(), "$lastLoginAt"] },
-                  1000 * 60 // Convert to minutes
-                ]
-              }
-            }
-          }
-        }
+                  { $subtract: [new Date(), '$lastLoginAt'] },
+                  1000 * 60, // Convert to minutes
+                ],
+              },
+            },
+          },
+        },
       ];
 
       const loginResults = await this.userModel.aggregate(userLoginPipeline);
@@ -775,7 +784,6 @@ export class AdminAnalyticsService {
       const estimatedSession = Math.min(loginResults[0].avgTimeSinceLastLogin * 0.1, 45);
 
       return Math.max(estimatedSession, 5.0); // Minimum 5 minutes
-
     } catch (error) {
       this.logger.error('Failed to estimate session from login patterns:', error);
       return 15.0; // Default fallback
@@ -789,8 +797,8 @@ export class AdminAnalyticsService {
           from: 'orders',
           localField: '_id',
           foreignField: 'establishmentId',
-          as: 'orders'
-        }
+          as: 'orders',
+        },
       },
       {
         $project: {
@@ -803,11 +811,11 @@ export class AdminAnalyticsService {
             $size: {
               $filter: {
                 input: '$orders',
-                cond: { $eq: ['$$this.status', 'completed'] }
-              }
-            }
-          }
-        }
+                cond: { $eq: ['$$this.status', 'completed'] },
+              },
+            },
+          },
+        },
       },
       {
         $addFields: {
@@ -815,25 +823,25 @@ export class AdminAnalyticsService {
             $cond: [
               { $eq: ['$totalOrders', 0] },
               0,
-              { $multiply: [{ $divide: ['$completedOrders', '$totalOrders'] }, 100] }
-            ]
-          }
-        }
+              { $multiply: [{ $divide: ['$completedOrders', '$totalOrders'] }, 100] },
+            ],
+          },
+        },
       },
       { $sort: { totalRevenue: -1 } },
-      { $limit: limit }
+      { $limit: limit },
     ];
 
     const results = await this.establishmentModel.aggregate(pipeline);
 
-    return results.map(result => ({
+    return results.map((result) => ({
       id: result._id.toString(),
       name: result.name,
       type: result.type,
       totalOrders: result.totalOrders,
       totalRevenue: result.totalRevenue,
       averageRating: result.averageRating,
-      completionRate: Math.round(result.completionRate * 100) / 100
+      completionRate: Math.round(result.completionRate * 100) / 100,
     }));
   }
 
@@ -843,28 +851,28 @@ export class AdminAnalyticsService {
         $match: {
           createdAt: {
             $gte: period.startDate,
-            $lte: period.endDate
-          }
-        }
+            $lte: period.endDate,
+          },
+        },
       },
       {
         $group: {
           _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
           },
           orders: { $sum: 1 },
-          revenue: { $sum: "$totalAmount" }
-        }
+          revenue: { $sum: '$totalAmount' },
+        },
       },
-      { $sort: { "_id": 1 } }
+      { $sort: { _id: 1 } },
     ];
 
     const results = await this.orderModel.aggregate(pipeline);
 
-    return results.map(result => ({
+    return results.map((result) => ({
       date: result._id,
       orders: result.orders,
-      revenue: result.revenue
+      revenue: result.revenue,
     }));
   }
 
@@ -874,11 +882,11 @@ export class AdminAnalyticsService {
         {
           $match: {
             status: { $in: ['active', 'sold', 'expired'] },
-            categories: { $exists: true, $ne: [] }
-          }
+            categories: { $exists: true, $ne: [] },
+          },
         },
         {
-          $unwind: '$categories'
+          $unwind: '$categories',
         },
         {
           $lookup: {
@@ -888,16 +896,13 @@ export class AdminAnalyticsService {
               {
                 $match: {
                   $expr: {
-                    $and: [
-                      { $eq: ['$offerId', '$$offerId'] },
-                      { $eq: ['$status', 'completed'] }
-                    ]
-                  }
-                }
-              }
+                    $and: [{ $eq: ['$offerId', '$$offerId'] }, { $eq: ['$status', 'completed'] }],
+                  },
+                },
+              },
             ],
-            as: 'orders'
-          }
+            as: 'orders',
+          },
         },
         {
           $group: {
@@ -910,9 +915,9 @@ export class AdminAnalyticsService {
                 $reduce: {
                   input: '$orders',
                   initialValue: 0,
-                  in: { $add: ['$$value', '$$this.totalAmount'] }
-                }
-              }
+                  in: { $add: ['$$value', '$$this.totalAmount'] },
+                },
+              },
             },
             averagePrice: { $avg: '$pricing.discountedPrice' },
             averageDiscount: {
@@ -921,14 +926,14 @@ export class AdminAnalyticsService {
                   {
                     $divide: [
                       { $subtract: ['$pricing.originalPrice', '$pricing.discountedPrice'] },
-                      '$pricing.originalPrice'
-                    ]
+                      '$pricing.originalPrice',
+                    ],
                   },
-                  100
-                ]
-              }
-            }
-          }
+                  100,
+                ],
+              },
+            },
+          },
         },
         {
           $project: {
@@ -938,36 +943,37 @@ export class AdminAnalyticsService {
             soldQuantity: 1,
             averagePrice: { $round: ['$averagePrice', 2] },
             averageDiscount: { $round: ['$averageDiscount', 1] },
-            _id: 0
-          }
+            _id: 0,
+          },
         },
         { $sort: { count: -1 } },
-        { $limit: limit }
+        { $limit: limit },
       ];
 
       const results = await this.offerModel.aggregate(pipeline);
 
-      return results.map(result => ({
+      return results.map((result) => ({
         category: result.category,
         count: result.count,
         totalRevenue: result.totalRevenue || 0,
         soldQuantity: result.soldQuantity || 0,
         averagePrice: result.averagePrice || 0,
-        averageDiscount: result.averageDiscount || 0
+        averageDiscount: result.averageDiscount || 0,
       }));
-
     } catch (error) {
       this.logger.error('Failed to get most popular categories:', error);
       // Fallback to mock data on error
       return [
         { category: 'Restaurant', count: 120, totalRevenue: 3200 },
         { category: 'Bakery', count: 150, totalRevenue: 2500 },
-        { category: 'Cafe', count: 80, totalRevenue: 1200 }
+        { category: 'Cafe', count: 80, totalRevenue: 1200 },
       ];
     }
   }
 
-  private async calculateWasteReductionImpact(period: AnalyticsPeriod): Promise<WasteReductionMetrics> {
+  private async calculateWasteReductionImpact(
+    period: AnalyticsPeriod,
+  ): Promise<WasteReductionMetrics> {
     try {
       const pipeline: PipelineStage[] = [
         {
@@ -976,9 +982,9 @@ export class AdminAnalyticsService {
             soldQuantity: { $gt: 0 },
             createdAt: {
               $gte: period.startDate,
-              $lte: period.endDate
-            }
-          }
+              $lte: period.endDate,
+            },
+          },
         },
         {
           $lookup: {
@@ -988,16 +994,13 @@ export class AdminAnalyticsService {
               {
                 $match: {
                   $expr: {
-                    $and: [
-                      { $eq: ['$offerId', '$$offerId'] },
-                      { $eq: ['$status', 'completed'] }
-                    ]
-                  }
-                }
-              }
+                    $and: [{ $eq: ['$offerId', '$$offerId'] }, { $eq: ['$status', 'completed'] }],
+                  },
+                },
+              },
             ],
-            as: 'completedOrders'
-          }
+            as: 'completedOrders',
+          },
         },
         {
           $addFields: {
@@ -1009,9 +1012,9 @@ export class AdminAnalyticsService {
                   $toDouble: {
                     $regexFind: {
                       input: '$estimatedWeight',
-                      regex: /^(\d+(?:\.\d+)?)/
-                    }
-                  }
+                      regex: /^(\d+(?:\.\d+)?)/,
+                    },
+                  },
                 },
                 // Default weight estimates by category
                 {
@@ -1021,14 +1024,14 @@ export class AdminAnalyticsService {
                       { case: { $in: ['restaurant', '$categories'] }, then: 0.5 },
                       { case: { $in: ['cafe', '$categories'] }, then: 0.25 },
                       { case: { $in: ['grocery', '$categories'] }, then: 0.4 },
-                      { case: { $in: ['dessert', '$categories'] }, then: 0.2 }
+                      { case: { $in: ['dessert', '$categories'] }, then: 0.2 },
                     ],
-                    default: 0.35 // Average weight per item
-                  }
-                }
-              ]
-            }
-          }
+                    default: 0.35, // Average weight per item
+                  },
+                },
+              ],
+            },
+          },
         },
         {
           $group: {
@@ -1036,20 +1039,20 @@ export class AdminAnalyticsService {
             totalItemsSaved: { $sum: '$actualSoldQuantity' },
             totalKgSaved: {
               $sum: {
-                $multiply: ['$actualSoldQuantity', '$estimatedWeightKg']
-              }
+                $multiply: ['$actualSoldQuantity', '$estimatedWeightKg'],
+              },
             },
             totalEstimatedValue: {
               $sum: {
-                $multiply: ['$actualSoldQuantity', '$pricing.originalPrice']
-              }
+                $multiply: ['$actualSoldQuantity', '$pricing.originalPrice'],
+              },
             },
             totalActualRevenue: {
               $sum: {
-                $multiply: ['$actualSoldQuantity', '$pricing.discountedPrice']
-              }
-            }
-          }
+                $multiply: ['$actualSoldQuantity', '$pricing.discountedPrice'],
+              },
+            },
+          },
         },
         {
           $project: {
@@ -1059,19 +1062,16 @@ export class AdminAnalyticsService {
             totalActualRevenue: { $round: ['$totalActualRevenue', 2] },
             // CO2 calculation: approximately 2.3kg CO2 per kg of food waste avoided
             co2ReductionKg: {
-              $round: [
-                { $multiply: ['$totalKgSaved', 2.3] },
-                2
-              ]
+              $round: [{ $multiply: ['$totalKgSaved', 2.3] }, 2],
             },
             // Estimate meals saved (assuming average 300g per meal)
             totalMealsSaved: {
               $floor: {
-                $divide: ['$totalKgSaved', 0.3]
-              }
-            }
-          }
-        }
+                $divide: ['$totalKgSaved', 0.3],
+              },
+            },
+          },
+        },
       ];
 
       const [result] = await this.offerModel.aggregate(pipeline);
@@ -1081,7 +1081,7 @@ export class AdminAnalyticsService {
           totalKgSaved: 0,
           totalMealsSaved: 0,
           co2ReductionKg: 0,
-          estimatedValue: 0
+          estimatedValue: 0,
         };
       }
 
@@ -1089,9 +1089,8 @@ export class AdminAnalyticsService {
         totalKgSaved: result.totalKgSaved || 0,
         totalMealsSaved: result.totalMealsSaved || 0,
         co2ReductionKg: result.co2ReductionKg || 0,
-        estimatedValue: result.totalEstimatedValue || 0
+        estimatedValue: result.totalEstimatedValue || 0,
       };
-
     } catch (error) {
       this.logger.error('Failed to calculate waste reduction impact:', error);
       // Return fallback data on error
@@ -1099,7 +1098,7 @@ export class AdminAnalyticsService {
         totalKgSaved: 0,
         totalMealsSaved: 0,
         co2ReductionKg: 0,
-        estimatedValue: 0
+        estimatedValue: 0,
       };
     }
   }
@@ -1109,49 +1108,51 @@ export class AdminAnalyticsService {
       {
         $match: {
           createdAt: { $gte: startDate, $lte: endDate },
-          status: 'completed'
-        }
+          status: 'completed',
+        },
       },
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: "$totalAmount" }
-        }
-      }
+          totalRevenue: { $sum: '$totalAmount' },
+        },
+      },
     ]);
 
     return result?.[0]?.totalRevenue || 0;
   }
 
-  private async getRevenueByEstablishment(period: AnalyticsPeriod): Promise<EstablishmentRevenue[]> {
-    const pipeline: PipelineStage[]  = [
+  private async getRevenueByEstablishment(
+    period: AnalyticsPeriod,
+  ): Promise<EstablishmentRevenue[]> {
+    const pipeline: PipelineStage[] = [
       {
         $match: {
           createdAt: {
             $gte: period.startDate,
-            $lte: period.endDate
+            $lte: period.endDate,
           },
-          status: 'completed'
-        }
+          status: 'completed',
+        },
       },
       {
         $group: {
-          _id: "$establishmentId",
-          revenue: { $sum: "$totalAmount" },
+          _id: '$establishmentId',
+          revenue: { $sum: '$totalAmount' },
           orders: { $sum: 1 },
-          commission: { $sum: { $multiply: ["$totalAmount", 0.15] } }
-        }
+          commission: { $sum: { $multiply: ['$totalAmount', 0.15] } },
+        },
       },
       {
         $lookup: {
           from: 'establishments',
           localField: '_id',
           foreignField: '_id',
-          as: 'establishment'
-        }
+          as: 'establishment',
+        },
       },
       {
-        $unwind: '$establishment'
+        $unwind: '$establishment',
       },
       {
         $project: {
@@ -1159,11 +1160,11 @@ export class AdminAnalyticsService {
           establishmentName: '$establishment.name',
           revenue: 1,
           orders: 1,
-          commission: 1
-        }
+          commission: 1,
+        },
       },
       { $sort: { revenue: -1 } },
-      { $limit: 20 }
+      { $limit: 20 },
     ];
 
     const result = await this.orderModel.aggregate(pipeline);
@@ -1172,7 +1173,9 @@ export class AdminAnalyticsService {
 
   private async calculateRevenueGrowthRate(period: AnalyticsPeriod): Promise<number> {
     try {
-      this.logger.log(`Calculating revenue growth rate for period: ${period.periodType} (${period.startDate} - ${period.endDate})`);
+      this.logger.log(
+        `Calculating revenue growth rate for period: ${period.periodType} (${period.startDate} - ${period.endDate})`,
+      );
 
       // Input validation
       if (period?.startDate || !period.endDate) {
@@ -1197,15 +1200,19 @@ export class AdminAnalyticsService {
       // Calculate previous period dates based on period type for more accurate comparison
       const previousPeriod = this.calculatePreviousPeriod(period);
 
-      this.logger.debug(`Previous period calculated: ${previousPeriod.startDate} - ${previousPeriod.endDate}`);
+      this.logger.debug(
+        `Previous period calculated: ${previousPeriod.startDate} - ${previousPeriod.endDate}`,
+      );
 
       // Execute revenue queries in parallel for better performance
       const [currentRevenue, previousRevenue] = await Promise.all([
         this.getRevenueForPeriod(period.startDate, period.endDate),
-        this.getRevenueForPeriod(previousPeriod.startDate, previousPeriod.endDate)
+        this.getRevenueForPeriod(previousPeriod.startDate, previousPeriod.endDate),
       ]);
 
-      this.logger.debug(`Revenue comparison - Current: ${currentRevenue}, Previous: ${previousRevenue}`);
+      this.logger.debug(
+        `Revenue comparison - Current: ${currentRevenue}, Previous: ${previousRevenue}`,
+      );
 
       // Handle edge cases
       if (previousRevenue === 0) {
@@ -1230,7 +1237,9 @@ export class AdminAnalyticsService {
       const clampedGrowthRate = Math.max(-100, Math.min(maxReasonableGrowth, growthRate));
 
       if (Math.abs(clampedGrowthRate) !== Math.abs(growthRate)) {
-        this.logger.warn(`Growth rate clamped from ${growthRate.toFixed(2)}% to ${clampedGrowthRate.toFixed(2)}%`);
+        this.logger.warn(
+          `Growth rate clamped from ${growthRate.toFixed(2)}% to ${clampedGrowthRate.toFixed(2)}%`,
+        );
       }
 
       const finalGrowthRate = Math.round(clampedGrowthRate * 100) / 100;
@@ -1238,7 +1247,6 @@ export class AdminAnalyticsService {
       this.logger.log(`Revenue growth rate calculated: ${finalGrowthRate}%`);
 
       return finalGrowthRate;
-
     } catch (error) {
       this.logger.error('Failed to calculate revenue growth rate:', error);
 
@@ -1255,13 +1263,13 @@ export class AdminAnalyticsService {
       case AnalyticsPeriodType.DAY:
         return {
           startDate: new Date(period.startDate.getTime() - 24 * 60 * 60 * 1000),
-          endDate: new Date(period.endDate.getTime() - 24 * 60 * 60 * 1000)
+          endDate: new Date(period.endDate.getTime() - 24 * 60 * 60 * 1000),
         };
 
       case AnalyticsPeriodType.WEEK:
         return {
           startDate: new Date(period.startDate.getTime() - 7 * 24 * 60 * 60 * 1000),
-          endDate: new Date(period.endDate.getTime() - 7 * 24 * 60 * 60 * 1000)
+          endDate: new Date(period.endDate.getTime() - 7 * 24 * 60 * 60 * 1000),
         };
 
       case AnalyticsPeriodType.MONTH:
@@ -1271,7 +1279,7 @@ export class AdminAnalyticsService {
         prevMonthEnd.setMonth(prevMonthEnd.getMonth() - 1);
         return {
           startDate: prevMonth,
-          endDate: prevMonthEnd
+          endDate: prevMonthEnd,
         };
 
       case AnalyticsPeriodType.QUARTER:
@@ -1281,7 +1289,7 @@ export class AdminAnalyticsService {
         prevQuarterEnd.setMonth(prevQuarterEnd.getMonth() - 3);
         return {
           startDate: prevQuarter,
-          endDate: prevQuarterEnd
+          endDate: prevQuarterEnd,
         };
 
       case AnalyticsPeriodType.YEAR:
@@ -1291,7 +1299,7 @@ export class AdminAnalyticsService {
         prevYearEnd.setFullYear(prevYearEnd.getFullYear() - 1);
         return {
           startDate: prevYear,
-          endDate: prevYearEnd
+          endDate: prevYearEnd,
         };
 
       case AnalyticsPeriodType.CUSTOM:
@@ -1299,7 +1307,7 @@ export class AdminAnalyticsService {
         // For custom periods, use the same length as the current period
         return {
           startDate: new Date(period.startDate.getTime() - periodLength),
-          endDate: period.startDate
+          endDate: period.startDate,
         };
     }
   }

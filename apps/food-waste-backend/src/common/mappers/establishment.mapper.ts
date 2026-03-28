@@ -1,19 +1,87 @@
-import { IEstablishment, IEstablishmentOverview, IEstablishmentStats, IEstablishmentListResponse } from '../interfaces/establishment.interface';
+import { EstablishmentType, EstablishmentStatus } from '../interfaces/establishment.interface';
+
+import type {
+  IEstablishment,
+  IEstablishmentOverview,
+  IEstablishmentStats,
+  IEstablishmentListResponse,
+} from '../interfaces/establishment.interface';
+
+interface EstablishmentLike {
+  _id?: { toString(): string };
+  id?: string;
+  name?: string;
+  description?: string;
+  email?: string;
+  phone?: string;
+  contactInfo?: { phone?: string };
+  type?: IEstablishment['type'];
+  status?: IEstablishment['status'];
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+    coordinates?: { latitude?: number; longitude?: number };
+  };
+  businessHours?: IEstablishment['businessHours'];
+  verification?: {
+    documentsVerified?: boolean;
+    identityVerified?: boolean;
+    addressVerified?: boolean;
+    verifiedAt?: Date;
+    verifiedBy?: string;
+  };
+  owner?: { toString(): string };
+  ownerId?: { toString(): string };
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+interface OverviewLike {
+  total?: number;
+  pending?: number;
+  active?: number;
+  suspended?: number;
+  rejected?: number;
+  recentApprovals?: number;
+  avgApprovalTime?: number;
+}
+
+interface StatsLike {
+  totalOrders?: number;
+  totalRevenue?: number;
+  averageRating?: number;
+  totalOffers?: number;
+  activeOffers?: number;
+  completionRate?: number;
+  periodStart?: Date;
+  periodEnd?: Date;
+}
+
+interface ListResponseLike {
+  establishments?: EstablishmentLike[];
+  total?: number;
+  page?: number;
+  limit?: number;
+  totalPages?: number;
+}
 
 export class EstablishmentMapper {
-  static toInterface(document: any): IEstablishment {
+  static toInterface(document: EstablishmentLike): IEstablishment {
     if (!document) {
       throw new Error('Document cannot be null or undefined');
     }
 
     return {
-      id: document._id?.toString() || document.id,
-      name: document.name,
-      description: document.description,
-      email: document.email,
+      id: document._id?.toString() || document.id || '',
+      name: document.name || '',
+      description: document.description || '',
+      email: document.email || '',
       phone: document.phone || document.contactInfo?.phone || '',
-      type: document.type,
-      status: document.status,
+      type: document.type ?? EstablishmentType.OTHER,
+      status: document.status ?? EstablishmentStatus.PENDING,
       address: {
         street: document.address?.street || '',
         city: document.address?.city || '',
@@ -38,8 +106,12 @@ export class EstablishmentMapper {
         documentsVerified: document.verification?.documentsVerified || false,
         identityVerified: document.verification?.identityVerified || false,
         addressVerified: document.verification?.addressVerified || false,
-        verifiedAt: document.verification?.verifiedAt,
-        verifiedBy: document.verification?.verifiedBy,
+        ...(document.verification?.verifiedAt !== undefined
+          ? { verifiedAt: document.verification.verifiedAt }
+          : {}),
+        ...(document.verification?.verifiedBy !== undefined
+          ? { verifiedBy: document.verification.verifiedBy }
+          : {}),
       },
       owner: document.owner?.toString() || document.ownerId?.toString() || '',
       createdAt: document.createdAt || new Date(),
@@ -47,11 +119,11 @@ export class EstablishmentMapper {
     };
   }
 
-  static toInterfaceArray(documents: any[]): IEstablishment[] {
-    return documents.map(doc => this.toInterface(doc));
+  static toInterfaceArray(documents: EstablishmentLike[]): IEstablishment[] {
+    return documents.map((doc) => this.toInterface(doc));
   }
 
-  static toOverviewInterface(data: any): IEstablishmentOverview {
+  static toOverviewInterface(data: OverviewLike): IEstablishmentOverview {
     return {
       total: data.total || 0,
       pending: data.pending || 0,
@@ -63,7 +135,7 @@ export class EstablishmentMapper {
     };
   }
 
-  static toStatsInterface(data: any): IEstablishmentStats {
+  static toStatsInterface(data: StatsLike): IEstablishmentStats {
     return {
       totalOrders: data.totalOrders || 0,
       totalRevenue: data.totalRevenue || 0,
@@ -76,7 +148,7 @@ export class EstablishmentMapper {
     };
   }
 
-  static toListResponse(data: any): IEstablishmentListResponse {
+  static toListResponse(data: ListResponseLike): IEstablishmentListResponse {
     return {
       establishments: this.toInterfaceArray(data.establishments || []),
       total: data.total || 0,

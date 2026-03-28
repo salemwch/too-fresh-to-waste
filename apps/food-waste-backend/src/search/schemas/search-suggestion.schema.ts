@@ -24,25 +24,25 @@ export enum SuggestionSource {
 @Schema({ timestamps: true })
 export class SearchSuggestion {
   @Prop({ required: true, trim: true, maxlength: 200 })
-  text: string;
+  text!: string;
 
   @Prop({ required: true, type: String, enum: SuggestionType })
-  type: SuggestionType;
+  type!: SuggestionType;
 
   @Prop({ required: true, type: String, enum: SuggestionSource })
-  source: SuggestionSource;
+  source!: SuggestionSource;
 
   @Prop({ type: Number, default: 0, min: 0 })
-  frequency: number;
+  frequency!: number;
 
   @Prop({ type: Number, default: 0, min: 0, max: 1 })
-  relevanceScore: number;
+  relevanceScore!: number;
 
   @Prop({ type: [String], default: [] })
-  aliases: string[]; // Alternative terms that should trigger this suggestion
+  aliases!: string[]; // Alternative terms that should trigger this suggestion
 
   @Prop({ type: [String], default: [] })
-  relatedSuggestions: string[];
+  relatedSuggestions!: string[];
 
   @Prop({ type: Object })
   metadata?: {
@@ -63,13 +63,13 @@ export class SearchSuggestion {
   lastUsed?: Date;
 
   @Prop({ type: Boolean, default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Prop({ type: Number, default: 0 })
-  clickThroughRate: number;
+  clickThroughRate!: number;
 
   @Prop({ type: Number, default: 0 })
-  conversionRate: number;
+  conversionRate!: number;
 
   @Prop({ type: Date })
   expiresAt?: Date; // For trending suggestions

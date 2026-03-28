@@ -47,7 +47,8 @@ export class TimezoneUtil {
    * // → 2026-01-12T22:20:00.000Z  (unchanged)
    */
   static toUTC(dateTimeString: string, timezone: string = this.DEFAULT_TIMEZONE): Date {
-    const hasTimezoneIndicator = /[zZ]$/.test(dateTimeString) || /[+-]\d{2}:\d{2}$/.test(dateTimeString);
+    const hasTimezoneIndicator =
+      /[zZ]$/.test(dateTimeString) || /[+-]\d{2}:\d{2}$/.test(dateTimeString);
 
     if (hasTimezoneIndicator) {
       // String already carries absolute timezone info — parse it directly as UTC
@@ -62,7 +63,9 @@ export class TimezoneUtil {
     const localDateTime = DateTime.fromISO(dateTimeString, { zone: timezone });
 
     if (!localDateTime.isValid) {
-      throw new Error(`Invalid datetime string: ${dateTimeString}. Error: ${localDateTime.invalidReason}`);
+      throw new Error(
+        `Invalid datetime string: ${dateTimeString}. Error: ${localDateTime.invalidReason}`,
+      );
     }
 
     return localDateTime.toUTC().toJSDate();
@@ -82,7 +85,7 @@ export class TimezoneUtil {
    */
   static toLocal(utcDate: Date, timezone: string = this.DEFAULT_TIMEZONE): string {
     const utcDateTime = DateTime.fromJSDate(utcDate, { zone: 'UTC' });
-    return utcDateTime.setZone(timezone).toISO();
+    return utcDateTime.setZone(timezone).toISO() ?? utcDate.toISOString();
   }
 
   /**

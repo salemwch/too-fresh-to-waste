@@ -1,9 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsBoolean, IsEnum, IsArray, IsMongoId, IsNumber, Min, Max, ValidateNested } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
-import { FavoriteType } from '../schemas/favorite.schema';
-import { ListVisibility } from '../schemas/favorite-list.schema';
+import {
+  IsOptional,
+  IsString,
+  IsBoolean,
+  IsEnum,
+  IsArray,
+  IsMongoId,
+  IsNumber,
+  Min,
+  Max,
+  ValidateNested,
+} from 'class-validator';
+
 import { EstablishmentType } from '../../common/enums';
+import { ListVisibility } from '../schemas/favorite-list.schema';
+import { FavoriteType } from '../schemas/favorite.schema';
 
 export class FavoritePreferenceDto {
   @ApiProperty({ required: false, default: true })
@@ -44,11 +56,11 @@ export class FavoritePreferenceDto {
 export class AddFavoriteDto {
   @ApiProperty({ enum: FavoriteType })
   @IsEnum(FavoriteType)
-  type: FavoriteType;
+  type!: FavoriteType;
 
   @ApiProperty()
   @IsMongoId()
-  itemId: string;
+  itemId!: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -117,10 +129,18 @@ export class FavoritesFilterDto {
   @IsOptional()
   @Transform(({ value }) => {
     // Handle string boolean conversion from query params
-    if (value === 'true') return true;
-    if (value === 'false') return false;
-    if (value === '1') return true;
-    if (value === '0') return false;
+    if (value === 'true') {
+      return true;
+    }
+    if (value === 'false') {
+      return false;
+    }
+    if (value === '1') {
+      return true;
+    }
+    if (value === '0') {
+      return false;
+    }
     return value;
   })
   @IsBoolean()
@@ -146,7 +166,11 @@ export class FavoritesFilterDto {
   @IsString()
   sortBy?: string;
 
-  @ApiProperty({ enum: EstablishmentType, required: false, description: 'Filter by establishment type (e.g., restaurant, bakery)' })
+  @ApiProperty({
+    enum: EstablishmentType,
+    required: false,
+    description: 'Filter by establishment type (e.g., restaurant, bakery)',
+  })
   @IsOptional()
   @IsEnum(EstablishmentType)
   establishmentType?: EstablishmentType;
@@ -155,7 +179,7 @@ export class FavoritesFilterDto {
 export class CreateFavoriteListDto {
   @ApiProperty()
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -225,11 +249,11 @@ export class UpdateFavoriteListDto {
 export class AddToListDto {
   @ApiProperty()
   @IsMongoId()
-  itemId: string;
+  itemId!: string;
 
   @ApiProperty()
   @IsString()
-  type: string;
+  type!: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -247,7 +271,7 @@ export class ShareListDto {
   @ApiProperty({ type: [String] })
   @IsArray()
   @IsMongoId({ each: true })
-  userIds: string[];
+  userIds!: string[];
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -257,57 +281,57 @@ export class ShareListDto {
 
 export class FavoriteStatsDto {
   @ApiProperty()
-  totalFavorites: number;
+  totalFavorites!: number;
 
   @ApiProperty()
-  favoriteEstablishments: number;
+  favoriteEstablishments!: number;
 
   @ApiProperty()
-  favoriteOffers: number;
+  favoriteOffers!: number;
 
   @ApiProperty()
-  favoriteCategories: number;
+  favoriteCategories!: number;
 
   @ApiProperty()
-  totalLists: number;
+  totalLists!: number;
 
   @ApiProperty()
-  activeLists: number;
+  activeLists!: number;
 
   @ApiProperty()
-  sharedLists: number;
+  sharedLists!: number;
 
   @ApiProperty()
-  totalNotifications: number;
+  totalNotifications!: number;
 
   @ApiProperty()
-  recentActivity: number;
+  recentActivity!: number;
 }
 
 export class RecommendationDto {
   @ApiProperty()
-  itemId: string;
+  itemId!: string;
 
   @ApiProperty({ enum: FavoriteType })
-  type: FavoriteType;
+  type!: FavoriteType;
 
   @ApiProperty()
-  itemName: string;
+  itemName!: string;
 
   @ApiProperty({ required: false })
   itemImage?: string;
 
   @ApiProperty()
-  score: number;
+  score!: number;
 
   @ApiProperty()
-  reason: string;
+  reason!: string;
 
   @ApiProperty()
-  category: string;
+  category!: string;
 
   @ApiProperty({ type: [String] })
-  tags: string[];
+  tags!: string[];
 
   @ApiProperty({ required: false })
   rating?: number;
@@ -319,79 +343,79 @@ export class RecommendationDto {
   price?: number;
 
   @ApiProperty()
-  similarityScore: number;
+  similarityScore!: number;
 }
 
 export class RecommendationsResponseDto {
   @ApiProperty({ type: [RecommendationDto] })
-  recommendations: RecommendationDto[];
+  recommendations!: RecommendationDto[];
 
   @ApiProperty()
-  totalRecommendations: number;
+  totalRecommendations!: number;
 
   @ApiProperty()
-  algorithm: string;
+  algorithm!: string;
 
   @ApiProperty()
-  basedOnFavoritesCount: number;
+  basedOnFavoritesCount!: number;
 
   @ApiProperty()
-  generatedAt: Date;
+  generatedAt!: Date;
 
   @ApiProperty()
-  confidence: number;
+  confidence!: number;
 }
 
 export class TrendItemDto {
   @ApiProperty()
-  itemId: string;
+  itemId!: string;
 
   @ApiProperty({ enum: FavoriteType })
-  type: FavoriteType;
+  type!: FavoriteType;
 
   @ApiProperty()
-  itemName: string;
+  itemName!: string;
 
   @ApiProperty({ required: false })
   itemImage?: string;
 
   @ApiProperty()
-  favoriteCount: number;
+  favoriteCount!: number;
 
   @ApiProperty()
-  growthRate: number;
+  growthRate!: number;
 
   @ApiProperty()
-  rank: number;
+  rank!: number;
 
   @ApiProperty({ type: [String] })
-  popularTags: string[];
+  popularTags!: string[];
 
   @ApiProperty({ required: false })
   averageRating?: number;
 
   @ApiProperty()
-  trendScore: number;
+  trendScore!: number;
 }
 
 export class TrendsResponseDto {
   @ApiProperty({ type: [TrendItemDto] })
-  trends: TrendItemDto[];
+  trends!: TrendItemDto[];
 
   @ApiProperty()
-  period: string;
+  period!: string;
 
   @ApiProperty()
-  totalTrends: number;
+  totalTrends!: number;
 
   @ApiProperty()
-  generatedAt: Date;
+  generatedAt!: Date;
 
   @ApiProperty()
-  periodStartDate: Date;
+  periodStartDate!: Date;
 
   @ApiProperty()
-  periodEndDate: Date;
+  periodEndDate!: Date;
 }
 
 export class RecommendationFiltersDto {
@@ -428,7 +452,11 @@ export class RecommendationFiltersDto {
 }
 
 export class TrendsFiltersDto {
-  @ApiProperty({ required: false, default: 'week', enum: ['day', 'week', 'month', 'quarter', 'year'] })
+  @ApiProperty({
+    required: false,
+    default: 'week',
+    enum: ['day', 'week', 'month', 'quarter', 'year'],
+  })
   @IsOptional()
   @IsEnum(['day', 'week', 'month', 'quarter', 'year'])
   period?: string;

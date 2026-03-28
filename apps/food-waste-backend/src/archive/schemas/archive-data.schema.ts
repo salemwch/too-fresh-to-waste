@@ -8,12 +8,12 @@ export type ArchiveDataDocument = ArchiveData & Document;
  * Maps 1:1 with the main Mongoose model collection names.
  */
 export const ARCHIVABLE_COLLECTIONS = [
-    'orders',
-    'reviews',
-    'offers',
-    'establishments',
-    'userdonations',
-    'users',
+  'orders',
+  'reviews',
+  'offers',
+  'establishments',
+  'userdonations',
+  'users',
 ] as const;
 
 export type ArchivableCollection = (typeof ARCHIVABLE_COLLECTIONS)[number];
@@ -26,35 +26,35 @@ export type ArchivableCollection = (typeof ARCHIVABLE_COLLECTIONS)[number];
  */
 @Schema({ collection: 'Archive_data', timestamps: false })
 export class ArchiveData {
-    /**
-     * Source collection name — discriminator for multi-entity archive.
-     */
-    @Prop({
-        required: true,
-        type: String,
-        enum: ARCHIVABLE_COLLECTIONS,
-        index: true,
-    })
-    sourceCollection: ArchivableCollection;
+  /**
+   * Source collection name — discriminator for multi-entity archive.
+   */
+  @Prop({
+    required: true,
+    type: String,
+    enum: ARCHIVABLE_COLLECTIONS,
+    index: true,
+  })
+  sourceCollection!: ArchivableCollection;
 
-    /**
-     * Original `_id` from the source document.
-     */
-    @Prop({ required: true, type: Types.ObjectId })
-    originalId: Types.ObjectId;
+  /**
+   * Original `_id` from the source document.
+   */
+  @Prop({ required: true, type: Types.ObjectId })
+  originalId!: Types.ObjectId;
 
-    /**
-     * Timestamp when the record was archived (moved to this collection).
-     */
-    @Prop({ required: true, type: Date, default: Date.now })
-    archivedAt: Date;
+  /**
+   * Timestamp when the record was archived (moved to this collection).
+   */
+  @Prop({ required: true, type: Date, default: Date.now })
+  archivedAt!: Date;
 
-    /**
-     * Full snapshot of the original document at archive time.
-     * Stored as a generic object to support any entity shape.
-     */
-    @Prop({ required: true, type: Object })
-    document: Record<string, any>;
+  /**
+   * Full snapshot of the original document at archive time.
+   * Stored as a generic object to support any entity shape.
+   */
+  @Prop({ required: true, type: Object })
+  document!: Record<string, unknown>;
 }
 
 export const ArchiveDataSchema = SchemaFactory.createForClass(ArchiveData);
@@ -67,10 +67,7 @@ export const ArchiveDataSchema = SchemaFactory.createForClass(ArchiveData);
  * Unique compound index — prevents duplicate archives of the same record.
  * Lookup pattern: findOne({ sourceCollection: 'orders', originalId })
  */
-ArchiveDataSchema.index(
-    { sourceCollection: 1, originalId: 1 },
-    { unique: true },
-);
+ArchiveDataSchema.index({ sourceCollection: 1, originalId: 1 }, { unique: true });
 
 /**
  * Admin browsing index — enables paginated listing per source collection,

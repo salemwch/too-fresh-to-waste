@@ -33,7 +33,7 @@ export interface DeviceInfo {
   readonly userAgent: string;
 
   /** Geographic location (city, country) derived from IP */
-  readonly location?: string;
+  readonly location?: string | undefined;
 
   /** Whether this device is marked as trusted */
   isTrusted: boolean;
@@ -134,13 +134,13 @@ export interface LoginHistoryEntry {
   readonly timestamp: Date;
 
   /** Geographic location (if available) */
-  readonly location?: string;
+  readonly location?: string | undefined;
 
   /** Login success status */
   readonly success: boolean;
 
   /** Failure reason (if login failed) */
-  readonly failureReason?: string;
+  readonly failureReason?: string | undefined;
 }
 
 /**
@@ -174,5 +174,5 @@ export interface SessionActivity {
   readonly timestamp: Date;
 
   /** Additional metadata */
-  readonly metadata?: Record<string, any>;
+  readonly metadata?: Record<string, unknown>;
 }

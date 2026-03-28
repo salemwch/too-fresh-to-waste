@@ -4,22 +4,26 @@ import sanitizeHtml from 'sanitize-html';
 // Type definitions for sanitization operations
 type SanitizableValue = string | number | boolean | null | undefined;
 type SanitizableArray = (SanitizableValue | SanitizableObject)[];
-type SanitizableObject = {
-    [key: string]: SanitizableValue | SanitizableArray | SanitizableObject | SanitizableObject[];
-};
-type SanitizableInput = SanitizableValue | SanitizableArray | SanitizableObject | SanitizableObject[];
+interface SanitizableObject {
+  [key: string]: SanitizableValue | SanitizableArray | SanitizableObject | SanitizableObject[];
+}
+type SanitizableInput =
+  | SanitizableValue
+  | SanitizableArray
+  | SanitizableObject
+  | SanitizableObject[];
 
 interface NotificationPayload {
-    title: string;
-    body: string;
-    data?: SanitizableObject;
-    image?: string;
-    clickAction?: string;
-    [key: string]: SanitizableInput;
+  title: string;
+  body: string;
+  data?: SanitizableObject;
+  image?: string;
+  clickAction?: string;
+  [key: string]: SanitizableInput;
 }
 
 interface TemplateVariables {
-    [key: string]: SanitizableInput;
+  [key: string]: SanitizableInput;
 }
 
 /**
@@ -41,12 +45,12 @@ export class SanitizationUtil {
     // Whitelist approach: only allow safe tags
     allowedTags: ['b', 'i', 'em', 'strong', 'p', 'br', 'span', 'ul', 'ol', 'li', 'a'],
     allowedAttributes: {
-      'a': ['href', 'title', 'target', 'rel'],
-      'span': ['class']
+      a: ['href', 'title', 'target', 'rel'],
+      span: ['class'],
     },
     allowedSchemes: ['http', 'https', 'mailto'],
     allowedSchemesByTag: {
-      'a': ['http', 'https', 'mailto']
+      a: ['http', 'https', 'mailto'],
     },
     // Remove all tags not whitelisted
     allowProtocolRelative: false,
@@ -55,18 +59,16 @@ export class SanitizationUtil {
     enforceHtmlBoundary: true,
     // Transform tags to safe alternatives
     transformTags: {
-      'a': (tagName, attribs) => {
-        return {
-          tagName: 'a',
-          attribs: {
-            ...attribs,
-            // Force external links to open in new tab with security
-            target: '_blank',
-            rel: 'noopener noreferrer nofollow'
-          }
-        };
-      }
-    }
+      a: (_tagName, attribs) => ({
+        tagName: 'a',
+        attribs: {
+          ...attribs,
+          // Force external links to open in new tab with security
+          target: '_blank',
+          rel: 'noopener noreferrer nofollow',
+        },
+      }),
+    },
   };
 
   /**
@@ -76,7 +78,7 @@ export class SanitizationUtil {
   private readonly textOnlyOptions: sanitizeHtml.IOptions = {
     allowedTags: [],
     allowedAttributes: {},
-    disallowedTagsMode: 'discard'
+    disallowedTagsMode: 'discard',
   };
 
   /**
@@ -85,34 +87,56 @@ export class SanitizationUtil {
    */
   private readonly emailHtmlOptions: sanitizeHtml.IOptions = {
     allowedTags: [
-      'b', 'i', 'em', 'strong', 'p', 'br', 'span', 'div', 'ul', 'ol', 'li',
-      'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody',
-      'tr', 'td', 'th', 'img'
+      'b',
+      'i',
+      'em',
+      'strong',
+      'p',
+      'br',
+      'span',
+      'div',
+      'ul',
+      'ol',
+      'li',
+      'a',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'td',
+      'th',
+      'img',
     ],
     allowedAttributes: {
-      'a': ['href', 'title', 'target', 'rel'],
-      'img': ['src', 'alt', 'title', 'width', 'height'],
-      'span': ['class', 'style'],
-      'div': ['class', 'style'],
-      'p': ['class', 'style'],
-      'table': ['class', 'style', 'border', 'cellpadding', 'cellspacing'],
-      'td': ['class', 'style', 'colspan', 'rowspan'],
-      'th': ['class', 'style', 'colspan', 'rowspan']
+      a: ['href', 'title', 'target', 'rel'],
+      img: ['src', 'alt', 'title', 'width', 'height'],
+      span: ['class', 'style'],
+      div: ['class', 'style'],
+      p: ['class', 'style'],
+      table: ['class', 'style', 'border', 'cellpadding', 'cellspacing'],
+      td: ['class', 'style', 'colspan', 'rowspan'],
+      th: ['class', 'style', 'colspan', 'rowspan'],
     },
     allowedSchemes: ['http', 'https', 'mailto', 'data'],
     allowedSchemesByTag: {
-      'img': ['http', 'https', 'data']
+      img: ['http', 'https', 'data'],
     },
     allowedStyles: {
       '*': {
-        'color': [/^#(0x)?[0-9a-f]+$/i, /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/],
+        color: [/^#(0x)?[0-9a-f]+$/i, /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/],
         'text-align': [/^left$/, /^right$/, /^center$/],
         'font-size': [/^\d+(?:px|em|%)$/],
         'font-weight': [/^bold$/, /^normal$/],
-        'padding': [/^\d+(?:px|em|%)$/],
-        'margin': [/^\d+(?:px|em|%)$/]
-      }
-    }
+        padding: [/^\d+(?:px|em|%)$/],
+        margin: [/^\d+(?:px|em|%)$/],
+      },
+    },
   };
 
   /**
@@ -179,14 +203,14 @@ export class SanitizationUtil {
    */
   private decodeHtmlEntities(str: string): string {
     return str
-      .replace(/&amp;/g,  '&')
-      .replace(/&lt;/g,   '<')
-      .replace(/&gt;/g,   '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
       .replace(/&apos;/g, "'")
       .replace(/&#x27;/g, "'")
       .replace(/&#x2F;/g, '/')
-      .replace(/&#39;/g,  "'");
+      .replace(/&#39;/g, "'");
   }
 
   /**
@@ -200,15 +224,15 @@ export class SanitizationUtil {
     if (!payload || typeof payload !== 'object') {
       return {
         title: '',
-        body: ''
+        body: '',
       };
     }
 
     const inputPayload = payload as NotificationPayload;
     const sanitized: NotificationPayload = {
-      title: '',
-      body: '',
-      ...inputPayload
+      ...inputPayload,
+      title: inputPayload.title ?? '',
+      body: inputPayload.body ?? '',
     };
 
     // Sanitize title and body as text (no HTML allowed in notifications)
@@ -245,7 +269,7 @@ export class SanitizationUtil {
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.sanitizeObjectRecursively(item)) as SanitizableArray;
+      return obj.map((item) => this.sanitizeObjectRecursively(item)) as SanitizableArray;
     }
 
     if (typeof obj !== 'object') {
@@ -253,7 +277,7 @@ export class SanitizationUtil {
     }
 
     const sanitized: SanitizableObject = {};
-    for (const [key, value] of Object.entries(obj as SanitizableObject)) {
+    for (const [key, value] of Object.entries(obj)) {
       // Sanitize keys to prevent prototype pollution
       const sanitizedKey = this.sanitizeObjectKey(key);
       if (sanitizedKey) {
@@ -299,7 +323,7 @@ export class SanitizationUtil {
     const sanitized = sanitizeHtml(url, {
       allowedTags: [],
       allowedAttributes: {},
-      allowedSchemes: ['http', 'https']
+      allowedSchemes: ['http', 'https'],
     }).trim();
 
     // Validate URL format
@@ -381,7 +405,7 @@ export class SanitizationUtil {
       /<script/i,
       /javascript:/i,
       /vbscript:/i,
-      /on\w+\s*=/i,  // Event handlers (onclick, onerror, etc.)
+      /on\w+\s*=/i, // Event handlers (onclick, onerror, etc.)
       /expression\s*\(/i,
       /@import/i,
       /data:text\/html/i,
@@ -389,10 +413,10 @@ export class SanitizationUtil {
       /<object/i,
       /<embed/i,
       /__proto__/i,
-      /constructor.*prototype/i
+      /constructor.*prototype/i,
     ];
 
-    return suspiciousPatterns.some(pattern => pattern.test(input));
+    return suspiciousPatterns.some((pattern) => pattern.test(input));
   }
 
   /**
@@ -402,7 +426,10 @@ export class SanitizationUtil {
    * @param sanitized - Sanitized output
    * @returns Object with statistics
    */
-  getSanitizationStats(original: string, sanitized: string): {
+  getSanitizationStats(
+    original: string,
+    sanitized: string,
+  ): {
     originalLength: number;
     sanitizedLength: number;
     bytesRemoved: number;
@@ -420,7 +447,7 @@ export class SanitizationUtil {
       sanitizedLength,
       bytesRemoved,
       percentRemoved: Math.round(percentRemoved * 100) / 100,
-      containedSuspicious
+      containedSuspicious,
     };
   }
 }

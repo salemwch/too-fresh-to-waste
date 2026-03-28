@@ -1,6 +1,3 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import zxcvbn = require('zxcvbn');
 import {
   PASSWORD_POLICY,
   PASSWORD_MIN_LENGTH,
@@ -12,13 +9,18 @@ import {
   COMMON_PASSWORDS,
   buildSpecialCharRegex,
 } from '@foodwaste/shared';
-import { PasswordHistoryService } from './password-history.service';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import zxcvbn = require('zxcvbn');
+
 import {
   IPasswordPolicyService,
   PasswordStrengthResult,
   PasswordPolicyConfig,
   PasswordValidationContext,
 } from '../interfaces/password-policy-service.interface';
+
+import { PasswordHistoryService } from './password-history.service';
 
 /**
  * PasswordPolicyService - Concrete implementation of IPasswordPolicyService
@@ -63,7 +65,10 @@ export class PasswordPolicyService implements IPasswordPolicyService {
   constructor(
     private readonly configService: ConfigService,
     private readonly passwordHistoryService: PasswordHistoryService,
-  ) {}
+  ) {
+    void this.containsPersonalInfo;
+    void this._escapeRegex;
+  }
 
   validatePassword(password: string, context?: PasswordValidationContext): PasswordStrengthResult {
     const policy = this.getPasswordPolicy();
@@ -117,7 +122,9 @@ export class PasswordPolicyService implements IPasswordPolicyService {
       }
 
       if (policy.preventRepeating && this.hasRepeatingChars(password, policy.maxRepeatingChars)) {
-        feedback.push(`Password has too many repeating characters (max ${policy.maxRepeatingChars})`);
+        feedback.push(
+          `Password has too many repeating characters (max ${policy.maxRepeatingChars})`,
+        );
         suggestions.push('Reduce repeating characters');
         isValid = false;
       }
@@ -154,7 +161,9 @@ export class PasswordPolicyService implements IPasswordPolicyService {
         isValid: isValid && strengthAnalysis.score >= policy.minScore,
         warning: strengthAnalysis.feedback.warning,
         suggestions,
-        crackTime: this.formatCrackTime(String(strengthAnalysis.crack_times_display.offline_slow_hashing_1e4_per_second)),
+        crackTime: this.formatCrackTime(
+          String(strengthAnalysis.crack_times_display.offline_slow_hashing_1e4_per_second),
+        ),
         guessesLog10: strengthAnalysis.guesses_log10,
       };
 
@@ -167,7 +176,6 @@ export class PasswordPolicyService implements IPasswordPolicyService {
       });
 
       return result;
-
     } catch (error) {
       this.logger.error('Error during password validation:', error);
       throw new BadRequestException('Password validation failed');
@@ -211,7 +219,10 @@ export class PasswordPolicyService implements IPasswordPolicyService {
     }
 
     // Shuffle the password
-    password = password.split('').sort(() => Math.random() - 0.5).join('');
+    password = password
+      .split('')
+      .sort(() => Math.random() - 0.5)
+      .join('');
 
     return password;
   }
@@ -230,7 +241,7 @@ export class PasswordPolicyService implements IPasswordPolicyService {
         feedback: result.feedback,
         suggestions: result.suggestions,
         score: result.score,
-        type: 'WEAK_PASSWORD'
+        type: 'WEAK_PASSWORD',
       });
     }
   }
@@ -245,7 +256,7 @@ export class PasswordPolicyService implements IPasswordPolicyService {
    */
   async validatePasswordWithHistory(
     password: string,
-    context?: PasswordValidationContext
+    context?: PasswordValidationContext,
   ): Promise<PasswordStrengthResult> {
     // 1. Perform standard password strength validation
     const result = this.validatePassword(password, context);
@@ -255,16 +266,20 @@ export class PasswordPolicyService implements IPasswordPolicyService {
       try {
         await this.passwordHistoryService.validatePasswordHistory(
           password,
-          context.previousPasswords
+          context.previousPasswords,
         );
       } catch (error) {
         // Add history violation to feedback
         result.isValid = false;
         if (error instanceof BadRequestException) {
           const errorResponse = error.getResponse();
-          const message = typeof errorResponse === 'string'
-            ? errorResponse
-            : (errorResponse as any).message || 'Password reuse detected';
+          const message =
+            typeof errorResponse === 'string'
+              ? errorResponse
+              : String(
+                  (errorResponse as Record<string, unknown>)['message'] ??
+                    'Password reuse detected',
+                );
           result.feedback.push(message);
           result.suggestions.push('Choose a password you have not used recently');
         } else {
@@ -286,7 +301,7 @@ export class PasswordPolicyService implements IPasswordPolicyService {
    */
   async validatePasswordStrengthWithHistory(
     password: string,
-    context?: PasswordValidationContext
+    context?: PasswordValidationContext,
   ): Promise<void> {
     const result = await this.validatePasswordWithHistory(password, context);
 
@@ -301,25 +316,49 @@ export class PasswordPolicyService implements IPasswordPolicyService {
         feedback: result.feedback,
         suggestions: result.suggestions,
         score: result.score,
-        type: 'WEAK_PASSWORD'
+        type: 'WEAK_PASSWORD',
       });
     }
   }
 
   getPasswordPolicy(): PasswordPolicyConfig {
     return {
-      minLength: this.configService.get<number>('PASSWORD_MIN_LENGTH') || this.defaultPolicy.minLength,
-      maxLength: this.configService.get<number>('PASSWORD_MAX_LENGTH') || this.defaultPolicy.maxLength,
-      requireUppercase: this.parseBoolean('PASSWORD_REQUIRE_UPPERCASE', this.defaultPolicy.requireUppercase),
-      requireLowercase: this.parseBoolean('PASSWORD_REQUIRE_LOWERCASE', this.defaultPolicy.requireLowercase),
-      requireNumbers: this.parseBoolean('PASSWORD_REQUIRE_NUMBERS', this.defaultPolicy.requireNumbers),
-      requireSpecialChars: this.parseBoolean('PASSWORD_REQUIRE_SPECIAL_CHARS', this.defaultPolicy.requireSpecialChars),
+      minLength:
+        this.configService.get<number>('PASSWORD_MIN_LENGTH') || this.defaultPolicy.minLength,
+      maxLength:
+        this.configService.get<number>('PASSWORD_MAX_LENGTH') || this.defaultPolicy.maxLength,
+      requireUppercase: this.parseBoolean(
+        'PASSWORD_REQUIRE_UPPERCASE',
+        this.defaultPolicy.requireUppercase,
+      ),
+      requireLowercase: this.parseBoolean(
+        'PASSWORD_REQUIRE_LOWERCASE',
+        this.defaultPolicy.requireLowercase,
+      ),
+      requireNumbers: this.parseBoolean(
+        'PASSWORD_REQUIRE_NUMBERS',
+        this.defaultPolicy.requireNumbers,
+      ),
+      requireSpecialChars: this.parseBoolean(
+        'PASSWORD_REQUIRE_SPECIAL_CHARS',
+        this.defaultPolicy.requireSpecialChars,
+      ),
       minScore: this.configService.get<number>('PASSWORD_MIN_SCORE') || this.defaultPolicy.minScore,
       preventCommon: this.parseBoolean('PASSWORD_PREVENT_COMMON', this.defaultPolicy.preventCommon),
-      preventPersonalInfo: this.parseBoolean('PASSWORD_PREVENT_PERSONAL_INFO', this.defaultPolicy.preventPersonalInfo),
-      preventRepeating: this.parseBoolean('PASSWORD_PREVENT_REPEATING', this.defaultPolicy.preventRepeating),
-      maxRepeatingChars: this.configService.get<number>('PASSWORD_MAX_REPEATING_CHARS') || this.defaultPolicy.maxRepeatingChars,
-      specialCharacters: this.configService.get<string>('PASSWORD_SPECIAL_CHARACTERS') || this.defaultPolicy.specialCharacters,
+      preventPersonalInfo: this.parseBoolean(
+        'PASSWORD_PREVENT_PERSONAL_INFO',
+        this.defaultPolicy.preventPersonalInfo,
+      ),
+      preventRepeating: this.parseBoolean(
+        'PASSWORD_PREVENT_REPEATING',
+        this.defaultPolicy.preventRepeating,
+      ),
+      maxRepeatingChars:
+        this.configService.get<number>('PASSWORD_MAX_REPEATING_CHARS') ||
+        this.defaultPolicy.maxRepeatingChars,
+      specialCharacters:
+        this.configService.get<string>('PASSWORD_SPECIAL_CHARACTERS') ||
+        this.defaultPolicy.specialCharacters,
     };
   }
 
@@ -356,7 +395,7 @@ export class PasswordPolicyService implements IPasswordPolicyService {
     return false;
   }
 
-  private containsPersonalInfo(password: string, context: PasswordValidationContext): boolean {
+  private containsPersonalInfo(_password: string, _context: PasswordValidationContext): boolean {
     // Personal information checking DISABLED - allow users to use their name/email in passwords
     // This prevents password strength from being penalized for including:
     // - Email address or email prefix
@@ -388,7 +427,7 @@ export class PasswordPolicyService implements IPasswordPolicyService {
     return false;
   }
 
-  private buildUserInputs(context?: PasswordValidationContext): string[] {
+  private buildUserInputs(_context?: PasswordValidationContext): string[] {
     // Don't pass any personal info to zxcvbn to allow users flexibility in password choice
     // This prevents password strength from being penalized for including:
     // - Email address or email prefix
@@ -418,7 +457,7 @@ export class PasswordPolicyService implements IPasswordPolicyService {
     return crackTime;
   }
 
-  private escapeRegex(str: string): string {
+  private _escapeRegex(str: string): string {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 }

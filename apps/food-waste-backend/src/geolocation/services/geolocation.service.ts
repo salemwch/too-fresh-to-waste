@@ -1,8 +1,20 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import * as iso31661alpha2 from 'iso-3166-1-alpha-2';
+import { Model } from 'mongoose';
+
+import {
+  Establishment,
+  EstablishmentDocument,
+} from '../../establishments/schemas/establishment.schema';
+import { User, UserDocument } from '../../users/schemas/user.schema';
+import {
+  DistanceCalculationDto,
+  GeocodingDto,
+  ReverseGeocodingDto,
+  GeofenceCheckDto,
+} from '../dto/geolocation.dto';
 import {
   GeoCoordinate,
   Distance,
@@ -11,17 +23,10 @@ import {
   ReverseGeocodingResult,
   GeofenceResult,
   GeoPoint,
-  AddressInfo
+  AddressInfo,
 } from '../interfaces/geolocation.interface';
-import {
-  DistanceCalculationDto,
-  GeocodingDto,
-  ReverseGeocodingDto,
-  GeofenceCheckDto
-} from '../dto/geolocation.dto';
 import { DistanceCalculator } from '../utils/distance.util';
-import { User, UserDocument } from '../../users/schemas/user.schema';
-import { Establishment, EstablishmentDocument } from '../../establishments/schemas/establishment.schema';
+
 import { GeoapifyService } from './geoapify.service';
 
 @Injectable()
@@ -29,11 +34,17 @@ export class GeolocationService {
   private readonly logger = new Logger(GeolocationService.name);
 
   constructor(
-    private readonly configService: ConfigService,
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-    @InjectModel(Establishment.name) private readonly establishmentModel: Model<EstablishmentDocument>,
+    private readonly _configService: ConfigService,
+    @InjectModel(User.name) private readonly _userModel: Model<UserDocument>,
+    @InjectModel(Establishment.name)
+    private readonly _establishmentModel: Model<EstablishmentDocument>,
     private readonly geoapifyService: GeoapifyService,
-  ) {}
+  ) {
+    void this._configService;
+    void this._userModel;
+    void this._establishmentModel;
+    void this._getCountryCode;
+  }
 
   /**
    * Calculate distance between two points
@@ -51,9 +62,8 @@ export class GeolocationService {
       return DistanceCalculator.calculateDistance(
         dto.origin,
         dto.destination,
-        dto.unit || DistanceUnit.KILOMETERS
+        dto.unit || DistanceUnit.KILOMETERS,
       );
-
     } catch (error) {
       this.logger.error('Failed to calculate distance:', error);
       throw error;
@@ -66,20 +76,19 @@ export class GeolocationService {
   calculateDistances(
     origin: GeoCoordinate,
     destinations: GeoCoordinate[],
-    unit: DistanceUnit = DistanceUnit.KILOMETERS
+    unit: DistanceUnit = DistanceUnit.KILOMETERS,
   ): Distance[] {
     try {
       if (!DistanceCalculator.isValidCoordinate(origin)) {
         throw new BadRequestException('Invalid origin coordinates');
       }
 
-      return destinations.map(destination => {
+      return destinations.map((destination) => {
         if (!DistanceCalculator.isValidCoordinate(destination)) {
           throw new BadRequestException('Invalid destination coordinates');
         }
         return DistanceCalculator.calculateDistance(origin, destination, unit);
       });
-
     } catch (error) {
       this.logger.error('Failed to calculate distances:', error);
       throw error;
@@ -102,7 +111,7 @@ export class GeolocationService {
       const distance = DistanceCalculator.calculateDistance(
         dto.geofence.center,
         dto.point,
-        DistanceUnit.METERS
+        DistanceUnit.METERS,
       );
 
       const isInside = distance.value <= dto.geofence.radius;
@@ -114,10 +123,9 @@ export class GeolocationService {
           center: dto.geofence.center,
           radius: dto.geofence.radius,
           name: dto.geofence.name,
-          description: dto.geofence.description
-        }
+          description: dto.geofence.description,
+        },
       };
-
     } catch (error) {
       this.logger.error('Failed to check geofence:', error);
       throw error;
@@ -130,7 +138,7 @@ export class GeolocationService {
   getBoundingBox(
     center: GeoCoordinate,
     radius: number,
-    unit: DistanceUnit = DistanceUnit.KILOMETERS
+    unit: DistanceUnit = DistanceUnit.KILOMETERS,
   ): { northeast: GeoCoordinate; southwest: GeoCoordinate } {
     try {
       if (!DistanceCalculator.isValidCoordinate(center)) {
@@ -138,7 +146,6 @@ export class GeolocationService {
       }
 
       return DistanceCalculator.getBoundingBox(center, radius, unit);
-
     } catch (error) {
       this.logger.error('Failed to calculate bounding box:', error);
       throw error;
@@ -160,7 +167,7 @@ export class GeolocationService {
    * Convert GeoJSON Point to coordinates
    */
   geoPointToCoordinate(point: GeoPoint): GeoCoordinate {
-    if (!point.coordinates || point.coordinates.length !== 2) {
+    if (point.coordinates?.length !== 2) {
       throw new BadRequestException('Invalid GeoJSON point');
     }
 
@@ -177,23 +184,25 @@ export class GeolocationService {
    * Geocode address to coordinates via Geoapify
    */
   async geocodeAddress(dto: GeocodingDto): Promise<GeocodingResult[]> {
-    return this.geoapifyService.geocodeAddress(
+    const result = await this.geoapifyService.geocodeAddress(
       dto.address,
       dto.language,
       dto.limit,
       dto.countryCode,
     );
+    return result;
   }
 
   /**
    * Reverse geocode coordinates to address via Geoapify
    */
   async reverseGeocode(dto: ReverseGeocodingDto): Promise<ReverseGeocodingResult> {
-    return this.geoapifyService.reverseGeocode(
+    const result = await this.geoapifyService.reverseGeocode(
       dto.coordinates.latitude,
       dto.coordinates.longitude,
       dto.language,
     );
+    return result;
   }
 
   /**
@@ -213,7 +222,6 @@ export class GeolocationService {
       }
 
       return DistanceCalculator.calculateCenter(coordinates);
-
     } catch (error) {
       this.logger.error('Failed to calculate center:', error);
       throw error;
@@ -226,7 +234,7 @@ export class GeolocationService {
   sortLocationsByDistance<T extends { coordinates: GeoCoordinate }>(
     locations: T[],
     reference: GeoCoordinate,
-    unit: DistanceUnit = DistanceUnit.KILOMETERS
+    unit: DistanceUnit = DistanceUnit.KILOMETERS,
   ): Array<T & { distance: Distance }> {
     try {
       if (!DistanceCalculator.isValidCoordinate(reference)) {
@@ -234,7 +242,6 @@ export class GeolocationService {
       }
 
       return DistanceCalculator.sortByDistance(locations, reference, unit);
-
     } catch (error) {
       this.logger.error('Failed to sort locations by distance:', error);
       throw error;
@@ -248,7 +255,7 @@ export class GeolocationService {
     locations: T[],
     center: GeoCoordinate,
     radius: number,
-    unit: DistanceUnit = DistanceUnit.KILOMETERS
+    unit: DistanceUnit = DistanceUnit.KILOMETERS,
   ): Array<T & { distance: Distance }> {
     try {
       if (!DistanceCalculator.isValidCoordinate(center)) {
@@ -256,7 +263,6 @@ export class GeolocationService {
       }
 
       return DistanceCalculator.filterByRadius(locations, center, radius, unit);
-
     } catch (error) {
       this.logger.error('Failed to filter locations by radius:', error);
       throw error;
@@ -280,11 +286,7 @@ export class GeolocationService {
   /**
    * Convert distance between units
    */
-  convertDistanceUnit(
-    value: number,
-    fromUnit: DistanceUnit,
-    toUnit: DistanceUnit
-  ): number {
+  convertDistanceUnit(value: number, fromUnit: DistanceUnit, toUnit: DistanceUnit): number {
     return DistanceCalculator.convertDistance(value, fromUnit, toUnit);
   }
 
@@ -292,8 +294,9 @@ export class GeolocationService {
    * Get coordinates from address info via Geoapify forward geocoding
    */
   async getCoordinatesFromAddress(address: AddressInfo): Promise<GeoCoordinate | null> {
-    const query = address.formattedAddress
-      || [address.street, address.city, address.country].filter(Boolean).join(', ');
+    const query =
+      address.formattedAddress ||
+      [address.street, address.city, address.country].filter(Boolean).join(', ');
 
     if (!query) {
       this.logger.warn('getCoordinatesFromAddress: No usable address fields provided');
@@ -303,7 +306,7 @@ export class GeolocationService {
     try {
       const results = await this.geoapifyService.geocodeAddress(query);
       if (results.length > 0) {
-        return results[0].coordinates;
+        return results[0]!.coordinates;
       }
       return null;
     } catch (error) {
@@ -312,7 +315,7 @@ export class GeolocationService {
     }
   }
 
-  private getCountryCode(country?: string): string | undefined {
+  private _getCountryCode(country?: string): string | undefined {
     if (!country) {
       return undefined;
     }
@@ -334,244 +337,249 @@ export class GeolocationService {
         // English variations
         'United States': 'US',
         'United States of America': 'US',
-        'USA': 'US',
-        'America': 'US',
-        'US': 'US',
+        USA: 'US',
+        America: 'US',
+        US: 'US',
 
         'United Kingdom': 'GB',
         'Great Britain': 'GB',
-        'Britain': 'GB',
-        'England': 'GB',
-        'UK': 'GB',
-        'GB': 'GB',
+        Britain: 'GB',
+        England: 'GB',
+        UK: 'GB',
+        GB: 'GB',
 
-        'France': 'FR',
+        France: 'FR',
         'French Republic': 'FR',
 
-        'Germany': 'DE',
-        'Deutschland': 'DE',
+        Germany: 'DE',
+        Deutschland: 'DE',
         'Federal Republic of Germany': 'DE',
 
-        'Spain': 'ES',
-        'España': 'ES',
+        Spain: 'ES',
+        España: 'ES',
         'Kingdom of Spain': 'ES',
 
-        'Italy': 'IT',
-        'Italia': 'IT',
+        Italy: 'IT',
+        Italia: 'IT',
         'Italian Republic': 'IT',
 
-        'Canada': 'CA',
+        Canada: 'CA',
 
-        'Australia': 'AU',
+        Australia: 'AU',
         'Commonwealth of Australia': 'AU',
 
-        'Netherlands': 'NL',
-        'Holland': 'NL',
+        Netherlands: 'NL',
+        Holland: 'NL',
         'The Netherlands': 'NL',
 
-        'Switzerland': 'CH',
+        Switzerland: 'CH',
         'Swiss Confederation': 'CH',
 
-        'Austria': 'AT',
+        Austria: 'AT',
         'Republic of Austria': 'AT',
 
-        'Belgium': 'BE',
+        Belgium: 'BE',
         'Kingdom of Belgium': 'BE',
 
-        'Sweden': 'SE',
+        Sweden: 'SE',
         'Kingdom of Sweden': 'SE',
 
-        'Norway': 'NO',
+        Norway: 'NO',
         'Kingdom of Norway': 'NO',
 
-        'Denmark': 'DK',
+        Denmark: 'DK',
         'Kingdom of Denmark': 'DK',
 
-        'Finland': 'FI',
+        Finland: 'FI',
         'Republic of Finland': 'FI',
 
-        'Ireland': 'IE',
+        Ireland: 'IE',
         'Republic of Ireland': 'IE',
-        'Éire': 'IE',
+        Éire: 'IE',
 
-        'Portugal': 'PT',
+        Portugal: 'PT',
         'Portuguese Republic': 'PT',
 
-        'Poland': 'PL',
+        Poland: 'PL',
         'Republic of Poland': 'PL',
-        'Polska': 'PL',
+        Polska: 'PL',
 
         'Czech Republic': 'CZ',
-        'Czechia': 'CZ',
-        'Czech': 'CZ',
+        Czechia: 'CZ',
+        Czech: 'CZ',
 
-        'Slovakia': 'SK',
+        Slovakia: 'SK',
         'Slovak Republic': 'SK',
 
-        'Hungary': 'HU',
+        Hungary: 'HU',
         'Republic of Hungary': 'HU',
-        'Magyarország': 'HU',
+        Magyarország: 'HU',
 
-        'Slovenia': 'SI',
+        Slovenia: 'SI',
         'Republic of Slovenia': 'SI',
 
-        'Croatia': 'HR',
+        Croatia: 'HR',
         'Republic of Croatia': 'HR',
-        'Hrvatska': 'HR',
+        Hrvatska: 'HR',
 
-        'Romania': 'RO',
-        'România': 'RO',
+        Romania: 'RO',
+        România: 'RO',
 
-        'Bulgaria': 'BG',
+        Bulgaria: 'BG',
         'Republic of Bulgaria': 'BG',
 
-        'Greece': 'GR',
+        Greece: 'GR',
         'Hellenic Republic': 'GR',
-        'Hellas': 'GR',
+        Hellas: 'GR',
 
-        'Cyprus': 'CY',
+        Cyprus: 'CY',
         'Republic of Cyprus': 'CY',
 
-        'Malta': 'MT',
+        Malta: 'MT',
         'Republic of Malta': 'MT',
 
-        'Luxembourg': 'LU',
+        Luxembourg: 'LU',
         'Grand Duchy of Luxembourg': 'LU',
 
-        'Lithuania': 'LT',
+        Lithuania: 'LT',
         'Republic of Lithuania': 'LT',
 
-        'Latvia': 'LV',
+        Latvia: 'LV',
         'Republic of Latvia': 'LV',
 
-        'Estonia': 'EE',
+        Estonia: 'EE',
         'Republic of Estonia': 'EE',
 
         // Asian countries
-        'China': 'CN',
-        'People\'s Republic of China': 'CN',
-        'PRC': 'CN',
+        China: 'CN',
+        "People's Republic of China": 'CN',
+        PRC: 'CN',
 
-        'Japan': 'JP',
-        'Nippon': 'JP',
-        'Nihon': 'JP',
+        Japan: 'JP',
+        Nippon: 'JP',
+        Nihon: 'JP',
 
         'South Korea': 'KR',
-        'Korea': 'KR',
+        Korea: 'KR',
         'Republic of Korea': 'KR',
 
-        'India': 'IN',
+        India: 'IN',
         'Republic of India': 'IN',
-        'Bharat': 'IN',
+        Bharat: 'IN',
 
-        'Singapore': 'SG',
+        Singapore: 'SG',
         'Republic of Singapore': 'SG',
 
-        'Thailand': 'TH',
+        Thailand: 'TH',
         'Kingdom of Thailand': 'TH',
 
-        'Malaysia': 'MY',
+        Malaysia: 'MY',
 
-        'Indonesia': 'ID',
+        Indonesia: 'ID',
         'Republic of Indonesia': 'ID',
 
-        'Philippines': 'PH',
+        Philippines: 'PH',
         'Republic of the Philippines': 'PH',
 
-        'Vietnam': 'VN',
+        Vietnam: 'VN',
         'Viet Nam': 'VN',
         'Socialist Republic of Vietnam': 'VN',
 
         // Middle East & Africa
 
         'United Arab Emirates': 'AE',
-        'UAE': 'AE',
+        UAE: 'AE',
 
         'Saudi Arabia': 'SA',
         'Kingdom of Saudi Arabia': 'SA',
-        'tunisie': 'TN',
+        tunisie: 'TN',
         'Republic of tunis': 'TN',
 
-        'Turkey': 'TR',
+        Turkey: 'TR',
         'Republic of Turkey': 'TR',
-        'Türkiye': 'TR',
+        Türkiye: 'TR',
 
-        'Egypt': 'EG',
+        Egypt: 'EG',
         'Arab Republic of Egypt': 'EG',
 
         'South Africa': 'ZA',
         'Republic of South Africa': 'ZA',
 
         // Americas
-        'Mexico': 'MX',
+        Mexico: 'MX',
         'United Mexican States': 'MX',
-        'México': 'MX',
+        México: 'MX',
 
-        'Brazil': 'BR',
+        Brazil: 'BR',
         'Federative Republic of Brazil': 'BR',
-        'Brasil': 'BR',
+        Brasil: 'BR',
 
-        'Argentina': 'AR',
+        Argentina: 'AR',
         'Argentine Republic': 'AR',
 
-        'Chile': 'CL',
+        Chile: 'CL',
         'Republic of Chile': 'CL',
 
-        'Colombia': 'CO',
+        Colombia: 'CO',
         'Republic of Colombia': 'CO',
 
-        'Peru': 'PE',
+        Peru: 'PE',
         'Republic of Peru': 'PE',
-        'Perú': 'PE',
+        Perú: 'PE',
 
-        'Venezuela': 'VE',
+        Venezuela: 'VE',
         'Bolivarian Republic of Venezuela': 'VE',
 
-        'Uruguay': 'UY',
+        Uruguay: 'UY',
         'Eastern Republic of Uruguay': 'UY',
 
-        'Paraguay': 'PY',
+        Paraguay: 'PY',
         'Republic of Paraguay': 'PY',
 
-        'Bolivia': 'BO',
+        Bolivia: 'BO',
         'Plurinational State of Bolivia': 'BO',
 
-        'Ecuador': 'EC',
+        Ecuador: 'EC',
         'Republic of Ecuador': 'EC',
 
         // Russian and Eastern Europe
-        'Russia': 'RU',
+        Russia: 'RU',
         'Russian Federation': 'RU',
-        'Russian': 'RU',
+        Russian: 'RU',
 
-        'Ukraine': 'UA',
+        Ukraine: 'UA',
 
-        'Belarus': 'BY',
+        Belarus: 'BY',
         'Republic of Belarus': 'BY',
 
         // Others
         'New Zealand': 'NZ',
-        'Aotearoa': 'NZ'
+        Aotearoa: 'NZ',
       };
 
       // Try exact match first (case-insensitive)
       const exactMatch = Object.keys(countryNameMappings).find(
-        key => key.toLowerCase() === normalizedCountry.toLowerCase()
+        (key) => key.toLowerCase() === normalizedCountry.toLowerCase(),
       );
 
       if (exactMatch) {
-        this.logger.debug(`Country code found via exact match: ${normalizedCountry} -> ${countryNameMappings[exactMatch]}`);
+        this.logger.debug(
+          `Country code found via exact match: ${normalizedCountry} -> ${countryNameMappings[exactMatch]}`,
+        );
         return countryNameMappings[exactMatch];
       }
 
       // Try partial match for common abbreviations and partial names
       const partialMatch = Object.keys(countryNameMappings).find(
-        key => key.toLowerCase().includes(normalizedCountry.toLowerCase()) ||
-               normalizedCountry.toLowerCase().includes(key.toLowerCase())
+        (key) =>
+          key.toLowerCase().includes(normalizedCountry.toLowerCase()) ||
+          normalizedCountry.toLowerCase().includes(key.toLowerCase()),
       );
 
       if (partialMatch) {
-        this.logger.debug(`Country code found via partial match: ${normalizedCountry} -> ${countryNameMappings[partialMatch]} (matched: ${partialMatch})`);
+        this.logger.debug(
+          `Country code found via partial match: ${normalizedCountry} -> ${countryNameMappings[partialMatch]} (matched: ${partialMatch})`,
+        );
         return countryNameMappings[partialMatch];
       }
 
@@ -579,12 +587,14 @@ export class GeolocationService {
       // This handles additional edge cases and official country names
       try {
         // Try to find by country name using the library's getCountry method
-        const countryByName = Object.entries(iso31661alpha2.getData()).find(([, name]) =>
-          name.toLowerCase() === normalizedCountry.toLowerCase()
+        const countryByName = Object.entries(iso31661alpha2.getData()).find(
+          ([, name]) => (name ?? '').toLowerCase() === normalizedCountry.toLowerCase(),
         );
 
         if (countryByName) {
-          this.logger.debug(`Country code found via ISO library: ${normalizedCountry} -> ${countryByName[0]}`);
+          this.logger.debug(
+            `Country code found via ISO library: ${normalizedCountry} -> ${countryByName[0]}`,
+          );
           return countryByName[0];
         }
       } catch (isoError) {
@@ -592,9 +602,10 @@ export class GeolocationService {
       }
 
       // Log when country is not found for monitoring and potential mapping updates
-      this.logger.warn(`Country code not found for: "${normalizedCountry}". Consider adding to country mappings.`);
+      this.logger.warn(
+        `Country code not found for: "${normalizedCountry}". Consider adding to country mappings.`,
+      );
       return undefined;
-
     } catch (error) {
       this.logger.error(`Error getting country code for: "${country}"`, error);
       return undefined;

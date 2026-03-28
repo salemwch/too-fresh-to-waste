@@ -2,60 +2,67 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 // Interface for notification payload data
 interface INotificationData {
-    offerId?: string;
-    orderId?: string;
-    establishmentId?: string;
-    userId?: string;
-    url?: string;
-    action?: string;
-    category?: string;
-    priority?: string;
-    discount?: number;
-    price?: number;
-    originalPrice?: number;
-    quantity?: number;
-    pickupTime?: string;
-    location?: {
-        name: string;
-        address: string;
-        coordinates?: [number, number];
-    };
-    tracking?: {
-        event: string;
-        timestamp: string;
-        status: string;
-    };
-    payment?: {
-        amount: number;
-        currency: string;
-        method: string;
-    };
-    items?: Array<{
-        name: string;
-        quantity: number;
-        price: number;
-    }>;
-    customFields?: Record<string, string | number | boolean>;
+  offerId?: string;
+  orderId?: string;
+  establishmentId?: string;
+  userId?: string;
+  url?: string;
+  action?: string;
+  category?: string;
+  priority?: string;
+  discount?: number;
+  price?: number;
+  originalPrice?: number;
+  quantity?: number;
+  pickupTime?: string;
+  location?: {
+    name: string;
+    address: string;
+    coordinates?: [number, number];
+  };
+  tracking?: {
+    event: string;
+    timestamp: string;
+    status: string;
+  };
+  payment?: {
+    amount: number;
+    currency: string;
+    method: string;
+  };
+  items?: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+  }>;
+  customFields?: Record<string, string | number | boolean>;
 }
 import { Document, Types } from 'mongoose';
-import { NotificationType, NotificationChannel, NotificationStatus, NotificationPriority, NotificationTrigger } from '../types/notification.types';
+
+import {
+  NotificationType,
+  NotificationChannel,
+  NotificationStatus,
+  NotificationPriority,
+  NotificationTrigger,
+} from '../types/notification.types';
 
 @Schema({
   timestamps: true,
-  collection: 'notifications'
+  collection: 'notifications',
 })
 export class Notification extends Document {
   @Prop({ required: true, enum: NotificationType })
-  type: NotificationType;
+  type!: NotificationType;
 
   @Prop({ required: true, enum: NotificationChannel })
-  channel: NotificationChannel;
+  channel!: NotificationChannel;
 
   @Prop({ required: true, enum: NotificationTrigger })
-  trigger: NotificationTrigger;
+  trigger!: NotificationTrigger;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
-  userId: Types.ObjectId;
+  userId!: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'Establishment' })
   establishmentId?: Types.ObjectId;
@@ -64,10 +71,10 @@ export class Notification extends Document {
   orderId?: Types.ObjectId;
 
   @Prop({ required: true })
-  title: string;
+  title!: string;
 
   @Prop({ required: true })
-  body: string;
+  body!: string;
 
   @Prop({ type: Object })
   data?: INotificationData;
@@ -76,10 +83,10 @@ export class Notification extends Document {
   image?: string;
 
   @Prop({ required: true, enum: NotificationStatus, default: NotificationStatus.PENDING })
-  status: NotificationStatus;
+  status!: NotificationStatus;
 
   @Prop({ required: true, enum: NotificationPriority, default: NotificationPriority.MEDIUM })
-  priority: NotificationPriority;
+  priority!: NotificationPriority;
 
   @Prop()
   scheduledAt?: Date;
@@ -112,10 +119,10 @@ export class Notification extends Document {
   };
 
   @Prop({ default: false })
-  isRead: boolean;
+  isRead!: boolean;
 
   @Prop({ default: false })
-  isBulk: boolean;
+  isBulk!: boolean;
 
   @Prop()
   expiresAt?: Date;

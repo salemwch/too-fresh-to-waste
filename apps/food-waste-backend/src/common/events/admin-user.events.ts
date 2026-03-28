@@ -1,4 +1,4 @@
-import { UserStatus } from '../enums/user.enum';
+import type { UserStatus } from '../enums/user.enum';
 
 /**
  * Base class for all admin user-related events
@@ -6,7 +6,7 @@ import { UserStatus } from '../enums/user.enum';
  */
 export abstract class BaseAdminUserEvent {
   public readonly timestamp: Date;
-  public readonly correlationId?: string;
+  public readonly correlationId?: string | undefined;
 
   constructor(
     public readonly userId: string,

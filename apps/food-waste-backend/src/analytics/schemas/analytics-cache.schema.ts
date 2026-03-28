@@ -21,54 +21,63 @@ export interface CacheMetadata {
 
 @Schema({
   timestamps: true,
-  collection: 'analytics_cache'
+  collection: 'analytics_cache',
 })
 export class AnalyticsCache {
   @Prop({
     type: Object,
     required: true,
-    index: true
+    index: true,
   })
-  key: CacheKey;
+  key!: CacheKey;
 
   @Prop({
     type: String,
-    required: true
-  })
-  keyHash: string; // MD5 hash of key for efficient indexing
-
-  @Prop({
-    type: Object,
-    required: true
-  })
-  data: Record<string, unknown>;
-
-  @Prop({
-    type: Object,
-    required: true
-  })
-  metadata: CacheMetadata;
-
-  @Prop({
-    type: String,
-    enum: ['business', 'user', 'establishment', 'offer', 'order', 'payment', 'sustainability', 'location'],
     required: true,
-    index: true
   })
-  category: string;
+  keyHash!: string; // MD5 hash of key for efficient indexing
+
+  @Prop({
+    type: Object,
+    required: true,
+  })
+  data!: Record<string, unknown>;
+
+  @Prop({
+    type: Object,
+    required: true,
+  })
+  metadata!: CacheMetadata;
+
+  @Prop({
+    type: String,
+    enum: [
+      'business',
+      'user',
+      'establishment',
+      'offer',
+      'order',
+      'payment',
+      'sustainability',
+      'location',
+    ],
+    required: true,
+    index: true,
+  })
+  category!: string;
 
   @Prop({
     type: Date,
     required: true,
-    index: { expireAfterSeconds: 0 }
+    index: { expireAfterSeconds: 0 },
   })
-  expiresAt: Date;
+  expiresAt!: Date;
 
   @Prop({
     type: [String],
-    default: []
+    default: [],
   })
-  tags: string[]; // for selective cache invalidation
+  tags!: string[]; // for selective cache invalidation
 }
 
 export const AnalyticsCacheSchema = SchemaFactory.createForClass(AnalyticsCache);

@@ -53,9 +53,9 @@ export class IsValidPhoneNumberConstraint implements ValidatorConstraintInterfac
    * @param args - Validation arguments containing options
    * @returns true if valid, false otherwise
    */
-  validate(value: any, args: ValidationArguments): boolean {
+  validate(value: unknown, args: ValidationArguments): boolean {
     // Get options from decorator
-    const options = args.constraints[0] as PhoneNumberValidationOptions || {};
+    const options = (args.constraints[0] as PhoneNumberValidationOptions) || {};
     const { defaultCountry, allowNationalFormat = false, required = false } = options;
 
     // Handle optional fields
@@ -87,10 +87,9 @@ export class IsValidPhoneNumberConstraint implements ValidatorConstraintInterfac
       }
 
       return isValid;
-    } else {
-      // No default country - must be international format
-      return isValidPhoneNumber(trimmedValue);
     }
+    // No default country - must be international format
+    return isValidPhoneNumber(trimmedValue);
   }
 
   /**
@@ -100,16 +99,15 @@ export class IsValidPhoneNumberConstraint implements ValidatorConstraintInterfac
    * @returns Error message
    */
   defaultMessage(args: ValidationArguments): string {
-    const options = args.constraints[0] as PhoneNumberValidationOptions || {};
+    const options = (args.constraints[0] as PhoneNumberValidationOptions) || {};
     const { defaultCountry, allowNationalFormat } = options;
 
     if (defaultCountry && allowNationalFormat) {
       return `${args.property} must be a valid phone number (international format with + or ${defaultCountry} national format)`;
     } else if (defaultCountry) {
       return `${args.property} must be a valid phone number in international format (e.g., +1234567890)`;
-    } else {
-      return `${args.property} must be a valid international phone number (e.g., +1234567890)`;
     }
+    return `${args.property} must be a valid international phone number (e.g., +1234567890)`;
   }
 }
 
@@ -152,14 +150,12 @@ export class IsValidPhoneNumberConstraint implements ValidatorConstraintInterfac
  * @param options - Validation options
  * @returns Property decorator
  */
-export function IsValidPhoneNumber(
-  options?: PhoneNumberValidationOptions
-): PropertyDecorator {
-  return function (object: Object, propertyName: string | symbol) {
+export function IsValidPhoneNumber(options?: PhoneNumberValidationOptions): PropertyDecorator {
+  return function (object: object, propertyName: string | symbol) {
     registerDecorator({
       target: object.constructor,
       propertyName: typeof propertyName === 'symbol' ? propertyName.toString() : propertyName,
-      options,
+      ...(options !== undefined ? { options } : {}),
       constraints: [options],
       validator: IsValidPhoneNumberConstraint,
     });
@@ -174,10 +170,7 @@ export function IsValidPhoneNumber(
  * @param defaultCountry - Optional default country code
  * @returns Parsed phone number object or null if invalid
  */
-export function parseAndValidatePhoneNumber(
-  phoneNumber: string,
-  defaultCountry?: CountryCode
-) {
+export function parseAndValidatePhoneNumber(phoneNumber: string, defaultCountry?: CountryCode) {
   try {
     const parsed = parsePhoneNumber(phoneNumber, defaultCountry);
 
@@ -202,7 +195,7 @@ export function parseAndValidatePhoneNumber(
   } catch (error) {
     return {
       isValid: false,
-      error: error instanceof Error ? error.message : 'Failed to parse phone number'
+      error: error instanceof Error ? error.message : 'Failed to parse phone number',
     };
   }
 }

@@ -1,270 +1,281 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, Types, Query } from 'mongoose';
 
-export type OfferDocument = Offer & Document & {
+export type OfferDocument = Offer &
+  Document & {
     availableQuantity: number;
     isExpired: boolean;
     isSoldOut: boolean;
     createdAt: Date;
     updatedAt: Date;
-};
+  };
 export enum OfferStatus {
-    DRAFT = 'draft',
-    ACTIVE = 'active',
-    SOLD_OUT = 'sold_out',
-    EXPIRED = 'expired',
-    CANCELLED = 'cancelled',
-    SUSPENDED = 'suspended',
+  DRAFT = 'draft',
+  ACTIVE = 'active',
+  SOLD_OUT = 'sold_out',
+  EXPIRED = 'expired',
+  CANCELLED = 'cancelled',
+  SUSPENDED = 'suspended',
 }
 
 export enum OfferType {
-    SURPRISE_BAG = 'surprise_bag',
-    SPECIFIC_ITEMS = 'specific_items',
-    MEAL_DEAL = 'meal_deal',
-    PARCLES_BAG = 'parcels_bag'
+  SURPRISE_BAG = 'surprise_bag',
+  SPECIFIC_ITEMS = 'specific_items',
+  MEAL_DEAL = 'meal_deal',
+  PARCLES_BAG = 'parcels_bag',
 }
 
 export enum Currency {
-    TND = 'TND', // Tunisia Dinar (primary currency for this platform)
+  TND = 'TND', // Tunisia Dinar (primary currency for this platform)
 }
 
 export interface PickupTimeSlot {
-    startTime: string;
-    endTime: string;
-    maxOrders?: number;      // Optional — business decides. No limit if unset.
-    currentOrders: number;
+  startTime: string;
+  endTime: string;
+  maxOrders?: number; // Optional — business decides. No limit if unset.
+  currentOrders: number;
 }
 
 export interface NutritionalInfo {
-    calories?: number;
-    protein?: number;
-    carbs?: number;
-    fat?: number;
-    allergens?: string[];
-    dietaryInfo?: string[]; // ['vegetarian', 'vegan', 'gluten-free', etc.]
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  allergens?: string[];
+  dietaryInfo?: string[]; // ['vegetarian', 'vegan', 'gluten-free', etc.]
 }
 
 export interface PriceInfo {
-    originalPrice: number;
-    discountedPrice: number;
-    discountPercentage: number;
-    currency: Currency;
+  originalPrice: number;
+  discountedPrice: number;
+  discountPercentage: number;
+  currency: Currency;
 }
 
 @Schema({ timestamps: true })
 export class Offer {
-    @Prop({ required: true, trim: true, minlength: 5, maxlength: 100 })
-    title: string;
+  @Prop({ required: true, trim: true, minlength: 5, maxlength: 100 })
+  title!: string;
 
-    @Prop({ required: true, trim: true, maxlength: 1000 })
-    description: string;
+  @Prop({ required: true, trim: true, maxlength: 1000 })
+  description!: string;
 
-    @Prop({ required: true, type: Types.ObjectId, ref: 'Establishment' })
-    establishmentId: Types.ObjectId;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'Establishment' })
+  establishmentId!: Types.ObjectId;
 
-    @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
-    merchantId: Types.ObjectId;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
+  merchantId!: Types.ObjectId;
 
-    @Prop({ type: String, enum: OfferType, required: true })
-    type: OfferType;
+  @Prop({ type: String, enum: OfferType, required: true })
+  type!: OfferType;
 
-    @Prop({ type: String, enum: OfferStatus, default: OfferStatus.DRAFT })
-    status: OfferStatus;
+  @Prop({ type: String, enum: OfferStatus, default: OfferStatus.DRAFT })
+  status!: OfferStatus;
 
-    @Prop({
-        required: true,
-        type: {
-            originalPrice: { type: Number, required: true, min: 0 },
-            discountedPrice: { type: Number, required: true, min: 0 },
-            discountPercentage: { type: Number, required: true, min: 50, max: 90 },
-            currency: { type: String, enum: Currency, required: true, default: Currency.TND },
-        },
-        validate: {
-            validator(priceInfo: PriceInfo) {
-                return priceInfo.discountedPrice < priceInfo.originalPrice &&
-                    priceInfo.discountPercentage === Math.round(((priceInfo.originalPrice - priceInfo.discountedPrice) / priceInfo.originalPrice) * 100);
-            },
-            message: 'Price validation failed'
-        }
-    })
-    pricing: PriceInfo;
+  @Prop({
+    required: true,
+    type: {
+      originalPrice: { type: Number, required: true, min: 0 },
+      discountedPrice: { type: Number, required: true, min: 0 },
+      discountPercentage: { type: Number, required: true, min: 50, max: 90 },
+      currency: { type: String, enum: Currency, required: true, default: Currency.TND },
+    },
+    validate: {
+      validator(priceInfo: PriceInfo) {
+        return (
+          priceInfo.discountedPrice < priceInfo.originalPrice &&
+          priceInfo.discountPercentage ===
+            Math.round(
+              ((priceInfo.originalPrice - priceInfo.discountedPrice) / priceInfo.originalPrice) *
+                100,
+            )
+        );
+      },
+      message: 'Price validation failed',
+    },
+  })
+  pricing!: PriceInfo;
 
-    @Prop({ required: true, min: 1, max: 1000 })
-    totalQuantity: number;
+  @Prop({ required: true, min: 1, max: 1000 })
+  totalQuantity!: number;
 
-    @Prop({ default: 0, min: 0 })
-    reservedQuantity: number;
+  @Prop({ default: 0, min: 0 })
+  reservedQuantity!: number;
 
-    @Prop({ default: 0, min: 0 })
-    soldQuantity: number;
+  @Prop({ default: 0, min: 0 })
+  soldQuantity!: number;
 
-    @Prop({ type: [String], default: [] })
-    images: string[];
+  @Prop({ type: [String], default: [] })
+  images!: string[];
 
-    @Prop({ type: [String], default: [] })
-    categories: string[];
+  @Prop({ type: [String], default: [] })
+  categories!: string[];
 
-    @Prop({
-        type: {
-            calories: Number,
-            protein: Number,
-            carbs: Number,
-            fat: Number,
-            allergens: [String],
-            dietaryInfo: [String],
-        }
-    })
-    nutritionalInfo?: NutritionalInfo;
+  @Prop({
+    type: {
+      calories: Number,
+      protein: Number,
+      carbs: Number,
+      fat: Number,
+      allergens: [String],
+      dietaryInfo: [String],
+    },
+  })
+  nutritionalInfo?: NutritionalInfo;
 
-    @Prop({ required: true })
-    availableFrom: Date;
+  @Prop({ required: true })
+  availableFrom!: Date;
 
-    @Prop({ required: true })
-    availableUntil: Date;
+  @Prop({ required: true })
+  availableUntil!: Date;
 
-    @Prop({
-        required: true,
-        type: [{
-            startTime: { type: String, required: true, match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/ },
-            endTime: { type: String, required: true, match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/ },
-            maxOrders: { type: Number, min: 1 },
-            currentOrders: { type: Number, default: 0, min: 0 },
-        }],
-        validate: {
-            validator (slots: PickupTimeSlot[]) {
-                return slots.length > 0 && slots.every(slot => {
-                    // Treat "00:00" end time as midnight (end of day),
-                    // which is always after any start time.
-                    const endIsValid = slot.endTime === '00:00' || slot.startTime < slot.endTime;
-                    return endIsValid && slot.currentOrders <= (slot.maxOrders ?? Infinity);
-                });
-            },
-            message: 'Invalid pickup time slots'
-        }
-    })
-    pickupTimeSlots: PickupTimeSlot[];
+  @Prop({
+    required: true,
+    type: [
+      {
+        startTime: { type: String, required: true, match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/ },
+        endTime: { type: String, required: true, match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/ },
+        maxOrders: { type: Number, min: 1 },
+        currentOrders: { type: Number, default: 0, min: 0 },
+      },
+    ],
+    validate: {
+      validator(slots: PickupTimeSlot[]) {
+        return (
+          slots.length > 0 &&
+          slots.every((slot) => {
+            // Treat "00:00" end time as midnight (end of day),
+            // which is always after any start time.
+            const endIsValid = slot.endTime === '00:00' || slot.startTime < slot.endTime;
+            return endIsValid && slot.currentOrders <= (slot.maxOrders ?? Infinity);
+          })
+        );
+      },
+      message: 'Invalid pickup time slots',
+    },
+  })
+  pickupTimeSlots!: PickupTimeSlot[];
 
+  @Prop({ type: [String], default: [] })
+  tags!: string[];
 
-    @Prop({ type: [String], default: [] })
-    tags: string[];
+  @Prop()
+  estimatedWeight?: string;
 
-    @Prop()
-    estimatedWeight?: string;
+  @Prop({ default: 0, min: 0 })
+  viewCount!: number;
 
-    @Prop({ default: 0, min: 0 })
-    viewCount: number;
+  // Tracks which users have already been counted — atomic dedup via $addToSet / $ne
+  @Prop({ type: [Types.ObjectId], default: [] })
+  viewedBy!: Types.ObjectId[];
 
-    // Tracks which users have already been counted — atomic dedup via $addToSet / $ne
-    @Prop({ type: [Types.ObjectId], default: [] })
-    viewedBy: Types.ObjectId[];
+  @Prop({ default: 0, min: 0 })
+  favoriteCount!: number;
 
-    @Prop({ default: 0, min: 0 })
-    favoriteCount: number;
+  @Prop({ default: true })
+  isActive!: boolean;
 
-    @Prop({ default: true })
-    isActive: boolean;
+  // =============================================================================
+  // FEATURING SYSTEM - Hybrid Manual + Auto
+  // =============================================================================
 
-    // =============================================================================
-    // FEATURING SYSTEM - Hybrid Manual + Auto
-    // =============================================================================
+  /**
+   * Manual featuring flag - Set by admins only
+   * Persists until admin explicitly removes it
+   */
+  @Prop({ default: false })
+  isFeaturedManual!: boolean;
 
-    /**
-     * Manual featuring flag - Set by admins only
-     * Persists until admin explicitly removes it
-     */
-    @Prop({ default: false })
-    isFeaturedManual: boolean;
+  /**
+   * Auto-featuring flag - Managed by cron job
+   * Set automatically when offer is urgent (≤1.5h remaining, existed ≥2h)
+   */
+  @Prop({ default: false })
+  isFeaturedAuto!: boolean;
 
-    /**
-     * Auto-featuring flag - Managed by cron job
-     * Set automatically when offer is urgent (≤1.5h remaining, existed ≥2h)
-     */
-    @Prop({ default: false })
-    isFeaturedAuto: boolean;
+  /**
+   * Timestamp when offer was featured (manual or auto)
+   * Used for audit trail and analytics
+   */
+  @Prop()
+  featuredAt?: Date;
 
-    /**
-     * Timestamp when offer was featured (manual or auto)
-     * Used for audit trail and analytics
-     */
-    @Prop()
-    featuredAt?: Date;
+  /**
+   * User ID who manually featured the offer
+   * Only set for manual featuring (admin action)
+   */
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  featuredBy?: Types.ObjectId;
 
-    /**
-     * User ID who manually featured the offer
-     * Only set for manual featuring (admin action)
-     */
-    @Prop({ type: Types.ObjectId, ref: 'User' })
-    featuredBy?: Types.ObjectId;
+  // =============================================================================
+  // PICKUP CATEGORIZATION - Merchant-Controlled
+  // =============================================================================
 
-    // =============================================================================
-    // PICKUP CATEGORIZATION - Merchant-Controlled
-    // =============================================================================
+  /**
+   * Pickup Today flag - Set by merchant when creating/editing offer
+   * Shows offer in "Pickup Today" section on mobile app
+   */
+  @Prop({ default: false })
+  isPickupToday!: boolean;
 
-    /**
-     * Pickup Today flag - Set by merchant when creating/editing offer
-     * Shows offer in "Pickup Today" section on mobile app
-     */
-    @Prop({ default: false })
-    isPickupToday: boolean;
+  /**
+   * Pickup Tomorrow flag - Set by merchant when creating/editing offer
+   * Shows offer in "Pickup Tomorrow" section on mobile app
+   */
+  @Prop({ default: false })
+  isPickupTomorrow!: boolean;
 
-    /**
-     * Pickup Tomorrow flag - Set by merchant when creating/editing offer
-     * Shows offer in "Pickup Tomorrow" section on mobile app
-     */
-    @Prop({ default: false })
-    isPickupTomorrow: boolean;
+  @Prop({ default: false })
+  isRecurring!: boolean;
 
-    @Prop({ default: false })
-    isRecurring: boolean;
+  @Prop({
+    type: {
+      monday: Boolean,
+      tuesday: Boolean,
+      wednesday: Boolean,
+      thursday: Boolean,
+      friday: Boolean,
+      saturday: Boolean,
+      sunday: Boolean,
+    },
+  })
+  recurringDays?: {
+    monday: boolean;
+    tuesday: boolean;
+    wednesday: boolean;
+    thursday: boolean;
+    friday: boolean;
+    saturday: boolean;
+    sunday: boolean;
+  };
 
-    @Prop({
-        type: {
-            monday: Boolean,
-            tuesday: Boolean,
-            wednesday: Boolean,
-            thursday: Boolean,
-            friday: Boolean,
-            saturday: Boolean,
-            sunday: Boolean,
-        }
-    })
-    recurringDays?: {
-        monday: boolean;
-        tuesday: boolean;
-        wednesday: boolean;
-        thursday: boolean;
-        friday: boolean;
-        saturday: boolean;
-        sunday: boolean;
-    };
+  @Prop()
+  specialInstructions?: string;
 
-    @Prop()
-    specialInstructions?: string;
+  @Prop()
+  cancellationDeadline?: Date;
 
-    @Prop()
-    cancellationDeadline?: Date;
+  @Prop()
+  lastModifiedBy?: Types.ObjectId;
 
-    @Prop()
-    lastModifiedBy?: Types.ObjectId;
+  @Prop()
+  publishedAt?: Date;
 
-    @Prop()
-    publishedAt?: Date;
+  @Prop()
+  expiredAt?: Date;
 
-    @Prop()
-    expiredAt?: Date;
+  // Soft Delete Fields
+  @Prop({ default: false })
+  isDeleted!: boolean;
 
-    // Soft Delete Fields
-    @Prop({ default: false })
-    isDeleted: boolean;
+  @Prop()
+  deletedAt?: Date;
 
-    @Prop()
-    deletedAt?: Date;
+  @Prop({ type: String })
+  deletedBy?: string;
 
-    @Prop({ type: String })
-    deletedBy?: string;
-
-    @Prop()
-    deletionReason?: string;
+  @Prop()
+  deletionReason?: string;
 }
 
 export const OfferSchema = SchemaFactory.createForClass(Offer);
@@ -348,10 +359,10 @@ OfferSchema.index({ isPickupTomorrow: 1, status: 1 });
  * - Used by: Auto-featuring cron job (every 5 minutes)
  */
 OfferSchema.index({
-    status: 1,
-    createdAt: 1,
-    availableUntil: 1,
-    isFeaturedAuto: 1  // Include to speed up update queries
+  status: 1,
+  createdAt: 1,
+  availableUntil: 1,
+  isFeaturedAuto: 1, // Include to speed up update queries
 });
 
 /**
@@ -380,10 +391,10 @@ OfferSchema.index({ title: 'text', description: 'text' });
  * - Use case: Homepage featured section (manually featured offers)
  */
 OfferSchema.index({
-    status: 1,
-    isFeaturedManual: 1,
-    availableFrom: 1,
-    createdAt: -1
+  status: 1,
+  isFeaturedManual: 1,
+  availableFrom: 1,
+  createdAt: -1,
 });
 
 /**
@@ -393,10 +404,10 @@ OfferSchema.index({
  * - Use case: Homepage featured section (auto-featured offers)
  */
 OfferSchema.index({
-    status: 1,
-    isFeaturedAuto: 1,
-    availableFrom: 1,
-    createdAt: -1
+  status: 1,
+  isFeaturedAuto: 1,
+  availableFrom: 1,
+  createdAt: -1,
 });
 
 /**
@@ -517,17 +528,15 @@ OfferSchema.index({ isDeleted: 1, deletedAt: 1 }, { sparse: true });
 // PRE-QUERY MIDDLEWARE - Auto-filter soft-deleted records
 // =============================================================================
 
-import { Query } from 'mongoose';
-
 /**
  * Pre-find middleware to automatically exclude soft-deleted offers
  * Applies to: find, findOne, findOneAndUpdate, etc.
  */
-OfferSchema.pre<Query<any, OfferDocument>>(/^find/, function (next) {
-    if (!(this as any).getOptions()?.includeDeleted) {
-        this.where({ isDeleted: { $ne: true } });
-    }
-    next();
+OfferSchema.pre<Query<OfferDocument[], OfferDocument>>(/^find/, function (next) {
+  if (!this.getOptions()?.['includeDeleted']) {
+    this.where({ isDeleted: { $ne: true } });
+  }
+  next();
 });
 
 /**
@@ -535,10 +544,10 @@ OfferSchema.pre<Query<any, OfferDocument>>(/^find/, function (next) {
  * Bypass with: .setOptions({ includeDeleted: true })
  */
 OfferSchema.pre('aggregate', function () {
-    const options = (this as any).options || {};
-    if (!options.includeDeleted) {
-        this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
-    }
+  const options = (this as { options?: Record<string, unknown> }).options || {};
+  if (!options['includeDeleted']) {
+    this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+  }
 });
 
 // =============================================================================
@@ -546,16 +555,16 @@ OfferSchema.pre('aggregate', function () {
 // =============================================================================
 
 OfferSchema.virtual('availableQuantity').get(function () {
-    return this.totalQuantity - this.reservedQuantity - this.soldQuantity;
+  return this.totalQuantity - this.reservedQuantity - this.soldQuantity;
 });
 
 OfferSchema.virtual('isExpired').get(function () {
-    return new Date() > this.availableUntil;
+  return new Date() > this.availableUntil;
 });
 
 OfferSchema.virtual('isSoldOut').get(function () {
-    const available = this.totalQuantity - this.reservedQuantity - this.soldQuantity;
-    return available <= 0;
+  const available = this.totalQuantity - this.reservedQuantity - this.soldQuantity;
+  return available <= 0;
 });
 
 /**
@@ -563,25 +572,28 @@ OfferSchema.virtual('isSoldOut').get(function () {
  * Returns true if EITHER manual OR auto featuring is active
  */
 OfferSchema.virtual('isFeatured').get(function () {
-    return this.isFeaturedManual || this.isFeaturedAuto;
+  return this.isFeaturedManual || this.isFeaturedAuto;
 });
 
 OfferSchema.pre('save', function (next) {
-    const now = new Date();
-    const availableQuantity = this.totalQuantity - this.reservedQuantity - this.soldQuantity;
+  const now = new Date();
+  const availableQuantity = this.totalQuantity - this.reservedQuantity - this.soldQuantity;
 
-    if (this.isModified('availableUntil') || this.isModified('totalQuantity') ||
-        this.isModified('reservedQuantity') || this.isModified('soldQuantity')) {
-
-        if (now > this.availableUntil) {
-            this.status = OfferStatus.EXPIRED;
-            this.expiredAt = now;
-        } else if (availableQuantity <= 0 && this.status === OfferStatus.ACTIVE) {
-            this.status = OfferStatus.SOLD_OUT;
-        } else if (availableQuantity > 0 && this.status === OfferStatus.SOLD_OUT) {
-            this.status = OfferStatus.ACTIVE;
-        }
+  if (
+    this.isModified('availableUntil') ||
+    this.isModified('totalQuantity') ||
+    this.isModified('reservedQuantity') ||
+    this.isModified('soldQuantity')
+  ) {
+    if (now > this.availableUntil) {
+      this.status = OfferStatus.EXPIRED;
+      this.expiredAt = now;
+    } else if (availableQuantity <= 0 && this.status === OfferStatus.ACTIVE) {
+      this.status = OfferStatus.SOLD_OUT;
+    } else if (availableQuantity > 0 && this.status === OfferStatus.SOLD_OUT) {
+      this.status = OfferStatus.ACTIVE;
     }
+  }
 
-    next();
+  next();
 });

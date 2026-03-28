@@ -1,5 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+
 import { RegexSecurityUtil } from './regex-security.util';
+
+import type { TestingModule } from '@nestjs/testing';
 
 /**
  * Comprehensive test suite for RegexSecurityUtil
@@ -39,8 +42,8 @@ describe('RegexSecurityUtil', () => {
 
     it('should handle empty strings', () => {
       expect(util.escapeRegexPattern('')).toBe('');
-      expect(util.escapeRegexPattern(null as any)).toBe('');
-      expect(util.escapeRegexPattern(undefined as any)).toBe('');
+      expect(util.escapeRegexPattern(null as unknown as string)).toBe('');
+      expect(util.escapeRegexPattern(undefined as unknown as string)).toBe('');
     });
 
     it('should truncate patterns exceeding maximum length', () => {
@@ -93,8 +96,8 @@ describe('RegexSecurityUtil', () => {
 
     it('should return null for empty input', () => {
       expect(util.buildSafeRegexQuery('')).toBeNull();
-      expect(util.buildSafeRegexQuery(null as any)).toBeNull();
-      expect(util.buildSafeRegexQuery(undefined as any)).toBeNull();
+      expect(util.buildSafeRegexQuery(null as unknown as string)).toBeNull();
+      expect(util.buildSafeRegexQuery(undefined as unknown as string)).toBeNull();
     });
 
     it('should validate pattern safety', () => {
@@ -111,13 +114,7 @@ describe('RegexSecurityUtil', () => {
 
   describe('isPatternSafe', () => {
     it('should accept safe patterns', () => {
-      const safePatterns = [
-        'simple text',
-        'john@example.com',
-        'test123',
-        'hello world',
-        'a-z',
-      ];
+      const safePatterns = ['simple text', 'john@example.com', 'test123', 'hello world', 'a-z'];
 
       for (const pattern of safePatterns) {
         expect(util.isPatternSafe(pattern)).toBe(true);
@@ -133,11 +130,11 @@ describe('RegexSecurityUtil', () => {
       // These are ReDoS patterns that are dangerous if used directly in regex
       // Our utility would detect these if they were NOT escaped first
       const dangerousPatterns = [
-        '(a+)+',          // Nested quantifiers
-        '(a*)+',          // Nested star
-        '(a*)*',          // Double stars
-        '(a+)+',          // Double plus
-        '(a{1,})+',       // Nested range quantifiers
+        '(a+)+', // Nested quantifiers
+        '(a*)+', // Nested star
+        '(a*)*', // Double stars
+        '(a+)+', // Double plus
+        '(a{1,})+', // Nested range quantifiers
       ];
 
       for (const pattern of dangerousPatterns) {
@@ -163,8 +160,8 @@ describe('RegexSecurityUtil', () => {
 
     it('should handle empty and null inputs', () => {
       expect(util.isPatternSafe('')).toBe(false);
-      expect(util.isPatternSafe(null as any)).toBe(false);
-      expect(util.isPatternSafe(undefined as any)).toBe(false);
+      expect(util.isPatternSafe(null as unknown as string)).toBe(false);
+      expect(util.isPatternSafe(undefined as unknown as string)).toBe(false);
     });
   });
 
@@ -194,8 +191,8 @@ describe('RegexSecurityUtil', () => {
     it('should return empty array for invalid inputs', () => {
       expect(util.buildMultiFieldSearch('', ['field'])).toEqual([]);
       expect(util.buildMultiFieldSearch('test', [])).toEqual([]);
-      expect(util.buildMultiFieldSearch(null as any, ['field'])).toEqual([]);
-      expect(util.buildMultiFieldSearch('test', null as any)).toEqual([]);
+      expect(util.buildMultiFieldSearch(null as unknown as string, ['field'])).toEqual([]);
+      expect(util.buildMultiFieldSearch('test', null as unknown as string[])).toEqual([]);
     });
   });
 
@@ -218,7 +215,7 @@ describe('RegexSecurityUtil', () => {
 
     it('should return null for empty input', () => {
       expect(util.buildPrefixSearch('')).toBeNull();
-      expect(util.buildPrefixSearch(null as any)).toBeNull();
+      expect(util.buildPrefixSearch(null as unknown as string)).toBeNull();
     });
   });
 
@@ -296,7 +293,7 @@ describe('RegexSecurityUtil', () => {
      */
     it('should prevent email regex ReDoS', () => {
       // Classic email regex ReDoS: ^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$
-      const attackInput = 'a'.repeat(50) + '@';
+      const attackInput = `${'a'.repeat(50)}@`;
 
       // After escaping, this becomes safe
       const escaped = util.escapeRegexPattern(attackInput);
@@ -308,25 +305,18 @@ describe('RegexSecurityUtil', () => {
     });
 
     it('should prevent nested quantifier attacks', () => {
-      const attacks = [
-        '(a+)+b',
-        '(a*)*b',
-        '(a|a)*b',
-        '(a|b)+c',
-      ];
+      const attacks = ['(a+)+b', '(a*)*b', '(a|a)*b', '(a|b)+c'];
 
       for (const attack of attacks) {
         // After escaping, they become literal strings (safe)
-        const escaped = util.escapeRegexPattern(attack);
+        expect(util.escapeRegexPattern(attack)).toBeTruthy();
         const query = util.buildSafeRegexQuery(attack);
 
         // buildSafeRegexQuery escapes the pattern, making it safe
         expect(query).toBeTruthy();
         expect(query?.$regex).toContain('\\('); // Parens are escaped
         // Verify quantifiers are escaped (+ or *)
-        const hasEscapedQuantifier =
-          query?.$regex.includes('\\+') ||
-          query?.$regex.includes('\\*');
+        const hasEscapedQuantifier = query?.$regex.includes('\\+') || query?.$regex.includes('\\*');
         expect(hasEscapedQuantifier).toBe(true);
       }
     });
@@ -335,12 +325,12 @@ describe('RegexSecurityUtil', () => {
       // Pattern: (a+)+
       // Input: aaaaaaaaaaaaaaaaaaaaaaaaaX
       // This causes exponential backtracking
-      const maliciousInput = 'a'.repeat(30) + 'X';
+      const maliciousInput = `${'a'.repeat(30)}X`;
 
       // Our utility should handle this safely
       const query = util.buildSafeRegexQuery(maliciousInput);
       expect(query).toBeTruthy();
-      expect(query?.$regex).toBe('a'.repeat(30) + 'X'); // No special chars
+      expect(query?.$regex).toBe(`${'a'.repeat(30)}X`); // No special chars
     });
   });
 

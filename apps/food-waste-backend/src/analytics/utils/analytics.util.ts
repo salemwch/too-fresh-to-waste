@@ -1,12 +1,15 @@
-import { Types, PipelineStage } from 'mongoose';
 import { createHash } from 'crypto';
-import {
+
+import { Types } from 'mongoose';
+
+import type {
   TimeRange,
   DateGranularity,
   MetricValue,
   TimeSeries,
-  AnalyticsFilters
+  AnalyticsFilters,
 } from '../interfaces/analytics.interface';
+import type { PipelineStage } from 'mongoose';
 
 // MongoDB query operator interfaces for type safety
 interface MongoDateRangeQuery {
@@ -36,23 +39,25 @@ interface MongoMatchStage {
 }
 
 export class AnalyticsUtil {
-
   /**
    * Generate a unique cache key hash for analytics queries
    */
   static generateCacheKey(
     endpoint: string,
     filters: Record<string, unknown>,
-    aggregation?: Record<string, unknown>
+    aggregation?: Record<string, unknown>,
   ): string {
     const keyObject = {
       endpoint,
       filters: this.normalizeFilters(filters),
       aggregation: aggregation || {},
-      version: '1.0.0'
+      version: '1.0.0',
     };
 
-    const keyString = JSON.stringify(keyObject, Object.keys(keyObject).sort((a, b) => a.localeCompare(b)));
+    const keyString = JSON.stringify(
+      keyObject,
+      Object.keys(keyObject).sort((a, b) => a.localeCompare(b)),
+    );
     return createHash('md5').update(keyString).digest('hex');
   }
 
@@ -62,28 +67,32 @@ export class AnalyticsUtil {
   private static normalizeFilters(filters: Record<string, unknown>): Record<string, unknown> {
     const normalized: Record<string, unknown> = {};
 
-    Object.keys(filters).sort((a, b) => a.localeCompare(b)).forEach(key => {
-      let value = filters[key];
-      if (value instanceof Types.ObjectId) {
-        value = value.toString();
-      } else if (Array.isArray(value) && value.some(v => v instanceof Types.ObjectId)) {
-        value = value.map(v => v instanceof Types.ObjectId ? v.toString() : v).sort((a, b) => {
-          // Type-safe comparison for mixed array elements
-          const aStr = String(a);
-          const bStr = String(b);
-          return aStr.localeCompare(bStr);
-        });
-      } else if (Array.isArray(value)) {
-        value = [...value].sort((a, b) => {
-          // Type-safe comparison for unknown array elements
-          const aStr = String(a);
-          const bStr = String(b);
-          return aStr.localeCompare(bStr);
-        });
-      }
+    Object.keys(filters)
+      .sort((a, b) => a.localeCompare(b))
+      .forEach((key) => {
+        let value = filters[key];
+        if (value instanceof Types.ObjectId) {
+          value = value.toString();
+        } else if (Array.isArray(value) && value.some((v) => v instanceof Types.ObjectId)) {
+          value = value
+            .map((v) => (v instanceof Types.ObjectId ? v.toString() : v))
+            .sort((a, b) => {
+              // Type-safe comparison for mixed array elements
+              const aStr = String(a);
+              const bStr = String(b);
+              return aStr.localeCompare(bStr);
+            });
+        } else if (Array.isArray(value)) {
+          value = [...value].sort((a, b) => {
+            // Type-safe comparison for unknown array elements
+            const aStr = String(a);
+            const bStr = String(b);
+            return aStr.localeCompare(bStr);
+          });
+        }
 
-      normalized[key] = value;
-    });
+        normalized[key] = value;
+      });
 
     return normalized;
   }
@@ -94,14 +103,14 @@ export class AnalyticsUtil {
   static calculateMetricValue(
     current: number,
     previous?: number,
-    precision: number = 2
+    precision: number = 2,
   ): MetricValue {
     const value = parseFloat(current.toFixed(precision));
 
     if (previous === undefined) {
       return {
         value,
-        trend: 'stable'
+        trend: 'stable',
       };
     }
 
@@ -117,7 +126,8 @@ export class AnalyticsUtil {
       changePercentage = parseFloat((((current - previous) / previous) * 100).toFixed(2));
     }
     let trend: 'up' | 'down' | 'stable' = 'stable';
-    if (Math.abs(changePercentage) > 0.01) { // 0.01% threshold
+    if (Math.abs(changePercentage) > 0.01) {
+      // 0.01% threshold
       trend = changePercentage > 0 ? 'up' : 'down';
     }
 
@@ -125,7 +135,7 @@ export class AnalyticsUtil {
       value,
       previousValue,
       changePercentage,
-      trend
+      trend,
     };
   }
 
@@ -139,14 +149,17 @@ export class AnalyticsUtil {
 
     return {
       startDate: new Date(start.getTime() - duration),
-      endDate: new Date(start.getTime())
+      endDate: new Date(start.getTime()),
     };
   }
 
   /**
    * Generate MongoDB aggregation pipeline for date grouping
    */
-  static getDateGroupingPipeline(granularity: DateGranularity, dateField: string = 'createdAt'): PipelineStage[] {
+  static getDateGroupingPipeline(
+    granularity: DateGranularity,
+    dateField: string = 'createdAt',
+  ): PipelineStage[] {
     const timezone = granularity.timezone || 'UTC';
 
     const formatMap = {
@@ -155,7 +168,7 @@ export class AnalyticsUtil {
       week: '%Y-W%U',
       month: '%Y-%m',
       quarter: '%Y-Q%q',
-      year: '%Y'
+      year: '%Y',
     };
 
     const format = formatMap[granularity.period];
@@ -167,11 +180,11 @@ export class AnalyticsUtil {
             $dateToString: {
               format,
               date: `$${dateField}`,
-              timezone
-            }
-          }
-        }
-      } as PipelineStage
+              timezone,
+            },
+          },
+        },
+      } as PipelineStage,
     ];
   }
 
@@ -185,21 +198,21 @@ export class AnalyticsUtil {
     if (filters.dateRange) {
       matchStage.createdAt = {
         $gte: new Date(filters.dateRange.startDate),
-        $lte: new Date(filters.dateRange.endDate)
+        $lte: new Date(filters.dateRange.endDate),
       };
     }
 
     // Establishment filter
     if (filters.establishmentIds?.length) {
       matchStage.establishmentId = {
-        $in: filters.establishmentIds.map(id => new Types.ObjectId(id))
+        $in: filters.establishmentIds.map((id) => new Types.ObjectId(id)),
       };
     }
 
     // User filter
     if (filters.userIds?.length) {
       matchStage.userId = {
-        $in: filters.userIds.map(id => new Types.ObjectId(id))
+        $in: filters.userIds.map((id) => new Types.ObjectId(id)),
       };
     }
 
@@ -244,10 +257,10 @@ export class AnalyticsUtil {
   static generateTimeSeries(
     data: Array<{ dateKey: string; value: number }>,
     dateRange: TimeRange,
-    granularity: DateGranularity
+    granularity: DateGranularity,
   ): TimeSeries[] {
     const result: TimeSeries[] = [];
-    const dataMap = new Map(data.map(d => [d.dateKey, d.value]));
+    const dataMap = new Map(data.map((d) => [d.dateKey, d.value]));
 
     const current = new Date(dateRange.startDate);
     const end = new Date(dateRange.endDate);
@@ -259,7 +272,7 @@ export class AnalyticsUtil {
       result.push({
         timestamp: new Date(current),
         value,
-        label: this.formatDateLabel(current, granularity)
+        label: this.formatDateLabel(current, granularity),
       });
 
       this.incrementDate(current, granularity);
@@ -273,7 +286,7 @@ export class AnalyticsUtil {
    */
   private static formatDateKey(date: Date, granularity: DateGranularity): string {
     const formatMap = {
-      hour: () => date.toISOString().substring(0, 13) + ':00',
+      hour: () => `${date.toISOString().substring(0, 13)}:00`,
       day: () => date.toISOString().substring(0, 10),
       week: () => {
         const year = date.getFullYear();
@@ -286,7 +299,7 @@ export class AnalyticsUtil {
         const quarter = Math.floor(date.getMonth() / 3) + 1;
         return `${year}-Q${quarter}`;
       },
-      year: () => date.getFullYear().toString()
+      year: () => date.getFullYear().toString(),
     };
 
     return formatMap[granularity.period]();
@@ -297,26 +310,29 @@ export class AnalyticsUtil {
    */
   private static formatDateLabel(date: Date, granularity: DateGranularity): string {
     const formatMap = {
-      hour: () => date.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        hour12: true
-      }),
-      day: () => date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
-      }),
+      hour: () =>
+        date.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          hour12: true,
+        }),
+      day: () =>
+        date.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        }),
       week: () => `Week ${this.getWeekNumber(date)}, ${date.getFullYear()}`,
-      month: () => date.toLocaleDateString('en-US', {
-        month: 'long',
-        year: 'numeric'
-      }),
+      month: () =>
+        date.toLocaleDateString('en-US', {
+          month: 'long',
+          year: 'numeric',
+        }),
       quarter: () => {
         const quarter = Math.floor(date.getMonth() / 3) + 1;
         return `Q${quarter} ${date.getFullYear()}`;
       },
-      year: () => date.getFullYear().toString()
+      year: () => date.getFullYear().toString(),
     };
 
     return formatMap[granularity.period]();
@@ -356,7 +372,7 @@ export class AnalyticsUtil {
     const dayNum = d.getUTCDay() || 7;
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   }
 
   /**
@@ -379,26 +395,23 @@ export class AnalyticsUtil {
     return {
       carbonReduced: parseFloat(carbonReduced.toFixed(2)),
       waterSaved: parseFloat(waterSaved.toFixed(2)),
-      mealsSaved
+      mealsSaved,
     };
   }
 
   /**
    * Calculate distance between two coordinates (Haversine formula)
    */
-  static calculateDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number {
+  static calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371; // Earth's radius in kilometers
     const dLat = this.toRadians(lat2 - lat1);
     const dLon = this.toRadians(lon2 - lon1);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos(this.toRadians(lat1)) *
+        Math.cos(this.toRadians(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
@@ -416,7 +429,7 @@ export class AnalyticsUtil {
   static paginateResults<T>(
     results: T[],
     limit: number = 100,
-    offset: number = 0
+    offset: number = 0,
   ): { data: T[]; total: number; hasMore: boolean } {
     const total = results.length;
     const data = results.slice(offset, offset + limit);
@@ -431,7 +444,7 @@ export class AnalyticsUtil {
   static formatCurrency(value: number, currency: string = 'EUR'): string {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency
+      currency,
     }).format(value);
   }
 
@@ -440,11 +453,11 @@ export class AnalyticsUtil {
    */
   static formatLargeNumber(value: number): string {
     if (value >= 1_000_000_000) {
-      return (value / 1_000_000_000).toFixed(1) + 'B';
+      return `${(value / 1_000_000_000).toFixed(1)}B`;
     } else if (value >= 1_000_000) {
-      return (value / 1_000_000).toFixed(1) + 'M';
+      return `${(value / 1_000_000).toFixed(1)}M`;
     } else if (value >= 1_000) {
-      return (value / 1_000).toFixed(1) + 'K';
+      return `${(value / 1_000).toFixed(1)}K`;
     }
     return value.toString();
   }
@@ -453,11 +466,13 @@ export class AnalyticsUtil {
    * Calculate percentile
    */
   static calculatePercentile(values: number[], percentile: number): number {
-    if (values.length === 0) {return 0;}
+    if (values.length === 0) {
+      return 0;
+    }
 
     const sorted = [...values].sort((a, b) => a - b);
     const index = Math.ceil((percentile / 100) * sorted.length) - 1;
-    return sorted[Math.max(0, index)];
+    return sorted[Math.max(0, index)] ?? 0;
   }
 
   /**

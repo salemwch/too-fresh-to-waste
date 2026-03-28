@@ -1,22 +1,26 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { getModelToken } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { BadRequestException, ConflictException, Logger } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 import * as argon2 from 'argon2';
 
-import { UsersService } from '../user.service';
-import { User, UserDocument, UserRole, UserStatus } from '../schemas/user.schema';
-import { CreateUserDto } from '../DTO/create-user.dto';
+import { User, UserRole, UserStatus } from '../schemas/user.schema';
 import { PasswordValidationService } from '../services/password-validation.service';
+import { UsersService } from '../user.service';
+
+import type { CreateUserDto } from '../DTO/create-user.dto';
+import type { UserDocument } from '../schemas/user.schema';
+import type { TestingModule } from '@nestjs/testing';
 
 // Mock argon2 module
 jest.mock('argon2');
 const mockedArgon2 = argon2 as jest.Mocked<typeof argon2>;
 
-
 describe('UsersService - create method', () => {
   let service: UsersService;
-  let mockUserModel: jest.Mocked<any>;
+  type MockModelFn = jest.MockedFunction<
+    (data: Record<string, unknown>) => { save: jest.Mock; [key: string]: unknown }
+  > & { findOne: jest.Mock };
+  let mockUserModel: MockModelFn;
   let mockPasswordValidationService: jest.Mocked<PasswordValidationService>;
   let loggerSpy: jest.SpyInstance;
   let errorSpy: jest.SpyInstance;
@@ -83,13 +87,13 @@ describe('UsersService - create method', () => {
       const user = createMockUser(userData);
       user.save = jest.fn().mockResolvedValue(user);
       return user;
-    });
+    }) as unknown as MockModelFn;
     mockUserModel.findOne = jest.fn();
 
     // Mock PasswordValidationService
     mockPasswordValidationService = {
       validatePassword: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<PasswordValidationService>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -130,8 +134,8 @@ describe('UsersService - create method', () => {
         hasSpecialChars: true,
         noCommonPatterns: true,
         notInPasswordHistory: true,
-        notSimilarToPersonalInfo: true
-      }
+        notSimilarToPersonalInfo: true,
+      },
     });
   });
 
@@ -163,7 +167,7 @@ describe('UsersService - create method', () => {
           email: createUserDto.email.toLowerCase(),
           firstName: createUserDto.firstName,
           lastName: createUserDto.lastName,
-        })
+        }),
       );
       expect(mockedArgon2.hash).toHaveBeenCalledWith(createUserDto.password, {
         type: argon2.argon2id,
@@ -171,7 +175,9 @@ describe('UsersService - create method', () => {
         timeCost: 3,
         parallelism: 1,
       });
-      expect(loggerSpy).toHaveBeenCalledWith(expect.stringContaining(`User created successfully: ${createUserDto.email.toLowerCase()}`));
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`User created successfully: ${createUserDto.email.toLowerCase()}`),
+      );
     });
 
     it('should_CreateUserWithAuditData_When_AuditDataProvided', async () => {
@@ -193,10 +199,10 @@ describe('UsersService - create method', () => {
             details: expect.objectContaining({
               registrationMethod: 'standard',
               passwordStrength: 4,
-              emailNormalized: true
+              emailNormalized: true,
             }),
           }),
-        ])
+        ]),
       );
     });
 
@@ -258,18 +264,18 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Email is required and cannot be empty')
+        new BadRequestException('Email is required and cannot be empty'),
       );
     });
 
     it('should_ThrowBadRequestException_When_EmailIsUndefined', async () => {
       // Arrange
-      const createUserDto = { ...mockValidCreateUserDto };
+      const createUserDto: Partial<CreateUserDto> = { ...mockValidCreateUserDto };
       delete createUserDto.email;
 
       // Act & Assert
-      await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Email is required and cannot be empty')
+      await expect(service.create(createUserDto as CreateUserDto)).rejects.toThrow(
+        new BadRequestException('Email is required and cannot be empty'),
       );
     });
 
@@ -279,7 +285,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Password is required and cannot be empty')
+        new BadRequestException('Password is required and cannot be empty'),
       );
     });
 
@@ -289,7 +295,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('First name is required and cannot be empty')
+        new BadRequestException('First name is required and cannot be empty'),
       );
     });
 
@@ -299,7 +305,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Last name is required and cannot be empty')
+        new BadRequestException('Last name is required and cannot be empty'),
       );
     });
 
@@ -307,11 +313,11 @@ describe('UsersService - create method', () => {
       // Arrange
       const createUserDto = { ...mockValidCreateUserDto };
       const existingUser = { email: createUserDto.email.toLowerCase(), deletedAt: null };
-      mockUserModel.findOne.mockResolvedValue(existingUser as UserDocument);
+      mockUserModel.findOne.mockResolvedValue(existingUser as unknown as UserDocument);
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new ConflictException('User with this email already exists')
+        new ConflictException('User with this email already exists'),
       );
     });
 
@@ -332,13 +338,15 @@ describe('UsersService - create method', () => {
           hasSpecialChars: false,
           noCommonPatterns: true,
           notInPasswordHistory: true,
-          notSimilarToPersonalInfo: true
-        }
+          notSimilarToPersonalInfo: true,
+        },
       });
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Password validation failed: Password is too short, Add more characters')
+        new BadRequestException(
+          'Password validation failed: Password is too short, Add more characters',
+        ),
       );
     });
   });
@@ -350,7 +358,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Email is required and cannot be empty')
+        new BadRequestException('Email is required and cannot be empty'),
       );
     });
 
@@ -364,16 +372,34 @@ describe('UsersService - create method', () => {
       };
 
       // Update mock to return the specific data for this test
-      mockUserModel.mockImplementationOnce((userData) => ({
+      mockUserModel.mockImplementationOnce((userData: Record<string, unknown>) => ({
         ...userData,
         failedLoginAttempts: 0,
         loginHistory: [],
         auditLog: [],
         privacySettings: {
-          tunisianCompliance: { dataProcessingConsent: false, locationTrackingConsent: false, communicationConsent: false },
-          internationalCompliance: { marketingOptIn: false, analyticsOptIn: false, thirdPartySharing: false, profilingOptIn: false, cookiesConsent: false, gdprConsentGiven: false, ccpaOptOutRequested: false },
+          tunisianCompliance: {
+            dataProcessingConsent: false,
+            locationTrackingConsent: false,
+            communicationConsent: false,
+          },
+          internationalCompliance: {
+            marketingOptIn: false,
+            analyticsOptIn: false,
+            thirdPartySharing: false,
+            profilingOptIn: false,
+            cookiesConsent: false,
+            gdprConsentGiven: false,
+            ccpaOptOutRequested: false,
+          },
           consentRecords: [],
-          dataSubjectRights: { dataPortabilityRequested: false, deletionRequested: false, restrictionRequested: false, objectionRequested: false, pendingRequests: [] },
+          dataSubjectRights: {
+            dataPortabilityRequested: false,
+            deletionRequested: false,
+            restrictionRequested: false,
+            objectionRequested: false,
+            pendingRequests: [],
+          },
         },
         save: jest.fn().mockResolvedValue({
           ...userData,
@@ -427,11 +453,11 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('User creation failed due to system error')
+        new BadRequestException('User creation failed due to system error'),
       );
       expect(errorSpy).toHaveBeenCalledWith(
         `User creation failed for email: ${createUserDto.email}`,
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -444,11 +470,11 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('User creation failed due to system error')
+        new BadRequestException('User creation failed due to system error'),
       );
       expect(errorSpy).toHaveBeenCalledWith(
         `User creation failed for email: ${createUserDto.email}`,
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -456,7 +482,7 @@ describe('UsersService - create method', () => {
       // Arrange
       const createUserDto = { ...mockValidCreateUserDto };
       const existingUser = { email: createUserDto.email, deletedAt: null };
-      mockUserModel.findOne.mockResolvedValue(existingUser as UserDocument);
+      mockUserModel.findOne.mockResolvedValue(existingUser as unknown as UserDocument);
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(ConflictException);
@@ -532,8 +558,8 @@ describe('UsersService - create method', () => {
     it('should_CallSaveMethodOnUserModel_When_UserCreated', async () => {
       // Arrange
       const createUserDto = { ...mockValidCreateUserDto };
-      let savedUser: any;
-      mockUserModel.mockImplementationOnce((userData) => {
+      let savedUser: { save: jest.Mock } | undefined;
+      mockUserModel.mockImplementationOnce((userData: Record<string, unknown>) => {
         const user = {
           ...userData,
           save: jest.fn().mockResolvedValue(userData),
@@ -546,7 +572,7 @@ describe('UsersService - create method', () => {
       await service.create(createUserDto);
 
       // Assert
-      expect(savedUser.save).toHaveBeenCalledTimes(1);
+      expect(savedUser!.save).toHaveBeenCalledTimes(1);
     });
 
     it('should_LogSuccessMessage_When_UserCreatedSuccessfully', async () => {
@@ -557,7 +583,9 @@ describe('UsersService - create method', () => {
       await service.create(createUserDto);
 
       // Assert
-      expect(loggerSpy).toHaveBeenCalledWith(expect.stringContaining(`User created successfully: ${createUserDto.email.toLowerCase()}`));
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`User created successfully: ${createUserDto.email.toLowerCase()}`),
+      );
     });
   });
 
@@ -581,10 +609,7 @@ describe('UsersService - create method', () => {
       const createUserDto2 = { ...mockValidCreateUserDto, email: 'user2@test.com' };
 
       // Act
-      const promises = [
-        service.create(createUserDto1),
-        service.create(createUserDto2),
-      ];
+      const promises = [service.create(createUserDto1), service.create(createUserDto2)];
       const results = await Promise.all(promises);
 
       // Assert
@@ -598,28 +623,30 @@ describe('UsersService - create method', () => {
     it('should_NotLeakSensitiveDataInErrors_When_SystemErrorOccurs', async () => {
       // Arrange
       const createUserDto = { ...mockValidCreateUserDto };
-      const sensitiveError = new Error('Database connection string: mongodb://admin:secret@localhost');
+      const sensitiveError = new Error(
+        'Database connection string: mongodb://admin:secret@localhost',
+      );
       mockUserModel.mockImplementationOnce(() => ({
         save: jest.fn().mockRejectedValue(sensitiveError),
       }));
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('User creation failed due to system error')
+        new BadRequestException('User creation failed due to system error'),
       );
 
       // Verify sensitive data is not exposed
       try {
         await service.create(createUserDto);
-      } catch (error: any) {
-        expect(error.message).not.toContain('secret');
-        expect(error.message).not.toContain('mongodb://');
+      } catch (error: unknown) {
+        expect((error as Error).message).not.toContain('secret');
+        expect((error as Error).message).not.toContain('mongodb://');
       }
     });
 
     it('should_HandleNullCreateUserDto_When_NullDataProvided', async () => {
       // Arrange
-      const createUserDto = null as any;
+      const createUserDto = null as unknown as CreateUserDto;
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(BadRequestException);
@@ -627,7 +654,7 @@ describe('UsersService - create method', () => {
 
     it('should_HandleUndefinedCreateUserDto_When_UndefinedDataProvided', async () => {
       // Arrange
-      const createUserDto = undefined as any;
+      const createUserDto = undefined as unknown as CreateUserDto;
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(BadRequestException);

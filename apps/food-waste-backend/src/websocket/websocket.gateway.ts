@@ -1,3 +1,4 @@
+import { UseGuards, Logger, UseFilters } from '@nestjs/common';
 import {
   WebSocketGateway as WSGateway,
   WebSocketServer,
@@ -8,13 +9,12 @@ import {
   MessageBody,
   ConnectedSocket,
 } from '@nestjs/websockets';
-import { UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseFilters } from '@nestjs/common';
-import { WebSocketService } from './websocket.service';
+
+import { WebSocketExceptionFilter } from './filters/websocket-exception.filter';
 import { WebSocketAuthGuard } from './guards/websocket-auth.guard';
 import { AuthenticatedSocket, WebSocketEvents } from './interfaces/websocket.interface';
-import { WebSocketExceptionFilter } from './filters/websocket-exception.filter';
+import { WebSocketService } from './websocket.service';
 
 @WSGateway({
   cors: {
@@ -34,9 +34,7 @@ import { WebSocketExceptionFilter } from './filters/websocket-exception.filter';
   namespace: '/',
 })
 @UseFilters(WebSocketExceptionFilter)
-export class WebSocketGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server!: Server;
   private readonly logger = new Logger(WebSocketGateway.name);
 
@@ -52,7 +50,7 @@ export class WebSocketGateway
 
     // Set connection timeout
     const timeout = setTimeout(() => {
-      if (!((client as any).isAuthenticated)) {
+      if (!(client as AuthenticatedSocket).isAuthenticated) {
         this.logger.warn(`Connection timeout for unauthenticated client: ${client.id}`);
         client.emit(WebSocketEvents.ERROR, {
           message: 'Authentication timeout',

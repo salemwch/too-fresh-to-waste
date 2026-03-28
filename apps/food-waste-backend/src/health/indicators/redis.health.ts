@@ -6,15 +6,15 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { HealthIndicator, HealthIndicatorResult, HealthCheckError } from '@nestjs/terminus';
 import Redis from 'ioredis';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RedisHealthIndicator extends HealthIndicator {
-  private redis: Redis;
+  private readonly redis: Redis;
 
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     super();
 
     // Initialize Redis client for health checks
@@ -53,7 +53,7 @@ export class RedisHealthIndicator extends HealthIndicator {
       throw new HealthCheckError(
         'Redis health check failed',
         this.getStatus(key, false, {
-          message: error.message,
+          message: error instanceof Error ? error.message : 'Unknown error',
         }),
       );
     }

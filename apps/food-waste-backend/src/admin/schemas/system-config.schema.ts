@@ -49,10 +49,10 @@ export interface PaymentSettings {
 @Schema({ timestamps: true, collection: 'system_configs' })
 export class SystemConfig {
   @Prop({ required: true, unique: true, trim: true })
-  configKey: string;
+  configKey!: string;
 
   @Prop({ required: true })
-  version: string;
+  version!: string;
 
   @Prop({
     type: {
@@ -66,9 +66,9 @@ export class SystemConfig {
       platformCommissionRate: { type: Number, default: 15 },
       autoRefundTimeoutHours: { type: Number, default: 24 },
     },
-    required: true
+    required: true,
   })
-  platformSettings: PlatformSettings;
+  platformSettings!: PlatformSettings;
 
   @Prop({
     type: {
@@ -80,9 +80,9 @@ export class SystemConfig {
       orderReminderEnabled: { type: Boolean, default: true },
       promotionalEmailsEnabled: { type: Boolean, default: true },
     },
-    required: true
+    required: true,
   })
-  notificationSettings: NotificationSettings;
+  notificationSettings!: NotificationSettings;
 
   @Prop({
     type: {
@@ -96,9 +96,9 @@ export class SystemConfig {
       sessionTimeout: { type: Number, default: 480 },
       twoFactorAuthRequired: { type: Boolean, default: false },
     },
-    required: true
+    required: true,
   })
-  securitySettings: SecuritySettings;
+  securitySettings!: SecuritySettings;
 
   @Prop({
     type: {
@@ -109,12 +109,12 @@ export class SystemConfig {
       automaticPayouts: { type: Boolean, default: true },
       refundProcessingDays: { type: Number, default: 3 },
     },
-    required: true
+    required: true,
   })
-  paymentSettings: PaymentSettings;
+  paymentSettings!: PaymentSettings;
 
   @Prop({ default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Prop({ trim: true, maxlength: 500 })
   description?: string;

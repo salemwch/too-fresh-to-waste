@@ -1,9 +1,10 @@
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
 import { InjectModel } from '@nestjs/mongoose';
+import { Request, Response, NextFunction } from 'express';
 import { Model } from 'mongoose';
-import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { UserRole } from 'src/common/enums/user.enum';
+import { User, UserDocument } from 'src/users/schemas/user.schema';
+
 import { TenantContext } from '../interfaces/authorization.interface';
 
 /**
@@ -22,67 +23,66 @@ import { TenantContext } from '../interfaces/authorization.interface';
 
 // Extend Express Request to include tenant context
 declare global {
-    namespace Express {
-        interface Request {
-            tenantContext?: TenantContext;
-        }
+  namespace Express {
+    interface Request {
+      tenantContext?: TenantContext;
     }
+  }
 }
 
 @Injectable()
 export class TenantContextMiddleware implements NestMiddleware {
-    private readonly logger = new Logger(TenantContextMiddleware.name);
+  private readonly logger = new Logger(TenantContextMiddleware.name);
 
-    constructor(
-        @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-    ) {}
+  constructor(@InjectModel(User.name) private readonly userModel: Model<UserDocument>) {}
 
-    async use(req: Request, res: Response, next: NextFunction) {
-        try {
-            // Skip if no authenticated user
-            if (!req.user?.['userId']) {
-                return next();
-            }
+  async use(req: Request, _res: Response, next: NextFunction) {
+    try {
+      // Skip if no authenticated user
+      const user = req.user as Record<string, unknown> | undefined;
+      if (!user?.['userId']) {
+        return next();
+      }
 
-            const userId = req.user['userId'];
-            const userRole = req.user['role'] as UserRole;
+      const userId = user['userId'] as string;
+      const userRole = user['role'] as UserRole;
 
-            // Only apply tenant context for merchants
-            if (userRole === UserRole.MERCHANT) {
-                const user = await this.userModel.findById(userId).lean();
+      // Only apply tenant context for merchants
+      if (userRole === UserRole.MERCHANT) {
+        const user = await this.userModel.findById(userId).lean();
 
-                if (user) {
-                    // For merchants, tenantId is their userId (they are the tenant)
-                    const tenantContext: TenantContext = {
-                        tenantId: userId,
-                        tenantType: 'merchant',
-                        userId,
-                        role: userRole,
-                        establishmentIds: [], // Will be populated from establishments
-                    };
+        if (user) {
+          // For merchants, tenantId is their userId (they are the tenant)
+          const tenantContext: TenantContext = {
+            tenantId: userId,
+            tenantType: 'merchant',
+            userId,
+            role: userRole,
+            establishmentIds: [], // Will be populated from establishments
+          };
 
-                    // Attach to request
-                    req.tenantContext = tenantContext;
+          // Attach to request
+          req.tenantContext = tenantContext;
 
-                    this.logger.debug(`Tenant context set for merchant ${userId}`);
-                }
-            }
-
-            // For other roles, still set basic context
-            else {
-                req.tenantContext = {
-                    tenantId: userId,
-                    tenantType: userRole === UserRole.ADMIN ? 'organization' : 'merchant',
-                    userId,
-                    role: userRole,
-                };
-            }
-
-            next();
-        } catch (error) {
-            this.logger.error('Error setting tenant context', error);
-            // Don't block request, continue without tenant context
-            next();
+          this.logger.debug(`Tenant context set for merchant ${userId}`);
         }
+      }
+
+      // For other roles, still set basic context
+      else {
+        req.tenantContext = {
+          tenantId: userId,
+          tenantType: userRole === UserRole.ADMIN ? 'organization' : 'merchant',
+          userId,
+          role: userRole,
+        };
+      }
+
+      next();
+    } catch (error) {
+      this.logger.error('Error setting tenant context', error);
+      // Don't block request, continue without tenant context
+      next();
     }
+  }
 }

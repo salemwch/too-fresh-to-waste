@@ -1,3 +1,5 @@
+import { extname } from 'path';
+
 import {
   Injectable,
   Logger,
@@ -9,7 +11,8 @@ import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
-import { extname } from 'path';
+
+import type { FileObject } from '@supabase/storage-js';
 
 export interface UploadedFileInfo {
   fileName: string;
@@ -39,22 +42,23 @@ export interface UploadOptions {
 @Injectable()
 export class SupabaseStorageService implements OnModuleInit {
   private readonly logger = new Logger(SupabaseStorageService.name);
-  private supabase: SupabaseClient;
-  private bucketName: string;
-  private supabaseUrl: string;
+  private supabase!: SupabaseClient;
+  private bucketName!: string;
+  private supabaseUrl!: string;
   private initialized = false;
 
   constructor(private readonly configService: ConfigService) {}
 
-  async onModuleInit(): Promise<void> {
+  onModuleInit(): void {
     this.initializeSupabase();
   }
 
   private initializeSupabase(): void {
     try {
-      this.supabaseUrl = this.configService.get<string>('SUPABASE_URL');
+      this.supabaseUrl = this.configService.get<string>('SUPABASE_URL') || '';
       const serviceRoleKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY');
-      this.bucketName = this.configService.get<string>('SUPABASE_STORAGE_BUCKET', 'uploads');
+      this.bucketName =
+        this.configService.get<string>('SUPABASE_STORAGE_BUCKET', 'uploads') || 'uploads';
 
       if (!this.supabaseUrl || !serviceRoleKey) {
         this.logger.warn(
@@ -126,9 +130,7 @@ export class SupabaseStorageService implements OnModuleInit {
 
       if (uploadError) {
         this.logger.error('Supabase upload error:', uploadError);
-        throw new InternalServerErrorException(
-          `File upload failed: ${uploadError.message}`,
-        );
+        throw new InternalServerErrorException(`File upload failed: ${uploadError.message}`);
       }
 
       // Build the public URL
@@ -147,10 +149,7 @@ export class SupabaseStorageService implements OnModuleInit {
       this.logger.debug(`File uploaded successfully: ${fileName}`);
       return uploadInfo;
     } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof InternalServerErrorException
-      ) {
+      if (error instanceof BadRequestException || error instanceof InternalServerErrorException) {
         throw error;
       }
       this.logger.error('Failed to upload file:', error);
@@ -172,7 +171,10 @@ export class SupabaseStorageService implements OnModuleInit {
     }
 
     const results = await Promise.allSettled(
-      files.map(async (file) => this.uploadFile(file, options)),
+      files.map(async (file) => {
+        const uploaded = await this.uploadFile(file, options);
+        return uploaded;
+      }),
     );
 
     const successful: UploadedFileInfo[] = [];
@@ -206,15 +208,11 @@ export class SupabaseStorageService implements OnModuleInit {
 
       const filePath = this.extractFilePath(fileNameOrUrl);
 
-      const { error } = await this.supabase.storage
-        .from(this.bucketName)
-        .remove([filePath]);
+      const { error } = await this.supabase.storage.from(this.bucketName).remove([filePath]);
 
       if (error) {
         this.logger.error(`Failed to delete file ${filePath}:`, error);
-        throw new InternalServerErrorException(
-          `File deletion failed: ${error.message}`,
-        );
+        throw new InternalServerErrorException(`File deletion failed: ${error.message}`);
       }
 
       this.logger.debug(`File deleted successfully: ${filePath}`);
@@ -243,15 +241,11 @@ export class SupabaseStorageService implements OnModuleInit {
 
       const filePaths = fileNamesOrUrls.map((f) => this.extractFilePath(f));
 
-      const { error } = await this.supabase.storage
-        .from(this.bucketName)
-        .remove(filePaths);
+      const { error } = await this.supabase.storage.from(this.bucketName).remove(filePaths);
 
       if (error) {
         this.logger.error('Batch file deletion failed:', error);
-        throw new InternalServerErrorException(
-          `Batch file deletion failed: ${error.message}`,
-        );
+        throw new InternalServerErrorException(`Batch file deletion failed: ${error.message}`);
       }
 
       this.logger.log(`Processed deletion of ${filePaths.length} files`);
@@ -267,32 +261,30 @@ export class SupabaseStorageService implements OnModuleInit {
   /**
    * Get file metadata (Supabase doesn't have direct metadata API, so we list the file)
    */
-  async getFileMetadata(fileNameOrUrl: string): Promise<any> {
+  async getFileMetadata(fileNameOrUrl: string): Promise<FileObject> {
     try {
       this.ensureInitialized();
 
       const filePath = this.extractFilePath(fileNameOrUrl);
       const folder = filePath.includes('/') ? filePath.substring(0, filePath.lastIndexOf('/')) : '';
-      const file = filePath.includes('/') ? filePath.substring(filePath.lastIndexOf('/') + 1) : filePath;
+      const file = filePath.includes('/')
+        ? filePath.substring(filePath.lastIndexOf('/') + 1)
+        : filePath;
 
-      const { data, error } = await this.supabase.storage
-        .from(this.bucketName)
-        .list(folder, {
-          search: file,
-          limit: 1,
-        });
+      const { data, error } = await this.supabase.storage.from(this.bucketName).list(folder, {
+        search: file,
+        limit: 1,
+      });
 
       if (error) {
-        throw new InternalServerErrorException(
-          `Failed to get file metadata: ${error.message}`,
-        );
+        throw new InternalServerErrorException(`Failed to get file metadata: ${error.message}`);
       }
 
       if (!data || data.length === 0) {
         throw new InternalServerErrorException(`File not found: ${filePath}`);
       }
 
-      return data[0];
+      return data[0] as FileObject;
     } catch (error) {
       if (error instanceof InternalServerErrorException) {
         throw error;
@@ -307,10 +299,7 @@ export class SupabaseStorageService implements OnModuleInit {
   /**
    * Generate signed URL for private files
    */
-  async getSignedUrl(
-    fileNameOrUrl: string,
-    expiresIn: number = 7 * 24 * 60 * 60,
-  ): Promise<string> {
+  async getSignedUrl(fileNameOrUrl: string, expiresIn: number = 7 * 24 * 60 * 60): Promise<string> {
     try {
       this.ensureInitialized();
 
@@ -321,9 +310,7 @@ export class SupabaseStorageService implements OnModuleInit {
         .createSignedUrl(filePath, expiresIn);
 
       if (error) {
-        throw new InternalServerErrorException(
-          `Failed to generate signed URL: ${error.message}`,
-        );
+        throw new InternalServerErrorException(`Failed to generate signed URL: ${error.message}`);
       }
 
       return data.signedUrl;
@@ -347,14 +334,14 @@ export class SupabaseStorageService implements OnModuleInit {
 
       const filePath = this.extractFilePath(fileNameOrUrl);
       const folder = filePath.includes('/') ? filePath.substring(0, filePath.lastIndexOf('/')) : '';
-      const file = filePath.includes('/') ? filePath.substring(filePath.lastIndexOf('/') + 1) : filePath;
+      const file = filePath.includes('/')
+        ? filePath.substring(filePath.lastIndexOf('/') + 1)
+        : filePath;
 
-      const { data, error } = await this.supabase.storage
-        .from(this.bucketName)
-        .list(folder, {
-          search: file,
-          limit: 1,
-        });
+      const { data, error } = await this.supabase.storage.from(this.bucketName).list(folder, {
+        search: file,
+        limit: 1,
+      });
 
       if (error) {
         return false;
@@ -370,9 +357,7 @@ export class SupabaseStorageService implements OnModuleInit {
    * Get the public URL for a file
    */
   private getPublicUrl(fileName: string): string {
-    const { data } = this.supabase.storage
-      .from(this.bucketName)
-      .getPublicUrl(fileName);
+    const { data } = this.supabase.storage.from(this.bucketName).getPublicUrl(fileName);
 
     return data.publicUrl;
   }
@@ -399,7 +384,7 @@ export class SupabaseStorageService implements OnModuleInit {
       if (prefixIndex !== -1) {
         const extracted = fileNameOrUrl.substring(prefixIndex + prefix.length);
         // Remove any query parameters (e.g. ?token=xxx on signed URLs)
-        return extracted.split('?')[0];
+        return extracted.split('?')[0] ?? '';
       }
     }
 
@@ -514,16 +499,10 @@ export class SupabaseStorageService implements OnModuleInit {
     }
   }
 
-  private generateFileName(
-    originalName: string,
-    extension: string,
-    folder?: string,
-  ): string {
+  private generateFileName(originalName: string, extension: string, folder?: string): string {
     const timestamp = Date.now();
     const randomId = uuidv4().split('-')[0];
-    const baseName = originalName
-      .replace(/\.[^/.]+$/, '')
-      .replace(/[^a-zA-Z0-9]/g, '_');
+    const baseName = originalName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9]/g, '_');
 
     const fileName = `${baseName}_${timestamp}_${randomId}${extension}`;
 

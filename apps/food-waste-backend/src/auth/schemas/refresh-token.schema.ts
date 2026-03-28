@@ -20,130 +20,130 @@ export type RefreshTokenDocument = RefreshToken & Document;
  */
 @Schema({ timestamps: true })
 export class RefreshToken {
-    /**
-     * JWT ID (jti) - Unique identifier for this token
-     * RFC 7519: Used to prevent replay attacks and enable revocation
-     */
-    @Prop({ required: true, unique: true, index: true })
-    jti: string;
+  /**
+   * JWT ID (jti) - Unique identifier for this token
+   * RFC 7519: Used to prevent replay attacks and enable revocation
+   */
+  @Prop({ required: true, unique: true, index: true })
+  jti!: string;
 
-    /**
-     * Hashed refresh token value
-     * Stored hashed for security (defense in depth)
-     */
-    @Prop({ required: true, index: true })
-    tokenHash: string;
+  /**
+   * Hashed refresh token value
+   * Stored hashed for security (defense in depth)
+   */
+  @Prop({ required: true, index: true })
+  tokenHash!: string;
 
-    /**
-     * User ID this token belongs to
-     */
-    @Prop({ required: true, index: true })
-    userId: string;
+  /**
+   * User ID this token belongs to
+   */
+  @Prop({ required: true, index: true })
+  userId!: string;
 
-    /**
-     * Token Family ID - Groups related tokens for rotation tracking
-     * When a token is refreshed, new token inherits the family ID
-     * Enables detection of token theft (reuse of old token in family)
-     */
-    @Prop({ required: true, index: true })
-    familyId: string;
+  /**
+   * Token Family ID - Groups related tokens for rotation tracking
+   * When a token is refreshed, new token inherits the family ID
+   * Enables detection of token theft (reuse of old token in family)
+   */
+  @Prop({ required: true, index: true })
+  familyId!: string;
 
-    /**
-     * Issued-at timestamp (iat) - When this token was created
-     * Critical for token fixation attack prevention
-     * Reject tokens if iat < user's last security event timestamp
-     */
-    @Prop({ required: true, index: true })
-    issuedAt: Date;
+  /**
+   * Issued-at timestamp (iat) - When this token was created
+   * Critical for token fixation attack prevention
+   * Reject tokens if iat < user's last security event timestamp
+   */
+  @Prop({ required: true, index: true })
+  issuedAt!: Date;
 
-    /**
-     * Expiration timestamp
-     */
-    @Prop({ required: true })
-    expiresAt: Date;
+  /**
+   * Expiration timestamp
+   */
+  @Prop({ required: true })
+  expiresAt!: Date;
 
-    /**
-     * Device information for security auditing
-     */
-    @Prop({
-        type: {
-            deviceId: String,
-            deviceName: String,
-            platform: String,
-            browser: String,
-            ipAddress: String,
-            userAgent: String,
-        }
-    })
-    deviceInfo?: {
-        deviceId?: string;
-        deviceName?: string;
-        platform?: string;
-        browser?: string;
-        ipAddress?: string;
-        userAgent?: string;
-    };
+  /**
+   * Device information for security auditing
+   */
+  @Prop({
+    type: {
+      deviceId: String,
+      deviceName: String,
+      platform: String,
+      browser: String,
+      ipAddress: String,
+      userAgent: String,
+    },
+  })
+  deviceInfo?: {
+    deviceId?: string;
+    deviceName?: string;
+    platform?: string;
+    browser?: string;
+    ipAddress?: string;
+    userAgent?: string;
+  };
 
-    /**
-     * Parent token JTI - References the token that was rotated to create this one
-     * Enables token lineage tracking
-     */
-    @Prop({ index: true })
-    parentJti?: string;
+  /**
+   * Parent token JTI - References the token that was rotated to create this one
+   * Enables token lineage tracking
+   */
+  @Prop({ index: true })
+  parentJti?: string;
 
-    /**
-     * Revoked status - Mark token as invalid without deletion
-     */
-    @Prop({ default: false, index: true })
-    isRevoked: boolean;
+  /**
+   * Revoked status - Mark token as invalid without deletion
+   */
+  @Prop({ default: false, index: true })
+  isRevoked!: boolean;
 
-    /**
-     * Revocation timestamp and reason
-     */
-    @Prop()
-    revokedAt?: Date;
+  /**
+   * Revocation timestamp and reason
+   */
+  @Prop()
+  revokedAt?: Date;
 
-    @Prop()
-    revokedReason?: string;
+  @Prop()
+  revokedReason?: string;
 
-    /**
-     * Last used timestamp - Track when token was last validated
-     */
-    @Prop()
-    lastUsedAt?: Date;
+  /**
+   * Last used timestamp - Track when token was last validated
+   */
+  @Prop()
+  lastUsedAt?: Date;
 
-    /**
-     * Whether this token was issued with "remember me" enabled.
-     * Persisted so that token rotation preserves the session duration.
-     */
-    @Prop({ default: false })
-    rememberMe: boolean;
+  /**
+   * Whether this token was issued with "remember me" enabled.
+   * Persisted so that token rotation preserves the session duration.
+   */
+  @Prop({ default: false })
+  rememberMe!: boolean;
 
-    /**
-     * Security metadata
-     */
-    @Prop({
-        type: {
-            rotationCount: { type: Number, default: 0 },
-            isCompromised: { type: Boolean, default: false },
-            compromisedAt: Date,
-            compromisedReason: String,
-        },
-        default: () => ({
-            rotationCount: 0,
-            isCompromised: false,
-        })
-    })
-    securityMetadata: {
-        rotationCount: number;
-        isCompromised: boolean;
-        compromisedAt?: Date;
-        compromisedReason?: string;
-    };
+  /**
+   * Security metadata
+   */
+  @Prop({
+    type: {
+      rotationCount: { type: Number, default: 0 },
+      isCompromised: { type: Boolean, default: false },
+      compromisedAt: Date,
+      compromisedReason: String,
+    },
+    default: () => ({
+      rotationCount: 0,
+      isCompromised: false,
+    }),
+  })
+  securityMetadata!: {
+    rotationCount: number;
+    isCompromised: boolean;
+    compromisedAt?: Date;
+    compromisedReason?: string;
+  };
 
-    // Timestamps added by @Schema({ timestamps: true })
-    createdAt?: Date;
-    updatedAt?: Date;
+  // Timestamps added by @Schema({ timestamps: true })
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const RefreshTokenSchema = SchemaFactory.createForClass(RefreshToken);

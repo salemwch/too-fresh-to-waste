@@ -1,26 +1,27 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+
 import { NotificationType, NotificationTrigger } from '../types/notification.types';
 
 @Schema({
   timestamps: true,
-  collection: 'notification_templates'
+  collection: 'notification_templates',
 })
 export class NotificationTemplate extends Document {
   @Prop({ required: true, unique: true })
-  name: string;
+  name!: string;
 
   @Prop({ required: true, enum: NotificationTrigger })
-  trigger: NotificationTrigger;
+  trigger!: NotificationTrigger;
 
   @Prop({ required: true, enum: NotificationType })
-  type: NotificationType;
+  type!: NotificationType;
 
   @Prop({ required: true })
-  subject: string; // For emails, title for push
+  subject!: string; // For emails, title for push
 
   @Prop({ required: true })
-  body: string;
+  body!: string;
 
   @Prop()
   htmlBody?: string; // For email templates
@@ -61,17 +62,20 @@ export class NotificationTemplate extends Document {
   };
 
   @Prop({ type: Map, of: Object })
-  localization?: Map<string, {
-    subject: string;
-    body: string;
-    htmlBody?: string;
-  }>; // Language code -> localized content
+  localization?: Map<
+    string,
+    {
+      subject: string;
+      body: string;
+      htmlBody?: string;
+    }
+  >; // Language code -> localized content
 
   @Prop({ default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Prop()
-  version: string;
+  version!: string;
 
   @Prop({ type: Object })
   metadata?: {

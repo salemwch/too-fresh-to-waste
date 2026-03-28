@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
+
 import { EmailService } from '../../email/email.service';
 import {
   SecurityEvent,
@@ -39,28 +40,25 @@ export class AdminNotificationService {
   ) {
     // Load configuration
     this.adminEmails = this.parseAdminEmails(
-      this.configService.get<string>('ADMIN_NOTIFICATION_EMAILS', '')
+      this.configService.get<string>('ADMIN_NOTIFICATION_EMAILS', ''),
     );
     this.minSeverityLevel = this.configService.get<SecuritySeverity>(
       'SECURITY_ALERT_MIN_SEVERITY',
       SecuritySeverity.HIGH,
     );
-    this.isEnabled = this.configService.get<boolean>(
-      'ADMIN_NOTIFICATIONS_ENABLED',
-      true,
-    );
+    this.isEnabled = this.configService.get<boolean>('ADMIN_NOTIFICATIONS_ENABLED', true);
 
     if (this.isEnabled && this.adminEmails.length === 0) {
       this.logger.warn(
         'Admin notifications enabled but no admin emails configured. ' +
-        'Set ADMIN_NOTIFICATION_EMAILS environment variable.'
+          'Set ADMIN_NOTIFICATION_EMAILS environment variable.',
       );
     }
 
     this.logger.log(
       `✅ AdminNotificationService initialized - ` +
-      `Enabled: ${this.isEnabled}, Admins: ${this.adminEmails.length}, ` +
-      `Min Severity: ${this.minSeverityLevel}`
+        `Enabled: ${this.isEnabled}, Admins: ${this.adminEmails.length}, ` +
+        `Min Severity: ${this.minSeverityLevel}`,
     );
   }
 
@@ -75,9 +73,7 @@ export class AdminNotificationService {
 
     // Check severity threshold
     if (!this.shouldNotify(event.severity)) {
-      this.logger.debug(
-        `Skipping notification for ${event.type} (severity: ${event.severity})`
-      );
+      this.logger.debug(`Skipping notification for ${event.type} (severity: ${event.severity})`);
       return;
     }
 
@@ -97,12 +93,12 @@ export class AdminNotificationService {
       this.updateThrottle(throttleKey);
 
       this.logger.log(
-        `Security notification sent to ${this.adminEmails.length} admins for ${event.type}`
+        `Security notification sent to ${this.adminEmails.length} admins for ${event.type}`,
       );
     } catch (error) {
       this.logger.error(
         `Failed to send admin notification for ${event.type}:`,
-        error instanceof Error ? error.stack : error
+        error instanceof Error ? error.stack : error,
       );
     }
   }
@@ -124,13 +120,13 @@ export class AdminNotificationService {
 
     // Send to all configured admin emails
     await Promise.allSettled(
-      this.adminEmails.map(async (email) =>
-        this.emailService.sendEmail({
+      this.adminEmails.map(async (email) => {
+        await this.emailService.sendEmail({
           to: email,
           subject,
           html: htmlBody,
-        })
-      )
+        });
+      }),
     );
   }
 
@@ -191,26 +187,38 @@ export class AdminNotificationService {
                 <span class="value">${event.ipAddress}</span>
               </div>
 
-              ${event.email ? `
+              ${
+                event.email
+                  ? `
               <div class="detail-row">
                 <span class="label">Email:</span>
                 <span class="value">${event.email}</span>
               </div>
-              ` : ''}
+              `
+                  : ''
+              }
 
-              ${event.userId ? `
+              ${
+                event.userId
+                  ? `
               <div class="detail-row">
                 <span class="label">User ID:</span>
                 <span class="value">${event.userId}</span>
               </div>
-              ` : ''}
+              `
+                  : ''
+              }
 
-              ${event.userAgent ? `
+              ${
+                event.userAgent
+                  ? `
               <div class="detail-row">
                 <span class="label">User Agent:</span>
                 <span class="value" style="font-size: 11px;">${event.userAgent}</span>
               </div>
-              ` : ''}
+              `
+                  : ''
+              }
 
               <div class="metadata">
                 <h4 style="margin-top: 0;">Event Details:</h4>

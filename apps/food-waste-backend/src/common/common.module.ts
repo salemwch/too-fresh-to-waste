@@ -1,35 +1,32 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+// MongooseModule removed - not currently used in this module
 import { ThrottlerModule } from '@nestjs/throttler';
-import { SanitizationUtil } from './utils/sanitization.util';
-import { RegexSecurityUtil } from './utils/regex-security.util';
+
+import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
+import { RedisModule } from '../redis/redis.module';
+
+import { CspReportController } from './controllers/csp-report.controller';
+import { MetricsController } from './controllers/metrics.controller';
 import { QueryComplexityGuard } from './guards/query-complexity.guard';
+import { GlobalSanitizationMiddleware } from './middleware/global-sanitization.middleware';
 import { ConfigParserService } from './services/config-parser.service';
-import { AppLoggerService } from './services/logger.service';
-import { SentryService } from './services/sentry.service';
 import { FirebaseAdminService } from './services/firebase-admin.service';
+import { AppLoggerService } from './services/logger.service';
+import { RegexSecurityUtil } from './utils/regex-security.util';
+import { SanitizationUtil } from './utils/sanitization.util';
+import { SentryService } from './services/sentry.service';
 import { SupabaseStorageService } from './services/supabase-storage.service';
 import { LocalStorageService } from './services/local-storage.service';
 import { PhoneNumberService } from './services/phone-number.service';
 import { IsNotProfaneConstraint } from './validators/business-constraints.validator';
-import { GlobalSanitizationMiddleware } from './middleware/global-sanitization.middleware';
-import { CspReportController } from './controllers/csp-report.controller';
-import { MetricsController } from './controllers/metrics.controller';
 import { PrometheusMetricsService } from './services/prometheus-metrics.service';
-import { RedisModule } from '../redis/redis.module';
-import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
 import { EventBusService } from './services/event-bus/event-bus.service';
 import { RabbitMQAdapter } from './services/event-bus/adapters/rabbitmq.adapter';
 import { EventEmitter2Adapter } from './services/event-bus/adapters/eventemitter2.adapter';
 
 @Module({
-  imports: [
-    ConfigModule,
-    ThrottlerModule,
-    RedisModule,
-    RabbitMQModule,
-  ],
+  imports: [ConfigModule, ThrottlerModule, RedisModule, RabbitMQModule],
   controllers: [
     CspReportController, // CSP violation reporting endpoint
     MetricsController, // Prometheus metrics endpoint

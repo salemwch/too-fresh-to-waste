@@ -9,14 +9,15 @@
  * @module loyalty/listeners
  */
 
+import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { plainToClass } from 'class-transformer';
+
 import { OrderCompletedEvent } from '../../common/events';
+import { CommunityGoalService } from '../../community-goal/community-goal.service';
 import { LoyaltyService } from '../loyalty.service';
 import { GamificationService } from '../services/gamification.service';
-import { CommunityGoalService } from '../../community-goal/community-goal.service';
 
 @Injectable()
 export class OrderEventsListener {
@@ -62,10 +63,7 @@ export class OrderEventsListener {
       await this.processOrderLoyalty(event);
       // Auto-ACK on success
     } catch (error) {
-      this.logger.error(
-        `RabbitMQ: Failed to process order.completed event for loyalty`,
-        error,
-      );
+      this.logger.error(`RabbitMQ: Failed to process order.completed event for loyalty`, error);
       return new Nack(true); // Requeue for retry
     }
   }
@@ -103,7 +101,7 @@ export class OrderEventsListener {
         );
       } catch (error) {
         // If "Loyalty account not found", create it and retry
-        if (error.message === 'Loyalty account not found') {
+        if (error instanceof Error && error.message === 'Loyalty account not found') {
           this.logger.warn(
             `Loyalty account not found for user ${event.userId}, creating now (fallback)`,
           );
@@ -129,7 +127,10 @@ export class OrderEventsListener {
 
       // Update gamification tracking
       await this.gamificationService.updateFriendBagCount(event.userId, totalBags);
-      const streakResult = await this.gamificationService.updatePurchaseStreak(event.userId, totalBags);
+      const streakResult = await this.gamificationService.updatePurchaseStreak(
+        event.userId,
+        totalBags,
+      );
 
       if (streakResult.completed) {
         this.logger.log(
@@ -152,8 +153,8 @@ export class OrderEventsListener {
       this.logger.log(`Successfully processed order completion for loyalty: ${event.orderId}`);
     } catch (error) {
       this.logger.error(
-        `Failed to process order.completed event for order ${event.orderId}: ${error.message}`,
-        error.stack,
+        `Failed to process order.completed event for order ${event.orderId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       // Don't throw - event listeners should not break the flow
     }

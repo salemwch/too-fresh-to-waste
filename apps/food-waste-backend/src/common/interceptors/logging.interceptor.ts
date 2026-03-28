@@ -11,14 +11,10 @@
  * - Correlation ID tracking
  */
 
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-} from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
+
 import { WinstonLoggerService } from '../services/winston-logger.service';
 
 @Injectable()
@@ -27,7 +23,7 @@ export class LoggingInterceptor implements NestInterceptor {
     this.logger.setContext('HTTP');
   }
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
 
@@ -36,21 +32,16 @@ export class LoggingInterceptor implements NestInterceptor {
     const startTime = Date.now();
 
     // Log incoming request
-    this.logger.logWithCorrelationId(
-      'info',
-      `Incoming ${method} ${url}`,
-      correlationId,
-      {
-        method,
-        url,
-        ip,
-        userAgent,
-        body: this.sanitizeBody(body),
-      }
-    );
+    this.logger.logWithCorrelationId('info', `Incoming ${method} ${url}`, correlationId, {
+      method,
+      url,
+      ip,
+      userAgent,
+      body: this.sanitizeBody(body),
+    });
 
     return next.handle().pipe(
-      tap((data) => {
+      tap((_data) => {
         const { statusCode } = response;
         const duration = Date.now() - startTime;
 
@@ -64,20 +55,16 @@ export class LoggingInterceptor implements NestInterceptor {
             url,
             statusCode,
             duration,
-          }
+          },
         );
 
         // Log performance warning for slow requests
         if (duration > 3000) {
-          this.logger.logPerformance(
-            `Slow request: ${method} ${url}`,
-            duration,
-            {
-              method,
-              url,
-              statusCode,
-            }
-          );
+          this.logger.logPerformance(`Slow request: ${method} ${url}`, duration, {
+            method,
+            url,
+            statusCode,
+          });
         }
       }),
       catchError((error) => {
@@ -94,11 +81,11 @@ export class LoggingInterceptor implements NestInterceptor {
             duration,
             error: error.message,
             stack: error.stack,
-          }
+          },
         );
 
         return throwError(() => error);
-      })
+      }),
     );
   }
 
@@ -107,9 +94,9 @@ export class LoggingInterceptor implements NestInterceptor {
    *
    * Remove sensitive fields from logs
    */
-  private sanitizeBody(body: any): any {
+  private sanitizeBody(body: Record<string, unknown>): Record<string, unknown> {
     if (!body || typeof body !== 'object') {
-      return body;
+      return body as Record<string, unknown>;
     }
 
     const sanitized = { ...body };

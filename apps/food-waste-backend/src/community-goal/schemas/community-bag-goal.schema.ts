@@ -12,20 +12,20 @@ export enum CommunityGoalStatus {
 @Schema({ timestamps: true })
 export class CommunityBagGoal {
   @Prop({ required: true, default: 0, min: 0 })
-  currentCount: number;
+  currentCount!: number;
 
   @Prop({ required: true, default: 8000, min: 100 })
-  targetCount: number;
+  targetCount!: number;
 
   @Prop({ required: true, default: 1, min: 1 })
-  cycleNumber: number;
+  cycleNumber!: number;
 
   @Prop({
     required: true,
     enum: CommunityGoalStatus,
     default: CommunityGoalStatus.ACTIVE,
   })
-  status: CommunityGoalStatus;
+  status!: CommunityGoalStatus;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
   createdBy?: Types.ObjectId;

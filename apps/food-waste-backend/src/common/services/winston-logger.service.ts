@@ -20,11 +20,13 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class WinstonLoggerService implements LoggerService {
-  private logger: winston.Logger;
-  private context?: string;
+  private readonly logger: winston.Logger;
+  private context?: string | undefined;
 
   constructor(context?: string) {
-    this.context = context;
+    if (context !== undefined) {
+      this.context = context;
+    }
     this.logger = this.createLogger();
   }
 
@@ -32,8 +34,8 @@ export class WinstonLoggerService implements LoggerService {
    * Create Winston Logger Instance
    */
   private createLogger(): winston.Logger {
-    const isProduction = process.env.NODE_ENV === 'production';
-    const logLevel = process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug');
+    const isProduction = process.env['NODE_ENV'] === 'production';
+    const logLevel = process.env['LOG_LEVEL'] || (isProduction ? 'info' : 'debug');
 
     // Common log format
     const logFormat = winston.format.combine(
@@ -41,7 +43,7 @@ export class WinstonLoggerService implements LoggerService {
       winston.format.errors({ stack: true }),
       winston.format.metadata({
         fillExcept: ['message', 'level', 'timestamp', 'label'],
-      })
+      }),
     );
 
     const transports: winston.transport[] = [];
@@ -55,10 +57,10 @@ export class WinstonLoggerService implements LoggerService {
             ? winston.format.json()
             : winston.format.combine(
                 winston.format.colorize(),
-                winston.format.printf(this.consoleFormatter)
-              )
+                winston.format.printf(this.consoleFormatter),
+              ),
         ),
-      })
+      }),
     );
 
     // File transports (production only)
@@ -72,7 +74,7 @@ export class WinstonLoggerService implements LoggerService {
           maxSize: '20m',
           maxFiles: '14d',
           format: winston.format.combine(logFormat, winston.format.json()),
-        })
+        }),
       );
 
       // Error logs with rotation
@@ -85,7 +87,7 @@ export class WinstonLoggerService implements LoggerService {
           maxSize: '20m',
           maxFiles: '30d',
           format: winston.format.combine(logFormat, winston.format.json()),
-        })
+        }),
       );
 
       // Critical errors (separate file, longer retention)
@@ -100,13 +102,13 @@ export class WinstonLoggerService implements LoggerService {
           format: winston.format.combine(
             winston.format((info) => {
               // Only log critical errors
-              const metadata = info.metadata as { critical?: boolean } | undefined;
+              const metadata = info['metadata'] as { critical?: boolean } | undefined;
               return metadata?.critical ? info : false;
             })(),
             logFormat,
-            winston.format.json()
+            winston.format.json(),
           ),
-        })
+        }),
       );
     }
 
@@ -114,8 +116,8 @@ export class WinstonLoggerService implements LoggerService {
       level: logLevel,
       defaultMeta: {
         service: 'foodwaste-backend',
-        environment: process.env.NODE_ENV,
-        version: process.env.npm_package_version || '1.0.0',
+        environment: process.env['NODE_ENV'],
+        version: process.env['npm_package_version'] || '1.0.0',
       },
       transports,
       exitOnError: false,
@@ -127,8 +129,8 @@ export class WinstonLoggerService implements LoggerService {
    */
   private consoleFormatter(info: winston.Logform.TransformableInfo): string {
     const { timestamp, level, message } = info;
-    const infoMetadata = info.metadata as { context?: string } | undefined;
-    const context = (info as any).context;
+    const infoMetadata = info['metadata'] as { context?: string } | undefined;
+    const context = (info as Record<string, unknown>)['context'] as string | undefined;
 
     const ctx = context || infoMetadata?.context || 'Application';
     const metaStr =
@@ -202,7 +204,7 @@ export class WinstonLoggerService implements LoggerService {
     level: string,
     message: string,
     correlationId: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>,
   ): void {
     this.logger.log(level, message, {
       context: this.context,
@@ -214,11 +216,7 @@ export class WinstonLoggerService implements LoggerService {
   /**
    * Log Performance Metric
    */
-  logPerformance(
-    operation: string,
-    duration: number,
-    metadata?: Record<string, any>
-  ): void {
+  logPerformance(operation: string, duration: number, metadata?: Record<string, unknown>): void {
     this.logger.info(`Performance: ${operation}`, {
       context: this.context,
       operation,
@@ -230,7 +228,7 @@ export class WinstonLoggerService implements LoggerService {
   /**
    * Log Security Event
    */
-  logSecurity(event: string, metadata?: Record<string, any>): void {
+  logSecurity(event: string, metadata?: Record<string, unknown>): void {
     this.logger.warn(`Security: ${event}`, {
       context: this.context,
       security: true,
@@ -258,8 +256,6 @@ export class WinstonLoggerService implements LoggerService {
 
     const messageAndTrace = `${message} ${trace || ''}`.toLowerCase();
 
-    return criticalKeywords.some((keyword) =>
-      messageAndTrace.includes(keyword)
-    );
+    return criticalKeywords.some((keyword) => messageAndTrace.includes(keyword));
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+
 import { SanitizationUtil } from '../utils/sanitization.util';
 
 /**
@@ -20,7 +21,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
 
   constructor(private readonly sanitizationUtil: SanitizationUtil) {}
 
-  use(req: Request, res: Response, next: NextFunction): void {
+  use(req: Request, _res: Response, next: NextFunction): void {
     const startTime = Date.now();
 
     try {
@@ -44,7 +45,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
       if (req.query && typeof req.query === 'object') {
         const result = this.sanitizeQuery(req.query);
         // Mutate in place - req.query is read-only (getter only)
-        Object.keys(req.query).forEach(key => delete req.query[key]);
+        Object.keys(req.query).forEach((key) => delete req.query[key]);
         Object.assign(req.query, result.sanitized);
         sanitizedFields += result.fieldsModified;
         suspiciousDetected = suspiciousDetected || result.suspiciousDetected;
@@ -54,7 +55,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
       if (req.params && typeof req.params === 'object') {
         const result = this.sanitizeParams(req.params);
         // Mutate in place - req.params is read-only (getter only)
-        Object.keys(req.params).forEach(key => delete req.params[key]);
+        Object.keys(req.params).forEach((key) => delete req.params[key]);
         Object.assign(req.params, result.sanitized);
         sanitizedFields += result.fieldsModified;
         suspiciousDetected = suspiciousDetected || result.suspiciousDetected;
@@ -71,7 +72,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
           userAgent: req.get('User-Agent'),
           fieldsModified: sanitizedFields,
           durationMs: duration,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
 
@@ -82,7 +83,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
           message: 'Slow sanitization detected',
           path: req.path,
           durationMs: duration,
-          fieldsModified: sanitizedFields
+          fieldsModified: sanitizedFields,
         });
       }
 
@@ -92,7 +93,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
         message: 'Error in global sanitization middleware',
         error: error instanceof Error ? error.message : String(error),
         path: req.path,
-        method: req.method
+        method: req.method,
       });
 
       // Continue processing even if sanitization fails
@@ -111,31 +112,31 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
       '/metrics',
       '/api/v1/health',
       '/api/v1/metrics',
-      '/api/v1/api-docs',  // Swagger
-      '/favicon.ico'
+      '/api/v1/api-docs', // Swagger
+      '/favicon.ico',
     ];
 
-    return excludedPaths.some(excluded => path.startsWith(excluded));
+    return excludedPaths.some((excluded) => path.startsWith(excluded));
   }
 
   /**
    * Sanitize request body recursively
    */
-  private sanitizeBody(body: any): {
-    sanitized: any;
+  private sanitizeBody(body: Record<string, unknown>): {
+    sanitized: Record<string, unknown>;
     fieldsModified: number;
     suspiciousDetected: boolean;
   } {
     let fieldsModified = 0;
     let suspiciousDetected = false;
 
-    const sanitize = (obj: any): any => {
+    const sanitize = (obj: unknown): unknown => {
       if (obj === null || obj === undefined) {
         return obj;
       }
 
       if (Array.isArray(obj)) {
-        return obj.map(item => sanitize(item));
+        return obj.map((item) => sanitize(item));
       }
 
       if (typeof obj === 'string') {
@@ -154,9 +155,9 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
       }
 
       if (typeof obj === 'object') {
-        const sanitized: any = {};
+        const sanitized: Record<string, unknown> = {};
 
-        for (const [key, value] of Object.entries(obj)) {
+        for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
           // Sanitize keys to prevent prototype pollution
           const sanitizedKey = this.sanitizeKey(key);
 
@@ -176,21 +177,21 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
     };
 
     return {
-      sanitized: sanitize(body),
+      sanitized: sanitize(body) as Record<string, unknown>,
       fieldsModified,
-      suspiciousDetected
+      suspiciousDetected,
     };
   }
 
   /**
    * Sanitize query parameters
    */
-  private sanitizeQuery(query: any): {
-    sanitized: any;
+  private sanitizeQuery(query: Record<string, unknown>): {
+    sanitized: Record<string, unknown>;
     fieldsModified: number;
     suspiciousDetected: boolean;
   } {
-    const sanitized: any = {};
+    const sanitized: Record<string, unknown> = {};
     let fieldsModified = 0;
     let suspiciousDetected = false;
 
@@ -217,7 +218,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
 
         sanitized[sanitizedKey] = sanitizedValue;
       } else if (Array.isArray(value)) {
-        sanitized[sanitizedKey] = value.map(item => {
+        sanitized[sanitizedKey] = value.map((item) => {
           if (typeof item === 'string') {
             const original = item;
             const sanitizedItem = this.sanitizationUtil.sanitizeText(item);
@@ -242,19 +243,19 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
     return {
       sanitized,
       fieldsModified,
-      suspiciousDetected
+      suspiciousDetected,
     };
   }
 
   /**
    * Sanitize URL parameters
    */
-  private sanitizeParams(params: any): {
-    sanitized: any;
+  private sanitizeParams(params: Record<string, string | string[]>): {
+    sanitized: Record<string, string>;
     fieldsModified: number;
     suspiciousDetected: boolean;
   } {
-    const sanitized: any = {};
+    const sanitized: Record<string, string> = {};
     let fieldsModified = 0;
     let suspiciousDetected = false;
 
@@ -281,14 +282,14 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
 
         sanitized[sanitizedKey] = sanitizedValue;
       } else {
-        sanitized[sanitizedKey] = value;
+        sanitized[sanitizedKey] = Array.isArray(value) ? (value[0] ?? '') : value;
       }
     }
 
     return {
       sanitized,
       fieldsModified,
-      suspiciousDetected
+      suspiciousDetected,
     };
   }
 

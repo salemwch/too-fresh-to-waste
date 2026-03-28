@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WebSocketService } from '../websocket.service';
+
 import { NotificationEvent, WebSocketEvents } from '../interfaces/websocket.interface';
+import { WebSocketService } from '../websocket.service';
 
 @Injectable()
 export class NotificationGateway {
@@ -44,7 +45,9 @@ export class NotificationGateway {
         });
       }
 
-      this.logger.log(`Bulk notifications sent: ${notifications.length} notifications to ${userNotifications.size} users`);
+      this.logger.log(
+        `Bulk notifications sent: ${notifications.length} notifications to ${userNotifications.size} users`,
+      );
     } catch (error) {
       this.logger.error('Failed to send bulk notifications:', error);
     }
@@ -57,7 +60,7 @@ export class NotificationGateway {
     title: string,
     message: string,
     priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium',
-    data?: Record<string, any>
+    data?: Record<string, unknown>,
   ): void {
     try {
       const announcement = {
@@ -83,7 +86,7 @@ export class NotificationGateway {
   sendMaintenanceNotification(
     message: string,
     scheduledTime: Date,
-    estimatedDuration: number // in minutes
+    estimatedDuration: number, // in minutes
   ): void {
     try {
       const notification = {
@@ -119,7 +122,7 @@ export class NotificationGateway {
       discount?: number;
       validUntil?: Date;
       termsUrl?: string;
-    }
+    },
   ): void {
     try {
       for (const userId of userIds) {
@@ -153,7 +156,7 @@ export class NotificationGateway {
     actionData?: {
       actionType: 'view_analytics' | 'create_offer' | 'update_hours' | 'contact_support';
       actionUrl?: string;
-    }
+    },
   ): void {
     try {
       const notification: NotificationEvent = {
@@ -182,7 +185,7 @@ export class NotificationGateway {
     radius: number, // in meters
     title: string,
     message: string,
-    data?: Record<string, any>
+    data?: Record<string, unknown>,
   ): void {
     try {
       const locationRoom = `location_${coordinates[1]}_${coordinates[0]}_${radius}`;
@@ -216,7 +219,7 @@ export class NotificationGateway {
     title: string,
     message: string,
     reminderType: 'pickup' | 'payment' | 'review' | 'profile' | 'subscription',
-    actionData?: Record<string, any>
+    actionData?: Record<string, unknown>,
   ): void {
     try {
       const notification: NotificationEvent = {
@@ -252,7 +255,7 @@ export class NotificationGateway {
       icon: string;
       points?: number;
       badge?: string;
-    }
+    },
   ): void {
     try {
       const notification: NotificationEvent = {
@@ -300,8 +303,8 @@ export class NotificationGateway {
     event: string,
     title: string,
     message: string,
-    data?: Record<string, any>,
-    priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium'
+    data?: Record<string, unknown>,
+    priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium',
   ): void {
     try {
       for (const userId of userIds) {

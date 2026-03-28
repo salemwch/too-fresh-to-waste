@@ -4,24 +4,36 @@ import { Document, Types, Schema as MongooseSchema } from 'mongoose';
 export type DashboardConfigDocument = DashboardConfig & Document;
 
 export interface WidgetVisualization {
-  chartType?: 'line' | 'bar' | 'pie' | 'donut' | 'area' | 'scatter' | 'stacked_bar' | 'radial_bar' | 'heatmap';
-  xAxis?: string;
-  yAxis?: string | string[];
-  colorScheme?: string[];
-  colorBy?: string;
-  field?: string;
-  value?: string;
-  metrics?: string[];
-  columns?: string[];
-  sorting?: {
-    column: string;
-    direction: 'asc' | 'desc';
-  };
-  mapType?: 'heat' | 'marker' | 'cluster';
-  centerLat?: number;
-  centerLng?: number;
-  zoom?: number;
-  displayOptions?: Record<string, string | number | boolean>;
+  chartType?:
+    | 'line'
+    | 'bar'
+    | 'pie'
+    | 'donut'
+    | 'area'
+    | 'scatter'
+    | 'stacked_bar'
+    | 'radial_bar'
+    | 'heatmap'
+    | undefined;
+  xAxis?: string | undefined;
+  yAxis?: string | string[] | undefined;
+  colorScheme?: string[] | undefined;
+  colorBy?: string | undefined;
+  field?: string | undefined;
+  value?: string | undefined;
+  metrics?: string[] | undefined;
+  columns?: string[] | undefined;
+  sorting?:
+    | {
+        column: string;
+        direction: 'asc' | 'desc';
+      }
+    | undefined;
+  mapType?: 'heat' | 'marker' | 'cluster' | undefined;
+  centerLat?: number | undefined;
+  centerLng?: number | undefined;
+  zoom?: number | undefined;
+  displayOptions?: Record<string, string | number | boolean> | undefined;
 }
 
 export interface WidgetPosition {
@@ -50,20 +62,20 @@ export interface DashboardPermissions {
 
 @Schema({
   timestamps: true,
-  collection: 'dashboard_configs'
+  collection: 'dashboard_configs',
 })
 export class DashboardConfig {
   @Prop({
     type: String,
     required: true,
     trim: true,
-    maxlength: 100
+    maxlength: 100,
   })
-  name: string;
+  name!: string;
 
   @Prop({
     type: String,
-    maxlength: 500
+    maxlength: 500,
   })
   description?: string;
 
@@ -71,77 +83,89 @@ export class DashboardConfig {
     type: String,
     enum: ['business', 'operations', 'sustainability', 'customer', 'financial'],
     required: true,
-    index: true
+    index: true,
   })
-  category: 'business' | 'operations' | 'sustainability' | 'customer' | 'financial';
+  category!: 'business' | 'operations' | 'sustainability' | 'customer' | 'financial';
 
   @Prop({
-    type: [{
-      id: { type: String, required: true },
-      type: {
-        type: String,
-        enum: ['metric', 'chart', 'table', 'map', 'heatmap'],
-        required: true
-      },
-      title: { type: String, required: true },
-      description: String,
-      dataSource: { type: String, required: true },
-      visualization: {
-        chartType: {
+    type: [
+      {
+        id: { type: String, required: true },
+        type: {
           type: String,
-          enum: ['line', 'bar', 'pie', 'donut', 'area', 'scatter', 'stacked_bar', 'radial_bar', 'heatmap']
+          enum: ['metric', 'chart', 'table', 'map', 'heatmap'],
+          required: true,
         },
-        xAxis: String,
-        yAxis: { type: MongooseSchema.Types.Mixed }, // Can be string or string[]
-        colorScheme: [String],
-        colorBy: String,
-        field: String,
-        value: String,
-        metrics: [String],
-        columns: [String],
-        sorting: {
-          column: String,
-          direction: { type: String, enum: ['asc', 'desc'] }
+        title: { type: String, required: true },
+        description: String,
+        dataSource: { type: String, required: true },
+        visualization: {
+          chartType: {
+            type: String,
+            enum: [
+              'line',
+              'bar',
+              'pie',
+              'donut',
+              'area',
+              'scatter',
+              'stacked_bar',
+              'radial_bar',
+              'heatmap',
+            ],
+          },
+          xAxis: String,
+          yAxis: { type: MongooseSchema.Types.Mixed }, // Can be string or string[]
+          colorScheme: [String],
+          colorBy: String,
+          field: String,
+          value: String,
+          metrics: [String],
+          columns: [String],
+          sorting: {
+            column: String,
+            direction: { type: String, enum: ['asc', 'desc'] },
+          },
+          mapType: {
+            type: String,
+            enum: ['heat', 'marker', 'cluster'],
+          },
+          centerLat: Number,
+          centerLng: Number,
+          zoom: { type: Number, min: 1, max: 20 },
+          displayOptions: Object,
         },
-        mapType: {
-          type: String,
-          enum: ['heat', 'marker', 'cluster']
+        filters: { type: Object, required: true },
+        refreshInterval: { type: Number, min: 1, max: 1440 },
+        position: {
+          row: { type: Number, required: true, min: 1 },
+          column: { type: Number, required: true, min: 1 },
+          width: { type: Number, required: true, min: 1, max: 12 },
+          height: { type: Number, required: true, min: 1, max: 6 },
         },
-        centerLat: Number,
-        centerLng: Number,
-        zoom: { type: Number, min: 1, max: 20 },
-        displayOptions: Object
       },
-      filters: { type: Object, required: true },
-      refreshInterval: { type: Number, min: 1, max: 1440 },
-      position: {
-        row: { type: Number, required: true, min: 1 },
-        column: { type: Number, required: true, min: 1 },
-        width: { type: Number, required: true, min: 1, max: 12 },
-        height: { type: Number, required: true, min: 1, max: 6 }
-      }
-    }],
+    ],
     required: true,
     validate: {
-      validator: function(widgets: Widget[]) {
+      validator(widgets: Widget[]) {
         return widgets.length > 0 && widgets.length <= 20;
       },
-      message: 'Dashboard must have between 1 and 20 widgets'
-    }
+      message: 'Dashboard must have between 1 and 20 widgets',
+    },
   })
-  widgets: Widget[];
+  widgets!: Widget[];
 
   @Prop({
     type: Boolean,
     default: false,
-    index: true
+    index: true,
   })
-  isDefault: boolean;
+  isDefault!: boolean;
 
   @Prop({
     type: Types.ObjectId,
     ref: 'User',
-    index: true
+    index: true,
   })
   userId?: Types.ObjectId; // for personal dashboards
 
@@ -151,69 +175,69 @@ export class DashboardConfig {
         type: [String],
         required: true,
         validate: {
-          validator: function(roles: string[]) {
+          validator(roles: string[]) {
             const validRoles = ['admin', 'merchant', 'consumer'];
-            return roles.every(role => validRoles.includes(role));
+            return roles.every((role) => validRoles.includes(role));
           },
-          message: 'Invalid role in viewRoles'
-        }
+          message: 'Invalid role in viewRoles',
+        },
       },
       editRoles: {
         type: [String],
         required: true,
         validate: {
-          validator: function(roles: string[]) {
+          validator(roles: string[]) {
             const validRoles = ['admin', 'merchant', 'consumer'];
-            return roles.every(role => validRoles.includes(role));
+            return roles.every((role) => validRoles.includes(role));
           },
-          message: 'Invalid role in editRoles'
-        }
-      }
-    }
+          message: 'Invalid role in editRoles',
+        },
+      },
+    },
   })
   permissions?: DashboardPermissions;
 
   @Prop({
     type: Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   })
-  createdBy: Types.ObjectId;
+  createdBy!: Types.ObjectId;
 
   @Prop({
     type: Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   })
   updatedBy?: Types.ObjectId;
 
   @Prop({
     type: Number,
     default: 1,
-    min: 1
+    min: 1,
   })
-  version: number;
+  version!: number;
 
   @Prop({
     type: Boolean,
-    default: true
+    default: true,
   })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Prop({
     type: [String],
-    default: []
+    default: [],
   })
-  tags: string[];
+  tags!: string[];
 
   @Prop({
     type: Number,
     default: 0,
-    min: 0
+    min: 0,
   })
-  viewCount: number;
+  viewCount!: number;
 
   @Prop({
-    type: Date
+    type: Date,
   })
   lastViewedAt?: Date;
   // createdAt and updatedAt are managed by Mongoose `timestamps: true`
@@ -231,10 +255,13 @@ DashboardConfigSchema.index({ createdBy: 1 });
 DashboardConfigSchema.index({ tags: 1 });
 
 // Middleware
-DashboardConfigSchema.pre('save', function() {
+DashboardConfigSchema.pre('save', function () {
   if (this.isModified() && !this.isNew) {
     this.version += 1;
-    this.updatedBy = (this as DashboardConfig & { _updatedBy?: Types.ObjectId })._updatedBy;
+    const _updatedBy = (this as DashboardConfig & { _updatedBy?: Types.ObjectId })._updatedBy;
+    if (_updatedBy !== undefined) {
+      this.updatedBy = _updatedBy;
+    }
   }
 });
 

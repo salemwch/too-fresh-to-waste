@@ -1,11 +1,11 @@
-import {
-    registerDecorator,
-    ValidationOptions,
-    ValidationArguments,
-    ValidatorConstraint,
-    ValidatorConstraintInterface,
-} from 'class-validator';
 import { Injectable } from '@nestjs/common';
+import {
+  registerDecorator,
+  ValidationOptions,
+  ValidationArguments,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+} from 'class-validator';
 
 /**
  * Production-Grade Business Logic Validators
@@ -40,76 +40,87 @@ import { Injectable } from '@nestjs/common';
  * ```
  */
 export function IsFutureDate(
-    minMinutesFromNow: number = 0,
-    validationOptions?: ValidationOptions,
+  minMinutesFromNow: number = 0,
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
-    return function (object: object, propertyName: string | symbol) {
-        registerDecorator({
-            name: 'isFutureDate',
-            target: object.constructor,
-            propertyName: String(propertyName),
-            options: validationOptions,
-            constraints: [minMinutesFromNow],
-            validator: {
-                validate(value: any, args: ValidationArguments) {
-                    console.log('\n============ BACKEND: IsFutureDate Validation ============');
-                    console.log('🔍 Validating field:', args.property);
-                    console.log('📨 Received value (raw):', value);
-                    console.log('📨 Value type:', typeof value);
+  return function (object: object, propertyName: string | symbol) {
+    registerDecorator({
+      name: 'isFutureDate',
+      target: object.constructor,
+      propertyName: String(propertyName),
+      ...(validationOptions !== undefined ? { options: validationOptions } : {}),
+      constraints: [minMinutesFromNow],
+      validator: {
+        validate(value: unknown, args: ValidationArguments) {
+          console.log('\n============ BACKEND: IsFutureDate Validation ============');
+          console.log('🔍 Validating field:', args.property);
+          console.log('📨 Received value (raw):', value);
+          console.log('📨 Value type:', typeof value);
 
-                    if (!(value instanceof Date) && typeof value !== 'string') {
-                        console.log('❌ REJECTED: Value is not Date or string');
-                        console.log('================================================\n');
-                        return false;
-                    }
+          if (!(value instanceof Date) && typeof value !== 'string') {
+            console.log('❌ REJECTED: Value is not Date or string');
+            console.log('================================================\n');
+            return false;
+          }
 
-                    const date = value instanceof Date ? value : new Date(value);
-                    console.log('📅 Parsed date:', date.toISOString());
-                    console.log('📅 Date timestamp:', date.getTime());
+          const date = value instanceof Date ? value : new Date(value);
+          console.log('📅 Parsed date:', date.toISOString());
+          console.log('📅 Date timestamp:', date.getTime());
 
-                    if (isNaN(date.getTime())) {
-                        console.log('❌ REJECTED: Invalid date string');
-                        console.log('================================================\n');
-                        return false;
-                    }
+          if (isNaN(date.getTime())) {
+            console.log('❌ REJECTED: Invalid date string');
+            console.log('================================================\n');
+            return false;
+          }
 
-                    const [minMinutes] = args.constraints;
-                    const minTime = new Date();
-                    minTime.setMinutes(minTime.getMinutes() + minMinutes);
+          const [minMinutes] = args.constraints;
+          const minTime = new Date();
+          minTime.setMinutes(minTime.getMinutes() + minMinutes);
 
-                    console.log('⏰ Server current time:', new Date().toISOString());
-                    console.log('⏰ Server current timestamp:', new Date().getTime());
-                    console.log('⏱️  Min minutes from now:', minMinutes);
-                    console.log('⏱️  Minimum allowed time:', minTime.toISOString());
-                    console.log('⏱️  Minimum allowed timestamp:', minTime.getTime());
-                    console.log('🔢 Comparison: date.getTime() > minTime.getTime()');
-                    console.log('🔢 Comparison:', date.getTime(), '>', minTime.getTime(), '=', date.getTime() > minTime.getTime());
-                    console.log('⏳ Time difference:', (date.getTime() - minTime.getTime()) / 1000, 'seconds');
+          console.log('⏰ Server current time:', new Date().toISOString());
+          console.log('⏰ Server current timestamp:', new Date().getTime());
+          console.log('⏱️  Min minutes from now:', minMinutes);
+          console.log('⏱️  Minimum allowed time:', minTime.toISOString());
+          console.log('⏱️  Minimum allowed timestamp:', minTime.getTime());
+          console.log('🔢 Comparison: date.getTime() > minTime.getTime()');
+          console.log(
+            '🔢 Comparison:',
+            date.getTime(),
+            '>',
+            minTime.getTime(),
+            '=',
+            date.getTime() > minTime.getTime(),
+          );
+          console.log(
+            '⏳ Time difference:',
+            (date.getTime() - minTime.getTime()) / 1000,
+            'seconds',
+          );
 
-                    const isValid = date.getTime() > minTime.getTime();
+          const isValid = date.getTime() > minTime.getTime();
 
-                    if (isValid) {
-                        console.log('✅ VALID: Pickup date is in the future');
-                    } else {
-                        console.log('❌ INVALID: Pickup date is NOT in the future');
-                        console.log('   Received:', date.toISOString());
-                        console.log('   Server now:', new Date().toISOString());
-                        console.log('   Min required:', minTime.toISOString());
-                    }
-                    console.log('================================================\n');
+          if (isValid) {
+            console.log('✅ VALID: Pickup date is in the future');
+          } else {
+            console.log('❌ INVALID: Pickup date is NOT in the future');
+            console.log('   Received:', date.toISOString());
+            console.log('   Server now:', new Date().toISOString());
+            console.log('   Min required:', minTime.toISOString());
+          }
+          console.log('================================================\n');
 
-                    return isValid;
-                },
-                defaultMessage(args: ValidationArguments) {
-                    const [minMinutes] = args.constraints;
-                    if (minMinutes > 0) {
-                        return `${args.property} must be at least ${minMinutes} minutes in the future`;
-                    }
-                    return `${args.property} must be a future date`;
-                },
-            },
-        });
-    };
+          return isValid;
+        },
+        defaultMessage(args: ValidationArguments) {
+          const [minMinutes] = args.constraints;
+          if (minMinutes > 0) {
+            return `${args.property} must be at least ${minMinutes} minutes in the future`;
+          }
+          return `${args.property} must be a future date`;
+        },
+      },
+    });
+  };
 }
 
 /**
@@ -129,40 +140,40 @@ export function IsFutureDate(
  * ```
  */
 export function IsBusinessHours(
-    startHour: number = 9,
-    endHour: number = 17,
-    validationOptions?: ValidationOptions,
+  startHour: number = 9,
+  endHour: number = 17,
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
-    return function (object: object, propertyName: string | symbol) {
-        registerDecorator({
-            name: 'isBusinessHours',
-            target: object.constructor,
-            propertyName: String(propertyName),
-            options: validationOptions,
-            constraints: [startHour, endHour],
-            validator: {
-                validate(value: any, args: ValidationArguments) {
-                    if (!(value instanceof Date) && typeof value !== 'string') {
-                        return false;
-                    }
+  return function (object: object, propertyName: string | symbol) {
+    registerDecorator({
+      name: 'isBusinessHours',
+      target: object.constructor,
+      propertyName: String(propertyName),
+      ...(validationOptions !== undefined ? { options: validationOptions } : {}),
+      constraints: [startHour, endHour],
+      validator: {
+        validate(value: unknown, args: ValidationArguments) {
+          if (!(value instanceof Date) && typeof value !== 'string') {
+            return false;
+          }
 
-                    const date = value instanceof Date ? value : new Date(value);
-                    if (isNaN(date.getTime())) {
-                        return false;
-                    }
+          const date = value instanceof Date ? value : new Date(value);
+          if (isNaN(date.getTime())) {
+            return false;
+          }
 
-                    const [start, end] = args.constraints;
-                    const hour = date.getHours();
+          const [start, end] = args.constraints;
+          const hour = date.getHours();
 
-                    return hour >= start && hour < end;
-                },
-                defaultMessage(args: ValidationArguments) {
-                    const [start, end] = args.constraints;
-                    return `${args.property} must be between ${start}:00 and ${end}:00`;
-                },
-            },
-        });
-    };
+          return hour >= start && hour < end;
+        },
+        defaultMessage(args: ValidationArguments) {
+          const [start, end] = args.constraints;
+          return `${args.property} must be between ${start}:00 and ${end}:00`;
+        },
+      },
+    });
+  };
 }
 
 /**
@@ -181,40 +192,40 @@ export function IsBusinessHours(
  * ```
  */
 export function IsWithinDays(
-    maxDaysFromNow: number,
-    validationOptions?: ValidationOptions,
+  maxDaysFromNow: number,
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
-    return function (object: object, propertyName: string | symbol) {
-        registerDecorator({
-            name: 'isWithinDays',
-            target: object.constructor,
-            propertyName: String(propertyName),
-            options: validationOptions,
-            constraints: [maxDaysFromNow],
-            validator: {
-                validate(value: any, args: ValidationArguments) {
-                    if (!(value instanceof Date) && typeof value !== 'string') {
-                        return false;
-                    }
+  return function (object: object, propertyName: string | symbol) {
+    registerDecorator({
+      name: 'isWithinDays',
+      target: object.constructor,
+      propertyName: String(propertyName),
+      ...(validationOptions !== undefined ? { options: validationOptions } : {}),
+      constraints: [maxDaysFromNow],
+      validator: {
+        validate(value: unknown, args: ValidationArguments) {
+          if (!(value instanceof Date) && typeof value !== 'string') {
+            return false;
+          }
 
-                    const date = value instanceof Date ? value : new Date(value);
-                    if (isNaN(date.getTime())) {
-                        return false;
-                    }
+          const date = value instanceof Date ? value : new Date(value);
+          if (isNaN(date.getTime())) {
+            return false;
+          }
 
-                    const [maxDays] = args.constraints;
-                    const maxDate = new Date();
-                    maxDate.setDate(maxDate.getDate() + maxDays);
+          const [maxDays] = args.constraints;
+          const maxDate = new Date();
+          maxDate.setDate(maxDate.getDate() + maxDays);
 
-                    return date.getTime() <= maxDate.getTime();
-                },
-                defaultMessage(args: ValidationArguments) {
-                    const [maxDays] = args.constraints;
-                    return `${args.property} cannot be more than ${maxDays} days in the future`;
-                },
-            },
-        });
-    };
+          return date.getTime() <= maxDate.getTime();
+        },
+        defaultMessage(args: ValidationArguments) {
+          const [maxDays] = args.constraints;
+          return `${args.property} cannot be more than ${maxDays} days in the future`;
+        },
+      },
+    });
+  };
 }
 
 // ==================== NUMERIC/QUANTITY VALIDATORS ====================
@@ -235,32 +246,32 @@ export function IsWithinDays(
  * ```
  */
 export function IsMinQuantity(
-    min: number,
-    validationOptions?: ValidationOptions,
+  min: number,
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
-    return function (object: object, propertyName: string | symbol) {
-        registerDecorator({
-            name: 'isMinQuantity',
-            target: object.constructor,
-            propertyName: String(propertyName),
-            options: validationOptions,
-            constraints: [min],
-            validator: {
-                validate(value: any, args: ValidationArguments) {
-                    if (typeof value !== 'number') {
-                        return false;
-                    }
+  return function (object: object, propertyName: string | symbol) {
+    registerDecorator({
+      name: 'isMinQuantity',
+      target: object.constructor,
+      propertyName: String(propertyName),
+      ...(validationOptions !== undefined ? { options: validationOptions } : {}),
+      constraints: [min],
+      validator: {
+        validate(value: unknown, args: ValidationArguments) {
+          if (typeof value !== 'number') {
+            return false;
+          }
 
-                    const [minValue] = args.constraints;
-                    return value >= minValue && Number.isInteger(value);
-                },
-                defaultMessage(args: ValidationArguments) {
-                    const [minValue] = args.constraints;
-                    return `${args.property} must be an integer >= ${minValue}`;
-                },
-            },
-        });
-    };
+          const [minValue] = args.constraints;
+          return value >= minValue && Number.isInteger(value);
+        },
+        defaultMessage(args: ValidationArguments) {
+          const [minValue] = args.constraints;
+          return `${args.property} must be an integer >= ${minValue}`;
+        },
+      },
+    });
+  };
 }
 
 /**
@@ -280,41 +291,41 @@ export function IsMinQuantity(
  * ```
  */
 export function IsValidPrice(
-    minPrice: number = 0.01,
-    maxPrice: number = 1_000_000,
-    validationOptions?: ValidationOptions,
+  minPrice: number = 0.01,
+  maxPrice: number = 1_000_000,
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
-    return function (object: object, propertyName: string | symbol) {
-        registerDecorator({
-            name: 'isValidPrice',
-            target: object.constructor,
-            propertyName: String(propertyName),
-            options: validationOptions,
-            constraints: [minPrice, maxPrice],
-            validator: {
-                validate(value: any, args: ValidationArguments) {
-                    if (typeof value !== 'number' || isNaN(value)) {
-                        return false;
-                    }
+  return function (object: object, propertyName: string | symbol) {
+    registerDecorator({
+      name: 'isValidPrice',
+      target: object.constructor,
+      propertyName: String(propertyName),
+      ...(validationOptions !== undefined ? { options: validationOptions } : {}),
+      constraints: [minPrice, maxPrice],
+      validator: {
+        validate(value: unknown, args: ValidationArguments) {
+          if (typeof value !== 'number' || isNaN(value)) {
+            return false;
+          }
 
-                    const [min, max] = args.constraints;
+          const [min, max] = args.constraints;
 
-                    // Check range
-                    if (value < min || value > max) {
-                        return false;
-                    }
+          // Check range
+          if (value < min || value > max) {
+            return false;
+          }
 
-                    // Check decimal places (max 2 for currency)
-                    const decimalPlaces = (value.toString().split('.')[1] || '').length;
-                    return decimalPlaces <= 2;
-                },
-                defaultMessage(args: ValidationArguments) {
-                    const [min, max] = args.constraints;
-                    return `${args.property} must be between ${min} and ${max} with max 2 decimal places`;
-                },
-            },
-        });
-    };
+          // Check decimal places (max 2 for currency)
+          const decimalPlaces = (value.toString().split('.')[1] || '').length;
+          return decimalPlaces <= 2;
+        },
+        defaultMessage(args: ValidationArguments) {
+          const [min, max] = args.constraints;
+          return `${args.property} must be between ${min} and ${max} with max 2 decimal places`;
+        },
+      },
+    });
+  };
 }
 
 // ==================== STRING PATTERN VALIDATORS ====================
@@ -326,27 +337,27 @@ export function IsValidPrice(
 @ValidatorConstraint({ name: 'isNotProfane', async: false })
 @Injectable()
 export class IsNotProfaneConstraint implements ValidatorConstraintInterface {
-    // In production, load from database or external service
-    private readonly bannedWords = new Set([
-        // Add profanity list here
-        // This is just a placeholder - use a proper profanity filter library
-        'spam',
-        'scam',
-        'fraud',
-    ]);
+  // In production, load from database or external service
+  private readonly bannedWords = new Set([
+    // Add profanity list here
+    // This is just a placeholder - use a proper profanity filter library
+    'spam',
+    'scam',
+    'fraud',
+  ]);
 
-    validate(text: string, args: ValidationArguments): boolean {
-        if (!text || typeof text !== 'string') {
-            return true; // Let @IsString handle type validation
-        }
-
-        const lowerText = text.toLowerCase();
-        return !Array.from(this.bannedWords).some(word => lowerText.includes(word));
+  validate(text: string, _args: ValidationArguments): boolean {
+    if (!text || typeof text !== 'string') {
+      return true; // Let @IsString handle type validation
     }
 
-    defaultMessage(args: ValidationArguments): string {
-        return `${args.property} contains inappropriate content`;
-    }
+    const lowerText = text.toLowerCase();
+    return !Array.from(this.bannedWords).some((word) => lowerText.includes(word));
+  }
+
+  defaultMessage(args: ValidationArguments): string {
+    return `${args.property} contains inappropriate content`;
+  }
 }
 
 /**
@@ -363,15 +374,15 @@ export class IsNotProfaneConstraint implements ValidatorConstraintInterface {
  * ```
  */
 export function IsNotProfane(validationOptions?: ValidationOptions): PropertyDecorator {
-    return function (object: object, propertyName: string | symbol) {
-        registerDecorator({
-            target: object.constructor,
-            propertyName: String(propertyName),
-            options: validationOptions,
-            constraints: [],
-            validator: IsNotProfaneConstraint,
-        });
-    };
+  return function (object: object, propertyName: string | symbol) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName: String(propertyName),
+      ...(validationOptions !== undefined ? { options: validationOptions } : {}),
+      constraints: [],
+      validator: IsNotProfaneConstraint,
+    });
+  };
 }
 
 // ==================== CROSS-FIELD VALIDATORS ====================
@@ -395,34 +406,34 @@ export function IsNotProfane(validationOptions?: ValidationOptions): PropertyDec
  * ```
  */
 export function IsGreaterThanField(
-    relatedPropertyName: string,
-    validationOptions?: ValidationOptions,
+  relatedPropertyName: string,
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
-    return function (object: object, propertyName: string | symbol) {
-        registerDecorator({
-            name: 'isGreaterThanField',
-            target: object.constructor,
-            propertyName: String(propertyName),
-            options: validationOptions,
-            constraints: [relatedPropertyName],
-            validator: {
-                validate(value: any, args: ValidationArguments) {
-                    const [relatedProp] = args.constraints;
-                    const relatedValue = (args.object as any)[relatedProp];
+  return function (object: object, propertyName: string | symbol) {
+    registerDecorator({
+      name: 'isGreaterThanField',
+      target: object.constructor,
+      propertyName: String(propertyName),
+      ...(validationOptions !== undefined ? { options: validationOptions } : {}),
+      constraints: [relatedPropertyName],
+      validator: {
+        validate(value: unknown, args: ValidationArguments) {
+          const [relatedProp] = args.constraints;
+          const relatedValue = (args.object as Record<string, unknown>)[relatedProp];
 
-                    if (typeof value !== 'number' || typeof relatedValue !== 'number') {
-                        return false;
-                    }
+          if (typeof value !== 'number' || typeof relatedValue !== 'number') {
+            return false;
+          }
 
-                    return value > relatedValue;
-                },
-                defaultMessage(args: ValidationArguments) {
-                    const [relatedProp] = args.constraints;
-                    return `${args.property} must be greater than ${relatedProp}`;
-                },
-            },
-        });
-    };
+          return value > relatedValue;
+        },
+        defaultMessage(args: ValidationArguments) {
+          const [relatedProp] = args.constraints;
+          return `${args.property} must be greater than ${relatedProp}`;
+        },
+      },
+    });
+  };
 }
 
 /**
@@ -444,34 +455,34 @@ export function IsGreaterThanField(
  * ```
  */
 export function IsLessThanField(
-    relatedPropertyName: string,
-    validationOptions?: ValidationOptions,
+  relatedPropertyName: string,
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
-    return function (object: object, propertyName: string | symbol) {
-        registerDecorator({
-            name: 'isLessThanField',
-            target: object.constructor,
-            propertyName: String(propertyName),
-            options: validationOptions,
-            constraints: [relatedPropertyName],
-            validator: {
-                validate(value: any, args: ValidationArguments) {
-                    const [relatedProp] = args.constraints;
-                    const relatedValue = (args.object as any)[relatedProp];
+  return function (object: object, propertyName: string | symbol) {
+    registerDecorator({
+      name: 'isLessThanField',
+      target: object.constructor,
+      propertyName: String(propertyName),
+      ...(validationOptions !== undefined ? { options: validationOptions } : {}),
+      constraints: [relatedPropertyName],
+      validator: {
+        validate(value: unknown, args: ValidationArguments) {
+          const [relatedProp] = args.constraints;
+          const relatedValue = (args.object as Record<string, unknown>)[relatedProp];
 
-                    if (typeof value !== 'number' || typeof relatedValue !== 'number') {
-                        return false;
-                    }
+          if (typeof value !== 'number' || typeof relatedValue !== 'number') {
+            return false;
+          }
 
-                    return value < relatedValue;
-                },
-                defaultMessage(args: ValidationArguments) {
-                    const [relatedProp] = args.constraints;
-                    return `${args.property} must be less than ${relatedProp}`;
-                },
-            },
-        });
-    };
+          return value < relatedValue;
+        },
+        defaultMessage(args: ValidationArguments) {
+          const [relatedProp] = args.constraints;
+          return `${args.property} must be less than ${relatedProp}`;
+        },
+      },
+    });
+  };
 }
 
 // ==================== GEO/LOCATION VALIDATORS ====================
@@ -489,22 +500,22 @@ export function IsLessThanField(
  * ```
  */
 export function IsLatitude(validationOptions?: ValidationOptions): PropertyDecorator {
-    return function (object: object, propertyName: string | symbol) {
-        registerDecorator({
-            name: 'isLatitude',
-            target: object.constructor,
-            propertyName: String(propertyName),
-            options: validationOptions,
-            validator: {
-                validate(value: any) {
-                    return typeof value === 'number' && value >= -90 && value <= 90;
-                },
-                defaultMessage(args: ValidationArguments) {
-                    return `${args.property} must be a valid latitude (-90 to 90)`;
-                },
-            },
-        });
-    };
+  return function (object: object, propertyName: string | symbol) {
+    registerDecorator({
+      name: 'isLatitude',
+      target: object.constructor,
+      propertyName: String(propertyName),
+      ...(validationOptions !== undefined ? { options: validationOptions } : {}),
+      validator: {
+        validate(value: unknown) {
+          return typeof value === 'number' && value >= -90 && value <= 90;
+        },
+        defaultMessage(args: ValidationArguments) {
+          return `${args.property} must be a valid latitude (-90 to 90)`;
+        },
+      },
+    });
+  };
 }
 
 /**
@@ -520,20 +531,20 @@ export function IsLatitude(validationOptions?: ValidationOptions): PropertyDecor
  * ```
  */
 export function IsLongitude(validationOptions?: ValidationOptions): PropertyDecorator {
-    return function (object: object, propertyName: string | symbol) {
-        registerDecorator({
-            name: 'isLongitude',
-            target: object.constructor,
-            propertyName: String(propertyName),
-            options: validationOptions,
-            validator: {
-                validate(value: any) {
-                    return typeof value === 'number' && value >= -180 && value <= 180;
-                },
-                defaultMessage(args: ValidationArguments) {
-                    return `${args.property} must be a valid longitude (-180 to 180)`;
-                },
-            },
-        });
-    };
+  return function (object: object, propertyName: string | symbol) {
+    registerDecorator({
+      name: 'isLongitude',
+      target: object.constructor,
+      propertyName: String(propertyName),
+      ...(validationOptions !== undefined ? { options: validationOptions } : {}),
+      validator: {
+        validate(value: unknown) {
+          return typeof value === 'number' && value >= -180 && value <= 180;
+        },
+        defaultMessage(args: ValidationArguments) {
+          return `${args.property} must be a valid longitude (-180 to 180)`;
+        },
+      },
+    });
+  };
 }

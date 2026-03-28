@@ -43,7 +43,7 @@ export interface ITokenService {
     userId: string,
     email: string,
     role: string,
-    deviceInfo?: DeviceInfo
+    deviceInfo?: DeviceInfo,
   ): Promise<{
     accessToken: string;
     refreshToken: string;
@@ -55,7 +55,7 @@ export interface ITokenService {
    * @param token Access token
    * @returns Decoded payload if valid, null otherwise
    */
-  validateAccessToken(token: string): Promise<any>;
+  validateAccessToken(token: string): Promise<Record<string, unknown> | null>;
 
   /**
    * Validate refresh token
@@ -63,7 +63,7 @@ export interface ITokenService {
    * @param userId User ID to validate against
    * @returns Decoded payload if valid, null otherwise
    */
-  validateRefreshToken(token: string, userId: string): Promise<any>;
+  validateRefreshToken(token: string, userId: string): Promise<Record<string, unknown> | null>;
 
   /**
    * Rotate refresh token (generate new token family)
@@ -75,7 +75,7 @@ export interface ITokenService {
   rotateRefreshToken(
     oldRefreshToken: string,
     userId: string,
-    deviceInfo?: DeviceInfo
+    deviceInfo?: DeviceInfo,
   ): Promise<{
     accessToken: string;
     refreshToken: string;

@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+
 import { AdminAction, AuditLogValue } from '../interfaces/admin-analytics.interface';
 
 export type AdminAuditLogDocument = AdminAuditLog & Document;
@@ -7,21 +8,21 @@ export type AdminAuditLogDocument = AdminAuditLog & Document;
 @Schema({ timestamps: true, collection: 'admin_audit_logs' })
 export class AdminAuditLog {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
-  adminId: Types.ObjectId;
+  adminId!: Types.ObjectId;
 
   @Prop({ required: true, trim: true, lowercase: true })
-  adminEmail: string;
+  adminEmail!: string;
 
   @Prop({ type: String, enum: AdminAction, required: true, index: true })
-  action: AdminAction;
+  action!: AdminAction;
 
   @Prop({
     type: String,
     enum: ['user', 'establishment', 'order', 'review', 'offer', 'system'],
     required: true,
-    index: true
+    index: true,
   })
-  targetType: string;
+  targetType!: string;
 
   @Prop({ type: String, index: true })
   targetId?: string;
@@ -36,16 +37,16 @@ export class AdminAuditLog {
   reason?: string;
 
   @Prop({ required: true, index: true })
-  ipAddress: string;
+  ipAddress!: string;
 
   @Prop({ required: true })
-  userAgent: string;
+  userAgent!: string;
 
   @Prop({ type: Object })
   metadata?: Record<string, AuditLogValue>;
 
   @Prop({ default: Date.now })
-  timestamp: Date;
+  timestamp!: Date;
 }
 
 export const AdminAuditLogSchema = SchemaFactory.createForClass(AdminAuditLog);

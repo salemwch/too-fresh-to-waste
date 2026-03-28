@@ -39,15 +39,15 @@ export interface PhoneNumberValidationResult {
 export interface PhoneNumberDetails {
   phoneNumber: PhoneNumber;
   formatted: {
-    international: string;   // +1 213 373 4253
-    national: string;        // (213) 373-4253
-    e164: E164Number;        // +12133734253
-    uri: string;             // tel:+12133734253
+    international: string; // +1 213 373 4253
+    national: string; // (213) 373-4253
+    e164: E164Number; // +12133734253
+    uri: string; // tel:+12133734253
   };
-  country?: CountryCode;     // US, TN, FR, etc.
-  countryCallingCode?: string; // 1, 216, 33, etc.
-  nationalNumber?: string;   // 2133734253
-  type?: string;             // MOBILE, FIXED_LINE, etc.
+  country?: CountryCode | undefined; // US, TN, FR, etc.
+  countryCallingCode?: string | undefined; // 1, 216, 33, etc.
+  nationalNumber?: string | undefined; // 2133734253
+  type?: string | undefined; // MOBILE, FIXED_LINE, etc.
   isPossible: boolean;
   isValid: boolean;
 }
@@ -91,7 +91,7 @@ export class PhoneNumberService {
    */
   validatePhoneNumber(
     phoneNumber: string,
-    defaultCountry?: CountryCode
+    defaultCountry?: CountryCode,
   ): PhoneNumberValidationResult {
     try {
       // Quick possibility check
@@ -153,14 +153,11 @@ export class PhoneNumberService {
    *   format: 'national'
    * });
    */
-  formatPhoneNumber(
-    phoneNumber: string,
-    options: PhoneNumberFormatOptions = {}
-  ): string | null {
+  formatPhoneNumber(phoneNumber: string, options: PhoneNumberFormatOptions = {}): string | null {
     try {
       const parsed = parsePhoneNumber(phoneNumber, options.defaultCountry);
 
-      if (!parsed || !parsed.isValid()) {
+      if (!parsed?.isValid()) {
         return null;
       }
 
@@ -192,14 +189,11 @@ export class PhoneNumberService {
    * service.normalizePhoneNumber('(213) 373-4253', 'US');
    * // Returns: +12133734253
    */
-  normalizePhoneNumber(
-    phoneNumber: string,
-    defaultCountry?: CountryCode
-  ): E164Number | null {
+  normalizePhoneNumber(phoneNumber: string, defaultCountry?: CountryCode): E164Number | null {
     try {
       const parsed = parsePhoneNumber(phoneNumber, defaultCountry);
 
-      if (!parsed || !parsed.isValid()) {
+      if (!parsed?.isValid()) {
         return null;
       }
 
@@ -218,7 +212,7 @@ export class PhoneNumberService {
    */
   getPhoneNumberInfo(
     phoneNumber: string | PhoneNumber,
-    defaultCountry?: CountryCode
+    defaultCountry?: CountryCode,
   ): PhoneNumberDetails | null {
     try {
       const parsed =
@@ -264,10 +258,7 @@ export class PhoneNumberService {
    * const numbers = service.findPhoneNumbersInText(text);
    * // Returns array with both numbers parsed
    */
-  findPhoneNumbersInText(
-    text: string,
-    defaultCountry?: CountryCode
-  ): PhoneNumberDetails[] {
+  findPhoneNumbersInText(text: string, defaultCountry?: CountryCode): PhoneNumberDetails[] {
     try {
       const results = findPhoneNumbersInText(text, defaultCountry);
 
@@ -310,7 +301,7 @@ export class PhoneNumberService {
   arePhoneNumbersEqual(
     phoneNumber1: string,
     phoneNumber2: string,
-    defaultCountry?: CountryCode
+    defaultCountry?: CountryCode,
   ): boolean {
     try {
       const normalized1 = this.normalizePhoneNumber(phoneNumber1, defaultCountry);

@@ -1,5 +1,5 @@
-import { IsNumber, Min, Max } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber, Min, Max } from 'class-validator';
 
 export class SetGoalTargetDto {
   @ApiProperty({
@@ -11,28 +11,28 @@ export class SetGoalTargetDto {
   @IsNumber()
   @Min(100)
   @Max(1_000_000)
-  targetCount: number;
+  targetCount!: number;
 }
 
 export class CommunityGoalStatsResponseDto {
   @ApiProperty({ example: 1234 })
-  currentCount: number;
+  currentCount!: number;
 
   @ApiProperty({ example: 8000 })
-  targetCount: number;
+  targetCount!: number;
 
   @ApiProperty({ example: 15.43 })
-  progressPercentage: number;
+  progressPercentage!: number;
 
   @ApiProperty({ example: 6766 })
-  remaining: number;
+  remaining!: number;
 
   @ApiProperty({ example: 1 })
-  cycleNumber: number;
+  cycleNumber!: number;
 
   @ApiProperty({ example: 'active', enum: ['active', 'completed', 'archived'] })
-  status: string;
+  status!: string;
 
   @ApiProperty({ example: '2026-02-23T12:00:00.000Z' })
-  lastUpdatedAt: string;
+  lastUpdatedAt!: string;
 }

@@ -18,7 +18,9 @@ export class ConfigParserService {
 
     const parsed = parseInt(value, 10);
     if (isNaN(parsed)) {
-      this.logger.warn(`Invalid number format for ${key}: ${value}. Using default: ${defaultValue}`);
+      this.logger.warn(
+        `Invalid number format for ${key}: ${value}. Using default: ${defaultValue}`,
+      );
       return defaultValue;
     }
 
@@ -49,7 +51,10 @@ export class ConfigParserService {
    * Parse environment variable as string with validation
    */
   parseString(key: string, defaultValue?: string): string | undefined {
-    const value = this.configService.get<string>(key, defaultValue);
+    const value: string | undefined =
+      defaultValue === undefined
+        ? this.configService.get<string>(key)
+        : this.configService.get<string>(key, defaultValue);
     return value?.trim() || defaultValue;
   }
 

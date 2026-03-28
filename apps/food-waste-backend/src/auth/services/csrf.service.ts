@@ -1,6 +1,7 @@
+import * as crypto from 'crypto';
+
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as crypto from 'crypto';
 
 export interface CsrfTokenResponse {
   token: string;
@@ -14,17 +15,15 @@ export class CsrfService {
   private readonly tokenDuration = 60 * 60 * 1000; // 1 hour
 
   constructor(private readonly configService: ConfigService) {
-    this.csrfTokenSecret = this.configService.get<string>('CSRF_SECRET') || 'default-csrf-secret-change-in-production';
+    this.csrfTokenSecret =
+      this.configService.get<string>('CSRF_SECRET') || 'default-csrf-secret-change-in-production';
   }
 
   generateToken(): CsrfTokenResponse {
     const timestamp = Date.now().toString();
     const randomBytes = crypto.randomBytes(16).toString('hex');
     const data = `${timestamp}:${randomBytes}`;
-    const signature = crypto
-      .createHmac('sha256', this.csrfTokenSecret)
-      .update(data)
-      .digest('hex');
+    const signature = crypto.createHmac('sha256', this.csrfTokenSecret).update(data).digest('hex');
 
     const token = `${data}:${signature}`;
     const expiresAt = new Date(Date.now() + this.tokenDuration);
@@ -45,7 +44,7 @@ export class CsrfService {
         return false;
       }
 
-      const [timestamp, randomBytes, signature] = parts;
+      const [timestamp = '', randomBytes = '', signature = ''] = parts;
       const data = `${timestamp}:${randomBytes}`;
 
       // Verify signature
@@ -60,7 +59,7 @@ export class CsrfService {
       }
 
       // Check token age
-      const tokenAge = Date.now() - parseInt(timestamp);
+      const tokenAge = Date.now() - parseInt(timestamp, 10);
       if (tokenAge > this.tokenDuration) {
         this.logger.warn('CSRF token expired');
         return false;
@@ -80,8 +79,8 @@ export class CsrfService {
         return null;
       }
 
-      const [timestamp] = parts;
-      const tokenAge = Date.now() - parseInt(timestamp);
+      const [timestamp = ''] = parts;
+      const tokenAge = Date.now() - parseInt(timestamp, 10);
       const refreshThreshold = this.tokenDuration * 0.75; // Refresh after 75% of lifetime
 
       if (tokenAge > refreshThreshold) {

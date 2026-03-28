@@ -35,31 +35,31 @@ export interface SearchResult {
   image?: string;
   relevanceScore: number;
   distance?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 @Schema({ timestamps: true })
 export class SearchQuery {
   @Prop({ required: true, trim: true, maxlength: 500 })
-  query: string;
+  query!: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
   userId?: Types.ObjectId;
 
   @Prop({ type: String })
-  sessionId: string;
+  sessionId!: string;
 
   @Prop({ type: Object })
-  filters: SearchFilters;
+  filters!: SearchFilters;
 
   @Prop({ type: [Object] })
-  results: SearchResult[];
+  results!: SearchResult[];
 
   @Prop({ type: Number, default: 0 })
-  resultCount: number;
+  resultCount!: number;
 
   @Prop({ type: Number })
-  responseTime: number; // in milliseconds
+  responseTime!: number; // in milliseconds
 
   @Prop({ type: String })
   userAgent?: string;
@@ -75,7 +75,7 @@ export class SearchQuery {
   };
 
   @Prop({ type: Boolean, default: false })
-  clickedResult: boolean;
+  clickedResult!: boolean;
 
   @Prop({ type: String })
   clickedResultId?: string;
@@ -87,13 +87,13 @@ export class SearchQuery {
   clickedAt?: Date;
 
   @Prop({ type: Boolean, default: false })
-  correctedQuery: boolean;
+  correctedQuery!: boolean;
 
   @Prop({ type: String })
   originalQuery?: string;
 
   @Prop({ type: [String], default: [] })
-  suggestions: string[];
+  suggestions!: string[];
 
   createdAt?: Date;
   updatedAt?: Date;
@@ -109,4 +109,7 @@ SearchQuerySchema.index({ createdAt: -1 });
 SearchQuerySchema.index({ 'location.coordinates': '2dsphere' });
 
 // TTL index: auto-delete search queries after 90 days to prevent unbounded collection growth
-SearchQuerySchema.index({ createdAt: 1 }, { expireAfterSeconds: 7776000, name: 'idx_searchqueries_createdAt_ttl_90d' });
+SearchQuerySchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 7776000, name: 'idx_searchqueries_createdAt_ttl_90d' },
+);

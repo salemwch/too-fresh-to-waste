@@ -1,11 +1,31 @@
-import { Injectable, NotFoundException, BadRequestException, Logger, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { LoyaltyAccountDocument, BadgeType, PointTransaction, LoyaltyAccount } from './schemas/loyalty-account.schema';
-import { CreateLoyaltyAccountDto, AddPointsDto, LoyaltyStatsDto, DonatePointsDto, DonatePointsResponseDto } from './dto/loyalty-account.dto';
-import { Order, OrderDocument, OrderStatus } from '../orders/schemas/order.schema';
+
 import { DonationsService } from '../donations/donations.service';
 import { DONATION_CONSTANTS } from '../donations/interfaces/donation.interface';
+import { Order, OrderDocument, OrderStatus } from '../orders/schemas/order.schema';
+
+import {
+  CreateLoyaltyAccountDto,
+  AddPointsDto,
+  LoyaltyStatsDto,
+  DonatePointsDto,
+  DonatePointsResponseDto,
+} from './dto/loyalty-account.dto';
+import {
+  LoyaltyAccountDocument,
+  BadgeType,
+  PointTransaction,
+  LoyaltyAccount,
+} from './schemas/loyalty-account.schema';
 
 // ---------------------------------------------------------------------------
 // Leaderboard response shape (returned by getLeaderboard)
@@ -89,7 +109,10 @@ export class LoyaltyService {
       this.logger.log(`Loyalty account created for user: ${createDto.userId}`);
       return saved;
     } catch (error) {
-      this.logger.error(`Error creating loyalty account: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error creating loyalty account: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -111,15 +134,14 @@ export class LoyaltyService {
    * computes from orders, persists to DB, then returns.
    * Subsequent calls read the stored value instantly.
    */
-  async getLoyaltyAccountWithBagCount(userId: string): Promise<Record<string, any>> {
+  async getLoyaltyAccountWithBagCount(userId: string): Promise<LoyaltyAccountDocument> {
     const account = await this.getLoyaltyAccount(userId);
-    const accountObj = account.toObject ? account.toObject() : account;
 
-    if (!accountObj.totalBagsSaved && accountObj.totalOrdersCount > 0) {
-      accountObj.totalBagsSaved = await this.backfillTotalBagsSaved(userId);
+    if (!account.totalBagsSaved && account.totalOrdersCount > 0) {
+      account.totalBagsSaved = await this.backfillTotalBagsSaved(userId);
     }
 
-    return accountObj;
+    return account;
   }
 
   /**
@@ -192,12 +214,12 @@ export class LoyaltyService {
       if (addPointsDto.orderId) {
         const orderIdObj = new Types.ObjectId(addPointsDto.orderId);
         const alreadyProcessed = account.pointsHistory.some(
-          (transaction) => transaction.orderId && transaction.orderId.toString() === orderIdObj.toString()
+          (transaction) => transaction.orderId?.toString() === orderIdObj.toString(),
         );
 
         if (alreadyProcessed) {
           this.logger.warn(
-            `Points already awarded for order ${addPointsDto.orderId} to user ${userId}. Skipping duplicate.`
+            `Points already awarded for order ${addPointsDto.orderId} to user ${userId}. Skipping duplicate.`,
           );
           return account; // Return existing account without modifications
         }
@@ -244,12 +266,21 @@ export class LoyaltyService {
         { new: true },
       );
 
+      if (!updatedAccount) {
+        throw new NotFoundException('Loyalty account not found');
+      }
+
       await this.checkAndAwardBadges(updatedAccount);
 
-      this.logger.log(`Added ${multipliedPoints} points to user: ${userId} for order: ${addPointsDto.orderId || 'N/A'}`);
+      this.logger.log(
+        `Added ${multipliedPoints} points to user: ${userId} for order: ${addPointsDto.orderId || 'N/A'}`,
+      );
       return updatedAccount;
     } catch (error) {
-      this.logger.error(`Error adding points: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error adding points: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -263,7 +294,9 @@ export class LoyaltyService {
       const account = await this.getLoyaltyAccount(userId);
 
       if (account.availablePoints < donateDto.amount) {
-        throw new BadRequestException(`Insufficient points. You have ${account.availablePoints} points available.`);
+        throw new BadRequestException(
+          `Insufficient points. You have ${account.availablePoints} points available.`,
+        );
       }
 
       // Convert points to TND
@@ -289,22 +322,25 @@ export class LoyaltyService {
         { new: true },
       );
 
+      if (!updatedAccount) {
+        throw new NotFoundException('Loyalty account not found');
+      }
+
       // Add to donation pool
       const pool = await this.donationsService.getActivePool();
-      await this.donationsService['donationPoolModel'].findByIdAndUpdate(
-        pool._id,
-        {
-          $inc: {
-            currentAmount: donationAmount,
-            mealCount: estimatedMeals,
-          },
+      await this.donationsService['donationPoolModel'].findByIdAndUpdate(pool._id, {
+        $inc: {
+          currentAmount: donationAmount,
+          mealCount: estimatedMeals,
         },
-      );
+      });
 
       // Update contributor count
-      await this.donationsService['updateContributorCount'](pool._id as Types.ObjectId);
+      await this.donationsService['updateContributorCount'](pool._id);
 
-      this.logger.log(`User ${userId} donated ${donateDto.amount} points (${donationAmount} TND) to donation pool`);
+      this.logger.log(
+        `User ${userId} donated ${donateDto.amount} points (${donationAmount} TND) to donation pool`,
+      );
 
       return {
         success: true,
@@ -316,7 +352,10 @@ export class LoyaltyService {
         message: `Thank you! Your ${donateDto.amount} points have been converted to ${donationAmount.toFixed(2)} TND and donated to help feed those in need.`,
       };
     } catch (error) {
-      this.logger.error(`Error donating points: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Error donating points: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -326,16 +365,18 @@ export class LoyaltyService {
    */
   async getDonationHistory(userId: string): Promise<PointTransaction[]> {
     const account = await this.getLoyaltyAccount(userId);
-    return account.pointsHistory.filter(tx => tx.type === 'donated');
+    return account.pointsHistory.filter((tx) => tx.type === 'donated');
   }
 
   /**
    * Calculate current tier based on total points
    */
-  private getCurrentTier(totalPoints: number) {
-    return this.tiers
-      .filter(tier => totalPoints >= tier.minPoints)
-      .sort((a, b) => b.minPoints - a.minPoints)[0] || this.tiers[0];
+  private getCurrentTier(totalPoints: number): (typeof this.tiers)[number] {
+    return (
+      this.tiers
+        .filter((tier) => totalPoints >= tier.minPoints)
+        .sort((a, b) => b.minPoints - a.minPoints)[0] ?? this.tiers[0]!
+    );
   }
 
   /**
@@ -373,7 +414,10 @@ export class LoyaltyService {
   private async checkAndAwardBadges(account: LoyaltyAccountDocument): Promise<void> {
     const badges = [];
 
-    if (account.totalOrdersCount >= 10 && !account.badges.some(b => b.type === BadgeType.FREQUENT_SAVER)) {
+    if (
+      account.totalOrdersCount >= 10 &&
+      !account.badges.some((b) => b.type === BadgeType.FREQUENT_SAVER)
+    ) {
       badges.push({
         type: BadgeType.FREQUENT_SAVER,
         earnedAt: new Date(),
@@ -383,7 +427,10 @@ export class LoyaltyService {
       });
     }
 
-    if (account.totalAmountSpent >= 1000 && !account.badges.some(b => b.type === BadgeType.ECO_WARRIOR)) {
+    if (
+      account.totalAmountSpent >= 1000 &&
+      !account.badges.some((b) => b.type === BadgeType.ECO_WARRIOR)
+    ) {
       badges.push({
         type: BadgeType.ECO_WARRIOR,
         earnedAt: new Date(),
@@ -446,7 +493,7 @@ export class LoyaltyService {
     );
 
     // ── Current user's own entry (only when outside top N) ─────────────────
-    const isCurrentUserInTop = entries.some(e => e.isCurrentUser);
+    const isCurrentUserInTop = entries.some((e) => e.isCurrentUser);
     let currentUserEntry: LeaderboardEntry | null = null;
 
     if (!isCurrentUserInTop) {
@@ -484,26 +531,30 @@ export class LoyaltyService {
 
   /** Maps a raw aggregation document to a typed LeaderboardEntry */
   private mapToLeaderboardEntry(
-    doc: Record<string, any>,
+    doc: Record<string, unknown>,
     rank: number,
     currentUserObjectId: Types.ObjectId,
   ): LeaderboardEntry {
-    const user = doc.userInfo ?? {};
-    const badges: Array<{ type: string; name: string }> = doc.badges ?? [];
+    const user = (doc['userInfo'] ?? {}) as {
+      firstName?: string;
+      lastName?: string;
+      profileImage?: string | null;
+      avatar?: string | null;
+    };
+    const badges = (doc['badges'] ?? []) as Array<{ type: string; name: string }>;
     const mostRecentBadge = badges.length > 0 ? badges[badges.length - 1] : null;
 
     return {
       rank,
-      userId: doc.userId.toString(),
-      firstName: (user.firstName as string | undefined) ?? 'Unknown',
-      lastName: (user.lastName as string | undefined) ?? '',
-      profileImage:
-        (user.profileImage as string | null) ?? (user.avatar as string | null) ?? null,
+      userId: (doc['userId'] as Types.ObjectId).toString(),
+      firstName: user.firstName ?? 'Unknown',
+      lastName: user.lastName ?? '',
+      profileImage: (user.profileImage as string | null) ?? (user.avatar as string | null) ?? null,
       currentBadge: (mostRecentBadge?.name as string | null) ?? null,
       currentBadgeType: (mostRecentBadge?.type as string | null) ?? null,
-      currentTier: (doc.currentTier as string | undefined) ?? 'Bronze',
-      totalPoints: (doc.totalPoints as number | undefined) ?? 0,
-      isCurrentUser: (doc.userId as Types.ObjectId).equals(currentUserObjectId),
+      currentTier: (doc['currentTier'] as string | undefined) ?? 'Bronze',
+      totalPoints: (doc['totalPoints'] as number | undefined) ?? 0,
+      isCurrentUser: (doc['userId'] as Types.ObjectId).equals(currentUserObjectId),
     };
   }
 }
