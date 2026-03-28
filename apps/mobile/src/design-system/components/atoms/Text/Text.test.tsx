@@ -8,7 +8,6 @@ import React from 'react';
 import { ThemeProvider } from '../../../providers';
 
 import { Text } from './Text';
-import type { TextProps } from './Text.types';
 import type { TypographyVariant } from '../../../types';
 import type { TextProps } from './Text.types';
 
