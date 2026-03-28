@@ -86,6 +86,18 @@
     "@typescript-eslint/utils": "^8.44.1",
     "@typescript-eslint/visitor-keys": "^8.44.1"
   },
+  "lint-staged": {
+    "**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "**/*.{js,mjs,cjs}": [
+      "prettier --write"
+    ],
+    "**/*.{json,md,yaml,yml,css,scss}": [
+      "prettier --write"
+    ]
+  },
   "pnpm": {
     "overrides": {
       "typescript": "^5.9.3",

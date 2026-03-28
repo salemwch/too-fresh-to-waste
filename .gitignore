@@ -106,6 +106,8 @@ temp
 eslint-results.json
 **/eslint-results.json
 *.eslintcache
+lint_full.txt
+lint_*.txt
 
 # Large assets that should use Git LFS or CDN
 
