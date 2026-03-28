@@ -20,24 +20,24 @@ import { CommunityGoalModule } from './community-goal/community-goal.module';
 import { DonationsModule } from './donations/donations.module';
 import { EmailModule } from './email/email.module';
 import { EstablishmentsModule } from './establishments/establishments.module';
+import { FavoritesModule } from './favorites/favorites.module';
+import { GeolocationModule } from './geolocation/geolocation.module';
+import { HealthModule } from './health/health.module';
+import { InventoryModule } from './inventory/inventory.module';
+import { LoyaltyModule } from './loyalty/loyalty.module';
+import { ModerationModule } from './moderation/moderation.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { OffersModule } from './offers/offers.module';
 import { OrdersModule } from './orders/order.module';
 import { PaymentModule } from './payments/payments.module';
-import { ReviewsModule } from './reviwes/reviwes.module';
-import { GeolocationModule } from './geolocation/geolocation.module';
-import { ModerationModule } from './moderation/moderation.module';
-import { LoyaltyModule } from './loyalty/loyalty.module';
-import { InventoryModule } from './inventory/inventory.module';
-import { FavoritesModule } from './favorites/favorites.module';
-import { RedisModule } from './redis/redis.module';
 import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
-import { HealthModule } from './health/health.module';
+import { RedisModule } from './redis/redis.module';
+import { ReviewsModule } from './reviwes/reviwes.module';
 
 // New enhanced modules
 import { SearchModule } from './search/search.module';
-import { WebSocketModule } from './websocket/websocket.module';
 import { UsersModule } from './users/user.module';
+import { WebSocketModule } from './websocket/websocket.module';
 //import { SocialModule } from './social/social.module';
 
 // Global middleware

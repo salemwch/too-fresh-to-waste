@@ -11,7 +11,17 @@ import { UsersModule } from 'src/users/user.module';
 
 import { AdminAuthController } from './admin-auth.controller';
 import { AuthRedirectController } from './auth-redirect.controller';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
+import { ResourceOwnershipGuard } from './guards/resource-ownership.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { TenantIsolationGuard } from './guards/tenant-isolation.guard';
 import { PASSWORD_POLICY_SERVICE_TOKEN, TOKEN_SERVICE_TOKEN } from './interfaces';
+import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
+import { TenantContextMiddleware } from './middleware/tenant-context.middleware';
+import { RefreshToken, RefreshTokenSchema } from './schemas/refresh-token.schema';
 import { AdminNotificationService } from './services/admin-notification.service';
 import { AuthSecurityService } from './services/auth-security.service';
 import { CsrfService } from './services/csrf.service';
@@ -21,22 +31,8 @@ import { PasswordHistoryService } from './services/password-history.service';
 import { MfaService } from './services/mfa.service';
 import { TokenService } from './services/token.service';
 import { CaptchaService } from './services/captcha.service';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
-import { RolesGuard } from './guards/roles.guard';
-import { ResourceOwnershipGuard } from './guards/resource-ownership.guard';
-import { TenantIsolationGuard } from './guards/tenant-isolation.guard';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategie';
 import { JwtStrategy } from './strategies/jwt.strategie';
-
-
-import { RefreshToken, RefreshTokenSchema } from './schemas/refresh-token.schema';
-import { TenantContextMiddleware } from './middleware/tenant-context.middleware';
-import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
-
-
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
 import { AuthCleanupTask } from './tasks/auth-cleanup.task';
 
 import type { StringValue } from 'ms';

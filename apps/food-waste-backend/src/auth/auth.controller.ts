@@ -46,12 +46,9 @@ import { VerifyEmailDto } from './DTO/verify-email.dto';
 import { AuthThrottlerGuard } from './guards/auth-throttler.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CsrfService } from './services/csrf.service';
-import { SessionManagementService } from './services/session-management.service';
-import { PasswordPolicyService } from './services/password-policy.service';
 import { MfaService } from './services/mfa.service';
-
-
-
+import { PasswordPolicyService } from './services/password-policy.service';
+import { SessionManagementService } from './services/session-management.service';
 
 /**
  * AUTHENTICATION CONTROLLER

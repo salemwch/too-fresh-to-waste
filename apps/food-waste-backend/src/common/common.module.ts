@@ -11,19 +11,19 @@ import { MetricsController } from './controllers/metrics.controller';
 import { QueryComplexityGuard } from './guards/query-complexity.guard';
 import { GlobalSanitizationMiddleware } from './middleware/global-sanitization.middleware';
 import { ConfigParserService } from './services/config-parser.service';
+import { EventEmitter2Adapter } from './services/event-bus/adapters/eventemitter2.adapter';
+import { RabbitMQAdapter } from './services/event-bus/adapters/rabbitmq.adapter';
+import { EventBusService } from './services/event-bus/event-bus.service';
 import { FirebaseAdminService } from './services/firebase-admin.service';
+import { LocalStorageService } from './services/local-storage.service';
 import { AppLoggerService } from './services/logger.service';
-import { RegexSecurityUtil } from './utils/regex-security.util';
-import { SanitizationUtil } from './utils/sanitization.util';
+import { PhoneNumberService } from './services/phone-number.service';
+import { PrometheusMetricsService } from './services/prometheus-metrics.service';
 import { SentryService } from './services/sentry.service';
 import { SupabaseStorageService } from './services/supabase-storage.service';
-import { LocalStorageService } from './services/local-storage.service';
-import { PhoneNumberService } from './services/phone-number.service';
+import { RegexSecurityUtil } from './utils/regex-security.util';
+import { SanitizationUtil } from './utils/sanitization.util';
 import { IsNotProfaneConstraint } from './validators/business-constraints.validator';
-import { PrometheusMetricsService } from './services/prometheus-metrics.service';
-import { EventBusService } from './services/event-bus/event-bus.service';
-import { RabbitMQAdapter } from './services/event-bus/adapters/rabbitmq.adapter';
-import { EventEmitter2Adapter } from './services/event-bus/adapters/eventemitter2.adapter';
 
 @Module({
   imports: [ConfigModule, ThrottlerModule, RedisModule, RabbitMQModule],

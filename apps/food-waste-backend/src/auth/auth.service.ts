@@ -22,20 +22,16 @@ import { EventBusService } from 'src/common/services/event-bus/event-bus.service
 import { PhoneNumberService } from 'src/common/services/phone-number.service';
 import { CryptoUtil } from 'src/common/utils/crypto.util';
 import { EmailService } from 'src/email/email.service';
+import { EstablishmentsService } from 'src/establishments/establishments.service';
 import { UsersService } from 'src/users/user.service';
-
-import { AuthSecurityService } from './services/auth-security.service';
-import { PasswordPolicyService } from './services/password-policy.service';
-import { TokenService, DeviceInfo } from './services/token.service';
-
-
-import { CaptchaService } from './services/captcha.service';
 
 import { UserRegisteredEvent } from '../common/events';
 
 import { mapToSafeUserResponse, SafeUserResponse } from './DTO/safe-user-response.dto';
-
-import { EstablishmentsService } from 'src/establishments/establishments.service';
+import { AuthSecurityService } from './services/auth-security.service';
+import { CaptchaService } from './services/captcha.service';
+import { PasswordPolicyService } from './services/password-policy.service';
+import { TokenService, DeviceInfo } from './services/token.service';
 
 export interface AuthTokens {
   accessToken: string;
