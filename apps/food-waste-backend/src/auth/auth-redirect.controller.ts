@@ -25,6 +25,34 @@ export class AuthRedirectController {
 
   constructor(private readonly configService: ConfigService) {}
 
+  /**
+   * Escape a string for safe injection into HTML attributes and text content.
+   * Prevents reflected XSS by encoding characters that break out of HTML/JS contexts.
+   */
+  private escapeHtml(unsafe: string): string {
+    return unsafe
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+  }
+
+  /**
+   * Validate that a token contains only safe characters (hex, UUID format).
+   * Rejects tokens with any characters that could be used for injection.
+   */
+  private sanitizeToken(token: string): string {
+    // Allow only alphanumeric, hyphens, underscores, dots, and equals (base64/JWT/UUID)
+    const sanitized = token.replace(/[^a-zA-Z0-9\-_.=]/g, '');
+    if (sanitized !== token) {
+      this.logger.warn(
+        `Token contained invalid characters, sanitized: original length=${token.length}, sanitized length=${sanitized.length}`,
+      );
+    }
+    return sanitized;
+  }
+
   @Get('verify-email')
   @ApiOperation({ summary: 'Email verification redirect handler' })
   @ApiQuery({ name: 'token', required: true, description: 'Email verification token' })
@@ -36,16 +64,20 @@ export class AuthRedirectController {
   ) {
     this.logger.log(`Email verification redirect accessed for: ${email}`);
 
+    // Sanitize inputs to prevent XSS — token must be alphanumeric, email is URI-encoded
+    const safeToken = this.sanitizeToken(token);
+    const safeEmail = encodeURIComponent(email);
+
     // Deep link for mobile app
-    const deepLink = `foodwaste://auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
+    const deepLink = `foodwaste://auth/verify-email?token=${safeToken}&email=${safeEmail}`;
 
     // Web frontend callback URL (verify-callback page handles POST + auto-login)
     const webFrontendUrl = this.configService.get<string>('WEB_FRONTEND_URL', '');
     const webCallbackUrl = webFrontendUrl
-      ? `${webFrontendUrl}/verify-callback?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`
+      ? `${webFrontendUrl}/verify-callback?token=${encodeURIComponent(safeToken)}&email=${safeEmail}`
       : '';
 
-    const html = this.generateSmartRedirectPage(deepLink, webCallbackUrl, token, email);
+    const html = this.generateSmartRedirectPage(deepLink, webCallbackUrl);
 
     res.setHeader('Content-Type', 'text/html');
     res.send(html);
@@ -62,10 +94,14 @@ export class AuthRedirectController {
   ) {
     this.logger.log(`Password reset redirect accessed for: ${email}`);
 
-    const deepLink = `foodwaste://auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
-    const webFallbackUrl = `${this.configService.get<string>('WEB_FRONTEND_URL', 'https://yourapp.com')}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+    // Sanitize inputs to prevent XSS
+    const safeToken = this.sanitizeToken(token);
+    const safeEmail = encodeURIComponent(email);
 
-    const html = this.generatePasswordResetRedirectPage(deepLink, webFallbackUrl, token, email);
+    const deepLink = `foodwaste://auth/reset-password?token=${safeToken}&email=${safeEmail}`;
+    const webFallbackUrl = `${this.configService.get<string>('WEB_FRONTEND_URL', 'https://yourapp.com')}/reset-password?token=${encodeURIComponent(safeToken)}&email=${safeEmail}`;
+
+    const html = this.generatePasswordResetRedirectPage(deepLink, webFallbackUrl);
 
     res.setHeader('Content-Type', 'text/html');
     res.send(html);
@@ -76,14 +112,15 @@ export class AuthRedirectController {
    * Attempts deep link first (for mobile), then auto-redirects to web callback.
    * Flow: deep link attempt → 1.5s timeout → redirect to web verify-callback page
    */
-  private generateSmartRedirectPage(
-    deepLink: string,
-    webCallbackUrl: string,
-    _token: string,
-    _email: string,
-  ): string {
+  private generateSmartRedirectPage(deepLink: string, webCallbackUrl: string): string {
+    // Escape all user-derived values for safe HTML attribute and JS string injection
+    const safeDeepLinkAttr = this.escapeHtml(deepLink);
+    const safeWebCallbackAttr = this.escapeHtml(webCallbackUrl);
+    const safeDeepLinkJs = JSON.stringify(deepLink);
+    const safeWebCallbackJs = JSON.stringify(webCallbackUrl);
+
     const webBtnHtml = webCallbackUrl
-      ? `<a href="${webCallbackUrl}" class="btn" style="background:#e5e7eb;color:#333;">Verify in Browser</a>`
+      ? `<a href="${safeWebCallbackAttr}" class="btn" style="background:#e5e7eb;color:#333;">Verify in Browser</a>`
       : '';
 
     return `
@@ -159,36 +196,31 @@ export class AuthRedirectController {
 
         <div id="fallback-actions">
             <p style="margin-bottom: 12px; color: #999;">If nothing happened, try one of these:</p>
-            <a href="${deepLink}" class="btn btn-primary">Open in App</a>
+            <a href="${safeDeepLinkAttr}" class="btn btn-primary">Open in App</a>
             ${webBtnHtml}
         </div>
     </div>
 
     <script>
-        var DEEP_LINK = '${deepLink}';
-        var WEB_CALLBACK = '${webCallbackUrl}';
+        var DEEP_LINK = ${safeDeepLinkJs};
+        var WEB_CALLBACK = ${safeWebCallbackJs};
         var DEEP_LINK_TIMEOUT = 1500;
 
-        // Track if user leaves page (deep link succeeded)
         var pageHidden = false;
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) pageHidden = true;
         });
 
-        // 1. Attempt deep link first (for mobile)
         setTimeout(function() {
             window.location.href = DEEP_LINK;
         }, 100);
 
-        // 2. After timeout: if page is still visible, redirect to web callback
         setTimeout(function() {
-            if (pageHidden) return; // App opened successfully, do nothing
+            if (pageHidden) return;
 
             if (WEB_CALLBACK) {
-                // Auto-redirect to web verify-callback page
                 window.location.href = WEB_CALLBACK;
             } else {
-                // No web frontend configured — show manual actions
                 document.getElementById('fallback-actions').style.display = 'block';
             }
         }, DEEP_LINK_TIMEOUT);
@@ -198,12 +230,13 @@ export class AuthRedirectController {
         `;
   }
 
-  private generatePasswordResetRedirectPage(
-    deepLink: string,
-    webFallbackUrl: string,
-    _token: string,
-    _email: string,
-  ): string {
+  private generatePasswordResetRedirectPage(deepLink: string, webFallbackUrl: string): string {
+    // Escape all user-derived values for safe HTML attribute and JS string injection
+    const safeDeepLinkAttr = this.escapeHtml(deepLink);
+    const safeWebFallbackAttr = this.escapeHtml(webFallbackUrl);
+    const safeDeepLinkJs = JSON.stringify(deepLink);
+    const safeWebFallbackJs = JSON.stringify(webFallbackUrl);
+
     return `
 <!DOCTYPE html>
 <html lang="en">
@@ -277,30 +310,27 @@ export class AuthRedirectController {
 
         <div id="fallback-actions">
             <p style="margin-bottom: 12px; color: #999;">If nothing happened, try one of these:</p>
-            <a href="${deepLink}" class="btn btn-primary">Open in App</a>
-            <a href="${webFallbackUrl}" class="btn" style="background:#e5e7eb;color:#333;">Reset in Browser</a>
+            <a href="${safeDeepLinkAttr}" class="btn btn-primary">Open in App</a>
+            <a href="${safeWebFallbackAttr}" class="btn" style="background:#e5e7eb;color:#333;">Reset in Browser</a>
         </div>
     </div>
 
     <script>
-        var DEEP_LINK = '${deepLink}';
-        var WEB_FALLBACK = '${webFallbackUrl}';
+        var DEEP_LINK = ${safeDeepLinkJs};
+        var WEB_FALLBACK = ${safeWebFallbackJs};
         var DEEP_LINK_TIMEOUT = 1500;
 
-        // Track if user leaves page (deep link succeeded)
         var pageHidden = false;
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) pageHidden = true;
         });
 
-        // 1. Attempt deep link first (for mobile)
         setTimeout(function() {
             window.location.href = DEEP_LINK;
         }, 100);
 
-        // 2. After timeout: if page is still visible, show fallback actions
         setTimeout(function() {
-            if (pageHidden) return; // App opened successfully, do nothing
+            if (pageHidden) return;
             document.getElementById('fallback-actions').style.display = 'block';
         }, DEEP_LINK_TIMEOUT);
     </script>
