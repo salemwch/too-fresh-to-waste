@@ -141,6 +141,14 @@ uploads/
 # Runtime logs (never commit live server output)
 /logs.md
 
+# Knip analysis artifacts (local analysis output)
+knip_*.txt
+knip_output.json
+mobile_unused_locals.txt
+
+# Generated Swagger spec (auto-generated from running backend)
+/swagger-spec.json
+
 # Planning / prototype notes (not source code)
 apps/web/dashboard.md
 apps/web/phase1.md
