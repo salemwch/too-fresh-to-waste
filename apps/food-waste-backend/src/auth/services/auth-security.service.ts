@@ -362,7 +362,7 @@ export class AuthSecurityService {
       );
 
       // Emit security event for IP blocking (PRODUCTION-READY IMPROVEMENT)
-      this.emitSecurityEvent(SecurityEventType.IP_BLOCKED, SecuritySeverity.HIGH, ip, {
+      void this.emitSecurityEvent(SecurityEventType.IP_BLOCKED, SecuritySeverity.HIGH, ip, {
         reason: reason || 'security violation',
         duration,
         blockedUntil: blockedUntil.toISOString(),
@@ -577,11 +577,16 @@ export class AuthSecurityService {
       );
 
       // Emit security event for rate limit exceeded (PRODUCTION-READY IMPROVEMENT)
-      this.emitSecurityEvent(SecurityEventType.RATE_LIMIT_EXCEEDED, SecuritySeverity.HIGH, ip, {
-        requestCount: currentRequestData.count,
-        threshold,
-        windowSeconds: 60,
-      });
+      void this.emitSecurityEvent(
+        SecurityEventType.RATE_LIMIT_EXCEEDED,
+        SecuritySeverity.HIGH,
+        ip,
+        {
+          requestCount: currentRequestData.count,
+          threshold,
+          windowSeconds: 60,
+        },
+      );
 
       return true;
     }
@@ -613,11 +618,16 @@ export class AuthSecurityService {
       );
 
       // Emit security event for rate limit exceeded (PRODUCTION-READY IMPROVEMENT)
-      this.emitSecurityEvent(SecurityEventType.RATE_LIMIT_EXCEEDED, SecuritySeverity.HIGH, ip, {
-        requestCount: currentCount,
-        threshold,
-        windowSeconds: 60,
-      });
+      void this.emitSecurityEvent(
+        SecurityEventType.RATE_LIMIT_EXCEEDED,
+        SecuritySeverity.HIGH,
+        ip,
+        {
+          requestCount: currentCount,
+          threshold,
+          windowSeconds: 60,
+        },
+      );
 
       return true;
     }

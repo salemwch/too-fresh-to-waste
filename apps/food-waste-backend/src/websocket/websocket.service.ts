@@ -1,7 +1,6 @@
+import { UserRole } from '@foodwaste/shared';
 import { Injectable, Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-
-import { UserRole } from '../common/enums/user.enum';
 
 import {
   AuthenticatedSocket,
@@ -142,7 +141,7 @@ export class WebSocketService {
     this.userSockets.get(socket.userId)!.add(socket.id);
 
     // Join user-specific room for direct targeting
-    socket.join(`user-${socket.userId}`);
+    void socket.join(`user-${socket.userId}`);
 
     this.logger.log(
       `[registerUserSocket] SUCCESS — userId=${socket.userId} socketId=${socket.id} role=${socket.role} ` +
@@ -180,7 +179,7 @@ export class WebSocketService {
     }
 
     // Join the room
-    socket.join(roomName);
+    void socket.join(roomName);
 
     // Track room participants
     if (!this.roomParticipants.has(roomName)) {
@@ -192,7 +191,7 @@ export class WebSocketService {
   }
 
   leaveRoom(socket: AuthenticatedSocket, roomName: string): void {
-    socket.leave(roomName);
+    void socket.leave(roomName);
 
     // Remove from room participants tracking
     const participants = this.roomParticipants.get(roomName);

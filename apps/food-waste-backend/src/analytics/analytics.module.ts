@@ -52,7 +52,7 @@ export class AnalyticsModule {
     private readonly logger: AppLoggerService,
   ) {
     // Initialize default dashboard templates on module startup
-    this.initializeDefaultTemplates();
+    void this.initializeDefaultTemplates();
   }
 
   private async initializeDefaultTemplates(): Promise<void> {
