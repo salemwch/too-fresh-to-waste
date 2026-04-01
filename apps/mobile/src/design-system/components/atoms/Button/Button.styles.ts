@@ -2,7 +2,7 @@
  * Button Component - Styles
  */
 
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import type { ButtonVariant, ButtonSize } from './Button.types';
 import type { ThemeContextValue } from '../../../types';

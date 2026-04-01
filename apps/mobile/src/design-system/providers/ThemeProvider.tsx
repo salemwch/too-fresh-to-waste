@@ -9,7 +9,7 @@ import { useColorScheme } from 'react-native';
 
 import { designTokens } from '../tokens';
 
-import type { ThemeMode, ColorScheme, ThemeContextValue } from '../types';
+import type { ThemeMode, ColorScheme, ThemeContextValue, ThemeShadows } from '../types';
 import type { ReactNode } from 'react';
 
 // Theme storage key
@@ -124,7 +124,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       unit: designTokens.spacing.unit,
     },
     typography: designTokens.typography,
-    shadows: shadows as unknown as typeof designTokens.shadows,
+    shadows: shadows as ThemeShadows,
     motion: designTokens.motion,
     setTheme,
     toggleTheme,
@@ -186,4 +186,3 @@ export const getResponsiveValue = <T,>(
   }
   return value;
 };
-

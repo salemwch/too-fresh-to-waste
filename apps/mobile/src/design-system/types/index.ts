@@ -4,6 +4,7 @@
  */
 
 import type { designTokens } from '../tokens';
+import type { ComponentShadows } from '../tokens/shadows';
 import type {
   ViewStyle,
   TextStyle,
@@ -13,8 +14,16 @@ import type {
   AccessibilityValue,
 } from 'react-native';
 
+// Shadow type that matches the runtime shape from ThemeProvider.useThemeShadows().
+// Platform.select returns platform-specific objects (iOS shadowColor/etc. OR Android
+// elevation) — both are valid ViewStyle subsets, so ViewStyle is the correct supertype.
+type ShadowLevel = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+export type ThemeShadows = Record<ShadowLevel, ViewStyle> & {
+  component: ComponentShadows;
+};
+
 // Re-export icon types
-export type { IconFamily, IconComponent,  } from './icon.types';
+export type { IconFamily, IconComponent } from './icon.types';
 
 // Component size variants
 export type ComponentSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -170,7 +179,7 @@ export interface ThemeContextValue {
   // Flattened spacing for better DX - direct access like theme.spacing.md
   spacing: typeof designTokens.spacing.base & typeof designTokens.spacing;
   typography: typeof designTokens.typography;
-  shadows: typeof designTokens.shadows;
+  shadows: ThemeShadows;
   motion: typeof designTokens.motion;
   setTheme: (mode: ThemeMode) => void;
   toggleTheme: () => void;

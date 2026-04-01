@@ -47,20 +47,12 @@ export const createCardStyles = (
       backgroundColor: colors.surface,
       borderWidth: 1,
       borderColor: colors.outline,
-      ...(Platform.OS === 'ios'
-        ? shadows.ios.none
-        : Platform.OS === 'android'
-          ? { elevation: 0 }
-          : {}),
+      ...(Platform.OS === 'ios' ? shadows.none : Platform.OS === 'android' ? { elevation: 0 } : {}),
     },
     filled: {
       backgroundColor: colors.surfaceVariant,
       borderWidth: 0,
-      ...(Platform.OS === 'ios'
-        ? shadows.ios.none
-        : Platform.OS === 'android'
-          ? { elevation: 0 }
-          : {}),
+      ...(Platform.OS === 'ios' ? shadows.none : Platform.OS === 'android' ? { elevation: 0 } : {}),
     },
   };
 

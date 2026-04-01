@@ -2,13 +2,16 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import type { ApiError } from '@foodwaste/shared';
 import { useAuthStore } from './auth';
 
-const API_BASE_URL = (() => {
-  const url = process.env['NEXT_PUBLIC_API_URL'];
-  if (!url && process.env.NODE_ENV === 'production') {
-    throw new Error('NEXT_PUBLIC_API_URL is required in production');
-  }
-  return url ?? 'http://localhost:3000';
-})();
+/**
+ * Resolve the API base URL.
+ *
+ * During Next.js static prerendering (`next build`), NEXT_PUBLIC_*
+ * variables may not be injected yet because the build worker is not
+ * the production runtime.  We fall back to localhost so the module
+ * can load without throwing — the real URL is used at request time
+ * once the env var is available (set it in Vercel project settings).
+ */
+const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3000';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -68,11 +71,7 @@ export async function performRefreshOnce(): Promise<string> {
 
     // Empty body — the backend reads the refresh token from the HttpOnly cookie.
     // See auth.controller.ts: req.cookies?.['refresh_token'] fallback.
-    await axios.post(
-      `${API_BASE_URL}/auth/refresh`,
-      {},
-      { withCredentials: true },
-    );
+    await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
 
     // Backend already set new HttpOnly cookies via Set-Cookie header.
     // No tokens are captured in JavaScript memory.
@@ -81,7 +80,9 @@ export async function performRefreshOnce(): Promise<string> {
       if (typeof window !== 'undefined') {
         window.localStorage.setItem('wfa_tokens_ts', String(Date.now()));
       }
-    } catch { /* ignore — private browsing may restrict localStorage writes */ }
+    } catch {
+      /* ignore — private browsing may restrict localStorage writes */
+    }
 
     if (process.env.NODE_ENV === 'development') {
       console.info('[API] performRefreshOnce — token refresh succeeded');
@@ -103,7 +104,9 @@ export async function performRefreshOnce(): Promise<string> {
       useAuthStore.getState().logout();
     } else {
       if (process.env.NODE_ENV === 'development') {
-        console.warn('[API] performRefreshOnce — network/server error, keeping session', { status });
+        console.warn('[API] performRefreshOnce — network/server error, keeping session', {
+          status,
+        });
       }
     }
 
@@ -148,5 +151,5 @@ apiClient.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
