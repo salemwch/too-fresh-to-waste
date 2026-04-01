@@ -1,5 +1,6 @@
 import * as crypto from 'crypto';
 import * as fs from 'fs';
+import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
@@ -113,8 +114,8 @@ export class LocalStorageService {
         buffer = await sharpInstance.toBuffer();
       }
 
-      // Write file to disk
-      fs.writeFileSync(filePath, buffer);
+      // Write file to disk (async to avoid blocking the event loop)
+      await fsPromises.writeFile(filePath, buffer);
 
       const fileSize = buffer.length;
       const downloadURL = `${this.baseUrl}/uploads/${folder}/${fileName}`;

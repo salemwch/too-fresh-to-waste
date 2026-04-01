@@ -1,4 +1,5 @@
 import { Controller, Get, HttpStatus } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 import { Public } from './common/decorators/public.decorator';
@@ -6,6 +7,7 @@ import { Public } from './common/decorators/public.decorator';
 @ApiTags('General')
 @Controller()
 export class AppController {
+  constructor(private readonly configService: ConfigService) {}
   @ApiOperation({
     summary: 'Get API information',
     description: 'Public endpoint returning basic API information and status',
@@ -36,7 +38,7 @@ export class AppController {
       status: 'ok',
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
-      environment: process.env['NODE_ENV'] || 'development',
+      environment: this.configService.get<string>('NODE_ENV', 'development'),
     };
   }
 

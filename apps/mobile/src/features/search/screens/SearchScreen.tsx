@@ -11,6 +11,7 @@
  * - Session token optimization for Google billing
  */
 
+import { Currency } from '@foodwaste/shared';
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
@@ -24,6 +25,21 @@ import {
 } from 'react-native';
 import MapView, { Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import {
+  LocationFilterModal,
+  MapListToggle,
+  PlaceOffersBottomSheet,
+  EstablishmentMarker,
+  EstablishmentBottomSheet,
+  type ViewMode,
+} from '../components';
+import { usePlaceSearch } from '../hooks/usePlaceSearch';
+
+import type { OfferListItem } from '@/features/offers/types/offer.types';
+import type { SearchScreenNavigationProp } from '@/navigation/types';
+import type { ILocationResult } from '@/types/location.types';
+import type { Region } from 'react-native-maps';
 
 import { environment } from '@/config/environment';
 import { Text, Input, Icon } from '@/design-system/components/atoms';
@@ -43,21 +59,6 @@ import { useAppDispatch } from '@/hooks/redux';
 import { useLocation } from '@/hooks/useLocation';
 import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
 import { Logger } from '@/utils/logger';
-
-import {
-  LocationFilterModal,
-  MapListToggle,
-  PlaceOffersBottomSheet,
-  EstablishmentMarker,
-  EstablishmentBottomSheet,
-  type ViewMode,
-} from '../components';
-import { usePlaceSearch } from '../hooks/usePlaceSearch';
-
-import type { OfferListItem } from '@/features/offers/types/offer.types';
-import type { SearchScreenNavigationProp } from '@/navigation/types';
-import type { ILocationResult } from '@/types/location.types';
-import type { Region } from 'react-native-maps';
 
 // ============================================================================
 // Constants
@@ -101,7 +102,7 @@ const mapSearchResultToOfferListItem = (
       originalPrice: item.pricing.originalPrice,
       discountedPrice: item.pricing.discountedPrice,
       discountPercentage: item.pricing.discountPercentage,
-      currency: item.pricing.currency as 'TND',
+      currency: (item.pricing.currency as Currency) || Currency.TND,
     },
     availableQuantity: item.availableQuantity,
     availableFrom: item.availableFrom,
@@ -476,7 +477,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       return (
         <FavoriteOfferCard
           offer={offerData}
-          variant='default'
+          variant="default"
           imageAspectRatio={1.4}
           onPress={() => handleOfferPress(item)}
           testID={`search-offer-${item.item._id}`}
@@ -501,12 +502,12 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     return (
       <View style={styles.emptyContainer}>
         <View style={[styles.emptyIconContainer, { backgroundColor: theme.colors.surfaceVariant }]}>
-          <Icon name='search' family='Ionicons' size={48} color={theme.colors.onSurfaceVariant} />
+          <Icon name="search" family="Ionicons" size={48} color={theme.colors.onSurfaceVariant} />
         </View>
-        <Text variant='title' size='lg' weight='semibold' align='center' style={styles.emptyTitle}>
+        <Text variant="title" size="lg" weight="semibold" align="center" style={styles.emptyTitle}>
           No offers found
         </Text>
-        <Text variant='body' size='md' color='secondary' align='center' style={styles.emptyText}>
+        <Text variant="body" size="md" color="secondary" align="center" style={styles.emptyText}>
           Try expanding your search radius or search for a place.
         </Text>
       </View>
@@ -516,10 +517,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const renderListHeader = useCallback(
     () => (
       <View style={styles.listHeader}>
-        <Text variant='title' size='md' weight='semibold'>
+        <Text variant="title" size="md" weight="semibold">
           {displayOffers.length} {displayOffers.length === 1 ? 'offer' : 'offers'} nearby
         </Text>
-        <Text variant='body' size='sm' color='secondary'>
+        <Text variant="body" size="sm" color="secondary">
           Within {searchRadius} km
           {selectedPlace ? ` of ${selectedPlace.name}` : ''}
         </Text>
@@ -542,14 +543,14 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       <View style={[styles.placeResultsContainer, { backgroundColor: theme.colors.background }]}>
         {showLoading ? (
           <View style={styles.placeResultsLoading}>
-            <ActivityIndicator size='small' color={theme.colors.primary} />
-            <Text variant='body' size='sm' color='secondary' style={styles.placeResultsLoadingText}>
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <Text variant="body" size="sm" color="secondary" style={styles.placeResultsLoadingText}>
               Searching...
             </Text>
           </View>
         ) : showEmpty ? (
           <View style={styles.placeResultsEmpty}>
-            <Text variant='body' size='sm' color='secondary'>
+            <Text variant="body" size="sm" color="secondary">
               No results found for "{debouncedQuery}"
             </Text>
           </View>
@@ -558,7 +559,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
             {/* App Establishments Section */}
             {appResults.length > 0 && (
               <>
-                <Text variant='label' size='xs' color='secondary' style={styles.placeResultsHeader}>
+                <Text variant="label" size="xs" color="secondary" style={styles.placeResultsHeader}>
                   In WasteFood
                 </Text>
                 {appResults.slice(0, 4).map((est, index) => (
@@ -580,17 +581,17 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                       ]}
                     >
                       <Icon
-                        name='storefront-outline'
-                        family='Ionicons'
+                        name="storefront-outline"
+                        family="Ionicons"
                         size={16}
                         color={theme.colors.primary}
                       />
                     </View>
                     <View style={styles.placeResultText}>
-                      <Text variant='body' size='sm' weight='medium' numberOfLines={1}>
+                      <Text variant="body" size="sm" weight="medium" numberOfLines={1}>
                         {est.item.name}
                       </Text>
-                      <Text variant='body' size='xs' color='secondary' numberOfLines={1}>
+                      <Text variant="body" size="xs" color="secondary" numberOfLines={1}>
                         {est.item.address?.city || est.distance.formatted}
                       </Text>
                     </View>
@@ -600,7 +601,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                         { backgroundColor: theme.colors.primaryContainer },
                       ]}
                     >
-                      <Text variant='label' size='xs' color='primary'>
+                      <Text variant="label" size="xs" color="primary">
                         App
                       </Text>
                     </View>
@@ -612,7 +613,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
             {/* Google Places Section */}
             {googleResults.length > 0 && (
               <>
-                <Text variant='label' size='xs' color='secondary' style={styles.placeResultsHeader}>
+                <Text variant="label" size="xs" color="secondary" style={styles.placeResultsHeader}>
                   More places
                 </Text>
                 {googleResults.slice(0, 4).map((place, index) => (
@@ -632,23 +633,23 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                       ]}
                     >
                       <Icon
-                        name='location-sharp'
-                        family='Ionicons'
+                        name="location-sharp"
+                        family="Ionicons"
                         size={16}
                         color={theme.colors.onSurfaceVariant}
                       />
                     </View>
                     <View style={styles.placeResultText}>
-                      <Text variant='body' size='sm' weight='medium' numberOfLines={1}>
+                      <Text variant="body" size="sm" weight="medium" numberOfLines={1}>
                         {place.name}
                       </Text>
-                      <Text variant='body' size='xs' color='secondary' numberOfLines={1}>
+                      <Text variant="body" size="xs" color="secondary" numberOfLines={1}>
                         {place.subtext}
                       </Text>
                     </View>
                     <Icon
-                      name='arrow-forward'
-                      family='Ionicons'
+                      name="arrow-forward"
+                      family="Ionicons"
                       size={16}
                       color={theme.colors.onSurfaceVariant}
                     />
@@ -668,7 +669,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar barStyle='dark-content' backgroundColor={theme.colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
 
       {/* Map View */}
       {viewMode === 'map' && (
@@ -678,21 +679,21 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
               style={[styles.mapErrorContainer, { backgroundColor: theme.colors.surfaceVariant }]}
             >
               <Icon
-                name='map-outline'
-                family='Ionicons'
+                name="map-outline"
+                family="Ionicons"
                 size={48}
                 color={theme.colors.onSurfaceVariant}
               />
               <Text
-                variant='title'
-                size='md'
-                weight='semibold'
-                align='center'
+                variant="title"
+                size="md"
+                weight="semibold"
+                align="center"
                 style={styles.mapErrorTitle}
               >
                 Map Unavailable
               </Text>
-              <Text variant='body' size='sm' color='secondary' align='center'>
+              <Text variant="body" size="sm" color="secondary" align="center">
                 Unable to load the map. Please check your internet connection and try again.
               </Text>
               <Pressable
@@ -700,9 +701,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 onPress={() => setMapError(null)}
               >
                 <Text
-                  variant='label'
-                  size='sm'
-                  weight='semibold'
+                  variant="label"
+                  size="sm"
+                  weight="semibold"
                   style={{ color: theme.colors.onPrimary }}
                 >
                   Retry
@@ -721,7 +722,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 showsCompass={false}
                 onPress={handleMapPress}
                 onMapReady={handleMapReady}
-                accessibilityLabel='Map showing nearby offers'
+                accessibilityLabel="Map showing nearby offers"
               >
                 {/* Search radius circle */}
                 <Circle
@@ -734,7 +735,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
                 {/* Establishment markers — one per establishment */}
                 {mapReady &&
-                  displayEstablishments.map(est => (
+                  displayEstablishments.map((est) => (
                     <EstablishmentMarker
                       key={est.item._id}
                       establishment={est}
@@ -755,13 +756,13 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 ]}
                 onPress={handleRecenter}
               >
-                <Icon name='locate' family='Ionicons' size={22} color={theme.colors.primary} />
+                <Icon name="locate" family="Ionicons" size={22} color={theme.colors.primary} />
               </Pressable>
 
               {/* Loading overlay */}
               {isLoadingOffers && !displayOffers.length && (
                 <View style={styles.mapLoadingOverlay}>
-                  <ActivityIndicator size='large' color={theme.colors.primary} />
+                  <ActivityIndicator size="large" color={theme.colors.primary} />
                 </View>
               )}
 
@@ -795,7 +796,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       {viewMode === 'list' && (
         <FlatList
           data={displayOffers}
-          keyExtractor={item => item.item._id}
+          keyExtractor={(item) => item.item._id}
           renderItem={renderListItem}
           ListHeaderComponent={renderListHeader}
           ListEmptyComponent={renderListEmpty}
@@ -818,7 +819,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
       {/* Search Bar Overlay */}
       <View
-        pointerEvents='box-none'
+        pointerEvents="box-none"
         style={[
           styles.searchOverlay,
           {
@@ -831,15 +832,15 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
         <View style={styles.searchRow}>
           <View style={[styles.searchInputContainer, { backgroundColor: theme.colors.background }]}>
             <Input
-              placeholder='Search businesses or places...'
+              placeholder="Search businesses or places..."
               value={searchQuery}
               onChangeText={handleSearchChange}
-              leftIcon='search-outline'
-              leftIconFamily='Ionicons'
+              leftIcon="search-outline"
+              leftIconFamily="Ionicons"
               rightIcon={searchQuery ? 'close-circle' : undefined}
-              rightIconFamily='Ionicons'
+              rightIconFamily="Ionicons"
               onRightIconPress={handleClearSearch}
-              returnKeyType='search'
+              returnKeyType="search"
               autoCorrect={false}
               style={styles.searchInput}
               containerStyle={styles.searchInputInner}
@@ -852,10 +853,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
           <Pressable
             style={[styles.locationButton, { backgroundColor: theme.colors.background }]}
             onPress={handleLocationPress}
-            accessibilityLabel='Location settings'
-            accessibilityHint='Open location filter options'
+            accessibilityLabel="Location settings"
+            accessibilityHint="Open location filter options"
           >
-            <Icon name='location-sharp' family='Ionicons' size={22} color={theme.colors.primary} />
+            <Icon name="location-sharp" family="Ionicons" size={22} color={theme.colors.primary} />
           </Pressable>
         </View>
 
@@ -1073,4 +1074,3 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 });
-

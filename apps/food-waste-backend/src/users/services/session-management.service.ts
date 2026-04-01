@@ -4,7 +4,6 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as geoip from 'geoip-lite';
 import { Model } from 'mongoose';
-// @ts-expect-error no types available for geoip-lite
 
 import {
   USER_AUDIT_LOG_MAX,

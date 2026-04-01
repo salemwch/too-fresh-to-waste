@@ -9,6 +9,7 @@
  * @module PlaceOffersBottomSheet
  */
 
+import { Currency } from '@foodwaste/shared';
 import React, { useEffect, useRef, useCallback } from 'react';
 import {
   View,
@@ -20,12 +21,13 @@ import {
   Dimensions,
 } from 'react-native';
 
+import type { ProximitySearchResult, NearbyOffer } from '@/features/offers/hooks';
+import type { OfferListItem } from '@/features/offers/types/offer.types';
+
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { FavoriteOfferCard } from '@/features/favorites';
-import type { ProximitySearchResult, NearbyOffer } from '@/features/offers/hooks';
 import { OfferType, CtaState, OfferStatus } from '@/features/offers/types/offer.types';
-import type { OfferListItem } from '@/features/offers/types/offer.types';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
@@ -74,7 +76,7 @@ const mapToOfferListItem = (result: ProximitySearchResult<NearbyOffer>): OfferLi
       originalPrice: item.pricing.originalPrice,
       discountedPrice: item.pricing.discountedPrice,
       discountPercentage: item.pricing.discountPercentage,
-      currency: item.pricing.currency as 'TND',
+      currency: (item.pricing.currency as Currency) || Currency.TND,
     },
     availableQuantity: item.availableQuantity,
     availableFrom: item.availableFrom,
@@ -83,9 +85,12 @@ const mapToOfferListItem = (result: ProximitySearchResult<NearbyOffer>): OfferLi
       name: item.establishmentName,
     },
     distance: distanceInMeters,
-    ctaState: new Date() < new Date(item.availableFrom)
-      ? CtaState.NOT_STARTED
-      : item.availableQuantity > 0 ? CtaState.AVAILABLE : CtaState.SOLD_OUT,
+    ctaState:
+      new Date() < new Date(item.availableFrom)
+        ? CtaState.NOT_STARTED
+        : item.availableQuantity > 0
+          ? CtaState.AVAILABLE
+          : CtaState.SOLD_OUT,
     status: OfferStatus.ACTIVE,
   };
 };
@@ -145,7 +150,7 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
       return (
         <FavoriteOfferCard
           offer={offerData}
-          variant='default'
+          variant="default"
           imageAspectRatio={1.4}
           onPress={() => onOfferPress(item.item._id)}
           testID={`place-offer-${item.item._id}`}
@@ -160,8 +165,8 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
     if (isLoading) {
       return (
         <View style={styles.centerContent}>
-          <ActivityIndicator size='large' color={theme.colors.primary} />
-          <Text variant='body' size='sm' color='secondary' style={styles.loadingText}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text variant="body" size="sm" color="secondary" style={styles.loadingText}>
             Loading offers...
           </Text>
         </View>
@@ -171,19 +176,21 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
     return (
       <View style={styles.centerContent}>
         <Icon
-          name='bag-outline'
-          family='Ionicons'
+          name="bag-outline"
+          family="Ionicons"
           size={40}
           color={theme.colors.onSurfaceVariant}
         />
-        <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
+        <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
           No offers available at this location
         </Text>
       </View>
     );
   }, [isLoading, theme.colors]);
 
-  React.useEffect(() => { if (visible) setHasBeenVisible(true); }, [visible]);
+  React.useEffect(() => {
+    if (visible) setHasBeenVisible(true);
+  }, [visible]);
   if (!visible && !hasBeenVisible) return null;
 
   return (
@@ -206,10 +213,10 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text variant='title' size='md' weight='bold' numberOfLines={1}>
+            <Text variant="title" size="md" weight="bold" numberOfLines={1}>
               {placeName}
             </Text>
-            <Text variant='body' size='sm' color='secondary' numberOfLines={1}>
+            <Text variant="body" size="sm" color="secondary" numberOfLines={1}>
               {placeAddress}
             </Text>
           </View>
@@ -218,14 +225,14 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Icon name='close' family='Ionicons' size={18} color={theme.colors.onSurfaceVariant} />
+            <Icon name="close" family="Ionicons" size={18} color={theme.colors.onSurfaceVariant} />
           </Pressable>
         </View>
 
         {/* Offers count */}
         {!isLoading && offers.length > 0 && (
           <View style={styles.countRow}>
-            <Text variant='label' size='sm' weight='semibold' color='primary'>
+            <Text variant="label" size="sm" weight="semibold" color="primary">
               {offers.length} {offers.length === 1 ? 'offer' : 'offers'} available
             </Text>
           </View>
@@ -234,7 +241,7 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
         {/* Offers List */}
         <FlatList
           data={offers}
-          keyExtractor={item => item.item._id}
+          keyExtractor={(item) => item.item._id}
           renderItem={renderItem}
           ListEmptyComponent={renderEmpty}
           contentContainerStyle={styles.listContent}
@@ -324,4 +331,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-

@@ -1,10 +1,13 @@
 /**
  * Common Enums Barrel Export
- * Centralized enum definitions for the application
- *
- * @module common/enums
+ * Re-exports from @foodwaste/shared (single source of truth)
  */
-
-export * from './user.enum';
-export * from './establishment.enum';
-export * from './currency.enum';
+export {
+  UserRole,
+  UserStatus,
+  EstablishmentType,
+  EstablishmentStatus,
+  DocumentType,
+  Currency,
+  DEFAULT_CURRENCY,
+} from '@foodwaste/shared';

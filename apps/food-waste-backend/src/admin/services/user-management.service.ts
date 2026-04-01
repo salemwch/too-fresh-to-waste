@@ -1,3 +1,4 @@
+import { UserStatus } from '@foodwaste/shared';
 import {
   Injectable,
   Logger,
@@ -5,10 +6,10 @@ import {
   BadRequestException,
   Optional,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { UserStatus } from '../../common/enums/user.enum';
 import {
   AdminUserStatusChangedEvent,
   AdminUserActivatedEvent,
@@ -145,6 +146,7 @@ export class UserManagementService {
     private readonly auditService: AdminAuditService,
     private readonly eventBus: EventBusService,
     private readonly usersService: UsersService,
+    private readonly configService: ConfigService,
     @Optional() private readonly notificationService?: NotificationService,
   ) {}
 
@@ -702,8 +704,8 @@ export class UserManagementService {
           newStatus: this.getStatusDisplayName(status),
           reason: reason || 'No reason provided',
           adminNotes: adminNotes || '',
-          supportEmail: process.env['SUPPORT_EMAIL'] || 'support@foodwaste.com',
-          appName: process.env['APP_NAME'] || 'Food Waste Management',
+          supportEmail: this.configService.get<string>('SUPPORT_EMAIL', 'support@foodwaste.com'),
+          appName: this.configService.get<string>('APP_NAME', 'Food Waste Management'),
           timestamp: new Date().toLocaleString(),
         },
         metadata: {

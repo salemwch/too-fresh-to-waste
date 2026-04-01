@@ -16,7 +16,7 @@
  * @see https://github.com/siimon/prom-client
  */
 
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Counter, Gauge, Histogram, Registry, collectDefaultMetrics } from 'prom-client';
 
@@ -35,7 +35,8 @@ export interface DatabaseMetrics {
 }
 
 @Injectable()
-export class PrometheusMetricsService implements OnModuleInit {
+export class PrometheusMetricsService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(PrometheusMetricsService.name);
   public readonly register: Registry;
 
   // HTTP Metrics
@@ -55,6 +56,7 @@ export class PrometheusMetricsService implements OnModuleInit {
 
   // System Metrics
   private readonly eventLoopLag: Gauge;
+  private eventLoopInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(private readonly _configService: ConfigService) {
     void this._configService;
@@ -197,7 +199,14 @@ export class PrometheusMetricsService implements OnModuleInit {
     // Start event loop lag monitoring
     this.startEventLoopMonitoring();
 
-    console.log('[Prometheus] Metrics collection initialized');
+    this.logger.log('Metrics collection initialized');
+  }
+
+  onModuleDestroy(): void {
+    if (this.eventLoopInterval) {
+      clearInterval(this.eventLoopInterval);
+      this.eventLoopInterval = null;
+    }
   }
 
   /**
@@ -208,7 +217,7 @@ export class PrometheusMetricsService implements OnModuleInit {
     const checkInterval = 1000; // Check every second
     let lastCheck = Date.now();
 
-    setInterval(() => {
+    this.eventLoopInterval = setInterval(() => {
       const now = Date.now();
       const lag = (now - lastCheck - checkInterval) / 1000;
       this.eventLoopLag.set(Math.max(0, lag));

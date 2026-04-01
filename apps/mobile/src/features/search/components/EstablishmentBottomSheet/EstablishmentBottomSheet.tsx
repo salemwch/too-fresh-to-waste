@@ -8,28 +8,21 @@
  * Animation pattern reused from PlaceOffersBottomSheet (spring + timing parallel).
  */
 
+import { Currency } from '@foodwaste/shared';
 import React, { useEffect, useRef, useCallback } from 'react';
-import {
-  View,
-  StyleSheet,
-  Animated,
-  Pressable,
-  FlatList,
-  Image,
-  Dimensions,
-} from 'react-native';
-
-import { Text, Icon } from '@/design-system/components/atoms';
-import { useTheme } from '@/design-system/providers';
-import { FavoriteOfferCard } from '@/features/favorites';
-import { OfferType, CtaState, OfferStatus } from '@/features/offers/types/offer.types';
-import type { OfferListItem } from '@/features/offers/types/offer.types';
+import { View, StyleSheet, Animated, Pressable, FlatList, Image, Dimensions } from 'react-native';
 
 import type {
   ProximitySearchResult,
   MapEstablishment,
   MapOfferSummary,
 } from '@/features/offers/hooks';
+import type { OfferListItem } from '@/features/offers/types/offer.types';
+
+import { Text, Icon } from '@/design-system/components/atoms';
+import { useTheme } from '@/design-system/providers';
+import { FavoriteOfferCard } from '@/features/favorites';
+import { OfferType, CtaState, OfferStatus } from '@/features/offers/types/offer.types';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
@@ -77,7 +70,7 @@ const mapOfferToListItem = (
     originalPrice: offer.pricing.originalPrice,
     discountedPrice: offer.pricing.discountedPrice,
     discountPercentage: offer.pricing.discountPercentage,
-    currency: offer.pricing.currency as 'TND',
+    currency: (offer.pricing.currency as Currency) || Currency.TND,
   },
   availableQuantity: offer.availableQuantity,
   availableFrom: offer.availableFrom,
@@ -88,9 +81,12 @@ const mapOfferToListItem = (
     ...(establishmentProfileImage != null ? { profileImage: establishmentProfileImage } : {}),
   },
   distance: distanceMeters,
-  ctaState: new Date() < new Date(offer.availableFrom)
-    ? CtaState.NOT_STARTED
-    : offer.availableQuantity > 0 ? CtaState.AVAILABLE : CtaState.SOLD_OUT,
+  ctaState:
+    new Date() < new Date(offer.availableFrom)
+      ? CtaState.NOT_STARTED
+      : offer.availableQuantity > 0
+        ? CtaState.AVAILABLE
+        : CtaState.SOLD_OUT,
   status: OfferStatus.ACTIVE,
 });
 
@@ -158,7 +154,7 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
       return (
         <FavoriteOfferCard
           offer={offerData}
-          variant='default'
+          variant="default"
           imageAspectRatio={1.4}
           onPress={() => onOfferPress(offer._id)}
           testID={`est-offer-${offer._id}`}
@@ -169,32 +165,32 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
     [item, distanceMeters, onOfferPress],
   );
 
-  const renderEmpty = useCallback(() => (
-    <View style={styles.centerContent}>
-      <View style={[styles.emptyIconWrap, { backgroundColor: theme.colors.surfaceVariant }]}>
-        <Icon
-          name='bag-outline'
-          family='Ionicons'
-          size={56}
-          color={theme.colors.onSurfaceVariant}
-        />
-      </View>
-      <Text variant='body' size='md' weight='medium' align='center' style={styles.emptyTitle}>
-        Nothing available right now.
-      </Text>
-      <Text variant='body' size='sm' color='secondary' align='center'>
-        Check back later!
-      </Text>
-      <Pressable
-        style={[styles.notifyButton, { borderColor: theme.colors.outline }]}
-        disabled
-      >
-        <Text variant='label' size='sm' color='secondary'>
-          Notify Me
+  const renderEmpty = useCallback(
+    () => (
+      <View style={styles.centerContent}>
+        <View style={[styles.emptyIconWrap, { backgroundColor: theme.colors.surfaceVariant }]}>
+          <Icon
+            name="bag-outline"
+            family="Ionicons"
+            size={56}
+            color={theme.colors.onSurfaceVariant}
+          />
+        </View>
+        <Text variant="body" size="md" weight="medium" align="center" style={styles.emptyTitle}>
+          Nothing available right now.
         </Text>
-      </Pressable>
-    </View>
-  ), [theme.colors]);
+        <Text variant="body" size="sm" color="secondary" align="center">
+          Check back later!
+        </Text>
+        <Pressable style={[styles.notifyButton, { borderColor: theme.colors.outline }]} disabled>
+          <Text variant="label" size="sm" color="secondary">
+            Notify Me
+          </Text>
+        </Pressable>
+      </View>
+    ),
+    [theme.colors],
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if (!visible && (opacityAnim as any)._value === 0) return null;
@@ -235,9 +231,9 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
               ]}
             >
               <Text
-                variant='title'
-                size='lg'
-                weight='bold'
+                variant="title"
+                size="lg"
+                weight="bold"
                 style={{ color: theme.colors.onPrimaryContainer }}
               >
                 {initial}
@@ -247,20 +243,20 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
 
           {/* Name + rating + type */}
           <View style={styles.headerText}>
-            <Text variant='title' size='md' weight='bold' numberOfLines={1}>
+            <Text variant="title" size="md" weight="bold" numberOfLines={1}>
               {item?.name ?? ''}
             </Text>
             <View style={styles.ratingRow}>
-              <Icon name='star' family='Ionicons' size={14} color='#F9A825' />
-              <Text variant='body' size='sm' weight='medium' style={styles.ratingValue}>
+              <Icon name="star" family="Ionicons" size={14} color="#F9A825" />
+              <Text variant="body" size="sm" weight="medium" style={styles.ratingValue}>
                 {ratingDisplay}
               </Text>
-              <Text variant='body' size='xs' color='secondary'>
+              <Text variant="body" size="xs" color="secondary">
                 ({reviewCount})
               </Text>
               {item?.type ? (
                 <View style={[styles.typeBadge, { backgroundColor: theme.colors.surfaceVariant }]}>
-                  <Text variant='label' size='xs' color='secondary'>
+                  <Text variant="label" size="xs" color="secondary">
                     {item.type}
                   </Text>
                 </View>
@@ -274,16 +270,15 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Icon name='close' family='Ionicons' size={18} color={theme.colors.onSurfaceVariant} />
+            <Icon name="close" family="Ionicons" size={18} color={theme.colors.onSurfaceVariant} />
           </Pressable>
         </View>
 
         {/* ── Offer count ────────────────────────────────────────── */}
         {(item?.activeOfferCount ?? 0) > 0 && (
           <View style={styles.countRow}>
-            <Text variant='label' size='sm' weight='semibold' color='primary'>
-              {item!.activeOfferCount}{' '}
-              {item!.activeOfferCount === 1 ? 'offer' : 'offers'} available
+            <Text variant="label" size="sm" weight="semibold" color="primary">
+              {item!.activeOfferCount} {item!.activeOfferCount === 1 ? 'offer' : 'offers'} available
             </Text>
           </View>
         )}
@@ -291,7 +286,7 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
         {/* ── Offers list ────────────────────────────────────────── */}
         <FlatList
           data={item?.offers ?? []}
-          keyExtractor={o => o._id}
+          keyExtractor={(o) => o._id}
           renderItem={renderItem}
           ListEmptyComponent={renderEmpty}
           contentContainerStyle={styles.listContent}
@@ -420,4 +415,3 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
 });
-

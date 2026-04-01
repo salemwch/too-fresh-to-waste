@@ -54,7 +54,7 @@ export class PointTransaction {
   @Prop({ required: true, default: Date.now })
   createdAt!: Date;
 
-  @Prop()
+  @Prop({ type: Date })
   expiresAt?: Date | undefined;
 }
 

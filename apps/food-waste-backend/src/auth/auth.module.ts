@@ -24,13 +24,13 @@ import { TenantContextMiddleware } from './middleware/tenant-context.middleware'
 import { RefreshToken, RefreshTokenSchema } from './schemas/refresh-token.schema';
 import { AdminNotificationService } from './services/admin-notification.service';
 import { AuthSecurityService } from './services/auth-security.service';
-import { CsrfService } from './services/csrf.service';
-import { SessionManagementService } from './services/session-management.service';
-import { PasswordPolicyService } from './services/password-policy.service';
-import { PasswordHistoryService } from './services/password-history.service';
-import { MfaService } from './services/mfa.service';
-import { TokenService } from './services/token.service';
 import { CaptchaService } from './services/captcha.service';
+import { CsrfService } from './services/csrf.service';
+import { MfaService } from './services/mfa.service';
+import { PasswordHistoryService } from './services/password-history.service';
+import { PasswordPolicyService } from './services/password-policy.service';
+import { SessionManagementService } from './services/session-management.service';
+import { TokenService } from './services/token.service';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategie';
 import { JwtStrategy } from './strategies/jwt.strategie';
 import { AuthCleanupTask } from './tasks/auth-cleanup.task';
@@ -39,7 +39,7 @@ import type { StringValue } from 'ms';
 
 @Module({
   imports: [
-    UsersModule,
+    forwardRef(() => UsersModule),
     forwardRef(() => EstablishmentsModule),
     PassportModule,
     EmailModule,

@@ -1,3 +1,4 @@
+import { UserRole } from '@foodwaste/shared';
 import {
   Controller,
   Get,
@@ -14,6 +15,7 @@ import {
   Headers,
   Logger,
   Res,
+  RawBodyRequest,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -31,7 +33,6 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AuthenticatedRequest } from 'src/common/decorators/get-user.decorator';
 import { Public } from 'src/common/decorators/public.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { UserRole } from 'src/common/enums/user.enum';
 
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { PaymentQueryDto } from './dto/payment-query.dto';
@@ -322,12 +323,26 @@ export class PaymentController {
     @Body() webhookPayload: SMTWebhookPayloadDto,
     @Headers('x-smt-signature') signature: string,
     @Headers('x-smt-timestamp') timestamp: string,
+    @Request() req: RawBodyRequest<import('express').Request>,
   ) {
     if (!signature || !timestamp) {
       throw new BadRequestException('Missing required webhook headers');
     }
 
-    await this.paymentService.handleWebhook(webhookPayload, signature, timestamp);
+    // Use raw body bytes for HMAC signature verification (not JSON.stringify)
+    // JSON.stringify may reorder keys or change formatting, breaking the signature
+    const rawBody = req.rawBody;
+    if (!rawBody) {
+      this.logger.error('Raw body not available for webhook signature verification');
+      throw new BadRequestException('Unable to verify webhook signature');
+    }
+
+    await this.paymentService.handleWebhook(
+      webhookPayload,
+      signature,
+      timestamp,
+      rawBody.toString('utf-8'),
+    );
 
     return {
       statusCode: HttpStatus.OK,

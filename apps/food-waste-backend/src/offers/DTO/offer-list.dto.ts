@@ -125,32 +125,3 @@ export class OfferCardDto {
   @IsBoolean()
   isPickupTomorrow?: boolean | undefined; // True if merchant set this offer for "Pickup Tomorrow" section
 }
-
-/**
- * @deprecated Use OfferCardDto instead
- * This DTO leaked merchant PII and internal metrics
- */
-class OfferListDto {
-  id?: string;
-  title?: string;
-  type?: string;
-  images?: string[];
-  pricing?: {
-    originalPrice?: number;
-    discountedPrice?: number;
-    discountPercentage?: number;
-  };
-  totalQuantity?: number;
-  soldQuantity?: number;
-  reservedQuantity?: number;
-  availableFrom?: Date;
-  availableUntil?: Date;
-  establishmentId?: string;
-  establishmentName?: string;
-  establishmentAddress?: Record<string, unknown>;
-  status?: OfferStatus;
-  distance?: number;
-  merchantFirstName?: string;
-  merchantLastName?: string;
-  createdAt?: Date;
-}

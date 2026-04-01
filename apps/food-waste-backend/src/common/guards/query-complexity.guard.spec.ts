@@ -537,7 +537,7 @@ describe('QueryComplexityGuard', () => {
       await expect(guard.canActivate(context)).resolves.toBe(true);
     });
 
-    it('should attach stats to request', async () => {
+    it('should attach stats to request', () => {
       jest.spyOn(reflector, 'get').mockReturnValue(undefined);
 
       const mockRequest = {
@@ -558,7 +558,7 @@ describe('QueryComplexityGuard', () => {
         getClass: jest.fn(),
       } as unknown as ExecutionContext;
 
-      await guard.canActivate(context);
+      guard.canActivate(context);
 
       expect(mockRequest).toHaveProperty('queryComplexityStats');
       expect((mockRequest as Record<string, unknown>)['queryComplexityStats']).toHaveProperty(

@@ -1,3 +1,4 @@
+import { UserRole } from '@foodwaste/shared';
 import {
   Injectable,
   NotFoundException,
@@ -7,7 +8,6 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, PipelineStage, FlattenMaps } from 'mongoose';
 
-import { UserRole } from '../../common/enums/user.enum';
 import { CreateReportDto } from '../dtos/create-report.dto';
 import { ReportQueryDto, ReportUpdateDto } from '../dtos/report-query.dto';
 import { LogLevel, LogCategory } from '../schemas/moderation-log.schema';

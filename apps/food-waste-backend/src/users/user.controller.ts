@@ -754,7 +754,7 @@ export class UsersController {
           lastKnownLocation: user.locationPreferences.locationHistory?.[0],
         },
       };
-    } catch (error) {
+    } catch {
       throw new HttpException(
         { message: 'Failed to fetch location preferences' },
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -822,7 +822,7 @@ export class UsersController {
         success: true,
         message: 'Location preferences saved successfully',
       };
-    } catch (error) {
+    } catch {
       throw new HttpException(
         { message: 'Failed to save location preferences' },
         HttpStatus.INTERNAL_SERVER_ERROR,

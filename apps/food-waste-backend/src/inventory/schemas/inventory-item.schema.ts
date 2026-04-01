@@ -33,7 +33,7 @@ export class StockMovement {
   @Prop({ required: true, enum: StockUpdateReason })
   reason!: StockUpdateReason;
 
-  @Prop()
+  @Prop({ type: String })
   notes?: string | undefined;
 
   @Prop({ type: Types.ObjectId, ref: 'Order' })

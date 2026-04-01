@@ -31,14 +31,14 @@ interface UseUserProfileReturn {
 /**
  * Resolves a non-empty, non-whitespace string or returns null.
  */
-function resolveUri(value: string | undefined): string | null {
+function resolveUri(value: string | null | undefined): string | null {
   if (value == null) return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
 }
 
 export function useUserProfile(): UseUserProfileReturn {
-  const user = useAppSelector(state => state.auth.user);
+  const user = useAppSelector((state) => state.auth.user);
 
   return useMemo(() => {
     if (user == null) {
@@ -57,15 +57,12 @@ export function useUserProfile(): UseUserProfileReturn {
     // Compute initials from first + last name
     const firstInitial = user.firstName?.[0] ?? '';
     const lastInitial = user.lastName?.[0] ?? '';
-    const initials = firstInitial && lastInitial
-      ? `${firstInitial}${lastInitial}`.toUpperCase()
-      : 'U';
+    const initials =
+      firstInitial && lastInitial ? `${firstInitial}${lastInitial}`.toUpperCase() : 'U';
 
     // Display name
     const displayName =
-      user.firstName && user.lastName
-        ? `${user.firstName} ${user.lastName}`
-        : 'User';
+      user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : 'User';
 
     return {
       user,

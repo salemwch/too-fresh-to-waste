@@ -14,116 +14,46 @@
 
 import axios, { type AxiosError, type AxiosResponse } from 'axios';
 
+import type {
+  ApiResponse,
+  GeoCoordinates,
+  NearbyOffer,
+  NearbyEstablishment,
+  ProximitySearchResult,
+  MapEstablishment,
+  AddressInfo,
+  GeocodeResult,
+} from '@foodwaste/shared';
+
 import { environment } from '@/config/environment';
 import { Logger, NetworkLogger } from '@/utils/logger';
 
 // ============================================================================
-// Types
+// Shared geo types — re-exported from @foodwaste/shared (single source of truth)
+// ============================================================================
+export type {
+  GeoCoordinates,
+  AddressInfo,
+  DistanceInfo,
+  GeoData,
+  GeoOfferPricing,
+  NearbyOffer,
+  NearbyEstablishment,
+  ProximitySearchResult,
+  MapOfferSummary,
+  MapEstablishment,
+  GeocodeResult,
+} from '@foodwaste/shared';
+
+// Backward-compatible alias: mobile used OfferPricing, shared uses GeoOfferPricing
+export type { GeoOfferPricing as OfferPricing } from '@foodwaste/shared';
+
+// ============================================================================
+// Mobile-only types
 // ============================================================================
 
 /**
- * Coordinates for proximity search
- */
-export interface GeoCoordinates {
-  latitude: number;
-  longitude: number;
-}
-
-/**
- * Address information returned from geocoding
- */
-export interface AddressInfo {
-  street?: string;
-  city?: string;
-  postalCode?: string;
-  country?: string;
-  formattedAddress?: string;
-  // ✅ Backend returns nested primaryAddress
-  primaryAddress?: {
-    city?: string;
-    postalCode?: string;
-    country?: string;
-    formattedAddress?: string;
-  };
-}
-
-/**
- * Distance information for search results
- */
-export interface DistanceInfo {
-  /** Distance value in the specified unit */
-  value: number;
-  /** Unit of measurement */
-  unit: 'meters' | 'kilometers' | 'miles';
-  /** Human-readable formatted string (e.g., "1.2 km") */
-  formatted: string;
-}
-
-/**
- * Geo data associated with an item
- */
-export interface GeoData {
-  coordinates: GeoCoordinates;
-  address: AddressInfo;
-}
-
-/**
- * Pricing information for an offer
- */
-export interface OfferPricing {
-  originalPrice: number;
-  discountedPrice: number;
-  discountPercentage: number;
-  currency: string;
-}
-
-/**
- * Offer data returned from proximity search
- * Uses _id to match MongoDB backend responses
- */
-export interface NearbyOffer {
-  _id: string;
-  title: string;
-  description?: string;
-  establishmentId: string;
-  establishmentName: string;
-  establishmentLogo: string | null;
-  pricing: OfferPricing;
-  availableFrom: string;
-  availableUntil: string;
-  availableQuantity: number;
-  categories: string[];
-  images: string[];
-}
-
-/**
- * Establishment data returned from proximity search
- * Uses _id to match MongoDB backend responses
- */
-export interface NearbyEstablishment {
-  _id: string;
-  name: string;
-  type: string;
-  address: AddressInfo;
-  coordinates: GeoCoordinates;
-  averageRating?: number;
-  totalOffers?: number;
-  isActive: boolean;
-  isVerified: boolean;
-  images?: string[];
-}
-
-/**
- * Single result from proximity search
- */
-export interface ProximitySearchResult<T> {
-  item: T;
-  distance: DistanceInfo;
-  geoData: GeoData;
-}
-
-/**
- * Parameters for proximity search
+ * Parameters for proximity search (mobile-specific request config)
  */
 export interface NearbyOffersParams {
   /** Center point for search */
@@ -140,64 +70,6 @@ export interface NearbyOffersParams {
   sortByDistance?: boolean;
   /** Text query to search offers by title or establishment name */
   query?: string;
-}
-
-/**
- * Geocode search result
- */
-export interface GeocodeResult {
-  coordinates: GeoCoordinates;
-  displayName: string;
-  address: AddressInfo;
-  boundingBox?: {
-    north: number;
-    south: number;
-    east: number;
-    west: number;
-  };
-}
-
-/**
- * Lightweight offer summary returned inside MapEstablishment.
- * Mirrors backend MapOfferSummary interface.
- */
-export interface MapOfferSummary {
-  _id: string;
-  title: string;
-  description: string;
-  pricing: OfferPricing;
-  availableFrom: string;
-  availableUntil: string;
-  availableQuantity: number;
-  categories: string[];
-  images: string[];
-}
-
-/**
- * Establishment enriched with active offers for map marker display.
- * Mirrors backend MapEstablishmentGeoData interface.
- */
-export interface MapEstablishment {
-  _id: string;
-  name: string;
-  type: string;
-  profileImage: string | null;
-  coordinates: GeoCoordinates;
-  address: AddressInfo;
-  averageRating: number;
-  totalReviews: number;
-  isVerified: boolean;
-  activeOfferCount: number;
-  offers: MapOfferSummary[];
-}
-
-/**
- * Standard API response wrapper from backend
- */
-interface ApiResponseWrapper<T> {
-  statusCode: number;
-  data: T;
-  timestamp: string;
 }
 
 // ============================================================================
@@ -231,7 +103,7 @@ class NearbyOffersService {
     try {
       NetworkLogger.logRequest(url, method, headers);
 
-      const response: AxiosResponse<ApiResponseWrapper<T>> = await axios({
+      const response: AxiosResponse<ApiResponse<T>> = await axios({
         method,
         url,
         data,
@@ -387,14 +259,15 @@ class NearbyOffersService {
     try {
       NetworkLogger.logRequest(url, 'GET');
 
-      const response = await axios.get<
-        ApiResponseWrapper<ProximitySearchResult<NearbyEstablishment>[]>
-      >(url, {
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await axios.get<ApiResponse<ProximitySearchResult<NearbyEstablishment>[]>>(
+        url,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: this.timeout,
         },
-        timeout: this.timeout,
-      });
+      );
 
       const duration = Date.now() - startTime;
       NetworkLogger.logResponse(url, response.status, duration);

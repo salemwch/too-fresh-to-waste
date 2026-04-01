@@ -4,6 +4,7 @@
 import * as crypto from 'crypto';
 
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -175,8 +176,6 @@ interface IUserPrivacySettingsInput {
 @Injectable()
 export class PrivacyComplianceService {
   private readonly logger = new Logger(PrivacyComplianceService.name);
-  private readonly encryptionKey =
-    process.env['PRIVACY_ENCRYPTION_KEY'] || 'default-key-change-in-production';
 
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
@@ -184,8 +183,15 @@ export class PrivacyComplianceService {
     @InjectModel(Favorite.name) private readonly favoriteModel: Model<FavoriteDocument>,
     @InjectModel(Review.name) private readonly reviewModel: Model<ReviewDocument>,
     @InjectModel(Notification.name) private readonly notificationModel: Model<Notification>,
+    private readonly configService: ConfigService,
   ) {
-    void this.encryptionKey;
+    const key = this.configService.get<string>('PRIVACY_ENCRYPTION_KEY');
+    if (!key) {
+      this.logger.warn(
+        'PRIVACY_ENCRYPTION_KEY not set — privacy encryption features will be unavailable. ' +
+          'This is REQUIRED in production for GDPR/Tunisian Law compliance.',
+      );
+    }
   }
 
   async recordTunisianConsent(

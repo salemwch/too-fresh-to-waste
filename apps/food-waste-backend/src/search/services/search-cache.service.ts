@@ -25,7 +25,7 @@ export class SearchCacheService {
     try {
       const cached = await this.redis.get(`search:${key}`);
       return cached ? JSON.parse(cached) : null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -33,7 +33,7 @@ export class SearchCacheService {
   async set(key: string, value: unknown, ttl: number = 300): Promise<void> {
     try {
       await this.redis.setex(`search:${key}`, ttl, JSON.stringify(value));
-    } catch (error) {
+    } catch {
       // Fail silently
     }
   }
@@ -41,7 +41,7 @@ export class SearchCacheService {
   async del(key: string): Promise<void> {
     try {
       await this.redis.del(`search:${key}`);
-    } catch (error) {
+    } catch {
       // Fail silently
     }
   }
@@ -61,7 +61,7 @@ export class SearchCacheService {
       if (keys.length > 0) {
         await this.redis.del(...keys);
       }
-    } catch (error) {
+    } catch {
       // Fail silently
     }
   }

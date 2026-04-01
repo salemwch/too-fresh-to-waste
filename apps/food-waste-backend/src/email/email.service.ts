@@ -28,17 +28,28 @@ export class EmailService implements IEmailService {
   }
 
   private createTransporter() {
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     const smtpConfig = {
       host: this.configService.get<string>('SMTP_HOST'),
       port: this.configService.get<number>('SMTP_PORT') || 587,
-      secure: this.configService.get<number>('SMTP_PORT') === 465, //
+      secure: this.configService.get<number>('SMTP_PORT') === 465,
       auth: {
         user: this.configService.get<string>('SMTP_USER'),
         pass: this.configService.get<string>('SMTP_PASS'),
       },
       tls: {
-        rejectUnauthorized: false,
+        // SECURITY: Must be true in production to prevent MITM on SMTP connection
+        // Only disable in development for self-signed certs / local mail servers
+        rejectUnauthorized: isProduction,
       },
+      // Connection pool for better throughput
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 100,
+      // Timeouts to prevent hanging connections
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 30_000,
     };
 
     this.transporter = nodemailer.createTransport(smtpConfig);
@@ -52,23 +63,71 @@ export class EmailService implements IEmailService {
     });
   }
 
+  /**
+   * Send email with exponential backoff retry (3 attempts).
+   * Retries on transient SMTP errors (connection reset, timeout, rate limit).
+   */
   async sendEmail(emailOptions: EmailOptions): Promise<boolean> {
-    try {
-      const smtpUser = this.configService.get<string>('SMTP_USER') || 'noreply@foodwaste.com';
-      const fromName = this.configService.get<string>('SMTP_FROM_NAME', 'Too Fresh To Waste');
-      const fromEmail = this.configService.get<string>('SMTP_FROM_EMAIL') || smtpUser;
-      const mailOptions = {
-        from: `"${fromName}" <${fromEmail}>`,
-        ...emailOptions,
-      };
+    const maxRetries = 3;
+    const smtpUser = this.configService.get<string>('SMTP_USER') || 'noreply@foodwaste.com';
+    const fromName = this.configService.get<string>('SMTP_FROM_NAME', 'Too Fresh To Waste');
+    const fromEmail = this.configService.get<string>('SMTP_FROM_EMAIL') || smtpUser;
+    const mailOptions = {
+      from: `"${fromName}" <${fromEmail}>`,
+      ...emailOptions,
+    };
 
-      const info = await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Email sent successfully to ${emailOptions.to}: ${info.messageId}`);
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send email to ${emailOptions.to}:`, error);
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const info = await this.transporter.sendMail(mailOptions);
+        this.logger.log(`Email sent to ${emailOptions.to}: ${info.messageId}`);
+        return true;
+      } catch (error) {
+        const isLastAttempt = attempt === maxRetries;
+        const isRetryable = this.isRetryableError(error);
+
+        if (isLastAttempt || !isRetryable) {
+          this.logger.error(
+            `Failed to send email to ${emailOptions.to} after ${attempt} attempt(s):`,
+            error,
+          );
+          return false;
+        }
+
+        // Exponential backoff: 1s, 2s, 4s
+        const delayMs = Math.pow(2, attempt - 1) * 1000;
+        this.logger.warn(
+          `Email to ${emailOptions.to} failed (attempt ${attempt}/${maxRetries}), retrying in ${delayMs}ms...`,
+        );
+        await this.delay(delayMs);
+      }
+    }
+    return false;
+  }
+
+  /** Determine if an SMTP error is transient and worth retrying */
+  private isRetryableError(error: unknown): boolean {
+    if (!(error instanceof Error)) {
       return false;
     }
+    const msg = error.message.toLowerCase();
+    const code = (error as NodeJS.ErrnoException).code ?? '';
+    // Transient: connection reset, timeout, DNS issues, SMTP 4xx, rate limiting
+    return (
+      code === 'ECONNRESET' ||
+      code === 'ETIMEDOUT' ||
+      code === 'ECONNREFUSED' ||
+      code === 'ESOCKET' ||
+      code === 'EDNS' ||
+      msg.includes('timeout') ||
+      msg.includes('too many connections') ||
+      msg.includes('try again') ||
+      msg.includes('temporarily')
+    );
+  }
+
+  private async delay(ms: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // eslint-disable-next-line require-await

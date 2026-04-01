@@ -1,4 +1,4 @@
-import { UserRole } from '../../common/enums/user.enum';
+import { UserRole } from '@foodwaste/shared';
 
 import type { Socket } from 'socket.io';
 

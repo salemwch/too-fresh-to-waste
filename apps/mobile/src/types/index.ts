@@ -52,34 +52,8 @@ export interface TabParamList {
   Profile: undefined;
 }
 
-// API Response types
-export interface ApiResponse<T = unknown> {
-  data: T;
-  message: string;
-  statusCode: number;
-  timestamp: string;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-}
-
-export interface ApiError {
-  statusCode: number;
-  message: string | string[];
-  error?: string;
-  timestamp: string;
-  path: string;
-  method?: string;
-}
+// API Response types — canonical definitions live in @foodwaste/shared
+export type { ApiResponse, PaginatedResponse, ApiError, PaginationMeta } from '@foodwaste/shared';
 
 // Location types
 interface Location {
@@ -292,8 +266,7 @@ export type DeepPartial<T> = {
 // Common generic types
 export type ID = string;
 export type Timestamp = string; // ISO 8601 format
-export type Currency = 'TND' | 'EUR' | 'USD'; // Tunisian Dinar, Euro, US Dollar
+// Currency enum is in @foodwaste/shared — import from there (not this file)
 export type Language = 'en' | 'fr' | 'ar'; // English, French, Arabic
 
 // Re-export types from features
-;

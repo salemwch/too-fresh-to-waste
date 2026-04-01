@@ -90,4 +90,12 @@ export interface ButtonProps extends Omit<PressableProps, 'style'>, StyleSystemP
     scale?: number;
     duration?: number;
   };
+
+  /**
+   * Press guard cooldown in milliseconds.
+   * When set, rapid taps within this window are ignored.
+   * Useful for buttons that trigger API calls or navigation.
+   * Set to 0 or undefined to disable (default: disabled).
+   */
+  pressGuardMs?: number;
 }

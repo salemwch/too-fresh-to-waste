@@ -1,8 +1,9 @@
+import { UserRole, UserStatus } from '@foodwaste/shared';
+import { Logger } from '@nestjs/common';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { applyStandardSchemaConfig } from 'src/common/utils/schema-config.util';
 
-import { UserRole, UserStatus } from '../../common/enums/user.enum';
 import { ConsentType, ConsentStatus, LegalBasis } from '../interfaces/privacy-consent.interface';
 
 // Import and re-export UserRole and UserStatus from centralized location
@@ -673,9 +674,8 @@ UserSchema.pre('validate', function (next) {
     const hasValidType = coords.type === 'Point';
 
     if (!hasValidCoords || !hasValidType) {
-      console.warn(
-        `[UserSchema] Sanitized invalid address.coordinates for user ${doc._id}:`,
-        JSON.stringify({ type: coords.type, coordinates: innerCoords }),
+      new Logger('UserSchema').warn(
+        `Sanitized invalid address.coordinates for user ${doc._id}: ${JSON.stringify({ type: coords.type, coordinates: innerCoords })}`,
       );
       // Remove the invalid coordinates sub-document and ensure
       // Mongoose sends $unset to MongoDB on save

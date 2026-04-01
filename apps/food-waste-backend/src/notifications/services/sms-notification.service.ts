@@ -89,7 +89,7 @@ export class SmsNotificationService implements INotificationProvider {
         return null;
       }
       return await this.redisService.getClient();
-    } catch (error) {
+    } catch {
       this.logger.warn('Failed to get Redis client for SMS service');
       return null;
     }
@@ -138,7 +138,7 @@ export class SmsNotificationService implements INotificationProvider {
             ? this.phoneValidator.maskPhoneNumber(this.fromNumber)
             : null,
           requiredFormat: 'E.164 (+1234567890)',
-          environment: process.env['NODE_ENV'],
+          environment: this.configService.get<string>('NODE_ENV', 'development'),
         });
 
         if (isDevelopmentMode) {

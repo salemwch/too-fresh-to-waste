@@ -1,9 +1,5 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios';
 
-import { environment } from '@/config/environment';
-import { ErrorHandler, ErrorType } from '@/utils/errorHandler';
-import { Logger, NetworkLogger } from '@/utils/logger';
-
 import type {
   LoginRequest,
   RegisterRequest,
@@ -22,16 +18,11 @@ import type {
   User,
   AuthTokens,
 } from '../types';
+import type { ApiResponse } from '@foodwaste/shared';
 
-/**
- * Standard API response format from backend TransformInterceptor
- * All endpoints wrap their data in this structure
- */
-interface ApiResponseWrapper<T> {
-  statusCode: number;
-  data: T;
-  timestamp: string;
-}
+import { environment } from '@/config/environment';
+import { ErrorHandler, ErrorType } from '@/utils/errorHandler';
+import { Logger, NetworkLogger } from '@/utils/logger';
 
 class AuthService {
   private readonly baseURL: string;
@@ -56,7 +47,7 @@ class AuthService {
     try {
       NetworkLogger.logRequest(url, method, headers);
 
-      const response: AxiosResponse<ApiResponseWrapper<T>> = await axios({
+      const response: AxiosResponse<ApiResponse<T>> = await axios({
         method,
         url,
         data,
@@ -490,9 +481,15 @@ class AuthService {
   public async updateProfile(updates: Partial<User>, accessToken: string): Promise<User> {
     Logger.info('Updating user profile');
 
-    const response = await this.makeRequest<User>('PATCH', '/profile', updates, {
-      Authorization: `Bearer ${accessToken}`,
-    }, `${environment.api.baseUrl}/users`);
+    const response = await this.makeRequest<User>(
+      'PATCH',
+      '/profile',
+      updates,
+      {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      `${environment.api.baseUrl}/users`,
+    );
 
     Logger.info('User profile updated', { userId: response.userId });
     return response;

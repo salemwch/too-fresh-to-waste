@@ -1,6 +1,6 @@
+import { UserRole, UserStatus } from '@foodwaste/shared';
 import { NestFactory } from '@nestjs/core';
 import { getModelToken } from '@nestjs/mongoose';
-import { UserRole, UserStatus } from 'src/common/enums/user.enum';
 import { User } from 'src/users/schemas/user.schema';
 import { UsersService } from 'src/users/user.service';
 

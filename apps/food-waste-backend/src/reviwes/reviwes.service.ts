@@ -1,3 +1,4 @@
+import { UserRole } from '@foodwaste/shared';
 import {
   Injectable,
   NotFoundException,
@@ -15,7 +16,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Model, Types, ClientSession, PipelineStage, FilterQuery } from 'mongoose';
 
-import { UserRole } from '../common/enums/user.enum';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { AppLoggerService } from '../common/services/logger.service';
 import {
@@ -170,7 +170,7 @@ export class ReviewsService {
         }
 
         // 7. Perform AI content analysis and moderation
-        const contentAnalysis = await this.analyzeReviewContent(createReviewDto.comment);
+        const contentAnalysis = this.analyzeReviewContent(createReviewDto.comment);
         const autoModerationResult = await this.performAutoModeration(createReviewDto);
 
         const reviewData = {
@@ -448,7 +448,7 @@ export class ReviewsService {
         let newModerationInfo = review.moderationInfo;
 
         if (updateReviewDto.comment && updateReviewDto.comment !== review.comment) {
-          newSentimentAnalysis = await this.analyzeReviewContent(updateReviewDto.comment);
+          newSentimentAnalysis = this.analyzeReviewContent(updateReviewDto.comment);
           const autoModerationResult = await this.performAutoModeration({
             ...review.toObject(),
             ...updateReviewDto,
@@ -1579,7 +1579,7 @@ export class ReviewsService {
       requiresManualReview = true;
     }
 
-    if (await this.detectFakeReview(reviewData)) {
+    if (this.detectFakeReview(reviewData)) {
       flags.push('potential_fake');
       requiresManualReview = true;
     }
@@ -1588,7 +1588,8 @@ export class ReviewsService {
       flags.push('low_quality');
     }
 
-    return { requiresManualReview, flags };
+    const result = await Promise.resolve({ requiresManualReview, flags });
+    return result;
   }
 
   private detectSpam(comment: string): boolean {

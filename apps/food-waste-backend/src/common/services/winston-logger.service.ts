@@ -36,6 +36,7 @@ export class WinstonLoggerService implements LoggerService {
   private createLogger(): winston.Logger {
     const isProduction = process.env['NODE_ENV'] === 'production';
     const logLevel = process.env['LOG_LEVEL'] || (isProduction ? 'info' : 'debug');
+    const logDir = process.env['LOGS_DIR'] || 'logs';
 
     // Common log format
     const logFormat = winston.format.combine(
@@ -68,7 +69,7 @@ export class WinstonLoggerService implements LoggerService {
       // Combined logs with rotation
       transports.push(
         new DailyRotateFile({
-          filename: 'logs/application-%DATE%.log',
+          filename: `${logDir}/application-%DATE%.log`,
           datePattern: 'YYYY-MM-DD',
           zippedArchive: true,
           maxSize: '20m',
@@ -81,7 +82,7 @@ export class WinstonLoggerService implements LoggerService {
       transports.push(
         new DailyRotateFile({
           level: 'error',
-          filename: 'logs/error-%DATE%.log',
+          filename: `${logDir}/error-%DATE%.log`,
           datePattern: 'YYYY-MM-DD',
           zippedArchive: true,
           maxSize: '20m',
@@ -94,7 +95,7 @@ export class WinstonLoggerService implements LoggerService {
       transports.push(
         new DailyRotateFile({
           level: 'error',
-          filename: 'logs/critical-%DATE%.log',
+          filename: `${logDir}/critical-%DATE%.log`,
           datePattern: 'YYYY-MM-DD',
           zippedArchive: true,
           maxSize: '20m',

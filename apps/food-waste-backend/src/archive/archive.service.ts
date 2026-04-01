@@ -1,8 +1,8 @@
+import { UserStatus } from '@foodwaste/shared';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, FilterQuery, Types } from 'mongoose';
 
-import { UserStatus } from '../common/enums/user.enum';
 import { UserDonation, UserDonationDocument } from '../donations/schemas/user-donation.schema';
 import {
   Establishment,

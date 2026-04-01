@@ -37,7 +37,6 @@ import {
 } from '../interfaces/privacy-consent.interface';
 import { UserRole } from '../schemas/user.schema';
 import { PrivacyComplianceService } from '../services/privacy-compliance.service';
-// @ts-expect-error no types available for xml2js
 
 interface AuthenticatedRequest {
   user: AuthUser;

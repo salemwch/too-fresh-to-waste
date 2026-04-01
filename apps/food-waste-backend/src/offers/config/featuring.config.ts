@@ -88,11 +88,14 @@ if (URGENCY_THRESHOLD_HOURS < 0 || URGENCY_THRESHOLD_HOURS > 24) {
 // LOGGING
 // =============================================================================
 
+import { Logger } from '@nestjs/common';
+
+const featuringLogger = new Logger('AutoFeaturingConfig');
+
 if (AUTO_FEATURE_ENABLED) {
-  console.log('✅ Auto-Featuring Configuration:');
-  console.log(`   - Minimum Existence: ${MIN_EXISTENCE_HOURS} hours`);
-  console.log(`   - Urgency Threshold: ${URGENCY_THRESHOLD_HOURS} hours`);
-  console.log(`   - Cron Schedule: ${AUTO_FEATURE_CRON_SCHEDULE}`);
+  featuringLogger.log(
+    `Auto-Featuring enabled — minExistence: ${MIN_EXISTENCE_HOURS}h, urgency: ${URGENCY_THRESHOLD_HOURS}h, cron: ${AUTO_FEATURE_CRON_SCHEDULE}`,
+  );
 } else {
-  console.log('⚠️  Auto-Featuring is DISABLED');
+  featuringLogger.warn('Auto-Featuring is DISABLED');
 }

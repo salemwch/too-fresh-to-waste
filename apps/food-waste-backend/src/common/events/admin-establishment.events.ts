@@ -1,4 +1,4 @@
-import type { EstablishmentStatus } from '../enums/establishment.enum';
+import type { EstablishmentStatus } from '@foodwaste/shared';
 
 /**
  * Base class for all admin establishment-related events

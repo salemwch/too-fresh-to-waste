@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type, Transform } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumber,
@@ -41,33 +41,6 @@ export class GeoCoordinateDto {
   @IsNumber()
   @IsLongitude()
   longitude!: number;
-}
-
-class GeoPointDto {
-  @ApiProperty({
-    description: 'GeoJSON type',
-    example: 'Point',
-    enum: ['Point'],
-  })
-  @IsNotEmpty()
-  @IsString()
-  type!: 'Point';
-
-  @ApiProperty({
-    description: 'GeoJSON coordinates [longitude, latitude]',
-    example: [2.3522, 48.8566],
-    type: [Number],
-  })
-  @IsNotEmpty()
-  @IsArray()
-  @IsNumber({}, { each: true })
-  @Transform(({ value }) => {
-    if (Array.isArray(value) && value.length === 2) {
-      return [parseFloat(value[0]), parseFloat(value[1])];
-    }
-    return value;
-  })
-  coordinates!: [number, number];
 }
 
 export class ProximitySearchDto {
@@ -552,49 +525,4 @@ export class ComprehensiveSearchDto {
   @ValidateNested()
   @Type(() => ComprehensiveSearchOptionsDto)
   options!: ComprehensiveSearchOptionsDto;
-}
-
-class RouteCalculationDto {
-  @ApiProperty({
-    description: 'Origin coordinates',
-    type: GeoCoordinateDto,
-  })
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => GeoCoordinateDto)
-  origin!: GeoCoordinateDto;
-
-  @ApiProperty({
-    description: 'Destination coordinates',
-    type: GeoCoordinateDto,
-  })
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => GeoCoordinateDto)
-  destination!: GeoCoordinateDto;
-
-  @ApiPropertyOptional({
-    description: 'Travel mode',
-    example: 'walking',
-    enum: ['driving', 'walking', 'transit', 'bicycling'],
-  })
-  @IsOptional()
-  @IsEnum(['driving', 'walking', 'transit', 'bicycling'])
-  mode?: 'driving' | 'walking' | 'transit' | 'bicycling' = 'walking';
-
-  @ApiPropertyOptional({
-    description: 'Include turn-by-turn directions',
-    example: false,
-  })
-  @IsOptional()
-  @IsBoolean()
-  includeSteps?: boolean = false;
-
-  @ApiPropertyOptional({
-    description: 'Optimize route for traffic',
-    example: false,
-  })
-  @IsOptional()
-  @IsBoolean()
-  avoidTraffic?: boolean = false;
 }

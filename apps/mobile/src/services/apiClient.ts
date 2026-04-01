@@ -18,6 +18,8 @@
 
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
+import type { ApiResponse, PaginationMeta } from '@foodwaste/shared';
+
 import { environment } from '@/config/environment';
 import { refreshTokenAsync } from '@/features/auth/store/authSlice';
 // eslint-disable-next-line import/no-cycle
@@ -25,9 +27,11 @@ import { store } from '@/store';
 import { Logger, NetworkLogger } from '@/utils/logger';
 import { decodeEntitiesDeep } from '@/utils/strings';
 
+// Re-export shared types for backward compatibility
+export type { PaginationMeta };
+
 /**
  * Extended request config with timing metadata
- * ✅ TYPE SAFETY: Explicitly typed instead of using `any`
  */
 interface RequestConfigWithTiming extends InternalAxiosRequestConfig {
   requestStartTime?: number;
@@ -35,88 +39,17 @@ interface RequestConfigWithTiming extends InternalAxiosRequestConfig {
 }
 
 /**
- * Pagination metadata from backend
- * ✅ TYPE SAFETY: Explicit types instead of index signature with `any`
- */
-export interface PaginationMeta {
-  total?: number;
-  page?: number;
-  limit?: number;
-  totalPages?: number;
-  hasNext?: boolean;
-  hasPrevious?: boolean;
-}
-
-/**
- * Standard API response wrapper from backend TransformInterceptor
- * ✅ TYPE SAFETY: Uses PaginationMeta instead of `any`
+ * Backend response envelope — alias for the canonical type in @foodwaste/shared.
  *
- * ⚠️ DEPRECATED: Use BackendApiResponse instead
- * This interface used old field name (statusCode) - backend now returns "status"
- *
- * @deprecated Backend changed from statusCode to status as of 2026-02-02
- * @see BackendApiResponse for current interface
- */
-interface ApiResponseWrapper<T> {
-  /** @deprecated Use BackendApiResponse.status instead */
-  statusCode: number;
-  data: T;
-  timestamp: string;
-  meta?: PaginationMeta;
-}
-
-/**
- * ✅ CANONICAL BACKEND RESPONSE STRUCTURE
- *
- * This matches the ACTUAL backend response format used across all endpoints.
- *
- * **Backend Contract (Single Source of Truth):**
- * ```json
- * {
- *   "status": 200,              // HTTP status code (mirrors response.status)
- *   "message": "Success message", // Human-readable message
- *   "data": { ... }             // Actual payload (can be object, array, null)
- * }
- * ```
- *
- * **After Axios Wraps It:**
- * ```json
- * {
- *   "data": {                   // Axios wrapper
- *     "status": 200,
- *     "message": "...",
- *     "data": { ... }           // Your actual data is here
- *   }
- * }
- * ```
+ * All services should use this (or the shared `ApiResponse` directly).
  *
  * **Usage:**
  * ```typescript
  * const response = await apiClient.get<BackendApiResponse<User>>('/users/profile');
- * const user = unwrapBackendResponse(response); // Returns User object directly
+ * const user = unwrapBackendResponse(response);
  * ```
- *
- * **Best Practices:**
- * - Use `unwrapBackendResponse()` to extract data safely
- * - Don't access `.data.data` manually - let utility handle it
- * - Backend should return consistent structure across ALL endpoints
- * - Use OpenAPI codegen for type-safe client generation (future)
- *
- * @template T - The type of the actual data payload
  */
-export interface BackendApiResponse<T> {
-  /** HTTP status code (200, 201, 400, etc.) */
-  status: number;
-
-  /** Human-readable success/error message */
-  message: string;
-
-  /** Actual payload data (object, array, or null) */
-  data: T;
-
-  /** Optional pagination metadata (for list endpoints) */
-  meta?: PaginationMeta;
-}
+export type BackendApiResponse<T> = ApiResponse<T>;
 
 /**
  * ✅ CENTRALIZED RESPONSE UNWRAPPING UTILITY
@@ -274,7 +207,7 @@ let failedQueue: Array<{
  * Process queued requests after token refresh
  */
 const processQueue = (error: Error | null = null) => {
-  failedQueue.forEach(promise => {
+  failedQueue.forEach((promise) => {
     if (error) {
       promise.reject(error);
     } else {
@@ -308,7 +241,7 @@ export const cancelInflightRequests = (): void => {
     });
 
     // Abort all active requests
-    activeAbortControllers.forEach(controller => {
+    activeAbortControllers.forEach((controller) => {
       try {
         controller.abort();
       } catch (error) {
@@ -371,7 +304,7 @@ const createApiClient = (): AxiosInstance => {
 
       return config;
     },
-    error => {
+    (error) => {
       Logger.error('[API-CLIENT] Request interceptor error', {}, error);
       return Promise.reject(error);
     },
@@ -381,7 +314,7 @@ const createApiClient = (): AxiosInstance => {
   // Response Interceptor - Handle 401 & Token Refresh
   // ──────────────────────────────────────────────────────────────────────────
   client.interceptors.response.use(
-    response => {
+    (response) => {
       // ✅ TYPE SAFETY: Use typed config instead of `any`
       const configWithTiming = response.config as RequestConfigWithTiming;
       const duration = Date.now() - (configWithTiming.requestStartTime ?? 0);
@@ -468,7 +401,7 @@ const createApiClient = (): AxiosInstance => {
               Logger.debug('[API-CLIENT] Queue processed - retrying queued request');
               return client(originalRequest);
             })
-            .catch(err => {
+            .catch((err) => {
               Logger.error(
                 '[API-CLIENT] Queue processing failed',
                 { url: originalRequest.url },
@@ -524,7 +457,7 @@ const createApiClient = (): AxiosInstance => {
 
             // Clear secure storage (fire and forget)
             import('@/services/SecureStorage').then(({ SecureStorage }) => {
-              SecureStorage.clearAll().catch(err => {
+              SecureStorage.clearAll().catch((err) => {
                 Logger.error('[API-CLIENT] Failed to clear secure storage', {}, err as Error);
               });
             });
@@ -560,22 +493,3 @@ const createApiClient = (): AxiosInstance => {
  * Use this for all API calls to get automatic token management
  */
 export const apiClient = createApiClient();
-
-/**
- * Helper to extract data from wrapped response
- * ✅ TYPE SAFETY: Uses PaginationMeta instead of `any`
- */
-export const unwrapResponse = <T>(
-  response: ApiResponseWrapper<{ data: T; message?: string; meta?: PaginationMeta }>,
-): T => response.data.data;
-
-/**
- * Helper to extract paginated data from wrapped response
- * ✅ TYPE SAFETY: Uses PaginationMeta instead of `any`
- */
-export const unwrapPaginatedResponse = <T>(
-  response: ApiResponseWrapper<{ data: T[]; message?: string; meta: PaginationMeta }>,
-): { data: T[]; meta: PaginationMeta } => ({
-  data: response.data.data,
-  meta: response.data.meta,
-});

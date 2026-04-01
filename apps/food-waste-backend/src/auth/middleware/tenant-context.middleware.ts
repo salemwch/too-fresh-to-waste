@@ -1,8 +1,8 @@
+import { UserRole } from '@foodwaste/shared';
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Request, Response, NextFunction } from 'express';
 import { Model } from 'mongoose';
-import { UserRole } from 'src/common/enums/user.enum';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 
 import { TenantContext } from '../interfaces/authorization.interface';

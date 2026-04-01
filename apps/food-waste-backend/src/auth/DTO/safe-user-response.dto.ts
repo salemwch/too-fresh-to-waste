@@ -8,8 +8,8 @@
  * Reference: OWASP API Security Top 10 - API3:2023 Excessive Data Exposure
  */
 
-import type { UserRole, UserStatus } from '../../common/enums/user.enum';
 import type { UserDocument } from '../../users/schemas/user.schema';
+import type { UserRole, UserStatus } from '@foodwaste/shared';
 
 /**
  * Minimal privacy settings safe for client

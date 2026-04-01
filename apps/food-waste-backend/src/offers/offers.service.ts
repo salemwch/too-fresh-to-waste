@@ -1800,7 +1800,7 @@ export class OffersService {
         throw new BadRequestException('Pickup slot start time must be before end time');
       }
 
-      if (slot.maxOrders != null && slot.maxOrders < 1) {
+      if (slot.maxOrders !== null && slot.maxOrders !== undefined && slot.maxOrders < 1) {
         throw new BadRequestException('Maximum orders per slot must be at least 1');
       }
     }
@@ -1815,7 +1815,9 @@ export class OffersService {
     totalQuantity: number,
   ): void {
     // Only validate when at least one slot has a limit set
-    const slotsWithLimits = slots.filter((slot) => slot.maxOrders != null);
+    const slotsWithLimits = slots.filter(
+      (slot) => slot.maxOrders !== null && slot.maxOrders !== undefined,
+    );
     if (slotsWithLimits.length === 0) {
       return;
     }

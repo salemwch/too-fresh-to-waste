@@ -1,5 +1,5 @@
 // Import enums from centralized location
-import { UserRole, UserStatus } from '../enums/user.enum';
+import { UserRole, UserStatus } from '@foodwaste/shared';
 
 export interface IUser {
   readonly id: string;
@@ -71,7 +71,7 @@ export interface IUserAddress {
     | undefined;
 }
 
-// UserRole and UserStatus enums are now imported from '../enums/user.enum'
+// UserRole and UserStatus enums are now imported from '@foodwaste/shared'
 // and re-exported for backward compatibility
 export { UserRole, UserStatus };
 

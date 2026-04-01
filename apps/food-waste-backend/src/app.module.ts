@@ -14,9 +14,11 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { ArchiveModule } from './archive/archive.module';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
+import { AppVersionMiddleware } from './common/middleware/app-version.middleware';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { GlobalSanitizationMiddleware } from './common/middleware/global-sanitization.middleware';
 import { CommunityGoalModule } from './community-goal/community-goal.module';
+import { envValidationSchema } from './config/env.validation';
 import { DonationsModule } from './donations/donations.module';
 import { EmailModule } from './email/email.module';
 import { EstablishmentsModule } from './establishments/establishments.module';
@@ -47,6 +49,10 @@ import { WebSocketModule } from './websocket/websocket.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      validationSchema: envValidationSchema,
+      validationOptions: {
+        abortEarly: false, // Report ALL missing vars, not just the first
+      },
     }),
     CommonModule, // Common utilities including sanitization (MUST be early)
     RedisModule, // Shared Redis connection pool (MUST be first after Config)
@@ -115,6 +121,13 @@ import { WebSocketModule } from './websocket/websocket.module';
           w: configService.get('NODE_ENV') === 'production' ? 'majority' : 1,
           j: configService.get('NODE_ENV') === 'production', // Journal sync in production
         },
+        // Production safety: fail fast on DB disconnect instead of buffering requests in memory
+        // Ref: https://mongoosejs.com/docs/guide.html#bufferCommands
+        bufferCommands: false,
+        // Production safety: disable auto-index creation at startup to avoid collection locks under load
+        // Run `pnpm verify:indexes` manually after deploying schema changes
+        // Ref: https://mongoosejs.com/docs/guide.html#autoIndex
+        autoIndex: configService.get('NODE_ENV') !== 'production',
         // Monitoring
         monitorCommands: configService.get('NODE_ENV') === 'development',
         // Disable __v versionKey globally — no code uses optimistic concurrency via __v
@@ -170,6 +183,8 @@ export class AppModule implements NestModule {
    * 3. ValidationPipe (main.ts): Validates sanitized data
    */
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CorrelationIdMiddleware, GlobalSanitizationMiddleware).forRoutes('*'); // Apply to all routes
+    consumer
+      .apply(CorrelationIdMiddleware, GlobalSanitizationMiddleware, AppVersionMiddleware)
+      .forRoutes('*');
   }
 }

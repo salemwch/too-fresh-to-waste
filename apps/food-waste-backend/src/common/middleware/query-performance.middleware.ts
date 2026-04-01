@@ -28,7 +28,8 @@
  * ```
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 
@@ -53,17 +54,29 @@ export interface SlowQueryLog {
 }
 
 @Injectable()
-export class QueryPerformanceService {
+export class QueryPerformanceService implements OnModuleDestroy {
   private readonly logger = new Logger(QueryPerformanceService.name);
   private readonly queryStats: Map<string, QueryStats> = new Map();
   private readonly slowQueries: SlowQueryLog[] = [];
   private readonly SLOW_QUERY_THRESHOLD_MS: number;
   private readonly MAX_SLOW_QUERIES_STORED = 100;
+  private statsInterval: ReturnType<typeof setInterval> | null = null;
 
-  constructor(@InjectConnection() private readonly connection: Connection) {
-    // Configurable slow query threshold (default: 1000ms)
-    this.SLOW_QUERY_THRESHOLD_MS =
-      parseInt(process.env['SLOW_QUERY_THRESHOLD_MS'] ?? '1000', 10) || 1000;
+  constructor(
+    @InjectConnection() private readonly connection: Connection,
+    private readonly configService: ConfigService,
+  ) {
+    this.SLOW_QUERY_THRESHOLD_MS = parseInt(
+      this.configService.get<string>('SLOW_QUERY_THRESHOLD_MS', '1000'),
+      10,
+    );
+  }
+
+  onModuleDestroy(): void {
+    if (this.statsInterval) {
+      clearInterval(this.statsInterval);
+      this.statsInterval = null;
+    }
   }
 
   /**
@@ -72,8 +85,8 @@ export class QueryPerformanceService {
    */
   setupMonitoring(): void {
     if (
-      process.env['NODE_ENV'] === 'production' &&
-      process.env['ENABLE_QUERY_MONITORING'] !== 'true'
+      this.configService.get<string>('NODE_ENV') === 'production' &&
+      this.configService.get<string>('ENABLE_QUERY_MONITORING') !== 'true'
     ) {
       this.logger.log(
         'Query monitoring disabled in production (set ENABLE_QUERY_MONITORING=true to enable)',
@@ -134,8 +147,8 @@ export class QueryPerformanceService {
     });
 
     // Log stats periodically (every 5 minutes)
-    if (process.env['NODE_ENV'] === 'development') {
-      setInterval(() => this.logQueryStats(), 5 * 60 * 1000);
+    if (this.configService.get<string>('NODE_ENV') === 'development') {
+      this.statsInterval = setInterval(() => this.logQueryStats(), 5 * 60 * 1000);
     }
   }
 

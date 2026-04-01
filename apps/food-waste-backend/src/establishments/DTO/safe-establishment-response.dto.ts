@@ -43,7 +43,7 @@ interface SafeBusinessHours {
 /**
  * Safe establishment data returned to client
  */
-interface SafeEstablishmentResponse {
+export interface SafeEstablishmentResponse {
   /** Establishment unique identifier */
   id: string;
 

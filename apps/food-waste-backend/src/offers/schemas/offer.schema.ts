@@ -1,3 +1,4 @@
+import { OfferStatus, OfferType, Currency } from '@foodwaste/shared';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types, Query } from 'mongoose';
 
@@ -9,25 +10,8 @@ export type OfferDocument = Offer &
     createdAt: Date;
     updatedAt: Date;
   };
-export enum OfferStatus {
-  DRAFT = 'draft',
-  ACTIVE = 'active',
-  SOLD_OUT = 'sold_out',
-  EXPIRED = 'expired',
-  CANCELLED = 'cancelled',
-  SUSPENDED = 'suspended',
-}
 
-export enum OfferType {
-  SURPRISE_BAG = 'surprise_bag',
-  SPECIFIC_ITEMS = 'specific_items',
-  MEAL_DEAL = 'meal_deal',
-  PARCLES_BAG = 'parcels_bag',
-}
-
-export enum Currency {
-  TND = 'TND', // Tunisia Dinar (primary currency for this platform)
-}
+export { OfferStatus, OfferType, Currency };
 
 export interface PickupTimeSlot {
   startTime: string;

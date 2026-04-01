@@ -1,3 +1,7 @@
+import { EstablishmentType, EstablishmentStatus } from '@foodwaste/shared';
+
+export { EstablishmentType, EstablishmentStatus };
+
 export interface IEstablishment {
   readonly id: string;
   readonly name: string;
@@ -48,24 +52,6 @@ export interface IVerificationStatus {
   readonly addressVerified: boolean;
   readonly verifiedAt?: Date;
   readonly verifiedBy?: string;
-}
-
-export enum EstablishmentType {
-  RESTAURANT = 'restaurant',
-  BAKERY = 'bakery',
-  GROCERY_STORE = 'grocery_store',
-  CAFE = 'cafe',
-  FAST_FOOD = 'fast_food',
-  SUPERMARKET = 'supermarket',
-  OTHER = 'other'
-}
-
-export enum EstablishmentStatus {
-  PENDING = 'pending',
-  ACTIVE = 'active',
-  SUSPENDED = 'suspended',
-  REJECTED = 'rejected',
-  INACTIVE = 'inactive'
 }
 
 export interface IEstablishmentStats {

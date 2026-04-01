@@ -1709,7 +1709,7 @@ export class FavoritesService {
       });
       throw error;
     } finally {
-      session.endSession();
+      void session.endSession();
     }
   }
 }

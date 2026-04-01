@@ -1,3 +1,4 @@
+import { UserRole } from '@foodwaste/shared';
 import { Controller, Get, Post, Put, Patch, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 
@@ -5,7 +6,6 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
-import { UserRole } from '../common/enums/user.enum';
 
 import {
   CreateInventoryItemDto,
@@ -175,8 +175,8 @@ export class InventoryController {
     const result = await this.inventoryService.getInventoryItems(filters);
 
     // Extract items with unacknowledged alerts
-    const itemsWithAlerts = result.items.filter(
-      (item) => item.alerts && item.alerts.some((alert) => !alert.acknowledged),
+    const itemsWithAlerts = result.items.filter((item) =>
+      item.alerts?.some((alert) => !alert.acknowledged),
     );
 
     return {

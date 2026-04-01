@@ -1,136 +1,44 @@
 // Authentication Types
 
-// UserRole — single source of truth from shared package
+// ============================================================================
+// Shared types — re-exported from @foodwaste/shared (single source of truth)
+// ============================================================================
 export { UserRole } from '@foodwaste/shared';
-import { UserRole } from '@foodwaste/shared';
 
-export interface User {
-  readonly userId: string;
-  readonly email: string;
-  readonly firstName: string;
-  readonly lastName: string;
-  readonly phoneNumber?: string;
-  readonly role: UserRole;
-  readonly status?: string;
-  readonly isEmailVerified: boolean;
-  readonly isPhoneVerified: boolean;
-  readonly avatar?: string;
-  readonly profileImage?: string;
-  readonly address?: {
-    street: string;
-    city: string;
-    postalCode: string;
-    country: string;
-    coordinates?: {
-      type: string;
-      coordinates: [number, number];
-    };
-  };
-  readonly locationPreferences?: {
-    defaultLocation?: {
-      latitude: number;
-      longitude: number;
-    };
-    searchRadius?: number;
-    autoDetectLocation?: boolean;
-    shareLocation?: boolean;
-  };
-  readonly createdAt: string;
-  readonly updatedAt: string;
-  readonly lastLoginAt?: string;
-}
+export type {
+  UserResponse,
+  UserAddress,
+  UserLocationPreferences,
+  AuthTokens,
+  LoginRequest,
+  RegisterRequest,
+  LoginResponse,
+  RegisterResponse,
+  MFAVerificationRequest,
+  RefreshTokenRequest,
+  PasswordResetConfirmRequest,
+  ChangePasswordRequest,
+  EmailVerificationRequest,
+  EmailVerificationConfirmRequest,
+  PhoneVerificationRequest,
+  PhoneVerificationConfirmRequest,
+  PhoneVerificationResponse,
+} from '@foodwaste/shared';
 
-// UserRole enum is re-exported from @foodwaste/shared above.
+// Backward-compatible alias: mobile uses PasswordResetRequest, shared uses ForgotPasswordRequest
+export type { ForgotPasswordRequest as PasswordResetRequest } from '@foodwaste/shared';
 
-export interface AuthTokens {
-  readonly accessToken: string;
-  readonly refreshToken: string;
-  readonly expiresIn: number;
-  readonly tokenType: 'Bearer';
-}
+import type { UserResponse } from '@foodwaste/shared';
 
-export interface LoginRequest {
-  readonly email: string;
-  readonly password: string;
-  readonly rememberMe?: boolean;
-}
+/**
+ * Mobile-friendly alias with readonly semantics.
+ * Existing mobile code uses `User` everywhere — this preserves that contract.
+ */
+export type User = Readonly<UserResponse>;
 
-export interface RegisterRequest {
-  readonly email: string;
-  readonly password: string;
-  readonly firstName: string;
-  readonly lastName: string;
-  readonly phoneNumber?: string;
-  readonly role: UserRole;
-  readonly privacyConsents?: {
-    dataProcessingConsent: boolean;
-    locationTrackingConsent: boolean;
-    communicationConsent: boolean;
-    marketingConsent?: boolean;
-  };
-}
-
-export interface LoginResponse {
-  readonly user: User;
-  readonly tokens: AuthTokens;
-  readonly requiresMFA?: boolean;
-  readonly mfaToken?: string;
-}
-
-export interface RegisterResponse {
-  readonly success: boolean;
-  readonly message: string;
-  readonly user: Partial<User>;
-}
-
-export interface MFAVerificationRequest {
-  readonly mfaToken: string;
-  readonly code: string;
-}
-
-export interface RefreshTokenRequest {
-  readonly refreshToken: string;
-}
-
-export interface PasswordResetRequest {
-  readonly email: string;
-}
-
-export interface PasswordResetConfirmRequest {
-  readonly email: string;
-  readonly token: string;
-  readonly newPassword: string;
-}
-
-export interface ChangePasswordRequest {
-  readonly currentPassword: string;
-  readonly newPassword: string;
-}
-
-export interface EmailVerificationRequest {
-  readonly email: string;
-}
-
-export interface EmailVerificationConfirmRequest {
-  readonly email: string;
-  readonly token: string;
-}
-
-export interface PhoneVerificationRequest {
-  readonly phoneNumber: string;
-  readonly method?: 'sms' | 'voice';
-}
-
-export interface PhoneVerificationConfirmRequest {
-  readonly phoneNumber: string;
-  readonly code: string;
-}
-
-export interface PhoneVerificationResponse {
-  readonly success: boolean;
-  readonly message: string;
-  readonly attemptsRemaining?: number;
-}
+// ============================================================================
+// Mobile-only types (state machine, forms, sessions)
+// ============================================================================
 
 // Auth Flow State Machine
 // This enum represents the user's journey through the auth flow
@@ -159,7 +67,7 @@ export enum AuthFlowState {
 // Auth State Types
 export interface AuthState {
   readonly user: User | null;
-  readonly tokens: AuthTokens | null;
+  readonly tokens: import('@foodwaste/shared').AuthTokens | null;
   readonly isAuthenticated: boolean;
   readonly isLoading: boolean;
   readonly error: string | undefined;

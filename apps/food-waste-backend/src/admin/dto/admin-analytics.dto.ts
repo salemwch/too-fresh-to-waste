@@ -1,6 +1,6 @@
-import { IsOptional, IsEnum, IsDateString, IsNumber, Min, Max } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type, Transform } from 'class-transformer';
+import { IsOptional, IsEnum, IsDateString, IsNumber, Min, Max } from 'class-validator';
 
 export enum AnalyticsPeriodType {
   DAY = 'day',
@@ -8,14 +8,14 @@ export enum AnalyticsPeriodType {
   MONTH = 'month',
   QUARTER = 'quarter',
   YEAR = 'year',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 
 export class GetAnalyticsQueryDto {
   @ApiPropertyOptional({
     enum: AnalyticsPeriodType,
     description: 'Period type for analytics',
-    example: AnalyticsPeriodType.WEEK
+    example: AnalyticsPeriodType.WEEK,
   })
   @IsOptional()
   @IsEnum(AnalyticsPeriodType)
@@ -23,7 +23,7 @@ export class GetAnalyticsQueryDto {
 
   @ApiPropertyOptional({
     description: 'Start date for custom period (ISO string)',
-    example: '2024-01-01T00:00:00.000Z'
+    example: '2024-01-01T00:00:00.000Z',
   })
   @IsOptional()
   @IsDateString()
@@ -31,7 +31,7 @@ export class GetAnalyticsQueryDto {
 
   @ApiPropertyOptional({
     description: 'End date for custom period (ISO string)',
-    example: '2024-12-31T23:59:59.999Z'
+    example: '2024-12-31T23:59:59.999Z',
   })
   @IsOptional()
   @IsDateString()
@@ -39,7 +39,7 @@ export class GetAnalyticsQueryDto {
 
   @ApiPropertyOptional({
     description: 'Include detailed breakdown',
-    example: true
+    example: true,
   })
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
@@ -47,7 +47,7 @@ export class GetAnalyticsQueryDto {
 
   @ApiPropertyOptional({
     description: 'Timezone for date calculations',
-    example: 'UTC'
+    example: 'UTC',
   })
   @IsOptional()
   timezone?: string = 'UTC';
@@ -57,7 +57,7 @@ export class GetAuditLogsQueryDto {
   @ApiPropertyOptional({
     description: 'Page number for pagination',
     example: 1,
-    minimum: 1
+    minimum: 1,
   })
   @IsOptional()
   @Type(() => Number)
@@ -69,7 +69,7 @@ export class GetAuditLogsQueryDto {
     description: 'Number of items per page',
     example: 20,
     minimum: 1,
-    maximum: 100
+    maximum: 100,
   })
   @IsOptional()
   @Type(() => Number)
@@ -80,35 +80,35 @@ export class GetAuditLogsQueryDto {
 
   @ApiPropertyOptional({
     description: 'Filter by admin ID',
-    example: '507f1f77bcf86cd799439011'
+    example: '507f1f77bcf86cd799439011',
   })
   @IsOptional()
   adminId?: string;
 
   @ApiPropertyOptional({
     description: 'Filter by action type',
-    example: 'establishment_approved'
+    example: 'establishment_approved',
   })
   @IsOptional()
   action?: string;
 
   @ApiPropertyOptional({
     description: 'Filter by target type',
-    example: 'establishment'
+    example: 'establishment',
   })
   @IsOptional()
   targetType?: string;
 
   @ApiPropertyOptional({
     description: 'Filter by target ID',
-    example: '507f1f77bcf86cd799439011'
+    example: '507f1f77bcf86cd799439011',
   })
   @IsOptional()
   targetId?: string;
 
   @ApiPropertyOptional({
     description: 'Start date for filtering (ISO string)',
-    example: '2024-01-01T00:00:00.000Z'
+    example: '2024-01-01T00:00:00.000Z',
   })
   @IsOptional()
   @IsDateString()
@@ -116,33 +116,9 @@ export class GetAuditLogsQueryDto {
 
   @ApiPropertyOptional({
     description: 'End date for filtering (ISO string)',
-    example: '2024-12-31T23:59:59.999Z'
+    example: '2024-12-31T23:59:59.999Z',
   })
   @IsOptional()
   @IsDateString()
   endDate?: string;
-}
-
-class BulkActionDto {
-  @ApiPropertyOptional({
-    description: 'Array of entity IDs to perform action on',
-    example: ['507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012']
-  })
-  @IsOptional()
-  targetIds?: string[];
-
-  @ApiPropertyOptional({
-    description: 'Reason for bulk action',
-    example: 'Bulk suspension due to policy violation'
-  })
-  @IsOptional()
-  reason?: string;
-
-  @ApiPropertyOptional({
-    description: 'Send notification to affected users',
-    example: true
-  })
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
-  sendNotification?: boolean = true;
 }

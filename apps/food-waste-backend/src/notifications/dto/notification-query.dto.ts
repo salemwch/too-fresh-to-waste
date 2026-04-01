@@ -1,10 +1,30 @@
-import { IsOptional, IsString, IsEnum, IsBoolean, IsNumber, Min, Max, IsDateString } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { NotificationType, NotificationStatus, NotificationChannel, NotificationPriority } from '../types/notification.types';
+import { Transform, Type } from 'class-transformer';
+import {
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsBoolean,
+  IsNumber,
+  Min,
+  Max,
+  IsDateString,
+} from 'class-validator';
+
+import {
+  NotificationType,
+  NotificationStatus,
+  NotificationChannel,
+  NotificationPriority,
+} from '../types/notification.types';
 
 export class GetNotificationsQueryDto {
-  @ApiPropertyOptional({ description: 'Number of notifications to return', minimum: 1, maximum: 100, default: 20 })
+  @ApiPropertyOptional({
+    description: 'Number of notifications to return',
+    minimum: 1,
+    maximum: 100,
+    default: 20,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
@@ -40,7 +60,10 @@ export class GetNotificationsQueryDto {
   @IsEnum(NotificationStatus)
   status?: NotificationStatus;
 
-  @ApiPropertyOptional({ enum: NotificationPriority, description: 'Filter by notification priority' })
+  @ApiPropertyOptional({
+    enum: NotificationPriority,
+    description: 'Filter by notification priority',
+  })
   @IsOptional()
   @IsEnum(NotificationPriority)
   priority?: NotificationPriority;
@@ -59,19 +82,6 @@ export class GetNotificationsQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
-}
-
-class MarkNotificationDto {
-  @ApiPropertyOptional({ description: 'Specific notification ID to mark' })
-  @IsOptional()
-  @IsString()
-  notificationId?: string;
-
-  @ApiPropertyOptional({ description: 'Mark all notifications as read', default: false })
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
-  @IsBoolean()
-  markAll?: boolean = false;
 }
 
 export class NotificationStatsQueryDto {
@@ -95,7 +105,10 @@ export class NotificationStatsQueryDto {
   @IsEnum(NotificationType)
   type?: NotificationType;
 
-  @ApiPropertyOptional({ enum: NotificationChannel, description: 'Filter stats by notification channel' })
+  @ApiPropertyOptional({
+    enum: NotificationChannel,
+    description: 'Filter stats by notification channel',
+  })
   @IsOptional()
   @IsEnum(NotificationChannel)
   channel?: NotificationChannel;

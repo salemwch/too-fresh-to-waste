@@ -31,6 +31,12 @@ export interface RegisterRequest {
   phoneNumber?: string;
   role?: UserRole;
   businessInfo?: BusinessInfo;
+  privacyConsents?: {
+    dataProcessingConsent: boolean;
+    locationTrackingConsent: boolean;
+    communicationConsent: boolean;
+    marketingConsent?: boolean;
+  };
 }
 
 export interface AuthTokens {
@@ -49,6 +55,19 @@ export interface LoginResponse {
   message: string;
   user: UserResponse;
   tokens: AuthTokens;
+  requiresMFA?: boolean;
+  mfaToken?: string;
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  user: Partial<UserResponse>;
+}
+
+export interface MFAVerificationRequest {
+  mfaToken: string;
+  code: string;
 }
 
 export interface ForgotPasswordRequest {
@@ -60,9 +79,43 @@ export interface ResetPasswordRequest {
   newPassword: string;
 }
 
+export interface PasswordResetConfirmRequest {
+  email: string;
+  token: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface VerifyEmailRequest {
   email: string;
   token: string;
+}
+
+export interface EmailVerificationRequest {
+  email: string;
+}
+
+/** Alias for VerifyEmailRequest — same shape, different naming convention */
+export type EmailVerificationConfirmRequest = VerifyEmailRequest;
+
+export interface PhoneVerificationRequest {
+  phoneNumber: string;
+  method?: 'sms' | 'voice';
+}
+
+export interface PhoneVerificationConfirmRequest {
+  phoneNumber: string;
+  code: string;
+}
+
+export interface PhoneVerificationResponse {
+  success: boolean;
+  message: string;
+  attemptsRemaining?: number;
 }
 
 export interface RefreshTokenRequest {

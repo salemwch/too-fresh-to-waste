@@ -16,7 +16,7 @@
  * @see https://docs.sentry.io/platforms/node/guides/nestjs/
  */
 
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Sentry from '@sentry/node';
 
@@ -33,6 +33,7 @@ export interface SentryContext {
 
 @Injectable()
 export class SentryService implements OnModuleInit {
+  private readonly logger = new Logger(SentryService.name);
   private isInitialized = false;
   private readonly isProduction: boolean;
   private readonly environment: string;
@@ -59,9 +60,8 @@ export class SentryService implements OnModuleInit {
     // Only initialize if DSN is provided and not already initialized
     if (!dsn || this.isInitialized) {
       if (!dsn) {
-        console.warn(
-          '[Sentry] DSN not configured. Error tracking disabled. ' +
-            'Set SENTRY_DSN environment variable to enable.',
+        this.logger.warn(
+          'DSN not configured. Error tracking disabled. Set SENTRY_DSN environment variable to enable.',
         );
       }
       return;
@@ -146,9 +146,12 @@ export class SentryService implements OnModuleInit {
       });
 
       this.isInitialized = true;
-      console.log(`[Sentry] Initialized for environment: ${this.environment}`);
+      this.logger.log(`Initialized for environment: ${this.environment}`);
     } catch (error) {
-      console.error('[Sentry] Failed to initialize:', error);
+      this.logger.error(
+        'Failed to initialize Sentry',
+        error instanceof Error ? error.stack : String(error),
+      );
     }
   }
 
@@ -405,7 +408,10 @@ export class SentryService implements OnModuleInit {
       await Sentry.close(timeout);
       return true;
     } catch (error) {
-      console.error('[Sentry] Failed to close:', error);
+      this.logger.error(
+        'Failed to close Sentry',
+        error instanceof Error ? error.stack : String(error),
+      );
       return false;
     }
   }

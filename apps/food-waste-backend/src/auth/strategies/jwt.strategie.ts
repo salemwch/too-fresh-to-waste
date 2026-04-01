@@ -1,9 +1,9 @@
+import { UserStatus } from '@foodwaste/shared';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UserStatus } from 'src/common/enums/user.enum';
 import { UsersService } from 'src/users/user.service';
 
 export interface JwtPayload {
@@ -28,8 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         (request: Request) => request?.cookies?.['access_token'], // Web: Cookie fallback
       ]),
       ignoreExpiration: false,
-      secretOrKey:
-        configService.get<string>('JWT_SECRET') || 'default-jwt-secret-change-in-production',
+      secretOrKey: configService.getOrThrow<string>('JWT_SECRET'),
     });
   }
 

@@ -5,11 +5,7 @@
  * @module common/events
  */
 
-import type {
-  EstablishmentStatus,
-  EstablishmentType,
-  DocumentType,
-} from '../enums/establishment.enum';
+import type { EstablishmentStatus, EstablishmentType, DocumentType } from '@foodwaste/shared';
 
 /**
  * Base class for all establishment-related events

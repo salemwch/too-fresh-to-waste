@@ -118,10 +118,14 @@ export class RedisService implements OnModuleInit {
         reconnectStrategy,
       };
 
+      // SECURITY: Validate TLS certificates in production to prevent MITM attacks
+      // Configurable via REDIS_TLS_REJECT_UNAUTHORIZED env var (defaults to true in production)
+      const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+      const rejectUnauthorized =
+        this.configService.get<string>('REDIS_TLS_REJECT_UNAUTHORIZED') !== 'false' || isProduction;
+
       const clientConfig: RedisClientOptions = {
-        socket: useTLS
-          ? { ...baseSocket, tls: true as const, rejectUnauthorized: false }
-          : baseSocket,
+        socket: useTLS ? { ...baseSocket, tls: true as const, rejectUnauthorized } : baseSocket,
         commandsQueueMaxLength: 1000, // Prevent unbounded memory growth if Redis is slow
         disableOfflineQueue: false, // Queue commands while reconnecting
         ...(redisConfig.password ? { password: redisConfig.password } : {}),

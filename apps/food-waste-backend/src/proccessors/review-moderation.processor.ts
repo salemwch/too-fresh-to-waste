@@ -16,7 +16,7 @@ export class ReviewModerationProcessor {
 
   @Process('moderate')
   async moderateReview(job: Job<ReviewModerationData>): Promise<void> {
-    const moderated = await this.moderationService.moderateReview(job.data);
+    const moderated = await Promise.resolve(this.moderationService.moderateReview(job.data));
     this.appLogger.log(
       `Moderated review: ${JSON.stringify(moderated)}`,
       'ReviewModerationProcessor',

@@ -49,14 +49,6 @@ export interface IMessageStats {
   totalMessagesFailed: number;
 }
 
-interface IProcessingInfo {
-  processingStarted?: Date;
-  processingCompleted?: Date;
-  processingStatus: 'pending' | 'processing' | 'completed' | 'failed';
-  processingErrors: string[];
-  batchId?: string;
-}
-
 export class OptOutRequestDto {
   @ApiProperty({
     description: 'Phone number in E.164 format',

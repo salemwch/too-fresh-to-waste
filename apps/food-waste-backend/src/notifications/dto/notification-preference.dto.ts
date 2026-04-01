@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -12,7 +12,7 @@ import {
   Max,
 } from 'class-validator';
 
-class ChannelPreferencesDto {
+export class ChannelPreferencesDto {
   @ApiProperty({ description: 'Enable push notifications for this channel' })
   @IsBoolean()
   push!: boolean;
@@ -82,6 +82,7 @@ class LocationPreferencesDto {
   savedLocations!: SavedLocationDto[];
 }
 
+@ApiExtraModels(ChannelPreferencesDto)
 export class UpdateNotificationPreferencesDto {
   @ApiPropertyOptional({
     description: 'Channel-specific notification preferences',

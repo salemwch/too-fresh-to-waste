@@ -1,5 +1,22 @@
 import { EstablishmentType, EstablishmentStatus, DocumentType } from '../enums/establishment.enum';
 
+/**
+ * Address shape returned when an establishment is populated within
+ * another document (e.g., Offer.establishmentId after .populate()).
+ * Combines street-level fields with optional GeoJSON coordinates.
+ */
+export interface PopulatedEstablishmentAddress {
+  street?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  formattedAddress?: string;
+  coordinates?: {
+    type?: string;
+    coordinates?: [number, number]; // [longitude, latitude] GeoJSON
+  };
+}
+
 export interface Establishment {
   id: string;
   name: string;

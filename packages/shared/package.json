@@ -14,13 +14,19 @@
     "test:ci": "jest --ci --coverage --watchAll=false --passWithNoTests",
     "test:watch": "jest --watch",
     "clean": "rimraf dist node_modules",
+    "spec:fetch": "node scripts/fetch-openapi-spec.mjs",
+    "spec:generate": "openapi-typescript openapi.json -o src/types/generated/api.generated.ts",
+    "generate": "pnpm spec:fetch && pnpm spec:generate",
     "security:check": "npx audit-ci --config audit-ci.json"
   },
-  "dependencies": {},
+  "dependencies": {
+    "zod": "3.24.4"
+  },
   "devDependencies": {
     "@types/jest": "^29.5.8",
     "@types/node": "^20.10.5",
     "jest": "^29.7.0",
+    "openapi-typescript": "^7.13.0",
     "typescript": "^5.9.3"
   },
   "jest": {

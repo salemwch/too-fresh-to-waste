@@ -401,6 +401,21 @@ export class SMTPaymentService {
 
   verifyWebhookSignature(payload: string, signature: string, timestamp: string): boolean {
     try {
+      // Replay attack protection: reject webhooks with stale timestamps
+      const toleranceSeconds = parseInt(
+        this.configService.get<string>('WEBHOOK_SIGNATURE_TOLERANCE', '300'),
+        10,
+      );
+      const webhookTime = parseInt(timestamp, 10) * 1000; // Convert seconds to ms
+      const drift = Math.abs(Date.now() - webhookTime);
+
+      if (drift > toleranceSeconds * 1000) {
+        this.logger.warn(
+          `Webhook rejected: timestamp drift ${Math.round(drift / 1000)}s exceeds tolerance ${toleranceSeconds}s`,
+        );
+        return false;
+      }
+
       const expectedSignature = this.generateWebhookSignature(payload, timestamp);
       return crypto.timingSafeEqual(
         Buffer.from(signature, 'hex'),

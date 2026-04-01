@@ -63,18 +63,3 @@ export interface PhoneValidationResult {
   country?: string | undefined;
   errorMessage?: string | undefined;
 }
-
-interface OptOutStatus {
-  phoneNumber: string;
-  isOptedOut: boolean;
-  optedOutAt?: Date;
-  reason?: string;
-}
-
-interface SmsMetrics {
-  sent: number;
-  delivered: number;
-  failed: number;
-  totalCost: number;
-  currency: string;
-}

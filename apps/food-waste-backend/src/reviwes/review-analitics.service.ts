@@ -113,7 +113,7 @@ export class ReviewAnalyticsService {
           this.performCompetitiveAnalysis(establishmentId),
         ]);
 
-      const actionableInsights = await this.generateActionableInsights(establishmentId, {
+      const actionableInsights = this.generateActionableInsights(establishmentId, {
         overallMetrics,
         sentimentAnalysis,
         ratingAnalysis,

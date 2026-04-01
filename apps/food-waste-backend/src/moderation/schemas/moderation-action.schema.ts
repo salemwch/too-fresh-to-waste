@@ -59,16 +59,16 @@ export class ModerationAction {
   })
   status!: ModerationActionStatus;
 
-  @Prop({ index: true })
+  @Prop({ type: Date, index: true })
   expiresAt?: Date | undefined;
 
-  @Prop()
+  @Prop({ type: Date })
   revokedAt?: Date | undefined;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
   revokedBy?: Types.ObjectId | undefined;
 
-  @Prop({ maxlength: 500 })
+  @Prop({ type: String, maxlength: 500 })
   revocationReason?: string | undefined;
 
   @Prop({ type: [String], default: [] })

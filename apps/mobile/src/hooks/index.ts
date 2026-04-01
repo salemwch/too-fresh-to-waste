@@ -5,24 +5,16 @@
  */
 
 // Redux hooks
-export { useAppDispatch, useAppSelector,  } from './redux';
+export { useAppDispatch, useAppSelector } from './redux';
 
 // Password validation hook
 export { usePasswordRules } from './usePasswordRules';
-;
-
 // Location hook
-;
-;
-
 // Phone verification hook
-;
-
 // User profile hook (centralized avatar + display name)
-;
-
 // Secure screen — prevents screenshots/recordings on sensitive screens (Android FLAG_SECURE)
-;
+// Press guard — throttle for buttons that trigger API calls / navigation
+export { usePressGuard } from './usePressGuard';
 
 // Add other custom hooks here as they are created
 // export { useDebounce } from './useDebounce';

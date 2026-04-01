@@ -16,7 +16,7 @@ import type { ButtonProps } from './Button.types';
 import type { IconFamily } from '../../../types';
 
 export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonProps>(
-  function Button(
+  (
     {
       variant = 'primary',
       size = 'md',
@@ -44,7 +44,7 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
       ...rest
     },
     ref,
-  ) {
+  ) => {
     const theme = useTheme();
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const isDisabled = disabled || loading;
@@ -207,4 +207,3 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
     );
   },
 );
-

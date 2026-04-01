@@ -1,3 +1,4 @@
+import { UserRole } from '@foodwaste/shared';
 import {
   Injectable,
   CanActivate,
@@ -9,7 +10,6 @@ import {
 import { Reflector } from '@nestjs/core';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
-import { UserRole } from 'src/common/enums/user.enum';
 
 import {
   CHECK_OWNERSHIP_KEY,

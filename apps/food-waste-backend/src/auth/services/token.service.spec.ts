@@ -1,8 +1,8 @@
+import { UserRole } from '@foodwaste/shared';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
-import { UserRole } from 'src/common/enums/user.enum';
 
 import { RefreshToken } from '../schemas/refresh-token.schema';
 

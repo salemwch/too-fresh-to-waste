@@ -73,20 +73,12 @@ export const createButtonStyles = (
     ghost: {
       backgroundColor: 'transparent',
       borderColor: 'transparent',
-      ...(Platform.OS === 'ios'
-        ? shadows.ios.none
-        : Platform.OS === 'android'
-          ? { elevation: 0 }
-          : {}),
+      ...shadows.none,
     },
     outline: {
       backgroundColor: 'transparent',
       borderColor: disabled ? colors.base.neutral[300] : colors.primary,
-      ...(Platform.OS === 'ios'
-        ? shadows.ios.none
-        : Platform.OS === 'android'
-          ? { elevation: 0 }
-          : {}),
+      ...shadows.none,
     },
     danger: {
       backgroundColor: disabled ? colors.base.neutral[300] : colors.error,
@@ -99,11 +91,7 @@ export const createButtonStyles = (
     text: {
       backgroundColor: 'transparent',
       borderColor: 'transparent',
-      ...(Platform.OS === 'ios'
-        ? shadows.ios.none
-        : Platform.OS === 'android'
-          ? { elevation: 0 }
-          : {}),
+      ...shadows.none,
     },
   };
 
@@ -162,31 +150,10 @@ export const createButtonStyles = (
   // Platform-specific adjustments - only for elevated button variants
   const shouldHaveElevation = ['primary', 'secondary', 'danger', 'success'].includes(variant);
 
+  // Use cross-platform shadow tokens from the theme — already resolved per platform
   const platformStyles = shouldHaveElevation
-    ? Platform.select({
-        ios: {
-          // iOS-specific button styles using direct iOS shadow access
-          shadowColor: shadows.ios?.sm?.shadowColor ?? '#000000',
-          shadowOffset: shadows.ios?.sm?.shadowOffset ?? { width: 0, height: 2 },
-          shadowOpacity: disabled ? 0 : (shadows.ios?.sm?.shadowOpacity ?? 0.1),
-          shadowRadius: shadows.ios?.sm?.shadowRadius ?? 3,
-        },
-        android: {
-          // Android-specific button styles using direct Android elevation access
-          elevation: disabled ? 0 : (shadows.android?.sm ?? 2),
-        },
-        default: {},
-      })
-    : Platform.select({
-        ios: {
-          shadowColor: 'transparent',
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0,
-          shadowRadius: 0,
-        },
-        android: { elevation: 0 },
-        default: {},
-      });
+    ? { ...(disabled ? shadows.none : shadows.sm) }
+    : { ...shadows.none };
 
   return StyleSheet.create({
     container: {

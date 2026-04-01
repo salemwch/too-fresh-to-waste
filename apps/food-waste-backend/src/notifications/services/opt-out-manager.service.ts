@@ -671,8 +671,10 @@ export class OptOutManagerService {
     try {
       this.validateBulkRequestSize(bulkRequest.phoneNumbers.length);
 
-      const { sanitizedNumbers, phoneNumberMap, results, totalErrors } =
-        await this.processPhoneNumbers(bulkRequest.phoneNumbers, operationId);
+      const { sanitizedNumbers, phoneNumberMap, results, totalErrors } = this.processPhoneNumbers(
+        bulkRequest.phoneNumbers,
+        operationId,
+      );
 
       const records = await this.fetchOptOutRecords(sanitizedNumbers);
       const recordMap = this.createRecordLookupMap(records);

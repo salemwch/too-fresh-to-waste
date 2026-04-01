@@ -4,8 +4,9 @@
  * Prevents connection exhaustion by reusing connections across services
  */
 
-import { Module, Global, OnModuleDestroy } from '@nestjs/common';
+import { Module, Global, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+
 import { RedisService } from './redis.service';
 
 /**
@@ -16,19 +17,23 @@ import { RedisService } from './redis.service';
  */
 @Global()
 @Module({
-    imports: [ConfigModule],
-    providers: [RedisService],
-    exports: [RedisService],
+  imports: [ConfigModule],
+  providers: [RedisService],
+  exports: [RedisService],
 })
 export class RedisModule implements OnModuleDestroy {
-    constructor(private readonly redisService: RedisService) {}
+  private readonly logger = new Logger(RedisModule.name);
 
-    async onModuleDestroy() {
-        try {
-            await this.redisService.disconnect();
-        } catch (error) {
-            // Silently handle disconnect errors during shutdown
-            console.error('Redis disconnect error during shutdown:', error);
-        }
+  constructor(private readonly redisService: RedisService) {}
+
+  async onModuleDestroy() {
+    try {
+      await this.redisService.disconnect();
+    } catch (error) {
+      this.logger.error(
+        'Redis disconnect error during shutdown',
+        error instanceof Error ? error.stack : String(error),
+      );
     }
+  }
 }

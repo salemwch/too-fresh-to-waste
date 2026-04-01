@@ -1,9 +1,9 @@
+import { EstablishmentType, EstablishmentStatus } from '@foodwaste/shared';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
 import { Document, Types, Query } from 'mongoose';
 
-import { EstablishmentType, EstablishmentStatus } from '../../common/enums/establishment.enum';
 import { CoordinatesDto } from '../DTO/cordinates.dto';
 
 export type EstablishmentDocument = Establishment & Document;

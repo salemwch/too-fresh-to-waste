@@ -1,3 +1,4 @@
+import { UserRole } from '@foodwaste/shared';
 import {
   Controller,
   Get,
@@ -20,7 +21,6 @@ import { Types } from 'mongoose';
 
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { UserRole } from '../../common/enums/user.enum';
 import { LoggingInterceptor } from '../../common/interceptors/loggin.interceptor';
 import { AdminOnlyModerationGuard, ModerationAccessGuard } from '../guards/moderation-access.guard';
 import { LogLevel, LogCategory } from '../schemas/moderation-log.schema';

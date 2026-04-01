@@ -127,7 +127,7 @@ export class PhoneNumberService {
         isPossible: true,
         details: this.getPhoneNumberDetails(parsed),
       };
-    } catch (error) {
+    } catch {
       return {
         isValid: false,
         isPossible: false,
@@ -172,7 +172,7 @@ export class PhoneNumberService {
         default:
           return parsed.formatInternational();
       }
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -198,7 +198,7 @@ export class PhoneNumberService {
       }
 
       return parsed.format('E.164') as E164Number;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -225,7 +225,7 @@ export class PhoneNumberService {
       }
 
       return this.getPhoneNumberDetails(parsed);
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -263,7 +263,7 @@ export class PhoneNumberService {
       const results = findPhoneNumbersInText(text, defaultCountry);
 
       return results.map((result) => this.getPhoneNumberDetails(result.number));
-    } catch (error) {
+    } catch {
       return [];
     }
   }
@@ -308,7 +308,7 @@ export class PhoneNumberService {
       const normalized2 = this.normalizePhoneNumber(phoneNumber2, defaultCountry);
 
       return normalized1 !== null && normalized1 === normalized2;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

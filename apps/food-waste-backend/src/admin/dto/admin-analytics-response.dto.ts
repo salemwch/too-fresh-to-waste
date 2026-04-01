@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsString,
@@ -1104,6 +1104,7 @@ export class RecentActivityResponseDto {
 }
 
 // Export response DTOs for different formats
+@ApiExtraModels(AuditLogItemResponseDto)
 export class AuditLogExportResponseDto {
   @ApiProperty({
     description: 'Export format used',

@@ -1,9 +1,10 @@
+import { OrderStatus, PaymentStatus, DEFAULT_CURRENCY } from '@foodwaste/shared';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Query, Types } from 'mongoose';
 
-import { DEFAULT_CURRENCY } from '../../common/enums/currency.enum';
-
 export type OrderDocument = Order & Document;
+
+export { OrderStatus, PaymentStatus };
 
 // Specific metadata interface for order context
 interface OrderMetadata {
@@ -41,26 +42,6 @@ interface OrderMetadata {
     conversionSource?: string;
     timeToOrder?: number;
   };
-}
-
-export enum OrderStatus {
-  PENDING = 'pending',
-  RESERVED = 'reserved', // After payment success - money held in escrow
-  CONFIRMED = 'confirmed', // Legacy - kept for backward compatibility
-  READY_FOR_PICKUP = 'ready_for_pickup',
-  PICKED_UP = 'picked_up',
-  CANCELLED = 'cancelled',
-  EXPIRED = 'expired',
-  REFUNDED = 'refunded',
-}
-
-export enum PaymentStatus {
-  PENDING = 'pending',
-  HELD = 'held', // Money held in platform escrow after payment
-  PAID = 'paid', // Legacy - kept for backward compatibility
-  FAILED = 'failed',
-  REFUNDED = 'refunded',
-  PARTIALLY_REFUNDED = 'partially_refunded',
 }
 
 export interface OrderItem {

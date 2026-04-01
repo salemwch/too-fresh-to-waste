@@ -1,3 +1,4 @@
+import { UserRole, UserStatus } from '@foodwaste/shared';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -10,8 +11,6 @@ import {
   IsDateString,
   IsArray,
 } from 'class-validator';
-
-import { UserRole, UserStatus } from '../../common/enums/user.enum';
 
 export class UpdateUserStatusDto {
   @ApiProperty({
@@ -212,22 +211,4 @@ export class UserSearchDto {
   @IsOptional()
   @Type(() => Number)
   limit?: number = 20;
-}
-
-class AdminUserOverviewDto {
-  @ApiPropertyOptional({
-    description: 'Include detailed user statistics',
-    example: true,
-  })
-  @IsOptional()
-  @IsBoolean()
-  includeStats?: boolean = false;
-
-  @ApiPropertyOptional({
-    description: 'Period for statistics calculation',
-    example: 'month',
-  })
-  @IsOptional()
-  @IsEnum(['day', 'week', 'month', 'quarter', 'year'])
-  statsPeriod?: string = 'month';
 }

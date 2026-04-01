@@ -27,7 +27,8 @@ export class CsrfGuard implements CanActivate {
     private readonly configService: ConfigService,
   ) {
     this.csrfTokenSecret =
-      this.configService.get<string>('CSRF_SECRET') || 'default-csrf-secret-change-in-production';
+      this.configService.get<string>('CSRF_SECRET') ||
+      this.configService.getOrThrow<string>('JWT_SECRET');
   }
 
   canActivate(context: ExecutionContext): boolean {

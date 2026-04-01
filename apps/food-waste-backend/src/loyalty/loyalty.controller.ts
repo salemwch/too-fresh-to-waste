@@ -1,3 +1,4 @@
+import { UserRole } from '@foodwaste/shared';
 import {
   Controller,
   Get,
@@ -15,7 +16,6 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
-import { UserRole } from '../common/enums/user.enum';
 
 import {
   CreateLoyaltyAccountDto,

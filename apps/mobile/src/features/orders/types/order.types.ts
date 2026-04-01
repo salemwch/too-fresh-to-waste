@@ -3,150 +3,33 @@
  * Type definitions for order creation and management
  */
 
-// Enums — single source of truth from shared package
+// ============================================================================
+// Shared types — re-exported from @foodwaste/shared (single source of truth)
+// ============================================================================
 export { OrderStatus, PaymentStatus } from '@foodwaste/shared';
-import { OrderStatus, PaymentStatus } from '@foodwaste/shared';
 
-/**
- * Order item representing a single offer in the order
- */
-export interface OrderItemDto {
-  offerId: string;
-  quantity: number;
-}
+export type {
+  OrderItemDto,
+  PickupTimeSlotDto,
+  CreateOrderDto,
+  PopulatedOffer,
+  PopulatedEstablishment,
+  Order,
+  ConfirmPickupDto,
+  PickupErrorCode,
+  PaginatedOrdersResponse,
+} from '@foodwaste/shared';
 
-/**
- * Pickup time slot
- */
-export interface PickupTimeSlotDto {
-  startTime: string; // Format: "HH:MM" (e.g., "14:00")
-  endTime: string; // Format: "HH:MM" (e.g., "16:00")
-}
+// Backward-compatible alias: mobile uses PaymentMethod, shared uses OrderPaymentMethod
+export type { OrderPaymentMethod as PaymentMethod } from '@foodwaste/shared';
 
-/**
- * Payment method types
- * ✅ Matches backend CreateOrderDto enum
- */
-export type PaymentMethod =
-  | 'cash_on_pickup'
-  | 'pay_on_delivery'
-  | 'stripe'
-  | 'paypal'
-  | 'apple_pay'
-  | 'google_pay';
+import { isActiveOrderStatus, isHistoryOrderStatus } from '@foodwaste/shared';
 
-/**
- * DTO for creating a new order
- * Matches backend CreateOrderDto structure
- */
-export interface CreateOrderDto {
-  items: OrderItemDto[];
-  establishmentId: string;
-  pickupTimeSlot: PickupTimeSlotDto;
-  pickupDate: string; // ISO 8601 format
-  paymentMethod: PaymentMethod;
-  customerNotes?: string;
-  pickupInstructions?: string;
-}
+import type { Order, PickupErrorCode } from '@foodwaste/shared';
 
-// OrderStatus and PaymentStatus enums are re-exported from @foodwaste/shared above.
-
-/**
- * Populated offer returned by backend when using .populate('items.offerId', 'title images')
- * Only contains the fields specified in the .populate() select string.
- */
-export interface PopulatedOffer {
-  _id: string;
-  title?: string;
-  images?: string[];
-}
-
-/**
- * Populated establishment returned by backend when using .populate()
- * Matches PopulatedEstablishmentResponseDto in order-response.dto.ts
- */
-export interface PopulatedEstablishment {
-  _id: string;
-  name: string;
-  address?: Record<string, unknown>;
-  phoneNumber?: string;
-  type?: string;
-  images?: string[];
-  averageRating?: number;
-}
-
-/**
- * Order response from backend
- * Field names match the @Expose() declarations in order-response.dto.ts exactly.
- * pickupCode is optional — stripped from consumer responses via excludeExtraneousValues.
- *
- * establishmentId may be a raw string (older endpoints) or a populated object
- * (my-orders, order detail). Consumers should use getEstablishmentName/getEstablishmentImage helpers.
- */
-export interface Order {
-  _id: string;
-  orderNumber: string;
-  customerId: string;
-  establishmentId: string | PopulatedEstablishment;
-  merchantId: string;
-  items: Array<{
-    offerId: string | PopulatedOffer;
-    offerTitle: string;
-    quantity: number;
-    unitPrice: number;
-    totalPrice: number;
-    originalPrice: number;
-    discountAmount: number;
-  }>;
-  status: OrderStatus;
-  paymentStatus: PaymentStatus;
-  pickupDetails: {
-    timeSlot: PickupTimeSlotDto;
-    scheduledDate: string;
-    actualPickupTime?: string;
-    qrCode: string;
-    pickupCode?: string;
-    instructions?: string;
-  };
-  paymentDetails: {
-    method: string;
-    stripePaymentIntentId?: string;
-    transactionId?: string;
-    amount: number;
-    currency: string;
-    processingFee?: number;
-  };
-  pricing: {
-    subtotal: number;
-    discountAmount: number;
-    taxAmount: number;
-    serviceFee: number;
-    total: number;
-    currency: string;
-  };
-  donationAmount: number;
-  expiresAt?: string;
-  customerNotes?: string;
-  merchantNotes?: string;
-  cancellationReason?: string;
-  isRated?: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * DTO sent to PATCH /orders/:id/confirm-pickup
- * pickupCode is mandatory (6 digits). notes is optional.
- */
-export interface ConfirmPickupDto {
-  pickupCode: string;
-  notes?: string;
-}
-
-/**
- * Error codes returned by the confirm-pickup endpoint
- */
-export type PickupErrorCode = 'CODE_EXPIRED' | 'PICKUP_ALREADY_DONE' | 'PICKUP_LOCKED' | 'ORDER_NOT_READY';
+// ============================================================================
+// Mobile-only types and helpers
+// ============================================================================
 
 const PICKUP_ERROR_CODES: ReadonlySet<string> = new Set([
   'CODE_EXPIRED',
@@ -244,25 +127,8 @@ export function getEstablishmentImage(order: Order): string | undefined {
 }
 
 // ---------------------------------------------------------------------------
-// Paginated response from GET /orders/my-orders
-// ---------------------------------------------------------------------------
-
-export interface PaginatedOrdersResponse {
-  data: Order[];
-  meta: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Active vs history helpers — delegate to shared, wrap with Order type
 // ---------------------------------------------------------------------------
-import { isActiveOrderStatus, isHistoryOrderStatus } from '@foodwaste/shared';
 
 /** Returns true if the order is considered "active" (not completed/cancelled) */
 export function isActiveOrder(order: Order): boolean {

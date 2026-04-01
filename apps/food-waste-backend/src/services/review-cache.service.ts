@@ -117,7 +117,7 @@ export class ReviewCacheService implements OnModuleInit, OnModuleDestroy {
         return null;
       }
       return await this.redisService.getClient();
-    } catch (error) {
+    } catch {
       this.logger.warn('Failed to get Redis client, using in-memory fallback');
       return null;
     }
@@ -135,7 +135,7 @@ export class ReviewCacheService implements OnModuleInit, OnModuleDestroy {
       if (redisClient) {
         await this.cacheInRedis(key, cachedReview, ttl);
       } else {
-        await this.cacheInMemory(key, cachedReview, ttl);
+        this.cacheInMemory(key, cachedReview, ttl);
       }
 
       // Cache additional indexes for fast lookups

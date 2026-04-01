@@ -275,6 +275,10 @@ export class QueryOptimizer {
  * async findAll() { ... }
  * ```
  */
+import { Logger } from '@nestjs/common';
+
+const queryMonitorLogger = new Logger('MonitorQuery');
+
 export function MonitorQuery(operationName: string, thresholdMs: number = 1000) {
   return function (_target: object, _propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value as (...args: unknown[]) => Promise<unknown>;
@@ -286,7 +290,7 @@ export function MonitorQuery(operationName: string, thresholdMs: number = 1000) 
         const duration = Date.now() - start;
 
         if (duration > thresholdMs) {
-          console.warn(
+          queryMonitorLogger.warn(
             `[SLOW QUERY] ${operationName} took ${duration}ms (threshold: ${thresholdMs}ms)`,
           );
         }
@@ -294,7 +298,10 @@ export function MonitorQuery(operationName: string, thresholdMs: number = 1000) 
         return result;
       } catch (error) {
         const duration = Date.now() - start;
-        console.error(`[QUERY ERROR] ${operationName} failed after ${duration}ms`, error);
+        queryMonitorLogger.error(
+          `[QUERY ERROR] ${operationName} failed after ${duration}ms`,
+          error instanceof Error ? error.stack : String(error),
+        );
         throw error;
       }
     };

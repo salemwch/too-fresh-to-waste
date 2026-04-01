@@ -22,9 +22,6 @@
 
 import axios from 'axios';
 
-import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
-import { Logger } from '@/utils/logger';
-
 import type {
   Offer,
   OfferListItem,
@@ -32,6 +29,10 @@ import type {
   OffersResponse,
   ReserveQuantityRequest,
 } from '../types/offer.types';
+import type { GeoCoordinates } from '@foodwaste/shared';
+
+import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
+import { Logger } from '@/utils/logger';
 
 // ============================================================================
 // Types
@@ -45,14 +46,6 @@ export interface NearbyOffersParams {
   latitude: number;
   maxDistance?: number; // In meters, default 5000
   limit?: number; // Default 20
-}
-
-/**
- * User location for distance calculation
- */
-interface UserLocation {
-  latitude: number;
-  longitude: number;
 }
 
 // ============================================================================
@@ -69,7 +62,7 @@ class OffersService {
   /**
    * Build location params object (only if both lat/lng provided)
    */
-  private buildLocationParams(userLocation?: UserLocation): Record<string, number> | undefined {
+  private buildLocationParams(userLocation?: GeoCoordinates): Record<string, number> | undefined {
     if (!userLocation) return undefined;
     return {
       latitude: userLocation.latitude,
@@ -82,7 +75,7 @@ class OffersService {
    */
   private buildSearchParams(
     params?: OfferSearchParams,
-    userLocation?: UserLocation,
+    userLocation?: GeoCoordinates,
   ): Record<string, unknown> {
     if (!params) return { ...this.buildLocationParams(userLocation) };
 
@@ -193,7 +186,7 @@ class OffersService {
    */
   async getAllOffers(
     params?: OfferSearchParams,
-    userLocation?: UserLocation,
+    userLocation?: GeoCoordinates,
     signal?: AbortSignal,
   ): Promise<OffersResponse> {
     try {
@@ -227,7 +220,7 @@ class OffersService {
    */
   async getFeaturedOffers(
     limit: number = 10,
-    userLocation?: UserLocation,
+    userLocation?: GeoCoordinates,
     signal?: AbortSignal,
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/featured`;
@@ -252,7 +245,7 @@ class OffersService {
   async getUrgentOffers(
     hoursUntilExpiry: number = 1,
     limit: number = 10,
-    userLocation?: UserLocation,
+    userLocation?: GeoCoordinates,
     signal?: AbortSignal,
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/urgent`;
@@ -299,7 +292,7 @@ class OffersService {
    */
   async getRecommendedOffers(
     limit: number = 20,
-    userLocation?: UserLocation,
+    userLocation?: GeoCoordinates,
     signal?: AbortSignal,
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/recommended`;
@@ -356,7 +349,7 @@ class OffersService {
    */
   async getPickupTodayOffers(
     limit: number = 20,
-    userLocation?: UserLocation,
+    userLocation?: GeoCoordinates,
     signal?: AbortSignal,
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/pickup-today`;
@@ -380,7 +373,7 @@ class OffersService {
    */
   async getPickupTomorrowOffers(
     limit: number = 20,
-    userLocation?: UserLocation,
+    userLocation?: GeoCoordinates,
     signal?: AbortSignal,
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/pickup-tomorrow`;

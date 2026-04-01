@@ -1,5 +1,4 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import {
   IsNumber,
   IsString,
@@ -149,58 +148,4 @@ export class UserDonationStatsResponseDto {
   })
   @IsString()
   currency!: string;
-}
-
-/**
- * Query DTO for donation history filtering
- */
-class DonationHistoryQueryDto {
-  @ApiPropertyOptional({
-    description: 'Page number for pagination',
-    example: 1,
-    minimum: 1,
-    default: 1,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(1)
-  page?: number = 1;
-
-  @ApiPropertyOptional({
-    description: 'Number of items per page',
-    example: 20,
-    minimum: 1,
-    maximum: 100,
-    default: 20,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(1)
-  limit?: number = 20;
-
-  @ApiPropertyOptional({
-    description: 'Filter by donation pool status',
-    enum: DonationPoolStatus,
-  })
-  @IsOptional()
-  @IsEnum(DonationPoolStatus)
-  status?: DonationPoolStatus;
-
-  @ApiPropertyOptional({
-    description: 'Start date for filtering (ISO 8601)',
-    example: '2025-01-01T00:00:00.000Z',
-  })
-  @IsOptional()
-  @IsDateString()
-  startDate?: string;
-
-  @ApiPropertyOptional({
-    description: 'End date for filtering (ISO 8601)',
-    example: '2025-12-31T23:59:59.000Z',
-  })
-  @IsOptional()
-  @IsDateString()
-  endDate?: string;
 }

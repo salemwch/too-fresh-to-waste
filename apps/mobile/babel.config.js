@@ -195,21 +195,25 @@ module.exports = {
 
 
   /**
-   * Only parse files we need
-   * Improves compilation speed
+   * Only parse files we need — improves Metro compilation speed.
+   * IMPORTANT: Skip test files only outside of the 'test' env so that
+   * Jest (which sets NODE_ENV=test) can still transform them via babel-jest.
    */
-  ignore: [
-    '**/node_modules/*/test',
-    '**/node_modules/*/tests',
-    '**/__tests__',
-    '**/__mocks__',
-    '**/*.test.js',
-    '**/*.test.ts',
-    '**/*.test.tsx',
-    '**/*.spec.js',
-    '**/*.spec.ts',
-    '**/*.spec.tsx',
-  ],
+  ignore:
+    process.env.NODE_ENV === 'test'
+      ? []
+      : [
+          '**/node_modules/*/test',
+          '**/node_modules/*/tests',
+          '**/__tests__',
+          '**/__mocks__',
+          '**/*.test.js',
+          '**/*.test.ts',
+          '**/*.test.tsx',
+          '**/*.spec.js',
+          '**/*.spec.ts',
+          '**/*.spec.tsx',
+        ],
 
   /**
    * Source type configuration

@@ -1,3 +1,4 @@
+import { UserRole, UserStatus } from '@foodwaste/shared';
 import {
   Injectable,
   UnauthorizedException,
@@ -17,7 +18,6 @@ import { LoginDto } from 'src/auth/DTO/login.dto';
 import { RegisterDto } from 'src/auth/DTO/register.dto';
 import { ResetPasswordDto } from 'src/auth/DTO/reset-password.dto';
 import { VerifyEmailDto } from 'src/auth/DTO/verify-email.dto';
-import { UserRole, UserStatus } from 'src/common/enums/user.enum';
 import { EventBusService } from 'src/common/services/event-bus/event-bus.service';
 import { PhoneNumberService } from 'src/common/services/phone-number.service';
 import { CryptoUtil } from 'src/common/utils/crypto.util';

@@ -44,7 +44,8 @@ export class PickupThrottlerGuard extends ThrottlerGuard {
     const orderId = request.params?.['id'] || 'unknown';
 
     // Key format: pickup-{ip}-{orderId}-{userId}
-    return `pickup-${ip}-${orderId}-${userId}`;
+    const key = await Promise.resolve(`pickup-${ip}-${orderId}-${userId}`);
+    return key;
   }
 
   /**
@@ -54,6 +55,9 @@ export class PickupThrottlerGuard extends ThrottlerGuard {
     _context: ExecutionContext,
     _throttlerLimitDetail: ThrottlerLimitDetail,
   ): Promise<string> {
-    return 'Too many pickup attempts. Please wait before trying again. If you need assistance, contact the merchant directly.';
+    const msg = await Promise.resolve(
+      'Too many pickup attempts. Please wait before trying again. If you need assistance, contact the merchant directly.',
+    );
+    return msg;
   }
 }

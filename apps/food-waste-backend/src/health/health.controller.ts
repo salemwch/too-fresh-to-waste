@@ -14,6 +14,7 @@
  */
 
 import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   HealthCheck,
@@ -21,12 +22,14 @@ import {
   MongooseHealthIndicator,
   MemoryHealthIndicator,
 } from '@nestjs/terminus';
+import { SkipThrottle } from '@nestjs/throttler';
 
 import { Public } from '../common/decorators/public.decorator';
 
 import { RedisHealthIndicator } from './indicators/redis.health';
 
 @ApiTags('Health')
+@SkipThrottle()
 @Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthController {
   constructor(
@@ -34,6 +37,7 @@ export class HealthController {
     private readonly db: MongooseHealthIndicator,
     private readonly memory: MemoryHealthIndicator,
     private readonly redis: RedisHealthIndicator,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -115,7 +119,7 @@ export class HealthController {
       status: 'ok',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      environment: process.env['NODE_ENV'],
+      environment: this.configService.get<string>('NODE_ENV', 'development'),
     };
   }
 

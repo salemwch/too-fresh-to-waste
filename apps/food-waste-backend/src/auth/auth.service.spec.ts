@@ -1,10 +1,10 @@
+import { UserRole, UserStatus } from '@foodwaste/shared';
 import { ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
 
-import { UserRole, UserStatus } from '../common/enums/user.enum';
 import { EmailService } from '../email/email.service';
 import { UsersService } from '../users/user.service';
 
@@ -778,9 +778,10 @@ describe('AuthService', () => {
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Database timeout')), 100),
         );
-        jest
-          .spyOn(usersService, 'findByEmail')
-          .mockImplementation(async () => timeoutPromise as unknown as Promise<UserDocument>);
+        jest.spyOn(usersService, 'findByEmail').mockImplementation(async () => {
+          const result = await (timeoutPromise as unknown as Promise<UserDocument>);
+          return result;
+        });
 
         // Act & Assert
         await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(

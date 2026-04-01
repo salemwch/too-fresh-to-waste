@@ -1,4 +1,4 @@
-import type { UserStatus } from '../enums/user.enum';
+import type { UserStatus } from '@foodwaste/shared';
 
 /**
  * Base class for all admin user-related events

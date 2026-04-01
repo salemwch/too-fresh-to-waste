@@ -1,3 +1,4 @@
+import { UserRole } from '@foodwaste/shared';
 import {
   Controller,
   Get,
@@ -27,7 +28,6 @@ import { Types } from 'mongoose';
 import { IpAddress } from '../../admin/decorators/ip-address.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { UserRole } from '../../common/enums/user.enum';
 import { LoggingInterceptor } from '../../common/interceptors/loggin.interceptor';
 import { CreateReportDto } from '../dtos/create-report.dto';
 import { ReportQueryDto, ReportUpdateDto } from '../dtos/report-query.dto';

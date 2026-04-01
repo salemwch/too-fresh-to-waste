@@ -35,6 +35,7 @@ export class PushNotificationService implements INotificationProvider {
     payload: NotificationPayload,
     target: NotificationTarget,
   ): Promise<NotificationResult> {
+    let firstToken: string | undefined;
     try {
       this.ensureFirebaseInitialized();
       const deviceTokens = await this.getDeviceTokens(target);
@@ -46,7 +47,7 @@ export class PushNotificationService implements INotificationProvider {
         };
       }
 
-      const firstToken = deviceTokens[0];
+      firstToken = deviceTokens[0];
       if (!firstToken) {
         return {
           success: false,
@@ -68,6 +69,12 @@ export class PushNotificationService implements INotificationProvider {
         `Push notification failed: ${(error as Error).message}`,
         (error as Error).stack,
       );
+
+      // Clean stale token if the error indicates it's unregistered
+      if (this.isStaleTokenError(error as admin.FirebaseError) && firstToken) {
+        void this.removeStaleTokens([firstToken]);
+      }
+
       return {
         success: false,
         error: (error as Error).message,
@@ -258,15 +265,68 @@ export class PushNotificationService implements INotificationProvider {
     response: admin.messaging.BatchResponse,
     tokens: string[],
   ): NotificationResult[] {
-    return response.responses.map(
-      (result: admin.messaging.SendResponse, index: number): NotificationResult => ({
-        success: result.success,
-        ...(result.messageId !== undefined ? { messageId: result.messageId } : {}),
-        ...(result.error?.message !== undefined ? { error: result.error.message } : {}),
-        deliveryStatus: result.success ? 'sent' : 'failed',
-        ...(tokens[index] !== undefined ? { metadata: { deviceToken: tokens[index] } } : {}),
-      }),
+    // Collect stale tokens for cleanup
+    const staleTokens: string[] = [];
+
+    const results = response.responses.map(
+      (result: admin.messaging.SendResponse, index: number): NotificationResult => {
+        const token = tokens[index];
+        if (!result.success && token && this.isStaleTokenError(result.error)) {
+          staleTokens.push(token);
+        }
+
+        return {
+          success: result.success,
+          ...(result.messageId !== undefined ? { messageId: result.messageId } : {}),
+          ...(result.error?.message !== undefined ? { error: result.error.message } : {}),
+          deliveryStatus: result.success ? 'sent' : 'failed',
+          ...(token !== undefined ? { metadata: { deviceToken: token } } : {}),
+        };
+      },
     );
+
+    // Fire-and-forget cleanup of stale tokens
+    if (staleTokens.length > 0) {
+      void this.removeStaleTokens(staleTokens);
+    }
+
+    return results;
+  }
+
+  /**
+   * Check if a Firebase messaging error indicates a stale/unregistered token.
+   * Ref: https://firebase.google.com/docs/cloud-messaging/manage-tokens
+   */
+  private isStaleTokenError(error: admin.FirebaseError | undefined): boolean {
+    if (!error) {
+      return false;
+    }
+    return (
+      error.code === 'messaging/registration-token-not-registered' ||
+      error.code === 'messaging/invalid-registration-token' ||
+      error.code === 'messaging/mismatched-credential'
+    );
+  }
+
+  /**
+   * Remove stale FCM tokens from all notification preferences that contain them.
+   * Prevents quota waste and latency from sending to dead tokens.
+   */
+  private async removeStaleTokens(staleTokens: string[]): Promise<void> {
+    try {
+      const result = await this.preferencesModel.updateMany(
+        { deviceTokens: { $in: staleTokens } },
+        { $pull: { deviceTokens: { $in: staleTokens } } },
+      );
+      this.logger.log(
+        `Cleaned ${staleTokens.length} stale FCM token(s) from ${result.modifiedCount} preference doc(s)`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to clean stale FCM tokens: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
+    }
   }
 
   private sanitizeData(data: Record<string, unknown>): Record<string, string> {

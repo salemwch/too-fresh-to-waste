@@ -1,3 +1,4 @@
+import { UserRole } from '@foodwaste/shared';
 import {
   Injectable,
   NotFoundException,
@@ -7,16 +8,16 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, PipelineStage, FilterQuery } from 'mongoose';
-import { UserRole } from 'src/common/enums/user.enum';
-
-import { v4 as uuidv4 } from 'uuid';
 import { toObjectId } from 'src/common/utils/mongo.utils';
 import { Order, OrderDocument, OrderStatus } from 'src/orders/schemas/order.schema';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
+import { v4 as uuidv4 } from 'uuid';
 
 import { AppLoggerService } from '../common/services/logger.service';
+
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { PaymentQueryDto } from './dto/payment-query.dto';
 import { ProcessRefundDto } from './dto/proccess-refund.dto';
@@ -42,6 +43,7 @@ export class PaymentService {
     @InjectModel(User.name) readonly userModel: Model<UserDocument>,
     private readonly smtPaymentService: SMTPaymentService,
     private readonly appLogger: AppLoggerService,
+    private readonly configService: ConfigService,
   ) {
     void this.logger;
   }
@@ -79,9 +81,11 @@ export class PaymentService {
 
       const payment = new this.paymentModel({
         transactionId:
-          process.env['NODE_ENV'] === 'development' ? `FAKE-${uuidv4()}` : `TEMP-${uuidv4()}`,
+          this.configService.get<string>('NODE_ENV') === 'development'
+            ? `FAKE-${uuidv4()}`
+            : `TEMP-${uuidv4()}`,
         merchantTransactionId:
-          process.env['NODE_ENV'] === 'development'
+          this.configService.get<string>('NODE_ENV') === 'development'
             ? `MERCHANT-${uuidv4()}`
             : merchantTransactionId,
         orderId: createPaymentDto.orderId,
@@ -398,6 +402,7 @@ export class PaymentService {
     webhookPayload: SMTWebhookPayloadDto,
     signature: string,
     timestamp: string,
+    rawBody: string,
   ): Promise<void> {
     try {
       // Create webhook record
@@ -409,12 +414,9 @@ export class PaymentService {
         status: WebhookStatus.PENDING,
       });
 
-      const payloadString = JSON.stringify(webhookPayload);
-      const isValid = this.smtPaymentService.verifyWebhookSignature(
-        payloadString,
-        signature,
-        timestamp,
-      );
+      // Use raw body bytes for HMAC verification (not JSON.stringify)
+      // JSON.stringify may reorder keys/change formatting, breaking the signature
+      const isValid = this.smtPaymentService.verifyWebhookSignature(rawBody, signature, timestamp);
 
       webhook.isVerified = isValid;
 
@@ -594,10 +596,13 @@ export class PaymentService {
 
     for (const webhook of failedWebhooks) {
       try {
+        // For retries, use JSON.stringify of stored payload — original was already verified
+        const storedPayloadString = JSON.stringify(webhook.payload);
         await this.handleWebhook(
           webhook.payload as unknown as SMTWebhookPayloadDto,
           webhook.signature,
           new Date().toISOString(),
+          storedPayloadString,
         );
 
         webhook.retryCount += 1;

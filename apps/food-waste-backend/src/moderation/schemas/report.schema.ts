@@ -70,10 +70,10 @@ export class Report {
   @Prop({ type: Types.ObjectId, ref: 'User' })
   resolvedBy?: Types.ObjectId | undefined;
 
-  @Prop()
+  @Prop({ type: Date })
   resolvedAt?: Date | undefined;
 
-  @Prop({ maxlength: 1000 })
+  @Prop({ type: String, maxlength: 1000 })
   resolutionNotes?: string | undefined;
 
   @Prop({

@@ -52,24 +52,13 @@ export function IsFutureDate(
       constraints: [minMinutesFromNow],
       validator: {
         validate(value: unknown, args: ValidationArguments) {
-          console.log('\n============ BACKEND: IsFutureDate Validation ============');
-          console.log('🔍 Validating field:', args.property);
-          console.log('📨 Received value (raw):', value);
-          console.log('📨 Value type:', typeof value);
-
           if (!(value instanceof Date) && typeof value !== 'string') {
-            console.log('❌ REJECTED: Value is not Date or string');
-            console.log('================================================\n');
             return false;
           }
 
           const date = value instanceof Date ? value : new Date(value);
-          console.log('📅 Parsed date:', date.toISOString());
-          console.log('📅 Date timestamp:', date.getTime());
 
           if (isNaN(date.getTime())) {
-            console.log('❌ REJECTED: Invalid date string');
-            console.log('================================================\n');
             return false;
           }
 
@@ -77,39 +66,7 @@ export function IsFutureDate(
           const minTime = new Date();
           minTime.setMinutes(minTime.getMinutes() + minMinutes);
 
-          console.log('⏰ Server current time:', new Date().toISOString());
-          console.log('⏰ Server current timestamp:', new Date().getTime());
-          console.log('⏱️  Min minutes from now:', minMinutes);
-          console.log('⏱️  Minimum allowed time:', minTime.toISOString());
-          console.log('⏱️  Minimum allowed timestamp:', minTime.getTime());
-          console.log('🔢 Comparison: date.getTime() > minTime.getTime()');
-          console.log(
-            '🔢 Comparison:',
-            date.getTime(),
-            '>',
-            minTime.getTime(),
-            '=',
-            date.getTime() > minTime.getTime(),
-          );
-          console.log(
-            '⏳ Time difference:',
-            (date.getTime() - minTime.getTime()) / 1000,
-            'seconds',
-          );
-
-          const isValid = date.getTime() > minTime.getTime();
-
-          if (isValid) {
-            console.log('✅ VALID: Pickup date is in the future');
-          } else {
-            console.log('❌ INVALID: Pickup date is NOT in the future');
-            console.log('   Received:', date.toISOString());
-            console.log('   Server now:', new Date().toISOString());
-            console.log('   Min required:', minTime.toISOString());
-          }
-          console.log('================================================\n');
-
-          return isValid;
+          return date.getTime() > minTime.getTime();
         },
         defaultMessage(args: ValidationArguments) {
           const [minMinutes] = args.constraints;

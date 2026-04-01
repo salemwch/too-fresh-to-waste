@@ -29,7 +29,6 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import * as geoip from 'geoip-lite';
 import { Model } from 'mongoose';
-// @ts-expect-error no types available for geoip-lite
 
 import { USER_LOGIN_HISTORY_MAX } from '../../common/constants/database-indexes.constant';
 import {
@@ -319,7 +318,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       }),
     );
 
-    return results.filter((s): s is SessionInfo => s !== null && s.isActive);
+    return results.filter((s): s is SessionInfo => !!s?.isActive);
   }
 
   /**

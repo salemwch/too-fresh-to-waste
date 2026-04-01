@@ -1,8 +1,8 @@
+import { UserRole } from '@foodwaste/shared';
 import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
-import { UserRole } from '../../common/enums/user.enum';
 import { AuthenticatedSocket } from '../interfaces/websocket.interface';
 
 @Injectable()

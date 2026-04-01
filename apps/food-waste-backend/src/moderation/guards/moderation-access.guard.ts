@@ -1,3 +1,4 @@
+import { UserRole } from '@foodwaste/shared';
 import {
   Injectable,
   CanActivate,
@@ -6,8 +7,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-
-import { UserRole } from '../../common/enums/user.enum';
 
 @Injectable()
 export class ModerationAccessGuard implements CanActivate {

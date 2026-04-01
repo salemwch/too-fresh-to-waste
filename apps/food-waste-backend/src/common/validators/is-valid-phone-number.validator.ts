@@ -14,7 +14,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { parsePhoneNumber, isValidPhoneNumber, CountryCode } from 'libphonenumber-js';
+import { isValidPhoneNumber, CountryCode } from 'libphonenumber-js';
 
 /**
  * Options for phone number validation
@@ -160,42 +160,4 @@ export function IsValidPhoneNumber(options?: PhoneNumberValidationOptions): Prop
       validator: IsValidPhoneNumberConstraint,
     });
   };
-}
-
-/**
- * Helper function to parse and validate phone number
- * Can be used in services for additional phone number operations
- *
- * @param phoneNumber - Phone number string
- * @param defaultCountry - Optional default country code
- * @returns Parsed phone number object or null if invalid
- */
-function parseAndValidatePhoneNumber(phoneNumber: string, defaultCountry?: CountryCode) {
-  try {
-    const parsed = parsePhoneNumber(phoneNumber, defaultCountry);
-
-    if (parsed?.isValid()) {
-      return {
-        isValid: true,
-        phoneNumber: parsed,
-        formatted: {
-          international: parsed.formatInternational(),
-          national: parsed.formatNational(),
-          e164: parsed.format('E.164'),
-          uri: parsed.getURI(),
-        },
-        country: parsed.country,
-        countryCallingCode: parsed.countryCallingCode,
-        nationalNumber: parsed.nationalNumber,
-        type: parsed.getType(), // 'MOBILE', 'FIXED_LINE', etc.
-      };
-    }
-
-    return { isValid: false, error: 'Invalid phone number' };
-  } catch (error) {
-    return {
-      isValid: false,
-      error: error instanceof Error ? error.message : 'Failed to parse phone number',
-    };
-  }
 }

@@ -71,6 +71,17 @@ export class RedisIoAdapter extends IoAdapter {
       );
     }
 
+    // Add security headers to Socket.IO HTTP polling responses.
+    // Helmet does not cover Socket.IO's internal HTTP handler, so we attach
+    // directly to the engine middleware chain.
+    server.engine.use(
+      (_req: unknown, res: { setHeader: (k: string, v: string) => void }, next: () => void) => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        next();
+      },
+    );
+
     return server;
   }
 }

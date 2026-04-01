@@ -6,6 +6,7 @@ import {
   BadRequestException,
   Optional,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Queue } from 'bull';
 import { Model, Types, PipelineStage } from 'mongoose';
@@ -320,6 +321,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
     @InjectModel(Offer.name) private readonly offerModel: Model<OfferDocument>,
     private readonly auditService: AdminAuditService,
     private readonly eventBus: EventBusService,
+    private readonly configService: ConfigService,
     @Optional() private readonly notificationService?: NotificationService,
     @Optional()
     @InjectQueue('establishment-management')
@@ -1218,8 +1220,8 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
           status: establishment.status,
           reason: approveDto.reason || 'Not specified',
           adminNotes: approveDto.adminNotes || '',
-          supportEmail: process.env['SUPPORT_EMAIL'] || 'support@foodwaste.com',
-          dashboardUrl: `${process.env['FRONTEND_URL'] || 'https://app.foodwaste.com'}/establishment/dashboard`,
+          supportEmail: this.configService.get<string>('SUPPORT_EMAIL', 'support@foodwaste.com'),
+          dashboardUrl: `${this.configService.get<string>('FRONTEND_URL', 'https://app.foodwaste.com')}/establishment/dashboard`,
         },
       };
 
@@ -1324,8 +1326,8 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
           reason: updateDto.reason || 'Not specified',
           adminNotes: updateDto.adminNotes || '',
           reactivationDate: updateDto.reactivationDate?.toLocaleDateString() || 'Not specified',
-          supportEmail: process.env['SUPPORT_EMAIL'] || 'support@foodwaste.com',
-          dashboardUrl: `${process.env['FRONTEND_URL'] || 'https://app.foodwaste.com'}/establishment/dashboard`,
+          supportEmail: this.configService.get<string>('SUPPORT_EMAIL', 'support@foodwaste.com'),
+          dashboardUrl: `${this.configService.get<string>('FRONTEND_URL', 'https://app.foodwaste.com')}/establishment/dashboard`,
         },
       };
 

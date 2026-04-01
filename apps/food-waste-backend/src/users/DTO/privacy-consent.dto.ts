@@ -7,81 +7,13 @@ import {
   IsBoolean,
   IsEnum,
   IsString,
-  IsArray,
   IsOptional,
-  IsDateString,
-  IsNumber,
   IsIP,
   ValidateNested,
-  ArrayMinSize,
   Length,
-  IsObject,
 } from 'class-validator';
 
-import { ConsentType, ConsentStatus, LegalBasis } from '../interfaces/privacy-consent.interface';
-
-class ConsentRecordDto {
-  @ApiProperty({ enum: ConsentType, description: 'Type of consent' })
-  @IsEnum(ConsentType)
-  consentType!: ConsentType;
-
-  @ApiProperty({ enum: ConsentStatus, description: 'Consent status' })
-  @IsEnum(ConsentStatus)
-  status!: ConsentStatus;
-
-  @ApiProperty({ enum: LegalBasis, description: 'Legal basis for processing' })
-  @IsEnum(LegalBasis)
-  legalBasis!: LegalBasis;
-
-  @ApiProperty({ description: 'When consent was given' })
-  @IsDateString()
-  givenAt!: string;
-
-  @ApiPropertyOptional({ description: 'When consent was withdrawn' })
-  @IsOptional()
-  @IsDateString()
-  withdrawnAt?: string;
-
-  @ApiPropertyOptional({ description: 'When consent expires' })
-  @IsOptional()
-  @IsDateString()
-  expiresAt?: string;
-
-  @ApiProperty({ description: 'IP address when consent was given' })
-  @IsIP()
-  ipAddress!: string;
-
-  @ApiProperty({ description: 'User agent when consent was given' })
-  @IsString()
-  @Length(1, 500)
-  userAgent!: string;
-
-  @ApiProperty({ description: 'Consent version/policy version' })
-  @IsString()
-  @Length(1, 50)
-  consentVersion!: string;
-
-  @ApiProperty({ description: 'Purpose for data processing' })
-  @IsString()
-  @Length(1, 200)
-  processingPurpose!: string;
-
-  @ApiProperty({ description: 'Categories of data being processed' })
-  @IsArray()
-  @IsString({ each: true })
-  @ArrayMinSize(1)
-  dataCategories!: string[];
-
-  @ApiProperty({ description: 'Retention period in days' })
-  @IsNumber()
-  retentionPeriod!: number;
-
-  @ApiPropertyOptional({ description: 'Third parties that will receive data' })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  thirdParties?: string[];
-}
+import { ConsentType, LegalBasis } from '../interfaces/privacy-consent.interface';
 
 // 🇹🇳 Tunisia Base Compliance DTO
 export class TunisianPrivacyConsentDto {
@@ -242,41 +174,4 @@ export class ConsentWithdrawalDto {
   @IsOptional()
   @IsBoolean()
   stopProcessingImmediately?: boolean;
-}
-
-class PrivacySettingsResponseDto {
-  @ApiProperty({ description: 'Current privacy settings' })
-  @IsObject()
-  privacySettings!: Record<string, unknown>;
-
-  @ApiProperty({ description: 'Consent history' })
-  @IsArray()
-  consentHistory!: ConsentRecordDto[];
-
-  @ApiProperty({ description: 'Data processing records' })
-  @IsArray()
-  dataProcessingRecords!: Record<string, unknown>[];
-
-  @ApiProperty({ description: 'Available rights and actions' })
-  @IsObject()
-  availableRights!: {
-    canExportData: boolean;
-    canDeleteAccount: boolean;
-    canWithdrawConsent: boolean;
-    canRestrictProcessing: boolean;
-    canPortData: boolean;
-  };
-
-  @ApiProperty({ description: 'Compliance status' })
-  @IsObject()
-  complianceStatus!: {
-    tunisia: {
-      compliant: boolean;
-      missingConsents: string[];
-    };
-    international: {
-      gdpr: { compliant: boolean; missingConsents: string[] };
-      ccpa: { compliant: boolean; missingConsents: string[] };
-    };
-  };
 }

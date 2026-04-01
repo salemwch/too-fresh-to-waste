@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY, UserRole } from '@foodwaste/shared';
 import {
   Injectable,
   NotFoundException,
@@ -10,10 +11,9 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { Model, Types, ClientSession, FlattenMaps, PipelineStage } from 'mongoose';
 
-import { DEFAULT_CURRENCY } from '../common/enums/currency.enum';
-import { UserRole } from '../common/enums/user.enum';
 import { OrderCompletedEvent } from '../common/events';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { AppLoggerService } from '../common/services/logger.service';
@@ -57,8 +57,6 @@ import {
 } from './DTO/create-order.dto';
 
 import * as crypto from 'crypto';
-
-import { Cron, CronExpression } from '@nestjs/schedule';
 
 // Core business interfaces for type safety
 interface OrderQueryFilter {
@@ -1986,7 +1984,11 @@ export class OrdersService {
         continue;
       }
 
-      if (selectedSlot.maxOrders != null && selectedSlot.currentOrders >= selectedSlot.maxOrders) {
+      if (
+        selectedSlot.maxOrders !== null &&
+        selectedSlot.maxOrders !== undefined &&
+        selectedSlot.currentOrders >= selectedSlot.maxOrders
+      ) {
         validationDetails.push({
           offerId: offer._id,
           reason: `This pickup slot is full — the restaurant allows a maximum of ${selectedSlot.maxOrders} order${selectedSlot.maxOrders === 1 ? '' : 's'} per slot.`,

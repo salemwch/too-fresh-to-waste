@@ -1,3 +1,4 @@
+/* eslint-disable no-script-url */
 import { Test } from '@nestjs/testing';
 
 import { SanitizationUtil } from './sanitization.util';

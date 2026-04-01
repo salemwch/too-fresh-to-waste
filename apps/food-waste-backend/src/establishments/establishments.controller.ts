@@ -1,3 +1,4 @@
+import { UserRole } from '@foodwaste/shared';
 import {
   Controller,
   Get,
@@ -28,7 +29,6 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthenticatedRequest } from '../common/decorators/get-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
-import { UserRole } from '../common/enums/user.enum';
 import { SupabaseStorageService } from '../common/services/supabase-storage.service';
 import { QueryOptimizer } from '../common/utils/query-optimization.util';
 

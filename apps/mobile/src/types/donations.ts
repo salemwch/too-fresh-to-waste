@@ -3,62 +3,22 @@
  * Enterprise-grade TypeScript interfaces for donation features
  */
 
-/**
- * Donation pool status enum
- */
-export enum DonationPoolStatus {
-  ACTIVE = 'active',
-  FUNDED = 'funded',
-  DISTRIBUTED = 'distributed',
-  ARCHIVED = 'archived',
-}
+// ============================================================================
+// Shared types — re-exported from @foodwaste/shared (single source of truth)
+// ============================================================================
+export { DonationPoolStatus } from '@foodwaste/shared';
+
+export type { DonationStats, UserDonationStats, OrderWithDonation } from '@foodwaste/shared';
+
+// ============================================================================
+// Mobile-only types
+// ============================================================================
 
 /**
- * Donation statistics response from backend
- */
-export interface DonationStats {
-  totalDonations: number;
-  targetAmount: number;
-  mealCount: number;
-  contributorCount: number;
-  progressPercentage: number;
-  status: DonationPoolStatus;
-  cause: string;
-  currency: string;
-  targetDate?: string;
-}
-
-/**
- * User-specific donation statistics
- */
-export interface UserDonationStats {
-  totalDonated: number;
-  contributionCount: number;
-  badgesEarned: string[];
-  mealsContributed: number;
-  rank: number;
-  currency: string;
-}
-
-/**
- * API response wrapper
+ * API response wrapper (mobile-specific generic)
  */
 export interface DonationApiResponse<T> {
   data: T;
   success: boolean;
   message?: string;
-}
-
-/**
- * Order with donation information
- * Uses _id to match MongoDB backend responses
- */
-export interface OrderWithDonation {
-  _id: string;
-  orderNumber: string;
-  donationAmount: number;
-  pricing: {
-    total: number;
-    currency: string;
-  };
 }

@@ -9,6 +9,9 @@ export * from './enums';
 // Types — shared DTOs and interfaces
 export * from './types';
 
+// Zod schemas — single source of truth for validation across backend + mobile
+export * from './schemas';
+
 // Common validation utilities
 export class ValidationUtils {
   public static isEmail(email: string): boolean {
@@ -141,15 +144,12 @@ export class ArrayUtils {
     array: T[],
     key: keyof T,
   ): Record<string, T[]> {
-    return array.reduce<Record<string, T[]>>(
-      (groups, item) => {
-        const group = String(item[key]);
-        if (!groups[group]) groups[group] = [];
-        groups[group].push(item);
-        return groups;
-      },
-      {},
-    );
+    return array.reduce<Record<string, T[]>>((groups, item) => {
+      const group = String(item[key]);
+      if (!groups[group]) groups[group] = [];
+      groups[group].push(item);
+      return groups;
+    }, {});
   }
 
   public static shuffle<T>(array: T[]): T[] {

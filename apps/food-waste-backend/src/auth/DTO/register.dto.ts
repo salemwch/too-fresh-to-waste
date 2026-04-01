@@ -4,6 +4,7 @@ import {
   PASSWORD_SPECIAL_CHARS,
   PASSWORD_ERROR_MESSAGES,
   buildPasswordRegex,
+  UserRole,
 } from '@foodwaste/shared';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -27,7 +28,6 @@ import {
   SanitizeText,
   SanitizePhoneNumber,
 } from '../../common/decorators/sanitize.decorator';
-import { UserRole } from '../../common/enums/user.enum';
 import { IsValidPhoneNumber } from '../../common/validators/is-valid-phone-number.validator';
 
 /**

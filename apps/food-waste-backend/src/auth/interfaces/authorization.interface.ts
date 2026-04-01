@@ -1,5 +1,5 @@
+import type { UserRole } from '@foodwaste/shared';
 import type { Types } from 'mongoose';
-import type { UserRole } from 'src/common/enums/user.enum';
 
 /**
  * Authorization Context

@@ -20,6 +20,7 @@ import { TransformInterceptor } from './common/interceptors/transFormInterceptor
 import { AppLoggerService } from './common/services/logger.service';
 import { PrometheusMetricsService } from './common/services/prometheus-metrics.service';
 import { RedisIoAdapter } from './websocket/adapters/redis-io.adapter';
+import { SecureIoAdapter } from './websocket/adapters/secure-io.adapter';
 
 import type { Request, Response, NextFunction } from 'express';
 
@@ -67,11 +68,12 @@ async function bootstrap() {
         return event;
       },
     });
-
-    console.log(`[Sentry] Initialized for environment: ${environment}`);
   }
 
   const logger = new AppLoggerService();
+  if (sentryDsn) {
+    logger.log(`Sentry initialized for environment: ${environment}`, 'Bootstrap');
+  }
 
   let app;
   const enableHttps = configService.get<string>('ENABLE_HTTPS') === 'true';
@@ -86,15 +88,18 @@ async function bootstrap() {
             join(__dirname, '..', 'certs', 'server.cert'),
         ),
       };
-      app = await NestFactory.create(AppModule, { httpsOptions });
+      app = await NestFactory.create(AppModule, {
+        httpsOptions,
+        rawBody: true, // Preserve raw body for webhook signature verification
+      });
     } catch (err) {
       logger.security(
         `HTTPS certificates not found, falling back to HTTP: ${(err as Error).message}`,
       );
-      app = await NestFactory.create(AppModule);
+      app = await NestFactory.create(AppModule, { rawBody: true });
     }
   } else {
-    app = await NestFactory.create(AppModule);
+    app = await NestFactory.create(AppModule, { rawBody: true });
   }
 
   const appConfigService = app.get(ConfigService);
@@ -231,8 +236,9 @@ async function bootstrap() {
   const cookieSecret =
     configService.get<string>('COOKIE_SECRET') || configService.get<string>('JWT_SECRET');
   if (!cookieSecret) {
-    console.warn(
-      '[Security] COOKIE_SECRET not configured - using fallback. Set COOKIE_SECRET in production.',
+    logger.warn(
+      'COOKIE_SECRET not configured - using fallback. Set COOKIE_SECRET in production.',
+      'Security',
     );
   }
   app.use(cookieParser(cookieSecret));
@@ -269,19 +275,40 @@ async function bootstrap() {
    *
    * @rationale Sanitize BEFORE validation to prevent XSS bypassing validation
    */
+  /**
+   * CORS CONFIGURATION — Environment-driven origins
+   *
+   * CORS_ORIGINS env var: comma-separated list of allowed origins.
+   * Supports exact URLs and regex patterns (prefix with "regex:").
+   *
+   * Examples:
+   *   CORS_ORIGINS=https://toofreshtowaste.com,https://admin.toofreshtowaste.com
+   *   CORS_ORIGINS=http://localhost:3000,http://localhost:3001,regex:^https://[a-z0-9-]+\\.ngrok\\.app$
+   *
+   * Falls back to safe localhost defaults ONLY in development.
+   */
+  const corsOrigins = appConfigService.get<string>('CORS_ORIGINS');
+  const parsedOrigins: (string | RegExp)[] = corsOrigins
+    ? corsOrigins.split(',').map((origin) => {
+        const trimmed = origin.trim();
+        if (trimmed.startsWith('regex:')) {
+          return new RegExp(trimmed.slice('regex:'.length));
+        }
+        return trimmed;
+      })
+    : isProduction
+      ? [] // No fallback in production — CORS_ORIGINS MUST be set (validated by Joi schema)
+      : [
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'http://localhost:8081',
+          'http://10.0.2.2:3000',
+          'http://10.0.2.2:8081',
+          'http://127.0.0.1:8081',
+        ];
+
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:8081',
-      'http://10.0.2.2:3000',
-      'http://10.0.2.2:8081',
-      'http://127.0.0.1:8081',
-      'http://192.168.1.6:3000',
-      'null',
-      // ngrok domains - Add your ngrok URL pattern
-      /^https:\/\/[a-z0-9-]+\.ngrok\.app$/,
-    ],
+    origin: parsedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
@@ -366,9 +393,9 @@ This API provides comprehensive endpoints for:
     .addServer('https://staging-api.foodwaste.app', 'Staging Environment')
     .addServer('https://api.foodwaste.app', 'Production')
     .addTag('Authentication', 'User authentication and authorization endpoints')
-    .addTag('Users', 'User profile and preferences management')
-    .addTag('Establishments', 'Restaurant and merchant management')
-    .addTag('Offers', 'Surplus food offers and listings')
+    .addTag('👥 User Management', 'User profile and preferences management')
+    .addTag('🏪 Establishments Management', 'Restaurant and merchant management')
+    .addTag('Offers Management', 'Surplus food offers and listings')
     .addTag('Orders', 'Order creation and management')
     .addTag('Reviews', 'Review and rating system')
     .addTag('Favorites', 'User favorites and bookmarks')
@@ -378,11 +405,12 @@ This API provides comprehensive endpoints for:
     .addTag('Loyalty', 'Loyalty program and rewards')
     .addTag('Analytics', 'Business analytics and reporting')
     .addTag('Admin', 'Administrative operations (admin only)')
-    .addTag('Search', 'Global search functionality')
-    .addTag('Social', 'Social features and community')
+    .addTag('🔍 Advanced Search', 'Global search functionality')
     .addTag('Donations', 'Food donation features')
     .addTag('Inventory', 'Inventory management')
-    .addTag('Moderation', 'Content moderation')
+    .addTag('Moderation - Actions', 'Moderation actions')
+    .addTag('Moderation - Logs', 'Moderation audit logs')
+    .addTag('Moderation - Reports', 'Content reports and reviews')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -397,7 +425,6 @@ This API provides comprehensive endpoints for:
       tryItOutEnabled: true, // Enable Try it out by default
     },
     customSiteTitle: 'Food Waste API Documentation',
-    customfavIcon: '/favicon.ico',
     customCss: `
             .swagger-ui .topbar { display: none }
             .swagger-ui .info .title { color: #2c3e50; }
@@ -432,8 +459,9 @@ This API provides comprehensive endpoints for:
       );
     }
   } else {
+    app.useWebSocketAdapter(new SecureIoAdapter(app));
     logger.startup(
-      'Development mode — using in-memory Socket.IO adapter (Redis IO adapter skipped)',
+      'Development mode — using SecureIoAdapter (security headers on Socket.IO polling)',
     );
   }
 
@@ -445,9 +473,16 @@ This API provides comprehensive endpoints for:
     sentryEnabled: !!sentryDsn,
   });
 
-  process.on('SIGTERM', async () => {
+  const SHUTDOWN_TIMEOUT_MS = 10_000;
+
+  const gracefulShutdown = async (signal: string) => {
+    const forceExitTimer = setTimeout(() => {
+      logger.warn(`Shutdown timed out after ${SHUTDOWN_TIMEOUT_MS}ms — forcing exit`);
+      process.exit(1);
+    }, SHUTDOWN_TIMEOUT_MS);
+
     try {
-      logger.shutdown('SIGTERM received, shutting down gracefully...');
+      logger.shutdown(`${signal} received, shutting down gracefully...`);
 
       // Flush Sentry events before shutdown
       if (sentryDsn) {
@@ -455,32 +490,20 @@ This API provides comprehensive endpoints for:
       }
 
       await app.close();
+      clearTimeout(forceExitTimer);
       process.exit(0);
     } catch (error) {
+      clearTimeout(forceExitTimer);
       logger.error(
-        'Error during SIGTERM shutdown:',
+        `Error during ${signal} shutdown:`,
         error instanceof Error ? error : String(error),
       );
       process.exit(1);
     }
-  });
+  };
 
-  process.on('SIGINT', async () => {
-    try {
-      logger.shutdown('SIGINT received, shutting down gracefully...');
-
-      // Flush Sentry events before shutdown
-      if (sentryDsn) {
-        await Sentry.close(2000);
-      }
-
-      await app.close();
-      process.exit(0);
-    } catch (error) {
-      logger.error('Error during SIGINT shutdown:', error instanceof Error ? error : String(error));
-      process.exit(1);
-    }
-  });
+  process.on('SIGTERM', () => void gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => void gracefulShutdown('SIGINT'));
 }
 bootstrap().catch(async (error) => {
   const logger = new AppLoggerService();
@@ -490,7 +513,7 @@ bootstrap().catch(async (error) => {
     'Bootstrap',
   );
 
-  console.error(`[Bootstrap Error] Error ID: ${errorId}`);
+  logger.error(`Bootstrap Error — Error ID: ${errorId}`, undefined, 'Bootstrap');
 
   // Ensure Sentry captures bootstrap errors
   if (process.env['SENTRY_DSN']) {

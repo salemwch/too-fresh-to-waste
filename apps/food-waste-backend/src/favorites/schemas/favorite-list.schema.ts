@@ -18,7 +18,7 @@ export class ListItem {
   @Prop()
   addedAt!: Date;
 
-  @Prop()
+  @Prop({ type: String })
   notes?: string | undefined;
 
   @Prop({ default: 0 })

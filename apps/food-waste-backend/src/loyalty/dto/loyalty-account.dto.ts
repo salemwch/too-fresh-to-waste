@@ -1,42 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsOptional,
-  IsString,
-  IsNumber,
-  Min,
-  IsBoolean,
-  IsEnum,
-  IsArray,
-  ValidateNested,
-  IsDate,
-  IsMongoId,
-} from 'class-validator';
-
-import { BadgeType } from '../schemas/loyalty-account.schema';
-
-class BadgeDto {
-  @ApiProperty({ enum: BadgeType })
-  @IsEnum(BadgeType)
-  type!: BadgeType;
-
-  @ApiProperty()
-  @IsDate()
-  @Type(() => Date)
-  earnedAt!: Date;
-
-  @ApiProperty()
-  @IsString()
-  name!: string;
-
-  @ApiProperty()
-  @IsString()
-  description!: string;
-
-  @ApiProperty()
-  @IsString()
-  iconUrl!: string;
-}
+import { IsOptional, IsString, IsNumber, Min, IsBoolean, IsDate, IsMongoId } from 'class-validator';
 
 export class CreateLoyaltyAccountDto {
   @ApiProperty()
@@ -47,37 +11,6 @@ export class CreateLoyaltyAccountDto {
   @IsOptional()
   @IsMongoId()
   referredBy?: string;
-}
-
-class UpdateLoyaltyAccountDto {
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  totalPoints?: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  availablePoints?: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  currentTier?: string;
-
-  @ApiProperty({ type: [BadgeDto], required: false })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => BadgeDto)
-  badges?: BadgeDto[];
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }
 
 export class AddPointsDto {
@@ -133,22 +66,6 @@ export class AddPointsDto {
   @IsOptional()
   @IsBoolean()
   bypassMultiplier?: boolean;
-}
-
-class RedeemPointsDto {
-  @ApiProperty()
-  @IsNumber()
-  @Min(1)
-  amount!: number;
-
-  @ApiProperty()
-  @IsString()
-  reason!: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsMongoId()
-  orderId?: string;
 }
 
 export class LoyaltyStatsDto {
