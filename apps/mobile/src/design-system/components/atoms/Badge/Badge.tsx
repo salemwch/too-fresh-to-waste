@@ -14,11 +14,16 @@ import { createBadgeStyles } from './Badge.styles';
 
 import type { BadgeProps } from './Badge.types';
 
+const hasRenderableNode = (
+  value: React.ReactNode | undefined,
+): value is Exclude<React.ReactNode, null | undefined | false> =>
+  value !== null && value !== undefined && value !== false;
+
 export const Badge = forwardRef<
   React.ElementRef<typeof View> | React.ElementRef<typeof Pressable>,
   BadgeProps
 >(
-  function Badge(
+  (
     {
       variant = 'default',
       size = 'md',
@@ -45,7 +50,7 @@ export const Badge = forwardRef<
       ...rest
     },
     ref,
-  ) {
+  ) => {
     const theme = useTheme();
 
     // Create styles
@@ -67,24 +72,24 @@ export const Badge = forwardRef<
 
       return (
         <>
-          {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
+          {hasRenderableNode(leftIcon) && <View style={styles.leftIcon}>{leftIcon}</View>}
 
           {label !== undefined && <Text style={[styles.text, textStyle]}>{label}</Text>}
 
-          {rightIcon && <View style={styles.rightIcon}>{rightIcon}</View>}
+          {hasRenderableNode(rightIcon) && <View style={styles.rightIcon}>{rightIcon}</View>}
 
-          {closable && onClose && (
+          {closable && onClose !== undefined && (
             <Pressable
               style={styles.closeButton}
               onPress={onClose}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityLabel='Remove badge'
-              accessibilityRole='button'
+              accessibilityLabel="Remove badge"
+              accessibilityRole="button"
             >
               <Icon
-                name='close'
+                name="close"
                 size={size === 'xs' ? 10 : size === 'sm' ? 12 : 14}
-                color={color || theme.colors.onPrimary}
+                color={color ?? theme.colors.onPrimary}
               />
             </Pressable>
           )}
@@ -93,7 +98,7 @@ export const Badge = forwardRef<
     };
 
     // If pressable, wrap in Pressable
-    if (pressable && onPress) {
+    if (pressable && onPress !== undefined) {
       return (
         <Pressable
           ref={ref as React.RefObject<React.ElementRef<typeof Pressable>>}
@@ -101,10 +106,10 @@ export const Badge = forwardRef<
           onPress={onPress}
           testID={testID}
           accessibilityLabel={
-            accessibilityLabel || (typeof label === 'string' ? label : String(label))
+            accessibilityLabel ?? (label !== undefined ? String(label) : undefined)
           }
           accessibilityHint={accessibilityHint}
-          accessibilityRole={accessibilityRole || 'button'}
+          accessibilityRole={accessibilityRole ?? 'button'}
           {...rest}
         >
           {renderContent()}
@@ -118,11 +123,9 @@ export const Badge = forwardRef<
         ref={ref as React.RefObject<React.ElementRef<typeof View>>}
         style={[styles.container, style]}
         testID={testID}
-        accessibilityLabel={
-          accessibilityLabel || (typeof label === 'string' ? label : String(label))
-        }
+        accessibilityLabel={accessibilityLabel ?? (label !== undefined ? String(label) : undefined)}
         accessibilityHint={accessibilityHint}
-        accessibilityRole={accessibilityRole || 'text'}
+        accessibilityRole={accessibilityRole ?? 'text'}
         {...rest}
       >
         {renderContent()}
@@ -131,3 +134,4 @@ export const Badge = forwardRef<
   },
 );
 
+Badge.displayName = 'Badge';

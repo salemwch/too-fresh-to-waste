@@ -23,5 +23,3 @@ export type {
   GamificationStats,
   LoginStreakResponse,
 } from '@foodwaste/shared';
-
-export { getNextTier, compareTiers } from '@foodwaste/shared';

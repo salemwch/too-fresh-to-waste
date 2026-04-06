@@ -8,10 +8,11 @@ This document outlines all available offer endpoints from the backend and how to
 **Mobile Service:** ✅ `getRecommendedOffers` added to `offersService.ts`
 **Mobile Hooks:** ✅ `useRecommendedOffers` added to `useOffers.ts`
 **HomeScreen:** ✅ Updated with 4 sections:
-  1. **For You** (Recommended) - Personalized offers based on favorites
-  2. **Urgent Deals** (Featured) - Auto-featured urgent offers
-  3. **Hottest Deals** - Offers with 70%+ discount
-  4. **Near You** (Nearby) - Location-based offers
+
+1. **For You** (Recommended) - Personalized offers based on favorites
+2. **Urgent Deals** (Featured) - Auto-featured urgent offers
+3. **Hottest Deals** - Offers with 70%+ discount
+4. **Near You** (Nearby) - Location-based offers
 
 ---
 
@@ -28,25 +29,30 @@ This document outlines all available offer endpoints from the backend and how to
 ## 🎯 Available Endpoints
 
 ### 1. **GET /api/v1/offers/recommended** 🆕
+
 **Purpose:** Personalized offer recommendations based on user favorites
 **Authentication:** Required (JWT)
 **Use Case:** "For You" section in HomeScreen
 
 **Query Parameters:**
+
 - `limit` (optional, default: 20, max: 100) - Number of offers to return
 
 **Business Logic:**
+
 - Priority 1: Offers from user's favorited establishments
 - Priority 2: Offers in user's favorited categories
 - Fallback: Featured offers (if no favorites exist)
 
 **Ranking:**
+
 - Favorited establishments first
 - Highest discount percentage
 - Expiring soon (urgent offers prioritized)
 - Newest first (tie-breaker)
 
 **Hard Filters Applied:**
+
 - ✅ `status = ACTIVE`
 - ✅ `isActive = true`
 - ✅ `availableQuantity > 0` (not sold out)
@@ -54,6 +60,7 @@ This document outlines all available offer endpoints from the backend and how to
 - ✅ `availableFrom <= now` (already started)
 
 **Response:**
+
 ```json
 {
   "message": "Recommended offers retrieved successfully",
@@ -65,19 +72,23 @@ This document outlines all available offer endpoints from the backend and how to
 ---
 
 ### 2. **GET /api/v1/offers/featured**
+
 **Purpose:** Auto-featured and manually featured offers
 **Authentication:** Public (no auth required)
 **Use Case:** "Featured" or "Urgent Deals" section
 
 **Query Parameters:**
+
 - `limit` (optional, default: 10, max: 100)
 
 **Business Logic:**
+
 - Returns offers where `isFeaturedManual = true` OR `isFeaturedAuto = true`
 - Auto-featured = urgent offers (existed ≥2h, ≤1.5h remaining)
 - Manually featured = admin-promoted offers
 
 **Filters:**
+
 - `status = ACTIVE`
 - `isFeatured = true` (virtual field combining manual + auto)
 - `isActive = true`
@@ -87,6 +98,7 @@ This document outlines all available offer endpoints from the backend and how to
 **Sort:** `createdAt DESC`
 
 **Response:**
+
 ```json
 {
   "message": "Featured offers retrieved successfully",
@@ -97,22 +109,26 @@ This document outlines all available offer endpoints from the backend and how to
 ---
 
 ### 3. **GET /api/v1/offers/nearby**
+
 **Purpose:** Offers near user's location
 **Authentication:** Public
 **Use Case:** "Near You" section
 
 **Query Parameters:**
+
 - `longitude` (required) - User's longitude
 - `latitude` (required) - User's latitude
 - `maxDistance` (optional, default: 5000) - Max distance in meters
 - `limit` (optional, default: 20, max: 100)
 
 **Business Logic:**
+
 - Uses geospatial queries with 2dsphere index
 - Calculates distance to establishment
 - Returns offers sorted by proximity
 
 **Filters:**
+
 - `status = ACTIVE`
 - `isActive = true`
 - `availableFrom <= now`
@@ -122,6 +138,7 @@ This document outlines all available offer endpoints from the backend and how to
 **Sort:** `distance ASC` (closest first)
 
 **Response:**
+
 ```json
 {
   "message": "Nearby offers retrieved successfully",
@@ -137,11 +154,13 @@ This document outlines all available offer endpoints from the backend and how to
 ---
 
 ### 4. **GET /api/v1/offers** (Search/Browse All)
+
 **Purpose:** Browse and search all offers with filters
 **Authentication:** Public
 **Use Case:** "Browse All" section, search results
 
 **Query Parameters:**
+
 - `page` (optional, default: 1)
 - `limit` (optional, default: 12, max: 100)
 - `search` (optional) - Full-text search (title, description)
@@ -158,12 +177,14 @@ This document outlines all available offer endpoints from the backend and how to
 - `longitude` + `latitude` + `maxDistance` (optional) - Geolocation filter
 
 **Business Logic:**
+
 - Most flexible endpoint for advanced filtering
 - Supports full-text search
 - Supports geolocation-based filtering
 - Pagination support
 
 **Auto-applied Filters (for public queries):**
+
 - `status = ACTIVE`
 - `isActive = true`
 - `availableFrom <= now`
@@ -172,6 +193,7 @@ This document outlines all available offer endpoints from the backend and how to
 **Default Sort:** `createdAt DESC`
 
 **Response:**
+
 ```json
 {
   "message": "Offers retrieved successfully",
@@ -188,15 +210,18 @@ This document outlines all available offer endpoints from the backend and how to
 ---
 
 ### 5. **GET /api/v1/offers/establishment/:establishmentId**
+
 **Purpose:** All offers from a specific establishment
 **Authentication:** Public
 **Use Case:** Establishment detail page
 
 **Query Parameters:**
+
 - `page` (optional, default: 1)
 - `limit` (optional, default: 10, max: 100)
 
 **Response:**
+
 ```json
 {
   "message": "Establishment offers retrieved successfully",
@@ -213,11 +238,13 @@ This document outlines all available offer endpoints from the backend and how to
 ---
 
 ### 6. **GET /api/v1/offers/:id**
+
 **Purpose:** Get single offer details
 **Authentication:** Public
 **Use Case:** Offer detail page
 
 **Response:**
+
 ```json
 {
   "message": "Offer retrieved successfully",
@@ -485,21 +512,13 @@ export const useFeaturedOffers = (limit: number = 10) => {
 };
 
 // 3. Nearby Offers
-export const useNearbyOffers = (
-  maxDistance: number = 5000,
-  limit: number = 15
-) => {
+export const useNearbyOffers = (maxDistance: number = 5000, limit: number = 15) => {
   const { location } = useLocation(); // Your location hook
 
   return useQuery({
     queryKey: ['offers', 'nearby', location?.longitude, location?.latitude, maxDistance, limit],
     queryFn: () =>
-      offersService.getNearbyOffers(
-        location!.longitude,
-        location!.latitude,
-        maxDistance,
-        limit
-      ),
+      offersService.getNearbyOffers(location!.longitude, location!.latitude, maxDistance, limit),
     enabled: !!location, // Only fetch if location is available
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -647,17 +666,20 @@ const QUERY_KEYS = {
 ## ⚡ Performance Considerations
 
 ### 1. **Stale Time Configuration**
+
 - **Featured Offers:** 2 minutes (urgent, update frequently)
 - **Recommended Offers:** 5 minutes (personalized, moderate freshness)
 - **Nearby Offers:** 5 minutes (location-based, moderate)
 - **Hottest/New Arrivals:** 10 minutes (less time-sensitive)
 
 ### 2. **Pagination Strategy**
+
 - Use `limit` parameter to control initial load size
 - Implement infinite scroll for "Browse All" section
 - Keep HomeScreen sections small (10-15 items max)
 
 ### 3. **Caching Strategy**
+
 ```typescript
 // Example: Prefetch offer details on card press
 const prefetchOfferDetails = (offerId: string) => {
@@ -669,6 +691,7 @@ const prefetchOfferDetails = (offerId: string) => {
 ```
 
 ### 4. **Error Handling**
+
 ```typescript
 // Graceful fallbacks
 const { data, isLoading, error } = useRecommendedOffers();
@@ -680,6 +703,7 @@ if (error) {
 ```
 
 ### 5. **Optimistic Updates**
+
 ```typescript
 // Example: Favorite an offer (optimistic update)
 const favoriteOffer = useMutation({
@@ -692,7 +716,7 @@ const favoriteOffer = useMutation({
     queryClient.setQueryData(['offers', 'recommended'], (old: any) => ({
       ...old,
       data: old.data.map((offer: Offer) =>
-        offer.id === offerId ? { ...offer, isFavorite: true } : offer
+        offer.id === offerId ? { ...offer, isFavorite: true } : offer,
       ),
     }));
   },

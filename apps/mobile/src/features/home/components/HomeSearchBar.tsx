@@ -16,11 +16,10 @@
  * - Handle chip removal
  */
 
-import React from 'react';
+import { memo } from 'react';
 import { View, StyleSheet, Pressable, TextInput } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
-
 import { ActiveFilterChips } from '@/features/search/components';
 import { hasActiveFilters, countActiveFilters } from '@/features/search/types/filter.types';
 
@@ -52,6 +51,19 @@ interface HomeSearchBarProps {
   onClearAllFilters: () => void;
 }
 
+const COLORS = {
+  brand: '#005250',
+  danger: '#EF4444',
+  surface: '#F8FAFC',
+  surfaceAccent: '#D1FAE5',
+  border: '#E2E8F0',
+  textPrimary: '#1F2937',
+  textSecondary: '#64748B',
+  textInverse: '#FFFFFF',
+  textPlaceholder: '#94A3B8',
+  shadow: '#000',
+} as const;
+
 // ============================================================================
 // Component
 // ============================================================================
@@ -72,7 +84,7 @@ interface HomeSearchBarProps {
  * - Memoized with React.memo
  * - Only re-renders when props change
  */
-const HomeSearchBarComponent: React.FC<HomeSearchBarProps> = ({
+const HomeSearchBarComponent = ({
   searchQuery,
   onSearchChange,
   filters,
@@ -82,8 +94,7 @@ const HomeSearchBarComponent: React.FC<HomeSearchBarProps> = ({
   onRemoveCuisineType,
   onRemoveCategory,
   onClearAllFilters,
-}) => {
-
+}: HomeSearchBarProps) => {
   // Calculate filter status
   const hasFilters = hasActiveFilters(filters);
   const filterCount = countActiveFilters(filters);
@@ -95,12 +106,18 @@ const HomeSearchBarComponent: React.FC<HomeSearchBarProps> = ({
       <View style={styles.container}>
         <View style={styles.searchBar}>
           {/* Search Icon */}
-          <Icon name="search" family="Ionicons" size={20} color="#94A3B8" style={styles.searchIcon} />
+          <Icon
+            name="search"
+            family="Ionicons"
+            size={20}
+            color={COLORS.textPlaceholder}
+            style={styles.searchIcon}
+          />
 
           {/* Search Input */}
           <TextInput
             placeholder="Search for food..."
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={COLORS.textPlaceholder}
             value={searchQuery}
             onChangeText={onSearchChange}
             returnKeyType="search"
@@ -128,7 +145,7 @@ const HomeSearchBarComponent: React.FC<HomeSearchBarProps> = ({
               name="options-outline"
               family="Ionicons"
               size={22}
-              color={hasFilters ? '#005250' : '#64748B'}
+              color={hasFilters ? COLORS.brand : COLORS.textSecondary}
             />
             {hasFilters && (
               <View style={styles.filterBadge}>
@@ -146,7 +163,7 @@ const HomeSearchBarComponent: React.FC<HomeSearchBarProps> = ({
           {searchQuery.trim().length > 0 && (
             <View style={styles.searchChipContainer}>
               <View style={styles.searchChip}>
-                <Icon name="search" family="Ionicons" size={14} color="#005250" />
+                <Icon name="search" family="Ionicons" size={14} color={COLORS.brand} />
                 <Text style={styles.searchChipText} numberOfLines={1}>
                   {searchQuery}
                 </Text>
@@ -156,7 +173,7 @@ const HomeSearchBarComponent: React.FC<HomeSearchBarProps> = ({
                   accessibilityLabel="Clear search"
                   accessibilityRole="button"
                 >
-                  <Icon name="close" family="Ionicons" size={16} color="#005250" />
+                  <Icon name="close" family="Ionicons" size={16} color={COLORS.brand} />
                 </Pressable>
               </View>
             </View>
@@ -181,7 +198,7 @@ const HomeSearchBarComponent: React.FC<HomeSearchBarProps> = ({
 
 HomeSearchBarComponent.displayName = 'HomeSearchBar';
 
-export const HomeSearchBar = React.memo(HomeSearchBarComponent);
+export const HomeSearchBar = memo(HomeSearchBarComponent);
 
 // ============================================================================
 // Styles
@@ -198,13 +215,13 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
+    borderColor: COLORS.border,
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
@@ -221,7 +238,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: '#1F2937',
+    color: COLORS.textPrimary,
     padding: 0,
     margin: 0,
   },
@@ -230,7 +247,7 @@ const styles = StyleSheet.create({
   verticalDivider: {
     width: 1,
     height: 24,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: COLORS.border,
     marginHorizontal: 12,
   },
 
@@ -245,7 +262,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 2,
     right: 2,
-    backgroundColor: '#EF4444',
+    backgroundColor: COLORS.danger,
     borderRadius: 8,
     minWidth: 16,
     height: 16,
@@ -254,7 +271,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   filterBadgeText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 10,
     fontWeight: '700',
   },
@@ -273,7 +290,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#D1FAE5',
+    backgroundColor: COLORS.surfaceAccent,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -283,7 +300,7 @@ const styles = StyleSheet.create({
   searchChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#005250',
+    color: COLORS.brand,
     flex: 1,
   },
 });

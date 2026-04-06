@@ -4,15 +4,7 @@
  */
 
 import React, { useCallback, useState, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  Switch,
-  Pressable,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, Switch, Pressable, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { Text, Button, Card, Avatar, Icon, Badge } from '@/design-system/components/atoms';
@@ -28,9 +20,18 @@ import { Logger } from '@/utils/logger';
 
 import type { TierName } from '@/features/loyalty/types/loyalty.types';
 import type { ProfileScreenNavigationProp } from '@/navigation/types';
+
 interface ProfileScreenProps {
   navigation: ProfileScreenNavigationProp;
 }
+
+const CARD_SHADOW = '#000';
+const WHITE = '#FFFFFF';
+const WHITE_80 = 'rgba(255,255,255,0.8)';
+const WHITE_70 = 'rgba(255,255,255,0.7)';
+const WHITE_15 = 'rgba(255,255,255,0.15)';
+const LEADERBOARD_SHADOW = '#5a42e0';
+const LEADERBOARD_SUBTEXT = 'rgba(224,214,255,0.85)';
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const theme = useTheme();
@@ -213,13 +214,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       <View style={styles.menuItemLeft}>
         <Icon
           name={icon}
-          family='Ionicons'
+          family="Ionicons"
           size={24}
           color={disabled ? theme.colors.outline : theme.colors.onSurfaceVariant}
         />
         <Text
-          variant='body'
-          size='md'
+          variant="body"
+          size="md"
           style={[styles.menuItemLabel, disabled && { color: theme.colors.outline }]}
         >
           {label}
@@ -227,7 +228,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       </View>
       <View style={styles.menuItemRight}>
         {badge != null && (
-          <Badge label={badge} variant='error' size='sm' style={styles.menuBadge} />
+          <Badge label={badge} variant="error" size="sm" style={styles.menuBadge} />
         )}
         {switchValue !== undefined && onSwitchChange && (
           <Switch
@@ -243,8 +244,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         )}
         {showArrow && switchValue === undefined && (
           <Icon
-            name='chevron-forward'
-            family='Ionicons'
+            name="chevron-forward"
+            family="Ionicons"
             size={20}
             color={theme.colors.onSurfaceVariant}
           />
@@ -258,37 +259,37 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        accessibilityLabel='Profile screen content'
-        accessibilityHint='Scroll to view your profile, settings, and account options'
+        accessibilityLabel="Profile screen content"
+        accessibilityHint="Scroll to view your profile, settings, and account options"
       >
         {/* Profile Header */}
         <Card style={styles.profileCard}>
           <View style={styles.profileHeader}>
             <Avatar
-              size='xl'
+              size="xl"
               {...(avatarUri ? { source: { uri: avatarUri } } : {})}
               initials={initials}
-              variant='circular'
+              variant="circular"
             />
             <View style={styles.profileInfo}>
-              <Text variant='title' size='lg' weight='semibold'>
+              <Text variant="title" size="lg" weight="semibold">
                 {user?.firstName} {user?.lastName}
               </Text>
-              <Text variant='body' size='sm' color='secondary'>
+              <Text variant="body" size="sm" color="secondary">
                 {user?.email}
               </Text>
             </View>
           </View>
 
           <Button
-            variant='outline'
-            size='md'
+            variant="outline"
+            size="md"
             onPress={handleEditProfile}
-            leftIcon='create-outline'
-            leftIconFamily='Ionicons'
+            leftIcon="create-outline"
+            leftIconFamily="Ionicons"
             style={styles.editButton}
-            accessibilityLabel='Edit profile'
-            accessibilityHint='Opens profile editing screen to update your information'
+            accessibilityLabel="Edit profile"
+            accessibilityHint="Opens profile editing screen to update your information"
           >
             Edit Profile
           </Button>
@@ -299,9 +300,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           onPress={() => navigation.navigate('Loyalty')}
           android_ripple={{ color: 'rgba(0, 82, 80, 0.08)', borderless: false }}
           style={({ pressed }) => [Platform.OS === 'ios' && pressed && { opacity: 0.85 }]}
-          accessibilityRole='button'
-          accessibilityLabel='My Points'
-          accessibilityHint='Tap to view your loyalty points and rewards'
+          accessibilityRole="button"
+          accessibilityLabel="My Points"
+          accessibilityHint="Tap to view your loyalty points and rewards"
         >
           {(() => {
             const tierConfig = getTierConfig(currentTier);
@@ -314,18 +315,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               >
                 <View style={styles.loyaltyCardTop}>
                   <View>
-                    <Text variant='body' size='sm' style={styles.loyaltyLabel}>
+                    <Text variant="body" size="sm" style={styles.loyaltyLabel}>
                       My Points
                     </Text>
-                    <Text variant='headline' size='lg' weight='bold' style={styles.loyaltyPoints}>
+                    <Text variant="headline" size="lg" weight="bold" style={styles.loyaltyPoints}>
                       {availablePoints !== null ? availablePoints.toLocaleString() : '--'}
                     </Text>
                   </View>
                   <View
                     style={[styles.tierBadgePill, { backgroundColor: tierConfig.gradientStart }]}
                   >
-                    <Icon name={tierConfig.icon} family='Ionicons' size={14} color='#FFFFFF' />
-                    <Text variant='body' size='xs' weight='bold' style={styles.tierBadgeText}>
+                    <Icon name={tierConfig.icon} family="Ionicons" size={14} color="#FFFFFF" />
+                    <Text variant="body" size="xs" weight="bold" style={styles.tierBadgeText}>
                       {currentTier}
                     </Text>
                   </View>
@@ -333,14 +334,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
                 {/* Tap hint row */}
                 <View style={styles.tapHintRow}>
-                  <Text variant='body' size='xs' style={styles.tapHintText}>
+                  <Text variant="body" size="xs" style={styles.tapHintText}>
                     Tap to view rewards
                   </Text>
                   <Icon
-                    name='chevron-forward'
-                    family='Ionicons'
+                    name="chevron-forward"
+                    family="Ionicons"
                     size={16}
-                    color='rgba(255,255,255,0.7)'
+                    color="rgba(255,255,255,0.7)"
                   />
                 </View>
               </LinearGradient>
@@ -353,9 +354,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           onPress={() => navigation.navigate('Leaderboard')}
           android_ripple={{ color: 'rgba(90, 66, 224, 0.08)', borderless: false }}
           style={({ pressed }) => [Platform.OS === 'ios' && pressed && { opacity: 0.85 }]}
-          accessibilityRole='button'
-          accessibilityLabel='Leaderboard'
-          accessibilityHint='Tap to view the community leaderboard'
+          accessibilityRole="button"
+          accessibilityLabel="Leaderboard"
+          accessibilityHint="Tap to view the community leaderboard"
         >
           <LinearGradient
             colors={['#8a75f8', '#5a42e0']}
@@ -369,13 +370,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               <Text style={styles.leaderboardCardSub}>See where you rank</Text>
             </View>
             <View style={styles.leaderboardCardRight}>
-              <Icon name='trophy' family='Ionicons' size={36} color='rgba(255,255,255,0.4)' />
+              <Icon name="trophy" family="Ionicons" size={36} color="rgba(255,255,255,0.4)" />
               <Icon
-                name='chevron-forward'
-                family='Ionicons'
+                name="chevron-forward"
+                family="Ionicons"
                 size={20}
-                color='rgba(255,255,255,0.7)'
-                style={{ marginTop: 12 }}
+                color="rgba(255,255,255,0.7)"
+                style={styles.leaderboardChevron}
               />
             </View>
           </LinearGradient>
@@ -383,34 +384,34 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
         {/* Menu Sections */}
         <Card style={styles.menuCard}>
-          <Text variant='title' size='md' weight='semibold' style={styles.menuTitle}>
+          <Text variant="title" size="md" weight="semibold" style={styles.menuTitle}>
             Account
           </Text>
           <View style={styles.menuList}>
             <MenuItem
-              icon='person-outline'
-              label='Personal Information'
+              icon="person-outline"
+              label="Personal Information"
               onPress={handleEditProfile}
-              accessibilityHint='Edit your personal details and contact information'
+              accessibilityHint="Edit your personal details and contact information"
             />
             <MenuItem
-              icon='shield-checkmark-outline'
-              label='Security'
+              icon="shield-checkmark-outline"
+              label="Security"
               onPress={handleNavigateToSecurity}
-              accessibilityHint='Manage password and security settings'
+              accessibilityHint="Manage password and security settings"
             />
             <MenuItem
-              icon='trophy-outline'
-              label='Leaderboard'
+              icon="trophy-outline"
+              label="Leaderboard"
               onPress={() => navigation.navigate('Leaderboard')}
-              accessibilityHint='View the community loyalty points leaderboard'
+              accessibilityHint="View the community loyalty points leaderboard"
             />
           </View>
         </Card>
 
         {/* Security Settings */}
         <Card style={styles.menuCard}>
-          <Text variant='title' size='md' weight='semibold' style={styles.menuTitle}>
+          <Text variant="title" size="md" weight="semibold" style={styles.menuTitle}>
             Security Settings
           </Text>
           <View style={styles.menuList}>
@@ -423,7 +424,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               }
               label={`${BiometricAuth.getBiometricTypeName(biometricType)} Login`}
               switchValue={biometricEnabled}
-              onSwitchChange={value => {
+              onSwitchChange={(value) => {
                 void handleBiometricToggle(value);
               }}
               disabled={!biometricSupported || loadingBiometric}
@@ -432,64 +433,64 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             />
           </View>
           {!biometricSupported && !loadingBiometric && (
-            <Text variant='body' size='xs' color='secondary' style={styles.biometricHint}>
+            <Text variant="body" size="xs" color="secondary" style={styles.biometricHint}>
               Biometric authentication is not available on this device
             </Text>
           )}
           {biometricSupported && (
-            <Text variant='body' size='xs' color='secondary' style={styles.biometricHint}>
+            <Text variant="body" size="xs" color="secondary" style={styles.biometricHint}>
               Use {BiometricAuth.getBiometricTypeName(biometricType)} for quick and secure login
             </Text>
           )}
         </Card>
 
         <Card style={styles.menuCard}>
-          <Text variant='title' size='md' weight='semibold' style={styles.menuTitle}>
+          <Text variant="title" size="md" weight="semibold" style={styles.menuTitle}>
             Preferences
           </Text>
           <View style={styles.menuList}>
             <MenuItem
-              icon='settings-outline'
-              label='Settings'
+              icon="settings-outline"
+              label="Settings"
               onPress={handleNavigateToSettings}
-              accessibilityHint='Access app settings and preferences'
+              accessibilityHint="Access app settings and preferences"
             />
           </View>
         </Card>
 
         <Card style={styles.menuCard}>
-          <Text variant='title' size='md' weight='semibold' style={styles.menuTitle}>
+          <Text variant="title" size="md" weight="semibold" style={styles.menuTitle}>
             Support
           </Text>
           <View style={styles.menuList}>
             <MenuItem
-              icon='chatbubble-outline'
-              label='Contact Support'
+              icon="chatbubble-outline"
+              label="Contact Support"
               onPress={() => {}}
-              accessibilityHint='Get help from our support team'
+              accessibilityHint="Get help from our support team"
             />
           </View>
         </Card>
 
         {/* Logout Button */}
         <Button
-          variant='outline'
-          size='lg'
+          variant="outline"
+          size="lg"
           onPress={() => void handleLogout()}
           loading={loggingOut}
           disabled={loggingOut}
-          leftIcon='log-out-outline'
-          leftIconFamily='Ionicons'
+          leftIcon="log-out-outline"
+          leftIconFamily="Ionicons"
           style={[styles.logoutButton, { borderColor: theme.colors.error }]}
           textStyle={{ color: theme.colors.error }}
-          accessibilityLabel='Logout'
-          accessibilityHint='Sign out of your account'
+          accessibilityLabel="Logout"
+          accessibilityHint="Sign out of your account"
         >
           Logout
         </Button>
 
         {/* App Version */}
-        <Text variant='body' size='xs' color='secondary' align='center' style={styles.appVersion}>
+        <Text variant="body" size="xs" color="secondary" align="center" style={styles.appVersion}>
           Food Waste Marketplace v1.0.0
         </Text>
       </ScrollView>
@@ -525,7 +526,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: CARD_SHADOW,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
@@ -537,11 +538,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loyaltyLabel: {
-    color: 'rgba(255,255,255,0.8)',
+    color: WHITE_80,
     marginBottom: 4,
   },
   loyaltyPoints: {
-    color: '#FFFFFF',
+    color: WHITE,
   },
   tierBadgePill: {
     flexDirection: 'row',
@@ -551,7 +552,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   tierBadgeText: {
-    color: '#FFFFFF',
+    color: WHITE,
     marginLeft: 5,
   },
   tapHintRow: {
@@ -560,11 +561,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     marginTop: 14,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.15)',
+    borderTopColor: WHITE_15,
     paddingTop: 10,
   },
   tapHintText: {
-    color: 'rgba(255,255,255,0.7)',
+    color: WHITE_70,
     marginRight: 4,
   },
   leaderboardCard: {
@@ -575,7 +576,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#5a42e0',
+    shadowColor: LEADERBOARD_SHADOW,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
@@ -586,7 +587,7 @@ const styles = StyleSheet.create({
   },
   leaderboardCardLabel: {
     fontSize: 11,
-    color: 'rgba(255,255,255,0.7)',
+    color: WHITE_70,
     fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
@@ -595,15 +596,18 @@ const styles = StyleSheet.create({
   leaderboardCardTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: WHITE,
     marginBottom: 4,
   },
   leaderboardCardSub: {
     fontSize: 13,
-    color: 'rgba(224,214,255,0.85)',
+    color: LEADERBOARD_SUBTEXT,
   },
   leaderboardCardRight: {
     alignItems: 'center',
+  },
+  leaderboardChevron: {
+    marginTop: 12,
   },
   menuCard: {
     padding: 16,

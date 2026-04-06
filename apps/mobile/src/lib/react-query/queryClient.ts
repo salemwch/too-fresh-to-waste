@@ -15,6 +15,20 @@ import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { ErrorHandler } from '@/utils/errorHandler';
 import { Logger } from '@/utils/logger';
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object';
+
+const hasValue = (value: unknown): boolean => value !== null && value !== undefined;
+
+const getAxiosStatus = (error: unknown): number | undefined => {
+  if (!isRecord(error) || !('response' in error) || !isRecord(error['response'])) {
+    return undefined;
+  }
+
+  const { status } = error['response'] as { status?: unknown };
+  return typeof status === 'number' ? status : undefined;
+};
+
 /**
  * Mobile-optimized default options
  * Longer cache times and retry logic optimized for mobile networks
@@ -26,9 +40,11 @@ const DEFAULT_QUERY_OPTIONS = {
     staleTime: 1000 * 60 * 5, // 5 minutes - data considered fresh for 5 min
 
     // Retry Configuration (network-aware)
-    retry: (failureCount: number, error: any) => {
+    retry: (failureCount: number, error: unknown) => {
+      const status = getAxiosStatus(error);
+
       // Don't retry on 4xx errors (client errors)
-      if (error?.response?.status >= 400 && error?.response?.status < 500) {
+      if (status !== undefined && status >= 400 && status < 500) {
         return false;
       }
 
@@ -80,7 +96,7 @@ const queryCache = new QueryCache({
     );
 
     // Handle specific error types
-    ErrorHandler.handle(error, {
+    void ErrorHandler.handle(error, {
       context: 'TanStack Query',
       queryKey: query.queryKey,
     });
@@ -96,8 +112,8 @@ const queryCache = new QueryCache({
   onSettled: (data, error, query) => {
     Logger.debug('Query settled', {
       queryKey: query.queryKey,
-      hasError: !!error,
-      hasData: !!data,
+      hasError: hasValue(error),
+      hasData: hasValue(data),
     });
   },
 });
@@ -117,7 +133,7 @@ const mutationCache = new MutationCache({
     );
 
     // Handle mutation errors
-    ErrorHandler.handle(error, {
+    void ErrorHandler.handle(error, {
       context: 'TanStack Mutation',
       mutationKey: mutation.options.mutationKey,
     });
@@ -132,8 +148,8 @@ const mutationCache = new MutationCache({
   onSettled: (data, error, _variables, _context, mutation) => {
     Logger.debug('Mutation settled', {
       mutationKey: mutation.options.mutationKey,
-      hasError: !!error,
-      hasData: !!data,
+      hasError: hasValue(error),
+      hasData: hasValue(data),
     });
   },
 });

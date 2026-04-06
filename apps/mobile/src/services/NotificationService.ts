@@ -19,24 +19,19 @@ import {
   onNotificationOpenedApp,
   onTokenRefresh,
   getInitialNotification,
-  requestPermission,
   registerDeviceForRemoteMessages,
   isDeviceRegisteredForRemoteMessages,
-  AuthorizationStatus,
 } from '@react-native-firebase/messaging';
-import { Platform, PermissionsAndroid } from 'react-native';
 import axios from 'axios';
+import { Platform } from 'react-native';
+import { RESULTS, requestNotifications } from 'react-native-permissions';
 
 import { environment } from '@/config/environment';
-import { Logger } from '@/utils/logger';
-import { SecureStorage } from '@/services/SecureStorage';
 import { navigateFromNotification, type NotificationNavData } from '@/navigation/navigationRef';
+import { SecureStorage } from '@/services/SecureStorage';
+import { Logger } from '@/utils/logger';
 
-type ForegroundMessageHandler = (
-  data: NotificationNavData,
-  title: string,
-  body: string,
-) => void;
+type ForegroundMessageHandler = (data: NotificationNavData, title: string, body: string) => void;
 
 class NotificationService {
   private _foregroundUnsubscribe: (() => void) | null = null;
@@ -50,25 +45,15 @@ class NotificationService {
    */
   async requestPermission(): Promise<boolean> {
     try {
-      if (Platform.OS === 'android') {
-        if ((Platform.Version as number) >= 33) {
-          const result = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-          );
-          const granted = result === PermissionsAndroid.RESULTS.GRANTED;
-          Logger.info('[NotificationService] Android permission result', { granted });
-          return granted;
-        }
-        // Android < 13: permission granted implicitly via Manifest
-        return true;
-      }
+      const { status } = await requestNotifications(['alert', 'sound', 'badge']);
+      const granted = status === RESULTS.GRANTED || status === RESULTS.LIMITED;
 
-      // iOS: request via Firebase Messaging
-      const authStatus = await requestPermission(getMessaging());
-      const granted =
-        authStatus === AuthorizationStatus.AUTHORIZED ||
-        authStatus === AuthorizationStatus.PROVISIONAL;
-      Logger.info('[NotificationService] iOS permission result', { authStatus, granted });
+      Logger.info('[NotificationService] Notification permission result', {
+        granted,
+        platform: Platform.OS,
+        status,
+      });
+
       return granted;
     } catch (error) {
       Logger.warn('[NotificationService] Permission request failed', {}, error as Error);
@@ -163,7 +148,7 @@ class NotificationService {
     const m = getMessaging();
 
     // Foreground: app is open, notification arrives
-    this._foregroundUnsubscribe = onMessage(m, async remoteMessage => {
+    this._foregroundUnsubscribe = onMessage(m, (remoteMessage) => {
       const data = (remoteMessage.data ?? {}) as NotificationNavData;
       const title = remoteMessage.notification?.title ?? '';
       const body = remoteMessage.notification?.body ?? '';
@@ -172,13 +157,13 @@ class NotificationService {
     });
 
     // Background tap: app in bg, user taps notification → app becomes active
-    onNotificationOpenedApp(m, remoteMessage => {
+    onNotificationOpenedApp(m, (remoteMessage) => {
       Logger.debug('[NotificationService] Background notification tapped');
       navigateFromNotification((remoteMessage.data ?? {}) as NotificationNavData);
     });
 
     // Token refresh: re-register whenever FCM rotates the token
-    this._tokenRefreshUnsubscribe = onTokenRefresh(m, async newToken => {
+    this._tokenRefreshUnsubscribe = onTokenRefresh(m, async (newToken) => {
       Logger.info('[NotificationService] FCM token refreshed');
       await this.registerTokenWithBackend(newToken);
     });

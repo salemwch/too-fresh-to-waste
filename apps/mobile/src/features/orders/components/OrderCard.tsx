@@ -18,19 +18,18 @@
  *   - iOS: Opacity feedback via Pressable style callback
  */
 
-import React, { useMemo } from 'react';
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  Image,
-  Platform,
-  Animated,
-} from 'react-native';
+import React, { memo, useEffect, useMemo, useState } from 'react';
+import { View, StyleSheet, Pressable, Image, Platform, Animated } from 'react-native';
 
 import { Icon, Text } from '@/design-system/components/atoms';
+import { Logger } from '@/utils/logger';
 
-import { OrderStatus, getEstablishmentName, getEstablishmentImage, getOfferImage } from '../types/order.types';
+import {
+  OrderStatus,
+  getEstablishmentName,
+  getEstablishmentImage,
+  getOfferImage,
+} from '../types/order.types';
 
 import type { Order } from '../types/order.types';
 
@@ -45,17 +44,29 @@ interface StatusConfig {
 }
 
 const STATUS_CONFIG: Record<string, StatusConfig> = {
-  [OrderStatus.PENDING]:          { label: 'Pending',    bg: '#FEF3C7', text: '#92400E' },
-  [OrderStatus.RESERVED]:         { label: 'Reserved',   bg: '#DBEAFE', text: '#1E40AF' },
-  [OrderStatus.CONFIRMED]:        { label: 'Confirmed',  bg: '#DBEAFE', text: '#1E40AF' },
-  [OrderStatus.READY_FOR_PICKUP]: { label: 'Ready',      bg: '#D1FAE5', text: '#065F46' },
-  [OrderStatus.PICKED_UP]:        { label: 'Picked Up',  bg: '#D1FAE5', text: '#065F46' },
-  [OrderStatus.CANCELLED]:        { label: 'Cancelled',  bg: '#FEE2E2', text: '#991B1B' },
-  [OrderStatus.EXPIRED]:          { label: 'Expired',    bg: '#F3F4F6', text: '#6B7280' },
-  [OrderStatus.REFUNDED]:         { label: 'Refunded',   bg: '#F3F4F6', text: '#6B7280' },
+  [OrderStatus.PENDING]: { label: 'Pending', bg: '#FEF3C7', text: '#92400E' },
+  [OrderStatus.RESERVED]: { label: 'Reserved', bg: '#DBEAFE', text: '#1E40AF' },
+  [OrderStatus.CONFIRMED]: { label: 'Confirmed', bg: '#DBEAFE', text: '#1E40AF' },
+  [OrderStatus.READY_FOR_PICKUP]: { label: 'Ready', bg: '#D1FAE5', text: '#065F46' },
+  [OrderStatus.PICKED_UP]: { label: 'Picked Up', bg: '#D1FAE5', text: '#065F46' },
+  [OrderStatus.CANCELLED]: { label: 'Cancelled', bg: '#FEE2E2', text: '#991B1B' },
+  [OrderStatus.EXPIRED]: { label: 'Expired', bg: '#F3F4F6', text: '#6B7280' },
+  [OrderStatus.REFUNDED]: { label: 'Refunded', bg: '#F3F4F6', text: '#6B7280' },
 };
 
 const DEFAULT_STATUS: StatusConfig = { label: 'Unknown', bg: '#F3F4F6', text: '#6B7280' };
+const SURFACE = '#FFFFFF';
+const SURFACE_MUTED = '#F1F5F9';
+const BORDER = '#E2E8F0';
+const TEXT_PRIMARY = '#1F2937';
+const TEXT_SECONDARY = '#64748B';
+const TEXT_TERTIARY = '#94A3B8';
+const TEXT_MUTED = '#475569';
+const SUCCESS_SOFT = '#D1FAE5';
+const SUCCESS_TEXT = '#065F46';
+const SUCCESS = '#10B981';
+const PRIMARY = '#005250';
+const SHADOW = '#000';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -139,9 +150,9 @@ function formatPickupDate(scheduledDate: string | undefined): string {
 // ---------------------------------------------------------------------------
 
 const PulsingDot: React.FC = () => {
-  const pulseAnim = React.useRef(new Animated.Value(1)).current;
+  const [pulseAnim] = useState(() => new Animated.Value(1));
 
-  React.useEffect(() => {
+  useEffect(() => {
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -160,11 +171,7 @@ const PulsingDot: React.FC = () => {
     return () => animation.stop();
   }, [pulseAnim]);
 
-  return (
-    <Animated.View
-      style={[styles.pulsingDot, { opacity: pulseAnim }]}
-    />
-  );
+  return <Animated.View style={[styles.pulsingDot, { opacity: pulseAnim }]} />;
 };
 
 // ---------------------------------------------------------------------------
@@ -176,7 +183,7 @@ interface OrderCardProps {
   onPress: (order: Order) => void;
 }
 
-export const OrderCard: React.FC<OrderCardProps> = React.memo(({ order, onPress }) => {
+export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => {
   const statusConfig = STATUS_CONFIG[order.status] ?? DEFAULT_STATUS;
   const establishmentName = getEstablishmentName(order);
 
@@ -186,13 +193,14 @@ export const OrderCard: React.FC<OrderCardProps> = React.memo(({ order, onPress 
   const cardImage = offerImage ?? establishmentImage;
 
   if (__DEV__) {
-    console.log(`[OrderCard] #${order.orderNumber} image debug:`, {
+    Logger.debug(`[OrderCard] #${order.orderNumber} image debug`, {
       offerImage,
       establishmentImage,
       offerId: order.items?.[0]?.offerId,
-      establishmentId: typeof order.establishmentId === 'object'
-        ? { name: order.establishmentId.name, images: order.establishmentId.images }
-        : order.establishmentId,
+      establishmentId:
+        typeof order.establishmentId === 'object'
+          ? { name: order.establishmentId.name, images: order.establishmentId.images }
+          : order.establishmentId,
     });
   }
 
@@ -219,35 +227,21 @@ export const OrderCard: React.FC<OrderCardProps> = React.memo(({ order, onPress 
     <Pressable
       onPress={() => onPress(order)}
       android_ripple={{ color: 'rgba(0, 82, 80, 0.08)', borderless: false }}
-      style={({ pressed }) => [
-        styles.card,
-        Platform.OS === 'ios' && pressed && styles.cardPressed,
-      ]}
+      style={({ pressed }) => [styles.card, Platform.OS === 'ios' && pressed && styles.cardPressed]}
       accessibilityRole="button"
       accessibilityLabel={`Order ${order.orderNumber}, ${firstItem?.offerTitle ?? 'Order'}, status ${statusConfig.label}`}
       accessibilityHint="Tap to view order details"
     >
       {/* ── Status Badge (absolute top-right) ── */}
-      <View
-        style={[
-          styles.statusBadge,
-          { backgroundColor: statusConfig.bg },
-        ]}
-      >
-        <Text style={[styles.statusText, { color: statusConfig.text }]}>
-          {statusConfig.label}
-        </Text>
+      <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
+        <Text style={[styles.statusText, { color: statusConfig.text }]}>{statusConfig.label}</Text>
       </View>
 
       {/* ── Top Row: Image + Info ── */}
       <View style={styles.topRow}>
         {/* Thumbnail — offer image preferred, establishment image fallback */}
         {cardImage ? (
-          <Image
-            source={{ uri: cardImage }}
-            style={styles.thumbnail}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: cardImage }} style={styles.thumbnail} resizeMode="cover" />
         ) : (
           <View style={styles.thumbnailPlaceholder}>
             <Icon name="fast-food" family="Ionicons" size={28} color="#94A3B8" />
@@ -297,11 +291,7 @@ export const OrderCard: React.FC<OrderCardProps> = React.memo(({ order, onPress 
         </Text>
 
         <View style={styles.priceContainer}>
-          {hasDiscount && (
-            <Text style={styles.originalPrice}>
-              {originalTotal.toFixed(2)}
-            </Text>
-          )}
+          {hasDiscount && <Text style={styles.originalPrice}>{originalTotal.toFixed(2)}</Text>}
           <Text style={styles.activePrice}>
             {order.pricing.total.toFixed(2)} {currency}
           </Text>
@@ -319,7 +309,7 @@ OrderCard.displayName = 'OrderCard';
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SURFACE,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -327,7 +317,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: SHADOW,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
         shadowRadius: 12,
@@ -368,17 +358,17 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 12,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: SURFACE_MUTED,
   },
   thumbnailPlaceholder: {
     width: 64,
     height: 64,
     borderRadius: 12,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: SURFACE_MUTED,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: BORDER,
   },
   infoColumn: {
     flex: 1,
@@ -388,19 +378,19 @@ const styles = StyleSheet.create({
   offerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
+    color: TEXT_PRIMARY,
     lineHeight: 22,
   },
   establishmentName: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#64748B',
+    color: TEXT_SECONDARY,
     marginTop: 2,
   },
   orderNumber: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#94A3B8',
+    color: TEXT_TERTIARY,
     marginTop: 2,
   },
 
@@ -413,14 +403,14 @@ const styles = StyleSheet.create({
   pickupText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#475569',
+    color: TEXT_MUTED,
     marginLeft: 6,
     flex: 1,
   },
   goNowContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#D1FAE5',
+    backgroundColor: SUCCESS_SOFT,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
@@ -429,7 +419,7 @@ const styles = StyleSheet.create({
   goNowText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#065F46',
+    color: SUCCESS_TEXT,
     marginLeft: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
@@ -438,7 +428,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#10B981',
+    backgroundColor: SUCCESS,
   },
 
   // Dashed divider
@@ -446,7 +436,7 @@ const styles = StyleSheet.create({
     height: 1,
     borderStyle: 'dashed',
     borderWidth: 0.8,
-    borderColor: '#E2E8F0',
+    borderColor: BORDER,
     marginBottom: 12,
   },
 
@@ -459,7 +449,7 @@ const styles = StyleSheet.create({
   quantityText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#475569',
+    color: TEXT_MUTED,
   },
   priceContainer: {
     flexDirection: 'row',
@@ -469,12 +459,12 @@ const styles = StyleSheet.create({
   originalPrice: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#94A3B8',
+    color: TEXT_TERTIARY,
     textDecorationLine: 'line-through',
   },
   activePrice: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#005250',
+    color: PRIMARY,
   },
 });

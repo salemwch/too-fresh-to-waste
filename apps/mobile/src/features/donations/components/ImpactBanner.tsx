@@ -4,7 +4,7 @@
  * Enterprise-grade with collapsible animation and error handling
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, LayoutAnimation } from 'react-native';
 
 import HeartInHandsIcon from '../../../assets/images/RedHeartinHands IconMedicalCareLogo.svg';
@@ -14,6 +14,16 @@ import { SkeletonImpactBanner } from './SkeletonImpactBanner';
 interface ImpactBannerProps {
   onExpand?: () => void;
 }
+
+const COLORS = {
+  background: '#FFFFFF',
+  shadow: '#000',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  brand: '#005250',
+  border: '#E5E7EB',
+  surfaceMuted: '#F3F4F6',
+} as const;
 
 /**
  * ✅ BEST PRACTICE: Internal component function for memoization
@@ -26,7 +36,7 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
   // ✅ BEST PRACTICE: Memoize callback to prevent unnecessary re-renders
   const toggleExpand = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsExpanded(prev => !prev);
+    setIsExpanded((prev) => !prev);
     if (!isExpanded && onExpand) {
       onExpand();
     }
@@ -126,10 +136,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   banner: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.background,
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -152,16 +162,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: COLORS.textPrimary,
     marginBottom: 2,
   },
   subtitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: COLORS.textSecondary,
   },
   expandIcon: {
     fontSize: 16,
-    color: '#005250',
+    color: COLORS.brand,
     marginLeft: 8,
   },
   expandedContent: {
@@ -169,7 +179,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: COLORS.border,
     marginBottom: 16,
   },
   statsGrid: {
@@ -183,53 +193,53 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    color: COLORS.textSecondary,
   },
   statValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: COLORS.textPrimary,
   },
   progressContainer: {
     marginBottom: 16,
   },
   progressLabel: {
     fontSize: 13,
-    color: '#6B7280',
+    color: COLORS.textSecondary,
     marginBottom: 8,
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: COLORS.border,
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 4,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#005250',
+    backgroundColor: COLORS.brand,
     borderRadius: 4,
   },
   progressPercent: {
     fontSize: 12,
-    color: '#005250',
+    color: COLORS.brand,
     fontWeight: '600',
     textAlign: 'right',
   },
   causeContainer: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: COLORS.surfaceMuted,
     borderRadius: 8,
     padding: 12,
   },
   causeLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: COLORS.textSecondary,
     marginBottom: 4,
   },
   causeText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1F2937',
+    color: COLORS.textPrimary,
   },
 });
 
@@ -239,4 +249,4 @@ const styles = StyleSheet.create({
  * Internal state changes (isExpanded) don't trigger parent re-renders
  */
 ImpactBannerComponent.displayName = 'ImpactBanner';
-export const ImpactBanner = React.memo(ImpactBannerComponent);
+export const ImpactBanner = memo(ImpactBannerComponent);

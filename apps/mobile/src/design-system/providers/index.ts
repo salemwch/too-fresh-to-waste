@@ -3,12 +3,4 @@
  * Central export for all providers
  */
 
-export {
-  ThemeProvider,
-  useTheme,
-  
-  
-  
-  
-  
-} from './ThemeProvider';
+export { ThemeProvider, useTheme } from './ThemeProvider';

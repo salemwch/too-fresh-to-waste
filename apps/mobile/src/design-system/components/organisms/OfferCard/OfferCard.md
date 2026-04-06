@@ -25,14 +25,14 @@
 
 ## 🎯 Use Cases
 
-| Section | Variant | Layout | Orientation | Notes |
-|---------|---------|--------|-------------|-------|
-| Nearby Offers | `nearby` | `standard` | `vertical` | Shows distance badge |
-| Featured Deals | `featured` | `standard` | `vertical` | Shows "Featured" badge |
-| Surprise Bags | `surprise` | `compact` | `vertical` | Shows offer type badge |
-| Best Discounts | `default` | `compact` | `horizontal` | Space-efficient layout |
-| Expiring Soon | `default` | `standard` | `vertical` | Auto-shows expiry badge |
-| Search Results | `default` | `standard` | `vertical` | Full details visible |
+| Section        | Variant    | Layout     | Orientation  | Notes                   |
+| -------------- | ---------- | ---------- | ------------ | ----------------------- |
+| Nearby Offers  | `nearby`   | `standard` | `vertical`   | Shows distance badge    |
+| Featured Deals | `featured` | `standard` | `vertical`   | Shows "Featured" badge  |
+| Surprise Bags  | `surprise` | `compact`  | `vertical`   | Shows offer type badge  |
+| Best Discounts | `default`  | `compact`  | `horizontal` | Space-efficient layout  |
+| Expiring Soon  | `default`  | `standard` | `vertical`   | Auto-shows expiry badge |
+| Search Results | `default`  | `standard` | `vertical`   | Full details visible    |
 
 ---
 
@@ -42,50 +42,50 @@
 
 #### Required Props
 
-| Prop | Type | Description |
-|------|------|-------------|
+| Prop    | Type            | Description                 |
+| ------- | --------------- | --------------------------- |
 | `offer` | `OfferListItem` | Offer data from backend API |
 
 #### Display Options
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `variant` | `'nearby' \| 'featured' \| 'surprise' \| 'default'` | `'default'` | Visual variant controlling badges |
-| `layout` | `'compact' \| 'standard' \| 'detailed'` | `'standard'` | Card size and detail level |
-| `orientation` | `'vertical' \| 'horizontal'` | `'vertical'` | Card orientation |
-| `showEstablishment` | `boolean` | `true` | Show establishment name/logo |
-| `showPickupTime` | `boolean` | `true` | Show pickup time slot |
-| `showDistance` | `boolean` | `true` | Show distance from user |
-| `showItemsLeft` | `boolean` | `true` | Show items left badge |
-| `showDiscountBadge` | `boolean` | `true` | Show discount percentage |
-| `showFavorite` | `boolean` | `true` | Show favorite button |
-| `badges` | `OfferBadge[]` | `[]` | Custom badges (e.g., "NEW", "SUPERMARKET") |
-| `titleLines` | `number` | `2` | Maximum lines for title |
-| `imageAspectRatio` | `number` | `4/3` | Image aspect ratio |
+| Prop                | Type                                                | Default      | Description                                |
+| ------------------- | --------------------------------------------------- | ------------ | ------------------------------------------ |
+| `variant`           | `'nearby' \| 'featured' \| 'surprise' \| 'default'` | `'default'`  | Visual variant controlling badges          |
+| `layout`            | `'compact' \| 'standard' \| 'detailed'`             | `'standard'` | Card size and detail level                 |
+| `orientation`       | `'vertical' \| 'horizontal'`                        | `'vertical'` | Card orientation                           |
+| `showEstablishment` | `boolean`                                           | `true`       | Show establishment name/logo               |
+| `showPickupTime`    | `boolean`                                           | `true`       | Show pickup time slot                      |
+| `showDistance`      | `boolean`                                           | `true`       | Show distance from user                    |
+| `showItemsLeft`     | `boolean`                                           | `true`       | Show items left badge                      |
+| `showDiscountBadge` | `boolean`                                           | `true`       | Show discount percentage                   |
+| `showFavorite`      | `boolean`                                           | `true`       | Show favorite button                       |
+| `badges`            | `OfferBadge[]`                                      | `[]`         | Custom badges (e.g., "NEW", "SUPERMARKET") |
+| `titleLines`        | `number`                                            | `2`          | Maximum lines for title                    |
+| `imageAspectRatio`  | `number`                                            | `4/3`        | Image aspect ratio                         |
 
 #### Actions
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `onPress` | `(offer: OfferListItem) => void` | Callback when card is tapped |
-| `onFavorite` | `(offer: OfferListItem) => void` | Callback when favorite button is tapped |
-| `onEstablishmentPress` | `(id: string) => void` | Callback when establishment name is tapped |
+| Prop                   | Type                             | Description                                |
+| ---------------------- | -------------------------------- | ------------------------------------------ |
+| `onPress`              | `(offer: OfferListItem) => void` | Callback when card is tapped               |
+| `onFavorite`           | `(offer: OfferListItem) => void` | Callback when favorite button is tapped    |
+| `onEstablishmentPress` | `(id: string) => void`           | Callback when establishment name is tapped |
 
 #### State
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| Prop         | Type      | Default | Description                |
+| ------------ | --------- | ------- | -------------------------- |
 | `isFavorite` | `boolean` | `false` | Whether offer is favorited |
-| `loading` | `boolean` | `false` | Show loading skeleton |
-| `disabled` | `boolean` | `false` | Disable all interactions |
+| `loading`    | `boolean` | `false` | Show loading skeleton      |
+| `disabled`   | `boolean` | `false` | Disable all interactions   |
 
 #### Styling
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `style` | `ViewStyle` | Container style override |
-| `imageStyle` | `ImageStyle` | Image style override |
-| `contentStyle` | `ViewStyle` | Content area style override |
+| Prop           | Type         | Description                 |
+| -------------- | ------------ | --------------------------- |
+| `style`        | `ViewStyle`  | Container style override    |
+| `imageStyle`   | `ImageStyle` | Image style override        |
+| `contentStyle` | `ViewStyle`  | Content area style override |
 
 ---
 
@@ -173,34 +173,42 @@ The component automatically calculates:
 ## ⚠️ Edge Case Handling
 
 ### 1. Missing Images
+
 - ✅ **Solution**: Displays placeholder with "No Image" text
 - ✅ **UX**: Maintains aspect ratio, uses surfaceVariant color
 
 ### 2. Long Text
+
 - ✅ **Solution**: Configurable line clamping via `titleLines` prop
 - ✅ **UX**: Defaults to 2 lines with ellipsis
 
 ### 3. Zero Stock
+
 - ✅ **Solution**: Shows "SOLD OUT" overlay with 50% opacity backdrop
 - ✅ **UX**: Card remains visible but disabled
 
 ### 4. Low Stock (≤ 2 items)
+
 - ✅ **Solution**: Badge changes to warning variant (yellow/orange)
 - ✅ **UX**: Creates urgency without alarm
 
 ### 5. Expiring Soon (< 2 hours)
+
 - ✅ **Solution**: Auto-displays "Expiring Soon" error badge
 - ✅ **UX**: Red badge in top-right corner
 
 ### 6. Missing Distance (non-nearby queries)
+
 - ✅ **Solution**: Gracefully omits distance from meta line
 - ✅ **UX**: No blank spaces or broken layout
 
 ### 7. Missing Establishment Name
+
 - ✅ **Solution**: Omits establishment section entirely
 - ✅ **UX**: Title moves up, layout stays balanced
 
 ### 8. Large Discount (>50%)
+
 - ✅ **Solution**: Prominently displays discount badge
 - ✅ **UX**: Green success variant for positive reinforcement
 
@@ -353,6 +361,7 @@ For complete examples, see: `OfferCard.examples.tsx`
 
 **Decision**: Single component with variants
 **Rationale**:
+
 - Reduces code duplication
 - Ensures visual consistency
 - Simplifies maintenance (one source of truth)
@@ -365,6 +374,7 @@ For complete examples, see: `OfferCard.examples.tsx`
 
 **Decision**: Use backend DTO directly
 **Rationale**:
+
 - Single source of truth (backend schema)
 - No mapping layer needed
 - Easier to debug API issues
@@ -377,6 +387,7 @@ For complete examples, see: `OfferCard.examples.tsx`
 
 **Decision**: Calculate itemsLeft, pickupTime, distance internally
 **Rationale**:
+
 - Reduces prop clutter
 - Ensures consistency (same logic everywhere)
 - Backend sends raw data, component handles formatting
@@ -386,6 +397,7 @@ For complete examples, see: `OfferCard.examples.tsx`
 
 **Decision**: Wrap component in React.memo
 **Rationale**:
+
 - Large lists (FlatList) benefit from render optimization
 - Offer data changes infrequently
 - Prevents cascading re-renders from parent state changes
@@ -394,6 +406,7 @@ For complete examples, see: `OfferCard.examples.tsx`
 
 **Decision**: Dynamic styles based on props (orientation, layout)
 **Rationale**:
+
 - Supports flexible layouts without duplication
 - Theme values accessed via `useTheme` hook
 - Memoized via function call (not recreated on every render)
@@ -403,6 +416,7 @@ For complete examples, see: `OfferCard.examples.tsx`
 ## ✅ Production-Ready Verification Checklist
 
 ### Code Quality
+
 - [x] TypeScript with strict types
 - [x] No `any` types (except React Native ViewStyle)
 - [x] All props documented with TSDoc
@@ -410,6 +424,7 @@ For complete examples, see: `OfferCard.examples.tsx`
 - [x] Prettier formatted
 
 ### Functionality
+
 - [x] Handles missing images gracefully
 - [x] Handles long text with ellipsis
 - [x] Handles zero stock (sold out overlay)
@@ -421,6 +436,7 @@ For complete examples, see: `OfferCard.examples.tsx`
 - [x] Both orientations work (vertical, horizontal)
 
 ### Accessibility
+
 - [x] Minimum 44pt touch targets
 - [x] Descriptive accessibilityLabel
 - [x] Proper accessibilityRole ("button")
@@ -429,6 +445,7 @@ For complete examples, see: `OfferCard.examples.tsx`
 - [x] Color contrast ≥ 4.5:1 (WCAG AA)
 
 ### Performance
+
 - [x] React.memo for list optimization
 - [x] useMemo for computed values
 - [x] useCallback for event handlers
@@ -436,6 +453,7 @@ For complete examples, see: `OfferCard.examples.tsx`
 - [x] Image resizeMode="cover" for consistency
 
 ### Integration
+
 - [x] Uses existing design system components (Badge, Text, Card, PriceDisplay)
 - [x] Uses design tokens (spacing, colors, radius)
 - [x] Integrates with backend OfferListItem type
@@ -444,6 +462,7 @@ For complete examples, see: `OfferCard.examples.tsx`
 - [x] Compatible with TanStack Query (offer data)
 
 ### Documentation
+
 - [x] Comprehensive TSDoc comments
 - [x] Usage examples provided
 - [x] Architecture decisions explained
@@ -451,6 +470,7 @@ For complete examples, see: `OfferCard.examples.tsx`
 - [x] Integration guide included
 
 ### Testing Readiness
+
 - [x] testID props for all interactive elements
 - [x] Deterministic behavior (no random IDs)
 - [x] Mockable callbacks (onPress, onFavorite)

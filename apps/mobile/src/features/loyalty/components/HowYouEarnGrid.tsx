@@ -4,7 +4,7 @@
  * Currently only "Save a Bag" is active — others show "Coming Soon".
  */
 
-import React from 'react';
+import React, { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import { Card, Icon, Text } from '@/design-system/components/atoms';
@@ -53,51 +53,56 @@ const EARN_METHODS: EarnMethod[] = [
   },
 ];
 
-const EarnCard: React.FC<{ method: EarnMethod }> = ({ method }) => (
-  <Card variant='elevated' style={[styles.earnCard, !method.active && styles.earnCardInactive]}>
-    <View
-      style={[styles.iconCircle, { backgroundColor: method.active ? method.bgColor : '#F1F5F9' }]}
-    >
-      <Icon
-        name={method.icon}
-        family='Ionicons'
-        size={24}
-        color={method.active ? method.color : '#94A3B8'}
-      />
-    </View>
-    <Text
-      variant='body'
-      size='sm'
-      weight='semibold'
-      style={[styles.earnLabel, !method.active && styles.inactiveText]}
-    >
-      {method.label}
-    </Text>
-    <Text
-      variant='body'
-      size='xs'
-      weight='bold'
-      style={{ color: method.active ? method.color : '#94A3B8' }}
-    >
-      {method.active ? method.points : 'Coming Soon'}
-    </Text>
-  </Card>
-);
+const INACTIVE_BACKGROUND = '#F1F5F9';
+const INACTIVE_TEXT = '#94A3B8';
+
+const EarnCard: React.FC<{ method: EarnMethod }> = ({ method }) => {
+  const iconCircleStyle = {
+    backgroundColor: method.active ? method.bgColor : INACTIVE_BACKGROUND,
+  };
+  const pointsStyle = {
+    color: method.active ? method.color : INACTIVE_TEXT,
+  };
+
+  return (
+    <Card variant="elevated" style={[styles.earnCard, !method.active && styles.earnCardInactive]}>
+      <View style={[styles.iconCircle, iconCircleStyle]}>
+        <Icon
+          name={method.icon}
+          family="Ionicons"
+          size={24}
+          color={method.active ? method.color : INACTIVE_TEXT}
+        />
+      </View>
+      <Text
+        variant="body"
+        size="sm"
+        weight="semibold"
+        style={[styles.earnLabel, !method.active && styles.inactiveText]}
+      >
+        {method.label}
+      </Text>
+      <Text variant="body" size="xs" weight="bold" style={pointsStyle}>
+        {method.active ? method.points : 'Coming Soon'}
+      </Text>
+    </Card>
+  );
+};
 
 const HowYouEarnGridComponent: React.FC = () => (
   <View style={styles.container}>
-    <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
+    <Text variant="title" size="md" weight="semibold" style={styles.sectionTitle}>
       How You Earn
     </Text>
     <View style={styles.grid}>
-      {EARN_METHODS.map(method => (
+      {EARN_METHODS.map((method) => (
         <EarnCard key={method.label} method={method} />
       ))}
     </View>
   </View>
 );
 
-export const HowYouEarnGrid = React.memo(HowYouEarnGridComponent);
+export const HowYouEarnGrid = memo(HowYouEarnGridComponent);
 HowYouEarnGridComponent.displayName = 'HowYouEarnGrid';
 
 const styles = StyleSheet.create({
@@ -135,6 +140,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inactiveText: {
-    color: '#94A3B8',
+    color: INACTIVE_TEXT,
   },
 });

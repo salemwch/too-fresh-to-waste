@@ -17,7 +17,7 @@ export enum ErrorType {
   UNKNOWN = 'UNKNOWN',
 }
 
-interface AppError {
+export interface AppError {
   type: ErrorType;
   message: string;
   code?: string | number;
@@ -35,6 +35,42 @@ interface AppError {
   isAccountLocked?: boolean; // True if this is an account lockout error
   blockedUntil?: string | Date; // Timestamp when account will be unlocked
 }
+
+interface ErrorWithMessage {
+  message: string;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object';
+
+export const isErrorWithMessage = (error: unknown): error is ErrorWithMessage =>
+  (error instanceof Error && error.message !== '') ||
+  (isRecord(error) && typeof error['message'] === 'string' && error['message'] !== '');
+
+export const isAppError = (error: unknown): error is AppError =>
+  isRecord(error) &&
+  'type' in error &&
+  'timestamp' in error &&
+  typeof error['message'] === 'string';
+
+export const getErrorMessage = (
+  error: unknown,
+  fallback = 'An unexpected error occurred',
+): string => {
+  if (typeof error === 'string' && error !== '') {
+    return error;
+  }
+
+  if (isErrorWithMessage(error)) {
+    return error.message;
+  }
+
+  return fallback;
+};
+
+const assertNever = (value: never): never => {
+  throw new Error(`Unhandled error type: ${String(value)}`);
+};
 
 export class ErrorHandler {
   private static errorQueue: AppError[] = [];
@@ -75,7 +111,7 @@ export class ErrorHandler {
     error: Error | AppError,
     context?: Record<string, unknown>,
   ): AppError {
-    if (this.isAppError(error)) {
+    if (isAppError(error)) {
       return {
         ...error,
         context: { ...error.context, ...context },
@@ -90,10 +126,6 @@ export class ErrorHandler {
       ...(context ? { context } : {}),
       userMessage: this.getUserFriendlyMessage(errorType),
     });
-  }
-
-  private static isAppError(error: Error | AppError): error is AppError {
-    return 'type' in error && 'timestamp' in error;
   }
 
   private static determineErrorType(error: Error): ErrorType {
@@ -146,8 +178,10 @@ export class ErrorHandler {
         return 'Server is currently unavailable. Please try again later.';
       case ErrorType.CLIENT_ERROR:
         return 'There was a problem with your request.';
-      default:
+      case ErrorType.UNKNOWN:
         return 'An unexpected error occurred. Please try again.';
+      default:
+        return assertNever(type);
     }
   }
 
@@ -193,7 +227,9 @@ export class ErrorHandler {
 
       // Process any new errors that were added during processing
       if (this.errorQueue.length > 0) {
-        setTimeout(() => this.processErrorQueue(), 100);
+        setTimeout(() => {
+          void this.processErrorQueue();
+        }, 100);
       }
     }
   }
@@ -248,8 +284,12 @@ export class ErrorHandler {
         return 'Not Found';
       case ErrorType.SERVER_ERROR:
         return 'Server Error';
-      default:
+      case ErrorType.CLIENT_ERROR:
+        return 'Request Error';
+      case ErrorType.UNKNOWN:
         return 'Error';
+      default:
+        return assertNever(type);
     }
   }
 
@@ -264,28 +304,36 @@ export class ErrorHandler {
       case ErrorType.PERMISSION:
         await this.handlePermissionError();
         break;
-      default:
-        // No specific handling needed
+      case ErrorType.VALIDATION:
+      case ErrorType.NOT_FOUND:
+      case ErrorType.SERVER_ERROR:
+      case ErrorType.CLIENT_ERROR:
+      case ErrorType.UNKNOWN:
         break;
+      default:
+        assertNever(error.type);
     }
   }
 
-  private static async handleAuthenticationError(): Promise<void> {
+  private static handleAuthenticationError(): Promise<void> {
     // Clear user session and redirect to login
     // This would typically involve clearing storage and navigation
     Logger.info('Handling authentication error - user session expired');
+    return Promise.resolve();
   }
 
-  private static async processNetworkError(error: AppError): Promise<void> {
+  private static processNetworkError(error: AppError): Promise<void> {
     // Implement network error handling logic
     // Could include retry mechanism, offline mode, etc.
     Logger.info('Handling network error', { error: error.message });
+    return Promise.resolve();
   }
 
-  private static async handlePermissionError(): Promise<void> {
+  private static handlePermissionError(): Promise<void> {
     // Handle permission errors
     // Could redirect to appropriate screen or show permission request
     Logger.info('Handling permission error');
+    return Promise.resolve();
   }
 
   // Utility methods for common error scenarios
@@ -325,29 +373,22 @@ export class ErrorHandler {
   // Global error handler setup
   public static setupGlobalErrorHandler(): void {
     // Handle unhandled promise rejections
-    // Import ErrorUtils from react-native
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const ErrorUtils = require('react-native').ErrorUtils;
-    const originalHandler = ErrorUtils?.getGlobalHandler?.();
+    const originalHandler = ErrorUtils.getGlobalHandler();
 
-    ErrorUtils?.setGlobalHandler?.(async (error: Error, isFatal?: boolean) => {
-      await this.handle(error, { isFatal, source: 'globalHandler' });
+    ErrorUtils.setGlobalHandler((error: unknown, isFatal?: boolean) => {
+      const normalizedError = error instanceof Error ? error : new Error(getErrorMessage(error));
 
-      // Call original handler if it exists
-      if (Boolean(originalHandler)) {
-        originalHandler(error, isFatal);
-      }
+      void this.handle(normalizedError, { isFatal, source: 'globalHandler' }).catch(
+        (handlerError: unknown) => {
+          const reportedError =
+            handlerError instanceof Error ? handlerError : new Error(getErrorMessage(handlerError));
+
+          Logger.error('Failed to process global error', { isFatal }, reportedError);
+        },
+      );
+
+      originalHandler(error, isFatal);
     });
-
-    // Handle console errors in development
-    if (__DEV__) {
-      const originalConsoleError = console.error;
-      console.error = (...args: unknown[]) => {
-        // Log console errors for debugging
-        Logger.debug('Console error:', { args });
-        originalConsoleError(...args);
-      };
-    }
   }
 }
 

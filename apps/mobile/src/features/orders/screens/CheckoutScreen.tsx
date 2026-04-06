@@ -1,8 +1,18 @@
 import { CommonActions } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, Pressable, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+
+import { Text, Button, Icon } from '@/design-system/components/atoms';
+import { updateUser, selectIsPhoneVerified } from '@/features/auth/store/authSlice';
+import { offersService } from '@/features/offers/services/offersService';
+import { useAppSelector, useAppDispatch } from '@/hooks';
+import { usePressGuard } from '@/hooks/usePressGuard';
+import { useSecureScreen } from '@/hooks/useSecureScreen';
+import { analytics } from '@/utils/analytics';
+import { Logger } from '@/utils/logger';
+import { showErrorToast, showInfoToast } from '@/utils/toast';
 
 import { OrderSuccessModal } from '../components/OrderSuccessModal';
 import { PhoneVerificationModal } from '../components/PhoneVerificationModal';
@@ -14,15 +24,6 @@ import type { MainStackParamList } from '@/navigation/types';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { Text, Button, Icon } from '@/design-system/components/atoms';
-import { updateUser, selectIsPhoneVerified } from '@/features/auth/store/authSlice';
-import { offersService } from '@/features/offers/services/offersService';
-import { useAppSelector, useAppDispatch } from '@/hooks';
-import { usePressGuard } from '@/hooks/usePressGuard';
-import { useSecureScreen } from '@/hooks/useSecureScreen';
-import { analytics } from '@/utils/analytics';
-import { showErrorToast, showInfoToast } from '@/utils/toast';
-
 type CheckoutScreenNavigationProp = NativeStackNavigationProp<MainStackParamList, 'Checkout'>;
 type CheckoutScreenRouteProp = RouteProp<MainStackParamList, 'Checkout'>;
 
@@ -30,6 +31,25 @@ interface CheckoutScreenProps {
   navigation: CheckoutScreenNavigationProp;
   route: CheckoutScreenRouteProp;
 }
+
+const SCREEN_BACKGROUND = '#F8FAFC';
+const SURFACE = '#FFFFFF';
+const TEXT_PRIMARY = '#1F2937';
+const TEXT_SECONDARY = '#64748B';
+const TEXT_TERTIARY = '#475569';
+const TEXT_DISABLED = '#94A3B8';
+const BORDER_SUBTLE = '#E2E8F0';
+const BRAND_PRIMARY = '#005250';
+const SUCCESS_BORDER = '#10B981';
+const SUCCESS_SURFACE = '#F0FDF4';
+const SUCCESS_TINT = '#D1FAE5';
+const SUCCESS_TEXT = '#059669';
+const WARNING_SURFACE = '#FEF3C7';
+const WARNING_TEXT = '#92400E';
+const ERROR_SURFACE = '#FEF2F2';
+const ERROR_BORDER = '#EF4444';
+const ERROR_TEXT = '#991B1B';
+const WHITE = '#FFFFFF';
 
 export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) => {
   const queryClient = useQueryClient();
@@ -61,7 +81,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
   // ── Analytics: checkout_started (fires once when offer data is ready) ──────
   const offerId_stable = offerId; // avoid stale closure warning
-  React.useEffect(() => {
+  useEffect(() => {
     if (offer) {
       analytics.trackCheckoutStarted(
         offerId_stable,
@@ -71,7 +91,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [offer?.id ?? (offer as any)?._id]);
+  }, [offer?.id, offer?._id]);
 
   // ✅ Use smart order creation hook with callbacks
   const {
@@ -100,7 +120,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       void queryClient.invalidateQueries({ queryKey: ['featured-offers'] });
     },
     onError: (error) => {
-      console.error('❌ Order creation failed:', error.message);
+      Logger.error('[CheckoutScreen] Order creation failed', {}, error);
     },
   });
 
@@ -128,21 +148,16 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     const offerStartTime = new Date(offer.availableFrom);
     const offerEndTime = new Date(offer.availableUntil);
 
-    // ✅ DEBUG LOGGING: Log all time values
-    console.log('\n============ PICKUP DATE CALCULATION ============');
-    console.log('📱 Device current time:', now.toISOString(), `(${now.getTime()})`);
-    console.log('📅 Offer availableFrom:', offer.availableFrom);
-    console.log('📅 Offer availableUntil:', offer.availableUntil);
-    console.log(
-      '⏰ Parsed offerStartTime:',
-      offerStartTime.toISOString(),
-      `(${offerStartTime.getTime()})`,
-    );
-    console.log(
-      '⏰ Parsed offerEndTime:',
-      offerEndTime.toISOString(),
-      `(${offerEndTime.getTime()})`,
-    );
+    Logger.debug('[CheckoutScreen] Calculating pickup date', {
+      nowIso: now.toISOString(),
+      nowTimestamp: now.getTime(),
+      offerAvailableFrom: offer.availableFrom,
+      offerAvailableUntil: offer.availableUntil,
+      offerStartTimeIso: offerStartTime.toISOString(),
+      offerStartTimeTimestamp: offerStartTime.getTime(),
+      offerEndTimeIso: offerEndTime.toISOString(),
+      offerEndTimeTimestamp: offerEndTime.getTime(),
+    });
 
     // ✅ Add safety buffer to ensure pickup time is in the future
     // INCREASED FROM 30s TO 120s to account for:
@@ -151,41 +166,30 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     // - Clock skew between device and server
     // - Validation delay on backend
     const nowWithBuffer = new Date(now.getTime() + 120 * 1000); // 120 seconds (2 minutes) buffer
-    console.log(
-      '⏱️  Now + 120s buffer:',
-      nowWithBuffer.toISOString(),
-      `(${nowWithBuffer.getTime()})`,
-    );
 
     // ✅ Calculate the earliest valid pickup time
     // Use the later of: (now + buffer) or offer start time
     const earliestPickupTime = Math.max(nowWithBuffer.getTime(), offerStartTime.getTime());
-    console.log(
-      '🎯 Earliest pickup time (max of now+30s or offer start):',
-      new Date(earliestPickupTime).toISOString(),
-      `(${earliestPickupTime})`,
-    );
 
     // ✅ CRITICAL: Check if offer has enough time remaining
     // We need at least 1 minute buffer before offer expires
     const minimumTimeBeforeExpiry = 60 * 1000; // 1 minute
     const latestAllowedPickup = offerEndTime.getTime() - minimumTimeBeforeExpiry;
-    console.log(
-      '⚠️  Latest allowed pickup (offer end - 1 min):',
-      new Date(latestAllowedPickup).toISOString(),
-      `(${latestAllowedPickup})`,
-    );
-    console.log(
-      '✅ Time remaining until offer expires:',
-      Math.floor((offerEndTime.getTime() - now.getTime()) / 1000 / 60),
-      'minutes',
-    );
+    Logger.debug('[CheckoutScreen] Pickup timing evaluated', {
+      nowWithBufferIso: nowWithBuffer.toISOString(),
+      nowWithBufferTimestamp: nowWithBuffer.getTime(),
+      earliestPickupTimeIso: new Date(earliestPickupTime).toISOString(),
+      earliestPickupTimeTimestamp: earliestPickupTime,
+      latestAllowedPickupIso: new Date(latestAllowedPickup).toISOString(),
+      latestAllowedPickupTimestamp: latestAllowedPickup,
+      minutesUntilOfferExpiry: Math.floor((offerEndTime.getTime() - now.getTime()) / 1000 / 60),
+    });
 
     if (earliestPickupTime >= latestAllowedPickup) {
-      console.log('❌ REJECTED: Not enough time remaining!');
-      console.log('   Earliest pickup:', new Date(earliestPickupTime).toISOString());
-      console.log('   Latest allowed:', new Date(latestAllowedPickup).toISOString());
-      console.log('================================================\n');
+      Logger.warn('[CheckoutScreen] Offer rejected because pickup window is no longer valid', {
+        earliestPickupTimeIso: new Date(earliestPickupTime).toISOString(),
+        latestAllowedPickupIso: new Date(latestAllowedPickup).toISOString(),
+      });
       showInfoToast(
         'Offer Expired',
         "This offer has expired or doesn't have enough time remaining for pickup. Please choose another offer.",
@@ -197,8 +201,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
     // ✅ Set pickup date to earliest valid time (guaranteed to be in the future)
     const pickupDate = new Date(earliestPickupTime);
-    console.log('✅ FINAL pickupDate:', pickupDate.toISOString(), `(${pickupDate.getTime()})`);
-    console.log('================================================\n');
+    Logger.debug('[CheckoutScreen] Final pickup date selected', {
+      pickupDateIso: pickupDate.toISOString(),
+      pickupDateTimestamp: pickupDate.getTime(),
+    });
 
     const orderData: CreateOrderDto = {
       items: [{ offerId, quantity }],
@@ -212,19 +218,23 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       ...(customerNotes ? { customerNotes } : {}),
     };
 
-    console.log('\n============ ORDER DATA TO SEND ============');
-    console.log('📦 Order data:', JSON.stringify(orderData, null, 2));
-    console.log('🕐 pickupDate (ISO):', orderData.pickupDate);
-    console.log('🕐 pickupDate (local):', new Date(orderData.pickupDate).toLocaleString());
-    console.log('⏰ Current time (ISO):', new Date().toISOString());
-    console.log('⏰ Current time (local):', new Date().toLocaleString());
-    console.log('============================================\n');
+    Logger.debug('[CheckoutScreen] Submitting order payload', {
+      orderData,
+      pickupDateIso: orderData.pickupDate,
+      pickupDateLocal: new Date(orderData.pickupDate).toLocaleString(),
+      currentTimeIso: new Date().toISOString(),
+      currentTimeLocal: new Date().toLocaleString(),
+    });
 
     try {
       await createOrder(orderData);
     } catch (error) {
-      // ✅ DEBUGGING: Log the full error for troubleshooting
-      console.error('[CheckoutScreen] Order creation failed:', error);
+      const capturedError =
+        error instanceof Error
+          ? error
+          : new Error(typeof error === 'string' ? error : 'Unknown error');
+
+      Logger.error('[CheckoutScreen] Order creation failed', {}, capturedError);
 
       // ✅ Extract readable error message
       let errorMessage = 'Failed to create order. Please try again.';
@@ -276,7 +286,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   const subtotal = offer ? offer.pricing.discountedPrice * quantity : 0;
   const serviceFee = 0;
   const total = subtotal;
-  const currency = offer?.pricing.currency || 'TND';
+  const currency = offer?.pricing.currency ?? 'TND';
   const originalPrice = offer ? offer.pricing.originalPrice * quantity : 0;
   const savings = originalPrice - subtotal;
 
@@ -311,7 +321,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
           },
         ],
       });
-      navigation.dispatch(resetAction as any);
+      navigation.dispatch(resetAction as Readonly<{ type: string }>);
     }
   }, [createdOrder, navigation]);
 
@@ -543,7 +553,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: SCREEN_BACKGROUND,
   },
   errorContainer: {
     flex: 1,
@@ -553,7 +563,7 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     marginTop: 16,
-    color: '#1F2937',
+    color: TEXT_PRIMARY,
   },
   errorGoBackButton: {
     marginTop: 24,
@@ -561,7 +571,7 @@ const styles = StyleSheet.create({
 
   // Main Card
   mainCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SURFACE,
     marginHorizontal: 16,
     marginTop: 13,
     borderRadius: 24,
@@ -591,7 +601,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1F2937',
+    color: TEXT_PRIMARY,
     marginLeft: 8,
   },
 
@@ -609,33 +619,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
+    borderColor: BORDER_SUBTLE,
+    backgroundColor: SURFACE,
     gap: 6,
     position: 'relative',
   },
   paymentMethodCardActive: {
-    borderColor: '#10B981',
+    borderColor: SUCCESS_BORDER,
     borderWidth: 2,
-    backgroundColor: '#F0FDF4',
+    backgroundColor: SUCCESS_SURFACE,
   },
   paymentMethodCardDisabled: {
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
+    borderColor: BORDER_SUBTLE,
+    backgroundColor: SCREEN_BACKGROUND,
     opacity: 0.6,
   },
   paymentCardLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#475569',
+    color: TEXT_TERTIARY,
     textAlign: 'center',
     lineHeight: 16,
   },
   paymentCardLabelActive: {
-    color: '#005250',
+    color: BRAND_PRIMARY,
   },
   paymentCardLabelDisabled: {
-    color: '#94A3B8',
+    color: TEXT_DISABLED,
   },
   paymentCardCheck: {
     position: 'absolute',
@@ -643,7 +653,7 @@ const styles = StyleSheet.create({
     right: 6,
   },
   comingSoonBadge: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: WARNING_SURFACE,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -651,14 +661,14 @@ const styles = StyleSheet.create({
   comingSoonText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#92400E',
+    color: WARNING_TEXT,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
 
   // Price Breakdown
   priceBreakdown: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: SCREEN_BACKGROUND,
     borderRadius: 16,
     padding: 16,
   },
@@ -669,17 +679,17 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontSize: 15,
-    color: '#64748B',
+    color: TEXT_SECONDARY,
   },
   priceValue: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#475569',
+    color: TEXT_TERTIARY,
   },
   savingsBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#D1FAE5',
+    backgroundColor: SUCCESS_TINT,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -688,7 +698,7 @@ const styles = StyleSheet.create({
   savingsText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#059669',
+    color: SUCCESS_TEXT,
     marginLeft: 6,
   },
   totalRow: {
@@ -697,25 +707,25 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     marginTop: 12,
     borderTopWidth: 2,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: BORDER_SUBTLE,
     borderStyle: 'dashed',
   },
   totalLabel: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1F2937',
+    color: TEXT_PRIMARY,
   },
   totalValue: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#005250',
+    color: BRAND_PRIMARY,
     letterSpacing: -0.5,
   },
 
   // Divider
   divider: {
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: BORDER_SUBTLE,
     marginVertical: 12,
   },
 
@@ -723,16 +733,16 @@ const styles = StyleSheet.create({
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: ERROR_SURFACE,
     borderRadius: 12,
     padding: 14,
     marginBottom: 20,
     borderLeftWidth: 4,
-    borderLeftColor: '#EF4444',
+    borderLeftColor: ERROR_BORDER,
   },
   errorText: {
     fontSize: 14,
-    color: '#991B1B',
+    color: ERROR_TEXT,
     marginLeft: 10,
     flex: 1,
     fontWeight: '500',
@@ -768,7 +778,7 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: WHITE,
     marginLeft: 10,
     letterSpacing: 0.3,
   },
@@ -779,6 +789,6 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#64748B',
+    color: TEXT_SECONDARY,
   },
 });

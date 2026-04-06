@@ -11,8 +11,8 @@
  * so it must complete even if the screen unmounts during navigation.
  */
 
-import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 
 import { Logger } from '@/utils/logger';
 
@@ -49,41 +49,35 @@ export function useLoginStreak(): void {
 
           // --- Optimistic cache updates for instant UI feedback ---
 
-          queryClient.setQueryData<LoyaltyAccount>(
-            LOYALTY_ACCOUNT_KEY,
-            (prev) => {
-              if (!prev) return prev;
-              return {
-                ...prev,
-                availablePoints: prev.availablePoints + result.pointsAwarded,
-                totalPoints: prev.totalPoints + result.pointsAwarded,
-                lifetimePointsEarned: prev.lifetimePointsEarned + result.pointsAwarded,
-                loginStreak: {
-                  ...prev.loginStreak,
-                  currentStreak: result.streakDays,
-                  lastLoginDate: new Date().toISOString(),
-                  pointsEarnedThisMonth:
-                    prev.loginStreak.pointsEarnedThisMonth + result.pointsAwarded,
-                },
-              };
-            },
-          );
+          queryClient.setQueryData<LoyaltyAccount>(LOYALTY_ACCOUNT_KEY, (prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              availablePoints: prev.availablePoints + result.pointsAwarded,
+              totalPoints: prev.totalPoints + result.pointsAwarded,
+              lifetimePointsEarned: prev.lifetimePointsEarned + result.pointsAwarded,
+              loginStreak: {
+                ...prev.loginStreak,
+                currentStreak: result.streakDays,
+                lastLoginDate: new Date().toISOString(),
+                pointsEarnedThisMonth:
+                  prev.loginStreak.pointsEarnedThisMonth + result.pointsAwarded,
+              },
+            };
+          });
 
-          queryClient.setQueryData<GamificationStats>(
-            GAMIFICATION_KEY,
-            (prev) => {
-              if (!prev) return prev;
-              return {
-                ...prev,
-                loginStreak: {
-                  ...prev.loginStreak,
-                  currentStreak: result.streakDays,
-                  pointsEarnedThisMonth:
-                    prev.loginStreak.pointsEarnedThisMonth + result.pointsAwarded,
-                },
-              };
-            },
-          );
+          queryClient.setQueryData<GamificationStats>(GAMIFICATION_KEY, (prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              loginStreak: {
+                ...prev.loginStreak,
+                currentStreak: result.streakDays,
+                pointsEarnedThisMonth:
+                  prev.loginStreak.pointsEarnedThisMonth + result.pointsAwarded,
+              },
+            };
+          });
 
           // Background refetch for eventual correctness
           void queryClient.invalidateQueries({ queryKey: LOYALTY_ACCOUNT_KEY });

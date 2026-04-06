@@ -11,7 +11,7 @@
  *   Purchase: 15 bags in 15 days, +10 pts bonus
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { View, StyleSheet, Animated, Easing, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -30,6 +30,11 @@ interface StreakCardProps {
 const TEAL_GRADIENT: [string, string] = ['#005251', '#2DB89B'];
 const GOLD_GRADIENT: [string, string] = ['#F5C518', '#BF7E1E'];
 const BAR_BG = '#E5E7EB'; // neutral grey
+const SURFACE = '#FFFFFF';
+const SURFACE_MUTED = '#F1F5F9';
+const TEXT_PRIMARY = '#1F2937';
+const TEXT_SECONDARY = '#64748B';
+const SHADOW = '#000';
 
 // ---------------------------------------------------------------------------
 // StreakRow
@@ -58,7 +63,7 @@ const StreakRow: React.FC<StreakRowProps> = ({
   progressLabel,
   detailsLabel,
 }) => {
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  const [progressAnim] = useState(() => new Animated.Value(0));
   const ratio = target > 0 ? Math.min(current / target, 1) : 0;
 
   useEffect(() => {
@@ -165,7 +170,7 @@ const StreakCardComponent: React.FC<StreakCardProps> = ({ gamification }) => {
   );
 };
 
-export const StreakCard = React.memo(StreakCardComponent);
+export const StreakCard = memo(StreakCardComponent);
 StreakCardComponent.displayName = 'StreakCard';
 
 const styles = StyleSheet.create({
@@ -173,18 +178,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionLabel: {
-    color: '#64748B',
+    color: TEXT_SECONDARY,
     letterSpacing: 1,
     marginBottom: 10,
     paddingHorizontal: 4,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SURFACE,
     borderRadius: 16,
     padding: 18,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: SHADOW,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
         shadowRadius: 8,
@@ -212,7 +217,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   title: {
-    color: '#1F2937',
+    color: TEXT_PRIMARY,
   },
   progressTrack: {
     height: 8,
@@ -236,7 +241,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: SURFACE_MUTED,
     marginVertical: 14,
   },
 });

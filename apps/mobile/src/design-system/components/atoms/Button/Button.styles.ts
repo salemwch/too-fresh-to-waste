@@ -197,19 +197,19 @@ export const createPressedStyles = (theme: ThemeContextValue, variant: ButtonVar
       backgroundColor: colors.surfaceVariant,
     },
     ghost: {
-      backgroundColor: `${colors.primary}15`, // 15% opacity
+      backgroundColor: `${colors.primary}15`,
     },
     outline: {
-      backgroundColor: `${colors.primary}10`, // 10% opacity
+      backgroundColor: `${colors.primary}10`,
     },
     danger: {
-      backgroundColor: `${colors.error}80`, // Slightly darker
+      backgroundColor: `${colors.error}80`,
     },
     success: {
-      backgroundColor: `${colors.success}80`, // Slightly darker
+      backgroundColor: `${colors.success}80`,
     },
     text: {
-      backgroundColor: `${colors.primary}10`, // 10% opacity
+      backgroundColor: `${colors.primary}10`,
     },
   };
 

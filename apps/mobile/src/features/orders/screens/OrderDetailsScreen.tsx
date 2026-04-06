@@ -16,25 +16,26 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, ScrollView, TextInput } from 'react-native';
 
 import { Text, Button, Card, Badge, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { ImpactMoment, useDonationStats } from '@/features/donations';
-import { useQueryWithFocus } from '@/lib/react-query';
-
 import { useSecureScreen } from '@/hooks/useSecureScreen';
+import { useQueryWithFocus } from '@/lib/react-query';
+import { analytics } from '@/utils/analytics';
+
 import { SkeletonOrderDetailsScreen } from '../components/SkeletonOrderDetailsScreen';
 import { ordersService } from '../services/ordersService';
 import { OrderStatus, isPickupError } from '../types/order.types';
-import { analytics } from '@/utils/analytics';
 
-import type { Order } from '../types/order.types';
-type InlinePickupError = import('../types/order.types').PickupErrorCode | 'INVALID_CODE';
+import type { Order, PickupErrorCode } from '../types/order.types';
 import type { OrdersStackParamList } from '@/navigation/types';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type InlinePickupError = PickupErrorCode | 'INVALID_CODE';
 
 // ---------------------------------------------------------------------------
 // Navigation types
@@ -92,6 +93,10 @@ const CONFIRMABLE_STATUSES: ReadonlySet<string> = new Set([
   OrderStatus.READY_FOR_PICKUP,
 ]);
 
+const DIVIDER = '#e5e7eb';
+const CODE_INPUT_BACKGROUND = '#fafafa';
+const SUCCESS_COLOR = '#22c55e';
+
 // ---------------------------------------------------------------------------
 // Sub-components (pure, no side-effects – extracted for DRY & readability)
 // ---------------------------------------------------------------------------
@@ -106,14 +111,14 @@ const OrderHeader: React.FC<{ order: Order }> = ({ order }) => {
   return (
     <View style={styles.header}>
       <View>
-        <Text variant='headline' size='lg' weight='bold'>
+        <Text variant="headline" size="lg" weight="bold">
           Order Details
         </Text>
-        <Text variant='body' size='sm' color='secondary' style={styles.orderNumber}>
+        <Text variant="body" size="sm" color="secondary" style={styles.orderNumber}>
           #{order.orderNumber}
         </Text>
       </View>
-      <Badge label={badge.label} variant={badge.variant} size='md' />
+      <Badge label={badge.label} variant={badge.variant} size="md" />
     </View>
   );
 };
@@ -122,20 +127,20 @@ const OrderHeader: React.FC<{ order: Order }> = ({ order }) => {
 const ItemRow: React.FC<{ item: Order['items'][0]; currency: string }> = ({ item, currency }) => (
   <View style={styles.itemRow}>
     <View style={styles.itemLeft}>
-      <Text variant='body' size='md' weight='semibold'>
+      <Text variant="body" size="md" weight="semibold">
         {item.offerTitle}
       </Text>
-      <Text variant='body' size='sm' color='secondary'>
+      <Text variant="body" size="sm" color="secondary">
         Qty: {item.quantity}
       </Text>
     </View>
     <View style={styles.itemRight}>
       {item.discountAmount > 0 && (
-        <Text variant='body' size='xs' color='secondary' style={styles.originalPrice}>
+        <Text variant="body" size="xs" color="secondary" style={styles.originalPrice}>
           {item.originalPrice.toFixed(2)} {currency}
         </Text>
       )}
-      <Text variant='body' size='md' weight='semibold'>
+      <Text variant="body" size="md" weight="semibold">
         {item.totalPrice.toFixed(2)} {currency}
       </Text>
     </View>
@@ -145,7 +150,7 @@ const ItemRow: React.FC<{ item: Order['items'][0]; currency: string }> = ({ item
 /** Items list card */
 const ItemsList: React.FC<{ order: Order }> = ({ order }) => (
   <Card style={styles.card}>
-    <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
+    <Text variant="body" size="sm" weight="bold" color="secondary" style={styles.sectionTitle}>
       ITEMS
     </Text>
     {order.items.map((item, index) => (
@@ -166,23 +171,23 @@ const PricingSummary: React.FC<{ order: Order }> = ({ order }) => {
 
   return (
     <Card style={styles.card}>
-      <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
+      <Text variant="body" size="sm" weight="bold" color="secondary" style={styles.sectionTitle}>
         PRICING
       </Text>
-      <PricingRow label='Price' value={originalPrice} currency={pricing.currency} />
+      <PricingRow label="Price" value={originalPrice} currency={pricing.currency} />
       {pricing.discountAmount > 0 && (
         <PricingRow
-          label='Discount'
+          label="Discount"
           value={-pricing.discountAmount}
           currency={pricing.currency}
           isDiscount
         />
       )}
-      <PricingRow label='Final Price' value={pricing.subtotal} currency={pricing.currency} />
+      <PricingRow label="Final Price" value={pricing.subtotal} currency={pricing.currency} />
       <View style={styles.divider} />
-      <PricingRow label='Service Fee' value={pricing.serviceFee} currency={pricing.currency} />
+      <PricingRow label="Service Fee" value={pricing.serviceFee} currency={pricing.currency} />
       <View style={styles.divider} />
-      <PricingRow label='Total' value={pricing.total} currency={pricing.currency} isBold />
+      <PricingRow label="Total" value={pricing.total} currency={pricing.currency} isBold />
     </Card>
   );
 };
@@ -196,12 +201,12 @@ const PricingRow: React.FC<{
   isDiscount?: boolean;
 }> = ({ label, value, currency, isBold, isDiscount }) => (
   <View style={styles.pricingRow}>
-    <Text variant='body' size='md' weight={(isBold ?? false) ? 'bold' : 'regular'}>
+    <Text variant="body" size="md" weight={(isBold ?? false) ? 'bold' : 'regular'}>
       {label}
     </Text>
     <Text
-      variant='body'
-      size='md'
+      variant="body"
+      size="md"
       weight={(isBold ?? false) ? 'bold' : 'regular'}
       color={(isDiscount ?? false) ? 'success' : ''}
     >
@@ -230,25 +235,25 @@ const PickupDetailsCard: React.FC<{ order: Order }> = ({ order }) => {
 
   return (
     <Card style={styles.card}>
-      <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
+      <Text variant="body" size="sm" weight="bold" color="secondary" style={styles.sectionTitle}>
         PICKUP DETAILS
       </Text>
       <View style={styles.pickupRow}>
-        <Icon name='calendar' family='Ionicons' size={18} color='#888' />
-        <Text variant='body' size='md' style={styles.pickupText}>
+        <Icon name="calendar" family="Ionicons" size={18} color="#888" />
+        <Text variant="body" size="md" style={styles.pickupText}>
           {formattedDate}
         </Text>
       </View>
       <View style={styles.pickupRow}>
-        <Icon name='time' family='Ionicons' size={18} color='#888' />
-        <Text variant='body' size='md' style={styles.pickupText}>
+        <Icon name="time" family="Ionicons" size={18} color="#888" />
+        <Text variant="body" size="md" style={styles.pickupText}>
           {pickupDetails.timeSlot.startTime} – {pickupDetails.timeSlot.endTime}
         </Text>
       </View>
       {pickupDetails.instructions != null && (
         <View style={styles.pickupRow}>
-          <Icon name='information-circle-outline' family='Ionicons' size={18} color='#888' />
-          <Text variant='body' size='sm' color='secondary' style={styles.pickupText}>
+          <Icon name="information-circle-outline" family="Ionicons" size={18} color="#888" />
+          <Text variant="body" size="sm" color="secondary" style={styles.pickupText}>
             {pickupDetails.instructions}
           </Text>
         </View>
@@ -269,17 +274,17 @@ const ConfirmPickupSection: React.FC<{
   const theme = useTheme();
   const [code, setCode] = useState('');
 
-  // Reset code input after successful confirmation
-  useEffect(() => {
-    if (isConfirmed) setCode('');
-  }, [isConfirmed]);
-
   if (isConfirmed) {
     return (
       <Card style={styles.card}>
         <View style={styles.successRow}>
-          <Icon name='checkmark-circle' family='Ionicons' size={28} color={theme.colors.base?.success?.[500] ?? '#22c55e'} />
-          <Text variant='body' size='md' weight='semibold' style={styles.successText}>
+          <Icon
+            name="checkmark-circle"
+            family="Ionicons"
+            size={28}
+            color={theme.colors.base?.success?.[500] ?? '#22c55e'}
+          />
+          <Text variant="body" size="md" weight="semibold" style={styles.successText}>
             Pickup confirmed!
           </Text>
         </View>
@@ -291,12 +296,22 @@ const ConfirmPickupSection: React.FC<{
     return (
       <Card style={styles.card}>
         <View style={styles.expiredRow}>
-          <Icon name='timer-off-outline' family='MaterialCommunityIcons' size={28} color={theme.colors.base?.error?.[500] ?? '#ef4444'} />
+          <Icon
+            name="timer-off-outline"
+            family="MaterialCommunityIcons"
+            size={28}
+            color={theme.colors.base?.error?.[500] ?? '#ef4444'}
+          />
           <View style={styles.expiredTextContainer}>
-            <Text variant='body' size='md' weight='semibold' style={{ color: theme.colors.base?.error?.[500] ?? '#ef4444' }}>
+            <Text
+              variant="body"
+              size="md"
+              weight="semibold"
+              style={{ color: theme.colors.base?.error?.[500] ?? '#ef4444' }}
+            >
               Order Expired
             </Text>
-            <Text variant='body' size='sm' color='secondary'>
+            <Text variant="body" size="sm" color="secondary">
               The pickup window has ended. The pickup code is no longer valid.
             </Text>
           </View>
@@ -307,10 +322,10 @@ const ConfirmPickupSection: React.FC<{
 
   return (
     <Card style={styles.card}>
-      <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
+      <Text variant="body" size="sm" weight="bold" color="secondary" style={styles.sectionTitle}>
         CONFIRM PICKUP
       </Text>
-      <Text variant='body' size='sm' color='secondary' style={styles.confirmHint}>
+      <Text variant="body" size="sm" color="secondary" style={styles.confirmHint}>
         Ask the merchant for the 6-digit pickup code and enter it below.
       </Text>
 
@@ -330,25 +345,33 @@ const ConfirmPickupSection: React.FC<{
           setCode(text);
           if (errorCode) onClearError();
         }}
-        keyboardType='numeric'
+        keyboardType="numeric"
         maxLength={6}
-        placeholder='• • • • • •'
-        placeholderTextColor='#aaa'
+        placeholder="• • • • • •"
+        placeholderTextColor="#aaa"
         autoFocus={false}
         editable={!isLoading}
-        textAlign='center'
-        accessibilityLabel='Pickup code input'
-        accessibilityHint='Enter the 6-digit code shown by the merchant'
+        textAlign="center"
+        accessibilityLabel="Pickup code input"
+        accessibilityHint="Enter the 6-digit code shown by the merchant"
       />
 
       {/* Inline error directly under input */}
       {errorCode && (
         <View style={styles.inlineError}>
-          <Icon name='alert-circle' family='Ionicons' size={16} color={theme.colors.base?.error?.[500] ?? '#ef4444'} />
+          <Icon
+            name="alert-circle"
+            family="Ionicons"
+            size={16}
+            color={theme.colors.base?.error?.[500] ?? '#ef4444'}
+          />
           <Text
-            variant='body'
-            size='sm'
-            style={{ color: theme.colors.base?.error?.[500] ?? '#ef4444', flex: 1 }}
+            variant="body"
+            size="sm"
+            style={[
+              styles.inlineErrorText,
+              { color: theme.colors.base?.error?.[500] ?? '#ef4444' },
+            ]}
           >
             {PICKUP_ERROR_MESSAGES[errorCode]}
           </Text>
@@ -356,8 +379,8 @@ const ConfirmPickupSection: React.FC<{
       )}
 
       <Button
-        variant='primary'
-        size='lg'
+        variant="primary"
+        size="lg"
         disabled={code.length !== 6 || isLoading}
         loading={isLoading}
         onPress={() => onConfirm(code)}
@@ -404,7 +427,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
       // Invalidate so the order refetches with PICKED_UP status
       void queryClient.invalidateQueries({ queryKey });
     },
-    onError: error => {
+    onError: (error) => {
       if (isPickupError(error)) {
         setPickupError(error.code);
       } else {
@@ -426,12 +449,8 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
   // Donation impact moment
   // ---------------------------------------------------------------------------
 
-  const [showImpactMoment, setShowImpactMoment] = useState(true);
+  const [dismissedImpactOrderId, setDismissedImpactOrderId] = useState<string | null>(null);
   const { data: donationStats } = useDonationStats();
-
-  useEffect(() => {
-    setShowImpactMoment(true);
-  }, [orderId]);
 
   // ---------------------------------------------------------------------------
   // Derived state
@@ -450,6 +469,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
   }, [order]);
 
   const canConfirm = order ? CONFIRMABLE_STATUSES.has(order.status) : false;
+  const showImpactMoment = dismissedImpactOrderId !== orderId;
 
   // ---------------------------------------------------------------------------
   // Render – loading
@@ -486,8 +506,13 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
         {order.status === OrderStatus.PICKED_UP && !confirmMutation.isSuccess && (
           <Card style={styles.card}>
             <View style={styles.successRow}>
-              <Icon name='checkmark-circle' family='Ionicons' size={28} color={theme.colors.base?.success?.[500] ?? '#22c55e'} />
-              <Text variant='body' size='md' weight='semibold' style={styles.successText}>
+              <Icon
+                name="checkmark-circle"
+                family="Ionicons"
+                size={28}
+                color={theme.colors.base?.success?.[500] ?? '#22c55e'}
+              />
+              <Text variant="body" size="md" weight="semibold" style={styles.successText}>
                 Pickup confirmed!
               </Text>
             </View>
@@ -496,8 +521,8 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
 
         {/* Go back button */}
         <Button
-          variant='outline'
-          size='md'
+          variant="outline"
+          size="md"
           onPress={() => navigation.goBack()}
           style={styles.goBackButton}
         >
@@ -512,7 +537,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
           donationAmount={order.donationAmount}
           totalDonations={donationStats.totalDonations}
           mealCount={donationStats.mealCount}
-          onDismiss={() => setShowImpactMoment(false)}
+          onDismiss={() => setDismissedImpactOrderId(orderId)}
           currency={order.pricing.currency}
         />
       )}
@@ -555,7 +580,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: DIVIDER,
     marginVertical: 8,
   },
 
@@ -604,7 +629,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     letterSpacing: 8,
-    backgroundColor: '#fafafa',
+    backgroundColor: CODE_INPUT_BACKGROUND,
   },
   inlineError: {
     flexDirection: 'row',
@@ -612,6 +637,9 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 8,
     paddingHorizontal: 4,
+  },
+  inlineErrorText: {
+    flex: 1,
   },
   confirmButton: {
     marginTop: 16,
@@ -625,7 +653,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   successText: {
-    color: '#22c55e',
+    color: SUCCESS_COLOR,
   },
 
   // Expired state

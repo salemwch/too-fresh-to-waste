@@ -7,8 +7,8 @@
  *   Client-side filter into active / history via isActiveOrder / isHistoryOrder
  */
 
-import { useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useMemo, useCallback } from 'react';
 
 import { useQueryWithFocus } from '@/lib/react-query';
 
@@ -34,21 +34,15 @@ export function useOrders() {
     () => ordersService.getMyOrders(1, 50),
     {
       staleTime: 1000 * 60 * 2, // 2 minutes
-      gcTime: 1000 * 60 * 30,   // 30 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes
     },
   );
 
-  const orders: Order[] = response?.data ?? [];
+  const orders = useMemo<Order[]>(() => response?.data ?? [], [response?.data]);
 
-  const activeOrders = useMemo(
-    () => orders.filter(isActiveOrder),
-    [orders],
-  );
+  const activeOrders = useMemo(() => orders.filter(isActiveOrder), [orders]);
 
-  const historyOrders = useMemo(
-    () => orders.filter(isHistoryOrder),
-    [orders],
-  );
+  const historyOrders = useMemo(() => orders.filter(isHistoryOrder), [orders]);
 
   /** Pull-to-refresh handler */
   const handleRefresh = useCallback(async () => {

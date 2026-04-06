@@ -13,6 +13,7 @@ import { useTheme } from '@/design-system/providers';
 import { SearchScreen } from '@/features/search/screens/SearchScreen';
 
 import { getDefaultScreenOptions, makeHeaderBackButton } from './headerConfig';
+
 import type { SearchStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<SearchStackParamList>();
@@ -28,7 +29,7 @@ export const SearchStack: React.FC = () => {
       })}
     >
       <Stack.Screen
-        name='SearchMain'
+        name="SearchMain"
         component={SearchScreen}
         options={{ title: 'Search Offers' }}
       />

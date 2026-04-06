@@ -340,8 +340,8 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
    */
   const SectionHeader: React.FC<{ title: string; icon: string }> = ({ title, icon }) => (
     <View style={styles.sectionHeader}>
-      <Icon name={icon} family='Ionicons' size={20} color={theme.colors.primary} />
-      <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
+      <Icon name={icon} family="Ionicons" size={20} color={theme.colors.primary} />
+      <Text variant="title" size="md" weight="semibold" style={styles.sectionTitle}>
         {title}
       </Text>
     </View>
@@ -361,47 +361,47 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps='handled'
+        keyboardShouldPersistTaps="handled"
       >
         {/* Profile Image Section */}
         <Card style={styles.card}>
           <View style={styles.avatarSection}>
             <Avatar
-              size='xl'
+              size="xl"
               source={{ uri: imageUri ?? avatarUri ?? '' }}
               initials={initials}
-              variant='circular'
+              variant="circular"
             />
             <Pressable
               style={[styles.changePhotoButton, { backgroundColor: theme.colors.primaryContainer }]}
               onPress={handleSelectImage}
               disabled={isImageUploading}
-              accessibilityLabel='Change profile photo'
-              accessibilityHint='Opens image picker to select a new profile photo'
+              accessibilityLabel="Change profile photo"
+              accessibilityHint="Opens image picker to select a new profile photo"
             >
               <Icon
-                name='camera-outline'
-                family='Ionicons'
+                name="camera-outline"
+                family="Ionicons"
                 size={16}
                 color={theme.colors.primary}
               />
               <Text
-                variant='label'
-                size='sm'
-                weight='medium'
-                color='primary'
+                variant="label"
+                size="sm"
+                weight="medium"
+                color="primary"
                 style={styles.changePhotoText}
               >
                 {isImageUploading ? 'Uploading...' : 'Change Photo'}
               </Text>
             </Pressable>
             {imageUri != null && !isImageUploading && (
-              <Text variant='body' size='xs' color='success' style={styles.imageStatusText}>
+              <Text variant="body" size="xs" color="success" style={styles.imageStatusText}>
                 New image selected
               </Text>
             )}
             {isImageUploading && (
-              <Text variant='body' size='xs' color='primary' style={styles.imageStatusText}>
+              <Text variant="body" size="xs" color="primary" style={styles.imageStatusText}>
                 Uploading image...
               </Text>
             )}
@@ -410,75 +410,75 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
 
         {/* Personal Information Section */}
         <Card style={styles.card}>
-          <SectionHeader title='Personal Information' icon='person-outline' />
+          <SectionHeader title="Personal Information" icon="person-outline" />
 
           <Controller
             control={control}
-            name='firstName'
+            name="firstName"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='First Name'
+                label="First Name"
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={errors.firstName?.message}
-                placeholder='Enter your first name'
-                autoCapitalize='words'
-                returnKeyType='next'
-                accessibilityLabel='First name input'
-                accessibilityHint='Enter your first name'
+                placeholder="Enter your first name"
+                autoCapitalize="words"
+                returnKeyType="next"
+                accessibilityLabel="First name input"
+                accessibilityHint="Enter your first name"
               />
             )}
           />
 
           <Controller
             control={control}
-            name='lastName'
+            name="lastName"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='Last Name'
+                label="Last Name"
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={errors.lastName?.message}
-                placeholder='Enter your last name'
-                autoCapitalize='words'
-                returnKeyType='next'
-                accessibilityLabel='Last name input'
-                accessibilityHint='Enter your last name'
+                placeholder="Enter your last name"
+                autoCapitalize="words"
+                returnKeyType="next"
+                accessibilityLabel="Last name input"
+                accessibilityHint="Enter your last name"
               />
             )}
           />
 
           <Input
-            label='Email'
+            label="Email"
             value={user?.email ?? ''}
             editable={false}
-            placeholder='Email address'
-            keyboardType='email-address'
-            leftIcon='mail-outline'
-            leftIconFamily='Ionicons'
+            placeholder="Email address"
+            keyboardType="email-address"
+            leftIcon="mail-outline"
+            leftIconFamily="Ionicons"
             style={[styles.disabledInput, { backgroundColor: theme.colors.surfaceVariant }]}
-            accessibilityLabel='Email address (read-only)'
-            accessibilityHint='Your email address cannot be changed'
+            accessibilityLabel="Email address (read-only)"
+            accessibilityHint="Your email address cannot be changed"
           />
 
           <Controller
             control={control}
-            name='phoneNumber'
+            name="phoneNumber"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='Phone Number'
+                label="Phone Number"
                 value={value ?? ''}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={errors.phoneNumber?.message}
-                placeholder='+21612345678'
-                keyboardType='phone-pad'
-                leftIcon='call-outline'
-                leftIconFamily='Ionicons'
-                accessibilityLabel='Phone number input'
-                accessibilityHint='Enter your phone number in international format'
+                placeholder="+21612345678"
+                keyboardType="phone-pad"
+                leftIcon="call-outline"
+                leftIconFamily="Ionicons"
+                accessibilityLabel="Phone number input"
+                accessibilityHint="Enter your phone number in international format"
               />
             )}
           />
@@ -486,42 +486,42 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
 
         {/* Address Section */}
         <Card style={styles.card}>
-          <SectionHeader title='Address' icon='location-outline' />
+          <SectionHeader title="Address" icon="location-outline" />
 
           <Controller
             control={control}
-            name='street'
+            name="street"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='Street Address'
+                label="Street Address"
                 value={value ?? ''}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={errors.street?.message}
-                placeholder='123 Main Street'
-                autoCapitalize='words'
-                returnKeyType='next'
-                accessibilityLabel='Street address input'
-                accessibilityHint='Enter your street address'
+                placeholder="123 Main Street"
+                autoCapitalize="words"
+                returnKeyType="next"
+                accessibilityLabel="Street address input"
+                accessibilityHint="Enter your street address"
               />
             )}
           />
 
           <Controller
             control={control}
-            name='city'
+            name="city"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='City'
+                label="City"
                 value={value ?? ''}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={errors.city?.message}
-                placeholder='Tunis'
-                autoCapitalize='words'
-                returnKeyType='next'
-                accessibilityLabel='City input'
-                accessibilityHint='Enter your city'
+                placeholder="Tunis"
+                autoCapitalize="words"
+                returnKeyType="next"
+                accessibilityLabel="City input"
+                accessibilityHint="Enter your city"
               />
             )}
           />
@@ -530,19 +530,19 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             <View style={styles.halfWidth}>
               <Controller
                 control={control}
-                name='postalCode'
+                name="postalCode"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
-                    label='Postal Code'
+                    label="Postal Code"
                     value={value ?? ''}
                     onChangeText={onChange}
                     onBlur={onBlur}
                     error={errors.postalCode?.message}
-                    placeholder='1000'
-                    keyboardType='number-pad'
-                    returnKeyType='next'
-                    accessibilityLabel='Postal code input'
-                    accessibilityHint='Enter your postal code'
+                    placeholder="1000"
+                    keyboardType="number-pad"
+                    returnKeyType="next"
+                    accessibilityLabel="Postal code input"
+                    accessibilityHint="Enter your postal code"
                   />
                 )}
               />
@@ -551,19 +551,19 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             <View style={styles.halfWidth}>
               <Controller
                 control={control}
-                name='country'
+                name="country"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
-                    label='Country'
+                    label="Country"
                     value={value ?? ''}
                     onChangeText={onChange}
                     onBlur={onBlur}
                     error={errors.country?.message}
-                    placeholder='Tunisia'
-                    autoCapitalize='words'
-                    returnKeyType='done'
-                    accessibilityLabel='Country input'
-                    accessibilityHint='Enter your country'
+                    placeholder="Tunisia"
+                    autoCapitalize="words"
+                    returnKeyType="done"
+                    accessibilityLabel="Country input"
+                    accessibilityHint="Enter your country"
                   />
                 )}
               />
@@ -574,23 +574,23 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
           <Button
-            variant='primary'
-            size='lg'
+            variant="primary"
+            size="lg"
             onPress={handleSave}
             disabled={!isDirty && imageUri == null}
             style={styles.saveButton}
-            accessibilityLabel='Save changes'
-            accessibilityHint='Saves your profile changes'
+            accessibilityLabel="Save changes"
+            accessibilityHint="Saves your profile changes"
           >
             Save Changes
           </Button>
 
           <Button
-            variant='outline'
-            size='md'
+            variant="outline"
+            size="md"
             onPress={handleCancel}
-            accessibilityLabel='Cancel editing'
-            accessibilityHint='Discards changes and returns to profile screen'
+            accessibilityLabel="Cancel editing"
+            accessibilityHint="Discards changes and returns to profile screen"
           >
             Cancel
           </Button>
@@ -599,12 +599,12 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
         {/* Helper Info */}
         <View style={styles.infoBox}>
           <Icon
-            name='information-circle-outline'
-            family='Ionicons'
+            name="information-circle-outline"
+            family="Ionicons"
             size={20}
             color={theme.colors.primary}
           />
-          <Text variant='body' size='xs' color='secondary' style={styles.infoText}>
+          <Text variant="body" size="xs" color="secondary" style={styles.infoText}>
             Your personal information is securely stored and will only be used for order delivery
             and account management.
           </Text>

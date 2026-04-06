@@ -3,8 +3,8 @@
  * Fetches loyalty account + gamification stats with screen-focus refetch.
  */
 
-import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import { useQueryWithFocus } from '@/lib/react-query';
 
@@ -23,7 +23,7 @@ export function useLoyalty() {
     () => loyaltyService.getAccount(),
     {
       staleTime: 1000 * 60 * 2, // 2 min
-      gcTime: 1000 * 60 * 30,   // 30 min
+      gcTime: 1000 * 60 * 30, // 30 min
     },
   );
 

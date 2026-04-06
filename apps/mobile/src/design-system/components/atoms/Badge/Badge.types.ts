@@ -3,7 +3,7 @@
  */
 
 import type { ComponentSize, StyleSystemProps } from '../../../types';
-import type { ViewProps } from 'react-native';
+import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native';
 
 export type BadgeVariant =
   | 'default'
@@ -71,12 +71,12 @@ export interface BadgeProps extends Omit<ViewProps, 'style'>, StyleSystemProps {
   /**
    * Custom style overrides
    */
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 
   /**
    * Custom text style
    */
-  textStyle?: any;
+  textStyle?: StyleProp<TextStyle>;
 
   /**
    * Whether badge is pressable

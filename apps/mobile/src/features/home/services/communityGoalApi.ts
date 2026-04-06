@@ -6,6 +6,7 @@
  */
 
 import axios, { type AxiosError } from 'axios';
+
 import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
 
 import type { CommunityBagGoalStats } from '@foodwaste/shared';
@@ -23,7 +24,7 @@ const handleApiError = (error: unknown): Error => {
     }
 
     const message =
-      axiosError.response?.data?.message || axiosError.message || 'An unexpected error occurred';
+      axiosError.response?.data?.message ?? axiosError.message ?? 'An unexpected error occurred';
     return new Error(message);
   }
   return error as Error;

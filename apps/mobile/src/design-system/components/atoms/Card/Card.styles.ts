@@ -2,7 +2,7 @@
  * Card Component - Styles
  */
 
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, type ViewStyle } from 'react-native';
 
 import type { CardVariant, CardSize } from './Card.types';
 import type { ThemeContextValue } from '../../../types';
@@ -57,7 +57,7 @@ export const createCardStyles = (
   };
 
   // Base card styles with proper typing
-  const baseCard: any = {
+  const baseCard: ViewStyle = {
     overflow: 'hidden' as const,
     ...sizeStyles[size],
     ...variantStyles[variant],

@@ -30,7 +30,7 @@ class NetworkErrorBus {
 
   /** Emit a network error message to all subscribers */
   emit(message: string): void {
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener(message);
       } catch {

@@ -14,7 +14,6 @@ import {
   Platform,
   Pressable,
   Image,
-  TextInput,
 } from 'react-native';
 
 import LeafLogo from '@/assets/images/leaf.png';
@@ -27,6 +26,8 @@ import {
 } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { getErrorMessage, isAppError } from '@/utils/errorHandler';
+import { Logger } from '@/utils/logger';
 import { showSuccessToast } from '@/utils/toast';
 import { loginSchema, type LoginFormData } from '@/utils/validation/schemas';
 
@@ -34,6 +35,7 @@ import { authService } from '../services/authService';
 import { loginAsync, clearError } from '../store/authSlice';
 
 import type { LoginScreenNavigationProp } from '@/navigation/types';
+import type { TextInput } from 'react-native';
 
 interface LoginScreenProps {
   navigation: LoginScreenNavigationProp;
@@ -48,52 +50,49 @@ interface BackendValidationError {
   constraints: Record<string, string>;
 }
 
-function parseBackendValidationError(error: any): Record<string, string> | null {
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object';
+
+const isBackendValidationError = (value: unknown): value is BackendValidationError =>
+  isRecord(value) &&
+  typeof value['property'] === 'string' &&
+  isRecord(value['constraints']) &&
+  Object.values(value['constraints']).every((constraint) => typeof constraint === 'string');
+
+function parseBackendValidationError(error: unknown): Record<string, string> | null {
   try {
     // Handle nested message structure from backend
     let errorData: unknown = error;
     if (
-      error !== null &&
-      error !== undefined &&
-      typeof error === 'object' &&
+      isRecord(error) &&
       'response' in error &&
-      error.response !== null &&
-      error.response !== undefined &&
-      typeof error.response === 'object' &&
-      'data' in error.response
+      isRecord(error['response']) &&
+      'data' in error['response']
     ) {
-      errorData = (error.response as { data: unknown }).data;
+      errorData = (error['response'] as { data: unknown }).data;
     }
     let validationErrors: BackendValidationError[] = [];
 
     // Try to extract validation errors from various backend response formats
     if (
-      typeof errorData === 'object' &&
-      errorData !== null &&
+      isRecord(errorData) &&
       'message' in errorData &&
-      typeof (errorData as { message?: unknown }).message === 'object' &&
-      (errorData as { message?: unknown }).message !== null &&
-      typeof (errorData as { message?: { message?: unknown } }).message === 'object' &&
-      Array.isArray(
-        ((errorData as { message?: { message?: unknown } }).message as { message?: unknown })
-          .message,
-      )
+      isRecord(errorData['message']) &&
+      Array.isArray(errorData['message']['message'])
     ) {
-      validationErrors = (errorData as { message: { message: BackendValidationError[] } }).message
-        .message;
+      validationErrors = errorData['message']['message'].filter(isBackendValidationError);
     } else if (
-      typeof errorData === 'object' &&
-      errorData !== null &&
+      isRecord(errorData) &&
       'message' in errorData &&
-      Array.isArray((errorData as any).message)
+      Array.isArray(errorData['message'])
     ) {
-      validationErrors = (errorData as { message: BackendValidationError[] }).message;
+      validationErrors = errorData['message'].filter(isBackendValidationError);
     }
 
     // Convert to field-message map
     if (validationErrors.length > 0) {
       const fieldErrors: Record<string, string> = {};
-      validationErrors.forEach(err => {
+      validationErrors.forEach((err) => {
         if (err.property != null && err.constraints != null) {
           // Get first constraint message
           const firstConstraint = Object.values(err.constraints)[0];
@@ -114,7 +113,7 @@ function parseBackendValidationError(error: any): Record<string, string> | null 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector(state => state.auth);
+  const { isLoading, error } = useAppSelector((state) => state.auth);
 
   // React Hook Form setup with Yup validation
   const {
@@ -157,6 +156,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
   // Login success — drives MorphingButton success animation before nav transition
   const [loginSuccess, setLoginSuccess] = useState(false);
+  const unverifiedBadgeStyle = {
+    backgroundColor: theme.colors.errorContainer,
+    borderColor: theme.colors.error,
+    shadowColor: theme.colors.onSurface,
+  };
+  const errorBannerStyle = {
+    backgroundColor: theme.colors.errorContainer,
+    borderColor: theme.colors.error,
+  };
+  const resendSectionStyle = {
+    borderTopColor: theme.colors.outlineVariant,
+  };
+  const successBannerStyle = {
+    backgroundColor: theme.colors.primaryContainer,
+    borderColor: theme.colors.success,
+  };
 
   /**
    * Clear error on component mount
@@ -224,18 +239,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           // - No risk of navigation errors (RESET action not handled)
           // - Easier to test and debug (single source of truth: Redux state)
         }
-      } catch (err: any) {
-        console.error('Login error:', err);
+      } catch (err: unknown) {
+        Logger.error('Login error', undefined, err instanceof Error ? err : undefined);
+        const errorMessage = getErrorMessage(err, 'Invalid value');
+        const appError = isAppError(err) ? err : undefined;
 
         // Check if this is an account lockout error (403 with blockedUntil)
-        if (err?.isAccountLocked && err?.blockedUntil) {
-          console.log('[LoginScreen] Account locked error detected:', {
-            blockedUntil: err.blockedUntil,
-            message: err.message,
+        if (appError?.isAccountLocked === true && appError.blockedUntil != null) {
+          Logger.warn('[LoginScreen] Account locked error detected', {
+            blockedUntil: appError.blockedUntil,
+            message: appError.message,
           });
 
           // Show account locked modal instead of inline error
-          setBlockedUntil(err.blockedUntil);
+          setBlockedUntil(appError.blockedUntil);
           setShowLockedModal(true);
 
           // Clear the global error from Redux since we're showing the modal
@@ -245,10 +262,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
         // Check if error has field-specific information from backend
         // Backend now returns: { field: 'email' | 'password', type: 'EMAIL_NOT_FOUND' | 'INVALID_PASSWORD' }
-        if (err?.field && (err.field === 'email' || err.field === 'password')) {
+        if (appError?.field === 'email' || appError?.field === 'password') {
           // Set inline error on the specific field
-          const errorMessage = err.message || 'Invalid value';
-          setError(err.field, {
+          setError(appError.field, {
             type: 'manual',
             message: errorMessage,
           });
@@ -310,8 +326,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       setTimeout(() => {
         setResendSuccess(false);
       }, 5000);
-    } catch (err: any) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send verification email';
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to send verification email');
       setResendError(errorMessage);
       setResendSuccess(false);
     } finally {
@@ -345,7 +361,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps='handled'
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         {/* Header with Leaf Logo */}
@@ -353,8 +369,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           <Image
             source={LeafLogo}
             style={styles.leafLogo}
-            resizeMode='contain'
-            accessibilityLabel='Too Fresh To Waste logo'
+            resizeMode="contain"
+            accessibilityLabel="Too Fresh To Waste logo"
           />
         </View>
 
@@ -363,17 +379,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {/* Verification Status Badge (Top Right) */}
           {isEmailUnverified && email && (
             <View style={styles.verificationBadge}>
-              <View
-                style={[
-                  styles.badge,
-                  {
-                    backgroundColor: '#FFEBEE',
-                    borderColor: theme.colors.error,
-                  },
-                ]}
-              >
-                <Icon name='close-circle' family='Ionicons' size='sm' color={theme.colors.error} />
-                <Text variant='label.small' weight='semibold' style={{ color: theme.colors.error }}>
+              <View style={[styles.badge, unverifiedBadgeStyle]}>
+                <Icon name="close-circle" family="Ionicons" size="sm" color={theme.colors.error} />
+                <Text variant="label.small" weight="semibold" style={{ color: theme.colors.error }}>
                   Unverified
                 </Text>
               </View>
@@ -383,34 +391,34 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {/* Welcome Back Header with Waving Hand */}
           <View style={styles.welcomeHeader}>
             <View style={styles.welcomeTitleRow}>
-              <Text variant='headline.large' weight='semibold'>
+              <Text variant="headline.large" weight="semibold">
                 Welcome Back
               </Text>
               <Image
                 source={WavingHand}
                 style={styles.wavingHand}
-                resizeMode='contain'
-                accessibilityLabel='Waving hand'
+                resizeMode="contain"
+                accessibilityLabel="Waving hand"
               />
             </View>
-            <Text variant='body.medium' color='secondary' style={styles.welcomeSubtitle}>
+            <Text variant="body.medium" color="secondary" style={styles.welcomeSubtitle}>
               Save food, save money, save the planet
             </Text>
           </View>
 
           {/* Global error message from Redux - Displays specific error from backend */}
           {error !== null && error !== undefined && (
-            <View style={[styles.errorBanner, { backgroundColor: theme.colors.errorContainer }]}>
+            <View style={[styles.errorBanner, errorBannerStyle]}>
               <View style={styles.errorBannerContent}>
                 <Icon
-                  name='alert-circle-outline'
-                  family='Ionicons'
-                  size='md'
+                  name="alert-circle-outline"
+                  family="Ionicons"
+                  size="md"
                   color={theme.colors.error}
                 />
                 <Text
-                  variant='body.small'
-                  weight='medium'
+                  variant="body.small"
+                  weight="medium"
                   style={[styles.errorText, { color: theme.colors.onErrorContainer }]}
                 >
                   {error}
@@ -419,8 +427,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
               {/* Resend Verification Email Button (only for unverified email errors) */}
               {isEmailUnverified && email && (
-                <View style={styles.resendSection}>
-                  <Text variant='body.small' color='secondary' style={styles.resendPrompt}>
+                <View style={[styles.resendSection, resendSectionStyle]}>
+                  <Text variant="body.small" color="secondary" style={styles.resendPrompt}>
                     Didn&apos;t receive the email?
                   </Text>
                   <Pressable
@@ -431,8 +439,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     style={styles.resendButton}
                   >
                     <Text
-                      variant='body.small'
-                      weight='semibold'
+                      variant="body.small"
+                      weight="semibold"
                       style={{
                         color: resendingEmail ? theme.colors.outline : theme.colors.primary,
                       }}
@@ -447,18 +455,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           {/* Success Message for Resent Email */}
           {resendSuccess && (
-            <View
-              style={[styles.successBanner, { backgroundColor: theme.colors.primaryContainer }]}
-            >
+            <View style={[styles.successBanner, successBannerStyle]}>
               <Icon
-                name='checkmark-circle-outline'
-                family='Ionicons'
-                size='md'
+                name="checkmark-circle-outline"
+                family="Ionicons"
+                size="md"
                 color={theme.colors.primary}
               />
               <Text
-                variant='body.small'
-                weight='medium'
+                variant="body.small"
+                weight="medium"
                 style={[styles.successText, { color: theme.colors.onPrimaryContainer }]}
               >
                 Verification email sent! Check your inbox.
@@ -468,17 +474,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           {/* Error Message for Resend Failure */}
           {typeof resendError === 'string' && resendError.trim() !== '' && (
-            <View style={[styles.errorBanner, { backgroundColor: theme.colors.errorContainer }]}>
+            <View style={[styles.errorBanner, errorBannerStyle]}>
               <View style={styles.errorBannerContent}>
                 <Icon
-                  name='alert-circle-outline'
-                  family='Ionicons'
-                  size='md'
+                  name="alert-circle-outline"
+                  family="Ionicons"
+                  size="md"
                   color={theme.colors.error}
                 />
                 <Text
-                  variant='body.small'
-                  weight='medium'
+                  variant="body.small"
+                  weight="medium"
                   style={[styles.errorText, { color: theme.colors.onErrorContainer }]}
                 >
                   {resendError}
@@ -490,26 +496,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {/* Email Input */}
           <Controller
             control={control}
-            name='email'
+            name="email"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='Email Address'
-                placeholder='Enter your email'
+                label="Email Address"
+                placeholder="Enter your email"
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
-                keyboardType='email-address'
-                autoCapitalize='none'
+                keyboardType="email-address"
+                autoCapitalize="none"
                 autoCorrect={false}
-                autoComplete='email'
-                textContentType='emailAddress'
-                returnKeyType='next'
+                autoComplete="email"
+                textContentType="emailAddress"
+                returnKeyType="next"
                 onSubmitEditing={() => passwordRef.current?.focus()}
-                leftIcon={<Icon name='mail-outline' family='Ionicons' size='md' />}
+                leftIcon={<Icon name="mail-outline" family="Ionicons" size="md" />}
                 hasError={!!formErrors.email}
                 errorText={formErrors.email?.message}
                 editable={!isLoading}
-                testID='login-email-input'
+                testID="login-email-input"
                 fullWidth
               />
             )}
@@ -518,36 +524,36 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {/* Password Input */}
           <Controller
             control={control}
-            name='password'
+            name="password"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 ref={passwordRef}
-                label='Password'
-                placeholder='Enter your password'
+                label="Password"
+                placeholder="Enter your password"
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 secureTextEntry={!showPassword}
-                autoCapitalize='none'
+                autoCapitalize="none"
                 autoCorrect={false}
-                autoComplete='password'
-                textContentType='password'
-                returnKeyType='done'
+                autoComplete="password"
+                textContentType="password"
+                returnKeyType="done"
                 onSubmitEditing={() => void handleSubmit(onSubmit)()}
-                leftIcon={<Icon name='lock-closed-outline' family='Ionicons' size='md' />}
+                leftIcon={<Icon name="lock-closed-outline" family="Ionicons" size="md" />}
                 rightIcon={
                   <Pressable onPress={() => setShowPassword(!showPassword)}>
                     <Icon
                       name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                      family='Ionicons'
-                      size='md'
+                      family="Ionicons"
+                      size="md"
                     />
                   </Pressable>
                 }
                 hasError={!!formErrors.password}
                 errorText={formErrors.password?.message}
                 editable={!isLoading}
-                testID='login-password-input'
+                testID="login-password-input"
                 containerStyle={styles.passwordInput}
                 fullWidth
               />
@@ -557,7 +563,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {/* Remember Me & Forgot Password Row */}
           <Controller
             control={control}
-            name='rememberMe'
+            name="rememberMe"
             render={({ field: { onChange, value } }) => (
               <View style={styles.optionsRow}>
                 <Pressable
@@ -570,31 +576,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                       styles.checkbox,
                       {
                         borderColor: theme.colors.outline,
-                        backgroundColor: value ? theme.colors.primary : 'transparent',
+                        backgroundColor:
+                          value === true ? theme.colors.primary : theme.colors.surface,
                       },
                     ]}
                   >
                     {value === true && (
-                      <Text
-                        style={{
-                          color: theme.colors.onPrimary,
-                          fontSize: 14,
-                          lineHeight: 14,
-                          includeFontPadding: false,
-                          textAlignVertical: 'center',
-                        }}
-                      >
+                      <Text style={[styles.checkboxCheckmark, { color: theme.colors.onPrimary }]}>
                         ✓
                       </Text>
                     )}
                   </View>
-                  <Text variant='body.small' color='secondary'>
+                  <Text variant="body.small" color="secondary">
                     Remember me
                   </Text>
                 </Pressable>
 
                 <Pressable onPress={handleNavigateToForgotPassword} disabled={isLoading}>
-                  <Text variant='body.small' color='primary' weight='medium'>
+                  <Text variant="body.small" color="primary" weight="medium">
                     Forgot Password?
                   </Text>
                 </Pressable>
@@ -604,21 +603,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           {/* Login Button */}
           <MorphingButton
-            label='Sign In'
-            successLabel='Welcome!'
+            label="Sign In"
+            successLabel="Welcome!"
             loading={isLoading}
             success={loginSuccess}
             onPress={() => {
               void handleSubmit(onSubmit)();
             }}
             style={styles.loginButton}
-            testID='login-submit-button'
+            testID="login-submit-button"
           />
 
           {/* Divider */}
           <View style={styles.divider}>
             <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
-            <Text variant='body.small' color='secondary' style={styles.dividerText}>
+            <Text variant="body.small" color="secondary" style={styles.dividerText}>
               OR
             </Text>
             <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
@@ -626,14 +625,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           {/* Register Link */}
           <View style={styles.registerContainer}>
-            <Text variant='body.medium' color={theme.colors.onSurfaceVariant}>
+            <Text variant="body.medium" color={theme.colors.onSurfaceVariant}>
               Don&apos;t have an account?{' '}
             </Text>
             <Pressable onPress={handleNavigateToRegister} disabled={isLoading}>
               <Text
-                variant='body.medium'
+                variant="body.medium"
                 color={theme.colors.primary}
-                weight='semibold'
+                weight="semibold"
                 style={[styles.signUpText, { textDecorationColor: theme.colors.primary }]}
               >
                 Sign Up
@@ -643,14 +642,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           {/* Resend Verification Link */}
           <View style={styles.verificationLinkContainer}>
-            <Text variant='body.small' color={theme.colors.onSurfaceVariant}>
+            <Text variant="body.small" color={theme.colors.onSurfaceVariant}>
               Need to verify email?{' '}
             </Text>
             <Pressable onPress={() => setShowResendModal(true)} disabled={isLoading}>
               <Text
-                variant='body.small'
+                variant="body.small"
                 color={theme.colors.primary}
-                weight='semibold'
+                weight="semibold"
                 style={[styles.verificationLinkText, { textDecorationColor: theme.colors.primary }]}
               >
                 Resend Link
@@ -660,7 +659,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         </Card>
 
         {/* Footer */}
-        <Text variant='body.small' color='secondary' align='center' style={styles.footer}>
+        <Text variant="body.small" color="secondary" align="center" style={styles.footer}>
           By signing in, you agree to our Terms of Service and Privacy Policy
         </Text>
       </ScrollView>
@@ -674,7 +673,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       />
 
       {/* Account Locked Modal */}
-      {blockedUntil && (
+      {blockedUntil !== null && blockedUntil !== undefined && (
         <AccountLockedModal
           visible={showLockedModal}
           blockedUntil={blockedUntil}
@@ -727,7 +726,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     transform: [{ rotate: '3deg' }], // Slight tilt for visual interest
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
@@ -756,7 +754,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#FFCDD2', // Light red border
   },
   errorBannerContent: {
     flexDirection: 'row',
@@ -770,7 +767,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
     alignItems: 'center',
   },
   resendPrompt: {
@@ -787,7 +783,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#C8E6C9', // Light green border
   },
   successText: {
     flex: 1,
@@ -814,6 +809,12 @@ const styles = StyleSheet.create({
     marginRight: 8,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  checkboxCheckmark: {
+    fontSize: 14,
+    lineHeight: 14,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   loginButton: {
     marginBottom: 18,

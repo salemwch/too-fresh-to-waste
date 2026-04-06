@@ -5,6 +5,7 @@
 
 import { render, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
+import { View } from 'react-native';
 
 import { ThemeProvider } from '../../../providers';
 
@@ -31,7 +32,7 @@ describe('Button Component', () => {
     it('renders with custom testID', () => {
       render(
         <TestWrapper>
-          <Button testID='custom-button'>Test Button</Button>
+          <Button testID="custom-button">Test Button</Button>
         </TestWrapper>,
       );
 
@@ -41,7 +42,7 @@ describe('Button Component', () => {
     it('renders with loading state', () => {
       render(
         <TestWrapper>
-          <Button loading testID='loading-button'>
+          <Button loading testID="loading-button">
             Test Button
           </Button>
         </TestWrapper>,
@@ -66,7 +67,7 @@ describe('Button Component', () => {
       'success',
     ] as const;
 
-    variants.forEach(variant => {
+    variants.forEach((variant) => {
       it(`renders ${variant} variant correctly`, () => {
         render(
           <TestWrapper>
@@ -85,7 +86,7 @@ describe('Button Component', () => {
   describe('Sizes', () => {
     const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
 
-    sizes.forEach(size => {
+    sizes.forEach((size) => {
       it(`renders ${size} size correctly`, () => {
         render(
           <TestWrapper>
@@ -107,7 +108,7 @@ describe('Button Component', () => {
 
       render(
         <TestWrapper>
-          <Button onPress={onPressMock} testID='pressable-button'>
+          <Button onPress={onPressMock} testID="pressable-button">
             Pressable Button
           </Button>
         </TestWrapper>,
@@ -122,7 +123,7 @@ describe('Button Component', () => {
 
       render(
         <TestWrapper>
-          <Button onPress={onPressMock} disabled testID='disabled-button'>
+          <Button onPress={onPressMock} disabled testID="disabled-button">
             Disabled Button
           </Button>
         </TestWrapper>,
@@ -137,7 +138,7 @@ describe('Button Component', () => {
 
       render(
         <TestWrapper>
-          <Button onPress={onPressMock} loading testID='loading-button'>
+          <Button onPress={onPressMock} loading testID="loading-button">
             Loading Button
           </Button>
         </TestWrapper>,
@@ -150,12 +151,12 @@ describe('Button Component', () => {
 
   // Icon tests
   describe('Icons', () => {
-    const MockIcon = () => <div data-testid='mock-icon'>Icon</div>;
+    const MockIcon = () => <View testID="mock-icon" />;
 
     it('renders with left icon', () => {
       render(
         <TestWrapper>
-          <Button leftIcon={<MockIcon />} testID='left-icon-button'>
+          <Button leftIcon={<MockIcon />} testID="left-icon-button">
             Button with Left Icon
           </Button>
         </TestWrapper>,
@@ -168,7 +169,7 @@ describe('Button Component', () => {
     it('renders with right icon', () => {
       render(
         <TestWrapper>
-          <Button rightIcon={<MockIcon />} testID='right-icon-button'>
+          <Button rightIcon={<MockIcon />} testID="right-icon-button">
             Button with Right Icon
           </Button>
         </TestWrapper>,
@@ -179,12 +180,12 @@ describe('Button Component', () => {
     });
 
     it('renders with both left and right icons', () => {
-      const LeftIcon = () => <div data-testid='left-icon'>Left</div>;
-      const RightIcon = () => <div data-testid='right-icon'>Right</div>;
+      const LeftIcon = () => <View testID="left-icon" />;
+      const RightIcon = () => <View testID="right-icon" />;
 
       render(
         <TestWrapper>
-          <Button leftIcon={<LeftIcon />} rightIcon={<RightIcon />} testID='both-icons-button'>
+          <Button leftIcon={<LeftIcon />} rightIcon={<RightIcon />} testID="both-icons-button">
             Button with Both Icons
           </Button>
         </TestWrapper>,
@@ -201,7 +202,7 @@ describe('Button Component', () => {
     it('has correct accessibility role', () => {
       render(
         <TestWrapper>
-          <Button testID='accessible-button'>Accessible Button</Button>
+          <Button testID="accessible-button">Accessible Button</Button>
         </TestWrapper>,
       );
 
@@ -212,7 +213,7 @@ describe('Button Component', () => {
     it('has correct accessibility state when disabled', () => {
       render(
         <TestWrapper>
-          <Button disabled testID='disabled-button'>
+          <Button disabled testID="disabled-button">
             Disabled Button
           </Button>
         </TestWrapper>,
@@ -225,7 +226,7 @@ describe('Button Component', () => {
     it('has correct accessibility state when loading', () => {
       render(
         <TestWrapper>
-          <Button loading testID='loading-button'>
+          <Button loading testID="loading-button">
             Loading Button
           </Button>
         </TestWrapper>,
@@ -238,7 +239,7 @@ describe('Button Component', () => {
     it('uses custom accessibility label', () => {
       render(
         <TestWrapper>
-          <Button accessibilityLabel='Custom Label' testID='custom-label-button'>
+          <Button accessibilityLabel="Custom Label" testID="custom-label-button">
             Button Text
           </Button>
         </TestWrapper>,
@@ -254,7 +255,7 @@ describe('Button Component', () => {
     it('applies fullWidth prop correctly', () => {
       render(
         <TestWrapper>
-          <Button fullWidth testID='full-width-button'>
+          <Button fullWidth testID="full-width-button">
             Full Width Button
           </Button>
         </TestWrapper>,
@@ -268,7 +269,7 @@ describe('Button Component', () => {
 
       render(
         <TestWrapper>
-          <Button style={customStyle} testID='custom-style-button'>
+          <Button style={customStyle} testID="custom-style-button">
             Custom Style Button
           </Button>
         </TestWrapper>,
@@ -285,7 +286,7 @@ describe('Button Component', () => {
 
       render(
         <TestWrapper>
-          <Button animation={customAnimation} testID='animated-button'>
+          <Button animation={customAnimation} testID="animated-button">
             Animated Button
           </Button>
         </TestWrapper>,

@@ -13,7 +13,7 @@
  * Eliminates 600+ lines of duplicated code
  */
 
-import React, { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 
 import { Text, Button, Card } from '@/design-system/components/atoms';
@@ -122,7 +122,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
         offer={item}
         variant={variant}
         imageAspectRatio={1.8}
-        onPress={offer => onOfferPress(offer.id)}
+        onPress={(offer) => onOfferPress(offer.id)}
         testID={`${testIDPrefix}-offer-${item.id}`}
         style={styles.offerCardItem}
       />
@@ -142,13 +142,13 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
       <View style={styles.section}>
         {/* Section Header */}
         <View style={styles.sectionHeader}>
-          <Text variant='title' size='lg' weight='semibold'>
+          <Text variant="title" size="lg" weight="semibold">
             {title}
           </Text>
           {onSeeAllPress && (
             <Button
-              variant='ghost'
-              size='sm'
+              variant="ghost"
+              size="sm"
               onPress={onSeeAllPress}
               accessibilityLabel={`See all ${title.toLowerCase()}`}
             >
@@ -161,7 +161,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
         <FlatList
           data={Array.from({ length: HOME_UI_CONFIG.SKELETON_CARD_COUNT }, (_, i) => i)}
           renderItem={renderSkeletonItem}
-          keyExtractor={item => `skeleton-${testIDPrefix}-${item}`}
+          keyExtractor={(item) => `skeleton-${testIDPrefix}-${item}`}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.carouselContainer}
@@ -184,13 +184,13 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
       <View style={styles.section}>
         {/* Section Header */}
         <View style={styles.sectionHeader}>
-          <Text variant='title' size='lg' weight='semibold'>
+          <Text variant="title" size="lg" weight="semibold">
             {title}
           </Text>
           {onSeeAllPress && (
             <Button
-              variant='ghost'
-              size='sm'
+              variant="ghost"
+              size="sm"
               onPress={onSeeAllPress}
               accessibilityLabel={`See all ${title.toLowerCase()}`}
             >
@@ -201,12 +201,12 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
 
         {/* Error State */}
         <Card style={styles.placeholderCard}>
-          <Text variant='body' size='md' color='error' align='center'>
+          <Text variant="body" size="md" color="error" align="center">
             ⚠️ Failed to load {title.toLowerCase()}
           </Text>
           <Button
-            variant='outline'
-            size='sm'
+            variant="outline"
+            size="sm"
             onPress={onRefetch}
             style={styles.retryButton}
             accessibilityLabel={`Retry loading ${title.toLowerCase()}`}
@@ -227,13 +227,13 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
       <View style={styles.section}>
         {/* Section Header */}
         <View style={styles.sectionHeader}>
-          <Text variant='title' size='lg' weight='semibold'>
+          <Text variant="title" size="lg" weight="semibold">
             {title}
           </Text>
           {onSeeAllPress && (
             <Button
-              variant='ghost'
-              size='sm'
+              variant="ghost"
+              size="sm"
               onPress={onSeeAllPress}
               accessibilityLabel={`See all ${title.toLowerCase()}`}
             >
@@ -244,14 +244,14 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
 
         {/* Empty State */}
         <Card style={styles.placeholderCard}>
-          <Text variant='body' size='md' color='secondary' align='center'>
+          <Text variant="body" size="md" color="secondary" align="center">
             {emptyMessage}
           </Text>
           <Text
-            variant='body'
-            size='sm'
-            color='secondary'
-            align='center'
+            variant="body"
+            size="sm"
+            color="secondary"
+            align="center"
             style={styles.placeholderSubtext}
           >
             {emptySubtext}
@@ -268,13 +268,13 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
     <View style={styles.section}>
       {/* Section Header */}
       <View style={styles.sectionHeader}>
-        <Text variant='title' size='lg' weight='semibold'>
+        <Text variant="title" size="lg" weight="semibold">
           {title}
         </Text>
         {onSeeAllPress && (
           <Button
-            variant='ghost'
-            size='sm'
+            variant="ghost"
+            size="sm"
             onPress={onSeeAllPress}
             accessibilityLabel={`See all ${title.toLowerCase()}`}
             testID={`${testIDPrefix}-see-all-button`}
@@ -288,14 +288,14 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
       <FlatList
         data={offers}
         renderItem={renderOfferItem}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.carouselContainer}
         snapToInterval={HOME_UI_CONFIG.CAROUSEL_CARD_WIDTH}
-        decelerationRate='fast'
+        decelerationRate="fast"
         accessibilityLabel={`${title} carousel`}
-        accessibilityHint='Swipe left or right to browse offers'
+        accessibilityHint="Swipe left or right to browse offers"
         getItemLayout={(_data, index) => ({
           length: HOME_UI_CONFIG.CAROUSEL_CARD_WIDTH,
           offset: HOME_UI_CONFIG.CAROUSEL_CARD_WIDTH * index,
@@ -313,7 +313,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
 
 HomeOfferSectionComponent.displayName = 'HomeOfferSection';
 
-export const HomeOfferSection = React.memo(HomeOfferSectionComponent);
+export const HomeOfferSection = memo(HomeOfferSectionComponent);
 
 // ============================================================================
 // Styles

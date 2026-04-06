@@ -25,7 +25,7 @@ const emailValidator = yup
   .email('Please enter a valid email address')
   .lowercase()
   .trim()
-  .test('valid-tld', 'Please enter a valid email address', value => {
+  .test('valid-tld', 'Please enter a valid email address', (value) => {
     if (!value) return false;
     // Check if email has a valid TLD (at least 2 characters after the last dot)
     const tldMatch = value.match(/\.([a-z]{2,})$/i);
@@ -101,7 +101,7 @@ export const loginSchema = yup.object({
   rememberMe: yup.boolean(),
 });
 
-const registerSchema = yup.object({
+export const registerSchema = yup.object({
   firstName: nameValidator('First name'),
   lastName: nameValidator('Last name'),
   email: emailValidator,
@@ -174,7 +174,7 @@ const createOfferSchema = yup.object({
   dietaryInfo: yup.array().of(yup.string()),
 });
 
-const editOfferSchema = createOfferSchema.shape({
+export const editOfferSchema = createOfferSchema.shape({
   // Allow editing with relaxed constraints
   pickupStartTime: yup.date().required('Pickup start time is required'),
 });
@@ -213,13 +213,13 @@ const createEstablishmentSchema = yup.object({
   }),
 });
 
-const editEstablishmentSchema = createEstablishmentSchema;
+export const editEstablishmentSchema = createEstablishmentSchema;
 
 /**
  * Profile Schemas
  */
 
-const editProfileSchema = yup.object({
+export const editProfileSchema = yup.object({
   firstName: nameValidator('First name'),
   lastName: nameValidator('Last name'),
   email: emailValidator,
@@ -239,7 +239,7 @@ const editProfileSchema = yup.object({
     .nullable(),
 });
 
-const changePasswordSchema = yup.object({
+export const changePasswordSchema = yup.object({
   currentPassword: yup.string().required('Current password is required'),
   newPassword: passwordValidator,
   confirmNewPassword: yup
@@ -252,7 +252,7 @@ const changePasswordSchema = yup.object({
  * Checkout Schema
  */
 
-const checkoutSchema = yup.object({
+export const checkoutSchema = yup.object({
   paymentMethod: requiredStringValidator('Payment method').oneOf(
     ['credit_card', 'debit_card', 'paypal', 'apple_pay', 'google_pay'],
     'Invalid payment method',
@@ -272,7 +272,7 @@ const checkoutSchema = yup.object({
  * Search Schema
  */
 
-const searchFiltersSchema = yup.object({
+export const searchFiltersSchema = yup.object({
   query: yup.string().trim(),
   category: yup.string().nullable(),
   minPrice: yup.number().positive().nullable(),

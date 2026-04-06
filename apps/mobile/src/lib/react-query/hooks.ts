@@ -18,6 +18,7 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
   type QueryKey,
+  type QueryCacheNotifyEvent,
 } from '@tanstack/react-query';
 import { useEffect, useCallback } from 'react';
 
@@ -43,15 +44,16 @@ export function useQueryWithFocus<TQueryFnData = unknown, TError = unknown, TDat
     queryFn,
     ...options,
   });
+  const { isStale, refetch: refetchQuery } = query;
 
   // Refetch when screen gains focus
   useFocusEffect(
     useCallback(() => {
-      if (refetchOnFocus && query.isStale) {
+      if (refetchOnFocus && isStale) {
         Logger.debug('Screen focused, refetching query', { queryKey });
-        query.refetch();
+        void refetchQuery();
       }
-    }, [refetchOnFocus, query.isStale, queryKey]),
+    }, [refetchOnFocus, isStale, queryKey, refetchQuery]),
   );
 
   return query;
@@ -68,20 +70,31 @@ export function useMutationWithOptimistic<
   TData = unknown,
   TError = unknown,
   TVariables = void,
-  TContext = unknown,
+  TOnMutateResult extends object = Record<string, never>,
+  TQueryData = unknown,
 >(
   mutationFn: (variables: TVariables) => Promise<TData>,
-  options?: UseMutationOptions<TData, TError, TVariables, TContext> & {
+  options?: UseMutationOptions<
+    TData,
+    TError,
+    TVariables,
+    TOnMutateResult & { previousData: TQueryData | undefined }
+  > & {
     // Optimistic update configuration
     optimistic?: {
       queryKey: QueryKey;
-      updater: (oldData: any, variables: TVariables) => any;
+      updater: (oldData: TQueryData | undefined, variables: TVariables) => TQueryData;
     };
   },
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<TData, TError, TVariables, TContext>({
+  return useMutation<
+    TData,
+    TError,
+    TVariables,
+    TOnMutateResult & { previousData: TQueryData | undefined }
+  >({
     mutationFn,
     ...options,
 
@@ -94,25 +107,34 @@ export function useMutationWithOptimistic<
         await queryClient.cancelQueries({ queryKey });
 
         // Snapshot the previous value
-        const previousData = queryClient.getQueryData(queryKey);
+        const previousData = queryClient.getQueryData<TQueryData>(queryKey);
 
         // Optimistically update to the new value
-        queryClient.setQueryData(queryKey, (old: any) => updater(old, variables));
+        queryClient.setQueryData<TQueryData>(queryKey, (old) => updater(old, variables));
 
         Logger.debug('Optimistic update applied', { queryKey });
 
         // Return context with previous data for rollback
         const onMutateResult = await options?.onMutate?.(variables, context);
-        return { previousData, ...onMutateResult } as any;
+        return {
+          previousData,
+          ...(onMutateResult ?? ({} as TOnMutateResult)),
+        };
       }
 
-      return await options?.onMutate?.(variables, context);
+      return {
+        previousData: undefined,
+        ...((await options?.onMutate?.(variables, context)) ?? ({} as TOnMutateResult)),
+      };
     },
 
     // Rollback on error
-    onError: (error, variables, onMutateResult: any, context: any) => {
-      if (options?.optimistic && onMutateResult?.previousData) {
-        queryClient.setQueryData(options.optimistic.queryKey, onMutateResult.previousData);
+    onError: (error, variables, onMutateResult, context) => {
+      if (options?.optimistic && onMutateResult?.previousData !== undefined) {
+        queryClient.setQueryData<TQueryData>(
+          options.optimistic.queryKey,
+          onMutateResult.previousData,
+        );
         Logger.warn('Optimistic update rolled back', {
           queryKey: options.optimistic.queryKey,
         });
@@ -126,7 +148,7 @@ export function useMutationWithOptimistic<
     // Refetch on success or error
     onSettled: (data, error, variables, onMutateResult, context) => {
       if (options?.optimistic) {
-        queryClient.invalidateQueries({ queryKey: options.optimistic.queryKey });
+        void queryClient.invalidateQueries({ queryKey: options.optimistic.queryKey });
       }
 
       if (options?.onSettled) {
@@ -228,35 +250,38 @@ export function useQuerySubscription<TData = unknown>(
 ) {
   const queryClient = useQueryClient();
 
+  const handleQueryCacheEvent = useCallback(
+    (event: QueryCacheNotifyEvent) => {
+      if (event.type !== 'updated' || event.query.queryKey !== queryKey) {
+        return;
+      }
+
+      const queryData = event.query.state.data as TData | undefined;
+      if (queryData !== undefined) {
+        options?.onData?.(queryData);
+      }
+
+      const queryError = event.query.state.error as unknown | null;
+      if (queryError !== null) {
+        options?.onError?.(queryError);
+      }
+    },
+    [options, queryKey],
+  );
+
   useEffect(() => {
-    if (!options?.enabled) return;
+    if (options?.enabled !== true) return;
 
-    const unsubscribe = queryClient.getQueryCache().subscribe(event => {
-      if (
-        event?.type === 'updated' &&
-        event.query.queryKey === queryKey &&
-        event.query.state.data
-      ) {
-        options?.onData?.(event.query.state.data as TData);
-      }
-
-      if (
-        event?.type === 'updated' &&
-        event.query.queryKey === queryKey &&
-        event.query.state.error
-      ) {
-        options?.onError?.(event.query.state.error);
-      }
-    });
+    const unsubscribe = queryClient.getQueryCache().subscribe(handleQueryCacheEvent);
 
     // Initial fetch
-    queryClient.prefetchQuery({ queryKey, queryFn });
+    void queryClient.prefetchQuery({ queryKey, queryFn });
 
     // Setup interval if specified
     let intervalId: NodeJS.Timeout | undefined;
-    if (options?.refetchInterval) {
+    if (options?.refetchInterval !== undefined) {
       intervalId = setInterval(() => {
-        queryClient.refetchQueries({ queryKey });
+        void queryClient.refetchQueries({ queryKey });
       }, options.refetchInterval);
     }
 
@@ -264,7 +289,14 @@ export function useQuerySubscription<TData = unknown>(
       unsubscribe();
       if (intervalId) clearInterval(intervalId);
     };
-  }, [queryKey, queryFn, queryClient, options?.enabled, options?.refetchInterval]);
+  }, [
+    queryKey,
+    queryFn,
+    queryClient,
+    handleQueryCacheEvent,
+    options?.enabled,
+    options?.refetchInterval,
+  ]);
 }
 
 /**

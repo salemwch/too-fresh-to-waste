@@ -9,33 +9,39 @@ import { Text as RNText } from 'react-native';
 import { useTheme } from '../../../providers';
 
 import type { TextProps } from './Text.types';
-import type { TypographyVariant } from '../../../types';
+import type { TypographyVariant, UseThemeReturn } from '../../../types';
 
 // Helper function to get style from typography variant
-const getVariantStyle = (variant: TypographyVariant, typography: any) => {
-  const parts = variant.split('.');
+const getVariantStyle = (variant: TypographyVariant, typography: UseThemeReturn['typography']) => {
+  const shorthandVariantMap = {
+    body: typography.styles.body.medium,
+    caption: typography.styles.body.small,
+    code: typography.styles.code,
+    display: typography.styles.display.medium,
+    headline: typography.styles.headline.medium,
+    label: typography.styles.label.medium,
+    title: typography.styles.title.medium,
+    badge: typography.styles.badge,
+  } as const;
 
-  if (parts.length === 2) {
-    const [category, size] = parts;
-    // Type guard to ensure category and size are defined
-    if (category && size && typography.styles[category]) {
-      return typography.styles[category][size] || typography.styles.body.medium;
-    }
+  if (variant in shorthandVariantMap) {
+    return shorthandVariantMap[variant as keyof typeof shorthandVariantMap];
   }
 
-  // Handle special variants
-  switch (variant) {
-    case 'badge':
-      return typography.styles.badge;
-    case 'code':
-      return typography.styles.code;
-    default:
-      return typography.styles.body.medium;
+  const [category, sizeToken] = variant.split('.') as [
+    'body' | 'display' | 'headline' | 'label' | 'title',
+    'large' | 'medium' | 'small' | undefined,
+  ];
+
+  if (sizeToken !== undefined) {
+    return typography.styles[category][sizeToken];
   }
+
+  return typography.styles.body.medium;
 };
 
 export const Text = forwardRef<RNText, TextProps>(
-  function Text(
+  (
     {
       variant = 'body.medium',
       color,
@@ -59,7 +65,7 @@ export const Text = forwardRef<RNText, TextProps>(
       ...rest
     },
     ref,
-  ) {
+  ) => {
     const theme = useTheme();
     const { colors, typography } = theme;
 
@@ -68,7 +74,7 @@ export const Text = forwardRef<RNText, TextProps>(
 
     // Resolve fontSize - accept both number and fontSize token key (string)
     const resolveFontSize = (sizeValue: typeof size): number | undefined => {
-      if (!sizeValue) return undefined;
+      if (sizeValue === undefined) return undefined;
 
       // If it's a number, return as-is
       if (typeof sizeValue === 'number') return sizeValue;
@@ -95,19 +101,19 @@ export const Text = forwardRef<RNText, TextProps>(
       textTransform: transform,
 
       // Font weight override (defensive: fontWeight may be undefined during hydration)
-      ...(weight && typography.fontWeight && { fontWeight: typography.fontWeight[weight] }),
+      ...(weight !== undefined ? { fontWeight: typography.fontWeight[weight] } : {}),
 
       // Font size override - now handles both number and string
-      ...(size && { fontSize: resolveFontSize(size) }),
+      ...(size !== undefined ? { fontSize: resolveFontSize(size) } : {}),
 
       // Line height override
-      ...(lineHeight && { lineHeight }),
+      ...(lineHeight !== undefined ? { lineHeight } : {}),
 
       // Letter spacing override
-      ...(letterSpacing && { letterSpacing }),
+      ...(letterSpacing !== undefined ? { letterSpacing } : {}),
 
       // Italic style
-      ...(italic && { fontStyle: 'italic' }),
+      ...(italic ? { fontStyle: 'italic' as const } : {}),
     };
 
     return (
@@ -119,7 +125,7 @@ export const Text = forwardRef<RNText, TextProps>(
         selectable={selectable}
         testID={testID}
         accessibilityLabel={
-          accessibilityLabel || (typeof children === 'string' ? children : undefined)
+          accessibilityLabel ?? (typeof children === 'string' ? children : undefined)
         }
         accessibilityHint={accessibilityHint}
         accessibilityRole={accessibilityRole}
@@ -131,3 +137,4 @@ export const Text = forwardRef<RNText, TextProps>(
   },
 );
 
+Text.displayName = 'Text';

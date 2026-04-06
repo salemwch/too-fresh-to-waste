@@ -71,6 +71,7 @@ POST /orders API call
 ## Modal States
 
 ### State A: Phone Setup (requiresPhoneSetup: true)
+
 - User has NO phone number in database
 - Show phone number input
 - Format phone number (Tunisia +216)
@@ -78,6 +79,7 @@ POST /orders API call
 - Transition to State B
 
 ### State B: OTP Verification (requiresPhoneVerification: true)
+
 - User has phone but not verified
 - Show 6-digit OTP input
 - Auto-verify when 6 digits entered
@@ -88,6 +90,7 @@ POST /orders API call
 ## Best Practices Applied
 
 ### 1. DRY Principles
+
 ```typescript
 // Shared error handling
 const handleApiError = (error: unknown): Error => { ... }
@@ -100,18 +103,21 @@ const executeOrderCreation = useCallback(...)
 ```
 
 ### 2. Type Safety
+
 - Full TypeScript coverage
 - Type guards (`isPhoneVerificationRequired`)
 - Explicit interface definitions
 - Generic backend response types
 
 ### 3. Performance
+
 - useCallback for event handlers
 - useRef for non-reactive data (pendingOrderDataRef)
 - Automatic request cancellation (AbortSignal)
 - TanStack Query caching for offer data
 
 ### 4. User Experience
+
 - No error toasts for phone verification (seamless modal)
 - Automatic retry after verification
 - Loading states
@@ -121,6 +127,7 @@ const executeOrderCreation = useCallback(...)
 - Error messages with retry hints
 
 ### 5. Security
+
 - Phone number validation
 - Rate limiting (handled by backend)
 - Secure OTP verification
@@ -176,6 +183,7 @@ const handleOrder = async () => {
 ### POST /orders Endpoint
 
 **Request:**
+
 ```json
 {
   "items": [{ "offerId": "...", "quantity": 2 }],
@@ -188,6 +196,7 @@ const handleOrder = async () => {
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "statusCode": 201,
@@ -197,6 +206,7 @@ const handleOrder = async () => {
 ```
 
 **Phone Verification Required (400):**
+
 ```json
 {
   "statusCode": 400,
@@ -248,6 +258,7 @@ features/orders/
 ## Testing
 
 ### Unit Tests
+
 ```bash
 # Test useCreateOrder hook
 npm test useCreateOrder
@@ -257,12 +268,14 @@ npm test ordersService
 ```
 
 ### Integration Tests
+
 ```bash
 # Test complete flow
 npm test CheckoutScreen
 ```
 
 ### Manual Testing Checklist
+
 - [ ] Order creation without phone (triggers modal)
 - [ ] Order creation with unverified phone (triggers OTP)
 - [ ] Order creation with verified phone (success)
@@ -277,16 +290,19 @@ npm test CheckoutScreen
 ## Troubleshooting
 
 ### Modal doesn't show
+
 - Check `phoneVerificationModal.isVisible` state
 - Verify backend returns `PHONE_VERIFICATION_REQUIRED` error
 - Check `isPhoneVerificationRequired` type guard
 
 ### Order not retrying after verification
+
 - Ensure `onVerificationComplete` is called
 - Check `retryOrderCreation` function
 - Verify `pendingOrderDataRef` has data
 
 ### Phone number formatting issues
+
 - Check Tunisia country code (+216)
 - Verify `formatPhoneNumber` function
 - Test with various input formats

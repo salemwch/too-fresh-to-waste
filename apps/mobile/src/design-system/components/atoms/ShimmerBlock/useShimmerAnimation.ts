@@ -10,14 +10,14 @@
  * @param active  - Whether animation should run (modal skeletons pass `visible`)
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated } from 'react-native';
 
 export function useShimmerAnimation(
   variant: 'gradient' | 'pulse' = 'gradient',
   active = true,
 ): Animated.Value {
-  const animValue = useRef(new Animated.Value(0)).current;
+  const [animValue] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     if (!active) return;

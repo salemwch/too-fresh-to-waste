@@ -3,12 +3,13 @@
  * Horizontal FlatList of badges: earned (colour) + locked (gray).
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 
 import { Icon, Text } from '@/design-system/components/atoms';
 
 import { BADGE_METADATA, ALL_BADGE_TYPES, type BadgeMetadata } from '../constants/badges';
+
 import type { Badge, BadgeType } from '../types/loyalty.types';
 
 interface BadgeScrollProps {
@@ -22,41 +23,46 @@ interface BadgeItem {
 }
 
 const BADGE_ITEM_WIDTH = 90;
+const LOCKED_BADGE_BACKGROUND = '#F1F5F9';
+const LOCKED_BADGE_BORDER = '#E2E8F0';
+const LOCKED_ICON_COLOR = '#CBD5E1';
+const LOCKED_TEXT_COLOR = '#94A3B8';
+const SURFACE = '#FFFFFF';
 
-const BadgeCell: React.FC<{ item: BadgeItem }> = ({ item }) => (
-  <View style={styles.badgeCell}>
-    <View
-      style={[
-        styles.iconCircle,
-        {
-          backgroundColor: item.earned ? item.meta.bgColor : '#F1F5F9',
-          borderColor: item.earned ? item.meta.color : '#E2E8F0',
-        },
-      ]}
-    >
-      <Icon
-        name={item.meta.icon}
-        family={item.meta.iconFamily}
-        size={28}
-        color={item.earned ? item.meta.color : '#CBD5E1'}
-      />
-      {!item.earned && (
-        <View style={styles.lockOverlay}>
-          <Icon name="lock-closed" family="Ionicons" size={12} color="#94A3B8" />
-        </View>
-      )}
+const BadgeCell: React.FC<{ item: BadgeItem }> = ({ item }) => {
+  const iconCircleStyle = {
+    backgroundColor: item.earned ? item.meta.bgColor : LOCKED_BADGE_BACKGROUND,
+    borderColor: item.earned ? item.meta.color : LOCKED_BADGE_BORDER,
+  };
+  const badgeIconColor = item.earned ? item.meta.color : LOCKED_ICON_COLOR;
+
+  return (
+    <View style={styles.badgeCell}>
+      <View style={[styles.iconCircle, iconCircleStyle]}>
+        <Icon
+          name={item.meta.icon}
+          family={item.meta.iconFamily}
+          size={28}
+          color={badgeIconColor}
+        />
+        {!item.earned && (
+          <View style={styles.lockOverlay}>
+            <Icon name="lock-closed" family="Ionicons" size={12} color={LOCKED_TEXT_COLOR} />
+          </View>
+        )}
+      </View>
+      <Text
+        variant="body"
+        size="xs"
+        weight={item.earned ? 'semibold' : 'regular'}
+        style={[styles.badgeTitle, !item.earned && styles.lockedText]}
+        numberOfLines={2}
+      >
+        {item.meta.title}
+      </Text>
     </View>
-    <Text
-      variant="body"
-      size="xs"
-      weight={item.earned ? 'semibold' : 'regular'}
-      style={[styles.badgeTitle, !item.earned && styles.lockedText]}
-      numberOfLines={2}
-    >
-      {item.meta.title}
-    </Text>
-  </View>
-);
+  );
+};
 
 const BadgeScrollComponent: React.FC<BadgeScrollProps> = ({ earnedBadges }) => {
   const earnedSet = useMemo(() => {
@@ -120,7 +126,7 @@ const BadgeScrollComponent: React.FC<BadgeScrollProps> = ({ earnedBadges }) => {
   );
 };
 
-export const BadgeScroll = React.memo(BadgeScrollComponent);
+export const BadgeScroll = memo(BadgeScrollComponent);
 BadgeScrollComponent.displayName = 'BadgeScroll';
 
 const styles = StyleSheet.create({
@@ -155,7 +161,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -2,
     right: -2,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SURFACE,
     borderRadius: 10,
     padding: 2,
   },
@@ -164,6 +170,6 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   lockedText: {
-    color: '#94A3B8',
+    color: LOCKED_TEXT_COLOR,
   },
 });

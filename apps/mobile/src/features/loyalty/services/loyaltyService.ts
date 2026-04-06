@@ -18,26 +18,30 @@ import type {
   LoginStreakResponse,
 } from '../types/loyalty.types';
 
+interface LoyaltyApiError {
+  message?: string;
+}
+
 const handleApiError = (error: unknown): Error => {
-  if (axios.isAxiosError(error)) {
+  if (axios.isAxiosError<LoyaltyApiError>(error)) {
     if (axios.isCancel(error) || error.code === 'ERR_CANCELED') {
       throw error;
     }
 
     const responseData = error.response?.data;
     const message =
-      typeof responseData?.message === 'string'
+      typeof responseData?.message === 'string' && responseData.message.trim() !== ''
         ? responseData.message
-        : error.message || 'An unexpected error occurred';
+        : error.message.trim() !== ''
+          ? error.message
+          : 'An unexpected error occurred';
 
     return new Error(message);
   }
 
   if (error instanceof Error) return error;
 
-  return new Error(
-    typeof error === 'string' ? error : 'An unexpected error occurred',
-  );
+  return new Error(typeof error === 'string' ? error : 'An unexpected error occurred');
 };
 
 export const loyaltyService = {
@@ -46,10 +50,9 @@ export const loyaltyService = {
    */
   async getAccount(signal?: AbortSignal): Promise<LoyaltyAccount> {
     try {
-      const response = await apiClient.get<BackendApiResponse<LoyaltyAccount>>(
-        '/loyalty/account',
-        { ...(signal !== undefined && { signal }) },
-      );
+      const response = await apiClient.get<BackendApiResponse<LoyaltyAccount>>('/loyalty/account', {
+        ...(signal !== undefined && { signal }),
+      });
       return unwrapBackendResponse(response, 'loyalty account');
     } catch (error) {
       throw handleApiError(error);

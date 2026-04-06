@@ -7,8 +7,8 @@
  */
 
 declare module '@lottiefiles/dotlottie-react-native' {
-  import type { ViewStyle } from 'react-native';
   import type React from 'react';
+  import type { ViewStyle } from 'react-native';
 
   export interface DotLottieAnimationProps {
     source: string | { uri: string } | number;

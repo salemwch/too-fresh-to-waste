@@ -23,8 +23,9 @@ import SmsRetriever from 'react-native-sms-retriever';
 import { Button, Text, Icon } from '@/design-system/components/atoms';
 import { OTPInput } from '@/design-system/components/molecules/OTPInput';
 import { useTheme } from '@/design-system/providers';
-import { Logger } from '@/utils/logger';
 import { showAlert, showSuccessAlert, showErrorAlert } from '@/utils/alert';
+import { getErrorMessage } from '@/utils/errorHandler';
+import { Logger } from '@/utils/logger';
 
 import { useAuth } from '../hooks/useAuth';
 import { authService } from '../services/authService';
@@ -62,7 +63,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
       -1,
       false,
     );
-  }, []);
+  }, [phoneIconRotation]);
 
   const phoneIconAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${phoneIconRotation.value}deg` }],
@@ -71,20 +72,6 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
   const successAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: successScale.value }],
   }));
-
-  /**
-   * Auto-send verification code on mount if phone number is available
-   */
-  useEffect(() => {
-    if (
-      typeof phoneNumber === 'string' &&
-      phoneNumber.trim() !== '' &&
-      !hasCodeBeenSent &&
-      tokens?.accessToken
-    ) {
-      void handleSendVerificationCode();
-    }
-  }, []);
 
   /**
    * Cooldown timer for resend button
@@ -99,15 +86,6 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
     setCanResend(true);
     return undefined;
   }, [resendCooldown]);
-
-  /**
-   * Auto-verify when code is complete
-   */
-  useEffect(() => {
-    if (code.length === 6 && !isVerifying) {
-      handleVerifyCode();
-    }
-  }, [code]);
 
   /**
    * SMS OTP Autofill (Android only)
@@ -129,7 +107,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
           Logger.info('SMS Retriever started successfully');
 
           // Add listener for incoming SMS
-          SmsRetriever.addSmsListener((event: { message?: string } | null) => {
+          void SmsRetriever.addSmsListener((event: { message?: string } | null) => {
             if (!isListenerActive) return;
 
             try {
@@ -226,8 +204,11 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
             : ''
         }`,
       );
-    } catch (err: any) {
-      const errorMessage = err?.message || 'Failed to send verification code. Please try again.';
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(
+        err,
+        'Failed to send verification code. Please try again.',
+      );
 
       Logger.error('Failed to send phone verification code', { error: err });
 
@@ -238,6 +219,20 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
       setIsSendingCode(false);
     }
   }, [phoneNumber, tokens, navigation]);
+
+  /**
+   * Auto-send verification code on mount if phone number is available
+   */
+  useEffect(() => {
+    if (
+      typeof phoneNumber === 'string' &&
+      phoneNumber.trim() !== '' &&
+      !hasCodeBeenSent &&
+      tokens?.accessToken
+    ) {
+      void handleSendVerificationCode();
+    }
+  }, [handleSendVerificationCode, hasCodeBeenSent, phoneNumber, tokens?.accessToken]);
 
   /**
    * Verify the entered code
@@ -270,7 +265,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
       // Navigate based on context
       setTimeout(() => {
-        if (fromEmailVerification) {
+        if (fromEmailVerification === true) {
           // Coming from email verification, go to main app
           showSuccessAlert(
             'Verification Complete!',
@@ -293,9 +288,11 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
           }, 2000);
         }
       }, 500);
-    } catch (err: any) {
-      const errorMessage =
-        err?.message || 'Verification failed. Please check your code and try again.';
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(
+        err,
+        'Verification failed. Please check your code and try again.',
+      );
 
       Logger.error('Phone verification failed', { error: err });
 
@@ -306,7 +303,16 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
     } finally {
       setIsVerifying(false);
     }
-  }, [code, phoneNumber, tokens, navigation, fromEmailVerification]);
+  }, [code, phoneNumber, tokens, navigation, fromEmailVerification, successScale]);
+
+  /**
+   * Auto-verify when code is complete
+   */
+  useEffect(() => {
+    if (code.length === 6 && !isVerifying) {
+      void handleVerifyCode();
+    }
+  }, [code, handleVerifyCode, isVerifying]);
 
   /**
    * Resend verification code
@@ -343,8 +349,8 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
       setResendCooldown(60);
       setCanResend(false);
-    } catch (err: any) {
-      const errorMessage = err?.message || 'Failed to resend code. Please try again.';
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to resend code. Please try again.');
 
       Logger.error('Failed to resend phone verification code', { error: err });
 
@@ -360,7 +366,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
    * Handle back navigation
    */
   const handleBack = useCallback(() => {
-    if (fromEmailVerification) {
+    if (fromEmailVerification === true) {
       showAlert(
         'Verification Required',
         'Phone verification is mandatory to complete your registration. You must verify your phone number before you can log in.',
@@ -380,7 +386,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps='handled'
+        keyboardShouldPersistTaps="handled"
       >
         {/* Header with animated phone icon */}
         <Animated.View entering={FadeInUp.delay(100)} style={styles.header}>
@@ -391,7 +397,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
               phoneIconAnimatedStyle,
             ]}
           >
-            <Icon name='phone' size={48} color={theme.colors.primary} />
+            <Icon name="phone" size={48} color={theme.colors.primary} />
           </Animated.View>
 
           <Animated.View style={successAnimatedStyle}>
@@ -399,7 +405,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
               <View
                 style={[styles.successBadge, { backgroundColor: theme.colors.successContainer }]}
               >
-                <Icon name='check-circle' size={32} color={theme.colors.success} />
+                <Icon name="check-circle" size={32} color={theme.colors.success} />
               </View>
             )}
           </Animated.View>
@@ -407,11 +413,11 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
         {/* Title and Description */}
         <Animated.View entering={FadeInUp.delay(200)} style={styles.titleContainer}>
-          <Text variant='headline.large' style={styles.title}>
+          <Text variant="headline.large" style={styles.title}>
             Verify Your Phone
           </Text>
           <Text
-            variant='body.large'
+            variant="body.large"
             style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}
           >
             {hasCodeBeenSent
@@ -433,9 +439,9 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
             {error && (
               <Animated.View entering={FadeInDown} style={styles.errorContainer}>
-                <Icon name='alert-circle' size={16} color={theme.colors.error} />
+                <Icon name="alert-circle" size={16} color={theme.colors.error} />
                 <Text
-                  variant='body.small'
+                  variant="body.small"
                   style={[styles.errorText, { color: theme.colors.error }]}
                 >
                   {error}
@@ -449,7 +455,9 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
         <Animated.View entering={FadeInUp.delay(400)} style={styles.buttonContainer}>
           {!hasCodeBeenSent ? (
             <Button
-              onPress={handleSendVerificationCode}
+              onPress={() => {
+                void handleSendVerificationCode();
+              }}
               loading={isSendingCode}
               disabled={!phoneNumber || isSendingCode}
               style={styles.button}
@@ -459,7 +467,9 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
           ) : (
             <>
               <Button
-                onPress={handleVerifyCode}
+                onPress={() => {
+                  void handleVerifyCode();
+                }}
                 loading={isVerifying}
                 disabled={code.length !== 6 || isVerifying}
                 style={styles.button}
@@ -470,14 +480,16 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
               {/* Resend Button */}
               <View style={styles.resendContainer}>
                 <Text
-                  variant='body.medium'
+                  variant="body.medium"
                   style={[styles.resendText, { color: theme.colors.onSurfaceVariant }]}
                 >
-                  Didn't receive the code?
+                  Didn&apos;t receive the code?
                 </Text>
                 <Button
-                  variant='text'
-                  onPress={handleResendCode}
+                  variant="text"
+                  onPress={() => {
+                    void handleResendCode();
+                  }}
                   disabled={!canResend || resendCooldown > 0 || isSendingCode}
                   loading={isSendingCode}
                   style={styles.resendButton}
@@ -489,9 +501,9 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
           )}
 
           {/* Back Button - only show if not from email verification */}
-          {!fromEmailVerification && (
+          {fromEmailVerification !== true && (
             <Button
-              variant='text'
+              variant="text"
               onPress={handleBack}
               disabled={isVerifying || isSendingCode}
               style={styles.backButton}
@@ -503,12 +515,12 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
         {/* Help Text */}
         <Animated.View entering={FadeInUp.delay(500)} style={styles.helpContainer}>
-          <Icon name='info' size={20} color={theme.colors.onSurfaceVariant} />
+          <Icon name="info" size={20} color={theme.colors.onSurfaceVariant} />
           <Text
-            variant='body.small'
+            variant="body.small"
             style={[styles.helpText, { color: theme.colors.onSurfaceVariant }]}
           >
-            {fromEmailVerification
+            {fromEmailVerification === true
               ? 'Phone verification is mandatory. Codes expire after 10 minutes. You have up to 5 attempts per code.'
               : 'Verification codes expire after 10 minutes. You have up to 5 attempts per code.'}
           </Text>

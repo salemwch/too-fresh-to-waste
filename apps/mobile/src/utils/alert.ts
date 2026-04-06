@@ -70,6 +70,25 @@ interface AlertOptions {
   duration?: number;
 }
 
+const invokeAlertAction = (
+  action: (() => void | Promise<void>) | undefined,
+  context: string,
+): (() => void) | undefined => {
+  if (!action) {
+    return undefined;
+  }
+
+  return () => {
+    try {
+      void Promise.resolve(action()).catch((error: unknown) => {
+        Logger.error(`[Alert] Error executing ${context}`, {}, error as Error);
+      });
+    } catch (error) {
+      Logger.error(`[Alert] Error executing ${context}`, {}, error as Error);
+    }
+  };
+};
+
 // ============================================================================
 // Main Alert Function
 // ============================================================================
@@ -109,9 +128,9 @@ export function showAlert(
   // DEVELOPMENT / STAGING: Show native Alert dialog
   // ──────────────────────────────────────────────────────────────────────────
   if (!environment.isProduction) {
-    const alertButtons = buttons?.map(btn => ({
+    const alertButtons = buttons?.map((btn) => ({
       text: btn.text ?? 'OK',
-      onPress: btn.onPress,
+      onPress: invokeAlertAction(btn.onPress, 'button callback'),
       style: btn.style,
     })) ?? [{ text: 'OK', style: 'default' as const }];
 
@@ -159,13 +178,13 @@ export function showAlert(
   // Execute primary button action if provided
   // In production, we auto-execute the first non-cancel button
   if (buttons && buttons.length > 0) {
-    const primaryButton = buttons.find(btn => btn.style !== 'cancel') ?? buttons[0];
+    const primaryButton = buttons.find((btn) => btn.style !== 'cancel') ?? buttons[0];
 
     // Execute onPress after a short delay (simulates user dismissing Toast)
     if (primaryButton?.onPress) {
       setTimeout(() => {
         try {
-          primaryButton.onPress?.();
+          void primaryButton.onPress?.();
         } catch (error) {
           Logger.error('[Alert] Error executing button callback', {}, error as Error);
         }
@@ -187,7 +206,10 @@ export function showAlert(
  * ```
  */
 export function showSuccessAlert(title: string, message?: string, duration?: number): void {
-  showAlert(title, message, undefined, { type: 'success', ...(duration !== undefined && { duration }) });
+  showAlert(title, message, undefined, {
+    type: 'success',
+    ...(duration !== undefined && { duration }),
+  });
 }
 
 /**
@@ -199,7 +221,10 @@ export function showSuccessAlert(title: string, message?: string, duration?: num
  * ```
  */
 export function showErrorAlert(title: string, message?: string, duration?: number): void {
-  showAlert(title, message, undefined, { type: 'error', ...(duration !== undefined && { duration }) });
+  showAlert(title, message, undefined, {
+    type: 'error',
+    ...(duration !== undefined && { duration }),
+  });
 }
 
 /**
@@ -211,7 +236,10 @@ export function showErrorAlert(title: string, message?: string, duration?: numbe
  * ```
  */
 export function showInfoAlert(title: string, message?: string, duration?: number): void {
-  showAlert(title, message, undefined, { type: 'info', ...(duration !== undefined && { duration }) });
+  showAlert(title, message, undefined, {
+    type: 'info',
+    ...(duration !== undefined && { duration }),
+  });
 }
 
 /**
@@ -223,7 +251,10 @@ export function showInfoAlert(title: string, message?: string, duration?: number
  * ```
  */
 function showWarningAlert(title: string, message?: string, duration?: number): void {
-  showAlert(title, message, undefined, { type: 'warning', ...(duration !== undefined && { duration }) });
+  showAlert(title, message, undefined, {
+    type: 'warning',
+    ...(duration !== undefined && { duration }),
+  });
 }
 
 /**
@@ -266,12 +297,12 @@ export function showConfirmAlert(
         {
           text: cancelText,
           style: 'cancel',
-          onPress: onCancel,
+          onPress: invokeAlertAction(onCancel, 'cancel callback'),
         },
         {
           text: confirmText,
           style: 'destructive',
-          onPress: onConfirm,
+          onPress: invokeAlertAction(onConfirm, 'confirm callback'),
         },
       ],
       { cancelable: true },
@@ -292,7 +323,7 @@ export function showConfirmAlert(
     // Auto-execute onConfirm after Toast duration (not ideal, but best we can do)
     setTimeout(() => {
       try {
-        onConfirm();
+        void onConfirm();
       } catch (error) {
         Logger.error('[Alert] Error executing confirm callback', {}, error as Error);
       }
@@ -361,4 +392,3 @@ export function getAlertTypeFromContext(title: string, message?: string): AlertT
 // ============================================================================
 // Export
 // ============================================================================
-

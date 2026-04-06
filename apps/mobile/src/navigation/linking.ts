@@ -4,6 +4,10 @@
  * Supports both custom URL scheme (foodwaste://) and universal links (https://foodwasteapp.com)
  */
 
+import { Linking } from 'react-native';
+
+import { Logger } from '@/utils/logger';
+
 import type { RootNavigatorParamList } from './types';
 import type { LinkingOptions } from '@react-navigation/native';
 
@@ -45,24 +49,21 @@ export const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
           },
           MFAVerification: 'mfa-verification',
         },
-      } as any,
+      },
       MainStack: 'app',
     },
-  },
+  } as NonNullable<LinkingOptions<RootNavigatorParamList>['config']>,
 
   /**
    * Handle initial URL for cold-start deep links
    * CRITICAL: Must return the actual URL, not null!
    */
   async getInitialURL() {
-    // Import Linking dynamically to avoid circular dependencies
-    const { Linking } = require('react-native');
-
     // Get the URL that opened the app (cold start)
     const url = await Linking.getInitialURL();
 
-    if (url) {
-      console.log('[DeepLink] Initial URL:', url);
+    if (typeof url === 'string' && url !== '') {
+      Logger.debug('[DeepLink] Initial URL', { url });
     }
 
     return url;
@@ -73,11 +74,9 @@ export const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
    * CRITICAL: Must properly subscribe to link events!
    */
   subscribe(listener) {
-    const { Linking } = require('react-native');
-
     // Listen for incoming URLs when app is already open
-    const subscription = Linking.addEventListener('url', ({ url }: { url: string }) => {
-      console.log('[DeepLink] Incoming URL:', url);
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      Logger.debug('[DeepLink] Incoming URL', { url });
       listener(url);
     });
 

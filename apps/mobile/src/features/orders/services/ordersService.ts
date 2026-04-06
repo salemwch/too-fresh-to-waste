@@ -6,9 +6,52 @@
 import axios from 'axios';
 
 import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
+import { Logger } from '@/utils/logger';
 
-import type { CreateOrderDto, Order, ConfirmPickupDto, PaginatedOrdersResponse } from '../types/order.types';
 import { isPickupError } from '../types/order.types';
+
+import type {
+  CreateOrderDto,
+  Order,
+  ConfirmPickupDto,
+  PaginatedOrdersResponse,
+} from '../types/order.types';
+
+interface ValidationErrorMessage {
+  constraints?: Record<string, string>;
+}
+
+interface OrderErrorPayload {
+  code?: string;
+  message?: string | Array<string | ValidationErrorMessage>;
+  response?: OrderErrorPayload;
+  details?: unknown;
+  requiresPhoneSetup?: boolean;
+  requiresPhoneVerification?: boolean;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object';
+
+const asOrderErrorPayload = (value: unknown): OrderErrorPayload | undefined =>
+  isRecord(value) ? (value as OrderErrorPayload) : undefined;
+
+const getPrimaryOrderPayload = (payload: OrderErrorPayload | undefined): unknown =>
+  payload?.details ?? payload?.response ?? payload;
+
+const extractValidationReasons = (details: unknown): string[] => {
+  if (!Array.isArray(details)) {
+    return [];
+  }
+
+  return details.flatMap((detail) => {
+    if (isRecord(detail) && typeof detail['reason'] === 'string' && detail['reason'] !== '') {
+      return [detail['reason']];
+    }
+
+    return [];
+  });
+};
 
 /**
  * Error handler for order API requests
@@ -33,63 +76,66 @@ const handleApiError = (error: unknown): Error => {
     // 1. responseData.code (direct)
     // 2. responseData.response.code (wrapped)
     // 3. responseData.details.code (OrderExceptionFilter wrapping) ← PRIMARY PATH
-    const responseData = axiosError.response?.data;
-    const errorCode =
-      responseData?.code ||
-      responseData?.response?.code ||
-      responseData?.details?.code;
+    const responseData = asOrderErrorPayload(axiosError.response?.data);
+    const wrappedResponse = asOrderErrorPayload(responseData?.response);
+    const detailsPayload = asOrderErrorPayload(responseData?.details);
+    const errorCode = responseData?.code ?? wrappedResponse?.code ?? detailsPayload?.code;
 
     // Debug logging
     if (__DEV__) {
-      console.log('[ordersService] Error response structure:', {
-        hasResponseData: !!responseData,
+      Logger.debug('[ordersService] Error response structure', {
+        hasResponseData: responseData !== undefined,
         responseDataCode: responseData?.code,
-        responseDataResponseCode: responseData?.response?.code,
-        responseDataDetailsCode: responseData?.details?.code,
+        responseDataResponseCode: wrappedResponse?.code,
+        responseDataDetailsCode: detailsPayload?.code,
         errorCode,
         fullResponseData: responseData,
       });
     }
 
     if (errorCode === 'PHONE_VERIFICATION_REQUIRED') {
-      console.log('[ordersService] Phone verification required, throwing special error');
+      Logger.debug('[ordersService] Phone verification required', { errorCode });
       // Throw the complete error object to preserve requiresPhoneSetup/requiresPhoneVerification
       // Priority: details (OrderExceptionFilter) > response (other wrappers) > direct
-      const phoneError = responseData?.details || responseData?.response || responseData;
+      const phoneError = getPrimaryOrderPayload(responseData);
       throw phoneError;
     }
 
     // ✅ PICKUP ERRORS: Preserve backend payload so the UI can show code-specific messages.
     // Same priority chain as phone verification above.
-    const pickupPayload = responseData?.details || responseData?.response || responseData;
+    const pickupPayload = getPrimaryOrderPayload(responseData);
     if (isPickupError(pickupPayload)) {
       if (__DEV__) {
-        console.log('[ordersService] Pickup error detected:', pickupPayload.code);
+        Logger.debug('[ordersService] Pickup error detected', { code: pickupPayload.code });
       }
       throw pickupPayload;
     }
 
     // ✅ Per-offer validation reasons (e.g. "Selected pickup time slot is fully booked")
-    const details = responseData?.details;
-    if (Array.isArray(details) && details.length > 0 && details[0]?.reason) {
-      return new Error(details.map((d: { reason?: string }) => d.reason).filter(Boolean).join('; '));
+    const detailReasons = extractValidationReasons(responseData?.details);
+    if (detailReasons.length > 0) {
+      return new Error(detailReasons.join('; '));
     }
 
     // ✅ CRITICAL FIX: Handle validation errors from NestJS
     let message: string;
-    const responseMessage = responseData?.message || responseData?.response?.message;
+    const responseMessage = responseData?.message ?? wrappedResponse?.message;
 
     if (Array.isArray(responseMessage)) {
       // NestJS validation errors: array of objects with constraints
       message = responseMessage
-        .map(err => {
+        .map((err) => {
           // Extract constraint messages from validation error objects
-          if (err && typeof err === 'object' && 'constraints' in err) {
-            const constraints = err.constraints;
-            if (constraints && typeof constraints === 'object') {
-              return Object.values(constraints).join(', ');
+          if (isRecord(err) && isRecord(err['constraints'])) {
+            const constraintMessages = Object.values(err['constraints']).filter(
+              (value): value is string => typeof value === 'string',
+            );
+
+            if (constraintMessages.length > 0) {
+              return constraintMessages.join(', ');
             }
           }
+
           // Fallback: if it's a string, use it
           if (typeof err === 'string') {
             return err;
@@ -114,7 +160,7 @@ const handleApiError = (error: unknown): Error => {
   }
 
   // If error is an object with a message property, use it
-  if (error && typeof error === 'object' && 'message' in error) {
+  if (error !== null && typeof error === 'object' && 'message' in error) {
     return new Error(String(error.message));
   }
 
@@ -157,10 +203,10 @@ export const ordersService = {
     signal?: AbortSignal,
   ): Promise<PaginatedOrdersResponse> {
     try {
-      const response = await apiClient.get<BackendApiResponse<Order[]>>(
-        '/orders/my-orders',
-        { params: { page, limit }, ...(signal !== undefined && { signal }) },
-      );
+      const response = await apiClient.get<BackendApiResponse<Order[]>>('/orders/my-orders', {
+        params: { page, limit },
+        ...(signal !== undefined && { signal }),
+      });
 
       // Backend envelope: { status, message, data: Order[], meta: { page, limit, total, ... } }
       // unwrapBackendResponse extracts `data` (the orders array).
@@ -173,8 +219,10 @@ export const ordersService = {
         limit: meta?.limit ?? limit,
         total: meta?.total ?? (Array.isArray(orders) ? orders.length : 0),
         totalPages: meta?.totalPages ?? 1,
-        hasNextPage: (meta as unknown as { hasNextPage?: boolean } | undefined)?.hasNextPage ?? false,
-        hasPrevPage: (meta as unknown as { hasPrevPage?: boolean } | undefined)?.hasPrevPage ?? false,
+        hasNextPage:
+          (meta as unknown as { hasNextPage?: boolean } | undefined)?.hasNextPage ?? false,
+        hasPrevPage:
+          (meta as unknown as { hasPrevPage?: boolean } | undefined)?.hasPrevPage ?? false,
       };
       return {
         data: Array.isArray(orders) ? orders : [],
@@ -216,11 +264,7 @@ export const ordersService = {
     try {
       const response = await apiClient.patch<
         BackendApiResponse<{ success: boolean; message: string }>
-      >(
-        `/orders/${orderId}/cancel`,
-        { reason },
-        { ...(signal !== undefined && { signal }) },
-      );
+      >(`/orders/${orderId}/cancel`, { reason }, { ...(signal !== undefined && { signal }) });
 
       return unwrapBackendResponse(response, 'order cancellation');
     } catch (error) {
@@ -236,7 +280,11 @@ export const ordersService = {
    * @returns Updated order with status PICKED_UP
    * @throws PickupErrorResponse for CODE_EXPIRED | PICKUP_ALREADY_DONE | PICKUP_LOCKED
    */
-  async confirmPickup(orderId: string, dto: ConfirmPickupDto, signal?: AbortSignal): Promise<Order> {
+  async confirmPickup(
+    orderId: string,
+    dto: ConfirmPickupDto,
+    signal?: AbortSignal,
+  ): Promise<Order> {
     try {
       const response = await apiClient.patch<BackendApiResponse<Order>>(
         `/orders/${orderId}/confirm-pickup`,

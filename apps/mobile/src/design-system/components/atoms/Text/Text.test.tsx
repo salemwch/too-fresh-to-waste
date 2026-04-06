@@ -4,16 +4,20 @@
 
 import { render } from '@testing-library/react-native';
 import React from 'react';
+import { StyleSheet } from 'react-native';
 
 import { ThemeProvider } from '../../../providers';
 
 import { Text } from './Text';
-import type { TypographyVariant } from '../../../types';
+
 import type { TextProps } from './Text.types';
+import type { TypographyVariant } from '../../../types';
 
 describe('Text', () => {
   const renderWithTheme = (component: React.ReactElement) =>
     render(<ThemeProvider>{component}</ThemeProvider>);
+  const getFlattenedStyle = (element: { props: Record<string, unknown> }) =>
+    StyleSheet.flatten(element.props['style']);
 
   it('renders correctly with default props', () => {
     const { getByText } = renderWithTheme(<Text>Hello World</Text>);
@@ -39,16 +43,20 @@ describe('Text', () => {
       'label.small',
     ];
 
-    variants.forEach(variant => {
-      const { getByText } = renderWithTheme(<Text variant={variant as TypographyVariant}>{variant}</Text>);
+    variants.forEach((variant) => {
+      const { getByText } = renderWithTheme(
+        <Text variant={variant as TypographyVariant}>{variant}</Text>,
+      );
       expect(getByText(variant)).toBeTruthy();
     });
   });
 
   it('applies color prop correctly', () => {
-    const { getByText } = renderWithTheme(<Text color='#FF0000'>Red Text</Text>);
+    const { getByText } = renderWithTheme(<Text color="#FF0000">Red Text</Text>);
     const textElement = getByText('Red Text');
-    expect(textElement.props['style']).toMatchObject(expect.objectContaining({ color: '#FF0000' }));
+    expect(getFlattenedStyle(textElement)).toMatchObject(
+      expect.objectContaining({ color: '#FF0000' }),
+    );
   });
 
   it('applies text alignment', () => {
@@ -59,7 +67,7 @@ describe('Text', () => {
       'justify',
     ];
 
-    alignments.forEach(align => {
+    alignments.forEach((align) => {
       const { getByText } = renderWithTheme(<Text align={align}>{align} aligned</Text>);
       expect(getByText(`${align} aligned`)).toBeTruthy();
     });
@@ -72,7 +80,7 @@ describe('Text', () => {
       'line-through',
     ];
 
-    decorations.forEach(decoration => {
+    decorations.forEach((decoration) => {
       const { getByText } = renderWithTheme(<Text decoration={decoration}>{decoration}</Text>);
       expect(getByText(decoration)).toBeTruthy();
     });
@@ -86,7 +94,7 @@ describe('Text', () => {
       'capitalize',
     ];
 
-    transforms.forEach(transform => {
+    transforms.forEach((transform) => {
       const { getByText } = renderWithTheme(<Text transform={transform}>Test Text</Text>);
       expect(getByText('Test Text')).toBeTruthy();
     });
@@ -104,7 +112,7 @@ describe('Text', () => {
       'black',
     ];
 
-    weights.forEach(weight => {
+    weights.forEach((weight) => {
       const { getByText } = renderWithTheme(<Text weight={weight}>{weight} weight</Text>);
       expect(getByText(`${weight} weight`)).toBeTruthy();
     });
@@ -113,7 +121,7 @@ describe('Text', () => {
   it('applies italic style', () => {
     const { getByText } = renderWithTheme(<Text italic>Italic Text</Text>);
     const textElement = getByText('Italic Text');
-    expect(textElement.props['style']).toMatchObject(
+    expect(getFlattenedStyle(textElement)).toMatchObject(
       expect.objectContaining({ fontStyle: 'italic' }),
     );
   });
@@ -121,19 +129,23 @@ describe('Text', () => {
   it('applies custom size', () => {
     const { getByText } = renderWithTheme(<Text size={24}>Custom Size</Text>);
     const textElement = getByText('Custom Size');
-    expect(textElement.props['style']).toMatchObject(expect.objectContaining({ fontSize: 24 }));
+    expect(getFlattenedStyle(textElement)).toMatchObject(expect.objectContaining({ fontSize: 24 }));
   });
 
   it('applies custom line height', () => {
     const { getByText } = renderWithTheme(<Text lineHeight={30}>Custom Line Height</Text>);
     const textElement = getByText('Custom Line Height');
-    expect(textElement.props['style']).toMatchObject(expect.objectContaining({ lineHeight: 30 }));
+    expect(getFlattenedStyle(textElement)).toMatchObject(
+      expect.objectContaining({ lineHeight: 30 }),
+    );
   });
 
   it('applies custom letter spacing', () => {
     const { getByText } = renderWithTheme(<Text letterSpacing={2}>Custom Spacing</Text>);
     const textElement = getByText('Custom Spacing');
-    expect(textElement.props['style']).toMatchObject(expect.objectContaining({ letterSpacing: 2 }));
+    expect(getFlattenedStyle(textElement)).toMatchObject(
+      expect.objectContaining({ letterSpacing: 2 }),
+    );
   });
 
   it('handles numberOfLines prop', () => {
@@ -151,7 +163,7 @@ describe('Text', () => {
   it('handles ellipsizeMode prop', () => {
     const modes: Array<'head' | 'middle' | 'tail' | 'clip'> = ['head', 'middle', 'tail', 'clip'];
 
-    modes.forEach(mode => {
+    modes.forEach((mode) => {
       const { getByText } = renderWithTheme(
         <Text ellipsizeMode={mode} numberOfLines={1}>
           Long text
@@ -177,9 +189,9 @@ describe('Text', () => {
   it('handles accessibility props', () => {
     const { getByLabelText } = renderWithTheme(
       <Text
-        accessibilityLabel='Custom label'
-        accessibilityHint='This is a hint'
-        accessibilityRole='header'
+        accessibilityLabel="Custom label"
+        accessibilityHint="This is a hint"
+        accessibilityRole="header"
       >
         Accessible Text
       </Text>,
@@ -195,10 +207,10 @@ describe('Text', () => {
   it('renders children correctly', () => {
     const { getByText } = renderWithTheme(
       <Text>
-        Hello <Text weight='bold'>World</Text>
+        Hello <Text weight="bold">World</Text>
       </Text>,
     );
-    expect(getByText('Hello')).toBeTruthy();
+    expect(getByText(/Hello/)).toBeTruthy();
     expect(getByText('World')).toBeTruthy();
   });
 });

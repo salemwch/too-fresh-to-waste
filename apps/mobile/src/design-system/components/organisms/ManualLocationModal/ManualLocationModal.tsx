@@ -5,7 +5,7 @@
  * Uses Google Places API for address autocomplete.
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import {
   View,
   Modal,
@@ -25,227 +25,220 @@ import { Text, Button, Icon, Input } from '../../atoms';
 
 import type { ManualLocationModalProps, ManualLocationResult } from './ManualLocationModal.types';
 
-export const ManualLocationModal = React.memo<ManualLocationModalProps>(function ManualLocationModal({
-  visible,
-  onClose,
-  onLocationSelect,
-  initialQuery = '',
-  style,
-  testID,
-}) {
-  const theme = useTheme();
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
+export const ManualLocationModal = memo<ManualLocationModalProps>(
+  ({ visible, onClose, onLocationSelect, initialQuery = '', style, testID }) => {
+    const theme = useTheme();
+    const [searchQuery, setSearchQuery] = useState(initialQuery);
+    const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
 
-  // Debounce search query
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+    // Debounce search query
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setDebouncedQuery(searchQuery);
+      }, 300);
+      return () => clearTimeout(timer);
+    }, [searchQuery]);
 
-  // Reset query when modal opens
-  useEffect(() => {
-    if (visible) {
+    const handleModalShow = useCallback(() => {
       setSearchQuery(initialQuery);
       setDebouncedQuery(initialQuery);
-    }
-  }, [visible, initialQuery]);
+    }, [initialQuery]);
 
-  // Fetch search results
-  const { data: searchResults, isLoading, error } = useLocationSearch(debouncedQuery);
+    // Fetch search results
+    const { data: searchResults, isLoading, error } = useLocationSearch(debouncedQuery);
 
-  const handleSelectLocation = useCallback(
-    (result: GeocodeResult) => {
-      const location: ManualLocationResult = {
-        coordinates: result.coordinates,
-        name: result.displayName,
-      };
-      onLocationSelect(location);
-      onClose();
-    },
-    [onLocationSelect, onClose],
-  );
+    const handleSelectLocation = useCallback(
+      (result: GeocodeResult) => {
+        const location: ManualLocationResult = {
+          coordinates: result.coordinates,
+          name: result.displayName,
+        };
+        onLocationSelect(location);
+        onClose();
+      },
+      [onLocationSelect, onClose],
+    );
 
-  const renderSearchResult = useCallback(
-    ({ item }: { item: GeocodeResult }) => (
-      <Pressable
-        style={[styles.resultItem, { borderBottomColor: theme.colors.outline }]}
-        onPress={() => handleSelectLocation(item)}
-        accessibilityRole='button'
-        accessibilityLabel={item.displayName}
-      >
-        <Icon
-          name='location-outline'
-          size={20}
-          color={theme.colors.primary}
-          style={styles.resultIcon}
-        />
-        <View style={styles.resultTextContainer}>
-          <Text variant='body' size='md' numberOfLines={1}>
-            {item.address?.city || item.displayName.split(',')[0]}
-          </Text>
-          <Text variant='body' size='sm' color='secondary' numberOfLines={1}>
-            {item.displayName}
-          </Text>
-        </View>
-        <Icon
-          name='chevron-forward'
-          family='Ionicons'
-          size={20}
-          color={theme.colors.onSurfaceVariant}
-        />
-      </Pressable>
-    ),
-    [theme.colors, handleSelectLocation],
-  );
-
-  const renderEmptyState = useCallback(() => {
-    if (isLoading) {
-      return (
-        <View style={styles.emptyState}>
-          <ActivityIndicator size='large' color={theme.colors.primary} />
-          <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
-            Searching locations...
-          </Text>
-        </View>
-      );
-    }
-
-    if (error) {
-      return (
-        <View style={styles.emptyState}>
+    const renderSearchResult = useCallback(
+      ({ item }: { item: GeocodeResult }) => (
+        <Pressable
+          style={[styles.resultItem, { borderBottomColor: theme.colors.outline }]}
+          onPress={() => handleSelectLocation(item)}
+          accessibilityRole="button"
+          accessibilityLabel={item.displayName}
+        >
           <Icon
-            name='alert-circle-outline'
-            family='Ionicons'
-            size={48}
-            color={theme.colors.error}
+            name="location-outline"
+            size={20}
+            color={theme.colors.primary}
+            style={styles.resultIcon}
           />
-          <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
-            Failed to search locations. Please try again.
-          </Text>
-        </View>
-      );
-    }
+          <View style={styles.resultTextContainer}>
+            <Text variant="body" size="md" numberOfLines={1}>
+              {item.address?.city ?? item.displayName.split(',')[0]}
+            </Text>
+            <Text variant="body" size="sm" color="secondary" numberOfLines={1}>
+              {item.displayName}
+            </Text>
+          </View>
+          <Icon
+            name="chevron-forward"
+            family="Ionicons"
+            size={20}
+            color={theme.colors.onSurfaceVariant}
+          />
+        </Pressable>
+      ),
+      [theme.colors, handleSelectLocation],
+    );
 
-    if (debouncedQuery.length >= 3 && (!searchResults || searchResults.length === 0)) {
+    const renderEmptyState = useCallback(() => {
+      if (isLoading) {
+        return (
+          <View style={styles.emptyState}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
+              Searching locations...
+            </Text>
+          </View>
+        );
+      }
+
+      if (error) {
+        return (
+          <View style={styles.emptyState}>
+            <Icon
+              name="alert-circle-outline"
+              family="Ionicons"
+              size={48}
+              color={theme.colors.error}
+            />
+            <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
+              Failed to search locations. Please try again.
+            </Text>
+          </View>
+        );
+      }
+
+      if (debouncedQuery.length >= 3 && (!searchResults || searchResults.length === 0)) {
+        return (
+          <View style={styles.emptyState}>
+            <Icon
+              name="search-outline"
+              family="Ionicons"
+              size={48}
+              color={theme.colors.onSurfaceVariant}
+            />
+            <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
+              No locations found for &ldquo;{debouncedQuery}&rdquo;
+            </Text>
+          </View>
+        );
+      }
+
       return (
         <View style={styles.emptyState}>
           <Icon
-            name='search-outline'
-            family='Ionicons'
+            name="location-sharp"
+            family="Ionicons"
             size={48}
             color={theme.colors.onSurfaceVariant}
           />
-          <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
-            No locations found for "{debouncedQuery}"
+          <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
+            Search for a city, address, or place
           </Text>
         </View>
       );
-    }
+    }, [isLoading, error, debouncedQuery, searchResults, theme.colors]);
 
     return (
-      <View style={styles.emptyState}>
-        <Icon
-          name='location-sharp'
-          family='Ionicons'
-          size={48}
-          color={theme.colors.onSurfaceVariant}
-        />
-        <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
-          Search for a city, address, or place
-        </Text>
-      </View>
-    );
-  }, [isLoading, error, debouncedQuery, searchResults, theme.colors]);
-
-  return (
-    <Modal
-      visible={visible}
-      animationType='slide'
-      presentationStyle='pageSheet'
-      onRequestClose={onClose}
-      testID={testID}
-    >
-      <SafeAreaView
-        style={[styles.container, { backgroundColor: theme.colors.background }, style]}
-        edges={['top']}
+      <Modal
+        visible={visible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={onClose}
+        onShow={handleModalShow}
+        testID={testID}
       >
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        <SafeAreaView
+          style={[styles.container, { backgroundColor: theme.colors.background }, style]}
+          edges={['top']}
         >
-          {/* Header */}
-          <View style={[styles.header, { borderBottomColor: theme.colors.outline }]}>
-            <Text variant='title' size='lg' weight='semibold'>
-              Set Location
-            </Text>
-            <Pressable
-              onPress={onClose}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              accessibilityLabel='Close'
-              accessibilityRole='button'
-            >
-              <Icon name='close' family='Ionicons' size={24} color={theme.colors.onSurface} />
-            </Pressable>
-          </View>
+          <KeyboardAvoidingView
+            style={styles.keyboardView}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            {/* Header */}
+            <View style={[styles.header, { borderBottomColor: theme.colors.outline }]}>
+              <Text variant="title" size="lg" weight="semibold">
+                Set Location
+              </Text>
+              <Pressable
+                onPress={onClose}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
+              >
+                <Icon name="close" family="Ionicons" size={24} color={theme.colors.onSurface} />
+              </Pressable>
+            </View>
 
-          {/* Search Input */}
-          <View style={styles.searchContainer}>
-            <Input
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder='Search city or address...'
-              leftIcon={
-                <Icon
-                  name='search'
-                  family='Ionicons'
-                  size={20}
-                  color={theme.colors.onSurfaceVariant}
-                />
+            {/* Search Input */}
+            <View style={styles.searchContainer}>
+              <Input
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="Search city or address..."
+                leftIcon={
+                  <Icon
+                    name="search"
+                    family="Ionicons"
+                    size={20}
+                    color={theme.colors.onSurfaceVariant}
+                  />
+                }
+                rightIcon={
+                  searchQuery.length > 0 ? (
+                    <Pressable onPress={() => setSearchQuery('')}>
+                      <Icon
+                        name="close-circle"
+                        family="Ionicons"
+                        size={20}
+                        color={theme.colors.onSurfaceVariant}
+                      />
+                    </Pressable>
+                  ) : undefined
+                }
+                autoFocus
+                returnKeyType="search"
+                accessibilityLabel="Search location"
+              />
+            </View>
+
+            {/* Results List */}
+            <FlatList
+              data={searchResults ?? []}
+              keyExtractor={(item, index) =>
+                `${item.coordinates.latitude}-${item.coordinates.longitude}-${index}`
               }
-              rightIcon={
-                searchQuery.length > 0 ? (
-                  <Pressable onPress={() => setSearchQuery('')}>
-                    <Icon
-                      name='close-circle'
-                      family='Ionicons'
-                      size={20}
-                      color={theme.colors.onSurfaceVariant}
-                    />
-                  </Pressable>
-                ) : undefined
-              }
-              autoFocus
-              returnKeyType='search'
-              accessibilityLabel='Search location'
+              renderItem={renderSearchResult}
+              ListEmptyComponent={renderEmptyState}
+              contentContainerStyle={styles.listContent}
+              keyboardShouldPersistTaps="handled"
             />
-          </View>
 
-          {/* Results List */}
-          <FlatList
-            data={searchResults || []}
-            keyExtractor={(item, index) =>
-              `${item.coordinates.latitude}-${item.coordinates.longitude}-${index}`
-            }
-            renderItem={renderSearchResult}
-            ListEmptyComponent={renderEmptyState}
-            contentContainerStyle={styles.listContent}
-            keyboardShouldPersistTaps='handled'
-          />
-
-          {/* Cancel Button */}
-          <View style={[styles.footer, { borderTopColor: theme.colors.outline }]}>
-            <Button variant='outline' size='lg' onPress={onClose} style={styles.cancelButton}>
-              Cancel
-            </Button>
-          </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </Modal>
-  );
-});
+            {/* Cancel Button */}
+            <View style={[styles.footer, { borderTopColor: theme.colors.outline }]}>
+              <Button variant="outline" size="lg" onPress={onClose} style={styles.cancelButton}>
+                Cancel
+              </Button>
+            </View>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -305,4 +298,3 @@ const styles = StyleSheet.create({
 });
 
 ManualLocationModal.displayName = 'ManualLocationModal';
-

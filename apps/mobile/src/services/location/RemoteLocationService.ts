@@ -21,6 +21,7 @@ import axios, { type AxiosError } from 'axios';
 
 import { environment } from '@/config/environment';
 import { Logger } from '@/utils/logger';
+
 import type { ILocationResult } from '@/types/location.types';
 
 /**
@@ -65,9 +66,7 @@ class RemoteLocationService {
     limit: number = 5,
   ): Promise<ILocationResult[]> {
     try {
-      Logger.debug(
-        `RemoteLocationService: Autocomplete "${query}" (session: active)`,
-      );
+      Logger.debug(`RemoteLocationService: Autocomplete "${query}" (session: active)`);
 
       if (!query || query.trim().length < 2) {
         return [];
@@ -91,7 +90,7 @@ class RemoteLocationService {
       const suggestions = Array.isArray(response.data) ? response.data : [];
 
       // Map suggestions to ILocationResult with placeholder coords
-      const results: ILocationResult[] = suggestions.map(suggestion => ({
+      const results: ILocationResult[] = suggestions.map((suggestion) => ({
         id: suggestion.id,
         name: suggestion.name,
         nameAr: suggestion.nameAr,
@@ -122,14 +121,9 @@ class RemoteLocationService {
    * @param sessionToken - Same session token used in autocomplete requests
    * @returns ILocationResult with real coordinates, or null
    */
-  async getPlaceDetails(
-    placeId: string,
-    sessionToken: string,
-  ): Promise<ILocationResult | null> {
+  async getPlaceDetails(placeId: string, sessionToken: string): Promise<ILocationResult | null> {
     try {
-      Logger.debug(
-        `RemoteLocationService: Fetching details for ${placeId} (session: concluding)`,
-      );
+      Logger.debug(`RemoteLocationService: Fetching details for ${placeId} (session: concluding)`);
 
       if (!placeId) {
         return null;
@@ -149,16 +143,12 @@ class RemoteLocationService {
         },
       });
 
-      if (!response.data) {
-        Logger.warn(
-          `RemoteLocationService: No details found for placeId ${placeId}`,
-        );
+      if (response.data === undefined || response.data === null) {
+        Logger.warn(`RemoteLocationService: No details found for placeId ${placeId}`);
         return null;
       }
 
-      Logger.info(
-        `RemoteLocationService: Details resolved for "${response.data.name}"`,
-      );
+      Logger.info(`RemoteLocationService: Details resolved for "${response.data.name}"`);
 
       return response.data;
     } catch (error) {
@@ -200,9 +190,7 @@ class RemoteLocationService {
 
       const results = Array.isArray(response.data) ? response.data : [];
 
-      Logger.info(
-        `RemoteLocationService: Found ${results.length} results for "${query}"`,
-      );
+      Logger.info(`RemoteLocationService: Found ${results.length} results for "${query}"`);
 
       return results;
     } catch (error) {
@@ -226,7 +214,7 @@ class RemoteLocationService {
           { status: axiosError.response.status },
           new Error(axiosError.message),
         );
-      } else if (axiosError.request) {
+      } else if (axiosError.request !== undefined) {
         Logger.error(
           `RemoteLocationService: Network error for "${context}"`,
           {},
@@ -234,11 +222,7 @@ class RemoteLocationService {
         );
       }
     } else {
-      Logger.error(
-        `RemoteLocationService: Unknown error for "${context}"`,
-        {},
-        error as Error,
-      );
+      Logger.error(`RemoteLocationService: Unknown error for "${context}"`, {}, error as Error);
     }
   }
 }

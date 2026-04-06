@@ -5,69 +5,21 @@
 
 // Navigators
 export { RootNavigator } from './RootNavigator';
-;
-;
-;
-;
-;
-;
-
 // Shared header config
-;
-
 // Components
-;
-;
-
 // Types
-export type {
-  // Param Lists
-  
-  
-  
-  
-  
-  
-  
-  
-  
+export type {} from // Param Lists
 
-  // Auth Navigation Props
-  
-  
-  
-  
-  
+// Auth Navigation Props
 
-  // Main Stack Navigation Props
-  
-  
-  
+// Main Stack Navigation Props
 
-  // Tab Navigation Props
-  
-  
-  
-  
-  
+// Tab Navigation Props
 
-  // Route Props
-  
-  
-  
-  
-  
-  
-  
+// Route Props
 
-  // Combined Props
-  
-  
-  
-  
-  
+// Combined Props
 
-  // Utility Types
-  
-  
-} from './types';
+// Utility Types
+
+'./types';

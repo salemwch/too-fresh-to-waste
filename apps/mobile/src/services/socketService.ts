@@ -8,9 +8,12 @@
  *   socketService.disconnect();
  */
 
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
+
 import { environment } from '@/config/environment';
 import { Logger } from '@/utils/logger';
+
+import type { Socket } from 'socket.io-client';
 
 const MAX_RECONNECT_ATTEMPTS = 10;
 const RECONNECT_DELAY_MS = 2000;
@@ -20,7 +23,7 @@ class SocketService {
 
   /** Connect to the WebSocket server and join the global room. */
   connect(): void {
-    if (this.socket?.connected) {
+    if (this.socket?.connected === true) {
       Logger.debug('[SocketService] Already connected');
       return;
     }

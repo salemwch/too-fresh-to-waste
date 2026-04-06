@@ -60,7 +60,7 @@ export const createAvatarStyles = (
       width: size,
       height: size,
       borderRadius,
-      backgroundColor: backgroundColor || colors.primary,
+      backgroundColor: backgroundColor ?? colors.primary,
       justifyContent: 'center',
       alignItems: 'center',
       overflow: 'hidden',
@@ -97,7 +97,7 @@ export const createAvatarStyles = (
     },
     loadingOverlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+      backgroundColor: colors.overlay.dark,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius,

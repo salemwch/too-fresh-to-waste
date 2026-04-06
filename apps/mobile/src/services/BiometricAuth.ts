@@ -18,6 +18,7 @@ export enum BiometricType {
   FINGERPRINT = 'Fingerprint',
   FACE_UNLOCK = 'Face',
   IRIS = 'Iris',
+  OPTIC_ID = 'OpticID',
   NONE = 'None',
 }
 
@@ -43,6 +44,48 @@ interface BiometricAuthResult {
   errorMessage?: string;
 }
 
+interface NativeBiometricErrorShape {
+  code?: string;
+  name?: string;
+  message?: string;
+}
+
+type KeychainCredentialResult = Awaited<ReturnType<typeof Keychain.getGenericPassword>>;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object';
+
+const hasKeychainCredentials = (
+  credentials: KeychainCredentialResult,
+): credentials is Exclude<KeychainCredentialResult, false> => credentials !== false;
+
+const extractBiometricErrorShape = (error: unknown): NativeBiometricErrorShape => {
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+    };
+  }
+
+  if (!isRecord(error)) {
+    return {};
+  }
+
+  const shape: NativeBiometricErrorShape = {};
+
+  if (typeof error['code'] === 'string') {
+    shape.code = error['code'];
+  }
+  if (typeof error['name'] === 'string') {
+    shape.name = error['name'];
+  }
+  if (typeof error['message'] === 'string') {
+    shape.message = error['message'];
+  }
+
+  return shape;
+};
+
 // Internal key used for biometric authentication verification
 const BIOMETRIC_AUTH_KEY = 'biometric_auth_verification';
 const BIOMETRIC_AUTH_SERVICE = 'FoodWasteApp_BiometricAuth';
@@ -57,7 +100,7 @@ export class BiometricAuth {
 
       let type: BiometricType = BiometricType.NONE;
 
-      if (biometryType) {
+      if (biometryType !== null) {
         switch (biometryType) {
           case Keychain.BIOMETRY_TYPE.TOUCH_ID:
             type = BiometricType.TOUCH_ID;
@@ -74,6 +117,9 @@ export class BiometricAuth {
           case Keychain.BIOMETRY_TYPE.IRIS:
             type = BiometricType.IRIS;
             break;
+          case Keychain.BIOMETRY_TYPE.OPTIC_ID:
+            type = BiometricType.OPTIC_ID;
+            break;
           default:
             type = BiometricType.NONE;
         }
@@ -85,8 +131,10 @@ export class BiometricAuth {
         success: type !== BiometricType.NONE,
         biometricType: type,
       };
-    } catch (error: any) {
-      Logger.warn('Biometric not supported', { error: error?.message });
+    } catch (error: unknown) {
+      Logger.warn('Biometric not supported', {
+        error: extractBiometricErrorShape(error).message,
+      });
 
       return {
         success: false,
@@ -116,8 +164,10 @@ export class BiometricAuth {
 
       Logger.info('Biometric authentication initialized');
       return true;
-    } catch (error: any) {
-      Logger.warn('Failed to initialize biometric auth', { error: error?.message });
+    } catch (error: unknown) {
+      Logger.warn('Failed to initialize biometric auth', {
+        error: extractBiometricErrorShape(error).message,
+      });
       return false;
     }
   }
@@ -150,12 +200,16 @@ export class BiometricAuth {
         },
       });
 
-      if (credentials) {
+      if (hasKeychainCredentials(credentials)) {
         Logger.info('Biometric authentication successful');
-        return {
-          success: true,
-          ...(supportCheck.biometricType && { biometricType: supportCheck.biometricType }),
-        };
+        if (supportCheck.biometricType !== undefined) {
+          return {
+            success: true,
+            biometricType: supportCheck.biometricType,
+          };
+        }
+
+        return { success: true };
       }
 
       // If no credentials found, initialize and try again
@@ -171,12 +225,16 @@ export class BiometricAuth {
           },
         });
 
-        if (retryCredentials) {
+        if (hasKeychainCredentials(retryCredentials)) {
           Logger.info('Biometric authentication successful after initialization');
-          return {
-            success: true,
-            ...(supportCheck.biometricType && { biometricType: supportCheck.biometricType }),
-          };
+          if (supportCheck.biometricType !== undefined) {
+            return {
+              success: true,
+              biometricType: supportCheck.biometricType,
+            };
+          }
+
+          return { success: true };
         }
       }
 
@@ -185,7 +243,7 @@ export class BiometricAuth {
         error: BiometricError.AUTHENTICATION_FAILED,
         errorMessage: 'Biometric authentication failed',
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorResult = this.handleBiometricError(error);
       Logger.warn('Biometric authentication failed', {
         error: errorResult.error,
@@ -198,14 +256,19 @@ export class BiometricAuth {
   /**
    * Handle biometric errors and map to our error types
    */
-  private static handleBiometricError(error: any): BiometricAuthResult {
-    const errorCode = error.code || error.name;
-    const errorMessage = error.message || 'Unknown error occurred';
+  private static handleBiometricError(error: unknown): BiometricAuthResult {
+    const { code, name, message } = extractBiometricErrorShape(error);
+    const errorCode = code ?? name;
+    const errorMessage = message ?? 'Unknown error occurred';
 
     let mappedError: BiometricError;
 
     // Map Keychain error codes to our BiometricError enum
     switch (errorCode) {
+      case undefined:
+        mappedError = BiometricError.UNKNOWN_ERROR;
+        break;
+
       case '-1': // Authentication failed
       case 'AuthenticationFailed':
         mappedError = BiometricError.AUTHENTICATION_FAILED;
@@ -271,7 +334,7 @@ export class BiometricAuth {
             ios: 'No Face ID or Touch ID enrolled. Please set up biometric authentication in Settings.',
             android:
               'No fingerprint enrolled. Please set up fingerprint authentication in Settings.',
-          }) || 'Biometric authentication not set up'
+          }) ?? 'Biometric authentication not set up'
         );
 
       case BiometricError.AUTHENTICATION_FAILED:
@@ -294,7 +357,7 @@ export class BiometricAuth {
 
       case BiometricError.UNKNOWN_ERROR:
       default:
-        return originalMessage || 'An unknown error occurred';
+        return originalMessage ?? 'An unknown error occurred';
     }
   }
 
@@ -320,8 +383,10 @@ export class BiometricAuth {
       await Keychain.resetGenericPassword({ service: BIOMETRIC_AUTH_SERVICE });
       Logger.info('Biometric authentication disabled');
       return true;
-    } catch (error: any) {
-      Logger.warn('Failed to disable biometric auth', { error: error?.message });
+    } catch (error: unknown) {
+      Logger.warn('Failed to disable biometric auth', {
+        error: extractBiometricErrorShape(error).message,
+      });
       return false;
     }
   }
@@ -334,7 +399,7 @@ export class BiometricAuth {
       const credentials = await Keychain.getGenericPassword({
         service: BIOMETRIC_AUTH_SERVICE,
       });
-      return !!credentials;
+      return hasKeychainCredentials(credentials);
     } catch {
       return false;
     }
@@ -355,6 +420,10 @@ export class BiometricAuth {
         return 'Face Unlock';
       case BiometricType.IRIS:
         return 'Iris Scanner';
+      case BiometricType.OPTIC_ID:
+        return 'Optic ID';
+      case BiometricType.NONE:
+        return 'Biometric';
       default:
         return 'Biometric';
     }

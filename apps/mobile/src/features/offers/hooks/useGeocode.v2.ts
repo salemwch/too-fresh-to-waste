@@ -36,12 +36,13 @@
  * @module useGeocode
  */
 
-import { useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useCallback, useRef } from 'react';
+
 import { useDebounce } from '@/hooks/useDebounce';
+import { hybridLocationService } from '@/services/location/HybridLocationService';
 
 import type { ILocationResult } from '@/types/location.types';
-import { hybridLocationService } from '@/services/location/HybridLocationService';
 
 // ============================================================================
 // Session Token Generator
@@ -114,10 +115,7 @@ interface UseLocationSearchOptions {
  * @param options - Query options
  * @returns TanStack Query result with matching locations + resolveGooglePlace callback
  */
-export function useLocationSearch(
-  query: string,
-  options: UseLocationSearchOptions = {},
-) {
+export function useLocationSearch(query: string, options: UseLocationSearchOptions = {}) {
   const {
     minLength = 2,
     maxResults = 10,
@@ -168,10 +166,7 @@ export function useLocationSearch(
       // Reset session token immediately (session concluded by Place Details call)
       sessionTokenRef.current = generateSessionToken();
 
-      return hybridLocationService.resolveGooglePlace(
-        googlePlaceId,
-        currentToken,
-      );
+      return hybridLocationService.resolveGooglePlace(googlePlaceId, currentToken);
     },
     [],
   );
@@ -193,5 +188,3 @@ export function useLocationSearch(
 // ============================================================================
 // Re-export Types
 // ============================================================================
-
-;

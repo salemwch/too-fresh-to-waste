@@ -1,2 +1,1 @@
 export { LocationFilterModal } from './LocationFilterModal';
-;

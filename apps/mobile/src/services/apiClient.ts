@@ -18,14 +18,19 @@
 
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
-import type { ApiResponse, PaginationMeta } from '@foodwaste/shared';
-
 import { environment } from '@/config/environment';
 import { refreshTokenAsync } from '@/features/auth/store/authSlice';
-// eslint-disable-next-line import/no-cycle
-import { store } from '@/store';
+import {
+  cancelInflightRequests as cancelTrackedRequests,
+  createTrackedAbortController,
+  releaseTrackedAbortController,
+} from '@/services/requestCancellation';
+import { getAppDispatch, getAppState } from '@/store/storeAccessor';
 import { Logger, NetworkLogger } from '@/utils/logger';
 import { decodeEntitiesDeep } from '@/utils/strings';
+
+import type { AppDispatch } from '@/store';
+import type { ApiResponse, PaginationMeta } from '@foodwaste/shared';
 
 // Re-export shared types for backward compatibility
 export type { PaginationMeta };
@@ -36,6 +41,14 @@ export type { PaginationMeta };
 interface RequestConfigWithTiming extends InternalAxiosRequestConfig {
   requestStartTime?: number;
   _retry?: boolean;
+}
+
+interface ApiClientStateSnapshot {
+  auth: {
+    tokens: {
+      accessToken?: string;
+    } | null;
+  };
 }
 
 /**
@@ -91,25 +104,21 @@ export function unwrapBackendResponse<T>(
   // 1. VALIDATE RESPONSE STRUCTURE
   // ────────────────────────────────────────────────────────────────────────
 
-  if (!response || typeof response !== 'object') {
-    const error = new Error(`Invalid response object${context ? ` for ${context}` : ''}`);
-    Logger.error('Response unwrapping failed: not an object', { context, response });
-    throw error;
-  }
+  const responseData = (response as { data?: unknown }).data;
 
-  if (!response.data || typeof response.data !== 'object') {
+  if (responseData === undefined || responseData === null || typeof responseData !== 'object') {
     const error = new Error(
       `Invalid response structure: missing data wrapper${context ? ` for ${context}` : ''}`,
     );
     Logger.error('Response unwrapping failed: missing data wrapper', {
       context,
-      hasData: !!response.data,
-      dataType: typeof response.data,
+      hasData: responseData !== undefined && responseData !== null,
+      dataType: typeof responseData,
     });
     throw error;
   }
 
-  const backendResponse = response.data;
+  const backendResponse = responseData as BackendApiResponse<T>;
 
   // Check for required fields
   if (typeof backendResponse.status !== 'number') {
@@ -195,8 +204,6 @@ let refreshLock: Promise<void> | null = null;
 
 // ✅ PER-REQUEST ABORT CONTROLLERS: Track all active requests
 // Each request gets its own AbortController, stored in a Set for global abort
-const activeAbortControllers = new Set<AbortController>();
-
 // Queue for requests waiting on token refresh
 let failedQueue: Array<{
   resolve: (value?: unknown) => void;
@@ -222,12 +229,6 @@ const processQueue = (error: Error | null = null) => {
  * Create AbortController for a request and track it globally
  * Automatically removed when request completes
  */
-const createTrackedAbortController = (): AbortController => {
-  const controller = new AbortController();
-  activeAbortControllers.add(controller);
-  return controller;
-};
-
 /**
  * Cancel all inflight requests
  * Called on logout to prevent orphaned requests from re-triggering auth flows
@@ -235,23 +236,7 @@ const createTrackedAbortController = (): AbortController => {
  * ✅ CRITICAL: Aborts ALL active requests globally
  */
 export const cancelInflightRequests = (): void => {
-  if (activeAbortControllers.size > 0) {
-    Logger.info('[API-CLIENT] Cancelling all inflight requests', {
-      activeRequests: activeAbortControllers.size,
-    });
-
-    // Abort all active requests
-    activeAbortControllers.forEach((controller) => {
-      try {
-        controller.abort();
-      } catch (error) {
-        // Ignore abort errors (request might already be complete)
-      }
-    });
-
-    // Clear the set
-    activeAbortControllers.clear();
-  }
+  cancelTrackedRequests();
 
   // Clear queued requests
   processQueue(new Error('Logout - all requests cancelled'));
@@ -288,7 +273,7 @@ const createApiClient = (): AxiosInstance => {
       config.signal = abortController.signal;
 
       // Get access token from secure storage or Redux
-      const state = store.getState();
+      const state = getAppState<ApiClientStateSnapshot>();
       const accessToken = state.auth.tokens?.accessToken;
 
       if (accessToken != null) {
@@ -321,10 +306,7 @@ const createApiClient = (): AxiosInstance => {
       NetworkLogger.logResponse(response.config.url ?? '', response.status, duration);
 
       // ✅ CLEANUP: Remove abort controller from tracking (request completed successfully)
-      if (response.config.signal instanceof AbortSignal) {
-        // Extract AbortController from signal (not directly accessible, but we clean up via Set)
-        // The Set will be cleaned when the controller goes out of scope
-      }
+      releaseTrackedAbortController(response.config.signal);
 
       // Decode HTML entities in all string values of the response body.
       // The backend sanitization layer HTML-encodes text for XSS prevention,
@@ -338,6 +320,7 @@ const createApiClient = (): AxiosInstance => {
     async (error: AxiosError) => {
       // ✅ TYPE SAFETY: Use typed config instead of `any`
       const originalRequest = error.config as RequestConfigWithTiming | undefined;
+      releaseTrackedAbortController(originalRequest?.signal);
 
       // ✅ FIXED: Typo and arithmetic error (was requestStartStartTime, was using Boolean with arithmetic)
       const duration = Date.now() - (originalRequest?.requestStartTime ?? 0);
@@ -415,11 +398,13 @@ const createApiClient = (): AxiosInstance => {
 
         // Create refresh promise and store as lock
         refreshLock = (async () => {
+          const dispatch = getAppDispatch<AppDispatch>();
+
           try {
             Logger.info('[API-CLIENT] Starting token refresh flow');
 
             // ✅ SAFE ERROR HANDLING: Don't use unwrap() - handle rejection via match
-            const result = await store.dispatch(refreshTokenAsync());
+            const result = await dispatch(refreshTokenAsync());
 
             if (refreshTokenAsync.fulfilled.match(result)) {
               const newAccessToken = result.payload.tokens.accessToken;
@@ -453,10 +438,10 @@ const createApiClient = (): AxiosInstance => {
             // This prevents infinite loop: 401 → refresh fail → logout API → 401 → ...
             // Import forceLocalLogout action which clears state without network call
             const { forceLocalLogout } = await import('@/features/auth/store/authSlice');
-            store.dispatch(forceLocalLogout());
+            dispatch(forceLocalLogout());
 
             // Clear secure storage (fire and forget)
-            import('@/services/SecureStorage').then(({ SecureStorage }) => {
+            void import('@/services/SecureStorage').then(({ SecureStorage }) => {
               SecureStorage.clearAll().catch((err) => {
                 Logger.error('[API-CLIENT] Failed to clear secure storage', {}, err as Error);
               });

@@ -37,38 +37,38 @@ export const EstablishmentDetailsScreen: React.FC<EstablishmentDetailsScreenProp
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Card style={styles.card}>
           <View style={styles.header}>
-            <Text variant='headline' size='lg' weight='bold'>
+            <Text variant="headline" size="lg" weight="bold">
               Establishment Details
             </Text>
-            <Badge label='Open' variant='success' size='md' />
+            <Badge label="Open" variant="success" size="md" />
           </View>
 
-          <Text variant='body' size='md' color='secondary' style={styles.subtitle}>
+          <Text variant="body" size="md" color="secondary" style={styles.subtitle}>
             ID: {establishmentId}
           </Text>
 
           <View style={styles.placeholder}>
-            <Text variant='body' size='md' align='center' color='secondary'>
+            <Text variant="body" size="md" align="center" color="secondary">
               🏪 Establishment details will be displayed here
             </Text>
             <Text
-              variant='body'
-              size='sm'
-              align='center'
-              color='secondary'
-              style={{ marginTop: 8 }}
+              variant="body"
+              size="sm"
+              align="center"
+              color="secondary"
+              style={styles.placeholderSubtitle}
             >
               Name, Address, Hours, Photos, Available Offers, Reviews
             </Text>
           </View>
 
-          <Button variant='primary' size='lg' onPress={() => {}} style={styles.button}>
+          <Button variant="primary" size="lg" onPress={() => {}} style={styles.button}>
             View Available Offers
           </Button>
 
           <Button
-            variant='outline'
-            size='md'
+            variant="outline"
+            size="md"
             onPress={() => navigation.goBack()}
             style={styles.button}
           >
@@ -102,6 +102,9 @@ const styles = StyleSheet.create({
   placeholder: {
     paddingVertical: 60,
     alignItems: 'center',
+  },
+  placeholderSubtitle: {
+    marginTop: 8,
   },
   button: {
     marginTop: 12,

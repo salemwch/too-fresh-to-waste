@@ -21,11 +21,11 @@
  * ```
  */
 
-import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import Icon from '@react-native-vector-icons/material-design-icons';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { View, Animated, type ViewStyle, type TextStyle } from 'react-native';
 import { trigger as triggerHaptic } from 'react-native-haptic-feedback';
 import * as Progress from 'react-native-progress';
-import Icon from '@react-native-vector-icons/material-design-icons';
 
 import { usePasswordRules } from '../../../../hooks';
 import { useTheme } from '../../../providers';
@@ -75,23 +75,28 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
   const previousStrengthRef = useRef(strength.score);
 
   // Animation values for progress bar
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  const [progressAnim] = useState(() => new Animated.Value(0));
 
   // Animation values for dropdown mode
-  const dropdownOpacity = useRef(new Animated.Value(0)).current;
-  const dropdownTranslateY = useRef(new Animated.Value(-10)).current;
+  const [dropdownOpacity] = useState(() => new Animated.Value(0));
+  const [dropdownTranslateY] = useState(() => new Animated.Value(-10));
 
   // Auto-hide delay timer
   const autoHideTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [isPendingAutoHide, setIsPendingAutoHide] = React.useState(false);
+  const [elapsedAutoHideKey, setElapsedAutoHideKey] = useState<string | null>(null);
+  const autoHideKey =
+    dropdownMode === true && autoHideWhenValid === true && isValid && password.length > 0
+      ? password
+      : null;
+  const isPendingAutoHide = autoHideKey !== null && elapsedAutoHideKey !== autoHideKey;
 
   // Trigger haptic feedback when rules are met
   useEffect(() => {
     if (!enableHaptic || !password) return;
 
     // Check which rules were just met
-    const metRules = rules.filter(rule => rule.isMet).map(rule => rule.id);
-    const newlyMetRules = metRules.filter(id => !previousRulesRef.current.includes(id));
+    const metRules = rules.filter((rule) => rule.isMet).map((rule) => rule.id);
+    const newlyMetRules = metRules.filter((id) => !previousRulesRef.current.includes(id));
 
     // Trigger haptic for each newly met rule
     if (newlyMetRules.length > 0) {
@@ -100,7 +105,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
 
     // Trigger stronger haptic when all basic rules are met
     const basicRules = rules.slice(0, 5);
-    const allBasicMet = basicRules.every(rule => rule.isMet);
+    const allBasicMet = basicRules.every((rule) => rule.isMet);
     const previouslyNotAllMet = !previousRulesRef.current.includes('allBasicMet');
 
     if (allBasicMet && previouslyNotAllMet) {
@@ -151,33 +156,19 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
   }, [strength.progress, enableAnimations, progressAnim]);
 
   // Handle delayed auto-hide when password becomes valid
-  // Using useLayoutEffect to prevent flicker - updates state synchronously before paint
   useLayoutEffect(() => {
     if (dropdownMode !== true || autoHideWhenValid !== true) return;
 
-    // If password is valid and has content, set pending hide immediately (prevents flicker)
-    if (isValid && password.length > 0) {
-      setIsPendingAutoHide(true);
+    if (autoHideTimerRef.current !== null) {
+      clearTimeout(autoHideTimerRef.current);
+      autoHideTimerRef.current = null;
+    }
 
-      // Clear any existing timer
-      if (autoHideTimerRef.current !== null) {
-        clearTimeout(autoHideTimerRef.current);
-      }
-
-      // Start new timer to hide after delay
+    if (autoHideKey !== null) {
       autoHideTimerRef.current = setTimeout(() => {
-        setIsPendingAutoHide(false);
+        setElapsedAutoHideKey(autoHideKey);
         autoHideTimerRef.current = null;
       }, autoHideDelay);
-    } else {
-      // Password is not valid, cancel pending hide immediately
-      setIsPendingAutoHide(false);
-
-      // Clear any existing timer
-      if (autoHideTimerRef.current !== null) {
-        clearTimeout(autoHideTimerRef.current);
-        autoHideTimerRef.current = null;
-      }
     }
 
     // Cleanup timer on unmount or when dependencies change
@@ -187,7 +178,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
         autoHideTimerRef.current = null;
       }
     };
-  }, [isValid, password.length, autoHideDelay, autoHideWhenValid, dropdownMode]);
+  }, [autoHideDelay, autoHideKey, autoHideWhenValid, dropdownMode]);
 
   // Animate dropdown visibility
   useEffect(() => {
@@ -246,7 +237,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
             borderWidth={0}
             borderRadius={2}
             animated={enableAnimations}
-            animationType='spring'
+            animationType="spring"
           />
         </View>
       );
@@ -268,7 +259,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
           borderWidth={0}
           borderRadius={4}
           animated={enableAnimations}
-          animationType='spring'
+          animationType="spring"
         />
       </View>
     );
@@ -316,7 +307,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
     if (!showRules) return null;
 
     const basicRules = rules.slice(0, 5); // minLength, upper, lower, number, special
-    const personalInfoRule = rules.find(rule => rule.id === 'noPersonalInfo'); // Get personal info rule
+    const personalInfoRule = rules.find((rule) => rule.id === 'noPersonalInfo'); // Get personal info rule
 
     if (dropdownMode === true) {
       // Compact dropdown layout - show basic rules + personal info rule
@@ -346,7 +337,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
 
     return (
       <View style={styles.successCue as ViewStyle}>
-        <Icon name='check-circle' size={16} color={theme.colors.primary} />
+        <Icon name="check-circle" size={16} color={theme.colors.primary} />
         <Text style={styles.successCueText as TextStyle}>All requirements met!</Text>
       </View>
     );
@@ -361,7 +352,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
     // Determine feedback style based on content
     const getFeedbackStyle = () => {
       if (isValid) return styles.feedbackTextSuccess;
-      if (feedback.some(msg => msg.toLowerCase().includes('weak'))) {
+      if (feedback.some((msg) => msg.toLowerCase().includes('weak'))) {
         return styles.feedbackTextError;
       }
       return undefined;
@@ -390,14 +381,14 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
 
     // Get all basic rules met
     const basicRules = rules.slice(0, 5);
-    const allBasicMet = basicRules.every(rule => rule.isMet);
+    const allBasicMet = basicRules.every((rule) => rule.isMet);
 
     // Only show if basic rules are met but strength is still weak
     if (!allBasicMet) return null;
 
     return (
       <View style={styles.warningBanner}>
-        <Icon name='alert' size={20} color='#FF9800' />
+        <Icon name="alert" size={20} color="#FF9800" />
         <Text style={styles.warningBannerText}>
           Password is too weak. Backend requires at least &ldquo;Fair&rdquo; strength.
         </Text>
@@ -450,4 +441,3 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
     </View>
   );
 };
-

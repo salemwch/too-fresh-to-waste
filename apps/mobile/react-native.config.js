@@ -14,16 +14,10 @@ const path = require('path');
 // Source: https://github.com/oblador/react-native-vector-icons/issues/1728
 // ============================================================================
 const vectorIconsExclusions = {};
-const vectorIconsDir = path.resolve(
-  __dirname,
-  '../../node_modules/@react-native-vector-icons',
-);
+const vectorIconsDir = path.resolve(__dirname, '../../node_modules/@react-native-vector-icons');
 if (fs.existsSync(vectorIconsDir)) {
   fs.readdirSync(vectorIconsDir)
-    .filter(
-      (name) =>
-        name !== 'common' && !name.startsWith('.') && name !== 'node_modules',
-    )
+    .filter((name) => name !== 'common' && !name.startsWith('.') && name !== 'node_modules')
     .forEach((name) => {
       vectorIconsExclusions[`@react-native-vector-icons/${name}`] = {
         platforms: { android: null },

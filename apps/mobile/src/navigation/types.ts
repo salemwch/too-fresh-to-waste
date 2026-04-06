@@ -4,7 +4,11 @@
  */
 
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import type { CompositeNavigationProp, RouteProp } from '@react-navigation/native';
+import type {
+  CompositeNavigationProp,
+  NavigatorScreenParams,
+  RouteProp,
+} from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 /**
@@ -12,7 +16,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
  * Top-level navigator that handles auth state
  */
 export interface RootNavigatorParamList extends Record<string, object | undefined> {
-  AuthStack: { screen?: keyof AuthStackParamList; params?: any } | undefined;
+  AuthStack: NavigatorScreenParams<AuthStackParamList> | undefined;
   MainStack: undefined;
 }
 
@@ -198,10 +202,7 @@ type OrderDetailsFromOrdersStackNavigationProp = CompositeNavigationProp<
   >
 >;
 
-type CheckoutScreenNavigationProp = NativeStackNavigationProp<
-  MainStackParamList,
-  'Checkout'
->;
+type CheckoutScreenNavigationProp = NativeStackNavigationProp<MainStackParamList, 'Checkout'>;
 
 /**
  * Navigation Props for Tab Screens

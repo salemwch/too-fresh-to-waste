@@ -21,7 +21,7 @@ function getModeConfig(mode: LocationMode, locationName?: string): { icon: strin
     case 'gps':
       return { icon: 'navigate', label: 'Using GPS' };
     case 'manual':
-      return { icon: 'pin', label: locationName || 'Manual location' };
+      return { icon: 'pin', label: locationName ?? 'Manual location' };
     case 'off':
     default:
       return { icon: 'location-off-outline', label: 'Location off' };
@@ -57,9 +57,9 @@ export const LocationStatusBadge: React.FC<LocationStatusBadgeProps> = ({
     <>
       <Icon name={icon} size={iconSize} color={iconColor} style={styles.icon} />
       <Text
-        variant='label'
+        variant="label"
         size={size === 'sm' ? 'xs' : 'sm'}
-        weight='medium'
+        weight="medium"
         color={mode === 'off' ? 'secondary' : 'primary'}
         style={textStyle}
         numberOfLines={1}
@@ -68,7 +68,7 @@ export const LocationStatusBadge: React.FC<LocationStatusBadgeProps> = ({
       </Text>
       {onPress && (
         <Icon
-          name='chevron-down'
+          name="chevron-down"
           size={size === 'sm' ? 12 : 14}
           color={iconColor}
           style={styles.chevron}
@@ -83,9 +83,9 @@ export const LocationStatusBadge: React.FC<LocationStatusBadgeProps> = ({
         style={containerStyle}
         onPress={onPress}
         testID={testID}
-        accessibilityRole='button'
+        accessibilityRole="button"
         accessibilityLabel={`Location: ${label}`}
-        accessibilityHint={accessibilityHint || 'Tap to change location settings'}
+        accessibilityHint={accessibilityHint ?? 'Tap to change location settings'}
       >
         {content}
       </Pressable>
@@ -96,7 +96,7 @@ export const LocationStatusBadge: React.FC<LocationStatusBadgeProps> = ({
     <View
       style={containerStyle}
       testID={testID}
-      accessibilityRole='text'
+      accessibilityRole="text"
       accessibilityLabel={`Location: ${label}`}
     >
       {content}
@@ -120,4 +120,3 @@ const styles = StyleSheet.create({
 });
 
 LocationStatusBadge.displayName = 'LocationStatusBadge';
-

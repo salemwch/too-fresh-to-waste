@@ -81,7 +81,7 @@ describe('Card', () => {
 
   it('shows loading indicator when loading', () => {
     const { getByTestId } = renderWithTheme(
-      <Card loading testID='loading-card'>
+      <Card loading testID="loading-card">
         <Text>Content</Text>
       </Card>,
     );
@@ -98,7 +98,7 @@ describe('Card', () => {
       'outlined',
     ];
 
-    variants.forEach(variant => {
+    variants.forEach((variant) => {
       const { getByText } = renderWithTheme(
         <Card variant={variant}>
           <Text>{variant} card</Text>
@@ -111,7 +111,7 @@ describe('Card', () => {
   it('applies different sizes correctly', () => {
     const sizes: Array<'sm' | 'md' | 'lg'> = ['sm', 'md', 'lg'];
 
-    sizes.forEach(size => {
+    sizes.forEach((size) => {
       const { getByText } = renderWithTheme(
         <Card size={size}>
           <Text>{size} card</Text>
@@ -141,7 +141,7 @@ describe('Card', () => {
   it('applies custom styles', () => {
     const customStyle = { backgroundColor: 'red' };
     const { getByTestId } = renderWithTheme(
-      <Card style={customStyle} testID='styled-card'>
+      <Card style={customStyle} testID="styled-card">
         <Text>Styled Card</Text>
       </Card>,
     );
@@ -150,7 +150,7 @@ describe('Card', () => {
 
   it('handles accessibility props correctly', () => {
     const { getByLabelText } = renderWithTheme(
-      <Card accessibilityLabel='Product card' accessibilityHint='Tap to view product details'>
+      <Card accessibilityLabel="Product card" accessibilityHint="Tap to view product details">
         <Text>Product</Text>
       </Card>,
     );
@@ -159,7 +159,7 @@ describe('Card', () => {
 
   it('sets correct accessibility role when pressable', () => {
     const { getByTestId } = renderWithTheme(
-      <Card pressable testID='pressable-card'>
+      <Card pressable testID="pressable-card">
         <Text>Pressable</Text>
       </Card>,
     );
@@ -169,7 +169,7 @@ describe('Card', () => {
 
   it('applies accessibility state when disabled', () => {
     const { getByTestId } = renderWithTheme(
-      <Card pressable disabled testID='disabled-card'>
+      <Card pressable disabled testID="disabled-card">
         <Text>Disabled</Text>
       </Card>,
     );
@@ -179,7 +179,7 @@ describe('Card', () => {
 
   it('applies accessibility state when loading', () => {
     const { getByTestId } = renderWithTheme(
-      <Card pressable loading testID='loading-card'>
+      <Card pressable loading testID="loading-card">
         <Text>Loading</Text>
       </Card>,
     );

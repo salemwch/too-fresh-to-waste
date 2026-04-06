@@ -5,7 +5,7 @@
  */
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import React, { useState, useCallback } from 'react';
+import { memo, useState, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import {
   View,
@@ -41,234 +41,229 @@ const emailSchema = yup.object({
 
 type EmailFormData = yup.InferType<typeof emailSchema>;
 
-export const ResendVerificationModal = React.memo<ResendVerificationModalProps>(function ResendVerificationModal({
-  visible,
-  onDismiss,
-  onSuccess,
-  onSendVerification,
-}) {
-  const theme = useTheme();
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+export const ResendVerificationModal = memo<ResendVerificationModalProps>(
+  ({ visible, onDismiss, onSuccess, onSendVerification }) => {
+    const theme = useTheme();
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // React Hook Form setup
-  const {
-    control,
-    handleSubmit,
-    formState: { errors: formErrors },
-    reset,
-  } = useForm<EmailFormData>({
-    resolver: yupResolver(emailSchema),
-    mode: 'onBlur',
-    defaultValues: {
-      email: '',
-    },
-  });
+    // React Hook Form setup
+    const {
+      control,
+      handleSubmit,
+      formState: { errors: formErrors },
+      reset,
+    } = useForm<EmailFormData>({
+      resolver: yupResolver(emailSchema),
+      mode: 'onBlur',
+      defaultValues: {
+        email: '',
+      },
+    });
 
-  /**
-   * Handle form submission
-   */
-  const onSubmit = useCallback(
-    async (formData: EmailFormData) => {
-      try {
-        setIsLoading(true);
-        setErrorMessage(null);
+    /**
+     * Handle form submission
+     */
+    const onSubmit = useCallback(
+      async (formData: EmailFormData) => {
+        try {
+          setIsLoading(true);
+          setErrorMessage(null);
 
-        await onSendVerification(formData.email);
+          await onSendVerification(formData.email);
 
-        // Reset form and call success callback
+          // Reset form and call success callback
+          reset();
+          onSuccess(formData.email);
+        } catch (error: unknown) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'Failed to send verification email. Please try again.';
+          setErrorMessage(message);
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      [onSendVerification, onSuccess, reset],
+    );
+
+    /**
+     * Handle modal dismiss
+     */
+    const handleDismiss = useCallback(() => {
+      if (!isLoading) {
         reset();
-        onSuccess(formData.email);
-      } catch (err: any) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : 'Failed to send verification email. Please try again.';
-        setErrorMessage(message);
-      } finally {
-        setIsLoading(false);
+        setErrorMessage(null);
+        onDismiss();
       }
-    },
-    [onSendVerification, onSuccess, reset],
-  );
+    }, [isLoading, reset, onDismiss]);
 
-  /**
-   * Handle modal dismiss
-   */
-  const handleDismiss = useCallback(() => {
-    if (!isLoading) {
-      reset();
-      setErrorMessage(null);
-      onDismiss();
+    if (!visible) {
+      return null;
     }
-  }, [isLoading, reset, onDismiss]);
 
-  if (!visible) {
-    return null;
-  }
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType='fade'
-      statusBarTranslucent
-      onRequestClose={handleDismiss}
-    >
-      <KeyboardAvoidingView
-        style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    return (
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={handleDismiss}
       >
-        <Pressable
-          style={styles.backdrop}
-          onPress={handleDismiss}
-          disabled={isLoading}
-        />
+        <KeyboardAvoidingView
+          style={styles.overlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <Pressable style={styles.backdrop} onPress={handleDismiss} disabled={isLoading} />
 
-        <Animated.View entering={FadeIn.duration(200)} style={styles.modalContainer}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps='handled'
-            showsVerticalScrollIndicator={false}
-          >
-            <Card style={styles.card}>
-              {/* Header */}
-              <View style={styles.header}>
-                <View style={styles.headerContent}>
+          <Animated.View entering={FadeIn.duration(200)} style={styles.modalContainer}>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <Card style={styles.card}>
+                {/* Header */}
+                <View style={styles.header}>
+                  <View style={styles.headerContent}>
+                    <View
+                      style={[
+                        styles.iconCircle,
+                        {
+                          backgroundColor: theme.colors.primaryContainer,
+                        },
+                      ]}
+                    >
+                      <Icon
+                        name="mail-outline"
+                        family="Ionicons"
+                        size={28}
+                        color={theme.colors.primary}
+                      />
+                    </View>
+                    <Text variant="headline.medium" weight="semibold" style={styles.title}>
+                      Verify Your Email
+                    </Text>
+                    <Text
+                      variant="body.medium"
+                      color="secondary"
+                      align="center"
+                      style={styles.description}
+                    >
+                      Enter your email address to receive a new verification link
+                    </Text>
+                  </View>
+
+                  {/* Close Button */}
+                  <Pressable
+                    style={styles.closeButton}
+                    onPress={handleDismiss}
+                    disabled={isLoading}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Icon name="close" family="Ionicons" size={24} color={theme.colors.onSurface} />
+                  </Pressable>
+                </View>
+
+                {/* Error Message */}
+                {errorMessage && (
                   <View
                     style={[
-                      styles.iconCircle,
+                      styles.errorBanner,
                       {
-                        backgroundColor: theme.colors.primaryContainer,
+                        backgroundColor: theme.colors.errorContainer,
+                        borderColor: theme.colors.error,
                       },
                     ]}
                   >
                     <Icon
-                      name='mail-outline'
-                      family='Ionicons'
-                      size={28}
-                      color={theme.colors.primary}
+                      name="alert-circle-outline"
+                      family="Ionicons"
+                      size="md"
+                      color={theme.colors.error}
                     />
+                    <Text
+                      variant="body.small"
+                      style={[styles.errorText, { color: theme.colors.onErrorContainer }]}
+                    >
+                      {errorMessage}
+                    </Text>
                   </View>
-                  <Text variant='headline.medium' weight='semibold' style={styles.title}>
-                    Verify Your Email
-                  </Text>
-                  <Text
-                    variant='body.medium'
-                    color='secondary'
-                    align='center'
-                    style={styles.description}
-                  >
-                    Enter your email address to receive a new verification link
-                  </Text>
-                </View>
+                )}
 
-                {/* Close Button */}
-                <Pressable
-                  style={styles.closeButton}
+                {/* Email Input */}
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <Input
+                      label="Email Address"
+                      placeholder="Enter your email"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      autoComplete="email"
+                      leftIcon={<Icon name="mail-outline" family="Ionicons" size="md" />}
+                      hasError={!!formErrors.email}
+                      errorText={formErrors.email?.message}
+                      editable={!isLoading}
+                      fullWidth
+                    />
+                  )}
+                />
+
+                {/* Send Button */}
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onPress={() => {
+                    void handleSubmit(onSubmit)();
+                  }}
+                  loading={isLoading}
+                  disabled={isLoading}
+                  style={styles.sendButton}
+                >
+                  Send Verification Link
+                </Button>
+
+                {/* Cancel Button */}
+                <Button
+                  variant="outline"
+                  size="md"
                   onPress={handleDismiss}
                   disabled={isLoading}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  style={styles.cancelButton}
                 >
-                  <Icon name='close' family='Ionicons' size={24} color={theme.colors.onSurface} />
-                </Pressable>
-              </View>
+                  Cancel
+                </Button>
 
-              {/* Error Message */}
-              {errorMessage && (
-                <View
-                  style={[
-                    styles.errorBanner,
-                    {
-                      backgroundColor: theme.colors.errorContainer,
-                      borderColor: theme.colors.error,
-                    },
-                  ]}
-                >
+                {/* Help Text */}
+                <View style={styles.helpContainer}>
                   <Icon
-                    name='alert-circle-outline'
-                    family='Ionicons'
-                    size='md'
-                    color={theme.colors.error}
+                    name="information-circle-outline"
+                    family="Ionicons"
+                    size={18}
+                    color={theme.colors.onSurfaceVariant}
                   />
-                  <Text
-                    variant='body.small'
-                    style={[styles.errorText, { color: theme.colors.onErrorContainer }]}
-                  >
-                    {errorMessage}
+                  <Text variant="body.small" color="secondary" style={styles.helpText}>
+                    A verification link will be sent to your email. Please check your inbox and spam
+                    folder.
                   </Text>
                 </View>
-              )}
+              </Card>
+            </ScrollView>
+          </Animated.View>
+        </KeyboardAvoidingView>
+      </Modal>
+    );
+  },
+);
 
-              {/* Email Input */}
-              <Controller
-                control={control}
-                name='email'
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label='Email Address'
-                    placeholder='Enter your email'
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    keyboardType='email-address'
-                    autoCapitalize='none'
-                    autoCorrect={false}
-                    autoComplete='email'
-                    leftIcon={<Icon name='mail-outline' family='Ionicons' size='md' />}
-                    hasError={!!formErrors.email}
-                    errorText={formErrors.email?.message}
-                    editable={!isLoading}
-                    fullWidth
-                  />
-                )}
-              />
-
-              {/* Send Button */}
-              <Button
-                variant='primary'
-                size='lg'
-                onPress={() => {
-                  void handleSubmit(onSubmit)();
-                }}
-                loading={isLoading}
-                disabled={isLoading}
-                style={styles.sendButton}
-              >
-                Send Verification Link
-              </Button>
-
-              {/* Cancel Button */}
-              <Button
-                variant='outline'
-                size='md'
-                onPress={handleDismiss}
-                disabled={isLoading}
-                style={styles.cancelButton}
-              >
-                Cancel
-              </Button>
-
-              {/* Help Text */}
-              <View style={styles.helpContainer}>
-                <Icon
-                  name='information-circle-outline'
-                  family='Ionicons'
-                  size={18}
-                  color={theme.colors.onSurfaceVariant}
-                />
-                <Text variant='body.small' color='secondary' style={styles.helpText}>
-                  A verification link will be sent to your email. Please check your inbox and spam
-                  folder.
-                </Text>
-              </View>
-            </Card>
-          </ScrollView>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-});
+ResendVerificationModal.displayName = 'ResendVerificationModal';
 
 /* eslint-disable react-native/no-color-literals */
 const styles = StyleSheet.create({

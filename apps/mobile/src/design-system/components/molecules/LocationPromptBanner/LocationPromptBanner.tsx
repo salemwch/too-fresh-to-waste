@@ -5,7 +5,7 @@
  * Shown on HomeScreen when location hasn't been requested yet.
  */
 
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 
 import { useTheme } from '../../../providers';
@@ -13,116 +13,121 @@ import { Text, Button, Card, Icon } from '../../atoms';
 
 import type { LocationPromptBannerProps } from './LocationPromptBanner.types';
 
-export const LocationPromptBanner = React.memo<LocationPromptBannerProps>(function LocationPromptBanner({
-  onEnable,
-  onDismiss,
-  variant = 'expanded',
-  isLoading = false,
-  style,
-  testID,
-}) {
-  const theme = useTheme();
+export const LocationPromptBanner = memo<LocationPromptBannerProps>(
+  ({ onEnable, onDismiss, variant = 'expanded', isLoading = false, style, testID }) => {
+    const theme = useTheme();
 
-  if (variant === 'compact') {
-    return (
-      <View
-        style={[styles.compactContainer, { backgroundColor: theme.colors.primaryContainer }, style]}
-        testID={testID}
-        accessibilityRole='alert'
-        accessibilityLabel='Enable location to see nearby offers'
-      >
-        <Icon
-          name='location-sharp'
-          family='Ionicons'
-          size={18}
-          color={theme.colors.primary}
-          style={styles.compactIcon}
-        />
-        <Text variant='body' size='sm' weight='medium' style={styles.compactText} numberOfLines={1}>
-          Enable location for nearby offers
-        </Text>
-        <Button
-          variant='ghost'
-          size='sm'
-          onPress={onEnable}
-          disabled={isLoading}
-          accessibilityLabel='Enable location'
+    if (variant === 'compact') {
+      return (
+        <View
+          style={[
+            styles.compactContainer,
+            { backgroundColor: theme.colors.primaryContainer },
+            style,
+          ]}
+          testID={testID}
+          accessibilityRole="alert"
+          accessibilityLabel="Enable location to see nearby offers"
         >
-          {isLoading ? <ActivityIndicator size='small' color={theme.colors.primary} /> : 'Enable'}
-        </Button>
+          <Icon
+            name="location-sharp"
+            family="Ionicons"
+            size={18}
+            color={theme.colors.primary}
+            style={styles.compactIcon}
+          />
+          <Text
+            variant="body"
+            size="sm"
+            weight="medium"
+            style={styles.compactText}
+            numberOfLines={1}
+          >
+            Enable location for nearby offers
+          </Text>
+          <Button
+            variant="ghost"
+            size="sm"
+            onPress={onEnable}
+            disabled={isLoading}
+            accessibilityLabel="Enable location"
+          >
+            {isLoading ? <ActivityIndicator size="small" color={theme.colors.primary} /> : 'Enable'}
+          </Button>
+          <Pressable
+            onPress={onDismiss}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityLabel="Dismiss location banner"
+            accessibilityRole="button"
+          >
+            <Icon name="close" family="Ionicons" size={18} color={theme.colors.onSurfaceVariant} />
+          </Pressable>
+        </View>
+      );
+    }
+
+    // Expanded variant
+    return (
+      <Card style={[styles.expandedContainer, style]} testID={testID}>
         <Pressable
+          style={styles.dismissButton}
           onPress={onDismiss}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          accessibilityLabel='Dismiss location banner'
-          accessibilityRole='button'
+          accessibilityLabel="Dismiss location banner"
+          accessibilityRole="button"
         >
-          <Icon name='close' family='Ionicons' size={18} color={theme.colors.onSurfaceVariant} />
+          <Icon name="close" family="Ionicons" size={20} color={theme.colors.onSurfaceVariant} />
         </Pressable>
-      </View>
+
+        <View style={styles.expandedContent}>
+          <View
+            style={[styles.iconContainer, { backgroundColor: theme.colors.primaryContainer }]}
+            accessibilityElementsHidden
+          >
+            <Icon name="location-sharp" family="Ionicons" size={28} color={theme.colors.primary} />
+          </View>
+
+          <View style={styles.textContainer}>
+            <Text variant="title" size="md" weight="semibold" style={styles.title}>
+              See offers near you
+            </Text>
+            <Text variant="body" size="sm" color="secondary" style={styles.description}>
+              Enable location to discover surplus food from nearby restaurants and save money while
+              reducing waste.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.buttonRow}>
+          <Button
+            variant="ghost"
+            size="md"
+            onPress={onDismiss}
+            style={styles.dismissTextButton}
+            accessibilityLabel="Not now"
+          >
+            Not now
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            onPress={onEnable}
+            disabled={isLoading}
+            style={styles.enableButton}
+            accessibilityLabel="Enable location"
+            accessibilityHint="Allow the app to access your location"
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color={theme.colors.onPrimary} />
+            ) : (
+              'Enable Location'
+            )}
+          </Button>
+        </View>
+      </Card>
     );
-  }
-
-  // Expanded variant
-  return (
-    <Card style={[styles.expandedContainer, style]} testID={testID}>
-      <Pressable
-        style={styles.dismissButton}
-        onPress={onDismiss}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        accessibilityLabel='Dismiss location banner'
-        accessibilityRole='button'
-      >
-        <Icon name='close' family='Ionicons' size={20} color={theme.colors.onSurfaceVariant} />
-      </Pressable>
-
-      <View style={styles.expandedContent}>
-        <View
-          style={[styles.iconContainer, { backgroundColor: theme.colors.primaryContainer }]}
-          accessibilityElementsHidden
-        >
-          <Icon name='location-sharp' family='Ionicons' size={28} color={theme.colors.primary} />
-        </View>
-
-        <View style={styles.textContainer}>
-          <Text variant='title' size='md' weight='semibold' style={styles.title}>
-            See offers near you
-          </Text>
-          <Text variant='body' size='sm' color='secondary' style={styles.description}>
-            Enable location to discover surplus food from nearby restaurants and save money while
-            reducing waste.
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.buttonRow}>
-        <Button
-          variant='ghost'
-          size='md'
-          onPress={onDismiss}
-          style={styles.dismissTextButton}
-          accessibilityLabel='Not now'
-        >
-          Not now
-        </Button>
-        <Button
-          variant='primary'
-          size='md'
-          onPress={onEnable}
-          disabled={isLoading}
-          style={styles.enableButton}
-          accessibilityLabel='Enable location'
-          accessibilityHint='Allow the app to access your location'
-        >
-          {isLoading ? (
-            <ActivityIndicator size='small' color={theme.colors.onPrimary} />
-          ) : (
-            'Enable Location'
-          )}
-        </Button>
-      </View>
-    </Card>
-  );
-});
+  },
+);
 
 const styles = StyleSheet.create({
   // Compact variant
@@ -190,4 +195,3 @@ const styles = StyleSheet.create({
 });
 
 LocationPromptBanner.displayName = 'LocationPromptBanner';
-

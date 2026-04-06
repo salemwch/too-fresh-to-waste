@@ -10,7 +10,7 @@
  */
 
 import { Currency } from '@foodwaste/shared';
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -21,16 +21,17 @@ import {
   Dimensions,
 } from 'react-native';
 
-import type { ProximitySearchResult, NearbyOffer } from '@/features/offers/hooks';
-import type { OfferListItem } from '@/features/offers/types/offer.types';
-
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { FavoriteOfferCard } from '@/features/favorites';
 import { OfferType, CtaState, OfferStatus } from '@/features/offers/types/offer.types';
 
+import type { ProximitySearchResult, NearbyOffer } from '@/features/offers/hooks';
+import type { OfferListItem } from '@/features/offers/types/offer.types';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
+const SHEET_SHADOW = '#000';
 
 // ============================================================================
 // Types
@@ -76,7 +77,7 @@ const mapToOfferListItem = (result: ProximitySearchResult<NearbyOffer>): OfferLi
       originalPrice: item.pricing.originalPrice,
       discountedPrice: item.pricing.discountedPrice,
       discountPercentage: item.pricing.discountPercentage,
-      currency: (item.pricing.currency as Currency) || Currency.TND,
+      currency: (item.pricing.currency as Currency | null | undefined) ?? Currency.TND,
     },
     availableQuantity: item.availableQuantity,
     availableFrom: item.availableFrom,
@@ -109,9 +110,8 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
   onOfferPress,
 }) => {
   const theme = useTheme();
-  const [hasBeenVisible, setHasBeenVisible] = React.useState(false);
-  const slideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const [slideAnim] = useState(() => new Animated.Value(SHEET_HEIGHT));
+  const [opacityAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     if (visible) {
@@ -187,11 +187,6 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
       </View>
     );
   }, [isLoading, theme.colors]);
-
-  React.useEffect(() => {
-    if (visible) setHasBeenVisible(true);
-  }, [visible]);
-  if (!visible && !hasBeenVisible) return null;
 
   return (
     <Animated.View
@@ -272,7 +267,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    shadowColor: '#000',
+    shadowColor: SHEET_SHADOW,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,

@@ -13,10 +13,19 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Config from 'react-native-config';
-import type { Storage } from 'redux-persist';
+import ReactNativeConfig from 'react-native-config';
 
 import { Logger } from './logger';
+
+import type { Storage } from 'redux-persist';
+
+interface MMKVInstance {
+  set(key: string, value: string): void;
+  getString(key: string): string | undefined;
+  remove(key: string): void;
+  clearAll(): void;
+  getAllKeys(): string[];
+}
 
 /**
  * Storage Strategy: MMKV with AsyncStorage Fallback
@@ -37,7 +46,7 @@ import { Logger } from './logger';
 
 // Flag to track which storage backend we're using
 let usingMMKV = false;
-let mmkvInstance: any = null;
+let mmkvInstance: MMKVInstance | null = null;
 let initializationAttempted = false;
 
 /**
@@ -47,7 +56,7 @@ let initializationAttempted = false;
  * ✅ V4 API: Uses createMMKV() function (not new MMKV() class)
  * @see https://github.com/mrousavy/react-native-mmkv/blob/main/docs/V4_UPGRADE_GUIDE.md
  */
-function tryInitializeMMKV(): any {
+function tryInitializeMMKV(): MMKVInstance | null {
   if (initializationAttempted) {
     return mmkvInstance;
   }
@@ -55,33 +64,43 @@ function tryInitializeMMKV(): any {
   initializationAttempted = true;
 
   try {
-    // ✅ V4 API: Import createMMKV function (not MMKV class)
+    // ✅ V4 API: Lazy require — MMKV native module must not load until Nitro is ready
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
     const { createMMKV } = require('react-native-mmkv');
 
-    if (createMMKV && typeof createMMKV === 'function') {
+    if (typeof createMMKV === 'function') {
       // ✅ V4 API: Use createMMKV() function
-      const encryptionKey = Config['STORAGE_ENCRYPTION_KEY'];
-      if (!encryptionKey || encryptionKey === 'default-key' || encryptionKey.startsWith('REPLACE_WITH')) {
-        Logger.warn('[Storage] STORAGE_ENCRYPTION_KEY is missing or placeholder — MMKV will not be encrypted');
+      const encryptionKey = ReactNativeConfig['STORAGE_ENCRYPTION_KEY'];
+      if (
+        encryptionKey === undefined ||
+        encryptionKey === '' ||
+        encryptionKey === 'default-key' ||
+        encryptionKey.startsWith('REPLACE_WITH')
+      ) {
+        Logger.warn(
+          '[Storage] STORAGE_ENCRYPTION_KEY is missing or placeholder — MMKV will not be encrypted',
+        );
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       mmkvInstance = createMMKV({
         id: 'redux-persist-storage',
-        ...(encryptionKey && encryptionKey !== 'default-key' && !encryptionKey.startsWith('REPLACE_WITH')
+        ...(encryptionKey !== undefined &&
+        encryptionKey !== '' &&
+        encryptionKey !== 'default-key' &&
+        !encryptionKey.startsWith('REPLACE_WITH')
           ? { encryptionKey }
           : {}),
-      });
+      }) as MMKVInstance;
       usingMMKV = true;
       Logger.info('[Storage] Using MMKV V4 (Nitro, fast, encrypted)');
       return mmkvInstance;
-    } else {
-      Logger.warn('[Storage] createMMKV not available, using AsyncStorage fallback');
-      return null;
     }
+    Logger.warn('[Storage] createMMKV not available, using AsyncStorage fallback');
+    return null;
   } catch (error) {
-    Logger.warn(
-      '[Storage] MMKV initialization failed, using AsyncStorage fallback',
-      { error: (error as Error).message },
-    );
+    Logger.warn('[Storage] MMKV initialization failed, using AsyncStorage fallback', {
+      error: (error as Error).message,
+    });
     return null;
   }
 }
@@ -101,12 +120,14 @@ export const isMMKVAvailable = (): boolean => {
 };
 
 // Expose mmkv for backward compatibility (may be null)
-export const mmkv = new Proxy({} as any, {
+export const mmkv = new Proxy({} as Partial<MMKVInstance>, {
   get(_target, prop: string) {
     const instance = tryInitializeMMKV();
-    if (instance && prop in instance) {
-      const value = instance[prop];
-      return typeof value === 'function' ? value.bind(instance) : value;
+    if (instance !== null && prop in instance) {
+      const value = (instance as unknown as Record<string, unknown>)[prop];
+      return typeof value === 'function'
+        ? (value as (...a: unknown[]) => unknown).bind(instance)
+        : value;
     }
     // Return no-op for unavailable MMKV
     return () => {
@@ -226,7 +247,7 @@ export const getMMKVSize = async (): Promise<number> => {
 
       for (const key of keys) {
         const value = mmkvInstance.getString(key);
-        if (value) {
+        if (value !== undefined) {
           totalSize += value.length;
         }
       }
@@ -243,7 +264,7 @@ export const getMMKVSize = async (): Promise<number> => {
 
       for (const key of keys) {
         const value = await AsyncStorage.getItem(key);
-        if (value) {
+        if (value !== null) {
           totalSize += value.length;
         }
       }

@@ -19,6 +19,7 @@ import { HomeScreen } from '@/features/home/screens/HomeScreen';
 
 import { LocationHeader } from './components';
 import { getDefaultScreenOptions } from './headerConfig';
+
 import type { HomeStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
@@ -29,7 +30,7 @@ export const HomeStack: React.FC = () => {
   return (
     <Stack.Navigator screenOptions={getDefaultScreenOptions(theme)}>
       <Stack.Screen
-        name='HomeMain'
+        name="HomeMain"
         component={HomeScreen}
         options={{
           headerTitle: () => <LocationHeader />,

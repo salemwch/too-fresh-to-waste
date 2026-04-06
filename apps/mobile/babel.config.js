@@ -191,9 +191,6 @@ module.exports = {
     'react-native-reanimated/plugin',
   ],
 
-
-
-
   /**
    * Only parse files we need — improves Metro compilation speed.
    * IMPORTANT: Skip test files only outside of the 'test' env so that

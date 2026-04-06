@@ -13,9 +13,11 @@
  * @security Never triggers logout - session is preserved during network errors
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import Icon from '@/design-system/components/atoms/Icon/Icon';
+
+import { Icon } from '@/design-system/components/atoms/Icon/Icon';
+import { useTheme } from '@/design-system/providers';
 
 interface OfflineBannerProps {
   /** Whether banner is visible */
@@ -43,7 +45,8 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({
   onRetry: _onRetry,
   autoDismiss: _autoDismiss = true,
 }) => {
-  const slideAnim = useRef(new Animated.Value(-100)).current;
+  const theme = useTheme();
+  const [slideAnim] = useState(() => new Animated.Value(-100));
 
   useEffect(() => {
     if (visible) {
@@ -73,13 +76,15 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({
       style={[
         styles.container,
         {
+          backgroundColor: theme.colors.error,
+          shadowColor: theme.colors.onSurface,
           transform: [{ translateY: slideAnim }],
         },
       ]}
     >
       <View style={styles.content}>
-        <Icon name="wifi-off" size={18} color="#FFFFFF" />
-        <Text style={styles.message}>{message}</Text>
+        <Icon name="wifi-off" size={18} color={theme.colors.onError} />
+        <Text style={[styles.message, { color: theme.colors.onError }]}>{message}</Text>
       </View>
     </Animated.View>
   );
@@ -91,12 +96,10 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FF6B6B',
     paddingTop: 40, // Status bar safe area
     paddingBottom: 12,
     paddingHorizontal: 16,
     zIndex: 9999,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -111,6 +114,5 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     fontWeight: '500',
-    color: '#FFFFFF',
   },
 });

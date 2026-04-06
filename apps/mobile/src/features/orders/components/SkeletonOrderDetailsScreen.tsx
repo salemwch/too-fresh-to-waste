@@ -8,29 +8,50 @@ import { View, StyleSheet, ScrollView, Platform } from 'react-native';
 
 import { SkeletonBox, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 
+const SCREEN_BACKGROUND = '#F8FAFC';
+const SURFACE = '#FFFFFF';
+const DIVIDER = '#E2E8F0';
+
 export const SkeletonOrderDetailsScreen: React.FC = () => {
   const anim = useShimmerAnimation('pulse');
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
         {/* Header */}
         <View style={styles.header}>
           <View>
             <SkeletonBox animValue={anim} width={160} height={24} borderRadius={12} />
-            <SkeletonBox animValue={anim} width={100} height={14} borderRadius={7} style={{ marginTop: 4 }} />
+            <SkeletonBox
+              animValue={anim}
+              width={100}
+              height={14}
+              borderRadius={7}
+              style={styles.subheader}
+            />
           </View>
           <SkeletonBox animValue={anim} width={76} height={28} borderRadius={14} />
         </View>
 
         {/* Items card */}
         <View style={styles.card}>
-          <SkeletonBox animValue={anim} width={48} height={12} borderRadius={6} style={styles.sectionTitle} />
+          <SkeletonBox
+            animValue={anim}
+            width={48}
+            height={12}
+            borderRadius={6}
+            style={styles.sectionTitle}
+          />
           <View style={styles.itemRow}>
             <View style={styles.itemLeft}>
               <SkeletonBox animValue={anim} width={150} height={16} borderRadius={8} />
-              <SkeletonBox animValue={anim} width={60} height={13} borderRadius={6} style={{ marginTop: 4 }} />
+              <SkeletonBox
+                animValue={anim}
+                width={60}
+                height={13}
+                borderRadius={6}
+                style={styles.itemMeta}
+              />
             </View>
             <SkeletonBox animValue={anim} width={64} height={16} borderRadius={8} />
           </View>
@@ -38,7 +59,13 @@ export const SkeletonOrderDetailsScreen: React.FC = () => {
           <View style={styles.itemRow}>
             <View style={styles.itemLeft}>
               <SkeletonBox animValue={anim} width={120} height={16} borderRadius={8} />
-              <SkeletonBox animValue={anim} width={50} height={13} borderRadius={6} style={{ marginTop: 4 }} />
+              <SkeletonBox
+                animValue={anim}
+                width={50}
+                height={13}
+                borderRadius={6}
+                style={styles.itemMeta}
+              />
             </View>
             <SkeletonBox animValue={anim} width={64} height={16} borderRadius={8} />
           </View>
@@ -46,7 +73,13 @@ export const SkeletonOrderDetailsScreen: React.FC = () => {
 
         {/* Pricing card */}
         <View style={styles.card}>
-          <SkeletonBox animValue={anim} width={65} height={12} borderRadius={6} style={styles.sectionTitle} />
+          <SkeletonBox
+            animValue={anim}
+            width={65}
+            height={12}
+            borderRadius={6}
+            style={styles.sectionTitle}
+          />
           <View style={styles.pricingRow}>
             <SkeletonBox animValue={anim} width={60} height={16} borderRadius={8} />
             <SkeletonBox animValue={anim} width={68} height={16} borderRadius={8} />
@@ -68,27 +101,69 @@ export const SkeletonOrderDetailsScreen: React.FC = () => {
 
         {/* Pickup Details card */}
         <View style={styles.card}>
-          <SkeletonBox animValue={anim} width={115} height={12} borderRadius={6} style={styles.sectionTitle} />
+          <SkeletonBox
+            animValue={anim}
+            width={115}
+            height={12}
+            borderRadius={6}
+            style={styles.sectionTitle}
+          />
           <View style={styles.pickupRow}>
             <SkeletonBox animValue={anim} width={18} height={18} borderRadius={9} />
-            <SkeletonBox animValue={anim} width={170} height={16} borderRadius={8} style={{ marginLeft: 10 }} />
+            <SkeletonBox
+              animValue={anim}
+              width={170}
+              height={16}
+              borderRadius={8}
+              style={styles.pickupDetail}
+            />
           </View>
           <View style={styles.pickupRow}>
             <SkeletonBox animValue={anim} width={18} height={18} borderRadius={9} />
-            <SkeletonBox animValue={anim} width={110} height={16} borderRadius={8} style={{ marginLeft: 10 }} />
+            <SkeletonBox
+              animValue={anim}
+              width={110}
+              height={16}
+              borderRadius={8}
+              style={styles.pickupDetail}
+            />
           </View>
         </View>
 
         {/* Confirm Pickup card */}
         <View style={styles.card}>
-          <SkeletonBox animValue={anim} width={120} height={12} borderRadius={6} style={styles.sectionTitle} />
+          <SkeletonBox
+            animValue={anim}
+            width={120}
+            height={12}
+            borderRadius={6}
+            style={styles.sectionTitle}
+          />
           <SkeletonBox animValue={anim} width="100%" height={13} borderRadius={6} />
-          <SkeletonBox animValue={anim} width="70%" height={13} borderRadius={6} style={{ marginTop: 5, marginBottom: 12 }} />
+          <SkeletonBox
+            animValue={anim}
+            width="70%"
+            height={13}
+            borderRadius={6}
+            style={styles.confirmationHint}
+          />
           <SkeletonBox animValue={anim} width="100%" height={56} borderRadius={12} />
-          <SkeletonBox animValue={anim} width="100%" height={48} borderRadius={12} style={{ marginTop: 16 }} />
+          <SkeletonBox
+            animValue={anim}
+            width="100%"
+            height={48}
+            borderRadius={12}
+            style={styles.confirmButton}
+          />
         </View>
 
-        <SkeletonBox animValue={anim} width="100%" height={40} borderRadius={8} style={{ marginTop: 8 }} />
+        <SkeletonBox
+          animValue={anim}
+          width="100%"
+          height={40}
+          borderRadius={8}
+          style={styles.footerAction}
+        />
       </ScrollView>
     </View>
   );
@@ -97,7 +172,7 @@ export const SkeletonOrderDetailsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: SCREEN_BACKGROUND,
   },
   scrollContent: {
     padding: 16,
@@ -110,7 +185,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SURFACE,
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
@@ -130,6 +205,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginBottom: 12,
   },
+  subheader: {
+    marginTop: 4,
+  },
   itemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -138,6 +216,9 @@ const styles = StyleSheet.create({
   },
   itemLeft: {
     flex: 1,
+  },
+  itemMeta: {
+    marginTop: 4,
   },
   pricingRow: {
     flexDirection: 'row',
@@ -149,9 +230,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 4,
   },
+  pickupDetail: {
+    marginLeft: 10,
+  },
+  confirmationHint: {
+    marginTop: 5,
+    marginBottom: 12,
+  },
+  confirmButton: {
+    marginTop: 16,
+  },
+  footerAction: {
+    marginTop: 8,
+  },
   divider: {
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: DIVIDER,
     marginVertical: 8,
   },
 });

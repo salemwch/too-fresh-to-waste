@@ -15,11 +15,12 @@ import {
   createAsyncThunk,
   createSelector,
   type PayloadAction,
+  type UnknownAction,
 } from '@reduxjs/toolkit';
 
 import { favoritesService } from '@/features/favorites/services';
-import { isAuthReadyForApiCalls } from '@/utils/tokenValidator';
 import { Logger } from '@/utils/logger';
+import { isAuthReadyForApiCalls } from '@/utils/tokenValidator';
 
 import type { RootState } from '../index';
 import type { FavoriteType } from '@/features/favorites/types';
@@ -33,6 +34,22 @@ interface FavoriteItem {
   type: FavoriteType;
   addedAt: number; // Unix timestamp
 }
+
+interface AuthSuccessMatcherAction {
+  type: string;
+  payload?: {
+    user?: {
+      userId?: string;
+    };
+  };
+  [key: string]: unknown;
+}
+
+const isAuthLoginFulfilled = (action: UnknownAction): action is AuthSuccessMatcherAction =>
+  action.type === 'auth/login/fulfilled';
+
+const isAuthLogoutAction = (action: UnknownAction): boolean =>
+  action.type === 'auth/logout/fulfilled' || action.type === 'auth/forceLocalLogout';
 
 export interface FavoritesState {
   /** Map of itemId -> favorite status (for quick lookups) */
@@ -212,7 +229,7 @@ const favoritesSlice = createSlice({
       // Add to recent favorites (max 50)
       state.recentFavorites = [
         action.payload,
-        ...state.recentFavorites.filter(f => f.itemId !== action.payload.itemId),
+        ...state.recentFavorites.filter((f) => f.itemId !== action.payload.itemId),
       ].slice(0, 50);
     },
 
@@ -223,13 +240,15 @@ const favoritesSlice = createSlice({
       state.favoriteMap[action.payload.itemId] = false;
 
       // Remove from recent favorites
-      state.recentFavorites = state.recentFavorites.filter(f => f.itemId !== action.payload.itemId);
+      state.recentFavorites = state.recentFavorites.filter(
+        (f) => f.itemId !== action.payload.itemId,
+      );
     },
 
     /**
      * Clear all favorites (logout)
      */
-    clearFavorites: state => {
+    clearFavorites: (state) => {
       state.favoriteMap = {};
       state.recentFavorites = [];
       state.lastSyncedAt = null;
@@ -239,14 +258,14 @@ const favoritesSlice = createSlice({
     /**
      * Clear error
      */
-    clearError: state => {
+    clearError: (state) => {
       state.error = null;
     },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     // Check if favorite
     builder
-      .addCase(checkIsFavorite.pending, state => {
+      .addCase(checkIsFavorite.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
@@ -262,7 +281,7 @@ const favoritesSlice = createSlice({
 
     // Toggle favorite
     builder
-      .addCase(toggleFavorite.pending, state => {
+      .addCase(toggleFavorite.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
@@ -279,12 +298,12 @@ const favoritesSlice = createSlice({
           };
           state.recentFavorites = [
             favoriteItem,
-            ...state.recentFavorites.filter(f => f.itemId !== action.payload.itemId),
+            ...state.recentFavorites.filter((f) => f.itemId !== action.payload.itemId),
           ].slice(0, 50);
         } else {
           // Remove from recent favorites
           state.recentFavorites = state.recentFavorites.filter(
-            f => f.itemId !== action.payload.itemId,
+            (f) => f.itemId !== action.payload.itemId,
           );
         }
 
@@ -297,7 +316,7 @@ const favoritesSlice = createSlice({
 
     // Batch check favorites
     builder
-      .addCase(batchCheckFavorites.pending, state => {
+      .addCase(batchCheckFavorites.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
@@ -312,7 +331,7 @@ const favoritesSlice = createSlice({
       })
 
       // Sync all favorites
-      .addCase(syncAllFavorites.pending, state => {
+      .addCase(syncAllFavorites.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
@@ -334,38 +353,32 @@ const favoritesSlice = createSlice({
     // 🔒 UX BEST PRACTICE: User switch detection (Facebook/Instagram pattern)
     // ────────────────────────────────────────────────────────────────────────
     // Only clear favorites when USER CHANGES, not on logout
-    builder.addMatcher(
-      action => action.type === 'auth/login/fulfilled',
-      (state, action: any) => {
-        const newUserId = action.payload?.user?.userId;
+    builder.addMatcher(isAuthLoginFulfilled, (state, action) => {
+      const newUserId = action.payload?.user?.userId;
 
-        if (!newUserId) return;
+      if (typeof newUserId !== 'string' || newUserId === '') return;
 
-        // User switch detected: Clear old user's favorites
-        if (state.userId && state.userId !== newUserId) {
-          Logger.info('[FAVORITES] User switch detected - clearing old favorites', {
-            oldUserId: state.userId,
-            newUserId,
-          });
-          state.favoriteMap = {};
-          state.recentFavorites = [];
-          state.lastSyncedAt = null;
-          state.error = null;
-        }
+      // User switch detected: Clear old user's favorites
+      if (state.userId && state.userId !== newUserId) {
+        Logger.info('[FAVORITES] User switch detected - clearing old favorites', {
+          oldUserId: state.userId,
+          newUserId,
+        });
+        state.favoriteMap = {};
+        state.recentFavorites = [];
+        state.lastSyncedAt = null;
+        state.error = null;
+      }
 
-        // Set/update userId
-        state.userId = newUserId;
-      },
-    );
+      // Set/update userId
+      state.userId = newUserId;
+    });
 
     // On logout: Keep favorites but clear userId (for potential re-login)
-    builder.addMatcher(
-      action => action.type === 'auth/logout/fulfilled' || action.type === 'auth/forceLocalLogout',
-      state => {
-        Logger.info('[FAVORITES] Logout - keeping favorites for potential re-login');
-        state.userId = null;
-      },
-    );
+    builder.addMatcher(isAuthLogoutAction, (state) => {
+      Logger.info('[FAVORITES] Logout - keeping favorites for potential re-login');
+      state.userId = null;
+    });
   },
 });
 
@@ -373,7 +386,7 @@ const favoritesSlice = createSlice({
 // Actions
 // ============================================================================
 
-export const { addFavoriteOptimistic, removeFavoriteOptimistic, clearFavorites,  } =
+export const { addFavoriteOptimistic, removeFavoriteOptimistic, clearFavorites } =
   favoritesSlice.actions;
 
 // ============================================================================
@@ -392,25 +405,25 @@ export const selectIsFavorite = createSelector(
 /** Select recent favorites */
 export const selectRecentFavorites = createSelector(
   [selectFavoritesState],
-  favoritesState => favoritesState.recentFavorites,
+  (favoritesState) => favoritesState.recentFavorites,
 );
 
 /** Select loading state */
 export const selectFavoritesLoading = createSelector(
   [selectFavoritesState],
-  favoritesState => favoritesState.isLoading,
+  (favoritesState) => favoritesState.isLoading,
 );
 
 /** Select error */
 export const selectFavoritesError = createSelector(
   [selectFavoritesState],
-  favoritesState => favoritesState.error,
+  (favoritesState) => favoritesState.error,
 );
 
 /** Select total favorites count */
 export const selectFavoritesCount = createSelector(
   [selectFavoritesState],
-  favoritesState => Object.values(favoritesState.favoriteMap).filter(Boolean).length,
+  (favoritesState) => Object.values(favoritesState.favoriteMap).filter(Boolean).length,
 );
 
 // ============================================================================

@@ -72,7 +72,7 @@ export const HOME_STORAGE_KEYS = {
  * Browse by category configuration
  * Each category has an ID, display name, and emoji icon
  */
-const HOME_CATEGORIES = [
+export const HOME_CATEGORIES = [
   {
     id: 'bakery',
     name: 'Bakery',
@@ -176,19 +176,6 @@ export const HOME_ANALYTICS_EVENTS = {
 // ============================================================================
 // Error Messages
 // ============================================================================
-
-/**
- * User-facing error messages
- */
-export const HOME_ERROR_MESSAGES = {
-  URGENT_LOAD_FAILED: 'Failed to load urgent deals',
-  HOTTEST_LOAD_FAILED: 'Failed to load hottest deals',
-  PICKUP_TODAY_LOAD_FAILED: 'Failed to load pickup today offers',
-  PICKUP_TOMORROW_LOAD_FAILED: 'Failed to load pickup tomorrow offers',
-  LOCATION_FETCH_FAILED: 'Failed to fetch location from backend',
-  FILTER_PERSIST_FAILED: 'Failed to save filter preferences',
-  FILTER_LOAD_FAILED: 'Failed to load filter preferences',
-} as const;
 
 // ============================================================================
 // Type Exports

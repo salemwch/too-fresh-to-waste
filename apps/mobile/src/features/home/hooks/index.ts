@@ -6,8 +6,4 @@
 export { useHomeFilters } from './useHomeFilters';
 export { useHomeOffers } from './useHomeOffers';
 export { useLocationSetup } from './useLocationSetup';
-export {  COMMUNITY_GOAL_QUERY_KEY } from './useCommunityBagGoal';
-
-;
-;
-;
+export { COMMUNITY_GOAL_QUERY_KEY } from './useCommunityBagGoal';

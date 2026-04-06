@@ -11,19 +11,19 @@
  * - Smooth animated backdrop (like OfferDetailsScreen)
  */
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-    View,
-    StyleSheet,
-    Pressable,
-    TextInput,
-    ScrollView,
-    Keyboard,
-    Modal,
-    Animated,
-    Dimensions,
-    TouchableWithoutFeedback,
-    Easing,
+  View,
+  StyleSheet,
+  Pressable,
+  TextInput,
+  ScrollView,
+  Keyboard,
+  Modal,
+  Animated,
+  Dimensions,
+  TouchableWithoutFeedback,
+  Easing,
 } from 'react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -37,9 +37,9 @@ import { useTheme } from '@/design-system/providers';
 
 export interface LocationItem {
   id: string;
-  name: string; // ← Kept for backward compatibility (used as fallback)
-  city?: string; // ← Primary: City name for bold display
-  fullAddress?: string; // ← Secondary: Full context for gray text
+  name: string; // â† Kept for backward compatibility (used as fallback)
+  city?: string; // â† Primary: City name for bold display
+  fullAddress?: string; // â† Secondary: Full context for gray text
   latitude?: number;
   longitude?: number;
   /** Google Place ID for deferred detail fetching (GOOGLE sources only) */
@@ -94,12 +94,24 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
   // Animations (Same as OfferDetailsScreen)
   // ============================================================================
 
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [slideAnim] = useState(() => new Animated.Value(SCREEN_HEIGHT));
+  const [fadeAnim] = useState(() => new Animated.Value(0));
+  const backdropStyle = {
+    backgroundColor: theme.colors.overlay.darker,
+    opacity: fadeAnim,
+  };
+  const containerStyle = {
+    backgroundColor: theme.colors.surface,
+    shadowColor: theme.colors.neutral[1000],
+    transform: [{ translateY: slideAnim }],
+  };
+  const selectedRecentItemStyle = {
+    backgroundColor: theme.colors.primaryContainer,
+  };
 
   useEffect(() => {
     if (visible) {
-      // ✅ Smooth parallel animation (backdrop fade + sheet slide)
+      // âœ… Smooth parallel animation (backdrop fade + sheet slide)
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -156,10 +168,20 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
     [onSelectLocation],
   );
 
+  const getPrimaryLocationLabel = useCallback(
+    (location: LocationItem) => location.city ?? location.name?.split(',')[0] ?? 'Location',
+    [],
+  );
+
+  const getSecondaryLocationLabel = useCallback(
+    (location: LocationItem) => location.fullAddress ?? location.name,
+    [],
+  );
+
   const handleClose = useCallback(() => {
     Keyboard.dismiss();
 
-    // ✅ Animate out before closing
+    // âœ… Animate out before closing
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -187,33 +209,18 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
     <Modal
       visible={visible}
       transparent
-      animationType='none'
+      animationType="none"
       onRequestClose={handleClose}
       statusBarTranslucent
     >
       <View style={styles.overlay}>
         {/* Animated Backdrop - Fades in smoothly */}
         <TouchableWithoutFeedback onPress={handleClose}>
-          <Animated.View
-            style={[
-              styles.backdrop,
-              {
-                opacity: fadeAnim,
-              },
-            ]}
-          />
+          <Animated.View style={[styles.backdrop, backdropStyle]} />
         </TouchableWithoutFeedback>
 
         {/* Animated Bottom Sheet Container - Slides up smoothly */}
-        <Animated.View
-          style={[
-            styles.container,
-            { backgroundColor: theme.colors.surface },
-            {
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
+        <Animated.View style={[styles.container, containerStyle]}>
           {/* Drag Handle */}
           <View style={styles.dragHandleContainer}>
             <View style={[styles.dragHandle, { backgroundColor: theme.colors.outlineVariant }]} />
@@ -223,7 +230,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.contentContainer}
-            keyboardShouldPersistTaps='handled'
+            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
             {/* Search Input */}
@@ -237,19 +244,19 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
               ]}
             >
               <Icon
-                name='search'
-                family='Ionicons'
+                name="search"
+                family="Ionicons"
                 size={20}
                 color={theme.colors.onSurfaceVariant}
               />
               <TextInput
                 value={searchQuery}
                 onChangeText={handleSearchChange}
-                placeholder='Search city or area...'
+                placeholder="Search city or area..."
                 placeholderTextColor={theme.colors.onSurfaceVariant}
                 style={[styles.searchInput, { color: theme.colors.onSurface }]}
-                returnKeyType='search'
-                autoCapitalize='words'
+                returnKeyType="search"
+                autoCapitalize="words"
                 autoCorrect={false}
               />
               {searchQuery.length > 0 && (
@@ -258,8 +265,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <Icon
-                    name='close-circle'
-                    family='Ionicons'
+                    name="close-circle"
+                    family="Ionicons"
                     size={20}
                     color={theme.colors.onSurfaceVariant}
                   />
@@ -278,8 +285,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
               ]}
               onPress={handleUseCurrentLocation}
               disabled={isLoadingGPS}
-              accessibilityLabel='Use current GPS location'
-              accessibilityRole='button'
+              accessibilityLabel="Use current GPS location"
+              accessibilityRole="button"
             >
               <View
                 style={[
@@ -291,9 +298,9 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
               >
                 <Icon
                   name={isLoadingGPS ? 'hourglass-outline' : 'locate'}
-                  family='Ionicons'
+                  family="Ionicons"
                   size={20}
-                  color='#FFFFFF'
+                  color={theme.colors.onPrimary}
                 />
               </View>
               <Text
@@ -309,7 +316,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
               </Text>
             </Pressable>
 
-            {/* 🆕 Search Results Section */}
+            {/* ðŸ†• Search Results Section */}
             {searchQuery.length > 0 && (
               <View style={styles.recentSection}>
                 <Text
@@ -325,27 +332,18 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                 </Text>
 
                 {isSearching ? (
-                  <Text
-                    style={[
-                      styles.emptyText,
-                      { color: theme.colors.onSurfaceVariant },
-                    ]}
-                  >
+                  <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
                     Searching for locations...
                   </Text>
-                ) : searchResults && searchResults.length > 0 ? (
-                  searchResults.map(location => (
+                ) : searchResults !== undefined && searchResults.length > 0 ? (
+                  searchResults.map((location) => (
                     <Pressable
                       key={location.id}
-                      style={[
-                        styles.recentItem,
-                        {
-                          backgroundColor:
-                            currentLocation === location.name
-                              ? theme.colors.primaryContainer
-                              : 'transparent',
-                        },
-                      ]}
+                      style={
+                        currentLocation === location.name
+                          ? [styles.recentItem, selectedRecentItemStyle]
+                          : styles.recentItem
+                      }
                       onPress={() => handleSelectLocation(location)}
                     >
                       <View style={styles.recentItemContent}>
@@ -356,8 +354,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                           ]}
                         >
                           <Icon
-                            name='location-sharp'
-                            family='Ionicons'
+                            name="location-sharp"
+                            family="Ionicons"
                             size={16}
                             color={theme.colors.onSecondaryContainer}
                           />
@@ -377,7 +375,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                             ]}
                             numberOfLines={1}
                           >
-                            {location.city || location.name?.split(',')[0] || 'Location'}
+                            {getPrimaryLocationLabel(location)}
                           </Text>
                           {/* Secondary: Full address context (GRAY) */}
                           <Text
@@ -393,20 +391,15 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                             ]}
                             numberOfLines={1}
                           >
-                            {location.fullAddress || location.name}
+                            {getSecondaryLocationLabel(location)}
                           </Text>
                         </View>
                       </View>
                     </Pressable>
                   ))
                 ) : (
-                  <Text
-                    style={[
-                      styles.emptyText,
-                      { color: theme.colors.onSurfaceVariant },
-                    ]}
-                  >
-                    No locations found for "{searchQuery}"
+                  <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
+                    {`No locations found for "${searchQuery}"`}
                   </Text>
                 )}
               </View>
@@ -427,28 +420,24 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                   RECENT LOCATIONS
                 </Text>
 
-                {recentLocations.map(location => (
+                {recentLocations.map((location) => (
                   <Pressable
                     key={location.id}
-                    style={[
-                      styles.recentItem,
-                      {
-                        backgroundColor:
-                          currentLocation === location.name
-                            ? theme.colors.primaryContainer
-                            : 'transparent',
-                      },
-                    ]}
+                    style={
+                      currentLocation === location.name
+                        ? [styles.recentItem, selectedRecentItemStyle]
+                        : styles.recentItem
+                    }
                     onPress={() => handleSelectLocation(location)}
                     accessibilityLabel={`Select ${location.name}`}
-                    accessibilityRole='button'
+                    accessibilityRole="button"
                   >
                     <View
                       style={[styles.iconCircle, { backgroundColor: theme.colors.surfaceVariant }]}
                     >
                       <Icon
-                        name='time-outline'
-                        family='Ionicons'
+                        name="time-outline"
+                        family="Ionicons"
                         size={20}
                         color={theme.colors.onSurfaceVariant}
                       />
@@ -468,7 +457,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                         ]}
                         numberOfLines={1}
                       >
-                        {location.city || location.name?.split(',')[0] || 'Location'}
+                        {getPrimaryLocationLabel(location)}
                       </Text>
                       {/* Secondary: Full address context (GRAY) */}
                       <Text
@@ -484,13 +473,13 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                         ]}
                         numberOfLines={1}
                       >
-                        {location.fullAddress || location.name}
+                        {getSecondaryLocationLabel(location)}
                       </Text>
                     </View>
                     {currentLocation === location.name && (
                       <Icon
-                        name='checkmark-circle'
-                        family='Ionicons'
+                        name="checkmark-circle"
+                        family="Ionicons"
                         size={20}
                         color={theme.colors.primary}
                       />
@@ -504,8 +493,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
             {recentLocations.length === 0 && (
               <View style={styles.emptyState}>
                 <Icon
-                  name='location-outline'
-                  family='Ionicons'
+                  name="location-outline"
+                  family="Ionicons"
                   size={48}
                   color={theme.colors.onSurfaceVariant}
                 />
@@ -548,19 +537,16 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'transparent',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', // ✅ Matches OfferDetailsScreen
   },
   container: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingBottom: 20,
-    minHeight: '60%', // ✅ Ensures visible content
+    minHeight: '60%', // âœ… Ensures visible content
     maxHeight: '80%',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
@@ -658,10 +644,6 @@ const styles = StyleSheet.create({
   searchResultSecondaryText: {
     fontSize: 14,
     lineHeight: 18,
-  },
-  recentText: {
-    fontSize: 16,
-    flex: 1,
   },
   emptyState: {
     alignItems: 'center',

@@ -37,11 +37,25 @@ const RETRY_CONFIG = {
   MAX_DELAY_MS: 1000,
 } as const;
 
+type KeychainCredentialResult = Awaited<ReturnType<typeof Keychain.getGenericPassword>>;
+
+interface LegacyTokenPayload {
+  accessToken?: string;
+  refreshToken?: string;
+}
+
+const hasStoredCredentials = (
+  credentials: KeychainCredentialResult,
+): credentials is Exclude<KeychainCredentialResult, false> => credentials !== false;
+
+const isLegacyTokenPayload = (value: unknown): value is LegacyTokenPayload =>
+  value !== null && typeof value === 'object';
+
 /**
  * Delay helper for exponential backoff
  */
 function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -85,7 +99,7 @@ export class SecureStorage {
           service: `${KEYCHAIN_SERVICE}.access`,
         });
 
-        if (credentials && typeof credentials !== 'boolean') {
+        if (hasStoredCredentials(credentials)) {
           Logger.debug('[SecureStorage] Access token retrieved', { attempt });
           return credentials.password;
         }
@@ -157,7 +171,7 @@ export class SecureStorage {
           service: `${KEYCHAIN_SERVICE}.refresh`,
         });
 
-        if (credentials && typeof credentials !== 'boolean') {
+        if (hasStoredCredentials(credentials)) {
           Logger.debug('[SecureStorage] Refresh token retrieved', { attempt });
           return credentials.password;
         }
@@ -375,13 +389,18 @@ export class SecureStorage {
       }
 
       // Parse old tokens
-      const oldData = JSON.parse(oldAccessToken);
+      const oldData = JSON.parse(oldAccessToken) as unknown;
+      if (!isLegacyTokenPayload(oldData)) {
+        Logger.warn('[SecureStorage] Invalid legacy token payload, skipping migration');
+        await AsyncStorage.removeItem('auth_tokens');
+        return;
+      }
 
       // Migrate to secure storage
-      if (Boolean(oldData.accessToken)) {
+      if (typeof oldData.accessToken === 'string' && oldData.accessToken.length > 0) {
         await this.setAccessToken(oldData.accessToken);
       }
-      if (Boolean(oldData.refreshToken)) {
+      if (typeof oldData.refreshToken === 'string' && oldData.refreshToken.length > 0) {
         await this.setRefreshToken(oldData.refreshToken);
       }
 

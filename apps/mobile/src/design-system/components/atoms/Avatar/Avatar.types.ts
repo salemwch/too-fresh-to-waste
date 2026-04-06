@@ -3,7 +3,13 @@
  */
 
 import type { ComponentSize, StyleSystemProps } from '../../../types';
-import type { ViewProps, ImageSourcePropType } from 'react-native';
+import type {
+  ImageSourcePropType,
+  ImageStyle,
+  StyleProp,
+  ViewProps,
+  ViewStyle,
+} from 'react-native';
 
 export type AvatarSize = ComponentSize | number;
 
@@ -73,12 +79,12 @@ export interface AvatarProps extends Omit<ViewProps, 'style'>, StyleSystemProps 
   /**
    * Custom style overrides
    */
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 
   /**
    * Custom image style
    */
-  imageStyle?: any;
+  imageStyle?: StyleProp<ImageStyle>;
 
   /**
    * Whether avatar is pressable

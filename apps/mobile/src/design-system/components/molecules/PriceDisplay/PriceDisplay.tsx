@@ -4,12 +4,14 @@
  */
 
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Text } from '../../atoms/Text';
 
 import type { PriceDisplayProps } from './PriceDisplay.types';
+import type { TypographyVariant } from '../../../types';
+import type { TextStyle, ViewStyle } from 'react-native';
 
 // Default currency symbols by currency code
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -23,6 +25,16 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   CNY: '¥',
   // Add more as needed
 };
+
+const styles = StyleSheet.create({
+  rowAligned: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  strikethrough: {
+    textDecorationLine: 'line-through',
+  },
+});
 
 export const PriceDisplay: React.FC<PriceDisplayProps> = ({
   price,
@@ -55,7 +67,7 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
 
   // Get currency symbol
   const getCurrencySymbol = useMemo(
-    () => currencySymbol || CURRENCY_SYMBOLS[currency] || currency,
+    () => currencySymbol ?? CURRENCY_SYMBOLS[currency] ?? currency,
     [currencySymbol, currency],
   );
 
@@ -132,7 +144,7 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
           secondary: colors.onSurfaceVariant,
           accent: colors.primary,
         };
-      default:
+      case 'default':
         return {
           primary: colors.onSurface,
           secondary: colors.onSurfaceVariant,
@@ -143,7 +155,14 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
 
   // Get size styles
   const getSizeStyles = useMemo(() => {
-    const baseConfig = {
+    const baseConfig: Record<
+      NonNullable<PriceDisplayProps['size']>,
+      {
+        main: TypographyVariant;
+        secondary: TypographyVariant;
+        spacing: keyof typeof theme.spacing.base;
+      }
+    > = {
       xs: { main: 'body.small', secondary: 'label.small', spacing: 'xs' },
       sm: { main: 'body.medium', secondary: 'body.small', spacing: 'xs' },
       md: { main: 'title.small', secondary: 'body.medium', spacing: 'sm' },
@@ -151,29 +170,48 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
       xl: { main: 'title.large', secondary: 'title.medium', spacing: 'md' },
     };
 
-    const config = baseConfig[size] || baseConfig.md;
+    const config = baseConfig[size];
 
     return {
       main: config.main,
       secondary: config.secondary,
-      spacing: theme.spacing.base[config.spacing as keyof typeof theme.spacing.base],
+      spacing: theme.spacing.base[config.spacing],
     };
   }, [theme, size]);
 
+  const iconSpacingStyle = useMemo<ViewStyle>(
+    () => ({
+      marginRight: getSizeStyles.spacing,
+    }),
+    [getSizeStyles.spacing],
+  );
+
+  const originalPriceSpacingStyle = useMemo<TextStyle>(
+    () => ({
+      marginLeft: layout === 'row' ? getSizeStyles.spacing : 0,
+    }),
+    [getSizeStyles.spacing, layout],
+  );
+
+  const savingsSpacingStyle = useMemo<TextStyle>(
+    () => ({
+      marginLeft: layout === 'row' ? getSizeStyles.spacing : 0,
+      marginTop: layout === 'column' ? getSizeStyles.spacing / 2 : 0,
+    }),
+    [getSizeStyles.spacing, layout],
+  );
+
   // Main price component
   const renderMainPrice = () => (
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      {icon && <View style={{ marginRight: getSizeStyles.spacing }}>{icon}</View>}
+    <View style={styles.rowAligned}>
+      {icon !== null && icon !== undefined && icon !== false && (
+        <View style={iconSpacingStyle}>{icon}</View>
+      )}
       <Text
-        variant={getSizeStyles.main as any}
+        variant={getSizeStyles.main}
         weight={emphasized ? 'bold' : 'medium'}
         color={getVariantColors.primary}
-        style={[
-          variant === 'original' && {
-            textDecorationLine: 'line-through',
-          },
-          priceStyle,
-        ]}
+        style={[variant === 'original' && styles.strikethrough, priceStyle]}
         testID={`${testID}-main-price`}
       >
         {formatPrice(price)}
@@ -183,19 +221,13 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
 
   // Original price component
   const renderOriginalPrice = () => {
-    if (!originalPrice || originalPrice <= price) return null;
+    if (originalPrice === undefined || originalPrice <= price) return null;
 
     return (
       <Text
-        variant={getSizeStyles.secondary as any}
+        variant={getSizeStyles.secondary}
         color={getVariantColors.secondary}
-        style={[
-          {
-            textDecorationLine: 'line-through',
-            marginLeft: layout === 'row' ? getSizeStyles.spacing : 0,
-          },
-          originalPriceStyle,
-        ]}
+        style={[styles.strikethrough, originalPriceSpacingStyle, originalPriceStyle]}
         testID={`${testID}-original-price`}
       >
         {formatPrice(originalPrice)}
@@ -205,7 +237,7 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
 
   // Savings component
   const renderSavings = () => {
-    if (!showSavings || !savingsInfo) return null;
+    if (!showSavings || savingsInfo === null) return null;
 
     let savingsText = '';
     switch (savingsDisplay) {
@@ -222,16 +254,10 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
 
     return (
       <Text
-        variant={getSizeStyles.secondary as any}
-        weight='medium'
+        variant={getSizeStyles.secondary}
+        weight="medium"
         color={getVariantColors.accent}
-        style={[
-          {
-            marginLeft: layout === 'row' ? getSizeStyles.spacing : 0,
-            marginTop: layout === 'column' ? getSizeStyles.spacing / 2 : 0,
-          },
-          savingsStyle,
-        ]}
+        style={[savingsSpacingStyle, savingsStyle]}
         testID={`${testID}-savings`}
       >
         {savingsText}
@@ -240,26 +266,24 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
   };
 
   // Container styles
-  const containerStyles = useMemo(
+  const containerStyles = useMemo<ViewStyle>(
     () => ({
       flexDirection: layout,
       alignItems: layout === 'row' ? 'center' : 'flex-start',
-      ...(aligned && {
-        minWidth: 80, // Ensures consistent alignment in lists
-      }),
+      ...(aligned ? { minWidth: 80 } : {}),
     }),
     [layout, aligned],
   );
 
   // Accessibility label
   const getAccessibilityLabel = useMemo(() => {
-    if (accessibilityLabel) return accessibilityLabel;
+    if (accessibilityLabel !== undefined) return accessibilityLabel;
 
     let label = `Price: ${formatPrice(price)}`;
 
-    if (originalPrice && originalPrice > price) {
+    if (originalPrice !== undefined && originalPrice > price) {
       label += `, was ${formatPrice(originalPrice)}`;
-      if (savingsInfo) {
+      if (savingsInfo !== null) {
         label += `, save ${savingsInfo.formattedPercentage}`;
       }
     }
@@ -282,4 +306,3 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
     </View>
   );
 };
-

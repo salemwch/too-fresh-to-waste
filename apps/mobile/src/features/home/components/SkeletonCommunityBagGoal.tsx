@@ -3,7 +3,7 @@
  * Shimmer loading placeholder matching collapsed CommunityBagGoalBanner dimensions.
  */
 
-import React from 'react';
+import { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
@@ -12,9 +12,14 @@ interface SkeletonCommunityBagGoalProps {
   testID?: string;
 }
 
-const SkeletonCommunityBagGoalComponent: React.FC<SkeletonCommunityBagGoalProps> = ({
+const COLORS = {
+  surface: '#FFFFFF',
+  shadow: '#000',
+} as const;
+
+const SkeletonCommunityBagGoalComponent = ({
   testID = 'skeleton-community-bag-goal',
-}) => {
+}: SkeletonCommunityBagGoalProps) => {
   const anim = useShimmerAnimation();
 
   return (
@@ -34,17 +39,17 @@ const SkeletonCommunityBagGoalComponent: React.FC<SkeletonCommunityBagGoalProps>
 };
 
 SkeletonCommunityBagGoalComponent.displayName = 'SkeletonCommunityBagGoal';
-export const SkeletonCommunityBagGoal = React.memo(SkeletonCommunityBagGoalComponent);
+export const SkeletonCommunityBagGoal = memo(SkeletonCommunityBagGoalComponent);
 
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 8,
   },
   banner: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

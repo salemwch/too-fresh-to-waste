@@ -3,25 +3,35 @@
  * Production-ready toast notifications with custom styling
  */
 
+import Icon from '@react-native-vector-icons/ionicons';
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Toast from 'react-native-toast-message';
-import Icon from '@react-native-vector-icons/ionicons';
 
 import type { ToastConfig, ToastConfigParams } from 'react-native-toast-message';
+
+type ToastRenderProps = ToastConfigParams<unknown>;
+
+const TOAST_COLORS = {
+  surface: '#FFFFFF',
+  shadow: '#000000',
+  success: '#10B981',
+  error: '#EF4444',
+  info: '#3B82F6',
+  warning: '#F59E0B',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+} as const;
 
 /**
  * Custom toast configuration with design system styling
  * ✅ Wrapped in Pressable to support onPress
  */
 export const toastConfig: ToastConfig = {
-  success: (props: ToastConfigParams<any>) => (
-    <Pressable
-      onPress={props.onPress}
-      style={styles.successContainer}
-    >
+  success: (props: ToastRenderProps) => (
+    <Pressable onPress={props.onPress} style={[styles.containerBase, styles.successContainer]}>
       <View style={styles.iconContainer}>
-        <Icon name='checkmark-circle' size={24} color='#10B981' />
+        <Icon name="checkmark-circle" size={24} color={TOAST_COLORS.success} />
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.text1}>{props.text1}</Text>
@@ -29,13 +39,10 @@ export const toastConfig: ToastConfig = {
       </View>
     </Pressable>
   ),
-  error: (props: ToastConfigParams<any>) => (
-    <Pressable
-      onPress={props.onPress}
-      style={styles.errorContainer}
-    >
+  error: (props: ToastRenderProps) => (
+    <Pressable onPress={props.onPress} style={[styles.containerBase, styles.errorContainer]}>
       <View style={styles.iconContainer}>
-        <Icon name='close-circle' size={24} color='#EF4444' />
+        <Icon name="close-circle" size={24} color={TOAST_COLORS.error} />
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.text1}>{props.text1}</Text>
@@ -43,13 +50,10 @@ export const toastConfig: ToastConfig = {
       </View>
     </Pressable>
   ),
-  info: (props: ToastConfigParams<any>) => (
-    <Pressable
-      onPress={props.onPress}
-      style={styles.infoContainer}
-    >
+  info: (props: ToastRenderProps) => (
+    <Pressable onPress={props.onPress} style={[styles.containerBase, styles.infoContainer]}>
       <View style={styles.iconContainer}>
-        <Icon name='information-circle' size={24} color='#3B82F6' />
+        <Icon name="information-circle" size={24} color={TOAST_COLORS.info} />
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.text1}>{props.text1}</Text>
@@ -57,13 +61,10 @@ export const toastConfig: ToastConfig = {
       </View>
     </Pressable>
   ),
-  warning: (props: ToastConfigParams<any>) => (
-    <Pressable
-      onPress={props.onPress}
-      style={styles.warningContainer}
-    >
+  warning: (props: ToastRenderProps) => (
+    <Pressable onPress={props.onPress} style={[styles.containerBase, styles.warningContainer]}>
       <View style={styles.iconContainer}>
-        <Icon name='warning' size={24} color='#F59E0B' />
+        <Icon name="warning" size={24} color={TOAST_COLORS.warning} />
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.text1}>{props.text1}</Text>
@@ -74,73 +75,33 @@ export const toastConfig: ToastConfig = {
 };
 
 const styles = StyleSheet.create({
-  successContainer: {
+  containerBase: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: TOAST_COLORS.surface,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
-    shadowColor: '#000',
+    shadowColor: TOAST_COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
     minWidth: 280,
     maxWidth: 340,
+  },
+  successContainer: {
+    borderLeftColor: TOAST_COLORS.success,
   },
   errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#EF4444',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    minWidth: 280,
-    maxWidth: 340,
+    borderLeftColor: TOAST_COLORS.error,
   },
   infoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#3B82F6',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    minWidth: 280,
-    maxWidth: 340,
+    borderLeftColor: TOAST_COLORS.info,
   },
   warningContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#F59E0B',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    minWidth: 280,
-    maxWidth: 340,
+    borderLeftColor: TOAST_COLORS.warning,
   },
   iconContainer: {
     marginRight: 12,
@@ -151,13 +112,13 @@ const styles = StyleSheet.create({
   text1: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: TOAST_COLORS.textPrimary,
     marginBottom: 2,
   },
   text2: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#6B7280',
+    color: TOAST_COLORS.textSecondary,
     lineHeight: 16,
   },
 });
@@ -173,7 +134,11 @@ const styles = StyleSheet.create({
  * showSuccessToast('Welcome back, John! 🎉');
  * showSuccessToast('Profile updated', 'Your changes have been saved', 2000);
  */
-export const showSuccessToast = (message: string, description?: string, duration: number = 3000) => {
+export const showSuccessToast = (
+  message: string,
+  description?: string,
+  duration: number = 3000,
+) => {
   Toast.show({
     type: 'success',
     text1: message,

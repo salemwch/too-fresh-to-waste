@@ -39,15 +39,11 @@ export const OrdersStack: React.FC = () => {
       })}
     >
       {/* Orders List Screen — NativeStack provides the header */}
-      <Stack.Screen
-        name='OrdersList'
-        component={OrdersScreen}
-        options={{ title: 'My Orders' }}
-      />
+      <Stack.Screen name="OrdersList" component={OrdersScreen} options={{ title: 'My Orders' }} />
 
       {/* Order Details Screen */}
-      <Stack.Screen name='OrderDetails' options={{ title: 'Order Details' }}>
-        {props => (
+      <Stack.Screen name="OrderDetails" options={{ title: 'Order Details' }}>
+        {(props) => (
           <ProtectedRoute>
             <OrderDetailsScreen {...props} />
           </ProtectedRoute>

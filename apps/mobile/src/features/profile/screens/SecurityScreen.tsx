@@ -3,16 +3,12 @@
  * Allows the user to set a new password without entering the old one.
  */
 
-import React, { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { useMutation } from '@tanstack/react-query';
+import React, { useCallback, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import * as yup from 'yup';
 
 import { Text, Button, Card, Input, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -65,7 +61,7 @@ function parseServerError(error: unknown): string {
   const raw = axiosError?.response?.data?.message;
 
   // Structured error: { message: string, type: string, ... }
-  if (raw && typeof raw === 'object') {
+  if (raw !== null && raw !== undefined && typeof raw === 'object') {
     const structured = raw as { message?: string };
     if (typeof structured.message === 'string') return structured.message;
   }
@@ -75,7 +71,7 @@ function parseServerError(error: unknown): string {
 
   // Fallback
   const fallback = error as Error;
-  return fallback?.message || 'Unable to update password. Please try again.';
+  return fallback?.message ?? 'Unable to update password. Please try again.';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -109,45 +105,59 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
     },
   });
 
-  const onSubmit = (values: PasswordFormValues) => {
-    setServerError(null);
-    updatePassword(values);
-  };
+  const onSubmit = useCallback(
+    (values: PasswordFormValues) => {
+      setServerError(null);
+      updatePassword(values);
+    },
+    [updatePassword],
+  );
+
+  const handleSubmitEditing = useCallback(() => {
+    void handleSubmit(onSubmit)();
+  }, [handleSubmit, onSubmit]);
+
+  const handleSavePress = useCallback(() => {
+    void handleSubmit(onSubmit)();
+  }, [handleSubmit, onSubmit]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps='handled'
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <Card style={styles.card}>
-          <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
+          <Text variant="title" size="md" weight="semibold" style={styles.sectionTitle}>
             Change Password
           </Text>
-          <Text variant='body' size='sm' color='secondary' style={styles.subtitle}>
+          <Text variant="body" size="sm" color="secondary" style={styles.subtitle}>
             Set a new password for your account.
           </Text>
 
           {/* New Password */}
           <Controller
             control={control}
-            name='newPassword'
+            name="newPassword"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='New Password'
+                label="New Password"
                 value={value}
-                onChangeText={(text) => { onChange(text); setServerError(null); }}
+                onChangeText={(text) => {
+                  onChange(text);
+                  setServerError(null);
+                }}
                 onBlur={onBlur}
                 error={errors.newPassword?.message}
-                placeholder='Enter new password'
+                placeholder="Enter new password"
                 secureTextEntry={!showNew}
-                autoCapitalize='none'
+                autoCapitalize="none"
                 autoCorrect={false}
-                returnKeyType='next'
+                returnKeyType="next"
                 rightIcon={showNew ? 'eye-off-outline' : 'eye-outline'}
-                rightIconFamily='Ionicons'
-                onRightIconPress={() => setShowNew(v => !v)}
+                rightIconFamily="Ionicons"
+                onRightIconPress={() => setShowNew((v) => !v)}
                 style={styles.input}
               />
             )}
@@ -156,23 +166,26 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
           {/* Confirm Password */}
           <Controller
             control={control}
-            name='confirmPassword'
+            name="confirmPassword"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='Confirm Password'
+                label="Confirm Password"
                 value={value}
-                onChangeText={(text) => { onChange(text); setServerError(null); }}
+                onChangeText={(text) => {
+                  onChange(text);
+                  setServerError(null);
+                }}
                 onBlur={onBlur}
                 error={errors.confirmPassword?.message}
-                placeholder='Re-enter new password'
+                placeholder="Re-enter new password"
                 secureTextEntry={!showConfirm}
-                autoCapitalize='none'
+                autoCapitalize="none"
                 autoCorrect={false}
-                returnKeyType='done'
+                returnKeyType="done"
                 rightIcon={showConfirm ? 'eye-off-outline' : 'eye-outline'}
-                rightIconFamily='Ionicons'
-                onRightIconPress={() => setShowConfirm(v => !v)}
-                onSubmitEditing={handleSubmit(onSubmit)}
+                rightIconFamily="Ionicons"
+                onRightIconPress={() => setShowConfirm((v) => !v)}
+                onSubmitEditing={handleSubmitEditing}
                 style={styles.input}
               />
             )}
@@ -180,17 +193,39 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
 
           {/* Password requirements hint */}
           <View style={[styles.hintBox, { backgroundColor: theme.colors.surfaceVariant }]}>
-            <Icon name='information-circle-outline' family='Ionicons' size={16} color={theme.colors.onSurfaceVariant} />
-            <Text variant='body' size='xs' color='secondary' style={styles.hintText}>
+            <Icon
+              name="information-circle-outline"
+              family="Ionicons"
+              size={16}
+              color={theme.colors.onSurfaceVariant}
+            />
+            <Text variant="body" size="xs" color="secondary" style={styles.hintText}>
               Min. 8 chars · uppercase · lowercase · number · special char (@$!%*?&.)
             </Text>
           </View>
 
           {/* Inline server error */}
           {serverError !== null && (
-            <View style={[styles.errorBox, { backgroundColor: theme.colors.errorContainer ?? '#FEE2E2', borderColor: theme.colors.error }]}>
-              <Icon name='alert-circle-outline' family='Ionicons' size={16} color={theme.colors.error} />
-              <Text variant='body' size='sm' style={[styles.errorText, { color: theme.colors.error }]}>
+            <View
+              style={[
+                styles.errorBox,
+                {
+                  backgroundColor: theme.colors.errorContainer ?? '#FEE2E2',
+                  borderColor: theme.colors.error,
+                },
+              ]}
+            >
+              <Icon
+                name="alert-circle-outline"
+                family="Ionicons"
+                size={16}
+                color={theme.colors.error}
+              />
+              <Text
+                variant="body"
+                size="sm"
+                style={[styles.errorText, { color: theme.colors.error }]}
+              >
                 {serverError}
               </Text>
             </View>
@@ -198,9 +233,9 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
 
           {/* Actions */}
           <Button
-            variant='primary'
-            size='lg'
-            onPress={handleSubmit(onSubmit)}
+            variant="primary"
+            size="lg"
+            onPress={handleSavePress}
             loading={isPending}
             disabled={!isDirty || isPending}
             style={styles.saveButton}
@@ -209,8 +244,8 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
           </Button>
 
           <Button
-            variant='outline'
-            size='md'
+            variant="outline"
+            size="md"
             onPress={() => navigation.goBack()}
             disabled={isPending}
           >

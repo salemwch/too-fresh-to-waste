@@ -5,6 +5,7 @@
 
 import type { BaseComponentProps } from '../../../types';
 import type { InputProps } from '../../atoms/Input';
+import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
 
 export interface FormFieldProps extends BaseComponentProps {
   /**
@@ -140,27 +141,27 @@ export interface FormFieldProps extends BaseComponentProps {
   /**
    * Custom container style
    */
-  containerStyle?: any;
+  containerStyle?: StyleProp<ViewStyle>;
 
   /**
    * Custom label style
    */
-  labelStyle?: any;
+  labelStyle?: StyleProp<TextStyle>;
 
   /**
    * Custom input style
    */
-  inputStyle?: any;
+  inputStyle?: InputProps['inputStyle'];
 
   /**
    * Custom helper text style
    */
-  helperTextStyle?: any;
+  helperTextStyle?: InputProps['helperTextStyle'];
 
   /**
    * Custom error text style
    */
-  errorTextStyle?: any;
+  errorTextStyle?: InputProps['errorTextStyle'];
 
   /**
    * Blur handler

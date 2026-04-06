@@ -45,9 +45,9 @@ import { AppState, type AppStateStatus } from 'react-native';
 import { refreshTokenAsync, forceLocalLogout } from '@/features/auth/store/authSlice';
 import { AuthFlowState } from '@/features/auth/types';
 import { Logger } from '@/utils/logger';
+import { offlineManager } from '@/utils/offlineManager';
 import { SafeAnalytics } from '@/utils/safeAnalytics';
 import { validateTokenLocally, isNetworkError, isFatalAuthError } from '@/utils/tokenValidator';
-import { offlineManager } from '@/utils/offlineManager';
 
 import type { RootState, AppDispatch } from '../index';
 import type { Middleware } from '@reduxjs/toolkit';
@@ -155,7 +155,11 @@ const sessionManagerState: SessionManagerState = {
  * Rate-limited error logger
  * Prevents console flood when errors happen in rapid succession
  */
-const logErrorRateLimited = (message: string, context: Record<string, unknown>, error?: Error): void => {
+const logErrorRateLimited = (
+  message: string,
+  context: Record<string, unknown>,
+  error?: Error,
+): void => {
   const now = Date.now();
   if (now - sessionManagerState.lastErrorLogTime > CONFIG.LOG_RATE_LIMIT_MS) {
     Logger.error(message, context, error);
@@ -328,7 +332,7 @@ const startSessionManager = (dispatch: AppDispatch, getState: () => RootState): 
 
   // LAYER 3: Add AppState listener for background/foreground transitions
   // CRITICAL: Handles token expiry during background throttling
-  sessionManagerState.appStateSubscription = AppState.addEventListener('change', nextAppState => {
+  sessionManagerState.appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
     handleAppStateChange(nextAppState, dispatch, getState);
   });
 
@@ -566,7 +570,7 @@ const refreshTokenWithBackoff = async (
           // Retry with backoff
           if (attempt < CONFIG.REFRESH_MAX_RETRIES) {
             const backoffMs = calculateBackoff(attempt);
-            await new Promise(resolve => setTimeout(resolve, backoffMs));
+            await new Promise((resolve) => setTimeout(resolve, backoffMs));
           }
         } else {
           // Unknown error type - log and don't retry
@@ -582,9 +586,12 @@ const refreshTokenWithBackoff = async (
     // ✅ CRITICAL: If all retries exhausted due to network errors, DON'T LOGOUT
     // Facebook Pattern: Keep user logged in, they can still browse cached content
     if (wasNetworkError) {
-      Logger.info('[AUTH-MIDDLEWARE] Refresh attempts exhausted (network error), keeping user logged in', {
-        attempts: attempt,
-      });
+      Logger.info(
+        '[AUTH-MIDDLEWARE] Refresh attempts exhausted (network error), keeping user logged in',
+        {
+          attempts: attempt,
+        },
+      );
 
       SafeAnalytics.track('token_refresh_network_exhausted', {
         attempts: attempt,
@@ -601,15 +608,15 @@ const refreshTokenWithBackoff = async (
       '[AUTH-MIDDLEWARE] Token refresh failed with fatal error',
       {
         attempts: attempt,
-        error: lastError?.message || 'Unknown error',
+        error: lastError?.message ?? 'Unknown error',
       },
-      lastError || undefined,
+      lastError ?? undefined,
     );
 
     SafeAnalytics.track('token_refresh_failed', {
       trigger: 'proactive',
       attempts: attempt,
-      error_message: lastError?.message || 'Unknown error',
+      error_message: lastError?.message ?? 'Unknown error',
     });
 
     return false;
@@ -680,7 +687,7 @@ const checkAndRefreshToken = async (
     });
 
     // Show offline toast if token is approaching expiry
-    if (validationResult.isApproachingExpiry) {
+    if (validationResult.isApproachingExpiry === true) {
       offlineManager.showOfflineToast();
     }
 
@@ -777,7 +784,7 @@ const checkAndRefreshToken = async (
  * - Waits for rehydration before starting session manager
  */
 export const authSessionMiddleware: Middleware<object, RootState, AppDispatch> =
-  storeAPI => next => action => {
+  (storeAPI) => (next) => (action) => {
     // Pass action to next middleware/reducer first
     const result = next(action);
 

@@ -13,6 +13,7 @@ import { useTheme } from '@/design-system/providers';
 import { FavoritesScreen } from '@/features/favorites/screens/FavoritesScreen';
 
 import { getDefaultScreenOptions, makeHeaderBackButton } from './headerConfig';
+
 import type { FavoritesStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<FavoritesStackParamList>();
@@ -28,7 +29,7 @@ export const FavoritesStack: React.FC = () => {
       })}
     >
       <Stack.Screen
-        name='FavoritesMain'
+        name="FavoritesMain"
         component={FavoritesScreen}
         options={{ title: 'My Favorites' }}
       />

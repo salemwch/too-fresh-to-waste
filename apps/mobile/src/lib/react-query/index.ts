@@ -9,23 +9,11 @@
  */
 
 // Core exports
-export { QueryProvider,  } from './QueryProvider';
-;
-;
-;
-
+export { QueryProvider } from './QueryProvider';
 // Custom hooks
-export {
-  useQueryWithFocus,
-  
-  
-  
-  
-  
-} from './hooks';
+export { useQueryWithFocus } from './hooks';
 
 // Re-export commonly used TanStack Query hooks and utilities
-;
 
 /**
  * TanStack Query Setup Summary:
@@ -87,7 +75,7 @@ export {
  *   });
  *
  *   if (isLoading) return <LoadingSpinner />;
- *   if (error) return <ErrorMessage error={error} />;
+ *   if (error) return <Text>Failed to load offers.</Text>;
  *
  *   return <OffersList offers={data} />;
  * }

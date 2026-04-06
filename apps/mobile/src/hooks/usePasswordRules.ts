@@ -281,12 +281,12 @@ export const usePasswordRules = (
 
     // Check if password is valid (all basic rules met)
     // Basic rules: minLength, hasUppercase, hasLowercase, hasNumber, hasSpecial (indices 0-4)
-    const basicRulesMet = rules.slice(0, 5).every(rule => rule.isMet);
+    const basicRulesMet = rules.slice(0, 5).every((rule) => rule.isMet);
     // Advanced rules: noRepeating (index 5)
-    const advancedRulesMet = rules.slice(5).every(rule => rule.isMet);
+    const advancedRulesMet = rules.slice(5).every((rule) => rule.isMet);
 
     // Count how many basic rules are satisfied
-    const basicRulesMetCount = rules.slice(0, 5).filter(rule => rule.isMet).length;
+    const basicRulesMetCount = rules.slice(0, 5).filter((rule) => rule.isMet).length;
 
     // Calculate strength using Apple's two-phase approach:
     // Phase 1: Show requirement progress (0-5 rules met)
@@ -338,23 +338,23 @@ export const usePasswordRules = (
       feedback.push(`Password must be no more than ${PASSWORD_MAX_LENGTH} characters`);
     } else if (!advancedRulesMet) {
       // Advanced rules failed (repeating characters, etc.)
-      const failedRules = rules.slice(5).filter(r => !r.isMet);
-      feedback.push(...failedRules.map(r => r.description));
+      const failedRules = rules.slice(5).filter((r) => !r.isMet);
+      feedback.push(...failedRules.map((r) => r.description));
     }
 
     // Helper functions
     const getRuleColor = (ruleId: string): string => {
-      const rule = rules.find(r => r.id === ruleId);
+      const rule = rules.find((r) => r.id === ruleId);
       return rule?.color ?? COLORS.unmet;
     };
 
     const getRuleIcon = (ruleId: string): string => {
-      const rule = rules.find(r => r.id === ruleId);
+      const rule = rules.find((r) => r.id === ruleId);
       return rule?.icon ?? 'circle';
     };
 
     const isRuleMet = (ruleId: string): boolean => {
-      const rule = rules.find(r => r.id === ruleId);
+      const rule = rules.find((r) => r.id === ruleId);
       return rule ? rule.isMet : false;
     };
 
@@ -371,4 +371,3 @@ export const usePasswordRules = (
 
   return result;
 };
-

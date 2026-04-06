@@ -15,9 +15,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-import { HOME_API_CONFIG, HOME_UI_CONFIG } from '../constants/homeConstants';
-
-import type { OfferListItem, OfferSearchParams, OfferStatus, OffersResponse } from '@/features/offers/types/offer.types';
 import {
   useUrgentOffers,
   useOffers,
@@ -25,6 +22,15 @@ import {
   usePickupTomorrowOffers,
 } from '@/features/offers/hooks/useOffers';
 import { OfferStatus as Status } from '@/features/offers/types/offer.types';
+
+import { HOME_API_CONFIG, HOME_UI_CONFIG } from '../constants/homeConstants';
+
+import type {
+  OfferListItem,
+  OfferSearchParams,
+  OfferStatus,
+  OffersResponse,
+} from '@/features/offers/types/offer.types';
 
 // ============================================================================
 // Types
@@ -129,7 +135,12 @@ interface UseHomeOffersResult {
  */
 export function useHomeOffers(
   coordinates: Coordinates | undefined,
-  filterParams: Partial<Pick<OfferSearchParams, 'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories' | 'search'>>
+  filterParams: Partial<
+    Pick<
+      OfferSearchParams,
+      'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories' | 'search'
+    >
+  >,
 ): UseHomeOffersResult {
   // ============================================================================
   // State - Lazy Loading Control
@@ -179,7 +190,7 @@ export function useHomeOffers(
     HOME_API_CONFIG.URGENT_OFFERS_HOURS_THRESHOLD,
     HOME_API_CONFIG.URGENT_OFFERS_LIMIT,
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
-    filterParams // ✅ Include filters to ensure proper caching and refetching
+    filterParams, // ✅ Include filters to ensure proper caching and refetching
   );
 
   /**
@@ -202,7 +213,7 @@ export function useHomeOffers(
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
     {
       enabled: loadSecondaryData, // ✅ Only fetch when lazy loading triggers
-    }
+    },
   );
 
   /**
@@ -220,7 +231,7 @@ export function useHomeOffers(
     filterParams,
     {
       enabled: loadSecondaryData, // ✅ Only fetch when lazy loading triggers
-    }
+    },
   );
 
   /**
@@ -238,7 +249,7 @@ export function useHomeOffers(
     filterParams,
     {
       enabled: loadSecondaryData, // ✅ Only fetch when lazy loading triggers
-    }
+    },
   );
 
   // ============================================================================
@@ -259,10 +270,10 @@ export function useHomeOffers(
    * Aggregated error states
    */
   const errors: OffersErrorState = {
-    urgent: urgentError as Error | null,
-    hottest: hottestError as Error | null,
-    pickupToday: pickupTodayError as Error | null,
-    pickupTomorrow: pickupTomorrowError as Error | null,
+    urgent: urgentError,
+    hottest: hottestError,
+    pickupToday: pickupTodayError,
+    pickupTomorrow: pickupTomorrowError,
   };
 
   // ============================================================================
@@ -286,10 +297,18 @@ export function useHomeOffers(
    * Aggregated refetch functions
    */
   const refetch: OffersRefetchFunctions = {
-    urgent: refetchUrgent,
-    hottest: refetchHottest,
-    pickupToday: refetchPickupToday,
-    pickupTomorrow: refetchPickupTomorrow,
+    urgent: () => {
+      void refetchUrgent();
+    },
+    hottest: () => {
+      void refetchHottest();
+    },
+    pickupToday: () => {
+      void refetchPickupToday();
+    },
+    pickupTomorrow: () => {
+      void refetchPickupTomorrow();
+    },
     all: refetchAll,
   };
 

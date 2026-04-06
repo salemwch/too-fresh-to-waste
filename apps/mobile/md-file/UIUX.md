@@ -170,11 +170,11 @@ returning users
 
 ```tsx
 <Input
-  type='password'
-  autocomplete='current-password'
+  type="password"
+  autocomplete="current-password"
   allowPaste={true}
   showToggle={true}
-  label='Password'
+  label="Password"
 />
 ```
 
@@ -447,9 +447,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
       placeholder={placeholder}
       secureTextEntry={!isVisible}
       autoComplete={autocomplete}
-      textContentType={
-        autocomplete === 'new-password' ? 'newPassword' : 'password'
-      }
+      textContentType={autocomplete === 'new-password' ? 'newPassword' : 'password'}
       error={error}
       rightElement={
         <IconButton
@@ -476,13 +474,13 @@ export const VerifyPhoneScreen = () => {
   useEffect(() => {
     if (Platform.OS === 'android') {
       // Android SMS User Consent API
-      SmsRetriever.requestPhoneNumber().then(async phoneNumber => {
+      SmsRetriever.requestPhoneNumber().then(async (phoneNumber) => {
         // Auto-fill phone number
       });
 
-      SmsRetriever.startSmsRetriever().then(async registered => {
+      SmsRetriever.startSmsRetriever().then(async (registered) => {
         if (registered) {
-          SmsRetriever.addSmsListener(event => {
+          SmsRetriever.addSmsListener((event) => {
             const otp = /(\d{6})/.exec(event.message)?.[1];
             if (otp) {
               setCode(otp);
@@ -502,7 +500,7 @@ export const VerifyPhoneScreen = () => {
       onChange={setCode}
       length={6}
       autoFocus
-      textContentType='oneTimeCode' // iOS autofill
+      textContentType="oneTimeCode" // iOS autofill
     />
   );
 };
@@ -559,17 +557,12 @@ const handleBiometricLogin = async () => {
 
 ```tsx
 // apps/mobile/src/design-system/components/atoms/Input/Input.tsx
-export const Input: React.FC<InputProps> = ({
-  label,
-  error,
-  errorAction,
-  ...props
-}) => {
+export const Input: React.FC<InputProps> = ({ label, error, errorAction, ...props }) => {
   const errorId = `${props.id}-error`;
 
   return (
     <View>
-      <Text variant='label.medium'>{label}</Text>
+      <Text variant="label.medium">{label}</Text>
       <TextInput
         {...props}
         aria-invalid={!!error}
@@ -578,14 +571,8 @@ export const Input: React.FC<InputProps> = ({
       />
       {error && (
         <View style={styles.errorContainer}>
-          <Icon name='alert-circle' color='error' size={16} />
-          <Text
-            id={errorId}
-            variant='body.small'
-            color='error'
-            role='alert'
-            aria-live='polite'
-          >
+          <Icon name="alert-circle" color="error" size={16} />
+          <Text id={errorId} variant="body.small" color="error" role="alert" aria-live="polite">
             {error}
           </Text>
           {errorAction && errorAction}

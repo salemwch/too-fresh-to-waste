@@ -3,11 +3,11 @@
  * Shimmer loading placeholder for the loyalty screen.
  */
 
-import React from 'react';
+import React, { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
-import { useTheme } from '@/design-system/providers';
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
+import { useTheme } from '@/design-system/providers';
 
 const SkeletonLoyaltyScreenComponent: React.FC = () => {
   const theme = useTheme();
@@ -56,7 +56,7 @@ const SkeletonLoyaltyScreenComponent: React.FC = () => {
   );
 };
 
-export const SkeletonLoyaltyScreen = React.memo(SkeletonLoyaltyScreenComponent);
+export const SkeletonLoyaltyScreen = memo(SkeletonLoyaltyScreenComponent);
 SkeletonLoyaltyScreenComponent.displayName = 'SkeletonLoyaltyScreen';
 
 const styles = StyleSheet.create({

@@ -11,6 +11,7 @@
 import axios, { type AxiosError } from 'axios';
 
 import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
+import { Logger } from '@/utils/logger';
 
 import type { DonationStats, UserDonationStats } from '../../../types/donations';
 
@@ -34,7 +35,7 @@ const handleApiError = (error: unknown): Error => {
     }
 
     const message =
-      axiosError.response?.data?.message || axiosError.message || 'An unexpected error occurred';
+      axiosError.response?.data?.message ?? axiosError.message ?? 'An unexpected error occurred';
     return new Error(message);
   }
   return error as Error;
@@ -52,10 +53,9 @@ export const donationsApi = {
    */
   async getCurrentStats(signal?: AbortSignal): Promise<DonationStats> {
     try {
-      const response = await apiClient.get<BackendApiResponse<DonationStats>>(
-        '/donations/stats',
-        { ...(signal != null && { signal }) },
-      );
+      const response = await apiClient.get<BackendApiResponse<DonationStats>>('/donations/stats', {
+        ...(signal != null && { signal }),
+      });
       return unwrapBackendResponse({ data: response.data }, 'donation stats');
     } catch (error) {
       throw handleApiError(error);
@@ -102,7 +102,7 @@ export const donationsApi = {
 export const setDonationsApiAuthToken = (_token: string | null): void => {
   // No-op: centralized apiClient automatically injects tokens
   // Token refresh is handled by apiClient interceptors
-  console.warn(
+  Logger.warn(
     '[donationsApi] setDonationsApiAuthToken is deprecated. Token management is automatic via centralized apiClient.',
   );
 };

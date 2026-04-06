@@ -16,6 +16,7 @@ import type {
   RegisterRequest,
   MFAVerificationRequest,
 } from '../types';
+import type { RootState } from '@/store';
 
 // Initial state
 const initialState: AuthState = {
@@ -202,7 +203,7 @@ export const verifyMFAAsync = createAsyncThunk(
       return response;
     } catch (error) {
       Logger.error('MFA verification failed', {}, error as Error);
-      ErrorHandler.handle(error as Error, { operation: 'verifyMFA' });
+      void ErrorHandler.handle(error as Error, { operation: 'verifyMFA' });
 
       // Extract message from AppError or Error
       let errorMessage = 'MFA verification failed';
@@ -270,7 +271,7 @@ export const refreshTokenAsync = createAsyncThunk(
       Logger.warn('Token refresh failed (will be handled by middleware)', {
         error: error instanceof Error ? error.message : String(error),
       });
-      ErrorHandler.handle(error as Error, { operation: 'refreshToken' });
+      void ErrorHandler.handle(error as Error, { operation: 'refreshToken' });
 
       // Extract message from AppError or Error
       let errorMessage = 'Token refresh failed';
@@ -332,7 +333,7 @@ export const logoutAsync = createAsyncThunk(
     const { isAuthenticated, tokens, user } = state.auth;
     const userId = user?.userId;
     const accessToken = tokens?.accessToken;
-    const reason = params.reason || 'user_action';
+    const reason = params.reason ?? 'user_action';
 
     // Create logout promise and store as lock
     logoutLock = (async () => {
@@ -341,7 +342,7 @@ export const logoutAsync = createAsyncThunk(
 
         // ✅ CRITICAL: Cancel all inflight requests FIRST
         // Prevents orphaned requests from re-triggering auth flows
-        const { cancelInflightRequests } = await import('@/services/apiClient');
+        const { cancelInflightRequests } = await import('@/services/requestCancellation');
         cancelInflightRequests();
 
         // ✅ BEST PRACTICE: Only call logout API for explicit user action with valid token
@@ -349,12 +350,16 @@ export const logoutAsync = createAsyncThunk(
         // - Session expired (token already invalid → would get 401)
         // - Token missing (no session to invalidate)
         // - Not authenticated (no active session)
-        const shouldCallApi = reason === 'user_action' && isAuthenticated && accessToken;
+        const logoutToken =
+          accessToken !== null && accessToken !== undefined && accessToken !== ''
+            ? accessToken
+            : null;
+        const shouldCallApi = reason === 'user_action' && isAuthenticated && logoutToken !== null;
 
         if (shouldCallApi) {
           try {
             Logger.info('[AUTH] Calling logout API (user-initiated)', { userId });
-            await authService.logout(accessToken);
+            await authService.logout(logoutToken);
             Logger.info('[AUTH] Logout API successful', { userId });
           } catch (error) {
             // ✅ GRACEFUL DEGRADATION: API failure doesn't stop local logout
@@ -380,7 +385,7 @@ export const logoutAsync = createAsyncThunk(
         Logger.error('[AUTH] Logout failed (unexpected)', { userId, reason }, error as Error);
 
         // Still try to clear storage
-        await SecureStorage.clearAll().catch(storageError => {
+        await SecureStorage.clearAll().catch((storageError) => {
           Logger.error('[AUTH] Failed to clear secure storage', {}, storageError as Error);
         });
       } finally {
@@ -419,7 +424,7 @@ export const deleteAccountAsync = createAsyncThunk(
       Logger.info('[AUTH] Account deletion started');
 
       // Cancel all inflight requests before deletion
-      const { cancelInflightRequests } = await import('@/services/apiClient');
+      const { cancelInflightRequests } = await import('@/services/requestCancellation');
       cancelInflightRequests();
 
       // Call backend DELETE /auth/me
@@ -477,7 +482,8 @@ export const loadStoredAuthAsync = createAsyncThunk(
         return null;
       }
 
-      const user: User = JSON.parse(userJson);
+      const parsedUser = JSON.parse(userJson) as unknown;
+      const user = parsedUser as User;
       const tokens: AuthTokens = {
         accessToken,
         refreshToken,
@@ -572,7 +578,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    clearError: state => {
+    clearError: (state) => {
       state.error = undefined;
     },
 
@@ -599,7 +605,7 @@ const authSlice = createSlice({
     },
 
     // Transition from email verification to login (phone verification deferred)
-    emailVerified: state => {
+    emailVerified: (state) => {
       if (state.user) {
         state.user = { ...state.user, isEmailVerified: true };
         // Phone verification now happens when placing an order, not during registration
@@ -611,7 +617,7 @@ const authSlice = createSlice({
     },
 
     // Transition from phone verification to login
-    phoneVerified: state => {
+    phoneVerified: (state) => {
       if (state.user) {
         state.user = { ...state.user, isPhoneVerified: true };
         state.flowState = AuthFlowState.UNAUTHENTICATED;
@@ -648,7 +654,7 @@ const authSlice = createSlice({
      * RESILIENT AUTH: Clear network error state (connection restored)
      * Called when network connection is restored
      */
-    clearNetworkError: state => {
+    clearNetworkError: (state) => {
       state.isOffline = false;
       state.offlineMessage = undefined;
       state.retryAfterMs = undefined;
@@ -670,9 +676,9 @@ const authSlice = createSlice({
       };
     },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     // Login
-    builder.addCase(loginAsync.pending, state => {
+    builder.addCase(loginAsync.pending, (state) => {
       state.isLoading = true;
       state.error = undefined;
     });
@@ -716,7 +722,7 @@ const authSlice = createSlice({
     });
 
     // Register
-    builder.addCase(registerAsync.pending, state => {
+    builder.addCase(registerAsync.pending, (state) => {
       state.isLoading = true;
       state.error = undefined;
     });
@@ -738,7 +744,6 @@ const authSlice = createSlice({
         typeof action.payload.user.email === 'string' && action.payload.user.email !== ''
           ? action.payload.user.email
           : undefined;
-
     });
 
     builder.addCase(registerAsync.rejected, (state, action) => {
@@ -770,7 +775,7 @@ const authSlice = createSlice({
     });
 
     // Email Verification with Auto-Login
-    builder.addCase(verifyEmailAsync.pending, state => {
+    builder.addCase(verifyEmailAsync.pending, (state) => {
       state.isLoading = true;
       state.error = undefined;
     });
@@ -803,7 +808,7 @@ const authSlice = createSlice({
     });
 
     // MFA Verification
-    builder.addCase(verifyMFAAsync.pending, state => {
+    builder.addCase(verifyMFAAsync.pending, (state) => {
       state.isLoading = true;
       state.error = undefined;
     });
@@ -835,7 +840,7 @@ const authSlice = createSlice({
     });
 
     // Token Refresh
-    builder.addCase(refreshTokenAsync.pending, state => {
+    builder.addCase(refreshTokenAsync.pending, (state) => {
       // Don't set isLoading here to avoid UI flickering during background refresh
       state.error = undefined;
     });
@@ -855,12 +860,13 @@ const authSlice = createSlice({
     builder.addCase(refreshTokenAsync.rejected, (state, action) => {
       const payload = action.payload as { message?: string; isNetworkError?: boolean } | undefined;
 
-      if (payload?.isNetworkError) {
+      if (payload?.isNetworkError === true) {
         // NETWORK ERROR: Device offline or server unreachable.
         // Keep the session alive — the user is still authenticated.
         // The offline banner (driven by NetInfo) handles the UX.
         state.isOffline = true;
-        state.offlineMessage = 'No connection. Your session is safe — we\'ll retry when you\'re back online.';
+        state.offlineMessage =
+          "No connection. Your session is safe — we'll retry when you're back online.";
         state.error = undefined;
       } else {
         // AUTH ERROR (401/403/invalid token): Session truly expired.
@@ -870,12 +876,14 @@ const authSlice = createSlice({
         state.error = 'Session expired. Please login again.';
         state.flowState = AuthFlowState.SESSION_EXPIRED;
 
-        console.log('[STATE-DRIVEN NAV] Session expired, flowState =', AuthFlowState.SESSION_EXPIRED);
+        Logger.info('[STATE-DRIVEN NAV] Session expired', {
+          flowState: AuthFlowState.SESSION_EXPIRED,
+        });
       }
     });
 
     // Logout
-    builder.addCase(logoutAsync.pending, state => {
+    builder.addCase(logoutAsync.pending, (state) => {
       state.isLoading = true;
     });
 
@@ -883,10 +891,9 @@ const authSlice = createSlice({
       // Reset to initial state but with UNAUTHENTICATED flow state
       // (not INITIALIZING, which would cause navigator to have no screens)
       // NOTE: Location and favorites slices listen for this action and clear themselves
-      console.log(
-        '[STATE-DRIVEN NAV] Logout successful, flowState =',
-        AuthFlowState.UNAUTHENTICATED,
-      );
+      Logger.info('[STATE-DRIVEN NAV] Logout successful', {
+        flowState: AuthFlowState.UNAUTHENTICATED,
+      });
       return {
         ...initialState,
         flowState: AuthFlowState.UNAUTHENTICATED,
@@ -896,10 +903,9 @@ const authSlice = createSlice({
     builder.addCase(logoutAsync.rejected, () => {
       // Even if logout API fails, clear local state
       // Set UNAUTHENTICATED flow state to redirect to login
-      console.log(
-        '[STATE-DRIVEN NAV] Logout failed but clearing state, flowState =',
-        AuthFlowState.UNAUTHENTICATED,
-      );
+      Logger.info('[STATE-DRIVEN NAV] Logout failed but clearing state', {
+        flowState: AuthFlowState.UNAUTHENTICATED,
+      });
       return {
         ...initialState,
         flowState: AuthFlowState.UNAUTHENTICATED,
@@ -907,16 +913,15 @@ const authSlice = createSlice({
     });
 
     // Delete Account
-    builder.addCase(deleteAccountAsync.pending, state => {
+    builder.addCase(deleteAccountAsync.pending, (state) => {
       state.isLoading = true;
       state.error = undefined;
     });
 
     builder.addCase(deleteAccountAsync.fulfilled, () => {
-      console.log(
-        '[STATE-DRIVEN NAV] Account deleted, flowState =',
-        AuthFlowState.UNAUTHENTICATED,
-      );
+      Logger.info('[STATE-DRIVEN NAV] Account deleted', {
+        flowState: AuthFlowState.UNAUTHENTICATED,
+      });
       return {
         ...initialState,
         flowState: AuthFlowState.UNAUTHENTICATED,
@@ -933,7 +938,7 @@ const authSlice = createSlice({
     });
 
     // Load Stored Auth
-    builder.addCase(loadStoredAuthAsync.pending, state => {
+    builder.addCase(loadStoredAuthAsync.pending, (state) => {
       state.isLoading = true;
     });
 
@@ -950,29 +955,27 @@ const authSlice = createSlice({
         // STATE-DRIVEN NAVIGATION: Restored authenticated session
         state.flowState = AuthFlowState.AUTHENTICATED;
 
-        console.log(
-          '[STATE-DRIVEN NAV] Session restored, flowState =',
-          AuthFlowState.AUTHENTICATED,
-        );
+        Logger.info('[STATE-DRIVEN NAV] Session restored', {
+          flowState: AuthFlowState.AUTHENTICATED,
+        });
       } else {
         // No stored auth data
         state.flowState = AuthFlowState.UNAUTHENTICATED;
 
-        console.log(
-          '[STATE-DRIVEN NAV] No stored session, flowState =',
-          AuthFlowState.UNAUTHENTICATED,
-        );
+        Logger.info('[STATE-DRIVEN NAV] No stored session', {
+          flowState: AuthFlowState.UNAUTHENTICATED,
+        });
       }
     });
 
-    builder.addCase(loadStoredAuthAsync.rejected, state => {
+    builder.addCase(loadStoredAuthAsync.rejected, (state) => {
       state.isLoading = false;
       state.flowState = AuthFlowState.UNAUTHENTICATED;
       // Keep initial state
     });
 
     // Update Profile
-    builder.addCase(updateProfileAsync.pending, state => {
+    builder.addCase(updateProfileAsync.pending, (state) => {
       state.isLoading = true;
       state.error = undefined;
     });
@@ -1000,20 +1003,14 @@ const authSlice = createSlice({
 
 export const {
   clearError,
-  
+
   updateUser,
-  
-  
-  
-  
-  
-  
+
   forceLocalLogout,
 } = authSlice.actions;
 export default authSlice.reducer;
 
 // ── Named selectors (co-located with slice per Redux best practices) ──
-import type { RootState } from '@/store';
 
 /** Primitive boolean — no createSelector needed (returns stable ref). */
 export const selectIsPhoneVerified = (state: RootState): boolean =>

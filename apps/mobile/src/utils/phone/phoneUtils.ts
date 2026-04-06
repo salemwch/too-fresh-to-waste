@@ -74,8 +74,8 @@ const parsePhone = (
   }
 
   try {
-    return parsePhoneNumber(phoneNumber, defaultCountry) || null;
-  } catch (error) {
+    return parsePhoneNumber(phoneNumber, defaultCountry) ?? null;
+  } catch {
     // Invalid phone number format
     return null;
   }
@@ -106,7 +106,7 @@ export const isPossible = (
 
   try {
     return isPossiblePhoneNumber(phoneNumber, defaultCountry);
-  } catch (error) {
+  } catch {
     return false;
   }
 };
@@ -135,7 +135,7 @@ export const isValid = (
 
   try {
     return isValidPhoneNumberLib(phoneNumber, defaultCountry);
-  } catch (error) {
+  } catch {
     return false;
   }
 };
@@ -234,7 +234,7 @@ export const getCountryCode = (
   defaultCountry: CountryCode = DEFAULT_COUNTRY,
 ): CountryCode => {
   const parsed = parsePhone(phoneNumber, defaultCountry);
-  return parsed?.country || defaultCountry;
+  return parsed?.country ?? defaultCountry;
 };
 
 /**
@@ -400,7 +400,7 @@ const getMaxPhoneLength = (country: CountryCode): number => {
 
     // Fallback: Use standard max length of 17 digits (ITU-T E.164 standard)
     return 17;
-  } catch (error) {
+  } catch {
     // If metadata not available, return safe default
     return 17;
   }
@@ -437,7 +437,7 @@ const validatePhoneLengthForCountry = (
       return result;
     }
     return undefined; // Valid length
-  } catch (error) {
+  } catch {
     return 'INVALID_COUNTRY';
   }
 };
@@ -596,7 +596,7 @@ export const getMaxInputLength = (country: CountryCode): number => {
 
     // Add small buffer (+1) for edge cases during typing
     return maxFormattedLength + 1;
-  } catch (error) {
+  } catch {
     // Fallback: Conservative estimate
     const nationalDigits = getMaxPhoneLength(country);
     const callingCode = getCallingCode(country);

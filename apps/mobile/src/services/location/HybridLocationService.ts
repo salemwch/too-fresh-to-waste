@@ -15,11 +15,13 @@
  * @module HybridLocationService
  */
 
-import type { ILocationResult } from '@/types/location.types';
-import { localLocationService } from './LocalLocationService';
-import { remoteLocationService } from './RemoteLocationService';
 import { LocationAdapter } from '@/utils/location/locationAdapter';
 import { Logger } from '@/utils/logger';
+
+import { localLocationService } from './LocalLocationService';
+import { remoteLocationService } from './RemoteLocationService';
+
+import type { ILocationResult } from '@/types/location.types';
 
 /**
  * Hybrid search configuration
@@ -59,10 +61,7 @@ class HybridLocationService {
    * @param config - Search configuration
    * @returns Promise resolving to deduplicated ILocationResult[]
    */
-  async search(
-    query: string,
-    config: HybridSearchConfig = {},
-  ): Promise<ILocationResult[]> {
+  async search(query: string, config: HybridSearchConfig = {}): Promise<ILocationResult[]> {
     const {
       minLocalResults = this.DEFAULT_MIN_LOCAL_RESULTS,
       maxResults = this.DEFAULT_MAX_RESULTS,
@@ -80,15 +79,12 @@ class HybridLocationService {
       // STEP A: Local search (instant, no network)
       const localResults = localLocationService.search(query, maxResults);
 
-      Logger.debug(
-        `HybridLocationService: Local search returned ${localResults.length} results`,
-      );
+      Logger.debug(`HybridLocationService: Local search returned ${localResults.length} results`);
 
       // Check if we have enough local results
       const hasExactMatch = this.hasExactMatch(localResults, query);
       const needsRemoteFallback =
-        enableRemoteFallback &&
-        (localResults.length < minLocalResults || !hasExactMatch);
+        enableRemoteFallback && (localResults.length < minLocalResults || !hasExactMatch);
 
       if (!needsRemoteFallback) {
         Logger.info(
@@ -120,9 +116,7 @@ class HybridLocationService {
         );
       }
 
-      Logger.debug(
-        `HybridLocationService: Remote search returned ${remoteResults.length} results`,
-      );
+      Logger.debug(`HybridLocationService: Remote search returned ${remoteResults.length} results`);
 
       // STEP C: Merge and deduplicate
       const mergedResults = this.mergeResults(localResults, remoteResults, maxResults);
@@ -133,11 +127,7 @@ class HybridLocationService {
 
       return mergedResults;
     } catch (error) {
-      Logger.error(
-        'HybridLocationService: Search failed',
-        { query },
-        error as Error,
-      );
+      Logger.error('HybridLocationService: Search failed', { query }, error as Error);
       // Fallback to local results on error
       return localLocationService.search(query, maxResults);
     }
@@ -158,19 +148,12 @@ class HybridLocationService {
     sessionToken: string,
   ): Promise<ILocationResult | null> {
     try {
-      Logger.debug(
-        `HybridLocationService: Resolving Google place ${googlePlaceId}`,
-      );
+      Logger.debug(`HybridLocationService: Resolving Google place ${googlePlaceId}`);
 
-      const details = await remoteLocationService.getPlaceDetails(
-        googlePlaceId,
-        sessionToken,
-      );
+      const details = await remoteLocationService.getPlaceDetails(googlePlaceId, sessionToken);
 
       if (!details) {
-        Logger.warn(
-          `HybridLocationService: Failed to resolve Google place ${googlePlaceId}`,
-        );
+        Logger.warn(`HybridLocationService: Failed to resolve Google place ${googlePlaceId}`);
         return null;
       }
 
@@ -195,13 +178,12 @@ class HybridLocationService {
   private hasExactMatch(results: ILocationResult[], query: string): boolean {
     const normalizedQuery = this.normalizeText(query);
 
-    return results.some(result => {
+    return results.some((result) => {
       const normalizedName = this.normalizeText(result.name);
       const normalizedNameAr = this.normalizeText(result.nameAr);
 
       return (
-        normalizedName.startsWith(normalizedQuery) ||
-        normalizedNameAr.startsWith(normalizedQuery)
+        normalizedName.startsWith(normalizedQuery) || normalizedNameAr.startsWith(normalizedQuery)
       );
     });
   }

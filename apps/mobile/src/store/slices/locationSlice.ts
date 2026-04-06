@@ -20,9 +20,14 @@ import {
   createAsyncThunk,
   createSelector,
   type PayloadAction,
+  type UnknownAction,
 } from '@reduxjs/toolkit';
 import { Platform } from 'react-native';
-import Geolocation, { type GeoError, type GeoPosition } from 'react-native-geolocation-service';
+import Geolocation, {
+  PositionError,
+  type GeoError,
+  type GeoPosition,
+} from 'react-native-geolocation-service';
 import { check, request, PERMISSIONS, RESULTS, type Permission } from 'react-native-permissions';
 
 import { Logger } from '@/utils/logger';
@@ -37,6 +42,30 @@ export interface LocationCoordinates {
 }
 
 export type LocationSource = 'gps' | 'manual' | null;
+
+interface AuthSuccessMatcherAction {
+  type: string;
+  payload?: {
+    user?: {
+      userId?: string;
+    };
+  };
+  [key: string]: unknown;
+}
+
+const AUTH_SUCCESS_ACTION_TYPES = new Set([
+  'auth/login/fulfilled',
+  'auth/verifyEmail/fulfilled',
+  'auth/loadStoredAuth/fulfilled',
+]);
+
+const AUTH_LOGOUT_ACTION_TYPES = new Set(['auth/logout/fulfilled', 'auth/forceLocalLogout']);
+
+const isAuthSuccessAction = (action: UnknownAction): action is AuthSuccessMatcherAction =>
+  AUTH_SUCCESS_ACTION_TYPES.has(action.type);
+
+const isAuthLogoutAction = (action: UnknownAction): boolean =>
+  AUTH_LOGOUT_ACTION_TYPES.has(action.type);
 
 export type PermissionStatus = 'undetermined' | 'granted' | 'denied' | 'blocked';
 
@@ -125,12 +154,12 @@ const initialState: LocationState = {
 
 /**
  * Round coordinates to reduce duplicate reverse geocoding calls.
- * 
+ *
  * **Precision**: 4 decimals ≈ 11m (building-level accuracy)
  * - Suitable for neighborhood/district-level reverse geocoding
  * - Prevents cache misses when user moves short distances (< 10m)
  * - Safe for city boundaries and offer distance filtering
- * 
+ *
  * **Why 4 decimals?**
  * - 3 decimals (111m) can collapse different neighborhoods in dense cities
  * - 4 decimals (11m) provides neighborhood-level accuracy without excessive API calls
@@ -141,7 +170,7 @@ const initialState: LocationState = {
  */
 function roundCoordinates(coords: LocationCoordinates): LocationCoordinates {
   return {
-    latitude: Math.round(coords.latitude * 10000) / 10000,  // 4 decimals ≈ 11m
+    latitude: Math.round(coords.latitude * 10000) / 10000, // 4 decimals ≈ 11m
     longitude: Math.round(coords.longitude * 10000) / 10000,
   };
 }
@@ -154,16 +183,11 @@ function roundCoordinates(coords: LocationCoordinates): LocationCoordinates {
  * @param b - Second coordinates
  * @returns True if coordinates changed significantly
  */
-function coordinatesChanged(
-  a: LocationCoordinates | null,
-  b: LocationCoordinates | null,
-): boolean {
+function coordinatesChanged(a: LocationCoordinates | null, b: LocationCoordinates | null): boolean {
   if (!a || !b) return true;
   const roundedA = roundCoordinates(a);
   const roundedB = roundCoordinates(b);
-  return (
-    roundedA.latitude !== roundedB.latitude || roundedA.longitude !== roundedB.longitude
-  );
+  return roundedA.latitude !== roundedB.latitude || roundedA.longitude !== roundedB.longitude;
 }
 
 /**
@@ -200,14 +224,18 @@ function mapPermissionResult(result: string): PermissionStatus {
  */
 function getErrorMessage(error: GeoError): string {
   switch (error.code) {
-    case 1: // PERMISSION_DENIED
+    case PositionError.PERMISSION_DENIED:
       return 'Location permission denied. Please enable location access in your device settings.';
-    case 2: // POSITION_UNAVAILABLE
+    case PositionError.POSITION_UNAVAILABLE:
       return 'Unable to determine location. Please check your device settings or try "Use default location".';
-    case 3: // TIMEOUT
+    case PositionError.TIMEOUT:
       return 'GPS signal not found. For faster setup, try "Use default location" or search for your city.';
-    default:
-      return 'An error occurred while getting your location. Try using default location instead.';
+    case PositionError.PLAY_SERVICE_NOT_AVAILABLE:
+      return 'Google Play services are unavailable. Please update your device services or use a manual location.';
+    case PositionError.SETTINGS_NOT_SATISFIED:
+      return 'Your location settings do not satisfy this request. Enable high-accuracy location or use a manual location.';
+    case PositionError.INTERNAL_ERROR:
+      return 'An internal location error occurred. Please try again or use a manual location.';
   }
 }
 
@@ -327,124 +355,118 @@ export const reverseGeocodeAsync = createAsyncThunk<
   { city: string; country: string },
   LocationCoordinates,
   { state: { location: LocationState }; rejectValue: string }
->(
-  'location/reverseGeocode',
-  async (coordinates, { getState, rejectWithValue, signal }) => {
-    const state = getState().location;
+>('location/reverseGeocode', async (coordinates, { getState, rejectWithValue, signal }) => {
+  const state = getState().location;
 
+  // ────────────────────────────────────────────────────────────────────────
+  // Early Abort Check: Don't start if already cancelled
+  // ────────────────────────────────────────────────────────────────────────
+  if (signal.aborted) {
+    Logger.debug('Reverse geocoding aborted before starting');
+    return rejectWithValue('Cancelled');
+  }
+
+  // ────────────────────────────────────────────────────────────────────────
+  // Cache Check: Skip if we have fresh data for same location
+  // ────────────────────────────────────────────────────────────────────────
+  // Cache TTL: 1 hour (not 24h) to handle mobile users:
+  // - Traveling between cities
+  // - Commuting/driving long distances
+  // - Moving between neighborhoods
+  const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+  if (
+    state.gpsLocationName &&
+    state.gpsLocationTimestamp &&
+    state.gpsLocationCoordinates &&
+    Date.now() - state.gpsLocationTimestamp < CACHE_TTL_MS &&
+    !coordinatesChanged(coordinates, state.gpsLocationCoordinates)
+  ) {
+    Logger.debug('Using cached GPS location name', {
+      name: state.gpsLocationName,
+      age: Date.now() - state.gpsLocationTimestamp,
+    });
+    // Return cached data as successful result
+    const [city, country] = state.gpsLocationName.split(', ');
+    return { city: city ?? '', country: country ?? '' };
+  }
+
+  try {
     // ────────────────────────────────────────────────────────────────────────
-    // Early Abort Check: Don't start if already cancelled
+    // Dynamic import to avoid circular dependencies
+    // Import directly from source file, not barrel export, to break cycle
     // ────────────────────────────────────────────────────────────────────────
+    const { nearbyOffersService } = await import('@/features/offers/services/nearbyOffersService');
+
+    // Check if aborted after import
     if (signal.aborted) {
-      Logger.debug('Reverse geocoding aborted before starting');
+      Logger.debug('Reverse geocoding aborted after import');
       return rejectWithValue('Cancelled');
     }
 
     // ────────────────────────────────────────────────────────────────────────
-    // Cache Check: Skip if we have fresh data for same location
+    // Timeout: Reject if response takes > 15 seconds
     // ────────────────────────────────────────────────────────────────────────
-    // Cache TTL: 1 hour (not 24h) to handle mobile users:
-    // - Traveling between cities
-    // - Commuting/driving long distances  
-    // - Moving between neighborhoods
-    const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
-    if (
-      state.gpsLocationName &&
-      state.gpsLocationTimestamp &&
-      state.gpsLocationCoordinates &&
-      Date.now() - state.gpsLocationTimestamp < CACHE_TTL_MS &&
-      !coordinatesChanged(coordinates, state.gpsLocationCoordinates)
-    ) {
-      Logger.debug('Using cached GPS location name', {
-        name: state.gpsLocationName,
-        age: Date.now() - state.gpsLocationTimestamp,
+    const TIMEOUT_MS = 15000;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Reverse geocoding timeout'));
+      }, TIMEOUT_MS);
+
+      // ✅ Clear timeout if cancelled via signal
+      signal.addEventListener('abort', () => {
+        clearTimeout(timeoutId);
+        reject(new Error('Cancelled'));
       });
-      // Return cached data as successful result
-      const [city, country] = state.gpsLocationName.split(', ');
-      return { city: city || '', country: country || '' };
+    });
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Round coordinates to improve cache hit rate
+    // ────────────────────────────────────────────────────────────────────────
+    const roundedCoords = roundCoordinates(coordinates);
+    Logger.debug('Reverse geocoding with rounded coordinates', { roundedCoords });
+
+    // ✅ Pass Redux signal to API call for proper cancellation
+    const geocodePromise = nearbyOffersService.reverseGeocode(
+      roundedCoords,
+      'en',
+      signal, // Redux Toolkit will abort this when thunk is cancelled
+    );
+
+    // Race between geocoding and timeout
+    const addressInfo = await Promise.race([geocodePromise, timeoutPromise]);
+
+    // Final abort check before returning
+    if (signal.aborted) {
+      Logger.debug('Reverse geocoding aborted after completion');
+      return rejectWithValue('Cancelled');
     }
 
-    try {
-      // ────────────────────────────────────────────────────────────────────────
-      // Dynamic import to avoid circular dependencies
-      // Import directly from source file, not barrel export, to break cycle
-      // ────────────────────────────────────────────────────────────────────────
-      const { nearbyOffersService } = await import(
-        '@/features/offers/services/nearbyOffersService'
-      );
+    // ✅ FIX: Backend returns { primaryAddress: { city, country } }
+    // Extract city and country from primaryAddress
+    const city = addressInfo.primaryAddress?.city ?? addressInfo.city ?? '';
+    const country = addressInfo.primaryAddress?.country ?? addressInfo.country ?? '';
 
-      // Check if aborted after import
-      if (signal.aborted) {
-        Logger.debug('Reverse geocoding aborted after import');
-        return rejectWithValue('Cancelled');
-      }
+    Logger.info('Reverse geocoding successful', {
+      city,
+      country,
+    });
 
-      // ────────────────────────────────────────────────────────────────────────
-      // Timeout: Reject if response takes > 15 seconds
-      // ────────────────────────────────────────────────────────────────────────
-      const TIMEOUT_MS = 15000;
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        const timeoutId = setTimeout(() => {
-          reject(new Error('Reverse geocoding timeout'));
-        }, TIMEOUT_MS);
-
-        // ✅ Clear timeout if cancelled via signal
-        signal.addEventListener('abort', () => {
-          clearTimeout(timeoutId);
-          reject(new Error('Cancelled'));
-        });
-      });
-
-      // ────────────────────────────────────────────────────────────────────────
-      // Round coordinates to improve cache hit rate
-      // ────────────────────────────────────────────────────────────────────────
-      const roundedCoords = roundCoordinates(coordinates);
-      Logger.debug('Reverse geocoding with rounded coordinates', { roundedCoords });
-
-      // ✅ Pass Redux signal to API call for proper cancellation
-      const geocodePromise = nearbyOffersService.reverseGeocode(
-        roundedCoords,
-        'en',
-        signal, // Redux Toolkit will abort this when thunk is cancelled
-      );
-
-      // Race between geocoding and timeout
-      const addressInfo = await Promise.race([geocodePromise, timeoutPromise]);
-
-      // Final abort check before returning
-      if (signal.aborted) {
-        Logger.debug('Reverse geocoding aborted after completion');
-        return rejectWithValue('Cancelled');
-      }
-
-      // ✅ FIX: Backend returns { primaryAddress: { city, country } }
-      // Extract city and country from primaryAddress
-      const city = addressInfo.primaryAddress?.city || addressInfo.city || '';
-      const country = addressInfo.primaryAddress?.country || addressInfo.country || '';
-
-      Logger.info('Reverse geocoding successful', {
-        city,
-        country,
-      });
-
-      return {
-        city,
-        country,
-      };
-    } catch (error) {
-      // Check if error is due to cancellation
-      if (signal.aborted || (error instanceof Error && error.message === 'Cancelled')) {
-        Logger.debug('Reverse geocoding cancelled');
-        return rejectWithValue('Cancelled');
-      }
-
-      const errorMessage =
-        error instanceof Error ? error.message : 'Failed to resolve location name';
-      Logger.warn('Reverse geocoding failed', { error: errorMessage });
-      return rejectWithValue(errorMessage);
+    return {
+      city,
+      country,
+    };
+  } catch (error) {
+    // Check if error is due to cancellation
+    if (signal.aborted || (error instanceof Error && error.message === 'Cancelled')) {
+      Logger.debug('Reverse geocoding cancelled');
+      return rejectWithValue('Cancelled');
     }
-  },
-);
+
+    const errorMessage = error instanceof Error ? error.message : 'Failed to resolve location name';
+    Logger.warn('Reverse geocoding failed', { error: errorMessage });
+    return rejectWithValue(errorMessage);
+  }
+});
 
 // ============================================================================
 // Slice
@@ -512,7 +534,7 @@ const locationSlice = createSlice({
     /**
      * Mark that user has dismissed the location prompt
      */
-    dismissPrompt: state => {
+    dismissPrompt: (state) => {
       state.hasPromptedForLocation = true;
       state.promptDismissedAt = Date.now();
     },
@@ -520,14 +542,14 @@ const locationSlice = createSlice({
     /**
      * Reset prompt dismissal (show prompt again)
      */
-    resetPromptDismissal: state => {
+    resetPromptDismissal: (state) => {
       state.promptDismissedAt = null;
     },
 
     /**
      * Clear all location data
      */
-    clearLocation: state => {
+    clearLocation: (state) => {
       state.coordinates = null;
       state.accuracy = null;
       state.source = null;
@@ -543,7 +565,7 @@ const locationSlice = createSlice({
     /**
      * Clear error state
      */
-    clearError: state => {
+    clearError: (state) => {
       state.error = null;
     },
 
@@ -562,14 +584,14 @@ const locationSlice = createSlice({
       return initialState;
     },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     // checkPermissionAsync
     builder.addCase(checkPermissionAsync.fulfilled, (state, action) => {
       state.permissionStatus = action.payload;
     });
 
     // requestLocationAsync
-    builder.addCase(requestLocationAsync.pending, state => {
+    builder.addCase(requestLocationAsync.pending, (state) => {
       state.isLoading = true;
       state.error = null;
       state.hasPromptedForLocation = true;
@@ -609,7 +631,7 @@ const locationSlice = createSlice({
       // 1. User taps GPS → coords A → reverse geocode A starts
       // 2. User moves → taps GPS → coords B → reverse geocode B starts
       // 3. Geocode A finishes AFTER B → tries to update with wrong city
-      // 
+      //
       // Solution: Only update if result is for CURRENT coordinates
       const geocodedCoords = action.meta.arg; // Coordinates we just geocoded
       const currentCoords = state.coordinates; // Current coordinates in state
@@ -655,39 +677,34 @@ const locationSlice = createSlice({
     //
     // Scenario 1: Same user logs out & back in → KEEP location
     // Scenario 2: Account deleted + new signup  → CLEAR location + show prompt
-    builder.addMatcher(
-      (action): action is { type: string; payload: any } =>
-        action.type === 'auth/login/fulfilled' ||
-        action.type === 'auth/verifyEmail/fulfilled' ||
-        action.type === 'auth/loadStoredAuth/fulfilled',
-      (state, action) => {
-        const newUserId = action.payload?.user?.userId;
+    builder.addMatcher(isAuthSuccessAction, (state, action) => {
+      const newUserId = action.payload?.user?.userId;
 
-        if (!newUserId) return;
+      if (typeof newUserId !== 'string' || newUserId === '') return;
 
-        // ────────────────────────────────────────────────────────────────────────
-        // Case 1: User switch detected (different user authenticating)
-        // ────────────────────────────────────────────────────────────────────────
-        if (state.userId && state.userId !== newUserId) {
-          Logger.info('[LOCATION] User switch detected - clearing old location', {
-            oldUserId: state.userId,
-            newUserId,
-          });
-          return { ...initialState, userId: newUserId };
-        }
-
-        // ────────────────────────────────────────────────────────────────────────
-        // Case 2: Same user or first login with no existing location
-        // ────────────────────────────────────────────────────────────────────────
-        state.userId = newUserId;
-        Logger.info('[LOCATION] User authenticated - location preserved', {
-          userId: newUserId,
-          hasLocation: !!state.coordinates,
-          source: action.type,
+      // ────────────────────────────────────────────────────────────────────────
+      // Case 1: User switch detected (different user authenticating)
+      // ────────────────────────────────────────────────────────────────────────
+      if (state.userId && state.userId !== newUserId) {
+        Logger.info('[LOCATION] User switch detected - clearing old location', {
+          oldUserId: state.userId,
+          newUserId,
         });
+        Object.assign(state, initialState);
+        state.userId = newUserId;
         return;
-      },
-    );
+      }
+
+      // ────────────────────────────────────────────────────────────────────────
+      // Case 2: Same user or first login with no existing location
+      // ────────────────────────────────────────────────────────────────────────
+      state.userId = newUserId;
+      Logger.info('[LOCATION] User authenticated - location preserved', {
+        userId: newUserId,
+        hasLocation: !!state.coordinates,
+        source: action.type,
+      });
+    });
 
     // On logout: keep userId AND location data for re-login detection
     // This allows Case 1 (user switch) to properly detect when a DIFFERENT
@@ -698,16 +715,13 @@ const locationSlice = createSlice({
     //
     // Flow: User A logs out → userId stays "A" → User A logs in →
     //   Case 3: same userId → keeps location → no prompt
-    builder.addMatcher(
-      action => action.type === 'auth/logout/fulfilled' || action.type === 'auth/forceLocalLogout',
-      state => {
-        Logger.info('[LOCATION] Logout - preserving userId for re-login detection', {
-          userId: state.userId,
-          hasLocation: !!state.coordinates,
-        });
-        // Do NOT clear userId - it's needed to detect user switches on next login
-      },
-    );
+    builder.addMatcher(isAuthLogoutAction, (state) => {
+      Logger.info('[LOCATION] Logout - preserving userId for re-login detection', {
+        userId: state.userId,
+        hasLocation: !!state.coordinates,
+      });
+      // Do NOT clear userId - it's needed to detect user switches on next login
+    });
   },
 });
 
@@ -716,8 +730,6 @@ const locationSlice = createSlice({
 // ============================================================================
 
 export const {
-  
-  
   setManualLocation,
   setPreferredRadius,
   dismissPrompt,
@@ -864,7 +876,7 @@ export const selectFormattedLocationDisplay = createSelector(
     // ────────────────────────────────────────────────────────────────────────
 
     Logger.warn('[selectFormattedLocationDisplay] Inconsistent state detected', {
-      hasCoordinates: !!coordinates,
+      hasCoordinates: coordinates !== null && coordinates !== undefined,
       source,
       manualLocationName: manualLocationName === null ? 'null' : typeof manualLocationName,
       gpsLocationName: gpsLocationName === null ? 'null' : typeof gpsLocationName,

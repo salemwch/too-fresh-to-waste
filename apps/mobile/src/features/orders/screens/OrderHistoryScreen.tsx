@@ -47,23 +47,23 @@ export const OrderHistoryScreen: React.FC<OrderHistoryScreenProps> = ({
         }
       >
         <Card style={styles.card}>
-          <Text variant='headline' size='lg' weight='bold' style={styles.title}>
+          <Text variant="headline" size="lg" weight="bold" style={styles.title}>
             Order History
           </Text>
 
           <View style={styles.emptyState}>
-            <Text variant='display' size='xl' style={{ marginBottom: 16 }}>
+            <Text variant="display" size="xl" style={styles.emptyStateIcon}>
               📜
             </Text>
-            <Text variant='body' size='md' align='center' color='secondary'>
+            <Text variant="body" size="md" align="center" color="secondary">
               Your order history will appear here
             </Text>
             <Text
-              variant='body'
-              size='sm'
-              align='center'
-              color='secondary'
-              style={{ marginTop: 8 }}
+              variant="body"
+              size="sm"
+              align="center"
+              color="secondary"
+              style={styles.emptyStateNote}
             >
               (API integration pending)
             </Text>
@@ -90,5 +90,11 @@ const styles = StyleSheet.create({
   emptyState: {
     paddingVertical: 60,
     alignItems: 'center',
+  },
+  emptyStateIcon: {
+    marginBottom: 16,
+  },
+  emptyStateNote: {
+    marginTop: 8,
   },
 });

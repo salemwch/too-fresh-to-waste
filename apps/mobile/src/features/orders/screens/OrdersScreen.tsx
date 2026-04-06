@@ -13,14 +13,7 @@
  */
 
 import React, { useCallback, useState, useMemo } from 'react';
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  RefreshControl,
-  Platform,
-  Pressable,
-} from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, Platform, Pressable } from 'react-native';
 
 import { Text, Icon, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -42,6 +35,16 @@ interface OrdersScreenProps {
   navigation: OrdersScreenNavigationProp;
 }
 
+const TAB_BORDER = '#F1F5F9';
+const BRAND_PRIMARY = '#005250';
+const TEXT_SECONDARY = '#64748B';
+const WHITE = '#FFFFFF';
+const BADGE_BACKGROUND = '#E2E8F0';
+const BADGE_ACTIVE_BACKGROUND = 'rgba(255, 255, 255, 0.25)';
+const TEXT_TERTIARY = '#475569';
+const TEXT_PRIMARY = '#1F2937';
+const STEP_BACKGROUND = '#D1FAE5';
+
 // ---------------------------------------------------------------------------
 // Skeleton list (loading state)
 // ---------------------------------------------------------------------------
@@ -51,7 +54,7 @@ const SKELETON_DATA = Array.from({ length: SKELETON_COUNT }, (_, i) => ({ key: S
 
 const SkeletonList: React.FC = () => (
   <View style={styles.listContent}>
-    {SKELETON_DATA.map(item => (
+    {SKELETON_DATA.map((item) => (
       <SkeletonOrderCard key={item.key} />
     ))}
   </View>
@@ -87,7 +90,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ tab, onBrowse }) => {
       <Text style={styles.emptySubtitle}>
         {tab === 'active'
           ? 'Start saving food and money by placing your first order'
-          : "Your completed orders will appear here"}
+          : 'Your completed orders will appear here'}
       </Text>
 
       {tab === 'active' && (
@@ -111,15 +114,21 @@ const EmptyState: React.FC<EmptyStateProps> = ({ tab, onBrowse }) => {
           <Text style={styles.howItWorksTitle}>How It Works</Text>
 
           <View style={styles.stepRow}>
-            <View style={styles.stepDot}><Text style={styles.stepNum}>1</Text></View>
+            <View style={styles.stepDot}>
+              <Text style={styles.stepNum}>1</Text>
+            </View>
             <Text style={styles.stepText}>Browse and select an offer</Text>
           </View>
           <View style={styles.stepRow}>
-            <View style={styles.stepDot}><Text style={styles.stepNum}>2</Text></View>
+            <View style={styles.stepDot}>
+              <Text style={styles.stepNum}>2</Text>
+            </View>
             <Text style={styles.stepText}>Confirm and pay for your order</Text>
           </View>
           <View style={styles.stepRow}>
-            <View style={styles.stepDot}><Text style={styles.stepNum}>3</Text></View>
+            <View style={styles.stepDot}>
+              <Text style={styles.stepNum}>3</Text>
+            </View>
             <Text style={styles.stepText}>Pick up during the specified time</Text>
           </View>
         </View>
@@ -148,14 +157,10 @@ const TabPill: React.FC<TabPillProps> = ({ label, count, isActive, onPress }) =>
     accessibilityState={{ selected: isActive }}
     accessibilityLabel={`${label} tab, ${count} orders`}
   >
-    <Text style={[styles.tabPillText, isActive && styles.tabPillTextActive]}>
-      {label}
-    </Text>
+    <Text style={[styles.tabPillText, isActive && styles.tabPillTextActive]}>{label}</Text>
     {count > 0 && (
       <View style={[styles.tabCountBadge, isActive && styles.tabCountBadgeActive]}>
-        <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>
-          {count}
-        </Text>
+        <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>{count}</Text>
       </View>
     )}
   </Pressable>
@@ -169,13 +174,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<TabKey>('active');
 
-  const {
-    activeOrders,
-    historyOrders,
-    isLoading,
-    isRefetching,
-    refetch,
-  } = useOrders();
+  const { activeOrders, historyOrders, isLoading, isRefetching, refetch } = useOrders();
 
   const currentOrders = useMemo(
     () => (selectedTab === 'active' ? activeOrders : historyOrders),
@@ -197,14 +196,16 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
     navigation.jumpTo('Home');
   }, [navigation]);
 
+  const handleRefresh = useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
   // ---------------------------------------------------------------------------
   // Render helpers
   // ---------------------------------------------------------------------------
 
   const renderOrderCard = useCallback(
-    ({ item }: { item: Order }) => (
-      <OrderCard order={item} onPress={handleOrderPress} />
-    ),
+    ({ item }: { item: Order }) => <OrderCard order={item} onPress={handleOrderPress} />,
     [handleOrderPress],
   );
 
@@ -251,7 +252,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
-              onRefresh={refetch}
+              onRefresh={handleRefresh}
               tintColor={theme.colors.primary}
               colors={[theme.colors.primary]}
             />
@@ -278,7 +279,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: TAB_BORDER,
   },
   tabPill: {
     flex: 1,
@@ -287,39 +288,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: TAB_BORDER,
     gap: 6,
   },
   tabPillActive: {
-    backgroundColor: '#005250',
+    backgroundColor: BRAND_PRIMARY,
   },
   tabPillText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#64748B',
+    color: TEXT_SECONDARY,
   },
   tabPillTextActive: {
-    color: '#FFFFFF',
+    color: WHITE,
   },
   tabCountBadge: {
     minWidth: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: BADGE_BACKGROUND,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 6,
   },
   tabCountBadgeActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: BADGE_ACTIVE_BACKGROUND,
   },
   tabCountText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#475569',
+    color: TEXT_TERTIARY,
   },
   tabCountTextActive: {
-    color: '#FFFFFF',
+    color: WHITE,
   },
 
   // List
@@ -347,14 +348,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1F2937',
+    color: TEXT_PRIMARY,
     textAlign: 'center',
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#64748B',
+    color: TEXT_SECONDARY,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
   // How it works
   howItWorksCard: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WHITE,
     borderRadius: 16,
     padding: 20,
     ...Platform.select({
@@ -383,7 +384,7 @@ const styles = StyleSheet.create({
   howItWorksTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
+    color: TEXT_PRIMARY,
     marginBottom: 16,
   },
   stepRow: {
@@ -395,7 +396,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#D1FAE5',
+    backgroundColor: STEP_BACKGROUND,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -403,12 +404,12 @@ const styles = StyleSheet.create({
   stepNum: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#005250',
+    color: BRAND_PRIMARY,
   },
   stepText: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#475569',
+    color: TEXT_TERTIARY,
     flex: 1,
   },
 });

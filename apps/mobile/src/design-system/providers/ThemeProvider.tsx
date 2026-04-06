@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { Logger } from '../../utils/logger';
 import { designTokens } from '../tokens';
 
 import type { ThemeMode, ColorScheme, ThemeContextValue, ThemeShadows } from '../types';
@@ -51,7 +52,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Determine the active color scheme
   const colorScheme: ColorScheme =
-    themeMode === 'auto' ? systemColorScheme || 'light' : (themeMode as ColorScheme);
+    themeMode === 'auto' ? (systemColorScheme ?? 'light') : (themeMode as ColorScheme);
 
   // Get theme-specific tokens
   const themeColors = useThemeColors(colorScheme);
@@ -67,11 +68,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
           setThemeMode(savedTheme as ThemeMode);
         }
       } catch (error) {
-        console.warn('Failed to load theme from storage:', error);
+        Logger.warn(
+          'Failed to load theme from storage',
+          { storageKey },
+          error instanceof Error ? error : undefined,
+        );
       }
     };
 
-    loadTheme();
+    void loadTheme();
   }, [storageKey]);
 
   // Save theme to storage
@@ -80,7 +85,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       try {
         await AsyncStorage.setItem(storageKey, mode);
       } catch (error) {
-        console.warn('Failed to save theme to storage:', error);
+        Logger.warn(
+          'Failed to save theme to storage',
+          { storageKey, mode },
+          error instanceof Error ? error : undefined,
+        );
       }
     },
     [storageKey],
@@ -90,7 +99,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const setTheme = useCallback(
     (mode: ThemeMode) => {
       setThemeMode(mode);
-      saveTheme(mode);
+      void saveTheme(mode);
     },
     [saveTheme],
   );
@@ -148,7 +157,7 @@ export const useTheme = (): ThemeContextValue => {
 };
 
 // Hook to create themed styles
-export const useThemedStyles = <T extends Record<string, any>>(
+export const useThemedStyles = <T extends Record<string, unknown>>(
   createStyles: (theme: ThemeContextValue) => T,
 ): T => {
   const theme = useTheme();

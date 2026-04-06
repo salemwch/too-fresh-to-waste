@@ -3,7 +3,7 @@
  */
 
 import type { ComponentSize, StyleSystemProps, IconFamily } from '../../../types';
-import type { PressableProps } from 'react-native';
+import type { PressableProps, StyleProp, TextStyle, ViewStyle } from 'react-native';
 
 export type ButtonVariant =
   | 'primary'
@@ -71,12 +71,12 @@ export interface ButtonProps extends Omit<PressableProps, 'style'>, StyleSystemP
   /**
    * Custom style overrides
    */
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 
   /**
    * Text style overrides
    */
-  textStyle?: any;
+  textStyle?: StyleProp<TextStyle>;
 
   /**
    * Haptic feedback on press (iOS/Android)

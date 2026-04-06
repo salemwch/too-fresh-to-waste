@@ -15,12 +15,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useCallback } from 'react';
 
-import { HOME_STORAGE_KEYS } from '../constants/homeConstants';
-
 import { userService } from '@/features/profile/services';
 import { useAppDispatch } from '@/hooks/redux';
 import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
 import { Logger } from '@/utils/logger';
+
+import { HOME_STORAGE_KEYS } from '../constants/homeConstants';
 
 // ============================================================================
 // Types
@@ -45,7 +45,7 @@ interface UseLocationSetupResult {
   /** Handle location selection from LocationSelectionModal */
   handleLocationSelection: (
     coordinates: { latitude: number; longitude: number },
-    name: string
+    name: string,
   ) => Promise<void>;
   /** Handle manual location selection */
   handleManualLocationSelect: (location: {
@@ -85,8 +85,15 @@ interface UseLocationSetupResult {
 export function useLocationSetup(
   hasLocation: boolean,
   isAuthenticated: boolean,
-  requestLocation: () => Promise<{ success: boolean; coordinates?: { latitude: number; longitude: number }; error?: string }>,
-  setManualLocationValue: (coordinates: { latitude: number; longitude: number }, name: string) => void
+  requestLocation: () => Promise<{
+    success: boolean;
+    coordinates?: { latitude: number; longitude: number };
+    error?: string;
+  }>,
+  setManualLocationValue: (
+    coordinates: { latitude: number; longitude: number },
+    name: string,
+  ) => void,
 ): UseLocationSetupResult {
   // ============================================================================
   // State
@@ -119,7 +126,9 @@ export function useLocationSetup(
 
         // Don't restore from backend if user just set GPS location
         if (currentSource === 'gps') {
-          Logger.debug('[useLocationSetup] Skipping backend restoration - GPS location already set');
+          Logger.debug(
+            '[useLocationSetup] Skipping backend restoration - GPS location already set',
+          );
           return;
         }
 
@@ -145,7 +154,10 @@ export function useLocationSetup(
                 })
                 .catch((error: unknown) => {
                   // Non-blocking: If reverse geocoding fails, keep "Your saved location"
-                  Logger.warn('[useLocationSetup] ⚠️ Reverse geocoding failed for restored location', { error: String(error) });
+                  Logger.warn(
+                    '[useLocationSetup] ⚠️ Reverse geocoding failed for restored location',
+                    { error: String(error) },
+                  );
                 });
 
               await AsyncStorage.setItem(HOME_STORAGE_KEYS.LOCATION_SETUP_COMPLETED, 'true');
@@ -155,7 +167,11 @@ export function useLocationSetup(
             Logger.debug('[useLocationSetup] No location found in backend for this user');
           } catch (error) {
             // Non-blocking: if backend fetch fails, continue with modal flow
-            Logger.error('[useLocationSetup] Failed to fetch location from backend:', {}, error as Error);
+            Logger.error(
+              '[useLocationSetup] Failed to fetch location from backend:',
+              {},
+              error as Error,
+            );
           }
         }
 
@@ -207,7 +223,7 @@ export function useLocationSetup(
           if (!result.success || !result.coordinates) {
             // GPS failed, show error and keep modal open
             setLocationError(
-              result.error ?? 'Failed to get your location. Please try another option.'
+              result.error ?? 'Failed to get your location. Please try another option.',
             );
             return;
           }
@@ -217,11 +233,15 @@ export function useLocationSetup(
 
           try {
             await dispatch(reverseGeocodeAsync(result.coordinates)).unwrap();
-            Logger.info('[useLocationSetup] ✅ Reverse geocoding completed - location name resolved');
+            Logger.info(
+              '[useLocationSetup] ✅ Reverse geocoding completed - location name resolved',
+            );
           } catch (geocodeError) {
             // Non-blocking: If reverse geocoding fails, still use GPS coordinates
             // Header will show "Current Location" fallback
-            Logger.warn('[useLocationSetup] ⚠️ Reverse geocoding failed, using fallback', { error: String(geocodeError) });
+            Logger.warn('[useLocationSetup] ⚠️ Reverse geocoding failed, using fallback', {
+              error: String(geocodeError),
+            });
           }
 
           // Step 3: Close modal AFTER location name is ready
@@ -241,7 +261,11 @@ export function useLocationSetup(
               }
             } catch (error) {
               // Non-blocking: log error but don't prevent local storage
-              Logger.error('[useLocationSetup] Failed to sync GPS location to backend:', {}, error as Error);
+              Logger.error(
+                '[useLocationSetup] Failed to sync GPS location to backend:',
+                {},
+                error as Error,
+              );
             }
           })();
         } catch (error) {
@@ -266,11 +290,15 @@ export function useLocationSetup(
           }
         } catch (error) {
           // Non-blocking: log error but don't prevent local storage
-          Logger.error('[useLocationSetup] Failed to sync manual location to backend:', {}, error as Error);
+          Logger.error(
+            '[useLocationSetup] Failed to sync manual location to backend:',
+            {},
+            error as Error,
+          );
         }
       }
     },
-    [requestLocation, setManualLocationValue, isAuthenticated, dispatch]
+    [requestLocation, setManualLocationValue, isAuthenticated, dispatch],
   );
 
   /**
@@ -281,7 +309,7 @@ export function useLocationSetup(
       setManualLocationValue(location.coordinates, location.name);
       setShowManualLocationModal(false);
     },
-    [setManualLocationValue]
+    [setManualLocationValue],
   );
 
   /**

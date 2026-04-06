@@ -1,4 +1,4 @@
-import Config from 'react-native-config';
+import { Config } from 'react-native-config';
 
 interface EnvironmentConfig {
   readonly app: {
@@ -80,7 +80,7 @@ const createEnvironmentConfig = (): EnvironmentConfig => {
   };
 
   const getString = (value: string | undefined, defaultValue: string): string =>
-    value || defaultValue;
+    value ?? defaultValue;
 
   const getLogLevel = (value: string | undefined): 'debug' | 'info' | 'warn' | 'error' => {
     const level = value?.toLowerCase();
@@ -174,25 +174,7 @@ const createEnvironmentConfig = (): EnvironmentConfig => {
 
 export const environment = createEnvironmentConfig();
 
-// Debug logging for environment configuration
-if (__DEV__) {
-  console.log('[Environment] API Configuration:', {
-    baseUrl: environment.api.baseUrl,
-    websocketUrl: environment.api.websocketUrl,
-    timeout: environment.api.timeout,
-    rawConfigValue: Config['API_BASE_URL'],
-  });
-}
-
-// Type guard for environment checking
-export const isDevelopment = (): boolean => environment.environment === 'development';
-export const isStaging = (): boolean => environment.environment === 'staging';
 const isProduction = (): boolean => environment.isProduction;
-
-// Security checks
-export const isDebugBuild = (): boolean => __DEV__ || environment.environment === 'development';
-
-export const shouldEnableDebugging = (): boolean => environment.shouldEnableDebugging;
 
 // Validation function
 export const validateEnvironmentConfig = (): { isValid: boolean; errors: string[] } => {

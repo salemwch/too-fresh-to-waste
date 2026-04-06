@@ -3,23 +3,23 @@
  * Text input with label, helper text, and validation styling
  */
 
+import AntDesignIcon from '@react-native-vector-icons/ant-design';
+import EntypoIcon from '@react-native-vector-icons/entypo';
+import EvilIconsIcon from '@react-native-vector-icons/evil-icons';
+import FeatherIcon from '@react-native-vector-icons/feather';
+import FontAwesomeIcon from '@react-native-vector-icons/fontawesome';
+import FontAwesome5Icon from '@react-native-vector-icons/fontawesome5';
+import FontAwesome6Icon from '@react-native-vector-icons/fontawesome6';
+import FontistoIcon from '@react-native-vector-icons/fontisto';
+import FoundationIcon from '@react-native-vector-icons/foundation';
+import IoniconsIcon from '@react-native-vector-icons/ionicons';
+import MaterialCommunityIconsIcon from '@react-native-vector-icons/material-design-icons';
+import MaterialIconsIcon from '@react-native-vector-icons/material-icons';
+import OcticonsIcon from '@react-native-vector-icons/octicons';
+import SimpleLineIconsIcon from '@react-native-vector-icons/simple-line-icons';
+import ZocialIcon from '@react-native-vector-icons/zocial';
 import React, { forwardRef, useState, useCallback } from 'react';
 import { View, TextInput, Pressable } from 'react-native';
-import AntDesign from '@react-native-vector-icons/ant-design';
-import Entypo from '@react-native-vector-icons/entypo';
-import EvilIcons from '@react-native-vector-icons/evil-icons';
-import Feather from '@react-native-vector-icons/feather';
-import FontAwesome from '@react-native-vector-icons/fontawesome';
-import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
-import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
-import Fontisto from '@react-native-vector-icons/fontisto';
-import Foundation from '@react-native-vector-icons/foundation';
-import Icon from '@react-native-vector-icons/ionicons';
-import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
-import MaterialIcons from '@react-native-vector-icons/material-icons';
-import Octicons from '@react-native-vector-icons/octicons';
-import SimpleLineIcons from '@react-native-vector-icons/simple-line-icons';
-import Zocial from '@react-native-vector-icons/zocial';
 
 import { useTheme } from '../../../providers';
 import { Text } from '../Text';
@@ -29,8 +29,16 @@ import { createInputStyles } from './Input.styles';
 import type { InputProps, InputState } from './Input.types';
 import type { IconFamily, IconComponent } from '../../../types';
 
+const hasStringContent = (value: string | undefined): value is string =>
+  value !== undefined && value !== '';
+
+const hasRenderableNode = (
+  value: React.ReactNode | string | undefined,
+): value is Exclude<React.ReactNode | string, null | undefined | false> =>
+  value !== null && value !== undefined && value !== false;
+
 export const Input = forwardRef<TextInput, InputProps>(
-  function Input(
+  (
     {
       variant = 'default',
       size = 'md',
@@ -70,7 +78,7 @@ export const Input = forwardRef<TextInput, InputProps>(
       ...rest
     },
     ref,
-  ) {
+  ) => {
     const theme = useTheme();
     const [isFocused, setIsFocused] = useState(false);
 
@@ -81,43 +89,44 @@ export const Input = forwardRef<TextInput, InputProps>(
     const getIconComponent = (family?: IconFamily): IconComponent => {
       switch (family) {
         case 'AntDesign':
-          return AntDesign as IconComponent;
+          return AntDesignIcon as IconComponent;
         case 'Entypo':
-          return Entypo as IconComponent;
+          return EntypoIcon as IconComponent;
         case 'EvilIcons':
-          return EvilIcons as IconComponent;
+          return EvilIconsIcon as IconComponent;
         case 'Feather':
-          return Feather as IconComponent;
+          return FeatherIcon as IconComponent;
         case 'FontAwesome':
-          return FontAwesome as IconComponent;
+          return FontAwesomeIcon as IconComponent;
         case 'FontAwesome5':
-          return FontAwesome5 as IconComponent;
+          return FontAwesome5Icon as IconComponent;
         case 'FontAwesome6':
-          return FontAwesome6 as IconComponent;
+          return FontAwesome6Icon as IconComponent;
         case 'Fontisto':
-          return Fontisto as IconComponent;
+          return FontistoIcon as IconComponent;
         case 'Foundation':
-          return Foundation as IconComponent;
+          return FoundationIcon as IconComponent;
         case 'MaterialCommunityIcons':
-          return MaterialCommunityIcons as IconComponent;
+          return MaterialCommunityIconsIcon as IconComponent;
         case 'MaterialIcons':
-          return MaterialIcons as IconComponent;
+          return MaterialIconsIcon as IconComponent;
         case 'Octicons':
-          return Octicons as IconComponent;
+          return OcticonsIcon as IconComponent;
         case 'SimpleLineIcons':
-          return SimpleLineIcons as IconComponent;
+          return SimpleLineIconsIcon as IconComponent;
         case 'Zocial':
-          return Zocial as IconComponent;
+          return ZocialIcon as IconComponent;
         case 'Ionicons':
+        case undefined:
         default:
-          return Icon as IconComponent;
+          return IoniconsIcon as IconComponent;
       }
     };
 
     // Determine current state
     const getInputState = (): InputState => {
       if (disabled) return 'disabled';
-      if (hasError || errorText || error) return 'error';
+      if (hasError || hasStringContent(errorText) || hasStringContent(error)) return 'error';
       if (isFocused) return 'focused';
       return 'default';
     };
@@ -131,8 +140,8 @@ export const Input = forwardRef<TextInput, InputProps>(
       size,
       currentState,
       fullWidth,
-      !!leftIcon,
-      !!rightIcon,
+      hasRenderableNode(leftIcon),
+      hasRenderableNode(rightIcon),
     );
 
     // Handle focus events
@@ -158,7 +167,7 @@ export const Input = forwardRef<TextInput, InputProps>(
 
     // Render label with required asterisk
     const renderLabel = () => {
-      if (!label) return null;
+      if (!hasRenderableNode(label)) return null;
 
       // If label is already a ReactNode (not a string), render it directly
       // WITHOUT adding another asterisk (the ReactNode may already have one)
@@ -181,12 +190,12 @@ export const Input = forwardRef<TextInput, InputProps>(
 
     // Render helper or error text
     const renderHelperText = () => {
-      const displayError = error || errorText;
-      if (displayError) {
+      const displayError = hasStringContent(error) ? error : errorText;
+      if (hasStringContent(displayError)) {
         return <Text style={[styles.errorText, errorTextStyle]}>{displayError}</Text>;
       }
 
-      if (helperText) {
+      if (hasStringContent(helperText)) {
         return <Text style={[styles.helperText, helperTextStyle]}>{helperText}</Text>;
       }
 
@@ -200,7 +209,7 @@ export const Input = forwardRef<TextInput, InputProps>(
       icon: React.ReactNode | string | undefined,
       iconFamily?: IconFamily,
     ): React.ReactNode | null => {
-      if (!icon) return null;
+      if (!hasRenderableNode(icon)) return null;
 
       // If icon is already a React component, render it directly
       if (typeof icon !== 'string') {
@@ -209,7 +218,7 @@ export const Input = forwardRef<TextInput, InputProps>(
 
       // If icon is a string, render using icon family
       const IconComponent = getIconComponent(iconFamily);
-      const color = iconColor || theme.colors.onSurfaceVariant;
+      const color = iconColor ?? theme.colors.onSurfaceVariant;
 
       return <IconComponent name={icon} size={iconSize} color={color} />;
     };
@@ -219,7 +228,7 @@ export const Input = forwardRef<TextInput, InputProps>(
         {renderLabel()}
 
         <View style={[styles.inputContainer, inputContainerStyle]}>
-          {leftIcon &&
+          {hasRenderableNode(leftIcon) &&
             (onLeftIconPress ? (
               <Pressable
                 style={styles.leftIconContainer}
@@ -242,7 +251,7 @@ export const Input = forwardRef<TextInput, InputProps>(
             selectionColor={theme.colors.primary}
             testID={testID}
             accessibilityLabel={
-              accessibilityLabel || (typeof label === 'string' ? label : undefined)
+              accessibilityLabel ?? (typeof label === 'string' ? label : undefined)
             }
             accessibilityHint={accessibilityHint}
             accessibilityState={{
@@ -251,7 +260,7 @@ export const Input = forwardRef<TextInput, InputProps>(
             {...rest}
           />
 
-          {rightIcon &&
+          {hasRenderableNode(rightIcon) &&
             (onRightIconPress ? (
               <Pressable
                 style={styles.rightIconContainer}
@@ -273,3 +282,4 @@ export const Input = forwardRef<TextInput, InputProps>(
   },
 );
 
+Input.displayName = 'Input';

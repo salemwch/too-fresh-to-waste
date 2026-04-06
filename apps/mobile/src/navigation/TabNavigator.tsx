@@ -1,19 +1,20 @@
 /**
  * Tab Navigator
- * Bottom tab navigation for main app screens
- * Home, Search, Favorites, Orders, Profile
+ * Bottom tab navigation for main app screens.
+ * Home, Search, Favorites, Orders, Profile.
  *
  * Headers are rendered by each tab's NativeStack navigator,
- * NOT by the BottomTab itself (headerShown: false).
+ * not by the BottomTab itself (headerShown: false).
  * This ensures consistent native header height and animation
  * across all screens.
  *
- * NOTE: Direct imports used instead of React.lazy() due to Metro bundler
+ * NOTE: Direct imports are used instead of React.lazy() due to Metro bundler
  * incompatibility (facebook/metro#1019). Metro's inlineRequires handles
  * lazy loading at the module level automatically.
  */
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { StackActions } from '@react-navigation/native';
 import React, { memo } from 'react';
 import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,6 +27,7 @@ import { HomeStack } from './HomeStack';
 import { OrdersStack } from './OrdersStack';
 import { ProfileStack } from './ProfileStack';
 import { SearchStack } from './SearchStack';
+
 import type { TabParamList } from './types';
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -42,6 +44,10 @@ const Tab = createBottomTabNavigator<TabParamList>();
 const TabNavigatorComponent: React.FC = () => {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const tabBarBackgroundStyle = {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+  };
 
   /**
    * Get icon name based on tab and focus state
@@ -62,21 +68,14 @@ const TabNavigatorComponent: React.FC = () => {
 
   return (
     <Tab.Navigator
-      initialRouteName='Home'
+      initialRouteName="Home"
       screenOptions={({ route }) => ({
-        // Headers are provided by each tab's NativeStack — disable BottomTab headers
         headerShown: false,
-
-        // Lazy mount screens (only render when first accessed)
         lazy: true,
-
-        // Tab Bar Icon
         tabBarIcon: ({ focused, color, size }) => {
           const iconName = getTabIcon(route.name, focused);
-          return <Icon name={iconName} family='Ionicons' size={size} color={color} />;
+          return <Icon name={iconName} family="Ionicons" size={size} color={color} />;
         },
-
-        // Tab Bar Styling
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
         tabBarStyle: {
@@ -94,82 +93,58 @@ const TabNavigatorComponent: React.FC = () => {
           paddingBottom: Platform.OS === 'ios' ? 24 : 8,
           paddingTop: 8,
         },
-        tabBarBackground: () => (
-          <View style={{ flex: 1, backgroundColor: theme.colors.surface }} />
-        ),
-       
+        tabBarBackground: () => <View style={tabBarBackgroundStyle} />,
         tabBarLabelStyle: {
           fontFamily: theme.typography.fontFamily.secondary,
           fontSize: theme.typography.fontSize.xs,
           fontWeight: theme.typography.fontWeight?.medium ?? '500',
         },
-
-        // Behavior
         tabBarHideOnKeyboard: true,
       })}
     >
-      {/* Home Tab */}
-      <Tab.Screen
-        name='Home'
-        component={HomeStack}
-        listeners={{
-          tabPress: (_e) => {
-            if (__DEV__) console.log('[TabNavigator] Home tab pressed');
-          },
-        }}
-        options={{ title: 'Home' }}
-      />
+      <Tab.Screen name="Home" component={HomeStack} options={{ title: 'Home' }} />
+      <Tab.Screen name="Search" component={SearchStack} options={{ title: 'Search' }} />
+      <Tab.Screen name="Favorites" component={FavoritesStack} options={{ title: 'Favorites' }} />
+      <Tab.Screen name="Orders" component={OrdersStack} options={{ title: 'Orders' }} />
 
-      {/* Search Tab */}
+      {/* Reset ProfileStack to ProfileMain whenever the Profile tab is pressed. */}
       <Tab.Screen
-        name='Search'
-        component={SearchStack}
-        listeners={{
-          tabPress: (_e) => {
-            if (__DEV__) console.log('[TabNavigator] Search tab pressed');
-          },
-        }}
-        options={{ title: 'Search' }}
-      />
-
-      {/* Favorites Tab */}
-      <Tab.Screen
-        name='Favorites'
-        component={FavoritesStack}
-        listeners={{
-          tabPress: (_e) => {
-            if (__DEV__) console.log('[TabNavigator] Favorites tab pressed');
-          },
-        }}
-        options={{ title: 'Favorites' }}
-      />
-
-      {/* Orders Tab */}
-      <Tab.Screen
-        name='Orders'
-        component={OrdersStack}
-        options={{ title: 'Orders' }}
-      />
-
-      {/* Profile Tab — reset nested stack to ProfileMain whenever the tab is pressed */}
-      <Tab.Screen
-        name='Profile'
+        name="Profile"
         component={ProfileStack}
         options={{ title: 'Profile' }}
         listeners={({ navigation }) => ({
-          tabPress: (_e) => {
+          tabPress: (event) => {
             const state = navigation.getState();
-            const profileIndex = state.routes.findIndex(r => r.name === 'Profile');
+            const profileIndex = state.routes.findIndex((route) => route.name === 'Profile');
+
+            if (profileIndex < 0) {
+              return;
+            }
+
+            const profileRoute = state.routes[profileIndex];
+            if (profileRoute === undefined) return;
             const isProfileActive = state.index === profileIndex;
-            const profileStackDepth = (state.routes[profileIndex]?.state?.index ?? 0) as number;
+            const profileStackDepth = profileRoute.state?.index ?? 0;
 
-            // Already on ProfileMain — nothing to do.
-            if (isProfileActive && profileStackDepth === 0) return;
+            if (isProfileActive && profileStackDepth === 0) {
+              return;
+            }
 
-            // Deep in stack or switching from another tab: pop ProfileStack to root.
-            // navigate() pops to ProfileMain if it already exists in the stack.
-            _e.preventDefault();
-            (navigation as any).navigate('Profile', { screen: 'ProfileMain' });
+            event.preventDefault();
+
+            const profileStateKey =
+              profileRoute.state && 'key' in profileRoute.state
+                ? profileRoute.state.key
+                : undefined;
+
+            if (typeof profileStateKey === 'string') {
+              navigation.dispatch({
+                ...StackActions.popToTop(),
+                target: profileStateKey,
+              });
+            }
+
+            navigation.navigate('Profile');
           },
         })}
       />
@@ -178,7 +153,7 @@ const TabNavigatorComponent: React.FC = () => {
 };
 
 /**
- * PRODUCTION: Memoize TabNavigator to prevent unnecessary re-renders
- * TabNavigator only needs to re-render when theme changes
+ * Memoize TabNavigator to prevent unnecessary re-renders.
+ * TabNavigator only needs to re-render when the theme changes.
  */
 export const TabNavigator = memo(TabNavigatorComponent);

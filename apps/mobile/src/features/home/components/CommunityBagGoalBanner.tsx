@@ -1,38 +1,34 @@
 /**
  * CommunityBagGoalBanner Component
  * Collapsible card showing community progress toward a bag-saving goal.
- * Receives real-time WebSocket updates via useCommunityBagGoal hook.
- *
- * Pattern: mirrors ImpactBanner.tsx (collapsible, React.memo, LayoutAnimation).
  */
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  LayoutAnimation,
-  Animated,
-  Easing,
-} from 'react-native';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, LayoutAnimation, Animated, Easing } from 'react-native';
+
 import SurpriseBoxIcon from '../../../assets/images/surprise-box.svg';
 import { useCommunityBagGoal } from '../hooks/useCommunityBagGoal';
+
 import { SkeletonCommunityBagGoal } from './SkeletonCommunityBagGoal';
 
 interface CommunityBagGoalBannerProps {
-  /** Callback to scroll HomeScreen FlatList to the offers section */
   onSaveABag?: () => void;
 }
 
-const PRIMARY = '#005250';
-const PRIMARY_LIGHT = '#E0F2F1';
+const COLORS = {
+  brand: '#005250',
+  brandSurface: '#E0F2F1',
+  surface: '#FFFFFF',
+  shadow: '#000',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  textMuted: '#9CA3AF',
+  border: '#E5E7EB',
+  textInverse: '#FFFFFF',
+} as const;
 
-/**
- * Pulsing green dot for the LIVE badge
- */
-const PulsingDot: React.FC = () => {
-  const opacity = useRef(new Animated.Value(1)).current;
+const PulsingDot = () => {
+  const [opacity] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
     const animation = Animated.loop(
@@ -51,7 +47,9 @@ const PulsingDot: React.FC = () => {
         }),
       ]),
     );
+
     animation.start();
+
     return () => {
       animation.stop();
     };
@@ -60,26 +58,27 @@ const PulsingDot: React.FC = () => {
   return <Animated.View style={[styles.liveDot, { opacity }]} />;
 };
 
-/**
- * Animated progress bar that smoothly transitions width.
- */
-const ProgressBar: React.FC<{ percentage: number }> = ({ percentage }) => {
-  const widthAnim = useRef(new Animated.Value(0)).current;
+const ProgressBar = ({ percentage }: { percentage: number }) => {
+  const [widthAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     Animated.timing(widthAnim, {
       toValue: Math.min(percentage, 100),
       duration: 800,
       easing: Easing.out(Easing.cubic),
-      useNativeDriver: false, // width animation requires JS driver
+      useNativeDriver: false,
     }).start();
   }, [percentage, widthAnim]);
 
-  const animatedWidth = widthAnim.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0%', '100%'],
-    extrapolate: 'clamp',
-  });
+  const animatedWidth = useMemo(
+    () =>
+      widthAnim.interpolate({
+        inputRange: [0, 100],
+        outputRange: ['0%', '100%'],
+        extrapolate: 'clamp',
+      }),
+    [widthAnim],
+  );
 
   return (
     <View style={styles.progressBar}>
@@ -88,24 +87,20 @@ const ProgressBar: React.FC<{ percentage: number }> = ({ percentage }) => {
   );
 };
 
-const CommunityBagGoalBannerComponent: React.FC<CommunityBagGoalBannerProps> = ({
-  onSaveABag,
-}) => {
+const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: stats, isLoading, isError } = useCommunityBagGoal();
 
   const toggleExpand = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsExpanded(prev => !prev);
+    setIsExpanded((previousValue) => !previousValue);
   }, []);
 
-  // Loading → skeleton
-  if (isLoading || (!stats && !isError)) {
+  if (isLoading || (stats === undefined && !isError)) {
     return <SkeletonCommunityBagGoal />;
   }
 
-  // Error or no data → hide
-  if (isError || !stats) {
+  if (isError || stats === undefined) {
     return null;
   }
 
@@ -121,7 +116,6 @@ const CommunityBagGoalBannerComponent: React.FC<CommunityBagGoalBannerProps> = (
         accessibilityHint="Tap to expand for details"
         testID="community-bag-goal-banner"
       >
-        {/* ── Collapsed row ── */}
         <View style={styles.collapsedContent}>
           <View style={styles.iconContainer}>
             <SurpriseBoxIcon width={28} height={28} />
@@ -143,12 +137,10 @@ const CommunityBagGoalBannerComponent: React.FC<CommunityBagGoalBannerProps> = (
           <Text style={styles.expandIcon}>{isExpanded ? '\u25BC' : '\u25B6'}</Text>
         </View>
 
-        {/* ── Expanded content ── */}
         {isExpanded && (
           <View style={styles.expandedContent}>
             <View style={styles.divider} />
 
-            {/* Large counter */}
             <View style={styles.counterRow}>
               <Text style={styles.counterCurrent}>{currentCount.toLocaleString()}</Text>
               <Text style={styles.counterSeparator}> / </Text>
@@ -156,15 +148,11 @@ const CommunityBagGoalBannerComponent: React.FC<CommunityBagGoalBannerProps> = (
             </View>
             <Text style={styles.counterLabel}>Bags Saved</Text>
 
-            {/* Progress bar */}
             <View style={styles.progressContainer}>
               <ProgressBar percentage={progressPercentage} />
-              <Text style={styles.remainingText}>
-                {remaining.toLocaleString()} remaining
-              </Text>
+              <Text style={styles.remainingText}>{remaining.toLocaleString()} remaining</Text>
             </View>
 
-            {/* Save Food button */}
             {onSaveABag != null && (
               <Pressable
                 style={styles.saveButton}
@@ -184,29 +172,22 @@ const CommunityBagGoalBannerComponent: React.FC<CommunityBagGoalBannerProps> = (
 };
 
 CommunityBagGoalBannerComponent.displayName = 'CommunityBagGoalBanner';
-export const CommunityBagGoalBanner = React.memo(CommunityBagGoalBannerComponent);
-;
-
-// ============================================================================
-// Styles
-// ============================================================================
+export const CommunityBagGoalBanner = memo(CommunityBagGoalBannerComponent);
 
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 8,
   },
   banner: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-
-  // ── Collapsed ──
   collapsedContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -229,12 +210,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: COLORS.textPrimary,
   },
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: PRIMARY_LIGHT,
+    backgroundColor: COLORS.brandSurface,
     borderRadius: 8,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -244,32 +225,30 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: PRIMARY,
+    backgroundColor: COLORS.brand,
     marginRight: 4,
   },
   liveText: {
     fontSize: 10,
     fontWeight: '700',
-    color: PRIMARY,
+    color: COLORS.brand,
     letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: COLORS.textSecondary,
   },
   expandIcon: {
     fontSize: 16,
-    color: PRIMARY,
+    color: COLORS.brand,
     marginLeft: 8,
   },
-
-  // ── Expanded ──
   expandedContent: {
     marginTop: 12,
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: COLORS.border,
     marginBottom: 16,
   },
   counterRow: {
@@ -280,52 +259,48 @@ const styles = StyleSheet.create({
   counterCurrent: {
     fontSize: 36,
     fontWeight: '700',
-    color: PRIMARY,
+    color: COLORS.brand,
   },
   counterSeparator: {
     fontSize: 20,
-    color: '#9CA3AF',
+    color: COLORS.textMuted,
   },
   counterTarget: {
     fontSize: 20,
     fontWeight: '500',
-    color: '#6B7280',
+    color: COLORS.textSecondary,
   },
   counterLabel: {
     textAlign: 'center',
     fontSize: 14,
-    color: '#6B7280',
+    color: COLORS.textSecondary,
     marginBottom: 16,
   },
-
-  // ── Progress bar ──
   progressContainer: {
     marginBottom: 16,
   },
   progressBar: {
     height: 10,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: COLORS.border,
     borderRadius: 5,
     overflow: 'hidden',
     marginBottom: 6,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: PRIMARY,
+    backgroundColor: COLORS.brand,
     borderRadius: 5,
   },
   remainingText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: COLORS.textSecondary,
     textAlign: 'right',
   },
-
-  // ── Save Food button ──
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: PRIMARY,
+    backgroundColor: COLORS.brand,
     borderRadius: 12,
     paddingVertical: 14,
     gap: 8,
@@ -333,6 +308,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
 });

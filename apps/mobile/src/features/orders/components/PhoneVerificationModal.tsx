@@ -30,6 +30,18 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 /** Tunisia calling code — displayed as a fixed prefix on the phone input */
 const COUNTRY_PREFIX = '+216';
+const OVERLAY = 'rgba(0, 0, 0, 0.6)';
+const SURFACE = '#FFFFFF';
+const TEXT_PRIMARY = '#111827';
+const TEXT_SECONDARY = '#6B7280';
+const TEXT_MUTED = '#374151';
+const BORDER = '#D1D5DB';
+const SURFACE_MUTED = '#E5E7EB';
+const INPUT_SURFACE = '#F9FAFB';
+const SUCCESS = '#10B981';
+const DISABLED = '#9CA3AF';
+const ERROR = '#EF4444';
+const WARNING = '#F59E0B';
 
 import { selectAuthUser } from '@/features/auth/store/authSlice';
 import { useAppSelector } from '@/hooks';
@@ -138,7 +150,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   useEffect(() => {
     if (countdown > 0) {
       countdownTimerRef.current = setTimeout(() => {
-        setCountdown(prev => prev - 1);
+        setCountdown((prev) => prev - 1);
       }, 1000);
     }
 
@@ -309,6 +321,15 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
       setIsLoading(false);
     }
   }, [countdown, phoneNumber]);
+  const handleSendOTPPress = useCallback(() => {
+    void handleSendOTP();
+  }, [handleSendOTP]);
+  const handleVerifyOTPPress = useCallback(() => {
+    void handleVerifyOTP();
+  }, [handleVerifyOTP]);
+  const handleResendOTPPress = useCallback(() => {
+    void handleResendOTP();
+  }, [handleResendOTP]);
 
   /**
    * Handle OTP input change.
@@ -327,7 +348,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   useEffect(() => {
     if (otp.length === 6) {
       const timer = setTimeout(() => {
-        handleVerifyOTP();
+        void handleVerifyOTP();
       }, 300);
       return () => clearTimeout(timer);
     }
@@ -341,7 +362,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
     <>
       <Text style={styles.title}>Verify Your Phone Number</Text>
       <Text style={styles.subtitle}>
-        To complete your order, please verify your phone number. You'll receive a verification code
+        To complete your order, please verify your phone number. You’ll receive a verification code
         via SMS.
       </Text>
 
@@ -353,11 +374,11 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
           </View>
           <TextInput
             style={[styles.input, styles.phoneInput]}
-            placeholder='20 123 456'
-            placeholderTextColor='#9CA3AF'
+            placeholder="20 123 456"
+            placeholderTextColor="#9CA3AF"
             value={phoneNumber.replace(COUNTRY_PREFIX, '')}
             onChangeText={handlePhoneChange}
-            keyboardType='phone-pad'
+            keyboardType="phone-pad"
             maxLength={8}
             autoFocus
             editable={!isLoading}
@@ -369,11 +390,11 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 
       <Pressable
         style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={handleSendOTP}
+        onPress={handleSendOTPPress}
         disabled={isLoading}
       >
         {isLoading ? (
-          <ActivityIndicator color='#FFFFFF' />
+          <ActivityIndicator color="#FFFFFF" />
         ) : (
           <Text style={styles.buttonText}>Send Verification Code</Text>
         )}
@@ -400,18 +421,18 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         <TextInput
           ref={otpInputRef}
           style={[styles.input, styles.otpInput]}
-          placeholder='123456'
-          placeholderTextColor='#9CA3AF'
+          placeholder="123456"
+          placeholderTextColor="#9CA3AF"
           value={otp}
           onChangeText={handleOTPChange}
-          keyboardType='number-pad'
+          keyboardType="number-pad"
           maxLength={6}
           autoFocus
           editable={!isLoading}
         />
       </View>
 
-      {(error != null) && <Text style={styles.errorText}>{error}</Text>}
+      {error != null && <Text style={styles.errorText}>{error}</Text>}
 
       {attemptsRemaining !== null && attemptsRemaining < 3 && (
         <Text style={styles.warningText}>⚠️ {attemptsRemaining} attempts remaining</Text>
@@ -419,11 +440,11 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 
       <Pressable
         style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={handleVerifyOTP}
+        onPress={handleVerifyOTPPress}
         disabled={isLoading || otp.length !== 6}
       >
         {isLoading ? (
-          <ActivityIndicator color='#FFFFFF' />
+          <ActivityIndicator color="#FFFFFF" />
         ) : (
           <Text style={styles.buttonText}>Verify & Continue</Text>
         )}
@@ -433,7 +454,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         {countdown > 0 ? (
           <Text style={styles.resendText}>Resend code in {countdown}s</Text>
         ) : (
-          <Pressable onPress={handleResendOTP} disabled={isLoading}>
+          <Pressable onPress={handleResendOTPPress} disabled={isLoading}>
             <Text style={styles.resendButtonText}>Resend Code</Text>
           </Pressable>
         )}
@@ -472,7 +493,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   if (!visible) return null;
 
   return (
-    <Modal visible={visible} animationType='none' transparent onRequestClose={handleCloseAnimated}>
+    <Modal visible={visible} animationType="none" transparent onRequestClose={handleCloseAnimated}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.overlay}
@@ -515,10 +536,10 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', // ✅ Matches OfferDetailsScreen
+    backgroundColor: OVERLAY, // ✅ Matches OfferDetailsScreen
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SURFACE,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -528,13 +549,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#111827',
+    color: TEXT_PRIMARY,
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: TEXT_SECONDARY,
     marginBottom: 24,
     textAlign: 'center',
     lineHeight: 20,
@@ -545,7 +566,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: TEXT_MUTED,
     marginBottom: 8,
   },
   phoneRow: {
@@ -553,9 +574,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   prefixBox: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: SURFACE_MUTED,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: BORDER,
     borderTopLeftRadius: 12,
     borderBottomLeftRadius: 12,
     paddingHorizontal: 14,
@@ -565,7 +586,7 @@ const styles = StyleSheet.create({
   prefixText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
+    color: TEXT_MUTED,
   },
   phoneInput: {
     flex: 1,
@@ -574,12 +595,12 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: BORDER,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#111827',
-    backgroundColor: '#F9FAFB',
+    color: TEXT_PRIMARY,
+    backgroundColor: INPUT_SURFACE,
   },
   otpInput: {
     textAlign: 'center',
@@ -588,17 +609,17 @@ const styles = StyleSheet.create({
     letterSpacing: 8,
   },
   button: {
-    backgroundColor: '#10B981',
+    backgroundColor: SUCCESS,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     marginTop: 8,
   },
   buttonDisabled: {
-    backgroundColor: '#9CA3AF',
+    backgroundColor: DISABLED,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: SURFACE,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -607,18 +628,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#6B7280',
+    color: TEXT_SECONDARY,
     fontSize: 14,
     fontWeight: '500',
   },
   errorText: {
-    color: '#EF4444',
+    color: ERROR,
     fontSize: 14,
     marginBottom: 12,
     textAlign: 'center',
   },
   warningText: {
-    color: '#F59E0B',
+    color: WARNING,
     fontSize: 14,
     marginBottom: 12,
     textAlign: 'center',
@@ -629,11 +650,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resendText: {
-    color: '#6B7280',
+    color: TEXT_SECONDARY,
     fontSize: 14,
   },
   resendButtonText: {
-    color: '#10B981',
+    color: SUCCESS,
     fontSize: 14,
     fontWeight: '600',
   },

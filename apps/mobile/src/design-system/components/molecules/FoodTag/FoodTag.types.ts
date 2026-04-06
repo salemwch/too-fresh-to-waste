@@ -10,6 +10,7 @@ import type {
   DietaryType,
   FreshnessLevel,
 } from '../../../types';
+import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
 
 export type FoodTagVariant = 'category' | 'dietary' | 'freshness' | 'status' | 'custom';
 
@@ -102,12 +103,12 @@ export interface FoodTagProps extends BaseComponentProps {
   /**
    * Custom container style
    */
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 
   /**
    * Custom text style
    */
-  textStyle?: any;
+  textStyle?: StyleProp<TextStyle>;
 
   /**
    * Maximum width constraint

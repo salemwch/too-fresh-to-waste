@@ -8,9 +8,9 @@ import { useSelector } from 'react-redux';
 
 import { donationsApi } from '../services/donationsApi';
 
+import type { RootState } from '../../../store';
 import type { DonationStats, UserDonationStats } from '../../../types/donations';
 import type { UseQueryResult } from '@tanstack/react-query';
-import type { RootState } from '../../../store';
 
 /**
  * ✅ DRY PRINCIPLE: Shared query configuration for all donation hooks

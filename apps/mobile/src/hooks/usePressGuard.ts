@@ -26,18 +26,24 @@ import { useCallback, useRef } from 'react';
  * <Button onPress={guardedPress} disabled={isGuarded.current} />
  * ```
  */
-export function usePressGuard<T extends (...args: any[]) => any>(
-  handler: T | undefined,
+export function usePressGuard<Args extends unknown[] = []>(
+  handler: ((...args: Args) => unknown) | undefined,
   cooldownMs: number = 500,
-): { guardedPress: (...args: Parameters<T>) => void; isGuarded: React.RefObject<boolean> } {
-  const lastCallTime = useRef<number>(0);
+): { guardedPress: (...args: Args) => void; isGuarded: React.RefObject<boolean> } {
+  const lastCallTime = useRef<number | null>(null);
   const isGuarded = useRef<boolean>(false);
   const cooldownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const guardedPress = useCallback(
-    (...args: Parameters<T>) => {
+    (...args: Args) => {
+      if (cooldownMs <= 0) {
+        handler?.(...args);
+        return;
+      }
+
       const now = Date.now();
-      const elapsed = now - lastCallTime.current;
+      const elapsed =
+        lastCallTime.current === null ? Number.POSITIVE_INFINITY : now - lastCallTime.current;
 
       if (elapsed < cooldownMs) {
         // Still within cooldown — ignore this press

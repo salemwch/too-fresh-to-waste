@@ -8,7 +8,7 @@
  * - Customizable size/shape
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 
 import { useTheme } from '@/design-system/providers';
@@ -31,7 +31,7 @@ export const SkeletonBase: React.FC<SkeletonBaseProps> = ({
   testID = 'skeleton',
 }) => {
   const theme = useTheme();
-  const opacity = useRef(new Animated.Value(0.3)).current;
+  const [opacity] = useState(() => new Animated.Value(0.3));
 
   useEffect(() => {
     // Shimmer animation
@@ -69,8 +69,8 @@ export const SkeletonBase: React.FC<SkeletonBaseProps> = ({
         style,
       ]}
       testID={testID}
-      accessibilityLabel='Loading'
-      accessibilityRole='progressbar'
+      accessibilityLabel="Loading"
+      accessibilityRole="progressbar"
     />
   );
 };

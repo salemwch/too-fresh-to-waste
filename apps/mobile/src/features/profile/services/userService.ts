@@ -10,11 +10,7 @@
  * - PATCH /users/profile/image - Upload profile image
  */
 
-import {
-  apiClient,
-  type BackendApiResponse,
-  unwrapBackendResponse,
-} from '@/services/apiClient';
+import { apiClient, type BackendApiResponse, unwrapBackendResponse } from '@/services/apiClient';
 import { Logger } from '@/utils/logger';
 
 import type { User } from '@/features/auth/types';
@@ -45,6 +41,12 @@ interface UpdateUserProfileDto {
 interface ProfileImageUploadResponse {
   profileImage: string;
   user: User;
+}
+
+interface ReactNativeFilePart {
+  uri: string;
+  name: string;
+  type: string;
 }
 
 /**
@@ -98,21 +100,23 @@ class UserService {
       // ────────────────────────────────────────────────────────────────────
       // Before: response.data.data.data (triple-nesting ❌)
       // After:  unwrapBackendResponse() (clean, safe ✅)
-      const user = unwrapBackendResponse(response, 'user profile fetch');
+      const userData: unknown = unwrapBackendResponse(response, 'user profile fetch');
 
       // ────────────────────────────────────────────────────────────────────
       // 3. RUNTIME VALIDATION - Ensure critical fields exist
       // ────────────────────────────────────────────────────────────────────
-      if (!user || typeof user !== 'object') {
-        throw new Error('Invalid user data: expected object, got ' + typeof user);
+      if (userData === null || typeof userData !== 'object') {
+        throw new Error(`Invalid user data: expected object, got ${typeof userData}`);
       }
 
+      const user = userData as Partial<User>;
+
       // Validate required fields (runtime type guard)
-      if (!user.userId || typeof user.userId !== 'string') {
+      if (typeof user.userId !== 'string' || user.userId === '') {
         throw new Error('Invalid user data: missing or invalid userId');
       }
 
-      if (!user.email || typeof user.email !== 'string') {
+      if (typeof user.email !== 'string' || user.email === '') {
         throw new Error('Invalid user data: missing or invalid email');
       }
 
@@ -121,12 +125,12 @@ class UserService {
       // ────────────────────────────────────────────────────────────────────
       Logger.info('User profile fetched successfully', {
         userId: user.userId,
-        email: user.email.substring(0, 3) + '***', // Privacy: partial email
+        email: `${user.email.substring(0, 3)}***`, // Privacy: partial email
         role: user.role,
         hasLocation: !!user.locationPreferences?.defaultLocation,
       });
 
-      return user;
+      return user as User;
     } catch (error) {
       // Error already logged by unwrapBackendResponse if structure is invalid
       Logger.error('Failed to fetch user profile', {}, error as Error);
@@ -147,10 +151,7 @@ class UserService {
     try {
       Logger.info('Updating user profile', { fields: Object.keys(updates) });
 
-      const response = await apiClient.patch<BackendApiResponse<User>>(
-        '/users/profile',
-        updates,
-      );
+      const response = await apiClient.patch<BackendApiResponse<User>>('/users/profile', updates);
 
       // ✅ Clean unwrapping - no manual .data.data access
       const user = unwrapBackendResponse(response, 'user profile update');
@@ -184,15 +185,16 @@ class UserService {
       const formData = new FormData();
 
       // Extract filename from URI or generate one
-      const filename = imageUri.split('/').pop() || 'profile.jpg';
+      const filename = imageUri.split('/').pop() ?? 'profile.jpg';
       const match = /\.(\w+)$/.exec(filename);
       const type = match ? `image/${match[1]}` : 'image/jpeg';
-
-      formData.append('profileImage', {
+      const profileImagePart: ReactNativeFilePart = {
         uri: imageUri,
         name: filename,
         type,
-      } as any);
+      };
+
+      formData.append('profileImage', profileImagePart as unknown as Blob);
 
       const response = await apiClient.patch<BackendApiResponse<ProfileImageUploadResponse>>(
         '/users/profile/image',
@@ -231,7 +233,7 @@ class UserService {
   async updateLocation(location: UpdateLocationDto): Promise<LocationUpdateResponse> {
     try {
       Logger.info('Updating user location', {
-        source: location.source || 'manual',
+        source: location.source ?? 'manual',
         hasLocationName: !!location.locationName,
       });
 

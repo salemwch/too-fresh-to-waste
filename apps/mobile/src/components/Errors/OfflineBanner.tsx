@@ -9,7 +9,7 @@
  * - Auto-hide when online
  */
 
-import NetInfo from '@react-native-community/netinfo';
+import { addEventListener as addNetInfoListener } from '@react-native-community/netinfo';
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 
@@ -27,8 +27,8 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({ testID = 'offline-
 
   useEffect(() => {
     // Subscribe to network state updates
-    const unsubscribe = NetInfo.addEventListener(state => {
-      const offline = !state.isConnected;
+    const unsubscribe = addNetInfoListener((state) => {
+      const offline = state.isConnected !== true;
       setIsOffline(offline);
 
       // Animate banner in/out
@@ -54,22 +54,22 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({ testID = 'offline-
         },
       ]}
       testID={testID}
-      accessibilityRole='alert'
-      accessibilityLabel='No internet connection'
-      accessibilityLiveRegion='polite'
+      accessibilityRole="alert"
+      accessibilityLabel="No internet connection"
+      accessibilityLiveRegion="polite"
     >
       <View style={styles.content}>
         <Icon
-          name='cloud-offline'
-          family='Ionicons'
+          name="cloud-offline"
+          family="Ionicons"
           size={20}
           color={theme.colors.onError}
           style={styles.icon}
         />
         <Text
-          variant='body'
-          size='sm'
-          weight='semibold'
+          variant="body"
+          size="sm"
+          weight="semibold"
           style={[styles.text, { color: theme.colors.onError }]}
         >
           No Internet Connection

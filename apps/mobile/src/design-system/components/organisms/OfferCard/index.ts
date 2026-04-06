@@ -3,5 +3,3 @@
  */
 
 export { OfferCard } from './OfferCard';
-;
-;

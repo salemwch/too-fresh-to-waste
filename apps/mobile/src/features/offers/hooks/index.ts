@@ -5,37 +5,18 @@
  */
 
 // Offers data hooks (Consumer-only)
-;
-
 // Nearby offers hooks (proximity search)
-export {
-  useNearbyOffers,
-  
-  useMapEstablishments,
-  
-  
-} from './useNearbyOffers';
+export { useNearbyOffers, useMapEstablishments } from './useNearbyOffers';
 
 export type {
-  
-  
   ProximitySearchResult,
   NearbyOffer,
   NearbyEstablishment,
   MapEstablishment,
   MapOfferSummary,
-  
-  
-  
-  
 } from './useNearbyOffers';
 
 // Geocoding hooks
-export { useLocationSearch,   } from './useGeocode';
+export { useLocationSearch } from './useGeocode';
 
-export type {
-  
-  
-  GeocodeResult,
-  
-} from './useGeocode';
+export type { GeocodeResult } from './useGeocode';

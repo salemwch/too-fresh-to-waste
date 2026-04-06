@@ -3,12 +3,13 @@
  * Shimmer loading placeholder matching OrderCard layout exactly.
  */
 
-import React from 'react';
+import React, { memo } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 
 const SHIMMER_BASE = '#F1F5F9';
+const SURFACE = '#FFFFFF';
 
 const SkeletonOrderCardComponent: React.FC = () => {
   const anim = useShimmerAnimation();
@@ -44,11 +45,11 @@ const SkeletonOrderCardComponent: React.FC = () => {
   );
 };
 
-export const SkeletonOrderCard = React.memo(SkeletonOrderCardComponent);
+export const SkeletonOrderCard = memo(SkeletonOrderCardComponent);
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SURFACE,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -112,7 +113,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: SHIMMER_BASE,
     marginBottom: 12,
   },
   bottomRow: {

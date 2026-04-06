@@ -3,7 +3,6 @@
  * Central export point for favorites feature
  */
 
-export * from './screens';
 export * from './components';
 export * from './hooks';
 export * from './services';

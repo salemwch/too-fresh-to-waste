@@ -7,11 +7,11 @@
  * Register screen keeps its custom header override.
  */
 
+import Icon from '@react-native-vector-icons/ionicons';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon from '@react-native-vector-icons/ionicons';
 
 import { Text } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -28,7 +28,9 @@ import { useAppSelector } from '@/hooks/redux';
 import { onboardingStorage } from '@/storage/onboardingStorage';
 
 import { getAuthScreenOptions } from './headerConfig';
+
 import type { AuthStackParamList } from './types';
+import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -53,7 +55,13 @@ export const AuthStack: React.FC = () => {
   const hasSeenWelcome = onboardingStorage.hasSeenWelcome();
 
   // Custom header component with proper safe area handling
-  const CustomHeader = ({ navigation, title }: { navigation: any; title: string }) => (
+  const CustomHeader = ({
+    navigation,
+    title,
+  }: {
+    navigation: NativeStackHeaderProps['navigation'];
+    title: string;
+  }) => (
     <View
       style={[
         styles.headerContainer,
@@ -64,12 +72,12 @@ export const AuthStack: React.FC = () => {
       ]}
     >
       <Pressable onPress={() => navigation.goBack()} style={styles.headerBackButton}>
-        <Icon name='arrow-back' size={24} color={theme.colors.onSurface} />
+        <Icon name="arrow-back" size={24} color={theme.colors.onSurface} />
       </Pressable>
       <Text
-        variant='headline.medium'
-        weight='semibold'
-        style={{ marginLeft: 16, color: theme.colors.onSurface }}
+        variant="headline.medium"
+        weight="semibold"
+        style={[styles.headerTitle, { color: theme.colors.onSurface }]}
       >
         {title}
       </Text>
@@ -86,11 +94,14 @@ export const AuthStack: React.FC = () => {
     headerBackButton: {
       padding: 5,
     },
+    headerTitle: {
+      marginLeft: 16,
+    },
   });
 
   // Access Redux state for fallback data (deep linking, session restoration)
   // This is NOT used for navigation logic, only for initial params
-  const pendingVerificationEmail = useAppSelector(state => state.auth?.pendingVerificationEmail);
+  const pendingVerificationEmail = useAppSelector((state) => state.auth?.pendingVerificationEmail);
 
   return (
     <Stack.Navigator
@@ -100,7 +111,7 @@ export const AuthStack: React.FC = () => {
       {/* Welcome Screen - ONLY for first-time users (device-level onboarding) */}
       {!hasSeenWelcome && (
         <Stack.Screen
-          name='Welcome'
+          name="Welcome"
           component={WelcomeScreen}
           options={{
             headerShown: false,
@@ -113,7 +124,7 @@ export const AuthStack: React.FC = () => {
 
       {/* Login Screen */}
       <Stack.Screen
-        name='Login'
+        name="Login"
         component={LoginScreen}
         options={{
           headerShown: false,
@@ -123,17 +134,17 @@ export const AuthStack: React.FC = () => {
 
       {/* Register Screen */}
       <Stack.Screen
-        name='Register'
+        name="Register"
         component={RegisterScreen}
         options={({ navigation }) => ({
           headerShown: true,
-          header: () => <CustomHeader navigation={navigation} title='Sign Up' />,
+          header: () => <CustomHeader navigation={navigation} title="Sign Up" />,
         })}
       />
 
       {/* Forgot Password Screen */}
       <Stack.Screen
-        name='ForgotPassword'
+        name="ForgotPassword"
         component={ForgotPasswordScreen}
         options={{
           headerShown: true,
@@ -144,7 +155,7 @@ export const AuthStack: React.FC = () => {
 
       {/* Reset Password Screen */}
       <Stack.Screen
-        name='ResetPassword'
+        name="ResetPassword"
         component={ResetPasswordScreen}
         options={{
           headerShown: true,
@@ -156,7 +167,7 @@ export const AuthStack: React.FC = () => {
 
       {/* Email Verification Screen */}
       <Stack.Screen
-        name='VerifyEmail'
+        name="VerifyEmail"
         component={VerifyEmailScreen}
         options={{
           headerShown: true,
@@ -174,7 +185,7 @@ export const AuthStack: React.FC = () => {
 
       {/* Phone Verification Screen */}
       <Stack.Screen
-        name='VerifyPhone'
+        name="VerifyPhone"
         component={VerifyPhoneScreen}
         options={{
           headerShown: true,
@@ -187,7 +198,7 @@ export const AuthStack: React.FC = () => {
 
       {/* MFA Verification Screen */}
       <Stack.Screen
-        name='MFAVerification'
+        name="MFAVerification"
         component={MFAVerificationScreen}
         options={{
           headerShown: true,

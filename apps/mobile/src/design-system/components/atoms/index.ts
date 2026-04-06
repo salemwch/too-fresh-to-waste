@@ -4,41 +4,22 @@
  */
 
 // Avatar
-export { Avatar,  } from './Avatar';
-;
-
+export { Avatar } from './Avatar';
 // Badge
-export { Badge,  } from './Badge';
-;
-
+export { Badge } from './Badge';
 // Button
-export { Button,  } from './Button';
-;
-
+export { Button } from './Button';
 // Card
-export { Card,  } from './Card';
-;
-
+export { Card } from './Card';
 // Icon
-export { Icon,  } from './Icon';
-;
-
+export { Icon } from './Icon';
 // Input
-export { Input,  } from './Input';
-;
-
+export { Input } from './Input';
 // Text
-export { Text,  } from './Text';
-;
-
+export { Text } from './Text';
 // DistanceBadge
-export { DistanceBadge,  } from './DistanceBadge';
-;
-
+export { DistanceBadge } from './DistanceBadge';
 // LocationStatusBadge
-export { LocationStatusBadge,  } from './LocationStatusBadge';
-;
+export { LocationStatusBadge } from './LocationStatusBadge';
 
 // ShimmerBlock (skeleton loading primitives)
-;
-;

@@ -84,7 +84,7 @@ export function useNearbyOffers(
   params: NearbyOffersParams | null,
   options: UseNearbyOffersOptions = {},
 ) {
-  const { tokens } = useAppSelector(state => state.auth);
+  const { tokens } = useAppSelector((state) => state.auth);
 
   const {
     enabled = true,
@@ -229,14 +229,9 @@ export function useMapEstablishments(
 // ============================================================================
 
 export type {
-  
   ProximitySearchResult,
   NearbyOffer,
   NearbyEstablishment,
   MapEstablishment,
   MapOfferSummary,
-  
-  
-  
-  
 } from '../services/nearbyOffersService';

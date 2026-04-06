@@ -43,14 +43,14 @@ export const LoyaltyScreen: React.FC = () => {
   if (error && !account) {
     return (
       <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
-        <Icon name='alert-circle-outline' family='Ionicons' size={48} color={theme.colors.error} />
-        <Text variant='body' size='md' color='secondary' style={styles.errorText}>
+        <Icon name="alert-circle-outline" family="Ionicons" size={48} color={theme.colors.error} />
+        <Text variant="body" size="md" color="secondary" style={styles.errorText}>
           {error.message || 'Failed to load loyalty data'}
         </Text>
         <Text
-          variant='body'
-          size='sm'
-          color='primary'
+          variant="body"
+          size="sm"
+          color="primary"
           style={styles.retryText}
           onPress={() => void refetch()}
         >

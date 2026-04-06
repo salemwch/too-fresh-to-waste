@@ -124,4 +124,4 @@ export function useReverseGeocode(
 // Re-export Types
 // ============================================================================
 
-export type { GeocodeResult,   };
+export type { GeocodeResult };

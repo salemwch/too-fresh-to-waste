@@ -1,2 +1,1 @@
 export { EstablishmentBottomSheet } from './EstablishmentBottomSheet';
-;

@@ -9,7 +9,10 @@
  * - Automatic refetch on app focus
  */
 
-import NetInfo from '@react-native-community/netinfo';
+import {
+  addEventListener as addNetInfoEventListener,
+  fetch as fetchNetInfoState,
+} from '@react-native-community/netinfo';
 import { onlineManager, focusManager } from '@tanstack/react-query';
 import { AppState, Platform } from 'react-native';
 
@@ -29,10 +32,10 @@ import type { AppStateStatus } from 'react-native';
 const setupOnlineManager = () => {
   Logger.info('Setting up TanStack Query Online Manager');
 
-  onlineManager.setEventListener(setOnline => {
+  onlineManager.setEventListener((setOnline) => {
     // Subscribe to network state updates
-    const unsubscribe = NetInfo.addEventListener(state => {
-      const isOnline = !!state.isConnected;
+    const unsubscribe = addNetInfoEventListener((state) => {
+      const isOnline = state.isConnected === true;
 
       Logger.debug('Network state changed', {
         isConnected: state.isConnected,
@@ -121,10 +124,10 @@ export const initializePlatformManagers = () => {
  * Utility function to check network status
  */
 export const getNetworkState = async () => {
-  const state = await NetInfo.fetch();
+  const state = await fetchNetInfoState();
 
   return {
-    isConnected: !!state.isConnected,
+    isConnected: state.isConnected === true,
     isInternetReachable: state.isInternetReachable,
     type: state.type,
     details: state.details,

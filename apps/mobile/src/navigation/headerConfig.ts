@@ -1,21 +1,12 @@
-import React from 'react';
+import { createElement } from 'react';
 import { Platform, TouchableOpacity, View, Text as RNText } from 'react-native';
 
 import { Icon } from '@/design-system/components/atoms';
-import type { ThemeContextValue } from '@/design-system/types';
-import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { AppHeader } from './components/AppHeader';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Vertical padding constants (kept for external consumers)
-//
-// These are no longer used for header layout — AppHeader uses
-// useSafeAreaInsets().top which gives the real per-device status-bar height.
-// ─────────────────────────────────────────────────────────────────────────────
-export const HEADER_TITLE_PADDING_TOP = 0;
-export const HEADER_TITLE_PADDING_BOTTOM = 0;
-export const HEADER_TOP_BREATHING_ROOM = 0;
+import type { ThemeContextValue } from '@/design-system/types';
+import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Header Title factory
@@ -32,7 +23,7 @@ const createHeaderTitle = (
   defaultColor: string,
 ) => {
   const HeaderTitle = ({ children, tintColor }: { children: string; tintColor?: string }) =>
-    React.createElement(
+    createElement(
       View,
       {
         style: {
@@ -40,7 +31,7 @@ const createHeaderTitle = (
           justifyContent: 'center',
         },
       },
-      React.createElement(
+      createElement(
         RNText,
         {
           style: {
@@ -84,12 +75,17 @@ const createHeaderTitle = (
  * NOTE: AppHeader already provides a default back button. Only use this if you
  * need to customise the back button icon or style on a specific screen.
  */
-export const makeHeaderBackButton =
-  (navigation: { goBack: () => void }, defaultColor: string) =>
-  ({ canGoBack, tintColor }: { canGoBack?: boolean; tintColor?: string }) => {
-    if (!canGoBack) return null;
+export const makeHeaderBackButton = (navigation: { goBack: () => void }, defaultColor: string) => {
+  const HeaderBackButton = ({
+    canGoBack,
+    tintColor,
+  }: {
+    canGoBack?: boolean;
+    tintColor?: string;
+  }) => {
+    if (canGoBack !== true) return null;
 
-    return React.createElement(
+    return createElement(
       TouchableOpacity,
       {
         onPress: () => navigation.goBack(),
@@ -103,7 +99,7 @@ export const makeHeaderBackButton =
         accessibilityRole: 'button',
         accessibilityLabel: 'Go back',
       },
-      React.createElement(Icon, {
+      createElement(Icon, {
         name: 'chevron-back',
         family: 'Ionicons',
         size: 26,
@@ -111,6 +107,10 @@ export const makeHeaderBackButton =
       }),
     );
   };
+
+  HeaderBackButton.displayName = 'HeaderBackButton';
+  return HeaderBackButton;
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Screen option factories
@@ -150,7 +150,7 @@ export const getDefaultScreenOptions = (
     theme.colors.onSurface,
   ),
   // JS header — reads useSafeAreaInsets().top for correct per-device spacing.
-  header: (props) => React.createElement(AppHeader, props),
+  header: (props) => createElement(AppHeader, props),
 });
 
 /**
@@ -186,5 +186,5 @@ export const getAuthScreenOptions = (theme: ThemeContextValue): NativeStackNavig
     theme.colors.onSurface,
   ),
   // JS header — same safe-area approach as getDefaultScreenOptions.
-  header: (props) => React.createElement(AppHeader, props),
+  header: (props) => createElement(AppHeader, props),
 });

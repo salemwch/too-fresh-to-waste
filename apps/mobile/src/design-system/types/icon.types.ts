@@ -4,6 +4,7 @@
  */
 
 import type React from 'react';
+import type { StyleProp, TextStyle } from 'react-native';
 
 /**
  * All supported icon families from @react-native-vector-icons/* scoped packages
@@ -35,7 +36,7 @@ export interface IconComponentProps {
   readonly name: string;
   readonly size?: number;
   readonly color?: string;
-  readonly style?: any;
+  readonly style?: StyleProp<TextStyle>;
   readonly suppressHighlighting?: boolean;
 }
 

@@ -105,9 +105,9 @@ export const createBadgeStyles = (
   const variantColors = variantColorMap[variant];
 
   // Determine final colors
-  const finalBg = backgroundColor || (outlined ? 'transparent' : variantColors.bg);
-  const finalText = color || variantColors.text;
-  const finalBorder = borderColor || variantColors.border;
+  const finalBg = backgroundColor ?? (outlined ? 'transparent' : variantColors.bg);
+  const finalText = color ?? variantColors.text;
+  const finalBorder = borderColor ?? variantColors.border;
 
   return StyleSheet.create({
     container: {

@@ -4,5 +4,3 @@
  */
 
 export { PasswordStrengthIndicator } from './PasswordStrengthIndicator';
-;
-;

@@ -3,7 +3,7 @@
  */
 
 import type { StyleSystemProps } from '../../../types';
-import type { ViewProps } from 'react-native';
+import type { ViewProps, StyleProp, ViewStyle } from 'react-native';
 
 export type CardVariant = 'default' | 'elevated' | 'outlined' | 'filled';
 export type CardSize = 'sm' | 'md' | 'lg';
@@ -42,7 +42,7 @@ export interface CardProps extends Omit<ViewProps, 'style'>, StyleSystemProps {
   /**
    * Custom style overrides
    */
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 
   /**
    * Content to render inside the card

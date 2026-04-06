@@ -14,6 +14,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 import { selectIsFavorite, selectFavoritesState } from '@/store/slices/favoritesSlice';
+import { Logger } from '@/utils/logger';
 
 import { favoritesService } from '../services';
 import { FavoriteType } from '../types';
@@ -45,7 +46,7 @@ export const useFavoritesList = (filters?: FavoritesFilterRequest) => {
       try {
         return await favoritesService.getFavorites(filters);
       } catch (error) {
-        console.error('[useFavoritesList] Failed to fetch favorites', error);
+        Logger.error('[useFavoritesList] Failed to fetch favorites', { filters }, error as Error);
         // Return empty result on error
         return {
           favorites: [],
@@ -90,7 +91,11 @@ const useIsFavorite = (type: FavoriteType, itemId: string) => {
         return await favoritesService.checkIsFavorite(type, itemId);
       } catch (error) {
         // Fallback to Redux state if API fails
-        console.warn('[useIsFavorite] API check failed, using local state', error);
+        Logger.warn(
+          '[useIsFavorite] API check failed, using local state',
+          { itemId, type },
+          error as Error,
+        );
         return isFavoriteRedux;
       }
     },
@@ -125,9 +130,9 @@ const useToggleFavorite = () => {
       favoritesService.toggleFavorite(type, itemId, itemName, itemImage),
     onSuccess: (_isFavorite, variables) => {
       // Invalidate queries to refetch
-      queryClient.invalidateQueries({ queryKey: favoritesKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: favoritesKeys.stats() });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({ queryKey: favoritesKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: favoritesKeys.stats() });
+      void queryClient.invalidateQueries({
         queryKey: favoritesKeys.check(variables.type, variables.itemId),
       });
     },

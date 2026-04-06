@@ -22,14 +22,7 @@
  */
 
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-  type ViewStyle,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/design-system/components/atoms';
@@ -61,12 +54,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route
     theme.colors.surface;
 
   const tintColor =
-    typeof options.headerTintColor === 'string'
-      ? options.headerTintColor
-      : theme.colors.onSurface;
+    typeof options.headerTintColor === 'string' ? options.headerTintColor : theme.colors.onSurface;
 
-  const routeTitle =
-    typeof options.title === 'string' ? options.title : (route.name ?? '');
+  const routeTitle = typeof options.title === 'string' ? options.title : (route.name ?? '');
 
   // ── Title element ───────────────────────────────────────────────────────────
   // options.headerTitle is set by getDefaultScreenOptions (createHeaderTitle factory)
@@ -75,8 +65,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route
     if (typeof options.headerTitle === 'function') {
       return options.headerTitle({ children: routeTitle, tintColor });
     }
-    const text =
-      typeof options.headerTitle === 'string' ? options.headerTitle : routeTitle;
+    const text = typeof options.headerTitle === 'string' ? options.headerTitle : routeTitle;
     return (
       <Text
         style={[styles.defaultTitle, options.headerTitleStyle as object, { color: tintColor }]}
@@ -100,12 +89,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route
           onPress={() => navigation.goBack()}
           style={styles.backButton}
           hitSlop={BACK_HIT_SLOP}
-          accessibilityRole='button'
-          accessibilityLabel='Go back'
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <Icon
             name={Platform.OS === 'ios' ? 'chevron-back' : 'arrow-back'}
-            family='Ionicons'
+            family="Ionicons"
             size={26}
             color={tintColor}
           />
@@ -128,6 +117,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route
         styles.wrapper,
         {
           backgroundColor: bgColor,
+          borderBottomColor: theme.colors.outlineVariant,
           // The only dynamic value: real status-bar height from safe-area-context.
           paddingTop: insets.top,
         },
@@ -137,17 +127,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route
         {/* Left: only rendered when there is something to show.
             Skipping it on first-screen (no back button) lets the title
             start at the left edge (e.g. LocationHeader on Home). */}
-        {leftElement != null && (
-          <View style={styles.leftContainer}>{leftElement}</View>
-        )}
+        {leftElement != null && <View style={styles.leftContainer}>{leftElement}</View>}
 
         {/* Title: custom component (e.g. LocationHeader) or themed text */}
         <View style={styles.titleContainer}>{titleElement}</View>
 
         {/* Right: only rendered when present so it doesn't consume space */}
-        {rightElement != null && (
-          <View style={styles.rightContainer}>{rightElement}</View>
-        )}
+        {rightElement != null && <View style={styles.rightContainer}>{rightElement}</View>}
       </View>
     </View>
   );
@@ -157,7 +143,6 @@ const styles = StyleSheet.create({
   wrapper: {
     width: '100%',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E2E8F0',
   },
   row: {
     flexDirection: 'row',

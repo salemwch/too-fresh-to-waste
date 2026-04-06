@@ -19,19 +19,20 @@
  * @module usePlaceSearch
  */
 
-import { useCallback, useRef, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useCallback, useRef, useMemo } from 'react';
 
-import { useDebounce } from '@/hooks/useDebounce';
-import { remoteLocationService } from '@/services/location/RemoteLocationService';
 import {
   nearbyOffersService,
   type ProximitySearchResult,
   type NearbyEstablishment,
   type GeoCoordinates,
 } from '@/features/offers/services/nearbyOffersService';
-import type { ILocationResult } from '@/types/location.types';
+import { useDebounce } from '@/hooks/useDebounce';
+import { remoteLocationService } from '@/services/location/RemoteLocationService';
 import { Logger } from '@/utils/logger';
+
+import type { ILocationResult } from '@/types/location.types';
 
 // ============================================================================
 // Session Token Generator

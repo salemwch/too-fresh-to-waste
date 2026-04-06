@@ -41,6 +41,16 @@ interface NativeEventLog {
   error?: string;
 }
 
+type NativeModuleShape = Record<string, unknown> & {
+  getConstants?: () => Record<string, unknown>;
+  addListener?: (...args: unknown[]) => unknown;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object';
+
+const isNativeModuleShape = (value: unknown): value is NativeModuleShape => isRecord(value);
+
 class NativeModuleDebugger {
   private enabled = false;
   private moduleInfo: Map<string, NativeModuleInfo> = new Map();
@@ -78,7 +88,7 @@ class NativeModuleDebugger {
     this.enabled = false;
 
     // Remove all event listeners
-    this.eventListeners.forEach(listeners => {
+    this.eventListeners.forEach((listeners) => {
       listeners.forEach(({ remove }) => remove());
     });
     this.eventListeners.clear();
@@ -93,11 +103,11 @@ class NativeModuleDebugger {
   private scanNativeModules(): void {
     Logger.info('[NativeModuleLogger] Scanning native modules...');
 
-    Object.keys(NativeModules).forEach(moduleName => {
+    Object.keys(NativeModules).forEach((moduleName) => {
       try {
-        const module = NativeModules[moduleName];
+        const module = NativeModules[moduleName] as unknown;
 
-        if (!module) {
+        if (!isNativeModuleShape(module)) {
           this.moduleInfo.set(moduleName, {
             name: moduleName,
             isRegistered: false,
@@ -107,20 +117,24 @@ class NativeModuleDebugger {
           return;
         }
 
+        const constants =
+          typeof module.getConstants === 'function' ? module.getConstants() : undefined;
         const info: NativeModuleInfo = {
           name: moduleName,
           isRegistered: true,
-          methods: Object.keys(module).filter(key => typeof module[key] === 'function'),
-          constants: module.getConstants?.(),
+          methods: Object.keys(module).filter((key) => typeof module[key] === 'function'),
+          ...(constants !== undefined && { constants }),
           hasEventEmitter: typeof module.addListener === 'function',
         };
 
         this.moduleInfo.set(moduleName, info);
 
         // Log modules related to maps/location
-        if (moduleName.toLowerCase().includes('map') ||
-            moduleName.toLowerCase().includes('location') ||
-            moduleName.toLowerCase().includes('geolocation')) {
+        if (
+          moduleName.toLowerCase().includes('map') ||
+          moduleName.toLowerCase().includes('location') ||
+          moduleName.toLowerCase().includes('geolocation')
+        ) {
           Logger.debug(`[NativeModuleLogger] Found relevant module: ${moduleName}`, {
             methods: info.methods?.slice(0, 10), // First 10 methods
             hasEventEmitter: info.hasEventEmitter,
@@ -151,9 +165,9 @@ class NativeModuleDebugger {
 
     try {
       // Get the module
-      const nativeModule = moduleOrEmitter || NativeModules[moduleName];
+      const nativeModule: unknown = moduleOrEmitter ?? (NativeModules[moduleName] as unknown);
 
-      if (!nativeModule) {
+      if (nativeModule === null || nativeModule === undefined) {
         Logger.error(`[NativeModuleLogger] Module not found: ${moduleName}`);
         return;
       }
@@ -187,7 +201,7 @@ class NativeModuleDebugger {
 
       const listeners: Array<{ eventName: string; remove: () => void }> = [];
 
-      commonEvents.forEach(eventName => {
+      commonEvents.forEach((eventName) => {
         try {
           const subscription = emitter.addListener(eventName, (data: unknown) => {
             this.logEvent(eventName, moduleName, data);
@@ -197,14 +211,18 @@ class NativeModuleDebugger {
             eventName,
             remove: () => subscription.remove(),
           });
-        } catch (error) {
+        } catch {
           // Event might not exist, that's okay
         }
       });
 
       this.eventListeners.set(moduleName, listeners);
     } catch (error) {
-      Logger.error(`[NativeModuleLogger] Failed to track module: ${moduleName}`, {}, error as Error);
+      Logger.error(
+        `[NativeModuleLogger] Failed to track module: ${moduleName}`,
+        {},
+        error as Error,
+      );
     }
   }
 
@@ -235,14 +253,15 @@ class NativeModuleDebugger {
    * Intercept native errors from console.error
    */
   private interceptNativeErrors(): void {
-    const originalError = console.error;
+    const consoleSink = globalThis.console;
+    const originalError = consoleSink.error.bind(consoleSink);
 
-    console.error = (...args: unknown[]) => {
+    consoleSink.error = (...args: unknown[]) => {
       // Call original first
-      originalError.apply(console, args);
+      originalError(...args);
 
       // Check if it's a native module error
-      const message = args.map(arg => String(arg)).join(' ');
+      const message = args.map((arg) => String(arg)).join(' ');
 
       if (
         message.includes('Unsupported top level event type') ||
@@ -269,8 +288,7 @@ class NativeModuleDebugger {
     const states: Record<string, NativeModuleInfo> = {};
 
     this.moduleInfo.forEach((info, name) => {
-      if (name.toLowerCase().includes('map') ||
-          name.toLowerCase().includes('location')) {
+      if (name.toLowerCase().includes('map') || name.toLowerCase().includes('location')) {
         states[name] = info;
       }
     });
@@ -298,8 +316,8 @@ class NativeModuleDebugger {
   public getEventLogs(moduleName?: string, limit = 50): NativeEventLog[] {
     let logs = [...this.eventLogs];
 
-    if (moduleName) {
-      logs = logs.filter(log => log.moduleName === moduleName);
+    if (moduleName !== undefined && moduleName !== '') {
+      logs = logs.filter((log) => log.moduleName === moduleName);
     }
 
     return logs.slice(-limit);
@@ -327,7 +345,7 @@ class NativeModuleDebugger {
   public verifyModule(moduleName: string): boolean {
     const info = this.moduleInfo.get(moduleName);
 
-    if (!info?.isRegistered) {
+    if (info?.isRegistered !== true) {
       Logger.error(`[NativeModuleLogger] Module not registered: ${moduleName}`, {
         error: info?.error,
       });
@@ -348,19 +366,14 @@ class NativeModuleDebugger {
   public logMapsDiagnostics(): void {
     Logger.info('[NativeModuleLogger] Running Maps diagnostics...');
 
-    const mapsModules = [
-      'AIRMap',
-      'AIRMapModule',
-      'RNMaps',
-      'AirMapModule',
-    ];
+    const mapsModules = ['AIRMap', 'AIRMapModule', 'RNMaps', 'AirMapModule'];
 
-    mapsModules.forEach(moduleName => {
-      const module = NativeModules[moduleName];
+    mapsModules.forEach((moduleName) => {
+      const module = NativeModules[moduleName] as unknown;
 
-      if (module) {
+      if (isNativeModuleShape(module)) {
         Logger.info(`[NativeModuleLogger] Found Maps module: ${moduleName}`, {
-          methods: Object.keys(module).filter(k => typeof module[k] === 'function'),
+          methods: Object.keys(module).filter((k) => typeof module[k] === 'function'),
           hasConstants: typeof module.getConstants === 'function',
         });
 
@@ -369,7 +382,11 @@ class NativeModuleDebugger {
             const constants = module.getConstants();
             Logger.debug(`[NativeModuleLogger] ${moduleName} constants:`, constants);
           } catch (error) {
-            Logger.error(`[NativeModuleLogger] Failed to get ${moduleName} constants`, {}, error as Error);
+            Logger.error(
+              `[NativeModuleLogger] Failed to get ${moduleName} constants`,
+              {},
+              error as Error,
+            );
           }
         }
       }
@@ -381,4 +398,3 @@ class NativeModuleDebugger {
 export const NativeModuleLogger = new NativeModuleDebugger();
 
 // Export types
-;

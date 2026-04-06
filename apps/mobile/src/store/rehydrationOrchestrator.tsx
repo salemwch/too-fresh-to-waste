@@ -65,6 +65,11 @@ interface RehydrationStatus {
   duration: number | null;
 }
 
+const hasRenderableNode = (
+  value: ReactNode | undefined,
+): value is Exclude<ReactNode, null | undefined | false> =>
+  value !== null && value !== undefined && value !== false;
+
 // ============================================================================
 // Rehydration Validation
 // ============================================================================
@@ -228,15 +233,14 @@ function useRehydrationStatus(timeout: number = 5000): RehydrationStatus {
     if (isAuthRehydrated) rehydratedSlices.push('auth');
     if (isFavoritesRehydrated) rehydratedSlices.push('favorites');
 
-    const allRehydrated =
-      isLocationRehydrated && isAuthRehydrated && isFavoritesRehydrated;
+    const allRehydrated = isLocationRehydrated && isAuthRehydrated && isFavoritesRehydrated;
 
     if (!allRehydrated) {
       // Still waiting for rehydration
       Logger.debug('[RehydrationOrchestrator] Waiting for rehydration', {
         rehydratedSlices,
         waiting: ['location', 'auth', 'favorites'].filter(
-          slice => !rehydratedSlices.includes(slice),
+          (slice) => !rehydratedSlices.includes(slice),
         ),
       });
       return;
@@ -323,7 +327,7 @@ function useRehydrationStatus(timeout: number = 5000): RehydrationStatus {
         });
 
         // Force completion to prevent infinite loading
-        setStatus(prev => ({
+        setStatus((prev) => ({
           ...prev,
           complete: true,
           errors: [...prev.errors, `Rehydration timeout (${timeout}ms)`],
@@ -372,15 +376,15 @@ export function RehydrationGate({
   children,
   loading,
   timeout = 5000,
-}: RehydrationGateProps): React.JSX.Element {
+}: RehydrationGateProps): ReactNode {
   const status = useRehydrationStatus(timeout);
 
   // ────────────────────────────────────────────────────────────────────────
   // STILL REHYDRATING - Show loading UI
   // ────────────────────────────────────────────────────────────────────────
   if (!status.complete) {
-    if (loading) {
-      return <>{loading}</>;
+    if (hasRenderableNode(loading)) {
+      return loading;
     }
 
     // Default loading UI
@@ -394,7 +398,7 @@ export function RehydrationGate({
   // ────────────────────────────────────────────────────────────────────────
   // REHYDRATION COMPLETE - Render app
   // ────────────────────────────────────────────────────────────────────────
-  return <>{children}</>;
+  return children;
 }
 
 // ============================================================================
@@ -406,11 +410,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
   },
 });
 
 // ============================================================================
 // Export
 // ============================================================================
-

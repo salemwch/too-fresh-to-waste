@@ -27,8 +27,7 @@ interface EventProperties {
  * Wraps analytics calls with defensive error handling
  */
 class SafeAnalyticsService {
-  private analytics: { track?: (event: string, props?: EventProperties) => void } | null =
-    null;
+  private analytics: { track?: (event: string, props?: EventProperties) => void } | null = null;
 
   /**
    * Optional initializer (call this if/when you enable analytics)
@@ -60,7 +59,6 @@ class SafeAnalyticsService {
           eventName,
           error: error instanceof Error ? error.message : String(error),
         });
-        console.warn('[SAFE-ANALYTICS] Analytics error:', error);
       }
       // Production: silent fail
     }
@@ -70,11 +68,7 @@ class SafeAnalyticsService {
     this.track(`error_${errorName}`, errorDetails);
   }
 
-  trackTiming(
-    timingName: string,
-    durationMs: number,
-    additionalProps?: EventProperties,
-  ): void {
+  trackTiming(timingName: string, durationMs: number, additionalProps?: EventProperties): void {
     this.track(timingName, {
       duration_ms: durationMs,
       ...additionalProps,

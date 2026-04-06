@@ -1,5 +1,6 @@
+import * as Sentry from '@sentry/react-native';
 import React, { useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -7,26 +8,25 @@ import { Provider as ReduxProvider, useSelector, useDispatch } from 'react-redux
 import { PersistGate } from 'redux-persist/integration/react';
 
 import { OfflineBanner } from '@/components/Errors';
-import { environment } from '@/config/environment';
+import { environment, validateEnvironmentConfig } from '@/config/environment';
 import { ThemeProvider } from '@/design-system/providers';
+import { AuthFlowState } from '@/features/auth/types';
 import { QueryProvider } from '@/lib/react-query';
 import { RootNavigator } from '@/navigation';
+import { localLocationService } from '@/services/location/LocalLocationService';
+import { notificationService } from '@/services/NotificationService';
+import { offlineWriteQueue } from '@/services/OfflineWriteQueue';
+import { socketService } from '@/services/socketService';
 import { store, persistor } from '@/store';
 import { RehydrationGate } from '@/store/rehydrationOrchestrator';
 import { syncAllFavorites, clearFavorites } from '@/store/slices/favoritesSlice';
 import { Logger, NativeModuleLogger } from '@/utils';
 import { analytics } from '@/utils/analytics';
-import { toastConfig } from '@/utils/toast';
 import { offlineManager } from '@/utils/offlineManager';
-import { localLocationService } from '@/services/location/LocalLocationService';
-import { socketService } from '@/services/socketService';
+import { toastConfig } from '@/utils/toast';
 
+import type { FavoriteType } from '@/features/favorites/types';
 import type { RootState, AppDispatch } from '@/store';
-import { AuthFlowState } from '@/features/auth/types';
-import * as Sentry from '@sentry/react-native';
-import { validateEnvironmentConfig } from '@/config/environment';
-import { notificationService } from '@/services/NotificationService';
-import { offlineWriteQueue } from '@/services/OfflineWriteQueue';
 
 // ─── Global error handler ────────────────────────────────────────────────────
 // Must be installed BEFORE Sentry.init so that we can chain handlers correctly.
@@ -34,7 +34,7 @@ import { offlineWriteQueue } from '@/services/OfflineWriteQueue';
 // rejections, so a single handler covers both cases.
 const _previousHandler = ErrorUtils.getGlobalHandler();
 ErrorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
-  Logger.error('[App] Uncaught global error', { isFatal: !!isFatal }, error);
+  Logger.error('[App] Uncaught global error', { isFatal: isFatal ?? false }, error);
   // Forward to the previous handler (will be Sentry's after Sentry.init below)
   _previousHandler?.(error, isFatal);
 });
@@ -63,7 +63,6 @@ try {
   Logger.info('[App] Sentry initialized successfully');
 } catch (error) {
   // Sentry initialization failed - log but don't crash
-  console.error('[App] Failed to initialize Sentry:', error);
   Logger.error('[App] Sentry initialization failed', {}, error as Error);
 }
 
@@ -74,7 +73,7 @@ try {
 {
   const { isValid, errors } = validateEnvironmentConfig();
   if (!isValid) {
-    errors.forEach(msg => {
+    errors.forEach((msg) => {
       Logger.warn(`[App] Config issue: ${msg}`);
       if (!__DEV__) {
         Sentry.captureMessage(`[Config] ${msg}`, 'warning');
@@ -95,7 +94,7 @@ function AppContent(): React.JSX.Element {
   // ✅ Initialize Local Location Service on app startup (runs once)
   // Loads tunisian-cities.json into memory for fast local searches
   useEffect(() => {
-    localLocationService.initialize().catch(error => {
+    localLocationService.initialize().catch((error) => {
       Logger.error('Failed to initialize LocalLocationService', {}, error);
     });
   }, []);
@@ -119,17 +118,30 @@ function AppContent(): React.JSX.Element {
   useEffect(() => {
     if (flowState === AuthFlowState.AUTHENTICATED) {
       // Register token so the backend can send push notifications to this device
-      notificationService.getToken().then(token => {
-        if (token) {
-          void notificationService.registerTokenWithBackend(token);
+      const registerNotificationToken = async (): Promise<void> => {
+        const token = await notificationService.getToken();
+        if (!token) {
+          return;
         }
+
+        await notificationService.registerTokenWithBackend(token);
+      };
+
+      registerNotificationToken().catch((error) => {
+        Logger.error('[App] Failed to register notification token', {}, error as Error);
       });
     } else if (
       flowState === AuthFlowState.UNAUTHENTICATED ||
       flowState === AuthFlowState.SESSION_EXPIRED
     ) {
       // Unregister on logout so the device stops receiving notifications
-      void notificationService.unregisterTokenFromBackend();
+      const unregisterNotificationToken = async (): Promise<void> => {
+        await notificationService.unregisterTokenFromBackend();
+      };
+
+      unregisterNotificationToken().catch((error) => {
+        Logger.error('[App] Failed to unregister notification token', {}, error as Error);
+      });
     }
   }, [flowState]);
 
@@ -152,7 +164,13 @@ function AppContent(): React.JSX.Element {
         new Date(sessionExpiresAt).getTime() > Date.now();
 
       if (isSessionValid) {
-        dispatch(syncAllFavorites());
+        const syncFavorites = async (): Promise<void> => {
+          await dispatch(syncAllFavorites());
+        };
+
+        syncFavorites().catch((error) => {
+          Logger.error('[App] Failed to sync favorites', {}, error as Error);
+        });
       }
     } else if (
       flowState === AuthFlowState.UNAUTHENTICATED ||
@@ -167,11 +185,7 @@ function AppContent(): React.JSX.Element {
   return (
     <>
       <OfflineBanner />
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor='transparent'
-        translucent
-      />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <RootNavigator />
       {/* Toast must be last in the component tree to render on top */}
       <Toast config={toastConfig} />
@@ -212,14 +226,11 @@ function App(): React.JSX.Element {
       const { offlineWriteQueue: queue } = await import('@/services/OfflineWriteQueue');
       const { favoritesService } = await import('@/features/favorites/services');
 
-      queue.registerHandler('FAVORITE_TOGGLE', async item => {
+      queue.registerHandler('FAVORITE_TOGGLE', async (item) => {
         const { favoriteType, offerId, offerName, offerImage } = item.payload;
-        await favoritesService.toggleFavorite(
-          favoriteType as import('@/features/favorites/types').FavoriteType,
-          offerId,
-          offerName,
-          offerImage,
-        );
+        const typedFavoriteType = favoriteType as FavoriteType;
+
+        await favoritesService.toggleFavorite(typedFavoriteType, offerId, offerName, offerImage);
       });
 
       queue.startListening();
@@ -252,9 +263,19 @@ function App(): React.JSX.Element {
         ...(body ? { text2: body } : {}),
         visibilityTime: 5000,
         onPress: () => {
-          // User tapped the foreground toast — navigate as if it were a background tap
-          import('@/navigation/navigationRef').then(({ navigateFromNotification }) => {
+          const navigateFromForegroundNotification = async (): Promise<void> => {
+            const { navigateFromNotification } = await import('@/navigation/navigationRef');
+
             navigateFromNotification(data);
+          };
+
+          // User tapped the foreground toast — navigate as if it were a background tap
+          navigateFromForegroundNotification().catch((error) => {
+            Logger.error(
+              '[App] Failed to navigate from foreground notification tap',
+              {},
+              error as Error,
+            );
           });
           Toast.hide();
         },
@@ -293,7 +314,7 @@ function App(): React.JSX.Element {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <ReduxProvider store={store}>
           <PersistGate loading={null} persistor={persistor}>
@@ -310,6 +331,12 @@ function App(): React.JSX.Element {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
 
 // ⚠️ DIAGNOSTIC: Temporarily bypass Sentry.wrap to test if TouchEventBoundary
 // is blocking touches. Sentry.wrap adds a TouchEventBoundary that may conflict

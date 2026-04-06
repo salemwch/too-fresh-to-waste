@@ -7,11 +7,13 @@ This guide shows how to implement the complete 4-dimensional filter system in yo
 ## Features Implemented
 
 ### ✅ Backend Integration
+
 - All 4 filter dimensions properly sent to backend API
 - Correct query parameter mapping
 - Type-safe implementation
 
 ### ✅ Modern UI Components
+
 - **FilterBottomSheet**: Beautiful animated bottom sheet with all filter options
 - **ActiveFilterChips**: Show active filters as removable chips
 - Icon chips for establishment types (🍞 🍽️ ☕ 🏨)
@@ -75,109 +77,109 @@ export const SearchScreen: React.FC = () => {
 ### Step 3: Convert Filters to API Params
 
 ```typescript
-  // Convert filter state to API parameters
-  const buildSearchParams = useCallback((): OfferSearchParams => {
-    const params: OfferSearchParams = {
-      page: 1,
-      limit: 20,
-    };
+// Convert filter state to API parameters
+const buildSearchParams = useCallback((): OfferSearchParams => {
+  const params: OfferSearchParams = {
+    page: 1,
+    limit: 20,
+  };
 
-    // Offer type
-    if (filters.offerType) {
-      params.type = filters.offerType;
-    }
+  // Offer type
+  if (filters.offerType) {
+    params.type = filters.offerType;
+  }
 
-    // Establishment type (single value)
-    if (filters.establishmentTypes.length > 0) {
-      params.establishmentType = filters.establishmentTypes[0];
-    }
+  // Establishment type (single value)
+  if (filters.establishmentTypes.length > 0) {
+    params.establishmentType = filters.establishmentTypes[0];
+  }
 
-    // Cuisine types (array)
-    if (filters.cuisineTypes.length > 0) {
-      params.cuisineTypes = filters.cuisineTypes;
-    }
+  // Cuisine types (array)
+  if (filters.cuisineTypes.length > 0) {
+    params.cuisineTypes = filters.cuisineTypes;
+  }
 
-    // Categories (array)
-    if (filters.categories.length > 0) {
-      params.categories = filters.categories;
-    }
+  // Categories (array)
+  if (filters.categories.length > 0) {
+    params.categories = filters.categories;
+  }
 
-    return params;
-  }, [filters]);
+  return params;
+}, [filters]);
 ```
 
 ### Step 4: Fetch Offers with Filters
 
 ```typescript
-  // Fetch offers with filters
-  const fetchOffers = useCallback(async () => {
-    try {
-      setIsLoading(true);
+// Fetch offers with filters
+const fetchOffers = useCallback(async () => {
+  try {
+    setIsLoading(true);
 
-      const params = buildSearchParams();
-      const userLocation = {
-        latitude: currentLocation.latitude,
-        longitude: currentLocation.longitude,
-      };
+    const params = buildSearchParams();
+    const userLocation = {
+      latitude: currentLocation.latitude,
+      longitude: currentLocation.longitude,
+    };
 
-      const response = await offersService.getAllOffers(params, userLocation);
+    const response = await offersService.getAllOffers(params, userLocation);
 
-      setOffers(response.data);
-      setResultCount(response.meta.total);
-    } catch (error) {
-      console.error('Failed to fetch offers:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [buildSearchParams, currentLocation]);
+    setOffers(response.data);
+    setResultCount(response.meta.total);
+  } catch (error) {
+    console.error('Failed to fetch offers:', error);
+  } finally {
+    setIsLoading(false);
+  }
+}, [buildSearchParams, currentLocation]);
 
-  // Fetch when filters change
-  useEffect(() => {
-    fetchOffers();
-  }, [fetchOffers]);
+// Fetch when filters change
+useEffect(() => {
+  fetchOffers();
+}, [fetchOffers]);
 ```
 
 ### Step 5: Filter Handlers
 
 ```typescript
-  // Handle filter apply
-  const handleApplyFilters = useCallback((newFilters: FilterState) => {
-    setFilters(newFilters);
-    setIsFilterVisible(false);
-    // fetchOffers will be called automatically via useEffect
-  }, []);
+// Handle filter apply
+const handleApplyFilters = useCallback((newFilters: FilterState) => {
+  setFilters(newFilters);
+  setIsFilterVisible(false);
+  // fetchOffers will be called automatically via useEffect
+}, []);
 
-  // Handle clear all filters
-  const handleClearAllFilters = useCallback(() => {
-    setFilters(INITIAL_FILTER_STATE);
-    setIsFilterVisible(false);
-  }, []);
+// Handle clear all filters
+const handleClearAllFilters = useCallback(() => {
+  setFilters(INITIAL_FILTER_STATE);
+  setIsFilterVisible(false);
+}, []);
 
-  // Handle remove individual filter
-  const handleRemoveOfferType = useCallback(() => {
-    setFilters(prev => ({ ...prev, offerType: null }));
-  }, []);
+// Handle remove individual filter
+const handleRemoveOfferType = useCallback(() => {
+  setFilters((prev) => ({ ...prev, offerType: null }));
+}, []);
 
-  const handleRemoveEstablishmentType = useCallback((type: EstablishmentType) => {
-    setFilters(prev => ({
-      ...prev,
-      establishmentTypes: prev.establishmentTypes.filter(t => t !== type),
-    }));
-  }, []);
+const handleRemoveEstablishmentType = useCallback((type: EstablishmentType) => {
+  setFilters((prev) => ({
+    ...prev,
+    establishmentTypes: prev.establishmentTypes.filter((t) => t !== type),
+  }));
+}, []);
 
-  const handleRemoveCuisineType = useCallback((cuisine: string) => {
-    setFilters(prev => ({
-      ...prev,
-      cuisineTypes: prev.cuisineTypes.filter(c => c !== cuisine),
-    }));
-  }, []);
+const handleRemoveCuisineType = useCallback((cuisine: string) => {
+  setFilters((prev) => ({
+    ...prev,
+    cuisineTypes: prev.cuisineTypes.filter((c) => c !== cuisine),
+  }));
+}, []);
 
-  const handleRemoveCategory = useCallback((category: string) => {
-    setFilters(prev => ({
-      ...prev,
-      categories: prev.categories.filter(c => c !== category),
-    }));
-  }, []);
+const handleRemoveCategory = useCallback((category: string) => {
+  setFilters((prev) => ({
+    ...prev,
+    categories: prev.categories.filter((c) => c !== category),
+  }));
+}, []);
 ```
 
 ### Step 6: UI Integration
@@ -289,16 +291,19 @@ const styles = StyleSheet.create({
 ## API Request Examples
 
 ### No Filters (Default)
+
 ```
 GET /api/offers?page=1&limit=20&latitude=36.8065&longitude=10.1815
 ```
 
 ### With Establishment Type Filter
+
 ```
 GET /api/offers?page=1&limit=20&establishmentType=BAKERY&latitude=36.8065&longitude=10.1815
 ```
 
 ### With Multiple Filters
+
 ```
 GET /api/offers
   ?page=1
@@ -320,16 +325,16 @@ GET /api/offers
 ```typescript
 interface FilterState {
   // Offer type (radio selection)
-  offerType: OfferType | null;  // null | 'surprise_bag' | 'specific_items' | 'meal_deal'
+  offerType: OfferType | null; // null | 'surprise_bag' | 'specific_items' | 'meal_deal'
 
   // Establishment types (multi-select)
-  establishmentTypes: EstablishmentType[];  // ['BAKERY', 'RESTAURANT', ...]
+  establishmentTypes: EstablishmentType[]; // ['BAKERY', 'RESTAURANT', ...]
 
   // Cuisine types (multi-select)
-  cuisineTypes: string[];  // ['italian', 'asian', 'french', ...]
+  cuisineTypes: string[]; // ['italian', 'asian', 'french', ...]
 
   // Food categories (multi-select)
-  categories: string[];  // ['pizza', 'bakery', 'pasta', ...]
+  categories: string[]; // ['pizza', 'bakery', 'pasta', ...]
 
   // Price range (future enhancement)
   priceRange: {
@@ -347,6 +352,7 @@ interface FilterState {
 ## Available Filter Options
 
 ### Establishment Types (8 options)
+
 ```typescript
 const ESTABLISHMENT_TYPE_OPTIONS = [
   { value: 'BAKERY', label: 'Bakery', icon: '🍞' },
@@ -361,6 +367,7 @@ const ESTABLISHMENT_TYPE_OPTIONS = [
 ```
 
 ### Cuisine Types (10 options)
+
 ```typescript
 const CUISINE_TYPE_OPTIONS = [
   { value: 'italian', label: 'Italian', flag: '🇮🇹' },
@@ -377,6 +384,7 @@ const CUISINE_TYPE_OPTIONS = [
 ```
 
 ### Food Categories (12 options)
+
 ```typescript
 const CATEGORY_OPTIONS = [
   { value: 'pizza', label: 'Pizza', icon: '🍕' },
@@ -436,16 +444,19 @@ const CATEGORY_OPTIONS = [
 ## Troubleshooting
 
 ### Filters not sent to backend
+
 - Check `offersService.getAllOffers()` query param construction
 - Verify backend receives params in network inspector
 - Ensure filter state is properly updated
 
 ### UI not updating after filter change
+
 - Verify `useEffect` dependency array includes `fetchOffers`
 - Check that `setFilters()` is called correctly
 - Ensure `buildSearchParams()` has correct dependencies
 
 ### Bottom sheet not closing
+
 - Verify `onClose` prop is passed and calls `setIsFilterVisible(false)`
 - Check for any React errors in console
 

@@ -1,2 +1,1 @@
 export { MorphingButton } from './MorphingButton';
-;

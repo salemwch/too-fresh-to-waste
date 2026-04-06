@@ -3,10 +3,19 @@
  * Enterprise-grade button with platform-specific styling and animations
  */
 
-import React, { useRef, forwardRef, useCallback } from 'react';
-import { Pressable, Text, View, ActivityIndicator, Animated, Platform } from 'react-native';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import React, { useState, forwardRef, useCallback } from 'react';
+import {
+  Pressable,
+  Text,
+  View,
+  ActivityIndicator,
+  Animated,
+  Platform,
+  type GestureResponderEvent,
+} from 'react-native';
+import { trigger as triggerHapticFeedback } from 'react-native-haptic-feedback';
 
+import { usePressGuard } from '../../../../hooks/usePressGuard';
 import { useTheme } from '../../../providers';
 import { Icon } from '../Icon';
 
@@ -28,12 +37,13 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
       rightIcon,
       rightIconFamily,
       fullWidth = false,
-      platform = 'auto',
+      platform: _platform = 'auto',
       style,
 
       textStyle,
       hapticFeedback = true,
       animation = { scale: 0.95, duration: 150 },
+      pressGuardMs,
       onPress,
       onPressIn,
       onPressOut,
@@ -46,8 +56,9 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
     ref,
   ) => {
     const theme = useTheme();
-    const scaleAnim = useRef(new Animated.Value(1)).current;
-    const isDisabled = disabled || loading;
+    const [scaleAnim] = useState(() => new Animated.Value(1));
+    const isDisabled = Boolean(disabled) || loading;
+    const { guardedPress } = usePressGuard(onPress ?? undefined, pressGuardMs ?? 0);
 
     // Create styles based on current props and theme
     const styles = createButtonStyles(theme, variant, size, fullWidth, isDisabled);
@@ -59,6 +70,8 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
           return 14;
         case 'sm':
           return 16;
+        case 'md':
+          return 18;
         case 'lg':
         case 'xl':
           return 22;
@@ -72,7 +85,7 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
       icon: React.ReactNode | string | undefined,
       iconFamily: IconFamily | undefined,
     ): React.ReactNode => {
-      if (!icon) return null;
+      if (icon == null || icon === false || icon === '') return null;
 
       // If icon is a string, render as Icon component
       if (typeof icon === 'string') {
@@ -92,7 +105,7 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
 
     // Handle press in with animation and haptics
     const handlePressIn = useCallback(
-      (event: any) => {
+      (event: GestureResponderEvent) => {
         // Enterprise-grade haptic feedback with proper error handling and platform checks
         if (hapticFeedback && !isDisabled) {
           try {
@@ -100,17 +113,13 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
             if (Platform.OS === 'ios' || Platform.OS === 'android') {
               // Use impactLight for subtle, professional tactile feedback
               // Options: enableVibrateFallback ensures Android devices without haptic support still vibrate
-              ReactNativeHapticFeedback.trigger('impactLight', {
+              triggerHapticFeedback('impactLight', {
                 enableVibrateFallback: true,
                 ignoreAndroidSystemSettings: false, // Respect user's system settings
               });
             }
-          } catch (error) {
-            // Graceful degradation: log error but don't block UI interaction
-            // In production, consider using a logging service (e.g., Sentry)
-            if (__DEV__) {
-              console.warn('Haptic feedback failed:', error);
-            }
+          } catch {
+            // Graceful degradation: haptic failure is non-fatal, interaction continues
           }
         }
 
@@ -128,7 +137,7 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
 
     // Handle press out with animation
     const handlePressOut = useCallback(
-      (event: any) => {
+      (event: GestureResponderEvent) => {
         Animated.timing(scaleAnim, {
           toValue: 1,
           duration: animation.duration ?? 150,
@@ -142,12 +151,12 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
 
     // Handle press with proper disabled state check
     const handlePress = useCallback(
-      (event: any) => {
+      (event: GestureResponderEvent) => {
         if (!isDisabled) {
-          onPress?.(event);
+          guardedPress(event);
         }
       },
-      [isDisabled, onPress],
+      [guardedPress, isDisabled],
     );
 
     // Render button content
@@ -207,3 +216,5 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
     );
   },
 );
+
+Button.displayName = 'Button';

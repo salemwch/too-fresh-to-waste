@@ -10,9 +10,12 @@
 
 import { useState, useCallback, useRef } from 'react';
 
+import { Logger } from '@/utils/logger';
+
 import { ordersService } from '../services/ordersService';
-import type { CreateOrderDto, Order, PhoneVerificationRequiredError } from '../types/order.types';
 import { isPhoneVerificationRequired } from '../types/order.types';
+
+import type { CreateOrderDto, Order } from '../types/order.types';
 
 /**
  * Hook state
@@ -92,12 +95,13 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
     order: null,
   });
 
-  const [phoneVerificationModal, setPhoneVerificationModal] =
-    useState<PhoneVerificationModalState>({
+  const [phoneVerificationModal, setPhoneVerificationModal] = useState<PhoneVerificationModalState>(
+    {
       isVisible: false,
       requiresPhoneSetup: false,
       requiresPhoneVerification: false,
-    });
+    },
+  );
 
   // ✅ BEST PRACTICE: Store order data for retry using useRef (doesn't trigger re-renders)
   const pendingOrderDataRef = useRef<CreateOrderDto | null>(null);
@@ -106,7 +110,7 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
    * Reset error state
    */
   const resetError = useCallback(() => {
-    setState(prev => ({ ...prev, error: null }));
+    setState((prev) => ({ ...prev, error: null }));
   }, []);
 
   /**
@@ -125,7 +129,7 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
    */
   const executeOrderCreation = useCallback(
     async (orderData: CreateOrderDto): Promise<Order | null> => {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       try {
         const order = await ordersService.createOrder(orderData);
@@ -151,7 +155,7 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
       } catch (error) {
         // ✅ CRITICAL: Check if error is phone verification required
         if (isPhoneVerificationRequired(error)) {
-          const phoneError = error as PhoneVerificationRequiredError;
+          const phoneError = error;
 
           // ✅ Store order data for retry after verification
           pendingOrderDataRef.current = orderData;
@@ -197,9 +201,7 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
    * ✅ BEST PRACTICE: Optimistic call that handles phone verification gracefully
    */
   const createOrder = useCallback(
-    async (orderData: CreateOrderDto): Promise<Order | null> => {
-      return executeOrderCreation(orderData);
-    },
+    async (orderData: CreateOrderDto): Promise<Order | null> => executeOrderCreation(orderData),
     [executeOrderCreation],
   );
 
@@ -209,7 +211,7 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
    */
   const retryOrderCreation = useCallback(async (): Promise<Order | null> => {
     if (!pendingOrderDataRef.current) {
-      console.warn('[useCreateOrder] No pending order data to retry');
+      Logger.warn('[useCreateOrder] No pending order data to retry');
       return null;
     }
 

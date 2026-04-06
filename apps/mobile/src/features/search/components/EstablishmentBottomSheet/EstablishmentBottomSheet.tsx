@@ -9,8 +9,13 @@
  */
 
 import { Currency } from '@foodwaste/shared';
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, Animated, Pressable, FlatList, Image, Dimensions } from 'react-native';
+
+import { Text, Icon } from '@/design-system/components/atoms';
+import { useTheme } from '@/design-system/providers';
+import { FavoriteOfferCard } from '@/features/favorites';
+import { OfferType, CtaState, OfferStatus } from '@/features/offers/types/offer.types';
 
 import type {
   ProximitySearchResult,
@@ -19,13 +24,9 @@ import type {
 } from '@/features/offers/hooks';
 import type { OfferListItem } from '@/features/offers/types/offer.types';
 
-import { Text, Icon } from '@/design-system/components/atoms';
-import { useTheme } from '@/design-system/providers';
-import { FavoriteOfferCard } from '@/features/favorites';
-import { OfferType, CtaState, OfferStatus } from '@/features/offers/types/offer.types';
-
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
+const SHEET_SHADOW = '#000';
 
 // ============================================================================
 // Types
@@ -70,7 +71,7 @@ const mapOfferToListItem = (
     originalPrice: offer.pricing.originalPrice,
     discountedPrice: offer.pricing.discountedPrice,
     discountPercentage: offer.pricing.discountPercentage,
-    currency: (offer.pricing.currency as Currency) || Currency.TND,
+    currency: (offer.pricing.currency as Currency | null | undefined) ?? Currency.TND,
   },
   availableQuantity: offer.availableQuantity,
   availableFrom: offer.availableFrom,
@@ -110,8 +111,8 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
   bottomInset = 0,
 }) => {
   const theme = useTheme();
-  const slideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const [slideAnim] = useState(() => new Animated.Value(SHEET_HEIGHT));
+  const [opacityAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     if (visible) {
@@ -191,9 +192,6 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
     ),
     [theme.colors],
   );
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  if (!visible && (opacityAnim as any)._value === 0) return null;
 
   const initial = item?.name?.charAt(0).toUpperCase() ?? '?';
   const ratingDisplay = (item?.averageRating ?? 0).toFixed(1);
@@ -316,7 +314,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    shadowColor: '#000',
+    shadowColor: SHEET_SHADOW,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,

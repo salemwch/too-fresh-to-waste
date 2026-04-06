@@ -64,7 +64,7 @@ export class LocationAdapter {
    * @returns Normalized location result
    */
   static fromTunisianCity(city: TunisianCity): ILocationResult | null {
-    if (!city.Delegations || city.Delegations.length === 0) {
+    if (city.Delegations.length === 0) {
       return null;
     }
 
@@ -98,14 +98,12 @@ export class LocationAdapter {
   static fromGooglePlace(place: GooglePlaceResult): ILocationResult {
     // Extract city name from address components (if available)
     const cityComponent = place.address_components?.find(
-      component =>
+      (component) =>
         component.types.includes('locality') ||
         component.types.includes('administrative_area_level_2'),
     );
 
-    const subtext = cityComponent
-      ? `${cityComponent.long_name}, Tunisia`
-      : place.formatted_address;
+    const subtext = cityComponent ? `${cityComponent.long_name}, Tunisia` : place.formatted_address;
 
     return {
       id: `GOOGLE_${place.place_id}`,
@@ -185,12 +183,7 @@ export class LocationAdapter {
     const nameArA = normalize(a.nameAr);
     const nameArB = normalize(b.nameAr);
 
-    return (
-      nameA === nameB ||
-      nameArA === nameArB ||
-      nameA === nameArB ||
-      nameArA === nameB
-    );
+    return nameA === nameB || nameArA === nameArB || nameA === nameArB || nameArA === nameB;
   }
 
   /**
@@ -219,14 +212,10 @@ export class LocationAdapter {
       }
 
       // Check for coordinate-based duplicates
-      const isDuplicateCoords = result.some(existing =>
-        this.isDuplicate(existing, location),
-      );
+      const isDuplicateCoords = result.some((existing) => this.isDuplicate(existing, location));
 
       // Check for fuzzy name match
-      const isDuplicateName = result.some(existing =>
-        this.isFuzzyNameMatch(existing, location),
-      );
+      const isDuplicateName = result.some((existing) => this.isFuzzyNameMatch(existing, location));
 
       if (!isDuplicateCoords && !isDuplicateName) {
         result.push(location);

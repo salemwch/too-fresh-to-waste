@@ -4,7 +4,7 @@
  * Allows user to select a search radius from preset options.
  */
 
-import React, { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 
 import { useTheme } from '../../../providers';
@@ -14,75 +14,77 @@ import type { RadiusSelectorProps } from './RadiusSelector.types';
 
 const DEFAULT_PRESETS = [5, 10, 25, 50];
 
-export const RadiusSelector = React.memo<RadiusSelectorProps>(function RadiusSelector({
-  value,
-  onChange,
-  presets = DEFAULT_PRESETS,
-  variant = 'chips',
-  label,
-  disabled = false,
-  style,
-  testID,
-}) {
-  const theme = useTheme();
+export const RadiusSelector = memo<RadiusSelectorProps>(
+  ({
+    value,
+    onChange,
+    presets = DEFAULT_PRESETS,
+    variant = 'chips',
+    label,
+    disabled = false,
+    style,
+    testID,
+  }) => {
+    const theme = useTheme();
 
-  const handleSelect = useCallback(
-    (radiusKm: number) => {
-      if (!disabled) {
-        onChange(radiusKm);
-      }
-    },
-    [disabled, onChange],
-  );
+    const handleSelect = useCallback(
+      (radiusKm: number) => {
+        if (!disabled) {
+          onChange(radiusKm);
+        }
+      },
+      [disabled, onChange],
+    );
 
-  const renderPreset = useCallback(
-    (radiusKm: number) => {
-      const isSelected = value === radiusKm;
-      const buttonStyle = [
-        styles.presetButton,
-        variant === 'chips' ? styles.chip : styles.button,
-        {
-          backgroundColor: isSelected ? theme.colors.primary : theme.colors.surfaceVariant,
-          borderColor: isSelected ? theme.colors.primary : theme.colors.outline,
-          opacity: disabled ? 0.5 : 1,
-        },
-      ];
+    const renderPreset = useCallback(
+      (radiusKm: number) => {
+        const isSelected = value === radiusKm;
+        const buttonStyle = [
+          styles.presetButton,
+          variant === 'chips' ? styles.chip : styles.button,
+          {
+            backgroundColor: isSelected ? theme.colors.primary : theme.colors.surfaceVariant,
+            borderColor: isSelected ? theme.colors.primary : theme.colors.outline,
+            opacity: disabled ? 0.5 : 1,
+          },
+        ];
 
-      return (
-        <Pressable
-          key={radiusKm}
-          style={buttonStyle}
-          onPress={() => handleSelect(radiusKm)}
-          disabled={disabled}
-          accessibilityRole='radio'
-          accessibilityState={{ checked: isSelected, disabled }}
-          accessibilityLabel={`${radiusKm} kilometers`}
-        >
-          <Text
-            variant='label'
-            size='sm'
-            weight={isSelected ? 'semibold' : 'medium'}
-            style={{ color: isSelected ? theme.colors.onPrimary : theme.colors.onSurface }}
+        return (
+          <Pressable
+            key={radiusKm}
+            style={buttonStyle}
+            onPress={() => handleSelect(radiusKm)}
+            disabled={disabled}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: isSelected, disabled }}
+            accessibilityLabel={`${radiusKm} kilometers`}
           >
-            {radiusKm} km
-          </Text>
-        </Pressable>
-      );
-    },
-    [value, variant, theme.colors, disabled, handleSelect],
-  );
+            <Text
+              variant="label"
+              size="sm"
+              weight={isSelected ? 'semibold' : 'medium'}
+              style={{ color: isSelected ? theme.colors.onPrimary : theme.colors.onSurface }}
+            >
+              {radiusKm} km
+            </Text>
+          </Pressable>
+        );
+      },
+      [value, variant, theme.colors, disabled, handleSelect],
+    );
 
-  return (
-    <View style={[styles.container, style]} testID={testID} accessibilityRole='radiogroup'>
-      {label && (
-        <Text variant='label' size='sm' color='secondary' style={styles.label}>
-          {label}
-        </Text>
-      )}
-      <View style={styles.presetsRow}>{presets.map(renderPreset)}</View>
-    </View>
-  );
-});
+    return (
+      <View style={[styles.container, style]} testID={testID} accessibilityRole="radiogroup">
+        {label && (
+          <Text variant="label" size="sm" color="secondary" style={styles.label}>
+            {label}
+          </Text>
+        )}
+        <View style={styles.presetsRow}>{presets.map(renderPreset)}</View>
+      </View>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   container: {},
@@ -113,4 +115,3 @@ const styles = StyleSheet.create({
 });
 
 RadiusSelector.displayName = 'RadiusSelector';
-

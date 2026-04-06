@@ -34,6 +34,9 @@ import type { FilterState } from '../types/filter.types';
 import type { EstablishmentType, OfferType } from '@/features/offers/types/offer.types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const WHITE = '#FFFFFF';
+const OVERLAY = 'rgba(0, 0, 0, 0.5)';
+const SHEET_SHADOW = '#000';
 
 // ============================================================================
 // Props
@@ -64,6 +67,9 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 }) => {
   const { colors } = useTheme();
   const [localFilters, setLocalFilters] = useState<FilterState>(initialFilters);
+  const accentTextStyle = { color: colors.accent };
+  const onSurfaceTextStyle = { color: colors.onSurface };
+  const successTextStyle = { color: colors.success };
 
   // Sync local state when initial filters change
   useEffect(() => {
@@ -75,35 +81,35 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   // ──────────────────────────────────────────────────────────────────────────
 
   const toggleOfferType = useCallback((type: OfferType | null) => {
-    setLocalFilters(prev => ({
+    setLocalFilters((prev) => ({
       ...prev,
       offerType: prev.offerType === type ? null : type,
     }));
   }, []);
 
   const toggleEstablishmentType = useCallback((type: EstablishmentType) => {
-    setLocalFilters(prev => ({
+    setLocalFilters((prev) => ({
       ...prev,
       establishmentTypes: prev.establishmentTypes.includes(type)
-        ? prev.establishmentTypes.filter(t => t !== type)
+        ? prev.establishmentTypes.filter((t) => t !== type)
         : [...prev.establishmentTypes, type],
     }));
   }, []);
 
   const toggleCuisineType = useCallback((cuisine: string) => {
-    setLocalFilters(prev => ({
+    setLocalFilters((prev) => ({
       ...prev,
       cuisineTypes: prev.cuisineTypes.includes(cuisine)
-        ? prev.cuisineTypes.filter(c => c !== cuisine)
+        ? prev.cuisineTypes.filter((c) => c !== cuisine)
         : [...prev.cuisineTypes, cuisine],
     }));
   }, []);
 
   const toggleCategory = useCallback((category: string) => {
-    setLocalFilters(prev => ({
+    setLocalFilters((prev) => ({
       ...prev,
       categories: prev.categories.includes(category)
-        ? prev.categories.filter(c => c !== category)
+        ? prev.categories.filter((c) => c !== category)
         : [...prev.categories, category],
     }));
   }, []);
@@ -135,13 +141,13 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: colors.outline }]}>
           <Pressable onPress={onClose} style={styles.closeButton}>
-            <Icon name='close' size={24} color={colors.onSurface} />
+            <Icon name="close" size={24} color={colors.onSurface} />
           </Pressable>
-          <Text variant='headline' style={styles.headerTitle}>
+          <Text variant="headline" style={styles.headerTitle}>
             Filters
           </Text>
           <Pressable onPress={handleClear}>
-            <Text variant='body' style={{ color: colors.accent }}>
+            <Text variant="body" style={accentTextStyle}>
               Clear
             </Text>
           </Pressable>
@@ -155,11 +161,11 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         >
           {/* Offer Type Section */}
           <View style={styles.section}>
-            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            <Text variant="title" style={[styles.sectionTitle, { color: colors.onSurface }]}>
               🎁 Offer Type
             </Text>
             <View style={styles.radioGroup}>
-              {OFFER_TYPE_OPTIONS.map(option => {
+              {OFFER_TYPE_OPTIONS.map((option) => {
                 const isSelected = localFilters.offerType === option.value;
                 return (
                   <Pressable
@@ -173,10 +179,13 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     ]}
                     onPress={() => toggleOfferType(option.value)}
                   >
-                    <Text style={{ fontSize: 18, marginRight: 6 }}>{option.icon}</Text>
+                    <Text style={styles.offerTypeIcon}>{option.icon}</Text>
                     <Text
-                      variant='body'
-                      style={{ color: isSelected ? '#FFFFFF' : colors.onSurface }}
+                      variant="body"
+                      style={[
+                        styles.optionLabel,
+                        isSelected ? styles.selectedText : onSurfaceTextStyle,
+                      ]}
                     >
                       {option.label}
                     </Text>
@@ -188,11 +197,11 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
           {/* Establishment Type Section */}
           <View style={styles.section}>
-            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            <Text variant="title" style={[styles.sectionTitle, { color: colors.onSurface }]}>
               🏪 Establishment Type
             </Text>
             <View style={styles.chipGrid}>
-              {ESTABLISHMENT_TYPE_OPTIONS.map(option => {
+              {ESTABLISHMENT_TYPE_OPTIONS.map((option) => {
                 const isSelected = localFilters.establishmentTypes.includes(option.value);
                 return (
                   <Pressable
@@ -206,14 +215,13 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     ]}
                     onPress={() => toggleEstablishmentType(option.value)}
                   >
-                    <Text style={{ fontSize: 24, marginBottom: 4 }}>{option.icon}</Text>
+                    <Text style={styles.establishmentIcon}>{option.icon}</Text>
                     <Text
-                      variant='caption'
-                      style={{
-                        color: isSelected ? '#FFFFFF' : colors.onSurface,
-                        fontSize: 11,
-                        textAlign: 'center',
-                      }}
+                      variant="caption"
+                      style={[
+                        styles.establishmentLabel,
+                        isSelected ? styles.selectedText : onSurfaceTextStyle,
+                      ]}
                     >
                       {option.label}
                     </Text>
@@ -225,11 +233,11 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
           {/* Cuisine Type Section */}
           <View style={styles.section}>
-            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            <Text variant="title" style={[styles.sectionTitle, { color: colors.onSurface }]}>
               🍝 Cuisine Type
             </Text>
             <View style={styles.chipGrid}>
-              {CUISINE_TYPE_OPTIONS.map(option => {
+              {CUISINE_TYPE_OPTIONS.map((option) => {
                 const isSelected = localFilters.cuisineTypes.includes(option.value);
                 return (
                   <Pressable
@@ -243,13 +251,13 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     ]}
                     onPress={() => toggleCuisineType(option.value)}
                   >
-                    <Text style={{ fontSize: 20, marginRight: 6 }}>{option.flag}</Text>
+                    <Text style={styles.cuisineIcon}>{option.flag}</Text>
                     <Text
-                      variant='caption'
-                      style={{
-                        color: isSelected ? '#FFFFFF' : colors.onSurface,
-                        fontSize: 12,
-                      }}
+                      variant="caption"
+                      style={[
+                        styles.cuisineLabel,
+                        isSelected ? styles.selectedText : onSurfaceTextStyle,
+                      ]}
                     >
                       {option.label}
                     </Text>
@@ -261,11 +269,11 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
           {/* Food Categories Section */}
           <View style={styles.section}>
-            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            <Text variant="title" style={[styles.sectionTitle, { color: colors.onSurface }]}>
               🍕 Food Categories
             </Text>
             <View style={styles.chipWrap}>
-              {CATEGORY_OPTIONS.map(option => {
+              {CATEGORY_OPTIONS.map((option) => {
                 const isSelected = localFilters.categories.includes(option.value);
                 return (
                   <Pressable
@@ -279,12 +287,13 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                     ]}
                     onPress={() => toggleCategory(option.value)}
                   >
-                    {option.icon && (
-                      <Text style={{ fontSize: 16, marginRight: 4 }}>{option.icon}</Text>
-                    )}
+                    {option.icon && <Text style={styles.categoryIcon}>{option.icon}</Text>}
                     <Text
-                      variant='caption'
-                      style={{ color: isSelected ? '#FFFFFF' : colors.onSurface }}
+                      variant="caption"
+                      style={[
+                        styles.optionLabel,
+                        isSelected ? styles.selectedText : onSurfaceTextStyle,
+                      ]}
                     >
                       {option.label}
                     </Text>
@@ -302,15 +311,15 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             onPress={handleApply}
           >
             {isLoading ? (
-              <ActivityIndicator color='#FFFFFF' />
+              <ActivityIndicator color="#FFFFFF" />
             ) : (
               <>
-                <Text variant='label' weight='semibold' style={{ color: '#FFFFFF' }}>
+                <Text variant="label" weight="semibold" style={styles.applyButtonText}>
                   Apply Filters
                 </Text>
                 {resultCount !== undefined && (
                   <View style={styles.resultBadge}>
-                    <Text variant='caption' style={{ color: colors.success, fontWeight: '600' }}>
+                    <Text variant="caption" style={[styles.resultBadgeText, successTextStyle]}>
                       {resultCount}
                     </Text>
                   </View>
@@ -339,7 +348,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: OVERLAY,
   },
   container: {
     position: 'absolute',
@@ -349,7 +358,7 @@ const styles = StyleSheet.create({
     maxHeight: '90%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    shadowColor: '#000',
+    shadowColor: SHEET_SHADOW,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -399,6 +408,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
   },
+  offerTypeIcon: {
+    fontSize: 18,
+    marginRight: 6,
+  },
   chipGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -413,6 +426,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     padding: 8,
   },
+  establishmentIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  establishmentLabel: {
+    fontSize: 11,
+    textAlign: 'center',
+  },
   flagChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -421,6 +442,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 2,
     marginBottom: 8,
+  },
+  cuisineIcon: {
+    fontSize: 20,
+    marginRight: 6,
+  },
+  cuisineLabel: {
+    fontSize: 12,
   },
   chipWrap: {
     flexDirection: 'row',
@@ -434,6 +462,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 2,
+  },
+  categoryIcon: {
+    fontSize: 16,
+    marginRight: 4,
+  },
+  optionLabel: {
+    fontSize: 14,
+  },
+  selectedText: {
+    color: WHITE,
   },
   footer: {
     paddingHorizontal: 20,
@@ -450,9 +488,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   resultBadge: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WHITE,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
+  },
+  applyButtonText: {
+    color: WHITE,
+  },
+  resultBadgeText: {
+    fontWeight: '600',
   },
 });

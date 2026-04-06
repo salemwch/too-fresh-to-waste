@@ -122,10 +122,7 @@ export function navigateFromNotification(data: NotificationNavData): void {
       {
         name: 'MainStack',
         state: {
-          routes: [
-            { name: 'MainTabs' },
-            { name: 'OfferDetails', params: { offerId } },
-          ],
+          routes: [{ name: 'MainTabs' }, { name: 'OfferDetails', params: { offerId } }],
         },
       },
     ]);

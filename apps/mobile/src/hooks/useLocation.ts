@@ -170,7 +170,7 @@ export function useLocation(): UseLocationReturn {
   // Select state from Redux
   // ─────────────────────────────────────────────────────────────────────────
 
-  const locationState = useAppSelector(state => state.location);
+  const locationState = useAppSelector((state) => state.location);
   const hasValidLocation = useAppSelector(selectHasValidLocation);
   const shouldShowPrompt = useAppSelector(selectShouldShowPrompt);
   const locationSourceDisplay = useAppSelector(selectLocationSourceDisplay);
@@ -268,9 +268,9 @@ export function useLocation(): UseLocationReturn {
      */
     hasLocation: Boolean(
       coordinates &&
-        (source === 'gps'
-          ? typeof gpsLocationName === 'string' && gpsLocationName.trim().length > 0
-          : typeof manualLocationName === 'string' && manualLocationName.trim().length > 0),
+      (source === 'gps'
+        ? typeof gpsLocationName === 'string' && gpsLocationName.trim().length > 0
+        : typeof manualLocationName === 'string' && manualLocationName.trim().length > 0),
     ),
     hasValidLocation,
     shouldShowPrompt,
@@ -292,5 +292,3 @@ export function useLocation(): UseLocationReturn {
 // ============================================================================
 // Re-export types for convenience
 // ============================================================================
-
-;

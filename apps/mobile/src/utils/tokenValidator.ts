@@ -147,18 +147,19 @@ export const validateTokenLocally = (
  * @returns True if this is a network connectivity issue
  */
 export const isNetworkError = (error: unknown): boolean => {
-  if (!error || typeof error !== 'object') return false;
+  if (error === null || typeof error !== 'object') return false;
 
   // Check for axios error response status
   const err = error as { response?: { status?: number }; code?: string; message?: string };
 
   // If there's an HTTP status, it's not a network error (server responded)
-  if (err.response?.status) {
+  if (err.response?.status !== undefined) {
     return false;
   }
 
   // Check error message for network-related keywords
-  const message = err.message || String(error);
+  const message =
+    typeof err.message === 'string' && err.message !== '' ? err.message : String(error);
   const networkKeywords = [
     'network',
     'timeout',
@@ -170,9 +171,7 @@ export const isNetworkError = (error: unknown): boolean => {
     'offline',
   ];
 
-  return networkKeywords.some(keyword =>
-    message.toLowerCase().includes(keyword.toLowerCase())
-  );
+  return networkKeywords.some((keyword) => message.toLowerCase().includes(keyword.toLowerCase()));
 };
 
 /**
@@ -182,23 +181,22 @@ export const isNetworkError = (error: unknown): boolean => {
  * @returns True if this is a permanent auth failure
  */
 export const isFatalAuthError = (error: unknown): boolean => {
-  if (!error || typeof error !== 'object') return false;
+  if (error === null || typeof error !== 'object') return false;
 
   const err = error as { response?: { status?: number }; message?: string };
   const httpStatus = err.response?.status;
-  const message = err.message || String(error);
+  const message =
+    typeof err.message === 'string' && err.message !== '' ? err.message : String(error);
 
   // Fatal HTTP status codes
   const fatalStatuses = [401, 403, 422];
-  if (httpStatus && fatalStatuses.includes(httpStatus)) {
+  if (httpStatus !== undefined && fatalStatuses.includes(httpStatus)) {
     return true;
   }
 
   // Fatal error messages
   const fatalKeywords = ['invalid', 'revoked', 'expired', 'malformed'];
-  return fatalKeywords.some(keyword =>
-    message.toLowerCase().includes(keyword.toLowerCase())
-  );
+  return fatalKeywords.some((keyword) => message.toLowerCase().includes(keyword.toLowerCase()));
 };
 
 /**

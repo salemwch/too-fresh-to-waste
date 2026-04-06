@@ -26,10 +26,11 @@
  * ```
  */
 
-import NetInfo from '@react-native-community/netinfo';
+import { addEventListener } from '@react-native-community/netinfo';
+import Toast from 'react-native-toast-message';
+
 import { Logger } from './logger';
 import { SafeAnalytics } from './safeAnalytics';
-import Toast from 'react-native-toast-message';
 
 /**
  * Offline Manager State
@@ -80,9 +81,10 @@ const initializeOfflineManager = (): void => {
   }
 
   // Subscribe to network state updates
-  state.unsubscribe = NetInfo.addEventListener(netInfoState => {
+  state.unsubscribe = addEventListener((netInfoState) => {
     const wasOffline = state.isOffline;
-    const isOffline = !netInfoState.isConnected || netInfoState.isInternetReachable === false;
+    const isOffline =
+      netInfoState.isConnected !== true || netInfoState.isInternetReachable === false;
 
     state.isOffline = isOffline;
     state.lastCheckTime = Date.now();
@@ -132,18 +134,14 @@ const cleanupOfflineManager = (): void => {
  *
  * @returns True if offline, false if online
  */
-const isOffline = (): boolean => {
-  return state.isOffline;
-};
+const isOffline = (): boolean => state.isOffline;
 
 /**
  * Check if device is currently online
  *
  * @returns True if online, false if offline
  */
-const isOnline = (): boolean => {
-  return !state.isOffline;
-};
+const isOnline = (): boolean => !state.isOffline;
 
 /**
  * Show "No internet connection" toast (rate-limited)

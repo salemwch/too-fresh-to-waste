@@ -8,30 +8,35 @@
  * 3. No logout flash: Preserve previous UI while validation runs
  */
 
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { addEventListener as addNetInfoEventListener } from '@react-native-community/netinfo';
+import {
+  DefaultTheme,
+  NavigationContainer,
+  type InitialState,
+  type NavigationState,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useEffect, useState, useRef } from 'react';
-import { View, ActivityIndicator, StyleSheet, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import NetInfo from '@react-native-community/netinfo';
+import { View, ActivityIndicator, StyleSheet, Alert, Linking } from 'react-native';
 
+import { OfflineBanner } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { loadStoredAuthAsync, logoutAsync } from '@/features/auth/store/authSlice';
-import { Logger } from '@/utils/logger';
-import { analytics } from '@/utils/analytics';
 import { AuthFlowState } from '@/features/auth/types';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { BiometricAuth } from '@/services/BiometricAuth';
+import { notificationService } from '@/services/NotificationService';
 import { SecureStorage } from '@/services/SecureStorage';
 import { onboardingStorage } from '@/storage/onboardingStorage';
-import { OfflineBanner } from '@/design-system/components/molecules';
+import { analytics } from '@/utils/analytics';
+import { Logger } from '@/utils/logger';
 import { networkErrorBus } from '@/utils/networkErrorBus';
 
 import { AuthStack } from './AuthStack';
 import { linkingConfig } from './linking';
 import { MainStack } from './MainStack';
 import { navigationRef } from './navigationRef';
-import { notificationService } from '@/services/NotificationService';
 
 import type { RootNavigatorParamList } from './types';
 
@@ -41,6 +46,15 @@ const Stack = createNativeStackNavigator<RootNavigatorParamList>();
 // PRODUCTION: Navigation State Persistence Key
 // ============================================================================
 const NAVIGATION_STATE_KEY = '@food_waste_app:navigation_state';
+
+const isPersistedNavigationState = (value: unknown): value is InitialState => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const maybeState = value as { routes?: unknown };
+  return Array.isArray(maybeState.routes);
+};
 
 /**
  * Root Navigator Component
@@ -60,7 +74,7 @@ export const RootNavigator: React.FC = () => {
   // ============================================================================
   // PRODUCTION: Navigation State Persistence
   // ============================================================================
-  const [initialNavigationState, setInitialNavigationState] = useState<any>();
+  const [initialNavigationState, setInitialNavigationState] = useState<InitialState | undefined>();
   const [isNavigationReady, setIsNavigationReady] = useState(!__DEV__);
   const routeNameRef = useRef<string | undefined>(undefined);
   // navigationRef is the module-level ref from navigationRef.ts (shared with NotificationService)
@@ -69,7 +83,7 @@ export const RootNavigator: React.FC = () => {
   // NOTE: We intentionally do NOT use isLoading here.
   // isLoading should NOT trigger global LoadingScreen - each screen handles its own loading state.
   // Using isLoading here causes premature unmounting during async operations (login, register, etc.)
-  const { flowState } = useAppSelector(state => state.auth);
+  const { flowState } = useAppSelector((state) => state.auth);
 
   // ============================================================================
   // DEVICE CONNECTIVITY: Use NetInfo (real network state), NOT auth/API errors
@@ -81,8 +95,8 @@ export const RootNavigator: React.FC = () => {
   const networkErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const unsubscribe = NetInfo.addEventListener(state => {
-      const offline = !state.isConnected || state.isInternetReachable === false;
+    const unsubscribe = addNetInfoEventListener((state) => {
+      const offline = state.isConnected !== true || state.isInternetReachable === false;
       setIsDeviceOffline(offline);
     });
     return () => unsubscribe();
@@ -117,7 +131,7 @@ export const RootNavigator: React.FC = () => {
   const showBanner = isDeviceOffline || networkErrorMessage !== null;
   const bannerMessage = isDeviceOffline
     ? 'No internet connection. Check your WiFi or mobile data.'
-    : networkErrorMessage ?? '';
+    : (networkErrorMessage ?? '');
 
   /**
    * PRODUCTION: Restore Navigation State on App Launch
@@ -134,10 +148,9 @@ export const RootNavigator: React.FC = () => {
 
         // Check if app was opened with a deep link (cold start)
         // If so, skip saved state restoration to let linking config handle navigation
-        const { Linking } = require('react-native');
         const initialURL = await Linking.getInitialURL();
 
-        if (initialURL) {
+        if (typeof initialURL === 'string' && initialURL !== '') {
           Logger.debug('[RootNavigator] Deep link detected, skipping state restoration', {
             url: initialURL,
           });
@@ -147,8 +160,14 @@ export const RootNavigator: React.FC = () => {
 
         const savedState = await AsyncStorage.getItem(NAVIGATION_STATE_KEY);
         if (savedState) {
-          setInitialNavigationState(JSON.parse(savedState));
-          Logger.debug('[RootNavigator] Restored navigation state from storage');
+          const parsedState = JSON.parse(savedState) as unknown;
+
+          if (isPersistedNavigationState(parsedState)) {
+            setInitialNavigationState(parsedState);
+            Logger.debug('[RootNavigator] Restored navigation state from storage');
+          } else {
+            Logger.warn('[RootNavigator] Ignoring invalid persisted navigation state');
+          }
         }
       } catch (error) {
         Logger.warn('[RootNavigator] Failed to restore navigation state', {
@@ -176,7 +195,7 @@ export const RootNavigator: React.FC = () => {
     const initializeAuth = async () => {
       try {
         // Check onboarding status first
-        const welcomeSeen = await onboardingStorage.hasSeenWelcome();
+        const welcomeSeen = onboardingStorage.hasSeenWelcome();
         setHasSeenWelcome(welcomeSeen);
 
         // ✅ PRODUCTION: Load from authoritative source (Keychain) with retry
@@ -245,7 +264,6 @@ export const RootNavigator: React.FC = () => {
     void initializeAuth();
   }, [dispatch]);
 
-
   /**
    * Navigation theme configuration
    */
@@ -273,10 +291,6 @@ export const RootNavigator: React.FC = () => {
    * 2. Onboarding gate (device-level, only for unauthenticated users)
    */
   const renderNavigator = () => {
-    if (__DEV__) {
-      console.log('[STATE-DRIVEN NAV] hasSeenWelcome:', hasSeenWelcome, 'flowState:', flowState);
-    }
-
     // GATE 1: Authentication (user-level) - HIGHEST PRIORITY
     // ✅ Authenticated users go directly to MainStack (bypass onboarding)
     switch (flowState) {
@@ -288,7 +302,7 @@ export const RootNavigator: React.FC = () => {
       // BYPASS onboarding check - authenticated users don't need it
       case AuthFlowState.AUTHENTICATED:
         return (
-          <Stack.Screen name='MainStack' component={MainStack} options={{ headerShown: false }} />
+          <Stack.Screen name="MainStack" component={MainStack} options={{ headerShown: false }} />
         );
 
       // For all other flow states, check onboarding gate
@@ -305,13 +319,13 @@ export const RootNavigator: React.FC = () => {
         if (!hasSeenWelcome) {
           // New user - show Welcome/Onboarding screen
           return (
-            <Stack.Screen name='AuthStack' component={AuthStack} options={{ headerShown: false }} />
+            <Stack.Screen name="AuthStack" component={AuthStack} options={{ headerShown: false }} />
           );
         }
 
         // Returning user (seen welcome) but not authenticated - show Login
         return (
-          <Stack.Screen name='AuthStack' component={AuthStack} options={{ headerShown: false }} />
+          <Stack.Screen name="AuthStack" component={AuthStack} options={{ headerShown: false }} />
         );
     }
   };
@@ -339,16 +353,13 @@ export const RootNavigator: React.FC = () => {
    * - Screen view analytics
    * - Performance monitoring
    */
-  const handleNavigationStateChange = async (state: any) => {
-    // Save state for restoration (DEV only)
-    if (__DEV__) {
-      try {
-        await AsyncStorage.setItem(NAVIGATION_STATE_KEY, JSON.stringify(state));
-      } catch (error) {
+  const handleNavigationStateChange = (state: Readonly<NavigationState> | undefined) => {
+    if (__DEV__ && state !== undefined) {
+      void AsyncStorage.setItem(NAVIGATION_STATE_KEY, JSON.stringify(state)).catch((error) => {
         Logger.warn('[RootNavigator] Failed to save navigation state', {
           error: (error as Error).message,
         });
-      }
+      });
     }
 
     // Track screen views for analytics
@@ -386,20 +397,17 @@ export const RootNavigator: React.FC = () => {
         ref={navigationRef}
         theme={navigationTheme}
         linking={linkingConfig}
-        initialState={initialNavigationState}
+        {...(initialNavigationState !== undefined ? { initialState: initialNavigationState } : {})}
         onReady={handleNavigationReady}
-        onStateChange={handleNavigationStateChange as any}
+        onStateChange={handleNavigationStateChange}
       >
-        <Stack.Navigator screenOptions={{ headerShown: false }}>{renderNavigator()}</Stack.Navigator>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {renderNavigator()}
+        </Stack.Navigator>
       </NavigationContainer>
 
       {/* Offline banner - driven by device connectivity (NetInfo) OR API network errors */}
-      {showBanner && (
-        <OfflineBanner
-          visible
-          message={bannerMessage}
-        />
-      )}
+      {showBanner && <OfflineBanner visible message={bannerMessage} />}
     </>
   );
 };

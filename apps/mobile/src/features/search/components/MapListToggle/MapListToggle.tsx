@@ -10,7 +10,7 @@
  * - Accessible labels
  */
 
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Pressable, Animated } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
@@ -32,9 +32,19 @@ interface MapListToggleProps {
 // Component
 // ============================================================================
 
+const TOGGLE_SHADOW = '#000';
+
 export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, style }) => {
   const theme = useTheme();
-  const slideAnim = useRef(new Animated.Value(value === 'map' ? 0 : 1)).current;
+  const [slideAnim] = useState(() => new Animated.Value(value === 'map' ? 0 : 1));
+  const translateX = useMemo(
+    () =>
+      slideAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [2, 82], // Half of container width - padding
+      }),
+    [slideAnim],
+  );
 
   // Animate the selection indicator
   useEffect(() => {
@@ -66,14 +76,7 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
           styles.selectionIndicator,
           {
             backgroundColor: theme.colors.background,
-            transform: [
-              {
-                translateX: slideAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [2, 82], // Half of container width - padding
-                }),
-              },
-            ],
+            transform: [{ translateX }],
           },
         ]}
       />
@@ -82,19 +85,19 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
       <Pressable
         style={styles.button}
         onPress={handleMapPress}
-        accessibilityRole='button'
-        accessibilityLabel='Map view'
+        accessibilityRole="button"
+        accessibilityLabel="Map view"
         accessibilityState={{ selected: value === 'map' }}
       >
         <Icon
-          name='map-outline'
-          family='Ionicons'
+          name="map-outline"
+          family="Ionicons"
           size={18}
           color={value === 'map' ? theme.colors.primary : theme.colors.onSurfaceVariant}
         />
         <Text
-          variant='label'
-          size='sm'
+          variant="label"
+          size="sm"
           weight={value === 'map' ? 'bold' : 'medium'}
           color={value === 'map' ? 'primary' : 'secondary'}
           style={styles.buttonText}
@@ -107,19 +110,19 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
       <Pressable
         style={styles.button}
         onPress={handleListPress}
-        accessibilityRole='button'
-        accessibilityLabel='List view'
+        accessibilityRole="button"
+        accessibilityLabel="List view"
         accessibilityState={{ selected: value === 'list' }}
       >
         <Icon
-          name='list-outline'
-          family='Ionicons'
+          name="list-outline"
+          family="Ionicons"
           size={18}
           color={value === 'list' ? theme.colors.primary : theme.colors.onSurfaceVariant}
         />
         <Text
-          variant='label'
-          size='sm'
+          variant="label"
+          size="sm"
           weight={value === 'list' ? 'bold' : 'medium'}
           color={value === 'list' ? 'primary' : 'secondary'}
           style={styles.buttonText}
@@ -150,7 +153,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 38,
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: TOGGLE_SHADOW,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -169,4 +172,3 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 });
-

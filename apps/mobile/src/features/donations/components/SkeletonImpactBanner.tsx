@@ -3,7 +3,7 @@
  * Shimmer loading placeholder for ImpactBanner (collapsed state).
  */
 
-import React from 'react';
+import { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
@@ -12,9 +12,14 @@ interface SkeletonImpactBannerProps {
   testID?: string;
 }
 
-const SkeletonImpactBannerComponent: React.FC<SkeletonImpactBannerProps> = ({
+const COLORS = {
+  surface: '#FFFFFF',
+  shadow: '#000',
+} as const;
+
+const SkeletonImpactBannerComponent = ({
   testID = 'skeleton-impact-banner',
-}) => {
+}: SkeletonImpactBannerProps) => {
   const anim = useShimmerAnimation();
 
   return (
@@ -34,7 +39,7 @@ const SkeletonImpactBannerComponent: React.FC<SkeletonImpactBannerProps> = ({
 };
 
 SkeletonImpactBannerComponent.displayName = 'SkeletonImpactBanner';
-export const SkeletonImpactBanner = React.memo(SkeletonImpactBannerComponent);
+export const SkeletonImpactBanner = memo(SkeletonImpactBannerComponent);
 
 const styles = StyleSheet.create({
   container: {
@@ -42,10 +47,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   banner: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

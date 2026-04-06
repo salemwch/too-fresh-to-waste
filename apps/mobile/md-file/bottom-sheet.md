@@ -3,35 +3,36 @@ import { Clock, Minus, Plus, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface BottomSheetProps {
-  isOpen: boolean;
-  onClose: () => void;
-  storeName?: string;
-  productName?: string;
-  timeSlot?: string;
-  price?: number;
+isOpen: boolean;
+onClose: () => void;
+storeName?: string;
+productName?: string;
+timeSlot?: string;
+price?: number;
 }
 
 const BottomSheet = ({
-  isOpen,
-  onClose,
-  storeName = "Caffè Nero- Belfast Ann St",
-  productName = "Magic Bag",
-  timeSlot = "Today: 18:30 - 19:00",
-  price = 3.09,
+isOpen,
+onClose,
+storeName = "Caffè Nero- Belfast Ann St",
+productName = "Magic Bag",
+timeSlot = "Today: 18:30 - 19:00",
+price = 3.09,
 }: BottomSheetProps) => {
-  const [quantity, setQuantity] = useState(1);
+const [quantity, setQuantity] = useState(1);
 
-  const incrementQuantity = () => setQuantity((prev) => prev + 1);
-  const decrementQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+const incrementQuantity = () => setQuantity((prev) => prev + 1);
+const decrementQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
-  const total = (price * quantity).toFixed(2);
+const total = (price \* quantity).toFixed(2);
 
-  if (!isOpen) return null;
+if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
-      {/* Backdrop */}
-      <div
+return (
+
+<div className="fixed inset-0 z-50 flex items-end justify-center">
+{/_ Backdrop _/}
+<div
         className="absolute inset-0 bg-foreground/50"
         onClick={onClose}
       />
@@ -134,7 +135,8 @@ const BottomSheet = ({
         </div>
       </div>
     </div>
-  );
+
+);
 };
 
 export default BottomSheet;

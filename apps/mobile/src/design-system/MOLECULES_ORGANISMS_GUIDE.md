@@ -27,10 +27,10 @@ const [suggestions, setSuggestions] = useState(['pizza', 'burger', 'sushi']);
 <SearchBar
   value={searchQuery}
   onChangeText={setSearchQuery}
-  onSubmit={query => performSearch(query)}
-  placeholder='Search food offers...'
+  onSubmit={(query) => performSearch(query)}
+  placeholder="Search food offers..."
   suggestions={suggestions}
-  onSuggestionSelect={suggestion => {
+  onSuggestionSelect={(suggestion) => {
     setSearchQuery(suggestion);
     performSearch(suggestion);
   }}
@@ -79,16 +79,16 @@ reader support, error announcements
 import { FormField } from '../design-system';
 
 <FormField
-  label='Email Address'
+  label="Email Address"
   value={formData.email}
-  onChangeText={value => setFormData(prev => ({ ...prev, email: value }))}
-  type='email'
-  placeholder='Enter your email'
+  onChangeText={(value) => setFormData((prev) => ({ ...prev, email: value }))}
+  type="email"
+  placeholder="Enter your email"
   required
   errorText={errors.email}
   leftIcon={<EmailIcon />}
   validateOnChange
-  validator={value => {
+  validator={(value) => {
     if (!value.includes('@')) return 'Invalid email format';
     return null;
   }}
@@ -188,12 +188,12 @@ import { PriceDisplay } from '../design-system';
 <PriceDisplay
   price={5.99}
   originalPrice={12.99}
-  currency='USD'
-  currencySymbol='$'
-  size='md'
+  currency="USD"
+  currencySymbol="$"
+  size="md"
   showSavings
-  savingsDisplay='both'
-  variant='discounted'
+  savingsDisplay="both"
+  variant="discounted"
   emphasized
 />;
 ```
@@ -225,10 +225,10 @@ generation, error handling **Status**: Online indicators, verification badges
 import { UserAvatar } from '../design-system';
 
 <UserAvatar
-  name='John Doe'
-  imageUri='https://example.com/avatar.jpg'
-  size='lg'
-  status='online'
+  name="John Doe"
+  imageUri="https://example.com/avatar.jpg"
+  size="lg"
+  status="online"
   showStatus
   verified
   isMerchant
@@ -291,12 +291,12 @@ const offer: FoodOfferData = {
 
 <FoodCard
   offer={offer}
-  layout='standard'
-  orientation='vertical'
-  onPress={offer => navigateToDetails(offer.id)}
-  onReserve={offer => reserveOffer(offer.id)}
-  onFavorite={offer => toggleFavorite(offer.id)}
-  onShare={offer => shareOffer(offer)}
+  layout="standard"
+  orientation="vertical"
+  onPress={(offer) => navigateToDetails(offer.id)}
+  onReserve={(offer) => reserveOffer(offer.id)}
+  onFavorite={(offer) => toggleFavorite(offer.id)}
+  onShare={(offer) => shareOffer(offer)}
   showDetails
   showActions
   showFavorite
@@ -348,7 +348,7 @@ remember me, forgot password
 import { LoginForm } from '../design-system';
 
 <LoginForm
-  onSubmit={async data => {
+  onSubmit={async (data) => {
     try {
       await login(data.email, data.password);
       navigate('/dashboard');
@@ -364,8 +364,8 @@ import { LoginForm } from '../design-system';
   loading={isLoading}
   showSocialLogin
   showRememberMe
-  title='Welcome Back'
-  subtitle='Sign in to reduce food waste'
+  title="Welcome Back"
+  subtitle="Sign in to reduce food waste"
 />;
 ```
 
@@ -476,11 +476,7 @@ contrast: {
 
 ```tsx
 // Lazy loading and error handling
-<Image
-  source={{ uri: imageUri }}
-  onError={handleImageError}
-  onLoad={handleImageLoad}
-/>
+<Image source={{ uri: imageUri }} onError={handleImageError} onLoad={handleImageLoad} />
 ```
 
 ### **Memory Management**
@@ -508,9 +504,7 @@ import { renderWithTheme } from '../../../setupTests';
 test('SearchBar handles user input correctly', () => {
   const mockOnChangeText = jest.fn();
 
-  const { getByTestId } = renderWithTheme(
-    <SearchBar value='' onChangeText={mockOnChangeText} />,
-  );
+  const { getByTestId } = renderWithTheme(<SearchBar value="" onChangeText={mockOnChangeText} />);
 
   fireEvent.changeText(getByTestId('search-bar-input'), 'pizza');
   expect(mockOnChangeText).toHaveBeenCalledWith('pizza');
@@ -521,9 +515,7 @@ test('SearchBar handles user input correctly', () => {
 
 ```tsx
 test('FoodCard has correct accessibility properties', () => {
-  const { getByTestId } = renderWithTheme(
-    <FoodCard offer={mockOffer} onPress={mockOnPress} />,
-  );
+  const { getByTestId } = renderWithTheme(<FoodCard offer={mockOffer} onPress={mockOnPress} />);
 
   const card = getByTestId('food-card');
   expect(card.props.accessibilityRole).toBe('button');
@@ -538,13 +530,10 @@ test('FormField prevents XSS attacks', () => {
   const mockOnChangeText = jest.fn();
 
   const { getByTestId } = renderWithTheme(
-    <FormField value='' onChangeText={mockOnChangeText} type='email' />,
+    <FormField value="" onChangeText={mockOnChangeText} type="email" />,
   );
 
-  fireEvent.changeText(
-    getByTestId('form-field-input'),
-    '<script>alert("xss")</script>',
-  );
+  fireEvent.changeText(getByTestId('form-field-input'), '<script>alert("xss")</script>');
   expect(mockOnChangeText).toHaveBeenCalledWith('scriptalert(xss)/script');
 });
 ```
@@ -635,7 +624,7 @@ const SearchScreen = () => {
         onChangeText={setQuery}
         onSubmit={handleSearch}
         loading={loading}
-        placeholder='Search for food offers...'
+        placeholder="Search for food offers..."
       />
 
       <FlatList
@@ -643,7 +632,7 @@ const SearchScreen = () => {
         renderItem={({ item }) => (
           <FoodCard
             offer={item}
-            onPress={offer => navigate('OfferDetails', { id: offer.id })}
+            onPress={(offer) => navigate('OfferDetails', { id: offer.id })}
             onReserve={handleReserveOffer}
           />
         )}

@@ -10,12 +10,6 @@ export * from './motion';
 export * from './shadows';
 
 // Re-export as a unified tokens object
-;
-;
-;
-;
-;
-
 // Combined design tokens for easy access
 import { colorTokens } from './colors';
 import { motionTokens } from './motion';

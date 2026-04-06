@@ -35,7 +35,7 @@
  *      any native-driver transform), inner Animated.View handles animation.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Animated, Platform } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { Marker } from 'react-native-maps';
@@ -52,6 +52,10 @@ import type { ProximitySearchResult, MapEstablishment } from '@/features/offers/
 const MARKER_SIZE = 48;
 const MAX_DISPLAY_COUNT = 5;
 const OFFER_CIRCLE_COLOR = '#2E7D32'; // Material green 800
+const MARKER_BORDER = '#e0e0e0';
+const WHITE = '#fff';
+const SELECTED_OFFER_BORDER = '#B9F6CA';
+const MARKER_SHADOW = 'rgba(0,0,0,0.18)';
 
 /**
  * Extra space around the circle so the border + anti-aliasing never touch the
@@ -74,7 +78,7 @@ const SHADOW_MARGIN_TOP = 4;
  * Width:  MARKER_SIZE × 1.2 + 2 × safety  = 57.6 + (68 - 57.6) ✓
  * Height: (MARKER_SIZE + SHADOW_MARGIN + SHADOW_HEIGHT) × 1.2 + safety ✓
  */
-const CONTAINER_WIDTH = MARKER_SIZE + CONTAINER_PADDING * 2;  // 68
+const CONTAINER_WIDTH = MARKER_SIZE + CONTAINER_PADDING * 2; // 68
 const CONTAINER_HEIGHT = MARKER_SIZE + SHADOW_MARGIN_TOP + SHADOW_HEIGHT + CONTAINER_PADDING * 2; // 78
 
 // ============================================================================
@@ -99,6 +103,7 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
   const theme = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const { item, geoData } = establishment;
+  const markerBorderStyle = { borderColor: isSelected ? theme.colors.primary : MARKER_BORDER };
 
   // Android: tracksViewChanges must start true so the native layer captures
   // the correct view on first render. After a short delay we switch to false
@@ -169,19 +174,13 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
             <View
               style={[styles.circle, styles.offerCircle, isSelected && styles.selectedOfferBorder]}
             >
-              <Text variant='label' size='sm' weight='bold' style={styles.countText}>
+              <Text variant="label" size="sm" weight="bold" style={styles.countText}>
                 {displayCount}
               </Text>
             </View>
           ) : item.profileImage != null ? (
             /* ── Merchant logo (FastImage — handles borderRadius on Android) */
-            <View
-              style={[
-                styles.circle,
-                styles.imageCircle,
-                { borderColor: isSelected ? theme.colors.primary : '#e0e0e0' },
-              ]}
-            >
+            <View style={[styles.circle, styles.imageCircle, markerBorderStyle]}>
               <FastImage
                 source={{ uri: item.profileImage, priority: FastImage.priority.normal }}
                 style={styles.profileImage}
@@ -192,16 +191,14 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
             <View
               style={[
                 styles.circle,
-                {
-                  backgroundColor: theme.colors.primaryContainer,
-                  borderColor: isSelected ? theme.colors.primary : '#e0e0e0',
-                },
+                { backgroundColor: theme.colors.primaryContainer },
+                markerBorderStyle,
               ]}
             >
               <Text
-                variant='label'
-                size='md'
-                weight='bold'
+                variant="label"
+                size="md"
+                weight="bold"
                 style={{ color: theme.colors.onPrimaryContainer }}
               >
                 {initial}
@@ -219,7 +216,7 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
 
 EstablishmentMarkerComponent.displayName = 'EstablishmentMarker';
 
-export const EstablishmentMarker = React.memo(EstablishmentMarkerComponent);
+export const EstablishmentMarker = memo(EstablishmentMarkerComponent);
 
 // ============================================================================
 // Styles
@@ -257,10 +254,10 @@ const styles = StyleSheet.create({
   },
   offerCircle: {
     backgroundColor: OFFER_CIRCLE_COLOR,
-    borderColor: '#fff', // white ring separates green from any map tile colour
+    borderColor: WHITE, // white ring separates green from any map tile colour
   },
   selectedOfferBorder: {
-    borderColor: '#B9F6CA', // light green ring when selected
+    borderColor: SELECTED_OFFER_BORDER, // light green ring when selected
   },
   /**
    * Image circle: white background visible while FastImage loads.
@@ -268,7 +265,7 @@ const styles = StyleSheet.create({
    * in react-native-maps Android snapshots. FastImage clips via borderRadius.
    */
   imageCircle: {
-    backgroundColor: '#fff',
+    backgroundColor: WHITE,
   },
   /**
    * FastImage clips to borderRadius natively on Android (Glide).
@@ -280,7 +277,7 @@ const styles = StyleSheet.create({
     borderRadius: (MARKER_SIZE - 6) / 2,
   },
   countText: {
-    color: '#fff',
+    color: WHITE,
     fontSize: 15,
     fontWeight: '700',
   },
@@ -288,9 +285,8 @@ const styles = StyleSheet.create({
   markerShadow: {
     width: SHADOW_WIDTH,
     height: SHADOW_HEIGHT,
-    backgroundColor: 'rgba(0,0,0,0.18)',
+    backgroundColor: MARKER_SHADOW,
     borderRadius: SHADOW_HEIGHT / 2,
     marginTop: SHADOW_MARGIN_TOP,
   },
 });
-

@@ -7,7 +7,7 @@
  * @security Never logout users for network issues - only for explicit auth failures
  */
 
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 
 /**
  * Error categories determine app behavior
@@ -51,7 +51,7 @@ export function categorizeError(error: AxiosError | Error): CategorizedError {
   // ────────────────────────────────────────────────────────────────────────
 
   if ('code' in error) {
-    const axiosError = error as AxiosError;
+    const axiosError = error;
 
     // Network timeout
     if (axiosError.code === 'ECONNABORTED') {
@@ -110,8 +110,8 @@ export function categorizeError(error: AxiosError | Error): CategorizedError {
   // 2. HTTP STATUS CODE ERRORS
   // ────────────────────────────────────────────────────────────────────────
 
-  if ('response' in error && error.response) {
-    const axiosError = error as AxiosError;
+  if ('response' in error && error.response !== undefined && error.response !== null) {
+    const axiosError = error;
     const status = axiosError.response?.status;
 
     // 500 Internal Server Error - Backend issue (keep session)
@@ -220,19 +220,21 @@ function isAuthEndpoint(url?: string): boolean {
     '/users/me',
   ];
 
-  return authPatterns.some(pattern => url.includes(pattern));
+  return authPatterns.some((pattern) => url.includes(pattern));
 }
 
 /**
  * Extract user-friendly error message from axios error
  */
 function extractErrorMessage(error: AxiosError): string {
-  const data = error.response?.data as any;
+  const data = error.response?.data;
 
   // Try different message formats
-  if (data?.message) return data.message;
-  if (data?.error) return data.error;
   if (typeof data === 'string') return data;
+  if (data !== null && typeof data === 'object') {
+    if ('message' in data && typeof data.message === 'string') return data.message;
+    if ('error' in data && typeof data.error === 'string') return data.error;
+  }
 
   return 'Request failed. Please try again.';
 }

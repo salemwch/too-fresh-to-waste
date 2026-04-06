@@ -11,7 +11,7 @@
  */
 
 import { QueryClientProvider } from '@tanstack/react-query';
-import React, { useEffect, useState, Component } from 'react';
+import React, { useEffect, Component } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 
 import { ErrorHandler } from '@/utils/errorHandler';
@@ -21,6 +21,12 @@ import { initializePlatformManagers } from './platformSetup';
 import { queryClient } from './queryClient';
 
 import type { ErrorInfo, ReactNode } from 'react';
+
+const ERROR_BACKGROUND = '#f9f9f9';
+const ERROR_TITLE = '#d32f2f';
+const ERROR_MESSAGE = '#666';
+const RETRY_BUTTON = '#1976d2';
+const RETRY_LABEL = '#fff';
 
 /**
  * Props for Error Boundary
@@ -60,7 +66,7 @@ class QueryErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     Logger.error('Query Error Boundary caught error', { errorInfo }, error);
-    ErrorHandler.handle(error, {
+    void ErrorHandler.handle(error, {
       context: 'QueryErrorBoundary',
       componentStack: errorInfo.componentStack,
     });
@@ -121,8 +127,6 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({
   errorBoundary = true,
   errorFallback,
 }) => {
-  const [isInitialized, setIsInitialized] = useState(false);
-
   /**
    * Initialize platform managers on mount
    */
@@ -132,8 +136,6 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({
     // Initialize platform-specific managers
     const cleanup = initializePlatformManagers();
 
-    setIsInitialized(true);
-
     Logger.info('TanStack Query Provider initialized');
 
     // Cleanup on unmount
@@ -142,11 +144,6 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({
       cleanup();
     };
   }, []);
-
-  // Show loading state while initializing
-  if (!isInitialized) {
-    return null; // or a loading spinner
-  }
 
   const content = (
     <QueryClientProvider client={queryClient}>
@@ -172,8 +169,6 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({
  * Hook to access query client
  * Convenience hook for accessing the query client instance
  */
-;
-
 /**
  * Styles for error fallback
  */
@@ -183,30 +178,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: ERROR_BACKGROUND,
   },
   errorTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#d32f2f',
+    color: ERROR_TITLE,
     marginBottom: 12,
     textAlign: 'center',
   },
   errorMessage: {
     fontSize: 16,
-    color: '#666',
+    color: ERROR_MESSAGE,
     textAlign: 'center',
     marginBottom: 24,
     paddingHorizontal: 20,
   },
   retryButton: {
-    backgroundColor: '#1976d2',
+    backgroundColor: RETRY_BUTTON,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#fff',
+    color: RETRY_LABEL,
     fontSize: 16,
     fontWeight: '600',
   },

@@ -24,7 +24,7 @@ import 'react-native-gesture-handler';
 
 import React from 'react';
 import { AppRegistry } from 'react-native';
-import { enableScreens, enableFreeze } from 'react-native-screens';
+import { enableScreens } from 'react-native-screens';
 
 import App from './src/App';
 
@@ -56,8 +56,12 @@ enableScreens(true);
 // "Invariant Violation: 'FoodWasteApp' has not been registered"
 const appName = 'FoodWasteApp';
 
-AppRegistry.registerComponent(appName, () => () => (
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-));
+function AppEntryPoint() {
+  return (
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}
+
+AppRegistry.registerComponent(appName, () => AppEntryPoint);

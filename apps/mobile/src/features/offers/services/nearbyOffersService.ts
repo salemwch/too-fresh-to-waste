@@ -14,6 +14,9 @@
 
 import axios, { type AxiosError, type AxiosResponse } from 'axios';
 
+import { environment } from '@/config/environment';
+import { Logger, NetworkLogger } from '@/utils/logger';
+
 import type {
   ApiResponse,
   GeoCoordinates,
@@ -24,9 +27,6 @@ import type {
   AddressInfo,
   GeocodeResult,
 } from '@foodwaste/shared';
-
-import { environment } from '@/config/environment';
-import { Logger, NetworkLogger } from '@/utils/logger';
 
 // ============================================================================
 // Shared geo types — re-exported from @foodwaste/shared (single source of truth)

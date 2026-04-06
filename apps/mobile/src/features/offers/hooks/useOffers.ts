@@ -61,10 +61,10 @@ export function useOffer(
       // Debug logging to see what we got
       Logger.info('Offer fetched - full response:', {
         offerId,
-        hasOffer: !!offer,
-        hasPricing: !!(offer as any)?.pricing,
-        offerKeys: offer ? Object.keys(offer) : [],
-        pricing: (offer as any)?.pricing,
+        hasOffer: true,
+        hasPricing: offer.pricing !== undefined,
+        offerKeys: Object.keys(offer),
+        pricing: offer.pricing,
       });
 
       Logger.info('Offer fetched successfully', { offerId, title: offer.title });
@@ -95,12 +95,12 @@ export function useOffers(
   options?: Omit<UseQueryOptions<OffersResponse, Error>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery<OffersResponse, Error>({
-    queryKey: [...offerKeys.list(params || {}), userLocation],
+    queryKey: [...offerKeys.list(params ?? {}), userLocation],
     queryFn: async ({ signal }) => {
       Logger.info('Fetching offers', { params });
       const response = await offersService.getAllOffers(params, userLocation, signal);
       // Handle undefined or malformed responses
-      const validResponse = response || {
+      const validResponse = response ?? {
         data: [],
         meta: { total: 0, page: 1, limit: 10, totalPages: 0 },
       };
@@ -188,24 +188,30 @@ export function useUrgentOffers(
     queryKey: [...offerKeys.all, 'urgent', hoursUntilExpiry, limit, userLocation, filters],
     queryFn: async ({ signal }) => {
       Logger.info('Fetching urgent offers', { hoursUntilExpiry, limit, userLocation, filters });
-      const offers = await offersService.getUrgentOffers(hoursUntilExpiry, limit, userLocation, signal);
+      const offers = await offersService.getUrgentOffers(
+        hoursUntilExpiry,
+        limit,
+        userLocation,
+        signal,
+      );
       let validOffers = Array.isArray(offers) ? offers : [];
 
       // Apply filters client-side
-      if (filters) {
-        if (filters.type) {
-          validOffers = validOffers.filter(offer => offer.type === filters.type);
+      if (filters !== undefined) {
+        if (filters.type !== undefined) {
+          validOffers = validOffers.filter((offer) => offer.type === filters.type);
         }
-        if (filters.categories && filters.categories.length > 0) {
-          validOffers = validOffers.filter(offer =>
-            filters.categories!.some(cat => (offer as any).categories?.includes(cat)),
+        const categories = filters.categories;
+        if (Array.isArray(categories) && categories.length > 0) {
+          validOffers = validOffers.filter((offer) =>
+            categories.some((cat) => (offer.categories ?? []).includes(cat)),
           );
         }
         // Note: establishmentTypes and cuisineTypes filtering requires establishment data
         // which may not be fully populated. Log warning if attempted.
         if (
-          (filters.establishmentTypes && filters.establishmentTypes.length > 0) ||
-          (filters.cuisineTypes && filters.cuisineTypes.length > 0)
+          (Array.isArray(filters.establishmentTypes) && filters.establishmentTypes.length > 0) ||
+          (Array.isArray(filters.cuisineTypes) && filters.cuisineTypes.length > 0)
         ) {
           Logger.warn(
             'Establishment/cuisine filtering not fully supported for urgent offers - use general search instead',
@@ -334,9 +340,14 @@ export function useEstablishmentOffers(
     queryKey: offerKeys.establishment(establishmentId, page, limit),
     queryFn: async ({ signal }) => {
       Logger.info('Fetching establishment offers', { establishmentId, page, limit });
-      const response = await offersService.getOffersByEstablishment(establishmentId, page, limit, signal);
+      const response = await offersService.getOffersByEstablishment(
+        establishmentId,
+        page,
+        limit,
+        signal,
+      );
       // Handle undefined or malformed responses
-      const validResponse = response || {
+      const validResponse = response ?? {
         data: [],
         meta: { total: 0, page, limit, totalPages: 0 },
       };
@@ -376,20 +387,21 @@ export function usePickupTodayOffers(
       let validOffers = Array.isArray(offers) ? offers : [];
 
       // Apply filters client-side
-      if (filters) {
-        if (filters.type) {
-          validOffers = validOffers.filter(offer => offer.type === filters.type);
+      if (filters !== undefined) {
+        if (filters.type !== undefined) {
+          validOffers = validOffers.filter((offer) => offer.type === filters.type);
         }
-        if (filters.categories && filters.categories.length > 0) {
-          validOffers = validOffers.filter(offer =>
-            filters.categories!.some(cat => (offer as any).categories?.includes(cat)),
+        const categories = filters.categories;
+        if (Array.isArray(categories) && categories.length > 0) {
+          validOffers = validOffers.filter((offer) =>
+            categories.some((cat) => (offer.categories ?? []).includes(cat)),
           );
         }
         // Note: establishmentTypes and cuisineTypes filtering requires establishment data
         // which may not be fully populated in OfferListItem. Log warning if attempted.
         if (
-          (filters.establishmentTypes && filters.establishmentTypes.length > 0) ||
-          (filters.cuisineTypes && filters.cuisineTypes.length > 0)
+          (Array.isArray(filters.establishmentTypes) && filters.establishmentTypes.length > 0) ||
+          (Array.isArray(filters.cuisineTypes) && filters.cuisineTypes.length > 0)
         ) {
           Logger.warn(
             'Establishment/cuisine filtering not fully supported for pickup endpoints - use general search instead',
@@ -432,20 +444,21 @@ export function usePickupTomorrowOffers(
       let validOffers = Array.isArray(offers) ? offers : [];
 
       // Apply filters client-side
-      if (filters) {
-        if (filters.type) {
-          validOffers = validOffers.filter(offer => offer.type === filters.type);
+      if (filters !== undefined) {
+        if (filters.type !== undefined) {
+          validOffers = validOffers.filter((offer) => offer.type === filters.type);
         }
-        if (filters.categories && filters.categories.length > 0) {
-          validOffers = validOffers.filter(offer =>
-            filters.categories!.some(cat => (offer as any).categories?.includes(cat)),
+        const categories = filters.categories;
+        if (Array.isArray(categories) && categories.length > 0) {
+          validOffers = validOffers.filter((offer) =>
+            categories.some((cat) => (offer.categories ?? []).includes(cat)),
           );
         }
         // Note: establishmentTypes and cuisineTypes filtering requires establishment data
         // which may not be fully populated in OfferListItem. Log warning if attempted.
         if (
-          (filters.establishmentTypes && filters.establishmentTypes.length > 0) ||
-          (filters.cuisineTypes && filters.cuisineTypes.length > 0)
+          (Array.isArray(filters.establishmentTypes) && filters.establishmentTypes.length > 0) ||
+          (Array.isArray(filters.cuisineTypes) && filters.cuisineTypes.length > 0)
         ) {
           Logger.warn(
             'Establishment/cuisine filtering not fully supported for pickup endpoints - use general search instead',
@@ -479,9 +492,9 @@ export function useReserveOffer(offerId: string) {
       Logger.info('Offer reserved successfully', { offerId, quantity });
       return offer;
     },
-    onSuccess: updatedOffer => {
+    onSuccess: (updatedOffer) => {
       queryClient.setQueryData(offerKeys.detail(offerId), updatedOffer);
-      queryClient.invalidateQueries({ queryKey: offerKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: offerKeys.lists() });
     },
   });
 }

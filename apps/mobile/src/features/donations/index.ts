@@ -6,13 +6,9 @@
 // Components
 export { ImpactMoment } from './components/ImpactMoment';
 export { ImpactBanner } from './components/ImpactBanner';
-;
-
 // Hooks
-export { useDonationStats,  } from './hooks/useDonations';
+export { useDonationStats } from './hooks/useDonations';
 
 // Services
-;
 
 // Types (re-export from types directory)
-;

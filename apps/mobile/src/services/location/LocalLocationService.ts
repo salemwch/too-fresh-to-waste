@@ -15,14 +15,11 @@
  * @module LocalLocationService
  */
 
-import type {
-  ILocationResult,
-  TunisianCity,
-  TunisianDelegation,
-} from '@/types/location.types';
+import tunisianCitiesData from '@/assets/data/tunisian-cities.json';
 import { LocationAdapter } from '@/utils/location/locationAdapter';
 import { Logger } from '@/utils/logger';
-import tunisianCitiesData from '@/assets/data/tunisian-cities.json';
+
+import type { ILocationResult, TunisianCity, TunisianDelegation } from '@/types/location.types';
 
 /**
  * Flattened searchable location entry
@@ -63,9 +60,7 @@ class LocalLocationService {
    * @returns The singleton instance
    */
   static getInstance(): LocalLocationService {
-    if (!LocalLocationService.instance) {
-      LocalLocationService.instance = new LocalLocationService();
-    }
+    LocalLocationService.instance ??= new LocalLocationService();
     return LocalLocationService.instance;
   }
 
@@ -77,10 +72,10 @@ class LocalLocationService {
    *
    * @returns Promise that resolves when initialization is complete
    */
-  async initialize(): Promise<void> {
+  initialize(): Promise<void> {
     if (this.isInitialized) {
       Logger.debug('LocalLocationService already initialized');
-      return;
+      return Promise.resolve();
     }
 
     try {
@@ -109,9 +104,10 @@ class LocalLocationService {
       Logger.info(
         `LocalLocationService initialized with ${this.searchableLocations.length} locations`,
       );
+      return Promise.resolve();
     } catch (error) {
       Logger.error('Failed to initialize LocalLocationService', {}, error as Error);
-      throw new Error('Failed to load local location data');
+      return Promise.reject(new Error('Failed to load local location data'));
     }
   }
 
@@ -187,7 +183,7 @@ class LocalLocationService {
     const limitedMatches = allMatches.slice(0, maxResults);
 
     // ✅ BEST PRACTICE: Always return array (prevents spread errors downstream)
-    return limitedMatches.map(match => match.result);
+    return limitedMatches.map((match) => match.result);
   }
 
   /**
@@ -203,7 +199,7 @@ class LocalLocationService {
 
     const cities = tunisianCitiesData as TunisianCity[];
     return cities
-      .map(city => LocationAdapter.fromTunisianCity(city))
+      .map((city) => LocationAdapter.fromTunisianCity(city))
       .filter((result): result is ILocationResult => result !== null);
   }
 
@@ -219,8 +215,8 @@ class LocalLocationService {
     }
 
     return this.searchableLocations
-      .filter(loc => loc.city.Value === cityValue.toUpperCase())
-      .map(loc => loc.result);
+      .filter((loc) => loc.city.Value === cityValue.toUpperCase())
+      .map((loc) => loc.result);
   }
 
   /**

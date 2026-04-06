@@ -20,6 +20,7 @@ import {
 } from '@react-native-firebase/analytics';
 
 import { environment } from '@/config/environment';
+
 import { Logger } from './logger';
 
 // ─── Public property shape ────────────────────────────────────────────────────

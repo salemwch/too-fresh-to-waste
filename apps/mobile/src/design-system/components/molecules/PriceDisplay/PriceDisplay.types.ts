@@ -4,6 +4,7 @@
  */
 
 import type { BaseComponentProps, ComponentSize } from '../../../types';
+import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
 
 export type PriceDisplayVariant = 'default' | 'discounted' | 'original' | 'savings' | 'total';
 
@@ -96,22 +97,22 @@ export interface PriceDisplayProps extends BaseComponentProps {
   /**
    * Custom container style
    */
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 
   /**
    * Custom price text style
    */
-  priceStyle?: any;
+  priceStyle?: StyleProp<TextStyle>;
 
   /**
    * Custom original price text style
    */
-  originalPriceStyle?: any;
+  originalPriceStyle?: StyleProp<TextStyle>;
 
   /**
    * Custom savings text style
    */
-  savingsStyle?: any;
+  savingsStyle?: StyleProp<TextStyle>;
 
   /**
    * Layout direction ('row' | 'column')

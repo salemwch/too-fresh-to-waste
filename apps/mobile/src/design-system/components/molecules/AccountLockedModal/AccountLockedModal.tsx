@@ -4,7 +4,7 @@
  * Features countdown timer, helpful guidance, and password reset option
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Modal, Pressable } from 'react-native';
 
 import { useTheme } from '../../../providers';
@@ -17,223 +17,250 @@ interface AccountLockedModalProps {
   onPasswordReset?: () => void;
 }
 
-export const AccountLockedModal = React.memo<AccountLockedModalProps>(function AccountLockedModal({
-  visible,
-  blockedUntil,
-  onDismiss,
-  onPasswordReset,
-}) {
-  const theme = useTheme();
-  const [timeRemaining, setTimeRemaining] = useState<string>('');
-  const [isExpired, setIsExpired] = useState(false);
+const getLockState = (blockedUntil: string | Date, currentTime: number) => {
+  const unlockTime = typeof blockedUntil === 'string' ? new Date(blockedUntil) : blockedUntil;
+  const diffMs = unlockTime.getTime() - currentTime;
 
-  /**
-   * Calculate and format time remaining until unlock
-   */
-  const calculateTimeRemaining = useCallback(() => {
-    const unlockTime = typeof blockedUntil === 'string' ? new Date(blockedUntil) : blockedUntil;
-    const now = new Date();
-    const diffMs = unlockTime.getTime() - now.getTime();
+  if (diffMs <= 0) {
+    return {
+      isExpired: true,
+      timeRemaining: 'Account unlocked',
+    };
+  }
 
-    if (diffMs <= 0) {
-      setIsExpired(true);
-      setTimeRemaining('Account unlocked');
-      return;
-    }
+  const minutes = Math.floor(diffMs / 60000);
+  const seconds = Math.floor((diffMs % 60000) / 1000);
 
-    const minutes = Math.floor(diffMs / 60000);
-    const seconds = Math.floor((diffMs % 60000) / 1000);
+  if (minutes > 0) {
+    return {
+      isExpired: false,
+      timeRemaining: `${minutes} minute${minutes !== 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`,
+    };
+  }
 
-    if (minutes > 0) {
-      setTimeRemaining(
-        `${minutes} minute${minutes !== 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`,
-      );
-    } else {
-      setTimeRemaining(`${seconds} second${seconds !== 1 ? 's' : ''}`);
-    }
-
-    setIsExpired(false);
-  }, [blockedUntil]);
-
-  /**
-   * Update countdown every second
-   */
-  useEffect(() => {
-    if (!visible) return undefined;
-
-    calculateTimeRemaining();
-    const interval = setInterval(calculateTimeRemaining, 1000);
-
-    return () => clearInterval(interval);
-  }, [visible, calculateTimeRemaining]);
-
-  /**
-   * Auto-dismiss when unlocked
-   */
-  useEffect(() => {
-    if (isExpired && visible) {
-      // Wait 1 second after expiry to show "Account unlocked" message
-      const timeout = setTimeout(() => {
-        onDismiss();
-      }, 1000);
-
-      return () => clearTimeout(timeout);
-    }
-    return undefined;
-  }, [isExpired, visible, onDismiss]);
-
-  const handlePasswordReset = () => {
-    onDismiss();
-    onPasswordReset?.();
+  return {
+    isExpired: false,
+    timeRemaining: `${seconds} second${seconds !== 1 ? 's' : ''}`,
   };
+};
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType='fade'
-      onRequestClose={onDismiss}
-      statusBarTranslucent
-    >
-      <View style={styles.overlay}>
-        <View style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
-          {/* Close button */}
-          <Pressable
-            style={styles.closeButton}
-            onPress={onDismiss}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Icon name='close' family='Ionicons' size='md' color={theme.colors.onSurfaceVariant} />
-          </Pressable>
+export const AccountLockedModal = memo<AccountLockedModalProps>(
+  ({ visible, blockedUntil, onDismiss, onPasswordReset }) => {
+    const theme = useTheme();
+    const [currentTime, setCurrentTime] = useState(() => Date.now());
+    const { isExpired, timeRemaining } = useMemo(
+      () => getLockState(blockedUntil, currentTime),
+      [blockedUntil, currentTime],
+    );
 
-          {/* Lock icon */}
+    /**
+     * Update countdown every second
+     */
+    useEffect(() => {
+      if (!visible) return undefined;
+
+      const refreshCurrentTime = () => {
+        setCurrentTime(Date.now());
+      };
+      const timeout = setTimeout(refreshCurrentTime, 0);
+      const interval = setInterval(refreshCurrentTime, 1000);
+
+      return () => {
+        clearTimeout(timeout);
+        clearInterval(interval);
+      };
+    }, [visible, blockedUntil]);
+
+    /**
+     * Auto-dismiss when unlocked
+     */
+    useEffect(() => {
+      if (isExpired && visible) {
+        // Wait 1 second after expiry to show "Account unlocked" message
+        const timeout = setTimeout(() => {
+          onDismiss();
+        }, 1000);
+
+        return () => clearTimeout(timeout);
+      }
+      return undefined;
+    }, [isExpired, visible, onDismiss]);
+
+    const handlePasswordReset = () => {
+      onDismiss();
+      onPasswordReset?.();
+    };
+
+    return (
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={onDismiss}
+        statusBarTranslucent
+      >
+        <View style={[styles.overlay, { backgroundColor: theme.colors.overlay.dark }]}>
           <View
             style={[
-              styles.iconContainer,
+              styles.modalContainer,
               {
-                backgroundColor: isExpired
-                  ? theme.colors.successContainer
-                  : theme.colors.errorContainer,
+                backgroundColor: theme.colors.surface,
+                shadowColor: theme.colors.onSurface,
               },
             ]}
           >
-            <Icon
-              name={isExpired ? 'lock-open-outline' : 'lock-closed-outline'}
-              family='Ionicons'
-              size='xl'
-              color={isExpired ? theme.colors.success : theme.colors.error}
-            />
-          </View>
+            {/* Close button */}
+            <Pressable
+              style={styles.closeButton}
+              onPress={onDismiss}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Icon
+                name="close"
+                family="Ionicons"
+                size="md"
+                color={theme.colors.onSurfaceVariant}
+              />
+            </Pressable>
 
-          {/* Title */}
-          <Text variant='headline.medium' weight='semibold' align='center' style={styles.title}>
-            {isExpired ? 'Account Unlocked' : 'Account Temporarily Locked'}
-          </Text>
-
-          {/* Description */}
-          <Text variant='body.medium' color='secondary' align='center' style={styles.description}>
-            {isExpired
-              ? 'You can now try logging in again.'
-              : 'Your account has been temporarily locked due to multiple failed login attempts. This is a security measure to protect your account.'}
-          </Text>
-
-          {/* Countdown timer */}
-          {!isExpired && (
+            {/* Lock icon */}
             <View
               style={[
-                styles.timerContainer,
-                { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.outline },
+                styles.iconContainer,
+                {
+                  backgroundColor: isExpired
+                    ? theme.colors.successContainer
+                    : theme.colors.errorContainer,
+                },
               ]}
             >
-              <Icon name='time-outline' family='Ionicons' size='md' color={theme.colors.primary} />
-              <View style={styles.timerTextContainer}>
-                <Text variant='label.small' color='secondary'>
-                  Unlocks in
-                </Text>
-                <Text variant='body.large' weight='semibold' color='primary'>
-                  {timeRemaining}
-                </Text>
-              </View>
+              <Icon
+                name={isExpired ? 'lock-open-outline' : 'lock-closed-outline'}
+                family="Ionicons"
+                size="xl"
+                color={isExpired ? theme.colors.success : theme.colors.error}
+              />
             </View>
-          )}
 
-          {/* Helpful suggestions */}
-          {!isExpired && (
-            <View style={styles.suggestionsContainer}>
-              <Text variant='label.medium' weight='semibold' style={styles.suggestionsTitle}>
-                What can you do?
-              </Text>
+            {/* Title */}
+            <Text variant="headline.medium" weight="semibold" align="center" style={styles.title}>
+              {isExpired ? 'Account Unlocked' : 'Account Temporarily Locked'}
+            </Text>
 
-              <View style={styles.suggestionItem}>
-                <Icon
-                  name='checkmark-circle'
-                  family='Ionicons'
-                  size='sm'
-                  color={theme.colors.primary}
-                />
-                <Text variant='body.small' color='secondary' style={styles.suggestionText}>
-                  Wait for the timer to expire and try again
-                </Text>
-              </View>
+            {/* Description */}
+            <Text variant="body.medium" color="secondary" align="center" style={styles.description}>
+              {isExpired
+                ? 'You can now try logging in again.'
+                : 'Your account has been temporarily locked due to multiple failed login attempts. This is a security measure to protect your account.'}
+            </Text>
 
-              <View style={styles.suggestionItem}>
-                <Icon
-                  name='checkmark-circle'
-                  family='Ionicons'
-                  size='sm'
-                  color={theme.colors.primary}
-                />
-                <Text variant='body.small' color='secondary' style={styles.suggestionText}>
-                  Make sure you're using the correct password
-                </Text>
-              </View>
-
-              <View style={styles.suggestionItem}>
-                <Icon
-                  name='checkmark-circle'
-                  family='Ionicons'
-                  size='sm'
-                  color={theme.colors.primary}
-                />
-                <Text variant='body.small' color='secondary' style={styles.suggestionText}>
-                  Reset your password if you've forgotten it
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {/* Action buttons */}
-          <View style={styles.buttonContainer}>
-            {onPasswordReset && !isExpired && (
-              <Button
-                variant='outline'
-                size='md'
-                onPress={handlePasswordReset}
-                style={styles.resetButton}
+            {/* Countdown timer */}
+            {!isExpired && (
+              <View
+                style={[
+                  styles.timerContainer,
+                  {
+                    backgroundColor: theme.colors.surfaceVariant,
+                    borderColor: theme.colors.outline,
+                  },
+                ]}
               >
-                Reset Password
-              </Button>
+                <Icon
+                  name="time-outline"
+                  family="Ionicons"
+                  size="md"
+                  color={theme.colors.primary}
+                />
+                <View style={styles.timerTextContainer}>
+                  <Text variant="label.small" color="secondary">
+                    Unlocks in
+                  </Text>
+                  <Text variant="body.large" weight="semibold" color="primary">
+                    {timeRemaining}
+                  </Text>
+                </View>
+              </View>
             )}
 
-            <Button
-              variant={isExpired ? 'primary' : 'tertiary'}
-              size='md'
-              onPress={onDismiss}
-              style={styles.okButton}
-            >
-              {isExpired ? 'Try Again' : 'I Understand'}
-            </Button>
+            {/* Helpful suggestions */}
+            {!isExpired && (
+              <View style={styles.suggestionsContainer}>
+                <Text variant="label.medium" weight="semibold" style={styles.suggestionsTitle}>
+                  What can you do?
+                </Text>
+
+                <View style={styles.suggestionItem}>
+                  <Icon
+                    name="checkmark-circle"
+                    family="Ionicons"
+                    size="sm"
+                    color={theme.colors.primary}
+                  />
+                  <Text variant="body.small" color="secondary" style={styles.suggestionText}>
+                    Wait for the timer to expire and try again
+                  </Text>
+                </View>
+
+                <View style={styles.suggestionItem}>
+                  <Icon
+                    name="checkmark-circle"
+                    family="Ionicons"
+                    size="sm"
+                    color={theme.colors.primary}
+                  />
+                  <Text variant="body.small" color="secondary" style={styles.suggestionText}>
+                    Make sure you&apos;re using the correct password
+                  </Text>
+                </View>
+
+                <View style={styles.suggestionItem}>
+                  <Icon
+                    name="checkmark-circle"
+                    family="Ionicons"
+                    size="sm"
+                    color={theme.colors.primary}
+                  />
+                  <Text variant="body.small" color="secondary" style={styles.suggestionText}>
+                    Reset your password if you&apos;ve forgotten it
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Action buttons */}
+            <View style={styles.buttonContainer}>
+              {onPasswordReset && !isExpired && (
+                <Button
+                  variant="outline"
+                  size="md"
+                  onPress={handlePasswordReset}
+                  style={styles.resetButton}
+                >
+                  Reset Password
+                </Button>
+              )}
+
+              <Button
+                variant={isExpired ? 'primary' : 'tertiary'}
+                size="md"
+                onPress={onDismiss}
+                style={styles.okButton}
+              >
+                {isExpired ? 'Try Again' : 'I Understand'}
+              </Button>
+            </View>
           </View>
         </View>
-      </View>
-    </Modal>
-  );
-});
+      </Modal>
+    );
+  },
+);
+
+AccountLockedModal.displayName = 'AccountLockedModal';
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -243,7 +270,6 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     borderRadius: 20,
     padding: 24,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

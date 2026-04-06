@@ -66,14 +66,14 @@ export const createPasswordStrengthIndicatorStyles = (
       paddingHorizontal: 8,
       marginBottom: 6,
       borderRadius: 6,
-      backgroundColor: 'rgba(76, 175, 80, 0.1)', // Light green background
+      backgroundColor: theme.colors.successContainer,
       borderWidth: 1,
-      borderColor: 'rgba(76, 175, 80, 0.3)', // Green border
+      borderColor: theme.colors.success,
     },
     successCueText: {
       fontSize: 10,
       fontWeight: '600',
-      color: '#2E7D32', // Dark green for contrast
+      color: theme.colors.onSuccessContainer,
       marginLeft: 6,
     },
     progressBarContainer: {

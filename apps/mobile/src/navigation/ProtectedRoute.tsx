@@ -4,13 +4,14 @@
  * Handles token expiration and role-based access control
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useEffectEvent, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 
 import { Text } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
-import { refreshTokenAsync, logoutAsync } from '@/features/auth/store/authSlice';
-import { useAppSelector, useAppDispatch } from '@/hooks/redux';
+import { logoutAsync, refreshTokenAsync } from '@/features/auth/store/authSlice';
+import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { Logger } from '@/utils/logger';
 
 import type { UserRole } from '@/features/auth/types';
 
@@ -19,6 +20,11 @@ interface ProtectedRouteProps {
   requiredRoles?: UserRole[];
   fallback?: React.ReactNode;
 }
+
+const hasRenderableNode = (
+  value: React.ReactNode | undefined,
+): value is Exclude<React.ReactNode, null | undefined | false> =>
+  value !== null && value !== undefined && value !== false;
 
 /**
  * Protected Route Component
@@ -40,83 +46,114 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
+  const [isSessionLogoutPending, setIsSessionLogoutPending] = useState(false);
 
-  // Get auth state from Redux
   const { isAuthenticated, isLoading, user, tokens, sessionExpiresAt } = useAppSelector(
-    state => state.auth,
+    (state) => state.auth,
   );
 
-  /**
-   * Check if user has required role
-   */
   const hasRequiredRole = (): boolean => {
     if (!requiredRoles || requiredRoles.length === 0) return true;
     if (!user) return false;
     return requiredRoles.includes(user.role);
   };
 
-  /**
-   * Check if token needs refresh
-   * Refresh if token expires in less than 5 minutes
-   */
-  const shouldRefreshToken = (): boolean => {
-    if (!sessionExpiresAt || !tokens) return false;
+  const checkAndRefreshToken = useEffectEvent(() => {
+    if (!isAuthenticated || !tokens?.refreshToken || !sessionExpiresAt) {
+      return;
+    }
 
-    const now = Date.now();
     const expiresAt = new Date(sessionExpiresAt).getTime();
     const fiveMinutes = 5 * 60 * 1000;
 
-    return expiresAt - now < fiveMinutes;
-  };
+    if (!Number.isFinite(expiresAt) || expiresAt - Date.now() >= fiveMinutes) {
+      return;
+    }
 
-  /**
-   * Handle token refresh
-   */
-  useEffect(() => {
-    const checkAndRefreshToken = async () => {
-      if (!isAuthenticated || !tokens?.refreshToken) return;
+    void dispatch(refreshTokenAsync())
+      .unwrap()
+      .then(() => {
+        Logger.info('[ProtectedRoute] Token refreshed successfully');
+      })
+      .catch((error: unknown) => {
+        const rejectionPayload =
+          typeof error === 'object' && error !== null
+            ? (error as { message?: string; isNetworkError?: boolean })
+            : undefined;
 
-      if (shouldRefreshToken()) {
-        try {
-          await dispatch(refreshTokenAsync()).unwrap();
-          console.log('Token refreshed successfully');
-        } catch (error) {
-          // The refreshTokenAsync.rejected reducer already handles the state:
-          // - Network errors → keep session alive, show offline banner
-          // - Auth errors → set SESSION_EXPIRED
-          // Do NOT force logout here — the reducer handles the distinction.
-          const rejectionPayload = error as { message?: string; isNetworkError?: boolean } | undefined;
-          if (rejectionPayload?.isNetworkError) {
-            console.warn('Token refresh failed (network) — session preserved, will retry');
-          } else {
-            console.error('Token refresh failed (auth) — session expired');
-          }
+        if (rejectionPayload?.isNetworkError === true) {
+          Logger.warn('[ProtectedRoute] Token refresh failed due to network error', {
+            message: rejectionPayload.message,
+          });
+          return;
         }
-      }
-    };
 
+        const refreshError =
+          error instanceof Error ? error : new Error(rejectionPayload?.message ?? 'Unknown error');
+
+        Logger.error(
+          '[ProtectedRoute] Token refresh failed and session will expire',
+          {
+            message: rejectionPayload?.message,
+          },
+          refreshError,
+        );
+      });
+  });
+
+  const triggerSessionLogout = useEffectEvent(() => {
+    setIsSessionLogoutPending(true);
+    void dispatch(logoutAsync({})).finally(() => {
+      setIsSessionLogoutPending(false);
+    });
+  });
+
+  useEffect(() => {
     checkAndRefreshToken();
+  }, [isAuthenticated, sessionExpiresAt, tokens?.refreshToken]);
 
-    // Check every minute
-    const intervalId = setInterval(checkAndRefreshToken, 60000);
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      checkAndRefreshToken();
+    }, 60000);
 
     return () => clearInterval(intervalId);
-  }, [isAuthenticated, tokens, sessionExpiresAt, dispatch]);
+  }, []);
 
-  /**
-   * Render unauthorized access screen
-   */
+  useEffect(() => {
+    if (!isAuthenticated || !sessionExpiresAt) {
+      return;
+    }
+
+    const expiresAt = new Date(sessionExpiresAt).getTime();
+    if (!Number.isFinite(expiresAt)) {
+      return;
+    }
+
+    const remainingMs = expiresAt - Date.now();
+    if (remainingMs <= 0) {
+      triggerSessionLogout();
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      triggerSessionLogout();
+    }, remainingMs);
+
+    return () => clearTimeout(timeoutId);
+  }, [isAuthenticated, sessionExpiresAt]);
+
   const renderUnauthorized = () => {
-    if (fallback) return fallback;
+    if (hasRenderableNode(fallback)) return fallback;
 
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.content}>
-          <Text variant='headline' size='lg' color='error' align='center' style={styles.title}>
+          <Text variant="headline" size="lg" color="error" align="center" style={styles.title}>
             Access Denied
           </Text>
-          <Text variant='body' size='md' color='secondary' align='center' style={styles.message}>
-            You don't have permission to access this content.
+          <Text variant="body" size="md" color="secondary" align="center" style={styles.message}>
+            You don&apos;t have permission to access this content.
             {requiredRoles && `\n\nRequired role: ${requiredRoles.join(', ')}`}
           </Text>
         </View>
@@ -124,35 +161,28 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   };
 
-  /**
-   * Render loading state
-   */
   const renderLoading = () => (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ActivityIndicator size='large' color={theme.colors.primary} />
+      <ActivityIndicator size="large" color={theme.colors.primary} />
     </View>
   );
 
-  // Show loading during auth checks
-  if (isLoading) {
+  if (isLoading || (isSessionLogoutPending && isAuthenticated)) {
     return renderLoading();
   }
 
-  // User not authenticated - should not happen in MainStack
-  // RootNavigator handles this, but as a safety measure
   if (!isAuthenticated) {
     return renderUnauthorized();
   }
 
-  // Check email verification
-  if (!user?.isEmailVerified) {
+  if (user?.isEmailVerified !== true) {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.content}>
-          <Text variant='headline' size='lg' color='warning' align='center' style={styles.title}>
+          <Text variant="headline" size="lg" color="warning" align="center" style={styles.title}>
             Email Verification Required
           </Text>
-          <Text variant='body' size='md' color='secondary' align='center' style={styles.message}>
+          <Text variant="body" size="md" color="secondary" align="center" style={styles.message}>
             Please verify your email address to access this content. Check your inbox for the
             verification link.
           </Text>
@@ -161,20 +191,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Check role-based access
   if (!hasRequiredRole()) {
     return renderUnauthorized();
   }
 
-  // Check if session has expired
-  if (sessionExpiresAt && new Date(sessionExpiresAt).getTime() < Date.now()) {
-    // Trigger logout
-    dispatch(logoutAsync({}));
-    return renderLoading();
-  }
-
-  // All checks passed - render protected content
-  return <>{children}</>;
+  return children;
 };
 
 const styles = StyleSheet.create({

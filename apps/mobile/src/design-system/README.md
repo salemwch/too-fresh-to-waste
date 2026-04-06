@@ -47,9 +47,9 @@ const App = () => {
     <ThemeProvider>
       <View>
         <Card>
-          <Text variant='headline.medium'>Welcome to Food Waste App</Text>
-          <Text variant='body.medium'>Reduce food waste, save money!</Text>
-          <Button variant='primary' onPress={() => console.log('Pressed!')}>
+          <Text variant="headline.medium">Welcome to Food Waste App</Text>
+          <Text variant="body.medium">Reduce food waste, save money!</Text>
+          <Button variant="primary" onPress={() => console.log('Pressed!')}>
             Get Started
           </Button>
         </Card>
@@ -118,11 +118,11 @@ spacingTokens.semantic.form.fieldGap;
 
 ```tsx
 <Button
-  variant='primary'
-  size='md'
+  variant="primary"
+  size="md"
   onPress={handlePress}
   loading={isLoading}
-  leftIcon={<Icon name='star' />}
+  leftIcon={<Icon name="star" />}
 >
   Save to Favorites
 </Button>
@@ -141,7 +141,7 @@ spacingTokens.semantic.form.fieldGap;
 #### Text
 
 ```tsx
-<Text variant='body.medium' color='primary' align='center' numberOfLines={2}>
+<Text variant="body.medium" color="primary" align="center" numberOfLines={2}>
   Text content
 </Text>
 ```
@@ -158,10 +158,10 @@ spacingTokens.semantic.form.fieldGap;
 
 ```tsx
 <Input
-  label='Email Address'
-  placeholder='Enter your email'
-  variant='outlined'
-  size='md'
+  label="Email Address"
+  placeholder="Enter your email"
+  variant="outlined"
+  size="md"
   leftIcon={<EmailIcon />}
   errorText={errors.email}
   required
@@ -180,7 +180,7 @@ spacingTokens.semantic.form.fieldGap;
 #### Card
 
 ```tsx
-<Card variant='elevated' size='md' pressable onPress={handleCardPress}>
+<Card variant="elevated" size="md" pressable onPress={handleCardPress}>
   <Text>Card content</Text>
 </Card>
 ```
@@ -201,9 +201,7 @@ Wrap your app with the ThemeProvider to enable theming:
 ```tsx
 import { ThemeProvider } from '../design-system';
 
-const App = () => (
-  <ThemeProvider defaultTheme='auto'>{/* Your app content */}</ThemeProvider>
-);
+const App = () => <ThemeProvider defaultTheme="auto">{/* Your app content */}</ThemeProvider>;
 ```
 
 ### Using Theme
@@ -228,9 +226,7 @@ const MyComponent = () => {
 const { toggleTheme, colorScheme } = useTheme();
 
 // Toggle between light and dark
-<Button onPress={toggleTheme}>
-  Switch to {colorScheme === 'light' ? 'Dark' : 'Light'} Mode
-</Button>;
+<Button onPress={toggleTheme}>Switch to {colorScheme === 'light' ? 'Dark' : 'Light'} Mode</Button>;
 ```
 
 ## 📱 Platform Support
@@ -330,9 +326,7 @@ interface FoodButtonProps extends ButtonProps {
 const FoodButton: React.FC<FoodButtonProps> = ({ foodCategory, ...props }) => {
   const categoryColor = getCategoryColor(foodCategory);
 
-  return (
-    <Button {...props} style={[{ borderColor: categoryColor }, props.style]} />
-  );
+  return <Button {...props} style={[{ borderColor: categoryColor }, props.style]} />;
 };
 ```
 

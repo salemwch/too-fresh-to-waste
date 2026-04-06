@@ -3,7 +3,7 @@
  * Last 5 pointsHistory transactions with green earned / red spent indicators.
  */
 
-import React, { useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import { Card, Icon, Text } from '@/design-system/components/atoms';
@@ -15,6 +15,8 @@ interface RecentActivityListProps {
   /** Max items to display */
   limit?: number;
 }
+
+const SURFACE_MUTED = '#F1F5F9';
 
 /** Format a relative timestamp (e.g. "2 hours ago", "3 days ago") */
 function formatRelativeTime(dateString: string): string {
@@ -67,13 +69,9 @@ const TransactionRow: React.FC<{ tx: PointTransaction }> = ({ tx }) => {
           {formatRelativeTime(tx.createdAt)}
         </Text>
       </View>
-      <Text
-        variant="body"
-        size="sm"
-        weight="bold"
-        style={{ color: config.color }}
-      >
-        {sign}{Math.abs(tx.amount)} pts
+      <Text variant="body" size="sm" weight="bold" style={{ color: config.color }}>
+        {sign}
+        {Math.abs(tx.amount)} pts
       </Text>
     </View>
   );
@@ -122,7 +120,7 @@ const RecentActivityListComponent: React.FC<RecentActivityListProps> = ({
   );
 };
 
-export const RecentActivityList = React.memo(RecentActivityListComponent);
+export const RecentActivityList = memo(RecentActivityListComponent);
 RecentActivityListComponent.displayName = 'RecentActivityList';
 
 const styles = StyleSheet.create({
@@ -146,7 +144,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: SURFACE_MUTED,
   },
   emptyState: {
     alignItems: 'center',

@@ -26,21 +26,6 @@ import {
 import MapView, { Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-  LocationFilterModal,
-  MapListToggle,
-  PlaceOffersBottomSheet,
-  EstablishmentMarker,
-  EstablishmentBottomSheet,
-  type ViewMode,
-} from '../components';
-import { usePlaceSearch } from '../hooks/usePlaceSearch';
-
-import type { OfferListItem } from '@/features/offers/types/offer.types';
-import type { SearchScreenNavigationProp } from '@/navigation/types';
-import type { ILocationResult } from '@/types/location.types';
-import type { Region } from 'react-native-maps';
-
 import { environment } from '@/config/environment';
 import { Text, Input, Icon } from '@/design-system/components/atoms';
 import { SkeletonOfferCard } from '@/design-system/components/molecules';
@@ -60,6 +45,21 @@ import { useLocation } from '@/hooks/useLocation';
 import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
 import { Logger } from '@/utils/logger';
 
+import {
+  LocationFilterModal,
+  MapListToggle,
+  PlaceOffersBottomSheet,
+  EstablishmentMarker,
+  EstablishmentBottomSheet,
+  type ViewMode,
+} from '../components';
+import { usePlaceSearch } from '../hooks/usePlaceSearch';
+
+import type { OfferListItem } from '@/features/offers/types/offer.types';
+import type { SearchScreenNavigationProp } from '@/navigation/types';
+import type { ILocationResult } from '@/types/location.types';
+import type { Region } from 'react-native-maps';
+
 // ============================================================================
 // Constants
 // ============================================================================
@@ -73,6 +73,9 @@ const DEFAULT_LOCATION = {
 };
 
 const INITIAL_RADIUS_KM = 5;
+const TRANSPARENT = 'transparent';
+const MAP_LOADING_OVERLAY = 'rgba(255, 255, 255, 0.7)';
+const SURFACE_SHADOW = '#000';
 
 // ============================================================================
 // Helper Functions
@@ -102,7 +105,7 @@ const mapSearchResultToOfferListItem = (
       originalPrice: item.pricing.originalPrice,
       discountedPrice: item.pricing.discountedPrice,
       discountPercentage: item.pricing.discountPercentage,
-      currency: (item.pricing.currency as Currency) || Currency.TND,
+      currency: (item.pricing.currency as Currency | null | undefined) ?? Currency.TND,
     },
     availableQuantity: item.availableQuantity,
     availableFrom: item.availableFrom,
@@ -178,7 +181,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   }, [hasLocation, userCoordinates]);
 
   // Search radius (use preferredRadiusKm or default)
-  const searchRadius = preferredRadiusKm || INITIAL_RADIUS_KM;
+  const searchRadius = preferredRadiusKm ?? INITIAL_RADIUS_KM;
   const searchRadiusMeters = searchRadius * 1000;
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -276,7 +279,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
       const placeCoords = { latitude: coords.lat, longitude: coords.lng };
       const placeName = place.name || 'Unknown';
-      const placeAddress = place.subtext || place.formattedAddress || '';
+      const placeAddress = place.subtext ?? place.formattedAddress ?? '';
 
       setSelectedPlace({ name: placeName, address: placeAddress, coordinates: placeCoords });
       setManualLocationValue(placeCoords, placeName);
@@ -343,6 +346,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const handleLocationPress = useCallback(() => {
     setShowLocationModal(true);
   }, []);
+
+  const handleRefresh = useCallback(() => {
+    void refetch();
+  }, [refetch]);
 
   const handleRadiusChange = useCallback(
     (radius: number) => {
@@ -414,6 +421,15 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       Logger.error('[SearchScreen] Failed to get current location:', {}, error as Error);
     }
   }, [requestLocation, mapRegion, dispatch]);
+
+  const handleUseMyLocationPress = useCallback(() => {
+    void handleUseMyLocation();
+  }, [handleUseMyLocation]);
+
+  const searchOverlayStyle = {
+    paddingTop: insets.top + 8,
+    backgroundColor: viewMode === 'map' ? TRANSPARENT : theme.colors.background,
+  };
 
   const handleEstablishmentMarkerPress = useCallback(
     (est: ProximitySearchResult<MapEstablishment>) => {
@@ -551,7 +567,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
         ) : showEmpty ? (
           <View style={styles.placeResultsEmpty}>
             <Text variant="body" size="sm" color="secondary">
-              No results found for "{debouncedQuery}"
+              No results found for &quot;{debouncedQuery}&quot;
             </Text>
           </View>
         ) : (
@@ -592,7 +608,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                         {est.item.name}
                       </Text>
                       <Text variant="body" size="xs" color="secondary" numberOfLines={1}>
-                        {est.item.address?.city || est.distance.formatted}
+                        {est.item.address?.city ?? est.distance.formatted}
                       </Text>
                     </View>
                     <View
@@ -624,7 +640,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                       { borderBottomColor: theme.colors.outline },
                       index === Math.min(googleResults.length - 1, 3) && styles.placeResultItemLast,
                     ]}
-                    onPress={() => handleGooglePlaceSelect(place)}
+                    onPress={() => {
+                      void handleGooglePlaceSelect(place);
+                    }}
                   >
                     <View
                       style={[
@@ -809,7 +827,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
-              onRefresh={refetch}
+              onRefresh={handleRefresh}
               tintColor={theme.colors.primary}
               progressViewOffset={insets.top + 120}
             />
@@ -818,16 +836,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       )}
 
       {/* Search Bar Overlay */}
-      <View
-        pointerEvents="box-none"
-        style={[
-          styles.searchOverlay,
-          {
-            paddingTop: insets.top + 8,
-            backgroundColor: viewMode === 'map' ? 'transparent' : theme.colors.background,
-          },
-        ]}
-      >
+      <View pointerEvents="box-none" style={[styles.searchOverlay, searchOverlayStyle]}>
         {/* Search Row */}
         <View style={styles.searchRow}>
           <View style={[styles.searchInputContainer, { backgroundColor: theme.colors.background }]}>
@@ -876,7 +885,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
         currentRadius={searchRadius}
         onRadiusChange={handleRadiusChange}
         onLocationSelect={handleLocationSelect}
-        onUseMyLocation={handleUseMyLocation}
+        onUseMyLocation={handleUseMyLocationPress}
         isLoadingLocation={isLocationLoading}
       />
     </View>
@@ -900,7 +909,7 @@ const styles = StyleSheet.create({
   },
   mapLoadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: MAP_LOADING_OVERLAY,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -928,7 +937,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: SURFACE_SHADOW,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
@@ -951,7 +960,7 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flex: 1,
     borderRadius: 14,
-    shadowColor: '#000',
+    shadowColor: SURFACE_SHADOW,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
@@ -969,7 +978,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: SURFACE_SHADOW,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
@@ -984,7 +993,7 @@ const styles = StyleSheet.create({
   placeResultsContainer: {
     marginTop: 8,
     borderRadius: 14,
-    shadowColor: '#000',
+    shadowColor: SURFACE_SHADOW,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 8,

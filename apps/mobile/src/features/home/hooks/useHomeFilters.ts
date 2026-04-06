@@ -16,22 +16,24 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
-import { HOME_STORAGE_KEYS, HOME_UI_CONFIG, HOME_ANALYTICS_EVENTS } from '../constants/homeConstants';
-
-import type {
-  FilterState,
-} from '@/features/search/types/filter.types';
-import type { OfferSearchParams } from '@/features/offers/types/offer.types';
-import type { EstablishmentType } from '@/features/offers/types/offer.types';
-import { analytics } from '@/utils/analytics';
-import { Logger } from '@/utils/logger';
-
-// Import filter utilities
 import {
   INITIAL_FILTER_STATE as INITIAL_STATE,
   hasActiveFilters as hasFilters,
   countActiveFilters as countFilters,
 } from '@/features/search/types/filter.types';
+import { analytics } from '@/utils/analytics';
+import { Logger } from '@/utils/logger';
+
+import {
+  HOME_STORAGE_KEYS,
+  HOME_UI_CONFIG,
+  HOME_ANALYTICS_EVENTS,
+} from '../constants/homeConstants';
+
+import type { OfferSearchParams, EstablishmentType } from '@/features/offers/types/offer.types';
+import type { FilterState } from '@/features/search/types/filter.types';
+
+// Import filter utilities
 
 // ============================================================================
 // Types
@@ -48,7 +50,12 @@ interface UseHomeFiltersResult {
   /** Debounced search query for API calls */
   debouncedSearchQuery: string;
   /** Converted filter parameters ready for API consumption */
-  filterParams: Partial<Pick<OfferSearchParams, 'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories' | 'search'>>;
+  filterParams: Partial<
+    Pick<
+      OfferSearchParams,
+      'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories' | 'search'
+    >
+  >;
   /** Whether any filters are currently active */
   hasActiveFilters: boolean;
   /** Count of active filters */
@@ -181,7 +188,10 @@ export function useHomeFilters(): UseHomeFiltersResult {
   const filterParams = useMemo(() => {
     try {
       const params: Partial<
-        Pick<OfferSearchParams, 'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories' | 'search'>
+        Pick<
+          OfferSearchParams,
+          'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories' | 'search'
+        >
       > = {};
 
       // Search query (debounced)
@@ -197,7 +207,7 @@ export function useHomeFilters(): UseHomeFiltersResult {
       // Establishment types (validate and sanitize)
       if (filters.establishmentTypes.length > 0) {
         const validTypes = filters.establishmentTypes.filter(
-          type => Boolean(type) // Basic validation
+          (type) => Boolean(type), // Basic validation
         );
         if (validTypes.length > 0) {
           params.establishmentTypes = [...validTypes]; // Defensive copy
@@ -207,20 +217,20 @@ export function useHomeFilters(): UseHomeFiltersResult {
       // Cuisine types (validate and sanitize)
       if (filters.cuisineTypes.length > 0) {
         const validCuisines = filters.cuisineTypes.filter(
-          cuisine => typeof cuisine === 'string' && cuisine.trim().length > 0
+          (cuisine) => typeof cuisine === 'string' && cuisine.trim().length > 0,
         );
         if (validCuisines.length > 0) {
-          params.cuisineTypes = validCuisines.map(c => c.trim());
+          params.cuisineTypes = validCuisines.map((c) => c.trim());
         }
       }
 
       // Categories (validate and sanitize)
       if (filters.categories.length > 0) {
         const validCategories = filters.categories.filter(
-          category => typeof category === 'string' && category.trim().length > 0
+          (category) => typeof category === 'string' && category.trim().length > 0,
         );
         if (validCategories.length > 0) {
-          params.categories = validCategories.map(c => c.trim());
+          params.categories = validCategories.map((c) => c.trim());
         }
       }
 
@@ -300,7 +310,7 @@ export function useHomeFilters(): UseHomeFiltersResult {
       source: 'home_screen',
     });
 
-    setFilters(prev => ({ ...prev, offerType: null }));
+    setFilters((prev) => ({ ...prev, offerType: null }));
   }, [filters.offerType]);
 
   /**
@@ -314,9 +324,9 @@ export function useHomeFilters(): UseHomeFiltersResult {
       source: 'home_screen',
     });
 
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      establishmentTypes: prev.establishmentTypes.filter(t => t !== type),
+      establishmentTypes: prev.establishmentTypes.filter((t) => t !== type),
     }));
   }, []);
 
@@ -331,9 +341,9 @@ export function useHomeFilters(): UseHomeFiltersResult {
       source: 'home_screen',
     });
 
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      cuisineTypes: prev.cuisineTypes.filter(c => c !== cuisine),
+      cuisineTypes: prev.cuisineTypes.filter((c) => c !== cuisine),
     }));
   }, []);
 
@@ -348,9 +358,9 @@ export function useHomeFilters(): UseHomeFiltersResult {
       source: 'home_screen',
     });
 
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      categories: prev.categories.filter(c => c !== category),
+      categories: prev.categories.filter((c) => c !== category),
     }));
   }, []);
 

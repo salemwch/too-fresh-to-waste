@@ -1,6 +1,7 @@
 # OfferCard Redesign - Implementation Summary
 
 ## Overview
+
 Updated the OfferCard component to match the new design from `offer.md`. The new design removes promotional badges and adds establishment ratings.
 
 ## Changes Made
@@ -8,7 +9,9 @@ Updated the OfferCard component to match the new design from `offer.md`. The new
 ### 1. Backend Updates
 
 #### `apps/food-waste-backend/src/offers/DTO/offer-list.dto.ts`
+
 - ✅ Added `averageRating` and `totalReviews` to establishment object in OfferCardDto
+
 ```typescript
 establishment: {
     name: string;
@@ -18,8 +21,10 @@ establishment: {
 ```
 
 #### `apps/food-waste-backend/src/offers/presenters/offer.presenter.ts`
+
 - ✅ Renamed `getEstablishmentName()` to `getEstablishmentData()`
 - ✅ Now extracts rating and review data from populated establishment
+
 ```typescript
 private static getEstablishmentData(offer: OfferDocument): {
     name: string;
@@ -31,7 +36,9 @@ private static getEstablishmentData(offer: OfferDocument): {
 ### 2. Frontend Type Updates
 
 #### `apps/mobile/src/features/offers/types/offer.types.ts`
+
 - ✅ Updated `OfferListItem` interface to include establishment rating fields
+
 ```typescript
 establishment: {
     name: string;
@@ -45,6 +52,7 @@ establishment: {
 #### `apps/mobile/src/design-system/components/organisms/OfferCard/OfferCard.tsx`
 
 **Removed Elements:**
+
 - ❌ "Featured" badge (top right)
 - ❌ "40% OFF" discount percentage badge (top left)
 - ❌ "Expiring Soon" badge (top right)
@@ -53,18 +61,21 @@ establishment: {
 - ❌ Custom badges support
 
 **Added Elements:**
+
 - ✅ **Star Rating Badge** (top right) - Shows establishment rating with star icon
   - Only displays if establishment has rating > 0
   - Dark primary color background with white star and number
   - Format: ★ 3.9
 
 **Moved Elements:**
+
 - ✅ **Favorite Heart Button** - Moved from image to content section
   - Now appears next to establishment name
   - Uses unicode heart character (❤ / ♡)
   - Updated color to use theme secondary color
 
 **Redesigned Content Layout:**
+
 ```
 ┌─────────────────────────────────┐
 │ Hotel Carthage          ♡       │  ← Establishment name + favorite
@@ -76,6 +87,7 @@ establishment: {
 ```
 
 **Image Section:**
+
 ```
 ┌─────────────────────────────────┐
 │  [5 left]             [★ 3.9]  │  ← Items left + Rating
@@ -87,12 +99,14 @@ establishment: {
 ```
 
 **Component Props Removed:**
+
 - `variant` - No longer needed (no variant-specific badges)
 - `showDiscountBadge` - Removed discount badge
 - `badges` - Removed custom badges support
 - `titleLines` - Now using single line for type
 
 **New Styles Added:**
+
 ```typescript
 ratingBadge: { position: 'absolute', top, right }
 ratingBadgeContent: { flexDirection: 'row', backgroundColor: primary }
@@ -108,6 +122,7 @@ currentPrice: { fontSize: 16, fontWeight: 'bold' }
 ```
 
 **Removed Styles:**
+
 - `topRightBadges`
 - `favoriteButton` (image section)
 - `favoriteButtonBackground`
@@ -116,6 +131,7 @@ currentPrice: { fontSize: 16, fontWeight: 'bold' }
 ## Testing Required
 
 1. **Backend:**
+
    ```bash
    # Restart backend server to apply changes
    cd apps/food-waste-backend
@@ -123,6 +139,7 @@ currentPrice: { fontSize: 16, fontWeight: 'bold' }
    ```
 
 2. **Mobile:**
+
    ```bash
    # Clear Metro cache and rebuild
    cd apps/mobile
@@ -169,16 +186,19 @@ currentPrice: { fontSize: 16, fontWeight: 'bold' }
 ## Files Modified
 
 **Backend:**
+
 - `apps/food-waste-backend/src/offers/DTO/offer-list.dto.ts`
 - `apps/food-waste-backend/src/offers/presenters/offer.presenter.ts`
 
 **Frontend:**
+
 - `apps/mobile/src/features/offers/types/offer.types.ts`
 - `apps/mobile/src/design-system/components/organisms/OfferCard/OfferCard.tsx`
 
 ## Breaking Changes
 
 ⚠️ **Props Removed:**
+
 - `variant` prop no longer used
 - `showDiscountBadge` prop removed
 - `badges` prop removed

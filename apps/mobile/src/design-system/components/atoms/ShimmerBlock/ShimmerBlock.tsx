@@ -43,7 +43,9 @@ export const ShimmerBlock: React.FC<ShimmerBlockProps> = ({
   });
 
   return (
-    <View style={[styles.container, { width, height, borderRadius, backgroundColor: colors[0] }, style]}>
+    <View
+      style={[styles.container, { width, height, borderRadius, backgroundColor: colors[0] }, style]}
+    >
       <Animated.View style={[styles.gradientWrapper, { transform: [{ translateX }] }]}>
         <LinearGradient
           colors={colors}

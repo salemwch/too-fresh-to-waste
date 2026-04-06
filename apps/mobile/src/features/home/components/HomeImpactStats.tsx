@@ -16,7 +16,7 @@
  * - Loading state with skeleton UI
  */
 
-import React, { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -40,10 +40,6 @@ const CO2_PER_MEAL_KG = 2.5;
 // ============================================================================
 // Types
 // ============================================================================
-
-interface HomeImpactStatsProps {
-  // No props needed - authentication state handled internally
-}
 
 /**
  * Processed impact stats for display
@@ -80,7 +76,7 @@ interface ImpactStats {
  * <HomeImpactStats userId={userId} />
  * ```
  */
-const HomeImpactStatsComponent: React.FC<HomeImpactStatsProps> = () => {
+const HomeImpactStatsComponent = () => {
   const theme = useTheme();
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
@@ -131,10 +127,10 @@ const HomeImpactStatsComponent: React.FC<HomeImpactStatsProps> = () => {
   // Show loading skeleton
   if (isLoading) {
     return (
-      <Card style={styles.impactCard} testID='impact-stats-card-loading'>
+      <Card style={styles.impactCard} testID="impact-stats-card-loading">
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size='large' color={theme.colors.primary} />
-          <Text variant='body' size='sm' color='secondary' style={styles.loadingText}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text variant="body" size="sm" color="secondary" style={styles.loadingText}>
             Loading your impact...
           </Text>
         </View>
@@ -157,9 +153,9 @@ const HomeImpactStatsComponent: React.FC<HomeImpactStatsProps> = () => {
   // ============================================================================
 
   return (
-    <Card style={styles.impactCard} testID='impact-stats-card'>
+    <Card style={styles.impactCard} testID="impact-stats-card">
       {/* Section Title */}
-      <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
+      <Text variant="title" size="md" weight="semibold" style={styles.sectionTitle}>
         Your Impact
       </Text>
 
@@ -169,12 +165,12 @@ const HomeImpactStatsComponent: React.FC<HomeImpactStatsProps> = () => {
         <View
           style={styles.statItem}
           accessibilityLabel={`Meals saved: ${stats.mealsSaved}`}
-          accessibilityHint='Total number of meals you have contributed through donations'
+          accessibilityHint="Total number of meals you have contributed through donations"
         >
-          <Text variant='headline' size='lg' weight='bold' color='primary'>
+          <Text variant="headline" size="lg" weight="bold" color="primary">
             {stats.mealsSaved.toLocaleString()}
           </Text>
-          <Text variant='body' size='sm' color='secondary'>
+          <Text variant="body" size="sm" color="secondary">
             Meals Saved
           </Text>
         </View>
@@ -183,12 +179,12 @@ const HomeImpactStatsComponent: React.FC<HomeImpactStatsProps> = () => {
         <View
           style={styles.statItem}
           accessibilityLabel={`Money donated: ${stats.moneySaved} ${stats.currency}`}
-          accessibilityHint='Total amount you have donated to support meals'
+          accessibilityHint="Total amount you have donated to support meals"
         >
-          <Text variant='headline' size='lg' weight='bold' color='success'>
+          <Text variant="headline" size="lg" weight="bold" color="success">
             {stats.moneySaved.toLocaleString()} {stats.currency}
           </Text>
-          <Text variant='body' size='sm' color='secondary'>
+          <Text variant="body" size="sm" color="secondary">
             Donated
           </Text>
         </View>
@@ -197,12 +193,12 @@ const HomeImpactStatsComponent: React.FC<HomeImpactStatsProps> = () => {
         <View
           style={styles.statItem}
           accessibilityLabel={`CO2 reduced: ${stats.co2Reduced} kilograms`}
-          accessibilityHint='Carbon dioxide emissions prevented by your contributions'
+          accessibilityHint="Carbon dioxide emissions prevented by your contributions"
         >
-          <Text variant='headline' size='lg' weight='bold' style={{ color: theme.colors.warning }}>
+          <Text variant="headline" size="lg" weight="bold" style={{ color: theme.colors.warning }}>
             {stats.co2Reduced.toLocaleString()}kg
           </Text>
-          <Text variant='body' size='sm' color='secondary'>
+          <Text variant="body" size="sm" color="secondary">
             CO₂ Reduced
           </Text>
         </View>
@@ -213,7 +209,7 @@ const HomeImpactStatsComponent: React.FC<HomeImpactStatsProps> = () => {
 
 HomeImpactStatsComponent.displayName = 'HomeImpactStats';
 
-export const HomeImpactStats = React.memo(HomeImpactStatsComponent);
+export const HomeImpactStats = memo(HomeImpactStatsComponent);
 
 // ============================================================================
 // Styles

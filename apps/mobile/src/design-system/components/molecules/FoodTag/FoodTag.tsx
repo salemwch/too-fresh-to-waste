@@ -4,17 +4,17 @@
  */
 
 import React, { useCallback, useMemo } from 'react';
-import { View, Pressable } from 'react-native';
+import { Pressable, StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Text } from '../../atoms/Text';
 
 import type { FoodTagProps } from './FoodTag.types';
 
-// Close icon placeholder
-const CloseIcon = () => (
-  <View style={{ width: 12, height: 12, backgroundColor: '#666', borderRadius: 6 }} />
-);
+const hasRenderableNode = (
+  value: React.ReactNode | undefined,
+): value is Exclude<React.ReactNode, null | undefined | false> =>
+  value !== null && value !== undefined && value !== false;
 
 export const FoodTag: React.FC<FoodTagProps> = ({
   children,
@@ -32,7 +32,7 @@ export const FoodTag: React.FC<FoodTagProps> = ({
   disabled = false,
   closable = false,
   onClose,
-  closeIcon = <CloseIcon />,
+  closeIcon,
   borderRadius = 'full',
   style,
   textStyle,
@@ -53,9 +53,9 @@ export const FoodTag: React.FC<FoodTagProps> = ({
     // Custom colors take precedence
     if (color || backgroundColor) {
       return {
-        textColor: color || colors.onSurface,
-        bgColor: backgroundColor || colors.surfaceVariant,
-        borderColor: backgroundColor || colors.outline,
+        textColor: color ?? colors.onSurface,
+        bgColor: backgroundColor ?? colors.surfaceVariant,
+        borderColor: backgroundColor ?? colors.outline,
       };
     }
 
@@ -100,6 +100,7 @@ export const FoodTag: React.FC<FoodTagProps> = ({
           borderColor: colors.primary,
         };
 
+      case 'custom':
       default:
         // Custom/default variant
         break;
@@ -192,7 +193,7 @@ export const FoodTag: React.FC<FoodTagProps> = ({
 
   // Handle close
   const handleClose = useCallback(
-    (event: any) => {
+    (event: GestureResponderEvent) => {
       event.stopPropagation();
       if (!disabled && onClose) {
         onClose();
@@ -231,10 +232,33 @@ export const FoodTag: React.FC<FoodTagProps> = ({
     [getTagColors, getSizeStyles, theme.typography.fontWeight?.medium],
   );
 
+  const iconWrapperStyle = useMemo(
+    () => ({ marginRight: theme.spacing.base.xs }),
+    [theme.spacing.base.xs],
+  );
+
+  const closeButtonStyle = useMemo(
+    () => ({
+      marginLeft: theme.spacing.base.xs,
+      padding: 2,
+    }),
+    [theme.spacing.base.xs],
+  );
+
+  const resolvedCloseIcon = useMemo(
+    () =>
+      closeIcon ?? (
+        <View
+          style={[styles.closeIconPlaceholder, { backgroundColor: theme.colors.onSurfaceVariant }]}
+        />
+      ),
+    [closeIcon, theme.colors.onSurfaceVariant],
+  );
+
   // Render content
   const renderContent = () => (
-    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-      {icon && <View style={{ marginRight: theme.spacing.base.xs }}>{icon}</View>}
+    <View style={styles.contentRow}>
+      {hasRenderableNode(icon) && <View style={iconWrapperStyle}>{icon}</View>}
 
       <Text
         style={[textStyles, textStyle]}
@@ -246,16 +270,13 @@ export const FoodTag: React.FC<FoodTagProps> = ({
       {closable && (
         <Pressable
           onPress={handleClose}
-          style={{
-            marginLeft: theme.spacing.base.xs,
-            padding: 2,
-          }}
+          style={closeButtonStyle}
           testID={`${testID}-close`}
-          accessibilityRole='button'
-          accessibilityLabel='Remove tag'
-          accessibilityHint='Removes this tag'
+          accessibilityRole="button"
+          accessibilityLabel="Remove tag"
+          accessibilityHint="Removes this tag"
         >
-          {closeIcon}
+          {resolvedCloseIcon}
         </Pressable>
       )}
     </View>
@@ -264,10 +285,10 @@ export const FoodTag: React.FC<FoodTagProps> = ({
   // Accessibility props with proper TypeScript types
   const defaultAccessibilityRole = pressable ? 'button' : 'text';
   const accessibilityProps = {
-    accessibilityLabel: accessibilityLabel || `${variant} tag: ${children}`,
+    accessibilityLabel: accessibilityLabel ?? `${variant} tag: ${children}`,
     ...(accessibilityHint && { accessibilityHint }),
     ...(!accessibilityHint && pressable && { accessibilityHint: 'Double tap to select' }),
-    accessibilityRole: (accessibilityRole || defaultAccessibilityRole) as 'button' | 'text',
+    accessibilityRole: (accessibilityRole ?? defaultAccessibilityRole) as 'button' | 'text',
     accessibilityState: {
       disabled,
       ...(pressable && { selected }),
@@ -296,3 +317,15 @@ export const FoodTag: React.FC<FoodTagProps> = ({
   );
 };
 
+const styles = StyleSheet.create({
+  closeIconPlaceholder: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  contentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+});

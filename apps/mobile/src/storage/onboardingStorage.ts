@@ -10,6 +10,8 @@
  * Used by RootNavigator to decide initial route without async delay.
  */
 
+import { Logger } from '@/utils/logger';
+
 import { mmkvStorage } from './mmkv';
 
 /**
@@ -42,7 +44,7 @@ export const onboardingStorage = {
   markWelcomeSeen(): void {
     mmkvStorage.setBoolean(KEY_HAS_SEEN_WELCOME, true);
     if (__DEV__) {
-      console.log('[Onboarding] Welcome screen marked as seen');
+      Logger.debug('[Onboarding] Welcome screen marked as seen');
     }
   },
 
@@ -53,7 +55,7 @@ export const onboardingStorage = {
   resetOnboarding(): void {
     mmkvStorage.remove(KEY_HAS_SEEN_WELCOME);
     if (__DEV__) {
-      console.log('[Onboarding] Onboarding state reset - welcome will show on next launch');
+      Logger.debug('[Onboarding] Onboarding state reset - welcome will show on next launch');
     }
   },
 } as const;

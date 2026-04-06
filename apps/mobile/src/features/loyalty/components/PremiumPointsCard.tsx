@@ -4,7 +4,7 @@
  * and an animated progress bar toward the next tier.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -12,12 +12,17 @@ import { Avatar, Icon, Text } from '@/design-system/components/atoms';
 import { useAppSelector } from '@/hooks/redux';
 
 import { getTierConfig, getTierProgress, getPointsToNextTier } from '../constants/tiers';
-import type { TierName } from '../types/loyalty.types';
 
 import { AnimatedCounter } from './AnimatedCounter';
 
+import type { TierName } from '../types/loyalty.types';
+
 /** Teal gradient matching the app's --gradient-teal CSS variable */
 const HERO_GRADIENT: [string, string] = ['#005251', '#2DB89B'];
+const INVERSE_TEXT = '#FFFFFF';
+const INVERSE_TEXT_MUTED = 'rgba(255,255,255,0.75)';
+const INVERSE_TRACK = 'rgba(255,255,255,0.25)';
+const SHADOW = '#000';
 
 interface PremiumPointsCardProps {
   availablePoints: number;
@@ -38,7 +43,7 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
   const pointsToNext = getPointsToNextTier(currentTier, lifetimePointsEarned);
 
   // Animate progress bar width from 0 → progress
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  const [progressAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     progressAnim.setValue(0);
@@ -50,15 +55,19 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
     }).start();
   }, [progress, progressAnim]);
 
-  const progressWidth = progressAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0%', '100%'],
-  });
+  const progressWidth = useMemo(
+    () =>
+      progressAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0%', '100%'],
+      }),
+    [progressAnim],
+  );
+  const tierBadgeStyle = { backgroundColor: tierConfig.gradientStart };
+  const progressFillStyle = { width: progressWidth };
 
   const initials =
-    user?.firstName && user?.lastName
-      ? `${user.firstName[0]}${user.lastName[0]}`
-      : 'U';
+    user?.firstName && user?.lastName ? `${user.firstName[0]}${user.lastName[0]}` : 'U';
 
   return (
     <LinearGradient
@@ -85,19 +94,9 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
             </Text>
           </View>
         </View>
-        <View style={[styles.tierBadge, { backgroundColor: tierConfig.gradientStart }]}>
-          <Icon
-            name={tierConfig.icon}
-            family="Ionicons"
-            size={16}
-            color="#FFFFFF"
-          />
-          <Text
-            variant="body"
-            size="sm"
-            weight="bold"
-            style={{ color: '#FFFFFF', marginLeft: 4 }}
-          >
+        <View style={[styles.tierBadge, tierBadgeStyle]}>
+          <Icon name={tierConfig.icon} family="Ionicons" size={16} color={INVERSE_TEXT} />
+          <Text variant="body" size="sm" weight="bold" style={styles.tierBadgeText}>
             {currentTier}
           </Text>
         </View>
@@ -110,13 +109,9 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
           variant="headline"
           size="xl"
           weight="bold"
-          color="#FFFFFF"
+          color={INVERSE_TEXT}
         />
-        <Text
-          variant="body"
-          size="sm"
-          style={{ color: '#FFFFFF', opacity: 0.8, marginTop: 2 }}
-        >
+        <Text variant="body" size="sm" style={styles.pointsSubtitle}>
           Available Points
         </Text>
       </View>
@@ -125,20 +120,10 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
       <View style={styles.progressSection}>
         <View style={styles.progressTrack}>
           <Animated.View
-            style={[
-              styles.progressFill,
-              {
-                width: progressWidth,
-                backgroundColor: '#FFFFFF',
-              },
-            ]}
+            style={[styles.progressFill, styles.progressFillSurface, progressFillStyle]}
           />
         </View>
-        <Text
-          variant="body"
-          size="xs"
-          style={{ color: '#FFFFFF', opacity: 0.8, marginTop: 6 }}
-        >
+        <Text variant="body" size="xs" style={styles.progressCaption}>
           {pointsToNext > 0
             ? `${pointsToNext.toLocaleString()} pts to next tier`
             : 'Maximum tier reached'}
@@ -148,7 +133,7 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
   );
 };
 
-export const PremiumPointsCard = React.memo(PremiumPointsCardComponent);
+export const PremiumPointsCard = memo(PremiumPointsCardComponent);
 PremiumPointsCardComponent.displayName = 'PremiumPointsCard';
 
 const styles = StyleSheet.create({
@@ -156,7 +141,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: SHADOW,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -176,10 +161,10 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   userName: {
-    color: '#FFFFFF',
+    color: INVERSE_TEXT,
   },
   userLastName: {
-    color: 'rgba(255,255,255,0.75)',
+    color: INVERSE_TEXT_MUTED,
     marginTop: 1,
   },
   tierBadge: {
@@ -189,9 +174,18 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
   },
+  tierBadgeText: {
+    color: INVERSE_TEXT,
+    marginLeft: 4,
+  },
   pointsSection: {
     alignItems: 'center',
     marginBottom: 20,
+  },
+  pointsSubtitle: {
+    color: INVERSE_TEXT,
+    opacity: 0.8,
+    marginTop: 2,
   },
   progressSection: {
     alignItems: 'center',
@@ -199,12 +193,20 @@ const styles = StyleSheet.create({
   progressTrack: {
     width: '100%',
     height: 6,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: INVERSE_TRACK,
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
     borderRadius: 3,
+  },
+  progressFillSurface: {
+    backgroundColor: INVERSE_TEXT,
+  },
+  progressCaption: {
+    color: INVERSE_TEXT,
+    opacity: 0.8,
+    marginTop: 6,
   },
 });

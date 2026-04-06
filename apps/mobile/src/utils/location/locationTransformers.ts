@@ -7,8 +7,11 @@
  * @module LocationTransformers
  */
 
-import type { ILocationResult } from '@/types/location.types';
 import type { LocationItem } from '@/navigation/components';
+import type { ILocationResult } from '@/types/location.types';
+
+const hasText = (value: string | undefined): value is string =>
+  typeof value === 'string' && value.trim().length > 0;
 
 /**
  * Transform ILocationResult[] to LocationItem[] (for UI components)
@@ -30,7 +33,7 @@ export function transformLocationResultsToItems(
   results: ILocationResult[],
   preferArabic: boolean = false,
 ): LocationItem[] {
-  if (!results || results.length === 0) {
+  if (results.length === 0) {
     return [];
   }
 
@@ -104,7 +107,15 @@ export function extractCoordinatesFromLocationItem(
  * @returns Display name
  */
 export function getLocationDisplayName(item: LocationItem): string {
-  return item.city || item.name || 'Unknown Location';
+  if (hasText(item.city)) {
+    return item.city;
+  }
+
+  if (hasText(item.name)) {
+    return item.name;
+  }
+
+  return 'Unknown Location';
 }
 
 /**
@@ -116,5 +127,17 @@ export function getLocationDisplayName(item: LocationItem): string {
  * @returns Full address string
  */
 export function getLocationFullAddress(item: LocationItem): string {
-  return item.fullAddress || item.city || item.name || 'Unknown Location';
+  if (hasText(item.fullAddress)) {
+    return item.fullAddress;
+  }
+
+  if (hasText(item.city)) {
+    return item.city;
+  }
+
+  if (hasText(item.name)) {
+    return item.name;
+  }
+
+  return 'Unknown Location';
 }

@@ -7,7 +7,7 @@
 
 // AsyncStorage mock
 jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+  jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
 
 // Haptic feedback mock
@@ -17,14 +17,44 @@ jest.mock('react-native-haptic-feedback', () => ({
 
 // Linear gradient mock
 jest.mock('react-native-linear-gradient', () => {
-  const { View } = require('react-native');
+  const { View } = jest.requireActual('react-native');
   return View;
 });
 
 // FastImage mock
 jest.mock('react-native-fast-image', () => {
-  const { Image } = require('react-native');
-  return Image;
+  const React = jest.requireActual('react');
+  const { Image } = jest.requireActual('react-native');
+
+  const MockFastImage = React.forwardRef((props, ref) =>
+    React.createElement(Image, {
+      ...props,
+      ref,
+    }),
+  );
+
+  MockFastImage.displayName = 'FastImage';
+  MockFastImage.resizeMode = {
+    contain: 'contain',
+    cover: 'cover',
+    stretch: 'stretch',
+    center: 'center',
+  };
+  MockFastImage.priority = {
+    low: 'low',
+    normal: 'normal',
+    high: 'high',
+  };
+  MockFastImage.cacheControl = {
+    immutable: 'immutable',
+    web: 'web',
+    cacheOnly: 'cacheOnly',
+  };
+  MockFastImage.preload = jest.fn();
+  MockFastImage.clearMemoryCache = jest.fn();
+  MockFastImage.clearDiskCache = jest.fn();
+
+  return MockFastImage;
 });
 
 // MMKV mock
@@ -39,7 +69,7 @@ jest.mock('react-native-mmkv', () => ({
 }));
 
 // Reanimated mock
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+jest.mock('react-native-reanimated', () => jest.requireActual('react-native-reanimated/mock'));
 
 // Vector icons — stub out all icon families to avoid font loading
 jest.mock('@react-native-vector-icons/ant-design', () => 'AntDesign');

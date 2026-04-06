@@ -3,7 +3,7 @@
  * Flexible container component with elevation and various styling options
  */
 
-import React, { forwardRef, useRef } from 'react';
+import React, { forwardRef, useState } from 'react';
 import { View, Pressable, ActivityIndicator, Animated } from 'react-native';
 
 import { useTheme } from '../../../providers';
@@ -16,7 +16,7 @@ export const Card = forwardRef<
   React.ElementRef<typeof View> | React.ElementRef<typeof Pressable>,
   CardProps
 >(
-  function Card(
+  (
     {
       variant = 'default',
       size = 'md',
@@ -26,7 +26,7 @@ export const Card = forwardRef<
       disabled = false,
       style,
       children,
-      platform = 'auto',
+      platform: _platform = 'auto',
       animation = { scale: 0.98, duration: 150 },
       testID,
       accessibilityLabel,
@@ -37,9 +37,9 @@ export const Card = forwardRef<
       ...rest
     },
     ref,
-  ) {
+  ) => {
     const theme = useTheme();
-    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const [scaleAnim] = useState(() => new Animated.Value(1));
 
     // Create styles based on current props and theme
     const styles = createCardStyles(theme, variant, size, disabled);
@@ -66,9 +66,6 @@ export const Card = forwardRef<
     };
 
     const handlePress = () => {
-      if (__DEV__) {
-        console.log('[Card] handlePress called', { disabled, loading, hasOnPress: !!onPress, pressable });
-      }
       if (!disabled && onPress) {
         onPress();
       }
@@ -80,7 +77,7 @@ export const Card = forwardRef<
 
       return (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size='large' color={theme.colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       );
     };
@@ -107,7 +104,7 @@ export const Card = forwardRef<
             testID={testID}
             accessibilityLabel={accessibilityLabel}
             accessibilityHint={accessibilityHint}
-            accessibilityRole={accessibilityRole || 'button'}
+            accessibilityRole={accessibilityRole ?? 'button'}
             accessibilityState={{
               disabled: disabled || loading,
               busy: loading,
@@ -137,3 +134,4 @@ export const Card = forwardRef<
   },
 );
 
+Card.displayName = 'Card';

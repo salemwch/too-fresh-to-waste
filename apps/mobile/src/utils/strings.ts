@@ -3,14 +3,14 @@
  */
 
 const HTML_ENTITIES: Record<string, string> = {
-  '&amp;':  '&',
-  '&lt;':   '<',
-  '&gt;':   '>',
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
   '&quot;': '"',
   '&apos;': "'",
   '&#x27;': "'",
   '&#x2F;': '/',
-  '&#39;':  "'",
+  '&#39;': "'",
 };
 
 /**
@@ -26,7 +26,7 @@ function decodeHtmlEntities(str: string): string {
   // Iterate until stable (handles &amp;amp;amp; etc.)
   while (prev !== result) {
     prev = result;
-    result = result.replace(pattern, match => HTML_ENTITIES[match] ?? match);
+    result = result.replace(pattern, (match) => HTML_ENTITIES[match] ?? match);
   }
   return result;
 }

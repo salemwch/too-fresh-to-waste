@@ -79,19 +79,20 @@ class LoggerService {
     if (!this.shouldLog(level)) return;
 
     const formatted = this.formatMessage(level, message, context);
+    const consoleSink = globalThis.console;
 
     switch (level) {
       case LogLevel.DEBUG:
-        console.debug(formatted);
+        consoleSink.debug(formatted);
         break;
       case LogLevel.INFO:
-        console.info(formatted);
+        consoleSink.info(formatted);
         break;
       case LogLevel.WARN:
-        console.warn(formatted, error);
+        consoleSink.warn(formatted, error);
         break;
       case LogLevel.ERROR:
-        console.error(formatted, error);
+        consoleSink.error(formatted, error);
         break;
     }
   }
@@ -111,7 +112,7 @@ class LoggerService {
 
       if (context) {
         Object.entries(context).forEach(([key, value]) => {
-          crashlytics().setAttribute(key, String(value));
+          void crashlytics().setAttribute(key, String(value));
         });
       }
 
@@ -120,7 +121,10 @@ class LoggerService {
       }
     } catch (crashlyticsError) {
       // Fallback to console if Crashlytics fails
-      console.warn('Failed to log to Crashlytics:', crashlyticsError);
+      const fallbackError =
+        crashlyticsError instanceof Error ? crashlyticsError : new Error(String(crashlyticsError));
+
+      this.logToConsole(LogLevel.WARN, 'Failed to log to Crashlytics', undefined, fallbackError);
     }
   }
 
@@ -179,7 +183,7 @@ class LoggerService {
 
   public getLogs(level?: LogLevel): LogEntry[] {
     if (level !== undefined) {
-      return this.logs.filter(log => log.level >= level);
+      return this.logs.filter((log) => log.level >= level);
     }
     return [...this.logs];
   }
@@ -190,7 +194,7 @@ class LoggerService {
 
   public exportLogs(): string {
     return this.logs
-      .map(log => {
+      .map((log) => {
         const levelName = LogLevel[log.level];
         let line = `[${log.timestamp}] [${levelName}] ${log.message}`;
 
@@ -212,7 +216,7 @@ class LoggerService {
 
   public setUserId(userId: string): void {
     if (environment.monitoring.enableCrashlytics) {
-      crashlytics().setUserId(userId);
+      void crashlytics().setUserId(userId);
     }
     this.info('User ID set for logging', { userId });
   }
@@ -220,7 +224,7 @@ class LoggerService {
   public setUserAttributes(attributes: Record<string, string>): void {
     if (environment.monitoring.enableCrashlytics) {
       Object.entries(attributes).forEach(([key, value]) => {
-        crashlytics().setAttribute(key, value);
+        void crashlytics().setAttribute(key, value);
       });
     }
     this.info('User attributes set for logging', attributes);
@@ -229,7 +233,7 @@ class LoggerService {
   public breadcrumb(message: string, category?: string, data?: LogContext): void {
     const breadcrumbData = {
       message,
-      category: category || 'general',
+      category: category ?? 'general',
       timestamp: new Date().toISOString(),
       ...data,
     };
@@ -322,4 +326,3 @@ export class NetworkLogger {
 export const Logger = new LoggerService();
 
 // Export for easy testing
-;

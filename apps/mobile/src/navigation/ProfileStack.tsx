@@ -40,14 +40,14 @@ export const ProfileStack: React.FC = () => {
     >
       {/* Profile Main Screen — NativeStack provides the header */}
       <Stack.Screen
-        name='ProfileMain'
+        name="ProfileMain"
         component={ProfileScreen}
         options={{ title: 'My Profile' }}
       />
 
       {/* Edit Profile Screen */}
-      <Stack.Screen name='EditProfile' options={{ title: 'Edit Profile' }}>
-        {props => (
+      <Stack.Screen name="EditProfile" options={{ title: 'Edit Profile' }}>
+        {(props) => (
           <ProtectedRoute>
             <EditProfileScreen {...props} />
           </ProtectedRoute>

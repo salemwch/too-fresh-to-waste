@@ -6,8 +6,6 @@
 // ============================================================================
 // Shared types — re-exported from @foodwaste/shared (single source of truth)
 // ============================================================================
-export { DonationPoolStatus } from '@foodwaste/shared';
-
 export type { DonationStats, UserDonationStats, OrderWithDonation } from '@foodwaste/shared';
 
 // ============================================================================

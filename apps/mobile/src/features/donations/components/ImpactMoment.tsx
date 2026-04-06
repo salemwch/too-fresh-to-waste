@@ -4,7 +4,7 @@
  * Enterprise-grade with smooth animations and error handling
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Modal, Animated, Easing, Dimensions } from 'react-native';
 
 interface ImpactMomentProps {
@@ -18,23 +18,36 @@ interface ImpactMomentProps {
 
 const { width } = Dimensions.get('window');
 
+const COLORS = {
+  overlay: 'rgba(0, 0, 0, 0.85)',
+  surface: '#FFFFFF',
+  shadow: '#000',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  success: '#10B981',
+  textMuted: '#9CA3AF',
+  surfaceMuted: '#F3F4F6',
+} as const;
+
+const SPARKLE = '\u2728';
+const HEART_ICON = '\u{1F49A}';
+const PLATE_ICON = '\u{1F37D}\uFE0F';
+
 /**
- * ✅ BEST PRACTICE: Internal component function for memoization
- * Extracted to enable React.memo() wrapping
+ * Internal component function for memoization
  */
-const ImpactMomentComponent: React.FC<ImpactMomentProps> = ({
+const ImpactMomentComponent = ({
   visible,
   donationAmount,
   totalDonations,
   mealCount,
   onDismiss,
   currency = 'TND',
-}) => {
-  const heartScale = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const sparkleAnim = useRef(new Animated.Value(0)).current;
+}: ImpactMomentProps) => {
+  const [heartScale] = useState(() => new Animated.Value(0));
+  const [fadeAnim] = useState(() => new Animated.Value(0));
+  const [sparkleAnim] = useState(() => new Animated.Value(0));
 
-  // ✅ BEST PRACTICE: Memoize callback and define before useEffect
   const handleDismiss = useCallback(() => {
     Animated.timing(fadeAnim, {
       toValue: 0,
@@ -47,20 +60,16 @@ const ImpactMomentComponent: React.FC<ImpactMomentProps> = ({
 
   useEffect(() => {
     if (visible) {
-      // Reset animations
       heartScale.setValue(0);
       fadeAnim.setValue(0);
       sparkleAnim.setValue(0);
 
-      // Start animations sequence
       Animated.parallel([
-        // Fade in
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 300,
           useNativeDriver: true,
         }),
-        // Heart pulse
         Animated.sequence([
           Animated.timing(heartScale, {
             toValue: 1.2,
@@ -74,7 +83,6 @@ const ImpactMomentComponent: React.FC<ImpactMomentProps> = ({
             useNativeDriver: true,
           }),
         ]),
-        // Sparkle animation
         Animated.loop(
           Animated.sequence([
             Animated.timing(sparkleAnim, {
@@ -93,40 +101,39 @@ const ImpactMomentComponent: React.FC<ImpactMomentProps> = ({
         ),
       ]).start();
 
-      // Auto-dismiss after 3 seconds
       const timer = setTimeout(() => {
         handleDismiss();
       }, 3000);
 
-      // ✅ BEST PRACTICE: Cleanup timer on unmount
       return () => clearTimeout(timer);
     }
 
-    // Return undefined when not visible (satisfies TypeScript)
     return undefined;
-    // ✅ BEST PRACTICE: Include all dependencies
   }, [visible, heartScale, fadeAnim, sparkleAnim, handleDismiss]);
+
+  const sparkleOpacity = useMemo(
+    () =>
+      sparkleAnim.interpolate({
+        inputRange: [0, 0.5, 1],
+        outputRange: [0.3, 1, 0.3],
+      }),
+    [sparkleAnim],
+  );
+  const mealsSummary = `${PLATE_ICON} That's ${mealCount} meals! ${PLATE_ICON}`;
 
   if (!visible) return null;
 
-  const sparkleOpacity = sparkleAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0.3, 1, 0.3],
-  });
-
   return (
-    <Modal visible={visible} transparent animationType='none' onRequestClose={handleDismiss}>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={handleDismiss}>
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
         <View style={styles.content}>
-          {/* Sparkles */}
           <Animated.Text style={[styles.sparkle, styles.sparkleLeft, { opacity: sparkleOpacity }]}>
-            ✨
+            {SPARKLE}
           </Animated.Text>
           <Animated.Text style={[styles.sparkle, styles.sparkleRight, { opacity: sparkleOpacity }]}>
-            ✨
+            {SPARKLE}
           </Animated.Text>
 
-          {/* Heart Icon */}
           <Animated.Text
             style={[
               styles.heartIcon,
@@ -135,13 +142,11 @@ const ImpactMomentComponent: React.FC<ImpactMomentProps> = ({
               },
             ]}
           >
-            💚
+            {HEART_ICON}
           </Animated.Text>
 
-          {/* Title */}
           <Text style={styles.title}>Thank You!</Text>
 
-          {/* Donation Amount */}
           <View style={styles.donationBox}>
             <Text style={styles.label}>You contributed</Text>
             <Text style={styles.amount}>
@@ -150,16 +155,14 @@ const ImpactMomentComponent: React.FC<ImpactMomentProps> = ({
             <Text style={styles.sublabel}>to feeding someone in need</Text>
           </View>
 
-          {/* Community Stats */}
           <View style={styles.statsBox}>
-            <Text style={styles.statsLabel}>Together we've donated:</Text>
+            <Text style={styles.statsLabel}>Together we&apos;ve donated:</Text>
             <Text style={styles.statsValue}>
               {totalDonations.toFixed(2)} {currency}
             </Text>
-            <Text style={styles.mealsText}>🍽️ That's {mealCount} meals! 🍽️</Text>
+            <Text style={styles.mealsText}>{mealsSummary}</Text>
           </View>
 
-          {/* Auto-dismiss indicator */}
           <Text style={styles.dismissText}>Auto-closing in 3s...</Text>
         </View>
       </Animated.View>
@@ -170,17 +173,17 @@ const ImpactMomentComponent: React.FC<ImpactMomentProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    backgroundColor: COLORS.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   content: {
     width: width * 0.85,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 24,
     padding: 32,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -204,7 +207,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: COLORS.textPrimary,
     marginBottom: 24,
   },
   donationBox: {
@@ -213,55 +216,50 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: '#6B7280',
+    color: COLORS.textSecondary,
     marginBottom: 8,
   },
   amount: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#10B981',
+    color: COLORS.success,
     marginBottom: 8,
   },
   sublabel: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: COLORS.textMuted,
     textAlign: 'center',
   },
   statsBox: {
     width: '100%',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: COLORS.surfaceMuted,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
   },
   statsLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    color: COLORS.textSecondary,
     marginBottom: 8,
   },
   statsValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: COLORS.textPrimary,
     marginBottom: 12,
   },
   mealsText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#10B981',
+    color: COLORS.success,
   },
   dismissText: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: COLORS.textMuted,
     marginTop: 16,
     fontStyle: 'italic',
   },
 });
 
-/**
- * ✅ BEST PRACTICE: Memoized export prevents unnecessary re-renders
- * Component only re-renders when props change (visible, amounts, onDismiss)
- * Internal animation state doesn't trigger parent re-renders
- */
 ImpactMomentComponent.displayName = 'ImpactMoment';
-export const ImpactMoment = React.memo(ImpactMomentComponent);
+export const ImpactMoment = memo(ImpactMomentComponent);

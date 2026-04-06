@@ -3,7 +3,7 @@
  */
 
 import type { BaseComponentProps, StyleSystemProps, TypographyVariant } from '../../../types';
-import type { TextProps as RNTextProps } from 'react-native';
+import type { StyleProp, TextProps as RNTextProps, TextStyle } from 'react-native';
 
 export interface TextProps
   extends
@@ -102,7 +102,7 @@ export interface TextProps
   /**
    * Custom style overrides
    */
-  style?: any;
+  style?: StyleProp<TextStyle>;
 
   /**
    * Text content

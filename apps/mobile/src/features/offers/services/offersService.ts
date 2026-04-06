@@ -22,6 +22,9 @@
 
 import axios from 'axios';
 
+import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
+import { Logger } from '@/utils/logger';
+
 import type {
   Offer,
   OfferListItem,
@@ -30,9 +33,6 @@ import type {
   ReserveQuantityRequest,
 } from '../types/offer.types';
 import type { GeoCoordinates } from '@foodwaste/shared';
-
-import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
-import { Logger } from '@/utils/logger';
 
 // ============================================================================
 // Types
@@ -171,9 +171,7 @@ class OffersService {
 
       // Ensure availableQuantity is always computed
       // Backend adds it via $addFields, but fallback for safety
-      if (offer.availableQuantity == null) {
-        offer.availableQuantity = offer.totalQuantity - offer.soldQuantity - offer.reservedQuantity;
-      }
+      offer.availableQuantity ??= offer.totalQuantity - offer.soldQuantity - offer.reservedQuantity;
 
       return offer;
     } catch (error) {

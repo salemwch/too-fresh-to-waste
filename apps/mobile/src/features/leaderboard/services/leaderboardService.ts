@@ -4,13 +4,20 @@ import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/ser
 
 import type { LeaderboardResponse } from '../types/leaderboard.types';
 
+interface LeaderboardApiError {
+  message?: string;
+}
+
 const handleApiError = (error: unknown): Error => {
-  if (axios.isAxiosError(error)) {
+  if (axios.isAxiosError<LeaderboardApiError>(error)) {
     if (axios.isCancel(error) || error.code === 'ERR_CANCELED') throw error;
+    const apiMessage = error.response?.data?.message;
     const msg =
-      typeof error.response?.data?.message === 'string'
-        ? error.response.data.message
-        : error.message || 'An unexpected error occurred';
+      typeof apiMessage === 'string' && apiMessage.trim() !== ''
+        ? apiMessage
+        : error.message.trim() !== ''
+          ? error.message
+          : 'An unexpected error occurred';
     return new Error(msg);
   }
   if (error instanceof Error) return error;
@@ -18,11 +25,7 @@ const handleApiError = (error: unknown): Error => {
 };
 
 export const leaderboardService = {
-  async getLeaderboard(
-    limit  = 50,
-    offset = 0,
-    signal?: AbortSignal,
-  ): Promise<LeaderboardResponse> {
+  async getLeaderboard(limit = 50, offset = 0, signal?: AbortSignal): Promise<LeaderboardResponse> {
     try {
       const response = await apiClient.get<BackendApiResponse<LeaderboardResponse>>(
         `/loyalty/leaderboard?limit=${limit}&offset=${offset}`,

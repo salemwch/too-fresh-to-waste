@@ -1,5 +1,9 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios';
 
+import { environment } from '@/config/environment';
+import { ErrorHandler, ErrorType } from '@/utils/errorHandler';
+import { Logger, NetworkLogger } from '@/utils/logger';
+
 import type {
   LoginRequest,
   RegisterRequest,
@@ -19,10 +23,6 @@ import type {
   AuthTokens,
 } from '../types';
 import type { ApiResponse } from '@foodwaste/shared';
-
-import { environment } from '@/config/environment';
-import { ErrorHandler, ErrorType } from '@/utils/errorHandler';
-import { Logger, NetworkLogger } from '@/utils/logger';
 
 class AuthService {
   private readonly baseURL: string;
@@ -133,9 +133,7 @@ class AuthService {
       }
     }
 
-    // Log extracted message for debugging
-    console.log('[authService] Extracted error message:', message);
-    console.log('[authService] Status:', status);
+    Logger.debug('[authService] HTTP error extracted', { message, status });
 
     if (status === 401) {
       // Preserve field-specific error information from backend for inline error display
@@ -170,7 +168,7 @@ class AuthService {
         }
       }
 
-      console.log('[authService] 401 error metadata:', errorMetadata);
+      Logger.debug('[authService] 401 error metadata', errorMetadata);
 
       throw ErrorHandler.createError(
         ErrorType.AUTHENTICATION,
@@ -214,7 +212,7 @@ class AuthService {
         }
       }
 
-      console.log('[authService] 403 error metadata:', errorMetadata);
+      Logger.debug('[authService] 403 error metadata', errorMetadata);
 
       throw ErrorHandler.createError(
         ErrorType.PERMISSION,
@@ -323,10 +321,8 @@ class AuthService {
   }
 
   public async register(request: RegisterRequest): Promise<RegisterResponse> {
-    console.log('===== AUTH SERVICE: register() called =====');
     Logger.info('Attempting user registration', { email: request.email });
 
-    console.log('AuthService: Sending registration request to backend...');
     // Role hardcoded to 'consumer' - merchants register via website
     const response = await this.makeRequest<RegisterResponse>('POST', '/register', {
       email: request.email,
@@ -337,15 +333,7 @@ class AuthService {
       role: 'consumer',
     });
 
-    console.log('AuthService: Received response from backend:', response);
-    console.log('AuthService: Response type:', typeof response);
-    console.log('AuthService: Response keys:', Object.keys(response));
-    console.log('AuthService: Response.success:', response.success);
-    console.log('AuthService: Response.message:', response.message);
-    console.log('AuthService: Response.user:', response.user);
-
     Logger.info('Registration successful', { userId: response.user.userId });
-    console.log('===== AUTH SERVICE: register() returning response =====');
     return response;
   }
 

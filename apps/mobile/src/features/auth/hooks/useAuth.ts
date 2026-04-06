@@ -1,7 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useCallback } from 'react';
 
+import { Logger } from '../../../utils/logger';
+
 import type { User, AuthTokens } from '../types';
+
+const getError = (error: unknown): Error | undefined =>
+  error instanceof Error ? error : undefined;
 
 /**
  * Custom hook for managing authentication state
@@ -40,7 +45,7 @@ export const useAuth = () => {
         setUser(parsedUser);
       }
     } catch (error) {
-      console.error('[useAuth] Failed to load auth state:', error);
+      Logger.error('[useAuth] Failed to load auth state', undefined, getError(error));
       // Clear potentially corrupted data
       await AsyncStorage.multiRemove(['auth_tokens', 'auth_user']);
     } finally {
@@ -61,7 +66,7 @@ export const useAuth = () => {
       setTokens(newTokens);
       setUser(newUser);
     } catch (error) {
-      console.error('[useAuth] Failed to save auth state:', error);
+      Logger.error('[useAuth] Failed to save auth state', undefined, getError(error));
       throw error;
     }
   }, []);
@@ -76,14 +81,14 @@ export const useAuth = () => {
       setTokens(null);
       setUser(null);
     } catch (error) {
-      console.error('[useAuth] Failed to clear auth state:', error);
+      Logger.error('[useAuth] Failed to clear auth state', undefined, getError(error));
       throw error;
     }
   }, []);
 
   // Load auth state on mount
   useEffect(() => {
-    loadAuthState();
+    void loadAuthState();
   }, [loadAuthState]);
 
   return {
@@ -112,7 +117,7 @@ export const getAccessToken = async (): Promise<string | null> => {
     }
     return null;
   } catch (error) {
-    console.error('[getAccessToken] Failed to get access token:', error);
+    Logger.error('[getAccessToken] Failed to get access token', undefined, getError(error));
     return null;
   }
 };
@@ -132,7 +137,7 @@ export const getRefreshToken = async (): Promise<string | null> => {
     }
     return null;
   } catch (error) {
-    console.error('[getRefreshToken] Failed to get refresh token:', error);
+    Logger.error('[getRefreshToken] Failed to get refresh token', undefined, getError(error));
     return null;
   }
 };

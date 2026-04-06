@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 
 import { leaderboardService } from '../services/leaderboardService';
+
 import type { LeaderboardResponse } from '../types/leaderboard.types';
 
 const LEADERBOARD_QUERY_KEY = ['loyalty', 'leaderboard'] as const;
@@ -16,12 +17,10 @@ export function useLeaderboard(limit = PAGE_SIZE) {
     getNextPageParam: (lastPage, allPages) => {
       const loaded = allPages.reduce((sum, p) => sum + p.entries.length, 0);
       // No more pages when we've loaded everything or got fewer than requested
-      return loaded < lastPage.total && lastPage.entries.length === limit
-        ? loaded
-        : undefined;
+      return loaded < lastPage.total && lastPage.entries.length === limit ? loaded : undefined;
     },
-    staleTime: 60 * 1000,       // 1 min
-    gcTime:    5 * 60 * 1000,   // 5 min
+    staleTime: 60 * 1000, // 1 min
+    gcTime: 5 * 60 * 1000, // 5 min
     retry: 2,
   });
 }

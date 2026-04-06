@@ -125,6 +125,9 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
+    "@foodwaste/eslint-config": "workspace:*",
+    "@foodwaste/jest-config": "workspace:*",
+    "@foodwaste/tsconfig": "workspace:*",
     "@babel/core": "^7.25.2",
     "@react-native-community/cli": "20.0.0",
     "@react-native-community/cli-platform-android": "20.0.0",
@@ -147,6 +150,9 @@
     "prettier": "^3.6.2",
     "react-native-svg-transformer": "^1.5.2",
     "react-test-renderer": "19.1.0",
+    "babel-plugin-transform-remove-console": "^6.9.4",
+    "metro-cache": "^0.83.4",
+    "rimraf": "^5.0.5",
     "typescript": "^5.9.3"
   },
   "engines": {

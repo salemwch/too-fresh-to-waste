@@ -8,6 +8,7 @@
 ### 1. ❌ React Hooks Order Violation (Critical)
 
 **Error:**
+
 ```
 React has detected a change in the order of Hooks called by OfferDetailsScreen.
 This will lead to bugs and errors if not fixed.
@@ -27,6 +28,7 @@ if (offerLoading) {  // ❌ Early return AFTER hooks
 ```
 
 **Problem:**
+
 - When `offer` is `undefined` (loading), `offer?.establishmentId` is `undefined`
 - When `offer` loads, `offer?.establishmentId` becomes a string
 - This caused hooks to be called in different order across renders
@@ -55,12 +57,14 @@ if (offerLoading) {
 ```
 
 **Why This Works:**
+
 - `useEstablishment` has `enabled: !!establishmentId` internally
 - Hook is CALLED on every render (satisfies Rules of Hooks)
 - But it only FETCHES when `establishmentId` is truthy
 - Same hook order every render = React happy ✅
 
 **Files Changed:**
+
 - `apps/mobile/src/features/offers/screens/OfferDetailsScreen.tsx:60-89`
 
 ---
@@ -68,6 +72,7 @@ if (offerLoading) {
 ### 2. ⚠️ Backend Response Structure Warning (Non-Critical)
 
 **Warning:**
+
 ```
 [WARN] Response missing data field, returning controllerResponse directly
 Context: {
@@ -92,22 +97,28 @@ GET /offers/:id  →  { _id, title, pricing, ... }  // ❌ No { message, data } 
 ```
 
 **Expected Structure:**
+
 ```json
 {
   "statusCode": 200,
   "data": {
     "message": "Offer retrieved successfully",
-    "data": { /* offer object */ }
+    "data": {
+      /* offer object */
+    }
   },
   "timestamp": "2026-01-19T..."
 }
 ```
 
 **Actual Structure (Single Offer):**
+
 ```json
 {
   "statusCode": 200,
-  "data": { /* offer object directly */ },
+  "data": {
+    /* offer object directly */
+  },
   "timestamp": "2026-01-19T..."
 }
 ```
@@ -116,11 +127,11 @@ GET /offers/:id  →  { _id, title, pricing, ... }  // ❌ No { message, data } 
 The service has fallback logic:
 
 ```typescript
-const controllerResponse = response.data.data;  // Extract offer object
+const controllerResponse = response.data.data; // Extract offer object
 
 // If it's not wrapped in { message, data }, return directly
 if (controllerResponse.data === undefined) {
-  return controllerResponse as T;  // Returns offer object ✅
+  return controllerResponse as T; // Returns offer object ✅
 }
 
 // Otherwise extract the nested data field
@@ -141,6 +152,7 @@ Logger.info('Response contains object directly (no data wrapper), returning as-i
 ```
 
 **Files Changed:**
+
 - `apps/mobile/src/features/offers/services/offersService.ts:161-170`
 
 **Recommendation (Optional Backend Fix):**
@@ -165,6 +177,7 @@ But current implementation works correctly - this is purely cosmetic.
 ## Verification
 
 **Commands:**
+
 ```bash
 cd apps/mobile
 
@@ -179,6 +192,7 @@ pnpm dev:android
 ```
 
 **Expected Result:**
+
 - ✅ No React Hooks warnings
 - ✅ No critical errors
 - ✅ Only INFO logs (not WARN)
@@ -192,10 +206,11 @@ pnpm dev:android
 ### Rules of Hooks Refresher
 
 **Rule 1: Only Call Hooks at the Top Level**
+
 ```typescript
 // ❌ WRONG
 if (condition) {
-  const [state, setState] = useState(0);  // Conditional hook!
+  const [state, setState] = useState(0); // Conditional hook!
 }
 
 // ✅ CORRECT
@@ -206,15 +221,16 @@ if (condition) {
 ```
 
 **Rule 2: Only Call Hooks from React Functions**
+
 ```typescript
 // ❌ WRONG
 function normalFunction() {
-  const [state, setState] = useState(0);  // Not in React component!
+  const [state, setState] = useState(0); // Not in React component!
 }
 
 // ✅ CORRECT
 export const MyComponent = () => {
-  const [state, setState] = useState(0);  // Inside component
+  const [state, setState] = useState(0); // Inside component
 };
 ```
 
@@ -223,12 +239,12 @@ React relies on hook call order to maintain state between renders. If order chan
 
 ```typescript
 // First render:
-const [name, setName] = useState('');     // Hook 1
-const [age, setAge] = useState(0);        // Hook 2
+const [name, setName] = useState(''); // Hook 1
+const [age, setAge] = useState(0); // Hook 2
 
 // Second render (if order changes):
-const [age, setAge] = useState(0);        // ❌ React thinks this is Hook 1!
-const [name, setName] = useState('');     // ❌ React thinks this is Hook 2!
+const [age, setAge] = useState(0); // ❌ React thinks this is Hook 1!
+const [name, setName] = useState(''); // ❌ React thinks this is Hook 2!
 // State values are now swapped!
 ```
 

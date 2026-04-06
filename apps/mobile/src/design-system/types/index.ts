@@ -194,7 +194,7 @@ export interface ThemedStyle {
 }
 
 // Hook return types
-export interface UseThemeReturn extends ThemeContextValue {}
+export type UseThemeReturn = ThemeContextValue;
 
 export interface UseStylesReturn<T = Record<string, ComponentStyle>> {
   styles: T;
@@ -225,7 +225,7 @@ export type OrderStatus =
   | 'refunded';
 
 // Component ref types
-export type ComponentRef<T = any> = React.RefObject<T> | ((instance: T | null) => void) | null;
+export type ComponentRef<T = unknown> = React.RefObject<T> | ((instance: T | null) => void) | null;
 
 // Responsive types
 export type ResponsiveValue<T> = T | { mobile?: T; tablet?: T; desktop?: T };

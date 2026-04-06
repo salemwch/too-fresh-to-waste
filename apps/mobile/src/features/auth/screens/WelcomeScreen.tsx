@@ -67,14 +67,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.primary }]}>
-      <StatusBar barStyle='light-content' backgroundColor={theme.colors.primary} />
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
 
       {/* Title Text - at the top */}
       <View style={styles.titleContainer}>
-        <Text variant='display.medium' weight='bold' style={styles.titleText}>
+        <Text variant="display.medium" weight="bold" style={styles.titleText}>
           Save food
         </Text>
-        <Text variant='display.medium' weight='bold' style={styles.titleText}>
+        <Text variant="display.medium" weight="bold" style={styles.titleText}>
           Save money
         </Text>
       </View>
@@ -84,8 +84,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
         <Image
           source={BagImage}
           style={styles.bagImage}
-          resizeMode='contain'
-          accessibilityLabel='Grocery bag full of fresh food'
+          resizeMode="contain"
+          accessibilityLabel="Grocery bag full of fresh food"
         />
       </View>
 
@@ -96,34 +96,34 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
           <Image
             source={LeafIcon}
             style={styles.leafIcon}
-            resizeMode='contain'
-            accessibilityLabel='Leaf icon'
+            resizeMode="contain"
+            accessibilityLabel="Leaf icon"
           />
 
           {/* App Name */}
           <Text
-            variant='headline.large'
-            weight='bold'
+            variant="headline.large"
+            weight="bold"
             style={[styles.appName, { color: theme.colors.primary }]}
           >
             Too Fresh To Waste
           </Text>
 
           {/* Tagline */}
-          <Text variant='body.large' style={[styles.tagline, { color: theme.colors.primary }]}>
+          <Text variant="body.large" style={[styles.tagline, { color: theme.colors.primary }]}>
             Buy surplus food{'\n'}at lower prices
           </Text>
 
           {/* Get Started Button */}
           <Button
-            variant='primary'
-            size='lg'
+            variant="primary"
+            size="lg"
             onPress={handleGetStarted}
             style={styles.getStartedButton}
             textStyle={styles.getStartedButtonText}
-            rightIcon={<Image source={RocketIcon} style={styles.rocketIcon} resizeMode='contain' />}
+            rightIcon={<Image source={RocketIcon} style={styles.rocketIcon} resizeMode="contain" />}
             disabled={isNavigating}
-            testID='welcome-get-started-button'
+            testID="welcome-get-started-button"
           >
             Get Started
           </Button>
@@ -132,8 +132,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
           <View style={styles.signInContainer}>
             <Pressable onPress={handleSignUp}>
               <Text
-                variant='body.medium'
-                weight='semibold'
+                variant="body.medium"
+                weight="semibold"
                 style={[styles.signInText, { color: theme.colors.primary }]}
               >
                 Sign Up
@@ -237,4 +237,3 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
 });
-

@@ -11,23 +11,24 @@
  * - Type-safe with backend schema integration
  */
 
-import React, { useMemo, useCallback } from 'react';
-import {
-  View,
-  Image,
-  Pressable,
-  StyleSheet,
-  type GestureResponderEvent,
-} from 'react-native';
 import { Heart } from 'lucide-react-native';
+import React, { memo, useMemo, useCallback } from 'react';
+import { View, Image, Pressable, StyleSheet, type GestureResponderEvent } from 'react-native';
+
+import { CtaState } from '@/features/offers/types';
+import { Logger } from '@/utils/logger';
 
 import { useTheme } from '../../../providers';
 import { Badge } from '../../atoms/Badge';
 import { Card } from '../../atoms/Card';
 import { Text } from '../../atoms/Text';
 
-import { formatPickupTime, formatDistance, formatStartTime, offerTypeLabels } from './OfferCard.types';
-import { CtaState } from '@/features/offers/types';
+import {
+  formatPickupTime,
+  formatDistance,
+  formatStartTime,
+  offerTypeLabels,
+} from './OfferCard.types';
 
 import type { OfferCardProps } from './OfferCard.types';
 
@@ -59,16 +60,14 @@ const HeartIcon: React.FC<{ filled: boolean; size?: number; color?: string }> = 
   filled,
   size = 20,
   color = COLORS.HEART_DEFAULT,
-}) => {
-  return (
-    <Heart
-      color={filled ? color : COLORS.HEART_UNFILLED}
-      size={size}
-      fill={filled ? color : 'transparent'}
-      strokeWidth={filled ? 0 : 2}
-    />
-  );
-};
+}) => (
+  <Heart
+    color={filled ? color : COLORS.HEART_UNFILLED}
+    size={size}
+    fill={filled ? color : 'transparent'}
+    strokeWidth={filled ? 0 : 2}
+  />
+);
 /**
  * OfferCard Component
  */
@@ -95,355 +94,356 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
   accessibilityLabel,
   accessibilityHint,
 }) => {
-    const theme = useTheme();
-    const styles = createStyles(theme, orientation, layout, imageAspectRatio);
+  const theme = useTheme();
+  const styles = createStyles(theme, orientation, layout, imageAspectRatio);
 
-    // ✅ PERFORMANCE: Debug logs removed (use React DevTools Profiler instead)
+  // ✅ PERFORMANCE: Debug logs removed (use React DevTools Profiler instead)
 
-    // ==================== Computed Values ====================
-    // ✅ Backend provides availableQuantity (totalQuantity - sold - reserved)
-    const itemsLeft = offer.availableQuantity;
-    const pickupTime = useMemo(
-      () => formatPickupTime(offer.pickupTimeSlots, offer.availableUntil),
-      [offer.pickupTimeSlots, offer.availableUntil],
-    );
-    const distanceText = useMemo(() => formatDistance(offer.distance), [offer.distance]);
-    const isOutOfStock = itemsLeft <= 0;
-    const isNotStarted = offer.ctaState === CtaState.NOT_STARTED;
-    const startTimeText = useMemo(
-      () => (isNotStarted ? formatStartTime(offer.availableFrom) : null),
-      [isNotStarted, offer.availableFrom],
-    );
+  // ==================== Computed Values ====================
+  // ✅ Backend provides availableQuantity (totalQuantity - sold - reserved)
+  const itemsLeft = offer.availableQuantity;
+  const pickupTime = useMemo(
+    () => formatPickupTime(offer.pickupTimeSlots, offer.availableUntil),
+    [offer.pickupTimeSlots, offer.availableUntil],
+  );
+  const distanceText = useMemo(() => formatDistance(offer.distance), [offer.distance]);
+  const isOutOfStock = itemsLeft <= 0;
+  const isNotStarted = offer.ctaState === CtaState.NOT_STARTED;
+  const startTimeText = useMemo(
+    () => (isNotStarted ? formatStartTime(offer.availableFrom) : null),
+    [isNotStarted, offer.availableFrom],
+  );
 
-    // Image source with fallback
-    const imageSource = useMemo(() => {
-      const uri = offer.image ?? PLACEHOLDER_IMAGE;
+  // Image source with fallback
+  const imageSource = useMemo(() => {
+    const uri = offer.image ?? PLACEHOLDER_IMAGE;
 
-      // ✅ DIAGNOSTIC: Log image data to debug rendering issues
-      if (__DEV__) {
-        console.log('🖼️ OfferCard image:', {
-          offerId: offer.id,
-          hasImage: !!offer.image,
-          imageValue: offer.image,
-          usingPlaceholder: uri === PLACEHOLDER_IMAGE,
-          hasEstablishment: !!offer.establishment,
-          hasProfileImage: !!offer.establishment?.profileImage,
-          profileImageValue: offer.establishment?.profileImage,
-        });
+    // ✅ DIAGNOSTIC: Log image data to debug rendering issues
+    if (__DEV__) {
+      Logger.debug('[OfferCard] image', {
+        offerId: offer.id,
+        hasImage: !!offer.image,
+        imageValue: offer.image,
+        usingPlaceholder: uri === PLACEHOLDER_IMAGE,
+        hasEstablishment: offer.establishment !== undefined,
+        hasProfileImage:
+          offer.establishment?.profileImage !== undefined &&
+          offer.establishment.profileImage !== null &&
+          offer.establishment.profileImage !== '',
+        profileImageValue: offer.establishment?.profileImage,
+      });
+    }
+
+    return { uri };
+  }, [offer.establishment, offer.id, offer.image]);
+
+  // Get establishment rating for display
+  const hasRating = useMemo(
+    () => offer.establishment?.averageRating !== undefined && offer.establishment.averageRating > 0,
+    [offer.establishment?.averageRating],
+  );
+
+  // ==================== Handlers ====================
+  const handleCardPress = useCallback(() => {
+    if (__DEV__) {
+      Logger.debug('[OfferCard] handleCardPress called', {
+        offerId: offer.id,
+        disabled,
+        loading,
+        hasOnPress: !!onPress,
+        isOutOfStock,
+        availableQuantity: offer.availableQuantity,
+      });
+    }
+    if (!disabled && !loading && onPress) {
+      onPress(offer);
+    }
+  }, [disabled, loading, onPress, offer, isOutOfStock]);
+
+  const handleFavoritePress = useCallback(
+    (event: GestureResponderEvent) => {
+      event.stopPropagation();
+      if (!disabled && !loading && onFavorite) {
+        onFavorite(offer);
       }
+    },
+    [disabled, loading, onFavorite, offer],
+  );
 
-      return { uri };
-    }, [offer.image, offer.id]);
-
-    // Get establishment rating for display
-    const hasRating = useMemo(
-      () =>
-        offer.establishment?.averageRating !== undefined && offer.establishment.averageRating > 0,
-      [offer.establishment?.averageRating],
-    );
-
-    // ==================== Handlers ====================
-    const handleCardPress = useCallback(() => {
-      if (__DEV__) {
-        console.log('[OfferCard] handleCardPress called', {
-          offerId: offer.id,
-          disabled,
-          loading,
-          hasOnPress: !!onPress,
-          isOutOfStock,
-          availableQuantity: offer.availableQuantity,
-        });
+  const handleEstablishmentPress = useCallback(
+    (event: GestureResponderEvent) => {
+      event.stopPropagation();
+      if (!disabled && !loading && onEstablishmentPress) {
+        // Note: OfferListItem doesn't expose establishmentId for security
+        // Parent component should navigate using offer.id instead
+        onEstablishmentPress(offer.id);
       }
-      if (!disabled && !loading && onPress) {
-        onPress(offer);
-      }
-    }, [disabled, loading, onPress, offer, isOutOfStock]);
+    },
+    [disabled, loading, onEstablishmentPress, offer.id],
+  );
 
-    const handleFavoritePress = useCallback(
-      (event: GestureResponderEvent) => {
-        event.stopPropagation();
-        if (!disabled && !loading && onFavorite) {
-          onFavorite(offer);
-        }
-      },
-      [disabled, loading, onFavorite, offer],
-    );
+  // ==================== Accessibility ====================
+  const accessibilityLabelText = useMemo(() => {
+    if (accessibilityLabel !== undefined && accessibilityLabel.length > 0) {
+      return accessibilityLabel;
+    }
+    let label = `${offer.title} from ${offer.establishment?.name ?? 'Unknown'}`;
+    label += `, Price ${offer.pricing.discountedPrice} ${offer.pricing.currency}`;
 
-    const handleEstablishmentPress = useCallback(
-      (event: GestureResponderEvent) => {
-        event.stopPropagation();
-        if (!disabled && !loading && onEstablishmentPress) {
-          // Note: OfferListItem doesn't expose establishmentId for security
-          // Parent component should navigate using offer.id instead
-          onEstablishmentPress(offer.id);
-        }
-      },
-      [disabled, loading, onEstablishmentPress, offer.id],
-    );
+    if (offer.pricing.discountPercentage > 0) {
+      label += `, ${offer.pricing.discountPercentage}% off`;
+    }
+    if (distanceText !== null && distanceText.length > 0) {
+      label += `, ${distanceText} away`;
+    }
+    if (isNotStarted && startTimeText !== null) {
+      label += `, starts at ${startTimeText}`;
+    } else if (itemsLeft > 0) {
+      label += `, ${itemsLeft} items left`;
+    } else {
+      label += ', Sold out';
+    }
 
-    // ==================== Accessibility ====================
-    const accessibilityLabelText = useMemo(() => {
-      if (accessibilityLabel !== undefined && accessibilityLabel.length > 0) {
-        return accessibilityLabel;
-      }
-      let label = `${offer.title} from ${offer.establishment?.name ?? 'Unknown'}`;
-      label += `, Price ${offer.pricing.discountedPrice} ${offer.pricing.currency}`;
+    return label;
+  }, [accessibilityLabel, distanceText, isNotStarted, itemsLeft, offer, startTimeText]);
 
-      if (offer.pricing.discountPercentage > 0) {
-        label += `, ${offer.pricing.discountPercentage}% off`;
-      }
-      if (distanceText !== null && distanceText.length > 0) {
-        label += `, ${distanceText} away`;
-      }
-      if (isNotStarted && startTimeText !== null) {
-        label += `, starts at ${startTimeText}`;
-      } else if (itemsLeft > 0) {
-        label += `, ${itemsLeft} items left`;
-      } else {
-        label += ', Sold out';
-      }
+  // ==================== Render Functions ====================
 
-      return label;
-    }, [accessibilityLabel, offer, distanceText, itemsLeft]);
+  /**
+   * Render image section with overlays
+   */
+  const renderImage = () => (
+    <View style={[styles.imageContainer, imageStyle]}>
+      <Image
+        source={imageSource}
+        style={styles.image}
+        resizeMode="cover"
+        accessibilityIgnoresInvertColors
+      />
 
-    // ==================== Render Functions ====================
-
-    /**
-     * Render image section with overlays
-     */
-    const renderImage = () => (
-      <View style={[styles.imageContainer, imageStyle]}>
-        <Image
-          source={imageSource}
-          style={styles.image}
-          resizeMode='cover'
-          accessibilityIgnoresInvertColors
-        />
-
-        {/* Top left badge - items left only */}
-        <View style={styles.topLeftBadges}>
-          {showItemsLeft && itemsLeft > 0 && (
-            <View style={styles.itemsLeftBadge}>
-              <Text variant='label.small' style={styles.itemsLeftText}>
-                {`${itemsLeft > 5 ? '5+' : itemsLeft} left`}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Top right badge - rating only */}
-        {hasRating && (
-          <View style={styles.ratingBadge}>
-            <View style={styles.ratingBadgeContent}>
-              <Text variant='label.small' style={styles.starIcon}>
-                ★
-              </Text>
-              <Text variant='label.small' style={styles.ratingText}>
-                {offer.establishment.averageRating!.toFixed(1)}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* Bottom left establishment logo */}
-        {showEstablishment && !!offer.establishment?.name && (
-          <View style={styles.establishmentLogo}>
-            {offer.establishment.profileImage !== null &&
-            offer.establishment.profileImage !== undefined &&
-            offer.establishment.profileImage.length > 0 ? (
-              <Image
-                source={{ uri: offer.establishment.profileImage }}
-                style={styles.logoImage}
-                resizeMode='cover'
-              />
-            ) : (
-              <View style={styles.logoPlaceholder}>
-                <Text variant='label.small' numberOfLines={1}>
-                  {offer.establishment.name.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* Not started overlay — shown instead of sold out when offer hasn't begun */}
-        {isNotStarted && startTimeText !== null && (
-          <View style={styles.notStartedOverlay}>
-            <Badge variant='info' size='md' label={`Starts at ${startTimeText}`} />
-          </View>
-        )}
-
-        {/* Sold out overlay — only when truly out of stock, not when not started */}
-        {isOutOfStock && !isNotStarted && (
-          <View style={styles.soldOutOverlay}>
-            <Badge variant='error' size='md' label='SOLD OUT' />
-          </View>
-        )}
-
-        {/* Expired overlay (for favorites view) */}
-        {offer.status === 'expired' && (
-          <View style={styles.expiredOverlay}>
-            <Badge variant='warning' size='md' label='EXPIRED' />
+      {/* Top left badge - items left only */}
+      <View style={styles.topLeftBadges}>
+        {showItemsLeft && itemsLeft > 0 && (
+          <View style={styles.itemsLeftBadge}>
+            <Text variant="label.small" style={styles.itemsLeftText}>
+              {`${itemsLeft > 5 ? '5+' : itemsLeft} left`}
+            </Text>
           </View>
         )}
       </View>
-    );
 
-    /**
-     * Render establishment name with favorite button
-     */
-    const renderEstablishment = () => {
-      if (!showEstablishment || !offer.establishment?.name) return null;
-
-      return (
-        <View style={styles.establishmentRow}>
-          <Pressable
-            onPress={handleEstablishmentPress}
-            disabled={!onEstablishmentPress}
-            accessibilityRole='button'
-            accessibilityLabel={`View ${offer.establishment.name}`}
-            style={styles.establishmentNameContainer}
-          >
-            <Text
-              variant='body.medium'
-              weight='semibold'
-              numberOfLines={1}
-              style={styles.establishmentName}
-            >
-              {offer.establishment.name}
+      {/* Top right badge - rating only */}
+      {hasRating && (
+        <View style={styles.ratingBadge}>
+          <View style={styles.ratingBadgeContent}>
+            <Text variant="label.small" style={styles.starIcon}>
+              ★
             </Text>
-          </Pressable>
-
-          {/* Favorite button moved to content section */}
-          {showFavorite && (
-            <Pressable
-              onPress={handleFavoritePress}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityRole='button'
-              accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-              style={styles.favoriteButtonContent}
-            >
-              <HeartIcon filled={isFavorite} size={20} />
-            </Pressable>
-          )}
-        </View>
-      );
-    };
-
-    /**
-     * Render offer title (item type)
-     */
-    const renderTitle = () => (
-      <Text
-        variant='body.small'
-        color={theme.colors.onSurfaceVariant}
-        numberOfLines={1}
-        style={styles.title}
-      >
-        {offerTypeLabels[offer.type]}
-      </Text>
-    );
-
-    /**
-     * Render pickup time with distance
-     */
-    const renderPickupTime = () => {
-      if (!showPickupTime) return null;
-
-      const hasPickupTime =
-        pickupTime !== null && pickupTime !== undefined && pickupTime.length > 0;
-      const hasDistance =
-        showDistance &&
-        distanceText !== null &&
-        distanceText !== undefined &&
-        distanceText.length > 0;
-
-      // Don't render if nothing to show
-      if (!hasPickupTime && !hasDistance) return null;
-
-      return (
-        <View style={styles.pickupTimeRow}>
-          {hasPickupTime && (
-            <Text
-              variant='body.small'
-              color={theme.colors.onSurfaceVariant}
-              numberOfLines={1}
-              style={styles.pickupTime}
-            >
-              🕐 Pick up today : {pickupTime}
-            </Text>
-          )}
-          {hasDistance && (
-            <Text
-              variant='body.small'
-              color={theme.colors.onSurfaceVariant}
-              style={styles.distanceText}
-            >
-              {hasPickupTime ? '• ' : ''}
-              {distanceText}
-            </Text>
-          )}
-        </View>
-      );
-    };
-
-    /**
-     * Render bottom row with price only
-     */
-    const renderBottomRow = () => {
-      const hasDiscount = offer.pricing.originalPrice !== offer.pricing.discountedPrice;
-
-      return (
-        <View style={styles.bottomRow}>
-          {/* Price */}
-          <View style={styles.priceContainer}>
-            {hasDiscount && (
-              <Text
-                variant='body.small'
-                color={theme.colors.onSurfaceVariant}
-                style={styles.originalPrice}
-              >
-                {offer.pricing.currency}
-                {offer.pricing.originalPrice.toFixed(2)}
-              </Text>
-            )}
-            <Text variant='body.medium' weight='bold' style={styles.currentPrice}>
-              {offer.pricing.currency}
-              {offer.pricing.discountedPrice.toFixed(2)}
+            <Text variant="label.small" style={styles.ratingText}>
+              {offer.establishment.averageRating!.toFixed(1)}
             </Text>
           </View>
         </View>
-      );
-    };
+      )}
 
-    // ==================== Main Render ====================
-    return (
-      <Card
-        variant='elevated'
-        pressable={!!onPress && !disabled && !loading}
-        onPress={handleCardPress}
-        disabled={disabled || (isOutOfStock && !isNotStarted)}
-        style={[styles.card, style]}
-        testID={testID}
-        accessibilityLabel={accessibilityLabelText}
-        accessibilityHint={accessibilityHint ?? 'Double tap to view offer details'}
-        accessibilityRole='button'
-      >
-        {renderImage()}
-
-        <View style={[styles.content, contentStyle]}>
-          {renderEstablishment()}
-          {renderTitle()}
-          {renderPickupTime()}
-          {renderBottomRow()}
+      {/* Bottom left establishment logo */}
+      {showEstablishment && !!offer.establishment?.name && (
+        <View style={styles.establishmentLogo}>
+          {offer.establishment.profileImage !== null &&
+          offer.establishment.profileImage !== undefined &&
+          offer.establishment.profileImage.length > 0 ? (
+            <Image
+              source={{ uri: offer.establishment.profileImage }}
+              style={styles.logoImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.logoPlaceholder}>
+              <Text variant="label.small" numberOfLines={1}>
+                {offer.establishment.name.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
         </View>
-      </Card>
+      )}
+
+      {/* Not started overlay — shown instead of sold out when offer hasn't begun */}
+      {isNotStarted && startTimeText !== null && (
+        <View style={styles.notStartedOverlay}>
+          <Badge variant="info" size="md" label={`Starts at ${startTimeText}`} />
+        </View>
+      )}
+
+      {/* Sold out overlay — only when truly out of stock, not when not started */}
+      {isOutOfStock && !isNotStarted && (
+        <View style={styles.soldOutOverlay}>
+          <Badge variant="error" size="md" label="SOLD OUT" />
+        </View>
+      )}
+
+      {/* Expired overlay (for favorites view) */}
+      {offer.status === 'expired' && (
+        <View style={styles.expiredOverlay}>
+          <Badge variant="warning" size="md" label="EXPIRED" />
+        </View>
+      )}
+    </View>
+  );
+
+  /**
+   * Render establishment name with favorite button
+   */
+  const renderEstablishment = () => {
+    if (!showEstablishment || !offer.establishment?.name) return null;
+
+    return (
+      <View style={styles.establishmentRow}>
+        <Pressable
+          onPress={handleEstablishmentPress}
+          disabled={!onEstablishmentPress}
+          accessibilityRole="button"
+          accessibilityLabel={`View ${offer.establishment.name}`}
+          style={styles.establishmentNameContainer}
+        >
+          <Text
+            variant="body.medium"
+            weight="semibold"
+            numberOfLines={1}
+            style={styles.establishmentName}
+          >
+            {offer.establishment.name}
+          </Text>
+        </Pressable>
+
+        {/* Favorite button moved to content section */}
+        {showFavorite && (
+          <Pressable
+            onPress={handleFavoritePress}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            style={styles.favoriteButtonContent}
+          >
+            <HeartIcon filled={isFavorite} size={20} />
+          </Pressable>
+        )}
+      </View>
     );
+  };
+
+  /**
+   * Render offer title (item type)
+   */
+  const renderTitle = () => (
+    <Text
+      variant="body.small"
+      color={theme.colors.onSurfaceVariant}
+      numberOfLines={1}
+      style={styles.title}
+    >
+      {offerTypeLabels[offer.type]}
+    </Text>
+  );
+
+  /**
+   * Render pickup time with distance
+   */
+  const renderPickupTime = () => {
+    if (!showPickupTime) return null;
+
+    const hasPickupTime = pickupTime !== null && pickupTime !== undefined && pickupTime.length > 0;
+    const hasDistance =
+      showDistance &&
+      distanceText !== null &&
+      distanceText !== undefined &&
+      distanceText.length > 0;
+
+    // Don't render if nothing to show
+    if (!hasPickupTime && !hasDistance) return null;
+
+    return (
+      <View style={styles.pickupTimeRow}>
+        {hasPickupTime && (
+          <Text
+            variant="body.small"
+            color={theme.colors.onSurfaceVariant}
+            numberOfLines={1}
+            style={styles.pickupTime}
+          >
+            🕐 Pick up today : {pickupTime}
+          </Text>
+        )}
+        {hasDistance && (
+          <Text
+            variant="body.small"
+            color={theme.colors.onSurfaceVariant}
+            style={styles.distanceText}
+          >
+            {hasPickupTime ? '• ' : ''}
+            {distanceText}
+          </Text>
+        )}
+      </View>
+    );
+  };
+
+  /**
+   * Render bottom row with price only
+   */
+  const renderBottomRow = () => {
+    const hasDiscount = offer.pricing.originalPrice !== offer.pricing.discountedPrice;
+
+    return (
+      <View style={styles.bottomRow}>
+        {/* Price */}
+        <View style={styles.priceContainer}>
+          {hasDiscount && (
+            <Text
+              variant="body.small"
+              color={theme.colors.onSurfaceVariant}
+              style={styles.originalPrice}
+            >
+              {offer.pricing.currency}
+              {offer.pricing.originalPrice.toFixed(2)}
+            </Text>
+          )}
+          <Text variant="body.medium" weight="bold" style={styles.currentPrice}>
+            {offer.pricing.currency}
+            {offer.pricing.discountedPrice.toFixed(2)}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  // ==================== Main Render ====================
+  return (
+    <Card
+      variant="elevated"
+      pressable={!!onPress && !disabled && !loading}
+      onPress={handleCardPress}
+      disabled={disabled || (isOutOfStock && !isNotStarted)}
+      style={[styles.card, style]}
+      testID={testID}
+      accessibilityLabel={accessibilityLabelText}
+      accessibilityHint={accessibilityHint ?? 'Double tap to view offer details'}
+      accessibilityRole="button"
+    >
+      {renderImage()}
+
+      <View style={[styles.content, contentStyle]}>
+        {renderEstablishment()}
+        {renderTitle()}
+        {renderPickupTime()}
+        {renderBottomRow()}
+      </View>
+    </Card>
+  );
 };
 
 OfferCardComponent.displayName = 'OfferCard';
 
-export const OfferCard = React.memo(OfferCardComponent);
+export const OfferCard = memo(OfferCardComponent);
 
 // ==================== Styles ====================
 const createStyles = (
@@ -651,4 +651,3 @@ const createStyles = (
     },
   });
 };
-

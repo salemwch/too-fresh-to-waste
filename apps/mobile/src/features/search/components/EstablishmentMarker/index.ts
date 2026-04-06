@@ -1,2 +1,1 @@
 export { EstablishmentMarker } from './EstablishmentMarker';
-;

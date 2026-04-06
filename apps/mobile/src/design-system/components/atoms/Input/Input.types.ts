@@ -8,7 +8,7 @@ import type {
   StyleSystemProps,
   IconFamily,
 } from '../../../types';
-import type { TextInputProps } from 'react-native';
+import type { StyleProp, TextInputProps, TextStyle, ViewStyle } from 'react-native';
 
 export type InputVariant = 'default' | 'filled' | 'outlined';
 export type InputSize = ComponentSize;
@@ -50,7 +50,7 @@ export interface InputProps
   /**
    * Helper text displayed below input
    */
-  helperText?: string;
+  helperText?: string | undefined;
 
   /**
    * Error text displayed below input (takes precedence over helperText)
@@ -130,37 +130,37 @@ export interface InputProps
   /**
    * Custom container style
    */
-  containerStyle?: any;
+  containerStyle?: StyleProp<ViewStyle>;
 
   /**
    * Custom input style
    */
-  inputStyle?: any;
+  inputStyle?: StyleProp<TextStyle>;
 
   /**
    * Custom input container style (for border, background, etc.)
    */
-  inputContainerStyle?: any;
+  inputContainerStyle?: StyleProp<ViewStyle>;
 
   /**
    * Custom label style
    */
-  labelStyle?: any;
+  labelStyle?: StyleProp<TextStyle>;
 
   /**
    * Custom helper text style
    */
-  helperTextStyle?: any;
+  helperTextStyle?: StyleProp<TextStyle>;
 
   /**
    * Custom error text style
    */
-  errorTextStyle?: any;
+  errorTextStyle?: StyleProp<TextStyle>;
 
   /**
    * Style prop (alias for containerStyle)
    */
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 
   /**
    * Callback when focus state changes

@@ -4,12 +4,4 @@
  * Centralizes exports for location-related utilities.
  */
 
-;
-export {
-  transformLocationResultsToItems,
-  
-  
-  
-  
-} from './locationTransformers';
-;
+export { transformLocationResultsToItems } from './locationTransformers';

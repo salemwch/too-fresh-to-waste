@@ -8,7 +8,7 @@ import type {
   StyleSystemProps,
   IconFamily,
 } from '../../../types';
-import type { ViewProps } from 'react-native';
+import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native';
 
 export type IconSize = ComponentSize | number;
 
@@ -58,12 +58,12 @@ export interface IconProps
   /**
    * Custom style overrides
    */
-  style?: any;
+  style?: StyleProp<TextStyle>;
 
   /**
    * Container style overrides
    */
-  containerStyle?: any;
+  containerStyle?: StyleProp<ViewStyle>;
 
   /**
    * Whether icon is disabled

@@ -11,7 +11,7 @@
  * Falls back to `totalOrdersCount` for accounts created before the migration.
  */
 
-import React from 'react';
+import React, { memo } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 
 import { Text } from '@/design-system/components/atoms';
@@ -44,6 +44,10 @@ interface StatCard {
 }
 
 const TEAL = '#005250';
+const SURFACE = '#FFFFFF';
+const TEXT_PRIMARY = '#1F2937';
+const TEXT_SECONDARY = '#64748B';
+const SHADOW = '#000';
 
 const ImpactStatsRowComponent: React.FC<ImpactStatsRowProps> = ({ totalBagsSaved }) => {
   const totalWeightKg = totalBagsSaved * DEFAULT_WEIGHT_PER_BAG_KG;
@@ -70,19 +74,19 @@ const ImpactStatsRowComponent: React.FC<ImpactStatsRowProps> = ({ totalBagsSaved
 
   return (
     <View style={styles.container}>
-      <Text variant='body' size='xs' weight='semibold' style={styles.sectionLabel}>
+      <Text variant="body" size="xs" weight="semibold" style={styles.sectionLabel}>
         IMPACT
       </Text>
       <View style={styles.row}>
-        {cards.map(card => (
+        {cards.map((card) => (
           <View key={card.label} style={styles.card}>
-            <Text variant='headline' size='lg' weight='bold' style={styles.value}>
+            <Text variant="headline" size="lg" weight="bold" style={styles.value}>
               {card.value}
             </Text>
-            <Text variant='body' size='sm' weight='medium' style={styles.label}>
+            <Text variant="body" size="sm" weight="medium" style={styles.label}>
               {card.label}
             </Text>
-            <Text variant='body' size='xs' color='secondary'>
+            <Text variant="body" size="xs" color="secondary">
               {card.sublabel}
             </Text>
           </View>
@@ -92,7 +96,7 @@ const ImpactStatsRowComponent: React.FC<ImpactStatsRowProps> = ({ totalBagsSaved
   );
 };
 
-export const ImpactStatsRow = React.memo(ImpactStatsRowComponent);
+export const ImpactStatsRow = memo(ImpactStatsRowComponent);
 ImpactStatsRowComponent.displayName = 'ImpactStatsRow';
 
 const styles = StyleSheet.create({
@@ -100,7 +104,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionLabel: {
-    color: '#64748B',
+    color: TEXT_SECONDARY,
     letterSpacing: 1,
     marginBottom: 10,
     paddingHorizontal: 4,
@@ -112,13 +116,13 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SURFACE,
     paddingVertical: 16,
     paddingHorizontal: 8,
     borderRadius: 14,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: SHADOW,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.06,
         shadowRadius: 4,
@@ -133,6 +137,6 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   label: {
-    color: '#1F2937',
+    color: TEXT_PRIMARY,
   },
 });

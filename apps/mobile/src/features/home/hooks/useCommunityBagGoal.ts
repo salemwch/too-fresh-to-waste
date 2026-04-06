@@ -4,9 +4,11 @@
  * to real-time WebSocket updates for instant UI refreshes.
  */
 
-import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
+
 import { socketService } from '@/services/socketService';
+
 import { communityGoalApi } from '../services/communityGoalApi';
 
 import type { CommunityBagGoalStats } from '@foodwaste/shared';
@@ -27,13 +29,13 @@ export const useCommunityBagGoal = (): UseQueryResult<CommunityBagGoalStats, Err
   useEffect(() => {
     const handleUpdate = (payload: { data?: CommunityBagGoalStats } | CommunityBagGoalStats) => {
       // Backend wraps via wrapEventPayload: { event, data, timestamp }
-      const stats = 'data' in payload && payload.data != null ? payload.data : payload as CommunityBagGoalStats;
+      const stats =
+        'data' in payload && payload.data != null
+          ? payload.data
+          : (payload as CommunityBagGoalStats);
 
       if (stats.currentCount != null && stats.targetCount != null) {
-        queryClient.setQueryData<CommunityBagGoalStats>(
-          COMMUNITY_GOAL_QUERY_KEY,
-          stats,
-        );
+        queryClient.setQueryData<CommunityBagGoalStats>(COMMUNITY_GOAL_QUERY_KEY, stats);
       }
     };
 

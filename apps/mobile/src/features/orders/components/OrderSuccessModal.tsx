@@ -7,7 +7,8 @@
  * - Single CTA at the bottom
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -18,22 +19,58 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+
 import { ordersService } from '../services/ordersService';
-import type { Order, PickupErrorCode } from '../types/order.types';
 import { isPickupError } from '../types/order.types';
 
+import type { Order, PickupErrorCode } from '../types/order.types';
+
 type InlinePickupError = PickupErrorCode | 'INVALID_CODE';
+interface PickupState {
+  orderId: string | null;
+  code: string;
+  pickupError: InlinePickupError | null;
+  pickupConfirmed: boolean;
+}
+
+const SURFACE = '#FFFFFF';
+const OVERLAY = 'rgba(0, 0, 0, 0.65)';
+const SHADOW = '#000';
+const TEXT_PRIMARY = '#1F2937';
+const TEXT_MUTED = '#475569';
+const TEXT_SECONDARY = '#64748B';
+const TEXT_TERTIARY = '#94A3B8';
+const BORDER = '#E2E8F0';
+const SURFACE_MUTED = '#F1F5F9';
+const SURFACE_SUBTLE = '#F8FAFC';
+const INPUT_SURFACE = '#FAFAFA';
+const PRIMARY = '#005250';
+const SUCCESS = '#10B981';
+const SUCCESS_SURFACE = '#F0FDF4';
+const SUCCESS_BORDER = '#D1FAE5';
+const SUCCESS_TEXT = '#059669';
+const ERROR = '#EF4444';
+const ERROR_SURFACE = '#FEF2F2';
+const ERROR_BORDER = '#FECACA';
+const ERROR_TEXT = '#991B1B';
+const WHITE = '#FFFFFF';
+
+const createPickupState = (orderId: string | null): PickupState => ({
+  orderId,
+  code: '',
+  pickupError: null,
+  pickupConfirmed: false,
+});
 
 const PICKUP_ERROR_MESSAGES: Record<InlinePickupError, string> = {
-  CODE_EXPIRED:         'Pickup code has expired',
-  INVALID_CODE:         'Invalid pickup code',
-  PICKUP_ALREADY_DONE:  'This order has already been picked up.',
-  PICKUP_LOCKED:        'Too many incorrect attempts. Contact support.',
-  ORDER_NOT_READY:      'Order not ready yet. Try again shortly.',
+  CODE_EXPIRED: 'Pickup code has expired',
+  INVALID_CODE: 'Invalid pickup code',
+  PICKUP_ALREADY_DONE: 'This order has already been picked up.',
+  PICKUP_LOCKED: 'Too many incorrect attempts. Contact support.',
+  ORDER_NOT_READY: 'Order not ready yet. Try again shortly.',
 };
 
 interface OrderSuccessModalProps {
@@ -52,19 +89,26 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
 }) => {
   const theme = useTheme();
   const queryClient = useQueryClient();
-  const [code, setCode] = useState('');
-  const [pickupError, setPickupError] = useState<InlinePickupError | null>(null);
-  const [pickupConfirmed, setPickupConfirmed] = useState(false);
-
-  // Reset pickup state whenever a new order lands in the modal
-  useEffect(() => {
-    setCode('');
-    setPickupError(null);
-    setPickupConfirmed(false);
-  }, [order?._id]);
+  const activeOrderId = order?._id ?? null;
+  const [pickupState, setPickupState] = useState<PickupState>(() =>
+    createPickupState(activeOrderId),
+  );
+  const currentPickupState =
+    pickupState.orderId === activeOrderId ? pickupState : createPickupState(activeOrderId);
+  const { code, pickupError, pickupConfirmed } = currentPickupState;
+  const pickupCodeAccentStyle = { color: theme.colors.primary };
+  const updatePickupState = useCallback(
+    (updater: (state: PickupState) => PickupState) => {
+      setPickupState((prev) => {
+        const base = prev.orderId === activeOrderId ? prev : createPickupState(activeOrderId);
+        return updater(base);
+      });
+    },
+    [activeOrderId],
+  );
 
   // Time-based expiry check
-  const isOrderExpired = React.useMemo(() => {
+  const isOrderExpired = useMemo(() => {
     if (!order) return false;
     if (order.expiresAt) {
       return new Date() > new Date(order.expiresAt);
@@ -75,26 +119,44 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   const confirmMutation = useMutation({
     mutationFn: (pickupCode: string) => ordersService.confirmPickup(order!._id, { pickupCode }),
     onSuccess: () => {
-      setPickupConfirmed(true);
-      setCode('');
-      queryClient.invalidateQueries({ queryKey: ['orders', 'detail', order?._id] });
+      updatePickupState((state) => ({
+        ...state,
+        pickupConfirmed: true,
+        code: '',
+        pickupError: null,
+      }));
+      void queryClient.invalidateQueries({ queryKey: ['orders', 'detail', order?._id] });
     },
     onError: (error) => {
-      if (isPickupError(error)) {
-        setPickupError(error.code);
-      } else {
-        setPickupError('INVALID_CODE');
-      }
+      const nextError = isPickupError(error) ? error.code : 'INVALID_CODE';
+      updatePickupState((state) => ({
+        ...state,
+        pickupError: nextError,
+      }));
     },
   });
 
   const handleConfirmPickup = useCallback(() => {
-    setPickupError(null);
+    updatePickupState((state) => ({
+      ...state,
+      pickupError: null,
+    }));
     confirmMutation.mutate(code);
-  }, [code, confirmMutation]);
+  }, [code, confirmMutation, updatePickupState]);
+
+  const handleCodeChange = useCallback(
+    (text: string) => {
+      updatePickupState((state) => ({
+        ...state,
+        code: text,
+        pickupError: null,
+      }));
+    },
+    [updatePickupState],
+  );
 
   const showLoading = loading || !order;
-  const currency = order?.pricing.currency || 'TND';
+  const currency = order?.pricing.currency ?? 'TND';
 
   return (
     <Modal
@@ -173,7 +235,8 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                       <View style={styles.pickupRow}>
                         <Icon name="time" family="Ionicons" size={16} color="#64748B" />
                         <Text style={styles.pickupText}>
-                          {order.pickupDetails.timeSlot.startTime} - {order.pickupDetails.timeSlot.endTime}
+                          {order.pickupDetails.timeSlot.startTime} -{' '}
+                          {order.pickupDetails.timeSlot.endTime}
                         </Text>
                       </View>
                       <View style={styles.pickupRow}>
@@ -181,7 +244,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                         <Text style={styles.pickupText} numberOfLines={1}>
                           {typeof order.establishmentId === 'string'
                             ? 'Restaurant location'
-                            : order.establishmentId?.name || 'Restaurant'}
+                            : (order.establishmentId?.name ?? 'Restaurant')}
                         </Text>
                       </View>
                     </View>
@@ -192,33 +255,34 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                   {/* Confirm Pickup */}
                   {pickupConfirmed ? (
                     <View style={styles.pickupSuccessRow}>
-                      <Icon name="checkmark-circle" family="Ionicons" size={24} color="#10B981" />
+                      <Icon name="checkmark-circle" family="Ionicons" size={24} color={SUCCESS} />
                       <Text style={styles.pickupSuccessText}>Pickup confirmed!</Text>
                     </View>
                   ) : isOrderExpired ? (
                     <View style={styles.expiredRow}>
-                      <Icon name="timer-off-outline" family="MaterialCommunityIcons" size={24} color="#EF4444" />
+                      <Icon
+                        name="timer-off-outline"
+                        family="MaterialCommunityIcons"
+                        size={24}
+                        color="#EF4444"
+                      />
                       <View style={styles.expiredTextContainer}>
                         <Text style={styles.expiredTitle}>Order Expired</Text>
-                        <Text style={styles.expiredSubtitle}>
-                          The pickup window has ended.
-                        </Text>
+                        <Text style={styles.expiredSubtitle}>The pickup window has ended.</Text>
                       </View>
                     </View>
                   ) : (
                     <View style={styles.section}>
                       <Text style={styles.pickupCodeHint}>
                         Enter the 6-digit pickup code from the merchant to earn{' '}
-                        <Text style={{ color: theme.colors.primary, fontWeight: '700' }}>points</Text>.
+                        <Text style={[styles.pickupCodeAccent, pickupCodeAccentStyle]}>points</Text>
+                        .
                       </Text>
 
                       <TextInput
                         style={[styles.codeInput, pickupError && styles.codeInputError]}
                         value={code}
-                        onChangeText={(text) => {
-                          setCode(text);
-                          if (pickupError) setPickupError(null);
-                        }}
+                        onChangeText={handleCodeChange}
                         keyboardType="numeric"
                         maxLength={6}
                         placeholder="------"
@@ -232,7 +296,9 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                       {pickupError ? (
                         <View style={styles.inlineError}>
                           <Icon name="alert-circle" family="Ionicons" size={14} color="#EF4444" />
-                          <Text style={styles.inlineErrorText}>{PICKUP_ERROR_MESSAGES[pickupError]}</Text>
+                          <Text style={styles.inlineErrorText}>
+                            {PICKUP_ERROR_MESSAGES[pickupError]}
+                          </Text>
                         </View>
                       ) : (
                         <Text style={styles.codeInputFootnote}>
@@ -245,7 +311,8 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                         disabled={code.length !== 6 || confirmMutation.isPending}
                         style={[
                           styles.confirmPickupButton,
-                          (code.length !== 6 || confirmMutation.isPending) && styles.confirmPickupButtonDisabled,
+                          (code.length !== 6 || confirmMutation.isPending) &&
+                            styles.confirmPickupButtonDisabled,
                         ]}
                       >
                         <Text style={styles.confirmPickupButtonText}>
@@ -283,7 +350,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: OVERLAY,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -293,12 +360,12 @@ const styles = StyleSheet.create({
     maxWidth: 440,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SURFACE,
     borderRadius: 24,
     overflow: 'hidden',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: SHADOW,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.25,
         shadowRadius: 24,
@@ -319,7 +386,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     fontWeight: '600',
-    color: '#475569',
+    color: TEXT_MUTED,
   },
 
   // Content
@@ -336,12 +403,12 @@ const styles = StyleSheet.create({
   orderNumberLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#64748B',
+    color: TEXT_SECONDARY,
   },
   orderNumberText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#005250',
+    color: PRIMARY,
     letterSpacing: 0.5,
   },
 
@@ -357,7 +424,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1F2937',
+    color: TEXT_PRIMARY,
     marginLeft: 8,
   },
 
@@ -377,20 +444,20 @@ const styles = StyleSheet.create({
   itemQuantity: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#005250',
+    color: PRIMARY,
     marginRight: 8,
     minWidth: 24,
   },
   itemName: {
     fontSize: 14,
-    color: '#475569',
+    color: TEXT_MUTED,
     fontWeight: '500',
     flex: 1,
   },
   itemPrice: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1F2937',
+    color: TEXT_PRIMARY,
   },
 
   // Total
@@ -400,27 +467,27 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     marginTop: 6,
     borderTopWidth: 1.5,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: BORDER,
   },
   totalLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1F2937',
+    color: TEXT_PRIMARY,
   },
   totalValue: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#005250',
+    color: PRIMARY,
   },
 
   // Pickup Info
   pickupInfo: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: SURFACE_SUBTLE,
     borderRadius: 12,
     padding: 12,
     gap: 8,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: BORDER,
   },
   pickupRow: {
     flexDirection: 'row',
@@ -428,7 +495,7 @@ const styles = StyleSheet.create({
   },
   pickupText: {
     fontSize: 13,
-    color: '#475569',
+    color: TEXT_MUTED,
     marginLeft: 8,
     fontWeight: '500',
     flex: 1,
@@ -437,27 +504,30 @@ const styles = StyleSheet.create({
   // Confirm Pickup
   pickupCodeHint: {
     fontSize: 13,
-    color: '#64748B',
+    color: TEXT_SECONDARY,
     marginBottom: 10,
     lineHeight: 18,
+  },
+  pickupCodeAccent: {
+    fontWeight: '700',
   },
   codeInput: {
     height: 48,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: BORDER,
     borderRadius: 12,
     fontSize: 22,
     fontWeight: 'bold',
     letterSpacing: 8,
-    backgroundColor: '#FAFAFA',
-    color: '#1F2937',
+    backgroundColor: INPUT_SURFACE,
+    color: TEXT_PRIMARY,
   },
   codeInputError: {
-    borderColor: '#EF4444',
+    borderColor: ERROR,
   },
   codeInputFootnote: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: TEXT_TERTIARY,
     marginTop: 6,
     textAlign: 'center',
   },
@@ -470,12 +540,12 @@ const styles = StyleSheet.create({
   },
   inlineErrorText: {
     fontSize: 12,
-    color: '#EF4444',
+    color: ERROR,
     fontWeight: '500',
   },
   confirmPickupButton: {
     marginTop: 12,
-    backgroundColor: '#005250',
+    backgroundColor: PRIMARY,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -486,32 +556,32 @@ const styles = StyleSheet.create({
   confirmPickupButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: WHITE,
   },
   pickupSuccessRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#F0FDF4',
+    backgroundColor: SUCCESS_SURFACE,
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#D1FAE5',
+    borderColor: SUCCESS_BORDER,
   },
   pickupSuccessText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#059669',
+    color: SUCCESS_TEXT,
   },
   expiredRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: ERROR_SURFACE,
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: ERROR_BORDER,
   },
   expiredTextContainer: {
     flex: 1,
@@ -520,17 +590,17 @@ const styles = StyleSheet.create({
   expiredTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#EF4444',
+    color: ERROR,
   },
   expiredSubtitle: {
     fontSize: 12,
-    color: '#991B1B',
+    color: ERROR_TEXT,
   },
 
   // Divider
   divider: {
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: BORDER,
     marginVertical: 12,
   },
 
@@ -539,7 +609,7 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: SURFACE_MUTED,
   },
   ctaButtonWrapper: {
     borderRadius: 16,
@@ -552,7 +622,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     ...Platform.select({
       ios: {
-        shadowColor: '#005250',
+        shadowColor: PRIMARY,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -565,7 +635,7 @@ const styles = StyleSheet.create({
   ctaButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: WHITE,
     letterSpacing: 0.3,
   },
 });

@@ -4,7 +4,15 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Pressable,
+  type NativeSyntheticEvent,
+  type TextInputKeyPressEventData,
+} from 'react-native';
 
 import { Button, Text, Card, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -31,7 +39,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
 }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector(state => state.auth);
+  const { isLoading, error } = useAppSelector((state) => state.auth);
 
   const { mfaToken } = route.params;
 
@@ -50,53 +58,11 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
   }, []);
 
   /**
-   * Handle code change
-   */
-  const handleCodeChange = useCallback(
-    (value: string, index: number) => {
-      // Only allow digits
-      if (value && !/^\d+$/.test(value)) {
-        return;
-      }
-
-      const newCode = [...code];
-      newCode[index] = value;
-      setCode(newCode);
-
-      // Auto-focus next input
-      if (value && index < CODE_LENGTH - 1) {
-        inputRefs.current[index + 1]?.focus();
-      }
-
-      // Auto-submit when all fields are filled
-      if (index === CODE_LENGTH - 1 && value) {
-        const fullCode = newCode.join('');
-        if (fullCode.length === CODE_LENGTH) {
-          handleVerifyMFA(fullCode);
-        }
-      }
-    },
-    [code],
-  );
-
-  /**
-   * Handle backspace
-   */
-  const handleKeyPress = useCallback(
-    (e: any, index: number) => {
-      if (e.nativeEvent.key === 'Backspace' && !code[index] && index > 0) {
-        inputRefs.current[index - 1]?.focus();
-      }
-    },
-    [code],
-  );
-
-  /**
    * Handle MFA verification
    */
   const handleVerifyMFA = useCallback(
     async (verificationCode?: string) => {
-      const fullCode = verificationCode || code.join('');
+      const fullCode = verificationCode ?? code.join('');
 
       if (fullCode.length !== CODE_LENGTH) {
         showErrorAlert('Invalid Code', 'Please enter all 6 digits.');
@@ -113,8 +79,11 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
 
         // Success! RootNavigator will automatically navigate to MainStack
         showSuccessAlert('Success', 'Authentication successful!');
-      } catch (err: any) {
-        const errorMessage = err?.message || 'Invalid verification code. Please try again.';
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error && err.message.length > 0
+            ? err.message
+            : 'Invalid verification code. Please try again.';
 
         showErrorAlert('Verification Failed', errorMessage);
 
@@ -123,14 +92,56 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
         inputRefs.current[0]?.focus();
       }
     },
-    [code, mfaToken, dispatch],
+    [code, dispatch, mfaToken],
+  );
+
+  /**
+   * Handle code change
+   */
+  const handleCodeChange = useCallback(
+    (value: string, index: number) => {
+      // Only allow digits
+      if (value.length > 0 && !/^\d+$/.test(value)) {
+        return;
+      }
+
+      const newCode = [...code];
+      newCode[index] = value;
+      setCode(newCode);
+
+      // Auto-focus next input
+      if (value.length > 0 && index < CODE_LENGTH - 1) {
+        inputRefs.current[index + 1]?.focus();
+      }
+
+      // Auto-submit when all fields are filled
+      if (index === CODE_LENGTH - 1 && value.length > 0) {
+        const fullCode = newCode.join('');
+        if (fullCode.length === CODE_LENGTH) {
+          void handleVerifyMFA(fullCode);
+        }
+      }
+    },
+    [code, handleVerifyMFA],
+  );
+
+  /**
+   * Handle backspace
+   */
+  const handleKeyPress = useCallback(
+    (e: NativeSyntheticEvent<TextInputKeyPressEventData>, index: number) => {
+      if (e.nativeEvent.key === 'Backspace' && code[index] === '' && index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      }
+    },
+    [code],
   );
 
   /**
    * Handle manual submit
    */
   const handleSubmit = useCallback(() => {
-    handleVerifyMFA();
+    void handleVerifyMFA();
   }, [handleVerifyMFA]);
 
   /**
@@ -161,13 +172,14 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
   }, [navigation]);
 
   // Check if code is complete
-  const isCodeComplete = code.every(digit => digit !== '');
+  const isCodeComplete = code.every((digit) => digit !== '');
+  const hasErrorMessage = error != null && error.length > 0;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps='handled'
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <Card style={styles.card}>
@@ -175,8 +187,8 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
           <View style={styles.iconContainer}>
             <View style={[styles.iconCircle, { backgroundColor: theme.colors.primaryContainer }]}>
               <Icon
-                name='shield-checkmark'
-                family='Ionicons'
+                name="shield-checkmark"
+                family="Ionicons"
                 size={56}
                 color={theme.colors.primary}
               />
@@ -184,25 +196,25 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
           </View>
 
           {/* Title */}
-          <Text variant='headline' size='lg' weight='semibold' align='center' style={styles.title}>
+          <Text variant="headline" size="lg" weight="semibold" align="center" style={styles.title}>
             Two-Factor Authentication
           </Text>
 
           {/* Description */}
           <Text
-            variant='body'
-            size='md'
-            color='secondary'
-            align='center'
+            variant="body"
+            size="md"
+            color="secondary"
+            align="center"
             style={styles.description}
           >
             Enter the 6-digit code from your authenticator app to complete sign in.
           </Text>
 
           {/* Error Banner */}
-          {error && (
+          {hasErrorMessage && (
             <View style={[styles.errorBanner, { backgroundColor: theme.colors.errorContainer }]}>
-              <Text variant='body' size='sm' style={{ color: theme.colors.onErrorContainer }}>
+              <Text variant="body" size="sm" style={{ color: theme.colors.onErrorContainer }}>
                 {error}
               </Text>
             </View>
@@ -213,7 +225,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
             {code.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={ref => {
+                ref={(ref) => {
                   inputRefs.current[index] = ref;
                 }}
                 style={[
@@ -227,10 +239,10 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
                   focusedIndex === index && styles.codeInputFocused,
                 ]}
                 value={digit}
-                onChangeText={value => handleCodeChange(value, index)}
-                onKeyPress={e => handleKeyPress(e, index)}
+                onChangeText={(value) => handleCodeChange(value, index)}
+                onKeyPress={(e) => handleKeyPress(e, index)}
                 onFocus={() => setFocusedIndex(index)}
-                keyboardType='number-pad'
+                keyboardType="number-pad"
                 maxLength={1}
                 selectTextOnFocus
                 editable={!isLoading}
@@ -243,23 +255,23 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
           <View style={styles.actions}>
             {/* Submit Button */}
             <Button
-              variant='primary'
-              size='lg'
+              variant="primary"
+              size="lg"
               onPress={handleSubmit}
               loading={isLoading}
               disabled={isLoading || !isCodeComplete}
               style={styles.submitButton}
-              testID='mfa-submit-button'
+              testID="mfa-submit-button"
             >
               Verify Code
             </Button>
 
             {/* Clear Button */}
             <Button
-              variant='ghost'
-              size='md'
+              variant="ghost"
+              size="md"
               onPress={handleClear}
-              disabled={isLoading || code.every(d => d === '')}
+              disabled={isLoading || code.every((d) => d === '')}
               style={styles.clearButton}
             >
               Clear Code
@@ -267,26 +279,26 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
           </View>
 
           {/* Help Info */}
-          <View style={styles.helpContainer}>
+          <View style={[styles.helpContainer, { borderTopColor: theme.colors.outlineVariant }]}>
             <Icon
-              name='help-circle-outline'
-              family='Ionicons'
+              name="help-circle-outline"
+              family="Ionicons"
               size={20}
               color={theme.colors.onSurfaceVariant}
             />
             <View style={styles.helpTextContainer}>
               <Text
-                variant='body'
-                size='xs'
-                weight='medium'
-                color='secondary'
+                variant="body"
+                size="xs"
+                weight="medium"
+                color="secondary"
                 style={styles.helpTitle}
               >
-                Can't access your authenticator app?
+                Can&apos;t access your authenticator app?
               </Text>
-              <Text variant='body' size='xs' color='secondary' style={styles.helpText}>
-                • Make sure your device's time is set correctly{'\n'}• Use a backup code if you have
-                one{'\n'}• Contact support for assistance
+              <Text variant="body" size="xs" color="secondary" style={styles.helpText}>
+                • Make sure your device&apos;s time is set correctly{'\n'}• Use a backup code if you
+                have one{'\n'}• Contact support for assistance
               </Text>
             </View>
           </View>
@@ -302,12 +314,12 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
             onPress={handleBackToLogin}
             disabled={isLoading}
           >
-            <Icon name='arrow-back' family='Ionicons' size={20} color={theme.colors.primary} />
+            <Icon name="arrow-back" family="Ionicons" size={20} color={theme.colors.primary} />
             <Text
-              variant='body'
-              size='sm'
-              color='primary'
-              weight='medium'
+              variant="body"
+              size="sm"
+              color="primary"
+              weight="medium"
               style={styles.backToLoginText}
             >
               Back to Login
@@ -318,12 +330,12 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
         {/* Security Notice */}
         <View style={styles.securityNotice}>
           <Icon
-            name='lock-closed'
-            family='Ionicons'
+            name="lock-closed"
+            family="Ionicons"
             size={16}
             color={theme.colors.onSurfaceVariant}
           />
-          <Text variant='body' size='xs' color='secondary' style={styles.securityText}>
+          <Text variant="body" size="xs" color="secondary" style={styles.securityText}>
             Two-factor authentication adds an extra layer of security to your account by requiring a
             second form of verification.
           </Text>
@@ -400,7 +412,6 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 24,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.08)',
   },
   helpTextContainer: {
     flex: 1,

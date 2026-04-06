@@ -5,17 +5,19 @@
  * Uses shared ShimmerBlock + useShimmerAnimation from design-system atoms.
  */
 
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { memo, useMemo } from 'react';
+import { View } from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Card } from '../../atoms/Card';
 import { ShimmerBlock, useShimmerAnimation } from '../../atoms/ShimmerBlock';
 
+import type { StyleProp, ViewStyle } from 'react-native';
+
 interface SkeletonOfferCardProps {
   imageAspectRatio?: number;
   orientation?: 'vertical' | 'horizontal';
-  style?: any;
+  style?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
@@ -33,54 +35,57 @@ const SkeletonOfferCardComponent: React.FC<SkeletonOfferCardProps> = ({
     theme.colors.surfaceVariant,
   ];
 
-  const dynamicStyles = createStyles(theme, orientation, imageAspectRatio);
+  const styles = useMemo(
+    () => createStyles(theme, orientation, imageAspectRatio),
+    [theme, orientation, imageAspectRatio],
+  );
 
   return (
-    <Card variant='elevated' style={[dynamicStyles.card, style]} testID={testID}>
+    <Card variant="elevated" style={[styles.card, style]} testID={testID}>
       {/* Image Skeleton */}
-      <View style={dynamicStyles.imageContainer}>
-        <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.imageSkeleton} />
+      <View style={styles.imageContainer}>
+        <ShimmerBlock animValue={anim} colors={colors} style={styles.imageSkeleton} />
 
         {/* Top left badge placeholder */}
-        <View style={dynamicStyles.topLeftBadge}>
-          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.badgeSkeleton} />
+        <View style={styles.topLeftBadge}>
+          <ShimmerBlock animValue={anim} colors={colors} style={styles.badgeSkeleton} />
         </View>
 
         {/* Top right rating badge placeholder */}
-        <View style={dynamicStyles.topRightBadge}>
-          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.ratingBadgeSkeleton} />
+        <View style={styles.topRightBadge}>
+          <ShimmerBlock animValue={anim} colors={colors} style={styles.ratingBadgeSkeleton} />
         </View>
 
         {/* Bottom left logo placeholder */}
-        <View style={dynamicStyles.logoPlaceholder}>
-          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.logoSkeleton} />
+        <View style={styles.logoPlaceholder}>
+          <ShimmerBlock animValue={anim} colors={colors} style={styles.logoSkeleton} />
         </View>
       </View>
 
       {/* Content Skeleton */}
-      <View style={dynamicStyles.content}>
-        <View style={dynamicStyles.establishmentRow}>
-          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.establishmentNameSkeleton} />
-          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.heartSkeleton} />
+      <View style={styles.content}>
+        <View style={styles.establishmentRow}>
+          <ShimmerBlock animValue={anim} colors={colors} style={styles.establishmentNameSkeleton} />
+          <ShimmerBlock animValue={anim} colors={colors} style={styles.heartSkeleton} />
         </View>
 
-        <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.titleSkeleton} />
+        <ShimmerBlock animValue={anim} colors={colors} style={styles.titleSkeleton} />
 
-        <View style={dynamicStyles.pickupTimeRow}>
-          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.pickupTimeSkeleton} />
-          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.distanceSkeleton} />
+        <View style={styles.pickupTimeRow}>
+          <ShimmerBlock animValue={anim} colors={colors} style={styles.pickupTimeSkeleton} />
+          <ShimmerBlock animValue={anim} colors={colors} style={styles.distanceSkeleton} />
         </View>
 
-        <View style={dynamicStyles.priceRow}>
-          <ShimmerBlock animValue={anim} colors={colors} style={dynamicStyles.priceSkeleton} />
+        <View style={styles.priceRow}>
+          <ShimmerBlock animValue={anim} colors={colors} style={styles.priceSkeleton} />
         </View>
       </View>
     </Card>
   );
 };
 
-export const SkeletonOfferCard = React.memo(SkeletonOfferCardComponent);
-SkeletonOfferCardComponent.displayName = 'SkeletonOfferCard';
+export const SkeletonOfferCard = memo(SkeletonOfferCardComponent);
+SkeletonOfferCard.displayName = 'SkeletonOfferCard';
 
 const createStyles = (
   theme: ReturnType<typeof useTheme>,
@@ -89,7 +94,7 @@ const createStyles = (
 ) => {
   const isHorizontal = orientation === 'horizontal';
 
-  return StyleSheet.create({
+  return {
     card: {
       flexDirection: isHorizontal ? 'row' : 'column',
       minWidth: isHorizontal ? 300 : 280,
@@ -97,7 +102,7 @@ const createStyles = (
       borderRadius: 20,
       overflow: 'hidden',
       padding: 5,
-      shadowColor: '#000',
+      shadowColor: theme.colors.onSurface,
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.12,
       shadowRadius: 8,
@@ -201,5 +206,5 @@ const createStyles = (
       height: 18,
       borderRadius: 4,
     },
-  });
+  } as const;
 };

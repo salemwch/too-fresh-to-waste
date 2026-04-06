@@ -2,72 +2,43 @@
  * Optimistic Favorite Toggle Hook
  *
  * Provides instant UI updates for favorite toggling with:
- * - Optimistic Redux updates (instant feedback)
+ * - Optimistic Redux updates
  * - Background API sync
  * - Automatic rollback on error
  * - Race condition protection
  * - Cross-screen state sync
- *
- * Usage:
- * ```tsx
- * const { isFavorite, toggle, isLoading } = useFavoriteToggle(
- *   offerId,
- *   offerName,
- *   offerImage
- * );
- *
- * <TouchableOpacity onPress={toggle} disabled={isLoading}>
- *   <Icon name={isFavorite ? 'heart' : 'heart-outline'} />
- * </TouchableOpacity>
- * ```
  */
 
+import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
+import Toast from 'react-native-toast-message';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 
+import { offlineWriteQueue } from '@/services/OfflineWriteQueue';
 import {
   addFavoriteOptimistic,
   removeFavoriteOptimistic,
   selectIsFavorite,
 } from '@/store/slices/favoritesSlice';
 import { Logger } from '@/utils/logger';
-import Toast from 'react-native-toast-message';
-
 import { offlineManager } from '@/utils/offlineManager';
-import { offlineWriteQueue } from '@/services/OfflineWriteQueue';
+
 import { favoritesService } from '../services';
 import { FavoriteType } from '../types';
 
+import type { TabNavigationProp } from '@/navigation/types';
 import type { RootState } from '@/store';
 
-/**
- * Optimistic favorite toggle hook - Production-grade implementation
- *
- * ✅ BEST PRACTICES:
- * - Optimistic UI (instant Redux update)
- * - Background API call (fire and forget)
- * - Local cache update with setQueryData (zero-latency, no refetch)
- * - Rollback on failure
- * - Toast notification with "View" action (no auto-navigation)
- *
- * @param offerId - Offer ID to toggle
- * @param offerName - Offer name (for API request and toast)
- * @param offerImage - Offer image URL (for API request)
- * @returns Favorite state, toggle function, and loading state
- */
 export const useFavoriteToggle = (offerId: string, offerName?: string, offerImage?: string) => {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<TabNavigationProp>();
   const [isLoading, setIsLoading] = useState(false);
 
-  // ✅ Read from Redux (instant, no API call)
   const isFavorite = useSelector((state: RootState) => selectIsFavorite(state, offerId));
 
   const toggle = useCallback(async () => {
-    // ✅ Prevent double-tap (race condition protection)
     if (isLoading) {
       Logger.warn('Toggle already in progress', { offerId });
       return;
@@ -77,7 +48,6 @@ export const useFavoriteToggle = (offerId: string, offerName?: string, offerImag
     const previousState = isFavorite;
 
     try {
-      // 1️⃣ Optimistic update (instant UI feedback)
       dispatch(
         isFavorite
           ? removeFavoriteOptimistic({ itemId: offerId })
@@ -93,7 +63,6 @@ export const useFavoriteToggle = (offerId: string, offerName?: string, offerImag
         newState: !isFavorite,
       });
 
-      // 2️⃣ If offline, queue the intent and keep the optimistic update
       if (offlineManager.isOffline()) {
         offlineWriteQueue.enqueue({
           id: `FAVORITE_TOGGLE:${offerId}`,
@@ -110,15 +79,14 @@ export const useFavoriteToggle = (offerId: string, offerName?: string, offerImag
 
         Toast.show({
           type: 'info',
-          text1: !previousState ? '✓ Added to Favorites' : 'Removed from Favorites',
+          text1: !previousState ? 'Added to Favorites' : 'Removed from Favorites',
           text2: 'Will sync when back online',
           visibilityTime: 3000,
         });
 
-        return; // Keep the optimistic Redux state — queue will sync later
+        return;
       }
 
-      // 3️⃣ Online: call API
       const result = await favoritesService.toggleFavorite(
         FavoriteType.OFFER,
         offerId,
@@ -132,28 +100,22 @@ export const useFavoriteToggle = (offerId: string, offerName?: string, offerImag
         message: result.message,
       });
 
-      // 4️⃣ Invalidate cache (refetch on next Favorites screen visit)
-      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      void queryClient.invalidateQueries({ queryKey: ['favorites'] });
 
-      // 5️⃣ Show toast with "View" action
       if (!previousState) {
         Toast.show({
           type: 'success',
-          text1: '✓ Added to Favorites!',
-          text2: `${offerName || 'Offer'} saved • Tap to view`,
+          text1: 'Added to Favorites',
+          text2: `${offerName ?? 'Offer'} saved. Tap to view.`,
           visibilityTime: 4000,
           onPress: () => {
             Toast.hide();
-            navigation.navigate('Favorites' as never);
+            navigation.navigate('Favorites');
           },
         });
       }
     } catch (error) {
-      // 6️⃣ Rollback on online API failure (network truly failed, not just offline)
-      Logger.error('Favorite toggle failed, rolling back', {
-        offerId,
-        error,
-      });
+      Logger.error('Favorite toggle failed, rolling back', { offerId }, error as Error);
 
       dispatch(
         previousState
@@ -174,11 +136,11 @@ export const useFavoriteToggle = (offerId: string, offerName?: string, offerImag
     } finally {
       setIsLoading(false);
     }
-  }, [dispatch, queryClient, offerId, offerName, offerImage, isFavorite, isLoading]);
+  }, [dispatch, navigation, queryClient, offerId, offerName, offerImage, isFavorite, isLoading]);
 
   return {
-    isFavorite, // Current favorite state (from Redux)
-    toggle, // Toggle function
-    isLoading, // Loading state (true during API call)
+    isFavorite,
+    toggle,
+    isLoading,
   };
 };

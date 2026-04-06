@@ -5,7 +5,7 @@
 
 import React, { forwardRef, useState } from 'react';
 import { View, Image, Pressable, ActivityIndicator } from 'react-native';
-import FastImage from 'react-native-fast-image';
+import FastImage, { type FastImageProps } from 'react-native-fast-image';
 
 import { useTheme } from '../../../providers';
 import { Icon } from '../Icon';
@@ -15,11 +15,22 @@ import { createAvatarStyles, getAvatarSize } from './Avatar.styles';
 
 import type { AvatarProps } from './Avatar.types';
 
+const hasNonEmptyString = (value: string | undefined): value is string =>
+  value !== undefined && value.trim() !== '';
+
+const getUriFromImageSource = (source: AvatarProps['source']): string | undefined => {
+  if (source === undefined || typeof source === 'number' || Array.isArray(source)) {
+    return undefined;
+  }
+
+  return hasNonEmptyString(source.uri) ? source.uri : undefined;
+};
+
 export const Avatar = forwardRef<
   React.ElementRef<typeof View> | React.ElementRef<typeof Pressable>,
   AvatarProps
 >(
-  function Avatar(
+  (
     {
       size = 'md',
       variant = 'circular',
@@ -47,7 +58,7 @@ export const Avatar = forwardRef<
       ...rest
     },
     ref,
-  ) {
+  ) => {
     const theme = useTheme();
     const { colors } = theme;
     const [imageError, setImageError] = useState(false);
@@ -68,38 +79,52 @@ export const Avatar = forwardRef<
     // Determine what to render inside avatar
     const renderAvatarContent = () => {
       // 1. Try to render image
-      if ((source || uri) && !imageError) {
+      const hasImageSource = source !== undefined;
+      const hasUri = hasNonEmptyString(uri);
+
+      if ((hasImageSource || hasUri) && !imageError) {
         // Use FastImage for network URIs (disk + memory caching)
-        const resolvedUri = uri ?? (source && typeof source === 'object' && 'uri' in source ? (source as { uri?: string }).uri : undefined);
-        if (resolvedUri) {
+        const resolvedUri = hasUri ? uri : getUriFromImageSource(source);
+        if (resolvedUri !== undefined) {
           return (
             <FastImage
-              source={{ uri: resolvedUri, priority: FastImage.priority.normal, cache: FastImage.cacheControl.immutable }}
-              style={[styles.image, imageStyle]}
+              source={{
+                uri: resolvedUri,
+                priority: FastImage.priority.normal,
+                cache: FastImage.cacheControl.immutable,
+              }}
+              style={[styles.image, imageStyle] as FastImageProps['style']}
               onError={() => setImageError(true)}
               resizeMode={FastImage.resizeMode.cover}
             />
           );
         }
         // Fallback to RN Image for local/static sources (require())
+        const fallbackSource = source ?? (hasUri ? { uri } : undefined);
+        if (fallbackSource === undefined) {
+          return null;
+        }
+
         return (
           <Image
-            source={source || { uri }}
+            source={fallbackSource}
             style={[styles.image, imageStyle]}
             onError={() => setImageError(true)}
-            resizeMode='cover'
+            resizeMode="cover"
           />
         );
       }
 
       // 2. Render initials if provided
-      if (initials) {
+      if (hasNonEmptyString(initials)) {
         // Get first 2 characters of initials
         const displayInitials = initials.substring(0, 2).toUpperCase();
 
         return (
           <View style={styles.initialsContainer}>
-            <Text style={[styles.initialsText, color && { color }]}>{displayInitials}</Text>
+            <Text style={[styles.initialsText, color !== undefined ? { color } : undefined]}>
+              {displayInitials}
+            </Text>
           </View>
         );
       }
@@ -107,7 +132,7 @@ export const Avatar = forwardRef<
       // 3. Fallback to icon
       return (
         <View style={styles.iconContainer}>
-          <Icon name={iconName} size={avatarSize * 0.6} color={color || colors.onPrimary} />
+          <Icon name={iconName} size={avatarSize * 0.6} color={color ?? colors.onPrimary} />
         </View>
       );
     };
@@ -132,7 +157,7 @@ export const Avatar = forwardRef<
 
       return (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size='small' color={colors.onPrimary} />
+          <ActivityIndicator size="small" color={colors.onPrimary} />
         </View>
       );
     };
@@ -147,7 +172,7 @@ export const Avatar = forwardRef<
     );
 
     // If pressable, wrap in Pressable
-    if (pressable && onPress) {
+    if (pressable && onPress !== undefined) {
       return (
         <Pressable
           ref={ref as React.RefObject<React.ElementRef<typeof Pressable>>}
@@ -156,7 +181,7 @@ export const Avatar = forwardRef<
           testID={testID}
           accessibilityLabel={accessibilityLabel}
           accessibilityHint={accessibilityHint}
-          accessibilityRole={accessibilityRole || 'button'}
+          accessibilityRole={accessibilityRole ?? 'button'}
           {...rest}
         >
           {avatarContent}
@@ -172,7 +197,7 @@ export const Avatar = forwardRef<
         testID={testID}
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
-        accessibilityRole={accessibilityRole || 'image'}
+        accessibilityRole={accessibilityRole ?? 'image'}
         {...rest}
       >
         {avatarContent}
@@ -181,3 +206,4 @@ export const Avatar = forwardRef<
   },
 );
 
+Avatar.displayName = 'Avatar';

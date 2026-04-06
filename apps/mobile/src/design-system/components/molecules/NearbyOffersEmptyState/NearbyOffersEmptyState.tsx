@@ -25,7 +25,7 @@ export const NearbyOffersEmptyState: React.FC<NearbyOffersEmptyStateProps> = ({
     <View
       style={[styles.container, style]}
       testID={testID}
-      accessibilityRole='alert'
+      accessibilityRole="alert"
       accessibilityLabel={`No offers found within ${radiusKm} kilometers`}
     >
       <View
@@ -33,31 +33,31 @@ export const NearbyOffersEmptyState: React.FC<NearbyOffersEmptyStateProps> = ({
         accessibilityElementsHidden
       >
         <Icon
-          name='location-outline'
-          family='Ionicons'
+          name="location-outline"
+          family="Ionicons"
           size={48}
           color={theme.colors.onSurfaceVariant}
         />
       </View>
 
-      <Text variant='title' size='lg' weight='semibold' align='center' style={styles.title}>
+      <Text variant="title" size="lg" weight="semibold" align="center" style={styles.title}>
         No offers nearby
       </Text>
 
-      <Text variant='body' size='md' color='secondary' align='center' style={styles.description}>
-        We couldn't find any offers within {radiusKm} km of your location. Try expanding your search
-        area or browse all available offers.
+      <Text variant="body" size="md" color="secondary" align="center" style={styles.description}>
+        We couldn&apos;t find any offers within {radiusKm} km of your location. Try expanding your
+        search area or browse all available offers.
       </Text>
 
       <View style={styles.buttonContainer}>
         {onExpandRadius && (
           <Button
-            variant='outline'
-            size='md'
+            variant="outline"
+            size="md"
             onPress={onExpandRadius}
             style={styles.button}
-            accessibilityLabel='Expand search radius'
-            accessibilityHint='Doubles your current search radius to find more offers'
+            accessibilityLabel="Expand search radius"
+            accessibilityHint="Doubles your current search radius to find more offers"
           >
             Expand radius
           </Button>
@@ -65,12 +65,12 @@ export const NearbyOffersEmptyState: React.FC<NearbyOffersEmptyStateProps> = ({
 
         {onBrowseAll && (
           <Button
-            variant='primary'
-            size='md'
+            variant="primary"
+            size="md"
             onPress={onBrowseAll}
             style={styles.button}
-            accessibilityLabel='Browse all offers'
-            accessibilityHint='View all available offers without location filter'
+            accessibilityLabel="Browse all offers"
+            accessibilityHint="View all available offers without location filter"
           >
             Browse all offers
           </Button>
@@ -113,4 +113,3 @@ const styles = StyleSheet.create({
 });
 
 NearbyOffersEmptyState.displayName = 'NearbyOffersEmptyState';
-

@@ -7,7 +7,7 @@
  * - Filter button skeleton (48x48 circular)
  */
 
-import React from 'react';
+import { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
@@ -16,9 +16,9 @@ interface SkeletonHomeSearchBarProps {
   testID?: string;
 }
 
-const SkeletonHomeSearchBarComponent: React.FC<SkeletonHomeSearchBarProps> = ({
+const SkeletonHomeSearchBarComponent = ({
   testID = 'skeleton-home-search-bar',
-}) => {
+}: SkeletonHomeSearchBarProps) => {
   const anim = useShimmerAnimation();
 
   return (
@@ -35,7 +35,7 @@ const SkeletonHomeSearchBarComponent: React.FC<SkeletonHomeSearchBarProps> = ({
 };
 
 SkeletonHomeSearchBarComponent.displayName = 'SkeletonHomeSearchBar';
-export const SkeletonHomeSearchBar = React.memo(SkeletonHomeSearchBarComponent);
+export const SkeletonHomeSearchBar = memo(SkeletonHomeSearchBarComponent);
 
 const styles = StyleSheet.create({
   container: {
