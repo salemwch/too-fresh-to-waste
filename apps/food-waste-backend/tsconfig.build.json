@@ -3,7 +3,14 @@
   "compilerOptions": {
     "composite": false,
     "incremental": true,
-    "tsBuildInfoFile": "./dist/tsconfig.build.tsbuildinfo"
+    "tsBuildInfoFile": "./dist/tsconfig.build.tsbuildinfo",
+    "rootDir": "./src",
+    "paths": {
+      "@foodwaste/shared": ["../../packages/shared/dist"],
+      "@foodwaste/shared/*": ["../../packages/shared/dist/*"],
+      "src/*": ["./src/*"],
+      "csv-writer": ["./src/common/types/csv-writer.shim.ts"]
+    }
   },
   "exclude": [
     "node_modules",

@@ -1,0 +1,5 @@
+ignore_templates:
+  - '**/package.json'
+  - '**/node_modules/**'
+  - '**/dist/**'
+  - '**/.turbo/**'
