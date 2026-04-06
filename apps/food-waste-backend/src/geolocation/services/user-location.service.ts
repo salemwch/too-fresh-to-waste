@@ -39,7 +39,7 @@ export class UserLocationService {
       }
 
       return (
-        (user.locationPreferences as UserLocationPreferences) ||
+        (user.locationPreferences as UserLocationPreferences | undefined) ??
         this.getDefaultLocationPreferences()
       );
     } catch (error) {
@@ -69,7 +69,7 @@ export class UserLocationService {
       const updatedPreferences: Partial<UserLocationPreferences> = {
         ...(user.locationPreferences as UserLocationPreferences),
         ...dto,
-        defaultLocation: dto.defaultLocation || user.locationPreferences?.defaultLocation,
+        defaultLocation: dto.defaultLocation ?? user.locationPreferences?.defaultLocation,
       };
 
       await this.userModel
@@ -105,9 +105,9 @@ export class UserLocationService {
         coordinates: dto.coordinates,
         address: {
           street: dto.street,
-          city: dto.city || 'Unknown',
-          postalCode: dto.postalCode || '',
-          country: dto.country || 'Unknown',
+          city: dto.city ?? 'Unknown',
+          postalCode: dto.postalCode ?? '',
+          country: dto.country ?? 'Unknown',
           formattedAddress: this.formatAddress({
             street: dto.street,
             city: dto.city,
@@ -120,9 +120,7 @@ export class UserLocationService {
       };
 
       // Initialize preferences if not exist
-      if (!user.locationPreferences) {
-        user.locationPreferences = this.getDefaultLocationPreferences();
-      }
+      user.locationPreferences ??= this.getDefaultLocationPreferences();
 
       // Add to saved locations
       user.locationPreferences.savedLocations.push(savedLocation);
@@ -171,26 +169,29 @@ export class UserLocationService {
         throw new BadRequestException('Invalid coordinates');
       }
 
-      const currentLocation = user.locationPreferences.savedLocations[locationIndex]!;
+      const currentLocation = user.locationPreferences.savedLocations[locationIndex];
+      if (!currentLocation) {
+        throw new NotFoundException('Saved location not found');
+      }
 
       // Update the location
       const updatedLocation: SavedLocation = {
         ...currentLocation,
         id: currentLocation.id ?? locationId,
-        name: updates.name || currentLocation.name,
-        coordinates: updates.coordinates || currentLocation.coordinates,
-        category: updates.category || (currentLocation.category as LocationCategory),
+        name: updates.name ?? currentLocation.name,
+        coordinates: updates.coordinates ?? currentLocation.coordinates,
+        category: updates.category ?? (currentLocation.category as LocationCategory),
         address: {
           ...currentLocation.address,
-          street: updates.street || currentLocation.address.street,
-          city: updates.city || currentLocation.address.city,
-          postalCode: updates.postalCode || currentLocation.address.postalCode,
-          country: updates.country || currentLocation.address.country,
+          street: updates.street ?? currentLocation.address.street,
+          city: updates.city ?? currentLocation.address.city,
+          postalCode: updates.postalCode ?? currentLocation.address.postalCode,
+          country: updates.country ?? currentLocation.address.country,
           formattedAddress: this.formatAddress({
-            street: updates.street || currentLocation.address.street,
-            city: updates.city || currentLocation.address.city,
-            postalCode: updates.postalCode || currentLocation.address.postalCode,
-            country: updates.country || currentLocation.address.country,
+            street: updates.street ?? currentLocation.address.street,
+            city: updates.city ?? currentLocation.address.city,
+            postalCode: updates.postalCode ?? currentLocation.address.postalCode,
+            country: updates.country ?? currentLocation.address.country,
           }),
         },
         createdAt: currentLocation.createdAt ?? new Date(),
@@ -240,7 +241,7 @@ export class UserLocationService {
   async getSavedLocations(userId: string): Promise<SavedLocation[]> {
     try {
       const preferences = await this.getUserLocationPreferences(userId);
-      return preferences.savedLocations || [];
+      return preferences.savedLocations ?? [];
     } catch (error) {
       this.logger.error('Failed to get saved locations:', error);
       throw error;
@@ -282,9 +283,7 @@ export class UserLocationService {
         throw new NotFoundException('User not found');
       }
 
-      if (!user.locationPreferences) {
-        user.locationPreferences = this.getDefaultLocationPreferences();
-      }
+      user.locationPreferences ??= this.getDefaultLocationPreferences();
 
       const historyEntry: LocationHistoryEntry = {
         coordinates,
@@ -314,7 +313,7 @@ export class UserLocationService {
   async getLocationHistory(userId: string, limit: number = 50): Promise<LocationHistoryEntry[]> {
     try {
       const preferences = await this.getUserLocationPreferences(userId);
-      const history = preferences.locationHistory || [];
+      const history = preferences.locationHistory ?? [];
 
       return history.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, limit);
     } catch (error) {
@@ -350,12 +349,14 @@ export class UserLocationService {
       if (preferences.locationHistory?.length > 0) {
         const mostRecent = preferences.locationHistory.sort(
           (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
-        )[0]!;
-        return mostRecent.coordinates;
+        )[0];
+        if (mostRecent) {
+          return mostRecent.coordinates;
+        }
       }
 
       // Fallback to default location
-      return preferences.defaultLocation || null;
+      return preferences.defaultLocation ?? null;
     } catch (error) {
       this.logger.error('Failed to get user current location:', error);
       return null;

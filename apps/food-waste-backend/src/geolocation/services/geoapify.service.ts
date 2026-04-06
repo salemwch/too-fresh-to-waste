@@ -121,7 +121,20 @@ export class GeoapifyService {
       }
 
       // Log raw Geoapify fields for debugging locality resolution
-      const primary = features[0]!.properties;
+      const primaryFeature = features[0];
+      if (!primaryFeature) {
+        return {
+          coordinates: { latitude: lat, longitude: lng },
+          addresses: [],
+          primaryAddress: {
+            city: '',
+            postalCode: '',
+            country: '',
+            formattedAddress: '',
+          },
+        };
+      }
+      const primary = primaryFeature.properties;
       this.logger.debug(
         `Geoapify raw fields: name=${primary.name}, suburb=${primary.suburb}, ` +
           `district=${primary.district}, city=${primary.city}, county=${primary.county}, ` +
@@ -130,7 +143,12 @@ export class GeoapifyService {
       );
 
       const addresses = features.map((f) => this.mapPropertiesToAddress(f.properties));
-      const primaryAddress = addresses[0]!;
+      const primaryAddress = addresses[0] ?? {
+        city: '',
+        postalCode: '',
+        country: '',
+        formattedAddress: '',
+      };
 
       this.logger.log(
         `Reverse geocode completed: ${primaryAddress.city}, ${primaryAddress.country}`,
@@ -212,20 +230,20 @@ export class GeoapifyService {
     //   name="Messadine", district="Msaken", city="Sousse", state="Sousse"
     // Without this chain, users see the broad administrative region instead of their locality.
     const city =
-      props.suburb ||
-      props.name ||
-      props.district ||
-      props.city ||
-      props.county ||
-      props.state ||
+      props.suburb ??
+      props.name ??
+      props.district ??
+      props.city ??
+      props.county ??
+      props.state ??
       '';
 
     return {
       street: street || undefined,
       city,
-      postalCode: props.postcode || '',
-      country: props.country || '',
-      formattedAddress: props.formatted || '',
+      postalCode: props.postcode ?? '',
+      country: props.country ?? '',
+      formattedAddress: props.formatted ?? '',
     };
   }
 
@@ -244,6 +262,10 @@ export class GeoapifyService {
   }
 
   private mapMatchTypeToAccuracy(matchType?: string): GeocodingAccuracy {
+    if (matchType === undefined) {
+      return GeocodingAccuracy.APPROXIMATE;
+    }
+
     switch (matchType) {
       case 'full_match':
         return GeocodingAccuracy.ROOFTOP;
@@ -251,9 +273,9 @@ export class GeoapifyService {
         return GeocodingAccuracy.RANGE_INTERPOLATED;
       case 'match_by_street':
         return GeocodingAccuracy.GEOMETRIC_CENTER;
-      default:
-        return GeocodingAccuracy.APPROXIMATE;
     }
+
+    return GeocodingAccuracy.APPROXIMATE;
   }
 
   // ============================================================================
@@ -265,11 +287,9 @@ export class GeoapifyService {
       const axiosError = error as AxiosError;
       const status = axiosError.response?.status;
       const data = axiosError.response?.data;
+      const errorDetails = data ?? axiosError.message;
 
-      this.logger.error(
-        `Geoapify API error in ${context}: status=${status}`,
-        data || axiosError.message,
-      );
+      this.logger.error(`Geoapify API error in ${context}: status=${status}`, errorDetails);
 
       if (status === 401 || status === 403) {
         throw new HttpException(

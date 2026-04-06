@@ -27,7 +27,7 @@ describe('AllExceptionsFilter', () => {
       connection: {
         remoteAddress: '127.0.0.1',
       } as unknown as Request['connection'],
-    };
+    } as Partial<Request> & { correlationId: string };
 
     mockResponse = {
       status: jest.fn().mockReturnThis(),

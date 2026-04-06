@@ -1,5 +1,15 @@
+import type {
+  CreateInventoryItemInput,
+  UpdateInventoryItemInput,
+  StockUpdateInput,
+  ReserveStockInput,
+  ReleaseStockInput,
+  BulkUpdateStockInput,
+  InventoryFiltersInput,
+  AcknowledgeAlertInput,
+} from '@foodwaste/shared';
 import { ApiProperty } from '@nestjs/swagger';
-import { Type, Transform } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import {
   IsOptional,
   IsString,
@@ -9,13 +19,13 @@ import {
   IsBoolean,
   IsEnum,
   IsArray,
-  IsDate,
+  IsDateString,
   IsMongoId,
 } from 'class-validator';
 
 import { InventoryStatus, StockUpdateReason } from '../schemas/inventory-item.schema';
 
-export class CreateInventoryItemDto {
+export class CreateInventoryItemDto implements CreateInventoryItemInput {
   @ApiProperty()
   @IsMongoId()
   offerId!: string;
@@ -31,7 +41,7 @@ export class CreateInventoryItemDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  description?: string;
+  description?: string | undefined;
 
   @ApiProperty()
   @IsNumber()
@@ -42,17 +52,16 @@ export class CreateInventoryItemDto {
   @IsOptional()
   @IsNumber()
   @Min(1)
-  lowStockThreshold?: number;
+  lowStockThreshold?: number | undefined;
 
   @ApiProperty()
-  @IsDate()
-  @Type(() => Date)
-  expiryDate!: Date;
+  @IsDateString()
+  expiryDate!: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  batchNumber?: string;
+  batchNumber?: string | undefined;
 
   @ApiProperty()
   @IsNumber()
@@ -68,115 +77,114 @@ export class CreateInventoryItemDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  categories?: string[];
+  categories?: string[] | undefined;
 
   @ApiProperty({ type: [String], required: false })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  tags?: string[];
+  tags?: string[] | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  location?: string;
+  location?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  storageConditions?: string;
+  storageConditions?: string | undefined;
 
   @ApiProperty({ required: false, default: true })
   @IsOptional()
   @IsBoolean()
-  autoUpdateStatus?: boolean;
+  autoUpdateStatus?: boolean | undefined;
 }
 
-export class UpdateInventoryItemDto {
+export class UpdateInventoryItemDto implements UpdateInventoryItemInput {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  name?: string;
+  name?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  description?: string;
+  description?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  currentStock?: number;
+  currentStock?: number | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
   @Min(1)
-  lowStockThreshold?: number;
+  lowStockThreshold?: number | undefined;
 
   @ApiProperty({ enum: InventoryStatus, required: false })
   @IsOptional()
   @IsEnum(InventoryStatus)
-  status?: InventoryStatus;
+  status?: InventoryStatus | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  expiryDate?: Date;
+  @IsDateString()
+  expiryDate?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  batchNumber?: string;
+  batchNumber?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  originalPrice?: number;
+  originalPrice?: number | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  discountedPrice?: number;
+  discountedPrice?: number | undefined;
 
   @ApiProperty({ type: [String], required: false })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  categories?: string[];
+  categories?: string[] | undefined;
 
   @ApiProperty({ type: [String], required: false })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  tags?: string[];
+  tags?: string[] | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  isActive?: boolean | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
-  autoUpdateStatus?: boolean;
+  autoUpdateStatus?: boolean | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  location?: string;
+  location?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  storageConditions?: string;
+  storageConditions?: string | undefined;
 }
 
-export class StockUpdateDto {
+export class StockUpdateDto implements StockUpdateInput {
   @ApiProperty()
   @IsNumber()
   quantity!: number;
@@ -196,7 +204,7 @@ export class StockUpdateDto {
   orderId?: string | undefined;
 }
 
-export class ReserveStockDto {
+export class ReserveStockDto implements ReserveStockInput {
   @ApiProperty()
   @IsNumber()
   @Min(1)
@@ -208,12 +216,11 @@ export class ReserveStockDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  expiresAt?: Date;
+  @IsDateString()
+  expiresAt?: string | undefined;
 }
 
-export class ReleaseStockDto {
+export class ReleaseStockDto implements ReleaseStockInput {
   @ApiProperty()
   @IsNumber()
   @Min(1)
@@ -226,10 +233,10 @@ export class ReleaseStockDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | undefined;
 }
 
-export class BulkUpdateStockDto {
+export class BulkUpdateStockDto implements BulkUpdateStockInput {
   @ApiProperty({ type: [String] })
   @IsArray()
   @IsMongoId({ each: true })
@@ -246,10 +253,10 @@ export class BulkUpdateStockDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | undefined;
 }
 
-export class InventoryFiltersDto {
+export class InventoryFiltersDto implements InventoryFiltersInput {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsMongoId()
@@ -287,22 +294,22 @@ export class InventoryFiltersDto {
   @IsOptional()
   @IsNumber()
   @Min(1)
-  page?: number | undefined;
+  page!: number;
 
   @ApiProperty({ required: false, default: 20 })
   @IsOptional()
   @IsNumber()
   @Min(1)
   @Max(100)
-  limit?: number | undefined;
+  limit!: number;
 
   @ApiProperty({ required: false, default: '-createdAt' })
   @IsOptional()
   @IsString()
-  sortBy?: string | undefined;
+  sortBy!: string;
 }
 
-export class AcknowledgeAlertDto {
+export class AcknowledgeAlertDto implements AcknowledgeAlertInput {
   @ApiProperty()
   @IsMongoId()
   alertId!: string;
@@ -310,5 +317,5 @@ export class AcknowledgeAlertDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | undefined;
 }

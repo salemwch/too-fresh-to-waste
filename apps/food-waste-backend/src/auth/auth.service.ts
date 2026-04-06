@@ -6,13 +6,11 @@ import {
   ConflictException,
   BadRequestException,
   Logger,
-  Optional,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
+
 import { ForgotPasswordDto } from 'src/auth/DTO/forget-password.dto';
 import { LoginDto } from 'src/auth/DTO/login.dto';
 import { RegisterDto } from 'src/auth/DTO/register.dto';
@@ -22,7 +20,6 @@ import { EventBusService } from 'src/common/services/event-bus/event-bus.service
 import { PhoneNumberService } from 'src/common/services/phone-number.service';
 import { CryptoUtil } from 'src/common/utils/crypto.util';
 import { EmailService } from 'src/email/email.service';
-import { EstablishmentsService } from 'src/establishments/establishments.service';
 import { UsersService } from 'src/users/user.service';
 
 import { UserRegisteredEvent } from '../common/events';
@@ -77,6 +74,11 @@ export interface LoginResponse {
   remainingAttempts?: number; // PRODUCTION-READY IMPROVEMENT
 }
 
+interface RefreshTokenPayload {
+  sub?: string;
+  jti?: string;
+}
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -92,9 +94,6 @@ export class AuthService {
     private readonly authSecurityService: AuthSecurityService,
     private readonly captchaService: CaptchaService,
     private readonly eventBus: EventBusService,
-    @Optional()
-    @Inject(forwardRef(() => EstablishmentsService))
-    private readonly establishmentsService?: EstablishmentsService,
   ) {
     void this.captchaService;
     void this._generateTokens;
@@ -116,7 +115,7 @@ export class AuthService {
       );
 
       if (!phoneValidation.isValid) {
-        throw new BadRequestException(phoneValidation.error || 'Invalid phone number format');
+        throw new BadRequestException(phoneValidation.error ?? 'Invalid phone number format');
       }
 
       // Store in E.164 format for consistency
@@ -139,7 +138,11 @@ export class AuthService {
 
     let role: UserRole = UserRole.CONSUMER;
 
-    if (registerDto.role && registerDto.role !== UserRole.ADMIN) {
+    if (
+      registerDto.role !== null &&
+      registerDto.role !== undefined &&
+      registerDto.role !== UserRole.ADMIN
+    ) {
       role = registerDto.role;
     }
 
@@ -165,7 +168,14 @@ export class AuthService {
     try {
       await this.eventBus.emit(
         'user.registered',
-        new UserRegisteredEvent(user._id.toString(), user.email, role, new Date()),
+        new UserRegisteredEvent(
+          user._id.toString(),
+          user.email,
+          role,
+          new Date(),
+          registerDto.businessInfo,
+          normalizedPhone,
+        ),
       );
       this.logger.log(`User registered event emitted for user: ${user._id}`);
     } catch (eventError) {
@@ -174,25 +184,6 @@ export class AuthService {
         `Failed to emit user registered event: ${(eventError as Error).message}`,
         (eventError as Error).stack,
       );
-    }
-
-    // Auto-create establishment for merchant signups with business info
-    if (registerDto.businessInfo && role === UserRole.MERCHANT && this.establishmentsService) {
-      try {
-        await this.establishmentsService.createFromSignup(
-          registerDto.businessInfo,
-          user._id.toString(),
-          registerDto.email,
-          normalizedPhone,
-        );
-        this.logger.log(`Establishment created from signup for merchant: ${user._id}`);
-      } catch (establishmentError) {
-        // Log but don't fail registration — establishment can be created later
-        this.logger.error(
-          `Failed to create establishment during signup: ${(establishmentError as Error).message}`,
-          (establishmentError as Error).stack,
-        );
-      }
     }
 
     // SECURITY: Use safe mapper to exclude sensitive fields (passwordHistory, loginHistory, etc.)
@@ -225,8 +216,8 @@ export class AuthService {
     // AUTO-LOGIN: Generate tokens so user goes directly to home
     // This is the same pattern used in login() for seamless UX
     const deviceInfo: DeviceInfo = {
-      ipAddress: requestInfo?.ipAddress || 'unknown',
-      userAgent: requestInfo?.userAgent || 'unknown',
+      ipAddress: requestInfo?.ipAddress ?? 'unknown',
+      userAgent: requestInfo?.userAgent ?? 'unknown',
       platform: this.extractPlatform(requestInfo?.userAgent),
       browser: this.extractBrowser(requestInfo?.userAgent),
     };
@@ -244,8 +235,8 @@ export class AuthService {
     // Update last login timestamp
     await this.usersService.updateLastLogin(
       user._id.toString(),
-      requestInfo?.ipAddress || 'unknown',
-      requestInfo?.userAgent || 'unknown',
+      requestInfo?.ipAddress ?? 'unknown',
+      requestInfo?.userAgent ?? 'unknown',
       requestInfo?.location,
     );
 
@@ -282,8 +273,8 @@ export class AuthService {
     loginDto: LoginDto,
     requestInfo?: { ipAddress?: string; userAgent?: string; location?: string },
   ): Promise<LoginResponse> {
-    const ipAddress = requestInfo?.ipAddress || 'unknown';
-    const userAgent = requestInfo?.userAgent || 'unknown';
+    const ipAddress = requestInfo?.ipAddress ?? 'unknown';
+    const userAgent = requestInfo?.userAgent ?? 'unknown';
 
     // 1. Explicit IP block list (set by previous suspicious-activity detection)
     const ipBlocked = await this.authSecurityService.isIpBlocked(ipAddress);
@@ -474,8 +465,8 @@ export class AuthService {
 
     // Generate tokens (on critical path — needed for response)
     const deviceInfo: DeviceInfo = {
-      ipAddress: requestInfo?.ipAddress || 'unknown',
-      userAgent: requestInfo?.userAgent || 'unknown',
+      ipAddress: requestInfo?.ipAddress ?? 'unknown',
+      userAgent: requestInfo?.userAgent ?? 'unknown',
       platform: this.extractPlatform(requestInfo?.userAgent),
       browser: this.extractBrowser(requestInfo?.userAgent),
     };
@@ -499,8 +490,8 @@ export class AuthService {
       this.usersService.resetFailedLoginAttempts(user._id.toString()),
       this.usersService.updateLastLogin(
         user._id.toString(),
-        requestInfo?.ipAddress || 'unknown',
-        requestInfo?.userAgent || 'unknown',
+        requestInfo?.ipAddress ?? 'unknown',
+        requestInfo?.userAgent ?? 'unknown',
         requestInfo?.location,
       ),
     ]);
@@ -537,7 +528,7 @@ export class AuthService {
    * Parse JWT expiration string (e.g., '15m', '1h', '7d') to seconds
    */
   private getAccessTokenExpiresInSeconds(): number {
-    const expiration = this.configService.get<string>('JWT_EXPIRES_IN') || '15m';
+    const expiration = this.configService.get<string>('JWT_EXPIRES_IN') ?? '15m';
     const match = expiration.match(/^(\d+)([smhd])$/);
     if (!match) {
       return 900;
@@ -546,7 +537,7 @@ export class AuthService {
     const [, value, unit] = match;
     const num = parseInt(value ?? '15', 10);
     const multipliers: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400 };
-    return num * (multipliers[unit ?? 'm'] || 60);
+    return num * (multipliers[unit ?? 'm'] ?? 60);
   }
 
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
@@ -665,7 +656,7 @@ export class AuthService {
 
     const user = await this.usersService.findOneWithTokens(userId);
 
-    if (!user) {
+    if (user === null || user === undefined) {
       // SECURITY: Never reveal user existence - use generic message for all auth failures
       throw new UnauthorizedException('Session expired. Please log in again.');
     }
@@ -690,7 +681,7 @@ export class AuthService {
       });
 
       // If token family compromise detected, revoke entire family
-      if (validationResult.shouldRevokeFamily && validationResult.familyId) {
+      if (validationResult.shouldRevokeFamily === true && validationResult.familyId) {
         await this.tokenService.revokeFamilyTokens(
           validationResult.familyId,
           'Token reuse detected - possible theft',
@@ -702,7 +693,7 @@ export class AuthService {
         });
       }
 
-      throw new UnauthorizedException(validationResult.error || 'Invalid refresh token');
+      throw new UnauthorizedException(validationResult.error ?? 'Invalid refresh token');
     }
 
     if (!validationResult.jti) {
@@ -712,8 +703,8 @@ export class AuthService {
 
     // Generate new tokens in the same family
     const deviceInfo: DeviceInfo = {
-      ipAddress: requestInfo?.ipAddress || 'unknown',
-      userAgent: requestInfo?.userAgent || 'unknown',
+      ipAddress: requestInfo?.ipAddress ?? 'unknown',
+      userAgent: requestInfo?.userAgent ?? 'unknown',
       platform: this.extractPlatform(requestInfo?.userAgent),
       browser: this.extractBrowser(requestInfo?.userAgent),
     };
@@ -749,11 +740,11 @@ export class AuthService {
       // Decode token to get JTI
       try {
         const jwtRefreshSecret1 = this.configService.get<string>('JWT_REFRESH_SECRET');
-        const payload = await this.jwtService.verifyAsync(refreshToken, {
+        const payload = await this.jwtService.verifyAsync<RefreshTokenPayload>(refreshToken, {
           ...(jwtRefreshSecret1 !== undefined ? { secret: jwtRefreshSecret1 } : {}),
         });
 
-        if (payload.jti) {
+        if (payload.jti !== null && payload.jti !== undefined) {
           // Revoke the specific token
           await this.tokenService.rotateToken(payload.jti);
           this.logger.log('Single token revoked during logout', {
@@ -786,9 +777,9 @@ export class AuthService {
   ): Promise<AuthTokens> {
     const payload = { sub: userId, email, role };
 
-    const accessExpiresIn = (this.configService.get<string>('JWT_EXPIRES_IN') ||
+    const accessExpiresIn = (this.configService.get<string>('JWT_EXPIRES_IN') ??
       '15m') as NonNullable<JwtSignOptions['expiresIn']>;
-    const refreshExpiresIn = (this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') ||
+    const refreshExpiresIn = (this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') ??
       '7d') as NonNullable<JwtSignOptions['expiresIn']>;
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -818,7 +809,14 @@ export class AuthService {
       if (user.status !== UserStatus.ACTIVE) {
         throw new UnauthorizedException('Account is no longer active');
       }
-      const { password: _password, _id, ...result } = user.toObject();
+      const {
+        password: _password,
+        _id,
+        ...result
+      } = user.toObject() as UserResponse & {
+        _id: { toString(): string };
+        password: string;
+      };
       return { ...result, userId: _id.toString() };
     }
 
@@ -834,10 +832,10 @@ export class AuthService {
     try {
       // ✅ Use JWT_REFRESH_SECRET for refresh tokens (not JWT_SECRET)
       const jwtRefreshSecret2 = this.configService.get<string>('JWT_REFRESH_SECRET');
-      const decoded = await this.jwtService.verifyAsync(refreshToken, {
+      const decoded = await this.jwtService.verifyAsync<RefreshTokenPayload>(refreshToken, {
         ...(jwtRefreshSecret2 !== undefined ? { secret: jwtRefreshSecret2 } : {}),
       });
-      if (!decoded?.sub) {
+      if (decoded?.sub === null || decoded?.sub === undefined) {
         return null;
       }
       return { userId: decoded.sub };

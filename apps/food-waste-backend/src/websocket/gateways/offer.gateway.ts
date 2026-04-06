@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WebSocketService } from '../websocket.service';
+
 import { OfferUpdate, WebSocketEvents } from '../interfaces/websocket.interface';
+import { WebSocketService } from '../websocket.service';
 
 @Injectable()
 export class OfferGateway {
@@ -58,9 +59,7 @@ export class OfferGateway {
   notifyExpiringOffers(offers: OfferUpdate[], userIds: string[]): void {
     try {
       for (const offer of offers) {
-        const timeUntilExpiry = Math.floor(
-          (offer.expiresAt.getTime() - Date.now()) / (1000 * 60)
-        );
+        const timeUntilExpiry = Math.floor((offer.expiresAt.getTime() - Date.now()) / (1000 * 60));
 
         const notification = {
           ...offer,
@@ -75,7 +74,11 @@ export class OfferGateway {
         };
 
         for (const userId of userIds) {
-          this.webSocketService.sendToUser(userId, WebSocketEvents.OFFER_EXPIRING_SOON, notification);
+          this.webSocketService.sendToUser(
+            userId,
+            WebSocketEvents.OFFER_EXPIRING_SOON,
+            notification,
+          );
         }
       }
 
@@ -101,7 +104,7 @@ export class OfferGateway {
       this.webSocketService.sendToUser(
         offer.merchantId,
         WebSocketEvents.OFFER_SOLD_OUT,
-        merchantNotification
+        merchantNotification,
       );
 
       this.logger.log(`Sold out notification sent for offer ${offer.offerId}`);
@@ -125,7 +128,11 @@ export class OfferGateway {
       };
 
       for (const followerId of followerIds) {
-        this.webSocketService.sendToUser(followerId, WebSocketEvents.ESTABLISHMENT_NEW_OFFER, notification);
+        this.webSocketService.sendToUser(
+          followerId,
+          WebSocketEvents.ESTABLISHMENT_NEW_OFFER,
+          notification,
+        );
       }
 
       this.logger.log(`New offer notification sent to ${followerIds.length} followers`);
@@ -141,14 +148,14 @@ export class OfferGateway {
     try {
       const notification = {
         title: '⚡ Flash Sale Alert!',
-        message: `Limited time offers available with up to ${Math.max(...offers.map(o => o.discountPercentage))}% off!`,
+        message: `Limited time offers available with up to ${Math.max(...offers.map((o) => o.discountPercentage))}% off!`,
         actionRequired: true,
         action: 'browse_flash_sales',
         priority: 'high' as const,
         data: {
           offerCount: offers.length,
-          maxDiscount: Math.max(...offers.map(o => o.discountPercentage)),
-          offers: offers.map(o => ({
+          maxDiscount: Math.max(...offers.map((o) => o.discountPercentage)),
+          offers: offers.map((o) => ({
             id: o.offerId,
             title: o.title,
             discount: o.discountPercentage,
@@ -209,7 +216,7 @@ export class OfferGateway {
       favorites: number;
       orders: number;
       revenue: number;
-    }
+    },
   ): void {
     try {
       const notification = {
@@ -234,7 +241,7 @@ export class OfferGateway {
   batchNotifyOfferUpdates(updates: OfferUpdate[], userMappings: Map<string, string[]>): void {
     try {
       for (const update of updates) {
-        const relevantUsers = userMappings.get(update.offerId) || [];
+        const relevantUsers = userMappings.get(update.offerId) ?? [];
 
         switch (update.type) {
           case 'new':
@@ -242,6 +249,9 @@ export class OfferGateway {
             break;
           case 'featured':
             this.notifyFeaturedOffer(update, relevantUsers);
+            break;
+          case 'updated':
+            // Handle updated offers if needed
             break;
           case 'expired':
             // Handle expired offers if needed

@@ -8,6 +8,16 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
+interface ModerationRequestUser {
+  role?: UserRole;
+  userId?: string;
+}
+
+interface ModerationRequest {
+  user?: ModerationRequestUser;
+  moderatorRole?: UserRole;
+}
+
 @Injectable()
 export class ModerationAccessGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {
@@ -15,20 +25,21 @@ export class ModerationAccessGuard implements CanActivate {
   }
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<ModerationRequest>();
     const user = request.user;
 
-    if (!user) {
+    if (user === null || user === undefined) {
       throw new UnauthorizedException('Authentication required');
     }
 
     const allowedRoles = [UserRole.ADMIN, UserRole.MODERATOR];
+    const userRole = user.role;
 
-    if (!allowedRoles.includes(user.role)) {
+    if (userRole === null || userRole === undefined || !allowedRoles.includes(userRole)) {
       throw new ForbiddenException('Access denied. Admin or Moderator privileges required');
     }
 
-    request.moderatorRole = user.role;
+    request.moderatorRole = userRole;
 
     return true;
   }
@@ -40,10 +51,10 @@ export class ModerationAccessGuard implements CanActivate {
 @Injectable()
 export class AdminOnlyModerationGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<ModerationRequest>();
     const user = request.user;
 
-    if (!user) {
+    if (user === null || user === undefined) {
       throw new UnauthorizedException('Authentication required');
     }
 
@@ -62,10 +73,10 @@ export class AdminOnlyModerationGuard implements CanActivate {
 @Injectable()
 export class ReportOwnershipGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<ModerationRequest>();
     const user = request.user;
 
-    if (!user) {
+    if (user === null || user === undefined) {
       throw new UnauthorizedException('Authentication required');
     }
 

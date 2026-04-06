@@ -1,29 +1,31 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { CommonModule } from '../common/common.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
-// Schemas
-import { Notification, NotificationSchema } from './schemas/notification.schema';
-import { NotificationPreference, NotificationPreferenceSchema } from './schemas/notification-preference.schema';
-import { NotificationTemplate, NotificationTemplateSchema } from './schemas/notification-template.schema';
-import { OptOutRecord, OptOutRecordSchema } from './schemas/opt-out-record.schema';
+import { CommonModule } from '../common/common.module';
 import { User, UserSchema } from '../users/schemas/user.schema';
 
-// Controllers
 import { NotificationsController } from './controllers/notifications.controller';
-
-// Services
-import { NotificationService } from './services/notification.service';
-import { NotificationPreferencesService } from './services/notification-preferences.service';
-import { PushNotificationService } from './services/push-notification.service';
+import {
+  NotificationPreference,
+  NotificationPreferenceSchema,
+} from './schemas/notification-preference.schema';
+import {
+  NotificationTemplate,
+  NotificationTemplateSchema,
+} from './schemas/notification-template.schema';
+import { Notification, NotificationSchema } from './schemas/notification.schema';
+import { OptOutRecord, OptOutRecordSchema } from './schemas/opt-out-record.schema';
 import { EmailNotificationService } from './services/email-notification.service';
+import { NotificationAnalyticsService } from './services/notification-analytics.service';
+import { NotificationPreferencesService } from './services/notification-preferences.service';
+import { NotificationService } from './services/notification.service';
+import { OptOutManagerService } from './services/opt-out-manager.service';
+import { PhoneValidatorService } from './services/phone-validator.service';
+import { PushNotificationService } from './services/push-notification.service';
 import { SmsNotificationService } from './services/sms-notification.service';
 import { TemplateService } from './services/template.service';
-import { NotificationAnalyticsService } from './services/notification-analytics.service';
-import { PhoneValidatorService } from './services/phone-validator.service';
-import { OptOutManagerService } from './services/opt-out-manager.service';
 
 @Module({
   imports: [
@@ -60,7 +62,7 @@ import { OptOutManagerService } from './services/opt-out-manager.service';
     NotificationAnalyticsService,
     PhoneValidatorService,
     OptOutManagerService,
-    MongooseModule
+    MongooseModule,
   ],
 })
 export class NotificationsModule {}

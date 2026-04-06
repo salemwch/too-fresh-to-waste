@@ -4,10 +4,9 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { Model, Types, isValidObjectId, PipelineStage, FlattenMaps } from 'mongoose';
-import { FavoritesService } from 'src/favorites/favorites.service';
+import { Connection, Model, Types, isValidObjectId, PipelineStage, FlattenMaps } from 'mongoose';
 
 import { AppLoggerService } from '../common/services/logger.service';
 import { TimezoneUtil } from '../common/utils/timezone.util';
@@ -26,13 +25,12 @@ import {
   URGENCY_THRESHOLD_HOURS,
 } from './config/featuring.config';
 import { CreateOfferDto } from './DTO/create-offer.dto';
+import { OfferCardDto } from './DTO/offer-list.dto';
 import { ReactivateOfferDto } from './DTO/reactivate-offer.dto';
 import { SearchOffersDto, OfferSortField } from './DTO/search-offers.dto';
-import { Offer, OfferDocument, OfferStatus, OfferType, Currency } from './schemas/offer.schema';
-
 import { UpdateOfferDto } from './DTO/update-offer.dto';
 import { OfferPresenter } from './presenters/offer.presenter';
-import { OfferCardDto } from './DTO/offer-list.dto';
+import { Offer, OfferDocument, OfferStatus, OfferType, Currency } from './schemas/offer.schema';
 
 // OFFER_LIST_FIELDS no longer needed — aggregation pipelines select fields via $project
 
@@ -117,6 +115,10 @@ interface MongoSort {
   [field: string]: 1 | -1;
 }
 
+interface AggregateCountResult {
+  total: number;
+}
+
 interface OfferPricing {
   originalPrice: number;
   discountedPrice: number;
@@ -127,8 +129,8 @@ interface OfferPricing {
 interface OfferPickupTimeSlot {
   startTime: string;
   endTime: string;
-  maxOrders?: number; // Optional — business decides. No limit if unset.
-  currentOrders?: number;
+  maxOrders?: number | undefined; // Optional — business decides. No limit if unset.
+  currentOrders?: number | undefined;
 }
 
 interface StatusUpdateData {
@@ -142,13 +144,19 @@ interface PopulatedEstRef {
   address?: { coordinates?: { coordinates?: number[] } };
 }
 
+interface FavoriteSignalRecord {
+  type?: string;
+  itemId?: Types.ObjectId | string;
+  itemName?: string;
+}
+
 @Injectable()
 export class OffersService {
   constructor(
     @InjectModel(Offer.name)
     private readonly offerModel: Model<OfferDocument>,
+    @InjectConnection() private readonly connection: Connection,
     private readonly logger: AppLoggerService,
-    private readonly favoritesService: FavoritesService,
     private readonly establishmentsService: EstablishmentsService,
   ) {}
 
@@ -184,6 +192,49 @@ export class OffersService {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
+  private async getUserFavoriteOfferIds(userId: string): Promise<string[]> {
+    const favorites = (await this.connection
+      .collection('favorites')
+      .find({
+        userId: new Types.ObjectId(userId),
+        type: 'offer',
+        isActive: true,
+      })
+      .project({ itemId: 1 })
+      .toArray()) as Array<{ itemId?: Types.ObjectId | string }>;
+
+    return favorites.flatMap((favorite) =>
+      favorite.itemId !== undefined ? [favorite.itemId.toString()] : [],
+    );
+  }
+
+  private async getUserFavoriteSignals(userId: string): Promise<{
+    establishmentIds: string[];
+    categories: string[];
+  }> {
+    const favorites = (await this.connection
+      .collection('favorites')
+      .find({
+        userId: new Types.ObjectId(userId),
+        isActive: true,
+        type: { $in: ['establishment', 'category'] },
+      })
+      .project({ type: 1, itemId: 1, itemName: 1 })
+      .toArray()) as FavoriteSignalRecord[];
+
+    const establishmentIds = favorites
+      .filter((favorite) => favorite.type === 'establishment' && favorite.itemId !== undefined)
+      .map((favorite) => favorite.itemId?.toString() ?? '')
+      .filter((itemId): itemId is string => itemId.length > 0);
+
+    const categories = favorites
+      .filter((favorite) => favorite.type === 'category')
+      .map((favorite) => favorite.itemName ?? '')
+      .filter((category): category is string => category.length > 0);
+
+    return { establishmentIds, categories };
+  }
+
   private async mapOffersToDto(
     offers: (OfferDocument | OfferLean)[],
     userId?: string,
@@ -193,7 +244,7 @@ export class OffersService {
     // If user is authenticated, fetch their favorite IDs
     if (userId) {
       try {
-        const favoriteIds = await this.favoritesService.getUserFavoriteOfferIds(userId);
+        const favoriteIds = await this.getUserFavoriteOfferIds(userId);
         favoriteSet = new Set(favoriteIds); // O(1) lookup per offer
 
         this.logger.debug(`Fetched ${favoriteIds.length} favorite IDs for user`, 'OffersService', {
@@ -230,7 +281,7 @@ export class OffersService {
     await this.validateEstablishmentOwnerOnly(createOfferDto.establishmentId, merchantId);
     // ✅ TIMEZONE: Convert local time (Tunisia) to UTC using proper timezone library
     // User inputs local time (e.g., 23:20 Tunisia) → Backend stores UTC (22:20)
-    const timezone = createOfferDto.timezone || 'Africa/Tunis';
+    const timezone = createOfferDto.timezone ?? 'Africa/Tunis';
 
     const availableFrom = TimezoneUtil.toUTC(createOfferDto.availableFrom, timezone);
     const availableUntil = TimezoneUtil.toUTC(createOfferDto.availableUntil, timezone);
@@ -276,7 +327,7 @@ export class OffersService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-    filters: SearchOffersDto = {},
+    filters: SearchOffersDto = { page: 1, limit: 20 },
     userId?: string, // NEW: For isFavorite computation
   ): Promise<{ data: OfferCardDto[]; total: number }> {
     // ✅ ENTERPRISE: DOS protection - limit max page size
@@ -285,17 +336,20 @@ export class OffersService {
     const query: MongoQuery = {};
     const sort: MongoSort = {};
 
-    if (!filters.merchantId && !filters.status) {
+    if (
+      (filters.merchantId === null || filters.merchantId === undefined) &&
+      (filters.status === null || filters.status === undefined)
+    ) {
       query.status = OfferStatus.ACTIVE;
       query.isActive = true;
     }
     if (filters.search) {
       query.$text = { $search: filters.search };
     }
-    if (filters.type) {
+    if (filters.type !== null && filters.type !== undefined) {
       query.type = filters.type;
     }
-    if (filters.status) {
+    if (filters.status !== null && filters.status !== undefined) {
       query.status = filters.status;
     }
     // ✅ FIX: Query actual database fields, not virtual field
@@ -331,8 +385,7 @@ export class OffersService {
 
     // ✅ NEW: Establishment filters (requires aggregation pipeline)
     const hasEstablishmentFilters =
-      (filters.establishmentTypes && filters.establishmentTypes.length > 0) ||
-      (filters.cuisineTypes && filters.cuisineTypes.length > 0);
+      (filters.establishmentTypes?.length ?? 0) > 0 || (filters.cuisineTypes?.length ?? 0) > 0;
 
     if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
       query['pricing.discountedPrice'] = {};
@@ -350,14 +403,21 @@ export class OffersService {
     // ✅ SECURITY: Backend enforces time-based filtering for public queries
     // Users should only see currently available offers (not future or expired)
     // Merchants/admins can see all statuses via status filter
-    if (!filters.merchantId && !filters.status) {
+    if (
+      (filters.merchantId === null || filters.merchantId === undefined) &&
+      (filters.status === null || filters.status === undefined)
+    ) {
       const now = new Date();
       query.availableFrom = { $lte: now };
       query.availableUntil = { $gte: now };
     }
 
     // ✅ NEW: Handle establishment filters with aggregation pipeline
-    if (hasEstablishmentFilters && !filters.longitude && !filters.latitude) {
+    if (
+      hasEstablishmentFilters &&
+      filters.longitude === undefined &&
+      filters.latitude === undefined
+    ) {
       // Use aggregation pipeline for establishment filtering
       const pipeline: PipelineStage[] = [
         // Match offers first
@@ -466,11 +526,11 @@ export class OffersService {
       ];
 
       const [offers, totalCount] = await Promise.all([
-        this.offerModel.aggregate(pipeline).exec(),
-        this.offerModel.aggregate(countPipeline).exec(),
+        this.offerModel.aggregate<OfferLean>(pipeline).exec(),
+        this.offerModel.aggregate<AggregateCountResult>(countPipeline).exec(),
       ]);
 
-      const total = totalCount[0]?.total || 0;
+      const total = totalCount[0]?.total ?? 0;
 
       // ✅ NEW: Map offers to DTOs with isFavorite
       const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
@@ -480,7 +540,7 @@ export class OffersService {
     // ✅ ENTERPRISE: Geolocation query with pagination
     // ⚠️ CRITICAL FIX: $geoNear MUST be the first stage in aggregation pipeline
     if (filters.longitude && filters.latitude) {
-      const maxDistance = filters.maxDistance || 5000;
+      const maxDistance = filters.maxDistance ?? 5000;
 
       // ✅ FIX: Use $geoNear as FIRST stage (MongoDB requirement)
       // Move all offer filters into the 'query' parameter of $geoNear
@@ -638,11 +698,11 @@ export class OffersService {
       const establishmentModel = this.offerModel.db.collection('establishments');
 
       const [offers, totalCount] = await Promise.all([
-        establishmentModel.aggregate(pipeline).toArray(),
-        establishmentModel.aggregate(countPipeline).toArray(),
+        establishmentModel.aggregate<OfferLean>(pipeline).toArray(),
+        establishmentModel.aggregate<AggregateCountResult>(countPipeline).toArray(),
       ]);
 
-      const total = totalCount[0]?.['total'] || 0;
+      const total = totalCount[0]?.total ?? 0;
 
       // ✅ NEW: Map offers to DTOs with isFavorite
       const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
@@ -650,7 +710,7 @@ export class OffersService {
     }
 
     // ✅ SECURITY: Whitelist-based sorting to prevent prototype pollution
-    if (filters.sortBy) {
+    if (filters.sortBy !== null && filters.sortBy !== undefined) {
       const allowedSortFields: Record<OfferSortField, string> = {
         [OfferSortField.CREATED_AT]: 'createdAt',
         [OfferSortField.PRICE]: 'pricing.discountedPrice',
@@ -736,7 +796,7 @@ export class OffersService {
     limit: number = 10,
     userId?: string, // NEW: For isFavorite computation
   ): Promise<{ data: OfferCardDto[]; total: number }> {
-    const result = await this.findAll(page, limit, { establishmentId }, userId);
+    const result = await this.findAll(page, limit, { establishmentId, page, limit }, userId);
     return result;
   }
 
@@ -747,8 +807,8 @@ export class OffersService {
     userId?: string, // NEW: For isFavorite computation
     status?: OfferStatus,
   ): Promise<{ data: OfferCardDto[]; total: number }> {
-    const filters: SearchOffersDto = { merchantId };
-    if (status) {
+    const filters: SearchOffersDto = { merchantId, page, limit };
+    if (status !== null && status !== undefined) {
       filters.status = status;
     }
     const result = await this.findAll(page, limit, filters, userId);
@@ -766,7 +826,11 @@ export class OffersService {
     // Check permissions
     // Handle both ObjectId and populated merchantId
     const merchantIdString =
-      typeof offer.merchantId === 'object' && offer.merchantId._id
+      typeof offer.merchantId === 'object' &&
+      offer.merchantId !== null &&
+      '_id' in offer.merchantId &&
+      offer.merchantId._id !== null &&
+      offer.merchantId._id !== undefined
         ? offer.merchantId._id.toString()
         : offer.merchantId.toString();
 
@@ -792,7 +856,7 @@ export class OffersService {
       this.validatePickupSlotsAgainstQuantity(offer.pickupTimeSlots, updateOfferDto.totalQuantity);
     }
     if (updateOfferDto.availableFrom || updateOfferDto.availableUntil) {
-      const timezone = updateOfferDto.timezone || 'Africa/Tunis';
+      const timezone = updateOfferDto.timezone ?? 'Africa/Tunis';
       const availableFrom = updateOfferDto.availableFrom
         ? TimezoneUtil.toUTC(updateOfferDto.availableFrom, timezone)
         : offer.availableFrom;
@@ -982,7 +1046,11 @@ export class OffersService {
     // Check permissions
     // Handle both ObjectId and populated merchantId
     const merchantIdString =
-      typeof offer.merchantId === 'object' && offer.merchantId._id
+      typeof offer.merchantId === 'object' &&
+      offer.merchantId !== null &&
+      '_id' in offer.merchantId &&
+      offer.merchantId._id !== null &&
+      offer.merchantId._id !== undefined
         ? offer.merchantId._id.toString()
         : offer.merchantId.toString();
 
@@ -1002,7 +1070,7 @@ export class OffersService {
           deletedAt: new Date(),
           deletedBy: userId,
           deletionReason:
-            deletionReason || (userRole === 'admin' ? 'Admin deletion' : 'Merchant deletion'),
+            deletionReason ?? (userRole === 'admin' ? 'Admin deletion' : 'Merchant deletion'),
           status: OfferStatus.CANCELLED, // Mark as cancelled
           isActive: false,
         },
@@ -1059,12 +1127,16 @@ export class OffersService {
         const est = (offer as OfferLean).establishmentId as PopulatedEstRef | undefined;
         const coords = est?.address?.coordinates?.coordinates;
         if (coords && Array.isArray(coords) && coords.length === 2) {
+          const [longitude, latitude] = coords;
+          if (typeof longitude !== 'number' || typeof latitude !== 'number') {
+            continue;
+          }
           (offer as OfferLean).distance = Math.round(
             this.calculateDistance(
               userLocation.latitude,
               userLocation.longitude,
-              coords[1]!,
-              coords[0]!,
+              latitude,
+              longitude,
             ),
           );
         }
@@ -1122,12 +1194,16 @@ export class OffersService {
         const est = (offer as OfferLean).establishmentId as PopulatedEstRef | undefined;
         const coords = est?.address?.coordinates?.coordinates;
         if (coords && Array.isArray(coords) && coords.length === 2) {
+          const [longitude, latitude] = coords;
+          if (typeof longitude !== 'number' || typeof latitude !== 'number') {
+            continue;
+          }
           (offer as OfferLean).distance = Math.round(
             this.calculateDistance(
               userLocation.latitude,
               userLocation.longitude,
-              coords[1]!,
-              coords[0]!,
+              latitude,
+              longitude,
             ),
           );
         }
@@ -1318,17 +1394,19 @@ export class OffersService {
 
     const [offers, totalCount] = await Promise.all([
       establishmentModel
-        .aggregate([
+        .aggregate<OfferLean>([
           ...basePipeline,
           { $sort: { distance: 1 } }, // Sort by distance (nearest first)
           { $skip: skip },
           { $limit: safeLimit },
         ])
         .toArray(),
-      establishmentModel.aggregate([...basePipeline, { $count: 'total' }]).toArray(),
+      establishmentModel
+        .aggregate<AggregateCountResult>([...basePipeline, { $count: 'total' }])
+        .toArray(),
     ]);
 
-    const total = totalCount[0]?.['total'] || 0;
+    const total = totalCount[0]?.total ?? 0;
 
     // ✅ Map to DTOs with isFavorite field
     const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
@@ -1384,12 +1462,16 @@ export class OffersService {
         const est = (offer as OfferLean).establishmentId as PopulatedEstRef | undefined;
         const coords = est?.address?.coordinates?.coordinates;
         if (coords && Array.isArray(coords) && coords.length === 2) {
+          const [longitude, latitude] = coords;
+          if (typeof longitude !== 'number' || typeof latitude !== 'number') {
+            continue;
+          }
           (offer as OfferLean).distance = Math.round(
             this.calculateDistance(
               userLocation.latitude,
               userLocation.longitude,
-              coords[1]!,
-              coords[0]!,
+              latitude,
+              longitude,
             ),
           );
         }
@@ -1466,26 +1548,10 @@ export class OffersService {
     // ✅ ENTERPRISE: DOS protection - limit max page size
     const safeLimit = Math.min(limit, 100);
 
-    // Step 1: Get user's active favorites from FavoritesService
-    // ✅ PRODUCTION: Uses actual favorites service instead of empty array
-    const favorites = await this.favoritesService.getUserFavorites(userId, {
-      isActive: true,
-      limit: 1000, // Get all favorites for recommendation engine
-    });
-
-    // Extract favorited establishment IDs and categories
-    const favoritedEstablishments = favorites.favorites
-      .filter((f) => f.type === 'establishment')
-      .map((f) =>
-        typeof f.itemId === 'string' || f.itemId instanceof Types.ObjectId
-          ? f.itemId.toString()
-          : '',
-      )
-      .filter((itemId): itemId is string => itemId.length > 0);
-
-    const favoritedCategories = favorites.favorites
-      .filter((f) => f.type === 'category')
-      .map((f) => f.itemName); // Using itemName for categories (stored as string names)
+    // Step 1: Get user's active favorites from the favorites collection
+    const favoriteSignals = await this.getUserFavoriteSignals(userId);
+    const favoritedEstablishments = favoriteSignals.establishmentIds;
+    const favoritedCategories = favoriteSignals.categories;
 
     // Step 2: Fallback - If no favorites, return featured offers
     if (favoritedEstablishments.length === 0 && favoritedCategories.length === 0) {
@@ -1863,7 +1929,11 @@ export class OffersService {
 
     // Ownership check
     const merchantIdString =
-      typeof offer.merchantId === 'object' && offer.merchantId._id
+      typeof offer.merchantId === 'object' &&
+      offer.merchantId !== null &&
+      '_id' in offer.merchantId &&
+      offer.merchantId._id !== null &&
+      offer.merchantId._id !== undefined
         ? offer.merchantId._id.toString()
         : offer.merchantId.toString();
 
@@ -1874,10 +1944,13 @@ export class OffersService {
     // Establishment approval guard — merchants cannot reactivate offers
     // for establishments that have not yet been approved by an admin.
     if (userRole !== 'admin') {
-      const establishmentId =
-        typeof offer.establishmentId === 'object' && (offer.establishmentId as PopulatedEstRef)._id
-          ? (offer.establishmentId as PopulatedEstRef)._id!.toString()
-          : offer.establishmentId.toString();
+      const populatedEstablishmentId =
+        typeof offer.establishmentId === 'object'
+          ? (offer.establishmentId as PopulatedEstRef)._id
+          : undefined;
+      const establishmentId = populatedEstablishmentId
+        ? populatedEstablishmentId.toString()
+        : offer.establishmentId.toString();
 
       await this.validateEstablishmentOwnership(establishmentId, userId);
     }
@@ -1897,7 +1970,7 @@ export class OffersService {
     }
 
     // Validate new dates
-    const timezone = dto.timezone || 'Africa/Tunis';
+    const timezone = dto.timezone ?? 'Africa/Tunis';
     const availableFrom = TimezoneUtil.toUTC(dto.availableFrom, timezone);
     const availableUntil = TimezoneUtil.toUTC(dto.availableUntil, timezone);
     const now = new Date();
@@ -1992,7 +2065,11 @@ export class OffersService {
 
     // Ownership check
     const merchantIdString =
-      typeof offer.merchantId === 'object' && offer.merchantId._id
+      typeof offer.merchantId === 'object' &&
+      offer.merchantId !== null &&
+      '_id' in offer.merchantId &&
+      offer.merchantId._id !== null &&
+      offer.merchantId._id !== undefined
         ? offer.merchantId._id.toString()
         : offer.merchantId.toString();
 
@@ -2109,7 +2186,7 @@ export class OffersService {
     }
 
     this.logger.log(
-      `Offer ${offerId} manually ${isFeatured ? 'featured' : 'unfeatured'} by admin ${userId || 'unknown'}`,
+      `Offer ${offerId} manually ${isFeatured ? 'featured' : 'unfeatured'} by admin ${userId ?? 'unknown'}`,
       'OffersService',
     );
 

@@ -1,43 +1,17 @@
 {
-  "extends": "../../tsconfig.base.json",
+  // NestJS backend — extends @foodwaste/tsconfig/nestjs preset.
+  // Only app-specific overrides live here.
+  "extends": "@foodwaste/tsconfig/nestjs",
   "compilerOptions": {
-    "module": "commonjs",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "target": "ES2020",
-    "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
-    "composite": true,
     "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
-
-    // Strict mode — enabled incrementally
-    "strict": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "exactOptionalPropertyTypes": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noImplicitAny": true,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
-    "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noImplicitOverride": true,
-    "skipLibCheck": true,
-
-    // Path mapping for shared packages and src imports
     "paths": {
       "@foodwaste/shared": ["../../packages/shared/src"],
       "@foodwaste/shared/*": ["../../packages/shared/src/*"],
       "src/*": ["./src/*"],
+      // csv-writer has no types — shim lives here
       "csv-writer": ["./src/common/types/csv-writer.shim.ts"]
     }
   },
@@ -56,9 +30,5 @@
     "**/*.test.js",
     "**/*.d.ts"
   ],
-  "references": [
-    {
-      "path": "../../packages/shared"
-    }
-  ]
+  "references": [{ "path": "../../packages/shared" }]
 }

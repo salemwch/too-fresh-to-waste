@@ -14,29 +14,22 @@ import { RateLimitGuard } from '../common/validators/RateLimitGuard';
 import { EmailModule } from '../email/email.module';
 import { EstablishmentsModule } from '../establishments/establishments.module';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
-import { Order, OrderSchema } from '../orders/schemas/order.schema';
-import { ReviewsController } from './reviwes.controller';
-import { ReviewsService } from './reviwes.service';
-
-// Import related schemas
-import { User, UserSchema } from '../users/schemas/user.schema';
-import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
-
-// Import related modules
+import { ReviewEventListener } from '../listeners/review-event.listener';
+import { LoyaltyModule } from '../loyalty/loyalty.module';
 import { OffersModule } from '../offers/offers.module';
-
-import { ReviewAnalyticsService } from './review-analitics.service';
-
-import { ReviewModerationService } from '../services/review-moderation.service';
-import { ReviewCacheService } from '../services/review-cache.service';
-import { ReviewProcessor } from '../proccessors/review.processor';
+import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
+import { Order, OrderSchema } from '../orders/schemas/order.schema';
 import { ReviewAnalyticsProcessor } from '../proccessors/review-analytics.processor';
 import { ReviewModerationProcessor } from '../proccessors/review-moderation.processor';
-import { ReviewEventListener } from '../listeners/review-event.listener';
+import { ReviewProcessor } from '../proccessors/review.processor';
+import { ReviewCacheService } from '../services/review-cache.service';
+import { ReviewModerationService } from '../services/review-moderation.service';
+import { User, UserSchema } from '../users/schemas/user.schema';
 
+import { ReviewAnalyticsService } from './review-analitics.service';
+import { ReviewsController } from './reviwes.controller';
+import { ReviewsService } from './reviwes.service';
 import { Review, ReviewSchema } from './schemas/reviwe.schema';
-
-import { LoyaltyModule } from '../loyalty/loyalty.module';
 
 @Module({
   imports: [

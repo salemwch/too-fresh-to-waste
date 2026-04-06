@@ -98,8 +98,9 @@ export class QueryPerformanceService implements OnModuleDestroy {
       `🔍 Query performance monitoring enabled (threshold: ${this.SLOW_QUERY_THRESHOLD_MS}ms)`,
     );
 
-    // Store reference to service instance for use in callbacks
-    const service = this;
+    const trackQueryStats = this.trackQueryStats.bind(this);
+    const logSlowQuery = this.logSlowQuery.bind(this);
+    const slowQueryThresholdMs = this.SLOW_QUERY_THRESHOLD_MS;
 
     // Mongoose 8.x compatible: Use regex pattern instead of array
     // This matches all query/document middleware methods we want to monitor
@@ -127,11 +128,11 @@ export class QueryPerformanceService implements OnModuleDestroy {
         const collection = mongooseCollection?.collectionName ?? 'unknown';
 
         // Track query statistics (use service reference)
-        service.trackQueryStats(operation, collection, duration);
+        trackQueryStats(operation, collection, duration);
 
         // Log slow queries
-        if (duration >= service.SLOW_QUERY_THRESHOLD_MS) {
-          service.logSlowQuery(
+        if (duration >= slowQueryThresholdMs) {
+          logSlowQuery(
             operation,
             collection,
             duration,

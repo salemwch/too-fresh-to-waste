@@ -5,6 +5,7 @@
 The Loyalty module implements a comprehensive points-based reward system with gamification features for the Too Fresh To Waste platform. Users earn points through various activities (purchases, referrals, reviews, streaks) and can donate points to community food relief.
 
 **Key Features:**
+
 - Tiered points system with multipliers
 - Points donation to community food relief (100 points = 1 TND)
 - Gamification: referral codes, login streaks, purchase streaks, review rewards
@@ -41,6 +42,7 @@ loyalty/
 Located at: `loyalty-account.schema.ts:211`
 
 **Core Fields:**
+
 ```typescript
 userId: ObjectId (unique)           // Reference to User
 totalPoints: number                 // Lifetime points accumulated
@@ -55,6 +57,7 @@ referralCode: string                // Unique code like "JOHN1234"
 ```
 
 **Gamification Fields:**
+
 ```typescript
 friendReferrals: FriendReferral[]        // Friend referral tracking
 businessReferrals: BusinessReferral[]    // Business referral tracking
@@ -64,6 +67,7 @@ reviewTracking: ReviewTracking           // Review history and points
 ```
 
 **Indexes:**
+
 - `{ totalPoints: -1 }` - Leaderboards
 - `{ currentTier: 1 }` - Tier filtering
 - `{ referralCode: 1 }` - Unique, sparse (only set when generated)
@@ -75,6 +79,7 @@ reviewTracking: ReviewTracking           // Review history and points
 ### Sub-Schemas
 
 **Badge** (`loyalty-account.schema.ts:19`)
+
 ```typescript
 type: BadgeType (enum)       // newcomer, eco_warrior, frequent_saver, etc.
 earnedAt: Date
@@ -84,6 +89,7 @@ iconUrl: string
 ```
 
 **PointTransaction** (`loyalty-account.schema.ts:37`)
+
 ```typescript
 amount: number               // Positive or negative
 type: 'earned' | 'redeemed' | 'expired' | 'donated'
@@ -95,6 +101,7 @@ expiresAt?: Date             // Points expiration (default: 1 year)
 ```
 
 **FriendReferral** (`loyalty-account.schema.ts:86`)
+
 ```typescript
 friendUserId: ObjectId
 referredAt: Date
@@ -106,6 +113,7 @@ pointsAwarded: number        // 15 points when completed
 ```
 
 **BusinessReferral** (`loyalty-account.schema.ts:120`)
+
 ```typescript
 businessUserId: ObjectId
 establishmentId?: ObjectId
@@ -118,6 +126,7 @@ pointsAwarded: number        // 30 points when completed
 ```
 
 **LoginStreak** (`loyalty-account.schema.ts:151`)
+
 ```typescript
 currentStreak: number        // Current consecutive days
 lastLoginDate?: Date
@@ -127,6 +136,7 @@ longestStreak: number        // Historical best
 ```
 
 **PurchaseStreak** (`loyalty-account.schema.ts:173`)
+
 ```typescript
 bagsThisPeriod: number       // Bags in current 15-day period
 periodStartDate?: Date
@@ -136,6 +146,7 @@ totalStreaksCompleted: number
 ```
 
 **ReviewTracking** (`loyalty-account.schema.ts:195`)
+
 ```typescript
 reviewedOrderIds: ObjectId[] // Prevent duplicate review points
 totalReviewsCount: number
@@ -149,17 +160,18 @@ totalReviewPoints: number
 Defined in `loyalty.service.ts:22`
 
 | Tier     | Min Points | Multiplier | Benefits                    |
-|----------|-----------|------------|----------------------------|
-| Bronze   | 0         | 1.0×       | Standard earning rate      |
-| Silver   | 400       | 1.2×       | 20% bonus on points earned |
-| Gold     | 1,200     | 1.5×       | 50% bonus on points earned |
-| Platinum | 2,700     | 2.0×       | 100% bonus on points earned|
+| -------- | ---------- | ---------- | --------------------------- |
+| Bronze   | 0          | 1.0×       | Standard earning rate       |
+| Silver   | 400        | 1.2×       | 20% bonus on points earned  |
+| Gold     | 1,200      | 1.5×       | 50% bonus on points earned  |
+| Platinum | 2,700      | 2.0×       | 100% bonus on points earned |
 
 **Note:** Tiers apply multipliers to point earnings but **do not provide discounts**.
 
 ### Points to TND Conversion
 
 `loyalty.service.ts:33`
+
 - **Rate:** 100 points = 1 TND
 - **Usage:** Points donation to community food relief only
 - **Meal estimate:** Based on `DONATION_CONSTANTS.MEAL_COST_ESTIMATE_TND` from DonationsModule
@@ -167,16 +179,20 @@ Defined in `loyalty.service.ts:22`
 ### Earning Points
 
 **Welcome Bonus** (`loyalty.service.ts:66`)
+
 - 100 points on account creation
 
 **Legacy Referral** (deprecated - use gamification referrals instead)
+
 - 200 points when referred user signs up
 
 **Order Completion** (called by OrderService)
+
 - Points awarded via `addPoints()` based on order value
 - Multiplied by current tier multiplier
 
 **Gamification Rewards:**
+
 - See "Gamification Features" section below
 
 ### Donating Points
@@ -184,6 +200,7 @@ Defined in `loyalty.service.ts:22`
 `loyalty.service.ts:142` | Endpoint: `POST /loyalty/donate`
 
 **Process:**
+
 1. Validate user has sufficient `availablePoints`
 2. Convert points to TND: `donationAmount = points × 0.01`
 3. Calculate estimated meals: `Math.floor(donationAmount / MEAL_COST_ESTIMATE_TND)`
@@ -192,6 +209,7 @@ Defined in `loyalty.service.ts:22`
 6. Create 'donated' type transaction in `pointsHistory`
 
 **Response:**
+
 ```typescript
 {
   success: true,
@@ -211,11 +229,13 @@ Constants defined in `gamification.service.ts:17`
 ### 1. Referral Code System
 
 **Generation** (`gamification.service.ts:64`)
+
 - Format: `NAME1234` (4 chars from name + 4 random alphanumeric)
 - Unique constraint enforced by MongoDB index
 - Fallback to timestamp-based code if collision after 10 attempts
 
 **Usage:**
+
 - Users share code with friends and businesses
 - New users enter code during signup
 - Endpoint: `GET /loyalty/referral-code` returns user's code
@@ -223,11 +243,13 @@ Constants defined in `gamification.service.ts:17`
 ### 2. Friend Referral Program
 
 **Rules:**
+
 - Friend must buy **10 bags** within **30 days** of signup
 - Referrer earns **15 points** when completed
 - Status: PENDING → COMPLETED or EXPIRED
 
 **Flow:**
+
 1. Friend signs up with referral code → `registerFriendReferral()`
 2. Each time friend picks up order → `updateFriendBagCount()` (called from OrderService)
 3. When `friendBagCount >= 10` → Award points, mark COMPLETED
@@ -238,11 +260,13 @@ Constants defined in `gamification.service.ts:17`
 ### 3. Business Referral Program
 
 **Rules:**
+
 - Business must complete **30 orders** within **30 days** of signup
 - Referrer earns **30 points** when completed
 - Status: PENDING → COMPLETED or EXPIRED
 
 **Flow:**
+
 1. Business signs up with referral code → `registerBusinessReferral()`
 2. Each time business completes order → `updateBusinessOrderCount()` (called from OrderService)
 3. When `businessOrderCount >= 30` → Award points, mark COMPLETED
@@ -253,11 +277,13 @@ Constants defined in `gamification.service.ts:17`
 ### 4. Login Streak
 
 **Rules:**
+
 - **2 points/day** for first **10 consecutive login days**
 - **Max 20 points/month** (resets monthly)
 - Streak breaks if user doesn't log in for >1 day
 
 **Implementation** (`gamification.service.ts:324`)
+
 - Called when user logs in: `recordDailyLogin(userId)`
 - Checks if already logged in today (no double points)
 - Checks if yesterday's login exists (streak continues or resets)
@@ -269,11 +295,13 @@ Constants defined in `gamification.service.ts:17`
 ### 5. Purchase Streak
 
 **Rules:**
+
 - Buy **15 bags within 15 days** → **10 points**
 - Can only earn once per month
 - Period resets if 15 days pass without completion
 
 **Implementation** (`gamification.service.ts:410`)
+
 - Called on order pickup: `updatePurchaseStreak(userId, bagsCount)`
 - Tracks `bagsThisPeriod` and `periodStartDate`
 - Awards points when threshold reached and not already completed this month
@@ -284,11 +312,13 @@ Constants defined in `gamification.service.ts:17`
 ### 6. Review Rewards
 
 **Rules:**
+
 - **10 points** per review (one per order)
 - Minimum **6 words** required
 - Prevents duplicate reviews for same order
 
 **Implementation** (`gamification.service.ts:482`)
+
 - Called when review submitted: `awardReviewPoints(userId, orderId, reviewText)`
 - Validates word count: `reviewText.trim().split(/\s+/).filter(w => w.length > 0).length >= 6`
 - Checks `reviewTracking.reviewedOrderIds` to prevent duplicates
@@ -306,24 +336,25 @@ Defined in `loyalty-account.schema.ts:4`
 
 ```typescript
 enum BadgeType {
-  NEWCOMER = 'newcomer',                // Welcome badge (auto-awarded)
-  ECO_WARRIOR = 'eco_warrior',          // 1000 TND spent
-  FREQUENT_SAVER = 'frequent_saver',    // 10 orders completed
-  EARLY_BIRD = 'early_bird',            // (Not implemented yet)
-  NIGHT_OWL = 'night_owl',              // (Not implemented yet)
-  LOYAL_CUSTOMER = 'loyal_customer',    // (Not implemented yet)
-  SUPER_SAVER = 'super_saver',          // (Not implemented yet)
+  NEWCOMER = 'newcomer', // Welcome badge (auto-awarded)
+  ECO_WARRIOR = 'eco_warrior', // 1000 TND spent
+  FREQUENT_SAVER = 'frequent_saver', // 10 orders completed
+  EARLY_BIRD = 'early_bird', // (Not implemented yet)
+  NIGHT_OWL = 'night_owl', // (Not implemented yet)
+  LOYAL_CUSTOMER = 'loyal_customer', // (Not implemented yet)
+  SUPER_SAVER = 'super_saver', // (Not implemented yet)
   COMMUNITY_CHAMPION = 'community_champion', // (Not implemented yet)
-  STREAK_MASTER = 'streak_master',      // (Not implemented yet)
+  STREAK_MASTER = 'streak_master', // (Not implemented yet)
   REFERRAL_CHAMPION = 'referral_champion', // (Not implemented yet)
   BUSINESS_RECRUITER = 'business_recruiter', // (Not implemented yet)
-  REVIEWER = 'reviewer',                // (Not implemented yet)
+  REVIEWER = 'reviewer', // (Not implemented yet)
 }
 ```
 
 ### Current Auto-Awarded Badges
 
 **NEWCOMER** - Awarded on account creation
+
 ```typescript
 {
   type: 'newcomer',
@@ -334,6 +365,7 @@ enum BadgeType {
 ```
 
 **FREQUENT_SAVER** - Awarded after 10 orders
+
 ```typescript
 {
   type: 'frequent_saver',
@@ -344,6 +376,7 @@ enum BadgeType {
 ```
 
 **ECO_WARRIOR** - Awarded after 1000 TND spent
+
 ```typescript
 {
   type: 'eco_warrior',
@@ -362,21 +395,25 @@ All endpoints under `/loyalty` require `@UseGuards(JwtAuthGuard)` - Bearer token
 ### Core Loyalty
 
 **POST /loyalty/account**
+
 - Summary: Create loyalty account
 - Body: `CreateLoyaltyAccountDto` (userId, optional referredBy)
 - Response: 201 - LoyaltyAccount created with 100 point welcome bonus
 - Error: 400 - Account already exists
 
 **GET /loyalty/account**
+
 - Summary: Get user loyalty account
 - Response: 200 - Full LoyaltyAccount document
 - Error: 404 - Account not found
 
 **GET /loyalty/stats**
+
 - Summary: Get loyalty statistics summary
 - Response: 200 - `LoyaltyStatsDto` (points, tier, badges, orders, spending)
 
 **POST /loyalty/points/add** (Admin only)
+
 - Guards: `JwtAuthGuard` + `RolesGuard` + `@Roles(ADMIN)`
 - Params: `userId` (path parameter)
 - Body: `AddPointsDto` (amount, reason, optional orderId/offerId/expiresAt)
@@ -386,6 +423,7 @@ All endpoints under `/loyalty` require `@UseGuards(JwtAuthGuard)` - Bearer token
 ### Donations
 
 **POST /loyalty/donate**
+
 - Summary: Donate points to community food relief
 - Body: `DonatePointsDto` (amount, optional isAnonymous, message)
 - Response: 200 - `DonatePointsResponseDto` (conversion details, estimated meals)
@@ -393,22 +431,26 @@ All endpoints under `/loyalty` require `@UseGuards(JwtAuthGuard)` - Bearer token
 - Conversion: 100 points = 1 TND
 
 **GET /loyalty/donations/history**
+
 - Summary: Get user donation history
 - Response: 200 - Array of `PointTransaction` with type='donated'
 
 ### Gamification
 
 **GET /loyalty/referral-code**
+
 - Summary: Get or generate referral code
 - Response: 200 - `{ referralCode: string }`
 - Auto-generates code if user doesn't have one
 
 **GET /loyalty/gamification**
+
 - Summary: Get gamification progress
 - Response: 200 - Full gamification stats (referrals, streaks, reviews)
 - See `gamification.service.ts:536` for response structure
 
 **POST /loyalty/login-streak**
+
 - Summary: Record daily login for streak
 - Response: 200 - `{ streakDays, pointsAwarded, message }`
 - Awards 2 pts/day for 10-day streaks (max 20 pts/month)
@@ -548,6 +590,7 @@ async register(registerDto: RegisterDto) {
 **Purpose:** Mark expired referrals (friend/business) that didn't complete within 30 days
 
 **Process:**
+
 1. Find all PENDING friend referrals where `expiresAt < now`
 2. Update status to EXPIRED using arrayFilters
 3. Find all PENDING business referrals where `expiresAt < now`
@@ -555,43 +598,46 @@ async register(registerDto: RegisterDto) {
 5. Log count of expired referrals
 
 **MongoDB Query:**
+
 ```typescript
 loyaltyModel.updateMany(
   {
     'friendReferrals.status': 'pending',
-    'friendReferrals.expiresAt': { $lt: now }
+    'friendReferrals.expiresAt': { $lt: now },
   },
   {
-    $set: { 'friendReferrals.$[elem].status': 'expired' }
+    $set: { 'friendReferrals.$[elem].status': 'expired' },
   },
   {
-    arrayFilters: [
-      { 'elem.status': 'pending', 'elem.expiresAt': { $lt: now } }
-    ]
-  }
+    arrayFilters: [{ 'elem.status': 'pending', 'elem.expiresAt': { $lt: now } }],
+  },
 );
 ```
 
 ## Security & Validation
 
 ### Authentication
+
 - All endpoints require JWT bearer token
 - User ID extracted from JWT via `@GetUser('id')` decorator
 - Admin-only endpoints use `@Roles(UserRole.ADMIN)` guard
 
 ### Input Validation
+
 - DTOs use `class-validator` decorators
 - Points amounts: `@Min(1)` - prevent negative or zero
 - MongoDB ObjectIds: `@IsMongoId()` validation
 - Strings: `@IsString()` with optional `@IsOptional()`
 
 ### Business Logic Validation
+
 - Duplicate prevention: Check existing account before creation
 - Point sufficiency: Verify `availablePoints >= donateDto.amount`
 - Duplicate review prevention: Check `reviewedOrderIds` array
 - Word count enforcement: `reviewText.trim().split(/\s+/).filter(w => w.length > 0).length >= 6`
 
 ### Error Handling
+
 - `NotFoundException` - Account not found (404)
 - `BadRequestException` - Insufficient points, account exists (400)
 - Try-catch blocks with structured logging via Winston
@@ -602,6 +648,7 @@ loyaltyModel.updateMany(
 ### Unit Tests
 
 **LoyaltyService:**
+
 - `createLoyaltyAccount()` - Welcome bonus, duplicate detection, referral handling
 - `addPoints()` - Tier multiplier application, point history tracking
 - `donatePoints()` - Conversion rate, pool integration, insufficient points
@@ -609,6 +656,7 @@ loyaltyModel.updateMany(
 - `checkAndAwardBadges()` - Milestone detection, duplicate prevention
 
 **GamificationService:**
+
 - `generateReferralCode()` - Uniqueness, format, collision handling
 - `recordDailyLogin()` - Streak continuation, monthly cap, idempotency
 - `updatePurchaseStreak()` - Period reset, monthly limit
@@ -656,6 +704,7 @@ loyaltyModel.updateMany(
 ### Logs
 
 **Key Log Events:**
+
 - Loyalty account creation: `Loyalty account created for user: ${userId}`
 - Points added: `Added ${points} points to user: ${userId}`
 - Referral completion: `Friend/Business referral completed! Awarded ${points} points...`
@@ -663,6 +712,7 @@ loyaltyModel.updateMany(
 - Cron job: `Expired referrals: ${friendCount} friend, ${businessCount} business`
 
 **Error Logs:**
+
 - Account creation failures
 - Points transaction failures
 - Gamification integration errors (non-blocking)
@@ -678,6 +728,7 @@ loyaltyModel.updateMany(
 ### Health Checks
 
 No dedicated health checks. Consider adding:
+
 - Verify LoyaltyAccount collection accessible
 - Check for orphaned referrals (referrer/friend user deleted)
 - Monitor points:TND conversion rate consistency
@@ -689,6 +740,7 @@ Auth: `@ApiBearerAuth()`
 Access: `http://localhost:3000/api/v1/api-docs#/Loyalty`
 
 All endpoints documented with:
+
 - `@ApiOperation({ summary })` - Endpoint description
 - `@ApiResponse()` - Status codes and descriptions
 - DTOs automatically generate request/response schemas
@@ -696,6 +748,7 @@ All endpoints documented with:
 ## References
 
 **Source Files:**
+
 - `loyalty.controller.ts:27` - Controller with all endpoints
 - `loyalty.service.ts:14` - Core loyalty logic
 - `gamification.service.ts:47` - Gamification features
@@ -703,12 +756,14 @@ All endpoints documented with:
 - `loyalty-account.dto.ts:1` - Request/response DTOs
 
 **Related Modules:**
+
 - `src/donations/` - Points donation integration
 - `src/auth/` - Login streak integration point
 - `src/orders/` - Order completion, purchase streak integration
 - `src/reviwes/` - Review points integration (note: typo in folder name)
 
 **External Dependencies:**
+
 - Mongoose 8.18 - Schema definition, queries
 - @nestjs/schedule - Cron jobs
 - class-validator - DTO validation

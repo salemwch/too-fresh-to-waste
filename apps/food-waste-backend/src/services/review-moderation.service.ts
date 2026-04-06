@@ -321,7 +321,7 @@ export class ReviewModerationService {
         flags.push('invalid_images');
         if (status === 'APPROVED') {
           status = 'PENDING';
-          reason = imageValidation.reason || 'Images require manual review';
+          reason = imageValidation.reason ?? 'Images require manual review';
         }
         confidence = Math.min(confidence, 0.7);
       }

@@ -21,10 +21,10 @@ export enum LogCategory {
 
 @Schema({ timestamps: true })
 export class ModerationLog {
-  @Prop({ type: String, enum: LogLevel, required: true, index: true })
+  @Prop({ type: String, enum: LogLevel, required: true })
   level!: LogLevel;
 
-  @Prop({ type: String, enum: LogCategory, required: true, index: true })
+  @Prop({ type: String, enum: LogCategory, required: true })
   category!: LogCategory;
 
   @Prop({ required: true })
@@ -33,19 +33,19 @@ export class ModerationLog {
   @Prop({ required: true, maxlength: 2000 })
   description!: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   performedBy!: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, index: true })
+  @Prop({ type: Types.ObjectId })
   targetId?: Types.ObjectId;
 
   @Prop()
   targetType?: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Report', index: true })
+  @Prop({ type: Types.ObjectId, ref: 'Report' })
   relatedReportId?: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'ModerationAction', index: true })
+  @Prop({ type: Types.ObjectId, ref: 'ModerationAction' })
   relatedActionId?: Types.ObjectId;
 
   @Prop({

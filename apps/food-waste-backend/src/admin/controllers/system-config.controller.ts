@@ -106,7 +106,7 @@ export class SystemConfigController {
     description: 'Maximum number of results (default: 20)',
   })
   async getConfigHistory(@Query('limit') limit?: number): Promise<ISystemConfig[]> {
-    const result = await this.systemConfigService.getConfigHistory(limit || 20);
+    const result = await this.systemConfigService.getConfigHistory(limit ?? 20);
     return result;
   }
 

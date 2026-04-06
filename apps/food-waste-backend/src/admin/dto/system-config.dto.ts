@@ -1,11 +1,20 @@
-import { IsOptional, IsString, IsBoolean, IsNumber, IsEnum, Min, Max, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import {
+  IsOptional,
+  IsString,
+  IsBoolean,
+  IsNumber,
+  IsEnum,
+  Min,
+  Max,
+  ValidateNested,
+} from 'class-validator';
 
 class PlatformSettingsDto {
   @ApiPropertyOptional({
     description: 'Enable maintenance mode',
-    example: false
+    example: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -13,7 +22,7 @@ class PlatformSettingsDto {
 
   @ApiPropertyOptional({
     description: 'Allow new user registrations',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -21,7 +30,7 @@ class PlatformSettingsDto {
 
   @ApiPropertyOptional({
     description: 'Require manual approval for establishments',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -31,7 +40,7 @@ class PlatformSettingsDto {
     description: 'Maximum offers per establishment',
     example: 50,
     minimum: 1,
-    maximum: 1000
+    maximum: 1000,
   })
   @IsOptional()
   @IsNumber()
@@ -43,7 +52,7 @@ class PlatformSettingsDto {
     description: 'Default offer expiration in hours',
     example: 24,
     minimum: 1,
-    maximum: 168
+    maximum: 168,
   })
   @IsOptional()
   @IsNumber()
@@ -54,7 +63,7 @@ class PlatformSettingsDto {
   @ApiPropertyOptional({
     description: 'Minimum order value in currency units',
     example: 1,
-    minimum: 0
+    minimum: 0,
   })
   @IsOptional()
   @IsNumber()
@@ -64,7 +73,7 @@ class PlatformSettingsDto {
   @ApiPropertyOptional({
     description: 'Maximum order value in currency units',
     example: 1000,
-    minimum: 1
+    minimum: 1,
   })
   @IsOptional()
   @IsNumber()
@@ -75,7 +84,7 @@ class PlatformSettingsDto {
     description: 'Platform commission rate as percentage',
     example: 15,
     minimum: 0,
-    maximum: 50
+    maximum: 50,
   })
   @IsOptional()
   @IsNumber()
@@ -87,7 +96,7 @@ class PlatformSettingsDto {
     description: 'Automatic refund timeout in hours',
     example: 24,
     minimum: 1,
-    maximum: 168
+    maximum: 168,
   })
   @IsOptional()
   @IsNumber()
@@ -99,7 +108,7 @@ class PlatformSettingsDto {
 class NotificationSettingsDto {
   @ApiPropertyOptional({
     description: 'Enable email notifications',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -107,7 +116,7 @@ class NotificationSettingsDto {
 
   @ApiPropertyOptional({
     description: 'Enable SMS notifications',
-    example: false
+    example: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -115,7 +124,7 @@ class NotificationSettingsDto {
 
   @ApiPropertyOptional({
     description: 'Enable push notifications',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -123,7 +132,7 @@ class NotificationSettingsDto {
 
   @ApiPropertyOptional({
     description: 'Enable admin email alerts',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -131,7 +140,7 @@ class NotificationSettingsDto {
 
   @ApiPropertyOptional({
     description: 'Enable order confirmation notifications',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -139,7 +148,7 @@ class NotificationSettingsDto {
 
   @ApiPropertyOptional({
     description: 'Enable order reminder notifications',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -147,7 +156,7 @@ class NotificationSettingsDto {
 
   @ApiPropertyOptional({
     description: 'Enable promotional email notifications',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -159,7 +168,7 @@ class SecuritySettingsDto {
     description: 'Maximum login attempts before lockout',
     example: 5,
     minimum: 3,
-    maximum: 10
+    maximum: 10,
   })
   @IsOptional()
   @IsNumber()
@@ -171,7 +180,7 @@ class SecuritySettingsDto {
     description: 'Login attempt window in minutes',
     example: 15,
     minimum: 5,
-    maximum: 60
+    maximum: 60,
   })
   @IsOptional()
   @IsNumber()
@@ -183,7 +192,7 @@ class SecuritySettingsDto {
     description: 'Account lockout duration in minutes',
     example: 30,
     minimum: 5,
-    maximum: 1440
+    maximum: 1440,
   })
   @IsOptional()
   @IsNumber()
@@ -195,7 +204,7 @@ class SecuritySettingsDto {
     description: 'Minimum password length',
     example: 8,
     minimum: 6,
-    maximum: 128
+    maximum: 128,
   })
   @IsOptional()
   @IsNumber()
@@ -205,7 +214,7 @@ class SecuritySettingsDto {
 
   @ApiPropertyOptional({
     description: 'Require special characters in password',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -213,7 +222,7 @@ class SecuritySettingsDto {
 
   @ApiPropertyOptional({
     description: 'Require numbers in password',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -221,7 +230,7 @@ class SecuritySettingsDto {
 
   @ApiPropertyOptional({
     description: 'Require uppercase letters in password',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -231,7 +240,7 @@ class SecuritySettingsDto {
     description: 'Session timeout in minutes',
     example: 480,
     minimum: 30,
-    maximum: 1440
+    maximum: 1440,
   })
   @IsOptional()
   @IsNumber()
@@ -241,7 +250,7 @@ class SecuritySettingsDto {
 
   @ApiPropertyOptional({
     description: 'Require two-factor authentication',
-    example: false
+    example: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -251,7 +260,7 @@ class SecuritySettingsDto {
 class PaymentSettingsDto {
   @ApiPropertyOptional({
     description: 'Enable Stripe payments',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -259,7 +268,7 @@ class PaymentSettingsDto {
 
   @ApiPropertyOptional({
     description: 'Enable PayPal payments',
-    example: false
+    example: false,
   })
   @IsOptional()
   @IsBoolean()
@@ -268,7 +277,7 @@ class PaymentSettingsDto {
   @ApiPropertyOptional({
     description: 'Minimum payout amount',
     example: 10,
-    minimum: 1
+    minimum: 1,
   })
   @IsOptional()
   @IsNumber()
@@ -278,7 +287,7 @@ class PaymentSettingsDto {
   @ApiPropertyOptional({
     enum: ['daily', 'weekly', 'monthly'],
     description: 'Automatic payout frequency',
-    example: 'weekly'
+    example: 'weekly',
   })
   @IsOptional()
   @IsEnum(['daily', 'weekly', 'monthly'])
@@ -286,7 +295,7 @@ class PaymentSettingsDto {
 
   @ApiPropertyOptional({
     description: 'Enable automatic payouts',
-    example: true
+    example: true,
   })
   @IsOptional()
   @IsBoolean()
@@ -296,7 +305,7 @@ class PaymentSettingsDto {
     description: 'Refund processing time in days',
     example: 3,
     minimum: 1,
-    maximum: 30
+    maximum: 30,
   })
   @IsOptional()
   @IsNumber()
@@ -308,7 +317,7 @@ class PaymentSettingsDto {
 export class UpdateSystemConfigDto {
   @ApiPropertyOptional({
     description: 'Platform configuration settings',
-    type: PlatformSettingsDto
+    type: PlatformSettingsDto,
   })
   @IsOptional()
   @ValidateNested()
@@ -317,7 +326,7 @@ export class UpdateSystemConfigDto {
 
   @ApiPropertyOptional({
     description: 'Notification configuration settings',
-    type: NotificationSettingsDto
+    type: NotificationSettingsDto,
   })
   @IsOptional()
   @ValidateNested()
@@ -326,7 +335,7 @@ export class UpdateSystemConfigDto {
 
   @ApiPropertyOptional({
     description: 'Security configuration settings',
-    type: SecuritySettingsDto
+    type: SecuritySettingsDto,
   })
   @IsOptional()
   @ValidateNested()
@@ -335,7 +344,7 @@ export class UpdateSystemConfigDto {
 
   @ApiPropertyOptional({
     description: 'Payment configuration settings',
-    type: PaymentSettingsDto
+    type: PaymentSettingsDto,
   })
   @IsOptional()
   @ValidateNested()
@@ -344,7 +353,7 @@ export class UpdateSystemConfigDto {
 
   @ApiPropertyOptional({
     description: 'Configuration description',
-    example: 'Updated security settings for enhanced protection'
+    example: 'Updated security settings for enhanced protection',
   })
   @IsOptional()
   @IsString()

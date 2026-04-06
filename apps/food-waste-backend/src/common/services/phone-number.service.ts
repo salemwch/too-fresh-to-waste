@@ -21,6 +21,7 @@ import {
   CountryCode,
   PhoneNumber,
   E164Number,
+  ValidatePhoneNumberLengthResult,
 } from 'libphonenumber-js';
 
 /**
@@ -114,7 +115,7 @@ export class PhoneNumberService {
       // Parse for details
       const parsed = parsePhoneNumber(phoneNumber, defaultCountry);
 
-      if (!parsed) {
+      if (parsed === null || parsed === undefined) {
         return {
           isValid: false,
           isPossible: possible,
@@ -127,7 +128,7 @@ export class PhoneNumberService {
         isPossible: true,
         details: this.getPhoneNumberDetails(parsed),
       };
-    } catch {
+    } catch (error) {
       return {
         isValid: false,
         isPossible: false,
@@ -161,7 +162,9 @@ export class PhoneNumberService {
         return null;
       }
 
-      switch (options.format) {
+      const format = options.format ?? 'international';
+
+      switch (format) {
         case 'national':
           return parsed.formatNational();
         case 'e164':
@@ -169,7 +172,6 @@ export class PhoneNumberService {
         case 'rfc3966':
           return parsed.format('RFC3966');
         case 'international':
-        default:
           return parsed.formatInternational();
       }
     } catch {
@@ -220,7 +222,7 @@ export class PhoneNumberService {
           ? parsePhoneNumber(phoneNumber, defaultCountry)
           : phoneNumber;
 
-      if (!parsed) {
+      if (parsed === null || parsed === undefined) {
         return null;
       }
 
@@ -339,7 +341,13 @@ export class PhoneNumberService {
    * Get user-friendly error message from validation result
    * Private helper method
    */
-  private getValidationErrorMessage(validationResult: string | undefined): string {
+  private getValidationErrorMessage(
+    validationResult: ValidatePhoneNumberLengthResult | undefined,
+  ): string {
+    if (validationResult === null || validationResult === undefined) {
+      return 'Invalid phone number';
+    }
+
     switch (validationResult) {
       case 'TOO_SHORT':
         return 'Phone number is too short';
@@ -351,8 +359,6 @@ export class PhoneNumberService {
         return 'Phone number has invalid length';
       case 'NOT_A_NUMBER':
         return 'Not a valid phone number';
-      default:
-        return 'Invalid phone number';
     }
   }
 }

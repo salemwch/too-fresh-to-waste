@@ -15,8 +15,10 @@ import {
   EstablishmentGeoData,
   OfferGeoData,
   MapEstablishmentGeoData,
+  MapOfferSummary,
   GeoCoordinate,
   DistanceUnit,
+  AddressInfo,
 } from '../interfaces/geolocation.interface';
 import { DistanceCalculator } from '../utils/distance.util';
 
@@ -28,6 +30,79 @@ export interface ProximitySearchOptions {
   minRating?: number | undefined;
   maxPrice?: number | undefined;
   onlyActive?: boolean | undefined;
+}
+
+interface OfferEstablishmentLookupResult {
+  establishmentId?: {
+    _id: Types.ObjectId;
+    address?: {
+      coordinates?: {
+        coordinates?: [number, number];
+      };
+    };
+  };
+}
+
+interface AggregatedAddress extends AddressInfo {
+  street?: string | undefined;
+}
+
+interface EstablishmentSearchAggregate {
+  _id: Types.ObjectId;
+  name: string;
+  type: string;
+  address: AggregatedAddress;
+  averageRating?: number;
+  totalOffers?: number;
+  isActive: boolean;
+  isVerified: boolean;
+  coordinates: [number, number];
+}
+
+interface OfferLookupEstablishmentAggregate {
+  name: string;
+  address: AggregatedAddress;
+  averageRating?: number;
+  profileImage?: string | null | undefined;
+}
+
+interface OfferSearchAggregate {
+  _id: Types.ObjectId;
+  title: string;
+  establishmentId: Types.ObjectId;
+  establishment: OfferLookupEstablishmentAggregate;
+  pricing: OfferGeoData['pricing'];
+  availableFrom: Date;
+  availableUntil: Date;
+  availableQuantity: number;
+  categories: string[];
+  images: string[];
+}
+
+interface MapOfferAggregate {
+  _id: Types.ObjectId;
+  title: string;
+  description?: string;
+  pricing: MapOfferSummary['pricing'];
+  availableFrom: Date;
+  availableUntil: Date;
+  availableQuantity: number;
+  categories?: string[];
+  images?: string[];
+}
+
+interface MapEstablishmentAggregate {
+  _id: Types.ObjectId;
+  name: string;
+  type: string;
+  profileImage?: string | null | undefined;
+  address: AggregatedAddress;
+  averageRating?: number;
+  totalReviews?: number;
+  isVerified?: boolean;
+  activeOfferCount: number;
+  activeOffers?: MapOfferAggregate[];
+  coordinates: [number, number];
 }
 
 @Injectable()
@@ -170,7 +245,7 @@ export class ProximitySearchService {
         pipeline.push({ $skip: searchDto.skip });
       }
 
-      pipeline.push({ $limit: searchDto.limit || 20 });
+      pipeline.push({ $limit: searchDto.limit ?? 20 });
 
       // Project only needed fields
       pipeline.push({
@@ -189,7 +264,8 @@ export class ProximitySearchService {
         },
       });
 
-      const establishments = await this.establishmentModel.aggregate(pipeline);
+      const establishments =
+        await this.establishmentModel.aggregate<EstablishmentSearchAggregate>(pipeline);
 
       // Transform results to ProximitySearchResult format
       const results: ProximitySearchResult<EstablishmentGeoData>[] = establishments.map((est) => {
@@ -216,8 +292,8 @@ export class ProximitySearchService {
             formattedAddress: `${est.address.street}, ${est.address.city} ${est.address.postalCode}`,
           },
           coordinates,
-          averageRating: est.averageRating,
-          totalOffers: est.totalOffers,
+          ...(est.averageRating !== undefined ? { averageRating: est.averageRating } : {}),
+          ...(est.totalOffers !== undefined ? { totalOffers: est.totalOffers } : {}),
           isActive: est.isActive,
           isVerified: est.isVerified,
         };
@@ -401,9 +477,9 @@ export class ProximitySearchService {
       if (searchDto.skip && searchDto.skip > 0) {
         offerPipeline.push({ $skip: searchDto.skip });
       }
-      offerPipeline.push({ $limit: searchDto.limit || 20 });
+      offerPipeline.push({ $limit: searchDto.limit ?? 20 });
 
-      const offers = await this.offerModel.aggregate(offerPipeline);
+      const offers = await this.offerModel.aggregate<OfferSearchAggregate>(offerPipeline);
 
       // Create a map of establishment coordinates for quick lookup
       const establishmentCoordMap = new Map<
@@ -527,20 +603,21 @@ export class ProximitySearchService {
         { $unwind: { path: '$establishmentId', preserveNullAndEmptyArrays: true } },
       ];
 
-      const [offer] = await this.offerModel.aggregate(pipeline);
+      const [offer] = await this.offerModel.aggregate<OfferEstablishmentLookupResult>(pipeline);
 
-      if (!offer) {
+      if (offer === undefined) {
         throw new BadRequestException('Offer not found');
       }
 
       const establishment = offer.establishmentId;
-      if (!establishment?.address?.coordinates) {
+      const coordinates = establishment?.address?.coordinates?.coordinates;
+      if (establishment === null || establishment === undefined || coordinates?.length !== 2) {
         throw new BadRequestException('Establishment coordinates not found');
       }
 
       const centerCoordinates: GeoCoordinate = {
-        longitude: establishment.address.coordinates.coordinates[0],
-        latitude: establishment.address.coordinates.coordinates[1],
+        longitude: coordinates[0],
+        latitude: coordinates[1],
       };
 
       // Search nearby establishments excluding the current one
@@ -740,7 +817,7 @@ export class ProximitySearchService {
         // ── Sort + paginate ─────────────────────────────────────────────
         ...(searchDto.sortByDistance !== false ? [{ $sort: { distance: 1 as const } }] : []),
         ...(searchDto.skip && searchDto.skip > 0 ? [{ $skip: searchDto.skip }] : []),
-        { $limit: searchDto.limit || 50 },
+        { $limit: searchDto.limit ?? 50 },
 
         // ── Project ────────────────────────────────────────────────────
         {
@@ -766,7 +843,8 @@ export class ProximitySearchService {
         },
       ];
 
-      const establishments = await this.establishmentModel.aggregate(pipeline);
+      const establishments =
+        await this.establishmentModel.aggregate<MapEstablishmentAggregate>(pipeline);
 
       // ── Transform to ProximitySearchResult ──────────────────────────
       const results: ProximitySearchResult<MapEstablishmentGeoData>[] = establishments.map(
@@ -799,7 +877,7 @@ export class ProximitySearchService {
             totalReviews: est.totalReviews ?? 0,
             isVerified: est.isVerified ?? false,
             activeOfferCount: est.activeOfferCount,
-            offers: (est.activeOffers ?? []).map((o: OfferDocument) => ({
+            offers: (est.activeOffers ?? []).map((o) => ({
               _id: o._id.toString(),
               title: o.title,
               description: o.description ?? '',

@@ -65,75 +65,77 @@ establishments/
 
 #### Core Fields
 
-| Field | Type | Required | Validation | Description |
-|-------|------|----------|------------|-------------|
-| `name` | String | Yes | 2-100 chars, trimmed | Business name |
-| `description` | String | Yes | Max 500 chars | Business description |
-| `ownerId` | ObjectId | Yes | Ref: User | Merchant who owns this establishment |
-| `type` | Enum | Yes | EstablishmentType | Business category |
-| `status` | Enum | No | Default: pending | Approval workflow state |
-| `address` | Object | Yes | Address interface | Full address with geolocation |
-| `phoneNumber` | String | Yes | E.164 format | Contact phone (international) |
-| `email` | String | Yes | Valid email | Contact email |
-| `website` | String | No | - | Business website URL |
-| `images` | String[] | No | Max 8 images | Storefront/interior photos |
-| `cuisineTypes` | String[] | No | - | Food categories (for restaurants) |
-| `businessHours` | Object | No | BusinessHours | Weekly operating hours |
-| `legalDocuments` | Object | No | LegalDocuments | Uploaded compliance docs |
+| Field            | Type     | Required | Validation           | Description                          |
+| ---------------- | -------- | -------- | -------------------- | ------------------------------------ |
+| `name`           | String   | Yes      | 2-100 chars, trimmed | Business name                        |
+| `description`    | String   | Yes      | Max 500 chars        | Business description                 |
+| `ownerId`        | ObjectId | Yes      | Ref: User            | Merchant who owns this establishment |
+| `type`           | Enum     | Yes      | EstablishmentType    | Business category                    |
+| `status`         | Enum     | No       | Default: pending     | Approval workflow state              |
+| `address`        | Object   | Yes      | Address interface    | Full address with geolocation        |
+| `phoneNumber`    | String   | Yes      | E.164 format         | Contact phone (international)        |
+| `email`          | String   | Yes      | Valid email          | Contact email                        |
+| `website`        | String   | No       | -                    | Business website URL                 |
+| `images`         | String[] | No       | Max 8 images         | Storefront/interior photos           |
+| `cuisineTypes`   | String[] | No       | -                    | Food categories (for restaurants)    |
+| `businessHours`  | Object   | No       | BusinessHours        | Weekly operating hours               |
+| `legalDocuments` | Object   | No       | LegalDocuments       | Uploaded compliance docs             |
 
 #### Enums
 
 **EstablishmentType:**
+
 ```typescript
-RESTAURANT | BAKERY | GROCERY_STORE | CAFE | FAST_FOOD | SUPERMARKET | HOTEL | OTHER
+RESTAURANT | BAKERY | GROCERY_STORE | CAFE | FAST_FOOD | SUPERMARKET | HOTEL | OTHER;
 ```
 
 **EstablishmentStatus:**
+
 ```typescript
-PENDING    // Awaiting admin approval
-ACTIVE     // Approved and operational
-SUSPENDED  // Temporarily disabled
-REJECTED   // Admin rejected application
-INACTIVE   // Owner-disabled
+PENDING; // Awaiting admin approval
+ACTIVE; // Approved and operational
+SUSPENDED; // Temporarily disabled
+REJECTED; // Admin rejected application
+INACTIVE; // Owner-disabled
 ```
 
 #### Statistics & Metrics
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `averageRating` | Number | 0 | Rating (0-5) |
-| `totalReviews` | Number | 0 | Review count |
-| `totalOffers` | Number | 0 | Active offers count |
-| `completedOrders` | Number | 0 | Fulfilled order count |
+| Field             | Type   | Default | Description           |
+| ----------------- | ------ | ------- | --------------------- |
+| `averageRating`   | Number | 0       | Rating (0-5)          |
+| `totalReviews`    | Number | 0       | Review count          |
+| `totalOffers`     | Number | 0       | Active offers count   |
+| `completedOrders` | Number | 0       | Fulfilled order count |
 
 #### Verification Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `isActive` | Boolean | Operational status flag |
-| `isVerified` | Boolean | Admin verification status |
-| `verifiedAt` | Date | Verification timestamp |
-| `rejectionReason` | String | Admin rejection explanation |
+| Field             | Type    | Description                 |
+| ----------------- | ------- | --------------------------- |
+| `isActive`        | Boolean | Operational status flag     |
+| `isVerified`      | Boolean | Admin verification status   |
+| `verifiedAt`      | Date    | Verification timestamp      |
+| `rejectionReason` | String  | Admin rejection explanation |
 
 #### Soft Delete Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `isDeleted` | Boolean | Soft delete flag |
-| `deletedAt` | Date | Deletion timestamp |
-| `deletedBy` | String | User who deleted |
-| `deletionReason` | String | Deletion explanation |
+| Field            | Type    | Description          |
+| ---------------- | ------- | -------------------- |
+| `isDeleted`      | Boolean | Soft delete flag     |
+| `deletedAt`      | Date    | Deletion timestamp   |
+| `deletedBy`      | String  | User who deleted     |
+| `deletionReason` | String  | Deletion explanation |
 
 #### Address Interface
 
 ```typescript
 {
-  street: string;           // "123 Main Street"
-  city: string;             // "Paris"
-  postalCode: string;       // "75001"
-  country: string;          // "France"
+  street: string; // "123 Main Street"
+  city: string; // "Paris"
+  postalCode: string; // "75001"
+  country: string; // "France"
   coordinates: {
-    type: 'Point';          // GeoJSON type
+    type: 'Point'; // GeoJSON type
     coordinates: [number, number]; // [longitude, latitude]
   }
 }
@@ -244,15 +246,16 @@ The schema includes 18 production-grade indexes for optimal query performance:
 #### Query Middleware
 
 **Auto-exclude soft-deleted records:**
+
 ```typescript
 // Pre-find middleware
-EstablishmentSchema.pre(/^find/, function(next) {
+EstablishmentSchema.pre(/^find/, function (next) {
   this.where({ isDeleted: { $ne: true } });
   next();
 });
 
 // Pre-aggregate middleware
-EstablishmentSchema.pre('aggregate', function() {
+EstablishmentSchema.pre('aggregate', function () {
   this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
 });
 ```
@@ -267,23 +270,23 @@ All endpoints require JWT authentication (`JwtAuthGuard`). Role-specific endpoin
 
 ### Endpoint Summary
 
-| Method | Endpoint | Roles | Description |
-|--------|----------|-------|-------------|
-| POST | `/establishments` | MERCHANT | Create new establishment |
-| GET | `/establishments` | Public | List all establishments (paginated) |
-| GET | `/establishments/my-establishment` | MERCHANT | Get merchant's establishments |
-| GET | `/establishments/nearby` | Public | Geolocation-based search |
-| GET | `/establishments/pending` | ADMIN | Pending approval queue |
-| GET | `/establishments/:id` | Public | Get establishment details |
-| GET | `/establishments/:id/stats` | OWNER, ADMIN | Get establishment statistics |
-| PATCH | `/establishments/:id` | OWNER, ADMIN | Update establishment |
-| PATCH | `/establishments/:id/status` | ADMIN | Update approval status |
-| PATCH | `/establishments/:id/verify` | ADMIN | Approve establishment |
-| PATCH | `/establishments/:id/reject` | ADMIN | Reject establishment |
-| POST | `/establishments/:id/documents` | MERCHANT, ADMIN | Upload legal document |
-| PATCH | `/establishments/:id/documents/:type/verify` | ADMIN | Verify document |
-| DELETE | `/establishments/:id/documents/:type` | OWNER, ADMIN | Delete document |
-| DELETE | `/establishments/:id` | OWNER, ADMIN | Soft delete establishment |
+| Method | Endpoint                                     | Roles           | Description                         |
+| ------ | -------------------------------------------- | --------------- | ----------------------------------- |
+| POST   | `/establishments`                            | MERCHANT        | Create new establishment            |
+| GET    | `/establishments`                            | Public          | List all establishments (paginated) |
+| GET    | `/establishments/my-establishment`           | MERCHANT        | Get merchant's establishments       |
+| GET    | `/establishments/nearby`                     | Public          | Geolocation-based search            |
+| GET    | `/establishments/pending`                    | ADMIN           | Pending approval queue              |
+| GET    | `/establishments/:id`                        | Public          | Get establishment details           |
+| GET    | `/establishments/:id/stats`                  | OWNER, ADMIN    | Get establishment statistics        |
+| PATCH  | `/establishments/:id`                        | OWNER, ADMIN    | Update establishment                |
+| PATCH  | `/establishments/:id/status`                 | ADMIN           | Update approval status              |
+| PATCH  | `/establishments/:id/verify`                 | ADMIN           | Approve establishment               |
+| PATCH  | `/establishments/:id/reject`                 | ADMIN           | Reject establishment                |
+| POST   | `/establishments/:id/documents`              | MERCHANT, ADMIN | Upload legal document               |
+| PATCH  | `/establishments/:id/documents/:type/verify` | ADMIN           | Verify document                     |
+| DELETE | `/establishments/:id/documents/:type`        | OWNER, ADMIN    | Delete document                     |
+| DELETE | `/establishments/:id`                        | OWNER, ADMIN    | Soft delete establishment           |
 
 ---
 
@@ -324,7 +327,9 @@ All endpoints require JWT authentication (`JwtAuthGuard`). Role-specific endpoin
     "sunday": { "open": "00:00", "close": "00:00", "closed": true }
   },
   "acceptsReservations": true,
-  "images": [/* File objects */]
+  "images": [
+    /* File objects */
+  ]
 }
 ```
 
@@ -351,7 +356,9 @@ All endpoints require JWT authentication (`JwtAuthGuard`). Role-specific endpoin
       "http://localhost:3000/storage/establishments/storefront_1625097600000_abc123.jpg",
       "http://localhost:3000/storage/establishments/interior_1625097600000_def456.jpg"
     ],
-    "address": { /* ... */ },
+    "address": {
+      /* ... */
+    },
     "phoneNumber": "+33612345678",
     "email": "contact@freshcorner.fr",
     "ownerId": "507f1f77bcf86cd799439022",
@@ -378,19 +385,19 @@ All endpoints require JWT authentication (`JwtAuthGuard`). Role-specific endpoin
 
 #### Query Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `page` | Number | 1 | Page number |
-| `limit` | Number | 10 | Items per page (max 100) |
-| `search` | String | - | Full-text search (name, description) |
-| `type` | Enum | - | Filter by establishment type |
-| `status` | Enum | - | Filter by status |
-| `latitude` | Number | - | User location latitude |
-| `longitude` | Number | - | User location longitude |
-| `maxDistance` | Number | 5000 | Search radius in meters |
-| `minRating` | Number | - | Minimum rating filter |
-| `isVerified` | Boolean | - | Verified establishments only |
-| `acceptsReservations` | Boolean | - | Reservation-enabled only |
+| Parameter             | Type    | Default | Description                          |
+| --------------------- | ------- | ------- | ------------------------------------ |
+| `page`                | Number  | 1       | Page number                          |
+| `limit`               | Number  | 10      | Items per page (max 100)             |
+| `search`              | String  | -       | Full-text search (name, description) |
+| `type`                | Enum    | -       | Filter by establishment type         |
+| `status`              | Enum    | -       | Filter by status                     |
+| `latitude`            | Number  | -       | User location latitude               |
+| `longitude`           | Number  | -       | User location longitude              |
+| `maxDistance`         | Number  | 5000    | Search radius in meters              |
+| `minRating`           | Number  | -       | Minimum rating filter                |
+| `isVerified`          | Boolean | -       | Verified establishments only         |
+| `acceptsReservations` | Boolean | -       | Reservation-enabled only             |
 
 #### Response (200 OK)
 
@@ -403,7 +410,9 @@ All endpoints require JWT authentication (`JwtAuthGuard`). Role-specific endpoin
       "name": "Fresh Corner Bakery",
       "type": "bakery",
       "status": "active",
-      "address": { /* ... */ },
+      "address": {
+        /* ... */
+      },
       "images": ["..."],
       "averageRating": 4.5,
       "totalReviews": 123,
@@ -445,7 +454,7 @@ All endpoints require JWT authentication (`JwtAuthGuard`). Role-specific endpoin
       "status": "active",
       "totalOffers": 12,
       "completedOrders": 456,
-      "averageRating": 4.5,
+      "averageRating": 4.5
       /* Full establishment details */
     }
   ]
@@ -562,13 +571,17 @@ Uses MongoDB `$near` operator with 2dsphere index:
     "description": "Artisanal bakery...",
     "type": "bakery",
     "status": "active",
-    "address": { /* ... */ },
+    "address": {
+      /* ... */
+    },
     "phoneNumber": "+33612345678",
     "email": "contact@freshcorner.fr",
     "website": "https://freshcorner.fr",
     "images": ["..."],
     "cuisineTypes": ["bakery", "french"],
-    "businessHours": { /* ... */ },
+    "businessHours": {
+      /* ... */
+    },
     "averageRating": 4.5,
     "totalReviews": 123,
     "totalOffers": 12,
@@ -632,7 +645,9 @@ Non-owners and non-admins receive:
 {
   "name": "Updated Bakery Name",
   "description": "New description",
-  "images": [/* New file objects */]
+  "images": [
+    /* New file objects */
+  ]
 }
 ```
 
@@ -648,7 +663,7 @@ Non-owners and non-admins receive:
   "message": "Establishment updated successfully",
   "data": {
     "_id": "507f1f77bcf86cd799439011",
-    "name": "Updated Bakery Name",
+    "name": "Updated Bakery Name"
     /* Full updated establishment */
   }
 }
@@ -696,7 +711,7 @@ Non-owners and non-admins receive:
 - **pending → rejected**: Requires `rejectionReason`
 - **active → suspended**: Temporary suspension (can reactivate)
 - **suspended → active**: Reactivation
-- *** → inactive**: Owner-initiated pause
+- **\* → inactive**: Owner-initiated pause
 
 ---
 
@@ -847,6 +862,7 @@ enum DocumentType {
 #### Side Effects
 
 Updates document metadata:
+
 - `verified: true`
 - `verifiedAt: Date`
 - `verifiedBy: adminUserId`
@@ -893,6 +909,7 @@ Updates document metadata:
 #### Soft Delete Behavior
 
 Sets the following fields:
+
 - `isDeleted: true`
 - `deletedAt: Date`
 - `deletedBy: userId`
@@ -905,10 +922,11 @@ Sets the following fields:
 #### Recovery
 
 To restore a soft-deleted establishment:
+
 ```typescript
 await establishmentModel.updateOne(
   { _id: id },
-  { isDeleted: false, deletedAt: null, isActive: true, status: 'active' }
+  { isDeleted: false, deletedAt: null, isActive: true, status: 'active' },
 );
 ```
 
@@ -927,11 +945,13 @@ Located at: `establishments.service.ts`
 Creates a new establishment with ownership assignment.
 
 **Business Rules:**
+
 - One establishment per merchant (checks existing `ownerId`)
 - Default status: `pending`
 - Coordinates validated at schema level
 
 **Error Handling:**
+
 - Throws `ConflictException` if merchant already has establishment
 
 ---
@@ -941,6 +961,7 @@ Creates a new establishment with ownership assignment.
 Paginated establishment listing with advanced filtering.
 
 **Filters:**
+
 - Full-text search (`$text` operator)
 - Type, status, verification status
 - Minimum rating filter
@@ -948,12 +969,14 @@ Paginated establishment listing with advanced filtering.
 - Reservation capability
 
 **Optimizations:**
+
 - Safe limit: `Math.min(limit, 100)` to prevent DOS
 - Field selection via `ESTABLISHMENT_LIST_FIELDS`
 - Lean queries for 50% memory reduction
 - Population of owner info
 
 **Return:**
+
 ```typescript
 {
   establishments: EstablishmentLean[];
@@ -968,6 +991,7 @@ Paginated establishment listing with advanced filtering.
 Retrieves single establishment by ID.
 
 **Features:**
+
 - ObjectId validation
 - Owner population
 - Throws `NotFoundException` if not found
@@ -981,6 +1005,7 @@ Merchant's establishment portfolio (enterprise-grade pagination).
 **Use Case:** Merchant dashboard
 
 **Optimizations:**
+
 - Paginated to prevent loading thousands of establishments
 - Safe limit capping
 - Lean queries
@@ -993,6 +1018,7 @@ Merchant's establishment portfolio (enterprise-grade pagination).
 Updates establishment with ownership verification.
 
 **Access Control:**
+
 - Owner or admin can update
 - Merchants cannot change `status` field
 - Admin can change any field
@@ -1006,6 +1032,7 @@ Updates establishment with ownership verification.
 Admin-only status management.
 
 **Status-specific logic:**
+
 - `active`: Sets `isVerified: true`, `verifiedAt: Date`
 - `rejected`: Requires `rejectionReason`
 
@@ -1016,6 +1043,7 @@ Admin-only status management.
 Geospatial proximity search.
 
 **Query:**
+
 ```typescript
 {
   status: 'active',
@@ -1030,6 +1058,7 @@ Geospatial proximity search.
 ```
 
 **Features:**
+
 - Paginated results
 - Excludes inactive/non-verified establishments
 - Results sorted by distance (automatic via $near)
@@ -1041,9 +1070,11 @@ Geospatial proximity search.
 Soft delete implementation.
 
 **Access Control:**
+
 - Owner or admin can delete
 
 **Side Effects:**
+
 - Marks as deleted (does not remove from database)
 - Sets `status: 'inactive'`, `isActive: false`
 - Records deletion metadata (who, when, why)
@@ -1055,6 +1086,7 @@ Soft delete implementation.
 Enterprise-grade document management.
 
 **Features:**
+
 - Ownership verification
 - Document type categorization
 - Full metadata tracking
@@ -1062,6 +1094,7 @@ Enterprise-grade document management.
 - Additional documents array
 
 **Document Types Handled:**
+
 - Business license
 - Food safety license
 - Insurance document
@@ -1076,6 +1109,7 @@ Enterprise-grade document management.
 Admin-only document verification.
 
 **Updates Metadata:**
+
 - `verified: true`
 - `verifiedAt: Date`
 - `verifiedBy: adminUserId`
@@ -1088,6 +1122,7 @@ Admin-only document verification.
 Removes document reference from establishment.
 
 **Access Control:**
+
 - Owner or admin only
 
 **Important:** Does not delete physical file (audit trail preservation)
@@ -1101,17 +1136,18 @@ Removes document reference from establishment.
 All endpoints require JWT authentication via `JwtAuthGuard`.
 
 **Header:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 ### Role-Based Access Control (RBAC)
 
-| Role | Permissions |
-|------|-------------|
-| **MERCHANT** | Create establishment, update own establishment, upload documents to own establishment, view own stats |
-| **ADMIN** | All merchant permissions + approve/reject establishments, verify documents, update any establishment, delete any establishment |
-| **CONSUMER** | View public establishments, search, view details |
+| Role         | Permissions                                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| **MERCHANT** | Create establishment, update own establishment, upload documents to own establishment, view own stats                          |
+| **ADMIN**    | All merchant permissions + approve/reject establishments, verify documents, update any establishment, delete any establishment |
+| **CONSUMER** | View public establishments, search, view details                                                                               |
 
 ### Resource Ownership
 
@@ -1172,30 +1208,38 @@ validate: {
 ### Geospatial Queries
 
 **Nearby search:**
+
 ```typescript
 db.establishments.find({
   'address.coordinates': {
     $near: {
       $geometry: { type: 'Point', coordinates: [2.3522, 48.8566] },
-      $maxDistance: 5000  // meters
-    }
-  }
+      $maxDistance: 5000, // meters
+    },
+  },
 });
 ```
 
 **Within polygon:**
+
 ```typescript
 db.establishments.find({
   'address.coordinates': {
     $geoWithin: {
       $geometry: {
         type: 'Polygon',
-        coordinates: [[
-          [lng1, lat1], [lng2, lat2], [lng3, lat3], [lng4, lat4], [lng1, lat1]
-        ]]
-      }
-    }
-  }
+        coordinates: [
+          [
+            [lng1, lat1],
+            [lng2, lat2],
+            [lng3, lat3],
+            [lng4, lat4],
+            [lng1, lat1],
+          ],
+        ],
+      },
+    },
+  },
 });
 ```
 
@@ -1210,9 +1254,9 @@ db.establishments.aggregate([
       near: { type: 'Point', coordinates: [2.3522, 48.8566] },
       distanceField: 'distance',
       maxDistance: 5000,
-      spherical: true
-    }
-  }
+      spherical: true,
+    },
+  },
 ]);
 ```
 
@@ -1239,14 +1283,14 @@ db.establishments.aggregate([
 
 ### Document Types & Requirements
 
-| Document Type | Required | Expiry | Notes |
-|---------------|----------|--------|-------|
-| Business License | Recommended | Yes | Legal business registration |
-| Food Safety License | Required (restaurants) | Yes | Health department certification |
-| Insurance Document | Recommended | Yes | Liability coverage |
-| Tax Certificate | Recommended | Yes | Tax registration proof |
-| Owner ID Document | Required | No | Identity verification |
-| Additional | Optional | Varies | Supporting documents |
+| Document Type       | Required               | Expiry | Notes                           |
+| ------------------- | ---------------------- | ------ | ------------------------------- |
+| Business License    | Recommended            | Yes    | Legal business registration     |
+| Food Safety License | Required (restaurants) | Yes    | Health department certification |
+| Insurance Document  | Recommended            | Yes    | Liability coverage              |
+| Tax Certificate     | Recommended            | Yes    | Tax registration proof          |
+| Owner ID Document   | Required               | No     | Identity verification           |
+| Additional          | Optional               | Varies | Supporting documents            |
 
 ### Expiry Tracking
 
@@ -1256,14 +1300,15 @@ Documents can have `expiryDate` field for compliance monitoring:
 // Find establishments with expiring documents
 db.establishments.find({
   'legalDocuments.foodSafetyLicenseMetadata.expiryDate': {
-    $lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
-  }
+    $lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+  },
 });
 ```
 
 ### Audit Trail
 
 All document operations tracked via metadata:
+
 - `uploadedAt`, `uploadedBy`
 - `verifiedAt`, `verifiedBy`
 - `notes` for verification comments
@@ -1295,6 +1340,7 @@ All document operations tracked via metadata:
 ### Index Strategy
 
 18 indexes covering:
+
 - Geospatial queries (2dsphere)
 - Owner filtering
 - Status/type filtering
@@ -1309,7 +1355,7 @@ All document operations tracked via metadata:
 Auto-filter soft-deleted records at middleware level (prevents accidental exposure):
 
 ```typescript
-EstablishmentSchema.pre(/^find/, function(next) {
+EstablishmentSchema.pre(/^find/, function (next) {
   this.where({ isDeleted: { $ne: true } });
   next();
 });
@@ -1325,7 +1371,7 @@ db.establishments.aggregate([
   { $lookup: { from: 'users', localField: 'ownerId', foreignField: '_id', as: 'owner' } },
   { $project: { name: 1, type: 1, 'owner.firstName': 1, 'owner.lastName': 1 } },
   { $sort: { averageRating: -1 } },
-  { $limit: 10 }
+  { $limit: 10 },
 ]);
 ```
 
@@ -1335,13 +1381,13 @@ db.establishments.aggregate([
 
 ### Common Error Codes
 
-| HTTP Code | Exception | Scenario |
-|-----------|-----------|----------|
-| 400 | BadRequestException | Invalid ObjectId, coordinate format, file type |
-| 401 | UnauthorizedException | Missing/invalid JWT token |
-| 403 | ForbiddenException | Non-owner trying to update/delete |
-| 404 | NotFoundException | Establishment not found |
-| 409 | ConflictException | Merchant already has establishment |
+| HTTP Code | Exception             | Scenario                                       |
+| --------- | --------------------- | ---------------------------------------------- |
+| 400       | BadRequestException   | Invalid ObjectId, coordinate format, file type |
+| 401       | UnauthorizedException | Missing/invalid JWT token                      |
+| 403       | ForbiddenException    | Non-owner trying to update/delete              |
+| 404       | NotFoundException     | Establishment not found                        |
+| 409       | ConflictException     | Merchant already has establishment             |
 
 ### Error Response Format
 
@@ -1390,6 +1436,7 @@ class-validator DTOs produce detailed validation errors:
 **File:** `establishments.service.spec.ts`
 
 **Test Cases:**
+
 - `create()` - Success, duplicate owner conflict
 - `findAll()` - Pagination, filtering, geospatial queries
 - `findById()` - Success, invalid ID, not found
@@ -1405,6 +1452,7 @@ class-validator DTOs produce detailed validation errors:
 **File:** `establishments.controller.spec.ts`
 
 **Test Cases:**
+
 - POST `/establishments` - Full creation flow with file upload
 - GET `/establishments` - Pagination, filters
 - GET `/establishments/nearby` - Geospatial search
@@ -1416,6 +1464,7 @@ class-validator DTOs produce detailed validation errors:
 **File:** `test/establishments.e2e-spec.ts`
 
 **Scenarios:**
+
 1. Merchant registration flow
 2. Admin approval workflow
 3. Document upload/verification flow
@@ -1450,11 +1499,11 @@ const mockEstablishment = {
     city: 'Test City',
     postalCode: '12345',
     country: 'Test Country',
-    coordinates: { type: 'Point', coordinates: [2.3522, 48.8566] }
+    coordinates: { type: 'Point', coordinates: [2.3522, 48.8566] },
   },
   phoneNumber: '+33612345678',
   email: 'test@bakery.com',
-  ownerId: new Types.ObjectId()
+  ownerId: new Types.ObjectId(),
 };
 ```
 
@@ -1489,12 +1538,12 @@ curl -X POST http://localhost:3000/api/v1/establishments \
 const searchNearby = async (latitude, longitude, maxDistance = 5000) => {
   const response = await fetch(
     `http://localhost:3000/api/v1/establishments/nearby?` +
-    `latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}`,
+      `latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}`,
     {
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    }
+        Authorization: `Bearer ${token}`,
+      },
+    },
   );
 
   const data = await response.json();
@@ -1509,7 +1558,7 @@ const uploadDocument = async (
   establishmentId: string,
   documentType: DocumentType,
   file: File,
-  expiryDate?: string
+  expiryDate?: string,
 ) => {
   const formData = new FormData();
   formData.append('documentType', documentType);
@@ -1521,10 +1570,10 @@ const uploadDocument = async (
     {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: formData
-    }
+      body: formData,
+    },
   );
 
   return await response.json();

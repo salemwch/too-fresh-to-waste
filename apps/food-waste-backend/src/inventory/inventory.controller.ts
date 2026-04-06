@@ -171,6 +171,7 @@ export class InventoryController {
       establishmentId,
       page: 1,
       limit: 100,
+      sortBy: '-createdAt',
     };
     const result = await this.inventoryService.getInventoryItems(filters);
 
@@ -245,7 +246,7 @@ export class InventoryController {
     const filters: InventoryFiltersDto = {
       establishmentId,
       expiringSoon: true,
-      expiringInDays: days || 3,
+      expiringInDays: days ?? 3,
       page: 1,
       limit: 100,
       sortBy: 'expiryDate',

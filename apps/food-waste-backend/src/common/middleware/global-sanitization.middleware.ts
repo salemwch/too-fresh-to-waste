@@ -34,15 +34,16 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
       let suspiciousDetected = false;
 
       // Sanitize request body
-      if (req.body && typeof req.body === 'object') {
-        const result = this.sanitizeBody(req.body);
+      const requestBody = req.body as unknown;
+      if (requestBody !== null && requestBody !== undefined && typeof requestBody === 'object') {
+        const result = this.sanitizeBody(requestBody as Record<string, unknown>);
         req.body = result.sanitized;
         sanitizedFields += result.fieldsModified;
         suspiciousDetected = suspiciousDetected || result.suspiciousDetected;
       }
 
       // Sanitize query parameters
-      if (req.query && typeof req.query === 'object') {
+      if (typeof req.query === 'object') {
         const result = this.sanitizeQuery(req.query);
         // Mutate in place - req.query is read-only (getter only)
         Object.keys(req.query).forEach((key) => delete req.query[key]);
@@ -52,7 +53,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
       }
 
       // Sanitize URL parameters
-      if (req.params && typeof req.params === 'object') {
+      if (typeof req.params === 'object') {
         const result = this.sanitizeParams(req.params);
         // Mutate in place - req.params is read-only (getter only)
         Object.keys(req.params).forEach((key) => delete req.params[key]);
@@ -218,7 +219,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
 
         sanitized[sanitizedKey] = sanitizedValue;
       } else if (Array.isArray(value)) {
-        sanitized[sanitizedKey] = value.map((item) => {
+        sanitized[sanitizedKey] = value.map((item: unknown) => {
           if (typeof item === 'string') {
             const original = item;
             const sanitizedItem = this.sanitizationUtil.sanitizeText(item);

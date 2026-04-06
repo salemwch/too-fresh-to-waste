@@ -27,6 +27,128 @@ import {
   EstablishmentRevenue,
 } from '../interfaces/admin-analytics.interface';
 
+interface CountAggregationResult {
+  count: number;
+}
+
+interface GroupedCountAggregationResult {
+  _id: string;
+  count: number;
+}
+
+interface UserAnalyticsAggregationResult {
+  totalUsers: CountAggregationResult[];
+  activeUsers: CountAggregationResult[];
+  newUsersToday: CountAggregationResult[];
+  newUsersThisWeek: CountAggregationResult[];
+  newUsersThisMonth: CountAggregationResult[];
+  usersByRole: GroupedCountAggregationResult[];
+  usersByStatus: GroupedCountAggregationResult[];
+}
+
+interface EstablishmentAnalyticsAggregationResult {
+  totalEstablishments: CountAggregationResult[];
+  activeEstablishments: CountAggregationResult[];
+  pendingApproval: CountAggregationResult[];
+  rejectedEstablishments: CountAggregationResult[];
+  suspendedEstablishments: CountAggregationResult[];
+  establishmentsByType: GroupedCountAggregationResult[];
+  averageRating: Array<{ avgRating: number | null }>;
+}
+
+interface OrderCompletionAggregationResult {
+  completed: number;
+  total: number;
+}
+
+interface OrderAnalyticsAggregationResult {
+  totalOrders: CountAggregationResult[];
+  ordersByStatus: GroupedCountAggregationResult[];
+  averageOrderValue: Array<{ avgValue: number | null }>;
+  completionRate: OrderCompletionAggregationResult[];
+}
+
+interface OfferAnalyticsAggregationResult {
+  totalOffers: CountAggregationResult[];
+  activeOffers: CountAggregationResult[];
+  expiredOffers: CountAggregationResult[];
+  soldOffers: CountAggregationResult[];
+  averageDiscount: Array<{ avgDiscount: number | null }>;
+}
+
+interface ReviewSentimentAggregationResult {
+  _id: string;
+  count: number;
+  avgConfidence: number | null;
+}
+
+interface ReviewAnalyticsAggregationResult {
+  totalReviews: CountAggregationResult[];
+  reviewsWithResponses: CountAggregationResult[];
+  ratingDistribution: GroupedCountAggregationResult[];
+  averageRating: Array<{ avgRating: number | null }>;
+  flaggedReviews: CountAggregationResult[];
+  moderationQueue: CountAggregationResult[];
+  sentimentAnalysis: ReviewSentimentAggregationResult[];
+}
+
+interface TopReviewedEstablishmentAggregationResult {
+  id: string;
+  name: string;
+  reviewCount: number;
+  avgRating: number;
+}
+
+interface RevenueSummaryAggregationResult {
+  totalRevenue: number;
+  totalOrders: number;
+  platformCommission: number;
+}
+
+interface SessionEstimationAggregationResult {
+  avgSessionDuration: number | null;
+  totalSessions: number;
+}
+
+interface LoginPatternAggregationResult {
+  totalActiveUsers: number;
+  avgTimeSinceLastLogin: number | null;
+}
+
+interface TopPerformingEstablishmentAggregationResult {
+  _id: { toString(): string };
+  name: string;
+  type: string;
+  totalOrders: number;
+  totalRevenue: number;
+  averageRating: number;
+  completionRate: number | null;
+}
+
+interface OrderTrendAggregationResult {
+  _id: string;
+  orders: number;
+  revenue: number;
+}
+
+interface CategoryStatsAggregationResult {
+  category: string;
+  count: number;
+  totalRevenue: number | null;
+  soldQuantity: number | null;
+  averagePrice: number | null;
+  averageDiscount: number | null;
+}
+
+interface WasteReductionAggregationResult {
+  totalKgSaved: number | null;
+  totalMealsSaved: number | null;
+  co2ReductionKg: number | null;
+  totalEstimatedValue: number | null;
+}
+
+type RevenueByEstablishmentAggregationResult = EstablishmentRevenue;
+
 @Injectable()
 export class AdminAnalyticsService {
   private readonly logger = new Logger(AdminAnalyticsService.name);
@@ -123,16 +245,17 @@ export class AdminAnalyticsService {
       });
     }
 
-    const [analyticsResult] = await this.userModel.aggregate(pipeline);
+    const [analyticsResult] =
+      await this.userModel.aggregate<UserAnalyticsAggregationResult>(pipeline);
 
     return {
-      totalUsers: analyticsResult.totalUsers[0]?.count || 0,
-      activeUsers: analyticsResult.activeUsers[0]?.count || 0,
-      newUsersToday: analyticsResult.newUsersToday[0]?.count || 0,
-      newUsersThisWeek: analyticsResult.newUsersThisWeek[0]?.count || 0,
-      newUsersThisMonth: analyticsResult.newUsersThisMonth[0]?.count || 0,
-      usersByRole: this.formatGroupedResults(analyticsResult.usersByRole),
-      usersByStatus: this.formatGroupedResults(analyticsResult.usersByStatus),
+      totalUsers: this.getAggregateCount(analyticsResult?.totalUsers),
+      activeUsers: this.getAggregateCount(analyticsResult?.activeUsers),
+      newUsersToday: this.getAggregateCount(analyticsResult?.newUsersToday),
+      newUsersThisWeek: this.getAggregateCount(analyticsResult?.newUsersThisWeek),
+      newUsersThisMonth: this.getAggregateCount(analyticsResult?.newUsersThisMonth),
+      usersByRole: this.formatGroupedResults(analyticsResult?.usersByRole ?? []),
+      usersByStatus: this.formatGroupedResults(analyticsResult?.usersByStatus ?? []),
       retentionRate: await this.calculateRetentionRate(period),
       averageSessionDuration: await this.calculateAverageSessionDuration(period),
     };
@@ -165,7 +288,8 @@ export class AdminAnalyticsService {
       },
     ];
 
-    const [analyticsResult] = await this.establishmentModel.aggregate(pipeline);
+    const [analyticsResult] =
+      await this.establishmentModel.aggregate<EstablishmentAnalyticsAggregationResult>(pipeline);
 
     let topPerformingEstablishments: EstablishmentPerformance[] = [];
 
@@ -174,13 +298,13 @@ export class AdminAnalyticsService {
     }
 
     return {
-      totalEstablishments: analyticsResult.totalEstablishments[0]?.count || 0,
-      activeEstablishments: analyticsResult.activeEstablishments[0]?.count || 0,
-      pendingApproval: analyticsResult.pendingApproval[0]?.count || 0,
-      rejectedEstablishments: analyticsResult.rejectedEstablishments[0]?.count || 0,
-      suspendedEstablishments: analyticsResult.suspendedEstablishments[0]?.count || 0,
-      establishmentsByType: this.formatGroupedResults(analyticsResult.establishmentsByType),
-      averageRating: Math.round((analyticsResult.averageRating[0]?.avgRating || 0) * 100) / 100,
+      totalEstablishments: this.getAggregateCount(analyticsResult?.totalEstablishments),
+      activeEstablishments: this.getAggregateCount(analyticsResult?.activeEstablishments),
+      pendingApproval: this.getAggregateCount(analyticsResult?.pendingApproval),
+      rejectedEstablishments: this.getAggregateCount(analyticsResult?.rejectedEstablishments),
+      suspendedEstablishments: this.getAggregateCount(analyticsResult?.suspendedEstablishments),
+      establishmentsByType: this.formatGroupedResults(analyticsResult?.establishmentsByType ?? []),
+      averageRating: this.roundTo(analyticsResult?.averageRating?.[0]?.avgRating),
       topPerformingEstablishments,
     };
   }
@@ -223,13 +347,15 @@ export class AdminAnalyticsService {
       },
     ];
 
-    const [analyticsResult] = await this.orderModel.aggregate(pipeline);
+    const [analyticsResult] =
+      await this.orderModel.aggregate<OrderAnalyticsAggregationResult>(pipeline);
 
-    const statusResults = this.formatGroupedResults(analyticsResult.ordersByStatus);
-    const completionData = analyticsResult.completionRate[0];
-    const completionRate = completionData
-      ? Math.round((completionData.completed / completionData.total) * 10000) / 100
-      : 0;
+    const statusResults = this.formatGroupedResults(analyticsResult?.ordersByStatus ?? []);
+    const completionData = analyticsResult?.completionRate?.[0];
+    const completionRate =
+      completionData !== null && completionData !== undefined && completionData.total > 0
+        ? this.roundTo((completionData.completed / completionData.total) * 100, 2)
+        : 0;
 
     let orderTrends: OrderTrend[] = [];
 
@@ -238,13 +364,12 @@ export class AdminAnalyticsService {
     }
 
     return {
-      totalOrders: analyticsResult.totalOrders[0]?.count || 0,
-      completedOrders: statusResults['completed'] || 0,
-      cancelledOrders: statusResults['cancelled'] || 0,
-      pendingOrders: statusResults['pending'] || 0,
+      totalOrders: this.getAggregateCount(analyticsResult?.totalOrders),
+      completedOrders: statusResults['completed'] ?? 0,
+      cancelledOrders: statusResults['cancelled'] ?? 0,
+      pendingOrders: statusResults['pending'] ?? 0,
       ordersByStatus: statusResults,
-      averageOrderValue:
-        Math.round((analyticsResult.averageOrderValue[0]?.avgValue || 0) * 100) / 100,
+      averageOrderValue: this.roundTo(analyticsResult?.averageOrderValue?.[0]?.avgValue),
       orderCompletionRate: completionRate,
       orderTrends,
     };
@@ -303,7 +428,8 @@ export class AdminAnalyticsService {
       },
     ];
 
-    const [analyticsResult] = await this.offerModel.aggregate(pipeline);
+    const [analyticsResult] =
+      await this.offerModel.aggregate<OfferAnalyticsAggregationResult>(pipeline);
 
     let mostPopularCategories: CategoryStats[] = [];
     let wasteReductionImpact: WasteReductionMetrics = {
@@ -321,12 +447,11 @@ export class AdminAnalyticsService {
     }
 
     return {
-      totalOffers: analyticsResult.totalOffers[0]?.count || 0,
-      activeOffers: analyticsResult.activeOffers[0]?.count || 0,
-      expiredOffers: analyticsResult.expiredOffers[0]?.count || 0,
-      soldOffers: analyticsResult.soldOffers[0]?.count || 0,
-      averageDiscount:
-        Math.round((analyticsResult.averageDiscount[0]?.avgDiscount || 0) * 100) / 100,
+      totalOffers: this.getAggregateCount(analyticsResult?.totalOffers),
+      activeOffers: this.getAggregateCount(analyticsResult?.activeOffers),
+      expiredOffers: this.getAggregateCount(analyticsResult?.expiredOffers),
+      soldOffers: this.getAggregateCount(analyticsResult?.soldOffers),
+      averageDiscount: this.roundTo(analyticsResult?.averageDiscount?.[0]?.avgDiscount),
       mostPopularCategories,
       wasteReductionImpact,
     };
@@ -420,14 +545,17 @@ export class AdminAnalyticsService {
         },
       ];
 
-      const [analyticsResult] = await this.reviewModel.aggregate(pipeline);
+      const [analyticsResult] =
+        await this.reviewModel.aggregate<ReviewAnalyticsAggregationResult>(pipeline);
 
-      const totalReviews = analyticsResult.totalReviews[0]?.count || 0;
-      const reviewsWithResponses = analyticsResult.reviewsWithResponses[0]?.count || 0;
+      const totalReviews = this.getAggregateCount(analyticsResult?.totalReviews);
+      const reviewsWithResponses = this.getAggregateCount(analyticsResult?.reviewsWithResponses);
       const responseRate =
         totalReviews > 0 ? Math.round((reviewsWithResponses / totalReviews) * 10000) / 100 : 0;
 
-      const ratingDistribution = this.formatGroupedResults(analyticsResult.ratingDistribution);
+      const ratingDistribution = this.formatGroupedResults(
+        analyticsResult?.ratingDistribution ?? [],
+      );
 
       let topReviewedEstablishments: Array<{
         id: string;
@@ -439,47 +567,48 @@ export class AdminAnalyticsService {
 
       if (includeDetails) {
         // Get top reviewed establishments
-        const topEstablishmentsResult = await this.reviewModel.aggregate([
-          { $match: { ...matchStage, status: ReviewStatus.APPROVED } },
-          {
-            $group: {
-              _id: '$establishmentId',
-              reviewCount: { $sum: 1 },
-              avgRating: { $avg: '$overallRating' },
+        const topEstablishmentsResult =
+          await this.reviewModel.aggregate<TopReviewedEstablishmentAggregationResult>([
+            { $match: { ...matchStage, status: ReviewStatus.APPROVED } },
+            {
+              $group: {
+                _id: '$establishmentId',
+                reviewCount: { $sum: 1 },
+                avgRating: { $avg: '$overallRating' },
+              },
             },
-          },
-          {
-            $lookup: {
-              from: 'establishments',
-              localField: '_id',
-              foreignField: '_id',
-              as: 'establishment',
+            {
+              $lookup: {
+                from: 'establishments',
+                localField: '_id',
+                foreignField: '_id',
+                as: 'establishment',
+              },
             },
-          },
-          { $unwind: '$establishment' },
-          {
-            $project: {
-              id: { $toString: '$_id' },
-              name: '$establishment.name',
-              reviewCount: 1,
-              avgRating: { $round: ['$avgRating', 2] },
+            { $unwind: '$establishment' },
+            {
+              $project: {
+                id: { $toString: '$_id' },
+                name: '$establishment.name',
+                reviewCount: 1,
+                avgRating: { $round: ['$avgRating', 2] },
+              },
             },
-          },
-          { $sort: { reviewCount: -1 } },
-          { $limit: 10 },
-        ]);
+            { $sort: { reviewCount: -1 } },
+            { $limit: 10 },
+          ]);
 
         topReviewedEstablishments = topEstablishmentsResult;
 
         // Format sentiment trends
-        sentimentTrends = (analyticsResult.sentimentAnalysis || []).reduce(
+        sentimentTrends = (analyticsResult?.sentimentAnalysis ?? []).reduce(
           (
             acc: Record<string, { count: number; avgConfidence: number }>,
-            item: { _id: string; count: number; avgConfidence: number },
+            item: ReviewSentimentAggregationResult,
           ) => {
             acc[item._id] = {
               count: item.count,
-              avgConfidence: Math.round(item.avgConfidence * 10000) / 100,
+              avgConfidence: this.roundTo(item.avgConfidence, 2),
             };
             return acc;
           },
@@ -489,10 +618,10 @@ export class AdminAnalyticsService {
 
       return {
         totalReviews,
-        averageRating: Math.round((analyticsResult.averageRating[0]?.avgRating || 0) * 100) / 100,
+        averageRating: this.roundTo(analyticsResult?.averageRating?.[0]?.avgRating),
         ratingDistribution,
-        flaggedReviews: analyticsResult.flaggedReviews[0]?.count || 0,
-        reviewsModerationQueue: analyticsResult.moderationQueue[0]?.count || 0,
+        flaggedReviews: this.getAggregateCount(analyticsResult?.flaggedReviews),
+        reviewsModerationQueue: this.getAggregateCount(analyticsResult?.moderationQueue),
         responseRate,
         ...(includeDetails && {
           topReviewedEstablishments,
@@ -530,8 +659,13 @@ export class AdminAnalyticsService {
       },
     ];
 
-    const [revenueResult] = await this.orderModel.aggregate(pipeline);
-    const result = revenueResult || { totalRevenue: 0, totalOrders: 0, platformCommission: 0 };
+    const [revenueResult] =
+      await this.orderModel.aggregate<RevenueSummaryAggregationResult>(pipeline);
+    const result: RevenueSummaryAggregationResult = revenueResult ?? {
+      totalRevenue: 0,
+      totalOrders: 0,
+      platformCommission: 0,
+    };
 
     // Calculate period-specific revenue
     const now = new Date();
@@ -575,7 +709,7 @@ export class AdminAnalyticsService {
   // Helper methods
 
   private calculateAnalyticsPeriod(query: GetAnalyticsQueryDto): AnalyticsPeriod {
-    if (!query) {
+    if (query === null || query === undefined) {
       throw new Error('Query parameter is required');
     }
 
@@ -607,6 +741,7 @@ export class AdminAnalyticsService {
           : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         endDate = query.endDate ? new Date(query.endDate) : now;
         break;
+      case undefined:
       default:
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     }
@@ -614,7 +749,7 @@ export class AdminAnalyticsService {
     return {
       startDate,
       endDate,
-      periodType: query.period || AnalyticsPeriodType.WEEK,
+      periodType: query.period ?? AnalyticsPeriodType.WEEK,
     };
   }
 
@@ -628,6 +763,15 @@ export class AdminAnalyticsService {
       },
       {} as Record<string, number>,
     );
+  }
+
+  private getAggregateCount(results?: CountAggregationResult[]): number {
+    return results?.[0]?.count ?? 0;
+  }
+
+  private roundTo(value: number | null | undefined, precision: number = 2): number {
+    const factor = 10 ** precision;
+    return Math.round((value ?? 0) * factor) / factor;
   }
 
   private async calculateRetentionRate(period: AnalyticsPeriod): Promise<number> {
@@ -728,15 +872,18 @@ export class AdminAnalyticsService {
         },
       ];
 
-      const sessionResults = await this.orderModel.aggregate(sessionEstimationPipeline);
+      const [sessionResult] =
+        await this.orderModel.aggregate<SessionEstimationAggregationResult>(
+          sessionEstimationPipeline,
+        );
 
-      if (sessionResults.length === 0 || sessionResults[0].totalSessions === 0) {
+      if (!sessionResult || sessionResult.totalSessions === 0) {
         // Fallback: estimate based on user login frequency
         const avgLoginFrequency = await this.estimateSessionFromLoginPatterns(period);
         return avgLoginFrequency;
       }
 
-      const averageDuration = sessionResults[0].avgSessionDuration || 0;
+      const averageDuration = sessionResult.avgSessionDuration ?? 0;
 
       return Math.round(averageDuration * 100) / 100;
     } catch (error) {
@@ -774,14 +921,15 @@ export class AdminAnalyticsService {
         },
       ];
 
-      const loginResults = await this.userModel.aggregate(userLoginPipeline);
+      const [loginResult] =
+        await this.userModel.aggregate<LoginPatternAggregationResult>(userLoginPipeline);
 
-      if (loginResults?.length === 0) {
+      if (loginResult === null || loginResult === undefined) {
         return 15.0; // Default fallback value
       }
 
       // Estimate session duration as a fraction of time since last login
-      const estimatedSession = Math.min(loginResults[0].avgTimeSinceLastLogin * 0.1, 45);
+      const estimatedSession = Math.min((loginResult.avgTimeSinceLastLogin ?? 0) * 0.1, 45);
 
       return Math.max(estimatedSession, 5.0); // Minimum 5 minutes
     } catch (error) {
@@ -832,7 +980,10 @@ export class AdminAnalyticsService {
       { $limit: limit },
     ];
 
-    const results = await this.establishmentModel.aggregate(pipeline);
+    const results =
+      await this.establishmentModel.aggregate<TopPerformingEstablishmentAggregationResult>(
+        pipeline,
+      );
 
     return results.map((result) => ({
       id: result._id.toString(),
@@ -841,7 +992,7 @@ export class AdminAnalyticsService {
       totalOrders: result.totalOrders,
       totalRevenue: result.totalRevenue,
       averageRating: result.averageRating,
-      completionRate: Math.round(result.completionRate * 100) / 100,
+      completionRate: this.roundTo(result.completionRate),
     }));
   }
 
@@ -867,7 +1018,7 @@ export class AdminAnalyticsService {
       { $sort: { _id: 1 } },
     ];
 
-    const results = await this.orderModel.aggregate(pipeline);
+    const results = await this.orderModel.aggregate<OrderTrendAggregationResult>(pipeline);
 
     return results.map((result) => ({
       date: result._id,
@@ -950,15 +1101,15 @@ export class AdminAnalyticsService {
         { $limit: limit },
       ];
 
-      const results = await this.offerModel.aggregate(pipeline);
+      const results = await this.offerModel.aggregate<CategoryStatsAggregationResult>(pipeline);
 
       return results.map((result) => ({
         category: result.category,
         count: result.count,
-        totalRevenue: result.totalRevenue || 0,
-        soldQuantity: result.soldQuantity || 0,
-        averagePrice: result.averagePrice || 0,
-        averageDiscount: result.averageDiscount || 0,
+        totalRevenue: result.totalRevenue ?? 0,
+        soldQuantity: result.soldQuantity ?? 0,
+        averagePrice: result.averagePrice ?? 0,
+        averageDiscount: result.averageDiscount ?? 0,
       }));
     } catch (error) {
       this.logger.error('Failed to get most popular categories:', error);
@@ -1074,9 +1225,9 @@ export class AdminAnalyticsService {
         },
       ];
 
-      const [result] = await this.offerModel.aggregate(pipeline);
+      const [result] = await this.offerModel.aggregate<WasteReductionAggregationResult>(pipeline);
 
-      if (!result) {
+      if (result === null || result === undefined) {
         return {
           totalKgSaved: 0,
           totalMealsSaved: 0,
@@ -1086,10 +1237,10 @@ export class AdminAnalyticsService {
       }
 
       return {
-        totalKgSaved: result.totalKgSaved || 0,
-        totalMealsSaved: result.totalMealsSaved || 0,
-        co2ReductionKg: result.co2ReductionKg || 0,
-        estimatedValue: result.totalEstimatedValue || 0,
+        totalKgSaved: result.totalKgSaved ?? 0,
+        totalMealsSaved: result.totalMealsSaved ?? 0,
+        co2ReductionKg: result.co2ReductionKg ?? 0,
+        estimatedValue: result.totalEstimatedValue ?? 0,
       };
     } catch (error) {
       this.logger.error('Failed to calculate waste reduction impact:', error);
@@ -1104,7 +1255,7 @@ export class AdminAnalyticsService {
   }
 
   private async getRevenueForPeriod(startDate: Date, endDate: Date): Promise<number> {
-    const result = await this.orderModel.aggregate([
+    const result = await this.orderModel.aggregate<Array<{ totalRevenue: number }>[number]>([
       {
         $match: {
           createdAt: { $gte: startDate, $lte: endDate },
@@ -1119,7 +1270,7 @@ export class AdminAnalyticsService {
       },
     ]);
 
-    return result?.[0]?.totalRevenue || 0;
+    return result[0]?.totalRevenue ?? 0;
   }
 
   private async getRevenueByEstablishment(
@@ -1167,8 +1318,9 @@ export class AdminAnalyticsService {
       { $limit: 20 },
     ];
 
-    const result = await this.orderModel.aggregate(pipeline);
-    return result || [];
+    const result =
+      await this.orderModel.aggregate<RevenueByEstablishmentAggregationResult>(pipeline);
+    return result;
   }
 
   private async calculateRevenueGrowthRate(period: AnalyticsPeriod): Promise<number> {
@@ -1178,7 +1330,12 @@ export class AdminAnalyticsService {
       );
 
       // Input validation
-      if (period?.startDate || !period.endDate) {
+      if (
+        period?.startDate === null ||
+        period?.startDate === undefined ||
+        period.endDate === null ||
+        period.endDate === undefined
+      ) {
         this.logger.warn('Invalid period provided for revenue growth calculation');
         return 0;
       }

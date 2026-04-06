@@ -38,7 +38,9 @@ describe('Business Constraints Validators', () => {
       const errors = await validate(dto);
 
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0]!.constraints).toHaveProperty('isFutureDate');
+      const firstError = errors[0];
+      expect(firstError).toBeDefined();
+      expect(firstError?.constraints).toHaveProperty('isFutureDate');
     });
 
     it('should reject dates less than 30 minutes from now', async () => {
@@ -94,7 +96,9 @@ describe('Business Constraints Validators', () => {
       const errors = await validate(dto);
 
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0]!.constraints?.['isBusinessHours']).toContain('9:00 and 17:00');
+      const firstError = errors[0];
+      expect(firstError).toBeDefined();
+      expect(firstError?.constraints?.['isBusinessHours']).toContain('9:00 and 17:00');
     });
 
     it('should reject times after business hours', async () => {
@@ -133,7 +137,9 @@ describe('Business Constraints Validators', () => {
       const errors = await validate(dto);
 
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0]!.constraints?.['isWithinDays']).toContain('30 days');
+      const firstError = errors[0];
+      expect(firstError).toBeDefined();
+      expect(firstError?.constraints?.['isWithinDays']).toContain('30 days');
     });
 
     it('should accept dates within 30 days', async () => {
@@ -238,7 +244,9 @@ describe('Business Constraints Validators', () => {
       const errors = await validate(dto);
 
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0]!.constraints?.['isNotProfane']).toContain('inappropriate');
+      const firstError = errors[0];
+      expect(firstError).toBeDefined();
+      expect(firstError?.constraints?.['isNotProfane']).toContain('inappropriate');
     });
 
     it('should accept clean content', async () => {

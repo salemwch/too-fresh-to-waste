@@ -33,7 +33,12 @@ export class NotificationGateway {
         if (!userNotifications.has(notification.userId)) {
           userNotifications.set(notification.userId, []);
         }
-        userNotifications.get(notification.userId)!.push(notification);
+        const userQueue = userNotifications.get(notification.userId);
+        if (!userQueue) {
+          this.logger.warn(`Failed to queue notification for user ${notification.userId}`);
+          continue;
+        }
+        userQueue.push(notification);
       }
 
       // Send grouped notifications
@@ -69,7 +74,7 @@ export class NotificationGateway {
         title,
         message,
         priority,
-        data: data || {},
+        data: data ?? {},
         createdAt: new Date(),
       };
 
@@ -166,7 +171,7 @@ export class NotificationGateway {
         title,
         message,
         priority: 'medium',
-        data: actionData || {},
+        data: actionData ?? {},
         createdAt: new Date(),
       };
 
@@ -315,7 +320,7 @@ export class NotificationGateway {
           title,
           message,
           priority,
-          data: data || {},
+          data: data ?? {},
           createdAt: new Date(),
         };
 

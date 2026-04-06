@@ -43,22 +43,18 @@ const client = createClient({
     tls:
       process.env.REDIS_TLS === 'true'
         ? {
-            rejectUnauthorized:
-              process.env.REDIS_TLS_REJECT_UNAUTHORIZED !== 'false',
+            rejectUnauthorized: process.env.REDIS_TLS_REJECT_UNAUTHORIZED !== 'false',
             checkServerIdentity:
-              process.env.REDIS_TLS_CHECK_SERVER_IDENTITY !== 'false'
-                ? undefined
-                : () => undefined,
+              process.env.REDIS_TLS_CHECK_SERVER_IDENTITY !== 'false' ? undefined : () => undefined,
             minVersion: process.env.REDIS_TLS_MIN_VERSION || 'TLSv1.2',
             // Additional TLS options
-            ciphers:
-              'ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS',
+            ciphers: 'ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS',
             honorCipherOrder: true,
           }
         : undefined,
     connectTimeout: parseInt(process.env.REDIS_CONNECT_TIMEOUT || '10000'),
     commandTimeout: parseInt(process.env.REDIS_COMMAND_TIMEOUT || '5000'),
-    reconnectStrategy: retries => {
+    reconnectStrategy: (retries) => {
       const maxRetries = parseInt(process.env.REDIS_MAX_RETRIES || '3');
       if (retries > maxRetries) return false;
       return Math.min(retries * 50, 500);

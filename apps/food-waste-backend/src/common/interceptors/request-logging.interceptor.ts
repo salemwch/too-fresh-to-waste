@@ -116,9 +116,9 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     // Correlation ID should already be set by CorrelationIdMiddleware
     // Fallback if middleware is not configured
     const correlationId =
-      request.correlationId || (request.headers['x-correlation-id'] as string) || uuidv4();
+      request.correlationId ?? (request.headers['x-correlation-id'] as string) ?? uuidv4();
     request.correlationId = correlationId;
-    request.startTime = request.startTime || Date.now();
+    request.startTime = request.startTime ?? Date.now();
 
     // Inject correlation ID into response headers
     response.setHeader('X-Correlation-ID', correlationId);
@@ -132,7 +132,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
       }),
       catchError((error) => {
         this.logError(request, response, error);
-        return throwError(() => error);
+        return throwError((): Error | HttpException => error);
       }),
     );
   }
@@ -147,7 +147,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
       method: request.method,
       path: request.path,
       ip: this.getClientIp(request),
-      userAgent: request.get('User-Agent') || 'unknown',
+      userAgent: request.get('User-Agent') ?? 'unknown',
       query: this.redactSensitiveData(request.query),
     });
   }
@@ -160,9 +160,10 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     response: Response,
     _responseBody: unknown,
   ): void {
-    const responseTime = Date.now() - (request.startTime || Date.now());
+    const responseTime = Date.now() - (request.startTime ?? Date.now());
     const memoryUsage = process.memoryUsage();
 
+    const contentLengthHeader = response.get('content-length');
     const metadata = {
       correlationId: request.correlationId,
       userId: request.user?.userId,
@@ -171,9 +172,8 @@ export class RequestLoggingInterceptor implements NestInterceptor {
       statusCode: response.statusCode,
       duration: responseTime,
       memoryUsageMB: Math.round(memoryUsage.heapUsed / 1024 / 1024),
-      contentLength: response.get('content-length')
-        ? parseInt(response.get('content-length')!, 10)
-        : undefined,
+      contentLength:
+        typeof contentLengthHeader === 'string' ? parseInt(contentLengthHeader, 10) : undefined,
     };
 
     const statusEmoji = response.statusCode >= 400 ? '⚠️' : '✓';
@@ -203,7 +203,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     _response: Response,
     error: Error | HttpException,
   ): void {
-    const responseTime = Date.now() - (request.startTime || Date.now());
+    const responseTime = Date.now() - (request.startTime ?? Date.now());
     const statusCode =
       error instanceof HttpException ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 
@@ -216,7 +216,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
       duration: responseTime,
       errorName: error.name,
       ip: this.getClientIp(request),
-      userAgent: request.get('User-Agent') || 'unknown',
+      userAgent: request.get('User-Agent') ?? 'unknown',
       query: this.redactSensitiveData(request.query),
     };
 
@@ -232,7 +232,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
    * Redact sensitive data from logs (PII protection)
    */
   private redactSensitiveData(data: unknown): unknown {
-    if (!data || typeof data !== 'object') {
+    if (data === null || data === undefined || typeof data !== 'object') {
       return data;
     }
 
@@ -265,13 +265,14 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     const headersToLog = ['content-type', 'accept', 'user-agent', 'origin', 'referer'];
 
     for (const key of headersToLog) {
-      if (headers[key]) {
-        sanitized[key] = String(headers[key]);
+      const headerValue = headers[key];
+      if (headerValue !== null && headerValue !== undefined) {
+        sanitized[key] = String(headerValue);
       }
     }
 
     // Mask authorization header
-    if (headers['authorization']) {
+    if (headers['authorization'] !== null && headers['authorization'] !== undefined) {
       sanitized['authorization'] = 'Bearer [REDACTED]';
     }
 
@@ -288,7 +289,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     }
 
     // Don't log binary responses
-    const contentType = response.get('content-type') || '';
+    const contentType = response.get('content-type') ?? '';
     if (contentType.includes('image') || contentType.includes('application/octet-stream')) {
       return false;
     }
@@ -308,9 +309,9 @@ export class RequestLoggingInterceptor implements NestInterceptor {
    */
   private getClientIp(request: Request): string {
     return (
-      (request.headers['x-forwarded-for'] as string)?.split(',')[0] ||
-      (request.headers['x-real-ip'] as string) ||
-      request.socket.remoteAddress ||
+      (request.headers['x-forwarded-for'] as string)?.split(',')[0] ??
+      (request.headers['x-real-ip'] as string) ??
+      request.socket.remoteAddress ??
       'unknown'
     );
   }

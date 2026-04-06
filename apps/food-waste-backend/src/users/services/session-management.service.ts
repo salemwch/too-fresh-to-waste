@@ -73,9 +73,7 @@ export class SessionManagementService {
       location,
     };
 
-    if (!user.loginHistory) {
-      user.loginHistory = [];
-    }
+    user.loginHistory ??= [];
 
     user.loginHistory.unshift(loginEntry);
 
@@ -87,9 +85,7 @@ export class SessionManagementService {
     user.lastLoginAt = new Date();
 
     // Add audit log entry
-    if (!user.auditLog) {
-      user.auditLog = [];
-    }
+    user.auditLog ??= [];
 
     user.auditLog.unshift({
       action: 'LOGIN',
@@ -142,9 +138,7 @@ export class SessionManagementService {
     }
 
     // Add audit log entry
-    if (!user.auditLog) {
-      user.auditLog = [];
-    }
+    user.auditLog ??= [];
 
     user.auditLog.unshift({
       action: 'LOGOUT',
@@ -178,9 +172,7 @@ export class SessionManagementService {
     }
 
     // Add audit log entry
-    if (!user.auditLog) {
-      user.auditLog = [];
-    }
+    user.auditLog ??= [];
 
     user.auditLog.unshift({
       action: 'LOGOUT_ALL_SESSIONS',
@@ -212,9 +204,7 @@ export class SessionManagementService {
       throw new BadRequestException('User not found');
     }
 
-    if (!user.trustedDevices) {
-      user.trustedDevices = [];
-    }
+    user.trustedDevices ??= [];
 
     // Check if device is already trusted
     const existingDevice = user.trustedDevices.find(
@@ -225,12 +215,13 @@ export class SessionManagementService {
       // Update existing trusted device
       existingDevice.lastUsedAt = new Date();
       existingDevice.expiresAt = new Date(
-        Date.now() + (trustDurationDays || 30) * 24 * 60 * 60 * 1000,
+        Date.now() + (trustDurationDays ?? 30) * 24 * 60 * 60 * 1000,
       );
     } else {
       // Remove oldest trusted devices if we've hit the limit
       const activeTrustedDevices = user.trustedDevices.filter(
-        (device) => !device.revokedAt && device.expiresAt && device.expiresAt > new Date(),
+        (device) =>
+          !device.revokedAt && device.expiresAt !== undefined && device.expiresAt > new Date(),
       );
 
       if (activeTrustedDevices.length >= this.MAX_TRUSTED_DEVICES) {
@@ -246,7 +237,7 @@ export class SessionManagementService {
 
       // Add new trusted device
       const location = this.getLocationFromIP(deviceInfo.ipAddress);
-      const trustPeriod = (trustDurationDays || 30) * 24 * 60 * 60 * 1000;
+      const trustPeriod = (trustDurationDays ?? 30) * 24 * 60 * 60 * 1000;
 
       user.trustedDevices.push({
         deviceId: deviceInfo.deviceId,
@@ -265,9 +256,7 @@ export class SessionManagementService {
     }
 
     // Add audit log entry
-    if (!user.auditLog) {
-      user.auditLog = [];
-    }
+    user.auditLog ??= [];
 
     user.auditLog.unshift({
       action: 'DEVICE_TRUSTED',
@@ -277,7 +266,7 @@ export class SessionManagementService {
       details: {
         deviceId: deviceInfo.deviceId,
         deviceName: deviceInfo.deviceName,
-        trustDurationDays: trustDurationDays || 30,
+        trustDurationDays: trustDurationDays ?? 30,
       },
     });
 
@@ -296,7 +285,7 @@ export class SessionManagementService {
       throw new BadRequestException('User not found');
     }
 
-    if (!user.trustedDevices) {
+    if (user.trustedDevices === null || user.trustedDevices === undefined) {
       return;
     }
 
@@ -306,12 +295,10 @@ export class SessionManagementService {
 
     if (device) {
       device.revokedAt = new Date();
-      device.revokedReason = reason || 'User requested revocation';
+      device.revokedReason = reason ?? 'User requested revocation';
 
       // Add audit log entry
-      if (!user.auditLog) {
-        user.auditLog = [];
-      }
+      user.auditLog ??= [];
 
       user.auditLog.unshift({
         action: 'DEVICE_TRUST_REVOKED',
@@ -321,7 +308,7 @@ export class SessionManagementService {
         details: {
           deviceId,
           deviceName: device.deviceName,
-          reason: reason || 'User requested revocation',
+          reason: reason ?? 'User requested revocation',
         },
       });
 
@@ -344,9 +331,9 @@ export class SessionManagementService {
     const device = user.trustedDevices.find(
       (device) =>
         device.deviceId === deviceId &&
-        device.isTrusted &&
+        device.isTrusted === true &&
         !device.revokedAt &&
-        device.expiresAt &&
+        device.expiresAt !== undefined &&
         device.expiresAt > new Date(),
     );
 
@@ -378,18 +365,29 @@ export class SessionManagementService {
       return [];
     }
 
-    return user.trustedDevices
-      .filter((device) => !device.revokedAt && device.expiresAt && device.expiresAt > new Date())
-      .map((device) => ({
-        deviceId: device.deviceId,
-        deviceName: device.deviceName,
-        platform: device.platform,
-        browser: device.browser,
-        lastUsedAt: device.lastUsedAt,
-        trustedAt: device.trustedAt!,
-        expiresAt: device.expiresAt!,
-        ...(device.location !== undefined ? { location: device.location } : {}),
-      }));
+    return user.trustedDevices.flatMap((device) => {
+      if (
+        device.revokedAt ||
+        !device.trustedAt ||
+        !device.expiresAt ||
+        device.expiresAt <= new Date()
+      ) {
+        return [];
+      }
+
+      return [
+        {
+          deviceId: device.deviceId,
+          deviceName: device.deviceName,
+          platform: device.platform,
+          browser: device.browser,
+          lastUsedAt: device.lastUsedAt,
+          trustedAt: device.trustedAt,
+          expiresAt: device.expiresAt,
+          ...(device.location !== undefined ? { location: device.location } : {}),
+        },
+      ];
+    });
   }
 
   async detectSuspiciousActivity(
@@ -419,7 +417,7 @@ export class SessionManagementService {
     }
 
     // Check for unusual location
-    const recentLogins = user.loginHistory?.slice(0, 10) || [];
+    const recentLogins = user.loginHistory?.slice(0, 10) ?? [];
     const currentLocation = this.getLocationFromIP(deviceInfo.ipAddress);
 
     if (currentLocation && recentLogins.length > 0) {
@@ -503,14 +501,12 @@ export class SessionManagementService {
     }
 
     // Clean up expired trusted devices
-    if (user.trustedDevices) {
-      const now = new Date();
-      user.trustedDevices.forEach((device) => {
-        if (device.expiresAt && device.expiresAt < now && !device.revokedAt) {
-          device.revokedAt = now;
-          device.revokedReason = 'Expired';
-        }
-      });
+    const now = new Date();
+    for (const device of user.trustedDevices ?? []) {
+      if (device.expiresAt && device.expiresAt < now && !device.revokedAt) {
+        device.revokedAt = now;
+        device.revokedReason = 'Expired';
+      }
     }
 
     await user.save();

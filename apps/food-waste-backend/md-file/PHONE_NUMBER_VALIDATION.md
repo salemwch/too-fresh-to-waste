@@ -127,10 +127,9 @@ export class UserService {
   // Example 2: Format phone number
   async formatUserPhone(phoneNumber: string) {
     // International format
-    const international = this.phoneNumberService.formatPhoneNumber(
-      phoneNumber,
-      { format: 'international' },
-    );
+    const international = this.phoneNumberService.formatPhoneNumber(phoneNumber, {
+      format: 'international',
+    });
     // Returns: +1 213 373 4253
 
     // National format
@@ -150,10 +149,7 @@ export class UserService {
   // Example 3: Normalize for storage
   async savePhoneNumber(phoneNumber: string) {
     // Always store in E.164 format
-    const normalized = this.phoneNumberService.normalizePhoneNumber(
-      phoneNumber,
-      'TN',
-    );
+    const normalized = this.phoneNumberService.normalizePhoneNumber(phoneNumber, 'TN');
 
     // Store normalized in database
     await this.userRepository.update({ phone: normalized });
@@ -162,11 +158,7 @@ export class UserService {
   // Example 4: Compare phone numbers
   async checkDuplicate(newPhone: string, existingPhones: string[]) {
     for (const existing of existingPhones) {
-      const isDuplicate = this.phoneNumberService.arePhoneNumbersEqual(
-        newPhone,
-        existing,
-        'TN',
-      );
+      const isDuplicate = this.phoneNumberService.arePhoneNumbersEqual(newPhone, existing, 'TN');
 
       if (isDuplicate) {
         throw new ConflictException('Phone number already registered');
@@ -179,7 +171,7 @@ export class UserService {
     const numbers = this.phoneNumberService.findPhoneNumbersInText(text, 'TN');
 
     // Returns array of PhoneNumberDetails
-    numbers.forEach(num => {
+    numbers.forEach((num) => {
       console.log(num.formatted.international);
       console.log(num.country);
       console.log(num.type);
@@ -204,10 +196,7 @@ export class UserService {
 
   // Example 7: As-you-type formatting (for real-time UI)
   async formatRealTime(partialNumber: string) {
-    const formatted = this.phoneNumberService.formatAsYouType(
-      partialNumber,
-      'TN',
-    );
+    const formatted = this.phoneNumberService.formatAsYouType(partialNumber, 'TN');
     // User types: "201234"
     // Returns: "20 12 34"
   }

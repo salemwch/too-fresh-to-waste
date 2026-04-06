@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model, Types } from 'mongoose';
+
 import { AppLoggerService } from 'src/common/services/logger.service';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 
@@ -15,6 +16,13 @@ import {
   MerchantPayoutLedgerDocument,
   LedgerStatus,
 } from '../schemas/merchant-payout-ledger.schema';
+
+interface MerchantPayoutStatusStat {
+  _id: LedgerStatus;
+  totalAmount: number;
+  count: number;
+  lastDate: Date | null;
+}
 
 /**
  * PayoutService
@@ -124,7 +132,14 @@ export class PayoutService {
       entryCount: number;
     }>
   > {
-    const aggregation = await this.ledgerModel.aggregate([
+    const aggregation = await this.ledgerModel.aggregate<{
+      _id: Types.ObjectId;
+      merchantName: string;
+      merchantEmail: string;
+      totalAmount: number;
+      totalPlatformFee: number;
+      entryCount: number;
+    }>([
       { $match: { status: LedgerStatus.PENDING_SETTLEMENT } },
       {
         $group: {
@@ -287,7 +302,10 @@ export class PayoutService {
    * @returns Array of retry results
    */
   async retryFailedPayouts(batchId: string): Promise<PayoutResult[]> {
-    const failedEntries = await this.ledgerModel.aggregate([
+    const failedEntries = await this.ledgerModel.aggregate<{
+      _id: Types.ObjectId;
+      count: number;
+    }>([
       {
         $match: {
           status: LedgerStatus.FAILED,
@@ -326,7 +344,7 @@ export class PayoutService {
     paidOutCount: number;
     lastPayoutDate: Date | null;
   }> {
-    const stats = await this.ledgerModel.aggregate([
+    const stats = await this.ledgerModel.aggregate<MerchantPayoutStatusStat>([
       { $match: { merchantId: new Types.ObjectId(merchantId) } },
       {
         $group: {
@@ -342,11 +360,11 @@ export class PayoutService {
     const paidOut = stats.find((s) => s._id === LedgerStatus.PAID_OUT);
 
     return {
-      pendingAmount: pending?.totalAmount || 0,
-      pendingCount: pending?.count || 0,
-      paidOutAmount: paidOut?.totalAmount || 0,
-      paidOutCount: paidOut?.count || 0,
-      lastPayoutDate: paidOut?.lastDate || null,
+      pendingAmount: pending?.totalAmount ?? 0,
+      pendingCount: pending?.count ?? 0,
+      paidOutAmount: paidOut?.totalAmount ?? 0,
+      paidOutCount: paidOut?.count ?? 0,
+      lastPayoutDate: paidOut?.lastDate ?? null,
     };
   }
 

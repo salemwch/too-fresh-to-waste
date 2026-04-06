@@ -55,7 +55,7 @@ export class SupabaseStorageService implements OnModuleInit {
 
   private initializeSupabase(): void {
     try {
-      this.supabaseUrl = this.configService.get<string>('SUPABASE_URL') || '';
+      this.supabaseUrl = this.configService.get<string>('SUPABASE_URL') ?? '';
       const serviceRoleKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY');
       this.bucketName =
         this.configService.get<string>('SUPABASE_STORAGE_BUCKET', 'uploads') || 'uploads';
@@ -82,11 +82,19 @@ export class SupabaseStorageService implements OnModuleInit {
     }
   }
 
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return String(error);
+  }
+
   private ensureInitialized(): void {
-    if (!this.initialized || !this.supabase) {
+    if (!this.initialized || this.supabase === undefined) {
       this.initializeSupabase();
 
-      if (!this.initialized || !this.supabase) {
+      if (!this.initialized || this.supabase === undefined) {
         throw new InternalServerErrorException(
           'Supabase Storage is not available. Check Supabase configuration.',
         );
@@ -166,7 +174,7 @@ export class SupabaseStorageService implements OnModuleInit {
     files: Express.Multer.File[],
     options: UploadOptions = {},
   ): Promise<UploadedFileInfo[]> {
-    if (!files || files.length === 0) {
+    if (files.length === 0) {
       return [];
     }
 
@@ -184,7 +192,7 @@ export class SupabaseStorageService implements OnModuleInit {
       if (result.status === 'fulfilled') {
         successful.push(result.value);
       } else {
-        failed.push(`File ${index + 1}: ${result.reason.message}`);
+        failed.push(`File ${index + 1}: ${this.getErrorMessage(result.reason)}`);
         this.logger.error(`Failed to upload file ${index + 1}:`, result.reason);
       }
     });
@@ -232,7 +240,7 @@ export class SupabaseStorageService implements OnModuleInit {
    * Accepts either relative paths or full public URLs (mixed is fine).
    */
   async deleteFiles(fileNamesOrUrls: string[]): Promise<void> {
-    if (!fileNamesOrUrls || fileNamesOrUrls.length === 0) {
+    if (fileNamesOrUrls.length === 0) {
       return;
     }
 
@@ -280,7 +288,7 @@ export class SupabaseStorageService implements OnModuleInit {
         throw new InternalServerErrorException(`Failed to get file metadata: ${error.message}`);
       }
 
-      if (!data || data.length === 0) {
+      if (data === null || data === undefined || data.length === 0) {
         throw new InternalServerErrorException(`File not found: ${filePath}`);
       }
 
@@ -347,7 +355,7 @@ export class SupabaseStorageService implements OnModuleInit {
         return false;
       }
 
-      return data && data.length > 0;
+      return data !== null && data !== undefined && data.length > 0;
     } catch {
       return false;
     }
@@ -407,12 +415,12 @@ export class SupabaseStorageService implements OnModuleInit {
     return fileNameOrUrl;
   }
 
-  private validateFile(file: Express.Multer.File): void {
-    if (!file) {
+  private validateFile(file: Express.Multer.File | undefined): void {
+    if (file === null || file === undefined) {
       throw new BadRequestException('No file provided');
     }
 
-    if (!file.buffer) {
+    if (file.buffer.length === 0) {
       throw new BadRequestException('File buffer is empty');
     }
 
@@ -459,8 +467,8 @@ export class SupabaseStorageService implements OnModuleInit {
         });
       }
 
-      const format = options.format || 'jpeg';
-      const quality = options.quality || 85;
+      const format = options.format ?? 'jpeg';
+      const quality = options.quality ?? 85;
 
       let processedBuffer: Buffer;
       let mimeType: string;

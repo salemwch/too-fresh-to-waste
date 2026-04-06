@@ -118,12 +118,15 @@ export class Establishment {
           required: true,
           validate: {
             validator(coords: number[]) {
+              const [longitude, latitude] = coords;
               return (
                 coords.length === 2 &&
-                coords[0]! >= -180 &&
-                coords[0]! <= 180 &&
-                coords[1]! >= -90 &&
-                coords[1]! <= 90
+                longitude !== undefined &&
+                latitude !== undefined &&
+                longitude >= -180 &&
+                longitude <= 180 &&
+                latitude >= -90 &&
+                latitude <= 90
               );
             },
             message: 'Invalid coordinates format',
@@ -536,7 +539,8 @@ EstablishmentSchema.index({ isDeleted: 1, deletedAt: 1 }, { sparse: true });
 EstablishmentSchema.pre<Query<EstablishmentDocument[], EstablishmentDocument>>(
   /^find/,
   function (next) {
-    if (!this.getOptions()?.['includeDeleted']) {
+    const queryOptions = this.getOptions() as Record<string, unknown> | undefined;
+    if (queryOptions?.['includeDeleted'] !== true) {
       this.where({ isDeleted: { $ne: true } });
     }
     next();
@@ -548,8 +552,8 @@ EstablishmentSchema.pre<Query<EstablishmentDocument[], EstablishmentDocument>>(
  * Bypass with: .setOptions({ includeDeleted: true })
  */
 EstablishmentSchema.pre('aggregate', function () {
-  const options = (this as { options?: Record<string, unknown> }).options || {};
-  if (!options['includeDeleted']) {
+  const options = (this as { options?: Record<string, unknown> }).options;
+  if (options?.['includeDeleted'] !== true) {
     this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
   }
 });

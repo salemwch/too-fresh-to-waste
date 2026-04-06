@@ -37,7 +37,7 @@ export class RabbitMQAdapter implements IEventBus {
   async emit(eventName: string, payload: object): Promise<void> {
     try {
       // Serialize: Convert Date objects to ISO strings for safe JSON transport
-      const serialized = JSON.parse(JSON.stringify(payload));
+      const serialized = this.serializePayload(payload);
 
       await this.amqpConnection.publish(this.exchange, eventName, serialized, {
         persistent: true, // Survive broker restart
@@ -53,5 +53,10 @@ export class RabbitMQAdapter implements IEventBus {
       );
       throw error;
     }
+  }
+
+  private serializePayload(payload: object): unknown {
+    const serialized: unknown = JSON.parse(JSON.stringify(payload));
+    return serialized;
   }
 }

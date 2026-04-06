@@ -1,3 +1,5 @@
+import * as crypto from 'crypto';
+
 import { Injectable, Logger, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as qrcode from 'qrcode';
@@ -127,7 +129,7 @@ export class MfaService {
   async verifyTotp(userId: string, token: string): Promise<MfaVerificationResult> {
     try {
       const user = await this.usersService.findById(userId);
-      if (!user || !user.mfaSettings?.isEnabled || !user.mfaSettings?.totpSecret) {
+      if (!user || user.mfaSettings?.isEnabled !== true || !user.mfaSettings?.totpSecret) {
         throw new UnauthorizedException('MFA not enabled for this user');
       }
 
@@ -165,7 +167,7 @@ export class MfaService {
   async verifyBackupCode(userId: string, code: string): Promise<MfaVerificationResult> {
     try {
       const user = await this.usersService.findById(userId);
-      if (!user || !user.mfaSettings?.isEnabled || !user.mfaSettings?.backupCodes) {
+      if (!user || user.mfaSettings?.isEnabled !== true || !user.mfaSettings?.backupCodes) {
         throw new UnauthorizedException('MFA not enabled or no backup codes available');
       }
 
@@ -209,7 +211,7 @@ export class MfaService {
   async regenerateBackupCodes(userId: string): Promise<string[]> {
     try {
       const user = await this.usersService.findById(userId);
-      if (!user || !user.mfaSettings?.isEnabled) {
+      if (!user || user.mfaSettings?.isEnabled !== true) {
         throw new BadRequestException('MFA not enabled for this user');
       }
 
@@ -252,7 +254,7 @@ export class MfaService {
       }
 
       return {
-        isEnabled: user.mfaSettings?.isEnabled || false,
+        isEnabled: user.mfaSettings?.isEnabled ?? false,
         methods: {
           totp: !!user.mfaSettings?.totpSecret,
           sms: false, // Not implemented yet
@@ -271,7 +273,7 @@ export class MfaService {
   async requiresMfa(userId: string): Promise<boolean> {
     try {
       const user = await this.usersService.findById(userId);
-      return !!user?.mfaSettings?.isEnabled;
+      return user?.mfaSettings?.isEnabled === true;
     } catch (error) {
       this.logger.error(`Error checking MFA requirement for user ${userId}:`, error);
       return false;
@@ -281,7 +283,7 @@ export class MfaService {
   async generateEmergencyTokens(userId: string): Promise<string[]> {
     try {
       const user = await this.usersService.findById(userId);
-      if (!user || !user.mfaSettings?.isEnabled) {
+      if (!user || user.mfaSettings?.isEnabled !== true) {
         throw new BadRequestException('MFA not enabled for this user');
       }
 
@@ -316,7 +318,6 @@ export class MfaService {
   }
 
   private hashBackupCode(code: string): string {
-    const crypto = require('crypto');
     return crypto.createHash('sha256').update(code).digest('hex');
   }
 }

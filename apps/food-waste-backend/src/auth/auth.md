@@ -244,9 +244,11 @@ auth/
 ### 1. Controllers
 
 #### `auth.controller.ts` (Main Controller)
+
 **Purpose:** HTTP endpoint handlers for all authentication operations
 
 **Key Endpoints:**
+
 - `POST /auth/register` - User registration
 - `POST /auth/login` - Authentication
 - `POST /auth/verify-email` - Email verification
@@ -261,6 +263,7 @@ auth/
 **Design Pattern:** Thin controller pattern (business logic delegated to services)
 
 **Example:**
+
 ```typescript
 @Post('login')
 @UseGuards(ThrottlerGuard)
@@ -300,9 +303,11 @@ async login(
 ```
 
 #### `admin-auth.controller.ts`
+
 **Purpose:** Admin-specific authentication endpoints (e.g., admin login with enhanced security)
 
 #### `auth-redirect.controller.ts`
+
 **Purpose:** OAuth/SSO redirect handling (future: Google, Facebook login)
 
 ---
@@ -310,9 +315,11 @@ async login(
 ### 2. Services
 
 #### `AuthService` (Core Service)
+
 **Location:** `auth.service.ts`
 
 **Responsibilities:**
+
 - User registration with email verification
 - Login with credential validation
 - Token generation and refresh
@@ -320,6 +327,7 @@ async login(
 - Account activation/deactivation
 
 **Key Methods:**
+
 ```typescript
 // User registration
 async register(dto: RegisterDto): Promise<RegisterResponse> {
@@ -355,6 +363,7 @@ async refreshTokens(userId: string, refreshToken: string): Promise<AuthTokens> {
 ```
 
 **Dependencies:**
+
 - `UsersService` - User CRUD operations
 - `PasswordPolicyService` - Password validation
 - `TokenService` - JWT operations
@@ -364,9 +373,11 @@ async refreshTokens(userId: string, refreshToken: string): Promise<AuthTokens> {
 ---
 
 #### `AuthSecurityService`
+
 **Location:** `services/auth-security.service.ts`
 
 **Responsibilities:**
+
 - Brute-force protection (IP + email throttling)
 - Account lockout after failed attempts
 - Suspicious activity detection
@@ -374,6 +385,7 @@ async refreshTokens(userId: string, refreshToken: string): Promise<AuthTokens> {
 - Failed attempt tracking
 
 **Implementation:**
+
 ```typescript
 // Redis key patterns
 private readonly FAILED_LOGIN_PREFIX = 'auth:failed:';
@@ -408,6 +420,7 @@ async recordFailedLoginAttempt(ipAddress: string, email: string): Promise<void> 
 ```
 
 **Configuration:**
+
 - Max attempts: 10 (configurable via env)
 - Lockout duration: 15 minutes
 - IP block duration: 15 minutes
@@ -416,15 +429,18 @@ async recordFailedLoginAttempt(ipAddress: string, email: string): Promise<void> 
 ---
 
 #### `PasswordPolicyService`
+
 **Location:** `services/password-policy.service.ts`
 
 **Responsibilities:**
+
 - Password strength validation (zxcvbn)
 - Common password detection (10k+ patterns)
 - Personal info exclusion
 - Password generation
 
 **Validation Rules:**
+
 ```typescript
 export const PASSWORD_POLICY = {
   minLength: 12,
@@ -442,6 +458,7 @@ export const PASSWORD_POLICY = {
 ```
 
 **Example:**
+
 ```typescript
 const result = await passwordPolicyService.validatePassword('P@ssw0rd123!', {
   email: 'user@example.com',
@@ -462,15 +479,18 @@ const result = await passwordPolicyService.validatePassword('P@ssw0rd123!', {
 ---
 
 #### `TokenService`
+
 **Location:** `services/token.service.ts`
 
 **Responsibilities:**
+
 - JWT generation (access + refresh)
 - Token verification
 - Token family tracking (refresh token rotation)
 - Token revocation
 
 **Implementation:**
+
 ```typescript
 async generateAccessToken(payload: JwtPayload): Promise<string> {
   return this.jwtService.sign(payload, {
@@ -507,6 +527,7 @@ async generateRefreshToken(payload: JwtPayload): Promise<string> {
 ```
 
 **Security Considerations:**
+
 - Access tokens: Short-lived (15min) to limit blast radius
 - Refresh tokens: Long-lived (7d) but revocable
 - Token rotation: New refresh token issued on each refresh (prevents replay)
@@ -515,9 +536,11 @@ async generateRefreshToken(payload: JwtPayload): Promise<string> {
 ---
 
 #### `MfaService`
+
 **Location:** `services/mfa.service.ts`
 
 **Responsibilities:**
+
 - TOTP setup (QR code generation)
 - TOTP verification (6-digit codes)
 - Backup code generation/validation
@@ -525,6 +548,7 @@ async generateRefreshToken(payload: JwtPayload): Promise<string> {
 - MFA disable (with password confirmation)
 
 **Example:**
+
 ```typescript
 async setupTotp(userId: string): Promise<MfaSetupResponse> {
   // 1. Generate TOTP secret
@@ -561,9 +585,11 @@ async setupTotp(userId: string): Promise<MfaSetupResponse> {
 ---
 
 #### `SessionManagementService`
+
 **Location:** `services/session-management.service.ts`
 
 **Responsibilities:**
+
 - Session creation with device tracking
 - Multi-device session tracking
 - Session revocation (single or all)
@@ -571,24 +597,26 @@ async setupTotp(userId: string): Promise<MfaSetupResponse> {
 - Trusted device management
 
 **Data Structure:**
+
 ```typescript
 interface Session {
-  sessionId: string;          // UUID
-  userId: string;             // User ID
+  sessionId: string; // UUID
+  userId: string; // User ID
   deviceInfo: {
-    deviceName: string;       // "Chrome on Windows"
-    platform: string;         // "Windows"
-    browser: string;          // "Chrome"
-    ipAddress: string;        // "192.168.1.1"
-    isTrusted: boolean;       // Trust this device?
+    deviceName: string; // "Chrome on Windows"
+    platform: string; // "Windows"
+    browser: string; // "Chrome"
+    ipAddress: string; // "192.168.1.1"
+    isTrusted: boolean; // Trust this device?
   };
-  createdAt: Date;            // Session start
-  lastActivityAt: Date;       // Last request timestamp
-  expiresAt: Date;            // TTL (7 days)
+  createdAt: Date; // Session start
+  lastActivityAt: Date; // Last request timestamp
+  expiresAt: Date; // TTL (7 days)
 }
 ```
 
 **Redis Storage:**
+
 ```typescript
 // Key pattern: session:{sessionId}
 // TTL: 7 days (auto-cleanup)
@@ -602,11 +630,13 @@ interface Session {
 ### 3. Guards
 
 #### `JwtAuthGuard`
+
 **Location:** `guards/jwt-auth.guard.ts`
 
 **Purpose:** Primary authentication guard using JWT access tokens
 
 **Usage:**
+
 ```typescript
 // Global (applied to all routes via APP_GUARD)
 @Module({
@@ -622,6 +652,7 @@ getPublicData() { ... }
 ```
 
 **Implementation:**
+
 ```typescript
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -648,11 +679,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 ---
 
 #### `RolesGuard`
+
 **Location:** `guards/roles.guard.ts`
 
 **Purpose:** Role-based access control (RBAC)
 
 **Usage:**
+
 ```typescript
 @Roles('ADMIN', 'MODERATOR')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -661,6 +694,7 @@ deleteUser(@Param('id') id: string) { ... }
 ```
 
 **Implementation:**
+
 ```typescript
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -679,11 +713,13 @@ export class RolesGuard implements CanActivate {
 ---
 
 #### `PermissionsGuard`
+
 **Location:** `guards/permissions.guard.ts`
 
 **Purpose:** Fine-grained permission checks (beyond roles)
 
 **Usage:**
+
 ```typescript
 @Permissions('offers:delete')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -694,11 +730,13 @@ deleteOffer(@Param('id') id: string) { ... }
 ---
 
 #### `ResourceOwnershipGuard`
+
 **Location:** `guards/resource-ownership.guard.ts`
 
 **Purpose:** Verify user owns the resource being accessed
 
 **Usage:**
+
 ```typescript
 @CheckOwnership('Order')
 @UseGuards(JwtAuthGuard, ResourceOwnershipGuard)
@@ -711,9 +749,11 @@ getOrder(@Param('id') id: string) { ... }
 ### 4. Decorators
 
 #### `@Public()`
+
 **Purpose:** Mark endpoint as public (bypass authentication)
 
 **Implementation:**
+
 ```typescript
 export const Public = () => SetMetadata('isPublic', true);
 ```
@@ -721,9 +761,11 @@ export const Public = () => SetMetadata('isPublic', true);
 ---
 
 #### `@Roles(...roles: string[])`
+
 **Purpose:** Define required roles for endpoint
 
 **Implementation:**
+
 ```typescript
 export const Roles = (...roles: string[]) => SetMetadata('roles', roles);
 ```
@@ -731,20 +773,23 @@ export const Roles = (...roles: string[]) => SetMetadata('roles', roles);
 ---
 
 #### `@Permissions(...permissions: string[])`
+
 **Purpose:** Define required permissions for endpoint
 
 **Implementation:**
+
 ```typescript
-export const Permissions = (...permissions: string[]) =>
-  SetMetadata('permissions', permissions);
+export const Permissions = (...permissions: string[]) => SetMetadata('permissions', permissions);
 ```
 
 ---
 
 #### `@GetUser()`
+
 **Purpose:** Extract authenticated user from request
 
 **Usage:**
+
 ```typescript
 @Get('profile')
 @UseGuards(JwtAuthGuard)
@@ -754,15 +799,14 @@ getProfile(@GetUser() user: User) {
 ```
 
 **Implementation:**
-```typescript
-export const GetUser = createParamDecorator(
-  (data: string | undefined, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
-    const user = request.user;
 
-    return data ? user?.[data] : user;
-  },
-);
+```typescript
+export const GetUser = createParamDecorator((data: string | undefined, ctx: ExecutionContext) => {
+  const request = ctx.switchToHttp().getRequest();
+  const user = request.user;
+
+  return data ? user?.[data] : user;
+});
 ```
 
 ---
@@ -774,22 +818,25 @@ export const GetUser = createParamDecorator(
 **Hashing Algorithm:** Argon2id (winner of Password Hashing Competition 2015)
 
 **Configuration:**
+
 ```typescript
 const argon2Config = {
   type: argon2.argon2id,
-  memoryCost: 65536,      // 64 MB
-  timeCost: 3,            // 3 iterations
-  parallelism: 4,         // 4 threads
-  hashLength: 32,         // 32 bytes
+  memoryCost: 65536, // 64 MB
+  timeCost: 3, // 3 iterations
+  parallelism: 4, // 4 threads
+  hashLength: 32, // 32 bytes
 };
 ```
 
 **Why Argon2id?**
+
 - Memory-hard (resistant to GPU/ASIC attacks)
 - Hybrid mode (combines Argon2i and Argon2d)
 - Recommended by OWASP for password storage
 
 **Legacy Support:**
+
 ```typescript
 // Old passwords use bcrypt (gradual migration)
 async verifyPassword(plaintext: string, hash: string): Promise<boolean> {
@@ -807,29 +854,32 @@ async verifyPassword(plaintext: string, hash: string): Promise<boolean> {
 ### 2. Token Security
 
 **Access Token Claims:**
+
 ```typescript
 interface AccessTokenPayload {
-  sub: string;              // User ID
-  email: string;            // User email
-  role: string;             // User role
-  iat: number;              // Issued at (Unix timestamp)
-  exp: number;              // Expiration (Unix timestamp)
-  jti: string;              // JWT ID (for revocation)
+  sub: string; // User ID
+  email: string; // User email
+  role: string; // User role
+  iat: number; // Issued at (Unix timestamp)
+  exp: number; // Expiration (Unix timestamp)
+  jti: string; // JWT ID (for revocation)
 }
 ```
 
 **Refresh Token Claims:**
+
 ```typescript
 interface RefreshTokenPayload {
-  sub: string;              // User ID
-  type: 'refresh';          // Token type
-  familyId: string;         // Token family UUID (rotation tracking)
-  iat: number;              // Issued at
-  exp: number;              // Expiration
+  sub: string; // User ID
+  type: 'refresh'; // Token type
+  familyId: string; // Token family UUID (rotation tracking)
+  iat: number; // Issued at
+  exp: number; // Expiration
 }
 ```
 
 **Refresh Token Rotation:**
+
 ```
 User logs in → Token family A created
   ↓
@@ -845,6 +895,7 @@ Attacker uses old token A → Detect reuse, revoke ALL families
 ### 3. Rate Limiting
 
 **Throttle Configuration:**
+
 ```typescript
 // Global default: 50 req/min
 ThrottlerModule.forRoot({
@@ -862,6 +913,7 @@ ThrottlerModule.forRoot({
 ```
 
 **IP-Based Blocking:**
+
 - Triggered after 10 failed login attempts
 - Block duration: 15 minutes
 - Storage: Redis with TTL auto-expiration
@@ -871,6 +923,7 @@ ThrottlerModule.forRoot({
 ### 4. CSRF Protection
 
 **Double-Submit Cookie Pattern:**
+
 ```typescript
 // 1. Client requests CSRF token
 GET /auth/csrf-token
@@ -893,18 +946,20 @@ if (headerToken !== cookieToken) {
 ### 5. Session Security
 
 **Session Cookie Attributes:**
+
 ```typescript
 res.cookie('session_id', sessionId, {
-  httpOnly: true,       // Prevent XSS access
-  secure: true,         // HTTPS only
-  sameSite: 'strict',   // Prevent CSRF
+  httpOnly: true, // Prevent XSS access
+  secure: true, // HTTPS only
+  sameSite: 'strict', // Prevent CSRF
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  path: '/',            // Available to all routes
+  path: '/', // Available to all routes
   domain: '.example.com', // Subdomain sharing (if needed)
 });
 ```
 
 **Concurrent Session Limits:**
+
 - Max sessions per user: 5 (configurable)
 - Oldest session revoked when limit exceeded
 - User can manually revoke sessions via `/auth/sessions`
@@ -920,6 +975,7 @@ res.cookie('session_id', sessionId, {
 **Solution:** Use DI tokens + interfaces
 
 **Implementation:**
+
 ```typescript
 // interfaces/password-policy-service.interface.ts
 export const PASSWORD_POLICY_SERVICE_TOKEN = Symbol('PASSWORD_POLICY_SERVICE');
@@ -944,6 +1000,7 @@ constructor(
 ```
 
 **Benefits:**
+
 - Easy mocking in tests
 - Swappable implementations
 - Explicit contracts
@@ -957,6 +1014,7 @@ constructor(
 **Solution:** Chain guards using `@UseGuards()`
 
 **Example:**
+
 ```typescript
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard, ResourceOwnershipGuard)
 @Roles('MERCHANT')
@@ -973,6 +1031,7 @@ updateOffer(@Param('id') id: string, @Body() dto: UpdateOfferDto) {
 ```
 
 **Execution Order:**
+
 1. JwtAuthGuard (authentication)
 2. RolesGuard (role check)
 3. PermissionsGuard (permission check)
@@ -988,6 +1047,7 @@ updateOffer(@Param('id') id: string, @Body() dto: UpdateOfferDto) {
 **Solution:** Passport strategies
 
 **Implementation:**
+
 ```typescript
 // strategies/jwt.strategie.ts
 @Injectable()
@@ -1016,6 +1076,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 **Solution:** Abstract data access
 
 **Example:**
+
 ```typescript
 // auth.service.ts (NOT using repository - direct access)
 constructor(
@@ -1045,11 +1106,13 @@ async findByEmail(email: string): Promise<User> {
 **Location:** `*.spec.ts` files alongside source
 
 **Tools:**
+
 - Jest (test runner)
 - `@nestjs/testing` (TestingModule)
 - Mocks for external dependencies
 
 **Example:**
+
 ```typescript
 describe('AuthService', () => {
   let service: AuthService;
@@ -1104,10 +1167,12 @@ describe('AuthService', () => {
 **Location:** `__tests__/*.spec.ts`
 
 **Tools:**
+
 - In-memory MongoDB (`mongodb-memory-server`)
 - Supertest for HTTP testing
 
 **Example:**
+
 ```typescript
 describe('AuthController (Integration)', () => {
   let app: INestApplication;
@@ -1118,10 +1183,7 @@ describe('AuthController (Integration)', () => {
     const uri = mongoServer.getUri();
 
     const moduleRef = await Test.createTestingModule({
-      imports: [
-        MongooseModule.forRoot(uri),
-        AuthModule,
-      ],
+      imports: [MongooseModule.forRoot(uri), AuthModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -1155,12 +1217,14 @@ describe('AuthController (Integration)', () => {
 **Location:** `test/*.e2e-spec.ts`
 
 **Coverage:**
+
 - Full user registration flow
 - Login → protected route access
 - Token refresh flow
 - MFA setup and verification
 
 **Example:**
+
 ```typescript
 describe('Authentication E2E', () => {
   let accessToken: string;
@@ -1208,12 +1272,14 @@ describe('Authentication E2E', () => {
 **Example:** Add Google OAuth
 
 1. **Install dependencies:**
+
 ```bash
 pnpm add @nestjs/passport passport-google-oauth20
 pnpm add -D @types/passport-google-oauth20
 ```
 
 2. **Create strategy:**
+
 ```typescript
 // strategies/google.strategy.ts
 import { PassportStrategy } from '@nestjs/passport';
@@ -1245,6 +1311,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 ```
 
 3. **Add guard:**
+
 ```typescript
 // guards/google-auth.guard.ts
 @Injectable()
@@ -1252,6 +1319,7 @@ export class GoogleAuthGuard extends AuthGuard('google') {}
 ```
 
 4. **Add endpoints:**
+
 ```typescript
 // auth.controller.ts
 @Get('google')
@@ -1271,6 +1339,7 @@ async googleAuthCallback(@Request() req, @Response() res) {
 ```
 
 5. **Update module:**
+
 ```typescript
 // auth.module.ts
 providers: [..., GoogleStrategy],
@@ -1283,6 +1352,7 @@ providers: [..., GoogleStrategy],
 **Example:** Add `offers:approve` permission
 
 1. **Update permissions seed:**
+
 ```typescript
 // seeds/permissions.seed.ts
 const permissions = [
@@ -1292,11 +1362,13 @@ const permissions = [
 ```
 
 2. **Run seeder:**
+
 ```bash
 pnpm seed:permissions
 ```
 
 3. **Use in controller:**
+
 ```typescript
 @Permissions('offers:approve')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -1309,6 +1381,7 @@ approveOffer(@Param('id') id: string) { ... }
 ### Debugging Authentication Issues
 
 **Enable debug logging:**
+
 ```bash
 # .env
 LOG_LEVEL=debug
@@ -1316,6 +1389,7 @@ DEBUG=passport:*
 ```
 
 **Check JWT decoding:**
+
 ```bash
 # Install jwt-cli
 npm install -g jwt-cli
@@ -1325,6 +1399,7 @@ jwt decode <your-token>
 ```
 
 **Check Redis sessions:**
+
 ```bash
 # Connect to Redis
 redis-cli
@@ -1340,6 +1415,7 @@ SMEMBERS user:sessions:<user-id>
 ```
 
 **Common issues:**
+
 - **401 Unauthorized:** Token expired or invalid signature
 - **403 Forbidden:** Missing role/permission or account locked
 - **423 Locked:** Too many failed login attempts
@@ -1354,6 +1430,7 @@ SMEMBERS user:sessions:<user-id>
 **Cause:** System clock skew or wrong TTL configuration
 
 **Solution:**
+
 ```bash
 # Check .env
 JWT_EXPIRES_IN=15m  # Correct
@@ -1367,6 +1444,7 @@ JWT_EXPIRES_IN=900000  # Wrong (milliseconds not supported by JWT)
 **Cause:** Token family not properly tracked in database
 
 **Debug:**
+
 ```typescript
 // Check if refresh token stored
 const token = await this.refreshTokenModel.findOne({ userId });
@@ -1382,6 +1460,7 @@ console.log('Stored token:', token);
 **Cause:** Cookie not sent or SameSite attribute blocking
 
 **Debug:**
+
 ```typescript
 // Check if cookie present
 console.log('CSRF cookie:', req.cookies['csrf-token']);
@@ -1389,6 +1468,7 @@ console.log('CSRF header:', req.headers['x-csrf-token']);
 ```
 
 **Solution:** Ensure frontend reads cookie and sends in header:
+
 ```typescript
 // Frontend
 const csrfToken = document.cookie.match(/csrf-token=([^;]+)/)?.[1];
@@ -1404,6 +1484,7 @@ fetch('/auth/login', {
 **Cause:** Redis TTL not set or expired
 
 **Debug:**
+
 ```bash
 redis-cli
 TTL auth:blocked:email:user@example.com
@@ -1413,6 +1494,7 @@ TTL auth:blocked:email:user@example.com
 ```
 
 **Solution:** Ensure TTL set when blocking:
+
 ```typescript
 await this.redisClient.set(key, '1', 'EX', 900); // 15 min expiry
 ```

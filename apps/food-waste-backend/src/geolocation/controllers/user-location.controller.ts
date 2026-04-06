@@ -201,10 +201,10 @@ export class UserLocationController {
     @Query('category') category?: LocationCategory,
   ): Promise<SavedLocation[]> {
     this.logger.log(
-      `Getting saved locations for user ${userId}${category ? ` with category ${category}` : ''}`,
+      `Getting saved locations for user ${userId}${category !== undefined ? ` with category ${category}` : ''}`,
     );
 
-    if (category) {
+    if (category !== undefined) {
       const categoryResult = await this.userLocationService.getSavedLocationsByCategory(
         userId,
         category,

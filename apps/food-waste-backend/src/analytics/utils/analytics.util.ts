@@ -50,7 +50,7 @@ export class AnalyticsUtil {
     const keyObject = {
       endpoint,
       filters: this.normalizeFilters(filters),
-      aggregation: aggregation || {},
+      aggregation: aggregation ?? {},
       version: '1.0.0',
     };
 
@@ -74,16 +74,18 @@ export class AnalyticsUtil {
         if (value instanceof Types.ObjectId) {
           value = value.toString();
         } else if (Array.isArray(value) && value.some((v) => v instanceof Types.ObjectId)) {
-          value = value
-            .map((v) => (v instanceof Types.ObjectId ? v.toString() : v))
-            .sort((a, b) => {
-              // Type-safe comparison for mixed array elements
-              const aStr = String(a);
-              const bStr = String(b);
-              return aStr.localeCompare(bStr);
-            });
+          const objectIdNormalizedValues = value.map((v): unknown =>
+            v instanceof Types.ObjectId ? v.toString() : v,
+          );
+          value = objectIdNormalizedValues.sort((a, b) => {
+            // Type-safe comparison for mixed array elements
+            const aStr = String(a);
+            const bStr = String(b);
+            return aStr.localeCompare(bStr);
+          });
         } else if (Array.isArray(value)) {
-          value = [...value].sort((a, b) => {
+          const sortableValues = Array.from(value, (item): unknown => item);
+          value = sortableValues.sort((a, b) => {
             // Type-safe comparison for unknown array elements
             const aStr = String(a);
             const bStr = String(b);
@@ -160,7 +162,7 @@ export class AnalyticsUtil {
     granularity: DateGranularity,
     dateField: string = 'createdAt',
   ): PipelineStage[] {
-    const timezone = granularity.timezone || 'UTC';
+    const timezone = granularity.timezone ?? 'UTC';
 
     const formatMap = {
       hour: '%Y-%m-%d %H:00',
@@ -195,7 +197,7 @@ export class AnalyticsUtil {
     const matchStage: MongoMatchStage = {};
 
     // Date range filter
-    if (filters.dateRange) {
+    if (filters.dateRange !== null && filters.dateRange !== undefined) {
       matchStage.createdAt = {
         $gte: new Date(filters.dateRange.startDate),
         $lte: new Date(filters.dateRange.endDate),
@@ -267,7 +269,7 @@ export class AnalyticsUtil {
 
     while (current <= end) {
       const key = this.formatDateKey(current, granularity);
-      const value = dataMap.get(key) || 0;
+      const value = dataMap.get(key) ?? 0;
 
       result.push({
         timestamp: new Date(current),

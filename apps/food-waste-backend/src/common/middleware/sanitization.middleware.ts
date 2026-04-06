@@ -40,8 +40,13 @@ export class SanitizationMiddleware implements NestMiddleware {
   use(req: Request, _res: Response, next: NextFunction): void {
     try {
       // Sanitize request body for notification-related endpoints
-      if (this.isNotificationEndpoint(req.path) && req.body) {
-        req.body = this.sanitizeRequestBody(req.body);
+      const requestBody = req.body as unknown;
+      if (
+        this.isNotificationEndpoint(req.path) &&
+        requestBody !== null &&
+        requestBody !== undefined
+      ) {
+        req.body = this.sanitizeRequestBody(requestBody);
 
         // Log if suspicious content was detected
         const bodyString = JSON.stringify(req.body);
@@ -57,7 +62,7 @@ export class SanitizationMiddleware implements NestMiddleware {
       }
 
       // Sanitize query parameters
-      if (req.query) {
+      if (req.query !== null && req.query !== undefined) {
         req.query = this.sanitizeQueryParams(req.query as QueryParams);
       }
 
@@ -80,7 +85,7 @@ export class SanitizationMiddleware implements NestMiddleware {
   }
 
   private sanitizeRequestBody(body: unknown): NotificationRequestBody {
-    if (!body || typeof body !== 'object') {
+    if (body === null || body === undefined || typeof body !== 'object') {
       return {};
     }
 
@@ -96,7 +101,7 @@ export class SanitizationMiddleware implements NestMiddleware {
 
     // Sanitize common string fields
     ['title', 'body', 'message', 'content', 'description'].forEach((field) => {
-      if (sanitized[field] && typeof sanitized[field] === 'string') {
+      if (typeof sanitized[field] === 'string') {
         sanitized[field] = this.sanitizationUtil.sanitizeText(sanitized[field]);
       }
     });

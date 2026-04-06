@@ -115,16 +115,16 @@ export class TokenService {
 
     // Generate unique JTI and family ID
     const jti = uuidv4();
-    const familyId = existingFamilyId || uuidv4();
+    const familyId = existingFamilyId ?? uuidv4();
 
     // Calculate expiration times in seconds
     const accessExpiresInSec = this.parseExpiration(
-      this.configService.get<string>('JWT_EXPIRES_IN') || '15m',
+      this.configService.get<string>('JWT_EXPIRES_IN') ?? '15m',
     );
     const refreshExpiresInSec = this.parseExpiration(
       this.configService.get<string>(
         rememberMe ? 'JWT_REFRESH_REMEMBER_ME_EXPIRES_IN' : 'JWT_REFRESH_EXPIRES_IN',
-      ) || (rememberMe ? '30d' : '7d'),
+      ) ?? (rememberMe ? '30d' : '7d'),
     );
 
     // Create token payloads WITHOUT exp/iat - let JWT library handle them

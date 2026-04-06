@@ -1,3 +1,5 @@
+import * as crypto from 'crypto';
+
 import {
   Injectable,
   NotFoundException,
@@ -5,8 +7,28 @@ import {
   Logger,
   BadRequestException,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import * as argon2 from 'argon2';
+import { Model } from 'mongoose';
 
+import { PasswordHistoryService } from '../auth/services/password-history.service';
+import { PasswordPolicyService } from '../auth/services/password-policy.service';
+import {
+  USER_AUDIT_LOG_MAX,
+  USER_LOGIN_HISTORY_MAX,
+  USER_LOCATION_HISTORY_MAX,
+} from '../common/constants/database-indexes.constant';
+import { AdminUserDeletedEvent } from '../common/events/admin-user.events';
+import { EventBusService } from '../common/services/event-bus/event-bus.service';
+import { PhoneNumberService } from '../common/services/phone-number.service';
+import { CryptoUtil } from '../common/utils/crypto.util';
+import { SmsNotificationService } from '../notifications/services/sms-notification.service';
+
+import { CreateUserDto } from './DTO/create-user.dto';
+import { UpdateUserDto } from './DTO/update-user.dto';
 import { IUsersService } from './interfaces/users-service.interface';
+import { User, UserDocument, UserStatus, IAuditLogDetails } from './schemas/user.schema';
+
 interface IPaginationMeta {
   page: number;
   limit: number;
@@ -28,29 +50,6 @@ interface IPhoneVerificationResult {
   message: string;
   attemptsRemaining?: number;
 }
-
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import * as argon2 from 'argon2';
-
-import * as crypto from 'crypto';
-
-import { User, UserDocument, UserStatus, IAuditLogDetails } from './schemas/user.schema';
-import { CreateUserDto } from './DTO/create-user.dto';
-import { UpdateUserDto } from './DTO/update-user.dto';
-
-import { PasswordPolicyService } from '../auth/services/password-policy.service';
-import { CryptoUtil } from '../common/utils/crypto.util';
-import { PhoneNumberService } from '../common/services/phone-number.service';
-import { SmsNotificationService } from '../notifications/services/sms-notification.service';
-import { PasswordHistoryService } from '../auth/services/password-history.service';
-import { EventBusService } from '../common/services/event-bus/event-bus.service';
-import { AdminUserDeletedEvent } from '../common/events/admin-user.events';
-import {
-  USER_AUDIT_LOG_MAX,
-  USER_LOGIN_HISTORY_MAX,
-  USER_LOCATION_HISTORY_MAX,
-} from '../common/constants/database-indexes.constant';
 
 /**
  * UsersService - Concrete implementation of IUsersService
@@ -204,7 +203,7 @@ export class UsersService implements IUsersService {
         );
 
         if (!phoneValidation.isValid) {
-          throw new BadRequestException(phoneValidation.error || 'Invalid phone number format');
+          throw new BadRequestException(phoneValidation.error ?? 'Invalid phone number format');
         }
 
         // Store in E.164 format for consistency
@@ -355,10 +354,16 @@ export class UsersService implements IUsersService {
       // Handle mongoose duplicate key error (race condition safety)
       const mongoError = error as { code?: number; keyPattern?: Record<string, unknown> };
       if (mongoError.code === 11000) {
-        if (mongoError.keyPattern?.['email']) {
+        if (
+          mongoError.keyPattern?.['email'] !== null &&
+          mongoError.keyPattern?.['email'] !== undefined
+        ) {
           throw new ConflictException('User with this email already exists');
         }
-        if (mongoError.keyPattern?.['phoneNumber']) {
+        if (
+          mongoError.keyPattern?.['phoneNumber'] !== null &&
+          mongoError.keyPattern?.['phoneNumber'] !== undefined
+        ) {
           throw new ConflictException('User with this phone number already exists');
         }
         throw new ConflictException('User with this information already exists');
@@ -373,7 +378,7 @@ export class UsersService implements IUsersService {
       // For other errors, log the full error but throw a sanitized version
       this.logger.error(
         `User creation failed for email: ${createUserDto.email}`,
-        (error instanceof Error ? error.stack : undefined) || 'No stack trace available',
+        (error instanceof Error ? error.stack : undefined) ?? 'No stack trace available',
       );
       throw new BadRequestException('User creation failed due to system error');
     }
@@ -537,7 +542,7 @@ export class UsersService implements IUsersService {
           (log) =>
             log.action === 'PHONE_VERIFICATION_SENT' &&
             log.timestamp > new Date(Date.now() - 60 * 60 * 1000), // Last hour
-        ) || [];
+        ) ?? [];
 
       if (recentAttempts.length >= this.VERIFICATION_RATE_LIMIT) {
         this.logger.warn(`Phone verification rate limit exceeded for user ${userId}`);
@@ -551,7 +556,7 @@ export class UsersService implements IUsersService {
       // 4. Normalize and validate phone number
       const phoneValidation = this.phoneNumberService.validatePhoneNumber(phoneNumber, 'TN');
       if (!phoneValidation.isValid) {
-        throw new BadRequestException(phoneValidation.error || 'Invalid phone number format');
+        throw new BadRequestException(phoneValidation.error ?? 'Invalid phone number format');
       }
 
       const normalizedPhone = phoneValidation.details?.formatted.e164;
@@ -761,8 +766,8 @@ export class UsersService implements IUsersService {
         await this.addAuditLog(
           userId,
           'PHONE_VERIFICATION_FAILED',
-          auditData?.ipAddress || 'unknown',
-          auditData?.userAgent || 'unknown',
+          auditData?.ipAddress ?? 'unknown',
+          auditData?.userAgent ?? 'unknown',
           {
             phoneNumberMasked: this.maskPhoneNumber(normalizedPhone),
             attemptsRemaining: remainingAttempts,
@@ -882,7 +887,7 @@ export class UsersService implements IUsersService {
     }
 
     // 2. Check password history to prevent reuse
-    const currentHistory = user.securitySettings?.passwordHistory || [];
+    const currentHistory = user.securitySettings?.passwordHistory ?? [];
     await this.passwordHistoryService.validatePasswordHistory(newPassword, currentHistory);
 
     // 3. Hash new password using Argon2id with OWASP recommended parameters
@@ -964,7 +969,10 @@ export class UsersService implements IUsersService {
 
     // Sanitize empty coordinates that break the 2dsphere index
     const updateOps: Record<string, unknown> = { $set: updatePayload };
-    if (!updatePayload['address.coordinates']) {
+    if (
+      updatePayload['address.coordinates'] === null ||
+      updatePayload['address.coordinates'] === undefined
+    ) {
       await this.sanitizeEmptyGeoCoordinates(id, updateOps);
     }
 
@@ -1045,8 +1053,8 @@ export class UsersService implements IUsersService {
     locationData: {
       latitude: number;
       longitude: number;
-      locationName?: string;
-      source?: 'gps' | 'network' | 'passive' | 'manual' | 'ip';
+      locationName?: string | undefined;
+      source?: 'gps' | 'network' | 'passive' | 'manual' | 'ip' | undefined;
     },
   ): Promise<{
     latitude: number;
@@ -1073,7 +1081,7 @@ export class UsersService implements IUsersService {
       },
       timestamp,
       accuracy: null,
-      source: locationData.source || 'manual',
+      source: locationData.source ?? 'manual',
     };
 
     const user = await this.userModel
@@ -1099,7 +1107,7 @@ export class UsersService implements IUsersService {
 
     this.logger.log('User location updated', {
       userId,
-      source: locationData.source || 'manual',
+      source: locationData.source ?? 'manual',
       hasLocationName: !!locationData.locationName,
     });
 
@@ -1328,7 +1336,11 @@ export class UsersService implements IUsersService {
       );
 
     this.logger.log(`User restored: ${id}`);
-    return restoredUser!;
+    if (!restoredUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    return restoredUser;
   }
 
   async hardDelete(id: string): Promise<void> {
@@ -1456,7 +1468,7 @@ export class UsersService implements IUsersService {
       throw new NotFoundException('User not found');
     }
 
-    return (user.auditLog || [])
+    return (user.auditLog ?? [])
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
       .slice(0, limit);
   }
@@ -1512,16 +1524,15 @@ export class UsersService implements IUsersService {
     const pendingActions: string[] = [];
 
     // Check Tunisia compliance
-    const tunisiaCompliant = !!(
-      privacy?.tunisianCompliance?.dataProcessingConsent &&
-      privacy?.tunisianCompliance?.communicationConsent
-    );
+    const tunisiaCompliant =
+      privacy?.tunisianCompliance?.dataProcessingConsent === true &&
+      privacy?.tunisianCompliance?.communicationConsent === true;
 
     // Check GDPR compliance
-    const gdprCompliant = !!privacy?.internationalCompliance?.gdprConsentGiven;
+    const gdprCompliant = privacy?.internationalCompliance?.gdprConsentGiven === true;
 
     // Check CCPA compliance
-    const ccpaCompliant = !privacy?.internationalCompliance?.ccpaOptOutRequested;
+    const ccpaCompliant = privacy?.internationalCompliance?.ccpaOptOutRequested !== true;
 
     // Determine pending actions
     if (!tunisiaCompliant) {
@@ -1530,7 +1541,7 @@ export class UsersService implements IUsersService {
     if (!gdprCompliant) {
       pendingActions.push('🌍 GDPR consent required');
     }
-    if (privacy?.dataSubjectRights?.deletionRequested) {
+    if (privacy?.dataSubjectRights?.deletionRequested === true) {
       pendingActions.push('Data deletion request pending');
     }
 
@@ -1538,7 +1549,7 @@ export class UsersService implements IUsersService {
       tunisiaCompliant,
       gdprCompliant,
       ccpaCompliant,
-      lastConsentUpdate: privacy?.lastConsentRefresh || null,
+      lastConsentUpdate: privacy?.lastConsentRefresh ?? null,
       pendingActions,
     };
   }
@@ -1751,18 +1762,24 @@ export class UsersService implements IUsersService {
 
   async activateMfa(userId: string, mfaData: Record<string, unknown>): Promise<void> {
     try {
+      const isEnabled = mfaData['isEnabled'];
+      const totpSecret =
+        typeof mfaData['totpSecret'] === 'string' ? mfaData['totpSecret'] : undefined;
+      const activatedAtValue = mfaData['activatedAt'];
+      const activatedAt = activatedAtValue instanceof Date ? activatedAtValue : new Date();
+
       const updateData: Record<string, unknown> = {
-        'mfaSettings.isEnabled': mfaData['isEnabled'] || true,
+        'mfaSettings.isEnabled': typeof isEnabled === 'boolean' ? isEnabled : true,
       };
 
-      if (mfaData['totpSecret']) {
+      if (totpSecret !== null && totpSecret !== undefined) {
         // Add or update TOTP method
         updateData['mfaSettings.methods'] = [
           {
             type: 'totp',
             isActive: true,
-            secret: mfaData['totpSecret'],
-            createdAt: mfaData['activatedAt'] || new Date(),
+            secret: totpSecret,
+            createdAt: activatedAt,
             verified: true,
           },
         ];

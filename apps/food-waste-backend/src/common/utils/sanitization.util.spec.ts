@@ -332,9 +332,10 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
       ];
 
       // Most safe content should pass (angle brackets might trigger in last case, which is acceptable)
-      expect(sanitizationUtil.containsSuspiciousContent(safe[0]!)).toBe(false);
-      expect(sanitizationUtil.containsSuspiciousContent(safe[1]!)).toBe(false);
-      expect(sanitizationUtil.containsSuspiciousContent(safe[2]!)).toBe(false);
+      const [safeTextA = '', safeTextB = '', safeTextC = ''] = safe;
+      expect(sanitizationUtil.containsSuspiciousContent(safeTextA)).toBe(false);
+      expect(sanitizationUtil.containsSuspiciousContent(safeTextB)).toBe(false);
+      expect(sanitizationUtil.containsSuspiciousContent(safeTextC)).toBe(false);
     });
 
     it('should handle empty and null inputs', () => {

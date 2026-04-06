@@ -76,7 +76,7 @@ export class PhoneValidatorService {
       if (!validation.isValid) {
         return {
           isValid: false,
-          errorMessage: validation.error || 'Invalid phone number format',
+          errorMessage: validation.error ?? 'Invalid phone number format',
         };
       }
 

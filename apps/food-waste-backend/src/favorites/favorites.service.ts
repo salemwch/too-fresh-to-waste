@@ -7,6 +7,7 @@ import { EventBusService } from '../common/services/event-bus/event-bus.service'
 import { QueryOptimizer } from '../common/utils/query-optimization.util';
 import { EstablishmentDocument } from '../establishments/schemas/establishment.schema';
 import { OfferPresenter } from '../offers/presenters/offer.presenter';
+import { OfferDocument } from '../offers/schemas/offer.schema';
 
 /**
  * Lean result types for Favorites documents
@@ -17,7 +18,6 @@ import { OfferPresenter } from '../offers/presenters/offer.presenter';
  */
 export type FavoriteLean = FlattenMaps<Favorite> & { _id: unknown };
 export type FavoriteListLean = FlattenMaps<FavoriteList> & { _id: unknown };
-import { OfferDocument } from '../offers/schemas/offer.schema';
 
 import {
   AddFavoriteDto,
@@ -106,7 +106,7 @@ export class FavoritesService {
               preferredDays: [],
               maxDistance: 5,
             },
-        tags: addFavoriteDto.tags || [],
+        tags: addFavoriteDto.tags ?? [],
         notes: addFavoriteDto.notes,
       });
 
@@ -256,7 +256,7 @@ export class FavoritesService {
         isActive: filters.isActive ?? true,
       };
 
-      if (filters.type) {
+      if (filters.type !== null && filters.type !== undefined) {
         query['type'] = filters.type;
       }
 
@@ -266,8 +266,8 @@ export class FavoritesService {
 
       this.logger.log(`🔍 [getUserFavorites] Query: ${JSON.stringify(query)}`);
 
-      const page = filters.page || 1;
-      const limit = filters.limit || 20;
+      const page = filters.page ?? 1;
+      const limit = filters.limit ?? 20;
       const skip = (page - 1) * limit;
 
       const [favorites, total] = await Promise.all([
@@ -276,7 +276,7 @@ export class FavoritesService {
           .select(
             'userId type itemId itemName itemImage addedAt interactionCount lastInteraction isActive tags',
           )
-          .sort(filters.sortBy || '-addedAt')
+          .sort(filters.sortBy ?? '-addedAt')
           .skip(skip)
           .limit(limit)
           .lean()
@@ -374,7 +374,7 @@ export class FavoritesService {
 
         return {
           ...favorite,
-          itemId: populatedItem || favorite.itemId,
+          itemId: populatedItem ?? favorite.itemId,
         };
       });
 
@@ -384,10 +384,13 @@ export class FavoritesService {
       let filteredFavorites = populatedFavorites;
       let filteredTotal = total;
 
-      if (filters.establishmentType) {
+      if (filters.establishmentType !== null && filters.establishmentType !== undefined) {
         const targetType = filters.establishmentType;
         filteredFavorites = populatedFavorites.filter((_fav, index) => {
-          const originalFavorite = favorites[index]!;
+          const originalFavorite = favorites[index];
+          if (!originalFavorite) {
+            return false;
+          }
 
           if (originalFavorite.type === FavoriteType.OFFER) {
             // Lookup the raw aggregated offer by the original itemId
@@ -699,7 +702,7 @@ export class FavoritesService {
         type: addToListDto.type,
         addedAt: new Date(),
         notes: addToListDto.notes,
-        position: addToListDto.position || list.items.length,
+        position: addToListDto.position ?? list.items.length,
       };
 
       list.items.push(newItem);
@@ -793,7 +796,7 @@ export class FavoritesService {
   async getFavoriteStats(userId: string): Promise<FavoriteStatsDto> {
     try {
       const [favoriteStats, listStats] = await Promise.all([
-        this.favoriteModel.aggregate([
+        this.favoriteModel.aggregate<FavoriteStatsAggregate>([
           { $match: { userId: new Types.ObjectId(userId), isActive: true } },
           {
             $group: {
@@ -804,7 +807,7 @@ export class FavoritesService {
             },
           },
         ]),
-        this.favoriteListModel.aggregate([
+        this.favoriteListModel.aggregate<FavoriteListStatsAggregate>([
           { $match: { userId: new Types.ObjectId(userId) } },
           {
             $group: {
@@ -848,8 +851,8 @@ export class FavoritesService {
         }
       }
 
-      if (listStats.length > 0) {
-        const listStat = listStats[0];
+      const [listStat] = listStats;
+      if (listStat !== null && listStat !== undefined) {
         stats.totalLists = listStat.totalLists;
         stats.activeLists = listStat.activeLists;
         stats.sharedLists = listStat.sharedLists;
@@ -895,7 +898,7 @@ export class FavoritesService {
    */
   async getRecommendationsBasedOnFavorites(
     userId: string,
-    filters: RecommendationFiltersDto = {},
+    filters: RecommendationFiltersDto = { limit: 10 },
   ): Promise<RecommendationsResponseDto> {
     try {
       this.logger.log(`Generating recommendations for user: ${userId}`);
@@ -976,9 +979,11 @@ export class FavoritesService {
    * Get popular trends across all users for a specific time period
    * Uses time-weighted popularity scoring with growth rate analysis
    */
-  async getPopularTrends(filters: TrendsFiltersDto = {}): Promise<TrendsResponseDto> {
+  async getPopularTrends(
+    filters: TrendsFiltersDto = { period: 'week', limit: 20 },
+  ): Promise<TrendsResponseDto> {
     try {
-      this.logger.log(`Generating trends for period: ${filters.period || 'week'}`);
+      this.logger.log(`Generating trends for period: ${filters.period ?? 'week'}`);
 
       const { startDate, endDate } = this.getPeriodDates(filters.period ?? 'week');
       const previousPeriod = this.getPreviousPeriodDates(filters.period ?? 'week', startDate);
@@ -1014,7 +1019,7 @@ export class FavoritesService {
       }));
 
       this.logger.log(
-        `Generated ${sortedTrends.length} trends for period: ${filters.period || 'week'}`,
+        `Generated ${sortedTrends.length} trends for period: ${filters.period ?? 'week'}`,
       );
 
       return {
@@ -1061,7 +1066,7 @@ export class FavoritesService {
       }
 
       // Time patterns from preferred times
-      if (favorite.preferences?.preferredTimes) {
+      if ((favorite.preferences?.preferredTimes?.length ?? 0) > 0) {
         preferences.timePatterns.push(...favorite.preferences.preferredTimes);
       }
 
@@ -1094,7 +1099,7 @@ export class FavoritesService {
             isActive: true,
             userId: { $ne: new Types.ObjectId(userId) },
             itemId: { $nin: userFavoriteIds },
-            ...(filters.type && { type: filters.type }),
+            ...(filters.type !== null && filters.type !== undefined && { type: filters.type }),
           },
         },
         {
@@ -1124,7 +1129,7 @@ export class FavoritesService {
         { $limit: 100 }, // Limit for performance
       ];
 
-      const similarItems = await this.favoriteModel.aggregate(pipeline);
+      const similarItems = await this.favoriteModel.aggregate<TrendData>(pipeline);
 
       // Score items based on content similarity
       const recommendations: RecommendationDto[] = similarItems
@@ -1135,7 +1140,7 @@ export class FavoritesService {
           );
           const popularityScore = Math.min(item.favoriteCount / 10, 1); // Normalize popularity
           const interactionScore = Math.min(
-            (item.avgInteraction || 0) / userPreferences.avgInteractionCount,
+            (item.avgInteraction ?? 0) / userPreferences.avgInteractionCount,
             1,
           );
           const contentScore = tagSimilarity * 0.6 + popularityScore * 0.3 + interactionScore * 0.1;
@@ -1144,7 +1149,7 @@ export class FavoritesService {
             itemId: item._id.itemId.toString(),
             type: item._id.type,
             itemName: item._id.itemName,
-            itemImage: item._id.itemImage,
+            ...(item._id.itemImage !== undefined ? { itemImage: item._id.itemImage } : {}),
             score: Math.round(contentScore * 100) / 100,
             reason: `Based on your interest in ${Array.from(userPreferences.commonTags.keys()).slice(0, 3).join(', ')}`,
             category: 'content-based',
@@ -1175,7 +1180,7 @@ export class FavoritesService {
       const userItemIds = userFavorites.map((f) => f.itemId);
 
       // Find users with similar favorites (collaborative filtering)
-      const similarUsers = await this.favoriteModel.aggregate([
+      const similarUsers = await this.favoriteModel.aggregate<SimilarUserAggregate>([
         {
           $match: {
             itemId: { $in: userItemIds },
@@ -1208,13 +1213,13 @@ export class FavoritesService {
       const similarUserIds = similarUsers.map((u) => u._id);
 
       // Get items favorited by similar users that current user hasn't favorited
-      const collaborativeItems = await this.favoriteModel.aggregate([
+      const collaborativeItems = await this.favoriteModel.aggregate<CollaborativeItemAggregate>([
         {
           $match: {
             userId: { $in: similarUserIds },
             itemId: { $nin: userItemIds },
             isActive: true,
-            ...(filters.type && { type: filters.type }),
+            ...(filters.type !== null && filters.type !== undefined && { type: filters.type }),
           },
         },
         {
@@ -1257,13 +1262,11 @@ export class FavoritesService {
           itemId: item._id.itemId.toString(),
           type: item._id.type,
           itemName: item._id.itemName,
-          itemImage: item._id.itemImage,
+          ...(item._id.itemImage !== undefined ? { itemImage: item._id.itemImage } : {}),
           score: Math.round(collaborativeScore * 100) / 100,
           reason: `Popular among users with similar tastes`,
           category: 'collaborative-filtering',
-          tags: [...new Set(item.flatTags.flat())].filter(
-            (tag): tag is string => typeof tag === 'string',
-          ), // Remove duplicates and ensure strings
+          tags: [...new Set(item.flatTags)],
           similarityScore: Math.round(collaborativeScore * 100) / 100,
         };
       });
@@ -1426,7 +1429,7 @@ export class FavoritesService {
       addedAt: { $gte: startDate, $lte: endDate },
     };
 
-    if (filters.type) {
+    if (filters.type !== null && filters.type !== undefined) {
       matchStage['type'] = filters.type;
     }
 
@@ -1723,6 +1726,39 @@ interface UserPreferences {
   categoryPreferences: Map<string, number>;
   timePatterns: string[];
   avgInteractionCount: number;
+}
+
+interface FavoriteStatsAggregate {
+  _id: FavoriteType;
+  count: number;
+  totalNotifications: number;
+  totalInteractions: number;
+}
+
+interface FavoriteListStatsAggregate {
+  totalLists: number;
+  activeLists: number;
+  sharedLists: number;
+}
+
+interface SimilarUserAggregate {
+  _id: Types.ObjectId;
+  commonItems: number;
+  totalInteractions: number;
+}
+
+interface CollaborativeItemAggregate {
+  _id: {
+    itemId: Types.ObjectId;
+    type: FavoriteType;
+    itemName: string;
+    itemImage?: string;
+  };
+  favoriteCount: number;
+  avgInteraction: number;
+  userIds: Types.ObjectId[];
+  tags: string[][];
+  flatTags: string[];
 }
 
 /**

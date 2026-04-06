@@ -137,6 +137,23 @@ interface AuditLogEntry {
   newValue?: Record<string, unknown>;
 }
 
+interface GroupedUserCountResult {
+  _id: string;
+  count: number;
+}
+
+interface UserOverviewAggregationResult {
+  usersByRole: GroupedUserCountResult[];
+  usersByStatus: GroupedUserCountResult[];
+  activeUsers: Array<{ count: number }>;
+}
+
+const EMPTY_USER_OVERVIEW_AGGREGATION: UserOverviewAggregationResult = {
+  usersByRole: [],
+  usersByStatus: [],
+  activeUsers: [],
+};
+
 @Injectable()
 export class UserManagementService {
   private readonly logger = new Logger(UserManagementService.name);
@@ -157,7 +174,7 @@ export class UserManagementService {
       const [totalUsers, userStats, recentRegistrations, topActiveUsers] = await Promise.all([
         this.userModel.countDocuments(),
 
-        this.userModel.aggregate([
+        this.userModel.aggregate<UserOverviewAggregationResult>([
           {
             $facet: {
               usersByRole: [{ $group: { _id: '$role', count: { $sum: 1 } } }],
@@ -188,15 +205,15 @@ export class UserManagementService {
           .lean(),
       ]);
 
-      const stats = userStats[0];
+      const stats = userStats[0] ?? EMPTY_USER_OVERVIEW_AGGREGATION;
       const usersByRole = this.formatGroupedResults(stats.usersByRole);
       const usersByStatus = this.formatGroupedResults(stats.usersByStatus);
 
       return {
         totalUsers,
-        activeUsers: stats.activeUsers[0]?.count || 0,
-        suspendedUsers: usersByStatus[UserStatus.SUSPENDED] || 0,
-        pendingUsers: usersByStatus[UserStatus.PENDING] || 0,
+        activeUsers: stats.activeUsers[0]?.count ?? 0,
+        suspendedUsers: usersByStatus[UserStatus.SUSPENDED] ?? 0,
+        pendingUsers: usersByStatus[UserStatus.PENDING] ?? 0,
         usersByRole,
         usersByStatus,
         recentRegistrations,
@@ -238,11 +255,11 @@ export class UserManagementService {
         ];
       }
 
-      if (role) {
+      if (role !== null) {
         filter['role'] = role;
       }
 
-      if (status) {
+      if (status !== null) {
         filter['status'] = status;
       }
 
@@ -390,7 +407,7 @@ export class UserManagementService {
       // Emit domain event for cross-module reactions
       await this.emitUserStatusEvent(userId, adminId, adminEmail, previousStatus, updateDto);
 
-      if (updateDto.sendNotification) {
+      if (updateDto.sendNotification === true) {
         await this.sendStatusChangeNotification(user, updateDto, previousStatus);
       }
 
@@ -483,17 +500,12 @@ export class UserManagementService {
         `Bulk user status update completed: ${result.successCount}/${result.processedCount} successful`,
       );
 
-      // Emit bulk operation event for async processing
-      if (result.successCount > 0) {
+      // Emit bulk operation event for async processing when the status maps to a bulk action
+      const bulkActionType = this.getBulkActionType(status);
+      if (result.successCount > 0 && bulkActionType !== null) {
         await this.eventBus.emit(
           'admin.user.bulk_action',
-          new AdminBulkUserActionEvent(
-            adminId,
-            adminEmail,
-            userIds,
-            this.getBulkActionType(status),
-            reason,
-          ),
+          new AdminBulkUserActionEvent(adminId, adminEmail, userIds, bulkActionType, reason),
         );
       }
 
@@ -650,6 +662,8 @@ export class UserManagementService {
   ): Promise<void> {
     try {
       const { status, reason, adminNotes } = updateDto;
+      const notificationReason = reason ?? 'No reason provided';
+      const notificationAdminNotes = adminNotes ?? '';
 
       this.logger.log(
         `Sending status change notification to user ${user._id}: ${previousStatus} -> ${status}`,
@@ -668,7 +682,7 @@ export class UserManagementService {
       }
 
       // Validate user data
-      if (!user._id) {
+      if (user._id === null || user._id === undefined) {
         this.logger.warn(`Cannot send notification: user._id is null or undefined`);
         return;
       }
@@ -689,8 +703,8 @@ export class UserManagementService {
             userId: userIdString,
             previousStatus,
             newStatus: status,
-            reason: reason || 'No reason provided',
-            adminNotes: adminNotes || '',
+            reason: notificationReason,
+            adminNotes: notificationAdminNotes,
             timestamp: new Date().toISOString(),
           },
         },
@@ -702,8 +716,8 @@ export class UserManagementService {
           email: user.email,
           previousStatus: this.getStatusDisplayName(previousStatus),
           newStatus: this.getStatusDisplayName(status),
-          reason: reason || 'No reason provided',
-          adminNotes: adminNotes || '',
+          reason: notificationReason,
+          adminNotes: notificationAdminNotes,
           supportEmail: this.configService.get<string>('SUPPORT_EMAIL', 'support@foodwaste.com'),
           appName: this.configService.get<string>('APP_NAME', 'Food Waste Management'),
           timestamp: new Date().toLocaleString(),
@@ -761,7 +775,10 @@ export class UserManagementService {
         return AdminAction.USER_SUSPENDED;
       case UserStatus.BLOCKED:
         return AdminAction.USER_BLOCKED;
-      default:
+      case UserStatus.DELETED:
+        return AdminAction.USER_DELETED;
+      case UserStatus.PENDING:
+      case UserStatus.ANONYMIZED:
         return AdminAction.USER_UPDATED;
     }
   }
@@ -777,13 +794,14 @@ export class UserManagementService {
       })
       .map((log) => {
         const changes = this.extractChanges(log);
+        const action = log.action ?? 'UNKNOWN_ACTION';
         return {
-          id: log._id?.toString() || Math.random().toString(36),
-          action: log.action || 'UNKNOWN_ACTION',
+          id: log._id?.toString() ?? Math.random().toString(36),
+          action,
           timestamp: new Date(log.timestamp ?? log.createdAt ?? 0),
           ...(log.adminEmail !== undefined ? { adminEmail: log.adminEmail } : {}),
           description: this.generateActivityDescription(log),
-          severity: this.determineEventSeverity(log.action || 'UNKNOWN_ACTION'),
+          severity: this.determineEventSeverity(action),
           ...(changes !== undefined ? { changes } : {}),
         };
       })
@@ -797,13 +815,12 @@ export class UserManagementService {
   ): UserActivityData['summary'] {
     const statusChanges = events.filter(
       (e) =>
-        e.action &&
-        (e.action.includes('STATUS') ||
-          e.action.includes('SUSPENDED') ||
-          e.action.includes('ACTIVATED')),
+        e.action.includes('STATUS') ||
+        e.action.includes('SUSPENDED') ||
+        e.action.includes('ACTIVATED'),
     ).length;
     const loginAttempts = events.filter(
-      (e) => e.action && (e.action.includes('LOGIN') || e.action.includes('AUTH')),
+      (e) => e.action.includes('LOGIN') || e.action.includes('AUTH'),
     ).length;
     const lastActivity = events[0]?.timestamp;
     const accountAge = Math.floor(
@@ -837,7 +854,7 @@ export class UserManagementService {
     const eventsByDay = events.reduce(
       (acc, event) => {
         const day = event.timestamp.toDateString();
-        acc[day] = (acc[day] || 0) + 1;
+        acc[day] = (acc[day] ?? 0) + 1;
         return acc;
       },
       {} as Record<string, number>,
@@ -897,7 +914,7 @@ export class UserManagementService {
   }
 
   private generateActivityDescription(log: AuditLogEntry): string {
-    const action = log.action || 'UNKNOWN_ACTION';
+    const action = log.action ?? 'UNKNOWN_ACTION';
     const adminEmail = log.adminEmail;
 
     // Helper function to format admin attribution
@@ -994,7 +1011,7 @@ export class UserManagementService {
 
   private calculateRiskScore(events: ProcessedAuditEvent[]): number {
     // Handle null, undefined, or invalid input
-    if (!events || !Array.isArray(events)) {
+    if (!Array.isArray(events)) {
       return 0;
     }
 
@@ -1095,7 +1112,8 @@ export class UserManagementService {
           body: `Your account status has been changed to pending review.${additionalInfo || ' We will notify you once the review is complete.'}`,
           urgency: 'medium',
         };
-      default:
+      case UserStatus.DELETED:
+      case UserStatus.ANONYMIZED:
         return null;
     }
   }
@@ -1108,7 +1126,8 @@ export class UserManagementService {
       case UserStatus.ACTIVE:
       case UserStatus.PENDING:
         return 'medium';
-      default:
+      case UserStatus.DELETED:
+      case UserStatus.ANONYMIZED:
         return 'low';
     }
   }
@@ -1122,8 +1141,10 @@ export class UserManagementService {
         return 'Blocked';
       case UserStatus.PENDING:
         return 'Pending Review';
-      default:
-        return status;
+      case UserStatus.DELETED:
+        return 'Deleted';
+      case UserStatus.ANONYMIZED:
+        return 'Anonymized';
     }
   }
   private isCriticalStatusChange(status: UserStatus): boolean {
@@ -1142,7 +1163,7 @@ export class UserManagementService {
 
     try {
       // Validate user data
-      if (!user._id) {
+      if (user._id === null || user._id === undefined) {
         this.logger.warn('Cannot send push notification: user._id is null or undefined');
         return;
       }
@@ -1172,7 +1193,7 @@ export class UserManagementService {
         this.logger.log(
           `Critical push notification sent to user ${user._id} for status change to ${status}`,
         );
-      } else if (result) {
+      } else if (result !== null && result !== undefined) {
         this.logger.error(`Failed to send critical push notification: ${result.error}`);
       } else {
         this.logger.warn(
@@ -1210,6 +1231,8 @@ export class UserManagementService {
       );
 
       // Emit specific status events for targeted reactions
+      const eventReason = updateDto.reason ?? 'No reason provided';
+
       switch (updateDto.status) {
         case UserStatus.ACTIVE:
           await this.eventBus.emit(
@@ -1225,7 +1248,7 @@ export class UserManagementService {
               userId,
               adminId,
               adminEmail,
-              updateDto.reason || 'No reason provided',
+              eventReason,
               updateDto.adminNotes,
             ),
           );
@@ -1238,10 +1261,14 @@ export class UserManagementService {
               userId,
               adminId,
               adminEmail,
-              updateDto.reason || 'No reason provided',
+              eventReason,
               updateDto.adminNotes,
             ),
           );
+          break;
+        case UserStatus.PENDING:
+        case UserStatus.DELETED:
+        case UserStatus.ANONYMIZED:
           break;
       }
 
@@ -1257,7 +1284,7 @@ export class UserManagementService {
   /**
    * Convert UserStatus to bulk action type
    */
-  private getBulkActionType(status: UserStatus): 'activate' | 'suspend' | 'block' {
+  private getBulkActionType(status: UserStatus): 'activate' | 'suspend' | 'block' | null {
     switch (status) {
       case UserStatus.ACTIVE:
         return 'activate';
@@ -1265,8 +1292,10 @@ export class UserManagementService {
         return 'suspend';
       case UserStatus.BLOCKED:
         return 'block';
-      default:
-        return 'activate';
+      case UserStatus.PENDING:
+      case UserStatus.DELETED:
+      case UserStatus.ANONYMIZED:
+        return null;
     }
   }
 }

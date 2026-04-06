@@ -35,8 +35,8 @@ export class WinstonLoggerService implements LoggerService {
    */
   private createLogger(): winston.Logger {
     const isProduction = process.env['NODE_ENV'] === 'production';
-    const logLevel = process.env['LOG_LEVEL'] || (isProduction ? 'info' : 'debug');
-    const logDir = process.env['LOGS_DIR'] || 'logs';
+    const logLevel = process.env['LOG_LEVEL'] ?? (isProduction ? 'info' : 'debug');
+    const logDir = process.env['LOGS_DIR'] ?? 'logs';
 
     // Common log format
     const logFormat = winston.format.combine(
@@ -104,7 +104,7 @@ export class WinstonLoggerService implements LoggerService {
             winston.format((info) => {
               // Only log critical errors
               const metadata = info['metadata'] as { critical?: boolean } | undefined;
-              return metadata?.critical ? info : false;
+              return metadata?.critical === true ? info : false;
             })(),
             logFormat,
             winston.format.json(),
@@ -118,7 +118,7 @@ export class WinstonLoggerService implements LoggerService {
       defaultMeta: {
         service: 'foodwaste-backend',
         environment: process.env['NODE_ENV'],
-        version: process.env['npm_package_version'] || '1.0.0',
+        version: process.env['npm_package_version'] ?? '1.0.0',
       },
       transports,
       exitOnError: false,
@@ -133,9 +133,9 @@ export class WinstonLoggerService implements LoggerService {
     const infoMetadata = info['metadata'] as { context?: string } | undefined;
     const context = (info as Record<string, unknown>)['context'] as string | undefined;
 
-    const ctx = context || infoMetadata?.context || 'Application';
+    const ctx = context ?? infoMetadata?.context ?? 'Application';
     const metaStr =
-      Object.keys(infoMetadata || {}).length > 0
+      Object.keys(infoMetadata ?? {}).length > 0
         ? `\n${JSON.stringify(infoMetadata, null, 2)}`
         : '';
 
@@ -154,7 +154,7 @@ export class WinstonLoggerService implements LoggerService {
    */
   log(message: string, context?: string): void {
     this.logger.info(message, {
-      context: context || this.context,
+      context: context ?? this.context,
     });
   }
 
@@ -163,7 +163,7 @@ export class WinstonLoggerService implements LoggerService {
    */
   error(message: string, trace?: string, context?: string): void {
     this.logger.error(message, {
-      context: context || this.context,
+      context: context ?? this.context,
       trace,
       critical: this.isCriticalError(message, trace),
     });
@@ -174,7 +174,7 @@ export class WinstonLoggerService implements LoggerService {
    */
   warn(message: string, context?: string): void {
     this.logger.warn(message, {
-      context: context || this.context,
+      context: context ?? this.context,
     });
   }
 
@@ -183,7 +183,7 @@ export class WinstonLoggerService implements LoggerService {
    */
   debug(message: string, context?: string): void {
     this.logger.debug(message, {
-      context: context || this.context,
+      context: context ?? this.context,
     });
   }
 
@@ -192,7 +192,7 @@ export class WinstonLoggerService implements LoggerService {
    */
   verbose(message: string, context?: string): void {
     this.logger.verbose(message, {
-      context: context || this.context,
+      context: context ?? this.context,
     });
   }
 
@@ -255,7 +255,7 @@ export class WinstonLoggerService implements LoggerService {
       'fatal',
     ];
 
-    const messageAndTrace = `${message} ${trace || ''}`.toLowerCase();
+    const messageAndTrace = `${message} ${trace ?? ''}`.toLowerCase();
 
     return criticalKeywords.some((keyword) => messageAndTrace.includes(keyword));
   }

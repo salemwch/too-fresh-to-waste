@@ -5,6 +5,13 @@ import { JwtService } from '@nestjs/jwt';
 
 import { AuthenticatedSocket } from '../interfaces/websocket.interface';
 
+interface WebSocketJwtPayload {
+  sub?: string;
+  userId?: string;
+  email?: string;
+  role?: string;
+}
+
 @Injectable()
 export class WebSocketAuthGuard implements CanActivate {
   private readonly logger = new Logger(WebSocketAuthGuard.name);
@@ -59,12 +66,12 @@ export class WebSocketAuthGuard implements CanActivate {
       // 4. HttpOnly cookie (web app — browser sends it with withCredentials: true)
       const queryToken = client.handshake?.query?.['token'];
       const token =
-        (client.handshake?.auth?.['token'] as string | undefined) ||
-        (Array.isArray(queryToken) ? queryToken[0] : queryToken) ||
-        client.handshake?.headers?.authorization?.replace('Bearer ', '') ||
+        (client.handshake?.auth?.['token'] as string | undefined) ??
+        (Array.isArray(queryToken) ? queryToken[0] : queryToken) ??
+        client.handshake?.headers?.authorization?.replace('Bearer ', '') ??
         this.extractTokenFromCookieHeader(client.handshake?.headers?.cookie);
 
-      return token || null;
+      return token ?? null;
     } catch (error) {
       this.logger.error('Failed to extract token from handshake:', error);
       return null;
@@ -82,22 +89,33 @@ export class WebSocketAuthGuard implements CanActivate {
 
   private async verifyToken(
     token: string,
-  ): Promise<{ sub?: string; userId?: string; email: string; role: string } | null> {
+  ): Promise<{ sub?: string; userId: string; email: string; role: string } | null> {
     try {
       const secret = this.configService.get<string>('JWT_SECRET');
       if (!secret) {
         throw new Error('JWT_SECRET is not configured');
       }
-      const payload = await this.jwtService.verifyAsync(token, { secret });
+      const payload = await this.jwtService.verifyAsync<WebSocketJwtPayload>(token, { secret });
 
       // Verify token structure — JWT standard uses `sub` for userId
       const userId = payload.sub ?? payload.userId;
-      if (!userId || !payload.email || !payload.role) {
+      if (
+        userId === null ||
+        userId === undefined ||
+        payload.email === null ||
+        payload.email === undefined ||
+        payload.role === null ||
+        payload.role === undefined
+      ) {
         throw new Error('Invalid token payload structure');
       }
-      payload.userId = userId;
 
-      return payload;
+      return {
+        ...payload,
+        userId,
+        email: payload.email,
+        role: payload.role,
+      };
     } catch (error) {
       this.logger.error('Token verification failed:', error);
       return null;

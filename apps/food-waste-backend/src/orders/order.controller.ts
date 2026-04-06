@@ -51,6 +51,7 @@ import {
   CancelOrderDto,
   OrderQueryDto,
 } from './DTO/create-order.dto';
+import { ConsumerOrderResponseDto, MerchantOrderResponseDto } from './DTO/order-response.dto';
 import { PickupThrottlerGuard } from './guards/pickup-throttler.guard';
 import {
   OrdersService,
@@ -60,13 +61,13 @@ import {
   type ChartGranularity,
 } from './order.service';
 
+import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+
 /** Allowed granularity values — validated at the controller boundary. */
 const VALID_GRANULARITIES = new Set<ChartGranularity>(['day', 'week', 'month']);
 
 /** Maximum `value` allowed per granularity to prevent runaway aggregations. */
 const CHART_LIMITS: Record<ChartGranularity, number> = { day: 90, week: 52, month: 24 };
-
-import { ConsumerOrderResponseDto, MerchantOrderResponseDto } from './DTO/order-response.dto';
 
 /** Converts a Mongoose document to a primitive-only plain object.
  *  plainToInstance (class-transformer) constructs new instances for any class-typed
@@ -97,8 +98,8 @@ export class OrderExceptionFilter implements ExceptionFilter {
     );
 
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
-    const request = ctx.getRequest();
+    const response = ctx.getResponse<ExpressResponse>();
+    const request = ctx.getRequest<ExpressRequest>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message: string | Record<string, unknown> | string[] = 'Internal server error';
@@ -110,9 +111,9 @@ export class OrderExceptionFilter implements ExceptionFilter {
       if (typeof exceptionResponse === 'string') {
         message = exceptionResponse || 'Invalid order data';
       } else {
-        message = (exceptionResponse['message'] as string | string[]) || 'Invalid order data';
+        message = (exceptionResponse['message'] as string | string[]) ?? 'Invalid order data';
         details =
-          (exceptionResponse['code']
+          (exceptionResponse['code'] !== null && exceptionResponse['code'] !== undefined
             ? exceptionResponse
             : (exceptionResponse['details'] as Record<string, unknown> | null)) ?? null;
       }
@@ -206,8 +207,8 @@ export class OrdersController {
     this.logger.log(`Controller - User: ${JSON.stringify(req.user)}`, 'OrderController');
     this.logger.log(`Controller - Filters: ${JSON.stringify(filters)}`, 'OrderController');
 
-    const page = filters.page || 1;
-    const limit = filters.limit || 10;
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 10;
 
     const result = await this.ordersService.findAll(
       page,

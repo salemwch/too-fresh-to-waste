@@ -31,6 +31,7 @@ import {
 } from '@nestjs/swagger';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { Response as ExpressResponse, Request as ExpressRequest } from 'express';
+
 import { UsersService } from 'src/users/user.service';
 
 import { AuthenticatedRequest } from '../common/decorators/get-user.decorator';
@@ -177,8 +178,9 @@ export class AuthController {
     try {
       // Extract request info for auto-login token generation
       const requestInfo = {
-        ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
-        userAgent: req.headers['user-agent'] || 'unknown',
+        ipAddress: req.ip ?? req.connection?.remoteAddress ?? 'unknown',
+        userAgent:
+          typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'] : 'unknown',
       };
 
       const result = await this.authService.verifyEmail(verifyEmailDto, requestInfo);
@@ -300,8 +302,8 @@ export class AuthController {
     @Response({ passthrough: true }) res: ExpressResponse,
   ): Promise<LoginResponse> {
     const requestInfo = {
-      ipAddress: req.ip || req.socket?.remoteAddress || 'unknown',
-      userAgent: req.get('User-Agent') || 'unknown',
+      ipAddress: req.ip ?? req.socket?.remoteAddress ?? 'unknown',
+      userAgent: req.get('User-Agent') ?? 'unknown',
     };
 
     // All security checks (IP block, suspicious activity, attempt limits)
@@ -319,7 +321,7 @@ export class AuthController {
       userId: loginResponse.user.userId,
       userAgent: requestInfo.userAgent,
       ipAddress: requestInfo.ipAddress,
-      rememberMe: loginDto.rememberMe || false,
+      rememberMe: loginDto.rememberMe ?? false,
     });
 
     this.setAuthCookies(res, loginResponse.tokens, sessionInfo.sessionId);
@@ -406,7 +408,7 @@ export class AuthController {
 
       if (errorName === 'PasswordPolicyError') {
         throw new BadRequestException(
-          errorMessage || 'New password does not meet security requirements.',
+          errorMessage ?? 'New password does not meet security requirements.',
         );
       }
 
@@ -458,17 +460,20 @@ export class AuthController {
     @Body() body: { refreshToken?: string },
     @Response({ passthrough: true }) res: ExpressResponse,
   ) {
-    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
-    const userAgent = req.get('User-Agent') || 'unknown';
+    const ip = req.ip ?? req.socket?.remoteAddress ?? 'unknown';
+    const userAgent = req.get('User-Agent') ?? 'unknown';
 
     // ✅ Support both mobile (body) and web (cookies)
     // Priority: 1. Request body (mobile), 2. Cookies (web), 3. Header
+    const cookieRefreshToken =
+      typeof req.cookies?.['refresh_token'] === 'string' ? req.cookies['refresh_token'] : undefined;
+    const userRefreshToken = (req.user as Record<string, unknown> | undefined)?.['refreshToken'];
     const refreshToken =
-      body?.refreshToken ||
-      req.cookies?.['refresh_token'] ||
-      ((req.user as Record<string, unknown>)?.['refreshToken'] as string | undefined);
+      body?.refreshToken ??
+      cookieRefreshToken ??
+      (typeof userRefreshToken === 'string' ? userRefreshToken : undefined);
 
-    if (!refreshToken) {
+    if (refreshToken === null || refreshToken === undefined) {
       this.logger.warn('Token refresh attempted without refresh token', { ip });
       throw new BadRequestException('Refresh token is required in request body or cookies');
     }
@@ -530,8 +535,10 @@ export class AuthController {
     @Request() req: ExpressRequest,
     @Response({ passthrough: true }) res: ExpressResponse,
   ): Promise<{ success: boolean; message: string }> {
-    const sessionId = req.cookies?.['session_id'];
-    const refreshToken = req.cookies?.['refresh_token'];
+    const sessionId =
+      typeof req.cookies?.['session_id'] === 'string' ? req.cookies['session_id'] : undefined;
+    const refreshToken =
+      typeof req.cookies?.['refresh_token'] === 'string' ? req.cookies['refresh_token'] : undefined;
     const userId = this.extractUserIdFromAuthHeader(req.headers.authorization);
 
     // Execute cleanup operations in parallel (fire-and-forget, ~2x faster)
@@ -549,14 +556,22 @@ export class AuthController {
    * Uses decode() not verify() - safe for expired/invalid tokens.
    */
   private extractUserIdFromAuthHeader(authHeader: string | undefined): string | undefined {
-    if (!authHeader?.startsWith('Bearer ')) {
+    if (authHeader?.startsWith('Bearer ') !== true) {
       return undefined;
     }
 
     try {
       const token = authHeader.substring(7);
-      const decoded = this.jwtService.decode(token);
-      return decoded?.sub;
+      const decoded = this.jwtService.decode<unknown>(token);
+      if (
+        typeof decoded === 'object' &&
+        decoded !== null &&
+        'sub' in decoded &&
+        typeof decoded.sub === 'string'
+      ) {
+        return decoded.sub;
+      }
+      return undefined;
     } catch (error) {
       this.logger.debug('Could not decode token during logout', {
         error: this.getErrorMessage(error),
@@ -736,9 +751,9 @@ export class AuthController {
     @Response({ passthrough: true }) res: ExpressResponse,
   ): Promise<{ success: boolean; message: string }> {
     const userId = (req.user as { userId: string }).userId;
-    const reason = body?.reason || 'User requested account deletion';
-    const ipAddress = req.ip || req.socket?.remoteAddress || 'unknown';
-    const userAgent = req.get('User-Agent') || 'unknown';
+    const reason = body?.reason ?? 'User requested account deletion';
+    const ipAddress = req.ip ?? req.socket?.remoteAddress ?? 'unknown';
+    const userAgent = req.get('User-Agent') ?? 'unknown';
 
     this.logger.log('Account self-deletion initiated', { userId, reason });
 
@@ -837,7 +852,7 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   generateSecurePassword(@Body() body: { length?: number }) {
-    const length = body.length || 16;
+    const length = body.length ?? 16;
     const password = this.passwordPolicyService.generateSecurePassword(length);
 
     return {
@@ -1003,7 +1018,7 @@ export class AuthController {
         hasRefreshToken: !!tokens.refreshToken,
         hasSession: !!sessionId,
         isProduction,
-        domain: domain || 'current-domain-only',
+        domain: domain ?? 'current-domain-only',
         securityAttributes: {
           httpOnly: true,
           secure: isProduction,
@@ -1046,7 +1061,7 @@ export class AuthController {
 
       this.logger.log('Authentication cookies cleared securely', {
         isProduction,
-        domain: domain || 'current-domain-only',
+        domain: domain ?? 'current-domain-only',
       });
     } catch (error) {
       this.logger.error('Failed to clear cookies', {

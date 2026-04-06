@@ -21,7 +21,47 @@ import {
   ArrayMinSize,
 } from 'class-validator';
 
-import { ReviewImages, ReviewStatus, ReviewType, SentimentType } from '../schemas/reviwe.schema';
+import type {
+  CreateReviewInput,
+  UpdateReviewInput,
+  ReviewResponseInput,
+  ReviewModerationInput,
+  ReviewInteractionInput,
+  ReviewReportInput,
+  ReviewQueryInput,
+  ReviewAnalyticsInput,
+  BulkReviewModerationInput,
+} from '@foodwaste/shared';
+
+import { ReviewStatus, ReviewType, SentimentType } from '../schemas/reviwe.schema';
+
+function trimTransform({ value }: { value: unknown }): unknown {
+  return typeof value === 'string' ? value.trim() : value;
+}
+
+function parseMetadataTransform({ value }: { value: unknown }): Record<string, unknown> {
+  if (value === null || value === undefined) {
+    return {};
+  }
+
+  if (typeof value === 'string') {
+    try {
+      const parsed: unknown = JSON.parse(value);
+      return parsed !== null &&
+        parsed !== undefined &&
+        typeof parsed === 'object' &&
+        !Array.isArray(parsed)
+        ? (parsed as Record<string, unknown>)
+        : {};
+    } catch {
+      return {};
+    }
+  }
+
+  return value !== null && value !== undefined && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
 
 class DetailedRatingsDto {
   @ApiPropertyOptional({
@@ -34,7 +74,7 @@ class DetailedRatingsDto {
   @IsNumber({}, { message: 'Food quality must be a number' })
   @Min(1, { message: 'Food quality rating must be at least 1' })
   @Max(5, { message: 'Food quality rating must be at most 5' })
-  foodQuality?: number;
+  foodQuality?: number | undefined;
 
   @ApiPropertyOptional({
     description: 'Service quality rating',
@@ -46,7 +86,7 @@ class DetailedRatingsDto {
   @IsNumber({}, { message: 'Service quality must be a number' })
   @Min(1, { message: 'Service quality rating must be at least 1' })
   @Max(5, { message: 'Service quality rating must be at most 5' })
-  serviceQuality?: number;
+  serviceQuality?: number | undefined;
 
   @ApiPropertyOptional({
     description: 'Value for money rating',
@@ -58,7 +98,7 @@ class DetailedRatingsDto {
   @IsNumber({}, { message: 'Value for money must be a number' })
   @Min(1, { message: 'Value for money rating must be at least 1' })
   @Max(5, { message: 'Value for money rating must be at most 5' })
-  valueForMoney?: number;
+  valueForMoney?: number | undefined;
 
   @ApiPropertyOptional({
     description: 'Packaging quality rating',
@@ -70,7 +110,7 @@ class DetailedRatingsDto {
   @IsNumber({}, { message: 'Packaging must be a number' })
   @Min(1, { message: 'Packaging rating must be at least 1' })
   @Max(5, { message: 'Packaging rating must be at most 5' })
-  packaging?: number;
+  packaging?: number | undefined;
 
   @ApiPropertyOptional({
     description: 'Pickup experience rating',
@@ -82,7 +122,7 @@ class DetailedRatingsDto {
   @IsNumber({}, { message: 'Pickup experience must be a number' })
   @Min(1, { message: 'Pickup experience rating must be at least 1' })
   @Max(5, { message: 'Pickup experience rating must be at most 5' })
-  pickupExperience?: number;
+  pickupExperience?: number | undefined;
 
   @ApiPropertyOptional({
     description: 'Sustainability rating',
@@ -94,10 +134,10 @@ class DetailedRatingsDto {
   @IsNumber({}, { message: 'Sustainability must be a number' })
   @Min(1, { message: 'Sustainability rating must be at least 1' })
   @Max(5, { message: 'Sustainability rating must be at most 5' })
-  sustainability?: number;
+  sustainability?: number | undefined;
 }
 
-export class CreateReviewDto {
+export class CreateReviewDto implements CreateReviewInput {
   @ApiProperty({
     description: 'ID of the establishment being reviewed',
     example: '507f1f77bcf86cd799439011',
@@ -112,7 +152,7 @@ export class CreateReviewDto {
   })
   @IsOptional()
   @IsMongoId({ message: 'Invalid order ID format' })
-  orderId?: string;
+  orderId?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'ID of the specific offer being reviewed',
@@ -120,7 +160,7 @@ export class CreateReviewDto {
   })
   @IsOptional()
   @IsMongoId({ message: 'Invalid offer ID format' })
-  offerId?: string;
+  offerId?: string | undefined;
 
   @ApiProperty({
     description: 'Type of review',
@@ -151,7 +191,7 @@ export class CreateReviewDto {
   @IsOptional()
   @ValidateNested()
   @Type(() => DetailedRatingsDto)
-  detailedRatings?: DetailedRatingsDto;
+  detailedRatings?: DetailedRatingsDto | undefined;
 
   @ApiProperty({
     description: 'Review comment text',
@@ -161,7 +201,7 @@ export class CreateReviewDto {
   })
   @IsString({ message: 'Comment must be a string' })
   @Length(10, 2000, { message: 'Comment must be between 10 and 2000 characters' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(trimTransform)
   comment!: string;
 
   @ApiPropertyOptional({
@@ -173,8 +213,8 @@ export class CreateReviewDto {
   @IsOptional()
   @IsString({ message: 'Title must be a string' })
   @Length(3, 100, { message: 'Title must be between 3 and 100 characters' })
-  @Transform(({ value }) => value?.trim())
-  title?: string;
+  @Transform(trimTransform)
+  title?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Array of image URLs or files',
@@ -186,7 +226,7 @@ export class CreateReviewDto {
   @IsArray({ message: 'Images must be an array' })
   @ArrayMaxSize(10, { message: 'Maximum 10 images allowed' })
   @IsString({ each: true, message: 'Each image must be a string URL' })
-  images?: ReviewImages[];
+  images?: string[] | undefined;
 
   @ApiPropertyOptional({
     description: 'Location where review was written',
@@ -196,7 +236,7 @@ export class CreateReviewDto {
   @IsOptional()
   @IsString({ message: 'Reviewer location must be a string' })
   @Length(1, 100, { message: 'Reviewer location must be between 1 and 100 characters' })
-  reviewerLocation?: string;
+  reviewerLocation?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Tags associated with the review',
@@ -217,7 +257,7 @@ export class CreateReviewDto {
     }
     return [];
   })
-  tags?: string[];
+  tags?: string[] | undefined;
 
   @ApiPropertyOptional({
     description: 'Whether the reviewer recommends this establishment',
@@ -227,7 +267,7 @@ export class CreateReviewDto {
   @IsOptional()
   @IsBoolean({ message: 'Is recommended must be a boolean' })
   @Transform(({ value }) => value === 'true')
-  isRecommended?: boolean;
+  isRecommended?: boolean | undefined;
 
   @ApiPropertyOptional({
     description: 'Additional metadata for the review',
@@ -236,17 +276,11 @@ export class CreateReviewDto {
   })
   @IsOptional()
   @IsObject({ message: 'Metadata must be an object' })
-  @Transform(({ value }) => {
-    try {
-      return JSON.parse(value);
-    } catch {
-      return {};
-    }
-  })
-  metadata?: Record<string, unknown>;
+  @Transform(parseMetadataTransform)
+  metadata?: Record<string, unknown> | undefined;
 }
 
-export class UpdateReviewDto extends PartialType(CreateReviewDto) {
+export class UpdateReviewDto extends PartialType(CreateReviewDto) implements UpdateReviewInput {
   @ApiPropertyOptional({
     description: 'Reason for updating the review',
     maxLength: 500,
@@ -255,13 +289,15 @@ export class UpdateReviewDto extends PartialType(CreateReviewDto) {
   @IsOptional()
   @IsString({ message: 'Update reason must be a string' })
   @Length(1, 500, { message: 'Update reason must be between 1 and 500 characters' })
-  updateReason?: string;
-  override comment?: string;
-  status?: ReviewStatus;
-  override images?: ReviewImages[];
+  updateReason?: string | undefined;
+
+  /** Backend-only: set by auto-moderation, not part of client input schema. */
+  @IsOptional()
+  @IsEnum(ReviewStatus, { message: 'Invalid review status' })
+  status?: ReviewStatus | undefined;
 }
 
-export class ReviewResponseDto {
+export class ReviewResponseDto implements ReviewResponseInput {
   @ApiProperty({
     description: 'Response text to the review',
     minLength: 5,
@@ -270,11 +306,11 @@ export class ReviewResponseDto {
   })
   @IsString({ message: 'Response text must be a string' })
   @Length(5, 1000, { message: 'Response must be between 5 and 1000 characters' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(trimTransform)
   responseText!: string;
 }
 
-export class ReviewModerationDto {
+export class ReviewModerationDto implements ReviewModerationInput {
   @ApiProperty({
     description: 'New status for the review',
     enum: ReviewStatus,
@@ -291,10 +327,10 @@ export class ReviewModerationDto {
   @IsOptional()
   @IsString({ message: 'Moderation reason must be a string' })
   @Length(1, 500, { message: 'Moderation reason must be between 1 and 500 characters' })
-  moderationReason?: string;
+  moderationReason?: string | undefined;
 }
 
-export class ReviewInteractionDto {
+export class ReviewInteractionDto implements ReviewInteractionInput {
   @ApiProperty({
     description: 'Type of interaction',
     enum: ['helpful', 'not_helpful'],
@@ -307,7 +343,7 @@ export class ReviewInteractionDto {
   interactionType!: 'helpful' | 'not_helpful';
 }
 
-export class ReviewReportDto {
+export class ReviewReportDto implements ReviewReportInput {
   @ApiProperty({
     description: 'Reason for reporting the review',
     enum: ['spam', 'inappropriate', 'fake', 'offensive', 'irrelevant', 'other'],
@@ -327,10 +363,10 @@ export class ReviewReportDto {
   @IsOptional()
   @IsString({ message: 'Additional details must be a string' })
   @Length(1, 500, { message: 'Additional details must be between 1 and 500 characters' })
-  additionalDetails?: string;
+  additionalDetails?: string | undefined;
 }
 
-export class ReviewQueryDto {
+export class ReviewQueryDto implements ReviewQueryInput {
   @ApiPropertyOptional({
     description: 'Page number for pagination',
     minimum: 1,
@@ -341,7 +377,7 @@ export class ReviewQueryDto {
   @Type(() => Number)
   @IsNumber({}, { message: 'Page must be a number' })
   @Min(1, { message: 'Page must be at least 1' })
-  page?: number = 1;
+  page: number = 1;
 
   @ApiPropertyOptional({
     description: 'Number of items per page',
@@ -355,7 +391,7 @@ export class ReviewQueryDto {
   @IsNumber({}, { message: 'Limit must be a number' })
   @Min(1, { message: 'Limit must be at least 1' })
   @Max(100, { message: 'Limit must be at most 100' })
-  limit?: number = 10;
+  limit: number = 10;
 
   @ApiPropertyOptional({
     description: 'Filter by review status',
@@ -364,7 +400,7 @@ export class ReviewQueryDto {
   })
   @IsOptional()
   @IsEnum(ReviewStatus, { message: 'Invalid status filter' })
-  status?: ReviewStatus;
+  status?: ReviewStatus | undefined;
 
   @ApiPropertyOptional({
     description: 'Filter by minimum rating',
@@ -377,7 +413,7 @@ export class ReviewQueryDto {
   @IsNumber({}, { message: 'Min rating must be a number' })
   @Min(1, { message: 'Min rating must be at least 1' })
   @Max(5, { message: 'Min rating must be at most 5' })
-  minRating?: number;
+  minRating?: number | undefined;
 
   @ApiPropertyOptional({
     description: 'Filter by maximum rating',
@@ -390,7 +426,7 @@ export class ReviewQueryDto {
   @IsNumber({}, { message: 'Max rating must be a number' })
   @Min(1, { message: 'Max rating must be at least 1' })
   @Max(5, { message: 'Max rating must be at most 5' })
-  maxRating?: number;
+  maxRating?: number | undefined;
 
   @ApiPropertyOptional({
     description: 'Filter by review type',
@@ -399,7 +435,7 @@ export class ReviewQueryDto {
   })
   @IsOptional()
   @IsEnum(ReviewType, { message: 'Invalid review type filter' })
-  type?: ReviewType;
+  type?: ReviewType | undefined;
 
   @ApiPropertyOptional({
     description: 'Filter by sentiment',
@@ -408,7 +444,7 @@ export class ReviewQueryDto {
   })
   @IsOptional()
   @IsEnum(SentimentType, { message: 'Invalid sentiment filter' })
-  sentiment?: SentimentType;
+  sentiment?: SentimentType | undefined;
 
   @ApiPropertyOptional({
     description: 'Search term for filtering reviews',
@@ -418,7 +454,7 @@ export class ReviewQueryDto {
   @IsOptional()
   @IsString({ message: 'Search term must be a string' })
   @Length(1, 100, { message: 'Search term must be between 1 and 100 characters' })
-  search?: string;
+  search?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Sort field',
@@ -431,7 +467,7 @@ export class ReviewQueryDto {
   @IsIn(['createdAt', 'overallRating', 'helpfulCount', 'engagementScore'], {
     message: 'Invalid sort field',
   })
-  sortBy?: string = 'createdAt';
+  sortBy: 'createdAt' | 'overallRating' | 'helpfulCount' | 'engagementScore' = 'createdAt';
 
   @ApiPropertyOptional({
     description: 'Sort order',
@@ -442,7 +478,7 @@ export class ReviewQueryDto {
   @IsOptional()
   @IsString({ message: 'Sort order must be a string' })
   @IsIn(['asc', 'desc'], { message: 'Sort order must be either "asc" or "desc"' })
-  sortOrder?: 'asc' | 'desc' = 'desc';
+  sortOrder: 'asc' | 'desc' = 'desc';
 
   @ApiPropertyOptional({
     description: 'Filter by establishment ID',
@@ -450,7 +486,7 @@ export class ReviewQueryDto {
   })
   @IsOptional()
   @IsMongoId({ message: 'Invalid establishment ID format' })
-  establishmentId?: string;
+  establishmentId?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Filter by reviewer ID',
@@ -458,7 +494,7 @@ export class ReviewQueryDto {
   })
   @IsOptional()
   @IsMongoId({ message: 'Invalid reviewer ID format' })
-  reviewerId?: string;
+  reviewerId?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Filter by verified purchase only',
@@ -468,7 +504,7 @@ export class ReviewQueryDto {
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean({ message: 'Verified purchase filter must be a boolean' })
-  verifiedPurchaseOnly?: boolean;
+  verifiedPurchaseOnly?: boolean | undefined;
 
   @ApiPropertyOptional({
     description: 'Filter by recommended reviews only',
@@ -478,7 +514,7 @@ export class ReviewQueryDto {
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean({ message: 'Recommended filter must be a boolean' })
-  recommendedOnly?: boolean;
+  recommendedOnly?: boolean | undefined;
 
   @ApiPropertyOptional({
     description: 'Filter reviews from date (ISO string)',
@@ -489,7 +525,7 @@ export class ReviewQueryDto {
   @Matches(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/, {
     message: 'From date must be a valid ISO date string',
   })
-  fromDate?: string;
+  fromDate?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Filter reviews to date (ISO string)',
@@ -500,7 +536,7 @@ export class ReviewQueryDto {
   @Matches(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/, {
     message: 'To date must be a valid ISO date string',
   })
-  toDate?: string;
+  toDate?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Filter by tags (comma-separated)',
@@ -508,10 +544,10 @@ export class ReviewQueryDto {
   })
   @IsOptional()
   @IsString({ message: 'Tags filter must be a string' })
-  tags?: string;
+  tags?: string | undefined;
 }
 
-export class ReviewAnalyticsDto {
+export class ReviewAnalyticsDto implements ReviewAnalyticsInput {
   @ApiPropertyOptional({
     description: 'Start date for analytics (ISO string)',
     example: '2024-01-01T00:00:00.000Z',
@@ -521,7 +557,7 @@ export class ReviewAnalyticsDto {
   @Matches(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/, {
     message: 'Start date must be a valid ISO date string',
   })
-  startDate?: string;
+  startDate?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'End date for analytics (ISO string)',
@@ -532,7 +568,7 @@ export class ReviewAnalyticsDto {
   @Matches(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/, {
     message: 'End date must be a valid ISO date string',
   })
-  endDate?: string;
+  endDate?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Group analytics by time period',
@@ -545,7 +581,7 @@ export class ReviewAnalyticsDto {
   @IsIn(['day', 'week', 'month', 'year'], {
     message: 'Group by must be one of: day, week, month, year',
   })
-  groupBy?: 'day' | 'week' | 'month' | 'year' = 'month';
+  groupBy: 'day' | 'week' | 'month' | 'year' = 'month';
 
   @ApiPropertyOptional({
     description: 'Filter analytics by establishment ID',
@@ -553,7 +589,7 @@ export class ReviewAnalyticsDto {
   })
   @IsOptional()
   @IsMongoId({ message: 'Invalid establishment ID format' })
-  establishmentId?: string;
+  establishmentId?: string | undefined;
   @ApiPropertyOptional({
     description: 'Filter analytics by review status',
     enum: ['PENDING', 'APPROVED', 'REJECTED'],
@@ -561,10 +597,10 @@ export class ReviewAnalyticsDto {
   })
   @IsOptional()
   @IsEnum(ReviewStatus, { message: 'Status must be one of: PENDING, APPROVED, REJECTED' })
-  status?: ReviewStatus;
+  status?: ReviewStatus | undefined;
 }
 
-export class BulkReviewModerationDto {
+export class BulkReviewModerationDto implements BulkReviewModerationInput {
   @ApiProperty({
     description: 'Array of review IDs to moderate',
     type: [String],
@@ -597,5 +633,5 @@ export class BulkReviewModerationDto {
   @IsOptional()
   @IsString({ message: 'Reason must be a string' })
   @Length(1, 500, { message: 'Reason must be between 1 and 500 characters' })
-  reason?: string;
+  reason?: string | undefined;
 }

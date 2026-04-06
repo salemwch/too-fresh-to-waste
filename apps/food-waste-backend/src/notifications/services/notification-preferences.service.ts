@@ -24,9 +24,7 @@ export class NotificationPreferencesService {
       .findOne({ userId: new Types.ObjectId(userId) })
       .exec();
 
-    if (!preferences) {
-      preferences = await this.createDefaultPreferences(userId);
-    }
+    preferences ??= await this.createDefaultPreferences(userId);
 
     return preferences;
   }
@@ -36,9 +34,7 @@ export class NotificationPreferencesService {
       .findOne({ userId: new Types.ObjectId(userId) })
       .exec();
 
-    if (!preferences) {
-      preferences = await this.createDefaultPreferences(userId);
-    }
+    preferences ??= await this.createDefaultPreferences(userId);
 
     // Update fields if provided
     if (updateDto.channels !== undefined) {
@@ -90,9 +86,7 @@ export class NotificationPreferencesService {
       .findOne({ userId: new Types.ObjectId(userId) })
       .exec();
 
-    if (!preferences) {
-      preferences = await this.createDefaultPreferences(userId);
-    }
+    preferences ??= await this.createDefaultPreferences(userId);
 
     // Add token if not already present
     if (!preferences.deviceTokens.includes(deviceToken)) {
@@ -109,9 +103,7 @@ export class NotificationPreferencesService {
       .findOne({ userId: new Types.ObjectId(userId) })
       .exec();
 
-    if (!preferences) {
-      preferences = await this.createDefaultPreferences(userId);
-    }
+    preferences ??= await this.createDefaultPreferences(userId);
 
     // Remove token if present
     const tokenIndex = preferences.deviceTokens.indexOf(deviceToken);
@@ -129,9 +121,7 @@ export class NotificationPreferencesService {
       .findOne({ userId: new Types.ObjectId(userId) })
       .exec();
 
-    if (!preferences) {
-      preferences = await this.createDefaultPreferences(userId);
-    }
+    preferences ??= await this.createDefaultPreferences(userId);
 
     preferences.deviceTokens = Array.from(new Set(deviceTokens)); // Remove duplicates
     return preferences.save();
@@ -146,11 +136,9 @@ export class NotificationPreferencesService {
       .findOne({ userId: new Types.ObjectId(userId) })
       .exec();
 
-    if (!preferences) {
-      preferences = await this.createDefaultPreferences(userId);
-    }
+    preferences ??= await this.createDefaultPreferences(userId);
 
-    const currentChannelPrefs = preferences.channels.get(channel) || {
+    const currentChannelPrefs = preferences.channels.get(channel) ?? {
       push: true,
       email: true,
       sms: false,
@@ -174,11 +162,9 @@ export class NotificationPreferencesService {
       .findOne({ userId: new Types.ObjectId(userId) })
       .exec();
 
-    if (!preferences) {
-      preferences = await this.createDefaultPreferences(userId);
-    }
+    preferences ??= await this.createDefaultPreferences(userId);
 
-    const currentChannelPrefs = preferences.channels.get(channel) || {
+    const currentChannelPrefs = preferences.channels.get(channel) ?? {
       push: true,
       email: true,
       sms: false,
@@ -212,9 +198,7 @@ export class NotificationPreferencesService {
       .findOne({ userId: new Types.ObjectId(userId) })
       .exec();
 
-    if (!preferences) {
-      preferences = await this.createDefaultPreferences(userId);
-    }
+    preferences ??= await this.createDefaultPreferences(userId);
 
     preferences.quietHours = validatedQuietHours;
 
@@ -240,17 +224,13 @@ export class NotificationPreferencesService {
       .findOne({ userId: new Types.ObjectId(userId) })
       .exec();
 
-    if (!preferences) {
-      preferences = await this.createDefaultPreferences(userId);
-    }
+    preferences ??= await this.createDefaultPreferences(userId);
 
-    if (!preferences.locationPreferences) {
-      preferences.locationPreferences = {
-        radius: 5,
-        enableNearbyOffers: true,
-        savedLocations: [],
-      };
-    }
+    preferences.locationPreferences ??= {
+      radius: 5,
+      enableNearbyOffers: true,
+      savedLocations: [],
+    };
 
     preferences.locationPreferences.savedLocations.push(location);
     return preferences.save();
@@ -262,7 +242,7 @@ export class NotificationPreferencesService {
       .exec();
 
     if (!preferences || !preferences.locationPreferences) {
-      return preferences || this.createDefaultPreferences(userId);
+      return preferences ?? this.createDefaultPreferences(userId);
     }
 
     preferences.locationPreferences.savedLocations =
@@ -310,7 +290,7 @@ export class NotificationPreferencesService {
     try {
       const preferences = await this.getPreferences(userId);
 
-      if (!preferences.quietHours?.enabled) {
+      if (preferences.quietHours?.enabled !== true) {
         return false;
       }
 
@@ -347,7 +327,7 @@ export class NotificationPreferencesService {
     const userTokensMap = new Map<string, string[]>();
 
     preferences.forEach((pref) => {
-      if (pref.deviceTokens && pref.deviceTokens.length > 0) {
+      if ((pref.deviceTokens?.length ?? 0) > 0) {
         userTokensMap.set(pref.userId.toString(), pref.deviceTokens);
       }
     });
@@ -481,8 +461,8 @@ export class NotificationPreferencesService {
         return [null, null];
       }
 
-      const hour = parseInt(hourPart, 10);
-      const minute = parseInt(minutePart, 10);
+      const hour = Number.parseInt(hourPart, 10);
+      const minute = Number.parseInt(minutePart, 10);
 
       // Validate hour and minute ranges
       if (isNaN(hour) || isNaN(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
@@ -530,7 +510,7 @@ export class NotificationPreferencesService {
         return {
           label: `${tz.replace('_', ' ')} (${dt.offsetNameShort})`,
           value: tz,
-          offset: dt.offsetNameShort || '+00:00',
+          offset: dt.offsetNameShort ?? '+00:00',
         };
       } catch (error) {
         // Log timezone processing errors and provide fallback

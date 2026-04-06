@@ -39,8 +39,9 @@ export class SentryService implements OnModuleInit {
   private readonly environment: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.isProduction = this.configService.get('NODE_ENV') === 'production';
-    this.environment = this.configService.get('NODE_ENV') || 'development';
+    const configuredEnvironment = this.getNonEmptyConfigValue('NODE_ENV');
+    this.isProduction = configuredEnvironment === 'production';
+    this.environment = configuredEnvironment ?? 'development';
   }
 
   /**
@@ -68,6 +69,11 @@ export class SentryService implements OnModuleInit {
     }
 
     try {
+      const serverName =
+        this.getNonEmptyConfigValue('SERVER_NAME') ??
+        this.getNonEmptyConfigValue('HOSTNAME') ??
+        'unknown';
+
       Sentry.init({
         dsn,
         environment: this.environment,
@@ -75,8 +81,8 @@ export class SentryService implements OnModuleInit {
         // Release tracking for deployment correlation
         // Format: project-name@version
         release:
-          this.configService.get('SENTRY_RELEASE') ||
-          `foodwaste-backend@${this.configService.get('npm_package_version') || '1.0.0'}`,
+          this.configService.get<string>('SENTRY_RELEASE') ??
+          `foodwaste-backend@${this.configService.get<string>('npm_package_version') ?? '1.0.0'}`,
 
         // Sample rate configuration
         tracesSampleRate: this.getTracesSampleRate(),
@@ -135,8 +141,7 @@ export class SentryService implements OnModuleInit {
         attachStacktrace: true,
 
         // Server name (useful for multi-instance deployments)
-        serverName:
-          this.configService.get('SERVER_NAME') || this.configService.get('HOSTNAME') || 'unknown',
+        serverName,
 
         // Debug mode (development only)
         debug: this.environment === 'development',
@@ -153,6 +158,16 @@ export class SentryService implements OnModuleInit {
         error instanceof Error ? error.stack : String(error),
       );
     }
+  }
+
+  private getNonEmptyConfigValue(key: string): string | undefined {
+    const value = this.configService.get<string>(key);
+    if (value === null || value === undefined) {
+      return undefined;
+    }
+
+    const trimmedValue = value.trim();
+    return trimmedValue.length > 0 ? trimmedValue : undefined;
   }
 
   /**
@@ -202,7 +217,8 @@ export class SentryService implements OnModuleInit {
    */
   private beforeSend(event: Sentry.Event): Sentry.Event | null {
     // Remove sensitive environment variables
-    if (event.contexts?.['runtime']?.['env']) {
+    const runtimeEnv = event.contexts?.['runtime']?.['env'];
+    if (runtimeEnv !== null && runtimeEnv !== undefined && typeof runtimeEnv === 'object') {
       const sensitiveKeys = [
         'DATABASE_URL',
         'REDIS_PASSWORD',
@@ -216,7 +232,7 @@ export class SentryService implements OnModuleInit {
         'SESSION_SECRET',
       ];
 
-      const env = event.contexts['runtime']['env'] as Record<string, unknown>;
+      const env = runtimeEnv as Record<string, unknown>;
       Object.keys(env).forEach((key) => {
         if (sensitiveKeys.some((sensitiveKey) => key.includes(sensitiveKey))) {
           env[key] = '[REDACTED]';
@@ -228,16 +244,21 @@ export class SentryService implements OnModuleInit {
     if (event.request) {
       // Remove sensitive headers
       if (event.request.headers) {
+        const requestHeaders = event.request.headers;
         const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key'];
         sensitiveHeaders.forEach((header) => {
-          if (event.request!.headers![header]) {
-            event.request!.headers![header] = '[REDACTED]';
+          if (requestHeaders[header] !== null && requestHeaders[header] !== undefined) {
+            requestHeaders[header] = '[REDACTED]';
           }
         });
       }
 
       // Remove sensitive body fields
-      if (event.request.data && typeof event.request.data === 'object') {
+      if (
+        event.request.data !== null &&
+        event.request.data !== undefined &&
+        typeof event.request.data === 'object'
+      ) {
         const sensitiveFields = ['password', 'token', 'secret', 'apiKey', 'creditCard'];
         this.redactSensitiveFields(event.request.data as Record<string, unknown>, sensitiveFields);
       }
@@ -256,7 +277,7 @@ export class SentryService implements OnModuleInit {
    * Recursively redact sensitive fields from objects
    */
   private redactSensitiveFields(obj: Record<string, unknown>, sensitiveFields: string[]): void {
-    if (!obj || typeof obj !== 'object') {
+    if (obj === null || obj === undefined || typeof obj !== 'object') {
       return;
     }
 
@@ -284,8 +305,12 @@ export class SentryService implements OnModuleInit {
     }
 
     // Sanitize HTTP request breadcrumbs
-    if (breadcrumb.category === 'http' && breadcrumb.data) {
-      if (breadcrumb.data['headers']) {
+    if (
+      breadcrumb.category === 'http' &&
+      breadcrumb.data !== null &&
+      breadcrumb.data !== undefined
+    ) {
+      if (breadcrumb.data['headers'] !== null && breadcrumb.data['headers'] !== undefined) {
         delete breadcrumb.data['headers'];
       }
     }

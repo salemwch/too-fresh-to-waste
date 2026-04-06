@@ -27,7 +27,6 @@ export class AnalyticsCache {
   @Prop({
     type: Object,
     required: true,
-    index: true,
   })
   key!: CacheKey;
 
@@ -62,7 +61,6 @@ export class AnalyticsCache {
       'location',
     ],
     required: true,
-    index: true,
   })
   category!: string;
 

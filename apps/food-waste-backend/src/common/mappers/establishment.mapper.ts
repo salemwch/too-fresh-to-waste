@@ -69,31 +69,31 @@ interface ListResponseLike {
 }
 
 export class EstablishmentMapper {
-  static toInterface(document: EstablishmentLike): IEstablishment {
-    if (!document) {
+  static toInterface(document: EstablishmentLike | null | undefined): IEstablishment {
+    if (document === null || document === undefined) {
       throw new Error('Document cannot be null or undefined');
     }
 
     return {
-      id: document._id?.toString() || document.id || '',
-      name: document.name || '',
-      description: document.description || '',
-      email: document.email || '',
-      phone: document.phone || document.contactInfo?.phone || '',
+      id: document._id?.toString() ?? document.id ?? '',
+      name: document.name ?? '',
+      description: document.description ?? '',
+      email: document.email ?? '',
+      phone: document.phone ?? document.contactInfo?.phone ?? '',
       type: document.type ?? EstablishmentType.OTHER,
       status: document.status ?? EstablishmentStatus.PENDING,
       address: {
-        street: document.address?.street || '',
-        city: document.address?.city || '',
-        state: document.address?.state || '',
-        postalCode: document.address?.postalCode || '',
-        country: document.address?.country || '',
+        street: document.address?.street ?? '',
+        city: document.address?.city ?? '',
+        state: document.address?.state ?? '',
+        postalCode: document.address?.postalCode ?? '',
+        country: document.address?.country ?? '',
         coordinates: {
-          latitude: document.address?.coordinates?.latitude || 0,
-          longitude: document.address?.coordinates?.longitude || 0,
+          latitude: document.address?.coordinates?.latitude ?? 0,
+          longitude: document.address?.coordinates?.longitude ?? 0,
         },
       },
-      businessHours: document.businessHours || {
+      businessHours: document.businessHours ?? {
         monday: { open: '09:00', close: '17:00', isClosed: false },
         tuesday: { open: '09:00', close: '17:00', isClosed: false },
         wednesday: { open: '09:00', close: '17:00', isClosed: false },
@@ -103,9 +103,9 @@ export class EstablishmentMapper {
         sunday: { open: '09:00', close: '17:00', isClosed: true },
       },
       verificationStatus: {
-        documentsVerified: document.verification?.documentsVerified || false,
-        identityVerified: document.verification?.identityVerified || false,
-        addressVerified: document.verification?.addressVerified || false,
+        documentsVerified: document.verification?.documentsVerified ?? false,
+        identityVerified: document.verification?.identityVerified ?? false,
+        addressVerified: document.verification?.addressVerified ?? false,
         ...(document.verification?.verifiedAt !== undefined
           ? { verifiedAt: document.verification.verifiedAt }
           : {}),
@@ -113,9 +113,9 @@ export class EstablishmentMapper {
           ? { verifiedBy: document.verification.verifiedBy }
           : {}),
       },
-      owner: document.owner?.toString() || document.ownerId?.toString() || '',
-      createdAt: document.createdAt || new Date(),
-      updatedAt: document.updatedAt || new Date(),
+      owner: document.owner?.toString() ?? document.ownerId?.toString() ?? '',
+      createdAt: document.createdAt ?? new Date(),
+      updatedAt: document.updatedAt ?? new Date(),
     };
   }
 
@@ -125,36 +125,36 @@ export class EstablishmentMapper {
 
   static toOverviewInterface(data: OverviewLike): IEstablishmentOverview {
     return {
-      total: data.total || 0,
-      pending: data.pending || 0,
-      active: data.active || 0,
-      suspended: data.suspended || 0,
-      rejected: data.rejected || 0,
-      recentApprovals: data.recentApprovals || 0,
-      avgApprovalTime: data.avgApprovalTime || 0,
+      total: data.total ?? 0,
+      pending: data.pending ?? 0,
+      active: data.active ?? 0,
+      suspended: data.suspended ?? 0,
+      rejected: data.rejected ?? 0,
+      recentApprovals: data.recentApprovals ?? 0,
+      avgApprovalTime: data.avgApprovalTime ?? 0,
     };
   }
 
   static toStatsInterface(data: StatsLike): IEstablishmentStats {
     return {
-      totalOrders: data.totalOrders || 0,
-      totalRevenue: data.totalRevenue || 0,
-      averageRating: data.averageRating || 0,
-      totalOffers: data.totalOffers || 0,
-      activeOffers: data.activeOffers || 0,
-      completionRate: data.completionRate || 0,
-      periodStart: data.periodStart || new Date(),
-      periodEnd: data.periodEnd || new Date(),
+      totalOrders: data.totalOrders ?? 0,
+      totalRevenue: data.totalRevenue ?? 0,
+      averageRating: data.averageRating ?? 0,
+      totalOffers: data.totalOffers ?? 0,
+      activeOffers: data.activeOffers ?? 0,
+      completionRate: data.completionRate ?? 0,
+      periodStart: data.periodStart ?? new Date(),
+      periodEnd: data.periodEnd ?? new Date(),
     };
   }
 
   static toListResponse(data: ListResponseLike): IEstablishmentListResponse {
     return {
-      establishments: this.toInterfaceArray(data.establishments || []),
-      total: data.total || 0,
-      page: data.page || 1,
-      limit: data.limit || 20,
-      totalPages: data.totalPages || 0,
+      establishments: this.toInterfaceArray(data.establishments ?? []),
+      total: data.total ?? 0,
+      page: data.page ?? 1,
+      limit: data.limit ?? 20,
+      totalPages: data.totalPages ?? 0,
     };
   }
 }

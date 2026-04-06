@@ -1,7 +1,8 @@
-// src/common/guards/rate-limit.guard.ts
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 
 import { TooManyRequestsException } from './to-many-request.exeptition';
+
+import type { Request } from 'express';
 
 interface RequestRecord {
   count: number;
@@ -16,8 +17,8 @@ export class RateLimitGuard implements CanActivate {
   private readonly ttlSeconds = 60; // per 1 minute
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
-    const ip = request.ip;
+    const request = context.switchToHttp().getRequest<Request>();
+    const ip = request.ip ?? 'unknown';
 
     const now = Date.now();
     const record = this.requests.get(ip);

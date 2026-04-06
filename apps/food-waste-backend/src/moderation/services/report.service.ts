@@ -18,6 +18,11 @@ import { ModerationLogService } from './moderation-log.service';
 /** Plain-object shape returned by aggregate pipelines (no Mongoose Document methods). */
 export type ReportLean = FlattenMaps<Report> & { _id: Types.ObjectId };
 
+interface AggregatedCountByKey {
+  _id: string;
+  count: number;
+}
+
 @Injectable()
 export class ReportService {
   constructor(
@@ -103,16 +108,16 @@ export class ReportService {
     const sortBy = queryDto.sortBy ?? 'createdAt';
 
     // Build query based on filters
-    if (queryDto.type) {
+    if (queryDto.type !== null && queryDto.type !== undefined) {
       matchConditions['type'] = queryDto.type;
     }
-    if (queryDto.reason) {
+    if (queryDto.reason !== null && queryDto.reason !== undefined) {
       matchConditions['reason'] = queryDto.reason;
     }
-    if (queryDto.status) {
+    if (queryDto.status !== null && queryDto.status !== undefined) {
       matchConditions['status'] = queryDto.status;
     }
-    if (queryDto.priority) {
+    if (queryDto.priority !== null && queryDto.priority !== undefined) {
       matchConditions['priority'] = queryDto.priority;
     }
     if (queryDto.reporterId) {
@@ -205,7 +210,11 @@ export class ReportService {
     // Permission check for moderators — after $lookup, assignedToModerator is a user object or null
     if (userRole === UserRole.MODERATOR && report.assignedToModerator) {
       const assigned = report.assignedToModerator as unknown as { _id: Types.ObjectId };
-      if (assigned._id && String(assigned._id) !== currentUserId) {
+      if (
+        assigned._id !== null &&
+        assigned._id !== undefined &&
+        String(assigned._id) !== currentUserId
+      ) {
         throw new ForbiddenException('You can only access reports assigned to you');
       }
     }
@@ -374,7 +383,7 @@ export class ReportService {
       assignedToModerator: new Types.ObjectId(moderatorId),
     };
 
-    if (status) {
+    if (status !== null && status !== undefined) {
       matchConditions['status'] = status;
     }
 
@@ -413,12 +422,12 @@ export class ReportService {
         this.reportModel.countDocuments({ ...baseQuery, status: ReportStatus.IN_REVIEW }),
         this.reportModel.countDocuments({ ...baseQuery, status: ReportStatus.RESOLVED }),
 
-        this.reportModel.aggregate([
+        this.reportModel.aggregate<AggregatedCountByKey>([
           { $match: baseQuery },
           { $group: { _id: '$priority', count: { $sum: 1 } } },
         ]),
 
-        this.reportModel.aggregate([
+        this.reportModel.aggregate<AggregatedCountByKey>([
           { $match: baseQuery },
           { $group: { _id: '$type', count: { $sum: 1 } } },
         ]),

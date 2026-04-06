@@ -26,6 +26,7 @@ import {
   ApiExtraModels,
 } from '@nestjs/swagger';
 import { Response } from 'express';
+
 import { Public } from 'src/common/decorators/public.decorator';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -139,14 +140,14 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('profileImage'))
   async create(
     @Body() createUserDto: CreateUserDto,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @Res() res: Response,
   ): Promise<Response> {
     try {
       let profileImageUrl: string | null = null;
 
       // Upload profile image to Firebase Cloud Storage if provided
-      if (file) {
+      if (file !== null && file !== undefined) {
         const uploadResult = await this.supabaseStorageService.uploadFile(file, {
           folder: 'profile-images',
           makePublic: true,
@@ -222,7 +223,7 @@ export class UsersController {
 
       const user = await this.usersService.findOne(req.user.userId);
 
-      if (!user) {
+      if (user === null || user === undefined) {
         return res.status(HttpStatus.NOT_FOUND).json({
           status: HttpStatus.NOT_FOUND,
           message: 'User profile not found',
@@ -248,7 +249,7 @@ export class UsersController {
   async findOne(@Param('id') id: string) {
     try {
       const user = await this.usersService.findOne(id);
-      if (!user) {
+      if (user === null || user === undefined) {
         throw new HttpException({ message: 'User not found' }, HttpStatus.NOT_FOUND);
       }
       return {
@@ -333,9 +334,9 @@ export class UsersController {
   @ApiResponse({ status: 400, description: 'Invalid file or no file provided' })
   async uploadProfileImage(
     @Request() req: AuthenticatedRequest,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File | undefined,
   ) {
-    if (!file) {
+    if (file === null || file === undefined) {
       throw new HttpException({ message: 'No image file provided' }, HttpStatus.BAD_REQUEST);
     }
 
@@ -551,9 +552,10 @@ export class UsersController {
     @Res() res: Response,
   ): Promise<Response> {
     try {
-      const userAgentHeader = Array.isArray(req.headers['user-agent'])
-        ? req.headers['user-agent'][0]
-        : req.headers['user-agent'];
+      const rawHeader = req.headers['user-agent'] as string | string[] | undefined;
+      const userAgentHeader: string | undefined = Array.isArray(rawHeader)
+        ? rawHeader[0]
+        : rawHeader;
       const result = await this.usersService.sendPhoneVerificationCode(
         req.user.userId,
         sendPhoneVerificationDto.phoneNumber,
@@ -611,9 +613,10 @@ export class UsersController {
     @Res() res: Response,
   ): Promise<Response> {
     try {
-      const userAgentHeader = Array.isArray(req.headers['user-agent'])
-        ? req.headers['user-agent'][0]
-        : req.headers['user-agent'];
+      const rawHeader = req.headers['user-agent'] as string | string[] | undefined;
+      const userAgentHeader: string | undefined = Array.isArray(rawHeader)
+        ? rawHeader[0]
+        : rawHeader;
       const result = await this.usersService.verifyPhoneCode(
         req.user.userId,
         verifyPhoneDto.phoneNumber,
@@ -679,9 +682,10 @@ export class UsersController {
     @Res() res: Response,
   ): Promise<Response> {
     try {
-      const userAgentHeader = Array.isArray(req.headers['user-agent'])
-        ? req.headers['user-agent'][0]
-        : req.headers['user-agent'];
+      const rawHeader = req.headers['user-agent'] as string | string[] | undefined;
+      const userAgentHeader: string | undefined = Array.isArray(rawHeader)
+        ? rawHeader[0]
+        : rawHeader;
       const result = await this.usersService.resendPhoneVerificationCode(
         req.user.userId,
         sendPhoneVerificationDto.phoneNumber,
@@ -812,7 +816,7 @@ export class UsersController {
               {
                 coordinates: body.coordinates,
                 timestamp: new Date(),
-                source: body.source || 'manual',
+                source: body.source ?? 'manual',
               },
             ]
           : undefined,
@@ -837,9 +841,8 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User restored successfully' })
   async restore(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     const ipAddress = req.ip ?? req.connection?.remoteAddress ?? 'unknown';
-    const userAgentHeader = Array.isArray(req.headers['user-agent'])
-      ? req.headers['user-agent'][0]
-      : req.headers['user-agent'];
+    const rawHeader = req.headers['user-agent'] as string | string[] | undefined;
+    const userAgentHeader: string | undefined = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
     const userAgent = userAgentHeader ?? 'unknown';
     const user = await this.usersService.restore(id, { ipAddress, userAgent });
     return { statusCode: HttpStatus.OK, message: 'User restored successfully', data: user };
@@ -856,13 +859,12 @@ export class UsersController {
     @Request() req: AuthenticatedRequest,
   ) {
     const ipAddress = req.ip ?? req.connection?.remoteAddress ?? 'unknown';
-    const userAgentHeader = Array.isArray(req.headers['user-agent'])
-      ? req.headers['user-agent'][0]
-      : req.headers['user-agent'];
+    const rawHeader = req.headers['user-agent'] as string | string[] | undefined;
+    const userAgentHeader: string | undefined = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
     const userAgent = userAgentHeader ?? 'unknown';
     await this.usersService.softDelete(
       id,
-      reason || 'Admin deletion',
+      reason ?? 'Admin deletion',
       { ipAddress, userAgent },
       { adminId: req.user.userId, adminEmail: req.user.email },
     );

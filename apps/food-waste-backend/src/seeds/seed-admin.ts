@@ -1,6 +1,7 @@
 import { UserRole, UserStatus } from '@foodwaste/shared';
 import { NestFactory } from '@nestjs/core';
 import { getModelToken } from '@nestjs/mongoose';
+
 import { User } from 'src/users/schemas/user.schema';
 import { UsersService } from 'src/users/user.service';
 
@@ -45,23 +46,29 @@ async function bootstrap() {
       `✅ Admin user created: ${admin.email} (status: ACTIVE, emailVerified: true)`,
       'SeedAdmin',
     );
-  } else {
+  } else if (existingAdmin.status !== UserStatus.ACTIVE || !existingAdmin.isEmailVerified) {
     // Update existing admin to ensure correct status and email verification
-    if (existingAdmin.status !== UserStatus.ACTIVE || !existingAdmin.isEmailVerified) {
-      await userModel.findByIdAndUpdate(existingAdmin._id, {
-        status: UserStatus.ACTIVE,
-        isEmailVerified: true,
-      });
-      logger.log(
-        `✅ Existing admin updated: ${existingAdmin.email} (status: ACTIVE, emailVerified: true)`,
-        'SeedAdmin',
-      );
-    } else {
-      logger.log(`✅ Admin already configured correctly: ${existingAdmin.email}`, 'SeedAdmin');
-    }
+    await userModel.findByIdAndUpdate(existingAdmin._id, {
+      status: UserStatus.ACTIVE,
+      isEmailVerified: true,
+    });
+    logger.log(
+      `✅ Existing admin updated: ${existingAdmin.email} (status: ACTIVE, emailVerified: true)`,
+      'SeedAdmin',
+    );
+  } else {
+    logger.log(`✅ Admin already configured correctly: ${existingAdmin.email}`, 'SeedAdmin');
   }
 
   await app.close();
 }
 
-bootstrap();
+bootstrap().catch((error: unknown) => {
+  const logger = new AppLoggerService();
+  logger.error(
+    `Seed admin bootstrap failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    error instanceof Error ? error.stack : undefined,
+    'SeedAdmin',
+  );
+  process.exitCode = 1;
+});

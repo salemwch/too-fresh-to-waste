@@ -7,11 +7,13 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as admin from 'firebase-admin';
+import { getStorage } from 'firebase-admin/storage';
 import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 
 import { FirebaseAdminService } from './firebase-admin.service';
+
+import type { Storage } from 'firebase-admin/storage';
 
 export interface UploadedFileInfo {
   fileName: string;
@@ -41,8 +43,8 @@ export interface UploadOptions {
 @Injectable()
 export class FirebaseStorageService {
   private readonly logger = new Logger(FirebaseStorageService.name);
-  private storage!: admin.storage.Storage;
-  private bucket!: ReturnType<admin.storage.Storage['bucket']>;
+  private storage!: Storage;
+  private bucket!: ReturnType<Storage['bucket']>;
   private defaultBucketName!: string;
 
   constructor(
@@ -65,7 +67,7 @@ export class FirebaseStorageService {
       }
 
       // Initialize Storage
-      this.storage = admin.storage(app);
+      this.storage = getStorage(app);
 
       // Read bucket name from env (FIREBASE_STORAGE_BUCKET), fall back to projectId.appspot.com
       this.defaultBucketName = this.configService.get<string>(
@@ -85,10 +87,10 @@ export class FirebaseStorageService {
    * Ensure Firebase Storage is initialized (lazy initialization)
    */
   private ensureInitialized(): void {
-    if (!this.storage || !this.bucket) {
+    if (this.storage === undefined || this.bucket === undefined) {
       this.initializeStorage();
 
-      if (!this.storage || !this.bucket) {
+      if (this.storage === undefined || this.bucket === undefined) {
         throw new InternalServerErrorException(
           'Firebase Storage is not available. Check Firebase configuration.',
         );
@@ -180,7 +182,7 @@ export class FirebaseStorageService {
     files: Express.Multer.File[],
     options: UploadOptions = {},
   ): Promise<UploadedFileInfo[]> {
-    if (!files || files.length === 0) {
+    if (files.length === 0) {
       return [];
     }
 
@@ -199,7 +201,9 @@ export class FirebaseStorageService {
         if (result.status === 'fulfilled') {
           successful.push(result.value);
         } else {
-          failed.push(`File ${index + 1}: ${result.reason.message}`);
+          const errorMessage =
+            result.reason instanceof Error ? result.reason.message : 'Unknown error';
+          failed.push(`File ${index + 1}: ${errorMessage}`);
           this.logger.error(`Failed to upload file ${index + 1}:`, result.reason);
         }
       });
@@ -227,9 +231,12 @@ export class FirebaseStorageService {
 
       this.logger.debug(`✅ File deleted successfully: ${fileName}`);
     } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error && error.code === 404) {
-        this.logger.warn(`File not found for deletion: ${fileName}`);
-        return; // File doesn't exist, consider it deleted
+      if (error !== null && error !== undefined && typeof error === 'object' && 'code' in error) {
+        const errorCode = (error as { code?: unknown }).code;
+        if (errorCode === 404) {
+          this.logger.warn(`File not found for deletion: ${fileName}`);
+          return; // File doesn't exist, consider it deleted
+        }
       }
 
       this.logger.error(`❌ Failed to delete file ${fileName}:`, error);
@@ -243,7 +250,7 @@ export class FirebaseStorageService {
    * Delete multiple files from Firebase Storage
    */
   async deleteFiles(fileNames: string[]): Promise<void> {
-    if (!fileNames || fileNames.length === 0) {
+    if (fileNames.length === 0) {
       return;
     }
 
@@ -317,12 +324,12 @@ export class FirebaseStorageService {
 
   // Private helper methods
 
-  private validateFile(file: Express.Multer.File): void {
-    if (!file) {
+  private validateFile(file: Express.Multer.File | undefined): void {
+    if (file === null || file === undefined) {
       throw new BadRequestException('No file provided');
     }
 
-    if (!file.buffer) {
+    if (file.buffer.length === 0) {
       throw new BadRequestException('File buffer is empty');
     }
 
@@ -373,8 +380,8 @@ export class FirebaseStorageService {
       }
 
       // Set format and quality
-      const format = options.format || 'jpeg';
-      const quality = options.quality || 85;
+      const format = options.format ?? 'jpeg';
+      const quality = options.quality ?? 85;
 
       let processedBuffer: Buffer;
       let mimeType: string;

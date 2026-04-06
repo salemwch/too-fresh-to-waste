@@ -5,6 +5,7 @@
 The Moderation module provides a comprehensive content moderation system for the Too Fresh To Waste platform. It enables users to report inappropriate content, moderators to review and take action on reports, and admins to manage the entire moderation workflow with full audit trails.
 
 **Primary responsibilities:**
+
 - User-generated content reporting (users, establishments, offers, orders, reviews)
 - Moderation action management (warnings, suspensions, bans, content removal)
 - Comprehensive audit logging with 1-year TTL
@@ -12,6 +13,7 @@ The Moderation module provides a comprehensive content moderation system for the
 - Role-based access control (Admin, Moderator)
 
 **Key features:**
+
 - Duplicate report prevention (24-hour window)
 - Auto-prioritization based on report reason
 - Rate limiting to prevent abuse
@@ -68,12 +70,14 @@ src/moderation/
 Stores user-submitted reports of content violations.
 
 **Enums:**
+
 - `ReportType`: `user`, `establishment`, `offer`, `order`, `review`
 - `ReportReason`: `spam`, `harassment`, `inappropriate_content`, `fraud`, `fake_profile`, `violation_of_terms`, `health_safety`, `copyright`, `other`
 - `ReportStatus`: `pending`, `in_review`, `resolved`, `rejected`, `escalated`
 - `ReportPriority`: `low`, `medium`, `high`, `critical`
 
 **Key Fields:**
+
 ```typescript
 {
   type: ReportType,                      // What is being reported
@@ -101,6 +105,7 @@ Stores user-submitted reports of content violations.
 ```
 
 **Indexes:**
+
 - `{ status: 1, priority: -1, createdAt: -1 }` - Priority queue
 - `{ assignedToModerator: 1, status: 1 }` - Moderator workload
 - `{ targetId: 1, type: 1 }` - Entity lookup
@@ -115,11 +120,13 @@ Stores user-submitted reports of content violations.
 Tracks enforcement actions taken against users/content.
 
 **Enums:**
+
 - `ModerationActionType`: `warn`, `suspend`, `ban`, `delete_content`, `hide_content`, `restrict_features`, `require_verification`, `demonetize`
 - `ModerationActionStatus`: `active`, `expired`, `revoked`, `appealed`
 - `ModerationSeverity`: `minor`, `moderate`, `severe`, `critical`
 
 **Key Fields:**
+
 ```typescript
 {
   actionType: ModerationActionType,      // Enforcement action
@@ -158,6 +165,7 @@ Tracks enforcement actions taken against users/content.
 ```
 
 **Indexes:**
+
 - `{ targetUserId: 1, status: 1, createdAt: -1 }` - User action history
 - `{ moderatorId: 1, createdAt: -1 }` - Moderator activity
 - `{ actionType: 1, severity: 1, status: 1 }` - Action analytics
@@ -172,10 +180,12 @@ Tracks enforcement actions taken against users/content.
 Comprehensive audit log for all moderation activities (TTL: 1 year).
 
 **Enums:**
+
 - `LogLevel`: `DEBUG`, `INFO`, `WARN`, `ERROR`, `CRITICAL`
 - `LogCategory`: `REPORT_HANDLING`, `ACTION_ENFORCEMENT`, `USER_MANAGEMENT`, `CONTENT_MODERATION`, `SYSTEM_EVENT`, `AUDIT_TRAIL`
 
 **Key Fields:**
+
 ```typescript
 {
   level: LogLevel,                       // Severity
@@ -202,6 +212,7 @@ Comprehensive audit log for all moderation activities (TTL: 1 year).
 ```
 
 **Indexes:**
+
 - `{ level: 1, createdAt: -1 }` - Log filtering
 - `{ performedBy: 1, createdAt: -1 }` - User activity
 - `{ category: 1, action: 1, createdAt: -1 }` - Action tracking
@@ -219,12 +230,15 @@ All endpoints require JWT authentication (`@UseGuards(JwtAuthGuard)`).
 ### Reports API (`/api/v1/moderation/reports`)
 
 #### 1. Create Report
+
 ```
 POST /api/v1/moderation/reports
 ```
+
 **Access:** All authenticated users
 **Rate Limit:** `ModerationReportRateLimitGuard`
 **Body:**
+
 ```json
 {
   "type": "offer",
@@ -234,7 +248,9 @@ POST /api/v1/moderation/reports
   "evidence": ["https://example.com/screenshot1.jpg"]
 }
 ```
+
 **Response:**
+
 ```json
 {
   "success": true,
@@ -248,7 +264,9 @@ POST /api/v1/moderation/reports
   }
 }
 ```
+
 **Business Rules:**
+
 - Prevents duplicate reports within 24 hours
 - Auto-assigns priority based on reason (fraud → high/critical)
 - Logs creation with correlation ID
@@ -258,11 +276,14 @@ POST /api/v1/moderation/reports
 ---
 
 #### 2. Get Reports (Filtered)
+
 ```
 GET /api/v1/moderation/reports?status=pending&priority=high&page=1&limit=20
 ```
+
 **Access:** Admin, Moderator (`@UseGuards(ModerationAccessGuard)`)
 **Query Parameters:**
+
 - `type` - Filter by report type
 - `status` - Filter by status
 - `priority` - Filter by priority
@@ -272,6 +293,7 @@ GET /api/v1/moderation/reports?status=pending&priority=high&page=1&limit=20
 - `limit` - Items per page (default: 10)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -285,7 +307,9 @@ GET /api/v1/moderation/reports?status=pending&priority=high&page=1&limit=20
   }
 }
 ```
+
 **Authorization:**
+
 - Moderators: See unassigned reports + own assigned reports
 - Admins: See all reports
 
@@ -294,11 +318,14 @@ GET /api/v1/moderation/reports?status=pending&priority=high&page=1&limit=20
 ---
 
 #### 3. Get Dashboard Statistics
+
 ```
 GET /api/v1/moderation/reports/dashboard/stats
 ```
+
 **Access:** Admin, Moderator
 **Response:**
+
 ```json
 {
   "success": true,
@@ -324,9 +351,11 @@ GET /api/v1/moderation/reports/dashboard/stats
 ---
 
 #### 4. Get Assigned Reports
+
 ```
 GET /api/v1/moderation/reports/assigned-to-me?status=in_review
 ```
+
 **Access:** Moderator, Admin
 **Returns:** Reports assigned to current user
 
@@ -335,9 +364,11 @@ GET /api/v1/moderation/reports/assigned-to-me?status=in_review
 ---
 
 #### 5. Get Report by ID
+
 ```
 GET /api/v1/moderation/reports/:id
 ```
+
 **Access:** Report owner (reporter) OR Admin OR assigned Moderator
 **Guard:** `ReportOwnershipGuard`
 
@@ -346,11 +377,14 @@ GET /api/v1/moderation/reports/:id
 ---
 
 #### 6. Update Report
+
 ```
 PATCH /api/v1/moderation/reports/:id
 ```
+
 **Access:** Admin OR assigned Moderator
 **Body:**
+
 ```json
 {
   "status": "resolved",
@@ -358,6 +392,7 @@ PATCH /api/v1/moderation/reports/:id
   "priority": "critical"
 }
 ```
+
 **Audit:** All changes logged to `moderationHistory`
 
 **File:** `controllers/report.controller.ts:179`
@@ -365,11 +400,14 @@ PATCH /api/v1/moderation/reports/:id
 ---
 
 #### 7. Assign Report to Moderator
+
 ```
 POST /api/v1/moderation/reports/:id/assign
 ```
+
 **Access:** Admin only (`@UseGuards(AdminOnlyModerationGuard)`)
 **Body:**
+
 ```json
 {
   "moderatorId": "507f1f77bcf86cd799439011"
@@ -384,6 +422,7 @@ POST /api/v1/moderation/reports/:id/assign
 
 **Controllers:** `moderation-action.controller.ts`
 **Endpoints:**
+
 - `POST /actions` - Create moderation action (warn, suspend, ban, etc.)
 - `GET /actions` - List actions with filters
 - `GET /actions/:id` - Get action details
@@ -398,6 +437,7 @@ POST /api/v1/moderation/reports/:id/assign
 
 **Controller:** `moderation-log.controller.ts`
 **Endpoints:**
+
 - `GET /logs` - Query audit logs
 - `GET /logs/statistics` - Aggregated statistics
 - `GET /logs/export` - Export logs (CSV/JSON)
@@ -411,6 +451,7 @@ POST /api/v1/moderation/reports/:id/assign
 **Purpose:** Ensures only Admins and Moderators can access moderation endpoints.
 
 **Logic:**
+
 ```typescript
 allowedRoles = [UserRole.ADMIN, UserRole.MODERATOR];
 if (!allowedRoles.includes(user.role)) {
@@ -427,6 +468,7 @@ if (!allowedRoles.includes(user.role)) {
 **Purpose:** Restricts sensitive operations to Admins only.
 
 **Used for:**
+
 - Assigning reports to moderators
 - Bulk moderation actions
 - Revoking other moderators' actions
@@ -440,6 +482,7 @@ if (!allowedRoles.includes(user.role)) {
 **Purpose:** Ensures moderators can only access their assigned reports.
 
 **Authorization Flow:**
+
 1. Admins → Full access
 2. Moderators → Own assigned reports + unassigned reports
 3. Other roles → Reject
@@ -453,10 +496,12 @@ if (!allowedRoles.includes(user.role)) {
 ### 4. Rate Limiting Guards
 
 **ModerationReportRateLimitGuard:**
+
 - Prevents report spam
 - Custom rate limit per user session
 
 **ModerationActionRateLimitGuard:**
+
 - Throttles moderation actions
 - Module-level: 20 requests/minute
 
@@ -471,9 +516,11 @@ if (!allowedRoles.includes(user.role)) {
 **File:** `processors/moderation-task.processor.ts:8`
 
 #### 1. Process Expired Actions
+
 ```typescript
 @Cron(CronExpression.EVERY_HOUR)
 ```
+
 **Runs:** Every hour
 **Function:** Marks expired temporary suspensions/bans as `expired`
 **Logging:** Logs cleanup count to `ModerationLog`
@@ -483,9 +530,11 @@ if (!allowedRoles.includes(user.role)) {
 ---
 
 #### 2. Cleanup Old Logs
+
 ```typescript
 @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
 ```
+
 **Runs:** Daily at 00:00
 **Function:** Placeholder (TTL index auto-deletes logs after 1 year)
 
@@ -494,14 +543,17 @@ if (!allowedRoles.includes(user.role)) {
 ---
 
 #### 3. Generate Daily Summary
+
 ```typescript
 @Cron('0 1 * * *')
 ```
+
 **Runs:** Daily at 01:00
 **Function:** Aggregates previous day's moderation statistics
 **Output:** Stored as `ModerationLog` with category `SYSTEM_EVENT`
 
 **Includes:**
+
 - Total reports/actions
 - Resolution times
 - Priority distribution
@@ -516,6 +568,7 @@ if (!allowedRoles.includes(user.role)) {
 ### Scenario 1: User Reports Fraudulent Offer
 
 1. **User submits report**
+
    ```bash
    POST /api/v1/moderation/reports
    {
@@ -533,12 +586,15 @@ if (!allowedRoles.includes(user.role)) {
    - Logs creation event
 
 3. **Admin reviews dashboard**
+
    ```bash
    GET /api/v1/moderation/reports/dashboard/stats
    ```
+
    - Sees 1 critical report
 
 4. **Admin assigns to moderator**
+
    ```bash
    POST /api/v1/moderation/reports/:id/assign
    { "moderatorId": "60d5ec49f1b2c8b1f8e4e1a2" }
@@ -550,6 +606,7 @@ if (!allowedRoles.includes(user.role)) {
    - Updates status: `in_review`
 
 6. **Moderator takes action**
+
    ```bash
    POST /api/v1/moderation/actions
    {
@@ -563,6 +620,7 @@ if (!allowedRoles.includes(user.role)) {
    ```
 
 7. **Moderator resolves report**
+
    ```bash
    PATCH /api/v1/moderation/reports/:id
    {
@@ -581,6 +639,7 @@ if (!allowedRoles.includes(user.role)) {
 ### Scenario 2: Automated Cleanup
 
 **Daily at 01:00:**
+
 ```
 [ModerationTaskProcessor] Expired actions check
 → Finds 5 suspensions that expired
@@ -600,11 +659,14 @@ None required - uses shared MongoDB and Redis connections from AppModule.
 ### Rate Limiting
 
 **Module-level throttle:**
+
 ```typescript
-ThrottlerModule.forRoot([{
-  ttl: 60000,  // 1 minute
-  limit: 20,   // 20 requests
-}])
+ThrottlerModule.forRoot([
+  {
+    ttl: 60000, // 1 minute
+    limit: 20, // 20 requests
+  },
+]);
 ```
 
 Configured in `moderation.module.ts:39`
@@ -640,12 +702,12 @@ Available for use in other modules:
 
 ```typescript
 export {
-  ReportService,              // Report CRUD + business logic
-  ModerationActionService,    // Action enforcement
-  ModerationLogService,       // Audit logging + statistics
-  ModerationAccessGuard,      // Access control
-  AdminOnlyModerationGuard,   // Admin-only operations
-}
+  ReportService, // Report CRUD + business logic
+  ModerationActionService, // Action enforcement
+  ModerationLogService, // Audit logging + statistics
+  ModerationAccessGuard, // Access control
+  AdminOnlyModerationGuard, // Admin-only operations
+};
 ```
 
 **File:** `index.ts:1`
@@ -657,6 +719,7 @@ export {
 ### Unit Tests
 
 **Priority test cases:**
+
 1. **ReportService**
    - Duplicate report prevention
    - Priority auto-assignment logic
@@ -675,6 +738,7 @@ export {
 ### Integration Tests
 
 **Key scenarios:**
+
 1. End-to-end report workflow (create → assign → resolve)
 2. Moderation action lifecycle (create → active → expired/revoked)
 3. Dashboard statistics accuracy
@@ -683,6 +747,7 @@ export {
 ### E2E Tests
 
 **Critical paths:**
+
 ```bash
 # Report submission and resolution
 POST /reports → GET /reports → PATCH /reports/:id

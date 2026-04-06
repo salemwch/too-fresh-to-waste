@@ -1,3 +1,4 @@
+import type { UpdateDonationPoolInput } from '@foodwaste/shared';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber, IsString, IsOptional, Min, Max, MinLength, MaxLength } from 'class-validator';
 
@@ -5,7 +6,7 @@ import { IsNumber, IsString, IsOptional, Min, Max, MinLength, MaxLength } from '
  * DTO for admin to update the active donation pool
  * All fields optional — only provided fields are updated (partial update)
  */
-export class UpdateDonationPoolDto {
+export class UpdateDonationPoolDto implements UpdateDonationPoolInput {
   @ApiPropertyOptional({
     description: 'New target amount for the donation pool',
     example: 5000,
@@ -16,7 +17,7 @@ export class UpdateDonationPoolDto {
   @IsNumber()
   @Min(1)
   @Max(1_000_000)
-  targetAmount?: number;
+  targetAmount?: number | undefined;
 
   @ApiPropertyOptional({
     description: 'Cause / campaign description',
@@ -28,5 +29,5 @@ export class UpdateDonationPoolDto {
   @IsString()
   @MinLength(3)
   @MaxLength(200)
-  cause?: string;
+  cause?: string | undefined;
 }

@@ -64,17 +64,17 @@ export class CspReportController {
     const cspReport = report?.['csp-report'];
 
     // Guard against malformed or empty CSP reports
-    if (!cspReport) {
+    if (cspReport === null || cspReport === undefined) {
       this.logger.security('CSP REPORT: Received malformed or empty report');
       return;
     }
 
     // Log CSP violation with full context
     this.logger.security(
-      `CSP VIOLATION DETECTED: ${cspReport['violated-directive'] || 'unknown'} | ` +
-        `Blocked URI: ${cspReport['blocked-uri'] || 'unknown'} | ` +
-        `Document: ${cspReport['document-uri'] || 'unknown'} | ` +
-        `Source: ${cspReport['source-file'] || 'unknown'}:${cspReport['line-number'] || '?'}:${cspReport['column-number'] || '?'}`,
+      `CSP VIOLATION DETECTED: ${cspReport['violated-directive'] ?? 'unknown'} | ` +
+        `Blocked URI: ${cspReport['blocked-uri'] ?? 'unknown'} | ` +
+        `Document: ${cspReport['document-uri'] ?? 'unknown'} | ` +
+        `Source: ${cspReport['source-file'] ?? 'unknown'}:${cspReport['line-number'] ?? '?'}:${cspReport['column-number'] ?? '?'}`,
     );
 
     // In production, you would:

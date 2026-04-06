@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsLatitude, IsLongitude, IsOptional, IsString, MaxLength } from 'class-validator';
 
+import type { UpdateLocationInput } from '@foodwaste/shared';
+
 /**
  * DTO for updating user's last known location
  *
@@ -11,7 +13,7 @@ import { IsLatitude, IsLongitude, IsOptional, IsString, MaxLength } from 'class-
  *
  * Privacy: Location is stored securely and only used for app functionality
  */
-export class UpdateLocationDto {
+export class UpdateLocationDto implements UpdateLocationInput {
   @ApiProperty({
     description: 'Latitude coordinate',
     example: 35.8288,
@@ -39,7 +41,7 @@ export class UpdateLocationDto {
   @IsOptional()
   @IsString()
   @MaxLength(255, { message: 'Location name cannot exceed 255 characters' })
-  locationName?: string;
+  locationName?: string | undefined;
 
   @ApiProperty({
     description: 'Source of the location (gps, manual, etc.)',
@@ -49,5 +51,5 @@ export class UpdateLocationDto {
   })
   @IsOptional()
   @IsString()
-  source?: 'gps' | 'network' | 'passive' | 'manual' | 'ip';
+  source?: 'gps' | 'network' | 'passive' | 'manual' | 'ip' | undefined;
 }

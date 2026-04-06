@@ -12,6 +12,15 @@ import {
 
 import { ReportType, ReportReason } from '../schemas/report.schema';
 
+function sanitizePlainText(value: unknown): unknown {
+  if (typeof value === 'string') {
+    // Basic XSS sanitization - remove HTML tags and trim whitespace
+    return value.replace(/<[^>]*>/g, '').trim();
+  }
+
+  return value;
+}
+
 export class CreateReportDto {
   @IsEnum(ReportType, { message: 'Invalid report type' })
   type!: ReportType;
@@ -24,13 +33,7 @@ export class CreateReportDto {
 
   @IsString({ message: 'Description must be a string' })
   @MaxLength(1000, { message: 'Description cannot exceed 1000 characters' })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      // Basic XSS sanitization - remove HTML tags and trim whitespace
-      return value.replace(/<[^>]*>/g, '').trim();
-    }
-    return value;
-  })
+  @Transform(({ value }) => sanitizePlainText(value))
   description!: string;
 
   @IsOptional()

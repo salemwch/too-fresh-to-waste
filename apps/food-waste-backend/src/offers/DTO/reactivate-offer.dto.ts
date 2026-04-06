@@ -12,39 +12,40 @@ import {
   IsString,
 } from 'class-validator';
 
+import type { ReactivateOfferInput } from '@foodwaste/shared';
+
+function getFirstTransformValue(value: unknown): unknown {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function trimTransformValue(value: unknown): unknown {
+  const firstValue = getFirstTransformValue(value);
+  return typeof firstValue === 'string' ? firstValue.trim() : firstValue;
+}
+
+function parseIntegerTransformValue(value: unknown): unknown {
+  const firstValue = getFirstTransformValue(value);
+  return typeof firstValue === 'string' ? Number.parseInt(firstValue, 10) : firstValue;
+}
+
 class ReactivatePickupTimeSlotDto {
   @IsString()
-  @Transform(({ value }) => {
-    if (Array.isArray(value)) {
-      return value[0]?.trim?.() || value[0];
-    }
-    return typeof value === 'string' ? value.trim() : value;
-  })
+  @Transform(({ value }) => trimTransformValue(value))
   startTime!: string;
 
   @IsString()
-  @Transform(({ value }) => {
-    if (Array.isArray(value)) {
-      return value[0]?.trim?.() || value[0];
-    }
-    return typeof value === 'string' ? value.trim() : value;
-  })
+  @Transform(({ value }) => trimTransformValue(value))
   endTime!: string;
 
   @IsOptional()
   @IsNumber()
   @Min(1)
   @Max(100)
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return parseInt(value, 10);
-    }
-    return value;
-  })
-  maxOrders?: number;
+  @Transform(({ value }) => parseIntegerTransformValue(value))
+  maxOrders?: number | undefined;
 }
 
-export class ReactivateOfferDto {
+export class ReactivateOfferDto implements ReactivateOfferInput {
   @IsDateString()
   @ApiProperty({
     description: 'New availability start date (ISO 8601)',
@@ -72,18 +73,13 @@ export class ReactivateOfferDto {
   @IsNumber()
   @Min(1)
   @Max(1000)
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return parseInt(value, 10);
-    }
-    return value;
-  })
+  @Transform(({ value }) => parseIntegerTransformValue(value))
   @ApiProperty({
     description: 'New total quantity (optional, keeps original if not provided)',
     example: 10,
     required: false,
   })
-  totalQuantity?: number;
+  totalQuantity?: number | undefined;
 
   @IsOptional()
   @IsString()
@@ -93,7 +89,7 @@ export class ReactivateOfferDto {
     required: false,
     default: 'Africa/Tunis',
   })
-  timezone?: string = 'Africa/Tunis';
+  timezone: string = 'Africa/Tunis';
 
   @IsOptional()
   @IsBoolean()
@@ -102,7 +98,7 @@ export class ReactivateOfferDto {
     required: false,
     default: false,
   })
-  isPickupToday?: boolean = false;
+  isPickupToday: boolean = false;
 
   @IsOptional()
   @IsBoolean()
@@ -111,5 +107,5 @@ export class ReactivateOfferDto {
     required: false,
     default: false,
   })
-  isPickupTomorrow?: boolean = false;
+  isPickupTomorrow: boolean = false;
 }

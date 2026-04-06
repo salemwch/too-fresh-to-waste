@@ -1,7 +1,8 @@
+import type { CoordinatesInput } from '@foodwaste/shared';
 import { Type } from 'class-transformer';
 import { IsString, IsArray } from 'class-validator';
 
-export class CoordinatesDto {
+export class CoordinatesDto implements CoordinatesInput {
   @IsString()
   type!: string;
 

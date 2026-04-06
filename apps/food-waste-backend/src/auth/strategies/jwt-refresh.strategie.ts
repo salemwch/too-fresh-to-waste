@@ -17,7 +17,15 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
   constructor(configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: Request) => request?.cookies?.['refresh_token'],
+        (request: Request): string | null => {
+          const cookies: unknown = request.cookies;
+          if (cookies === null || cookies === undefined || typeof cookies !== 'object') {
+            return null;
+          }
+
+          const refreshToken = (cookies as Record<string, unknown>)['refresh_token'];
+          return typeof refreshToken === 'string' ? refreshToken : null;
+        },
       ]),
       secretOrKey: configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
       passReqToCallback: true,
@@ -25,9 +33,10 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
   }
 
   validate(req: Request, payload: JwtRefreshPayload) {
-    const refreshToken = req.cookies?.['refresh_token'];
+    const refreshToken =
+      typeof req.cookies?.['refresh_token'] === 'string' ? req.cookies['refresh_token'] : undefined;
 
-    if (!refreshToken) {
+    if (refreshToken === null || refreshToken === undefined) {
       throw new UnauthorizedException('Refresh token not found');
     }
 

@@ -1,40 +1,30 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import {
-    ArchiveData,
-    ArchiveDataSchema,
-} from './schemas/archive-data.schema';
+import { DonationsModule } from '../donations/donations.module';
+import { EstablishmentsModule } from '../establishments/establishments.module';
+import { OffersModule } from '../offers/offers.module';
+import { OrdersModule } from '../orders/order.module';
+import { ReviewsModule } from '../reviwes/reviwes.module';
+import { UsersModule } from '../users/user.module';
+
 import { ArchiveService } from './archive.service';
+import { ArchiveData, ArchiveDataSchema } from './schemas/archive-data.schema';
 import { ArchiveTask } from './tasks/archive.task';
 
-// Entity schemas required for archive queries
-import { Order, OrderSchema } from '../orders/schemas/order.schema';
-import { Review, ReviewSchema } from '../reviwes/schemas/reviwe.schema';
-import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
-import {
-    Establishment,
-    EstablishmentSchema,
-} from '../establishments/schemas/establishment.schema';
-import {
-    UserDonation,
-    UserDonationSchema,
-} from '../donations/schemas/user-donation.schema';
-import { User, UserSchema } from '../users/schemas/user.schema';
-
 @Module({
-    imports: [
-        MongooseModule.forFeature([
-            { name: ArchiveData.name, schema: ArchiveDataSchema },
-            { name: Order.name, schema: OrderSchema },
-            { name: Review.name, schema: ReviewSchema },
-            { name: Offer.name, schema: OfferSchema },
-            { name: Establishment.name, schema: EstablishmentSchema },
-            { name: UserDonation.name, schema: UserDonationSchema },
-            { name: User.name, schema: UserSchema },
-        ]),
-    ],
-    providers: [ArchiveService, ArchiveTask],
-    exports: [ArchiveService],
+  imports: [
+    // Archive's own collection
+    MongooseModule.forFeature([{ name: ArchiveData.name, schema: ArchiveDataSchema }]),
+    // Feature modules re-export MongooseModule, giving us their Model tokens
+    OrdersModule,
+    ReviewsModule,
+    OffersModule,
+    EstablishmentsModule,
+    DonationsModule,
+    UsersModule,
+  ],
+  providers: [ArchiveService, ArchiveTask],
+  exports: [ArchiveService],
 })
 export class ArchiveModule {}

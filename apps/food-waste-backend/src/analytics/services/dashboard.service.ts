@@ -64,7 +64,7 @@ export class DashboardService {
       this.validateWidgets(createDashboardDto.widgets);
 
       // If setting as default, unset other defaults for this user
-      if (createDashboardDto.isDefault) {
+      if (createDashboardDto.isDefault === true) {
         await this.dashboardModel.updateMany(
           {
             userId: new Types.ObjectId(userId),
@@ -86,9 +86,9 @@ export class DashboardService {
         description: createDashboardDto.description,
         category: createDashboardDto.category,
         widgets,
-        isDefault: createDashboardDto.isDefault || false,
+        isDefault: createDashboardDto.isDefault ?? false,
         userId: new Types.ObjectId(userId),
-        permissions: createDashboardDto.permissions || {
+        permissions: createDashboardDto.permissions ?? {
           viewRoles: [userRole],
           editRoles: [userRole],
         },
@@ -217,12 +217,15 @@ export class DashboardService {
         // Update widget IDs for new widgets
         updates.widgets = updates.widgets.map((widget) => ({
           ...widget,
-          id: widget.id || new Types.ObjectId().toString(),
+          id:
+            typeof widget.id === 'string' && widget.id.length > 0
+              ? widget.id
+              : new Types.ObjectId().toString(),
         }));
       }
 
       // Handle default dashboard logic
-      if (updates.isDefault && !dashboard.isDefault) {
+      if (updates.isDefault === true && dashboard.isDefault !== true) {
         await this.dashboardModel.updateMany(
           {
             userId: dashboard.userId,
@@ -397,9 +400,14 @@ export class DashboardService {
         throw new NotFoundException('Widget not found');
       }
 
+      const existingWidget = dashboard.widgets[widgetIndex];
+      if (!existingWidget) {
+        throw new NotFoundException('Widget not found');
+      }
+
       // Update the widget
       const updatedWidget = {
-        ...dashboard.widgets[widgetIndex]!,
+        ...existingWidget,
         ...updates,
         id: widgetId, // Preserve ID
       };
@@ -512,7 +520,7 @@ export class DashboardService {
       // Unset existing defaults
       await this.dashboardModel.updateMany(
         {
-          userId: dashboard.userId || new Types.ObjectId(userId),
+          userId: dashboard.userId ?? new Types.ObjectId(userId),
           isDefault: true,
         },
         { $set: { isDefault: false } },
@@ -596,7 +604,7 @@ export class DashboardService {
     }
 
     // Check view permissions
-    if (dashboard.permissions?.viewRoles.includes(userRole)) {
+    if (dashboard.permissions?.viewRoles.includes(userRole) === true) {
       return true;
     }
 
@@ -624,7 +632,7 @@ export class DashboardService {
     }
 
     // Check edit permissions
-    return dashboard.permissions?.editRoles.includes(userRole) || false;
+    return dashboard.permissions?.editRoles.includes(userRole) ?? false;
   }
 
   private mapToInterface(dashboard: DashboardConfigDocument): IDashboardConfig {
@@ -647,8 +655,8 @@ export class DashboardService {
       isDefault: dashboard.isDefault,
       userId: dashboard.userId?.toString(),
       permissions: dashboard.permissions,
-      createdAt: dashboard.createdAt || new Date(),
-      updatedAt: dashboard.updatedAt || new Date(),
+      createdAt: dashboard.createdAt ?? new Date(),
+      updatedAt: dashboard.updatedAt ?? new Date(),
     };
   }
 
@@ -732,6 +740,10 @@ export class DashboardService {
   private templateToDashboardConfig(template: DashboardTemplate): Partial<DashboardConfig> {
     // Create a system user ObjectId for templates (using a fixed ID for consistency)
     const systemUserId = new Types.ObjectId('000000000000000000000000');
+    const requiredRole = template.requiredRole;
+    if (!requiredRole) {
+      throw new BadRequestException(`Template '${template.id}' is missing a required role`);
+    }
 
     return {
       name: template.name,
@@ -740,7 +752,7 @@ export class DashboardService {
       widgets: this.getTemplateWidgets(template.id, template.widgetCount),
       isDefault: false,
       permissions: {
-        viewRoles: [template.requiredRole!],
+        viewRoles: [requiredRole],
         editRoles: ['admin'],
       },
       createdBy: systemUserId,
@@ -881,7 +893,7 @@ export class DashboardService {
     };
 
     // Get widgets for the specific template, or create generic ones
-    const widgets = baseWidgets[templateId] || this.createGenericWidgets(widgetCount);
+    const widgets = baseWidgets[templateId] ?? this.createGenericWidgets(widgetCount);
 
     // Return only the requested number of widgets
     return widgets.slice(0, widgetCount);
@@ -892,7 +904,7 @@ export class DashboardService {
     const widgetTypes: Array<'metric' | 'chart' | 'table'> = ['metric', 'chart', 'table'];
 
     for (let i = 0; i < count; i++) {
-      const type = widgetTypes[i % widgetTypes.length]!;
+      const type = widgetTypes[i % widgetTypes.length] ?? 'metric';
       const row = Math.floor(i / 3) * 3 + 1;
       const column = (i % 3) * 4 + 1;
 

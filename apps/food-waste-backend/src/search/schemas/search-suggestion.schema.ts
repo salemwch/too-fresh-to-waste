@@ -80,13 +80,10 @@ export class SearchSuggestion {
 
 export const SearchSuggestionSchema = SchemaFactory.createForClass(SearchSuggestion);
 
-// Indexes for performance
+// Indexes — 6 targeted (trimmed from 9)
 SearchSuggestionSchema.index({ text: 'text' });
 SearchSuggestionSchema.index({ text: 1, type: 1 });
 SearchSuggestionSchema.index({ type: 1, frequency: -1 });
-SearchSuggestionSchema.index({ source: 1, relevanceScore: -1 });
 SearchSuggestionSchema.index({ aliases: 1 });
-SearchSuggestionSchema.index({ isActive: 1, frequency: -1 });
 SearchSuggestionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-SearchSuggestionSchema.index({ createdAt: -1 });
 SearchSuggestionSchema.index({ 'metadata.location.coordinates': '2dsphere' });

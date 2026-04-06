@@ -34,6 +34,7 @@ Successfully migrated from in-memory EventEmitter2 to RabbitMQ message broker wi
 ## Files Modified/Created
 
 ### New Files (5)
+
 1. `src/rabbitmq/rabbitmq.module.ts` - RabbitMQ configuration module
 2. `src/common/services/event-bus/event-bus.interface.ts` - Abstraction interface
 3. `src/common/services/event-bus/event-bus.service.ts` - Router implementation
@@ -41,6 +42,7 @@ Successfully migrated from in-memory EventEmitter2 to RabbitMQ message broker wi
 5. `src/common/services/event-bus/adapters/eventemitter2.adapter.ts` - Legacy adapter
 
 ### Publishers Migrated (8 services)
+
 - ✅ `src/admin/services/user-management.service.ts` (5 events)
 - ✅ `src/admin/services/establishment-management.service.ts` (6 events)
 - ✅ `src/admin/services/system-config.service.ts` (4 events)
@@ -53,6 +55,7 @@ Successfully migrated from in-memory EventEmitter2 to RabbitMQ message broker wi
 **Total Events**: ~35 event types migrated
 
 ### Listeners Migrated (1 critical listener)
+
 - ✅ `src/auth/listeners/admin-user-events.listener.ts` (4 handlers)
   - `admin.user.suspended` → Revokes all sessions
   - `admin.user.blocked` → Revokes all sessions (security critical)
@@ -62,6 +65,7 @@ Successfully migrated from in-memory EventEmitter2 to RabbitMQ message broker wi
 **Dual-Mode**: All listeners support both `@OnEvent` (legacy) and `@RabbitSubscribe` (RabbitMQ)
 
 ### Infrastructure Files
+
 - ✅ `docker-compose.yml` - Added RabbitMQ service
 - ✅ `.env.example` - Added RabbitMQ configuration section
 - ✅ `src/app.module.ts` - Registered RabbitMQModule
@@ -117,8 +121,8 @@ rabbitmq:
   container_name: foodwaste-rabbitmq
   restart: unless-stopped
   ports:
-    - "5672:5672"   # AMQP protocol
-    - "15672:15672" # Management UI
+    - '5672:5672' # AMQP protocol
+    - '15672:15672' # Management UI
   environment:
     RABBITMQ_DEFAULT_USER: admin
     RABBITMQ_DEFAULT_PASS: rabbitmq_dev_password
@@ -128,7 +132,7 @@ rabbitmq:
   networks:
     - foodwaste-network
   healthcheck:
-    test: ["CMD", "rabbitmq-diagnostics", "ping"]
+    test: ['CMD', 'rabbitmq-diagnostics', 'ping']
     interval: 10s
     timeout: 5s
     retries: 5
@@ -140,6 +144,7 @@ rabbitmq:
 ## Progressive Rollout Strategy
 
 ### Phase 1: Single Event Test (Week 1)
+
 **Goal**: Validate infrastructure with non-critical event
 
 ```bash
@@ -149,6 +154,7 @@ RABBITMQ_ENABLED_EVENTS=favorite.added
 ```
 
 **Test Plan**:
+
 1. Start RabbitMQ: `docker-compose up -d rabbitmq`
 2. Access Management UI: http://localhost:15672 (admin/rabbitmq_dev_password)
 3. Add a favorite in the app
@@ -156,6 +162,7 @@ RABBITMQ_ENABLED_EVENTS=favorite.added
 5. Verify logs: Look for "Published event to RabbitMQ: favorite.added"
 
 **Success Criteria**:
+
 - ✅ Event published to RabbitMQ
 - ✅ Queue created automatically
 - ✅ Message acknowledged (not stuck in "Unacked")
@@ -164,6 +171,7 @@ RABBITMQ_ENABLED_EVENTS=favorite.added
 ---
 
 ### Phase 2: Admin User Events (Week 2)
+
 **Goal**: Test critical session management events
 
 ```bash
@@ -172,12 +180,14 @@ RABBITMQ_ENABLED_EVENTS=admin.user.*
 ```
 
 **Test Plan**:
+
 1. Suspend a user via admin panel
 2. Verify session revocation works
 3. Check RabbitMQ queue: `foodwaste.auth.user-suspended`
 4. Attempt login → should fail (session revoked)
 
 **Success Criteria**:
+
 - ✅ Sessions revoked immediately
 - ✅ Multiple listeners receive event
 - ✅ Dead letter queue empty (no failures)
@@ -185,6 +195,7 @@ RABBITMQ_ENABLED_EVENTS=admin.user.*
 ---
 
 ### Phase 3: All Admin Events (Week 3)
+
 **Goal**: Full admin module migration
 
 ```bash
@@ -193,11 +204,13 @@ RABBITMQ_ENABLED_EVENTS=admin.*
 ```
 
 **Events Included**:
+
 - `admin.user.*` (6 events)
 - `admin.establishment.*` (6 events)
 - `admin.system.*` (4 events)
 
 **Success Criteria**:
+
 - ✅ All admin operations trigger RabbitMQ events
 - ✅ Audit logs complete
 - ✅ Cross-module notifications work
@@ -205,6 +218,7 @@ RABBITMQ_ENABLED_EVENTS=admin.*
 ---
 
 ### Phase 4: Core Services (Week 4)
+
 **Goal**: Expand to business-critical events
 
 ```bash
@@ -213,6 +227,7 @@ RABBITMQ_ENABLED_EVENTS=admin.*,order.*,favorite.*,review.*
 ```
 
 **Load Testing**:
+
 - Create 100 orders
 - Monitor queue depth in RabbitMQ UI
 - Verify prefetch limits prevent memory issues
@@ -220,6 +235,7 @@ RABBITMQ_ENABLED_EVENTS=admin.*,order.*,favorite.*,review.*
 ---
 
 ### Phase 5: Full Migration (Week 5+)
+
 **Goal**: All events via RabbitMQ
 
 ```bash
@@ -228,6 +244,7 @@ RABBITMQ_ENABLED_EVENTS=*
 ```
 
 **Monitoring**:
+
 - RabbitMQ Management UI → Queues
 - Application logs → Search for "EventEmitter2" (should be rare)
 - Dead letter queue → Should be empty
@@ -282,16 +299,19 @@ RABBITMQ_ENABLED_EVENTS=admin.*,favorite.*,review.*
 ## Monitoring & Observability
 
 ### RabbitMQ Management UI
+
 **URL**: http://localhost:15672
 **Credentials**: admin / rabbitmq_dev_password
 
 **Key Metrics**:
+
 - **Queues** → Message rates (publish/deliver/ack)
 - **Connections** → Active connections from backend instances
 - **Channels** → Per-connection channels
 - **Exchanges** → `foodwaste.events` message routing
 
 **Alerts to Configure**:
+
 - Queue depth > 10,000 messages (backpressure)
 - Unacked messages > 100 (consumer issues)
 - Dead letter queue not empty (failures)
@@ -309,6 +329,7 @@ RABBITMQ_ENABLED_EVENTS=admin.*,favorite.*,review.*
 ```
 
 **Error Patterns to Monitor**:
+
 - `Failed to publish event * to RabbitMQ` → Broker connectivity issue
 - `RabbitMQ: Failed to process * event` → Listener error (check Nack)
 - `CRITICAL: RabbitMQ failed to process user.blocked event` → Session revocation failure
@@ -318,11 +339,13 @@ RABBITMQ_ENABLED_EVENTS=admin.*,favorite.*,review.*
 ## Performance Characteristics
 
 ### Message Throughput
+
 - **Single Instance**: ~1,000 events/second
 - **With Prefetch=10**: ~10,000 events/second (10 parallel consumers)
 - **Bottleneck**: Network I/O to RabbitMQ
 
 ### Latency
+
 - **EventEmitter2**: <1ms (in-memory)
 - **RabbitMQ (localhost)**: ~5-10ms (network + serialization)
 - **RabbitMQ (remote)**: ~20-50ms (network latency)
@@ -334,6 +357,7 @@ RABBITMQ_ENABLED_EVENTS=admin.*,favorite.*,review.*
 ## RabbitMQ Features Configured
 
 ### Exchanges
+
 - **foodwaste.events** (topic, durable)
   - Routing: Pattern-based (e.g., `admin.user.*`)
   - Persistence: Survives broker restart
@@ -341,19 +365,22 @@ RABBITMQ_ENABLED_EVENTS=admin.*,favorite.*,review.*
   - Failed messages route here for manual inspection
 
 ### Queues (Auto-created by listeners)
+
 - `foodwaste.auth.user-suspended`
 - `foodwaste.auth.user-blocked`
 - `foodwaste.auth.user-deleted`
 - `foodwaste.auth.user-activated`
-- *(More queues created as listeners are migrated)*
+- _(More queues created as listeners are migrated)_
 
 **Queue Properties**:
+
 - **Durable**: Yes (survive broker restart)
 - **TTL**: 24 hours (86400000ms)
 - **Dead Letter Exchange**: foodwaste.dlx
 - **Auto-delete**: No
 
 ### Message Properties
+
 - **Persistent**: Yes (written to disk)
 - **Content-Type**: application/json
 - **Timestamp**: Included (for debugging)
@@ -363,6 +390,7 @@ RABBITMQ_ENABLED_EVENTS=admin.*,favorite.*,review.*
 ## Security Considerations
 
 ### Development Environment
+
 - **Credentials**: admin / rabbitmq_dev_password
 - **Network**: localhost only (not exposed publicly)
 - **TLS**: Not enabled (local development)
@@ -370,26 +398,31 @@ RABBITMQ_ENABLED_EVENTS=admin.*,favorite.*,review.*
 ### Production Environment (Recommended)
 
 **1. Strong Credentials**:
+
 ```bash
 RABBITMQ_URL=amqps://foodwaste_prod:STRONG_RANDOM_PASSWORD@rabbitmq.internal:5671/foodwaste
 ```
 
 **2. TLS/SSL**:
+
 - Use `amqps://` protocol
 - Certificate validation required
 - Minimum TLS 1.2
 
 **3. Network Isolation**:
+
 - Deploy RabbitMQ in private subnet
 - Firewall rules: Only backend instances can connect
 - No public internet access
 
 **4. Authentication**:
+
 - Unique user per environment (dev/staging/prod)
 - Rotate credentials every 90 days
 - Use secrets manager (AWS Secrets Manager, HashiCorp Vault)
 
 **5. Monitoring**:
+
 - Enable RabbitMQ Prometheus exporter
 - Alert on failed connections
 - Monitor dead letter queue
@@ -401,6 +434,7 @@ RABBITMQ_URL=amqps://foodwaste_prod:STRONG_RANDOM_PASSWORD@rabbitmq.internal:567
 ### Issue: Events not appearing in RabbitMQ
 
 **Diagnosis**:
+
 ```bash
 # Check EventBusService initialization
 grep "EventBusService initialized" logs/app.log
@@ -410,6 +444,7 @@ grep "EventBusService initialized" logs/app.log
 ```
 
 **Solution**:
+
 - Verify `RABBITMQ_ENABLED=true` in `.env`
 - Verify event name matches `RABBITMQ_ENABLED_EVENTS` pattern
 - Check RabbitMQ connection: `docker-compose logs rabbitmq`
@@ -419,10 +454,12 @@ grep "EventBusService initialized" logs/app.log
 ### Issue: Messages stuck in "Unacked" state
 
 **Diagnosis**:
+
 - RabbitMQ UI → Queues → Check "Unacked" column
 - Application logs → Look for listener errors
 
 **Solution**:
+
 - Listener threw error → Check `@RabbitSubscribe` handler code
 - Listener not acknowledging → Verify auto-ack or manual ack logic
 - Consumer crashed → Restart application
@@ -432,10 +469,12 @@ grep "EventBusService initialized" logs/app.log
 ### Issue: Dead letter queue has messages
 
 **Diagnosis**:
+
 - RabbitMQ UI → Queues → `foodwaste.dlx.{queue_name}`
 - Click "Get Messages" → Inspect payload
 
 **Solution**:
+
 - Fix listener code bug
 - Replay messages: Move from DLX back to original queue
 - If data is corrupt: Delete message (log for audit)
@@ -445,6 +484,7 @@ grep "EventBusService initialized" logs/app.log
 ### Issue: RabbitMQ service unhealthy
 
 **Diagnosis**:
+
 ```bash
 docker-compose ps rabbitmq
 # STATUS: Up X minutes (unhealthy)
@@ -454,6 +494,7 @@ docker-compose logs rabbitmq
 ```
 
 **Solution**:
+
 - Health check timing: Wait 30 seconds for startup
 - Virtual host not created: Check `RABBITMQ_DEFAULT_VHOST` config
 - Port conflict: Ensure port 5672 not in use
@@ -465,21 +506,25 @@ docker-compose logs rabbitmq
 ### Remaining Listeners to Migrate (11 files)
 
 **High Priority**:
+
 - `src/orders/listeners/admin-user-events.listener.ts` - Cancel orders for suspended users
 - `src/offers/listeners/admin-establishment-events.listener.ts` - Deactivate offers when establishment suspended
 
 **Medium Priority**:
+
 - `src/donations/listeners/order-events.listener.ts` - Track donation impact
 - `src/loyalty/listeners/order-events.listener.ts` - Award loyalty points
 - `src/loyalty/listeners/user-events.listener.ts` - Initialize loyalty account
 
 **Low Priority** (6 user lifecycle listeners):
+
 - `src/users/listeners/user-privacy-events.listener.ts`
 - `src/users/listeners/user-lifecycle-events.listener.ts`
 - `src/users/listeners/user-security-events.listener.ts`
 - `src/offers/listeners/favorite-events.listener.ts`
 
 **Template for Migration**:
+
 ```typescript
 // Keep existing @OnEvent for backward compatibility
 @OnEvent('order.completed')
@@ -521,6 +566,7 @@ private async processOrder(event: OrderCompletedEvent): Promise<void> {
 ## Success Metrics
 
 **Migration Complete When**:
+
 - ✅ All 35+ event types published via EventBusService
 - ✅ All 12 listeners support RabbitMQ subscribers
 - ✅ `RABBITMQ_ENABLED_EVENTS=*` in production (full migration)
@@ -529,6 +575,7 @@ private async processOrder(event: OrderCompletedEvent): Promise<void> {
 - ✅ Message loss = 0 (100% reliability)
 
 **Current Status**:
+
 - Publishers: 8/8 (100%)
 - Listeners: 1/12 (8%)
 - Production Readiness: Phase 1 Complete
@@ -538,11 +585,13 @@ private async processOrder(event: OrderCompletedEvent): Promise<void> {
 ## Dependencies
 
 **NPM Packages**:
+
 - `@golevelup/nestjs-rabbitmq` v7.1.1 - RabbitMQ integration
 - `minimatch` - Glob pattern matching for feature flags
 - `class-transformer` - Deserialize RabbitMQ messages to DTOs
 
 **Infrastructure**:
+
 - RabbitMQ 3.13 (Alpine image, includes management plugin)
 - Docker Compose v2
 

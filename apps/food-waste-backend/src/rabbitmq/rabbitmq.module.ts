@@ -1,6 +1,6 @@
+import { RabbitMQModule as GolevelupRabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RabbitMQModule as GolevelupRabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 
 /**
  * RabbitMQ Module
@@ -34,10 +34,7 @@ import { RabbitMQModule as GolevelupRabbitMQModule } from '@golevelup/nestjs-rab
             options: { durable: true },
           },
         ],
-        prefetchCount: parseInt(
-          configService.get<string>('RABBITMQ_PREFETCH_COUNT', '10'),
-          10,
-        ),
+        prefetchCount: parseInt(configService.get<string>('RABBITMQ_PREFETCH_COUNT', '10'), 10),
         enableControllerDiscovery: true,
       }),
       inject: [ConfigService],

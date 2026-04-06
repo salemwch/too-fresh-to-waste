@@ -49,9 +49,7 @@ export class CommunityGoalService {
       .lean<GoalLean>()
       .exec();
 
-    if (!goal) {
-      goal = await this.createDefaultGoal();
-    }
+    goal ??= await this.createDefaultGoal();
 
     return this.toStats(goal);
   }
@@ -215,11 +213,14 @@ export class CommunityGoalService {
     );
 
     // Broadcast goal completion event
-    this.webSocketService.sendToRoom(
-      WEBSOCKET_ROOMS['GLOBAL']!.name,
-      WebSocketEvents.COMMUNITY_GOAL_COMPLETED,
-      this.toStats(transitioned),
-    );
+    const globalRoom = WEBSOCKET_ROOMS['GLOBAL'];
+    if (globalRoom) {
+      this.webSocketService.sendToRoom(
+        globalRoom.name,
+        WebSocketEvents.COMMUNITY_GOAL_COMPLETED,
+        this.toStats(transitioned),
+      );
+    }
 
     // Broadcast new goal stats
     const newStats = this.toStats(newGoal.toObject() as GoalLean);
@@ -257,10 +258,13 @@ export class CommunityGoalService {
   }
 
   private broadcastUpdate(stats: CommunityBagGoalStats): void {
-    this.webSocketService.sendToRoom(
-      WEBSOCKET_ROOMS['GLOBAL']!.name,
-      WebSocketEvents.COMMUNITY_BAG_UPDATED,
-      stats,
-    );
+    const globalRoom = WEBSOCKET_ROOMS['GLOBAL'];
+    if (globalRoom) {
+      this.webSocketService.sendToRoom(
+        globalRoom.name,
+        WebSocketEvents.COMMUNITY_BAG_UPDATED,
+        stats,
+      );
+    }
   }
 }

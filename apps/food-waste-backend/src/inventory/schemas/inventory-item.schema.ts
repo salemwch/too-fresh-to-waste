@@ -168,12 +168,8 @@ export const InventoryItemSchema = SchemaFactory.createForClass(InventoryItem);
 
 // Indexes for efficient queries
 InventoryItemSchema.index({ offerId: 1 });
-InventoryItemSchema.index({ establishmentId: 1 });
-InventoryItemSchema.index({ status: 1 });
 InventoryItemSchema.index({ expiryDate: 1 });
 InventoryItemSchema.index({ establishmentId: 1, status: 1 });
-InventoryItemSchema.index({ currentStock: 1, lowStockThreshold: 1 });
-InventoryItemSchema.index({ createdAt: -1 });
 
 // Pre-save middleware to calculate available stock and update status
 InventoryItemSchema.pre('save', function (this: InventoryItemDocument) {
@@ -182,7 +178,7 @@ InventoryItemSchema.pre('save', function (this: InventoryItemDocument) {
 
   // Auto-update status if enabled
   if (this.autoUpdateStatus) {
-    if (this.expiryDate && this.expiryDate < new Date()) {
+    if (this.expiryDate !== null && this.expiryDate !== undefined && this.expiryDate < new Date()) {
       this.status = InventoryStatus.EXPIRED;
     } else if (this.currentStock === 0) {
       this.status = InventoryStatus.OUT_OF_STOCK;

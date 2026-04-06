@@ -30,10 +30,10 @@ export enum ModerationSeverity {
 
 @Schema({ timestamps: true })
 export class ModerationAction {
-  @Prop({ type: String, enum: ModerationActionType, required: true, index: true })
+  @Prop({ type: String, enum: ModerationActionType, required: true })
   actionType!: ModerationActionType;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   targetUserId!: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
@@ -42,7 +42,7 @@ export class ModerationAction {
   @Prop({ type: Types.ObjectId, ref: 'Report' })
   relatedReportId?: Types.ObjectId;
 
-  @Prop({ type: String, enum: ModerationSeverity, required: true, index: true })
+  @Prop({ type: String, enum: ModerationSeverity, required: true })
   severity!: ModerationSeverity;
 
   @Prop({ required: true, maxlength: 1000 })
@@ -55,11 +55,10 @@ export class ModerationAction {
     type: String,
     enum: ModerationActionStatus,
     default: ModerationActionStatus.ACTIVE,
-    index: true,
   })
   status!: ModerationActionStatus;
 
-  @Prop({ type: Date, index: true })
+  @Prop({ type: Date })
   expiresAt?: Date | undefined;
 
   @Prop({ type: Date })

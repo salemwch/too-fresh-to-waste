@@ -93,18 +93,19 @@ export class ReviewsController {
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body(ValidationPipe) createReviewDto: CreateReviewDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: Express.Multer.File[] | undefined,
     @Request() req: AuthenticatedRequest,
   ) {
     if (!req.user.userId) {
       throw new BadRequestException(` userId is : ${req.user.userId} is required`);
     }
     try {
+      const uploadedFiles = files ?? [];
       let processedImages: ReviewImages[] = [];
 
       // Upload images to Firebase Storage if provided
-      if (files && files.length > 0) {
-        const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
+      if (uploadedFiles.length > 0) {
+        const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
           folder: 'reviews',
           makePublic: true,
           imageProcessing: {
@@ -132,7 +133,7 @@ export class ReviewsController {
 
       const reviewData = {
         ...createReviewDto,
-        images: processedImages,
+        images: processedImages as unknown as string[],
       };
 
       const review = await this.reviewsService.create(reviewData, req.user.userId);
@@ -179,18 +180,20 @@ export class ReviewsController {
   async findAll(@Query(ValidationPipe) queryDto: ReviewQueryDto) {
     try {
       const result = await this.reviewsService.findAll(queryDto);
+      const page = queryDto.page ?? 1;
+      const limit = queryDto.limit ?? 10;
 
       return {
         success: true,
         message: 'Reviews retrieved successfully',
         data: result.reviews,
         meta: {
-          page: queryDto.page || 1,
-          limit: queryDto.limit || 10,
+          page,
+          limit,
           total: result.total,
-          totalPages: Math.ceil(result.total / (queryDto.limit || 10)),
-          hasNextPage: (queryDto.page || 1) < Math.ceil(result.total / (queryDto.limit || 10)),
-          hasPrevPage: (queryDto.page || 1) > 1,
+          totalPages: Math.ceil(result.total / limit),
+          hasNextPage: page < Math.ceil(result.total / limit),
+          hasPrevPage: page > 1,
         },
         analytics: result.analytics,
       };
@@ -218,6 +221,8 @@ export class ReviewsController {
       const queryDto: ReviewQueryDto = {
         page,
         limit,
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
         reviewerId: req.user.userId,
         ...(status && { status: status as ReviewStatus }),
       };
@@ -255,16 +260,18 @@ export class ReviewsController {
         establishmentId,
         status: ReviewStatus.APPROVED,
       });
+      const page = queryDto.page ?? 1;
+      const limit = queryDto.limit ?? 10;
 
       return {
         success: true,
         message: 'Establishment reviews retrieved successfully',
         data: result.reviews,
         meta: {
-          page: queryDto.page || 1,
-          limit: queryDto.limit || 10,
+          page,
+          limit,
           total: result.total,
-          totalPages: Math.ceil(result.total / (queryDto.limit || 10)),
+          totalPages: Math.ceil(result.total / limit),
         },
         analytics: result.analytics,
       };
@@ -288,17 +295,19 @@ export class ReviewsController {
     }
     try {
       const getIdString = (id: unknown) =>
-        id && typeof id === 'object' ? id.toString() : String(id);
+        id !== null && id !== undefined && typeof id === 'object' ? id.toString() : String(id);
 
       const establishments = await this.reviewsService.getMerchantEstablishments(req.user.userId);
       const establishmentIds = establishments.map((est) => getIdString(est._id));
 
       if (establishmentIds.length === 0) {
+        const limit = queryDto.limit ?? 10;
+
         return {
           success: true,
           message: 'No reviews found',
           data: [],
-          meta: { page: 1, limit: queryDto.limit || 10, total: 0, totalPages: 0 },
+          meta: { page: 1, limit, total: 0, totalPages: 0 },
           analytics: {},
         };
       }
@@ -306,16 +315,18 @@ export class ReviewsController {
       const result = await this.reviewsService.getMerchantReviews(establishmentIds, queryDto);
       const message =
         result.total === 0 ? 'No reviews found' : 'Merchant reviews retrieved successfully';
+      const page = queryDto.page ?? 1;
+      const limit = queryDto.limit ?? 10;
 
       return {
         success: true,
         message,
         data: result.reviews,
         meta: {
-          page: queryDto.page || 1,
-          limit: queryDto.limit || 10,
+          page,
+          limit,
           total: result.total,
-          totalPages: Math.ceil(result.total / (queryDto.limit || 10)),
+          totalPages: Math.ceil(result.total / limit),
         },
         analytics: result.analytics,
       };
@@ -339,7 +350,7 @@ export class ReviewsController {
     }
     try {
       const getIdString = (id: unknown) =>
-        id && typeof id === 'object' ? id.toString() : String(id);
+        id !== null && id !== undefined && typeof id === 'object' ? id.toString() : String(id);
       if (req.user.role === UserRole.MERCHANT && !analyticsDto.establishmentId) {
         const establishments = await this.reviewsService.getMerchantEstablishments(req.user.userId);
         if (establishments.length === 1) {
@@ -438,7 +449,7 @@ export class ReviewsController {
   @ApiResponse({ status: 200, description: 'Review retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Review not found' })
   async findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
-    if (!req.user.userId || !req.user.role) {
+    if (!req.user.userId) {
       throw new BadRequestException(
         ` user Id is : ${req.user.userId} and user Role is : ${req.user.role} are required`,
       );
@@ -469,20 +480,21 @@ export class ReviewsController {
   async update(
     @Param('id') id: string,
     @Body(ValidationPipe) updateReviewDto: UpdateReviewDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: Express.Multer.File[] | undefined,
     @Request() req: AuthenticatedRequest,
   ) {
-    if (!req.user.userId || !req.user.role) {
+    if (!req.user.userId) {
       throw new BadRequestException(
         ` user Id is : ${req.user.userId} and user Role is : ${req.user.role} are required`,
       );
     }
     try {
+      const uploadedFiles = files ?? [];
       let newImages: ReviewImages[] = [];
 
       // Upload new images to Firebase Storage if provided
-      if (files && files.length > 0) {
-        const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
+      if (uploadedFiles.length > 0) {
+        const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
           folder: 'reviews',
           makePublic: true,
           imageProcessing: {
@@ -508,10 +520,10 @@ export class ReviewsController {
         }));
       }
 
-      const reviewData = {
+      const reviewData: UpdateReviewDto = {
         ...updateReviewDto,
         ...(newImages.length > 0 && {
-          images: [...(updateReviewDto.images || []), ...newImages],
+          images: [...(updateReviewDto.images ?? []), ...(newImages as unknown as string[])],
         }),
       };
 
@@ -546,7 +558,7 @@ export class ReviewsController {
     @Body(ValidationPipe) responseDto: ReviewResponseDto,
     @Request() req: AuthenticatedRequest,
   ) {
-    if (!req.user.userId || !req.user.role) {
+    if (!req.user.userId) {
       throw new BadRequestException(
         `userId is : ${req.user.userId}  and user Role is : ${req.user.role} are required`,
       );
@@ -711,7 +723,7 @@ export class ReviewsController {
     @Request() req: AuthenticatedRequest,
     @Body('reason') reason?: string,
   ) {
-    if (!req.user.userId || !req.user.role) {
+    if (!req.user.userId) {
       throw new BadRequestException(
         `user Id is : ${req.user.userId} and user Role is : ${req.user.role} are required`,
       );

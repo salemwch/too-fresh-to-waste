@@ -78,6 +78,87 @@ export interface ReviewAnalytics {
   };
 }
 
+interface ReviewFacetCountResult {
+  count: number;
+}
+
+interface ReviewListAggregationResult {
+  reviews: ReviewDocument[];
+  total: ReviewFacetCountResult[];
+  analytics: Partial<ReviewAnalytics>[];
+}
+
+interface ReviewAnalyticsOverviewAggregationResult {
+  totalReviews: number;
+  averageRating: number | null;
+  totalViews: number;
+  totalHelpfulVotes: number;
+  totalShares: number;
+  averageEngagementScore: number | null;
+}
+
+interface ReviewAnalyticsFacetAggregationResult {
+  overview: ReviewAnalyticsOverviewAggregationResult[];
+  ratingDistribution: Array<{ _id: number; count: number }>;
+  sentimentDistribution: Array<{ _id: string | null; count: number }>;
+  reviewTrends: Array<{ _id: string; count: number; averageRating: number }>;
+  topKeywords: Array<{ _id: string; count: number }>;
+}
+
+interface EstablishmentReviewSummaryAggregationResult {
+  totalReviews: number;
+  averageRating: number | null;
+  ratingBreakdown: number[];
+  averageDetailedRatings: Array<Record<string, number> | null>;
+  sentimentBreakdown: Array<string | null>;
+  totalHelpfulVotes: number;
+  totalResponses: number;
+}
+
+interface UserReviewStatsAggregationResult {
+  totalReviews: number;
+  averageRating: number;
+  totalHelpfulVotes: number;
+  totalViews: number;
+  verifiedReviews: number;
+  statusBreakdown: string[];
+  monthlyReviews: string[];
+}
+
+interface EstablishmentStatsAggregationResult {
+  averageRating: number | null;
+  totalReviews: number;
+}
+
+interface TrendingKeywordAggregationResult {
+  _id: string;
+  count: number;
+  avgRating: number | null;
+}
+
+const EMPTY_REVIEW_LIST_AGGREGATION: ReviewListAggregationResult = {
+  reviews: [],
+  total: [],
+  analytics: [],
+};
+
+const EMPTY_REVIEW_ANALYTICS_OVERVIEW: ReviewAnalyticsOverviewAggregationResult = {
+  totalReviews: 0,
+  averageRating: 0,
+  totalViews: 0,
+  totalHelpfulVotes: 0,
+  totalShares: 0,
+  averageEngagementScore: 0,
+};
+
+const EMPTY_REVIEW_ANALYTICS_FACET: ReviewAnalyticsFacetAggregationResult = {
+  overview: [],
+  ratingDistribution: [],
+  sentimentDistribution: [],
+  reviewTrends: [],
+  topKeywords: [],
+};
+
 @Injectable()
 export class ReviewsService {
   private readonly logger = new Logger(ReviewsService.name);
@@ -217,7 +298,7 @@ export class ReviewsService {
       });
 
       const createdReview = review;
-      if (!createdReview) {
+      if (createdReview === null) {
         throw new InternalServerErrorException('Review creation failed');
       }
       const createdReviewId = (createdReview as ReviewDocument)._id;
@@ -259,8 +340,13 @@ export class ReviewsService {
         ...this.buildReviewerLookup(),
         ...this.buildEstablishmentLookupForReview(),
       ];
-      const [populated] = await this.reviewModel.aggregate(pipeline).exec();
-      return populated as ReviewDocument;
+      const populatedReviews = await this.reviewModel.aggregate<ReviewDocument>(pipeline).exec();
+      const [populated] = populatedReviews;
+      if (!populated) {
+        throw new InternalServerErrorException('Failed to load created review');
+      }
+
+      return populated;
     } catch (error) {
       this.logger.error('Failed to create review:', error);
       if (
@@ -290,7 +376,7 @@ export class ReviewsService {
       const pipeline = this.buildReviewAggregationPipeline(filters, skip, limit);
 
       // Execute aggregation
-      const [results] = await this.reviewModel.aggregate([
+      const [results] = await this.reviewModel.aggregate<ReviewListAggregationResult>([
         ...pipeline,
         {
           $facet: {
@@ -345,10 +431,11 @@ export class ReviewsService {
           },
         },
       ]);
+      const reviewList = results ?? EMPTY_REVIEW_LIST_AGGREGATION;
 
-      const reviews = results.reviews || [];
-      const total = results.total[0]?.count || 0;
-      const analytics = results.analytics[0] || {};
+      const reviews = reviewList.reviews;
+      const total = reviewList.total[0]?.count ?? 0;
+      const analytics = reviewList.analytics[0] ?? {};
 
       return { reviews, total, analytics };
     } catch (error) {
@@ -450,8 +537,7 @@ export class ReviewsService {
         if (updateReviewDto.comment && updateReviewDto.comment !== review.comment) {
           newSentimentAnalysis = this.analyzeReviewContent(updateReviewDto.comment);
           const autoModerationResult = await this.performAutoModeration({
-            ...review.toObject(),
-            ...updateReviewDto,
+            comment: updateReviewDto.comment,
           });
 
           newModerationInfo = {
@@ -488,7 +574,7 @@ export class ReviewsService {
         }
       });
 
-      if (!updatedReview) {
+      if (updatedReview === null) {
         throw new InternalServerErrorException('Review update failed');
       }
 
@@ -750,13 +836,15 @@ export class ReviewsService {
       }
 
       if (analyticsDto.startDate || analyticsDto.endDate) {
-        matchStage.createdAt = {};
+        const createdAtFilter: { $gte?: Date; $lte?: Date } = {};
         if (analyticsDto.startDate) {
-          matchStage.createdAt.$gte = new Date(analyticsDto.startDate);
+          createdAtFilter.$gte = new Date(analyticsDto.startDate);
         }
         if (analyticsDto.endDate) {
-          matchStage.createdAt.$lte = new Date(analyticsDto.endDate);
+          createdAtFilter.$lte = new Date(analyticsDto.endDate);
         }
+
+        matchStage.createdAt = createdAtFilter;
       }
 
       pipeline.push({ $match: matchStage });
@@ -824,51 +912,51 @@ export class ReviewsService {
         },
       });
 
-      const [results] = await this.reviewModel.aggregate(pipeline);
+      const [results] =
+        await this.reviewModel.aggregate<ReviewAnalyticsFacetAggregationResult>(pipeline);
+      const analyticsResult = results ?? EMPTY_REVIEW_ANALYTICS_FACET;
 
       // Format results
-      const overview = results.overview[0] || {};
-      const ratingDistribution = results.ratingDistribution.reduce(
-        (acc: Record<string, number>, item: { _id: number; count: number }) => {
+      const overview = analyticsResult.overview[0] ?? EMPTY_REVIEW_ANALYTICS_OVERVIEW;
+      const ratingDistribution = analyticsResult.ratingDistribution.reduce(
+        (acc: Record<string, number>, item) => {
           acc[`rating_${item._id}`] = item.count;
           return acc;
         },
         {},
       );
 
-      const sentimentDistribution = results.sentimentDistribution.reduce(
-        (acc: Record<string, number>, item: { _id: string | null; count: number }) => {
-          acc[item._id || 'unknown'] = item.count;
+      const sentimentDistribution = analyticsResult.sentimentDistribution.reduce(
+        (acc: Record<string, number>, item) => {
+          acc[item._id ?? 'unknown'] = item.count;
           return acc;
         },
         {},
       );
 
-      const reviewTrends = results.reviewTrends.map(
-        (item: { _id: string; count: number; averageRating: number }) => ({
-          date: item._id,
-          count: item.count,
-          averageRating: Math.round(item.averageRating * 100) / 100,
-        }),
-      );
+      const reviewTrends = analyticsResult.reviewTrends.map((item) => ({
+        date: item._id,
+        count: item.count,
+        averageRating: Math.round(item.averageRating * 100) / 100,
+      }));
 
-      const topKeywords = results.topKeywords.map((item: { _id: string; count: number }) => ({
+      const topKeywords = analyticsResult.topKeywords.map((item) => ({
         keyword: item._id,
         count: item.count,
       }));
 
       return {
-        totalReviews: overview.totalReviews || 0,
-        averageRating: Math.round((overview.averageRating || 0) * 100) / 100,
+        totalReviews: overview.totalReviews ?? 0,
+        averageRating: Math.round((overview.averageRating ?? 0) * 100) / 100,
         ratingDistribution,
         sentimentDistribution,
         reviewTrends,
         topKeywords,
         engagementMetrics: {
-          totalViews: overview.totalViews || 0,
-          totalHelpfulVotes: overview.totalHelpfulVotes || 0,
-          totalShares: overview.totalShares || 0,
-          averageEngagementScore: Math.round((overview.averageEngagementScore || 0) * 100) / 100,
+          totalViews: overview.totalViews ?? 0,
+          totalHelpfulVotes: overview.totalHelpfulVotes ?? 0,
+          totalShares: overview.totalShares ?? 0,
+          averageEngagementScore: Math.round((overview.averageEngagementScore ?? 0) * 100) / 100,
         },
       };
     } catch (error) {
@@ -897,7 +985,7 @@ export class ReviewsService {
           reviewId,
           {
             status: statusMap[bulkDto.action],
-            moderationReason: bulkDto.reason || `Bulk ${bulkDto.action}`,
+            moderationReason: bulkDto.reason ?? `Bulk ${bulkDto.action}`,
           },
           moderatorId,
         );
@@ -939,7 +1027,7 @@ export class ReviewsService {
             isDeleted: true,
             deletedAt: new Date(),
             deletedBy: userId,
-            deletionReason: reason || 'User requested deletion',
+            deletionReason: reason ?? 'User requested deletion',
           },
           { session },
         );
@@ -1007,7 +1095,7 @@ export class ReviewsService {
       const { page = 1, limit = 10 } = queryDto;
       const skip = (page - 1) * limit;
 
-      const [results] = await this.reviewModel.aggregate([
+      const [results] = await this.reviewModel.aggregate<ReviewListAggregationResult>([
         ...pipeline,
         {
           $facet: {
@@ -1048,11 +1136,12 @@ export class ReviewsService {
           },
         },
       ]);
+      const merchantReviewList = results ?? EMPTY_REVIEW_LIST_AGGREGATION;
 
       return {
-        reviews: results.reviews || [],
-        total: results.total[0]?.count || 0,
-        analytics: results.analytics[0] || {},
+        reviews: merchantReviewList.reviews,
+        total: merchantReviewList.total[0]?.count ?? 0,
+        analytics: merchantReviewList.analytics[0] ?? {},
       };
     } catch (error) {
       this.logger.error('Failed to get merchant reviews:', error);
@@ -1093,9 +1182,10 @@ export class ReviewsService {
         },
       ];
 
-      const [result] = await this.reviewModel.aggregate(pipeline);
+      const [result] =
+        await this.reviewModel.aggregate<EstablishmentReviewSummaryAggregationResult>(pipeline);
 
-      if (!result) {
+      if (result === null || result === undefined) {
         return {
           totalReviews: 0,
           averageRating: 0,
@@ -1110,7 +1200,7 @@ export class ReviewsService {
       // Process rating breakdown
       const ratingCounts = result.ratingBreakdown.reduce(
         (acc: Record<number, number>, rating: number) => {
-          acc[rating] = (acc[rating] || 0) + 1;
+          acc[rating] = (acc[rating] ?? 0) + 1;
           return acc;
         },
         {},
@@ -1119,8 +1209,8 @@ export class ReviewsService {
       // Process sentiment breakdown
       const sentimentCounts = result.sentimentBreakdown.reduce(
         (acc: Record<string, number>, sentiment: string | null) => {
-          if (sentiment) {
-            acc[sentiment] = (acc[sentiment] || 0) + 1;
+          if (sentiment !== null && sentiment !== undefined) {
+            acc[sentiment] = (acc[sentiment] ?? 0) + 1;
           }
           return acc;
         },
@@ -1133,11 +1223,12 @@ export class ReviewsService {
           acc: Record<string, { sum: number; count: number }>,
           ratings: Record<string, number> | null,
         ) => {
-          if (ratings) {
+          if (ratings !== null && ratings !== undefined) {
             Object.keys(ratings).forEach((key) => {
-              if (ratings[key]) {
-                acc[key] = acc[key] || { sum: 0, count: 0 };
-                acc[key].sum += ratings[key];
+              const ratingValue = ratings[key];
+              if (ratingValue !== null && ratingValue !== undefined) {
+                acc[key] = acc[key] ?? { sum: 0, count: 0 };
+                acc[key].sum += ratingValue;
                 acc[key].count += 1;
               }
             });
@@ -1150,7 +1241,7 @@ export class ReviewsService {
       const averageDetailedRatings = Object.keys(detailedRatingsSum).reduce<Record<string, number>>(
         (acc, key) => {
           const ratingStats = detailedRatingsSum[key];
-          if (ratingStats) {
+          if (ratingStats !== null && ratingStats !== undefined) {
             acc[key] = Math.round((ratingStats.sum / ratingStats.count) * 100) / 100;
           }
           return acc;
@@ -1160,7 +1251,7 @@ export class ReviewsService {
 
       return {
         totalReviews: result.totalReviews,
-        averageRating: Math.round(result.averageRating * 100) / 100,
+        averageRating: Math.round((result.averageRating ?? 0) * 100) / 100,
         ratingBreakdown: ratingCounts,
         averageDetailedRatings,
         sentimentBreakdown: sentimentCounts,
@@ -1206,9 +1297,9 @@ export class ReviewsService {
         },
       ];
 
-      const [result] = await this.reviewModel.aggregate(pipeline);
+      const [result] = await this.reviewModel.aggregate<UserReviewStatsAggregationResult>(pipeline);
 
-      if (!result) {
+      if (result === null || result === undefined) {
         return {
           totalReviews: 0,
           averageRating: 0,
@@ -1223,7 +1314,7 @@ export class ReviewsService {
       // Process status breakdown
       const statusCounts = result.statusBreakdown.reduce(
         (acc: Record<string, number>, status: string) => {
-          acc[status] = (acc[status] || 0) + 1;
+          acc[status] = (acc[status] ?? 0) + 1;
           return acc;
         },
         {},
@@ -1232,7 +1323,7 @@ export class ReviewsService {
       // Process monthly activity
       const monthlyActivity = result.monthlyReviews.reduce(
         (acc: Record<string, number>, month: string) => {
-          acc[month] = (acc[month] || 0) + 1;
+          acc[month] = (acc[month] ?? 0) + 1;
           return acc;
         },
         {},
@@ -1300,12 +1391,17 @@ export class ReviewsService {
         { $limit: 20 },
       ];
 
-      const results = await this.reviewModel.aggregate(pipeline);
+      const results = await this.reviewModel.aggregate<TrendingKeywordAggregationResult>(pipeline);
 
       return results.map((item) => ({
         keyword: item._id,
         count: item.count,
-        trend: item.avgRating > 3.5 ? 'positive' : item.avgRating < 2.5 ? 'negative' : 'neutral',
+        trend:
+          (item.avgRating ?? 0) > 3.5
+            ? 'positive'
+            : (item.avgRating ?? 0) < 2.5
+              ? 'negative'
+              : 'neutral',
       }));
     } catch (error) {
       this.logger.error('Failed to get trending keywords:', error);
@@ -1491,7 +1587,7 @@ export class ReviewsService {
       query.orderId = { $exists: false };
     }
 
-    const review = await this.reviewModel.findOne(query).session(session || null);
+    const review = await this.reviewModel.findOne(query).session(session ?? null);
     return review;
   }
 
@@ -1641,7 +1737,7 @@ export class ReviewsService {
   ): Promise<void> {
     try {
       const stats = await this.reviewModel
-        .aggregate([
+        .aggregate<EstablishmentStatsAggregationResult>([
           {
             $match: {
               establishmentId: new Types.ObjectId(establishmentId),
@@ -1657,15 +1753,18 @@ export class ReviewsService {
             },
           },
         ])
-        .session(session || null);
+        .session(session ?? null);
 
-      const { averageRating = 0, totalReviews = 0 } = stats[0] || {};
+      const summary: EstablishmentStatsAggregationResult = stats[0] ?? {
+        averageRating: 0,
+        totalReviews: 0,
+      };
 
       await this.establishmentModel.findByIdAndUpdate(
         establishmentId,
         {
-          averageRating: Math.round(averageRating * 100) / 100,
-          totalReviews,
+          averageRating: Math.round((summary.averageRating ?? 0) * 100) / 100,
+          totalReviews: summary.totalReviews,
         },
         { session: session ?? null },
       );
@@ -1700,7 +1799,7 @@ export class ReviewsService {
     // Match stage
     const matchStage: FilterQuery<ReviewDocument> = { isDeleted: { $ne: true } };
 
-    if (filters.status) {
+    if (filters.status !== null && filters.status !== undefined) {
       matchStage.status = filters.status;
     }
 
@@ -1712,40 +1811,44 @@ export class ReviewsService {
       matchStage.reviewerId = new Types.ObjectId(filters.reviewerId);
     }
 
-    if (filters.type) {
+    if (filters.type !== null && filters.type !== undefined) {
       matchStage.type = filters.type;
     }
 
-    if (filters.sentiment) {
+    if (filters.sentiment !== null && filters.sentiment !== undefined) {
       matchStage['sentimentAnalysis.sentiment'] = filters.sentiment;
     }
 
     if (filters.minRating || filters.maxRating) {
-      matchStage.overallRating = {};
+      const overallRatingFilter: { $gte?: number; $lte?: number } = {};
       if (filters.minRating) {
-        matchStage.overallRating.$gte = filters.minRating;
+        overallRatingFilter.$gte = filters.minRating;
       }
       if (filters.maxRating) {
-        matchStage.overallRating.$lte = filters.maxRating;
+        overallRatingFilter.$lte = filters.maxRating;
       }
+
+      matchStage.overallRating = overallRatingFilter;
     }
 
-    if (filters.verifiedPurchaseOnly) {
+    if (filters.verifiedPurchaseOnly === true) {
       matchStage.isVerifiedPurchase = true;
     }
 
-    if (filters.recommendedOnly) {
+    if (filters.recommendedOnly === true) {
       matchStage.isRecommended = true;
     }
 
     if (filters.fromDate || filters.toDate) {
-      matchStage.createdAt = {};
+      const createdAtFilter: { $gte?: Date; $lte?: Date } = {};
       if (filters.fromDate) {
-        matchStage.createdAt.$gte = new Date(filters.fromDate);
+        createdAtFilter.$gte = new Date(filters.fromDate);
       }
       if (filters.toDate) {
-        matchStage.createdAt.$lte = new Date(filters.toDate);
+        createdAtFilter.$lte = new Date(filters.toDate);
       }
+
+      matchStage.createdAt = createdAtFilter;
     }
 
     if (filters.tags) {
@@ -1760,7 +1863,7 @@ export class ReviewsService {
     pipeline.push({ $match: matchStage });
 
     // Sort stage
-    const sortField = filters.sortBy || 'createdAt';
+    const sortField = filters.sortBy ?? 'createdAt';
     const sortOrder = filters.sortOrder === 'asc' ? 1 : -1;
 
     if (sortField === 'helpfulCount') {

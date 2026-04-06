@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IEventBus } from './event-bus.interface';
-import { RabbitMQAdapter } from './adapters/rabbitmq.adapter';
-import { EventEmitter2Adapter } from './adapters/eventemitter2.adapter';
 import { minimatch } from 'minimatch';
+
+import { EventEmitter2Adapter } from './adapters/eventemitter2.adapter';
+import { RabbitMQAdapter } from './adapters/rabbitmq.adapter';
+import { IEventBus } from './event-bus.interface';
 
 /**
  * Event Bus Service (Master Router)
@@ -45,12 +46,8 @@ export class EventBusService implements IEventBus {
     private readonly eventEmitter2Adapter: EventEmitter2Adapter,
     private readonly configService: ConfigService,
   ) {
-    this.rabbitMQEnabled =
-      this.configService.get<string>('RABBITMQ_ENABLED', 'false') === 'true';
-    const eventsConfig = this.configService.get<string>(
-      'RABBITMQ_ENABLED_EVENTS',
-      '',
-    );
+    this.rabbitMQEnabled = this.configService.get<string>('RABBITMQ_ENABLED', 'false') === 'true';
+    const eventsConfig = this.configService.get<string>('RABBITMQ_ENABLED_EVENTS', '');
     this.enabledEvents = eventsConfig
       .split(',')
       .map((e) => e.trim())

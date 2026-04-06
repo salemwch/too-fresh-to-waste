@@ -1,5 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
-import { AdminAction } from '../interfaces/admin-analytics.interface';
+
+import type { AdminAction } from '../interfaces/admin-analytics.interface';
 
 export const AUDIT_LOG_KEY = 'audit_log';
 

@@ -25,9 +25,9 @@ export class WebSocketExceptionFilter extends BaseWsExceptionFilter {
       error = {
         ...error,
         message:
-          typeof errorObject === 'string' ? errorObject : errorDetails.message || error.message,
+          typeof errorObject === 'string' ? errorObject : (errorDetails.message ?? error.message),
         code:
-          typeof errorObject === 'string' ? 'WS_EXCEPTION' : errorDetails.code || 'WS_EXCEPTION',
+          typeof errorObject === 'string' ? 'WS_EXCEPTION' : (errorDetails.code ?? 'WS_EXCEPTION'),
       };
     } else if (exception instanceof Error) {
       error = {

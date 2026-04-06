@@ -142,6 +142,7 @@ donations/
 ### 1. Controller
 
 #### `DonationsController`
+
 **Location:** `donations.controller.ts`
 
 **Purpose:** HTTP endpoint handlers for donation statistics and health checks
@@ -149,13 +150,16 @@ donations/
 **Key Endpoints:**
 
 **Public Endpoints:**
+
 - `GET /donations/stats` - Current donation pool statistics (public, no auth)
 - `GET /donations/health` - Health check for monitoring
 
 **Protected Endpoints:**
+
 - `GET /donations/user/stats` - User-specific donation statistics (requires JWT)
 
 **Example:**
+
 ```typescript
 // GET /donations/stats (Public)
 @Public()
@@ -184,9 +188,10 @@ async getUserDonationStats(
 ```
 
 **Response Example:**
+
 ```json
 {
-  "totalDonations": 847.30,
+  "totalDonations": 847.3,
   "targetAmount": 1000,
   "mealCount": 169,
   "contributorCount": 1843,
@@ -203,9 +208,11 @@ async getUserDonationStats(
 ### 2. Service
 
 #### `DonationsService`
+
 **Location:** `donations.service.ts`
 
 **Responsibilities:**
+
 - Donation pool initialization and lifecycle management
 - Automatic donation calculation from order totals
 - User contribution tracking with idempotency
@@ -216,6 +223,7 @@ async getUserDonationStats(
 **Key Methods:**
 
 **Donation Calculation:**
+
 ```typescript
 /**
  * Calculate donation amount from order total
@@ -242,6 +250,7 @@ calculateMealCount(donationAmount: number): number {
 ```
 
 **Donation Creation (Called by Order Service):**
+
 ```typescript
 /**
  * Create a donation record for a user's order
@@ -303,6 +312,7 @@ async createDonation(input: CreateDonationInput): Promise<UserDonationDocument> 
 ```
 
 **Badge Calculation:**
+
 ```typescript
 /**
  * Calculate and assign badges based on user's donation history
@@ -341,6 +351,7 @@ private async calculateAndAssignBadges(
 ```
 
 **User Statistics:**
+
 ```typescript
 /**
  * Get user-specific donation statistics
@@ -384,6 +395,7 @@ async getUserStats(userId: Types.ObjectId): Promise<UserDonationStatsResponseDto
 ```
 
 **Automated Pool Archival:**
+
 ```typescript
 /**
  * Archive old pools and create new one (admin/cron job)
@@ -410,11 +422,13 @@ async archiveCompletedPools(): Promise<void> {
 ### 3. Schemas
 
 #### `DonationPool` Schema
+
 **Location:** `schemas/donation-pool.schema.ts`
 
 **Purpose:** Tracks global donation pool with progress tracking and distribution history
 
 **Key Fields:**
+
 ```typescript
 {
   currentAmount: number;           // Total donations collected (TND)
@@ -442,6 +456,7 @@ async archiveCompletedPools(): Promise<void> {
 ```
 
 **Indexes:**
+
 ```typescript
 // Composite index for active pool queries
 { status: 1, isArchived: 1 }
@@ -454,22 +469,25 @@ async archiveCompletedPools(): Promise<void> {
 ```
 
 **Virtual Fields:**
+
 ```typescript
 // Calculated progress percentage
-progressPercentage: (currentAmount / targetAmount) * 100
+progressPercentage: (currentAmount / targetAmount) * 100;
 
 // Boolean target reached check
-isTargetReached: currentAmount >= targetAmount
+isTargetReached: currentAmount >= targetAmount;
 ```
 
 ---
 
 #### `UserDonation` Schema
+
 **Location:** `schemas/user-donation.schema.ts`
 
 **Purpose:** Tracks individual user contributions with gamification support
 
 **Key Fields:**
+
 ```typescript
 {
   userId: ObjectId;                // User who made the donation
@@ -492,6 +510,7 @@ isTargetReached: currentAmount >= targetAmount
 ```
 
 **Indexes:**
+
 ```typescript
 // User donation history
 { userId: 1, contributedAt: -1 }
@@ -510,13 +529,14 @@ isTargetReached: currentAmount >= targetAmount
 ```
 
 **Badge Enum:**
+
 ```typescript
 enum DonationBadge {
-  FIRST_STEP = 'first_step',             // 1+ contributions
+  FIRST_STEP = 'first_step', // 1+ contributions
   COMMUNITY_HELPER = 'community_helper', // 10+ contributions
-  IMPACT_MAKER = 'impact_maker',         // 50+ TND donated
-  FOOD_HERO = 'food_hero',               // 100+ TND donated
-  CHAMPION = 'champion',                 // 500+ TND donated
+  IMPACT_MAKER = 'impact_maker', // 50+ TND donated
+  FOOD_HERO = 'food_hero', // 100+ TND donated
+  CHAMPION = 'champion', // 500+ TND donated
 }
 ```
 
@@ -525,11 +545,13 @@ enum DonationBadge {
 ### 4. DTOs
 
 #### `DonationStatsResponseDto`
+
 **Location:** `dto/donation-stats.dto.ts`
 
 **Purpose:** Response format for public donation pool statistics
 
 **Fields:**
+
 ```typescript
 {
   totalDonations: number;      // Current pool amount
@@ -545,9 +567,11 @@ enum DonationBadge {
 ```
 
 #### `UserDonationStatsResponseDto`
+
 **Purpose:** Response format for user-specific donation statistics
 
 **Fields:**
+
 ```typescript
 {
   totalDonated: number;        // Total amount donated by user
@@ -564,20 +588,23 @@ enum DonationBadge {
 ### 5. Interfaces & Constants
 
 #### `DONATION_CONSTANTS`
+
 **Location:** `interfaces/donation.interface.ts`
 
 **Business Logic Configuration:**
+
 ```typescript
 export const DONATION_CONSTANTS = {
-  PLATFORM_FEE_PERCENTAGE: 0.25,     // 25% platform fee on orders
-  DONATION_PERCENTAGE: 0.05,         // 5% of platform fee → donations
-  MEAL_COST_ESTIMATE_TND: 5.0,       // Estimated cost per meal in Tunisia
-  DEFAULT_TARGET_AMOUNT: 1000,       // Default pool target (TND)
-  DEFAULT_CURRENCY: 'TND',           // Tunisian Dinar
+  PLATFORM_FEE_PERCENTAGE: 0.25, // 25% platform fee on orders
+  DONATION_PERCENTAGE: 0.05, // 5% of platform fee → donations
+  MEAL_COST_ESTIMATE_TND: 5.0, // Estimated cost per meal in Tunisia
+  DEFAULT_TARGET_AMOUNT: 1000, // Default pool target (TND)
+  DEFAULT_CURRENCY: 'TND', // Tunisian Dinar
 } as const;
 ```
 
 **Calculation Examples:**
+
 ```typescript
 // Order: 5 TND
 // Platform fee: 5 * 0.25 = 1.25 TND
@@ -596,14 +623,16 @@ export const DONATION_CONSTANTS = {
 ```
 
 #### `BADGE_THRESHOLDS`
+
 **Badge Unlock Criteria:**
+
 ```typescript
 export const BADGE_THRESHOLDS = {
-  FIRST_STEP: { count: 1, amount: 0 },        // First donation
+  FIRST_STEP: { count: 1, amount: 0 }, // First donation
   COMMUNITY_HELPER: { count: 10, amount: 0 }, // 10 donations
-  IMPACT_MAKER: { count: 0, amount: 50 },     // 50 TND total
-  FOOD_HERO: { count: 0, amount: 100 },       // 100 TND total
-  CHAMPION: { count: 0, amount: 500 },        // 500 TND total
+  IMPACT_MAKER: { count: 0, amount: 50 }, // 50 TND total
+  FOOD_HERO: { count: 0, amount: 100 }, // 100 TND total
+  CHAMPION: { count: 0, amount: 500 }, // 500 TND total
 } as const;
 ```
 
@@ -614,6 +643,7 @@ export const BADGE_THRESHOLDS = {
 ### Donation Lifecycle
 
 **1. Order Creation Triggers Donation:**
+
 ```typescript
 // In OrderService.createOrder()
 const order = await this.orderModel.create({ ... });
@@ -633,6 +663,7 @@ await this.donationsService.createDonation({
 ```
 
 **2. Donation Creation Flow:**
+
 - Idempotency check (prevent duplicate donations per order)
 - Get active donation pool (create if none exists)
 - Calculate meal impact
@@ -643,6 +674,7 @@ await this.donationsService.createDonation({
 - Check if pool target reached (transition to FUNDED)
 
 **3. Pool Status Transitions:**
+
 ```
 ACTIVE → FUNDED:
   Triggered when currentAmount >= targetAmount
@@ -662,6 +694,7 @@ DISTRIBUTED → ARCHIVED:
 ### Edge Cases & Safeguards
 
 **Idempotency:**
+
 ```typescript
 // Prevent duplicate donations if order processing retries
 const existingDonation = await this.userDonationModel.findOne({
@@ -674,6 +707,7 @@ if (existingDonation) {
 ```
 
 **Atomic Pool Updates:**
+
 ```typescript
 // Race condition safe: multiple orders processed concurrently
 await this.donationPoolModel.findByIdAndUpdate(
@@ -686,6 +720,7 @@ await this.donationPoolModel.findByIdAndUpdate(
 ```
 
 **Pool Initialization:**
+
 ```typescript
 // Ensure active pool exists on service startup
 private async initializeDefaultPool(): Promise<void> {
@@ -708,6 +743,7 @@ private async initializeDefaultPool(): Promise<void> {
 ```
 
 **Error Handling:**
+
 ```typescript
 // Non-critical badge assignment failures don't block donation
 try {
@@ -729,6 +765,7 @@ try {
 **Solution:** DonationsService encapsulates all business logic
 
 **Benefits:**
+
 - Reusable logic (called from OrderService)
 - Testable without HTTP mocking
 - Clear separation of concerns
@@ -738,6 +775,7 @@ try {
 ### 2. Repository Pattern (Implicit)
 
 **Implementation:**
+
 ```typescript
 // Direct Mongoose model injection
 constructor(
@@ -755,6 +793,7 @@ constructor(
 ### 3. Cron Job Pattern
 
 **Implementation:**
+
 ```typescript
 @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
 async archiveCompletedPools(): Promise<void> {
@@ -763,9 +802,10 @@ async archiveCompletedPools(): Promise<void> {
 ```
 
 **Configuration:**
+
 ```typescript
 // app.module.ts
-ScheduleModule.forRoot()
+ScheduleModule.forRoot();
 ```
 
 ---
@@ -773,6 +813,7 @@ ScheduleModule.forRoot()
 ### 4. Soft Delete Pattern
 
 **Implementation:**
+
 ```typescript
 // UserDonation schema
 isDeleted: boolean;     // Default: false
@@ -786,6 +827,7 @@ await this.userDonationModel.find({
 ```
 
 **Benefits:**
+
 - Preserve audit trail
 - Support donation refunds
 - Regulatory compliance
@@ -797,6 +839,7 @@ await this.userDonationModel.find({
 ### Unit Tests
 
 **Example:**
+
 ```typescript
 describe('DonationsService', () => {
   let service: DonationsService;
@@ -847,9 +890,9 @@ describe('DonationsService', () => {
 
   describe('calculateMealCount', () => {
     it('should calculate meals correctly', () => {
-      expect(service.calculateMealCount(5)).toBe(1);    // 5 TND = 1 meal
-      expect(service.calculateMealCount(10)).toBe(2);   // 10 TND = 2 meals
-      expect(service.calculateMealCount(2.5)).toBe(0);  // 2.5 TND = 0 meals (floor)
+      expect(service.calculateMealCount(5)).toBe(1); // 5 TND = 1 meal
+      expect(service.calculateMealCount(10)).toBe(2); // 10 TND = 2 meals
+      expect(service.calculateMealCount(2.5)).toBe(0); // 2.5 TND = 0 meals (floor)
     });
   });
 });
@@ -860,16 +903,14 @@ describe('DonationsService', () => {
 ### Integration Tests
 
 **Example:**
+
 ```typescript
 describe('DonationsController (Integration)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [
-        MongooseModule.forRoot(mongoMemoryUri),
-        DonationsModule,
-      ],
+      imports: [MongooseModule.forRoot(mongoMemoryUri), DonationsModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -877,9 +918,7 @@ describe('DonationsController (Integration)', () => {
   });
 
   it('GET /donations/stats should return pool statistics', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/donations/stats')
-      .expect(200);
+    const response = await request(app.getHttpServer()).get('/donations/stats').expect(200);
 
     expect(response.body).toHaveProperty('totalDonations');
     expect(response.body).toHaveProperty('targetAmount');
@@ -889,9 +928,7 @@ describe('DonationsController (Integration)', () => {
   });
 
   it('GET /donations/user/stats should require authentication', async () => {
-    await request(app.getHttpServer())
-      .get('/donations/user/stats')
-      .expect(401); // Unauthorized
+    await request(app.getHttpServer()).get('/donations/user/stats').expect(401); // Unauthorized
   });
 });
 ```
@@ -905,14 +942,13 @@ describe('DonationsController (Integration)', () => {
 **Location:** `orders/orders.service.ts`
 
 **Implementation:**
+
 ```typescript
 import { DonationsService } from '../donations/donations.service';
 
 @Injectable()
 export class OrdersService {
-  constructor(
-    private readonly donationsService: DonationsService,
-  ) {}
+  constructor(private readonly donationsService: DonationsService) {}
 
   async createOrder(dto: CreateOrderDto, userId: string): Promise<Order> {
     // 1. Create order
@@ -950,6 +986,7 @@ export class OrdersService {
 ### Task 2: Display Donation Stats in Mobile App
 
 **Frontend Integration:**
+
 ```typescript
 // features/donations/services/donationsService.ts
 import { apiClient } from '@/services/apiClient';
@@ -995,6 +1032,7 @@ export const DonationsScreen = () => {
 ### Task 3: Add Admin Distribution Tracking
 
 **New DTO:**
+
 ```typescript
 // dto/create-distribution.dto.ts
 export class CreateDistributionDto {
@@ -1021,6 +1059,7 @@ export class CreateDistributionDto {
 ```
 
 **Service Method:**
+
 ```typescript
 async distributePool(
   poolId: Types.ObjectId,
@@ -1066,6 +1105,7 @@ async distributePool(
 ### Task 4: Add Leaderboard Endpoint
 
 **Controller:**
+
 ```typescript
 @Get('leaderboard')
 @Public()
@@ -1078,6 +1118,7 @@ async getLeaderboard(
 ```
 
 **Service:**
+
 ```typescript
 async getLeaderboard(limit: number = 10): Promise<LeaderboardEntry[]> {
   const topDonors = await this.userDonationModel.aggregate([
@@ -1127,6 +1168,7 @@ async getLeaderboard(limit: number = 10): Promise<LeaderboardEntry[]> {
 **Cause:** Order processing retried without idempotency check
 
 **Debug:**
+
 ```typescript
 const duplicates = await this.userDonationModel.aggregate([
   { $group: { _id: '$orderId', count: { $sum: 1 } } },
@@ -1136,6 +1178,7 @@ console.log('Duplicate donations:', duplicates);
 ```
 
 **Solution:** Idempotency check already implemented:
+
 ```typescript
 const existingDonation = await this.userDonationModel.findOne({
   orderId: input.orderId,
@@ -1153,6 +1196,7 @@ if (existingDonation) {
 **Cause:** Race condition in concurrent updates or failed transaction
 
 **Debug:**
+
 ```typescript
 const pool = await this.donationPoolModel.findById(poolId);
 const donations = await this.userDonationModel.find({
@@ -1167,6 +1211,7 @@ console.log('Discrepancy:', pool.currentAmount - actualTotal);
 ```
 
 **Solution:** Use atomic updates (already implemented):
+
 ```typescript
 await this.donationPoolModel.findByIdAndUpdate(
   pool._id,
@@ -1182,6 +1227,7 @@ await this.donationPoolModel.findByIdAndUpdate(
 **Cause:** Badge calculation logic uses latest donation only
 
 **Debug:**
+
 ```typescript
 const userDonations = await this.userDonationModel.find({
   userId,
@@ -1192,11 +1238,12 @@ const contributionCount = userDonations.length;
 
 console.log('Total donated:', totalDonated);
 console.log('Contribution count:', contributionCount);
-console.log('Expected badges:', /* calculate based on thresholds */);
+console.log('Expected badges:' /* calculate based on thresholds */);
 console.log('Actual badges:', userDonations[0]?.badgesEarned);
 ```
 
 **Solution:** Badge calculation correctly aggregates all donations:
+
 ```typescript
 const stats = await this.getUserStats(userId); // ✓ Aggregates all donations
 ```
@@ -1208,6 +1255,7 @@ const stats = await this.getUserStats(userId); // ✓ Aggregates all donations
 **Cause:** ScheduleModule not imported or timezone misconfiguration
 
 **Debug:**
+
 ```bash
 # Check if ScheduleModule imported in app.module.ts
 grep -r "ScheduleModule" apps/food-waste-backend/src/app.module.ts
@@ -1218,6 +1266,7 @@ TZ=UTC date
 ```
 
 **Solution:**
+
 ```typescript
 // app.module.ts
 @Module({
@@ -1238,16 +1287,16 @@ TZ=UTC
 **Cause:** Missing indexes or inefficient aggregations
 
 **Debug:**
+
 ```typescript
 // Explain query plan
-const explained = await this.userDonationModel
-  .find({ userId })
-  .explain('executionStats');
+const explained = await this.userDonationModel.find({ userId }).explain('executionStats');
 
 console.log('Query execution stats:', explained);
 ```
 
 **Solution:** Verify indexes exist:
+
 ```bash
 pnpm verify:indexes
 
@@ -1256,6 +1305,7 @@ db.userdonations.getIndexes()
 ```
 
 Expected indexes:
+
 - `{ userId: 1, contributedAt: -1 }`
 - `{ donationPoolId: 1, userId: 1 }`
 - `{ orderId: 1 }` (unique)
@@ -1266,7 +1316,7 @@ Expected indexes:
 
 - [MongoDB Aggregation Pipeline](https://www.mongodb.com/docs/manual/core/aggregation-pipeline/)
 - [NestJS Scheduling](https://docs.nestjs.com/techniques/task-scheduling)
-- [Mongoose Atomic Operations](https://mongoosejs.com/docs/api/model.html#Model.findByIdAndUpdate())
+- [Mongoose Atomic Operations](<https://mongoosejs.com/docs/api/model.html#Model.findByIdAndUpdate()>)
 - [Idempotency Patterns](https://www.enterpriseintegrationpatterns.com/patterns/messaging/IdempotentReceiver.html)
 
 ---

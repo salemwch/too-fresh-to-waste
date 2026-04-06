@@ -607,7 +607,7 @@ export class ModerationActionService {
       return null;
     }
 
-    const multiplier = severityMultiplier[severity] || 1;
+    const multiplier = severityMultiplier[severity] ?? 1;
     return new Date(Date.now() + baseDuration * multiplier);
   }
 

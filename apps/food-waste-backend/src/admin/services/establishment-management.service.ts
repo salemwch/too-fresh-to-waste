@@ -73,6 +73,10 @@ interface EstablishmentAggregationResult {
   establishmentsByStatus: EstablishmentAggregationGroup[];
 }
 
+type EstablishmentAggregateLookupResult = NonNullable<
+  Parameters<typeof EstablishmentMapper.toInterface>[0]
+>;
+
 interface TopRatedEstablishment {
   _id: string;
   name: string;
@@ -218,7 +222,7 @@ function isEstablishmentAggregationResult(
   if (!Array.isArray(result) || result.length === 0) {
     return false;
   }
-  const first = result[0];
+  const first: unknown = result[0];
   if (typeof first !== 'object' || first === null) {
     return false;
   }
@@ -357,16 +361,19 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       if (!isEstablishmentAggregationResult(establishmentStats)) {
         throw new Error('Invalid aggregation result format');
       }
-      const stats = establishmentStats[0]!;
+      const stats = establishmentStats[0];
+      if (!stats) {
+        throw new Error('Missing establishment aggregation stats');
+      }
       const establishmentsByStatus = this.formatGroupedResults(stats.establishmentsByStatus);
 
       const overviewData = {
         total: totalEstablishments,
-        pending: establishmentsByStatus[EstablishmentStatus.PENDING] || 0,
-        active: establishmentsByStatus[EstablishmentStatus.ACTIVE] || 0,
-        suspended: establishmentsByStatus[EstablishmentStatus.SUSPENDED] || 0,
-        rejected: establishmentsByStatus[EstablishmentStatus.REJECTED] || 0,
-        recentApprovals: recentSubmissions?.length || 0,
+        pending: establishmentsByStatus[EstablishmentStatus.PENDING] ?? 0,
+        active: establishmentsByStatus[EstablishmentStatus.ACTIVE] ?? 0,
+        suspended: establishmentsByStatus[EstablishmentStatus.SUSPENDED] ?? 0,
+        rejected: establishmentsByStatus[EstablishmentStatus.REJECTED] ?? 0,
+        recentApprovals: recentSubmissions?.length ?? 0,
         avgApprovalTime: 24, // Calculate actual average approval time later
       };
 
@@ -403,11 +410,11 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
         ];
       }
 
-      if (status) {
+      if (status !== null && status !== undefined) {
         filter.status = status;
       }
 
-      if (type) {
+      if (type !== null && type !== undefined) {
         filter.type = type;
       }
 
@@ -461,15 +468,14 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
 
   async getEstablishmentById(establishmentId: string): Promise<IEstablishment> {
     try {
-      const results = await this.establishmentModel.aggregate([
-        { $match: { _id: new Types.ObjectId(establishmentId) } },
-        ...this.getOwnerLookupStages(['firstName', 'lastName', 'email', 'phoneNumber']),
-        { $limit: 1 },
-      ]);
+      const [establishment] =
+        await this.establishmentModel.aggregate<EstablishmentAggregateLookupResult>([
+          { $match: { _id: new Types.ObjectId(establishmentId) } },
+          ...this.getOwnerLookupStages(['firstName', 'lastName', 'email', 'phoneNumber']),
+          { $limit: 1 },
+        ]);
 
-      const establishment = results[0] || null;
-
-      if (!establishment) {
+      if (establishment === null || establishment === undefined) {
         throw new NotFoundException(`Establishment with ID ${establishmentId} not found`);
       }
 
@@ -550,7 +556,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       await this.emitApprovalEvent(establishment, approveDto, adminId, adminEmail);
 
       // Send notification if required
-      if (approveDto.sendNotification) {
+      if (approveDto.sendNotification === true) {
         await this.sendApprovalNotification(establishment, approveDto);
       }
 
@@ -637,7 +643,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       );
 
       // Send notification if required
-      if (updateDto.sendNotification) {
+      if (updateDto.sendNotification === true) {
         await this.sendStatusChangeNotification(establishment, updateDto);
       }
 
@@ -849,7 +855,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const result = await this.orderModel.aggregate<OrderStatsAggregation>(pipeline);
 
       return (
-        result[0] || {
+        result[0] ?? {
           _id: null,
           totalOrders: 0,
           totalRevenue: 0,
@@ -894,7 +900,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const result = await this.offerModel.aggregate<OfferStatsAggregation>(pipeline);
 
       return (
-        result[0] || {
+        result[0] ?? {
           _id: null,
           totalOffers: 0,
           activeOffers: 0,
@@ -1054,7 +1060,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const result = await this.orderModel.aggregate<CustomerRetentionAggregation>(pipeline);
 
       return (
-        result[0] || {
+        result[0] ?? {
           _id: null,
           totalCustomers: 0,
           returningCustomers: 0,
@@ -1158,6 +1164,9 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
         return AdminAction.ESTABLISHMENT_SUSPENDED;
       case EstablishmentStatus.REJECTED:
         return AdminAction.ESTABLISHMENT_REJECTED;
+      case EstablishmentStatus.PENDING:
+      case EstablishmentStatus.INACTIVE:
+        return AdminAction.ESTABLISHMENT_UPDATED;
       default:
         return AdminAction.ESTABLISHMENT_UPDATED;
     }
@@ -1203,7 +1212,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
             : `❌ Your establishment "${establishment.name}" application was not approved`,
           body: isApproved
             ? `Congratulations! Your establishment has been approved and is now active on our platform. You can start creating offers immediately.`
-            : `We regret to inform you that your establishment application was not approved. Reason: ${approveDto.reason || 'Not specified'}`,
+            : `We regret to inform you that your establishment application was not approved. Reason: ${approveDto.reason ?? 'Not specified'}`,
           data: {
             establishmentId: establishment._id.toString(),
             establishmentName: establishment.name,
@@ -1216,10 +1225,10 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
         priority: NotificationPriority.HIGH,
         templateVariables: {
           establishmentName: establishment.name,
-          ownerName: `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || 'Owner',
+          ownerName: `${owner.firstName ?? ''} ${owner.lastName ?? ''}`.trim() || 'Owner',
           status: establishment.status,
-          reason: approveDto.reason || 'Not specified',
-          adminNotes: approveDto.adminNotes || '',
+          reason: approveDto.reason ?? 'Not specified',
+          adminNotes: approveDto.adminNotes ?? '',
           supportEmail: this.configService.get<string>('SUPPORT_EMAIL', 'support@foodwaste.com'),
           dashboardUrl: `${this.configService.get<string>('FRONTEND_URL', 'https://app.foodwaste.com')}/establishment/dashboard`,
         },
@@ -1291,6 +1300,8 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
           body = `Your establishment status has been changed to rejected. ${updateDto.reason ? `Reason: ${updateDto.reason}` : ''}`;
           priority = NotificationPriority.HIGH;
           break;
+        case EstablishmentStatus.PENDING:
+        case EstablishmentStatus.INACTIVE:
         default:
           title = `📢 Status update for "${establishment.name}"`;
           body = `Your establishment status has been updated to ${updateDto.status}.`;
@@ -1321,11 +1332,11 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
         priority,
         templateVariables: {
           establishmentName: establishment.name,
-          ownerName: `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || 'Owner',
+          ownerName: `${owner.firstName ?? ''} ${owner.lastName ?? ''}`.trim() || 'Owner',
           newStatus: updateDto.status,
-          reason: updateDto.reason || 'Not specified',
-          adminNotes: updateDto.adminNotes || '',
-          reactivationDate: updateDto.reactivationDate?.toLocaleDateString() || 'Not specified',
+          reason: updateDto.reason ?? 'Not specified',
+          adminNotes: updateDto.adminNotes ?? '',
+          reactivationDate: updateDto.reactivationDate?.toLocaleDateString() ?? 'Not specified',
           supportEmail: this.configService.get<string>('SUPPORT_EMAIL', 'support@foodwaste.com'),
           dashboardUrl: `${this.configService.get<string>('FRONTEND_URL', 'https://app.foodwaste.com')}/establishment/dashboard`,
         },
@@ -1518,7 +1529,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
             adminEmail,
             establishment.name,
             ownerId,
-            approveDto.reason || 'No reason provided',
+            approveDto.reason ?? 'No reason provided',
             approveDto.adminNotes,
           ),
         );

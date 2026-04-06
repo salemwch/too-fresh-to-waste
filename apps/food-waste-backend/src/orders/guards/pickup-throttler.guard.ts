@@ -32,6 +32,10 @@ export class PickupThrottlerGuard extends ThrottlerGuard {
     super(options, storageService, reflector);
   }
 
+  private getNonEmptyString(value: string | undefined, fallback: string): string {
+    return value !== null && value !== undefined && value.length > 0 ? value : fallback;
+  }
+
   /**
    * Generate a unique key for rate limiting
    * Combines IP + OrderId + UserId for precise tracking
@@ -39,9 +43,9 @@ export class PickupThrottlerGuard extends ThrottlerGuard {
   protected override async getTracker(req: Record<string, unknown>): Promise<string> {
     // Cast to typed Express Request for safe property access
     const request = req as unknown as Request & { user?: { userId?: string } };
-    const ip = request.ip || request.socket?.remoteAddress || 'unknown';
-    const userId = request.user?.userId || 'anonymous';
-    const orderId = request.params?.['id'] || 'unknown';
+    const ip = this.getNonEmptyString(request.ip ?? request.socket?.remoteAddress, 'unknown');
+    const userId = this.getNonEmptyString(request.user?.userId, 'anonymous');
+    const orderId = request.params?.['id'] ?? 'unknown';
 
     // Key format: pickup-{ip}-{orderId}-{userId}
     const key = await Promise.resolve(`pickup-${ip}-${orderId}-${userId}`);

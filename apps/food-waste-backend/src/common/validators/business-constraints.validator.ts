@@ -17,6 +17,28 @@ import {
  * Reference: https://github.com/typestack/class-validator#custom-validation-classes
  */
 
+function getFirstNumberConstraint(args: ValidationArguments): number | undefined {
+  const [constraint] = args.constraints as unknown[];
+  return typeof constraint === 'number' ? constraint : undefined;
+}
+
+function getTwoNumberConstraints(
+  args: ValidationArguments,
+): { first: number; second: number } | undefined {
+  const [firstConstraint, secondConstraint] = args.constraints as unknown[];
+
+  if (typeof firstConstraint !== 'number' || typeof secondConstraint !== 'number') {
+    return undefined;
+  }
+
+  return { first: firstConstraint, second: secondConstraint };
+}
+
+function getFirstStringConstraint(args: ValidationArguments): string | undefined {
+  const [constraint] = args.constraints as unknown[];
+  return typeof constraint === 'string' ? constraint : undefined;
+}
+
 // ==================== DATE/TIME VALIDATORS ====================
 
 /**
@@ -62,14 +84,22 @@ export function IsFutureDate(
             return false;
           }
 
-          const [minMinutes] = args.constraints;
+          const minMinutes = getFirstNumberConstraint(args);
+          if (minMinutes === undefined) {
+            return false;
+          }
+
           const minTime = new Date();
           minTime.setMinutes(minTime.getMinutes() + minMinutes);
 
           return date.getTime() > minTime.getTime();
         },
         defaultMessage(args: ValidationArguments) {
-          const [minMinutes] = args.constraints;
+          const minMinutes = getFirstNumberConstraint(args);
+          if (minMinutes === undefined) {
+            return `${args.property} must be a future date`;
+          }
+
           if (minMinutes > 0) {
             return `${args.property} must be at least ${minMinutes} minutes in the future`;
           }
@@ -119,13 +149,23 @@ export function IsBusinessHours(
             return false;
           }
 
-          const [start, end] = args.constraints;
+          const range = getTwoNumberConstraints(args);
+          if (range === undefined) {
+            return false;
+          }
+
+          const { first: start, second: end } = range;
           const hour = date.getHours();
 
           return hour >= start && hour < end;
         },
         defaultMessage(args: ValidationArguments) {
-          const [start, end] = args.constraints;
+          const range = getTwoNumberConstraints(args);
+          if (range === undefined) {
+            return `${args.property} must fall within business hours`;
+          }
+
+          const { first: start, second: end } = range;
           return `${args.property} must be between ${start}:00 and ${end}:00`;
         },
       },
@@ -170,14 +210,22 @@ export function IsWithinDays(
             return false;
           }
 
-          const [maxDays] = args.constraints;
+          const maxDays = getFirstNumberConstraint(args);
+          if (maxDays === undefined) {
+            return false;
+          }
+
           const maxDate = new Date();
           maxDate.setDate(maxDate.getDate() + maxDays);
 
           return date.getTime() <= maxDate.getTime();
         },
         defaultMessage(args: ValidationArguments) {
-          const [maxDays] = args.constraints;
+          const maxDays = getFirstNumberConstraint(args);
+          if (maxDays === undefined) {
+            return `${args.property} must be within the allowed date range`;
+          }
+
           return `${args.property} cannot be more than ${maxDays} days in the future`;
         },
       },
@@ -219,11 +267,19 @@ export function IsMinQuantity(
             return false;
           }
 
-          const [minValue] = args.constraints;
+          const minValue = getFirstNumberConstraint(args);
+          if (minValue === undefined) {
+            return false;
+          }
+
           return value >= minValue && Number.isInteger(value);
         },
         defaultMessage(args: ValidationArguments) {
-          const [minValue] = args.constraints;
+          const minValue = getFirstNumberConstraint(args);
+          if (minValue === undefined) {
+            return `${args.property} must be a valid quantity`;
+          }
+
           return `${args.property} must be an integer >= ${minValue}`;
         },
       },
@@ -265,7 +321,12 @@ export function IsValidPrice(
             return false;
           }
 
-          const [min, max] = args.constraints;
+          const range = getTwoNumberConstraints(args);
+          if (range === undefined) {
+            return false;
+          }
+
+          const { first: min, second: max } = range;
 
           // Check range
           if (value < min || value > max) {
@@ -273,11 +334,16 @@ export function IsValidPrice(
           }
 
           // Check decimal places (max 2 for currency)
-          const decimalPlaces = (value.toString().split('.')[1] || '').length;
+          const decimalPlaces = (value.toString().split('.')[1] ?? '').length;
           return decimalPlaces <= 2;
         },
         defaultMessage(args: ValidationArguments) {
-          const [min, max] = args.constraints;
+          const range = getTwoNumberConstraints(args);
+          if (range === undefined) {
+            return `${args.property} must be a valid price`;
+          }
+
+          const { first: min, second: max } = range;
           return `${args.property} must be between ${min} and ${max} with max 2 decimal places`;
         },
       },
@@ -375,7 +441,11 @@ export function IsGreaterThanField(
       constraints: [relatedPropertyName],
       validator: {
         validate(value: unknown, args: ValidationArguments) {
-          const [relatedProp] = args.constraints;
+          const relatedProp = getFirstStringConstraint(args);
+          if (relatedProp === undefined) {
+            return false;
+          }
+
           const relatedValue = (args.object as Record<string, unknown>)[relatedProp];
 
           if (typeof value !== 'number' || typeof relatedValue !== 'number') {
@@ -385,7 +455,11 @@ export function IsGreaterThanField(
           return value > relatedValue;
         },
         defaultMessage(args: ValidationArguments) {
-          const [relatedProp] = args.constraints;
+          const relatedProp = getFirstStringConstraint(args);
+          if (relatedProp === undefined) {
+            return `${args.property} must be greater than the related field`;
+          }
+
           return `${args.property} must be greater than ${relatedProp}`;
         },
       },
@@ -424,7 +498,11 @@ export function IsLessThanField(
       constraints: [relatedPropertyName],
       validator: {
         validate(value: unknown, args: ValidationArguments) {
-          const [relatedProp] = args.constraints;
+          const relatedProp = getFirstStringConstraint(args);
+          if (relatedProp === undefined) {
+            return false;
+          }
+
           const relatedValue = (args.object as Record<string, unknown>)[relatedProp];
 
           if (typeof value !== 'number' || typeof relatedValue !== 'number') {
@@ -434,7 +512,11 @@ export function IsLessThanField(
           return value < relatedValue;
         },
         defaultMessage(args: ValidationArguments) {
-          const [relatedProp] = args.constraints;
+          const relatedProp = getFirstStringConstraint(args);
+          if (relatedProp === undefined) {
+            return `${args.property} must be less than the related field`;
+          }
+
           return `${args.property} must be less than ${relatedProp}`;
         },
       },

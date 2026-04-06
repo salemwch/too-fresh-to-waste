@@ -40,16 +40,16 @@ export enum ReportPriority {
 
 @Schema({ timestamps: true })
 export class Report {
-  @Prop({ type: String, enum: ReportType, required: true, index: true })
+  @Prop({ type: String, enum: ReportType, required: true })
   type!: ReportType;
 
-  @Prop({ type: Types.ObjectId, required: true, index: true })
+  @Prop({ type: Types.ObjectId, required: true })
   targetId!: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   reporterId!: Types.ObjectId;
 
-  @Prop({ type: String, enum: ReportReason, required: true, index: true })
+  @Prop({ type: String, enum: ReportReason, required: true })
   reason!: ReportReason;
 
   @Prop({ required: true, maxlength: 1000 })
@@ -58,13 +58,13 @@ export class Report {
   @Prop({ type: [String], default: [] })
   evidence!: string[];
 
-  @Prop({ type: String, enum: ReportStatus, default: ReportStatus.PENDING, index: true })
+  @Prop({ type: String, enum: ReportStatus, default: ReportStatus.PENDING })
   status!: ReportStatus;
 
-  @Prop({ type: String, enum: ReportPriority, default: ReportPriority.MEDIUM, index: true })
+  @Prop({ type: String, enum: ReportPriority, default: ReportPriority.MEDIUM })
   priority!: ReportPriority;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', index: true })
+  @Prop({ type: Types.ObjectId, ref: 'User' })
   assignedToModerator?: Types.ObjectId | undefined;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })

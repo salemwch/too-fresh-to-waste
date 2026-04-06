@@ -1,3 +1,4 @@
+import type { CreateEstablishmentInput } from '@foodwaste/shared';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type, Transform } from 'class-transformer';
 import {
@@ -16,6 +17,14 @@ import {
 
 import { IsValidPhoneNumber } from '../../common/validators/is-valid-phone-number.validator';
 import { EstablishmentType } from '../schemas/establishment.schema';
+
+function trimTransform({ value }: { value: unknown }): unknown {
+  return typeof value === 'string' ? value.trim() : value;
+}
+
+function normalizedEmailTransform({ value }: { value: unknown }): unknown {
+  return typeof value === 'string' ? value.toLowerCase().trim() : value;
+}
 
 class AddressDto {
   @IsString()
@@ -70,36 +79,36 @@ class BusinessHoursDto {
 class LegalDocumentsDto {
   @IsOptional()
   @IsString()
-  siret?: string;
+  siret?: string | undefined;
 
   @IsOptional()
   @IsString()
-  license?: string;
+  license?: string | undefined;
 
   @IsOptional()
   @IsString()
-  vatNumber?: string;
+  vatNumber?: string | undefined;
 
   @IsOptional()
   @IsString()
-  businessLicense?: string;
+  businessLicense?: string | undefined;
 
   @IsOptional()
   @IsString()
-  foodSafetyLicense?: string;
+  foodSafetyLicense?: string | undefined;
 }
 
-export class CreateEstablishmentDto {
+export class CreateEstablishmentDto implements CreateEstablishmentInput {
   @IsString()
   @MinLength(2)
   @MaxLength(100)
-  @Transform(({ value }) => value?.trim())
+  @Transform(trimTransform)
   name!: string;
 
   @IsString()
   @MinLength(10)
   @MaxLength(500)
-  @Transform(({ value }) => value?.trim())
+  @Transform(trimTransform)
   description!: string;
 
   @IsEnum(EstablishmentType)
@@ -115,7 +124,7 @@ export class CreateEstablishmentDto {
    * Will be normalized to E.164 format before storage
    */
   @IsString()
-  @Transform(({ value }) => value?.trim())
+  @Transform(trimTransform)
   @IsValidPhoneNumber({
     defaultCountry: 'TN',
     allowNationalFormat: false, // Require international format for establishments
@@ -125,12 +134,12 @@ export class CreateEstablishmentDto {
   phoneNumber!: string;
 
   @IsEmail({}, { message: 'Please provide a valid email address' })
-  @Transform(({ value }) => value?.toLowerCase().trim())
+  @Transform(normalizedEmailTransform)
   email!: string;
 
   @IsOptional()
   @IsString()
-  website?: string;
+  website?: string | undefined;
 
   @ApiProperty({
     type: 'array',
@@ -143,24 +152,24 @@ export class CreateEstablishmentDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  images?: string[];
+  images?: string[] | undefined;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  cuisineTypes?: string[];
+  cuisineTypes?: string[] | undefined;
 
   @IsOptional()
   @ValidateNested()
   @Type(() => BusinessHoursDto)
-  businessHours?: BusinessHoursDto;
+  businessHours?: BusinessHoursDto | undefined;
 
   @IsOptional()
   @ValidateNested()
   @Type(() => LegalDocumentsDto)
-  legalDocuments?: LegalDocumentsDto;
+  legalDocuments?: LegalDocumentsDto | undefined;
 
   @IsOptional()
   @IsBoolean()
-  acceptsReservations?: boolean;
+  acceptsReservations?: boolean | undefined;
 }

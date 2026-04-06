@@ -21,9 +21,6 @@ import {
 import { AdminOnlyGuard } from './guards/admin-only.guard';
 import { AdminAuditLog, AdminAuditLogSchema } from './schemas/admin-audit-log.schema';
 import { SystemConfig, SystemConfigSchema } from './schemas/system-config.schema';
-
-// Import existing schemas that admin module needs
-
 // Services
 import {
   AdminAnalyticsService,

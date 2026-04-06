@@ -9,6 +9,7 @@ The Admin module provides comprehensive administrative capabilities for the Too 
 **Authentication:** JWT Bearer Token + AdminOnlyGuard
 
 **Key Features:**
+
 - User and establishment management
 - Platform analytics and reporting
 - System configuration with versioning
@@ -59,6 +60,7 @@ admin/
 **Purpose:** Provides comprehensive platform analytics and business intelligence.
 
 **Key Methods:**
+
 - `getPlatformAnalytics(days: number)` - Aggregate platform metrics
 - `getUserAnalytics()` - User statistics (total, active, new, retention)
 - `getEstablishmentAnalytics()` - Establishment performance metrics
@@ -67,6 +69,7 @@ admin/
 - `getRevenueAnalytics()` - Financial metrics and growth rates
 
 **Analytics Categories:**
+
 - **User Metrics**: Total users, active users, new signups, retention rates
 - **Establishment Metrics**: Approval status, ratings, top performers
 - **Order Metrics**: Completion rates, trends, average order value
@@ -75,6 +78,7 @@ admin/
 - **Waste Reduction**: Kg saved, meals saved, CO2 reduction
 
 **Use Case:**
+
 ```typescript
 const analytics = await adminAnalyticsService.getPlatformAnalytics(30);
 console.log(analytics.revenue.totalRevenue);
@@ -88,6 +92,7 @@ console.log(analytics.offers.wasteReductionImpact.totalKgSaved);
 **Purpose:** Comprehensive audit logging for all administrative actions with automatic sensitive data sanitization.
 
 **Key Methods:**
+
 - `createAuditLog(data: CreateAuditLogData)` - Log single action
 - `logUserAction(params)` - Convenience method for user actions
 - `logEstablishmentAction(params)` - Log establishment actions
@@ -102,34 +107,49 @@ console.log(analytics.offers.wasteReductionImpact.totalKgSaved);
 - `deleteOldAuditLogs(olderThanDays)` - Archive management
 
 **Tracked Actions:**
+
 ```typescript
 enum AdminAction {
   // User Actions
-  USER_CREATED, USER_UPDATED, USER_SUSPENDED,
-  USER_BLOCKED, USER_ACTIVATED, USER_DELETED,
+  USER_CREATED,
+  USER_UPDATED,
+  USER_SUSPENDED,
+  USER_BLOCKED,
+  USER_ACTIVATED,
+  USER_DELETED,
 
   // Establishment Actions
-  ESTABLISHMENT_APPROVED, ESTABLISHMENT_REJECTED,
-  ESTABLISHMENT_SUSPENDED, ESTABLISHMENT_REACTIVATED,
+  ESTABLISHMENT_APPROVED,
+  ESTABLISHMENT_REJECTED,
+  ESTABLISHMENT_SUSPENDED,
+  ESTABLISHMENT_REACTIVATED,
 
   // Order Actions
-  ORDER_CANCELLED, ORDER_REFUNDED, ORDER_UPDATED,
+  ORDER_CANCELLED,
+  ORDER_REFUNDED,
+  ORDER_UPDATED,
 
   // Review Actions
-  REVIEW_FLAGGED, REVIEW_APPROVED, REVIEW_DELETED,
+  REVIEW_FLAGGED,
+  REVIEW_APPROVED,
+  REVIEW_DELETED,
 
   // System Actions
-  SYSTEM_CONFIG_UPDATED, BULK_OPERATION, DATA_EXPORT
+  SYSTEM_CONFIG_UPDATED,
+  BULK_OPERATION,
+  DATA_EXPORT,
 }
 ```
 
 **Security Features:**
+
 - Automatic sanitization of sensitive fields (passwords, tokens, keys)
 - IP address and user agent tracking
 - Immutable audit trail
 - Support for rollback via previous/new value tracking
 
 **Use Case:**
+
 ```typescript
 await adminAuditService.logUserAction({
   adminId: admin.id,
@@ -140,7 +160,7 @@ await adminAuditService.logUserAction({
   newValue: { status: 'suspended' },
   reason: 'Terms of service violation',
   ipAddress: req.ip,
-  userAgent: req.headers['user-agent']
+  userAgent: req.headers['user-agent'],
 });
 ```
 
@@ -153,6 +173,7 @@ await adminAuditService.logUserAction({
 **Configuration Categories:**
 
 #### Platform Settings
+
 - `maintenanceMode` - Enable/disable platform access
 - `allowNewRegistrations` - Control user signups
 - `requireEstablishmentApproval` - Manual or auto-approval
@@ -163,6 +184,7 @@ await adminAuditService.logUserAction({
 - `autoRefundTimeoutHours` - Automatic refund window
 
 #### Notification Settings
+
 - `emailEnabled` / `smsEnabled` / `pushNotificationsEnabled`
 - `adminEmailAlerts` - Alert admins of critical events
 - `orderConfirmationEnabled` - Customer order confirmations
@@ -170,6 +192,7 @@ await adminAuditService.logUserAction({
 - `promotionalEmailsEnabled` - Marketing communications
 
 #### Security Settings
+
 - `maxLoginAttempts` (3-10) - Login attempt limit
 - `loginAttemptWindow` (minutes) - Time window for attempts
 - `accountLockoutDuration` (minutes) - Lockout period
@@ -179,6 +202,7 @@ await adminAuditService.logUserAction({
 - `twoFactorAuthRequired` - Enforce 2FA
 
 #### Payment Settings
+
 - `stripeEnabled` / `paypalEnabled` - Payment providers
 - `minimumPayoutAmount` - Merchant payout threshold
 - `payoutFrequency` - daily / weekly / monthly
@@ -186,6 +210,7 @@ await adminAuditService.logUserAction({
 - `refundProcessingDays` - Refund processing time
 
 **Key Methods:**
+
 - `getSystemConfig()` - Get active config (cached 5 minutes)
 - `updateSystemConfig(dto, adminId, ...)` - Create new config version
 - `getConfigHistory(limit)` - View version history
@@ -195,6 +220,7 @@ await adminAuditService.logUserAction({
 - `validateConfigImport(data)` - Pre-import validation
 
 **Validation Rules:**
+
 - Commission rate: 0-50% (warning >25%)
 - Min order < max order
 - Offer expiration: 1-168 hours (1 week)
@@ -206,12 +232,14 @@ await adminAuditService.logUserAction({
 - Refund processing: 1-30 days
 
 **Versioning:**
+
 - Semantic versioning (major.minor.patch)
 - Previous versions retained but marked inactive
 - Full audit trail via AdminAuditService
 - Rollback creates new version with "-rollback" suffix
 
 **Use Case:**
+
 ```typescript
 const currentConfig = await systemConfigService.getSystemConfig();
 
@@ -219,14 +247,14 @@ await systemConfigService.updateSystemConfig(
   {
     securitySettings: {
       maxLoginAttempts: 5,
-      accountLockoutDuration: 30
+      accountLockoutDuration: 30,
     },
-    description: 'Increase security after bot attacks'
+    description: 'Increase security after bot attacks',
   },
   adminId,
   adminEmail,
   ipAddress,
-  userAgent
+  userAgent,
 );
 ```
 
@@ -237,6 +265,7 @@ await systemConfigService.updateSystemConfig(
 **Purpose:** Administrative user operations including status changes, bulk actions, and user analytics.
 
 **Key Methods:**
+
 - `getUserOverview()` - User statistics dashboard
 - `searchUsers(query)` - Search/filter with pagination
 - `getUserById(userId)` - Detailed user information
@@ -249,18 +278,21 @@ await systemConfigService.updateSystemConfig(
 - `performBulkAction(dto, adminId, ...)` - Bulk operations
 
 **User Status Transitions:**
+
 - `pending` → `active` (email verification)
 - `active` → `suspended` (temporary restriction)
 - `suspended` → `active` (reactivation)
 - `active` → `blocked` (permanent ban)
 
 **Bulk Actions:**
+
 - Suspend multiple users
 - Activate multiple users
 - Block multiple users
 - Reason required for accountability
 
 **Search Filters:**
+
 - Text search (name, email)
 - Role filter (consumer, merchant, admin)
 - Status filter (pending, active, suspended, blocked)
@@ -273,6 +305,7 @@ await systemConfigService.updateSystemConfig(
 **Purpose:** Manage merchant establishments including approval workflows, status changes, and performance tracking.
 
 **Key Methods:**
+
 - `getEstablishmentOverview()` - Dashboard statistics
 - `searchEstablishments(query)` - Search/filter with pagination
 - `getEstablishmentById(id)` - Detailed establishment info
@@ -284,6 +317,7 @@ await systemConfigService.updateSystemConfig(
 - `performBulkAction(dto, adminId, ...)` - Bulk operations
 
 **Establishment Statuses:**
+
 - `pending` - Awaiting admin approval
 - `approved` - Active and operational
 - `rejected` - Approval denied
@@ -291,6 +325,7 @@ await systemConfigService.updateSystemConfig(
 - `blocked` - Permanently banned
 
 **Search Filters:**
+
 - Text search (name, description)
 - Status filter
 - Type filter (restaurant, bakery, grocery, etc.)
@@ -303,6 +338,7 @@ await systemConfigService.updateSystemConfig(
 **Purpose:** Authorization guard ensuring only users with ADMIN role can access admin endpoints.
 
 **Implementation:**
+
 ```typescript
 @Injectable()
 export class AdminOnlyGuard implements CanActivate {
@@ -324,6 +360,7 @@ export class AdminOnlyGuard implements CanActivate {
 ```
 
 **Usage:** Always combined with `JwtAuthGuard`
+
 ```typescript
 @Controller('admin/users')
 @UseGuards(JwtAuthGuard, AdminOnlyGuard)
@@ -335,6 +372,7 @@ export class UserManagementController { ... }
 ## API Endpoints
 
 ### Analytics
+
 - `GET /admin/analytics/platform` - Platform-wide analytics
 - `GET /admin/analytics/users` - User analytics
 - `GET /admin/analytics/establishments` - Establishment analytics
@@ -343,6 +381,7 @@ export class UserManagementController { ... }
 - `GET /admin/analytics/revenue` - Revenue analytics
 
 ### Audit Logs
+
 - `GET /admin/audit-logs` - List audit logs (paginated, filterable)
 - `GET /admin/audit-logs/admin/:adminId` - Admin activity history
 - `GET /admin/audit-logs/target/:targetType/:targetId` - Entity history
@@ -351,6 +390,7 @@ export class UserManagementController { ... }
 - `GET /admin/audit-logs/export` - Export logs (JSON/CSV)
 
 ### System Configuration
+
 - `GET /admin/system-config` - Get active configuration
 - `PATCH /admin/system-config` - Update configuration
 - `GET /admin/system-config/history` - Version history
@@ -359,6 +399,7 @@ export class UserManagementController { ... }
 - `POST /admin/system-config/import` - Import config
 
 ### User Management
+
 - `GET /admin/users/overview` - User statistics
 - `GET /admin/users/search` - Search users
 - `GET /admin/users/:userId` - User details
@@ -371,6 +412,7 @@ export class UserManagementController { ... }
 - `POST /admin/users/bulk-action` - Bulk operations
 
 ### Establishment Management
+
 - `GET /admin/establishments/overview` - Establishment statistics
 - `GET /admin/establishments/search` - Search establishments
 - `GET /admin/establishments/:id` - Establishment details
@@ -386,6 +428,7 @@ export class UserManagementController { ... }
 ## Database Schemas
 
 ### AdminAuditLog
+
 ```typescript
 {
   adminId: ObjectId,           // Reference to admin user
@@ -404,12 +447,14 @@ export class UserManagementController { ... }
 ```
 
 **Indexes:**
+
 - `adminId` (ascending)
 - `action` (ascending)
 - `targetType` + `targetId` (compound)
 - `timestamp` (descending) - for time-based queries
 
 ### SystemConfig
+
 ```typescript
 {
   configKey: string,           // 'platform_config' (unique per version)
@@ -438,6 +483,7 @@ export class UserManagementController { ... }
 ```
 
 **Indexes:**
+
 - `configKey` + `isActive` (compound, unique)
 - `version` (ascending)
 - `createdAt` (descending)
@@ -447,22 +493,26 @@ export class UserManagementController { ... }
 ## Security Considerations
 
 ### Authorization
+
 - All admin endpoints protected by `JwtAuthGuard` + `AdminOnlyGuard`
 - User must have `UserRole.ADMIN`
 - JWT token validated on every request
 
 ### Audit Trail
+
 - Every administrative action logged automatically
 - Immutable audit logs for compliance
 - IP and user agent tracking for security
 - Sensitive data sanitized (passwords, tokens, keys)
 
 ### Input Validation
+
 - All DTOs validated with `class-validator`
 - System config changes validated before applying
 - Bulk operations limited to prevent abuse
 
 ### Rate Limiting
+
 - Admin endpoints subject to authenticated rate limits
 - 200 requests per minute for authenticated users
 - Additional protection against brute force
@@ -472,6 +522,7 @@ export class UserManagementController { ... }
 ## Usage Examples
 
 ### Check User Activity
+
 ```typescript
 // Get user details and activity
 const user = await userManagementService.getUserById(userId);
@@ -484,15 +535,15 @@ await userManagementService.suspendUser(
   adminId,
   adminEmail,
   ipAddress,
-  userAgent
+  userAgent,
 );
 ```
 
 ### Approve Establishment
+
 ```typescript
 // Review pending establishment
-const establishment = await establishmentManagementService
-  .getEstablishmentById(establishmentId);
+const establishment = await establishmentManagementService.getEstablishmentById(establishmentId);
 
 // Approve
 await establishmentManagementService.approveEstablishment(
@@ -500,11 +551,12 @@ await establishmentManagementService.approveEstablishment(
   adminId,
   adminEmail,
   ipAddress,
-  userAgent
+  userAgent,
 );
 ```
 
 ### Update System Configuration
+
 ```typescript
 // Get current config
 const config = await systemConfigService.getSystemConfig();
@@ -514,45 +566,43 @@ await systemConfigService.updateSystemConfig(
   {
     securitySettings: {
       maxLoginAttempts: 5,
-      accountLockoutDuration: 30
+      accountLockoutDuration: 30,
     },
-    description: 'Strengthened security after incident'
+    description: 'Strengthened security after incident',
   },
   adminId,
   adminEmail,
   ipAddress,
-  userAgent
+  userAgent,
 );
 ```
 
 ### Export Audit Logs
+
 ```typescript
 // Get audit logs for compliance report
 const startDate = new Date('2024-01-01');
 const endDate = new Date('2024-12-31');
 
-const csvData = await adminAuditService.exportAuditLogs(
-  startDate,
-  endDate,
-  'csv'
-);
+const csvData = await adminAuditService.exportAuditLogs(startDate, endDate, 'csv');
 
 // Save to file or send to admin
 ```
 
 ### Bulk Operations
+
 ```typescript
 // Suspend multiple spam accounts
 await userManagementService.performBulkAction(
   {
     action: 'suspend',
     userIds: ['user1', 'user2', 'user3'],
-    reason: 'Coordinated spam campaign'
+    reason: 'Coordinated spam campaign',
   },
   adminId,
   adminEmail,
   ipAddress,
-  userAgent
+  userAgent,
 );
 ```
 
@@ -561,26 +611,34 @@ await userManagementService.performBulkAction(
 ## Best Practices
 
 ### 1. Always Provide Reasons
+
 When suspending, blocking, or rejecting entities, always provide a clear reason for accountability and transparency.
 
 ### 2. Use Audit Logs
+
 Review audit logs regularly to:
+
 - Monitor admin activity
 - Investigate suspicious behavior
 - Generate compliance reports
 - Track configuration changes
 
 ### 3. Test Configuration Changes
+
 Before applying system config changes in production:
+
 - Export current configuration
 - Test changes in staging environment
 - Use rollback if issues occur
 
 ### 4. Paginate Large Queries
+
 Always use pagination when retrieving user/establishment lists to avoid performance issues.
 
 ### 5. Monitor Analytics
+
 Regularly review platform analytics to:
+
 - Identify growth trends
 - Detect anomalies
 - Make data-driven decisions
@@ -602,20 +660,25 @@ Regularly review platform analytics to:
 ## Maintenance & Operations
 
 ### Audit Log Retention
+
 Run periodic cleanup to manage database size:
+
 ```typescript
 // Delete audit logs older than 2 years
 const deletedCount = await adminAuditService.deleteOldAuditLogs(730);
 ```
 
 ### Configuration Backups
+
 Regularly export system configuration for disaster recovery:
+
 ```bash
 # Via API or scheduled job
 GET /admin/system-config/export
 ```
 
 ### Performance Monitoring
+
 - Audit log queries indexed on timestamp
 - System config cached for 5 minutes
 - Analytics aggregations optimized with MongoDB pipelines
@@ -625,16 +688,19 @@ GET /admin/system-config/export
 ## Troubleshooting
 
 ### Issue: Audit logs not appearing
+
 - Verify AdminAuditService is injected in service
 - Check that audit logging methods are called after successful operations
 - Review MongoDB connection and indexes
 
 ### Issue: Configuration changes not taking effect
+
 - System config is cached (5 min TTL) - wait or restart
 - Verify new config version created and marked `isActive`
 - Check validation errors in logs
 
 ### Issue: AdminOnlyGuard returns 403
+
 - Verify user JWT token is valid
 - Check user.role === UserRole.ADMIN
 - Ensure JwtAuthGuard runs before AdminOnlyGuard
@@ -656,6 +722,7 @@ GET /admin/system-config/export
 ## Contact & Support
 
 For issues, questions, or feature requests related to the admin module:
+
 - Review audit logs for debugging
 - Check NestJS logs for error details
 - Consult main project documentation

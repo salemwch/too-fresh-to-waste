@@ -198,3 +198,23 @@ export class Payment {
 }
 
 export const PaymentSchema = SchemaFactory.createForClass(Payment);
+
+// ---------------------------------------------------------------------------
+// Indexes — derived from actual query patterns in PaymentService
+// ---------------------------------------------------------------------------
+
+// Duplicate payment check: findOne({ orderId, status: {$in} })
+PaymentSchema.index({ orderId: 1, status: 1 });
+
+// Webhook lookup: findOne({ transactionId }) or findOne({ merchantTransactionId })
+PaymentSchema.index({ transactionId: 1 }, { unique: true, sparse: true });
+PaymentSchema.index({ merchantTransactionId: 1 }, { unique: true });
+
+// Merchant payment listing (cursor): find({ merchantId }).sort({ createdAt: 1 })
+PaymentSchema.index({ merchantId: 1, createdAt: 1 });
+
+// Customer payment listing (cursor): find({ customerId }).sort({ createdAt: 1 })
+PaymentSchema.index({ customerId: 1, createdAt: 1 });
+
+// Admin/stats aggregation: $match({ status }) in getPaymentStats
+PaymentSchema.index({ status: 1 });

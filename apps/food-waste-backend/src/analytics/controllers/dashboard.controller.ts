@@ -452,7 +452,7 @@ export class DashboardController {
     // Create clone DTO
     const cloneDto: CreateDashboardDto = {
       name: options.name,
-      description: options.description || `Copy of ${sourceDashboard.name}`,
+      description: options.description ?? `Copy of ${sourceDashboard.name}`,
       category: sourceDashboard.category,
       widgets: sourceDashboard.widgets.map((widget) => ({
         type: widget.type,
@@ -655,14 +655,19 @@ export class DashboardController {
     template: DashboardTemplate,
     options: { name?: string; description?: string },
   ): CreateDashboardDto {
+    const requiredRole = template.requiredRole;
+    if (!requiredRole) {
+      throw new BadRequestException(`Template '${template.id}' is missing a required role`);
+    }
+
     const baseConfig = {
-      name: options.name || template.name,
-      description: options.description || template.description,
+      name: options.name ?? template.name,
+      description: options.description ?? template.description,
       category: template.category,
       isDefault: false,
       permissions: {
-        viewRoles: [template.requiredRole!],
-        editRoles: [template.requiredRole!],
+        viewRoles: [requiredRole],
+        editRoles: [requiredRole],
       },
     };
 

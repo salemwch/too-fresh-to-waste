@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+
 import { UsersService } from 'src/users/user.service';
 
 export interface JwtPayload {
@@ -25,7 +26,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       // This ensures mobile apps don't accidentally use stale cookies
       jwtFromRequest: ExtractJwt.fromExtractors([
         ExtractJwt.fromAuthHeaderAsBearerToken(), // Mobile: Authorization header
-        (request: Request) => request?.cookies?.['access_token'], // Web: Cookie fallback
+        (request: Request): string | null => {
+          const cookies: unknown = request.cookies;
+          if (cookies === null || cookies === undefined || typeof cookies !== 'object') {
+            return null;
+          }
+
+          const accessToken = (cookies as Record<string, unknown>)['access_token'];
+          return typeof accessToken === 'string' ? accessToken : null;
+        }, // Web: Cookie fallback
       ]),
       ignoreExpiration: false,
       secretOrKey: configService.getOrThrow<string>('JWT_SECRET'),

@@ -58,6 +58,14 @@ export class LocalStorageService {
     });
   }
 
+  private getPromiseRejectionMessage(reason: unknown): string {
+    if (reason instanceof Error) {
+      return reason.message;
+    }
+
+    return String(reason);
+  }
+
   /**
    * Upload a single file to local storage
    */
@@ -71,7 +79,7 @@ export class LocalStorageService {
       // Generate unique filename
       const timestamp = Date.now();
       const randomString = crypto.randomBytes(4).toString('hex');
-      const ext = imageProcessing?.format || 'jpg';
+      const ext = imageProcessing?.format ?? 'jpg';
       const fileName = `${path.parse(file.originalname).name}_${timestamp}_${randomString}.${ext}`;
 
       // Ensure folder exists
@@ -101,13 +109,13 @@ export class LocalStorageService {
 
         // Convert format
         if (format === 'jpeg') {
-          sharpInstance = sharpInstance.jpeg({ quality: quality || 80 });
+          sharpInstance = sharpInstance.jpeg({ quality: quality ?? 80 });
           mimeType = 'image/jpeg';
         } else if (format === 'png') {
-          sharpInstance = sharpInstance.png({ quality: quality || 80 });
+          sharpInstance = sharpInstance.png({ quality: quality ?? 80 });
           mimeType = 'image/png';
         } else if (format === 'webp') {
-          sharpInstance = sharpInstance.webp({ quality: quality || 80 });
+          sharpInstance = sharpInstance.webp({ quality: quality ?? 80 });
           mimeType = 'image/webp';
         }
 
@@ -158,7 +166,7 @@ export class LocalStorageService {
       if (result.status === 'fulfilled') {
         successfulUploads.push(result.value);
       } else {
-        failedUploads.push(`File ${index + 1}: ${result.reason.message}`);
+        failedUploads.push(`File ${index + 1}: ${this.getPromiseRejectionMessage(result.reason)}`);
       }
     });
 

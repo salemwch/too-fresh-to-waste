@@ -1,7 +1,8 @@
+import type { SetGoalTargetInput, CommunityGoalStats } from '@foodwaste/shared';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, Min, Max } from 'class-validator';
 
-export class SetGoalTargetDto {
+export class SetGoalTargetDto implements SetGoalTargetInput {
   @ApiProperty({
     description: 'Target bag count for the community goal',
     minimum: 100,
@@ -14,7 +15,7 @@ export class SetGoalTargetDto {
   targetCount!: number;
 }
 
-export class CommunityGoalStatsResponseDto {
+export class CommunityGoalStatsResponseDto implements CommunityGoalStats {
   @ApiProperty({ example: 1234 })
   currentCount!: number;
 
@@ -31,7 +32,7 @@ export class CommunityGoalStatsResponseDto {
   cycleNumber!: number;
 
   @ApiProperty({ example: 'active', enum: ['active', 'completed', 'archived'] })
-  status!: string;
+  status!: 'active' | 'completed' | 'archived';
 
   @ApiProperty({ example: '2026-02-23T12:00:00.000Z' })
   lastUpdatedAt!: string;

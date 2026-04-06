@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+
 import { CommonModule } from '../common/common.module';
+import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
+import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
+
 import { FavoritesController } from './favorites.controller';
 import { FavoritesService } from './favorites.service';
-import { Favorite, FavoriteSchema } from './schemas/favorite.schema';
 import { FavoriteList, FavoriteListSchema } from './schemas/favorite-list.schema';
-import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
-import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
+import { Favorite, FavoriteSchema } from './schemas/favorite.schema';
 
 @Module({
   imports: [

@@ -7,13 +7,19 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
+import type { AuthUser } from '../../common/decorators/get-user.decorator';
+
+interface AdminRequest {
+  user?: AuthUser;
+}
+
 @Injectable()
 export class AdminOnlyGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<AdminRequest>();
     const user = request.user;
 
-    if (!user) {
+    if (user === null || user === undefined) {
       throw new UnauthorizedException('Authentication required');
     }
 

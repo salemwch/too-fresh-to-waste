@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type, Transform } from 'class-transformer';
+import { Type, Transform, type TransformFnParams } from 'class-transformer';
 import {
   IsString,
   IsEnum,
@@ -16,142 +16,146 @@ import {
   ArrayMinSize,
 } from 'class-validator';
 
+import type { CreateOfferInput } from '@foodwaste/shared';
+
 import { OfferType } from '../schemas/offer.schema';
+
+function getTransformValue(params: TransformFnParams): unknown {
+  return params.value as unknown;
+}
+
+function isUnknownArray(value: unknown): value is unknown[] {
+  return Array.isArray(value);
+}
+
+function trimMultipartStringValue(params: TransformFnParams): unknown {
+  const value = getTransformValue(params);
+
+  if (isUnknownArray(value)) {
+    const [firstValue] = value;
+    return typeof firstValue === 'string' ? firstValue.trim() : firstValue;
+  }
+
+  return typeof value === 'string' ? value.trim() : value;
+}
+
+function parseFloatValue(params: TransformFnParams): unknown {
+  const value = getTransformValue(params);
+  return typeof value === 'string' ? Number.parseFloat(value) : value;
+}
+
+function parseIntegerValue(params: TransformFnParams): unknown {
+  const value = getTransformValue(params);
+  return typeof value === 'string' ? Number.parseInt(value, 10) : value;
+}
+
+function getRawObjectValue(params: TransformFnParams): unknown {
+  const source = params.obj as Record<string, unknown> | null | undefined;
+  const key = params.key;
+
+  if (source === null || source === undefined || typeof key !== 'string') {
+    return undefined;
+  }
+
+  return source[key];
+}
+
+function parseBooleanValue(params: TransformFnParams): boolean {
+  const rawValue = getRawObjectValue(params) ?? getTransformValue(params);
+
+  if (typeof rawValue === 'boolean') {
+    return rawValue;
+  }
+
+  if (isUnknownArray(rawValue)) {
+    const [firstValue] = rawValue;
+
+    if (typeof firstValue === 'string') {
+      return firstValue === 'true' || firstValue === '1';
+    }
+
+    return Boolean(firstValue);
+  }
+
+  if (typeof rawValue === 'string') {
+    return rawValue === 'true' || rawValue === '1';
+  }
+
+  return Boolean(rawValue);
+}
 
 class PriceInfoDto {
   @IsNumber()
   @Min(0.01)
-  @Transform(({ value }) => {
-    // ✅ FIX: Convert string to number for multipart/form-data
-    if (typeof value === 'string') {
-      return parseFloat(value);
-    }
-    return value;
-  })
+  @Transform(parseFloatValue)
   originalPrice!: number;
 
   @IsNumber()
   @Min(0.01)
-  @Transform(({ value }) => {
-    // ✅ FIX: Convert string to number for multipart/form-data
-    if (typeof value === 'string') {
-      return parseFloat(value);
-    }
-    return value;
-  })
+  @Transform(parseFloatValue)
   discountedPrice!: number;
 
-  // ✅ SECURITY: discountPercentage is backend-calculated - removed from user input
-  // Backend calculates and validates this in offers.service.ts
-  // ✅ SECURITY: Currency is system-enforced (TND) - removed from user input
-  // Backend automatically sets this in offers.service.ts
+  // SECURITY: discountPercentage is backend-calculated.
+  // SECURITY: Currency is system-enforced (TND).
 }
 
 class PickupTimeSlotDto {
   @IsString()
-  @Transform(({ value }) => {
-    // ✅ FIX: Handle arrays from multipart/form-data (e.g., ["10:00"] → "10:00")
-    if (Array.isArray(value)) {
-      return value[0]?.trim?.() || value[0];
-    }
-    return typeof value === 'string' ? value.trim() : value;
-  })
+  @Transform(trimMultipartStringValue)
   startTime!: string;
 
   @IsString()
-  @Transform(({ value }) => {
-    // ✅ FIX: Handle arrays from multipart/form-data (e.g., ["23:46"] → "23:46")
-    if (Array.isArray(value)) {
-      return value[0]?.trim?.() || value[0];
-    }
-    return typeof value === 'string' ? value.trim() : value;
-  })
+  @Transform(trimMultipartStringValue)
   endTime!: string;
 
   @IsOptional()
   @IsNumber()
   @Min(1)
   @Max(100)
-  @Transform(({ value }) => {
-    // ✅ FIX: Convert string to number for multipart/form-data
-    if (typeof value === 'string') {
-      return parseInt(value, 10);
-    }
-    return value;
-  })
-  maxOrders?: number;
+  @Transform(parseIntegerValue)
+  maxOrders?: number | undefined;
 
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Transform(({ value }) => {
-    // ✅ FIX: Convert string to number for multipart/form-data
-    if (typeof value === 'string') {
-      return parseInt(value, 10);
-    }
-    return value;
-  })
-  currentOrders?: number = 0;
+  @Transform(parseIntegerValue)
+  currentOrders?: number | undefined;
 }
 
 class NutritionalInfoDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Transform(({ value }) => {
-    // ✅ FIX: Convert string to number for multipart/form-data
-    if (typeof value === 'string') {
-      return parseFloat(value);
-    }
-    return value;
-  })
-  calories?: number;
+  @Transform(parseFloatValue)
+  calories?: number | undefined;
 
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Transform(({ value }) => {
-    // ✅ FIX: Convert string to number for multipart/form-data
-    if (typeof value === 'string') {
-      return parseFloat(value);
-    }
-    return value;
-  })
-  protein?: number;
+  @Transform(parseFloatValue)
+  protein?: number | undefined;
 
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Transform(({ value }) => {
-    // ✅ FIX: Convert string to number for multipart/form-data
-    if (typeof value === 'string') {
-      return parseFloat(value);
-    }
-    return value;
-  })
-  carbs?: number;
+  @Transform(parseFloatValue)
+  carbs?: number | undefined;
 
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Transform(({ value }) => {
-    // ✅ FIX: Convert string to number for multipart/form-data
-    if (typeof value === 'string') {
-      return parseFloat(value);
-    }
-    return value;
-  })
-  fat?: number;
+  @Transform(parseFloatValue)
+  fat?: number | undefined;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  allergens?: string[];
+  allergens?: string[] | undefined;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  dietaryInfo?: string[];
+  dietaryInfo?: string[] | undefined;
 }
 
 class RecurringDaysDto {
@@ -177,29 +181,17 @@ class RecurringDaysDto {
   sunday!: boolean;
 }
 
-export class CreateOfferDto {
+export class CreateOfferDto implements CreateOfferInput {
   @IsString()
   @MinLength(5)
   @MaxLength(100)
-  @Transform(({ value }) => {
-    // ✅ FIX: Handle arrays from multipart/form-data
-    if (Array.isArray(value)) {
-      return value[0]?.trim?.() || value[0];
-    }
-    return typeof value === 'string' ? value.trim() : value;
-  })
+  @Transform(trimMultipartStringValue)
   title!: string;
 
   @IsString()
   @MinLength(20)
   @MaxLength(1000)
-  @Transform(({ value }) => {
-    // ✅ FIX: Handle arrays from multipart/form-data
-    if (Array.isArray(value)) {
-      return value[0]?.trim?.() || value[0];
-    }
-    return typeof value === 'string' ? value.trim() : value;
-  })
+  @Transform(trimMultipartStringValue)
   description!: string;
 
   @IsString()
@@ -215,13 +207,7 @@ export class CreateOfferDto {
   @IsNumber()
   @Min(1)
   @Max(1000)
-  @Transform(({ value }) => {
-    // ✅ FIX: Convert string to number for multipart/form-data
-    if (typeof value === 'string') {
-      return parseInt(value, 10);
-    }
-    return value;
-  })
+  @Transform(parseIntegerValue)
   totalQuantity!: number;
 
   @ApiProperty({
@@ -235,18 +221,18 @@ export class CreateOfferDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  images?: string[];
+  images?: string[] | undefined;
 
   @IsArray()
   @IsString({ each: true })
   @ArrayMinSize(1)
   @IsOptional()
-  categories?: string[];
+  categories?: string[] | undefined;
 
   @IsOptional()
   @ValidateNested()
   @Type(() => NutritionalInfoDto)
-  nutritionalInfo?: NutritionalInfoDto;
+  nutritionalInfo?: NutritionalInfoDto | undefined;
 
   @IsDateString()
   availableFrom!: string;
@@ -262,30 +248,30 @@ export class CreateOfferDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  tags?: string[];
+  tags?: string[] | undefined;
 
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  estimatedWeight?: string;
+  estimatedWeight?: string | undefined;
 
   @IsOptional()
   @IsBoolean()
-  isRecurring?: boolean;
+  isRecurring?: boolean | undefined;
 
   @IsOptional()
   @ValidateNested()
   @Type(() => RecurringDaysDto)
-  recurringDays?: RecurringDaysDto;
+  recurringDays?: RecurringDaysDto | undefined;
 
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  specialInstructions?: string;
+  specialInstructions?: string | undefined;
 
   @IsOptional()
   @IsDateString()
-  cancellationDeadline?: string;
+  cancellationDeadline?: string | undefined;
 
   @IsOptional()
   @IsString()
@@ -296,61 +282,27 @@ export class CreateOfferDto {
     required: false,
     default: 'Africa/Tunis',
   })
-  timezone?: string = 'Africa/Tunis';
+  timezone: string = 'Africa/Tunis';
 
   @IsOptional()
   @IsBoolean()
-  @Transform(({ value, obj, key }) => {
-    // Read from the raw source object first to avoid the class-field
-    // default (= false) shadowing the incoming value in class-transformer.
-    const raw = (obj as Record<string, unknown>)?.[key] ?? value;
-    if (typeof raw === 'boolean') {
-      return raw;
-    }
-    if (Array.isArray(raw)) {
-      const v = raw[0];
-      if (typeof v === 'string') {
-        return v === 'true' || v === '1';
-      }
-      return Boolean(v);
-    }
-    if (typeof raw === 'string') {
-      return raw === 'true' || raw === '1';
-    }
-    return Boolean(raw);
-  })
+  @Transform(parseBooleanValue)
   @ApiProperty({
     description: 'Show offer in "Pickup Today" section on mobile app',
     example: false,
     required: false,
     default: false,
   })
-  isPickupToday?: boolean;
+  isPickupToday?: boolean | undefined;
 
   @IsOptional()
   @IsBoolean()
-  @Transform(({ value, obj, key }) => {
-    const raw = (obj as Record<string, unknown>)?.[key] ?? value;
-    if (typeof raw === 'boolean') {
-      return raw;
-    }
-    if (Array.isArray(raw)) {
-      const v = raw[0];
-      if (typeof v === 'string') {
-        return v === 'true' || v === '1';
-      }
-      return Boolean(v);
-    }
-    if (typeof raw === 'string') {
-      return raw === 'true' || raw === '1';
-    }
-    return Boolean(raw);
-  })
+  @Transform(parseBooleanValue)
   @ApiProperty({
     description: 'Show offer in "Pickup Tomorrow" section on mobile app',
     example: false,
     required: false,
     default: false,
   })
-  isPickupTomorrow?: boolean;
+  isPickupTomorrow?: boolean | undefined;
 }

@@ -1,3 +1,4 @@
+import type { DonationStatsResponse, UserDonationStatsResponse } from '@foodwaste/shared';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNumber,
@@ -15,7 +16,7 @@ import { DonationPoolStatus } from '../schemas/donation-pool.schema';
  * Response DTO for donation statistics
  * Used by the frontend to display impact metrics
  */
-export class DonationStatsResponseDto {
+export class DonationStatsResponseDto implements DonationStatsResponse {
   @ApiProperty({
     description: 'Total donations collected in the current pool',
     example: 847.3,
@@ -96,7 +97,7 @@ export class DonationStatsResponseDto {
 /**
  * Response DTO for user-specific donation statistics
  */
-export class UserDonationStatsResponseDto {
+export class UserDonationStatsResponseDto implements UserDonationStatsResponse {
   @ApiProperty({
     description: 'Total amount donated by the user',
     example: 2.45,

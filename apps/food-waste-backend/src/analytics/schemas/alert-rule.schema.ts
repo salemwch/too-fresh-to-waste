@@ -33,7 +33,6 @@ export class AlertRule {
     required: true,
     trim: true,
     maxlength: 100,
-    index: true,
   })
   name!: string;
 
@@ -47,7 +46,6 @@ export class AlertRule {
   @Prop({
     type: String,
     required: true,
-    index: true,
   })
   metric!: string;
 
@@ -76,7 +74,6 @@ export class AlertRule {
     enum: ['low', 'medium', 'high', 'critical'],
     required: true,
     default: 'medium',
-    index: true,
   })
   severity!: 'low' | 'medium' | 'high' | 'critical';
 
@@ -110,7 +107,6 @@ export class AlertRule {
   @Prop({
     type: Boolean,
     default: true,
-    index: true,
   })
   isActive!: boolean;
 
@@ -130,7 +126,6 @@ export class AlertRule {
 
   @Prop({
     type: Date,
-    index: true,
   })
   lastTriggered?: Date;
 
@@ -150,7 +145,6 @@ export class AlertRule {
     type: Types.ObjectId,
     ref: 'User',
     required: true,
-    index: true,
   })
   createdBy!: Types.ObjectId;
 
@@ -176,7 +170,6 @@ export class Alert {
     type: Types.ObjectId,
     ref: 'AlertRule',
     required: true,
-    index: true,
   })
   ruleId!: Types.ObjectId;
 
@@ -190,7 +183,6 @@ export class Alert {
     type: String,
     enum: ['low', 'medium', 'high', 'critical'],
     required: true,
-    index: true,
   })
   severity!: 'low' | 'medium' | 'high' | 'critical';
 
@@ -216,13 +208,11 @@ export class Alert {
   @Prop({
     type: Date,
     required: true,
-    index: true,
   })
   triggeredAt!: Date;
 
   @Prop({
     type: Date,
-    index: true,
   })
   acknowledgedAt?: Date;
 
@@ -234,7 +224,6 @@ export class Alert {
 
   @Prop({
     type: Date,
-    index: true,
   })
   resolvedAt?: Date;
 
@@ -249,7 +238,6 @@ export class Alert {
     enum: ['triggered', 'acknowledged', 'resolved', 'expired'],
     required: true,
     default: 'triggered',
-    index: true,
   })
   status!: 'triggered' | 'acknowledged' | 'resolved' | 'expired';
 
@@ -313,7 +301,12 @@ AlertRuleSchema.pre('save', function () {
 
 AlertSchema.pre('save', function () {
   // Auto-resolve expired alerts
-  if (this.expiresAt && this.expiresAt < new Date() && this.status === 'triggered') {
+  if (
+    this.expiresAt !== null &&
+    this.expiresAt !== undefined &&
+    this.expiresAt < new Date() &&
+    this.status === 'triggered'
+  ) {
     this.status = 'expired';
   }
 });

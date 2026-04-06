@@ -73,7 +73,7 @@ export class EstablishmentManagementController {
     description: 'Maximum number of results (default: 50)',
   })
   async getPendingApprovals(@Query('limit') limit?: number): Promise<IEstablishment[]> {
-    const result = await this.establishmentManagementService.getPendingApprovals(limit || 50);
+    const result = await this.establishmentManagementService.getPendingApprovals(limit ?? 50);
     return result;
   }
 

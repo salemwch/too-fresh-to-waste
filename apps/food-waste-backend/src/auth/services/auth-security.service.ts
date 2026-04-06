@@ -219,7 +219,7 @@ export class AuthSecurityService {
       // Use the higher count between IP and email for blocking decision
       const maxCount = Math.max(ipAttempts.count, emailAttempts.count);
       const isLocked = maxCount >= MAX_LOGIN_ATTEMPTS;
-      const blockedUntil = ipAttempts.blockedUntil || emailAttempts.blockedUntil;
+      const blockedUntil = ipAttempts.blockedUntil ?? emailAttempts.blockedUntil;
 
       this.logger.debug(`[RECORD ATTEMPT] IP: ${ip}, Email: ${email}`);
       this.logger.debug(
@@ -230,7 +230,11 @@ export class AuthSecurityService {
       );
 
       // Check for suspicious activity and emit events
-      if (ipAttempts && ipAttempts.count >= this.SUSPICIOUS_ACTIVITY_THRESHOLD) {
+      if (
+        ipAttempts !== null &&
+        ipAttempts !== undefined &&
+        ipAttempts.count >= this.SUSPICIOUS_ACTIVITY_THRESHOLD
+      ) {
         this.logger.warn(
           `Suspicious activity detected from IP ${ip}: ${ipAttempts.count} failed attempts`,
         );
@@ -246,7 +250,11 @@ export class AuthSecurityService {
           },
           email,
         );
-      } else if (ipAttempts && ipAttempts.count >= this.CAPTCHA_REQUIRED_AFTER_ATTEMPTS) {
+      } else if (
+        ipAttempts !== null &&
+        ipAttempts !== undefined &&
+        ipAttempts.count >= this.CAPTCHA_REQUIRED_AFTER_ATTEMPTS
+      ) {
         await this.emitSecurityEvent(
           SecurityEventType.MULTIPLE_FAILED_LOGINS,
           SecuritySeverity.MEDIUM,
@@ -358,12 +366,12 @@ export class AuthSecurityService {
       }
 
       this.logger.warn(
-        `IP ${ip} blocked until ${blockedUntil}. Reason: ${reason || 'security violation'}`,
+        `IP ${ip} blocked until ${blockedUntil}. Reason: ${reason ?? 'security violation'}`,
       );
 
       // Emit security event for IP blocking (PRODUCTION-READY IMPROVEMENT)
       void this.emitSecurityEvent(SecurityEventType.IP_BLOCKED, SecuritySeverity.HIGH, ip, {
-        reason: reason || 'security violation',
+        reason: reason ?? 'security violation',
         duration,
         blockedUntil: blockedUntil.toISOString(),
       });
@@ -562,14 +570,12 @@ export class AuthSecurityService {
     const shouldResetWindow =
       !requestData || now.getTime() - new Date(requestData.resetTime).getTime() > windowSizeMs;
 
-    if (shouldResetWindow) {
-      requestData = { count: 1, resetTime: now.toISOString() };
-    } else {
-      requestData!.count++;
-    }
+    const currentRequestData: RequestData =
+      shouldResetWindow || !requestData
+        ? { count: 1, resetTime: now.toISOString() }
+        : { ...requestData, count: requestData.count + 1 };
 
-    await redisClient.setEx(requestKey, 60, JSON.stringify(requestData));
-    const currentRequestData = requestData!;
+    await redisClient.setEx(requestKey, 60, JSON.stringify(currentRequestData));
 
     if (currentRequestData.count > threshold) {
       this.logger.warn(
@@ -611,7 +617,7 @@ export class AuthSecurityService {
       this.fallbackRequests.set(ip, requestData);
     }
 
-    const currentCount = this.fallbackRequests.get(ip)?.count || 0;
+    const currentCount = this.fallbackRequests.get(ip)?.count ?? 0;
     if (currentCount > threshold) {
       this.logger.warn(
         `Rate limit exceeded: ${currentCount} requests from IP ${ip} in 1 minute (threshold: ${threshold})`,
@@ -808,13 +814,13 @@ export class AuthSecurityService {
         undefined, // userId not available in auth-security service
         userAgent,
         {
-          ...((details['attemptCount'] || details['attempts']) !== undefined
+          ...((details['attemptCount'] ?? details['attempts']) !== undefined
             ? { attemptCount: (details['attemptCount'] ?? details['attempts']) as number }
             : {}),
           ...(details['threshold'] !== undefined
             ? { threshold: details['threshold'] as number }
             : {}),
-          ...(details['blockedUntil']
+          ...(details['blockedUntil'] !== null && details['blockedUntil'] !== undefined
             ? { blockedUntil: new Date(details['blockedUntil'] as string | number) }
             : {}),
         },

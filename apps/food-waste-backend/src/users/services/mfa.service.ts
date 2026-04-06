@@ -1,6 +1,11 @@
 import * as crypto from 'crypto';
 
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as argon2 from 'argon2';
 import { Model } from 'mongoose';
@@ -61,14 +66,12 @@ export class MfaService {
       verified: false,
     };
 
-    if (!user.mfaSettings) {
-      user.mfaSettings = {
-        isEnabled: false,
-        methods: [],
-        requireForSensitiveActions: true,
-        trustDeviceDays: 30,
-      };
-    }
+    user.mfaSettings ??= {
+      isEnabled: false,
+      methods: [],
+      requireForSensitiveActions: true,
+      trustDeviceDays: 30,
+    };
 
     // Remove existing TOTP method if any
     user.mfaSettings.methods = user.mfaSettings.methods.filter((method) => method.type !== 'totp');
@@ -78,9 +81,14 @@ export class MfaService {
 
     this.logger.log(`TOTP setup initiated for user: ${user.email}`);
 
+    const qrCodeUrl = secret.otpauth_url;
+    if (!qrCodeUrl) {
+      throw new InternalServerErrorException('Failed to generate MFA QR code URL');
+    }
+
     return {
       secret: secret.base32,
-      qrCodeUrl: secret.otpauth_url!,
+      qrCodeUrl,
       backupCodes,
       manualEntryKey: secret.base32,
     };
@@ -124,7 +132,7 @@ export class MfaService {
 
   async verifyTotp(userId: string, token: string): Promise<MfaVerificationResult> {
     const user = await this.userModel.findById(userId);
-    if (!user?.mfaSettings?.isEnabled) {
+    if (user?.mfaSettings?.isEnabled !== true) {
       throw new BadRequestException('MFA not enabled for user');
     }
 
@@ -200,7 +208,7 @@ export class MfaService {
 
   async generateNewBackupCodes(userId: string): Promise<string[]> {
     const user = await this.userModel.findById(userId);
-    if (!user?.mfaSettings?.isEnabled) {
+    if (user?.mfaSettings?.isEnabled !== true) {
       throw new BadRequestException('MFA not enabled for user');
     }
 
@@ -274,7 +282,7 @@ export class MfaService {
     return {
       isEnabled: user.mfaSettings.isEnabled,
       methods,
-      backupCodesCount: totpMethod?.backupCodes?.length || 0,
+      backupCodesCount: totpMethod?.backupCodes?.length ?? 0,
     };
   }
 
@@ -287,7 +295,7 @@ export class MfaService {
           .toString('hex')
           .toUpperCase()
           .match(/.{1,4}/g)
-          ?.join('-') || '';
+          ?.join('-') ?? '';
       codes.push(code);
     }
     return codes;
@@ -295,7 +303,7 @@ export class MfaService {
 
   async requiresMfaForAction(userId: string, action: string): Promise<boolean> {
     const user = await this.userModel.findById(userId);
-    if (!user?.mfaSettings?.isEnabled) {
+    if (user?.mfaSettings?.isEnabled !== true) {
       return false;
     }
 
@@ -307,23 +315,25 @@ export class MfaService {
       'privacy_settings_change',
     ];
 
-    return user.mfaSettings.requireForSensitiveActions && sensitiveActions.includes(action);
+    return (
+      user.mfaSettings.requireForSensitiveActions === true && sensitiveActions.includes(action)
+    );
   }
 
   async validateMfaSession(userId: string, deviceId?: string): Promise<boolean> {
     const user = await this.userModel.findById(userId);
-    if (!user?.mfaSettings?.isEnabled) {
+    if (user?.mfaSettings?.isEnabled !== true) {
       return true;
     }
 
     // Check if device is trusted
-    if (deviceId && user.trustedDevices) {
+    if (deviceId && user.trustedDevices !== null && user.trustedDevices !== undefined) {
       const trustedDevice = user.trustedDevices.find(
         (device) =>
           device.deviceId === deviceId &&
-          device.isTrusted &&
+          device.isTrusted === true &&
           !device.revokedAt &&
-          device.expiresAt &&
+          device.expiresAt !== undefined &&
           device.expiresAt > new Date(),
       );
 

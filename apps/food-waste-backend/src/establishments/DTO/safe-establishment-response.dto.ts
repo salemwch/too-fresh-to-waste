@@ -123,6 +123,15 @@ export interface SafeEstablishmentResponse {
 export function mapToSafeEstablishmentResponse(
   establishmentDoc: EstablishmentDocument,
 ): SafeEstablishmentResponse {
+  const rawEstablishmentId: unknown = establishmentDoc._id;
+  const fallbackEstablishmentId = (establishmentDoc as unknown as { id?: unknown }).id;
+  const safeEstablishmentId: string =
+    rawEstablishmentId !== null && rawEstablishmentId !== undefined
+      ? String(rawEstablishmentId)
+      : fallbackEstablishmentId !== null && fallbackEstablishmentId !== undefined
+        ? String(fallbackEstablishmentId)
+        : '';
+
   // Clean address by removing MongoDB _id field
   const safeAddress: SafeAddress = {
     street: establishmentDoc.address.street,
@@ -177,7 +186,7 @@ export function mapToSafeEstablishmentResponse(
     : undefined;
 
   return {
-    id: establishmentDoc._id?.toString() || establishmentDoc.id,
+    id: safeEstablishmentId,
     name: establishmentDoc.name,
     description: establishmentDoc.description,
     type: establishmentDoc.type,
@@ -186,7 +195,7 @@ export function mapToSafeEstablishmentResponse(
     phoneNumber: establishmentDoc.phoneNumber,
     email: establishmentDoc.email,
     website: establishmentDoc.website,
-    images: establishmentDoc.images || [],
+    images: establishmentDoc.images ?? [],
     cuisineTypes: establishmentDoc.cuisineTypes,
     businessHours: safeBusinessHours,
     averageRating: establishmentDoc.averageRating || 0,

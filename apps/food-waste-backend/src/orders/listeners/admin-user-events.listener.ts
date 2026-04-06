@@ -1,7 +1,8 @@
+import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { plainToClass } from 'class-transformer';
+
 import {
   AdminUserSuspendedEvent,
   AdminUserBlockedEvent,
@@ -21,9 +22,7 @@ import { OrdersService } from '../order.service';
 export class AdminUserEventsListener {
   private readonly logger = new Logger(AdminUserEventsListener.name);
 
-  constructor(
-    private readonly orderService: OrdersService,
-  ) {}
+  constructor(private readonly orderService: OrdersService) {}
 
   // ============================================
   // USER SUSPENDED HANDLERS
@@ -34,7 +33,12 @@ export class AdminUserEventsListener {
    */
   @OnEvent('admin.user.suspended')
   async handleUserSuspendedLegacy(event: AdminUserSuspendedEvent): Promise<void> {
-    await this.cancelUserOrders(event.userId, event.adminEmail, event.suspensionReason, 'suspended');
+    await this.cancelUserOrders(
+      event.userId,
+      event.adminEmail,
+      event.suspensionReason,
+      'suspended',
+    );
   }
 
   /**
@@ -55,7 +59,12 @@ export class AdminUserEventsListener {
   async handleUserSuspendedRabbitMQ(msg: object): Promise<void | Nack> {
     try {
       const event = plainToClass(AdminUserSuspendedEvent, msg);
-      await this.cancelUserOrders(event.userId, event.adminEmail, event.suspensionReason, 'suspended');
+      await this.cancelUserOrders(
+        event.userId,
+        event.adminEmail,
+        event.suspensionReason,
+        'suspended',
+      );
       // Auto-ACK on success
     } catch (error) {
       this.logger.error(`CRITICAL: RabbitMQ failed to process admin.user.suspended event`, error);
@@ -91,10 +100,7 @@ export class AdminUserEventsListener {
         this.logger.debug(`No pending orders to cancel for ${action} user ${userId}`);
       }
     } catch (error) {
-      this.logger.error(
-        `Failed to cancel orders for ${action} user ${userId}:`,
-        error,
-      );
+      this.logger.error(`Failed to cancel orders for ${action} user ${userId}:`, error);
       // Don't throw - order cancellation failure shouldn't block the admin action
     }
   }
@@ -109,9 +115,7 @@ export class AdminUserEventsListener {
   @OnEvent('admin.user.blocked')
   async handleUserBlockedLegacy(event: AdminUserBlockedEvent): Promise<void> {
     await this.cancelUserOrders(event.userId, event.adminEmail, event.blockReason, 'blocked');
-    this.logger.warn(
-      `SECURITY: All pending orders cancelled for blocked user ${event.userId}`,
-    );
+    this.logger.warn(`SECURITY: All pending orders cancelled for blocked user ${event.userId}`);
   }
 
   /**
@@ -133,9 +137,7 @@ export class AdminUserEventsListener {
     try {
       const event = plainToClass(AdminUserBlockedEvent, msg);
       await this.cancelUserOrders(event.userId, event.adminEmail, event.blockReason, 'blocked');
-      this.logger.warn(
-        `SECURITY: All pending orders cancelled for blocked user ${event.userId}`,
-      );
+      this.logger.warn(`SECURITY: All pending orders cancelled for blocked user ${event.userId}`);
       // Auto-ACK on success
     } catch (error) {
       this.logger.error(`CRITICAL: RabbitMQ failed to process admin.user.blocked event`, error);
@@ -205,17 +207,12 @@ export class AdminUserEventsListener {
       // For hard delete, anonymize order history for GDPR compliance
       if (event.hardDelete) {
         await this.orderService.anonymizeUserOrders(event.userId);
-        this.logger.log(
-          `Anonymized order history for hard-deleted user ${event.userId}`,
-        );
+        this.logger.log(`Anonymized order history for hard-deleted user ${event.userId}`);
       }
 
       this.logger.log(`Successfully handled orders for deleted user ${event.userId}`);
     } catch (error) {
-      this.logger.error(
-        `Failed to handle orders for deleted user ${event.userId}:`,
-        error,
-      );
+      this.logger.error(`Failed to handle orders for deleted user ${event.userId}:`, error);
       // Don't throw - deletion should proceed even if order handling fails
     }
   }

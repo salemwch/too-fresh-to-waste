@@ -1,4 +1,6 @@
-import { DEFAULT_CURRENCY, UserRole } from '@foodwaste/shared';
+import * as crypto from 'crypto';
+
+import { DEFAULT_CURRENCY, ORDER_GRACE_PERIOD_MS, UserRole } from '@foodwaste/shared';
 import {
   Injectable,
   NotFoundException,
@@ -24,11 +26,20 @@ import {
   EstablishmentDocument,
 } from '../establishments/schemas/establishment.schema';
 import { NotificationService } from '../notifications/services/notification.service';
+import { Offer, OfferDocument, OfferStatus } from '../offers/schemas/offer.schema';
 import { Payment, PaymentDocument, PaymentStatus } from '../payments/schemas/payment.schema';
 import { PayoutService } from '../payments/services/payout.service';
 import { RefundService } from '../payments/services/refund.service';
+import { User, UserDocument } from '../users/schemas/user.schema';
 import { WebSocketService } from '../websocket/websocket.service';
 
+import {
+  CreateOrderDto,
+  ConfirmPickupDto,
+  UpdateOrderStatusDto,
+  CancelOrderDto,
+  OrderQueryDto,
+} from './DTO/create-order.dto';
 import {
   Order,
   OrderDocument,
@@ -45,18 +56,6 @@ import {
  * We use 'unknown' for _id to accept both ObjectId and FlattenMaps variants.
  */
 export type OrderLean = FlattenMaps<Order> & { _id: unknown };
-import { Offer, OfferDocument, OfferStatus } from '../offers/schemas/offer.schema';
-import { User, UserDocument } from '../users/schemas/user.schema';
-
-import {
-  CreateOrderDto,
-  ConfirmPickupDto,
-  UpdateOrderStatusDto,
-  CancelOrderDto,
-  OrderQueryDto,
-} from './DTO/create-order.dto';
-
-import * as crypto from 'crypto';
 
 // Core business interfaces for type safety
 interface OrderQueryFilter {
@@ -163,9 +162,6 @@ interface OrderQuantityUpdate {
   slotStart: string;
   slotEnd: string;
 }
-
-/** Grace period after offer expires before order expires (30 minutes) */
-const ORDER_GRACE_PERIOD_MS = 30 * 60 * 1000;
 
 @Injectable()
 export class OrdersService {
@@ -342,7 +338,7 @@ export class OrdersService {
             } else {
               refundFailedCount++;
               // Schedule retry if refund failed
-              if (refundResult.willRetry && refundResult.paymentId) {
+              if (refundResult.willRetry === true && refundResult.paymentId) {
                 await this.refundService.scheduleRefundRetry(refundResult.paymentId);
               }
               this.appLogger.warn(
@@ -523,14 +519,19 @@ export class OrdersService {
       // Donation creation is now handled via order.completed event
 
       // Notify merchant via WebSocket + push (non-blocking — failure must not break order creation)
-      this.notifyMerchantNewOrder(finalOrder!).catch((err: Error) => {
+      if (finalOrder === null) {
+        throw new InternalServerErrorException('Order was not created');
+      }
+
+      const createdOrder: OrderDocument = finalOrder;
+      this.notifyMerchantNewOrder(createdOrder).catch((err: Error) => {
         this.appLogger.error(
-          `Merchant notification failed for order ${finalOrder!.orderNumber}: ${err.message}`,
+          `Merchant notification failed for order ${createdOrder.orderNumber}: ${err.message}`,
           'OrderService.notifyMerchant',
         );
       });
 
-      return finalOrder!;
+      return createdOrder;
     } catch (error) {
       this.appLogger.error(`Order creation failed: ${(error as Error).message}`, 'OrderService');
 
@@ -585,9 +586,10 @@ export class OrdersService {
    * Wrapped in try/catch so a failure here never propagates to the caller.
    */
   private async notifyMerchantNewOrder(order: OrderDocument): Promise<void> {
-    const merchantId = order.merchantId._id
-      ? order.merchantId._id.toString()
-      : order.merchantId.toString();
+    const merchantId =
+      order.merchantId._id !== null && order.merchantId._id !== undefined
+        ? order.merchantId._id.toString()
+        : order.merchantId.toString();
 
     const customer = order.customerId as unknown as { firstName?: string; lastName?: string };
     const customerName =
@@ -737,12 +739,12 @@ export class OrdersService {
         throw new Error('User ID is required for merchant');
       }
       query.merchantId = new Types.ObjectId(userId);
-    } else if (userRole && userRole !== UserRole.ADMIN) {
+    } else if (userRole !== null && userRole !== undefined && userRole !== UserRole.ADMIN) {
       throw new Error(`Invalid user role: ${userRole}`);
     }
 
     // Filters
-    if (safeFilters.status) {
+    if (safeFilters.status !== null && safeFilters.status !== undefined) {
       query.status = safeFilters.status as OrderStatus;
     }
     if (safeFilters.establishmentId) {
@@ -778,7 +780,7 @@ export class OrdersService {
     }
 
     // Sorting
-    const sortField = safeFilters.sortBy || 'createdAt';
+    const sortField = safeFilters.sortBy ?? 'createdAt';
     const sortOrder = safeFilters.sortOrder === 'asc' ? 1 : -1;
 
     const sort: OrderSort = { [sortField]: sortOrder };
@@ -1005,7 +1007,7 @@ export class OrdersService {
     // Validate pickup code or QR code
     const isValidCode =
       order.pickupDetails.pickupCode === confirmDto.pickupCode ||
-      (confirmDto.qrCode && order.pickupDetails.qrCode === confirmDto.qrCode);
+      (confirmDto.qrCode !== undefined && order.pickupDetails.qrCode === confirmDto.qrCode);
     this.appLogger.log(
       `Validating pickup - Order details: ${JSON.stringify(order.pickupDetails)}`,
       'OrderService',
@@ -1145,7 +1147,7 @@ export class OrdersService {
             orderId,
             order.customerId._id.toString(),
             order.merchantId._id.toString(),
-            order.items[0]?.offerId.toString() || '', // Get first offer ID
+            order.items[0]?.offerId.toString() ?? '', // Get first offer ID
             order.pricing?.total || 0,
             new Date(),
             {
@@ -1255,7 +1257,7 @@ export class OrdersService {
 
           if (!refundResult.success && refundResult.paymentId) {
             // Schedule retry if refund failed but order should still be cancelled
-            if (refundResult.willRetry) {
+            if (refundResult.willRetry === true) {
               await this.refundService.scheduleRefundRetry(refundResult.paymentId);
             }
             this.appLogger.warn(
@@ -1323,8 +1325,8 @@ export class OrdersService {
    */
   private calculatePickupStartTime(order: OrderDocument): Date {
     const pickupDate = new Date(order.pickupDetails.scheduledDate);
-    const startTimeParts = order.pickupDetails.timeSlot.startTime.split(':');
-    pickupDate.setHours(parseInt(startTimeParts[0]!, 10), parseInt(startTimeParts[1]!, 10), 0, 0);
+    const [startHour = '0', startMinute = '0'] = order.pickupDetails.timeSlot.startTime.split(':');
+    pickupDate.setHours(parseInt(startHour, 10), parseInt(startMinute, 10), 0, 0);
     return pickupDate;
   }
   async softDeleteOrder(orderId: string, adminId: string): Promise<Order> {
@@ -1395,7 +1397,7 @@ export class OrdersService {
 
     const result: OrderStatsResult[] = stats as OrderStatsResult[];
     return (
-      result[0] || {
+      result[0] ?? {
         totalOrders: 0,
         totalRevenue: 0,
         pendingOrders: 0,
@@ -1587,7 +1589,7 @@ export class OrdersService {
           const month = d.getMonth() + 1;
           const found = results.find((r) => r._id['year'] === year && r._id['month'] === month);
           output.push({
-            label: CHART_MONTH_NAMES[month - 1]!,
+            label: CHART_MONTH_NAMES[month - 1] ?? d.toLocaleString('en-US', { month: 'short' }),
             year,
             month,
             revenue: found?.revenue ?? 0,
@@ -1648,7 +1650,7 @@ export class OrdersService {
     ];
 
     const locations = await this.orderModel.aggregate(pipeline);
-    return locations;
+    return locations as CustomerLocationResponse[];
   }
 
   async updateExpiredOrders(): Promise<number> {
@@ -1940,10 +1942,15 @@ export class OrdersService {
     }
 
     // Determine earliest offer expiry for order expiresAt calculation
+    const firstOffer = offers[0];
+    if (!firstOffer) {
+      throw new BadRequestException('At least one offer is required to create an order');
+    }
+
     const earliestOfferExpiry = offers.reduce((earliest, offer) => {
       const until = new Date(offer.availableUntil);
       return until < earliest ? until : earliest;
-    }, new Date(offers[0]!.availableUntil));
+    }, new Date(firstOffer.availableUntil));
 
     let subtotal = 0;
     let totalDiscountAmount = 0;
@@ -2053,7 +2060,7 @@ export class OrdersService {
     if (!order) {
       throw new NotFoundException('Order not found');
     }
-    if (!order.pickupExtensionRequest) {
+    if (order.pickupExtensionRequest === null || order.pickupExtensionRequest === undefined) {
       throw new BadRequestException('No extension request found');
     }
 
@@ -2217,7 +2224,7 @@ export class OrdersService {
             status: { $in: [PaymentStatus.HELD, PaymentStatus.COMPLETED] },
           });
 
-          if (payment && this.refundService) {
+          if (payment !== null && payment !== undefined) {
             await this.refundService.processFullRefund(payment._id.toString(), reason);
             this.appLogger.log(
               `Initiated refund for order ${order._id.toString()} payment ${payment._id.toString()}`,

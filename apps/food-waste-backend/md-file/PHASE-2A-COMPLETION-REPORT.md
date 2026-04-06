@@ -12,6 +12,7 @@
 Successfully extracted `UserRole` and `UserStatus` enums from feature modules to `common/enums/user.enum.ts`, establishing a centralized source of truth for user-related enumerations. This lays the foundation for moving auth decorators to common in Phase 2B.
 
 **Impact:**
+
 - **60 files updated** (import paths changed)
 - **2 enum definitions consolidated** (removed duplicates)
 - **0 breaking changes** (backward compatible re-exports)
@@ -51,19 +52,23 @@ export enum UserStatus {
 **60 files updated systematically:**
 
 #### Pattern 1: Simple Import Path Change (35 files)
+
 Files importing **only** `UserRole` or `UserStatus`:
 
 **Before:**
+
 ```typescript
 import { UserRole } from '../../users/schemas/user.schema';
 ```
 
 **After:**
+
 ```typescript
 import { UserRole } from '../../common/enums/user.enum';
 ```
 
 **Updated modules:**
+
 - Auth (14 files): decorators, DTOs, guards, interfaces, schemas, seeds, services
 - Moderation (6 files): guards, controllers, services
 - Admin (4 files): guards, controllers, services, DTOs
@@ -72,20 +77,24 @@ import { UserRole } from '../../common/enums/user.enum';
 ---
 
 #### Pattern 2: Split Imports (5 files)
+
 Files importing `User`/`UserDocument` **WITH** `UserRole`/`UserStatus` - split into two lines:
 
 **Before:**
+
 ```typescript
 import { User, UserDocument, UserRole } from 'src/users/schemas/user.schema';
 ```
 
 **After:**
+
 ```typescript
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { UserRole } from 'src/common/enums/user.enum';
 ```
 
 **Files affected:**
+
 1. `auth/middleware/tenant-context.middleware.ts`
 2. `admin/services/user-management.service.ts`
 3. `payments/payments.service.ts`
@@ -95,7 +104,9 @@ import { UserRole } from 'src/common/enums/user.enum';
 ---
 
 #### Pattern 3: Unchanged (20 files)
+
 Files importing only `User`, `UserDocument`, or `UserSchema` (no enums) remain unchanged:
+
 - Module files (9): admin, analytics, common, geolocation, notifications, orders, payments, reviews, search
 - Service files (8): analytics, geolocation, processors, etc.
 - Other (3): email services, controllers
@@ -105,9 +116,11 @@ Files importing only `User`, `UserDocument`, or `UserSchema` (no enums) remain u
 ### Step 3: Updated Source Schema Files ✅
 
 #### A. `users/schemas/user.schema.ts`
+
 **Removed:** Local enum definitions (lines 41-55)
 
 **Added:**
+
 ```typescript
 // Import and re-export UserRole and UserStatus from centralized location
 // This maintains backward compatibility for any remaining imports from this file
@@ -120,9 +133,11 @@ export { UserRole, UserStatus };
 ---
 
 #### B. `common/interfaces/user.interface.ts`
+
 **Removed:** Obsolete duplicate enum definitions
 
 **Added:**
+
 ```typescript
 // Import enums from centralized location
 import { UserRole, UserStatus } from '../enums/user.enum';
@@ -136,6 +151,7 @@ export { UserRole, UserStatus }; // Re-export for backward compatibility
 ## Verification Results
 
 ### ✅ TypeScript Compilation
+
 ```bash
 $ pnpm check:ts
 > tsc --noEmit
@@ -148,6 +164,7 @@ $ pnpm check:ts
 ---
 
 ### ✅ Tests (No New Regressions)
+
 ```bash
 $ pnpm test --passWithNoTests
 
@@ -156,6 +173,7 @@ Tests:       61 failed, 246 passed, 307 total
 ```
 
 **Analysis:**
+
 - ✅ **246 tests passed** (no regressions introduced)
 - ❌ **61 tests failed** (pre-existing failures - DI setup issues, not related to our changes)
 - **Failures:** Missing `PhoneNumberService` mocks in test modules (existed before our changes)
@@ -180,16 +198,19 @@ x 29 dependency violations (0 errors, 29 warnings)
 ## Remaining Violations (29)
 
 ### Not Yet Fixed (Requires Phase 2B - Decorator Move):
+
 - **Payments module → Auth guards/decorators** (4 violations)
 - **Offers module → Auth guards/decorators** (4 violations)
 - **Common module → Auth decorators** (2 violations)
 
 ### Requires Event-Driven Architecture (Phase 2C):
+
 - **Users → Orders/Favorites** (4 violations)
 - **Orders → Loyalty/Donations** (4 violations)
 - **Auth → Loyalty** (2 violations)
 
 ### Other Issues:
+
 - **Common → User schema** (3 violations) - Session management needs refactor
 - **Circular dependency:** Reviews ↔ Users (1 violation)
 - **Orphan files** (3 violations)
@@ -233,6 +254,7 @@ apps/food-waste-backend/
 ## Backward Compatibility
 
 ✅ **Fully backward compatible:**
+
 - Old imports still work: `import { UserRole } from 'users/schemas/user.schema'`
 - Re-exports maintain existing API
 - No API breaking changes
@@ -245,6 +267,7 @@ apps/food-waste-backend/
 **Goal:** Move auth decorators to `common/decorators/`
 
 **Decorators to move:**
+
 1. ✅ `public.decorator.ts` - Pure metadata (safe)
 2. ✅ `get-user.decorator.ts` - Pure param decorator (safe)
 3. ✅ `permissions.decorator.ts` - Pure metadata (safe)
@@ -252,6 +275,7 @@ apps/food-waste-backend/
 5. ✅ `roles.decorator.ts` - **NOW SAFE** (after enum extraction)
 
 **Keep in auth:**
+
 - `tenant-context.decorator.ts` - Auth-specific, correct location
 
 **Expected violations fixed:** ~10-12 additional violations
@@ -263,6 +287,7 @@ apps/food-waste-backend/
 ## Rollback Plan
 
 If issues arise:
+
 ```bash
 git revert <commit-hash>
 ```
@@ -274,16 +299,19 @@ All changes are in a single commit, easily reversible.
 ## Recommendations
 
 ### Immediate (Phase 2B):
+
 1. ✅ Move 5 decorators to `common/decorators/`
 2. ✅ Update 18 import statements
 3. ✅ Run tests and verify
 
 ### Short-term (Phase 2C):
+
 1. Implement event-driven communication for cross-module dependencies
 2. Refactor session management to remove common → users dependency
 3. Fix circular dependency (reviews ↔ users)
 
 ### Medium-term:
+
 1. Remove orphan files
 2. Create module facade services
 3. Switch ESLint to error mode
@@ -293,12 +321,14 @@ All changes are in a single commit, easily reversible.
 ## Risk Assessment
 
 ✅ **Phase 2A: COMPLETE - NO ISSUES**
+
 - All changes verified
 - TypeScript compilation passed
 - No new test failures
 - Backward compatible
 
 ⏭️ **Phase 2B: LOW RISK**
+
 - Similar pattern (import path changes)
 - 5 decorators, 18 files
 - Fully reversible

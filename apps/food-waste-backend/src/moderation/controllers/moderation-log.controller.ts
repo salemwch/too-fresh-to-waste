@@ -122,11 +122,21 @@ export class ModerationLogController {
       filters.endDate = new Date(queryDto.endDate);
     }
 
+    const sortBy =
+      queryDto.sortBy !== null && queryDto.sortBy !== undefined && queryDto.sortBy.length > 0
+        ? queryDto.sortBy
+        : 'createdAt';
+    const sortOrder =
+      queryDto.sortOrder !== null &&
+      queryDto.sortOrder !== undefined &&
+      queryDto.sortOrder.length > 0
+        ? queryDto.sortOrder
+        : 'desc';
     const pagination = {
-      page: Math.max(1, queryDto.page || 1),
-      limit: Math.min(100, Math.max(1, queryDto.limit || 20)),
-      sortBy: queryDto.sortBy || 'createdAt',
-      sortOrder: queryDto.sortOrder || 'desc',
+      page: Math.max(1, queryDto.page ?? 1),
+      limit: Math.min(100, Math.max(1, queryDto.limit ?? 20)),
+      sortBy,
+      sortOrder,
     };
 
     const result = await this.moderationLogService.getModerationLogs(filters, pagination);
@@ -160,7 +170,7 @@ export class ModerationLogController {
       throw new BadRequestException('Invalid user ID format');
     }
 
-    const historyLimit = Math.min(50, Math.max(1, limit || 10));
+    const historyLimit = Math.min(50, Math.max(1, limit ?? 10));
     const history = await this.moderationLogService.getUserModerationHistory(userId, historyLimit);
 
     // Filter sensitive information for moderators
@@ -258,7 +268,7 @@ export class ModerationLogController {
 
     const pagination = {
       page: 1,
-      limit: Math.min(100, Math.max(1, limit || 20)),
+      limit: Math.min(100, Math.max(1, limit ?? 20)),
       sortBy: 'createdAt',
       sortOrder: 'desc' as const,
     };

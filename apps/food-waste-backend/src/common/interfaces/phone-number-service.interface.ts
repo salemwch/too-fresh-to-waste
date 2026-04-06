@@ -31,10 +31,7 @@ export interface IPhoneNumberService {
    * @param defaultCountry Default country code (e.g., 'TN' for Tunisia)
    * @returns Validation result with formatted phone numbers
    */
-  validatePhoneNumber(
-    phoneNumber: string,
-    defaultCountry?: string
-  ): PhoneNumberValidationResult;
+  validatePhoneNumber(phoneNumber: string, defaultCountry?: string): PhoneNumberValidationResult;
 
   /**
    * Format phone number to E.164 format

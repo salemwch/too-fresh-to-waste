@@ -28,10 +28,7 @@ export class PasswordHistoryService {
    * @param passwordHistory - Array of hashed previous passwords
    * @returns Promise resolving to true if password was used before, false otherwise
    */
-  async isPasswordReused(
-    newPassword: string,
-    passwordHistory: string[] = [],
-  ): Promise<boolean> {
+  async isPasswordReused(newPassword: string, passwordHistory: string[] = []): Promise<boolean> {
     if (!this.isHistoryEnforced() || passwordHistory?.length === 0) {
       return false;
     }
@@ -48,7 +45,7 @@ export class PasswordHistoryService {
         } catch (error) {
           // If verification fails for a specific hash, log and continue
           this.logger.debug('Failed to verify against historical password hash', {
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: error instanceof Error ? error.message : 'Unknown error',
           });
         }
       }
@@ -56,7 +53,7 @@ export class PasswordHistoryService {
       return false;
     } catch (error) {
       this.logger.error('Error checking password history', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       // Fail open: don't block password change on history check failure
       return false;
@@ -71,10 +68,7 @@ export class PasswordHistoryService {
    * @param existingHistory - Existing password history array
    * @returns Updated password history array
    */
-  addToHistory(
-    currentPasswordHash: string,
-    existingHistory: string[] = [],
-  ): string[] {
+  addToHistory(currentPasswordHash: string, existingHistory: string[] = []): string[] {
     const maxHistoryCount = this.getPasswordHistoryCount();
 
     // Add current password to beginning of history
@@ -114,7 +108,7 @@ export class PasswordHistoryService {
    */
   getPasswordHistoryCount(): number {
     return (
-      this.configService.get<number>('PASSWORD_HISTORY_COUNT') ||
+      this.configService.get<number>('PASSWORD_HISTORY_COUNT') ??
       this.DEFAULT_PASSWORD_HISTORY_COUNT
     );
   }
@@ -125,8 +119,7 @@ export class PasswordHistoryService {
    */
   isHistoryEnforced(): boolean {
     return (
-      this.configService.get<boolean>('PASSWORD_ENFORCE_HISTORY') ??
-      this.DEFAULT_ENFORCE_HISTORY
+      this.configService.get<boolean>('PASSWORD_ENFORCE_HISTORY') ?? this.DEFAULT_ENFORCE_HISTORY
     );
   }
 

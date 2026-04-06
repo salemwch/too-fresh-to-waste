@@ -26,6 +26,25 @@ interface SuggestionResult {
   metadata?: Record<string, unknown>;
 }
 
+interface SuggestionCacheResult {
+  suggestions: SuggestionResult[];
+  trending: string[];
+  personalized: string[];
+}
+
+function isSuggestionCacheResult(value: unknown): value is SuggestionCacheResult {
+  if (typeof value !== 'object' || value === null || value === undefined) {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+  return (
+    Array.isArray(record['suggestions']) &&
+    Array.isArray(record['trending']) &&
+    Array.isArray(record['personalized'])
+  );
+}
+
 @Injectable()
 export class SearchSuggestionService {
   private readonly logger = new Logger(SearchSuggestionService.name);
@@ -60,14 +79,10 @@ export class SearchSuggestionService {
       includePersonalized = true,
     } = suggestionDto;
 
-    const cacheKey = `suggestions:${query}:${limit}:${types?.join(',')}:${userId || 'anon'}`;
+    const cacheKey = `suggestions:${query}:${limit}:${types?.join(',')}:${userId ?? 'anon'}`;
     const cached = await this.cacheService.get(cacheKey);
-    if (cached) {
-      return cached as {
-        suggestions: SuggestionResult[];
-        trending: string[];
-        personalized: string[];
-      };
+    if (isSuggestionCacheResult(cached)) {
+      return cached;
     }
 
     try {
@@ -167,7 +182,7 @@ export class SearchSuggestionService {
     ];
 
     // Also search in aliases
-    const aliasResults = await this.suggestionModel.aggregate([
+    const aliasResults = await this.suggestionModel.aggregate<SuggestionResult>([
       {
         $match: {
           isActive: true,
@@ -199,7 +214,7 @@ export class SearchSuggestionService {
       },
     ]);
 
-    const textResults = await this.suggestionModel.aggregate(pipeline);
+    const textResults = await this.suggestionModel.aggregate<SuggestionResult>(pipeline);
     return [...textResults, ...aliasResults];
   }
 
@@ -210,7 +225,7 @@ export class SearchSuggestionService {
     query: string,
     limit: number = 5,
   ): Promise<SuggestionResult[]> {
-    const popularResults = await this.popularSearchModel.aggregate([
+    const popularResults = await this.popularSearchModel.aggregate<SuggestionResult>([
       {
         $match: {
           isActive: true,
@@ -260,7 +275,7 @@ export class SearchSuggestionService {
   ): Promise<SuggestionResult[]> {
     const { longitude, latitude, radius = 5000 } = location;
 
-    const locationResults = await this.suggestionModel.aggregate([
+    const locationResults = await this.suggestionModel.aggregate<SuggestionResult>([
       {
         $match: {
           isActive: true,
@@ -309,7 +324,7 @@ export class SearchSuggestionService {
     query: string,
     limit: number = 5,
   ): Promise<string[]> {
-    const userHistory = await this.searchQueryModel.aggregate([
+    const userHistory = await this.searchQueryModel.aggregate<{ _id: string }>([
       {
         $match: {
           userId,
@@ -457,7 +472,7 @@ export class SearchSuggestionService {
    * Get popular categories for suggestion filters
    */
   async getPopularCategories(limit: number = 10): Promise<string[]> {
-    const categories = await this.suggestionModel.aggregate([
+    const categories = await this.suggestionModel.aggregate<{ text: string }>([
       {
         $match: {
           type: SuggestionType.CATEGORY,

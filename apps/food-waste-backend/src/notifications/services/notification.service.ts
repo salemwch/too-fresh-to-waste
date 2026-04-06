@@ -38,6 +38,22 @@ export interface NotificationStatsResult {
   byTrigger: Record<string, unknown>;
 }
 
+interface GroupedNotificationEntry {
+  channel?: string;
+  trigger?: string;
+  status: string;
+  isRead?: boolean;
+}
+
+interface NotificationStatsAggregateResult {
+  totalSent: number;
+  totalDelivered: number;
+  totalFailed: number;
+  totalOpened: number;
+  byChannel: GroupedNotificationEntry[];
+  byTrigger: GroupedNotificationEntry[];
+}
+
 @Injectable()
 export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
@@ -108,7 +124,10 @@ export class NotificationService {
         return result.value;
       }
       this.logger.error(`Bulk notification ${index} failed: ${result.reason}`);
-      return { success: false, error: result.reason };
+      return {
+        success: false,
+        error: result.reason instanceof Error ? result.reason.message : String(result.reason),
+      };
     });
   }
 
@@ -143,7 +162,7 @@ export class NotificationService {
 
       // Sanitize template variables before rendering
       const sanitizedVariables = this.sanitizationUtil.sanitizeTemplateVariables(
-        context.variables || {},
+        context.variables ?? {},
       );
       // Render template with sanitized variables
       const rendered = this.templateService.render(template, sanitizedVariables);
@@ -228,8 +247,8 @@ export class NotificationService {
       body: request.payload.body,
       data: request.payload.data,
       image: request.payload.image,
-      priority: request.priority || 'medium',
-      scheduledAt: request.schedule?.sendAt || new Date(),
+      priority: request.priority ?? 'medium',
+      scheduledAt: request.schedule?.sendAt ?? new Date(),
       metadata: {
         ...request.metadata,
         templateId: request.templateId,
@@ -321,6 +340,8 @@ export class NotificationService {
         return preferences.globalEmailEnabled;
       case NotificationType.SMS:
         return preferences.globalSmsEnabled;
+      case NotificationType.IN_APP:
+        return true;
       default:
         return true;
     }
@@ -337,7 +358,7 @@ export class NotificationService {
       [NotificationTrigger.ESTABLISHMENT_APPROVED]: NotificationChannel.ADMIN,
     };
 
-    return triggerChannelMap[trigger] || NotificationChannel.ADMIN;
+    return triggerChannelMap[trigger] ?? NotificationChannel.ADMIN;
   }
 
   // Public API methods for retrieving notifications
@@ -356,7 +377,7 @@ export class NotificationService {
     if (unreadOnly) {
       filter.isRead = false;
     }
-    if (type) {
+    if (type !== null && type !== undefined) {
       filter.type = type;
     }
 
@@ -409,14 +430,15 @@ export class NotificationService {
   }): Promise<NotificationStatsResult> {
     const matchStage: FilterQuery<Notification> = {};
 
-    if (options.startDate || options.endDate) {
-      matchStage.createdAt = {};
+    if (options.startDate ?? options.endDate) {
+      const createdAtRange: { $gte?: Date; $lte?: Date } = {};
       if (options.startDate) {
-        matchStage.createdAt.$gte = options.startDate;
+        createdAtRange.$gte = options.startDate;
       }
       if (options.endDate) {
-        matchStage.createdAt.$lte = options.endDate;
+        createdAtRange.$lte = options.endDate;
       }
+      matchStage.createdAt = createdAtRange;
     }
 
     if (options.type) {
@@ -455,9 +477,11 @@ export class NotificationService {
       },
     ];
 
-    const result = await this.notificationModel.aggregate(pipeline);
+    const result =
+      await this.notificationModel.aggregate<NotificationStatsAggregateResult>(pipeline);
 
-    if (result.length === 0) {
+    const [data] = result;
+    if (data === null || data === undefined) {
       return {
         totalSent: 0,
         totalDelivered: 0,
@@ -471,8 +495,6 @@ export class NotificationService {
         byTrigger: {},
       };
     }
-
-    const data = result[0];
     const deliveryRate =
       data.totalSent > 0 ? Math.round((data.totalDelivered / data.totalSent) * 100 * 100) / 100 : 0;
     const openRate =
@@ -499,8 +521,8 @@ export class NotificationService {
   }
 
   private processGroupedStats(
-    data: Array<{ status: string; isRead?: boolean; [key: string]: unknown }>,
-    groupField: string,
+    data: GroupedNotificationEntry[],
+    groupField: 'channel' | 'trigger',
   ): Record<
     string,
     { sent: number; delivered: number; failed: number; opened: number; clicked: number }
@@ -511,10 +533,8 @@ export class NotificationService {
     > = {};
 
     data.forEach((item) => {
-      const key = item[groupField] as string;
-      if (!stats[key]) {
-        stats[key] = { sent: 0, delivered: 0, failed: 0, opened: 0, clicked: 0 };
-      }
+      const key = item[groupField] ?? 'unknown';
+      stats[key] ??= { sent: 0, delivered: 0, failed: 0, opened: 0, clicked: 0 };
 
       const bucket = stats[key];
       if (['sent', 'delivered', 'read'].includes(item.status)) {
@@ -526,7 +546,7 @@ export class NotificationService {
       if (item.status === 'failed') {
         bucket.failed++;
       }
-      if (item.isRead) {
+      if (item.isRead === true) {
         bucket.opened++;
       }
     });

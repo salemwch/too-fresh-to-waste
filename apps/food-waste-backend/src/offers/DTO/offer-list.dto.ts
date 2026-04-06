@@ -1,3 +1,5 @@
+import { CtaState } from '@foodwaste/shared';
+import type { OfferCard } from '@foodwaste/shared';
 import { Type } from 'class-transformer';
 import {
   IsString,
@@ -12,12 +14,7 @@ import {
 
 import { OfferStatus, OfferType, Currency } from '../schemas/offer.schema';
 
-export enum CtaState {
-  AVAILABLE = 'available',
-  LOW_STOCK = 'low_stock',
-  SOLD_OUT = 'sold_out',
-  NOT_STARTED = 'not_started',
-}
+export { CtaState };
 
 /**
  * OfferCardDto - Presentation layer for offer list/card display
@@ -26,7 +23,7 @@ export enum CtaState {
  * ✅ PRIVACY: No full establishment address (only name)
  * ✅ UX: Includes computed CTA state for frontend
  */
-export class OfferCardDto {
+export class OfferCardDto implements OfferCard {
   @IsString()
   id!: string;
 
@@ -53,10 +50,10 @@ export class OfferCardDto {
   availableQuantity!: number; // Computed: totalQuantity - sold - reserved
 
   @IsDateString()
-  availableFrom!: Date; // When offer becomes available for ordering
+  availableFrom!: string; // When offer becomes available for ordering
 
   @IsDateString()
-  availableUntil!: Date;
+  availableUntil!: string;
 
   @IsOptional()
   @ValidateNested({ each: true })
@@ -111,7 +108,7 @@ export class OfferCardDto {
 
   @IsOptional()
   @IsDateString()
-  featuredAt?: Date | undefined; // When the offer was featured (manual or auto)
+  featuredAt?: string | undefined; // When the offer was featured (manual or auto)
 
   // =========================================================================
   // PICKUP CATEGORIZATION

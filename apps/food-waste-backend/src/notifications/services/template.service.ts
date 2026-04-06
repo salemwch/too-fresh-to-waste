@@ -109,16 +109,16 @@ export class TemplateService {
     if (!template.body) {
       errors.push('Template body is required');
     }
-    if (!template.trigger) {
+    if (template.trigger === undefined) {
       errors.push('Template trigger is required');
     }
-    if (!template.type) {
+    if (template.type === undefined) {
       errors.push('Template type is required');
     }
 
     // Check for undefined variables in template
-    const variables = this.extractVariables(template.subject || '');
-    variables.push(...this.extractVariables(template.body || ''));
+    const variables = this.extractVariables(template.subject ?? '');
+    variables.push(...this.extractVariables(template.body ?? ''));
     if (template.htmlBody) {
       variables.push(...this.extractVariables(template.htmlBody));
     }
@@ -200,7 +200,7 @@ export class TemplateService {
   }
 
   private interpolateVariables(text: string, variables: Record<string, unknown>): string {
-    return text.replace(/\{\{(\w+)\}\}/g, (match, variableName) => {
+    return text.replace(/\{\{(\w+)\}\}/g, (match: string, variableName: string) => {
       const value = variables[variableName];
 
       if (value === null || value === undefined) {
@@ -213,7 +213,7 @@ export class TemplateService {
   }
 
   private extractVariables(text: string): string[] {
-    const matches = text.match(/\{\{(\w+)\}\}/g) || [];
+    const matches = text.match(/\{\{(\w+)\}\}/g) ?? [];
     return matches.map((match) => match.replace(/\{\{|\}\}/g, ''));
   }
 

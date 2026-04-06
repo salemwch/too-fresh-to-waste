@@ -9,6 +9,7 @@
 ## Executive Summary
 
 Successfully implemented idempotency protection for all financial operations in the MVP:
+
 - **Donations:** Prevents double-charging users 1% donation on order completion
 - **Loyalty:** Prevents double-awarding loyalty points (10 points per bag)
 
@@ -23,6 +24,7 @@ Successfully implemented idempotency protection for all financial operations in 
 **Status:** **Already had idempotency** (verified and documented)
 
 #### Database Protection
+
 **File:** `src/donations/schemas/user-donation.schema.ts:73`
 
 ```typescript
@@ -32,6 +34,7 @@ UserDonationSchema.index({ orderId: 1 }, { unique: true });
 **Benefit:** MongoDB enforces uniqueness at database level. Duplicate inserts throw error code 11000.
 
 #### Application Protection
+
 **File:** `src/donations/donations.service.ts:145-153`
 
 ```typescript
@@ -50,6 +53,7 @@ if (existingDonation) {
 **Benefit:** Prevents unnecessary database operations and provides clear logging.
 
 #### Event Listener
+
 **File:** `src/donations/listeners/order-events.listener.ts`
 
 The listener calls `donationsService.createDonation()`, which already has idempotency.
@@ -57,6 +61,7 @@ The listener calls `donationsService.createDonation()`, which already has idempo
 **Error Handling:** If database unique constraint fails (race condition), the service throws error code 11000, which the listener can catch and ACK safely.
 
 **Test Scenario:**
+
 ```typescript
 // Scenario: RabbitMQ redelivers message after crash
 1. Order completed → order.completed event published
@@ -75,6 +80,7 @@ The listener calls `donationsService.createDonation()`, which already has idempo
 **Status:** **Idempotency added** (2026-01-23)
 
 #### Database Schema
+
 **File:** `src/loyalty/schemas/loyalty-account.schema.ts:38-59`
 
 ```typescript
@@ -100,6 +106,7 @@ export class PointTransaction {
 **Note:** `PointTransaction` is embedded in `LoyaltyAccount.pointsHistory` array (not a separate collection).
 
 #### Application Protection (NEW)
+
 **File:** `src/loyalty/loyalty.service.ts:98-111`
 
 ```typescript
@@ -107,12 +114,13 @@ export class PointTransaction {
 if (addPointsDto.orderId) {
   const orderIdObj = new Types.ObjectId(addPointsDto.orderId);
   const alreadyProcessed = account.pointsHistory.some(
-    (transaction) => transaction.orderId && transaction.orderId.toString() === orderIdObj.toString()
+    (transaction) =>
+      transaction.orderId && transaction.orderId.toString() === orderIdObj.toString(),
   );
 
   if (alreadyProcessed) {
     this.logger.warn(
-      `Points already awarded for order ${addPointsDto.orderId} to user ${userId}. Skipping duplicate.`
+      `Points already awarded for order ${addPointsDto.orderId} to user ${userId}. Skipping duplicate.`,
     );
     return account; // Return existing account without modifications
   }
@@ -120,17 +128,20 @@ if (addPointsDto.orderId) {
 ```
 
 **How it works:**
+
 1. Check if `orderId` is provided in the request
 2. Search `pointsHistory` array for existing transaction with same `orderId`
 3. If found → Return existing account (skip point award)
 4. If not found → Award points normally
 
 **Benefit:**
+
 - Simple, fast check (in-memory array search)
 - No additional database queries
 - Clear logging for debugging
 
 #### Event Listener
+
 **File:** `src/loyalty/listeners/order-events.listener.ts:82-86`
 
 ```typescript
@@ -142,6 +153,7 @@ await this.loyaltyService.addPoints(event.userId, {
 ```
 
 **Test Scenario:**
+
 ```typescript
 // Scenario: RabbitMQ redelivers message after crash
 1. Order completed → order.completed event published
@@ -160,11 +172,13 @@ await this.loyaltyService.addPoints(event.userId, {
 ### Database-Level Protection (Donations)
 
 **Pros:**
+
 - ✅ Atomic enforcement (no race conditions)
 - ✅ Works even if application logic fails
 - ✅ Clear error code (11000) for duplicate key
 
 **Cons:**
+
 - ❌ Extra database roundtrip on duplicate
 - ❌ Requires unique constraint on field
 
@@ -173,11 +187,13 @@ await this.loyaltyService.addPoints(event.userId, {
 ### Application-Level Protection (Loyalty)
 
 **Pros:**
+
 - ✅ No database roundtrip (fast)
 - ✅ Works with embedded subdocuments
 - ✅ Flexible (can check multiple conditions)
 
 **Cons:**
+
 - ❌ Requires fetching full document first
 - ❌ Potential race condition if multiple requests for same user (rare)
 
@@ -323,7 +339,7 @@ it('should handle duplicate order.completed events idempotently', async () => {
   await eventBus.emit('order.completed', event);
 
   // Wait for processing
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   // Verify only 10 points awarded (not 20)
   const account = await loyaltyService.getLoyaltyAccount('user123');
@@ -338,6 +354,7 @@ it('should handle duplicate order.completed events idempotently', async () => {
 ### Donations
 
 **Database Query:** `findOne({ orderId })` with unique index
+
 - **Index:** `{ orderId: 1 }` (unique)
 - **Query time:** O(log n) - fast with B-tree index
 - **Impact:** Negligible (< 1ms)
@@ -345,12 +362,14 @@ it('should handle duplicate order.completed events idempotently', async () => {
 ### Loyalty
 
 **Array Search:** `pointsHistory.some(t => t.orderId === orderIdObj)`
+
 - **Time complexity:** O(n) where n = number of transactions
 - **Average case:** Users have ~100-500 transactions → ~0.1ms scan
 - **Worst case:** Power users with 10,000 transactions → ~1ms scan
 - **Impact:** Low (in-memory array search is fast)
 
 **Optimization (future):** If pointsHistory grows very large (>10,000), consider:
+
 - Creating separate `PointTransaction` collection with unique index on `orderId`
 - Current approach is sufficient for MVP
 
@@ -411,16 +430,19 @@ modified: apps/food-waste-backend/src/loyalty/loyalty.service.ts
 ### MVP Readiness: ✅ **PRODUCTION READY**
 
 **Critical risks mitigated:**
+
 - ✅ **No double-charging users** (donations protected)
 - ✅ **No double-awarding points** (loyalty protected)
 - ✅ **Database-level enforcement** (donations)
 - ✅ **Clear logging** (both modules)
 
 **Remaining risks (acceptable for MVP):**
+
 - 🟡 **Loyalty race condition:** Two concurrent requests for same user could both pass idempotency check (extremely rare, requires <10ms timing)
 - 🟡 **No metrics:** Can't track duplicate event rate (add Prometheus in v2)
 
 **Mitigation for remaining risks:**
+
 - Race condition impact: User gets extra 10 points (not financial loss)
 - Monitoring: Use application logs to detect duplicates
 - v2 enhancement: Add Redis-based deduplication with TTL
@@ -430,12 +452,14 @@ modified: apps/food-waste-backend/src/loyalty/loyalty.service.ts
 ## Next Steps
 
 ### Week 1 (MVP Launch)
+
 1. ✅ Implement idempotency (complete)
 2. ⏳ Manual testing with duplicate events
 3. ⏳ Enable Phase 4 RabbitMQ rollout (`admin.*,order.*,favorite.*`)
 4. ⏳ Monitor logs for duplicate detection
 
 ### Week 2-3 (Post-MVP)
+
 1. Add automated E2E tests
 2. Implement event versioning
 3. Add Prometheus metrics

@@ -112,20 +112,23 @@ Legacy Support:
 - **Inventory Validation**: Atomic check-and-reserve using MongoDB transactions
 - **Time Slot Validation**: Ensures pickup slot is available and not fully booked
 - **Donation Calculation**: 1% of total order goes to community food relief
-  - Formula: `total * 0.01` (derived from 20% platform fee * 5% donation percentage)
+  - Formula: `total * 0.01` (derived from 20% platform fee \* 5% donation percentage)
 
 #### 2. Cancellation Policy (order.service.ts:886)
 
 **RESERVED Orders (Consumer Cancellation):**
+
 - ✅ **Full Refund**: Cancel >1 hour before pickup start time
 - ❌ **No Cancellation**: Within 1 hour of pickup (protects merchants)
 - 🔄 **Automatic Refund**: Processed via `RefundService.processCancelledOrderRefund()`
 
 **Merchant Cancellation:**
+
 - Merchants can cancel at any time (no refund to consumer)
 - Contact support required for edge cases
 
 **Legacy Orders (PENDING/CONFIRMED):**
+
 - Standard cancellation flow (backward compatibility)
 
 #### 3. Order Expiration (order.service.ts:131, 207)
@@ -133,12 +136,14 @@ Legacy Support:
 **Two Expiration Mechanisms:**
 
 **A. Merchant-Approved Expiration** (Cron: Every 10 minutes)
+
 - Runs: `expireApprovedOrdersCron()`
 - Target: Orders with `merchantApprovedExpiration: true` past `scheduledDate`
 - Action: Release inventory, mark as EXPIRED
 - Batch Processing: 100 orders per batch (prevent memory issues)
 
 **B. Automatic RESERVED Order Expiration** (Cron: Every 10 minutes)
+
 - Runs: `expireReservedOrdersWithRefundCron()`
 - Target: RESERVED orders past `expiresAt` (24 hours after pickup end time)
 - Action:
@@ -151,6 +156,7 @@ Legacy Support:
 #### 4. Pickup Confirmation (order.service.ts:692)
 
 **TGTG Payment Release Flow:**
+
 1. Validate pickup code or QR code (6-digit numeric code)
 2. Check order status (RESERVED, READY_FOR_PICKUP, or CONFIRMED)
 3. Verify merchant ownership
@@ -167,6 +173,7 @@ Legacy Support:
      - Business referral order count
 
 **Security:**
+
 - Rate limited: 5 attempts per 60 seconds (PickupThrottlerGuard)
 - Failed attempts tracked (order.service.ts:1292)
 - Lockout after 5 failed attempts (pickupLocked flag)
@@ -226,6 +233,7 @@ async create(createOrderDto: CreateOrderDto, customerId: string): Promise<OrderD
 ```
 
 **Features:**
+
 - MongoDB transaction for atomicity
 - Phone verification enforcement (order.service.ts:314)
 - Inventory reservation: `reservedQuantity += quantity`
@@ -235,11 +243,13 @@ async create(createOrderDto: CreateOrderDto, customerId: string): Promise<OrderD
 ### 2. Pickup Security & Brute-Force Protection
 
 **Throttling:** `guards/pickup-throttler.guard.ts`
+
 - Key format: `pickup-{ip}-{orderId}-{userId}`
 - Limit: 5 attempts per 60 seconds
 - Scope: Per-order, per-user, per-IP
 
 **Lockout Mechanism:** `order.service.ts:1292`
+
 ```typescript
 private async trackFailedPickupAttempt(orderId: string, userId: string): Promise<void> {
   const newAttemptCount = (order.failedPickupAttempts || 0) + 1;
@@ -256,11 +266,13 @@ private async trackFailedPickupAttempt(orderId: string, userId: string): Promise
 ### 3. Loyalty & Gamification Integration
 
 **Loyalty Points** (order.service.ts:807):
+
 - 10 points per bag purchased
 - Awarded on pickup confirmation
 - Non-blocking: Errors logged but don't fail pickup
 
 **Gamification** (order.service.ts:831):
+
 - **Friend Referral Tracking**: Update bag count for referred users
 - **Purchase Streak**: Track consecutive order days, award bonus points
 - **Business Referral**: Track orders for merchants referred by users
@@ -268,6 +280,7 @@ private async trackFailedPickupAttempt(orderId: string, userId: string): Promise
 ### 4. Donation System Integration
 
 **Calculation** (order.service.ts:350):
+
 ```typescript
 const donationAmount = this.donationsService
   ? parseFloat((total * 0.01).toFixed(3)) // 1% of total
@@ -275,6 +288,7 @@ const donationAmount = this.donationsService
 ```
 
 **Recording** (order.service.ts:408):
+
 ```typescript
 // Asynchronous donation creation (outside transaction)
 await this.donationsService.createDonation({
@@ -282,7 +296,7 @@ await this.donationsService.createDonation({
   orderId: finalOrder._id,
   amount: finalOrder.donationAmount,
   currency: 'TND',
-  metadata: { platform: 'mobile' }
+  metadata: { platform: 'mobile' },
 });
 ```
 
@@ -291,6 +305,7 @@ await this.donationsService.createDonation({
 **Endpoint:** `GET /orders/stats` (Admin/Merchant)
 
 **Aggregation Pipeline** (order.service.ts:1041):
+
 ```typescript
 return {
   totalOrders: number;
@@ -307,6 +322,7 @@ return {
 ### 6. QR Code & Pickup Code Generation
 
 **QR Code** (order.service.ts:469):
+
 ```typescript
 private generateQRCode(): string {
   return crypto.randomBytes(20).toString('hex'); // 40-char hex
@@ -314,6 +330,7 @@ private generateQRCode(): string {
 ```
 
 **Pickup Code** (order.service.ts:473):
+
 ```typescript
 private generatePickupCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
@@ -321,6 +338,7 @@ private generatePickupCode(): string {
 ```
 
 **QR Code Retrieval:** `GET /orders/:id/qr-code`
+
 - Returns QR code data + Base64 QR image (via qrcode library)
 
 ---
@@ -329,36 +347,36 @@ private generatePickupCode(): string {
 
 ### Consumer Endpoints
 
-| Method | Path | Description | Auth | Rate Limit |
-|--------|------|-------------|------|------------|
-| POST | `/orders` | Create order | Consumer | 10/min |
-| GET | `/orders` | List orders (paginated) | Consumer | 50/min |
-| GET | `/orders/my-orders` | Consumer's orders | Consumer | 50/min |
-| GET | `/orders/:id` | Get order details | Consumer/Merchant | 100/min |
-| GET | `/orders/:id/receipt` | Get order receipt | Consumer | 50/min |
-| GET | `/orders/:id/qr-code` | Get QR code + pickup code | Consumer | 50/min |
-| PATCH | `/orders/:id/cancel` | Cancel order | Consumer | 5/min |
-| POST | `/orders/:id/extend-pickup` | Request pickup extension | Consumer/Admin | 5/min |
+| Method | Path                        | Description               | Auth              | Rate Limit |
+| ------ | --------------------------- | ------------------------- | ----------------- | ---------- |
+| POST   | `/orders`                   | Create order              | Consumer          | 10/min     |
+| GET    | `/orders`                   | List orders (paginated)   | Consumer          | 50/min     |
+| GET    | `/orders/my-orders`         | Consumer's orders         | Consumer          | 50/min     |
+| GET    | `/orders/:id`               | Get order details         | Consumer/Merchant | 100/min    |
+| GET    | `/orders/:id/receipt`       | Get order receipt         | Consumer          | 50/min     |
+| GET    | `/orders/:id/qr-code`       | Get QR code + pickup code | Consumer          | 50/min     |
+| PATCH  | `/orders/:id/cancel`        | Cancel order              | Consumer          | 5/min      |
+| POST   | `/orders/:id/extend-pickup` | Request pickup extension  | Consumer/Admin    | 5/min      |
 
 ### Merchant Endpoints
 
-| Method | Path | Description | Auth | Rate Limit |
-|--------|------|-------------|------|------------|
-| GET | `/orders/merchant-orders` | Merchant's orders | Merchant | 50/min |
-| PATCH | `/orders/:id/status` | Update order status | Merchant/Admin | 20/min |
-| PATCH | `/orders/:id/confirm-pickup` | Confirm pickup | Merchant | **5/60s** ⚠️ |
-| PATCH | `/orders/:id/unlock-pickup` | Unlock pickup-locked order | Merchant/Admin | 5/min |
-| PATCH | `/orders/approve-expiration` | Approve orders for expiration | Merchant | 10/min |
-| PATCH | `/orders/:id/approve-pickup-extension` | Approve pickup extension | Merchant | 10/min |
+| Method | Path                                   | Description                   | Auth           | Rate Limit   |
+| ------ | -------------------------------------- | ----------------------------- | -------------- | ------------ |
+| GET    | `/orders/merchant-orders`              | Merchant's orders             | Merchant       | 50/min       |
+| PATCH  | `/orders/:id/status`                   | Update order status           | Merchant/Admin | 20/min       |
+| PATCH  | `/orders/:id/confirm-pickup`           | Confirm pickup                | Merchant       | **5/60s** ⚠️ |
+| PATCH  | `/orders/:id/unlock-pickup`            | Unlock pickup-locked order    | Merchant/Admin | 5/min        |
+| PATCH  | `/orders/approve-expiration`           | Approve orders for expiration | Merchant       | 10/min       |
+| PATCH  | `/orders/:id/approve-pickup-extension` | Approve pickup extension      | Merchant       | 10/min       |
 
 ### Admin Endpoints
 
-| Method | Path | Description | Auth | Rate Limit |
-|--------|------|-------------|------|------------|
-| GET | `/orders/stats` | Order statistics | Admin/Merchant | 10/min |
-| GET | `/orders/admin/pending` | List pending orders | Admin | 20/min |
-| DELETE | `/orders/:id` | Soft delete order | Admin | 5/min |
-| POST | `/orders/update-expired` | Manually trigger expiration | Admin | 1/min |
+| Method | Path                     | Description                 | Auth           | Rate Limit |
+| ------ | ------------------------ | --------------------------- | -------------- | ---------- |
+| GET    | `/orders/stats`          | Order statistics            | Admin/Merchant | 10/min     |
+| GET    | `/orders/admin/pending`  | List pending orders         | Admin          | 20/min     |
+| DELETE | `/orders/:id`            | Soft delete order           | Admin          | 5/min      |
+| POST   | `/orders/update-expired` | Manually trigger expiration | Admin          | 1/min      |
 
 ### Status Transitions
 
@@ -385,6 +403,7 @@ private isValidStatusTransition(oldStatus: OrderStatus, newStatus: OrderStatus):
 **Collections:** `orders`
 
 **Key Fields:**
+
 ```typescript
 {
   orderNumber: string;           // Unique: ORD-{timestamp}-{random}
@@ -433,6 +452,7 @@ private isValidStatusTransition(oldStatus: OrderStatus, newStatus: OrderStatus):
 ### Indexes (18 Total)
 
 **Base Indexes:**
+
 ```typescript
 { customerId: 1, createdAt: -1 }            // Customer order history
 { merchantId: 1, status: 1 }                // Merchant order filtering
@@ -445,6 +465,7 @@ private isValidStatusTransition(oldStatus: OrderStatus, newStatus: OrderStatus):
 ```
 
 **Enterprise Optimization Indexes:**
+
 ```typescript
 { customerId: 1, status: 1, createdAt: -1 } // Filtered history
 { paymentStatus: 1, createdAt: -1 }         // Payment reconciliation
@@ -466,14 +487,18 @@ OrderSchema.pre('save', function (next) {
     const pickupDate = new Date(this.pickupDetails.scheduledDate);
     const endTime = this.pickupDetails.timeSlot.endTime.split(':');
     pickupDate.setHours(parseInt(endTime[0]), parseInt(endTime[1]), 0, 0);
-    this.expiresAt = new Date(pickupDate.getTime() + (24 * 60 * 60 * 1000)); // +24h
+    this.expiresAt = new Date(pickupDate.getTime() + 24 * 60 * 60 * 1000); // +24h
   }
 
   // Track timestamp changes per status
   if (this.isModified('status')) {
     switch (this.status) {
-      case OrderStatus.RESERVED: this.reservedAt = new Date(); break;
-      case OrderStatus.PICKED_UP: this.pickedUpAt = new Date(); break;
+      case OrderStatus.RESERVED:
+        this.reservedAt = new Date();
+        break;
+      case OrderStatus.PICKED_UP:
+        this.pickedUpAt = new Date();
+        break;
       // ...
     }
   }
@@ -529,10 +554,7 @@ if (filters.search) {
   const safeRegex = this.regexSecurityUtil.buildSafeRegexQuery(filters.search);
 
   if (safeRegex) {
-    query.$or = [
-      { orderNumber: safeRegex },
-      { items: { $elemMatch: { offerTitle: safeRegex } } }
-    ];
+    query.$or = [{ orderNumber: safeRegex }, { items: { $elemMatch: { offerTitle: safeRegex } } }];
   } else {
     this.appLogger.warn(`Invalid search pattern blocked: ${filters.search}`);
   }
@@ -551,6 +573,7 @@ if (filters.search) {
 ### 5. Authorization Guards Chain
 
 **Controller Level:**
+
 ```typescript
 @Controller('orders')
 @UseGuards(JwtAuthGuard)              // Step 1: Verify JWT token
@@ -564,6 +587,7 @@ export class OrdersController {
 ```
 
 **Service Level (order.service.ts:492):**
+
 ```typescript
 async findById(orderId: string, userId?: string, userRole?: UserRole) {
   // Resource ownership verification
@@ -614,12 +638,13 @@ async expireReservedOrdersWithRefundCron() {
 ### Performance Optimizations
 
 **Batch Processing Pattern:**
+
 ```typescript
 while (true) {
   const orders = await this.orderModel
     .find(query)
-    .select('_id items')        // Only required fields
-    .lean()                      // Plain objects (50% memory reduction)
+    .select('_id items') // Only required fields
+    .lean() // Plain objects (50% memory reduction)
     .limit(BATCH_SIZE)
     .exec();
 
@@ -640,10 +665,12 @@ while (true) {
 ### 1. Payments Module (PaymentModule)
 
 **Injected Services:**
+
 - `PayoutService` - Create merchant payout ledger entries
 - `RefundService` - Process automatic refunds for expired/cancelled orders
 
 **Integration Points:**
+
 - Order creation: Payment intent creation
 - Pickup confirmation: Payment status HELD → EARNED
 - Cancellation: Refund processing
@@ -652,10 +679,12 @@ while (true) {
 ### 2. Loyalty Module (LoyaltyModule)
 
 **Injected Services:**
+
 - `LoyaltyService` - Award points on order completion
 - `GamificationService` - Track referrals and streaks
 
 **Integration Points:**
+
 - Pickup confirmation: Award 10 points per bag
 - Friend referral tracking: Update bag count
 - Purchase streak: Track consecutive order days
@@ -664,12 +693,14 @@ while (true) {
 ### 3. Donations Module (DonationsModule)
 
 **Integration Points:**
+
 - Order creation: Calculate 1% donation amount
 - Post-transaction: Create donation record
 
 ### 4. Offers Module (Via Schema)
 
 **Integration Points:**
+
 - Order creation: Check availability and reserve inventory
 - Pickup confirmation: Transfer `reservedQuantity → soldQuantity`
 - Cancellation/Expiration: Release `reservedQuantity`
@@ -677,12 +708,14 @@ while (true) {
 ### 5. Establishments Module (Via Schema)
 
 **Integration Points:**
+
 - Order creation: Validate establishment and fetch details
 - Order display: Populate establishment info
 
 ### 6. Users Module (Via Schema)
 
 **Integration Points:**
+
 - Order creation: Validate customer (phone verification)
 - Order display: Populate customer/merchant info
 
@@ -721,30 +754,33 @@ export class OrderExceptionFilter implements ExceptionFilter {
 ### Business Rule Exceptions
 
 **Phone Verification Required (order.service.ts:314):**
+
 ```typescript
 if (!customer.phoneNumber || !customer.isPhoneVerified) {
   throw new BadRequestException({
     message: 'Phone verification required to place orders',
     code: 'PHONE_VERIFICATION_REQUIRED',
     requiresPhoneSetup: !customer.phoneNumber,
-    requiresPhoneVerification: !!customer.phoneNumber && !customer.isPhoneVerified
+    requiresPhoneVerification: !!customer.phoneNumber && !customer.isPhoneVerified,
   });
 }
 ```
 
 **Cancellation Window Closed (order.service.ts:915):**
+
 ```typescript
 if (hoursUntilPickup < 1) {
   throw new BadRequestException({
     message: 'Cannot cancel order within 1 hour of pickup time',
     code: 'CANCELLATION_WINDOW_CLOSED',
     pickupStartTime: pickupStartTime.toISOString(),
-    hoursRemaining: Math.max(0, hoursUntilPickup).toFixed(2)
+    hoursRemaining: Math.max(0, hoursUntilPickup).toFixed(2),
   });
 }
 ```
 
 **Pickup Locked (order.service.ts:707):**
+
 ```typescript
 if (order.pickupLocked) {
   throw new ForbiddenException({
@@ -752,7 +788,7 @@ if (order.pickupLocked) {
     code: 'PICKUP_LOCKED',
     lockedAt: order.pickupLockedAt,
     reason: order.pickupLockedReason,
-    contactSupport: true
+    contactSupport: true,
   });
 }
 ```
@@ -779,11 +815,11 @@ pnpm test:watch orders
 
 ### Test Coverage Targets
 
-| Component | Target | Notes |
-|-----------|--------|-------|
-| OrdersService | 80%+ | Core business logic |
-| OrdersController | 75%+ | Endpoint coverage |
-| DTO Validation | 100% | Critical for security |
+| Component        | Target | Notes                 |
+| ---------------- | ------ | --------------------- |
+| OrdersService    | 80%+   | Core business logic   |
+| OrdersController | 75%+   | Endpoint coverage     |
+| DTO Validation   | 100%   | Critical for security |
 
 ### Key Test Scenarios
 
@@ -829,15 +865,15 @@ pnpm test:watch orders
 
 ## Changelog
 
-| Version | Date | Changes |
-|---------|------|---------|
-| v3.0.0 | Jan 15, 2026 | TGTG escrow model (RESERVED status) |
-| v2.5.0 | Dec 20, 2025 | Gamification integration |
-| v2.4.0 | Dec 10, 2025 | Pickup brute-force protection |
-| v2.3.0 | Dec 1, 2025 | Automatic expiration with refunds |
-| v2.2.0 | Nov 21, 2025 | Loyalty points integration |
-| v2.1.0 | Nov 15, 2025 | Time-based cancellation policy |
-| v2.0.0 | Nov 1, 2025 | Donation integration |
+| Version | Date         | Changes                             |
+| ------- | ------------ | ----------------------------------- |
+| v3.0.0  | Jan 15, 2026 | TGTG escrow model (RESERVED status) |
+| v2.5.0  | Dec 20, 2025 | Gamification integration            |
+| v2.4.0  | Dec 10, 2025 | Pickup brute-force protection       |
+| v2.3.0  | Dec 1, 2025  | Automatic expiration with refunds   |
+| v2.2.0  | Nov 21, 2025 | Loyalty points integration          |
+| v2.1.0  | Nov 15, 2025 | Time-based cancellation policy      |
+| v2.0.0  | Nov 1, 2025  | Donation integration                |
 
 ---
 

@@ -37,7 +37,7 @@ import { SearchSuggestionService } from './services/search-suggestion.service';
       name: 'search-indexing',
       useFactory: (configService: ConfigService) => ({
         redis: {
-          host: configService.get('REDIS_HOST') || 'localhost',
+          host: configService.get('REDIS_HOST') ?? 'localhost',
           port: parseInt(configService.get<string>('REDIS_PORT') ?? '6379', 10) || 6379,
           password: configService.get('REDIS_PASSWORD'),
           username: configService.get('REDIS_USERNAME'),
@@ -59,7 +59,7 @@ import { SearchSuggestionService } from './services/search-suggestion.service';
       name: 'search-analytics',
       useFactory: (configService: ConfigService) => ({
         redis: {
-          host: configService.get('REDIS_HOST') || 'localhost',
+          host: configService.get('REDIS_HOST') ?? 'localhost',
           port: parseInt(configService.get<string>('REDIS_PORT') ?? '6379', 10) || 6379,
           password: configService.get('REDIS_PASSWORD'),
           username: configService.get('REDIS_USERNAME'),

@@ -1,4 +1,4 @@
-// 🇹🇳 Tunisia + 🌍 International Privacy Consent DTOs
+// Tunisia + International Privacy Consent DTOs
 // Compliant with Tunisian Law No. 2004-63 and GDPR/CCPA
 
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -13,10 +13,18 @@ import {
   Length,
 } from 'class-validator';
 
-import { ConsentType, LegalBasis } from '../interfaces/privacy-consent.interface';
+import { ConsentType, LegalBasis } from '@foodwaste/shared';
+import type {
+  TunisianPrivacyConsentInput,
+  InternationalPrivacyConsentInput,
+  UpdatePrivacySettingsInput,
+  DataExportRequestInput,
+  DataDeletionRequestInput,
+  ConsentWithdrawalInput,
+} from '@foodwaste/shared';
 
-// 🇹🇳 Tunisia Base Compliance DTO
-export class TunisianPrivacyConsentDto {
+// Tunisia Base Compliance DTO
+export class TunisianPrivacyConsentDto implements TunisianPrivacyConsentInput {
   @ApiProperty({
     description: '🇹🇳 Consent for personal data processing (required by Tunisian Law)',
   })
@@ -48,8 +56,11 @@ export class TunisianPrivacyConsentDto {
   consentVersion!: string;
 }
 
-// 🌍 International Extended Compliance DTO
-export class InternationalPrivacyConsentDto extends TunisianPrivacyConsentDto {
+// International Extended Compliance DTO
+export class InternationalPrivacyConsentDto
+  extends TunisianPrivacyConsentDto
+  implements InternationalPrivacyConsentInput
+{
   @ApiProperty({ description: '🌍 Marketing communications opt-in (GDPR/CCPA)' })
   @IsBoolean()
   marketingOptIn!: boolean;
@@ -71,21 +82,21 @@ export class InternationalPrivacyConsentDto extends TunisianPrivacyConsentDto {
   cookiesConsent!: boolean;
 }
 
-export class UpdatePrivacySettingsDto {
+export class UpdatePrivacySettingsDto implements UpdatePrivacySettingsInput {
   @ApiPropertyOptional({ type: TunisianPrivacyConsentDto })
   @IsOptional()
   @ValidateNested()
   @Type(() => TunisianPrivacyConsentDto)
-  tunisianCompliance?: TunisianPrivacyConsentDto;
+  tunisianCompliance?: TunisianPrivacyConsentDto | undefined;
 
   @ApiPropertyOptional({ type: InternationalPrivacyConsentDto })
   @IsOptional()
   @ValidateNested()
   @Type(() => InternationalPrivacyConsentDto)
-  internationalCompliance?: InternationalPrivacyConsentDto;
+  internationalCompliance?: InternationalPrivacyConsentDto | undefined;
 }
 
-export class DataExportRequestDto {
+export class DataExportRequestDto implements DataExportRequestInput {
   @ApiProperty({
     description: 'Export format',
     enum: ['json', 'csv', 'xml'],
@@ -100,7 +111,7 @@ export class DataExportRequestDto {
   })
   @IsOptional()
   @IsBoolean()
-  includeActivityData?: boolean;
+  includeActivityData?: boolean | undefined;
 
   @ApiPropertyOptional({
     description: 'Include application data (orders, favorites, reviews)',
@@ -108,7 +119,7 @@ export class DataExportRequestDto {
   })
   @IsOptional()
   @IsBoolean()
-  includeApplicationData?: boolean;
+  includeApplicationData?: boolean | undefined;
 
   @ApiPropertyOptional({
     description: 'Legal basis for export request',
@@ -116,10 +127,10 @@ export class DataExportRequestDto {
   })
   @IsOptional()
   @IsEnum(['data_portability', 'access_request', 'legal_obligation'])
-  legalBasis?: string;
+  legalBasis?: 'data_portability' | 'access_request' | 'legal_obligation' | undefined;
 }
 
-export class DataDeletionRequestDto {
+export class DataDeletionRequestDto implements DataDeletionRequestInput {
   @ApiProperty({ description: 'Reason for deletion request' })
   @IsString()
   @Length(10, 500)
@@ -133,12 +144,12 @@ export class DataDeletionRequestDto {
   deletionType!: 'soft_delete' | 'anonymization' | 'complete_deletion';
 
   @ApiPropertyOptional({
-    description: '🇹🇳 Keep minimal data for legal obligations (Tunisia Law)',
+    description: 'Keep minimal data for legal obligations (Tunisia Law)',
     default: true,
   })
   @IsOptional()
   @IsBoolean()
-  retainLegalData?: boolean;
+  retainLegalData?: boolean | undefined;
 
   @ApiPropertyOptional({
     description: 'Immediate processing (affects retention periods)',
@@ -146,10 +157,10 @@ export class DataDeletionRequestDto {
   })
   @IsOptional()
   @IsBoolean()
-  immediateProcessing?: boolean;
+  immediateProcessing?: boolean | undefined;
 }
 
-export class ConsentWithdrawalDto {
+export class ConsentWithdrawalDto implements ConsentWithdrawalInput {
   @ApiProperty({ enum: ConsentType, description: 'Type of consent to withdraw' })
   @IsEnum(ConsentType)
   consentType!: ConsentType;
@@ -173,5 +184,5 @@ export class ConsentWithdrawalDto {
   })
   @IsOptional()
   @IsBoolean()
-  stopProcessingImmediately?: boolean;
+  stopProcessingImmediately?: boolean | undefined;
 }

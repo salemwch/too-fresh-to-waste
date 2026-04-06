@@ -7,24 +7,23 @@ export type AdminAuditLogDocument = AdminAuditLog & Document;
 
 @Schema({ timestamps: true, collection: 'admin_audit_logs' })
 export class AdminAuditLog {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   adminId!: Types.ObjectId;
 
   @Prop({ required: true, trim: true, lowercase: true })
   adminEmail!: string;
 
-  @Prop({ type: String, enum: AdminAction, required: true, index: true })
+  @Prop({ type: String, enum: AdminAction, required: true })
   action!: AdminAction;
 
   @Prop({
     type: String,
     enum: ['user', 'establishment', 'order', 'review', 'offer', 'system'],
     required: true,
-    index: true,
   })
   targetType!: string;
 
-  @Prop({ type: String, index: true })
+  @Prop({ type: String })
   targetId?: string;
 
   @Prop({ type: Object })
@@ -33,10 +32,10 @@ export class AdminAuditLog {
   @Prop({ type: Object })
   newValue?: Record<string, AuditLogValue>;
 
-  @Prop({ trim: true, maxlength: 500 })
+  @Prop({ trim: true, maxLength: 500 })
   reason?: string;
 
-  @Prop({ required: true, index: true })
+  @Prop({ required: true })
   ipAddress!: string;
 
   @Prop({ required: true })

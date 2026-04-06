@@ -73,24 +73,13 @@ export class PopularSearch {
 
 export const PopularSearchSchema = SchemaFactory.createForClass(PopularSearch);
 
-// Indexes for performance
+// Indexes — 5 targeted (trimmed from 9)
 PopularSearchSchema.index({ query: 'text' });
 PopularSearchSchema.index({ query: 1, period: 1, periodStart: 1 });
 PopularSearchSchema.index({ period: 1, searchCount: -1 });
-PopularSearchSchema.index({ period: 1, trendScore: -1 });
-PopularSearchSchema.index({ periodStart: -1, periodEnd: -1 });
-PopularSearchSchema.index({ isActive: 1, period: 1, searchCount: -1 });
-PopularSearchSchema.index({ createdAt: -1 });
-
-// Compound index for efficient trending queries
-PopularSearchSchema.index({
-  period: 1,
-  trendScore: -1,
-  searchCount: -1,
-  isActive: 1,
-});
-
-// TTL index: auto-delete popular search records after 180 days to prevent unbounded collection growth
+// Trending queries: covers {period, trendScore} prefix and ranked listing
+PopularSearchSchema.index({ period: 1, trendScore: -1, searchCount: -1, isActive: 1 });
+// TTL: auto-delete after 180 days
 PopularSearchSchema.index(
   { createdAt: 1 },
   { expireAfterSeconds: 15552000, name: 'idx_popularsearches_createdAt_ttl_180d' },

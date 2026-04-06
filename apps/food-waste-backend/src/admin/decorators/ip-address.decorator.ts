@@ -7,10 +7,10 @@ export const IpAddress = createParamDecorator((_data: unknown, ctx: ExecutionCon
   const request: Request = ctx.switchToHttp().getRequest();
 
   const ip =
-    request.headers['x-forwarded-for'] ||
-    request.headers['x-real-ip'] ||
-    request.headers['x-client-ip'] ||
-    request.socket.remoteAddress ||
+    request.headers['x-forwarded-for'] ??
+    request.headers['x-real-ip'] ??
+    request.headers['x-client-ip'] ??
+    request.socket.remoteAddress ??
     '0.0.0.0';
 
   // Handle comma-separated IPs (x-forwarded-for can contain multiple IPs)

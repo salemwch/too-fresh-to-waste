@@ -364,8 +364,8 @@ describe('QueryComplexityGuard', () => {
       if (stats.passed) {
         await expect(guard.canActivate(context)).resolves.toBe(true);
       } else {
-        // If it's genuinely too complex, that's acceptable
-        console.log('Query failed with violations:', stats.violations);
+        // If it's genuinely too complex, that's acceptable.
+        expect(stats.violations.length).toBeGreaterThan(0);
         await expect(guard.canActivate(context)).rejects.toThrow(BadRequestException);
       }
     });

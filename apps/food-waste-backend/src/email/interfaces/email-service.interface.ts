@@ -1,4 +1,4 @@
-import { User } from '../../users/schemas/user.schema';
+import type { User } from '../../users/schemas/user.schema';
 
 /**
  * Email options for sending emails

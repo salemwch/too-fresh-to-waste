@@ -278,7 +278,7 @@ ${JSON.stringify({ ...event.details, ...event.metadata }, null, 2)}
       case SecuritySeverity.MEDIUM:
         this.logger.warn(`[SECURITY-MEDIUM] ${JSON.stringify(structuredLog)}`);
         break;
-      default:
+      case SecuritySeverity.LOW:
         this.logger.log(`[SECURITY-LOW] ${JSON.stringify(structuredLog)}`);
     }
   }

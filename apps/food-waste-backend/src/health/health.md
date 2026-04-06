@@ -5,11 +5,13 @@
 Production-ready health monitoring system built with `@nestjs/terminus` for Kubernetes deployments, load balancers, and monitoring systems. Provides comprehensive checks for database, Redis, and memory resources with custom indicators.
 
 **Endpoints:**
+
 - `GET /health` - Full health check (all dependencies)
 - `GET /health/liveness` - K8s liveness probe (simple)
 - `GET /health/readiness` - K8s readiness probe (critical dependencies)
 
 **Status codes:**
+
 - `200 OK` - All checks passed
 - `503 Service Unavailable` - One or more checks failed
 
@@ -54,12 +56,14 @@ Client → Controller → HealthCheckService → Indicators → Response
 **Purpose:** Full system health validation for monitoring dashboards and alerting.
 
 **Checks:**
+
 - Database connectivity (MongoDB) - 3s timeout
 - Redis connectivity and latency
 - Heap memory usage (< 150MB threshold)
 - RSS memory usage (< 150MB threshold)
 
 **Response (200 OK):**
+
 ```json
 {
   "status": "ok",
@@ -100,6 +104,7 @@ Client → Controller → HealthCheckService → Indicators → Response
 ```
 
 **Response (503 Service Unavailable):**
+
 ```json
 {
   "status": "error",
@@ -127,6 +132,7 @@ Client → Controller → HealthCheckService → Indicators → Response
 ```
 
 **Use cases:**
+
 - External monitoring (Datadog, New Relic, Prometheus)
 - Load balancer health checks (ALB, NGINX)
 - CI/CD deployment verification
@@ -140,10 +146,12 @@ Client → Controller → HealthCheckService → Indicators → Response
 **Purpose:** Verify application process is running. Does NOT check external dependencies.
 
 **Checks:**
+
 - HTTP server responds
 - Node.js process is alive
 
 **Response (200 OK):**
+
 ```json
 {
   "status": "ok",
@@ -154,6 +162,7 @@ Client → Controller → HealthCheckService → Indicators → Response
 ```
 
 **Kubernetes configuration:**
+
 ```yaml
 livenessProbe:
   httpGet:
@@ -166,6 +175,7 @@ livenessProbe:
 ```
 
 **Behavior:**
+
 - **Passes:** Application always responds (unless crashed)
 - **Fails:** Process unresponsive or crashed
 - **K8s action:** Restart pod on failure
@@ -179,10 +189,12 @@ livenessProbe:
 **Purpose:** Verify application can accept traffic. Checks critical dependencies.
 
 **Checks:**
+
 - Database connectivity (MongoDB) - 3s timeout
 - Redis connectivity
 
 **Response (200 OK):**
+
 ```json
 {
   "status": "ok",
@@ -211,6 +223,7 @@ livenessProbe:
 ```
 
 **Kubernetes configuration:**
+
 ```yaml
 readinessProbe:
   httpGet:
@@ -224,6 +237,7 @@ readinessProbe:
 ```
 
 **Behavior:**
+
 - **Passes:** Database and Redis both reachable
 - **Fails:** Database OR Redis unavailable
 - **K8s action:** Remove pod from service endpoints (no traffic)
@@ -239,6 +253,7 @@ readinessProbe:
 **Purpose:** Custom health indicator for Redis connectivity with latency measurement.
 
 **Features:**
+
 - Dedicated Redis client for health checks (isolated from app pool)
 - Connection timeout: 3s
 - No retry strategy (fail fast)
@@ -246,6 +261,7 @@ readinessProbe:
 - TLS support via `REDIS_TLS` env variable
 
 **Implementation:**
+
 ```typescript
 async isHealthy(key: string): Promise<HealthIndicatorResult> {
   try {
@@ -272,6 +288,7 @@ async isHealthy(key: string): Promise<HealthIndicatorResult> {
 
 **Configuration:**
 Uses standard Redis environment variables:
+
 - `REDIS_HOST` (default: localhost)
 - `REDIS_PORT` (default: 6379)
 - `REDIS_PASSWORD`
@@ -298,6 +315,7 @@ Implements `onModuleDestroy()` to gracefully close Redis connection on shutdown.
 ```
 
 **Tuning guidance:**
+
 - **Development:** 150MB is sufficient
 - **Production:** Increase to 512MB-1GB based on load
 - **High traffic:** Monitor actual usage and set threshold at 80% of container limit
@@ -307,12 +325,13 @@ Implements `onModuleDestroy()` to gracefully close Redis connection on shutdown.
 **Location:** `health.controller.ts:65, 134`
 
 ```typescript
-() => this.db.pingCheck('database', { timeout: 3000 })
+() => this.db.pingCheck('database', { timeout: 3000 });
 ```
 
 **Default:** 3 seconds (3000ms)
 
 **Tuning guidance:**
+
 - Network latency < 100ms → 1s timeout
 - Cloud deployments → 3s timeout (default)
 - Cross-region → 5s timeout
@@ -339,70 +358,70 @@ spec:
         app: foodwaste-backend
     spec:
       containers:
-      - name: backend
-        image: foodwaste/backend:latest
-        ports:
-        - containerPort: 3000
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: backend-secrets
-              key: database-url
-        - name: REDIS_HOST
-          value: "redis-service"
-        - name: REDIS_PORT
-          value: "6379"
+        - name: backend
+          image: foodwaste/backend:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: 'production'
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: database-url
+            - name: REDIS_HOST
+              value: 'redis-service'
+            - name: REDIS_PORT
+              value: '6379'
 
-        # Liveness Probe - Restart if unresponsive
-        livenessProbe:
-          httpGet:
-            path: /health/liveness
-            port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+          # Liveness Probe - Restart if unresponsive
+          livenessProbe:
+            httpGet:
+              path: /health/liveness
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
 
-        # Readiness Probe - Remove from service if dependencies down
-        readinessProbe:
-          httpGet:
-            path: /health/readiness
-            port: 3000
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
-          successThreshold: 1
+          # Readiness Probe - Remove from service if dependencies down
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
 
-        # Startup Probe - Allow longer startup time
-        startupProbe:
-          httpGet:
-            path: /health/liveness
-            port: 3000
-          initialDelaySeconds: 0
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 30  # 5 minutes total
+          # Startup Probe - Allow longer startup time
+          startupProbe:
+            httpGet:
+              path: /health/liveness
+              port: 3000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30 # 5 minutes total
 
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
+          resources:
+            requests:
+              memory: '256Mi'
+              cpu: '250m'
+            limits:
+              memory: '512Mi'
+              cpu: '500m'
 ```
 
 ### Probe Strategy
 
-| Phase | Probe | Purpose | Action on Failure |
-|-------|-------|---------|-------------------|
-| **Startup** | Liveness | Wait for app initialization | Restart pod |
+| Phase       | Probe     | Purpose                           | Action on Failure     |
+| ----------- | --------- | --------------------------------- | --------------------- |
+| **Startup** | Liveness  | Wait for app initialization       | Restart pod           |
 | **Running** | Readiness | Check dependencies before traffic | Remove from endpoints |
-| **Running** | Liveness | Detect process hang/crash | Restart pod |
+| **Running** | Liveness  | Detect process hang/crash         | Restart pod           |
 
 ---
 
@@ -424,6 +443,7 @@ curl http://localhost:3000/health/readiness
 ### Docker Health Check
 
 **Dockerfile:**
+
 ```dockerfile
 FROM node:24.11.1-alpine
 
@@ -451,7 +471,7 @@ services:
   backend:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       DATABASE_URL: mongodb://mongo:27017/foodwaste
       REDIS_HOST: redis
@@ -462,7 +482,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health/liveness"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health/liveness']
       interval: 30s
       timeout: 3s
       retries: 3
@@ -471,7 +491,7 @@ services:
   mongo:
     image: mongo:6
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -479,7 +499,7 @@ services:
   redis:
     image: redis:7-alpine
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 5
@@ -515,6 +535,7 @@ server {
 ### Prometheus Monitoring
 
 **Alert rules:**
+
 ```yaml
 groups:
   - name: backend_health
@@ -526,8 +547,8 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Backend service is down"
-          description: "Backend has been unreachable for 1 minute"
+          summary: 'Backend service is down'
+          description: 'Backend has been unreachable for 1 minute'
 
       - alert: BackendDatabaseUnhealthy
         expr: |
@@ -536,8 +557,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Backend health check failing"
-          description: "Database or Redis connectivity issues"
+          summary: 'Backend health check failing'
+          description: 'Database or Redis connectivity issues'
 ```
 
 ---
@@ -549,6 +570,7 @@ groups:
 #### 1. Health Check Always Returns 503
 
 **Symptoms:**
+
 ```json
 {
   "status": "error",
@@ -562,11 +584,13 @@ groups:
 ```
 
 **Causes:**
+
 - Database not reachable
 - Firewall blocking MongoDB port (27017)
 - Invalid `DATABASE_URL` connection string
 
 **Solutions:**
+
 ```bash
 # Test MongoDB connection manually
 mongosh "$DATABASE_URL" --eval "db.adminCommand('ping')"
@@ -581,6 +605,7 @@ echo $DATABASE_URL | grep -o 'mongodb://[^@]*@'
 #### 2. Redis Health Check Fails
 
 **Symptoms:**
+
 ```json
 {
   "error": {
@@ -593,11 +618,13 @@ echo $DATABASE_URL | grep -o 'mongodb://[^@]*@'
 ```
 
 **Causes:**
+
 - Redis not running
 - Incorrect `REDIS_HOST` or `REDIS_PORT`
 - Authentication required but `REDIS_PASSWORD` not set
 
 **Solutions:**
+
 ```bash
 # Test Redis connection
 redis-cli -h $REDIS_HOST -p $REDIS_PORT -a $REDIS_PASSWORD ping
@@ -612,6 +639,7 @@ env | grep REDIS
 #### 3. Memory Health Check Fails
 
 **Symptoms:**
+
 ```json
 {
   "error": {
@@ -623,11 +651,13 @@ env | grep REDIS
 ```
 
 **Causes:**
+
 - Application exceeding 150MB heap threshold
 - Memory leak
 - High concurrent load
 
 **Solutions:**
+
 ```bash
 # Monitor memory usage
 curl http://localhost:3000/health | jq '.details.memory_heap'
@@ -643,6 +673,7 @@ node --inspect dist/main.js
 #### 4. Kubernetes Pod Restart Loop
 
 **Symptoms:**
+
 ```bash
 kubectl get pods
 # NAME                        READY   STATUS             RESTARTS   AGE
@@ -650,6 +681,7 @@ kubectl get pods
 ```
 
 **Diagnosis:**
+
 ```bash
 # Check pod logs
 kubectl logs backend-7d8f9c4b5-abc12
@@ -663,11 +695,13 @@ curl http://localhost:3000/health/liveness
 ```
 
 **Common causes:**
+
 - `initialDelaySeconds` too short (app not ready)
 - Database not reachable from cluster
 - Missing secrets (DATABASE_URL, REDIS_PASSWORD)
 
 **Solutions:**
+
 ```yaml
 # Increase startup time
 startupProbe:
@@ -682,10 +716,12 @@ kubectl describe secret backend-secrets
 #### 5. Load Balancer Marks Instance Unhealthy
 
 **Symptoms:**
+
 - Load balancer removes instance from pool
 - Traffic stops reaching instance
 
 **Diagnosis:**
+
 ```bash
 # Test health endpoint from LB perspective
 curl -v http://instance-ip:3000/health/readiness
@@ -695,6 +731,7 @@ aws elbv2 describe-target-health --target-group-arn arn:...
 ```
 
 **Solutions:**
+
 - Verify security group allows LB → instance on port 3000
 - Check readiness probe timeout vs actual response time
 - Ensure Redis/MongoDB accessible from instance
@@ -708,6 +745,7 @@ aws elbv2 describe-target-health --target-group-arn arn:...
 **Example: External API Health Check**
 
 **1. Create indicator:**
+
 ```typescript
 // src/health/indicators/external-api.health.ts
 import { Injectable } from '@nestjs/common';
@@ -726,7 +764,7 @@ export class ExternalApiHealthIndicator extends HealthIndicator {
       const response = await lastValueFrom(
         this.http.get('https://api.example.com/status', {
           timeout: 3000,
-        })
+        }),
       );
 
       if (response.status === 200) {
@@ -749,6 +787,7 @@ export class ExternalApiHealthIndicator extends HealthIndicator {
 ```
 
 **2. Register in module:**
+
 ```typescript
 // health.module.ts
 import { ExternalApiHealthIndicator } from './indicators/external-api.health';
@@ -758,13 +797,14 @@ import { ExternalApiHealthIndicator } from './indicators/external-api.health';
   controllers: [HealthController],
   providers: [
     RedisHealthIndicator,
-    ExternalApiHealthIndicator,  // Add here
+    ExternalApiHealthIndicator, // Add here
   ],
 })
 export class HealthModule {}
 ```
 
 **3. Add to controller:**
+
 ```typescript
 // health.controller.ts
 constructor(
@@ -830,6 +870,7 @@ check() {
 ### Impact on Production
 
 **Load from health checks:**
+
 ```
 Requests per second = (Pods × Replicas) / Interval
 
@@ -843,6 +884,7 @@ Database connections = 3 concurrent pings
 ```
 
 **Optimization:**
+
 - Use connection pooling (health checks reuse pool)
 - Set appropriate timeouts (3s max)
 - Disable retries in health check clients
@@ -850,6 +892,7 @@ Database connections = 3 concurrent pings
 ### Caching Strategy
 
 **NOT recommended** for health checks because:
+
 - Defeats purpose of real-time validation
 - Can mask actual failures
 - K8s expects fresh data
@@ -875,6 +918,6 @@ Database connections = 3 concurrent pings
 
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2026-01-15 | Initial documentation - Redis indicator, K8s probes, comprehensive checks |
+| Version | Date       | Changes                                                                   |
+| ------- | ---------- | ------------------------------------------------------------------------- |
+| 1.0.0   | 2026-01-15 | Initial documentation - Redis indicator, K8s probes, comprehensive checks |

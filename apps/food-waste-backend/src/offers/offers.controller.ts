@@ -87,15 +87,16 @@ export class OffersController {
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() createOfferDto: CreateOfferDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: Express.Multer.File[] | undefined,
     @Request() req: AuthenticatedRequest,
   ) {
     try {
+      const uploadedFiles = files ?? [];
       let imageUrls: string[] = [];
 
       // Upload images to Firebase Cloud Storage if provided
-      if (files && files.length > 0) {
-        const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
+      if (uploadedFiles.length > 0) {
+        const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
           folder: 'offers',
           makePublic: true,
           metadata: { uploadedBy: req.user.userId, category: 'offer-image' },
@@ -681,15 +682,16 @@ export class OffersController {
   async update(
     @Param('id') id: string,
     @Body() updateOfferDto: UpdateOfferDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: Express.Multer.File[] | undefined,
     @Request() req: AuthenticatedRequest,
   ) {
     try {
+      const uploadedFiles = files ?? [];
       let newImageUrls: string[] = [];
 
       // Upload new images to Firebase Cloud Storage if provided
-      if (files && files.length > 0) {
-        const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
+      if (uploadedFiles.length > 0) {
+        const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
           folder: 'offers',
           makePublic: true,
           metadata: { uploadedBy: req.user.userId, category: 'offer-image-update' },
@@ -708,7 +710,7 @@ export class OffersController {
       const updateData = {
         ...updateOfferDto,
         ...(newImageUrls.length > 0 && {
-          images: [...(updateOfferDto.images || []), ...newImageUrls],
+          images: [...(updateOfferDto.images ?? []), ...newImageUrls],
         }),
       };
 
@@ -754,16 +756,18 @@ export class OffersController {
   @ApiResponse({ status: 404, description: '❌ Offer not found' })
   async updateImages(
     @Param('id') id: string,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: Express.Multer.File[] | undefined,
     @Request() req: AuthenticatedRequest,
   ) {
     try {
-      if (!files || files.length === 0) {
+      const uploadedFiles = files ?? [];
+
+      if (uploadedFiles.length === 0) {
         throw new BadRequestException('No images provided');
       }
 
       // Upload images to Firebase Cloud Storage
-      const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
+      const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
         folder: 'offers',
         makePublic: true,
         metadata: { uploadedBy: req.user.userId, category: 'offer-image-replace' },

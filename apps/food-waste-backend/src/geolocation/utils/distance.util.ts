@@ -1,4 +1,6 @@
-import { GeoCoordinate, Distance, DistanceUnit } from '../interfaces/geolocation.interface';
+import { DistanceUnit } from '../interfaces/geolocation.interface';
+
+import type { GeoCoordinate, Distance } from '../interfaces/geolocation.interface';
 
 /**
  * Earth's radius in different units
@@ -6,14 +8,13 @@ import { GeoCoordinate, Distance, DistanceUnit } from '../interfaces/geolocation
 export const EARTH_RADIUS = {
   METERS: 6371000,
   KILOMETERS: 6371,
-  MILES: 3959
+  MILES: 3959,
 } as const;
 
 /**
  * Calculate distance between two points using Haversine formula
  */
 export class DistanceCalculator {
-
   /**
    * Calculate distance between two geographic coordinates
    * @param point1 First coordinate
@@ -24,7 +25,7 @@ export class DistanceCalculator {
   static calculateDistance(
     point1: GeoCoordinate,
     point2: GeoCoordinate,
-    unit: DistanceUnit = DistanceUnit.KILOMETERS
+    unit: DistanceUnit = DistanceUnit.KILOMETERS,
   ): Distance {
     const distanceInMeters = this.haversineDistance(point1, point2);
 
@@ -34,7 +35,7 @@ export class DistanceCalculator {
     return {
       value,
       unit,
-      formatted
+      formatted,
     };
   }
 
@@ -47,9 +48,9 @@ export class DistanceCalculator {
     const deltaLatRad = this.degreesToRadians(point2.latitude - point1.latitude);
     const deltaLngRad = this.degreesToRadians(point2.longitude - point1.longitude);
 
-    const a = Math.sin(deltaLatRad / 2) * Math.sin(deltaLatRad / 2) +
-              Math.cos(lat1Rad) * Math.cos(lat2Rad) *
-              Math.sin(deltaLngRad / 2) * Math.sin(deltaLngRad / 2);
+    const a =
+      Math.sin(deltaLatRad / 2) * Math.sin(deltaLatRad / 2) +
+      Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(deltaLngRad / 2) * Math.sin(deltaLngRad / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
@@ -65,8 +66,9 @@ export class DistanceCalculator {
     const deltaLngRad = this.degreesToRadians(point2.longitude - point1.longitude);
 
     const y = Math.sin(deltaLngRad) * Math.cos(lat2Rad);
-    const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) -
-              Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(deltaLngRad);
+    const x =
+      Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+      Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(deltaLngRad);
 
     const bearingRad = Math.atan2(y, x);
     return (this.radiansToDegrees(bearingRad) + 360) % 360;
@@ -79,7 +81,7 @@ export class DistanceCalculator {
     origin: GeoCoordinate,
     distance: number,
     bearing: number,
-    unit: DistanceUnit = DistanceUnit.KILOMETERS
+    unit: DistanceUnit = DistanceUnit.KILOMETERS,
   ): GeoCoordinate {
     const distanceInMeters = this.convertDistance(distance, unit, DistanceUnit.METERS);
     const angularDistance = distanceInMeters / EARTH_RADIUS.METERS;
@@ -89,17 +91,19 @@ export class DistanceCalculator {
 
     const lat2Rad = Math.asin(
       Math.sin(lat1Rad) * Math.cos(angularDistance) +
-      Math.cos(lat1Rad) * Math.sin(angularDistance) * Math.cos(bearingRad)
+        Math.cos(lat1Rad) * Math.sin(angularDistance) * Math.cos(bearingRad),
     );
 
-    const lng2Rad = lng1Rad + Math.atan2(
-      Math.sin(bearingRad) * Math.sin(angularDistance) * Math.cos(lat1Rad),
-      Math.cos(angularDistance) - Math.sin(lat1Rad) * Math.sin(lat2Rad)
-    );
+    const lng2Rad =
+      lng1Rad +
+      Math.atan2(
+        Math.sin(bearingRad) * Math.sin(angularDistance) * Math.cos(lat1Rad),
+        Math.cos(angularDistance) - Math.sin(lat1Rad) * Math.sin(lat2Rad),
+      );
 
     return {
       latitude: this.radiansToDegrees(lat2Rad),
-      longitude: this.radiansToDegrees(lng2Rad)
+      longitude: this.radiansToDegrees(lng2Rad),
     };
   }
 
@@ -110,7 +114,7 @@ export class DistanceCalculator {
     center: GeoCoordinate,
     point: GeoCoordinate,
     radius: number,
-    unit: DistanceUnit = DistanceUnit.METERS
+    unit: DistanceUnit = DistanceUnit.METERS,
   ): boolean {
     const distance = this.calculateDistance(center, point, unit);
     return distance.value <= radius;
@@ -122,7 +126,7 @@ export class DistanceCalculator {
   static getBoundingBox(
     center: GeoCoordinate,
     radius: number,
-    unit: DistanceUnit = DistanceUnit.KILOMETERS
+    unit: DistanceUnit = DistanceUnit.KILOMETERS,
   ): {
     northeast: GeoCoordinate;
     southwest: GeoCoordinate;
@@ -136,12 +140,12 @@ export class DistanceCalculator {
     return {
       northeast: {
         latitude: center.latitude + latOffset,
-        longitude: center.longitude + lngOffset
+        longitude: center.longitude + lngOffset,
       },
       southwest: {
         latitude: center.latitude - latOffset,
-        longitude: center.longitude - lngOffset
-      }
+        longitude: center.longitude - lngOffset,
+      },
     };
   }
 
@@ -151,12 +155,12 @@ export class DistanceCalculator {
   static sortByDistance<T extends { coordinates: GeoCoordinate }>(
     points: T[],
     reference: GeoCoordinate,
-    unit: DistanceUnit = DistanceUnit.KILOMETERS
+    unit: DistanceUnit = DistanceUnit.KILOMETERS,
   ): Array<T & { distance: Distance }> {
     return points
-      .map(point => ({
+      .map((point) => ({
         ...point,
-        distance: this.calculateDistance(reference, point.coordinates, unit)
+        distance: this.calculateDistance(reference, point.coordinates, unit),
       }))
       .sort((a, b) => a.distance.value - b.distance.value);
   }
@@ -168,26 +172,24 @@ export class DistanceCalculator {
     points: T[],
     center: GeoCoordinate,
     radius: number,
-    unit: DistanceUnit = DistanceUnit.KILOMETERS
+    unit: DistanceUnit = DistanceUnit.KILOMETERS,
   ): Array<T & { distance: Distance }> {
     return points
-      .map(point => ({
+      .map((point) => ({
         ...point,
-        distance: this.calculateDistance(center, point.coordinates, unit)
+        distance: this.calculateDistance(center, point.coordinates, unit),
       }))
-      .filter(point => point.distance.value <= radius)
+      .filter((point) => point.distance.value <= radius)
       .sort((a, b) => a.distance.value - b.distance.value);
   }
 
   /**
    * Convert distance between units
    */
-  static convertDistance(
-    value: number,
-    fromUnit: DistanceUnit,
-    toUnit: DistanceUnit
-  ): number {
-    if (fromUnit === toUnit) {return value;}
+  static convertDistance(value: number, fromUnit: DistanceUnit, toUnit: DistanceUnit): number {
+    if (fromUnit === toUnit) {
+      return value;
+    }
 
     // Convert to meters first
     let meters: number;
@@ -223,12 +225,10 @@ export class DistanceCalculator {
     switch (unit) {
       case DistanceUnit.METERS:
         return roundedValue >= 1000
-          ? `${Math.round(roundedValue / 1000 * 10) / 10} km`
+          ? `${Math.round((roundedValue / 1000) * 10) / 10} km`
           : `${Math.round(roundedValue)} m`;
       case DistanceUnit.KILOMETERS:
-        return roundedValue < 1
-          ? `${Math.round(roundedValue * 1000)} m`
-          : `${roundedValue} km`;
+        return roundedValue < 1 ? `${Math.round(roundedValue * 1000)} m` : `${roundedValue} km`;
       case DistanceUnit.MILES:
         return `${roundedValue} mi`;
       default:
@@ -256,7 +256,7 @@ export class DistanceCalculator {
   static pointToCoordinate(point: { coordinates: [number, number] }): GeoCoordinate {
     return {
       longitude: point.coordinates[0],
-      latitude: point.coordinates[1]
+      latitude: point.coordinates[1],
     };
   }
 
@@ -266,7 +266,7 @@ export class DistanceCalculator {
   static coordinateToPoint(coord: GeoCoordinate): { type: 'Point'; coordinates: [number, number] } {
     return {
       type: 'Point',
-      coordinates: [coord.longitude, coord.latitude]
+      coordinates: [coord.longitude, coord.latitude],
     };
   }
 
@@ -302,7 +302,7 @@ export class DistanceCalculator {
 
     return {
       latitude: totalLat / coordinates.length,
-      longitude: totalLng / coordinates.length
+      longitude: totalLng / coordinates.length,
     };
   }
 
@@ -312,7 +312,7 @@ export class DistanceCalculator {
   static generateRandomCoordinatesInRadius(
     center: GeoCoordinate,
     radiusInKm: number,
-    count: number = 1
+    count: number = 1,
   ): GeoCoordinate[] {
     const coordinates: GeoCoordinate[] = [];
 
@@ -324,7 +324,7 @@ export class DistanceCalculator {
         center,
         randomDistance,
         randomBearing,
-        DistanceUnit.KILOMETERS
+        DistanceUnit.KILOMETERS,
       );
 
       coordinates.push(randomPoint);

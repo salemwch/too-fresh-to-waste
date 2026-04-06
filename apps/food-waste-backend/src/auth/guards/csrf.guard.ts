@@ -9,13 +9,18 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 
 export const CSRF_EXEMPT_KEY = 'csrf_exempt';
 export const CsrfExempt = () =>
   Reflector.createDecorator<boolean>({
     key: CSRF_EXEMPT_KEY,
   });
+
+type CsrfRequest = Request & {
+  body?: Record<string, unknown>;
+  cookies?: Record<string, string | undefined>;
+};
 
 @Injectable()
 export class CsrfGuard implements CanActivate {
@@ -27,13 +32,13 @@ export class CsrfGuard implements CanActivate {
     private readonly configService: ConfigService,
   ) {
     this.csrfTokenSecret =
-      this.configService.get<string>('CSRF_SECRET') ||
+      this.configService.get<string>('CSRF_SECRET') ??
       this.configService.getOrThrow<string>('JWT_SECRET');
   }
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<Request>();
-    const response = context.switchToHttp().getResponse();
+    const request = context.switchToHttp().getRequest<CsrfRequest>();
+    const response = context.switchToHttp().getResponse<Response>();
 
     // Check if endpoint is exempt from CSRF protection
     const isExempt = this.reflector.getAllAndOverride<boolean>(CSRF_EXEMPT_KEY, [
@@ -52,7 +57,7 @@ export class CsrfGuard implements CanActivate {
 
     // Skip CSRF for API requests with valid bearer tokens (for mobile apps)
     const authHeader = request.headers.authorization;
-    if (authHeader?.startsWith('Bearer ')) {
+    if (authHeader?.startsWith('Bearer ') === true) {
       return true;
     }
 
@@ -70,13 +75,34 @@ export class CsrfGuard implements CanActivate {
       }
 
       // Verify CSRF token for state-changing requests
-      const csrfTokenFromHeader = request.headers['x-csrf-token'] as string;
-      const csrfTokenFromBody = request.body?.csrfToken;
-      const csrfTokenFromCookie = request.cookies?.['csrf-token'];
+      const csrfTokenHeader = request.headers['x-csrf-token'];
+      const csrfTokenFromHeader =
+        typeof csrfTokenHeader === 'string'
+          ? csrfTokenHeader
+          : Array.isArray(csrfTokenHeader)
+            ? csrfTokenHeader[0]
+            : undefined;
+      const requestBody = request.body as Record<string, unknown> | undefined;
+      const requestCookies = request.cookies as Record<string, string | undefined> | undefined;
+      const csrfTokenFromBody =
+        requestBody !== null &&
+        requestBody !== undefined &&
+        typeof requestBody['csrfToken'] === 'string'
+          ? requestBody['csrfToken']
+          : undefined;
+      const csrfTokenFromCookie =
+        typeof requestCookies?.['csrf-token'] === 'string'
+          ? requestCookies['csrf-token']
+          : undefined;
 
-      const providedToken = csrfTokenFromHeader || csrfTokenFromBody;
+      const providedToken = csrfTokenFromHeader ?? csrfTokenFromBody;
 
-      if (!providedToken || !csrfTokenFromCookie) {
+      if (
+        providedToken === null ||
+        providedToken === undefined ||
+        csrfTokenFromCookie === null ||
+        csrfTokenFromCookie === undefined
+      ) {
         this.logger.warn(
           `CSRF token missing - IP: ${request.ip}, Method: ${request.method}, URL: ${request.url}`,
         );

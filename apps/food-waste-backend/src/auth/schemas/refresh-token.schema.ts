@@ -24,20 +24,20 @@ export class RefreshToken {
    * JWT ID (jti) - Unique identifier for this token
    * RFC 7519: Used to prevent replay attacks and enable revocation
    */
-  @Prop({ required: true, unique: true, index: true })
+  @Prop({ required: true, unique: true })
   jti!: string;
 
   /**
    * Hashed refresh token value
    * Stored hashed for security (defense in depth)
    */
-  @Prop({ required: true, index: true })
+  @Prop({ required: true })
   tokenHash!: string;
 
   /**
    * User ID this token belongs to
    */
-  @Prop({ required: true, index: true })
+  @Prop({ required: true })
   userId!: string;
 
   /**
@@ -45,7 +45,7 @@ export class RefreshToken {
    * When a token is refreshed, new token inherits the family ID
    * Enables detection of token theft (reuse of old token in family)
    */
-  @Prop({ required: true, index: true })
+  @Prop({ required: true })
   familyId!: string;
 
   /**
@@ -53,7 +53,7 @@ export class RefreshToken {
    * Critical for token fixation attack prevention
    * Reject tokens if iat < user's last security event timestamp
    */
-  @Prop({ required: true, index: true })
+  @Prop({ required: true })
   issuedAt!: Date;
 
   /**
@@ -88,13 +88,13 @@ export class RefreshToken {
    * Parent token JTI - References the token that was rotated to create this one
    * Enables token lineage tracking
    */
-  @Prop({ index: true })
+  @Prop()
   parentJti?: string;
 
   /**
    * Revoked status - Mark token as invalid without deletion
    */
-  @Prop({ default: false, index: true })
+  @Prop({ default: false })
   isRevoked!: boolean;
 
   /**
@@ -164,5 +164,4 @@ RefreshTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 // Safety net independent of the cron job — only affects documents where revokedAt is set
 RefreshTokenSchema.index({ revokedAt: 1 }, { expireAfterSeconds: 172800 });
 
-// Index for security queries
-RefreshTokenSchema.index({ familyId: 1, 'securityMetadata.isCompromised': 1 });
+// Family compromise queries are served by {userId:1, familyId:1} — userId is always known

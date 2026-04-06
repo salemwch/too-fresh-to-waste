@@ -14,9 +14,10 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
-import { createObjectCsvStringifier } from 'csv-writer';
 import { Response } from 'express';
 import { Builder } from 'xml2js';
+
+import { createObjectCsvStringifier } from 'csv-writer';
 
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -360,7 +361,8 @@ export class PrivacyController {
         message: 'Data deletion request processed successfully',
         deletionResult,
         legalBasis: '🇹🇳 Tunisia Law No. 2004-63 + 🌍 GDPR Article 17 - Right to be Forgotten',
-        processingTime: deletionRequest.immediateProcessing ? 'Immediate' : 'Within 30 days',
+        processingTime:
+          deletionRequest.immediateProcessing === true ? 'Immediate' : 'Within 30 days',
       };
     } catch (error) {
       throw new HttpException(

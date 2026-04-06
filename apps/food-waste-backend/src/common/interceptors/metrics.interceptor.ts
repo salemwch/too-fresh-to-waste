@@ -15,6 +15,8 @@ import { tap } from 'rxjs/operators';
 
 import { PrometheusMetricsService } from '../services/prometheus-metrics.service';
 
+import type { Request, Response } from 'express';
+
 @Injectable()
 export class MetricsInterceptor implements NestInterceptor {
   constructor(private readonly metricsService: PrometheusMetricsService) {}
@@ -25,8 +27,8 @@ export class MetricsInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const request = context.switchToHttp().getRequest();
-    const response = context.switchToHttp().getResponse();
+    const request = context.switchToHttp().getRequest<Request>();
+    const response = context.switchToHttp().getResponse<Response>();
 
     // Extract request details
     const method = request.method;
@@ -44,7 +46,7 @@ export class MetricsInterceptor implements NestInterceptor {
         next: () => {
           // Success - record metrics
           const duration = Date.now() - startTime;
-          const statusCode = response.statusCode || 200;
+          const statusCode = typeof response.statusCode === 'number' ? response.statusCode : 200;
 
           this.metricsService.recordHttpRequest({
             method,
@@ -55,10 +57,10 @@ export class MetricsInterceptor implements NestInterceptor {
 
           this.metricsService.decrementHttpInFlight();
         },
-        error: (error) => {
+        error: (error: unknown) => {
           // Error - record metrics with error status code
           const duration = Date.now() - startTime;
-          const statusCode = error?.status || error?.statusCode || 500;
+          const statusCode = this.getErrorStatusCode(error);
 
           this.metricsService.recordHttpRequest({
             method,
@@ -71,6 +73,20 @@ export class MetricsInterceptor implements NestInterceptor {
         },
       }),
     );
+  }
+
+  private getErrorStatusCode(error: unknown): number {
+    if (error !== null && error !== undefined && typeof error === 'object') {
+      const maybeHttpError = error as { status?: unknown; statusCode?: unknown };
+      if (typeof maybeHttpError.status === 'number') {
+        return maybeHttpError.status;
+      }
+      if (typeof maybeHttpError.statusCode === 'number') {
+        return maybeHttpError.statusCode;
+      }
+    }
+
+    return 500;
   }
 
   /**

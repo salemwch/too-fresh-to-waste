@@ -50,6 +50,10 @@ export interface FindAllResult {
   total: number;
 }
 
+interface AggregateCountResult {
+  total: number;
+}
+
 @Injectable()
 export class EstablishmentsService {
   private readonly logger = new Logger(EstablishmentsService.name);
@@ -93,7 +97,7 @@ export class EstablishmentsService {
           coordinates: savedEstablishment.address.coordinates.coordinates,
         },
         {
-          hasImages: savedEstablishment.images && savedEstablishment.images.length > 0,
+          hasImages: (savedEstablishment.images?.length ?? 0) > 0,
           imageCount: savedEstablishment.images?.length || 0,
           hasLegalDocuments: !!savedEstablishment.legalDocuments,
         },
@@ -161,10 +165,10 @@ export class EstablishmentsService {
       }
     }
 
-    const street = businessInfo.addressComponents?.street || businessInfo.formattedAddress;
-    const city = businessInfo.addressComponents?.city || 'Unknown';
-    const postalCode = businessInfo.addressComponents?.postalCode || '0000';
-    const country = businessInfo.addressComponents?.country || 'Tunisia';
+    const street = businessInfo.addressComponents?.street ?? businessInfo.formattedAddress;
+    const city = businessInfo.addressComponents?.city ?? 'Unknown';
+    const postalCode = businessInfo.addressComponents?.postalCode ?? '0000';
+    const country = businessInfo.addressComponents?.country ?? 'Tunisia';
 
     const establishmentType = this.mapGoogleTypesToEstablishmentType(businessInfo.types);
 
@@ -185,7 +189,7 @@ export class EstablishmentsService {
           coordinates: [businessInfo.longitude, businessInfo.latitude],
         },
       },
-      phoneNumber: userPhone || '+21600000000',
+      phoneNumber: userPhone ?? '+21600000000',
       email: userEmail,
     });
 
@@ -245,7 +249,7 @@ export class EstablishmentsService {
 
     for (const gType of googleTypes) {
       const mapped = typeMap[gType];
-      if (mapped) {
+      if (mapped !== null && mapped !== undefined) {
         return mapped;
       }
     }
@@ -267,10 +271,10 @@ export class EstablishmentsService {
     if (filters.search) {
       filter['$text'] = { $search: filters.search };
     }
-    if (filters.type) {
+    if (filters.type !== null && filters.type !== undefined) {
       filter['type'] = filters.type;
     }
-    if (filters.status) {
+    if (filters.status !== null && filters.status !== undefined) {
       filter['status'] = filters.status;
     }
     if (filters.isVerified !== undefined) {
@@ -283,7 +287,9 @@ export class EstablishmentsService {
       filter['averageRating'] = { $gte: filters.minRating };
     }
 
-    const hasGeoFilter = !!(filters.longitude && filters.latitude);
+    const longitude = filters.longitude;
+    const latitude = filters.latitude;
+    const hasGeoFilter = longitude !== undefined && latitude !== undefined;
     const ownerFields = ['firstName', 'lastName', 'email', 'phoneNumber'];
 
     // Build aggregate pipeline
@@ -299,10 +305,10 @@ export class EstablishmentsService {
         $geoNear: {
           near: {
             type: 'Point',
-            coordinates: [filters.longitude!, filters.latitude!],
+            coordinates: [longitude, latitude],
           },
           distanceField: 'distance',
-          maxDistance: filters.maxDistance || 5000,
+          maxDistance: filters.maxDistance ?? 5000,
           query: geoFilter,
           spherical: true,
         },
@@ -324,15 +330,15 @@ export class EstablishmentsService {
       this.establishmentModel.aggregate<EstablishmentLean>(pipeline),
       hasGeoFilter
         ? this.establishmentModel
-            .aggregate([
+            .aggregate<AggregateCountResult>([
               {
                 $geoNear: {
                   near: {
                     type: 'Point',
-                    coordinates: [filters.longitude!, filters.latitude!],
+                    coordinates: [longitude, latitude],
                   },
                   distanceField: 'distance',
-                  maxDistance: filters.maxDistance || 5000,
+                  maxDistance: filters.maxDistance ?? 5000,
                   query: (() => {
                     const f = { ...filter };
                     delete f['$text'];
@@ -343,7 +349,7 @@ export class EstablishmentsService {
               },
               { $count: 'total' },
             ])
-            .then((r) => r[0]?.total || 0)
+            .then((r) => r[0]?.total ?? 0)
         : this.establishmentModel.countDocuments(filter),
     ]);
 
@@ -407,7 +413,11 @@ export class EstablishmentsService {
       throw new ForbiddenException('You can only update your own establishment');
     }
 
-    if (userRole !== 'admin' && updateEstablishmentDto.status) {
+    if (
+      userRole !== 'admin' &&
+      updateEstablishmentDto.status !== null &&
+      updateEstablishmentDto.status !== undefined
+    ) {
       delete updateEstablishmentDto.status;
     }
 
@@ -432,7 +442,7 @@ export class EstablishmentsService {
       changedData['businessHoursChanged'] = true;
     }
 
-    if (updateEstablishmentDto.type) {
+    if (updateEstablishmentDto.type !== null && updateEstablishmentDto.type !== undefined) {
       updatedFields.push('type');
       changedData['typeChanged'] = true;
     }
@@ -546,7 +556,7 @@ export class EstablishmentsService {
 
     const isAdminDeletion = userRole === 'admin';
     const finalDeletionReason =
-      deletionReason || (isAdminDeletion ? 'Admin deletion' : 'Owner deletion');
+      deletionReason ?? (isAdminDeletion ? 'Admin deletion' : 'Owner deletion');
 
     // Soft delete: mark as deleted instead of removing from database
     await this.establishmentModel
@@ -631,8 +641,8 @@ export class EstablishmentsService {
         ...this.getOwnerLookupStages(['firstName', 'lastName']),
       ]),
       this.establishmentModel
-        .aggregate([geoNearStage, { $count: 'total' }])
-        .then((r) => r[0]?.total || 0),
+        .aggregate<AggregateCountResult>([geoNearStage, { $count: 'total' }])
+        .then((r) => r[0]?.total ?? 0),
     ]);
 
     return { establishments, total };
@@ -693,9 +703,7 @@ export class EstablishmentsService {
     };
 
     // Initialize legalDocuments if it doesn't exist
-    if (!establishment.legalDocuments) {
-      establishment.legalDocuments = {};
-    }
+    establishment.legalDocuments ??= {};
 
     // Update the appropriate document field based on type
     switch (documentType) {
@@ -726,11 +734,9 @@ export class EstablishmentsService {
 
       case DocumentType.ADDITIONAL:
         // Add to additional documents array
-        if (!establishment.legalDocuments.additionalDocuments) {
-          establishment.legalDocuments.additionalDocuments = [];
-        }
+        establishment.legalDocuments.additionalDocuments ??= [];
         establishment.legalDocuments.additionalDocuments.push({
-          type: metadata.notes || 'Additional Document',
+          type: metadata.notes ?? 'Additional Document',
           url: documentUrl,
           metadata: documentMetadata,
         });
@@ -841,6 +847,11 @@ export class EstablishmentsService {
         }
         break;
 
+      case DocumentType.ADDITIONAL:
+        throw new BadRequestException(
+          'Additional documents require a dedicated identifier for verification',
+        );
+
       default:
         throw new BadRequestException('Invalid document type for verification');
     }
@@ -927,6 +938,11 @@ export class EstablishmentsService {
         establishment.legalDocuments.ownerIdDocumentUrl = undefined;
         establishment.legalDocuments.ownerIdDocumentMetadata = undefined;
         break;
+
+      case DocumentType.ADDITIONAL:
+        throw new BadRequestException(
+          'Additional documents require a dedicated identifier for deletion',
+        );
 
       default:
         throw new BadRequestException('Invalid document type');

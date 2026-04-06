@@ -51,12 +51,13 @@ export interface LogMetadata {
  */
 const sanitizeStackTrace = winston.format((info) => {
   const isProduction = process.env['NODE_ENV'] === 'production';
+  const stack = info['stack'];
 
-  if (isProduction && info['stack'] && typeof info['stack'] === 'string') {
+  if (isProduction && typeof stack === 'string') {
     // In production, remove absolute file paths from stack traces
     // Replace: at ClassName.methodName (C:\Users\...\file.ts:123:45)
     // With: at ClassName.methodName (file.ts:123:45)
-    info['stack'] = info['stack']
+    info['stack'] = stack
       .split('\n')
       .map((line: string) =>
         // Remove absolute paths but keep relative file info
@@ -83,7 +84,20 @@ export class AppLoggerService implements LoggerService {
     this.isProduction = process.env['NODE_ENV'] === 'production';
     this.sentryEnabled = !!process.env['SENTRY_DSN'];
 
-    const logLevel = this.isProduction ? LogLevel.INFO : process.env['LOG_LEVEL'] || LogLevel.DEBUG;
+    const configuredLogLevel = process.env['LOG_LEVEL'];
+    let logLevel: string;
+
+    if (this.isProduction) {
+      logLevel = LogLevel.INFO;
+    } else if (
+      configuredLogLevel === null ||
+      configuredLogLevel === undefined ||
+      configuredLogLevel.trim().length === 0
+    ) {
+      logLevel = LogLevel.DEBUG;
+    } else {
+      logLevel = configuredLogLevel;
+    }
 
     // Define log format
     const logFormat = winston.format.combine(
@@ -107,12 +121,16 @@ export class AppLoggerService implements LoggerService {
         : winston.format.combine(
             winston.format.colorize(),
             winston.format.printf(({ timestamp, level, message, context, metadata, stack }) => {
-              const ctx = context ? `[${context}]` : '';
+              const ctx = typeof context === 'string' && context.length > 0 ? `[${context}]` : '';
+              const metadataRecord =
+                metadata !== null && metadata !== undefined && typeof metadata === 'object'
+                  ? (metadata as Record<string, unknown>)
+                  : {};
               const meta =
-                Object.keys(metadata || {}).length > 0
-                  ? `\n${JSON.stringify(metadata, null, 2)}`
+                Object.keys(metadataRecord).length > 0
+                  ? `\n${JSON.stringify(metadataRecord, null, 2)}`
                   : '';
-              const stackTrace = stack ? `\n${stack}` : '';
+              const stackTrace = typeof stack === 'string' && stack.length > 0 ? `\n${stack}` : '';
               return `${timestamp} ${level} ${ctx} ${message}${meta}${stackTrace}`;
             }),
           ),
@@ -129,7 +147,13 @@ export class AppLoggerService implements LoggerService {
 
     // File transports (production only)
     if (this.isProduction) {
-      const logsDir = process.env['LOGS_DIR'] || path.join(process.cwd(), 'logs');
+      const configuredLogsDir = process.env['LOGS_DIR'];
+      const logsDir =
+        configuredLogsDir === null ||
+        configuredLogsDir === undefined ||
+        configuredLogsDir.trim().length === 0
+          ? path.join(process.cwd(), 'logs')
+          : configuredLogsDir;
 
       // Combined logs (all levels)
       transports.push(
@@ -185,7 +209,8 @@ export class AppLoggerService implements LoggerService {
    */
   private buildMetadata(metadata?: LogMetadata, context?: string): LogMetadata {
     return {
-      context: context || this.context,
+      context:
+        context === null || context === undefined || context.length === 0 ? this.context : context,
       ...metadata,
       environment: process.env['NODE_ENV'],
       timestamp: new Date().toISOString(),
@@ -300,7 +325,7 @@ export class AppLoggerService implements LoggerService {
       'data loss',
     ];
 
-    const combined = `${message} ${stack || ''}`.toLowerCase();
+    const combined = `${message} ${stack ?? ''}`.toLowerCase();
     return criticalKeywords.some((keyword) => combined.includes(keyword));
   }
 

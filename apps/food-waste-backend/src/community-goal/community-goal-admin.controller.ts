@@ -9,21 +9,14 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+
 import { AdminOnlyGuard } from '../admin/guards/admin-only.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+
 import { CommunityGoalService } from './community-goal.service';
-import {
-  SetGoalTargetDto,
-  CommunityGoalStatsResponseDto,
-} from './dto/community-goal.dto';
+import { SetGoalTargetDto, CommunityGoalStatsResponseDto } from './dto/community-goal.dto';
 
 @ApiTags('Admin - Community Goal')
 @Controller('admin/community-goal')
@@ -50,13 +43,8 @@ export class CommunityGoalAdminController {
     @Body() dto: SetGoalTargetDto,
     @CurrentUser('_id') adminId: string,
   ): Promise<{ message: string; data: CommunityGoalStatsResponseDto }> {
-    this.logger.log(
-      `Admin ${adminId} setting community goal target to ${dto.targetCount}`,
-    );
-    const stats = await this.communityGoalService.setGoalTarget(
-      dto.targetCount,
-      adminId,
-    );
+    this.logger.log(`Admin ${adminId} setting community goal target to ${dto.targetCount}`);
+    const stats = await this.communityGoalService.setGoalTarget(dto.targetCount, adminId);
     return {
       message: `Community goal target updated to ${dto.targetCount}`,
       data: stats,
@@ -110,10 +98,7 @@ export class CommunityGoalAdminController {
     const pageNum = Math.max(1, parseInt(page ?? '1', 10) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit ?? '20', 10) || 20));
 
-    const { goals, total } = await this.communityGoalService.getHistory(
-      pageNum,
-      limitNum,
-    );
+    const { goals, total } = await this.communityGoalService.getHistory(pageNum, limitNum);
     return {
       message: 'Community goal history retrieved successfully',
       data: goals,

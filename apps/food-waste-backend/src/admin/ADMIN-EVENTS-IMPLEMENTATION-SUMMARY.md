@@ -19,6 +19,7 @@ Successfully implemented event-driven architecture for the admin module, transfo
 **Location:** `src/common/events/`
 
 #### Admin User Events (`admin-user.events.ts`)
+
 - `BaseAdminUserEvent` - Base class for user-related events
 - `AdminUserStatusChangedEvent` - Generic status change
 - `AdminUserActivatedEvent` - User activated
@@ -28,6 +29,7 @@ Successfully implemented event-driven architecture for the admin module, transfo
 - `AdminBulkUserActionEvent` - Bulk operations
 
 #### Admin Establishment Events (`admin-establishment.events.ts`)
+
 - `BaseAdminEstablishmentEvent` - Base class for establishment events
 - `AdminEstablishmentApprovedEvent` - Establishment approved
 - `AdminEstablishmentRejectedEvent` - Establishment rejected
@@ -38,6 +40,7 @@ Successfully implemented event-driven architecture for the admin module, transfo
 - `AdminEstablishmentReactivationScheduledEvent` - Scheduled reactivation
 
 #### Admin System Events (`admin-system.events.ts`)
+
 - `BaseAdminSystemEvent` - Base class for system events
 - `AdminSystemConfigChangedEvent` - Config updated
 - `AdminSystemConfigRolledBackEvent` - Config rolled back
@@ -48,6 +51,7 @@ Successfully implemented event-driven architecture for the admin module, transfo
 - `AdminBulkOperationCompletedEvent` - Bulk operation finished
 
 **Event Naming Convention:** `admin.{domain}.{action}`
+
 - `admin.user.suspended`
 - `admin.establishment.approved`
 - `admin.system.config_changed`
@@ -57,9 +61,11 @@ Successfully implemented event-driven architecture for the admin module, transfo
 ### 2. Event Emission Added ✅
 
 #### UserManagementService
+
 **File:** `src/admin/services/user-management.service.ts`
 
 **Emits events in:**
+
 - `updateUserStatus()` - Line 385
   - Emits `admin.user.status_changed`
   - Emits specific events: `activated`, `suspended`, `blocked`
@@ -69,13 +75,16 @@ Successfully implemented event-driven architecture for the admin module, transfo
   - Emits `admin.user.bulk_action`
 
 **Helper methods added:**
+
 - `emitUserStatusEvent()` - Lines 1090-1157
 - `getBulkActionType()` - Lines 1162-1173
 
 #### EstablishmentManagementService
+
 **File:** `src/admin/services/establishment-management.service.ts`
 
 **Emits events in:**
+
 - `approveEstablishment()` - Line 521
   - Emits `admin.establishment.approved` or `rejected`
 - `updateEstablishmentStatus()` - Line 598
@@ -87,13 +96,16 @@ Successfully implemented event-driven architecture for the admin module, transfo
   - Emits `admin.establishment.reactivation_scheduled`
 
 **Helper methods added:**
+
 - `emitApprovalEvent()` - Lines 1405-1447
 - `emitStatusChangeEvent()` - Lines 1453-1512
 
 #### SystemConfigService
+
 **File:** `src/admin/services/system-config.service.ts`
 
 **Emits events in:**
+
 - `updateSystemConfig()` - Line 293
   - Emits `admin.system.config_changed`
   - Emits `admin.system.maintenance_mode_changed`
@@ -103,6 +115,7 @@ Successfully implemented event-driven architecture for the admin module, transfo
   - Emits `admin.system.config_rolled_back`
 
 **Helper methods added:**
+
 - `emitConfigChangedEvents()` - Lines 753-869
 
 ---
@@ -110,38 +123,47 @@ Successfully implemented event-driven architecture for the admin module, transfo
 ### 3. Event Listeners Created ✅
 
 #### Auth Module Listener
+
 **File:** `src/auth/listeners/admin-user-events.listener.ts`
 
 **Listens to:**
+
 - `admin.user.suspended` → Revokes all user sessions
 - `admin.user.blocked` → Immediately revokes all sessions (security critical)
 - `admin.user.deleted` → Cleans up auth data, revokes sessions
 - `admin.user.activated` → Logs activation event
 
 **Dependencies:**
+
 - `SessionManagementService.revokeAllUserSessions()` ✅ (exists)
 
 #### Orders Module Listener
+
 **File:** `src/orders/listeners/admin-user-events.listener.ts`
 
 **Listens to:**
+
 - `admin.user.suspended` → Cancels pending orders
 - `admin.user.blocked` → Immediately cancels all pending orders
 - `admin.user.deleted` → Cancels orders + anonymizes history (GDPR)
 
 **Required methods (need implementation):**
+
 - `OrderService.cancelUserPendingOrders(userId, reason)` ⚠️ TODO
 - `OrderService.anonymizeUserOrders(userId)` ⚠️ TODO
 
 #### Offers Module Listener
+
 **File:** `src/offers/listeners/admin-establishment-events.listener.ts`
 
 **Listens to:**
+
 - `admin.establishment.suspended` → Deactivates all offers
 - `admin.establishment.reactivated` → Logs event (offers stay deactivated)
 - `admin.establishment.approved` → Logs approval
 
 **Required methods (need implementation):**
+
 - `OffersService.deactivateEstablishmentOffers(establishmentId, reason)` ⚠️ TODO
 
 ---
@@ -245,6 +267,7 @@ async deactivateEstablishmentOffers(
 **File:** `src/auth/auth.module.ts`
 
 Add to `providers` array:
+
 ```typescript
 import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
 
@@ -262,6 +285,7 @@ export class AuthModule {}
 **File:** `src/orders/order.module.ts`
 
 Add to `providers` array:
+
 ```typescript
 import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
 
@@ -279,6 +303,7 @@ export class OrderModule {}
 **File:** `src/offers/offers.module.ts`
 
 Add to `providers` array:
+
 ```typescript
 import { AdminEstablishmentEventsListener } from './listeners/admin-establishment-events.listener';
 
@@ -361,18 +386,27 @@ Response returned to admin
 ### Unit Tests
 
 **Test event emission:**
+
 ```typescript
 // user-management.service.spec.ts
 it('should emit admin.user.suspended event when suspending user', async () => {
   const spy = jest.spyOn(eventEmitter, 'emit');
 
-  await service.updateUserStatus(userId, { status: UserStatus.SUSPENDED }, adminId, adminEmail, ip, ua);
+  await service.updateUserStatus(
+    userId,
+    { status: UserStatus.SUSPENDED },
+    adminId,
+    adminEmail,
+    ip,
+    ua,
+  );
 
   expect(spy).toHaveBeenCalledWith('admin.user.suspended', expect.any(AdminUserSuspendedEvent));
 });
 ```
 
 **Test listener reactions:**
+
 ```typescript
 // admin-user-events.listener.spec.ts
 it('should revoke all sessions when user is suspended', async () => {
@@ -387,6 +421,7 @@ it('should revoke all sessions when user is suspended', async () => {
 ### Integration Tests
 
 **Test end-to-end flow:**
+
 ```typescript
 it('should revoke sessions and cancel orders when admin suspends user', async () => {
   // Setup: Create user with active session and pending order
@@ -415,26 +450,31 @@ it('should revoke sessions and cancel orders when admin suspends user', async ()
 ## Benefits Achieved
 
 ### 1. Decoupling
+
 - Admin services don't know about sessions, orders, or search indexes
 - Easy to add new reactions without modifying admin code
 - Module boundaries respected (Clean Architecture)
 
 ### 2. Extensibility
+
 - Add fraud detection listener → Listen to `admin.user.suspended`
 - Add analytics listener → Listen to all admin events
 - Add compliance auditing → Listen to deletion events
 
 ### 3. Auditability
+
 - Every admin action triggers traceable events
 - Event timestamps for forensic analysis
 - Full audit trail of cascading effects
 
 ### 4. Resilience
+
 - Listeners don't block admin operations
 - Failure in one listener doesn't affect others
 - Retry logic can be added at listener level
 
 ### 5. Testability
+
 - Easy to test listeners in isolation
 - Mock event emitter for unit tests
 - Integration tests verify full flow
@@ -444,12 +484,14 @@ it('should revoke sessions and cancel orders when admin suspends user', async ()
 ## Metrics
 
 **Before:**
+
 - Event coverage: 0%
 - Tight coupling: UserManagementService → NotificationService
 - Cascade effects: 1 (notification only)
 - Module dependencies: 3-4 cross-module imports
 
 **After:**
+
 - Event coverage: 85%
 - Loose coupling: Event-driven reactions
 - Cascade effects: 3-6 per admin action
@@ -512,6 +554,7 @@ it('should revoke sessions and cancel orders when admin suspends user', async ()
 ## Files Modified
 
 ### New Files Created (8)
+
 1. `src/common/events/admin-user.events.ts`
 2. `src/common/events/admin-establishment.events.ts`
 3. `src/common/events/admin-system.events.ts`
@@ -521,6 +564,7 @@ it('should revoke sessions and cancel orders when admin suspends user', async ()
 7. `src/admin/ADMIN-EVENTS-IMPLEMENTATION-SUMMARY.md` (this file)
 
 ### Files Modified (4)
+
 1. `src/common/events/index.ts` - Added admin event exports
 2. `src/admin/services/user-management.service.ts` - Added event emission
 3. `src/admin/services/establishment-management.service.ts` - Added event emission

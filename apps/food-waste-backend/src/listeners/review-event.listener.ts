@@ -91,7 +91,7 @@ export class ReviewEventListener {
   async handleReviewCreatedEventRabbitMQ(payload: unknown): Promise<void | Nack> {
     try {
       this.logger.log(
-        `[RabbitMQ] Processing review created event for review ${(payload as ReviewCreatedEvent)?.review?._id || 'unknown'}`,
+        `[RabbitMQ] Processing review created event for review ${(payload as ReviewCreatedEvent)?.review?._id?.toString() ?? 'unknown'}`,
       );
 
       // Type cast payload (interfaces can't use plainToClass)
@@ -148,11 +148,11 @@ export class ReviewEventListener {
           action: 'create',
           metadata: {
             priority: 'high',
-            source: payload.metadata?.source || 'unknown',
+            source: payload.metadata?.source ?? 'unknown',
           },
         },
         {
-          priority: payload.isFirstReview ? 1 : 5, // First reviews get higher priority
+          priority: payload.isFirstReview === true ? 1 : 5, // First reviews get higher priority
           attempts: 3,
           backoff: { type: 'exponential', delay: 2000 },
         },
@@ -168,7 +168,7 @@ export class ReviewEventListener {
           rating: payload.review.overallRating,
           isFirstReview: payload.isFirstReview,
           source: payload.metadata?.source,
-          timestamp: payload.metadata?.timestamp || new Date(),
+          timestamp: payload.metadata?.timestamp ?? new Date(),
         },
         {
           attempts: 2,
@@ -198,7 +198,7 @@ export class ReviewEventListener {
       ),
 
       // Thank you message to reviewer (if first review)
-      ...(payload.isFirstReview
+      ...(payload.isFirstReview === true
         ? [
             {
               queue: this.notificationQueue.add(
@@ -253,7 +253,7 @@ export class ReviewEventListener {
   async handleReviewUpdatedEventRabbitMQ(payload: unknown): Promise<void | Nack> {
     try {
       this.logger.log(
-        `[RabbitMQ] Processing review updated event for review ${(payload as ReviewUpdatedEvent)?.review?._id || 'unknown'}`,
+        `[RabbitMQ] Processing review updated event for review ${(payload as ReviewUpdatedEvent)?.review?._id?.toString() ?? 'unknown'}`,
       );
 
       // Type cast payload (interfaces can't use plainToClass)
@@ -359,7 +359,7 @@ export class ReviewEventListener {
           updateType: payload.metadata?.updateType,
           previousRating: payload.previousData.overallRating,
           newRating: payload.review.overallRating,
-          timestamp: payload.metadata?.timestamp || new Date(),
+          timestamp: payload.metadata?.timestamp ?? new Date(),
         }),
       );
     }
@@ -463,7 +463,7 @@ export class ReviewEventListener {
           deletionReason: payload.deletionReason,
           softDelete: payload.softDelete,
           originalRating: payload.metadata?.originalData?.overallRating,
-          timestamp: payload.metadata?.timestamp || new Date(),
+          timestamp: payload.metadata?.timestamp ?? new Date(),
         },
         {
           attempts: 2,
@@ -665,20 +665,27 @@ export class ReviewEventListener {
   // ==================== PRIVATE HELPER METHODS ====================
 
   private validateReviewCreatedPayload(payload: ReviewCreatedEvent): boolean {
-    return !!(
-      payload.review &&
-      payload.establishmentId &&
-      payload.reviewerId &&
-      payload.review._id
+    return (
+      payload.review !== null &&
+      payload.review !== undefined &&
+      payload.establishmentId !== null &&
+      payload.establishmentId !== undefined &&
+      payload.reviewerId !== null &&
+      payload.reviewerId !== undefined &&
+      payload.review._id !== null &&
+      payload.review._id !== undefined
     );
   }
 
   private validateReviewUpdatedPayload(payload: ReviewUpdatedEvent): boolean {
-    return !!(
-      payload.review &&
-      payload.updatedFields &&
+    return (
+      payload.review !== null &&
+      payload.review !== undefined &&
+      payload.updatedFields !== null &&
+      payload.updatedFields !== undefined &&
       payload.updatedFields.length > 0 &&
-      payload.updatedBy
+      payload.updatedBy !== null &&
+      payload.updatedBy !== undefined
     );
   }
 
@@ -721,7 +728,7 @@ export class ReviewEventListener {
   private async handleSpecialReviewCases(payload: ReviewCreatedEvent): Promise<void> {
     try {
       // Handle first review milestone
-      if (payload.isFirstReview) {
+      if (payload.isFirstReview === true) {
         await this.analyticsQueue.add('first-review-milestone', {
           establishmentId: payload.establishmentId,
           reviewerId: payload.reviewerId,

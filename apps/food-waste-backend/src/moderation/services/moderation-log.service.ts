@@ -39,6 +39,21 @@ export interface LogModerationEventOptions {
 /** Plain-object shape returned by aggregate pipelines (no Mongoose Document methods). */
 export type ModerationLogLean = FlattenMaps<ModerationLog> & { _id: Types.ObjectId };
 
+interface AggregatedCountResult {
+  _id: string;
+  count: number;
+}
+
+interface TopModeratorResult {
+  moderator: Record<string, unknown>;
+  actionCount: number;
+}
+
+interface AutomatedVsManualResult {
+  _id: boolean;
+  count: number;
+}
+
 @Injectable()
 export class ModerationLogService {
   private readonly logger = new Logger(ModerationLogService.name);
@@ -68,12 +83,12 @@ export class ModerationLogService {
           ? new Types.ObjectId(options.relatedActionId)
           : undefined,
         requestContext: options.requestContext,
-        beforeState: options.beforeState || {},
-        afterState: options.afterState || {},
-        metadata: options.metadata || {},
-        isAutomated: options.isAutomated || false,
+        beforeState: options.beforeState ?? {},
+        afterState: options.afterState ?? {},
+        metadata: options.metadata ?? {},
+        isAutomated: options.isAutomated ?? false,
         automationRule: options.automationRule,
-        tags: options.tags || [],
+        tags: options.tags ?? [],
       });
 
       await logEntry.save();
@@ -91,8 +106,9 @@ export class ModerationLogService {
         case LogLevel.WARNING:
           this.logger.warn(logMessage);
           break;
-        default:
+        case LogLevel.INFO:
           this.logger.log(logMessage);
+          break;
       }
     } catch (error) {
       this.logger.error('Failed to log moderation event', error);
@@ -122,10 +138,10 @@ export class ModerationLogService {
     const matchConditions: Record<string, unknown> = {};
 
     // Build query filters
-    if (filters.level) {
+    if (filters.level !== undefined) {
       matchConditions['level'] = filters.level;
     }
-    if (filters.category) {
+    if (filters.category !== undefined) {
       matchConditions['category'] = filters.category;
     }
     if (filters.performedBy) {
@@ -154,7 +170,9 @@ export class ModerationLogService {
     }
 
     const skip = (pagination.page - 1) * pagination.limit;
-    const sortBy = pagination.sortBy || 'createdAt';
+    const requestedSortBy = pagination.sortBy;
+    const sortBy =
+      requestedSortBy !== undefined && requestedSortBy.length > 0 ? requestedSortBy : 'createdAt';
     const sortOrder: 1 | -1 = pagination.sortOrder === 'asc' ? 1 : -1;
 
     // Paginate first, then $lookup on small result set
@@ -227,17 +245,17 @@ export class ModerationLogService {
       await Promise.all([
         this.moderationLogModel.countDocuments(dateFilter),
 
-        this.moderationLogModel.aggregate([
+        this.moderationLogModel.aggregate<AggregatedCountResult>([
           { $match: dateFilter },
           { $group: { _id: '$level', count: { $sum: 1 } } },
         ]),
 
-        this.moderationLogModel.aggregate([
+        this.moderationLogModel.aggregate<AggregatedCountResult>([
           { $match: dateFilter },
           { $group: { _id: '$category', count: { $sum: 1 } } },
         ]),
 
-        this.moderationLogModel.aggregate([
+        this.moderationLogModel.aggregate<TopModeratorResult>([
           { $match: dateFilter },
           { $group: { _id: '$performedBy', actionCount: { $sum: 1 } } },
           { $sort: { actionCount: -1 } },
@@ -265,26 +283,32 @@ export class ModerationLogService {
           },
         ]),
 
-        this.moderationLogModel.aggregate([
+        this.moderationLogModel.aggregate<AutomatedVsManualResult>([
           { $match: dateFilter },
           { $group: { _id: '$isAutomated', count: { $sum: 1 } } },
         ]),
       ]);
 
     // Transform aggregation results into more usable format
-    const levelStats = actionsByLevel.reduce((acc, item) => {
-      acc[item._id] = item.count;
-      return acc;
-    }, {});
+    const levelStats = actionsByLevel.reduce(
+      (acc, item) => {
+        acc[item._id] = item.count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    const categoryStats = actionsByCategory.reduce((acc, item) => {
-      acc[item._id] = item.count;
-      return acc;
-    }, {});
+    const categoryStats = actionsByCategory.reduce(
+      (acc, item) => {
+        acc[item._id] = item.count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     const automatedStats = automatedVsManual.reduce(
       (acc, item) => {
-        if (item._id) {
+        if (item._id === true) {
           acc.automated = item.count;
         } else {
           acc.manual = item.count;

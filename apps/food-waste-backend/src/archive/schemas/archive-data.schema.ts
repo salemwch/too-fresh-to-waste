@@ -33,7 +33,6 @@ export class ArchiveData {
     required: true,
     type: String,
     enum: ARCHIVABLE_COLLECTIONS,
-    index: true,
   })
   sourceCollection!: ArchivableCollection;
 

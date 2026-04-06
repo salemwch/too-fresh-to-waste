@@ -145,7 +145,9 @@ export class GamificationService {
     }
 
     // Generate code: NAME1234 format
-    const prefix = (userName || 'USER').substring(0, 4).toUpperCase();
+    const normalizedUserName =
+      userName !== null && userName !== undefined && userName.trim().length > 0 ? userName : 'USER';
+    const prefix = normalizedUserName.substring(0, 4).toUpperCase();
     let code: string;
     let attempts = 0;
 
@@ -449,25 +451,25 @@ export class GamificationService {
     const monthStartUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
     // Extract current streak as a plain object (avoid Mongoose subdocument serialization issues)
-    const streak = account.loginStreak
-      ? {
-          currentStreak: account.loginStreak.currentStreak || 0,
-          lastLoginDate: account.loginStreak.lastLoginDate
-            ? new Date(account.loginStreak.lastLoginDate)
-            : null,
-          pointsEarnedThisMonth: account.loginStreak.pointsEarnedThisMonth || 0,
-          monthlyResetDate: account.loginStreak.monthlyResetDate
-            ? new Date(account.loginStreak.monthlyResetDate)
-            : null,
-          longestStreak: account.loginStreak.longestStreak || 0,
-        }
-      : {
-          currentStreak: 0,
-          lastLoginDate: null as Date | null,
-          pointsEarnedThisMonth: 0,
-          monthlyResetDate: null as Date | null,
-          longestStreak: 0,
-        };
+    const loginStreak = account.loginStreak;
+    const streak =
+      loginStreak !== null && loginStreak !== undefined
+        ? {
+            currentStreak: loginStreak.currentStreak || 0,
+            lastLoginDate: loginStreak.lastLoginDate ? new Date(loginStreak.lastLoginDate) : null,
+            pointsEarnedThisMonth: loginStreak.pointsEarnedThisMonth || 0,
+            monthlyResetDate: loginStreak.monthlyResetDate
+              ? new Date(loginStreak.monthlyResetDate)
+              : null,
+            longestStreak: loginStreak.longestStreak || 0,
+          }
+        : {
+            currentStreak: 0,
+            lastLoginDate: null as Date | null,
+            pointsEarnedThisMonth: 0,
+            monthlyResetDate: null as Date | null,
+            longestStreak: 0,
+          };
 
     // --- Quick guard: if last login was within 24 hours, reject immediately ---
     if (streak.lastLoginDate && streak.lastLoginDate >= twentyFourHoursAgo) {
@@ -578,7 +580,7 @@ export class GamificationService {
 
     const now = new Date();
     const monthStartUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-    const purchaseStreak = account.purchaseStreak || {
+    const purchaseStreak = account.purchaseStreak ?? {
       bagsThisPeriod: 0,
       completedThisMonth: false,
       totalStreaksCompleted: 0,
@@ -660,7 +662,7 @@ export class GamificationService {
     }
 
     // Check if already reviewed this order
-    const reviewTracking = account.reviewTracking || {
+    const reviewTracking = account.reviewTracking ?? {
       reviewedOrderIds: [],
       totalReviewsCount: 0,
       totalReviewPoints: 0,
@@ -694,7 +696,7 @@ export class GamificationService {
 
     // Update review tracking
     reviewTracking.reviewedOrderIds = [
-      ...(reviewTracking.reviewedOrderIds || []),
+      ...(reviewTracking.reviewedOrderIds ?? []),
       new Types.ObjectId(orderId),
     ];
     reviewTracking.totalReviewsCount = (reviewTracking.totalReviewsCount || 0) + 1;

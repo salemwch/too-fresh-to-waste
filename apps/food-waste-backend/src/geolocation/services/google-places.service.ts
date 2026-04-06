@@ -261,12 +261,18 @@ export class GooglePlacesService {
         body,
       );
 
-      const suggestions = response.data.suggestions || [];
+      const suggestions = response.data.suggestions ?? [];
       const predictions = suggestions
-        .filter((s) => s.placePrediction)
+        .filter(
+          (
+            s,
+          ): s is typeof s & {
+            placePrediction: NonNullable<(typeof s)['placePrediction']>;
+          } => s.placePrediction !== null && s.placePrediction !== undefined,
+        )
         .map((s) => s.placePrediction);
 
-      return predictions.slice(0, limit || this.maxResults);
+      return predictions.slice(0, limit ?? this.maxResults);
     } catch (error) {
       this.handleError(error, 'fetchAutocompletePredictions');
       return [];
@@ -316,7 +322,7 @@ export class GooglePlacesService {
     prediction: PlacePrediction,
   ): GoogleAutocompleteSuggestion {
     const mainText = prediction.structuredFormat.mainText.text;
-    const secondaryText = prediction.structuredFormat.secondaryText?.text || 'Tunisia';
+    const secondaryText = prediction.structuredFormat.secondaryText?.text ?? 'Tunisia';
 
     return {
       id: `GOOGLE_${prediction.placeId}`,
@@ -372,10 +378,10 @@ export class GooglePlacesService {
       components.find((c) => c.types.includes(type))?.longText;
 
     return {
-      street: findByType('route') || findByType('street_address'),
-      city: findByType('locality') || findByType('administrative_area_level_2'),
+      street: findByType('route') ?? findByType('street_address'),
+      city: findByType('locality') ?? findByType('administrative_area_level_2'),
       postalCode: findByType('postal_code'),
-      country: findByType('country') || 'Tunisia',
+      country: findByType('country') ?? 'Tunisia',
     };
   }
 
@@ -383,10 +389,8 @@ export class GooglePlacesService {
   private handleError(error: unknown, context: string): void {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
-      this.logger.error(
-        `Google Places API error in ${context}:`,
-        axiosError.response?.data || axiosError.message,
-      );
+      const errorDetails = axiosError.response?.data ?? axiosError.message;
+      this.logger.error(`Google Places API error in ${context}:`, errorDetails);
 
       if (axiosError.response?.status === 403) {
         throw new HttpException(

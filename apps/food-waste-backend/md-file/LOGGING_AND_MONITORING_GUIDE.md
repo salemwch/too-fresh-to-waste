@@ -1,6 +1,7 @@
 # Enterprise-Grade Logging and Monitoring Guide
 
 ## Table of Contents
+
 1. [Overview](#overview)
 2. [Architecture](#architecture)
 3. [Winston Logging](#winston-logging)
@@ -84,23 +85,25 @@ The central logging service using Winston with enterprise features.
 
 ### Log Levels
 
-| Level    | Priority | Use Case | Production |
-|----------|----------|----------|------------|
-| `error`  | 0        | Critical errors requiring immediate attention | ✅ |
-| `warn`   | 1        | Warnings, potential issues | ✅ |
-| `info`   | 2        | General application flow | ✅ |
-| `http`   | 3        | HTTP request/response | ✅ |
-| `verbose`| 4        | Detailed information | ❌ |
-| `debug`  | 5        | Debug information | ❌ |
-| `silly`  | 6        | Extremely detailed | ❌ |
+| Level     | Priority | Use Case                                      | Production |
+| --------- | -------- | --------------------------------------------- | ---------- |
+| `error`   | 0        | Critical errors requiring immediate attention | ✅         |
+| `warn`    | 1        | Warnings, potential issues                    | ✅         |
+| `info`    | 2        | General application flow                      | ✅         |
+| `http`    | 3        | HTTP request/response                         | ✅         |
+| `verbose` | 4        | Detailed information                          | ❌         |
+| `debug`   | 5        | Debug information                             | ❌         |
+| `silly`   | 6        | Extremely detailed                            | ❌         |
 
 ### Log Outputs
 
 #### Development
+
 - **Console:** Colored, human-readable format
 - **Files:** Disabled
 
 #### Production
+
 - **Console:** JSON format (for container log collection)
 - **Files:** Daily rotating files with compression
   - `logs/application-YYYY-MM-DD.log` - All logs (14 days retention)
@@ -109,7 +112,9 @@ The central logging service using Winston with enterprise features.
 ### Features
 
 #### 1. Error ID Generation
+
 Every error gets a unique ID for tracking:
+
 ```
 ERR-1638360000000-A1B2C3D4
 └─┬┘ └──────┬───────┘ └──┬───┘
@@ -119,24 +124,30 @@ ERR-1638360000000-A1B2C3D4
 ```
 
 #### 2. Correlation ID Support
+
 Track requests across distributed systems:
+
 ```typescript
 logger.error('Payment failed', error, 'PaymentService', {
   correlationId: req.correlationId,
   userId: user.id,
-  amount: 50.00
+  amount: 50.0,
 });
 ```
 
 #### 3. Stack Trace Sanitization
+
 Production stack traces are sanitized to prevent path leakage:
+
 ```
 Before: at processPayment (C:\Users\Admin\foodwaste\src\payment\service.ts:123)
 After:  at processPayment (service.ts:123)
 ```
 
 #### 4. Structured Metadata
+
 All logs include structured metadata for easy filtering:
+
 ```json
 {
   "timestamp": "2025-01-15T10:30:45.123Z",
@@ -148,7 +159,7 @@ All logs include structured metadata for easy filtering:
   "userId": "user_123",
   "environment": "production",
   "metadata": {
-    "amount": 50.00,
+    "amount": 50.0,
     "paymentMethod": "card"
   }
 }
@@ -172,6 +183,7 @@ Sentry provides real-time error tracking, performance monitoring, and alerting f
    - Copy your DSN (Data Source Name)
 
 2. **Configure Environment Variables**
+
    ```bash
    SENTRY_DSN=https://<key>@<org>.ingest.sentry.io/<project>
    SENTRY_ENVIRONMENT=production
@@ -185,6 +197,7 @@ Sentry provides real-time error tracking, performance monitoring, and alerting f
 ### Features
 
 #### 1. Automatic Error Capture
+
 All errors logged via `AppLoggerService.error()` are automatically sent to Sentry:
 
 ```typescript
@@ -194,13 +207,15 @@ try {
   // Logged to Winston AND sent to Sentry
   const errorId = logger.error('Payment failed', error, 'PaymentService', {
     userId: user.id,
-    orderId: order.id
+    orderId: order.id,
   });
 }
 ```
 
 #### 2. Error Context Enrichment
+
 Sentry errors include:
+
 - **Error ID** - Links to Winston logs
 - **Correlation ID** - Distributed tracing
 - **User Context** - User ID, email, role
@@ -208,7 +223,9 @@ Sentry errors include:
 - **Custom Tags** - For filtering in dashboard
 
 #### 3. PII Protection
+
 Sensitive data is automatically redacted before sending to Sentry:
+
 - Passwords
 - Tokens and API keys
 - Credit card numbers
@@ -216,14 +233,18 @@ Sensitive data is automatically redacted before sending to Sentry:
 - Environment variables (DATABASE_URL, JWT_SECRET, etc.)
 
 #### 4. Performance Monitoring
+
 Sentry tracks:
+
 - HTTP request duration
 - Database query performance
 - External API call latency
 - Memory usage
 
 #### 5. Alerting
+
 Configure alerts for:
+
 - Error rate spikes
 - New error types
 - Performance degradation
@@ -232,6 +253,7 @@ Configure alerts for:
 ### Sentry Dashboard
 
 Access your Sentry dashboard to:
+
 - **View errors** - Real-time error stream
 - **Assign issues** - Assign to team members
 - **Set priorities** - Critical, high, medium, low
@@ -245,6 +267,7 @@ Access your Sentry dashboard to:
 ### Purpose
 
 Correlation IDs enable tracking requests across:
+
 - Multiple microservices
 - Log aggregators
 - External systems
@@ -277,6 +300,7 @@ Response to Client (includes X-Correlation-ID header)
 ### Usage
 
 #### In Controllers
+
 ```typescript
 @Get(':id')
 async getOrder(@Param('id') orderId: string, @Req() req: Request) {
@@ -288,6 +312,7 @@ async getOrder(@Param('id') orderId: string, @Req() req: Request) {
 ```
 
 #### In Services
+
 ```typescript
 async processOrder(orderId: string, correlationId: string) {
   this.logger.log('Processing order', 'OrderService', {
@@ -298,7 +323,9 @@ async processOrder(orderId: string, correlationId: string) {
 ```
 
 #### Client Usage
+
 Clients can provide correlation IDs for tracking:
+
 ```bash
 curl -H "X-Correlation-ID: mobile-app-req-123" \
      https://api.foodwaste.com/orders/456
@@ -324,6 +351,7 @@ Automatically logs all HTTP requests and responses.
 ### Logged Information
 
 #### Incoming Requests
+
 ```json
 {
   "level": "http",
@@ -339,6 +367,7 @@ Automatically logs all HTTP requests and responses.
 ```
 
 #### Successful Responses
+
 ```json
 {
   "level": "http",
@@ -351,6 +380,7 @@ Automatically logs all HTTP requests and responses.
 ```
 
 #### Error Responses
+
 ```json
 {
   "level": "error",
@@ -364,6 +394,7 @@ Automatically logs all HTTP requests and responses.
 ### Performance Alerts
 
 Slow requests (>3 seconds) trigger performance logs:
+
 ```json
 {
   "level": "warn",
@@ -376,6 +407,7 @@ Slow requests (>3 seconds) trigger performance logs:
 ### PII Redaction
 
 Sensitive data is automatically redacted:
+
 - Request body passwords
 - Authorization headers
 - API keys
@@ -399,7 +431,7 @@ export class OrderService {
     // Info log
     this.logger.log('Creating order', 'OrderService', {
       userId: data.userId,
-      items: data.items.length
+      items: data.items.length,
     });
 
     try {
@@ -407,24 +439,19 @@ export class OrderService {
 
       // Success log
       this.logger.log('Order created successfully', 'OrderService', {
-        orderId: order.id
+        orderId: order.id,
       });
 
       return order;
     } catch (error) {
       // Error log (sent to Sentry)
-      const errorId = this.logger.error(
-        'Failed to create order',
-        error,
-        'OrderService',
-        {
-          userId: data.userId
-        }
-      );
+      const errorId = this.logger.error('Failed to create order', error, 'OrderService', {
+        userId: data.userId,
+      });
 
       throw new InternalServerErrorException({
         message: 'Order creation failed',
-        errorId  // Return to client for support
+        errorId, // Return to client for support
       });
     }
   }
@@ -438,7 +465,7 @@ export class OrderService {
 this.logger.security('Failed login attempt', {
   email: 'user@example.com',
   ip: req.ip,
-  attempts: 3
+  attempts: 3,
 });
 
 // Performance metrics
@@ -446,28 +473,28 @@ const startTime = Date.now();
 await expensiveOperation();
 const duration = Date.now() - startTime;
 this.logger.performance('Expensive operation completed', duration, {
-  operation: 'dataSync'
+  operation: 'dataSync',
 });
 
 // Database operations
 this.logger.database('Query executed', {
   collection: 'orders',
   query: { status: 'pending' },
-  duration: 45
+  duration: 45,
 });
 
 // External API calls
 this.logger.external('Stripe payment processed', {
   provider: 'stripe',
-  amount: 50.00,
-  status: 'succeeded'
+  amount: 50.0,
+  status: 'succeeded',
 });
 
 // Business events
 this.logger.business('Order completed', {
   orderId: order.id,
-  revenue: 50.00,
-  establishmentId: establishment.id
+  revenue: 50.0,
+  establishmentId: establishment.id,
 });
 ```
 
@@ -503,21 +530,16 @@ try {
   await riskyOperation();
 } catch (error) {
   // Log error (automatically sent to Sentry)
-  const errorId = this.logger.error(
-    'Operation failed',
-    error,
-    'ServiceName',
-    {
-      correlationId: req.correlationId,
-      userId: user.id,
-      operation: 'riskyOperation'
-    }
-  );
+  const errorId = this.logger.error('Operation failed', error, 'ServiceName', {
+    correlationId: req.correlationId,
+    userId: user.id,
+    operation: 'riskyOperation',
+  });
 
   // Return error ID to client
   throw new InternalServerErrorException({
     message: 'Operation failed. Please contact support.',
-    errorId  // Client can reference this in support ticket
+    errorId, // Client can reference this in support ticket
   });
 }
 ```
@@ -544,20 +566,20 @@ SERVER_NAME=api-server-01        # Server identifier (optional)
 
 ### Log Levels by Environment
 
-| Environment  | LOG_LEVEL | Sentry Enabled | File Logs |
-|--------------|-----------|----------------|-----------|
-| Development  | `debug`   | ❌             | ❌        |
-| Staging      | `info`    | ✅             | ✅        |
-| Production   | `info`    | ✅             | ✅        |
-| Test         | `error`   | ❌             | ❌        |
+| Environment | LOG_LEVEL | Sentry Enabled | File Logs |
+| ----------- | --------- | -------------- | --------- |
+| Development | `debug`   | ❌             | ❌        |
+| Staging     | `info`    | ✅             | ✅        |
+| Production  | `info`    | ✅             | ✅        |
+| Test        | `error`   | ❌             | ❌        |
 
 ### Sentry Sample Rates
 
-| Environment  | Traces | Profiles | Rationale |
-|--------------|--------|----------|-----------|
-| Production   | 10%    | 10%      | Cost optimization, sufficient data |
-| Staging      | 50%    | 50%      | Better debugging, lower traffic |
-| Development  | 100%   | 0%       | Full visibility, no profiling overhead |
+| Environment | Traces | Profiles | Rationale                              |
+| ----------- | ------ | -------- | -------------------------------------- |
+| Production  | 10%    | 10%      | Cost optimization, sufficient data     |
+| Staging     | 50%    | 50%      | Better debugging, lower traffic        |
+| Development | 100%   | 0%       | Full visibility, no profiling overhead |
 
 ---
 
@@ -565,15 +587,16 @@ SERVER_NAME=api-server-01        # Server identifier (optional)
 
 ### 1. Log Retention Policy
 
-| Log Type      | Retention | Location | Compression |
-|---------------|-----------|----------|-------------|
-| Application   | 14 days   | `logs/application-*.log` | ✅ |
-| Errors        | 30 days   | `logs/error-*.log` | ✅ |
-| Critical      | 90 days   | `logs/critical-*.log` | ✅ |
+| Log Type    | Retention | Location                 | Compression |
+| ----------- | --------- | ------------------------ | ----------- |
+| Application | 14 days   | `logs/application-*.log` | ✅          |
+| Errors      | 30 days   | `logs/error-*.log`       | ✅          |
+| Critical    | 90 days   | `logs/critical-*.log`    | ✅          |
 
 ### 2. Log Aggregation
 
 Centralize logs using:
+
 - **ELK Stack** (Elasticsearch, Logstash, Kibana)
 - **Splunk**
 - **Datadog**
@@ -581,37 +604,42 @@ Centralize logs using:
 - **Azure Monitor**
 
 Ship logs from Docker containers:
+
 ```yaml
 # docker-compose.yml
 services:
   backend:
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
 ```
 
 ### 3. Sentry Configuration
 
 #### Production
+
 - Enable Sentry (`SENTRY_DSN` set)
 - Low sample rate (10%) to control costs
 - Set up alerts for critical errors
 - Configure release tracking
 
 #### Staging
+
 - Enable Sentry for testing
 - Higher sample rate (50%)
 - Test alert configurations
 
 #### Development
+
 - Disable Sentry (no DSN)
 - Use console logs for immediate feedback
 
 ### 4. PII Protection
 
 **Always redact:**
+
 - Passwords
 - Tokens and API keys
 - Credit card numbers
@@ -620,6 +648,7 @@ services:
 - Phone numbers (in some contexts)
 
 **Implemented in:**
+
 - `AppLoggerService` - Automatic redaction
 - `RequestLoggingInterceptor` - Request/response sanitization
 - `AllExceptionsFilter` - Error context sanitization
@@ -628,12 +657,14 @@ services:
 ### 5. Error ID Management
 
 **Best practices:**
+
 - Return error IDs to clients
 - Include in support tickets
 - Cross-reference in logs and Sentry
 - Document format: `ERR-{timestamp}-{uuid}`
 
 **Example client response:**
+
 ```json
 {
   "statusCode": 500,
@@ -647,12 +678,14 @@ services:
 ### 6. Monitoring Dashboards
 
 **Winston Logs:**
+
 - Error rate by service
 - Response time percentiles
 - Request volume by endpoint
 - Error breakdown by type
 
 **Sentry:**
+
 - Error frequency and trends
 - User-impacting errors
 - Performance bottlenecks
@@ -661,6 +694,7 @@ services:
 ### 7. Alerting
 
 **Critical alerts:**
+
 - Error rate > 1% of requests
 - 5xx errors on critical endpoints
 - Database connection failures
@@ -668,6 +702,7 @@ services:
 - Authentication service outages
 
 **Warning alerts:**
+
 - Slow requests (>3 seconds)
 - High memory usage
 - Elevated error rate
@@ -684,6 +719,7 @@ services:
 **Symptom:** Console logs work, but no log files created
 
 **Solution:**
+
 ```bash
 # Check NODE_ENV
 echo $NODE_ENV  # Should be 'production' or 'staging'
@@ -701,6 +737,7 @@ df -h
 **Symptom:** Errors logged, but not in Sentry dashboard
 
 **Checklist:**
+
 - [ ] `SENTRY_DSN` is set correctly
 - [ ] `SENTRY_ENVIRONMENT` matches environment
 - [ ] Error occurs in production/staging (Sentry disabled in dev)
@@ -708,6 +745,7 @@ df -h
 - [ ] Check Sentry project filters (not ignoring error type)
 
 **Debug:**
+
 ```typescript
 // Add to bootstrap (main.ts)
 if (sentryDsn) {
@@ -722,6 +760,7 @@ if (sentryDsn) {
 **Symptom:** Logs don't include `correlationId`
 
 **Solution:**
+
 ```typescript
 // Ensure CorrelationIdMiddleware is registered
 // In app.module.ts
@@ -742,6 +781,7 @@ logger.log('Message', 'Context', {
 **Symptom:** Disk space issues
 
 **Solution:**
+
 ```bash
 # Check log file sizes
 du -sh logs/*
@@ -760,6 +800,7 @@ find logs -name "*.gz" -mtime +14 -delete
 **Symptom:** Passwords/tokens visible in logs
 
 **Solution:**
+
 ```typescript
 // Add field to sensitiveFields array in RequestLoggingInterceptor
 private readonly sensitiveFields = [
@@ -783,12 +824,14 @@ logger.log('User registered', 'AuthService', sanitized);
 ## References
 
 ### Documentation
+
 - **Winston:** https://github.com/winstonjs/winston
 - **Sentry Node:** https://docs.sentry.io/platforms/node/
 - **NestJS Logging:** https://docs.nestjs.com/techniques/logger
 - **OWASP Logging:** https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html
 
 ### Code Locations
+
 - **AppLoggerService:** `src/common/services/logger.service.ts`
 - **SentryService:** `src/common/services/sentry.service.ts`
 - **CorrelationIdMiddleware:** `src/common/middleware/correlation-id.middleware.ts`
@@ -796,6 +839,7 @@ logger.log('User registered', 'AuthService', sanitized);
 - **AllExceptionsFilter:** `src/common/filters/all-exceptions.filter.ts`
 
 ### Environment Configuration
+
 - **.env.example:** `apps/food-waste-backend/.env.example`
 
 ---

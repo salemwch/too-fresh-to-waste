@@ -3,6 +3,7 @@ import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Request, Response, NextFunction } from 'express';
 import { Model } from 'mongoose';
+
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 
 import { TenantContext } from '../interfaces/authorization.interface';
@@ -21,14 +22,10 @@ import { TenantContext } from '../interfaces/authorization.interface';
  * - Routes that require tenant isolation
  */
 
-// Extend Express Request to include tenant context
-declare global {
-  namespace Express {
-    interface Request {
-      tenantContext?: TenantContext;
-    }
-  }
-}
+type TenantContextRequest = Request & {
+  user?: Record<string, unknown>;
+  tenantContext?: TenantContext;
+};
 
 @Injectable()
 export class TenantContextMiddleware implements NestMiddleware {
@@ -38,14 +35,21 @@ export class TenantContextMiddleware implements NestMiddleware {
 
   async use(req: Request, _res: Response, next: NextFunction) {
     try {
+      const tenantRequest = req as TenantContextRequest;
       // Skip if no authenticated user
-      const user = req.user as Record<string, unknown> | undefined;
-      if (!user?.['userId']) {
+      const user = tenantRequest.user;
+      const userIdValue = user?.['userId'];
+      const userRoleValue = user?.['role'];
+      if (typeof userIdValue !== 'string' || userIdValue.length === 0) {
         return next();
       }
 
-      const userId = user['userId'] as string;
-      const userRole = user['role'] as UserRole;
+      if (userRoleValue === null || userRoleValue === undefined) {
+        return next();
+      }
+
+      const userId = userIdValue;
+      const userRole = userRoleValue as UserRole;
 
       // Only apply tenant context for merchants
       if (userRole === UserRole.MERCHANT) {
@@ -62,7 +66,7 @@ export class TenantContextMiddleware implements NestMiddleware {
           };
 
           // Attach to request
-          req.tenantContext = tenantContext;
+          tenantRequest.tenantContext = tenantContext;
 
           this.logger.debug(`Tenant context set for merchant ${userId}`);
         }
@@ -70,7 +74,7 @@ export class TenantContextMiddleware implements NestMiddleware {
 
       // For other roles, still set basic context
       else {
-        req.tenantContext = {
+        tenantRequest.tenantContext = {
           tenantId: userId,
           tenantType: userRole === UserRole.ADMIN ? 'organization' : 'merchant',
           userId,

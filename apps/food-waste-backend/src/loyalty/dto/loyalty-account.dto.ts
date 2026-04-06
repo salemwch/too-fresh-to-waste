@@ -1,8 +1,22 @@
+import type {
+  CreateLoyaltyAccountInput,
+  AddPointsInput,
+  DonatePointsInput,
+  LoyaltyStats,
+  DonatePointsResponse,
+} from '@foodwaste/shared';
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsOptional, IsString, IsNumber, Min, IsBoolean, IsDate, IsMongoId } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  Min,
+  IsBoolean,
+  IsDateString,
+  IsMongoId,
+} from 'class-validator';
 
-export class CreateLoyaltyAccountDto {
+export class CreateLoyaltyAccountDto implements CreateLoyaltyAccountInput {
   @ApiProperty()
   @IsMongoId()
   userId!: string;
@@ -10,10 +24,10 @@ export class CreateLoyaltyAccountDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsMongoId()
-  referredBy?: string;
+  referredBy?: string | undefined;
 }
 
-export class AddPointsDto {
+export class AddPointsDto implements AddPointsInput {
   @ApiProperty()
   @IsNumber()
   @Min(1)
@@ -26,18 +40,17 @@ export class AddPointsDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsMongoId()
-  orderId?: string;
+  orderId?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsMongoId()
-  offerId?: string;
+  offerId?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  expiresAt?: Date;
+  @IsDateString()
+  expiresAt?: string | undefined;
 
   @ApiProperty({
     required: false,
@@ -46,7 +59,7 @@ export class AddPointsDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  orderAmount?: number;
+  orderAmount?: number | undefined;
 
   @ApiProperty({
     required: false,
@@ -55,7 +68,7 @@ export class AddPointsDto {
   @IsOptional()
   @IsNumber()
   @Min(1)
-  bagCount?: number;
+  bagCount?: number | undefined;
 
   @ApiProperty({
     required: false,
@@ -65,10 +78,10 @@ export class AddPointsDto {
   })
   @IsOptional()
   @IsBoolean()
-  bypassMultiplier?: boolean;
+  bypassMultiplier?: boolean | undefined;
 }
 
-export class LoyaltyStatsDto {
+export class LoyaltyStatsDto implements LoyaltyStats {
   @ApiProperty()
   totalPoints!: number;
 
@@ -97,13 +110,13 @@ export class LoyaltyStatsDto {
   referralCount!: number;
 
   @ApiProperty()
-  joinedAt!: Date;
+  joinedAt!: string;
 
   @ApiProperty({ required: false })
-  lastActivity?: Date | undefined;
+  lastActivity?: string | undefined;
 }
 
-export class DonatePointsDto {
+export class DonatePointsDto implements DonatePointsInput {
   @ApiProperty({ description: 'Number of points to donate', minimum: 1 })
   @IsNumber()
   @Min(1)
@@ -116,15 +129,15 @@ export class DonatePointsDto {
   })
   @IsOptional()
   @IsBoolean()
-  isAnonymous?: boolean;
+  isAnonymous!: boolean;
 
   @ApiProperty({ description: 'Optional: Custom message for the donation', required: false })
   @IsOptional()
   @IsString()
-  message?: string;
+  message?: string | undefined;
 }
 
-export class DonatePointsResponseDto {
+export class DonatePointsResponseDto implements DonatePointsResponse {
   @ApiProperty()
   success!: boolean;
 

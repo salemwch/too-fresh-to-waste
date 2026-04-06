@@ -27,7 +27,7 @@ import {
   ApiBody,
   ApiHeader,
 } from '@nestjs/swagger';
-import { Response } from 'express';
+
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AuthenticatedRequest } from 'src/common/decorators/get-user.decorator';
@@ -39,6 +39,8 @@ import { PaymentQueryDto } from './dto/payment-query.dto';
 import { ProcessRefundDto } from './dto/proccess-refund.dto';
 import { SMTWebhookPayloadDto } from './dto/webhook-payload.dto';
 import { PaymentService } from './payments.service';
+
+import type { Request as ExpressRequest, Response } from 'express';
 
 @ApiTags('Payments')
 @ApiBearerAuth('JWT-auth')
@@ -114,12 +116,12 @@ export class PaymentController {
     @Request() req: AuthenticatedRequest,
     @Query(new ValidationPipe({ transform: true, whitelist: true })) filters: PaymentQueryDto,
   ) {
-    const limit = Math.min(filters.limit || 10, 10);
+    const limit = Math.min(filters.limit ?? 10, 10);
     const after = filters.after;
     const result = await this.paymentService.findAllCursor(
       limit,
       after,
-      filters || {},
+      filters ?? {},
       req.user.userId,
       req.user.role,
     );
@@ -130,7 +132,7 @@ export class PaymentController {
       data: result.payments,
       meta: {
         limit,
-        nextCursor: result.nextCursor || null,
+        nextCursor: result.nextCursor ?? null,
       },
     };
   }
@@ -155,13 +157,13 @@ export class PaymentController {
     @Request() req: AuthenticatedRequest,
     @Query(new ValidationPipe({ transform: true, whitelist: true })) filters: PaymentQueryDto,
   ) {
-    const limit = Math.min(filters.limit || 10, 10);
+    const limit = Math.min(filters.limit ?? 10, 10);
     const after = filters.after;
 
     const result = await this.paymentService.findAllCursor(
       limit,
       after,
-      filters || {},
+      filters ?? {},
       req.user.userId,
       UserRole.MERCHANT,
     );
@@ -171,7 +173,7 @@ export class PaymentController {
       data: result.payments,
       meta: {
         limit,
-        nextCursor: result.nextCursor || null,
+        nextCursor: result.nextCursor ?? null,
       },
     };
   }
@@ -195,13 +197,13 @@ export class PaymentController {
     @Request() req: AuthenticatedRequest,
     @Query(new ValidationPipe({ transform: true, whitelist: true })) filters: PaymentQueryDto,
   ) {
-    const limit = Math.min(filters.limit || 10, 10);
+    const limit = Math.min(filters.limit ?? 10, 10);
     const after = filters.after;
 
     const result = await this.paymentService.findAllCursor(
       limit,
       after,
-      filters || {},
+      filters ?? {},
       req.user.userId,
       UserRole.CONSUMER,
     );
@@ -212,7 +214,7 @@ export class PaymentController {
       data: result.payments,
       meta: {
         limit,
-        nextCursor: result.nextCursor || null,
+        nextCursor: result.nextCursor ?? null,
       },
     };
   }
@@ -323,7 +325,7 @@ export class PaymentController {
     @Body() webhookPayload: SMTWebhookPayloadDto,
     @Headers('x-smt-signature') signature: string,
     @Headers('x-smt-timestamp') timestamp: string,
-    @Request() req: RawBodyRequest<import('express').Request>,
+    @Request() req: RawBodyRequest<ExpressRequest>,
   ) {
     if (!signature || !timestamp) {
       throw new BadRequestException('Missing required webhook headers');

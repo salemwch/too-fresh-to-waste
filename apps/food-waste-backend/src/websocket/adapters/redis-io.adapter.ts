@@ -51,8 +51,12 @@ export class RedisIoAdapter extends IoAdapter {
     const pubClient = createClient(clientOptions);
     const subClient = pubClient.duplicate();
 
-    pubClient.on('error', (err) => this.logger.error(`Redis pub client error: ${err.message}`));
-    subClient.on('error', (err) => this.logger.error(`Redis sub client error: ${err.message}`));
+    pubClient.on('error', (err: Error) =>
+      this.logger.error(`Redis pub client error: ${err.message}`),
+    );
+    subClient.on('error', (err: Error) =>
+      this.logger.error(`Redis sub client error: ${err.message}`),
+    );
 
     await Promise.all([pubClient.connect(), subClient.connect()]);
 
@@ -61,7 +65,7 @@ export class RedisIoAdapter extends IoAdapter {
   }
 
   override createIOServer(port: number, options?: ServerOptions): Server {
-    const server = super.createIOServer(port, options);
+    const server = super.createIOServer(port, options) as Server;
 
     if (this.adapterConstructor) {
       server.adapter(this.adapterConstructor);
@@ -74,7 +78,16 @@ export class RedisIoAdapter extends IoAdapter {
     // Add security headers to Socket.IO HTTP polling responses.
     // Helmet does not cover Socket.IO's internal HTTP handler, so we attach
     // directly to the engine middleware chain.
-    server.engine.use(
+    interface EngineWithMiddleware {
+      use: (
+        fn: (
+          _req: unknown,
+          res: { setHeader: (k: string, v: string) => void },
+          next: () => void,
+        ) => void,
+      ) => void;
+    }
+    (server.engine as EngineWithMiddleware).use(
       (_req: unknown, res: { setHeader: (k: string, v: string) => void }, next: () => void) => {
         res.setHeader('X-Content-Type-Options', 'nosniff');
         res.setHeader('X-Frame-Options', 'DENY');

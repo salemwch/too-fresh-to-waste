@@ -4,9 +4,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
+
 import { CommonModule } from 'src/common/common.module';
 import { EmailModule } from 'src/email/email.module';
-import { EstablishmentsModule } from 'src/establishments/establishments.module';
 import { UsersModule } from 'src/users/user.module';
 
 import { AdminAuthController } from './admin-auth.controller';
@@ -40,7 +40,6 @@ import type { StringValue } from 'ms';
 @Module({
   imports: [
     forwardRef(() => UsersModule),
-    forwardRef(() => EstablishmentsModule),
     PassportModule,
     EmailModule,
     CommonModule,
@@ -49,7 +48,7 @@ import type { StringValue } from 'ms';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
-        const expiresIn = configService.get<string>('JWT_EXPIRES_IN') || '15m';
+        const expiresIn = configService.get<string>('JWT_EXPIRES_IN') ?? '15m';
         return {
           secret: configService.get<string>('JWT_SECRET') ?? '',
           signOptions: {

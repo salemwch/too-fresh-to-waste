@@ -475,7 +475,7 @@ export class ReviewCacheService implements OnModuleInit, OnModuleDestroy {
         const cachedReview = await redisClient.get(cacheKey);
         if (cachedReview && typeof cachedReview === 'string') {
           try {
-            const review: CachedReview = JSON.parse(cachedReview);
+            const review = JSON.parse(cachedReview) as unknown as CachedReview;
             review.metrics.viewCount += 1;
 
             // Update the cached review with new view count
@@ -500,8 +500,14 @@ export class ReviewCacheService implements OnModuleInit, OnModuleDestroy {
 
         if (viewCountItem && !this.isExpired(viewCountItem)) {
           try {
-            const viewData = JSON.parse(viewCountItem.data);
-            totalViews = (viewData.total || 0) + 1;
+            const viewData: unknown = JSON.parse(viewCountItem.data);
+            const parsedTotal =
+              typeof viewData === 'object' &&
+              viewData !== null &&
+              typeof (viewData as Record<string, unknown>)['total'] === 'number'
+                ? ((viewData as Record<string, unknown>)['total'] as number)
+                : 0;
+            totalViews = parsedTotal + 1;
           } catch (parseError) {
             this.logger.warn(`Failed to parse view count data for review ${reviewId}`, parseError);
           }
@@ -518,7 +524,7 @@ export class ReviewCacheService implements OnModuleInit, OnModuleDestroy {
         const cachedItem = this.fallbackCache.get(cacheKey);
         if (cachedItem && !this.isExpired(cachedItem)) {
           try {
-            const review: CachedReview = JSON.parse(cachedItem.data);
+            const review = JSON.parse(cachedItem.data) as unknown as CachedReview;
             review.metrics.viewCount += 1;
 
             // Update the cached review

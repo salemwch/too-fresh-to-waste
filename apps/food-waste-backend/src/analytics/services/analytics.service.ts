@@ -18,12 +18,6 @@ import { Offer, OfferDocument } from '../../offers/schemas/offer.schema';
 import { Order, OrderDocument } from '../../orders/schemas/order.schema';
 import { Payment, PaymentDocument } from '../../payments/schemas/payment.schema';
 import { User, UserDocument } from '../../users/schemas/user.schema';
-
-// Import interfaces and DTOs
-
-// Import utilities
-
-// Import sustainability constants
 import {
   FOOD_IMPACT_COEFFICIENTS,
   OFFER_TYPE_MULTIPLIERS,
@@ -48,6 +42,76 @@ import {
 } from '../interfaces/analytics.interface';
 import { AnalyticsCache, AnalyticsCacheDocument } from '../schemas/analytics-cache.schema';
 import { AnalyticsUtil } from '../utils/analytics.util';
+
+interface TotalUsersAggregationResult {
+  total: number;
+}
+
+interface ActiveUsersAggregationResult {
+  active: number;
+}
+
+interface NewUsersAggregationResult {
+  new: number;
+}
+
+interface UsersByRoleAggregationResult {
+  _id: string;
+  count: number;
+}
+
+interface UserGrowthAggregationResult {
+  _id: string;
+  count: number;
+}
+
+interface UserLocationAggregationResult {
+  _id: {
+    city: string;
+    country: string;
+  };
+  count: number;
+  coordinates?: number[] | null;
+}
+
+interface RevenueTodayAggregationResult {
+  total: number;
+}
+
+interface RevenueAggregationResult {
+  totalRevenue: number;
+  count: number;
+}
+
+interface OrderMetricsAggregationResult {
+  totalOrders: number;
+  completedOrders: number;
+}
+
+interface SustainabilityAggregationResult {
+  totalOrders: number;
+  totalFoodSaved: number;
+  totalCarbonReduced: number;
+  totalWaterSaved: number;
+  totalPackagingSaved: number;
+  totalEnergySaved: number;
+}
+
+interface CacheCategoryAggregationResult {
+  _id: string | null;
+  count: number;
+}
+
+interface CacheHitRatesAggregationResult {
+  totalHits: number;
+  totalRequests: number;
+  avgHitCount: number | null;
+}
+
+interface CacheMemoryAggregationResult {
+  totalSize: number;
+  count: number;
+}
 
 @Injectable()
 export class AnalyticsService {
@@ -136,9 +200,10 @@ export class AnalyticsService {
       }
 
       // Get comparison period if needed
-      const comparisonRange = request.options?.includeComparisons
-        ? AnalyticsUtil.getComparisonDateRange(filters.dateRange, filters.granularity)
-        : null;
+      const comparisonRange =
+        request.options?.includeComparisons === true
+          ? AnalyticsUtil.getComparisonDateRange(filters.dateRange, filters.granularity)
+          : null;
 
       // Parallel execution of metrics calculations
       const [currentMetrics, previousMetrics, sustainabilityData] = await Promise.all([
@@ -149,7 +214,7 @@ export class AnalyticsService {
               dateRange: comparisonRange,
             })
           : Promise.resolve(null),
-        request.includeSustainability
+        request.includeSustainability === true
           ? this.calculateSustainabilityMetrics(filters)
           : Promise.resolve(null),
       ]);
@@ -181,23 +246,23 @@ export class AnalyticsService {
           previousMetrics?.customerLifetimeValue,
         ),
         foodWasteSaved: AnalyticsUtil.calculateMetricValue(
-          sustainabilityData?.foodSaved || 0,
+          sustainabilityData?.foodSaved ?? 0,
           undefined,
         ),
         carbonFootprintReduced: AnalyticsUtil.calculateMetricValue(
-          sustainabilityData?.carbonReduced || 0,
+          sustainabilityData?.carbonReduced ?? 0,
           undefined,
         ),
         waterSaved: AnalyticsUtil.calculateMetricValue(
-          sustainabilityData?.waterSaved || 0,
+          sustainabilityData?.waterSaved ?? 0,
           undefined,
         ),
         packagingSaved: AnalyticsUtil.calculateMetricValue(
-          sustainabilityData?.packagingSaved || 0,
+          sustainabilityData?.packagingSaved ?? 0,
           undefined,
         ),
         energySaved: AnalyticsUtil.calculateMetricValue(
-          sustainabilityData?.energySaved || 0,
+          sustainabilityData?.energySaved ?? 0,
           undefined,
         ),
       };
@@ -262,10 +327,13 @@ export class AnalyticsService {
         locationDataResult,
       ] = await Promise.all([
         // Total users
-        this.userModel.aggregate([...matchPipeline, { $count: 'total' }]),
+        this.userModel.aggregate<TotalUsersAggregationResult>([
+          ...matchPipeline,
+          { $count: 'total' },
+        ]),
 
         // Active users (users with recent orders)
-        this.userModel.aggregate([
+        this.userModel.aggregate<ActiveUsersAggregationResult>([
           ...matchPipeline,
           {
             $lookup: {
@@ -289,10 +357,10 @@ export class AnalyticsService {
         ]),
 
         // New users in period
-        this.userModel.aggregate([...matchPipeline, { $count: 'new' }]),
+        this.userModel.aggregate<NewUsersAggregationResult>([...matchPipeline, { $count: 'new' }]),
 
         // Users by role
-        this.userModel.aggregate([
+        this.userModel.aggregate<UsersByRoleAggregationResult>([
           ...matchPipeline,
           {
             $group: {
@@ -303,7 +371,7 @@ export class AnalyticsService {
         ]),
 
         // User growth time series
-        this.userModel.aggregate([
+        this.userModel.aggregate<UserGrowthAggregationResult>([
           ...matchPipeline,
           ...dateGroupPipeline,
           {
@@ -316,8 +384,8 @@ export class AnalyticsService {
         ]),
 
         // Location data if requested
-        request.includeLocationData
-          ? this.userModel.aggregate([
+        request.includeLocationData === true
+          ? this.userModel.aggregate<UserLocationAggregationResult>([
               ...matchPipeline,
               {
                 $match: {
@@ -337,13 +405,13 @@ export class AnalyticsService {
               },
               { $sort: { count: -1 } },
             ])
-          : Promise.resolve([]),
+          : Promise.resolve<UserLocationAggregationResult[]>([]),
       ]);
 
       // Process results
-      const totalUsers = totalUsersResult[0]?.total || 0;
-      const activeUsers = activeUsersResult[0]?.active || 0;
-      const newUsers = newUsersResult[0]?.new || 0;
+      const totalUsers = totalUsersResult[0]?.total ?? 0;
+      const activeUsers = activeUsersResult[0]?.active ?? 0;
+      const newUsers = newUsersResult[0]?.new ?? 0;
 
       const usersByRole: Record<string, number> = {};
       usersByRoleResult.forEach((item) => {
@@ -354,7 +422,7 @@ export class AnalyticsService {
         city: item._id.city,
         country: item._id.country,
         count: item.count,
-        ...(item.coordinates
+        ...(Array.isArray(item.coordinates) && item.coordinates.length >= 2
           ? { coordinates: [item.coordinates[0], item.coordinates[1]] as [number, number] }
           : {}),
       }));
@@ -425,7 +493,7 @@ export class AnalyticsService {
         }),
 
         // Revenue today
-        this.paymentModel.aggregate([
+        this.paymentModel.aggregate<RevenueTodayAggregationResult>([
           {
             $match: {
               createdAt: { $gte: todayStart },
@@ -452,7 +520,7 @@ export class AnalyticsService {
         }),
       ]);
 
-      const revenueToday = revenueTodayResult[0]?.total || 0;
+      const revenueToday = revenueTodayResult[0]?.total ?? 0;
 
       return {
         activeUsers: activeUsersResult,
@@ -479,7 +547,7 @@ export class AnalyticsService {
     const matchPipeline = AnalyticsUtil.createMatchPipeline(filters);
 
     const [revenueResult, orderResult] = await Promise.all([
-      this.paymentModel.aggregate([
+      this.paymentModel.aggregate<RevenueAggregationResult>([
         ...matchPipeline,
         { $match: { status: 'paid' } },
         {
@@ -491,7 +559,7 @@ export class AnalyticsService {
         },
       ]),
 
-      this.orderModel.aggregate([
+      this.orderModel.aggregate<OrderMetricsAggregationResult>([
         ...matchPipeline,
         {
           $group: {
@@ -505,9 +573,9 @@ export class AnalyticsService {
       ]),
     ]);
 
-    const totalRevenue = revenueResult[0]?.totalRevenue || 0;
-    const totalOrders = orderResult[0]?.totalOrders || 0;
-    const completedOrders = orderResult[0]?.completedOrders || 0;
+    const totalRevenue = revenueResult[0]?.totalRevenue ?? 0;
+    const totalOrders = orderResult[0]?.totalOrders ?? 0;
+    const completedOrders = orderResult[0]?.completedOrders ?? 0;
 
     return {
       totalRevenue,
@@ -1041,10 +1109,11 @@ export class AnalyticsService {
       ];
 
       // Execute the aggregation
-      const [result] = await this.orderModel.aggregate(sustainabilityPipeline);
+      const [result] =
+        await this.orderModel.aggregate<SustainabilityAggregationResult>(sustainabilityPipeline);
 
       // Process results with fallbacks and threshold validation
-      const totalOrders = result?.totalOrders || 0;
+      const totalOrders = result?.totalOrders ?? 0;
 
       // Apply minimum calculation thresholds
       if (totalOrders < CALCULATION_THRESHOLDS.minOrdersForCalculation) {
@@ -1059,11 +1128,11 @@ export class AnalyticsService {
         };
       }
 
-      const foodSaved = Math.max(0, result?.totalFoodSaved || 0);
-      const carbonReduced = Math.max(0, result?.totalCarbonReduced || 0);
-      const waterSaved = Math.max(0, result?.totalWaterSaved || 0);
-      const packagingSaved = Math.max(0, result?.totalPackagingSaved || 0);
-      const energySaved = Math.max(0, result?.totalEnergySaved || 0);
+      const foodSaved = Math.max(0, result?.totalFoodSaved ?? 0);
+      const carbonReduced = Math.max(0, result?.totalCarbonReduced ?? 0);
+      const waterSaved = Math.max(0, result?.totalWaterSaved ?? 0);
+      const packagingSaved = Math.max(0, result?.totalPackagingSaved ?? 0);
+      const energySaved = Math.max(0, result?.totalEnergySaved ?? 0);
 
       // Additional environmental calculations
       const disposalEmissionsSaved = foodSaved * SUSTAINABILITY_FACTORS.disposalEmissions;
@@ -1161,20 +1230,9 @@ export class AnalyticsService {
     // Try parsing from estimatedWeight field first
     let weight = WEIGHT_ESTIMATION_RULES.parseWeightFromText(estimatedWeight);
 
-    if (!weight) {
-      // Try parsing from description
-      weight = WEIGHT_ESTIMATION_RULES.parseWeightFromText(description);
-    }
-
-    if (!weight) {
-      // Try parsing from title
-      weight = WEIGHT_ESTIMATION_RULES.parseWeightFromText(title);
-    }
-
-    if (!weight) {
-      // Fall back to category-based estimation
-      weight = WEIGHT_ESTIMATION_RULES.getCategoryWeight(categories);
-    }
+    weight ??= WEIGHT_ESTIMATION_RULES.parseWeightFromText(description);
+    weight ??= WEIGHT_ESTIMATION_RULES.parseWeightFromText(title);
+    weight ??= WEIGHT_ESTIMATION_RULES.getCategoryWeight(categories);
 
     // Apply threshold validation
     if (
@@ -1228,7 +1286,7 @@ export class AnalyticsService {
   ): Promise<void> {
     try {
       const now = new Date();
-      const ttl = customTTL || this.defaultCacheTTL;
+      const ttl = customTTL ?? this.defaultCacheTTL;
       const expiresAt = new Date(now.getTime() + ttl);
 
       const serializedData = this.serializeForCache(data);
@@ -1294,7 +1352,7 @@ export class AnalyticsService {
         this.cacheModel.countDocuments(),
 
         // Categories breakdown
-        this.cacheModel.aggregate([
+        this.cacheModel.aggregate<CacheCategoryAggregationResult>([
           {
             $group: {
               _id: '$category',
@@ -1304,7 +1362,7 @@ export class AnalyticsService {
         ]),
 
         // Hit rate calculations
-        this.cacheModel.aggregate([
+        this.cacheModel.aggregate<CacheHitRatesAggregationResult>([
           {
             $group: {
               _id: null,
@@ -1316,7 +1374,7 @@ export class AnalyticsService {
         ]),
 
         // Memory usage approximation
-        this.cacheModel.aggregate([
+        this.cacheModel.aggregate<CacheMemoryAggregationResult>([
           {
             $group: {
               _id: null,
@@ -1330,19 +1388,26 @@ export class AnalyticsService {
       // Process categories into key-value pairs
       const keysByCategory: Record<string, number> = {};
       categoriesResult.forEach((item) => {
-        keysByCategory[item._id || 'uncategorized'] = item.count;
+        keysByCategory[item._id ?? 'uncategorized'] = item.count;
       });
 
       // Calculate hit and miss rates
-      const hitStats = hitRatesResult[0] || { totalHits: 0, totalRequests: 0 };
-      const totalHits = hitStats.totalHits || 0;
-      const totalRequests = Math.max(hitStats.totalRequests || totalKeys, 1); // Avoid division by zero
+      const hitStats: CacheHitRatesAggregationResult = hitRatesResult[0] ?? {
+        totalHits: 0,
+        totalRequests: 0,
+        avgHitCount: 0,
+      };
+      const totalHits = hitStats.totalHits ?? 0;
+      const totalRequests = Math.max(hitStats.totalRequests ?? totalKeys, 1); // Avoid division by zero
       const hitRate = (totalHits / totalRequests) * 100;
       const missRate = 100 - hitRate;
 
       // Memory usage (approximate based on data size)
-      const memoryStats = memoryResult[0] || { totalSize: 0 };
-      const memoryUsage = memoryStats.totalSize || 0;
+      const memoryStats: CacheMemoryAggregationResult = memoryResult[0] ?? {
+        totalSize: 0,
+        count: 0,
+      };
+      const memoryUsage = memoryStats.totalSize ?? 0;
 
       return {
         totalKeys,

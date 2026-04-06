@@ -1,7 +1,8 @@
+import type { LoginInput } from '@foodwaste/shared';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsString, IsOptional, IsBoolean } from 'class-validator';
 
-export class LoginDto {
+export class LoginDto implements LoginInput {
   @ApiProperty({
     description: 'User email address',
     example: 'john.doe@example.com',
@@ -26,7 +27,7 @@ export class LoginDto {
   })
   @IsOptional()
   @IsBoolean()
-  rememberMe?: boolean;
+  rememberMe?: boolean | undefined;
 
   /**
    * CAPTCHA token from client (required after failed login attempts)
@@ -38,5 +39,5 @@ export class LoginDto {
   })
   @IsOptional()
   @IsString()
-  captchaToken?: string;
+  captchaToken?: string | undefined;
 }

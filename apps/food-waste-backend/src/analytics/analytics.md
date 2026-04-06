@@ -54,6 +54,7 @@ analytics/
 **Purpose**: Core analytics module providing comprehensive business metrics, customizable dashboards, real-time monitoring, and sustainability tracking.
 
 **Imports**:
+
 - `ConfigModule` - Environment configuration
 - `EventEmitterModule` - Event-driven architecture
 - `MongooseModule` - MongoDB integration with schemas:
@@ -61,18 +62,22 @@ analytics/
   - Internal: AnalyticsCache, DashboardConfig, AlertRule, Alert
 
 **Providers**:
+
 - `AnalyticsService` - Core analytics calculations
 - `DashboardService` - Dashboard CRUD and templates
 - `AppLoggerService` - Structured logging
 
 **Controllers**:
+
 - `AnalyticsController` - Business metrics endpoints
 - `DashboardController` - Dashboard management
 
 **Exports**:
+
 - `AnalyticsService`, `DashboardService` for use in other modules
 
 **Initialization**:
+
 - Automatically creates default dashboard templates on startup via `initializeDefaultTemplates()`
 
 ---
@@ -84,6 +89,7 @@ analytics/
 **File**: `services/analytics.service.ts`
 
 **Responsibilities**:
+
 - Calculate business metrics (revenue, orders, users)
 - Aggregate data with filtering (date range, establishment, category)
 - Real-time metrics computation
@@ -91,6 +97,7 @@ analytics/
 - Sustainability impact calculations
 
 **Key Methods**:
+
 - `getBusinessMetrics(filters)` - Comprehensive business analytics
 - `getUserAnalytics(filters)` - User growth, retention, churn
 - `getRealTimeMetrics()` - Live system metrics
@@ -105,6 +112,7 @@ analytics/
 **File**: `services/dashboard.service.ts`
 
 **Responsibilities**:
+
 - Dashboard CRUD operations
 - Widget management (add, update, remove)
 - Role-based access control (RBAC)
@@ -112,6 +120,7 @@ analytics/
 - Export capabilities (PDF, Excel, CSV)
 
 **Key Methods**:
+
 - `createDashboard(dto, userId, role)` - Create custom dashboard
 - `updateDashboard(id, dto, userId, role)` - Update existing dashboard
 - `deleteDashboard(id, userId, role)` - Soft delete dashboard
@@ -121,6 +130,7 @@ analytics/
 - `createDefaultTemplates()` - Initialize system templates
 
 **Widget Types**:
+
 - `metric` - Single value displays with trends
 - `chart` - Line, bar, pie, donut, area, scatter plots
 - `table` - Tabular data with sorting/pagination
@@ -138,6 +148,7 @@ analytics/
 **Purpose**: Performance optimization layer for expensive analytics queries.
 
 **Fields**:
+
 - `key` (String, unique, indexed) - Cache key (hash of query parameters)
 - `data` (Mixed) - Cached result
 - `ttl` (Number) - Time-to-live in seconds
@@ -155,6 +166,7 @@ analytics/
 **Purpose**: Store user-created dashboards and widget configurations.
 
 **Fields**:
+
 - `userId` (ObjectId, indexed) - Dashboard owner
 - `name` (String) - Dashboard name
 - `description` (String) - Dashboard description
@@ -166,6 +178,7 @@ analytics/
 - `isTemplate` (Boolean) - Template flag
 
 **Widget Schema**:
+
 ```typescript
 {
   id: String (UUID),
@@ -188,6 +201,7 @@ analytics/
 **Purpose**: Configure and track real-time alerts for metric thresholds.
 
 **AlertRule Fields**:
+
 - `name` (String) - Rule name
 - `metric` (String) - Metric to monitor
 - `condition` (Enum) - Comparison operator (gt, lt, eq, gte, lte)
@@ -197,6 +211,7 @@ analytics/
 - `isActive` (Boolean) - Enable/disable rule
 
 **Alert Fields**:
+
 - `ruleId` (ObjectId) - Reference to AlertRule
 - `triggeredAt` (Date) - Alert timestamp
 - `value` (Number) - Metric value that triggered alert
@@ -212,14 +227,14 @@ analytics/
 
 **Prefix**: `/api/v1/analytics`
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | `/business-metrics` | Get comprehensive business metrics | JWT + Role |
-| POST | `/user-analytics` | Get user growth and retention metrics | JWT + Admin |
-| GET | `/real-time` | Get real-time system metrics | JWT + Role |
-| GET | `/quick-stats` | Get dashboard overview statistics | JWT + Role |
-| POST | `/cache/invalidate` | Invalidate analytics cache | JWT + Admin |
-| GET | `/cache/stats` | Get cache performance statistics | JWT + Admin |
+| Method | Endpoint            | Description                           | Auth        |
+| ------ | ------------------- | ------------------------------------- | ----------- |
+| POST   | `/business-metrics` | Get comprehensive business metrics    | JWT + Role  |
+| POST   | `/user-analytics`   | Get user growth and retention metrics | JWT + Admin |
+| GET    | `/real-time`        | Get real-time system metrics          | JWT + Role  |
+| GET    | `/quick-stats`      | Get dashboard overview statistics     | JWT + Role  |
+| POST   | `/cache/invalidate` | Invalidate analytics cache            | JWT + Admin |
+| GET    | `/cache/stats`      | Get cache performance statistics      | JWT + Admin |
 
 ---
 
@@ -227,16 +242,16 @@ analytics/
 
 **Prefix**: `/api/v1/analytics/dashboards`
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/` | List all dashboards (filtered by role) | JWT |
-| POST | `/` | Create new dashboard | JWT |
-| GET | `/:id` | Get dashboard by ID | JWT + Ownership |
-| PUT | `/:id` | Update dashboard | JWT + Ownership |
-| DELETE | `/:id` | Delete dashboard | JWT + Ownership |
-| POST | `/:id/widgets` | Add widget to dashboard | JWT + Ownership |
-| PUT | `/:id/widgets/:widgetId` | Update widget | JWT + Ownership |
-| DELETE | `/:id/widgets/:widgetId` | Remove widget | JWT + Ownership |
+| Method | Endpoint                 | Description                            | Auth            |
+| ------ | ------------------------ | -------------------------------------- | --------------- |
+| GET    | `/`                      | List all dashboards (filtered by role) | JWT             |
+| POST   | `/`                      | Create new dashboard                   | JWT             |
+| GET    | `/:id`                   | Get dashboard by ID                    | JWT + Ownership |
+| PUT    | `/:id`                   | Update dashboard                       | JWT + Ownership |
+| DELETE | `/:id`                   | Delete dashboard                       | JWT + Ownership |
+| POST   | `/:id/widgets`           | Add widget to dashboard                | JWT + Ownership |
+| PUT    | `/:id/widgets/:widgetId` | Update widget                          | JWT + Ownership |
+| DELETE | `/:id/widgets/:widgetId` | Remove widget                          | JWT + Ownership |
 
 ---
 
@@ -315,12 +330,12 @@ DATABASE_URL=mongodb+srv://...                   # MongoDB connection
 
 ### Role-Based Access Control
 
-| Role | Analytics Access | Dashboard Access | Admin Features |
-|------|------------------|------------------|----------------|
-| CONSUMER | Personal stats only | Own dashboards | ❌ |
-| MERCHANT | Establishment metrics | Own + establishment dashboards | ❌ |
-| ADMIN | Full platform analytics | All dashboards | ✅ Cache, alerts |
-| MODERATOR | Limited platform view | Read-only system dashboards | ❌ |
+| Role      | Analytics Access        | Dashboard Access               | Admin Features   |
+| --------- | ----------------------- | ------------------------------ | ---------------- |
+| CONSUMER  | Personal stats only     | Own dashboards                 | ❌               |
+| MERCHANT  | Establishment metrics   | Own + establishment dashboards | ❌               |
+| ADMIN     | Full platform analytics | All dashboards                 | ✅ Cache, alerts |
+| MODERATOR | Limited platform view   | Read-only system dashboards    | ❌               |
 
 ### Data Privacy
 
@@ -384,7 +399,7 @@ this.logger.log('Analytics query executed', {
   userId: user.id,
   filters: JSON.stringify(filters),
   duration: executionTime,
-  cached: wasFromCache
+  cached: wasFromCache,
 });
 ```
 
@@ -399,15 +414,15 @@ const metrics = await analyticsService.getBusinessMetrics({
   filters: {
     dateRange: {
       startDate: new Date('2024-01-01'),
-      endDate: new Date('2024-01-31')
+      endDate: new Date('2024-01-31'),
     },
     granularity: {
       period: 'day',
-      timezone: 'Africa/Tunis'
+      timezone: 'Africa/Tunis',
     },
-    establishmentIds: ['507f1f77bcf86cd799439011']
+    establishmentIds: ['507f1f77bcf86cd799439011'],
   },
-  includeSustainability: true
+  includeSustainability: true,
 });
 
 console.log(`Revenue: ${metrics.totalRevenue.value} TND`);
@@ -420,39 +435,43 @@ console.log(`Food Saved: ${metrics.sustainability.foodSaved} kg`);
 ### Example 2: Create Dashboard
 
 ```typescript
-const dashboard = await dashboardService.createDashboard({
-  name: 'My Business Dashboard',
-  description: 'Key performance indicators',
-  category: 'business',
-  widgets: [
-    {
-      type: 'metric',
-      title: 'Total Revenue',
-      dataSource: 'business_metrics',
-      visualization: {
-        displayOptions: { showTrend: true }
+const dashboard = await dashboardService.createDashboard(
+  {
+    name: 'My Business Dashboard',
+    description: 'Key performance indicators',
+    category: 'business',
+    widgets: [
+      {
+        type: 'metric',
+        title: 'Total Revenue',
+        dataSource: 'business_metrics',
+        visualization: {
+          displayOptions: { showTrend: true },
+        },
+        filters: {},
+        position: { row: 1, column: 1, width: 3, height: 1 },
       },
-      filters: {},
-      position: { row: 1, column: 1, width: 3, height: 1 }
-    },
-    {
-      type: 'chart',
-      title: 'Revenue Trend',
-      dataSource: 'business_metrics',
-      visualization: {
-        chartType: 'line',
-        xAxis: 'date',
-        yAxis: 'revenue'
+      {
+        type: 'chart',
+        title: 'Revenue Trend',
+        dataSource: 'business_metrics',
+        visualization: {
+          chartType: 'line',
+          xAxis: 'date',
+          yAxis: 'revenue',
+        },
+        filters: {
+          dateRange: { startDate: '...', endDate: '...' },
+          granularity: { period: 'week' },
+        },
+        refreshInterval: 15,
+        position: { row: 2, column: 1, width: 6, height: 3 },
       },
-      filters: {
-        dateRange: { startDate: '...', endDate: '...' },
-        granularity: { period: 'week' }
-      },
-      refreshInterval: 15,
-      position: { row: 2, column: 1, width: 6, height: 3 }
-    }
-  ]
-}, userId, userRole);
+    ],
+  },
+  userId,
+  userRole,
+);
 ```
 
 ---
@@ -469,7 +488,7 @@ const alertRule = await analyticsService.createAlertRule({
   timeWindow: 60, // minutes
   notificationChannels: ['email', 'webhook'],
   webhookUrl: 'https://hooks.slack.com/...',
-  isActive: true
+  isActive: true,
 });
 ```
 
@@ -534,6 +553,7 @@ pnpm backend mongo:verify-indexes
 ### Issue: Slow analytics queries
 
 **Solution**:
+
 1. Check cache hit rate: `GET /api/v1/analytics/cache/stats`
 2. Verify indexes: `pnpm backend verify:indexes`
 3. Reduce date range or add filters

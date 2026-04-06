@@ -109,9 +109,7 @@ export class ReviewProcessor {
 
       // 4. Extract and process keywords
       const keywords = this.extractKeywords(review.comment);
-      if (review.sentimentAnalysis) {
-        review.sentimentAnalysis.keywords = keywords;
-      }
+      review.sentimentAnalysis.keywords = keywords;
 
       // 5. Update establishment metrics
       await this.updateEstablishmentMetrics(review.establishmentId.toString());
@@ -143,9 +141,7 @@ export class ReviewProcessor {
 
       // Re-extract keywords
       const keywords = this.extractKeywords(review.comment);
-      if (review.sentimentAnalysis) {
-        review.sentimentAnalysis.keywords = keywords;
-      }
+      review.sentimentAnalysis.keywords = keywords;
 
       // Re-check moderation
       const moderationResult = this.moderationService.moderateReview({
@@ -224,15 +220,11 @@ export class ReviewProcessor {
       const keywords = this.extractKeywords(review.comment);
       const topics = this.extractTopics(review.comment);
 
-      if (review.sentimentAnalysis) {
-        review.sentimentAnalysis.keywords = keywords;
-      }
+      review.sentimentAnalysis.keywords = keywords;
 
       // Quality score calculation
       const qualityScore = this.calculateReviewQuality(review);
-      if (!review.metadata) {
-        review.metadata = {};
-      }
+      review.metadata ??= {};
       review.metadata.qualityScore = qualityScore;
 
       // Helpfulness prediction
@@ -262,7 +254,7 @@ export class ReviewProcessor {
       const establishment = review.establishmentId as unknown as EstablishmentDocument;
 
       // Notify establishment owner
-      if (establishment?.ownerId) {
+      if (establishment?.ownerId !== null && establishment?.ownerId !== undefined) {
         this.sendEstablishmentOwnerNotification(review, establishment);
       }
       this.sendFollowerNotifications(review);
@@ -273,7 +265,7 @@ export class ReviewProcessor {
       }
 
       // Analytics notification for insights team
-      if (metadata['includeAnalytics']) {
+      if (metadata['includeAnalytics'] === true) {
         this.eventEmitter.emit('review.analytics_ready', {
           reviewId: review._id,
           establishmentId: review.establishmentId,
@@ -404,7 +396,7 @@ export class ReviewProcessor {
       // Return top 10 most relevant keywords
       const keywordCounts: Record<string, number> = keywords.reduce(
         (acc, word) => {
-          acc[word] = (acc[word] || 0) + 1;
+          acc[word] = (acc[word] ?? 0) + 1;
           return acc;
         },
         {} as Record<string, number>,
@@ -468,7 +460,7 @@ export class ReviewProcessor {
     }
 
     // Image factor
-    if (review.images && review.images.length > 0) {
+    if ((review.images?.length ?? 0) > 0) {
       score += 10;
     }
 
@@ -490,7 +482,7 @@ export class ReviewProcessor {
     let score = 0;
 
     // Quality score contribution
-    const qualityScore = review.metadata?.qualityScore || 0;
+    const qualityScore = review.metadata?.qualityScore ?? 0;
     score += qualityScore * 0.3;
 
     // Length factor
@@ -522,7 +514,13 @@ export class ReviewProcessor {
 
   private async updateEstablishmentMetrics(establishmentId: string): Promise<void> {
     try {
-      const stats = await this.reviewModel.aggregate([
+      const stats = await this.reviewModel.aggregate<{
+        _id: null;
+        averageRating: number;
+        totalReviews: number;
+        totalHelpfulVotes: number;
+        sentimentBreakdown: string[];
+      }>([
         {
           $match: {
             establishmentId: new Types.ObjectId(establishmentId),
@@ -541,8 +539,9 @@ export class ReviewProcessor {
         },
       ]);
 
-      if (stats.length > 0) {
-        const { averageRating, totalReviews, totalHelpfulVotes } = stats[0];
+      const statsEntry = stats[0];
+      if (statsEntry) {
+        const { averageRating, totalReviews, totalHelpfulVotes } = statsEntry;
 
         await this.establishmentModel.findByIdAndUpdate(establishmentId, {
           averageRating: Math.round(averageRating * 100) / 100,

@@ -71,6 +71,7 @@ module.entity.action
 ```
 
 Examples:
+
 - `establishment.created`
 - `establishment.updated`
 - `establishment.deleted`
@@ -147,6 +148,7 @@ export class OffersModule {}
 ## Event Listener Best Practices
 
 ### 1. Always Use Try-Catch
+
 ```typescript
 @OnEvent('establishment.created')
 async handleEstablishmentCreated(event: EstablishmentCreatedEvent): Promise<void> {
@@ -160,48 +162,59 @@ async handleEstablishmentCreated(event: EstablishmentCreatedEvent): Promise<void
 ```
 
 ### 2. Log Event Processing
+
 ```typescript
 this.logger.log(`Processing establishment.created event for ${event.establishmentId}`);
 ```
 
 ### 3. Don't Throw Errors
+
 Event listeners should be resilient. Log errors but don't throw them to prevent breaking other listeners.
 
 ### 4. Keep Listeners Focused
+
 One listener per concern. Don't handle multiple unrelated tasks in one listener.
 
 ### 5. Use Async/Await
+
 Event handlers should be async to handle I/O operations properly.
 
 ## Suggested Listeners to Implement
 
 ### Offers Module
+
 - **Listen to:** `establishment.deleted`, `establishment.updated` (address changes)
 - **Action:** Deactivate offers, update offer locations
 
 ### Orders Module
+
 - **Listen to:** `establishment.deleted`
 - **Action:** Cancel pending orders, notify customers
 
 ### Reviews Module
+
 - **Listen to:** `establishment.deleted`
 - **Action:** Soft-delete or archive reviews
 
 ### Notifications Module
+
 - **Listen to:** `establishment.created`, `establishment.document.verified`, `establishment.deleted`
 - **Action:** Send confirmation emails, document verification notifications
 
 ### Analytics Module
+
 - **Listen to:** All establishment events
 - **Action:** Track merchant onboarding, document completion rates, deletion reasons
 
 ### Admin Module
+
 - **Listen to:** `establishment.created`, `establishment.document.uploaded`
 - **Action:** Add to review queue, flag incomplete documents
 
 ## Event Payload Structure
 
 All events extend `BaseEstablishmentEvent` which provides:
+
 - `establishmentId: string`
 - `ownerId: string`
 - `timestamp: Date`
@@ -237,7 +250,9 @@ describe('EstablishmentsService - Events', () => {
   });
 
   it('should emit establishment.created event', async () => {
-    const dto = { /* ... */ };
+    const dto = {
+      /* ... */
+    };
     const result = await service.create(dto, 'userId');
 
     expect(eventEmitter.emit).toHaveBeenCalledWith(

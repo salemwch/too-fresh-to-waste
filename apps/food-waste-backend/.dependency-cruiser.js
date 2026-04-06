@@ -82,7 +82,7 @@ module.exports = {
       comment:
         "This module depends on an npm package that isn't in the 'dependencies' section of your package.json. " +
         "That's problematic as the package either (1) won't be available on live (2) will be available on live " +
-        "with an non-guaranteed version. Fix it by adding the package to the dependencies in your package.json.",
+        'with an non-guaranteed version. Fix it by adding the package to the dependencies in your package.json.',
       from: {},
       to: {
         dependencyTypes: ['npm-no-pkg', 'npm-unknown'],
@@ -142,7 +142,8 @@ module.exports = {
     {
       name: 'offers-module-boundary',
       severity: 'warn',
-      comment: 'Offers module should only depend on establishments and common modules (auth guards allowed)',
+      comment:
+        'Offers module should only depend on establishments and common modules (auth guards allowed)',
       from: {
         path: '^src/offers/',
       },
@@ -176,7 +177,8 @@ module.exports = {
     {
       name: 'payments-module-boundary',
       severity: 'warn',
-      comment: 'Payments module should only depend on orders, users, and common modules (auth guards allowed)',
+      comment:
+        'Payments module should only depend on orders, users, and common modules (auth guards allowed)',
       from: {
         path: '^src/payments/',
       },

@@ -7,6 +7,8 @@ import { User } from '../users/schemas/user.schema';
 
 import { IEmailService, EmailOptions } from './interfaces/email-service.interface';
 
+import type SMTPPool from 'nodemailer/lib/smtp-pool';
+
 /**
  * EmailService - Concrete implementation of IEmailService
  *
@@ -21,18 +23,30 @@ import { IEmailService, EmailOptions } from './interfaces/email-service.interfac
 @Injectable()
 export class EmailService implements IEmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter!: nodemailer.Transporter;
+  private transporter!: nodemailer.Transporter<SMTPPool.SentMessageInfo>;
 
   constructor(private readonly configService: ConfigService) {
     this.createTransporter();
   }
 
-  private createTransporter() {
+  private getNonEmptyConfigValue(key: string): string | undefined {
+    const value = this.configService.get<string>(key);
+    if (value === null || value === undefined) {
+      return undefined;
+    }
+
+    const trimmedValue = value.trim();
+    return trimmedValue.length > 0 ? trimmedValue : undefined;
+  }
+
+  private createTransporter(): void {
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    const smtpConfig = {
+    const configuredSmtpPort = this.configService.get<number>('SMTP_PORT');
+    const smtpPort = configuredSmtpPort ?? 587;
+    const smtpConfig: SMTPPool.Options = {
       host: this.configService.get<string>('SMTP_HOST'),
-      port: this.configService.get<number>('SMTP_PORT') || 587,
-      secure: this.configService.get<number>('SMTP_PORT') === 465,
+      port: smtpPort,
+      secure: smtpPort === 465,
       auth: {
         user: this.configService.get<string>('SMTP_USER'),
         pass: this.configService.get<string>('SMTP_PASS'),
@@ -69,10 +83,10 @@ export class EmailService implements IEmailService {
    */
   async sendEmail(emailOptions: EmailOptions): Promise<boolean> {
     const maxRetries = 3;
-    const smtpUser = this.configService.get<string>('SMTP_USER') || 'noreply@foodwaste.com';
+    const smtpUser = this.getNonEmptyConfigValue('SMTP_USER') ?? 'noreply@foodwaste.com';
     const fromName = this.configService.get<string>('SMTP_FROM_NAME', 'Too Fresh To Waste');
-    const fromEmail = this.configService.get<string>('SMTP_FROM_EMAIL') || smtpUser;
-    const mailOptions = {
+    const fromEmail = this.getNonEmptyConfigValue('SMTP_FROM_EMAIL') ?? smtpUser;
+    const mailOptions: nodemailer.SendMailOptions = {
       from: `"${fromName}" <${fromEmail}>`,
       ...emailOptions,
     };

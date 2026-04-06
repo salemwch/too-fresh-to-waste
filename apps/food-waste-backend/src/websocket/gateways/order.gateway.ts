@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WebSocketService } from '../websocket.service';
-import { OrderStatusUpdate, WebSocketEvents } from '../interfaces/websocket.interface';
+
 import { OrderStatus } from '../../orders/schemas/order.schema';
+import { OrderStatusUpdate, WebSocketEvents } from '../interfaces/websocket.interface';
+import { WebSocketService } from '../websocket.service';
 
 @Injectable()
 export class OrderGateway {
@@ -127,7 +128,7 @@ export class OrderGateway {
    * Notify order cancellation
    */
   private notifyOrderCancelled(update: OrderStatusUpdate): void {
-    const reason = update.message || 'No reason provided';
+    const reason = update.message ?? 'No reason provided';
 
     const customerMessage = {
       ...update,
@@ -163,7 +164,8 @@ export class OrderGateway {
     const customerMessage = {
       ...update,
       title: 'Order Expired ⏰',
-      message: 'Your order has expired as it was not picked up in time. Any payment will be refunded.',
+      message:
+        'Your order has expired as it was not picked up in time. Any payment will be refunded.',
       actionRequired: false,
     };
 
@@ -190,7 +192,12 @@ export class OrderGateway {
   /**
    * Send pickup reminder
    */
-  notifyPickupReminder(orderId: string, customerId: string, establishmentName: string, timeRemaining: number): void {
+  notifyPickupReminder(
+    orderId: string,
+    customerId: string,
+    establishmentName: string,
+    timeRemaining: number,
+  ): void {
     const message = {
       orderId,
       title: 'Pickup Reminder! ⏰',
@@ -203,11 +210,7 @@ export class OrderGateway {
       },
     };
 
-    this.webSocketService.sendToUser(
-      customerId,
-      WebSocketEvents.ORDER_PICKUP_REMINDER,
-      message,
-    );
+    this.webSocketService.sendToUser(customerId, WebSocketEvents.ORDER_PICKUP_REMINDER, message);
 
     this.logger.log(`Pickup reminder sent for order ${orderId}`);
   }
@@ -228,11 +231,7 @@ export class OrderGateway {
       },
     };
 
-    this.webSocketService.sendToUser(
-      merchantId,
-      'order:new',
-      message,
-    );
+    this.webSocketService.sendToUser(merchantId, 'order:new', message);
 
     this.logger.log(`New order notification sent to merchant ${merchantId}`);
   }
@@ -242,7 +241,7 @@ export class OrderGateway {
    */
   batchNotifyOrderUpdates(updates: OrderStatusUpdate[]): void {
     try {
-      updates.forEach(update => {
+      updates.forEach((update) => {
         this.notifyOrderStatusChange(update);
       });
 

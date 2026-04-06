@@ -16,6 +16,15 @@ import {
   OwnershipCheckConfig,
 } from '../../common/decorators/check-ownership.decorator';
 
+interface ResourceOwnershipRequest {
+  user?: {
+    userId: string;
+    role: UserRole;
+  };
+  params: Record<string, string | undefined>;
+  resource?: Record<string, unknown>;
+}
+
 /**
  * Resource Ownership Guard
  * Enforces resource ownership before allowing access
@@ -50,14 +59,14 @@ export class ResourceOwnershipGuard implements CanActivate {
     ]);
 
     // If no ownership check configured, allow access
-    if (!config) {
+    if (config === null || config === undefined) {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<ResourceOwnershipRequest>();
     const user = request.user;
 
-    if (!user) {
+    if (user === null || user === undefined) {
       throw new ForbiddenException('User not authenticated');
     }
 
@@ -70,10 +79,10 @@ export class ResourceOwnershipGuard implements CanActivate {
     }
 
     // Get resource ID from request params
-    const resourceIdParam = config.resourceIdParam || 'id';
+    const resourceIdParam = config.resourceIdParam ?? 'id';
     const resourceId = request.params[resourceIdParam];
 
-    if (!resourceId) {
+    if (resourceId === null || resourceId === undefined || resourceId === '') {
       throw new ForbiddenException(`Resource ID parameter '${resourceIdParam}' not found`);
     }
 
@@ -94,7 +103,7 @@ export class ResourceOwnershipGuard implements CanActivate {
     for (const field of ownerFields) {
       const ownerId = resource[field];
 
-      if (ownerId && ownerId.toString() === userId.toString()) {
+      if (ownerId?.toString() === userId.toString()) {
         isOwner = true;
         break;
       }
@@ -140,7 +149,7 @@ export class ResourceOwnershipGuard implements CanActivate {
         payment: 'payments',
       };
 
-      const collectionName = collectionMap[resourceType.toLowerCase()] || `${resourceType}s`;
+      const collectionName = collectionMap[resourceType.toLowerCase()] ?? `${resourceType}s`;
       const collection = this.connection.collection(collectionName);
 
       const resource = await collection.findOne({
@@ -151,15 +160,6 @@ export class ResourceOwnershipGuard implements CanActivate {
     } catch (error) {
       this.logger.error(`Failed to fetch ${resourceType} ${resourceId}`, error);
       return null;
-    }
-  }
-}
-
-// Extend Express Request to include resource
-declare global {
-  namespace Express {
-    interface Request {
-      resource?: Record<string, unknown>;
     }
   }
 }

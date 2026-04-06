@@ -1,4 +1,5 @@
 import { DocumentType } from '@foodwaste/shared';
+import type { VerifyDocumentInput } from '@foodwaste/shared';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 
@@ -8,7 +9,7 @@ export { DocumentType };
 /**
  * DTO for verifying a document (admin only)
  */
-export class VerifyDocumentDto {
+export class VerifyDocumentDto implements VerifyDocumentInput {
   @ApiProperty({
     enum: DocumentType,
     description: 'Type of document to verify',
@@ -27,5 +28,5 @@ export class VerifyDocumentDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  notes?: string;
+  notes?: string | undefined;
 }

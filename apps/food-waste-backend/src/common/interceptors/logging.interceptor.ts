@@ -17,6 +17,10 @@ import { tap, catchError } from 'rxjs/operators';
 
 import { WinstonLoggerService } from '../services/winston-logger.service';
 
+import type { Request, Response } from 'express';
+
+type CorrelationRequest = Request & { correlationId?: string };
+
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   constructor(private readonly logger: WinstonLoggerService) {
@@ -24,15 +28,18 @@ export class LoggingInterceptor implements NestInterceptor {
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const request = context.switchToHttp().getRequest();
-    const response = context.switchToHttp().getResponse();
+    const request = context.switchToHttp().getRequest<CorrelationRequest>();
+    const response = context.switchToHttp().getResponse<Response>();
 
-    const { method, url, body, ip, correlationId } = request;
-    const userAgent = request.get('user-agent') || '';
+    const { method, url, correlationId } = request;
+    const ip = request.ip ?? 'unknown';
+    const cid = correlationId ?? '';
+    const body: unknown = request.body;
+    const userAgent = request.get('user-agent') ?? '';
     const startTime = Date.now();
 
     // Log incoming request
-    this.logger.logWithCorrelationId('info', `Incoming ${method} ${url}`, correlationId, {
+    this.logger.logWithCorrelationId('info', `Incoming ${method} ${url}`, cid, {
       method,
       url,
       ip,
@@ -46,17 +53,12 @@ export class LoggingInterceptor implements NestInterceptor {
         const duration = Date.now() - startTime;
 
         // Log successful response
-        this.logger.logWithCorrelationId(
-          'info',
-          `Outgoing ${method} ${url} - ${statusCode}`,
-          correlationId,
-          {
-            method,
-            url,
-            statusCode,
-            duration,
-          },
-        );
+        this.logger.logWithCorrelationId('info', `Outgoing ${method} ${url} - ${statusCode}`, cid, {
+          method,
+          url,
+          statusCode,
+          duration,
+        });
 
         // Log performance warning for slow requests
         if (duration > 3000) {
@@ -67,22 +69,20 @@ export class LoggingInterceptor implements NestInterceptor {
           });
         }
       }),
-      catchError((error) => {
+      catchError((error: unknown) => {
         const duration = Date.now() - startTime;
+        const statusCode = this.getErrorStatusCode(error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorStack = error instanceof Error ? error.stack : undefined;
 
         // Log error
-        this.logger.logWithCorrelationId(
-          'error',
-          `Error ${method} ${url} - ${error.status || 500}`,
-          correlationId,
-          {
-            method,
-            url,
-            duration,
-            error: error.message,
-            stack: error.stack,
-          },
-        );
+        this.logger.logWithCorrelationId('error', `Error ${method} ${url} - ${statusCode}`, cid, {
+          method,
+          url,
+          duration,
+          error: errorMessage,
+          stack: errorStack,
+        });
 
         return throwError(() => error);
       }),
@@ -94,12 +94,12 @@ export class LoggingInterceptor implements NestInterceptor {
    *
    * Remove sensitive fields from logs
    */
-  private sanitizeBody(body: Record<string, unknown>): Record<string, unknown> {
-    if (!body || typeof body !== 'object') {
-      return body as Record<string, unknown>;
+  private sanitizeBody(body: unknown): Record<string, unknown> {
+    if (body === null || body === undefined || typeof body !== 'object') {
+      return {};
     }
 
-    const sanitized = { ...body };
+    const sanitized: Record<string, unknown> = { ...(body as Record<string, unknown>) };
     const sensitiveFields = [
       'password',
       'token',
@@ -110,11 +110,22 @@ export class LoggingInterceptor implements NestInterceptor {
     ];
 
     for (const field of sensitiveFields) {
-      if (sanitized[field]) {
+      if (sanitized[field] !== null && sanitized[field] !== undefined) {
         sanitized[field] = '[REDACTED]';
       }
     }
 
     return sanitized;
+  }
+
+  private getErrorStatusCode(error: unknown): number {
+    if (error !== null && error !== undefined && typeof error === 'object') {
+      const maybeHttpError = error as { status?: unknown };
+      if (typeof maybeHttpError.status === 'number') {
+        return maybeHttpError.status;
+      }
+    }
+
+    return 500;
   }
 }

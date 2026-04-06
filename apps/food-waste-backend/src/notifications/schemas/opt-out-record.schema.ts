@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 interface IOptOutRecordMethods {
   addAuditEntry(
-    action: string,
+    action: 'opt_out' | 'opt_in' | 'status_change' | 'expired' | 'revoked' | 'created' | 'updated',
     reason?: string,
     userId?: Types.ObjectId,
     metadata?: Record<string, unknown>,
@@ -63,7 +63,6 @@ export class OptOutRecord {
     required: true,
     enum: OptOutStatus,
     default: OptOutStatus.ACTIVE,
-    index: true,
   })
   status!: OptOutStatus;
 
@@ -258,28 +257,35 @@ OptOutRecordSchema.virtual('maskedPhoneNumber').get(function () {
 });
 
 // Instance methods
-OptOutRecordSchema.methods['addAuditEntry'] = function (
-  action: string,
+OptOutRecordSchema.methods['addAuditEntry'] = async function (
+  this: OptOutRecordDocument,
+  action: 'opt_out' | 'opt_in' | 'status_change' | 'expired' | 'revoked' | 'created' | 'updated',
   reason?: string,
   userId?: Types.ObjectId,
   metadata?: Record<string, unknown>,
 ) {
-  this['auditLog'].push({
+  this.auditLog.push({
     action,
     timestamp: new Date(),
-    reason,
-    userId,
-    metadata,
+    ...(reason !== undefined && { reason }),
+    ...(userId !== undefined && { userId }),
+    ...(metadata !== undefined && { metadata }),
   });
-  return this['save']();
+  const savedRecord = await this.save();
+  return savedRecord;
 };
 
-OptOutRecordSchema.methods['isExpired'] = function (): boolean {
-  return this['expiresAt'] ? new Date() > this['expiresAt'] : false;
+OptOutRecordSchema.methods['isExpired'] = function (this: OptOutRecordDocument): boolean {
+  const expiresAt = this.expiresAt;
+  return expiresAt !== null && expiresAt !== undefined ? new Date() > expiresAt : false;
 };
 
-OptOutRecordSchema.methods['canReceiveMessageType'] = function (messageType: string): boolean {
-  if (!this['isOptedOut']) {
+OptOutRecordSchema.methods['canReceiveMessageType'] = function (
+  this: OptOutRecordDocument,
+  messageType: string,
+): boolean {
+  const isOptedOut = this['isOptedOut'] as boolean | undefined;
+  if (isOptedOut !== true) {
     return true;
   }
 

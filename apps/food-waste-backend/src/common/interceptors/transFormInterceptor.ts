@@ -3,15 +3,39 @@ import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nes
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+import type { Response } from 'express';
+
 /**
  * Standardized API response format
  * ✅ CANONICAL: Matches BackendApiResponse in frontend
  */
 interface ResponseFormat<T> {
   status: number;
-  message?: string;
+  message?: string | undefined;
   data: T;
   timestamp: string;
+  meta?: unknown;
+}
+
+interface WrappedResponseCandidate {
+  message?: string;
+  data?: unknown;
+  meta?: unknown;
+  statusCode?: number;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return (
+    value !== null && value !== undefined && typeof value === 'object' && !Array.isArray(value)
+  );
+}
+
+function toWrappedResponseCandidate(value: unknown): WrappedResponseCandidate | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return value;
 }
 
 /**
@@ -31,10 +55,10 @@ interface ResponseFormat<T> {
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<T, ResponseFormat<T>> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<ResponseFormat<T>> {
-    const httpStatusCode = context.switchToHttp().getResponse().statusCode;
+    const httpStatusCode = context.switchToHttp().getResponse<Response>().statusCode;
 
     return next.handle().pipe(
-      map((response) => {
+      map((response: unknown): ResponseFormat<T> => {
         // If response is null/undefined, return empty data
         if (response === null || response === undefined) {
           return {
@@ -46,32 +70,34 @@ export class TransformInterceptor<T> implements NestInterceptor<T, ResponseForma
 
         // Check if controller returned old-style wrapped response
         // Pattern: { statusCode?: number, message?: string, data?: any }
-        const hasMessage = 'message' in response;
-        const hasData = 'data' in response;
+        const wrappedResponse = toWrappedResponseCandidate(response);
+        const hasMessage = typeof wrappedResponse?.message === 'string';
+        const hasData =
+          wrappedResponse !== null && wrappedResponse !== undefined && 'data' in wrappedResponse;
 
         // If response looks like it's already formatted (has data property)
-        if (hasData) {
+        if (wrappedResponse !== null && wrappedResponse !== undefined && hasData) {
           // ✅ FIX: Preserve meta field for paginated responses
           // Controller returns: { message, data, meta? }
           // Extract meta if it exists and preserve it at top level
-          const hasMeta = 'meta' in response;
+          const hasMeta = 'meta' in wrappedResponse;
 
           return {
             status: httpStatusCode,
-            ...(hasMessage && { message: response.message }),
-            data: response.data as T,
-            ...(hasMeta && { meta: response.meta }), // ✅ Preserve meta at top level
+            ...(hasMessage && { message: wrappedResponse.message }),
+            data: wrappedResponse.data as T,
+            ...(hasMeta && { meta: wrappedResponse.meta }), // ✅ Preserve meta at top level
             timestamp: new Date().toISOString(),
           };
         }
 
         // If response has message but no data, treat the rest as data
-        if (hasMessage && !hasData) {
-          const { message, statusCode: _ignoredStatus, ...rest } = response;
+        if (wrappedResponse !== null && wrappedResponse !== undefined && hasMessage && !hasData) {
+          const { message, statusCode: _ignoredStatus, ...rest } = wrappedResponse;
           return {
             status: httpStatusCode,
             message,
-            data: Object.keys(rest).length > 0 ? rest : (null as T),
+            data: (Object.keys(rest).length > 0 ? rest : null) as T,
             timestamp: new Date().toISOString(),
           };
         }

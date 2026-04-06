@@ -1,5 +1,4 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-
 // Interface for notification payload data
 interface INotificationData {
   offerId?: string;

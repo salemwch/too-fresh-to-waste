@@ -401,7 +401,7 @@ export class ProximitySearchController {
 
     const result = await this.proximitySearchService.getEstablishmentsInDeliveryRadius(
       userLocation,
-      body.maxRadius || 10000,
+      body.maxRadius ?? 10000,
     );
     return result;
   }

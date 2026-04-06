@@ -17,8 +17,8 @@ declare module 'csv-writer' {
     stringifyRecords(records: T[]): string;
   }
 
-  export interface ObjectCsvStringifier extends CsvStringifier<Record<string, unknown>> {}
-  export interface ArrayCsvStringifier extends CsvStringifier<unknown[]> {}
+  export type ObjectCsvStringifier = CsvStringifier<Record<string, unknown>>;
+  export type ArrayCsvStringifier = CsvStringifier<unknown[]>;
 
   export interface CsvWriter<T> {
     writeRecords(records: T[]): Promise<void>;

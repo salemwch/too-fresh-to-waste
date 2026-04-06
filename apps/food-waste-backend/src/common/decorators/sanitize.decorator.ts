@@ -1,5 +1,7 @@
-import { Transform, TransformFnParams } from 'class-transformer';
 import { Logger } from '@nestjs/common';
+import { Transform } from 'class-transformer';
+
+import type { TransformFnParams } from 'class-transformer';
 
 /**
  * CRITICAL: Sanitization decorators that execute BEFORE validation
@@ -18,6 +20,11 @@ import { Logger } from '@nestjs/common';
 
 const logger = new Logger('SanitizeDecorators');
 
+function getTransformValue(params: TransformFnParams): unknown {
+  const value: unknown = params.value;
+  return value;
+}
+
 /**
  * Sanitize text input by encoding HTML entities and removing control characters
  * Use for: names, addresses, general text fields
@@ -33,25 +40,32 @@ const logger = new Logger('SanitizeDecorators');
  * ```
  */
 export function SanitizeText(): PropertyDecorator {
-    return Transform(({ value }: TransformFnParams) => {
-        if (!value || typeof value !== 'string') {
-            return value;
-        }
+  return Transform(
+    (params: TransformFnParams) => {
+      const value = getTransformValue(params);
 
-        return value
-            // HTML entity encoding (defense in depth)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#x27;')
-            .replace(/\//g, '&#x2F;')
-            // Remove control characters (U+0000 to U+001F except tab, newline, carriage return)
-            .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-            // Normalize whitespace
-            .replace(/\s+/g, ' ')
-            .trim();
-    }, { toClassOnly: true }); // Only apply when transforming plain object to class
+      if (value === null || value === undefined || typeof value !== 'string') {
+        return value;
+      }
+
+      return (
+        value
+          // HTML entity encoding (defense in depth)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#x27;')
+          .replace(/\//g, '&#x2F;')
+          // Remove control characters (U+0000 to U+001F except tab, newline, carriage return)
+          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+          // Normalize whitespace
+          .replace(/\s+/g, ' ')
+          .trim()
+      );
+    },
+    { toClassOnly: true },
+  ); // Only apply when transforming plain object to class
 }
 
 /**
@@ -72,65 +86,91 @@ export function SanitizeText(): PropertyDecorator {
  * ```
  */
 export function SanitizeHtml(): PropertyDecorator {
-    return Transform(({ value }: TransformFnParams) => {
-        if (!value || typeof value !== 'string') {
-            return value;
-        }
+  return Transform(
+    (params: TransformFnParams) => {
+      const value = getTransformValue(params);
 
-        let sanitized = value;
+      if (value === null || value === undefined || typeof value !== 'string') {
+        return value;
+      }
 
-        // Remove script tags and content
-        sanitized = sanitized.replace(/<script[\s\S]*?<\/script>/gi, '');
+      let sanitized = value;
 
-        // Remove dangerous tags
-        const dangerousTags = [
-            'script', 'iframe', 'object', 'embed', 'form', 'input', 'button',
-            'textarea', 'select', 'option', 'link', 'meta', 'style', 'title',
-            'base', 'head', 'html', 'body', 'applet', 'bgsound', 'blink',
-            'marquee', 'xml', 'svg', 'math'
-        ];
+      // Remove script tags and content
+      sanitized = sanitized.replace(/<script[\s\S]*?<\/script>/gi, '');
 
-        dangerousTags.forEach(tag => {
-            const regex = new RegExp(`<\\/?${tag}[^>]*>`, 'gi');
-            sanitized = sanitized.replace(regex, '');
-        });
+      // Remove dangerous tags
+      const dangerousTags = [
+        'script',
+        'iframe',
+        'object',
+        'embed',
+        'form',
+        'input',
+        'button',
+        'textarea',
+        'select',
+        'option',
+        'link',
+        'meta',
+        'style',
+        'title',
+        'base',
+        'head',
+        'html',
+        'body',
+        'applet',
+        'bgsound',
+        'blink',
+        'marquee',
+        'xml',
+        'svg',
+        'math',
+      ];
 
-        // Remove ALL event handlers
-        sanitized = sanitized.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
-        sanitized = sanitized.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, '');
+      dangerousTags.forEach((tag) => {
+        const regex = new RegExp(`<\\/?${tag}[^>]*>`, 'gi');
+        sanitized = sanitized.replace(regex, '');
+      });
 
-        // Remove dangerous protocols
-        sanitized = sanitized
-            .replace(/javascript:/gi, '')
-            .replace(/vbscript:/gi, '')
-            .replace(/data:text\/html/gi, '')
-            .replace(/data:text\/javascript/gi, '')
-            .replace(/expression\s*\(/gi, '')
-            .replace(/@import/gi, '');
+      // Remove ALL event handlers
+      sanitized = sanitized.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
+      sanitized = sanitized.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, '');
 
-        // Remove remaining HTML tags (conservative approach)
-        sanitized = sanitized.replace(/<[^>]*>/g, '');
+      // Remove dangerous protocols
+      sanitized = sanitized
+        .replace(/javascript:/gi, '')
+        .replace(/vbscript:/gi, '')
+        .replace(/data:text\/html/gi, '')
+        .replace(/data:text\/javascript/gi, '')
+        .replace(/expression\s*\(/gi, '')
+        .replace(/@import/gi, '');
 
-        // Decode common HTML entities to prevent double-encoding
-        sanitized = sanitized
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/&quot;/g, '"')
-            .replace(/&#x27;/g, "'")
-            .replace(/&#x2F;/g, '/')
-            .replace(/&amp;/g, '&');
+      // Remove remaining HTML tags (conservative approach)
+      sanitized = sanitized.replace(/<[^>]*>/g, '');
 
-        // Re-encode for safety
-        sanitized = sanitized
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#x27;')
-            .replace(/\//g, '&#x2F;');
+      // Decode common HTML entities to prevent double-encoding
+      sanitized = sanitized
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#x27;/g, "'")
+        .replace(/&#x2F;/g, '/')
+        .replace(/&amp;/g, '&');
 
-        return sanitized.trim();
-    }, { toClassOnly: true });
+      // Re-encode for safety
+      sanitized = sanitized
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;');
+
+      return sanitized.trim();
+    },
+    { toClassOnly: true },
+  );
 }
 
 /**
@@ -147,21 +187,28 @@ export function SanitizeHtml(): PropertyDecorator {
  * ```
  */
 export function SanitizeEmail(): PropertyDecorator {
-    return Transform(({ value }: TransformFnParams) => {
-        if (!value || typeof value !== 'string') {
-            return value;
-        }
+  return Transform(
+    (params: TransformFnParams) => {
+      const value = getTransformValue(params);
 
-        return value
-            .toLowerCase()
-            .trim()
-            // Remove any characters that aren't valid in email addresses
-            .replace(/[^\w\s@.\-+]/gi, '')
-            // Remove multiple dots
-            .replace(/\.{2,}/g, '.')
-            // Remove whitespace
-            .replace(/\s/g, '');
-    }, { toClassOnly: true });
+      if (value === null || value === undefined || typeof value !== 'string') {
+        return value;
+      }
+
+      return (
+        value
+          .toLowerCase()
+          .trim()
+          // Remove any characters that aren't valid in email addresses
+          .replace(/[^\w\s@.\-+]/gi, '')
+          // Remove multiple dots
+          .replace(/\.{2,}/g, '.')
+          // Remove whitespace
+          .replace(/\s/g, '')
+      );
+    },
+    { toClassOnly: true },
+  );
 }
 
 /**
@@ -178,16 +225,19 @@ export function SanitizeEmail(): PropertyDecorator {
  * ```
  */
 export function SanitizePhoneNumber(): PropertyDecorator {
-    return Transform(({ value }: TransformFnParams) => {
-        if (!value || typeof value !== 'string') {
-            return value;
-        }
+  return Transform(
+    (params: TransformFnParams) => {
+      const value = getTransformValue(params);
 
-        // Keep only digits, +, spaces, hyphens, parentheses (libphonenumber handles these)
-        return value
-            .trim()
-            .replace(/[^\d\s\-+()]/g, '');
-    }, { toClassOnly: true });
+      if (value === null || value === undefined || typeof value !== 'string') {
+        return value;
+      }
+
+      // Keep only digits, +, spaces, hyphens, parentheses (libphonenumber handles these)
+      return value.trim().replace(/[^\d\s\-+()]/g, '');
+    },
+    { toClassOnly: true },
+  );
 }
 
 /**
@@ -205,38 +255,47 @@ export function SanitizePhoneNumber(): PropertyDecorator {
  * ```
  */
 export function SanitizeUrl(): PropertyDecorator {
-    return Transform(({ value }: TransformFnParams) => {
-        if (!value || typeof value !== 'string') {
-            return value;
+  return Transform(
+    (params: TransformFnParams) => {
+      const value = getTransformValue(params);
+
+      if (value === null || value === undefined || typeof value !== 'string') {
+        return value;
+      }
+
+      let sanitized = value.trim();
+
+      // Remove dangerous protocols
+      sanitized = sanitized
+        .replace(/^javascript:/gi, '')
+        .replace(/^vbscript:/gi, '')
+        .replace(/^data:text\/html/gi, '')
+        .replace(/^data:text\/javascript/gi, '');
+
+      // Validate protocol if present
+      try {
+        const parsed = new URL(sanitized);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          logger.warn(`Blocked dangerous URL protocol: ${parsed.protocol}`);
+          return '';
         }
-
-        let sanitized = value.trim();
-
-        // Remove dangerous protocols
-        sanitized = sanitized
-            .replace(/^javascript:/gi, '')
-            .replace(/^vbscript:/gi, '')
-            .replace(/^data:text\/html/gi, '')
-            .replace(/^data:text\/javascript/gi, '');
-
-        // Validate protocol if present
-        try {
-            const parsed = new URL(sanitized);
-            if (!['http:', 'https:'].includes(parsed.protocol)) {
-                logger.warn(`Blocked dangerous URL protocol: ${parsed.protocol}`);
-                return '';
-            }
-            return sanitized;
-        } catch {
-            // Not a valid URL - might be relative path
-            if (sanitized.startsWith('/') || sanitized.startsWith('./') || sanitized.startsWith('../')) {
-                // Remove any dangerous characters from path
-                return sanitized.replace(/[<>"'`]/g, '');
-            }
-            logger.warn(`Invalid URL format rejected: ${sanitized.substring(0, 50)}`);
-            return '';
+        return sanitized;
+      } catch {
+        // Not a valid URL - might be relative path
+        if (
+          sanitized.startsWith('/') ||
+          sanitized.startsWith('./') ||
+          sanitized.startsWith('../')
+        ) {
+          // Remove any dangerous characters from path
+          return sanitized.replace(/[<>"'`]/g, '');
         }
-    }, { toClassOnly: true });
+        logger.warn(`Invalid URL format rejected: ${sanitized.substring(0, 50)}`);
+        return '';
+      }
+    },
+    { toClassOnly: true },
+  );
 }
 
 /**
@@ -254,21 +313,26 @@ export function SanitizeUrl(): PropertyDecorator {
  * ```
  */
 export function SanitizeNumeric(): PropertyDecorator {
-    return Transform(({ value }: TransformFnParams) => {
-        if (!value) {
-            return value;
-        }
+  return Transform(
+    (params: TransformFnParams) => {
+      const value = getTransformValue(params);
 
-        if (typeof value === 'number') {
-            return value.toString();
-        }
-
-        if (typeof value === 'string') {
-            return value.replace(/\D/g, '');
-        }
-
+      if (value === null || value === undefined || value === '') {
         return value;
-    }, { toClassOnly: true });
+      }
+
+      if (typeof value === 'number') {
+        return value.toString();
+      }
+
+      if (typeof value === 'string') {
+        return value.replace(/\D/g, '');
+      }
+
+      return value;
+    },
+    { toClassOnly: true },
+  );
 }
 
 /**
@@ -285,22 +349,27 @@ export function SanitizeNumeric(): PropertyDecorator {
  * ```
  */
 export function SanitizeObjectId(): PropertyDecorator {
-    return Transform(({ value }: TransformFnParams) => {
-        if (!value || typeof value !== 'string') {
-            return value;
-        }
+  return Transform(
+    (params: TransformFnParams) => {
+      const value = getTransformValue(params);
 
-        // Remove any non-hex characters
-        const sanitized = value.trim().replace(/[^a-f0-9]/gi, '');
+      if (value === null || value === undefined || typeof value !== 'string') {
+        return value;
+      }
 
-        // Ensure it's 24 characters (MongoDB ObjectId length)
-        if (sanitized.length !== 24) {
-            logger.warn(`Invalid ObjectId length: ${sanitized.length}`);
-            return value; // Let validator handle the error
-        }
+      // Remove any non-hex characters
+      const sanitized = value.trim().replace(/[^a-f0-9]/gi, '');
 
-        return sanitized.toLowerCase();
-    }, { toClassOnly: true });
+      // Ensure it's 24 characters (MongoDB ObjectId length)
+      if (sanitized.length !== 24) {
+        logger.warn(`Invalid ObjectId length: ${sanitized.length}`);
+        return value; // Let validator handle the error
+      }
+
+      return sanitized.toLowerCase();
+    },
+    { toClassOnly: true },
+  );
 }
 
 /**
@@ -319,21 +388,26 @@ export function SanitizeObjectId(): PropertyDecorator {
  * ```
  */
 export function SanitizeEnum<T>(allowedValues: T[]): PropertyDecorator {
-    return Transform(({ value }: TransformFnParams) => {
-        if (!value) {
-            return value;
-        }
+  return Transform(
+    (params: TransformFnParams) => {
+      const value = getTransformValue(params);
 
-        const stringValue = String(value).toLowerCase().trim();
-        const allowed = allowedValues.map(v => String(v).toLowerCase());
+      if (value === null || value === undefined || value === '') {
+        return value;
+      }
 
-        if (!allowed.includes(stringValue)) {
-            logger.warn(`Rejected invalid enum value: ${stringValue}`);
-            return undefined; // Let validator handle
-        }
+      const stringValue = String(value).toLowerCase().trim();
+      const allowed = allowedValues.map((v) => String(v).toLowerCase());
 
-        // Return original cased value from allowedValues
-        const index = allowed.indexOf(stringValue);
-        return allowedValues[index];
-    }, { toClassOnly: true });
+      if (!allowed.includes(stringValue)) {
+        logger.warn(`Rejected invalid enum value: ${stringValue}`);
+        return undefined; // Let validator handle
+      }
+
+      // Return original cased value from allowedValues
+      const index = allowed.indexOf(stringValue);
+      return allowedValues[index];
+    },
+    { toClassOnly: true },
+  );
 }

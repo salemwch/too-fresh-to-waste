@@ -5,17 +5,14 @@ import * as crypto from 'crypto';
 
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { Connection, Model, Types } from 'mongoose';
 
 import {
   USER_AUDIT_LOG_MAX,
   USER_CONSENT_RECORDS_MAX,
 } from '../../common/constants/database-indexes.constant';
-import { Favorite, FavoriteDocument } from '../../favorites/schemas/favorite.schema';
 import { Notification } from '../../notifications/schemas/notification.schema';
-import { Order, OrderDocument } from '../../orders/schemas/order.schema';
-import { Review, ReviewDocument } from '../../reviwes/schemas/reviwe.schema';
 import {
   TunisianPrivacyConsentDto,
   InternationalPrivacyConsentDto,
@@ -74,6 +71,10 @@ interface IPrivacyFavoriteData {
   notes?: string;
 }
 
+interface IConsentRecordsStatsResult {
+  totalRecords: number;
+}
+
 interface IPrivacyReviewData {
   type: string;
   overallRating: number;
@@ -122,6 +123,68 @@ interface IPrivacyNotificationData {
   segment?: string;
   createdAt?: Date;
   expiresAt?: Date;
+}
+
+interface PrivacyOrderRecord {
+  orderNumber: string;
+  status: string;
+  paymentStatus: string;
+  items?: Array<{ offerTitle: string; quantity: number; totalPrice: number }>;
+  pricing?: { total?: number; currency?: string };
+  pickupDetails?: { scheduledDate?: Date; actualPickupTime?: Date };
+  customerNotes?: string;
+  createdAt?: Date;
+  confirmedAt?: Date;
+  pickedUpAt?: Date;
+  cancelledAt?: Date;
+}
+
+interface PrivacyFavoriteRecord {
+  type: string;
+  itemName?: string;
+  itemImage?: string;
+  addedAt: Date;
+  lastInteraction?: Date;
+  interactionCount?: number;
+  notificationCount?: number;
+  preferences?: {
+    notifications?: boolean;
+    emailAlerts?: boolean;
+    pushNotifications?: boolean;
+    maxDistance?: number;
+  };
+  tags?: string[];
+  notes?: string;
+}
+
+interface PrivacyReviewRecord {
+  type: string;
+  overallRating: number;
+  detailedRatings?: {
+    foodQuality?: number;
+    serviceQuality?: number;
+    valueForMoney?: number;
+    packaging?: number;
+    pickupExperience?: number;
+    sustainability?: number;
+  };
+  comment: string;
+  title?: string;
+  status: string;
+  metrics?: {
+    helpfulCount?: number;
+    notHelpfulCount?: number;
+    viewCount?: number;
+  };
+  isVerifiedPurchase?: boolean;
+  isRecommended?: boolean;
+  sentimentAnalysis?: {
+    sentiment?: string;
+    confidence?: number;
+  };
+  tags?: string[];
+  createdAt?: Date;
+  lastEditedAt?: Date;
 }
 
 // Interface for user privacy settings input - matches User schema structure
@@ -179,9 +242,7 @@ export class PrivacyComplianceService {
 
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-    @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
-    @InjectModel(Favorite.name) private readonly favoriteModel: Model<FavoriteDocument>,
-    @InjectModel(Review.name) private readonly reviewModel: Model<ReviewDocument>,
+    @InjectConnection() private readonly connection: Connection,
     @InjectModel(Notification.name) private readonly notificationModel: Model<Notification>,
     private readonly configService: ConfigService,
   ) {
@@ -268,17 +329,20 @@ export class PrivacyComplianceService {
     const recommendations: string[] = [];
 
     // 🇹🇳 Tunisia Law Requirements
-    if (!tunisianConsent?.dataProcessingConsent) {
+    if (tunisianConsent?.dataProcessingConsent !== true) {
       missingConsents.push('🇹🇳 Personal data processing consent required by Tunisia Law');
       recommendations.push('Obtain explicit consent for personal data collection and processing');
     }
 
-    if (!tunisianConsent?.communicationConsent) {
+    if (tunisianConsent?.communicationConsent !== true) {
       missingConsents.push('🇹🇳 Communication consent for email/SMS required');
       recommendations.push('Get consent for marketing communications');
     }
 
-    if (user.locationPreferences?.shareLocation && !tunisianConsent?.locationTrackingConsent) {
+    if (
+      user.locationPreferences?.shareLocation === true &&
+      tunisianConsent?.locationTrackingConsent !== true
+    ) {
       missingConsents.push('🇹🇳 Location tracking consent required for GPS data');
       recommendations.push('Obtain consent for location data collection');
     }
@@ -372,7 +436,7 @@ export class PrivacyComplianceService {
     }
 
     // Find the specific consent record
-    const consentRecords = user.privacySettings?.consentRecords || [];
+    const consentRecords = user.privacySettings?.consentRecords ?? [];
     const consentIndex = consentRecords.findIndex(
       (record) =>
         record.consentType === withdrawalData.consentType && record.status === ConsentStatus.GIVEN,
@@ -419,7 +483,7 @@ export class PrivacyComplianceService {
     });
 
     // If immediate stop requested, trigger data processing restrictions
-    if (withdrawalData.stopProcessingImmediately) {
+    if (withdrawalData.stopProcessingImmediately === true) {
       await this.restrictDataProcessing(userId, withdrawalData.consentType);
     }
 
@@ -474,28 +538,35 @@ export class PrivacyComplianceService {
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,
         profileImage: user.profileImage,
-        createdAt: user.createdAt || new Date(),
+        createdAt: user.createdAt ?? new Date(),
         lastLoginAt: user.lastLoginAt,
       },
-      privacySettings: this.buildCompletePrivacySettings(user.privacySettings || {}),
+      privacySettings: this.buildCompletePrivacySettings(user.privacySettings ?? {}),
       activityData: {
-        loginHistory: user.loginHistory || [],
-        locationHistory: exportRequest.includeActivityData
-          ? user.locationPreferences?.locationHistory?.map((entry: Record<string, unknown>) => ({
-              timestamp: entry['timestamp'] as Date,
-              latitude: (entry['coordinates'] as Record<string, unknown>)?.['latitude'] as number,
-              longitude: (entry['coordinates'] as Record<string, unknown>)?.['longitude'] as number,
-              accuracy: entry['accuracy'] as number,
-            }))
-          : undefined,
+        loginHistory: user.loginHistory ?? [],
+        locationHistory:
+          exportRequest.includeActivityData === true
+            ? user.locationPreferences?.locationHistory?.map((entry: Record<string, unknown>) => ({
+                timestamp: entry['timestamp'] as Date,
+                latitude: (entry['coordinates'] as Record<string, unknown>)?.['latitude'] as number,
+                longitude: (entry['coordinates'] as Record<string, unknown>)?.[
+                  'longitude'
+                ] as number,
+                accuracy: entry['accuracy'] as number,
+              }))
+            : undefined,
       },
       applicationData: {
-        orders: exportRequest.includeApplicationData ? await this.getUserOrders(userId) : [],
-        favorites: exportRequest.includeApplicationData ? await this.getUserFavorites(userId) : [],
-        reviews: exportRequest.includeApplicationData ? await this.getUserReviews(userId) : [],
-        notifications: exportRequest.includeApplicationData
-          ? await this.getUserNotifications(userId)
-          : [],
+        orders:
+          exportRequest.includeApplicationData === true ? await this.getUserOrders(userId) : [],
+        favorites:
+          exportRequest.includeApplicationData === true ? await this.getUserFavorites(userId) : [],
+        reviews:
+          exportRequest.includeApplicationData === true ? await this.getUserReviews(userId) : [],
+        notifications:
+          exportRequest.includeApplicationData === true
+            ? await this.getUserNotifications(userId)
+            : [],
       },
       exportMetadata: {
         requestedAt: new Date(),
@@ -614,7 +685,7 @@ export class PrivacyComplianceService {
         deletedAt: new Date(),
         deletionReason: request.reason,
         // Keep minimal data for legal obligations if requested
-        ...(request.retainLegalData && {
+        ...(request.retainLegalData === true && {
           'privacySettings.dataSubjectRights.deletionRequested': true,
         }),
       },
@@ -637,7 +708,7 @@ export class PrivacyComplianceService {
     return {
       userId,
       anonymizedAt: new Date(),
-      dataRetained: request.retainLegalData ? ['legal_obligations', 'audit_trail'] : [],
+      dataRetained: request.retainLegalData === true ? ['legal_obligations', 'audit_trail'] : [],
       dataAnonymized: [],
       dataDeleted: ['active_profile', 'personal_preferences'],
       legalBasis: '🇹🇳 Tunisia Law No. 2004-63 + 🌍 GDPR Article 17',
@@ -717,12 +788,13 @@ export class PrivacyComplianceService {
    */
   private async getUserOrders(userId: string): Promise<IPrivacyOrderData[]> {
     try {
-      const orders = await this.orderModel
+      const orders = (await this.connection
+        .collection('orders')
         .find({
-          customerId: userId,
+          customerId: new Types.ObjectId(userId),
           isDeleted: { $ne: true },
         })
-        .select({
+        .project({
           orderNumber: 1,
           status: 1,
           paymentStatus: 1,
@@ -740,8 +812,7 @@ export class PrivacyComplianceService {
           cancelledAt: 1,
         })
         .sort({ createdAt: -1 })
-        .lean()
-        .exec();
+        .toArray()) as PrivacyOrderRecord[];
 
       return orders.map((order) => ({
         orderNumber: order.orderNumber,
@@ -752,9 +823,9 @@ export class PrivacyComplianceService {
             title: item.offerTitle,
             quantity: item.quantity,
             totalPrice: item.totalPrice,
-          })) || [],
-        totalAmount: order.pricing?.total || 0,
-        currency: order.pricing?.currency || 'EUR',
+          })) ?? [],
+        totalAmount: order.pricing?.total ?? 0,
+        currency: order.pricing?.currency ?? 'EUR',
         ...(order.pickupDetails?.scheduledDate !== undefined
           ? { scheduledPickupDate: order.pickupDetails.scheduledDate }
           : {}),
@@ -780,12 +851,13 @@ export class PrivacyComplianceService {
    */
   private async getUserFavorites(userId: string): Promise<IPrivacyFavoriteData[]> {
     try {
-      const favorites = await this.favoriteModel
+      const favorites = (await this.connection
+        .collection('favorites')
         .find({
-          userId,
+          userId: new Types.ObjectId(userId),
           isActive: true,
         })
-        .select({
+        .project({
           type: 1,
           itemName: 1,
           itemImage: 1,
@@ -801,8 +873,7 @@ export class PrivacyComplianceService {
           notes: 1,
         })
         .sort({ addedAt: -1 })
-        .lean()
-        .exec();
+        .toArray()) as PrivacyFavoriteRecord[];
 
       return favorites.map((favorite) => ({
         type: favorite.type,
@@ -812,15 +883,15 @@ export class PrivacyComplianceService {
         ...(favorite.lastInteraction !== undefined
           ? { lastInteraction: favorite.lastInteraction }
           : {}),
-        interactionCount: favorite.interactionCount || 0,
-        notificationCount: favorite.notificationCount || 0,
+        interactionCount: favorite.interactionCount ?? 0,
+        notificationCount: favorite.notificationCount ?? 0,
         preferences: {
           notifications: favorite.preferences?.notifications ?? true,
           emailAlerts: favorite.preferences?.emailAlerts ?? true,
           pushNotifications: favorite.preferences?.pushNotifications ?? true,
           maxDistance: favorite.preferences?.maxDistance ?? 5,
         },
-        tags: favorite.tags || [],
+        tags: favorite.tags ?? [],
         ...(favorite.notes !== undefined ? { notes: favorite.notes } : {}),
       }));
     } catch (error) {
@@ -831,12 +902,13 @@ export class PrivacyComplianceService {
 
   private async getUserReviews(userId: string): Promise<IPrivacyReviewData[]> {
     try {
-      const reviews = await this.reviewModel
+      const reviews = (await this.connection
+        .collection('reviews')
         .find({
-          reviewerId: userId,
+          reviewerId: new Types.ObjectId(userId),
           isDeleted: { $ne: true },
         })
-        .select({
+        .project({
           type: 1,
           overallRating: 1,
           'detailedRatings.foodQuality': 1,
@@ -860,8 +932,7 @@ export class PrivacyComplianceService {
           lastEditedAt: 1,
         })
         .sort({ createdAt: -1 })
-        .lean()
-        .exec();
+        .toArray()) as PrivacyReviewRecord[];
 
       return reviews.map((review) => ({
         type: review.type,
@@ -890,12 +961,12 @@ export class PrivacyComplianceService {
         ...(review.title !== undefined ? { title: review.title } : {}),
         status: review.status,
         metrics: {
-          helpfulCount: review.metrics?.helpfulCount || 0,
-          notHelpfulCount: review.metrics?.notHelpfulCount || 0,
-          viewCount: review.metrics?.viewCount || 0,
+          helpfulCount: review.metrics?.helpfulCount ?? 0,
+          notHelpfulCount: review.metrics?.notHelpfulCount ?? 0,
+          viewCount: review.metrics?.viewCount ?? 0,
         },
-        isVerifiedPurchase: review.isVerifiedPurchase || false,
-        isRecommended: review.isRecommended || false,
+        isVerifiedPurchase: review.isVerifiedPurchase ?? false,
+        isRecommended: review.isRecommended ?? false,
         sentimentAnalysis: {
           ...(review.sentimentAnalysis?.sentiment !== undefined
             ? { sentiment: review.sentimentAnalysis.sentiment }
@@ -904,7 +975,7 @@ export class PrivacyComplianceService {
             ? { confidence: review.sentimentAnalysis.confidence }
             : {}),
         },
-        tags: review.tags || [],
+        tags: review.tags ?? [],
         ...(review.createdAt !== undefined ? { createdAt: review.createdAt } : {}),
         ...(review.lastEditedAt !== undefined ? { lastEditedAt: review.lastEditedAt } : {}),
       }));
@@ -928,7 +999,7 @@ export class PrivacyComplianceService {
       cookiesConsent: userSettings.internationalCompliance?.cookiesConsent ?? false,
 
       // Consent Records
-      consentRecords: userSettings.consentRecords || [],
+      consentRecords: userSettings.consentRecords ?? [],
 
       // Data Subject Rights
       dataPortabilityRequested: userSettings.dataSubjectRights?.dataPortabilityRequested ?? false,
@@ -936,8 +1007,8 @@ export class PrivacyComplianceService {
       restrictionRequested: userSettings.dataSubjectRights?.restrictionRequested ?? false,
 
       // Technical Settings
-      lastUpdated: userSettings.lastUpdated || new Date(),
-      consentVersion: userSettings.consentVersion || '1.0',
+      lastUpdated: userSettings.lastUpdated ?? new Date(),
+      consentVersion: userSettings.consentVersion ?? '1.0',
     };
   }
 
@@ -1251,7 +1322,7 @@ export class PrivacyComplianceService {
   }
 
   private async getConsentRecordsStats(): Promise<{ totalRecords: number }> {
-    const result = await this.userModel.aggregate([
+    const result = await this.userModel.aggregate<IConsentRecordsStatsResult>([
       { $match: { status: { $nin: [UserStatus.DELETED, UserStatus.ANONYMIZED] } } },
       {
         $project: {
@@ -1261,7 +1332,7 @@ export class PrivacyComplianceService {
       { $group: { _id: null, totalRecords: { $sum: '$consentRecordsCount' } } },
     ]);
 
-    return { totalRecords: result[0]?.totalRecords || 0 };
+    return { totalRecords: result[0]?.totalRecords ?? 0 };
   }
 
   private generateAuditSummary(

@@ -3,7 +3,9 @@ import * as path from 'path';
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as admin from 'firebase-admin';
+import { cert, getApps, initializeApp } from 'firebase-admin/app';
+
+import type { App, ServiceAccount } from 'firebase-admin/app';
 
 @Injectable()
 export class FirebaseAdminService implements OnModuleInit {
@@ -26,7 +28,7 @@ export class FirebaseAdminService implements OnModuleInit {
       const serviceAccountPath = this.configService.get<string>('FIREBASE_SERVICE_ACCOUNT_PATH');
       const serviceAccountJson = this.configService.get<string>('FIREBASE_SERVICE_ACCOUNT');
 
-      let serviceAccountObj: admin.ServiceAccount;
+      let serviceAccountObj: ServiceAccount;
 
       if (serviceAccountPath) {
         // Option 1: Load from file path (recommended for production)
@@ -45,14 +47,14 @@ export class FirebaseAdminService implements OnModuleInit {
       this.validateServiceAccount(serviceAccountObj);
 
       // Initialize Firebase Admin SDK
-      if (!admin.apps.length) {
+      if (getApps().length === 0) {
         const storageBucket = this.configService.get<string>(
           'FIREBASE_STORAGE_BUCKET',
           `${serviceAccountObj.projectId}.appspot.com`,
         );
 
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccountObj),
+        initializeApp({
+          credential: cert(serviceAccountObj),
           ...(serviceAccountObj.projectId !== undefined
             ? { projectId: serviceAccountObj.projectId }
             : {}),
@@ -70,21 +72,21 @@ export class FirebaseAdminService implements OnModuleInit {
   /**
    * Get the initialized Firebase Admin app
    */
-  getApp(): admin.app.App | null {
-    return admin.apps[0] ?? null;
+  getApp(): App | null {
+    return getApps()[0] ?? null;
   }
 
   /**
    * Check if Firebase Admin is initialized
    */
   isInitialized(): boolean {
-    return this.initialized && admin.apps.length > 0;
+    return this.initialized && getApps().length > 0;
   }
 
   /**
    * Load service account from file path
    */
-  private loadServiceAccountFromFile(serviceAccountPath: string): admin.ServiceAccount {
+  private loadServiceAccountFromFile(serviceAccountPath: string): ServiceAccount {
     try {
       // Resolve relative path from project root
       const absolutePath = path.isAbsolute(serviceAccountPath)
@@ -98,7 +100,7 @@ export class FirebaseAdminService implements OnModuleInit {
 
       // Read and parse the JSON file
       const fileContent = fs.readFileSync(absolutePath, 'utf8');
-      const rawServiceAccount = JSON.parse(fileContent);
+      const rawServiceAccount = JSON.parse(fileContent) as Record<string, unknown>;
 
       // Convert raw JSON to Firebase ServiceAccount format
       const serviceAccountObj = this.convertRawServiceAccount(rawServiceAccount);
@@ -116,9 +118,9 @@ export class FirebaseAdminService implements OnModuleInit {
   /**
    * Parse service account from JSON string (legacy support)
    */
-  private parseServiceAccountFromJson(serviceAccountJson: string): admin.ServiceAccount {
+  private parseServiceAccountFromJson(serviceAccountJson: string): ServiceAccount {
     try {
-      const rawServiceAccount = JSON.parse(serviceAccountJson);
+      const rawServiceAccount = JSON.parse(serviceAccountJson) as Record<string, unknown>;
 
       // Convert raw JSON to Firebase ServiceAccount format
       const serviceAccountObj = this.convertRawServiceAccount(rawServiceAccount);
@@ -136,7 +138,7 @@ export class FirebaseAdminService implements OnModuleInit {
   /**
    * Convert raw service account JSON to Firebase ServiceAccount interface
    */
-  private convertRawServiceAccount(raw: Record<string, unknown>): admin.ServiceAccount {
+  private convertRawServiceAccount(raw: Record<string, unknown>): ServiceAccount {
     // Fix private key formatting by replacing \\n with actual newlines
     let privateKeyRaw = (raw['private_key'] ?? raw['privateKey']) as string | undefined;
     if (privateKeyRaw && typeof privateKeyRaw === 'string') {
@@ -147,7 +149,7 @@ export class FirebaseAdminService implements OnModuleInit {
     // Only include properties that exist in Firebase's ServiceAccount interface
     const projectId = (raw['project_id'] ?? raw['projectId']) as string | undefined;
     const clientEmail = (raw['client_email'] ?? raw['clientEmail']) as string | undefined;
-    const serviceAccount: admin.ServiceAccount = {
+    const serviceAccount: ServiceAccount = {
       ...(projectId !== undefined ? { projectId } : {}),
       ...(privateKeyRaw !== undefined ? { privateKey: privateKeyRaw } : {}),
       ...(clientEmail !== undefined ? { clientEmail } : {}),
@@ -159,7 +161,7 @@ export class FirebaseAdminService implements OnModuleInit {
   /**
    * Validate service account object has required fields
    */
-  private validateServiceAccount(serviceAccountObj: admin.ServiceAccount): void {
+  private validateServiceAccount(serviceAccountObj: ServiceAccount): void {
     // Validate required fields for Firebase ServiceAccount interface
     const requiredFields = [
       { key: 'projectId', value: serviceAccountObj.projectId },

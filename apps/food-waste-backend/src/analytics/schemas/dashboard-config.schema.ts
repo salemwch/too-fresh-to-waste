@@ -83,7 +83,6 @@ export class DashboardConfig {
     type: String,
     enum: ['business', 'operations', 'sustainability', 'customer', 'financial'],
     required: true,
-    index: true,
   })
   category!: 'business' | 'operations' | 'sustainability' | 'customer' | 'financial';
 
@@ -158,14 +157,12 @@ export class DashboardConfig {
   @Prop({
     type: Boolean,
     default: false,
-    index: true,
   })
   isDefault!: boolean;
 
   @Prop({
     type: Types.ObjectId,
     ref: 'User',
-    index: true,
   })
   userId?: Types.ObjectId; // for personal dashboards
 

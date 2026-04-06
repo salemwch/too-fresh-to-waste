@@ -2,9 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsString, IsOptional, IsEnum } from 'class-validator';
 
+import type { SendPhoneVerificationInput } from '@foodwaste/shared';
+
 import { IsValidPhoneNumber } from '../../common/validators/is-valid-phone-number.validator';
 
-export class SendPhoneVerificationDto {
+export class SendPhoneVerificationDto implements SendPhoneVerificationInput {
   /**
    * Phone number to verify
    * Must be in international format for best compatibility
@@ -16,7 +18,7 @@ export class SendPhoneVerificationDto {
     required: true,
   })
   @IsString({ message: 'Phone number must be a string' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @IsValidPhoneNumber({
     defaultCountry: 'TN',
     allowNationalFormat: true,
@@ -37,5 +39,5 @@ export class SendPhoneVerificationDto {
   })
   @IsOptional()
   @IsEnum(['sms', 'voice'], { message: 'Verification method must be either "sms" or "voice"' })
-  method?: 'sms' | 'voice' = 'sms';
+  method: 'sms' | 'voice' = 'sms';
 }

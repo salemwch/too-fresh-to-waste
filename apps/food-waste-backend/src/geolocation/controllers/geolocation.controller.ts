@@ -99,7 +99,7 @@ export class GeolocationController {
     return this.geolocationService.calculateDistances(
       body.origin,
       body.destinations,
-      body.unit || DistanceUnit.KILOMETERS,
+      body.unit ?? DistanceUnit.KILOMETERS,
     );
   }
 
@@ -397,7 +397,7 @@ export class GeolocationController {
     @Query('limit') limit?: number,
   ): Promise<GoogleAutocompleteSuggestion[]> {
     this.logger.log(
-      `Autocomplete: "${query}" (session: ${sessionToken ? 'active' : 'none'}, limit: ${limit || 'default'})`,
+      `Autocomplete: "${query}" (session: ${sessionToken ? 'active' : 'none'}, limit: ${limit ?? 'default'})`,
     );
 
     if (!query || query.trim().length < 2) {

@@ -19,12 +19,16 @@ export interface AuthenticatedRequest extends Request {
   user: AuthUser;
 }
 
+type RequestWithOptionalAuthUser = Request & {
+  user?: AuthUser;
+};
+
 export const GetUser = createParamDecorator(
   (data: keyof AuthUser | 'id' | undefined, ctx: ExecutionContext): AuthUser | string | null => {
-    const request = ctx.switchToHttp().getRequest();
-    const user = request.user as AuthUser;
+    const request = ctx.switchToHttp().getRequest<RequestWithOptionalAuthUser>();
+    const user = request.user;
 
-    if (!user) {
+    if (user === null || user === undefined) {
       return null;
     }
 

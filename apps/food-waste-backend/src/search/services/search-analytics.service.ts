@@ -5,6 +5,14 @@ import { Model } from 'mongoose';
 import { PopularSearch, PopularSearchDocument } from '../schemas/popular-search.schema';
 import { SearchQuery, SearchQueryDocument } from '../schemas/search-query.schema';
 
+interface SearchAnalyticsAggregateResult {
+  totalSearches: number;
+  uniqueQueryCount: number;
+  averageResults: number;
+  zeroResultQueries: number;
+  zeroResultRate: number;
+}
+
 @Injectable()
 export class SearchAnalyticsService {
   private readonly logger = new Logger(SearchAnalyticsService.name);
@@ -27,7 +35,7 @@ export class SearchAnalyticsService {
         query: query.toLowerCase().trim(),
         userId,
         filters,
-        resultsCount: resultsCount || 0,
+        resultsCount: resultsCount ?? 0,
         location: location
           ? {
               type: 'Point',
@@ -54,7 +62,7 @@ export class SearchAnalyticsService {
     try {
       const startDate = this.getStartDate(period);
 
-      const analytics = await this.searchQueryModel.aggregate([
+      const analytics = await this.searchQueryModel.aggregate<SearchAnalyticsAggregateResult>([
         {
           $match: {
             timestamp: { $gte: startDate },
@@ -88,7 +96,7 @@ export class SearchAnalyticsService {
       ]);
 
       return (
-        analytics[0] || {
+        analytics[0] ?? {
           totalSearches: 0,
           uniqueQueryCount: 0,
           averageResults: 0,

@@ -510,7 +510,7 @@ describe('UsersService - create method', () => {
       );
 
       // Verify sensitive data is not exposed
-      const thrownError = await service.create(createUserDto).catch((err) => err);
+      const thrownError = (await service.create(createUserDto).catch((err: Error) => err)) as Error;
       expect(thrownError.message).not.toContain('secret');
       expect(thrownError.message).not.toContain('mongodb://');
     });

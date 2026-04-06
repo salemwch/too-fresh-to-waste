@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, MinLength, Matches } from 'class-validator';
 
-export class UpdatePasswordDto {
+import type { UpdatePasswordInput } from '@foodwaste/shared';
+
+export class UpdatePasswordDto implements UpdatePasswordInput {
   @ApiProperty({
     description:
       'New password (min 8 chars, must contain uppercase, lowercase, number, special char)',

@@ -11,6 +11,7 @@ import {
   OfferUpdate,
   NotificationEvent,
 } from './interfaces/websocket.interface';
+import type { WebSocketRoom } from './interfaces/websocket.interface';
 
 @Injectable()
 export class WebSocketService {
@@ -94,17 +95,29 @@ export class WebSocketService {
       if (!this.userSockets.has(socket.userId)) {
         this.userSockets.set(socket.userId, new Set());
       }
-      this.userSockets.get(socket.userId)!.add(socket.id);
+      const userSocketSet = this.userSockets.get(socket.userId);
+      if (!userSocketSet) {
+        this.logger.warn(`Failed to register socket ${socket.id} for user ${socket.userId}`);
+        return;
+      }
+      userSocketSet.add(socket.id);
 
       // Join default rooms
-      this.joinRoom(socket, WEBSOCKET_ROOMS['GLOBAL']!.name);
+      const globalRoom = WEBSOCKET_ROOMS['GLOBAL'];
+      if (globalRoom) {
+        this.joinRoom(socket, globalRoom.name);
+      }
       this.joinRoom(socket, `user-${socket.userId}`);
 
       // Role-based room joining
+      const merchantDashboardRoom = WEBSOCKET_ROOMS['MERCHANT_DASHBOARD'];
+      const adminAlertsRoom = WEBSOCKET_ROOMS['ADMIN_ALERTS'];
       if (socket.role === UserRole.MERCHANT) {
-        this.joinRoom(socket, WEBSOCKET_ROOMS['MERCHANT_DASHBOARD']!.name);
-      } else if (socket.role === UserRole.ADMIN) {
-        this.joinRoom(socket, WEBSOCKET_ROOMS['ADMIN_ALERTS']!.name);
+        if (merchantDashboardRoom) {
+          this.joinRoom(socket, merchantDashboardRoom.name);
+        }
+      } else if (socket.role === UserRole.ADMIN && adminAlertsRoom) {
+        this.joinRoom(socket, adminAlertsRoom.name);
       }
 
       socket.emit('authenticated', {
@@ -138,7 +151,14 @@ export class WebSocketService {
     if (!this.userSockets.has(socket.userId)) {
       this.userSockets.set(socket.userId, new Set());
     }
-    this.userSockets.get(socket.userId)!.add(socket.id);
+    const userSocketSet = this.userSockets.get(socket.userId);
+    if (!userSocketSet) {
+      this.logger.warn(
+        `Failed to register authenticated socket ${socket.id} for user ${socket.userId}`,
+      );
+      return;
+    }
+    userSocketSet.add(socket.id);
 
     // Join user-specific room for direct targeting
     void socket.join(`user-${socket.userId}`);
@@ -150,7 +170,9 @@ export class WebSocketService {
   }
 
   joinRoom(socket: AuthenticatedSocket, roomName: string): void {
-    const room = Object.values(WEBSOCKET_ROOMS).find((r) => r.name === roomName);
+    const room: WebSocketRoom | undefined = Object.values(WEBSOCKET_ROOMS).find(
+      (r) => r.name === roomName,
+    );
 
     if (!room) {
       socket.emit(WebSocketEvents.ERROR, {
@@ -185,7 +207,12 @@ export class WebSocketService {
     if (!this.roomParticipants.has(roomName)) {
       this.roomParticipants.set(roomName, new Set());
     }
-    this.roomParticipants.get(roomName)!.add(socket.id);
+    const roomParticipants = this.roomParticipants.get(roomName);
+    if (!roomParticipants) {
+      this.logger.warn(`Failed to track room participants for ${roomName}`);
+      return;
+    }
+    roomParticipants.add(socket.id);
 
     this.logger.debug(`Socket ${socket.id} joined room: ${roomName}`);
   }
@@ -255,7 +282,7 @@ export class WebSocketService {
    * Send event to a specific room
    */
   sendToRoom(roomName: string, event: string, data: unknown): void {
-    if (this.server) {
+    if (this.server !== null && this.server !== undefined) {
       this.server.to(roomName).emit(event, this.wrapEventPayload(event, data));
       this.logger.debug(`Sent ${event} to room ${roomName}`);
     }
@@ -265,7 +292,7 @@ export class WebSocketService {
    * Send event to all connected clients
    */
   broadcast(event: string, data: unknown): void {
-    if (this.server) {
+    if (this.server !== null && this.server !== undefined) {
       this.server.emit(event, this.wrapEventPayload(event, data));
       this.logger.debug(`Broadcasted ${event} to all clients`);
     }
@@ -294,11 +321,10 @@ export class WebSocketService {
     this.sendToUser(update.merchantId, WebSocketEvents.ORDER_STATUS_UPDATED, update);
 
     // Send to admin room for monitoring
-    this.sendToRoom(
-      WEBSOCKET_ROOMS['ADMIN_ALERTS']!.name,
-      WebSocketEvents.ORDER_STATUS_UPDATED,
-      update,
-    );
+    const adminAlertsRoom = WEBSOCKET_ROOMS['ADMIN_ALERTS'];
+    if (adminAlertsRoom) {
+      this.sendToRoom(adminAlertsRoom.name, WebSocketEvents.ORDER_STATUS_UPDATED, update);
+    }
   }
 
   /**
@@ -347,7 +373,8 @@ export class WebSocketService {
    * Check if user is online
    */
   isUserOnline(userId: string): boolean {
-    return this.userSockets.has(userId) && this.userSockets.get(userId)!.size > 0;
+    const userSocketSet = this.userSockets.get(userId);
+    return !!userSocketSet && userSocketSet.size > 0;
   }
 
   /**
@@ -361,8 +388,7 @@ export class WebSocketService {
 
     return Array.from(participants)
       .map((socketId) => this.connectedClients.get(socketId))
-      .filter((socket) => socket?.userId)
-      .map((socket) => socket!.userId);
+      .flatMap((socket) => (socket?.userId ? [socket.userId] : []));
   }
 
   private wrapEventPayload(event: string, data: unknown, userId?: string): WebSocketEventPayload {

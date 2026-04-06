@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+
 import { ArchiveService } from '../archive.service';
 
 /**
@@ -16,32 +17,29 @@ import { ArchiveService } from '../archive.service';
  */
 @Injectable()
 export class ArchiveTask {
-    private readonly logger = new Logger(ArchiveTask.name);
+  private readonly logger = new Logger(ArchiveTask.name);
 
-    constructor(private readonly archiveService: ArchiveService) {}
+  constructor(private readonly archiveService: ArchiveService) {}
 
-    @Cron(CronExpression.EVERY_DAY_AT_5AM)
-    async handleArchiveCron(): Promise<void> {
-        this.logger.log('Starting nightly archive of expired soft-deleted records…');
+  @Cron(CronExpression.EVERY_DAY_AT_5AM)
+  async handleArchiveCron(): Promise<void> {
+    this.logger.log('Starting nightly archive of expired soft-deleted records…');
 
-        try {
-            const results = await this.archiveService.archiveAllExpired();
+    try {
+      const results = await this.archiveService.archiveAllExpired();
 
-            const summary = results
-                .filter((r) => r.archivedCount > 0)
-                .map((r) => `${r.archivedCount} ${r.sourceCollection}`)
-                .join(', ');
+      const summary = results
+        .filter((r) => r.archivedCount > 0)
+        .map((r) => `${r.archivedCount} ${r.sourceCollection}`)
+        .join(', ');
 
-            if (summary) {
-                this.logger.log(`Archive complete — archived ${summary}`);
-            } else {
-                this.logger.log('Archive complete — no records eligible for archival');
-            }
-        } catch (error) {
-            this.logger.error(
-                `Archive cron failed: ${(error as Error).message}`,
-                (error as Error).stack,
-            );
-        }
+      if (summary) {
+        this.logger.log(`Archive complete — archived ${summary}`);
+      } else {
+        this.logger.log('Archive complete — no records eligible for archival');
+      }
+    } catch (error) {
+      this.logger.error(`Archive cron failed: ${(error as Error).message}`, (error as Error).stack);
     }
+  }
 }

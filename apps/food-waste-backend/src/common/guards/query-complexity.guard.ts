@@ -99,6 +99,10 @@ export interface QueryComplexityStats {
   violations: string[];
 }
 
+type QueryComplexityRequest = Request & {
+  queryComplexityStats?: QueryComplexityStats;
+};
+
 /**
  * Guard to validate MongoDB query complexity before execution
  * Prevents DoS attacks via complex queries
@@ -125,7 +129,7 @@ export class QueryComplexityGuard implements CanActivate {
    * Validate query complexity before allowing request
    */
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<QueryComplexityRequest>();
 
     // Get configuration from decorator or use defaults
     const decoratorConfig = this.reflector.get<QueryComplexityConfig>(
@@ -180,21 +184,25 @@ export class QueryComplexityGuard implements CanActivate {
    */
   private extractQueryObject(request: Request): Record<string, unknown> | null {
     // Check body for query (POST/PUT requests)
-    if (request.body && typeof request.body === 'object') {
-      if (request.body.query) {
-        return request.body.query;
+    const requestBody = request.body as unknown;
+    if (requestBody !== null && requestBody !== undefined && typeof requestBody === 'object') {
+      const bodyRecord = requestBody as Record<string, unknown>;
+      const query = bodyRecord['query'];
+      if (query !== null && query !== undefined && typeof query === 'object') {
+        return query as Record<string, unknown>;
       }
-      if (request.body.filter) {
-        return request.body.filter;
+      const filter = bodyRecord['filter'];
+      if (filter !== null && filter !== undefined && typeof filter === 'object') {
+        return filter as Record<string, unknown>;
       }
       // For DTOs that directly contain query operators
-      if (this.hasMongoOperators(request.body)) {
-        return request.body;
+      if (this.hasMongoOperators(bodyRecord)) {
+        return bodyRecord;
       }
     }
 
     // Check query params (GET requests)
-    if (request.query && typeof request.query === 'object') {
+    if (typeof request.query === 'object') {
       if (this.hasMongoOperators(request.query)) {
         return request.query;
       }
@@ -207,7 +215,7 @@ export class QueryComplexityGuard implements CanActivate {
    * Check if object contains MongoDB query operators
    */
   private hasMongoOperators(obj: unknown): boolean {
-    if (!obj || typeof obj !== 'object') {
+    if (obj === null || obj === undefined || typeof obj !== 'object') {
       return false;
     }
 
@@ -285,7 +293,7 @@ export class QueryComplexityGuard implements CanActivate {
    * Recursively traverse query to calculate complexity metrics
    */
   private traverseQuery(obj: unknown, depth: number, stats: QueryComplexityStats): void {
-    if (!obj || typeof obj !== 'object') {
+    if (obj === null || obj === undefined || typeof obj !== 'object') {
       return;
     }
 
@@ -335,7 +343,7 @@ export class QueryComplexityGuard implements CanActivate {
       }
 
       // Recurse for nested objects
-      if (value && typeof value === 'object') {
+      if (value !== null && value !== undefined && typeof value === 'object') {
         this.traverseQuery(value, depth, stats);
       }
     }

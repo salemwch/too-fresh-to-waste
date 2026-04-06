@@ -11,7 +11,7 @@ import {
 } from '@foodwaste/shared';
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import zxcvbn = require('zxcvbn');
+import zxcvbn from 'zxcvbn';
 
 import {
   IPasswordPolicyService,
@@ -151,9 +151,7 @@ export class PasswordPolicyService implements IPasswordPolicyService {
         feedback.push(strengthAnalysis.feedback.warning);
       }
 
-      if (strengthAnalysis.feedback.suggestions) {
-        suggestions.push(...strengthAnalysis.feedback.suggestions);
-      }
+      suggestions.push(...(strengthAnalysis.feedback.suggestions ?? []));
 
       const result: PasswordStrengthResult = {
         score: strengthAnalysis.score,
@@ -324,9 +322,9 @@ export class PasswordPolicyService implements IPasswordPolicyService {
   getPasswordPolicy(): PasswordPolicyConfig {
     return {
       minLength:
-        this.configService.get<number>('PASSWORD_MIN_LENGTH') || this.defaultPolicy.minLength,
+        this.configService.get<number>('PASSWORD_MIN_LENGTH') ?? this.defaultPolicy.minLength,
       maxLength:
-        this.configService.get<number>('PASSWORD_MAX_LENGTH') || this.defaultPolicy.maxLength,
+        this.configService.get<number>('PASSWORD_MAX_LENGTH') ?? this.defaultPolicy.maxLength,
       requireUppercase: this.parseBoolean(
         'PASSWORD_REQUIRE_UPPERCASE',
         this.defaultPolicy.requireUppercase,
@@ -343,7 +341,7 @@ export class PasswordPolicyService implements IPasswordPolicyService {
         'PASSWORD_REQUIRE_SPECIAL_CHARS',
         this.defaultPolicy.requireSpecialChars,
       ),
-      minScore: this.configService.get<number>('PASSWORD_MIN_SCORE') || this.defaultPolicy.minScore,
+      minScore: this.configService.get<number>('PASSWORD_MIN_SCORE') ?? this.defaultPolicy.minScore,
       preventCommon: this.parseBoolean('PASSWORD_PREVENT_COMMON', this.defaultPolicy.preventCommon),
       preventPersonalInfo: this.parseBoolean(
         'PASSWORD_PREVENT_PERSONAL_INFO',
@@ -354,10 +352,10 @@ export class PasswordPolicyService implements IPasswordPolicyService {
         this.defaultPolicy.preventRepeating,
       ),
       maxRepeatingChars:
-        this.configService.get<number>('PASSWORD_MAX_REPEATING_CHARS') ||
+        this.configService.get<number>('PASSWORD_MAX_REPEATING_CHARS') ??
         this.defaultPolicy.maxRepeatingChars,
       specialCharacters:
-        this.configService.get<string>('PASSWORD_SPECIAL_CHARACTERS') ||
+        this.configService.get<string>('PASSWORD_SPECIAL_CHARACTERS') ??
         this.defaultPolicy.specialCharacters,
     };
   }

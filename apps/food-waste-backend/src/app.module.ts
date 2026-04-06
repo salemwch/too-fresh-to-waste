@@ -35,8 +35,6 @@ import { PaymentModule } from './payments/payments.module';
 import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
 import { RedisModule } from './redis/redis.module';
 import { ReviewsModule } from './reviwes/reviwes.module';
-
-// New enhanced modules
 import { SearchModule } from './search/search.module';
 import { UsersModule } from './users/user.module';
 import { WebSocketModule } from './websocket/websocket.module';
@@ -76,7 +74,7 @@ import { WebSocketModule } from './websocket/websocket.module';
     BullModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
         redis: {
-          host: configService.get('REDIS_HOST') || 'localhost',
+          host: configService.get('REDIS_HOST') ?? 'localhost',
           port: parseInt(configService.get('REDIS_PORT', '6379'), 10) || 6379,
           password: configService.get('REDIS_PASSWORD'),
           username: configService.get('REDIS_USERNAME'),
@@ -95,7 +93,7 @@ import { WebSocketModule } from './websocket/websocket.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('DATABASE_URL') || 'mongodb://localhost:27017/foodwaste',
+        uri: configService.get<string>('DATABASE_URL') ?? 'mongodb://localhost:27017/foodwaste',
         // Enterprise-grade connection pooling configuration
         // Ref: https://www.mongodb.com/docs/drivers/node/current/fundamentals/connection/connection-options/
         maxPoolSize: parseInt(configService.get('MONGO_MAX_POOL_SIZE', '100'), 10) || 100, // Max connections (default: 100)

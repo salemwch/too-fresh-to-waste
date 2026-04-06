@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware, BadRequestException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import rateLimit from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 
 @Injectable()
 export class PaymentSecurityMiddleware implements NestMiddleware {
@@ -18,7 +18,7 @@ export class PaymentSecurityMiddleware implements NestMiddleware {
     }
 
     // Validate request size for payment data
-    if (req.path.includes('/payments') && req.body) {
+    if (req.path.includes('/payments') && req.body !== null && req.body !== undefined) {
       const bodySize = JSON.stringify(req.body).length;
       if (bodySize > 50000) {
         // 50KB limit

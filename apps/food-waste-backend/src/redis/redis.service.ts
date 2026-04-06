@@ -20,6 +20,14 @@ export class RedisService implements OnModuleInit {
 
   constructor(private readonly configService: ConfigService) {}
 
+  private getConnectedClientOrThrow(): ReturnType<typeof createClient> {
+    if (!this.client || !this.client.isOpen) {
+      throw new Error('Redis client is not connected');
+    }
+
+    return this.client;
+  }
+
   async onModuleInit() {
     // Initialize connection on module startup
     await this.connect();
@@ -37,12 +45,12 @@ export class RedisService implements OnModuleInit {
     // If already connecting, wait for that connection
     if (this.isConnecting && this.connectionPromise) {
       await this.connectionPromise;
-      return this.client!;
+      return this.getConnectedClientOrThrow();
     }
 
     // Otherwise, initiate new connection
     await this.connect();
-    return this.client!;
+    return this.getConnectedClientOrThrow();
   }
 
   /**
@@ -77,8 +85,8 @@ export class RedisService implements OnModuleInit {
   private async establishConnection(): Promise<void> {
     const redisConfig = {
       host: this.configService.get<string>('REDIS_HOST'),
-      port: parseInt(this.configService.get<string>('REDIS_PORT') || '6379'),
-      tlsPort: parseInt(this.configService.get<string>('REDIS_TLS_PORT') || '0'),
+      port: parseInt(this.configService.get<string>('REDIS_PORT') ?? '6379'),
+      tlsPort: parseInt(this.configService.get<string>('REDIS_TLS_PORT') ?? '0'),
       password: this.configService.get<string>('REDIS_PASSWORD'),
       username: this.configService.get<string>('REDIS_USERNAME', 'default'),
       tls: this.configService.get<string>('REDIS_TLS') === 'true',
@@ -197,7 +205,7 @@ export class RedisService implements OnModuleInit {
    * Check if Redis is connected
    */
   isConnected(): boolean {
-    return !!this.client?.isOpen;
+    return this.client?.isOpen === true;
   }
 
   /**

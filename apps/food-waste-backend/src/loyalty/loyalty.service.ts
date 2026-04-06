@@ -10,6 +10,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
 import { DonationsService } from '../donations/donations.service';
+import { DEFAULT_CURRENCY } from '@foodwaste/shared';
+
 import { DONATION_CONSTANTS } from '../donations/interfaces/donation.interface';
 import { Order, OrderDocument, OrderStatus } from '../orders/schemas/order.schema';
 
@@ -26,6 +28,25 @@ import {
   PointTransaction,
   LoyaltyAccount,
 } from './schemas/loyalty-account.schema';
+
+interface TotalBagsResult {
+  totalBags: number;
+}
+
+interface LeaderboardUserInfo {
+  firstName?: string;
+  lastName?: string;
+  profileImage?: string | null;
+  avatar?: string | null;
+}
+
+interface LeaderboardAggregateDoc {
+  userId: Types.ObjectId;
+  totalPoints?: number;
+  currentTier?: string;
+  badges?: Array<{ type: string; name: string }>;
+  userInfo?: LeaderboardUserInfo;
+}
 
 // ---------------------------------------------------------------------------
 // Leaderboard response shape (returned by getLeaderboard)
@@ -166,8 +187,8 @@ export class LoyaltyService {
       currentTier: account.currentTier,
       badgeCount: account.badges.length,
       referralCount: account.referralCount,
-      joinedAt: account.joinedAt,
-      lastActivity: account.lastActivity,
+      joinedAt: account.joinedAt.toISOString(),
+      lastActivity: account.lastActivity?.toISOString(),
     };
   }
 
@@ -177,7 +198,7 @@ export class LoyaltyService {
    * New orders increment it via addPoints() (line ~139).
    */
   private async backfillTotalBagsSaved(userId: string): Promise<number> {
-    const result = await this.orderModel.aggregate([
+    const result = await this.orderModel.aggregate<TotalBagsResult>([
       {
         $match: {
           customerId: new Types.ObjectId(userId),
@@ -188,7 +209,7 @@ export class LoyaltyService {
       { $group: { _id: null, totalBags: { $sum: '$items.quantity' } } },
     ]);
 
-    const totalBags = result[0]?.totalBags || 0;
+    const totalBags = result[0]?.totalBags ?? 0;
 
     if (totalBags > 0) {
       await this.loyaltyModel.updateOne(
@@ -228,9 +249,10 @@ export class LoyaltyService {
       const currentTier = this.getCurrentTier(account.totalPoints);
       // Gamification points (login streak, purchase streak, referrals, reviews) bypass the
       // tier multiplier so the advertised flat amounts are always awarded accurately.
-      const multipliedPoints = addPointsDto.bypassMultiplier
-        ? addPointsDto.amount
-        : Math.floor(addPointsDto.amount * currentTier.multiplier);
+      const multipliedPoints =
+        addPointsDto.bypassMultiplier === true
+          ? addPointsDto.amount
+          : Math.floor(addPointsDto.amount * currentTier.multiplier);
 
       const pointTransaction: PointTransaction = {
         amount: multipliedPoints,
@@ -239,12 +261,20 @@ export class LoyaltyService {
         orderId: addPointsDto.orderId ? new Types.ObjectId(addPointsDto.orderId) : undefined,
         offerId: addPointsDto.offerId ? new Types.ObjectId(addPointsDto.offerId) : undefined,
         createdAt: new Date(),
-        expiresAt: addPointsDto.expiresAt || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year default
+        expiresAt: addPointsDto.expiresAt
+          ? new Date(addPointsDto.expiresAt)
+          : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year default
       };
 
       // Only increment order/bag counters for actual order completions (identified by orderId)
       const isOrderCompletion = !!addPointsDto.orderId;
-      const bagCount = addPointsDto.bagCount || 1;
+      const bagCount = addPointsDto.bagCount ?? 1;
+      const orderIdForLog =
+        addPointsDto.orderId !== null &&
+        addPointsDto.orderId !== undefined &&
+        addPointsDto.orderId.length > 0
+          ? addPointsDto.orderId
+          : 'N/A';
 
       const updatedAccount = await this.loyaltyModel.findOneAndUpdate(
         { userId: new Types.ObjectId(userId) },
@@ -273,7 +303,7 @@ export class LoyaltyService {
       await this.checkAndAwardBadges(updatedAccount);
 
       this.logger.log(
-        `Added ${multipliedPoints} points to user: ${userId} for order: ${addPointsDto.orderId || 'N/A'}`,
+        `Added ${multipliedPoints} points to user: ${userId} for order: ${orderIdForLog}`,
       );
       return updatedAccount;
     } catch (error) {
@@ -307,7 +337,12 @@ export class LoyaltyService {
       const pointTransaction: PointTransaction = {
         amount: -donateDto.amount,
         type: 'donated',
-        reason: donateDto.message || 'Donated to community food relief',
+        reason:
+          donateDto.message !== null &&
+          donateDto.message !== undefined &&
+          donateDto.message.trim().length > 0
+            ? donateDto.message
+            : 'Donated to community food relief',
         createdAt: new Date(),
       };
 
@@ -346,7 +381,7 @@ export class LoyaltyService {
         success: true,
         pointsDonated: donateDto.amount,
         donationAmount: parseFloat(donationAmount.toFixed(2)),
-        currency: DONATION_CONSTANTS.DEFAULT_CURRENCY,
+        currency: DEFAULT_CURRENCY,
         estimatedMeals,
         remainingPoints: updatedAccount.availablePoints,
         message: `Thank you! Your ${donateDto.amount} points have been converted to ${donationAmount.toFixed(2)} TND and donated to help feed those in need.`,
@@ -372,10 +407,15 @@ export class LoyaltyService {
    * Calculate current tier based on total points
    */
   private getCurrentTier(totalPoints: number): (typeof this.tiers)[number] {
+    const defaultTier = this.tiers[0];
+    if (!defaultTier) {
+      throw new BadRequestException('No loyalty tiers configured');
+    }
+
     return (
       this.tiers
         .filter((tier) => totalPoints >= tier.minPoints)
-        .sort((a, b) => b.minPoints - a.minPoints)[0] ?? this.tiers[0]!
+        .sort((a, b) => b.minPoints - a.minPoints)[0] ?? defaultTier
     );
   }
 
@@ -471,7 +511,7 @@ export class LoyaltyService {
     const userProjection = { firstName: 1, lastName: 1, profileImage: 1, avatar: 1 };
 
     // ── Top-N entries with offset pagination ──────────────────────────────
-    const raw = await this.loyaltyModel.aggregate([
+    const raw = await this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
       { $match: { isActive: true } },
       { $sort: { totalPoints: -1, _id: 1 } },
       { $skip: offset },
@@ -497,7 +537,7 @@ export class LoyaltyService {
     let currentUserEntry: LeaderboardEntry | null = null;
 
     if (!isCurrentUserInTop) {
-      const ownRaw = await this.loyaltyModel.aggregate([
+      const ownRaw = await this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
         { $match: { userId: currentUserObjectId } },
         {
           $lookup: {
@@ -511,13 +551,14 @@ export class LoyaltyService {
         { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
       ]);
 
-      if (ownRaw.length > 0) {
+      const ownEntry = ownRaw[0];
+      if (ownEntry) {
         const aboveCount = await this.loyaltyModel.countDocuments({
           isActive: true,
-          totalPoints: { $gt: ownRaw[0].totalPoints },
+          totalPoints: { $gt: ownEntry.totalPoints },
         });
         currentUserEntry = this.mapToLeaderboardEntry(
-          ownRaw[0],
+          ownEntry,
           aboveCount + 1,
           currentUserObjectId,
         );
@@ -531,30 +572,25 @@ export class LoyaltyService {
 
   /** Maps a raw aggregation document to a typed LeaderboardEntry */
   private mapToLeaderboardEntry(
-    doc: Record<string, unknown>,
+    doc: LeaderboardAggregateDoc,
     rank: number,
     currentUserObjectId: Types.ObjectId,
   ): LeaderboardEntry {
-    const user = (doc['userInfo'] ?? {}) as {
-      firstName?: string;
-      lastName?: string;
-      profileImage?: string | null;
-      avatar?: string | null;
-    };
-    const badges = (doc['badges'] ?? []) as Array<{ type: string; name: string }>;
+    const user = doc.userInfo ?? {};
+    const badges = doc.badges ?? [];
     const mostRecentBadge = badges.length > 0 ? badges[badges.length - 1] : null;
 
     return {
       rank,
-      userId: (doc['userId'] as Types.ObjectId).toString(),
+      userId: doc.userId.toString(),
       firstName: user.firstName ?? 'Unknown',
       lastName: user.lastName ?? '',
-      profileImage: (user.profileImage as string | null) ?? (user.avatar as string | null) ?? null,
-      currentBadge: (mostRecentBadge?.name as string | null) ?? null,
-      currentBadgeType: (mostRecentBadge?.type as string | null) ?? null,
-      currentTier: (doc['currentTier'] as string | undefined) ?? 'Bronze',
-      totalPoints: (doc['totalPoints'] as number | undefined) ?? 0,
-      isCurrentUser: (doc['userId'] as Types.ObjectId).equals(currentUserObjectId),
+      profileImage: user.profileImage ?? user.avatar ?? null,
+      currentBadge: mostRecentBadge?.name ?? null,
+      currentBadgeType: mostRecentBadge?.type ?? null,
+      currentTier: doc.currentTier ?? 'Bronze',
+      totalPoints: doc.totalPoints ?? 0,
+      isCurrentUser: doc.userId.equals(currentUserObjectId),
     };
   }
 }

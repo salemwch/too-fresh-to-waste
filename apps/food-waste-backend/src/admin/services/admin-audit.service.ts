@@ -50,6 +50,22 @@ interface DailyActivityStats {
   count: number;
 }
 
+interface AuditStatisticsAggregationResult {
+  totalActions: Array<{ total: number }>;
+  actionsByType: Array<{ _id: AdminAction; count: number }>;
+  activityByAdmin: AdminActivityStats[];
+  targetsByType: Array<{ _id: TargetType; count: number }>;
+  dailyActivity: DailyActivityStats[];
+}
+
+const EMPTY_AUDIT_STATISTICS_AGGREGATION: AuditStatisticsAggregationResult = {
+  totalActions: [],
+  actionsByType: [],
+  activityByAdmin: [],
+  targetsByType: [],
+  dailyActivity: [],
+};
+
 export interface AuditStatisticsResult {
   totalActions: number;
   actionsByType: Record<AdminAction, number>;
@@ -92,9 +108,7 @@ interface EstablishmentAuditActionParams extends BaseAuditActionParams {
 }
 
 // System-specific audit action parameters (no additional target required)
-interface SystemAuditActionParams extends BaseAuditActionParams {
-  // No additional properties needed for system actions
-}
+type SystemAuditActionParams = BaseAuditActionParams;
 
 export interface CreateAuditLogData {
   adminId: string;
@@ -361,14 +375,16 @@ export class AdminAuditService {
         },
       ];
 
-      const [result] = await this.auditLogModel.aggregate(pipeline);
+      const [result] =
+        await this.auditLogModel.aggregate<AuditStatisticsAggregationResult>(pipeline);
+      const statistics = result ?? EMPTY_AUDIT_STATISTICS_AGGREGATION;
 
       return {
-        totalActions: result.totalActions[0]?.total || 0,
-        actionsByType: this.formatGroupedResults<AdminAction>(result.actionsByType),
-        activityByAdmin: result.activityByAdmin,
-        targetsByType: this.formatGroupedResults<TargetType>(result.targetsByType),
-        dailyActivity: result.dailyActivity,
+        totalActions: statistics.totalActions[0]?.total ?? 0,
+        actionsByType: this.formatGroupedResults<AdminAction>(statistics.actionsByType),
+        activityByAdmin: statistics.activityByAdmin,
+        targetsByType: this.formatGroupedResults<TargetType>(statistics.targetsByType),
+        dailyActivity: statistics.dailyActivity,
         period: {
           days,
           startDate,
@@ -427,7 +443,7 @@ export class AdminAuditService {
     const sensitiveFields = ['password', 'token', 'secret', 'key', 'creditCard'];
 
     const sanitizeObject = (obj: SanitizableValue): AuditableValue => {
-      if (!obj || typeof obj !== 'object') {
+      if (obj === null || obj === undefined || typeof obj !== 'object') {
         return obj as AuditableValue;
       }
 
@@ -523,8 +539,8 @@ export class AdminAuditService {
           log.adminEmail,
           log.action,
           log.targetType,
-          log.targetId || '',
-          (log.reason || '').replace(/,/g, ';'), // Escape commas
+          log.targetId ?? '',
+          (log.reason ?? '').replace(/,/g, ';'), // Escape commas
           log.ipAddress,
         ].join(','),
       ),

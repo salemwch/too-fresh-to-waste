@@ -40,6 +40,6 @@ import { Order, OrderSchema } from './schemas/order.schema';
     PickupThrottlerGuard,
     AdminUserEventsListener,
   ],
-  exports: [OrdersService, MongooseModule.forFeature([{ name: Order.name, schema: OrderSchema }])],
+  exports: [OrdersService, MongooseModule],
 })
 export class OrdersModule {}

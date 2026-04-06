@@ -153,7 +153,7 @@ export class SanitizationUtil {
     }
 
     try {
-      const sanitized = sanitizeHtml(input, options || this.strictHtmlOptions);
+      const sanitized = sanitizeHtml(input, options ?? this.strictHtmlOptions);
 
       // Log if content was modified significantly
       if (input.length - sanitized.length > 100) {
@@ -221,7 +221,7 @@ export class SanitizationUtil {
    * @returns Sanitized notification payload
    */
   sanitizeNotificationPayload(payload: unknown): NotificationPayload {
-    if (!payload || typeof payload !== 'object') {
+    if (payload === null || payload === undefined || typeof payload !== 'object') {
       return {
         title: '',
         body: '',
@@ -360,7 +360,7 @@ export class SanitizationUtil {
    * @returns Sanitized variables
    */
   sanitizeTemplateVariables(variables: unknown): TemplateVariables {
-    if (!variables || typeof variables !== 'object') {
+    if (variables === null || variables === undefined || typeof variables !== 'object') {
       return {};
     }
 

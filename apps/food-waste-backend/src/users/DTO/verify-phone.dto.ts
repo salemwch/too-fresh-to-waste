@@ -2,9 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsString, Length, Matches } from 'class-validator';
 
+import type { VerifyPhoneInput } from '@foodwaste/shared';
+
 import { IsValidPhoneNumber } from '../../common/validators/is-valid-phone-number.validator';
 
-export class VerifyPhoneDto {
+export class VerifyPhoneDto implements VerifyPhoneInput {
   /**
    * Phone number being verified
    * Must match the phone number that received the verification code
@@ -15,7 +17,7 @@ export class VerifyPhoneDto {
     required: true,
   })
   @IsString({ message: 'Phone number must be a string' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @IsValidPhoneNumber({
     defaultCountry: 'TN',
     allowNationalFormat: true,
@@ -35,7 +37,7 @@ export class VerifyPhoneDto {
     required: true,
   })
   @IsString({ message: 'Verification code must be a string' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @Length(6, 6, { message: 'Verification code must be exactly 6 digits' })
   @Matches(/^\d{6}$/, { message: 'Verification code must contain only digits' })
   code!: string;

@@ -62,7 +62,7 @@ export class GeolocationService {
       return DistanceCalculator.calculateDistance(
         dto.origin,
         dto.destination,
-        dto.unit || DistanceUnit.KILOMETERS,
+        dto.unit ?? DistanceUnit.KILOMETERS,
       );
     } catch (error) {
       this.logger.error('Failed to calculate distance:', error);
@@ -210,7 +210,7 @@ export class GeolocationService {
    */
   calculateCenter(coordinates: GeoCoordinate[]): GeoCoordinate {
     try {
-      if (!coordinates || coordinates.length === 0) {
+      if (coordinates.length === 0) {
         throw new BadRequestException('Coordinates array cannot be empty');
       }
 
@@ -295,7 +295,7 @@ export class GeolocationService {
    */
   async getCoordinatesFromAddress(address: AddressInfo): Promise<GeoCoordinate | null> {
     const query =
-      address.formattedAddress ||
+      address.formattedAddress ??
       [address.street, address.city, address.country].filter(Boolean).join(', ');
 
     if (!query) {
@@ -305,8 +305,9 @@ export class GeolocationService {
 
     try {
       const results = await this.geoapifyService.geocodeAddress(query);
-      if (results.length > 0) {
-        return results[0]!.coordinates;
+      const firstResult = results[0];
+      if (firstResult) {
+        return firstResult.coordinates;
       }
       return null;
     } catch (error) {

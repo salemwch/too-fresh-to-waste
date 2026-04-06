@@ -7,6 +7,7 @@ The Favorites module provides a comprehensive system for users to save, organize
 **Module Location:** `apps/food-waste-backend/src/favorites/`
 
 **Stack:**
+
 - NestJS Controllers & Services
 - MongoDB with Mongoose ODM
 - JWT Authentication (required)
@@ -18,6 +19,7 @@ The Favorites module provides a comprehensive system for users to save, organize
 ## Features
 
 ### Core Functionality
+
 - ✅ **Add/Remove Favorites** - Save establishments, offers, or categories
 - ✅ **Favorite Lists** - Create custom collections with metadata (name, description, icon, cover image)
 - ✅ **Personalized Preferences** - Configure notifications, preferred times, max distance per favorite
@@ -26,6 +28,7 @@ The Favorites module provides a comprehensive system for users to save, organize
 - ✅ **Export Data** - Export all favorites and lists for portability
 
 ### Advanced Features
+
 - 🤖 **Smart Recommendations** - Hybrid algorithm combining content-based + collaborative filtering
 - 📈 **Trend Analysis** - Track popular items with growth rate calculation
 - 🔔 **Notification Preferences** - Granular control (email, push, preferred times/days)
@@ -77,36 +80,36 @@ All endpoints require JWT authentication (`@UseGuards(JwtAuthGuard)`).
 
 #### Individual Favorites
 
-| Method | Endpoint | Description | Status Codes |
-|--------|----------|-------------|--------------|
-| `POST` | `/` | Add item to favorites | 201, 409 |
-| `GET` | `/` | Get user favorites (paginated) | 200 |
-| `PUT` | `/:id` | Update favorite preferences | 200, 404 |
-| `DELETE` | `/:id` | Remove favorite by ID | 204, 404 |
-| `DELETE` | `/item/:type/:itemId` | Remove favorite by item | 204, 404 |
-| `GET` | `/check/:type/:itemId` | Check if item is favorited | 200 |
-| `GET` | `/stats` | Get favorites statistics | 200 |
-| `POST` | `/bulk/add` | Bulk add favorites | 201 |
-| `GET` | `/export` | Export all favorites data | 200 |
+| Method   | Endpoint               | Description                    | Status Codes |
+| -------- | ---------------------- | ------------------------------ | ------------ |
+| `POST`   | `/`                    | Add item to favorites          | 201, 409     |
+| `GET`    | `/`                    | Get user favorites (paginated) | 200          |
+| `PUT`    | `/:id`                 | Update favorite preferences    | 200, 404     |
+| `DELETE` | `/:id`                 | Remove favorite by ID          | 204, 404     |
+| `DELETE` | `/item/:type/:itemId`  | Remove favorite by item        | 204, 404     |
+| `GET`    | `/check/:type/:itemId` | Check if item is favorited     | 200          |
+| `GET`    | `/stats`               | Get favorites statistics       | 200          |
+| `POST`   | `/bulk/add`            | Bulk add favorites             | 201          |
+| `GET`    | `/export`              | Export all favorites data      | 200          |
 
 #### Favorite Lists
 
-| Method | Endpoint | Description | Status Codes |
-|--------|----------|-------------|--------------|
-| `POST` | `/lists` | Create favorite list | 201, 409 |
-| `GET` | `/lists` | Get user lists | 200 |
-| `GET` | `/lists/:id` | Get list by ID | 200, 404 |
-| `PUT` | `/lists/:id` | Update list | 200, 404 |
-| `POST` | `/lists/:id/items` | Add item to list | 201, 404, 409 |
-| `DELETE` | `/lists/:id/items/:itemId/:type` | Remove item from list | 204, 404 |
-| `POST` | `/lists/:id/share` | Share list with users | 200, 404 |
+| Method   | Endpoint                         | Description           | Status Codes  |
+| -------- | -------------------------------- | --------------------- | ------------- |
+| `POST`   | `/lists`                         | Create favorite list  | 201, 409      |
+| `GET`    | `/lists`                         | Get user lists        | 200           |
+| `GET`    | `/lists/:id`                     | Get list by ID        | 200, 404      |
+| `PUT`    | `/lists/:id`                     | Update list           | 200, 404      |
+| `POST`   | `/lists/:id/items`               | Add item to list      | 201, 404, 409 |
+| `DELETE` | `/lists/:id/items/:itemId/:type` | Remove item from list | 204, 404      |
+| `POST`   | `/lists/:id/share`               | Share list with users | 200, 404      |
 
 #### Intelligence Features
 
-| Method | Endpoint | Description | Query Params |
-|--------|----------|-------------|--------------|
-| `GET` | `/recommendations/based-on-favorites` | Get personalized recommendations | `limit`, `type`, `category`, `maxDistance`, `minConfidence` |
-| `GET` | `/trends/popular` | Get trending favorites | `period`, `limit`, `type`, `category`, `minFavoriteCount` |
+| Method | Endpoint                              | Description                      | Query Params                                                |
+| ------ | ------------------------------------- | -------------------------------- | ----------------------------------------------------------- |
+| `GET`  | `/recommendations/based-on-favorites` | Get personalized recommendations | `limit`, `type`, `category`, `maxDistance`, `minConfidence` |
+| `GET`  | `/trends/popular`                     | Get trending favorites           | `period`, `limit`, `type`, `category`, `minFavoriteCount`   |
 
 ---
 
@@ -142,6 +145,7 @@ All endpoints require JWT authentication (`@UseGuards(JwtAuthGuard)`).
 ```
 
 **Indexes:**
+
 - `{ userId: 1, type: 1, itemId: 1 }` - Unique compound index
 - `{ userId: 1, isActive: 1 }`
 - `{ userId: 1, type: 1 }`
@@ -178,6 +182,7 @@ ListItem {
 ```
 
 **Indexes:**
+
 - `{ userId: 1, name: 1 }` - Unique per user
 - `{ userId: 1, isActive: 1 }`
 - `{ visibility: 1 }`
@@ -191,6 +196,7 @@ ListItem {
 ### Key DTOs
 
 #### AddFavoriteDto
+
 ```typescript
 {
   type: FavoriteType,           // Required
@@ -204,6 +210,7 @@ ListItem {
 ```
 
 #### FavoritesFilterDto
+
 ```typescript
 {
   type?: FavoriteType,
@@ -216,6 +223,7 @@ ListItem {
 ```
 
 #### CreateFavoriteListDto
+
 ```typescript
 {
   name: string,                 // Required
@@ -228,6 +236,7 @@ ListItem {
 ```
 
 #### RecommendationFiltersDto
+
 ```typescript
 {
   limit?: number,               // Default: 10, Range: 1-50
@@ -245,6 +254,7 @@ ListItem {
 ### Core Methods
 
 #### `addFavorite(userId, addFavoriteDto)`
+
 - Checks for existing favorite (unique constraint)
 - Reactivates soft-deleted favorites
 - Creates new favorite with default preferences
@@ -252,18 +262,21 @@ ListItem {
 - **Returns:** `FavoriteDocument`
 
 #### `getUserFavorites(userId, filters)`
+
 - Paginated results with filtering
 - Supports sorting and type filtering
 - Populates itemId references
 - **Returns:** `{ favorites, total, page, totalPages }`
 
 #### `getFavoriteStats(userId)`
+
 - Aggregates statistics using MongoDB pipelines
 - Groups by favorite type
 - Calculates recent activity (last 7 days)
 - **Returns:** `FavoriteStatsDto`
 
 #### `updateInteractionCount(favoriteId)`
+
 - Private method, called automatically
 - Tracks user engagement for recommendation algorithm
 - Updates `lastInteraction` timestamp
@@ -271,17 +284,20 @@ ListItem {
 ### List Management Methods
 
 #### `createFavoriteList(userId, createDto)`
+
 - Enforces unique list names per user
 - Supports custom icons and cover images
 - **Returns:** `FavoriteListDocument`
 
 #### `getUserFavoriteLists(userId, page, limit)`
+
 - ✅ **ENTERPRISE FIX:** Pagination to prevent loading thousands of lists
 - DoS protection: Max 100 items per page
 - Uses `.lean()` for 50% memory reduction
 - **Returns:** `{ lists, total }`
 
 #### `shareList(userId, listId, shareDto)`
+
 - Adds users to `sharedWith` array
 - Increments share count
 - Changes visibility to `SHARED`
@@ -301,6 +317,7 @@ The system uses a **weighted hybrid** of two algorithms:
 ### `getRecommendationsBasedOnFavorites(userId, filters)`
 
 **Step 1: Analyze User Preferences**
+
 ```typescript
 - Analyze most recent 100 favorites (prevents loading 10K+ favorites)
 - Extract: favorite types, common tags, category preferences, time patterns
@@ -308,6 +325,7 @@ The system uses a **weighted hybrid** of two algorithms:
 ```
 
 **Step 2: Content-Based Recommendations**
+
 ```typescript
 - Find items with similar tags to user's favorites
 - Score = (tagSimilarity × 0.6) + (popularityScore × 0.3) + (interactionScore × 0.1)
@@ -316,6 +334,7 @@ The system uses a **weighted hybrid** of two algorithms:
 ```
 
 **Step 3: Collaborative Filtering**
+
 ```typescript
 - Find users with ≥2 common favorites
 - Get items favorited by similar users
@@ -324,6 +343,7 @@ The system uses a **weighted hybrid** of two algorithms:
 ```
 
 **Step 4: Merge and Rank**
+
 ```typescript
 - Items from both algorithms: boost score by 1.2× (high confidence)
 - Final scores: content × 0.6, collaborative × 0.8
@@ -332,6 +352,7 @@ The system uses a **weighted hybrid** of two algorithms:
 ```
 
 **Response:**
+
 ```typescript
 {
   recommendations: RecommendationDto[],
@@ -350,6 +371,7 @@ The system uses a **weighted hybrid** of two algorithms:
 ### `getPopularTrends(filters)`
 
 **Algorithm:**
+
 1. Aggregate favorites for current period (day/week/month/quarter/year)
 2. Aggregate favorites for previous period
 3. Calculate growth rate: `((current - previous) / previous) × 100`
@@ -360,11 +382,13 @@ The system uses a **weighted hybrid** of two algorithms:
 5. Sort by trend score descending
 
 **Growth Indicators:**
+
 - `growthRate > 0` - Gaining popularity
 - `growthRate < 0` - Declining popularity
 - `growthRate = 100` - New trending item
 
 **Response:**
+
 ```typescript
 {
   trends: TrendItemDto[],
@@ -407,22 +431,26 @@ The system uses a **weighted hybrid** of two algorithms:
 ## Security
 
 ### Authentication & Authorization
+
 - All endpoints protected by `JwtAuthGuard`
 - User ID extracted from JWT token via `@GetUser('id')`
 - Resource ownership validated (users can only access their own favorites)
 
 ### Input Validation
+
 - All DTOs use `class-validator` decorators
 - MongoDB ID validation prevents injection
 - Enum validation for type fields
 - Range validation for pagination and scores
 
 ### Access Control for Lists
+
 - **Private**: Only owner can view
 - **Shared**: Owner + users in `sharedWith` array
 - **Public**: Anyone can view (controlled by visibility)
 
 ### Soft Deletes
+
 - Uses `isActive` flag instead of hard deletes
 - Preserves data for analytics
 - Allows reactivation of favorites
@@ -536,6 +564,7 @@ pnpm test favorites.service
 ```
 
 **Test Coverage:**
+
 - ✅ Add favorite with duplicate handling
 - ✅ Remove favorite (soft delete)
 - ✅ Update favorite preferences
@@ -553,6 +582,7 @@ pnpm test favorites.controller
 ```
 
 **Test Coverage:**
+
 - ✅ JWT authentication enforcement
 - ✅ DTO validation
 - ✅ HTTP status codes
@@ -566,6 +596,7 @@ pnpm test:e2e favorites
 ```
 
 **Test Scenarios:**
+
 - Full user journey: register → login → add favorites → get recommendations
 - List creation and sharing workflow
 - Bulk operations
@@ -576,11 +607,13 @@ pnpm test:e2e favorites
 ## Known Issues & Future Enhancements
 
 ### Known Issues
+
 - No rate limiting on recommendation endpoint (can be CPU-intensive)
 - Trend analysis doesn't account for seasonal patterns
 - Collaborative filtering requires minimum user base to be effective
 
 ### Future Enhancements
+
 - [ ] Real-time notifications when favorited items have new offers
 - [ ] Machine learning model for recommendation refinement
 - [ ] Geographic clustering for location-based recommendations
@@ -603,6 +636,7 @@ pnpm test:e2e favorites
 ## API Documentation
 
 Interactive Swagger documentation available at:
+
 ```
 http://localhost:3000/api/v1/api-docs#/Favorites
 ```
@@ -612,6 +646,7 @@ http://localhost:3000/api/v1/api-docs#/Favorites
 ## Monitoring & Logs
 
 ### Key Log Events
+
 - `Favorite added: {type} {itemId} for user {userId}`
 - `Favorite removed: {favoriteId} for user {userId}`
 - `List shared: {listId} with {count} users`
@@ -619,6 +654,7 @@ http://localhost:3000/api/v1/api-docs#/Favorites
 - `Generated {count} trends for period: {period}`
 
 ### Error Tracking
+
 All errors logged with stack traces via `AppLoggerService` and Sentry integration.
 
 ---
@@ -626,6 +662,7 @@ All errors logged with stack traces via `AppLoggerService` and Sentry integratio
 ## Contact & Support
 
 For questions or issues related to the Favorites module:
+
 - Review Swagger docs: `/api/v1/api-docs`
 - Check MongoDB indexes: `pnpm verify:indexes`
 - Run test suite: `pnpm test favorites`

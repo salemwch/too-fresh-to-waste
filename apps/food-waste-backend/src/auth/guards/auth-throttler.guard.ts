@@ -36,7 +36,7 @@ export class AuthThrottlerGuard extends ThrottlerGuard {
    * Combines IP with user identifier for precise tracking
    */
   protected override generateKey(context: ExecutionContext, suffix: string): string {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const ip = this.extractIp(request);
     const userIdentifier = this.extractUserIdentifier(request);
 
@@ -62,7 +62,7 @@ export class AuthThrottlerGuard extends ThrottlerGuard {
    * Custom throttle exception with helpful message
    */
   protected override async throwThrottlingException(context: ExecutionContext): Promise<void> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const ip = this.extractIp(request);
     const endpoint = request.url;
 
@@ -81,9 +81,9 @@ export class AuthThrottlerGuard extends ThrottlerGuard {
    */
   private extractIp(request: Request): string {
     return (
-      request.ip ||
-      (request.headers?.['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ||
-      request.connection?.remoteAddress ||
+      request.ip ??
+      (request.headers?.['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ??
+      request.connection?.remoteAddress ??
       'unknown'
     );
   }
@@ -93,20 +93,27 @@ export class AuthThrottlerGuard extends ThrottlerGuard {
    * Supports: email (login/register) and refresh token (refresh endpoint)
    */
   private extractUserIdentifier(request: Request): string | null {
+    const requestBody = request.body as Record<string, unknown> | undefined;
+    const email = requestBody?.['email'];
+
     // Email for login/register endpoints
-    if (request.body?.email) {
-      return request.body.email.toLowerCase();
+    if (typeof email === 'string' && email.length > 0) {
+      return email.toLowerCase();
     }
 
     // Extract user ID from refresh token (without full verification)
     // This is just for rate limiting, actual validation happens in the endpoint
-    if (request.body?.refreshToken) {
+    const refreshToken = requestBody?.['refreshToken'];
+    if (typeof refreshToken === 'string' && refreshToken.length > 0) {
       try {
-        const tokenParts = request.body.refreshToken.split('.');
-        if (tokenParts.length === 3) {
-          const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString('utf-8'));
+        const tokenParts = refreshToken.split('.');
+        const encodedPayload = tokenParts[1];
+        if (tokenParts.length === 3 && typeof encodedPayload === 'string') {
+          const payload = JSON.parse(Buffer.from(encodedPayload, 'base64').toString('utf-8')) as {
+            sub?: string;
+          };
           // Use 'sub' (subject/userId) from JWT payload
-          if (payload.sub) {
+          if (typeof payload.sub === 'string' && payload.sub.length > 0) {
             return `user:${payload.sub}`;
           }
         }

@@ -7,17 +7,17 @@
 
 ## Summary
 
-| Module | Publisher Status | Listener Status | Notes |
-|--------|-----------------|-----------------|-------|
-| **Admin** | ✅ **PUBLISHING** | ✅ Migrated (1 listener) | Using EventBusService |
-| **Auth** | ✅ **PUBLISHING** | ✅ Migrated (1 listener) | Using EventBusService |
-| **Orders** | ✅ **PUBLISHING** | ✅ Migrated (1 listener) | Using EventBusService |
-| **Donations** | ✅ **PUBLISHING** | ✅ Migrated (1 listener) | Using EventBusService |
-| **Loyalty** | ✅ **PUBLISHING** | ✅ Migrated (2 listeners) | Using EventBusService |
-| **Offers** | ✅ **PUBLISHING** | ✅ Migrated (2 listeners) | Using EventBusService |
-| **Favorites** | ✅ **PUBLISHING** | - | Using EventBusService |
-| **Reviews** | ✅ **PUBLISHING** | ✅ Migrated (1 listener) | Using EventBusService |
-| **Users** | ❌ **NOT PUBLISHING** | ✅ Migrated (3 listeners) | ⚠️ Services don't emit events |
+| Module        | Publisher Status      | Listener Status           | Notes                         |
+| ------------- | --------------------- | ------------------------- | ----------------------------- |
+| **Admin**     | ✅ **PUBLISHING**     | ✅ Migrated (1 listener)  | Using EventBusService         |
+| **Auth**      | ✅ **PUBLISHING**     | ✅ Migrated (1 listener)  | Using EventBusService         |
+| **Orders**    | ✅ **PUBLISHING**     | ✅ Migrated (1 listener)  | Using EventBusService         |
+| **Donations** | ✅ **PUBLISHING**     | ✅ Migrated (1 listener)  | Using EventBusService         |
+| **Loyalty**   | ✅ **PUBLISHING**     | ✅ Migrated (2 listeners) | Using EventBusService         |
+| **Offers**    | ✅ **PUBLISHING**     | ✅ Migrated (2 listeners) | Using EventBusService         |
+| **Favorites** | ✅ **PUBLISHING**     | -                         | Using EventBusService         |
+| **Reviews**   | ✅ **PUBLISHING**     | ✅ Migrated (1 listener)  | Using EventBusService         |
+| **Users**     | ❌ **NOT PUBLISHING** | ✅ Migrated (3 listeners) | ⚠️ Services don't emit events |
 
 ---
 
@@ -26,6 +26,7 @@
 **Status:** ✅ **Fully integrated with RabbitMQ**
 
 ### Publishers
+
 **File:** `src/admin/services/user-management.service.ts`
 
 ```typescript
@@ -46,6 +47,7 @@ export class UserManagementService {
 ```
 
 ### Events Published (5 total)
+
 1. `admin.user.suspended` - User account suspended by admin
 2. `admin.user.blocked` - User account blocked by admin
 3. `admin.user.deleted` - User account deleted by admin
@@ -53,12 +55,14 @@ export class UserManagementService {
 5. `admin.user.status.changed` - User status changed
 
 **Other Admin Publishers:**
+
 - `establishment-management.service.ts` - Emits 6 establishment events
 - `system-config.service.ts` - Emits 4 system config events
 
 **Total Admin Events:** 15+ events
 
 ### Listeners
+
 - ✅ `auth/listeners/admin-user-events.listener.ts` (migrated to RabbitMQ)
 - ✅ `orders/listeners/admin-user-events.listener.ts` (migrated to RabbitMQ)
 
@@ -75,12 +79,14 @@ export class UserManagementService {
 **Event Definitions:** ✅ Created (`src/users/events/user.events.ts`)
 
 14 events defined:
+
 - 8 lifecycle events (registered, email verified, phone verified, etc.)
 - 4 security events (password changed, account locked, etc.)
 - 1 privacy event (consent updated)
 - 1 account restoration event
 
 **Listeners:** ✅ All migrated to RabbitMQ
+
 - `user-lifecycle-events.listener.ts` (8 handlers)
 - `user-security-events.listener.ts` (5 handlers)
 - `user-privacy-events.listener.ts` (1 handler)
@@ -88,6 +94,7 @@ export class UserManagementService {
 **Publishers:** ❌ **NOT IMPLEMENTED**
 
 **Files that SHOULD emit events but DON'T:**
+
 - `src/users/user.service.ts` - No EventBusService import
 - `src/users/services/mfa.service.ts` - No EventBusService import
 - `src/users/services/privacy-compliance.service.ts` - No EventBusService import
@@ -136,14 +143,17 @@ export class UserService {
     // ... create user
 
     // ✅ Emit event
-    await this.eventBusService.emit('user.registered', new UserRegisteredEvent(
-      user._id.toString(),
-      user.email,
-      user.firstName,
-      user.lastName,
-      user.role,
-      new Date(),
-    ));
+    await this.eventBusService.emit(
+      'user.registered',
+      new UserRegisteredEvent(
+        user._id.toString(),
+        user.email,
+        user.firstName,
+        user.lastName,
+        user.role,
+        new Date(),
+      ),
+    );
 
     return user;
   }
@@ -152,20 +162,20 @@ export class UserService {
 
 ### Events That Should Be Published (14 total)
 
-| Service | Method | Event | Priority |
-|---------|--------|-------|----------|
-| UserService | `create()` | `user.registered` | HIGH |
-| UserService | `verifyEmail()` | `user.email.verified` | HIGH |
-| UserService | `verifyPhoneCode()` | `user.phone.verified` | MEDIUM |
-| UserService | `updatePassword()` | `user.password.changed` | HIGH |
-| UserService | `recordFailedLogin()` | `user.account.locked` | HIGH |
-| UserService | `unlockAccount()` | `user.account.unlocked` | MEDIUM |
-| UserService | `updateStatus()` | `user.status.changed` | HIGH |
-| UserService | `update()` | `user.profile.updated` | MEDIUM |
-| UserService | `restore()` | `user.account.restored` | LOW |
-| MfaService | `verifyTotpSetup()` | `user.mfa.enabled` | MEDIUM |
-| MfaService | `disableMfa()` | `user.mfa.disabled` | MEDIUM |
-| PrivacyService | `recordConsent()` | `user.privacy_consent.updated` | HIGH |
+| Service        | Method                  | Event                          | Priority |
+| -------------- | ----------------------- | ------------------------------ | -------- |
+| UserService    | `create()`              | `user.registered`              | HIGH     |
+| UserService    | `verifyEmail()`         | `user.email.verified`          | HIGH     |
+| UserService    | `verifyPhoneCode()`     | `user.phone.verified`          | MEDIUM   |
+| UserService    | `updatePassword()`      | `user.password.changed`        | HIGH     |
+| UserService    | `recordFailedLogin()`   | `user.account.locked`          | HIGH     |
+| UserService    | `unlockAccount()`       | `user.account.unlocked`        | MEDIUM   |
+| UserService    | `updateStatus()`        | `user.status.changed`          | HIGH     |
+| UserService    | `update()`              | `user.profile.updated`         | MEDIUM   |
+| UserService    | `restore()`             | `user.account.restored`        | LOW      |
+| MfaService     | `verifyTotpSetup()`     | `user.mfa.enabled`             | MEDIUM   |
+| MfaService     | `disableMfa()`          | `user.mfa.disabled`            | MEDIUM   |
+| PrivacyService | `recordConsent()`       | `user.privacy_consent.updated` | HIGH     |
 | PrivacyService | `processDataDeletion()` | `user.data_deletion.requested` | CRITICAL |
 | PrivacyService | `processDataDeletion()` | `user.data_deletion.completed` | CRITICAL |
 
@@ -176,35 +186,45 @@ export class UserService {
 ### What Works Today (MVP)
 
 **✅ Admin actions:**
+
 - Admin suspends user → `admin.user.suspended` event → Auth/Orders listeners invalidate sessions/cancel orders
 
 **✅ Order completion:**
+
 - Order completed → `order.completed` event → Donations/Loyalty listeners process round-up/points
 
 **✅ Favorites:**
+
 - User favorites offer → `favorite.added` event → Offers listener increments count
 
 **✅ Reviews:**
+
 - User reviews offer → `review.created` event → Analytics/Cache/Notifications processed
 
 ### What Doesn't Work (Missing)
 
 **❌ User registration:**
+
 - User signs up → ❌ No `user.registered` event → Loyalty doesn't create account
 
 **❌ Email verification:**
+
 - User verifies email → ❌ No `user.email.verified` event → Trust score not updated
 
 **❌ Password change:**
+
 - User changes password → ❌ No `user.password.changed` event → Sessions not invalidated
 
 **❌ Account lockout:**
+
 - User locked out → ❌ No `user.account.locked` event → Admins not notified
 
 **❌ MFA changes:**
+
 - User enables MFA → ❌ No `user.mfa.enabled` event → Security score not updated
 
 **❌ GDPR deletion:**
+
 - User requests deletion → ❌ No `user.data_deletion.requested` event → Cascade deletion not triggered
 
 ---
@@ -214,11 +234,13 @@ export class UserService {
 ### For MVP Launch (Optional)
 
 **Skip users module events for MVP:**
+
 - Users module events are nice-to-have but not critical
 - Admin events (already working) handle most critical flows
 - Can add users events in v2
 
 **Rationale:**
+
 - MVP already has critical financial protection (donations + loyalty idempotency)
 - Admin can manually handle edge cases
 - Reduces scope and risk for MVP launch
@@ -232,6 +254,7 @@ export class UserService {
 3. **Day 3:** Testing and validation
 
 **Priority order:**
+
 1. ✅ CRITICAL: `user.data_deletion.requested` (GDPR compliance)
 2. ✅ HIGH: `user.registered` (loyalty account creation)
 3. ✅ HIGH: `user.password.changed` (session invalidation)
@@ -285,6 +308,7 @@ curl -u admin:rabbitmq_dev_password http://localhost:15672/api/queues/%2Ffoodwas
 **Admin Module:** ✅ Fully integrated (15+ events publishing to RabbitMQ)
 
 **Users Module:** ⚠️ Partially ready
+
 - Listeners: ✅ All migrated to RabbitMQ (3 listeners, 14 handlers)
 - Publishers: ❌ Not implemented yet (need to add EventBusService to 3 services)
 

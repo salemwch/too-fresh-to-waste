@@ -172,11 +172,7 @@ const dashboardDto: CreateDashboardDto = {
   ],
 };
 
-const dashboard = await dashboardService.createDashboard(
-  dashboardDto,
-  userId,
-  userRole,
-);
+const dashboard = await dashboardService.createDashboard(dashboardDto, userId, userRole);
 ```
 
 ### Filtering Analytics Data

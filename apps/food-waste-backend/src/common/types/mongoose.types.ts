@@ -3,7 +3,7 @@
  * Provides type-safe handling of Mongoose documents and lean queries
  */
 
-import { Document, FlattenMaps } from 'mongoose';
+import type { Document, FlattenMaps } from 'mongoose';
 
 /**
  * Extracts the plain object type from a Mongoose Document

@@ -31,6 +31,10 @@ interface OfferWithEstablishment {
   [key: string]: unknown;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && value !== undefined && typeof value === 'object';
+}
+
 /**
  * Union type for offer entities that the presenter can handle
  * Supports both Mongoose documents and lean query results
@@ -86,8 +90,8 @@ export class OfferPresenter {
         currency: offer.pricing.currency,
       },
       availableQuantity: availableQty,
-      availableFrom: offer.availableFrom,
-      availableUntil: offer.availableUntil,
+      availableFrom: (offer.availableFrom as Date).toISOString(),
+      availableUntil: (offer.availableUntil as Date).toISOString(),
       pickupTimeSlots: offer.pickupTimeSlots?.map((slot) => ({
         startTime: slot.startTime,
         endTime: slot.endTime,
@@ -99,10 +103,13 @@ export class OfferPresenter {
       // Favorite status (only when user is authenticated)
       isFavorite,
       // Featuring metadata
-      isFeatured: Boolean(offer.isFeaturedManual || offer.isFeaturedAuto),
+      isFeatured: offer.isFeaturedManual === true || offer.isFeaturedAuto === true,
       isFeaturedManual: offer.isFeaturedManual,
       isFeaturedAuto: offer.isFeaturedAuto,
-      featuredAt: offer.featuredAt,
+      featuredAt:
+        offer.featuredAt !== null && offer.featuredAt !== undefined
+          ? (offer.featuredAt as Date).toISOString()
+          : undefined,
       // Pickup categorization
       isPickupToday: offer.isPickupToday,
       isPickupTomorrow: offer.isPickupTomorrow,
@@ -153,29 +160,29 @@ export class OfferPresenter {
   } {
     // ✅ TYPE SAFETY: Get merchant profileImage if populated
     let profileImage: string | undefined;
-    if (offer.merchantId && typeof offer.merchantId === 'object') {
-      const merchant = offer.merchantId as unknown as PopulatedMerchant;
+    const merchantId: unknown = offer.merchantId;
+    if (isRecord(merchantId)) {
+      const merchant = merchantId as PopulatedMerchant;
       profileImage = merchant.profileImage;
     }
 
     // ✅ TYPE SAFETY: Handle aggregation pipeline result (has 'establishment' field)
     const offerWithEstablishment = offer as unknown as OfferWithEstablishment;
-    if (
-      offerWithEstablishment.establishment &&
-      typeof offerWithEstablishment.establishment === 'object'
-    ) {
-      const establishment = offerWithEstablishment.establishment;
+    const aggregatedEstablishment: unknown = offerWithEstablishment.establishment;
+    if (isRecord(aggregatedEstablishment)) {
+      const establishment = aggregatedEstablishment as PopulatedEstablishment;
       return {
         name: establishment.name || 'Establishment',
         averageRating: establishment.averageRating,
         totalReviews: establishment.totalReviews,
-        profileImage: profileImage || establishment.profileImage,
+        profileImage: profileImage ?? establishment.profileImage,
       };
     }
 
     // ✅ TYPE SAFETY: Handle populated establishment (from .populate())
-    if (offer.establishmentId && typeof offer.establishmentId === 'object') {
-      const establishment = offer.establishmentId as unknown as PopulatedEstablishment;
+    const establishmentId: unknown = offer.establishmentId;
+    if (isRecord(establishmentId)) {
+      const establishment = establishmentId as PopulatedEstablishment;
       return {
         name: establishment.name || 'Establishment',
         averageRating: establishment.averageRating,

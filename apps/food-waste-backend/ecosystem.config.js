@@ -15,15 +15,15 @@ module.exports = {
     {
       name: 'food-waste-api',
       script: 'dist/main.js',
-      instances: 'max',       // Use all available CPUs
-      exec_mode: 'cluster',   // Enable cluster mode for load balancing
+      instances: 'max', // Use all available CPUs
+      exec_mode: 'cluster', // Enable cluster mode for load balancing
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
 
       // Graceful shutdown
-      kill_timeout: 5000,         // Wait 5s for graceful shutdown
-      listen_timeout: 10000,      // Wait 10s for app to listen
+      kill_timeout: 5000, // Wait 5s for graceful shutdown
+      listen_timeout: 10000, // Wait 10s for app to listen
       shutdown_with_message: true, // Send SIGINT message before SIGTERM
 
       // Logging

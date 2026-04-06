@@ -161,7 +161,7 @@ export class AdminAnalyticsController {
   async getAuditStatistics(@Query('days') days?: number): Promise<AuditStatisticsResponseDto> {
     try {
       this.validateDaysParameter(days);
-      const statistics = await this.auditService.getAuditStatistics(days || 30);
+      const statistics = await this.auditService.getAuditStatistics(days ?? 30);
       return this.mapAuditStatsToResponseDto(statistics);
     } catch (error) {
       this.logger.error('Failed to retrieve audit statistics:', error);
@@ -210,8 +210,8 @@ export class AdminAnalyticsController {
   ): Promise<RecentActivityResponseDto> {
     try {
       this.validateRecentActivityParams(hours, limit);
-      const activities = await this.auditService.getRecentActivity(hours || 24, limit || 100);
-      return this.mapRecentActivityToResponseDto(activities, hours || 24, limit || 100);
+      const activities = await this.auditService.getRecentActivity(hours ?? 24, limit ?? 100);
+      return this.mapRecentActivityToResponseDto(activities, hours ?? 24, limit ?? 100);
     } catch (error) {
       this.logger.error('Failed to retrieve recent activity:', error);
       if (error instanceof BadRequestException) {
@@ -440,7 +440,7 @@ export class AdminAnalyticsController {
     return {
       activities: (activities as Record<string, unknown>[]).map(
         (activity: Record<string, unknown>) => ({
-          id: (activity['_id']?.toString() || activity['id']) as string,
+          id: (activity['_id']?.toString() ?? activity['id']) as string,
           adminId: (activity['adminId'] as Types.ObjectId).toString(),
           adminEmail: activity['adminEmail'] as string,
           action: activity['action'] as AdminAction,
@@ -481,11 +481,11 @@ export class AdminAnalyticsController {
     if (format === 'csv') {
       data = exportedData as string;
       // Count lines in CSV (subtract 1 for header)
-      totalRecords = Math.max(0, ((data as string).match(/\n/g) || []).length - 1);
+      totalRecords = Math.max(0, ((data as string).match(/\n/g) ?? []).length - 1);
     } else {
       const jsonData = (exportedData as Record<string, unknown>[]).map(
         (log: Record<string, unknown>) => ({
-          id: (log['_id']?.toString() || log['id']) as string,
+          id: (log['_id']?.toString() ?? log['id']) as string,
           adminId: (log['adminId'] as Types.ObjectId).toString(),
           adminEmail: log['adminEmail'] as string,
           action: log['action'] as AdminAction,
@@ -554,7 +554,8 @@ export class AdminAnalyticsController {
     }
 
     if (
-      query.period &&
+      query.period !== null &&
+      query.period !== undefined &&
       !['day', 'week', 'month', 'quarter', 'year', 'custom'].includes(query.period)
     ) {
       throw new BadRequestException(

@@ -31,6 +31,7 @@ reviwes/
 ### External Dependencies
 
 The module integrates with:
+
 - `EstablishmentsModule` - Merchant/restaurant management
 - `OrdersModule` - Order verification for reviews
 - `OffersModule` - Offer-specific reviews
@@ -69,23 +70,24 @@ Four Bull queues handle asynchronous tasks:
 
 #### Core Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `_id` | ObjectId | Yes | Unique review identifier |
-| `reviewerId` | ObjectId | Yes | Reference to User (reviewer) |
-| `establishmentId` | ObjectId | Yes | Reference to Establishment |
-| `orderId` | ObjectId | No | Reference to Order (if order-based) |
-| `offerId` | ObjectId | No | Reference to Offer |
-| `type` | Enum | Yes | `ORDER`, `ESTABLISHMENT`, `OFFER` |
-| `overallRating` | Number | Yes | 1-5 star rating |
-| `comment` | String | Yes | Review text (10-2000 chars) |
-| `title` | String | No | Review title (3-100 chars) |
-| `images` | Array | No | Up to 10 images (ReviewImages[]) |
-| `status` | Enum | Yes | `PENDING`, `APPROVED`, `REJECTED`, `FLAGGED`, `SPAM`, `HIDDEN` |
+| Field             | Type     | Required | Description                                                    |
+| ----------------- | -------- | -------- | -------------------------------------------------------------- |
+| `_id`             | ObjectId | Yes      | Unique review identifier                                       |
+| `reviewerId`      | ObjectId | Yes      | Reference to User (reviewer)                                   |
+| `establishmentId` | ObjectId | Yes      | Reference to Establishment                                     |
+| `orderId`         | ObjectId | No       | Reference to Order (if order-based)                            |
+| `offerId`         | ObjectId | No       | Reference to Offer                                             |
+| `type`            | Enum     | Yes      | `ORDER`, `ESTABLISHMENT`, `OFFER`                              |
+| `overallRating`   | Number   | Yes      | 1-5 star rating                                                |
+| `comment`         | String   | Yes      | Review text (10-2000 chars)                                    |
+| `title`           | String   | No       | Review title (3-100 chars)                                     |
+| `images`          | Array    | No       | Up to 10 images (ReviewImages[])                               |
+| `status`          | Enum     | Yes      | `PENDING`, `APPROVED`, `REJECTED`, `FLAGGED`, `SPAM`, `HIDDEN` |
 
 #### Detailed Ratings (Optional)
 
 Each rated 1-5:
+
 - `foodQuality` - Quality of food items
 - `serviceQuality` - Service experience
 - `valueForMoney` - Price vs. value perception
@@ -97,11 +99,11 @@ Each rated 1-5:
 
 ```typescript
 metrics: {
-  helpfulCount: number;      // Users who found it helpful
-  notHelpfulCount: number;   // Users who found it not helpful
-  reportCount: number;       // Times reported
-  viewCount: number;         // View impressions
-  shareCount: number;        // Social shares
+  helpfulCount: number; // Users who found it helpful
+  notHelpfulCount: number; // Users who found it not helpful
+  reportCount: number; // Times reported
+  viewCount: number; // View impressions
+  shareCount: number; // Social shares
 }
 ```
 
@@ -147,6 +149,7 @@ responses: [{
 #### Metadata
 
 Extensive metadata tracking for analytics and fraud detection (see `IReviewMetadata` interface in schema):
+
 - Processing info (IP, user agent, device fingerprint)
 - Analytics (read time, scroll depth, UTM parameters)
 - AI processing results
@@ -183,9 +186,11 @@ Base path: `/api/v1/reviews`
 ### Public Endpoints
 
 #### GET `/reviews`
+
 Get all reviews with filtering and pagination.
 
 **Query Parameters:**
+
 - `page` (number, default: 1) - Page number
 - `limit` (number, default: 10, max: 100) - Items per page
 - `status` (ReviewStatus) - Filter by status
@@ -201,6 +206,7 @@ Get all reviews with filtering and pagination.
 - `tags` (string, comma-separated) - Tag filters
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -222,19 +228,23 @@ Get all reviews with filtering and pagination.
 ```
 
 #### GET `/reviews/:id`
+
 Get specific review by ID. Increments view count.
 
 **Auth:** JWT required (access controlled based on review status)
 
 #### GET `/reviews/establishment/:establishmentId`
+
 Get all approved reviews for an establishment.
 
 **Auth:** Public
 
 #### GET `/reviews/establishment/:establishmentId/summary`
+
 Get aggregated review statistics for an establishment.
 
 **Response includes:**
+
 - Total reviews and average rating
 - Rating breakdown (1-5 stars)
 - Average detailed ratings
@@ -249,14 +259,17 @@ Get aggregated review statistics for an establishment.
 **Auth:** JWT + `CONSUMER` role required
 
 #### POST `/reviews`
+
 Create a new review.
 
 **Body:** `CreateReviewDto` (multipart/form-data for images)
+
 - Maximum 10 images, 10MB each
 - Allowed formats: JPEG, PNG, WebP
 - Images uploaded to Firebase Storage under `reviews/` folder
 
 **Validations:**
+
 - Cannot review own establishment
 - Cannot duplicate review for same order/establishment
 - Order must be completed (`PICKED_UP` status)
@@ -264,6 +277,7 @@ Create a new review.
 - Comment length: 10-2000 characters
 
 **Auto-moderation triggers:**
+
 - Spam detection (URLs, repeated characters, phone numbers)
 - Inappropriate content
 - Fake review patterns
@@ -272,21 +286,25 @@ Create a new review.
 **Gamification:** Awards points if order-based review with comment.
 
 #### GET `/reviews/my-reviews`
+
 Get current user's reviews with pagination.
 
 **Query:** `page`, `limit`, `status`
 
 #### PATCH `/reviews/:id`
+
 Update own review (within 30 days for consumers).
 
 **Body:** `UpdateReviewDto` (multipart/form-data)
 
 **Behavior:**
+
 - Re-analyzes sentiment if comment changed
 - May require re-moderation
 - Sets `isEdited` flag and `lastEditedAt`
 
 #### DELETE `/reviews/:id`
+
 Soft-delete own review.
 
 **Body:** `reason` (optional string)
@@ -298,11 +316,13 @@ Soft-delete own review.
 **Auth:** JWT + `MERCHANT` role required
 
 #### GET `/reviews/merchant/reviews`
+
 Get all reviews for merchant's establishments.
 
 **Query:** Standard `ReviewQueryDto` parameters
 
 #### POST `/reviews/:id/response`
+
 Add response to a review of merchant's establishment.
 
 **Body:** `ReviewResponseDto` (5-1000 chars)
@@ -310,14 +330,17 @@ Add response to a review of merchant's establishment.
 **Restrictions:** One response per user per review
 
 #### GET `/reviews/analytics`
+
 Get comprehensive analytics for merchant's establishments.
 
 **Query:** `ReviewAnalyticsDto`
+
 - `startDate`, `endDate` (ISO strings)
 - `groupBy` (`day`|`week`|`month`|`year`)
 - `establishmentId` (optional, auto-selected if only one)
 
 **Returns:**
+
 - Total reviews and average rating
 - Rating distribution
 - Sentiment distribution
@@ -332,30 +355,37 @@ Get comprehensive analytics for merchant's establishments.
 **Auth:** JWT + `ADMIN` role required
 
 #### GET `/reviews/moderation/pending`
+
 Get reviews awaiting moderation.
 
 **Query:** `page`, `limit` (sorted oldest first)
 
 #### GET `/reviews/moderation/flagged`
+
 Get flagged reviews requiring attention.
 
 **Query:** `page`, `limit`
 
 #### PATCH `/reviews/:id/moderate`
+
 Moderate a review (approve/reject/flag/spam/hide).
 
 **Body:** `ReviewModerationDto`
+
 - `status` (ReviewStatus)
 - `moderationReason` (optional string)
 
 **Side effects:**
+
 - Updates establishment stats if status changes
 - Emits `review.moderated` event
 
 #### POST `/reviews/bulk/moderate`
+
 Bulk moderate multiple reviews.
 
 **Body:** `BulkReviewModerationDto`
+
 - `reviewIds` (1-100 ObjectIds)
 - `action` (`approve`|`reject`|`flag`|`spam`)
 - `reason` (optional string)
@@ -363,9 +393,11 @@ Bulk moderate multiple reviews.
 **Returns:** Count of processed and failed reviews
 
 #### GET `/reviews/user/:userId/stats`
+
 Get user review statistics (admin monitoring).
 
 **Returns:**
+
 - Total reviews, average rating
 - Verification rate
 - Status breakdown
@@ -378,9 +410,11 @@ Get user review statistics (admin monitoring).
 **Auth:** JWT + `CONSUMER` or `MERCHANT` role
 
 #### POST `/reviews/:id/interact`
+
 Mark review as helpful or not helpful.
 
 **Body:** `ReviewInteractionDto`
+
 - `interactionType` (`helpful`|`not_helpful`)
 
 **Behavior:** Removes previous interaction before adding new one
@@ -388,9 +422,11 @@ Mark review as helpful or not helpful.
 **Rate limit:** Applied via `RateLimitGuard`
 
 #### POST `/reviews/:id/report`
+
 Report a review for violations.
 
 **Body:** `ReviewReportDto`
+
 - `reason` (enum: `spam`, `inappropriate`, `fake`, `offensive`, `irrelevant`, `other`)
 - `additionalDetails` (optional, max 500 chars)
 
@@ -399,6 +435,7 @@ Report a review for violations.
 **Rate limit:** Applied via `RateLimitGuard`
 
 #### POST `/reviews/:id/share`
+
 Increment share count when review is shared.
 
 **Body:** `platform` (string) - Social platform name
@@ -410,9 +447,11 @@ Increment share count when review is shared.
 **Auth:** JWT + `ADMIN` or `MERCHANT` role
 
 #### GET `/reviews/trending/keywords`
+
 Get trending keywords from reviews.
 
 **Query:**
+
 - `establishmentId` (optional)
 - `days` (default: 30)
 
@@ -431,9 +470,11 @@ Core business logic for review CRUD operations.
 #### Key Methods
 
 ##### `create(createReviewDto, reviewerId)`
+
 Creates a new review with validation and AI analysis.
 
 **Transaction steps:**
+
 1. Validate reviewer, establishment, order, offer
 2. Check for duplicates
 3. Perform AI sentiment analysis
@@ -447,6 +488,7 @@ Creates a new review with validation and AI analysis.
 **Returns:** Populated `ReviewDocument`
 
 ##### `findAll(queryDto)`
+
 Retrieves reviews with advanced filtering, pagination, and analytics.
 
 Uses MongoDB aggregation for efficient queries.
@@ -454,83 +496,104 @@ Uses MongoDB aggregation for efficient queries.
 **Returns:** `{ reviews, total, analytics }`
 
 ##### `findOne(id, userId?, userRole?)`
+
 Gets single review with access control.
 
 **Access rules:**
+
 - Approved reviews: Public
 - Pending/flagged reviews: Reviewer + establishment owner + admin
 - Increments view count
 
 ##### `update(id, updateReviewDto, userId, userRole)`
+
 Updates review with re-analysis and moderation.
 
 **Business rules:**
+
 - Consumers: Can edit own reviews within 30 days
 - Admins: Can edit any review anytime
 - Re-analyzes sentiment if comment changed
 - May require re-moderation
 
 ##### `addResponse(reviewId, responseDto, userId, userRole)`
+
 Adds merchant/admin response to review.
 
 **Rules:**
+
 - Merchants: Can respond to own establishment reviews
 - Admins: Can respond to any review
 - One response per user per review
 
 ##### `handleInteraction(reviewId, interactionDto, userId)`
+
 Records helpful/not helpful votes.
 
 **Behavior:** Replaces previous vote from same user
 
 ##### `reportReview(reviewId, reportDto, userId)`
+
 Records review report and auto-flags after threshold.
 
 **Auto-flagging:** 3+ reports → status changes to `FLAGGED`
 
 ##### `moderateReview(reviewId, moderationDto, moderatorId)`
+
 Moderates review (admin only).
 
 **Side effects:**
+
 - Updates establishment stats if status changes
 - Emits `review.moderated` event
 
 ##### `remove(id, userId, userRole, reason?)`
+
 Soft-deletes review.
 
 **Fields updated:**
+
 - `isDeleted: true`
 - `deletedAt`, `deletedBy`, `deletionReason`
 
 ##### `getMerchantEstablishments(merchantId)`
+
 Fetches establishments owned by merchant.
 
 ##### `getMerchantReviews(establishmentIds, queryDto)`
+
 Retrieves reviews for multiple establishments (merchant dashboard).
 
 ##### `getEstablishmentReviewSummary(establishmentId)`
+
 Generates aggregated statistics for establishment.
 
 ##### `getUserReviewStats(userId)`
+
 Generates user review statistics (admin tool).
 
 ##### `getTrendingKeywords(establishmentId?, days?)`
+
 Extracts trending keywords with sentiment.
 
 ##### `incrementShareCount(reviewId, platform)`
+
 Tracks social shares.
 
 #### Private Methods
 
 ##### `analyzeReviewContent(comment)`
+
 AI-powered sentiment analysis (mock implementation).
 
 **TODO:** Integrate with real AI services (AWS Comprehend, Google NL, Azure Text Analytics, OpenAI)
 
 ##### `performAutoModeration(reviewData)`
+
 Automated content moderation.
 
 **Checks:**
+
 - Spam patterns (URLs, discount keywords, phone numbers, repeated chars)
 - Inappropriate content (configurable word list)
 - Fake review indicators (velocity, patterns, geo inconsistencies)
@@ -539,25 +602,31 @@ Automated content moderation.
 **Returns:** `{ requiresManualReview, flags }`
 
 ##### `updateEstablishmentStats(establishmentId, session?)`
+
 Recalculates establishment average rating and total reviews.
 
 Only counts `APPROVED` reviews.
 
 ##### `incrementViewCount(reviewId)`
+
 Non-blocking view counter increment.
 
 ##### `buildReviewAggregationPipeline(filters, skip, limit)`
+
 Constructs MongoDB aggregation pipeline for complex queries.
 
 #### Cron Jobs
 
 ##### `@Cron(EVERY_DAY_AT_2AM) cleanupDeletedReviews()`
+
 Permanently deletes soft-deleted reviews older than 30 days.
 
 ##### `@Cron(EVERY_DAY_AT_3AM) recalculateEstablishmentRatings()`
+
 Batch recalculates ratings for all active establishments.
 
 ##### `@Cron(EVERY_HOUR) processManualModerationQueue()`
+
 Checks for reviews requiring manual moderation and emits alert event.
 
 ---
@@ -571,13 +640,16 @@ Advanced analytics and insights generation.
 #### Key Methods
 
 ##### `generateEstablishmentInsights(establishmentId, timeframe?)`
+
 Generates comprehensive insights for establishment.
 
 **Parameters:**
+
 - `establishmentId` - Target establishment
 - `timeframe` (default: 90 days) - Analysis period
 
 **Returns:** `ReviewInsights` object with:
+
 - **Overall Metrics**: Total reviews, average rating, growth rate, engagement rate
 - **Sentiment Analysis**: Distribution, trends over time, keyword analysis
 - **Rating Analysis**: Distribution, trends, category breakdown
@@ -585,14 +657,17 @@ Generates comprehensive insights for establishment.
 - **Actionable Insights**: Prioritized recommendations
 
 ##### `getEstablishmentBenchmark(establishmentId)`
+
 Compares establishment against industry benchmarks.
 
 **Returns:** `EstablishmentBenchmark` with:
+
 - Metrics (rating, reviews, response rate, sentiment score, engagement)
 - Rankings (overall, category, local, percentile)
 - Trends (rating, volume, sentiment)
 
 ##### `generateIndustryReport(industryType, timeframe?)`
+
 Aggregates industry-wide statistics.
 
 **Industry types:** `restaurant`, `bakery`, `grocery_store`, `cafe`, `fast_food`, `supermarket`
@@ -600,40 +675,51 @@ Aggregates industry-wide statistics.
 ##### Private Methods
 
 ##### `calculateOverallMetrics(establishmentId, startDate)`
+
 Computes current vs. previous period metrics.
 
 ##### `analyzeSentimentTrends(establishmentId, startDate)`
+
 Tracks sentiment distribution and keyword impacts over time.
 
 ##### `analyzeRatingTrends(establishmentId, startDate)`
+
 Analyzes rating patterns and category performance.
 
 ##### `performCompetitiveAnalysis(establishmentId)`
+
 Benchmarks against industry averages and top performers.
 
 ##### `generateActionableInsights(establishmentId, analytics)`
+
 AI-driven insight generation with prioritization.
 
 **Insight Types:**
+
 - **Alerts** (high priority) - Critical issues (low rating, declining reviews)
 - **Improvements** (medium/high priority) - Areas needing attention
 - **Strengths** (medium priority) - Positive aspects to leverage
 
 **Recommendations include:**
+
 - Category-specific improvements (food quality, service, packaging, etc.)
 - Response rate optimization
 - Engagement strategies
 
 ##### `calculateEstablishmentMetrics(establishmentId)`
+
 Computes metrics for benchmarking:
+
 - Response rate and average response time
 - Sentiment score (0-100 scale, 50 = neutral)
 - Engagement score (weighted: helpful votes 25%, shares 30%, responses 35%, views 10%)
 
 ##### `analyzeEstablishmentTrends(establishmentId)`
+
 Compares last 30 days vs. previous 30 days.
 
 **Trend indicators:**
+
 - Rating: `up` | `down` | `stable` (±10% threshold)
 - Volume: `up` | `down` | `stable` (±5% threshold)
 - Sentiment: `improving` | `declining` | `stable` (±5% threshold)
@@ -641,12 +727,15 @@ Compares last 30 days vs. previous 30 days.
 #### Cron Jobs
 
 ##### `@Cron(EVERY_DAY_AT_2AM) scheduleAnalyticsUpdates()`
+
 Queues analytics updates for 1000 active establishments (staggered delays).
 
 ##### `@Cron(EVERY_WEEK) generateWeeklyReports()`
+
 Queues industry reports for all categories.
 
 ##### `@Cron(EVERY_12_HOURS) updateEstablishmentBenchmarks()`
+
 Updates benchmarks for establishments with 5+ reviews (max 500).
 
 ---
@@ -680,6 +769,7 @@ Updates benchmarks for establishments with 5+ reviews (max 500).
 Mock implementation - replace with actual AI service integration.
 
 **Recommended services:**
+
 - AWS Comprehend
 - Google Cloud Natural Language
 - Azure Text Analytics
@@ -690,6 +780,7 @@ Mock implementation - replace with actual AI service integration.
 Mock implementation - replace with actual moderation APIs.
 
 **Recommended services:**
+
 - AWS Rekognition
 - Google Cloud Vision
 - Microsoft Azure Content Moderator
@@ -702,24 +793,26 @@ Mock implementation - replace with actual moderation APIs.
 ### Authentication & Authorization
 
 All endpoints protected by JWT authentication except:
+
 - `GET /reviews` (public)
 - `GET /reviews/establishment/:id` (public)
 - `GET /reviews/establishment/:id/summary` (public)
 
 ### Role-Based Access Control
 
-| Endpoint | Consumer | Merchant | Admin |
-|----------|----------|----------|-------|
-| Create review | ✓ | ✗ | ✗ |
-| Update own review | ✓ | ✗ | ✗ |
-| Delete own review | ✓ | ✗ | ✗ |
-| Add response | ✗ | ✓ (own) | ✓ (all) |
-| Moderate review | ✗ | ✗ | ✓ |
-| View analytics | ✗ | ✓ (own) | ✓ (all) |
+| Endpoint          | Consumer | Merchant | Admin   |
+| ----------------- | -------- | -------- | ------- |
+| Create review     | ✓        | ✗        | ✗       |
+| Update own review | ✓        | ✗        | ✗       |
+| Delete own review | ✓        | ✗        | ✗       |
+| Add response      | ✗        | ✓ (own)  | ✓ (all) |
+| Moderate review   | ✗        | ✗        | ✓       |
+| View analytics    | ✗        | ✓ (own)  | ✓ (all) |
 
 ### Input Sanitization
 
 All inputs sanitized via:
+
 - `GlobalSanitizationMiddleware` (XSS prevention)
 - `class-validator` decorators in DTOs
 - MongoDB query sanitization
@@ -727,6 +820,7 @@ All inputs sanitized via:
 ### Rate Limiting
 
 Applied to:
+
 - `POST /reviews` - Create review
 - `POST /reviews/:id/interact` - Helpful votes
 - `POST /reviews/:id/report` - Report review
@@ -749,12 +843,14 @@ Via `RateLimitGuard` from `common` module.
 Test file pattern: `*.spec.ts` alongside source files.
 
 **Coverage areas:**
+
 - Service methods (validation, business logic)
 - DTO transformations and validation
 - Schema pre/post hooks
 - Virtual fields
 
 **Example:**
+
 ```bash
 pnpm test reviwes.service.spec.ts
 ```
@@ -764,6 +860,7 @@ pnpm test reviwes.service.spec.ts
 Test controller endpoints with mocked dependencies.
 
 **Example:**
+
 ```bash
 pnpm test reviwes.controller.spec.ts
 ```
@@ -773,6 +870,7 @@ pnpm test reviwes.controller.spec.ts
 End-to-end testing of review workflows.
 
 **Test scenarios:**
+
 1. Consumer creates order-based review
 2. AI sentiment analysis processes review
 3. Auto-moderation flags inappropriate content
@@ -783,6 +881,7 @@ End-to-end testing of review workflows.
 8. Establishment stats update
 
 **Run tests:**
+
 ```bash
 pnpm test:e2e
 ```
@@ -799,18 +898,19 @@ Navigate to "Reviews" tag to test endpoints interactively.
 
 The module emits events for real-time features:
 
-| Event | Payload | Listeners |
-|-------|---------|-----------|
-| `review.created` | `{ review, reviewerId, establishmentId }` | Notifications, Analytics |
-| `review.updated` | `{ review, userId, changes }` | Notifications |
-| `review.response_added` | `{ review, response, responderId }` | Notifications |
-| `review.interaction` | `{ reviewId, userId, interactionType }` | Analytics |
-| `review.reported` | `{ reviewId, reporterId, reason, reportCount }` | Moderation queue |
-| `review.moderated` | `{ reviewId, moderatorId, previousStatus, newStatus, reason }` | Notifications, Analytics |
-| `review.deleted` | `{ reviewId, deletedBy, reason }` | Analytics |
-| `reviews.moderation_required` | `{ count, reviews[] }` | Admin alerts |
+| Event                         | Payload                                                        | Listeners                |
+| ----------------------------- | -------------------------------------------------------------- | ------------------------ |
+| `review.created`              | `{ review, reviewerId, establishmentId }`                      | Notifications, Analytics |
+| `review.updated`              | `{ review, userId, changes }`                                  | Notifications            |
+| `review.response_added`       | `{ review, response, responderId }`                            | Notifications            |
+| `review.interaction`          | `{ reviewId, userId, interactionType }`                        | Analytics                |
+| `review.reported`             | `{ reviewId, reporterId, reason, reportCount }`                | Moderation queue         |
+| `review.moderated`            | `{ reviewId, moderatorId, previousStatus, newStatus, reason }` | Notifications, Analytics |
+| `review.deleted`              | `{ reviewId, deletedBy, reason }`                              | Analytics                |
+| `reviews.moderation_required` | `{ count, reviews[] }`                                         | Admin alerts             |
 
 **Usage:**
+
 ```typescript
 this.eventEmitter.emit('review.created', payload);
 ```
@@ -822,6 +922,7 @@ this.eventEmitter.emit('review.created', payload);
 ### Metrics
 
 Track these KPIs:
+
 - Review creation rate (per day/week)
 - Average rating by establishment
 - Moderation queue size
@@ -832,6 +933,7 @@ Track these KPIs:
 ### Logging
 
 All operations logged via `AppLoggerService` with:
+
 - Correlation IDs for tracing
 - Error stack traces
 - Performance timing
@@ -839,6 +941,7 @@ All operations logged via `AppLoggerService` with:
 ### Health Checks
 
 Reviews module health checked indirectly via:
+
 - MongoDB connection health
 - Redis connection health (queues)
 - Queue job processing rates
@@ -857,6 +960,7 @@ Reviews module health checked indirectly via:
 ### Migration Path
 
 When renaming:
+
 1. Update all imports across codebase
 2. Update module registration in `app.module.ts`
 3. Run TypeScript compilation check: `pnpm check:ts`
@@ -923,6 +1027,7 @@ When renaming:
 ### Create Review
 
 **Request:**
+
 ```http
 POST /api/v1/reviews
 Content-Type: multipart/form-data
@@ -948,6 +1053,7 @@ Authorization: Bearer <token>
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -993,12 +1099,14 @@ Authorization: Bearer <token>
 ### Get Analytics
 
 **Request:**
+
 ```http
 GET /api/v1/reviews/analytics?establishmentId=507f1f77bcf86cd799439011&groupBy=week
 Authorization: Bearer <merchant_token>
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -1052,33 +1160,42 @@ Authorization: Bearer <merchant_token>
 ### Common Issues
 
 #### Issue: Reviews not appearing after creation
+
 **Cause:** Auto-moderation flagged review as `PENDING`
 **Solution:** Check `moderationInfo.autoModerationFlags`. Admin must manually approve.
 
 #### Issue: Establishment stats not updating
+
 **Cause:** MongoDB transaction failed or cron job not running
 **Solution:**
+
 1. Check logs for transaction errors
 2. Manually trigger: `pnpm backend seed:verify-reviews`
 3. Verify cron job: `recalculateEstablishmentRatings()`
 
 #### Issue: Images not uploading
+
 **Cause:** Firebase Storage credentials missing or invalid
 **Solution:**
+
 1. Verify `FIREBASE_STORAGE_BUCKET` in `.env`
 2. Check Firebase service account key
 3. Verify file size < 10MB and type in allowlist
 
 #### Issue: High memory usage from analytics
+
 **Cause:** Large aggregation pipelines without limits
 **Solution:**
+
 1. Add pagination to analytics queries
 2. Implement result caching with Redis
 3. Consider pre-computing daily summaries
 
 #### Issue: Queue jobs failing
+
 **Cause:** Redis connection issues or job timeout
 **Solution:**
+
 1. Check Redis connection: `redis-cli ping`
 2. Increase job timeout in queue config
 3. Review failed jobs in Bull dashboard
@@ -1089,6 +1206,7 @@ Authorization: Bearer <merchant_token>
 ## Support
 
 For questions or issues:
+
 1. Check this documentation
 2. Review code comments in source files
 3. Check related module docs (orders, establishments, users)
@@ -1101,6 +1219,7 @@ For questions or issues:
 ## Changelog
 
 ### Current Version
+
 - Full review CRUD with soft delete
 - AI-powered sentiment analysis (mock)
 - Auto-moderation with configurable rules
@@ -1114,6 +1233,7 @@ For questions or issues:
 - Actionable insights generation
 
 ### TODO
+
 - Migrate to real AI services
 - Implement review response templates
 - Add review photo moderation

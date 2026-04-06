@@ -316,7 +316,8 @@ describe('RegexSecurityUtil', () => {
         expect(query).toBeTruthy();
         expect(query?.$regex).toContain('\\('); // Parens are escaped
         // Verify quantifiers are escaped (+ or *)
-        const hasEscapedQuantifier = query?.$regex.includes('\\+') || query?.$regex.includes('\\*');
+        const hasEscapedQuantifier =
+          query?.$regex.includes('\\+') === true || query?.$regex.includes('\\*') === true;
         expect(hasEscapedQuantifier).toBe(true);
       }
     });

@@ -282,7 +282,7 @@ export class SystemConfigService {
           securitySettings: savedConfig.securitySettings as unknown as AuditableObject,
           paymentSettings: savedConfig.paymentSettings as unknown as AuditableObject,
         } as AuditableObject,
-        reason: updateDto.description || 'System configuration updated',
+        reason: updateDto.description ?? 'System configuration updated',
         ipAddress,
         userAgent,
       });
@@ -471,44 +471,76 @@ export class SystemConfigService {
       }
 
       const data = importData as Record<string, unknown>;
+      const platformSettings = data['platformSettings'];
+      const notificationSettings = data['notificationSettings'];
+      const securitySettings = data['securitySettings'];
+      const paymentSettings = data['paymentSettings'];
 
       // Validate required fields
-      if (!data['platformSettings'] || typeof data['platformSettings'] !== 'object') {
+      if (
+        platformSettings === null ||
+        platformSettings === undefined ||
+        typeof platformSettings !== 'object'
+      ) {
         result.errors.push('Platform settings are required and must be an object');
       }
 
-      if (!data['notificationSettings'] || typeof data['notificationSettings'] !== 'object') {
+      if (
+        notificationSettings === null ||
+        notificationSettings === undefined ||
+        typeof notificationSettings !== 'object'
+      ) {
         result.errors.push('Notification settings are required and must be an object');
       }
 
-      if (!data['securitySettings'] || typeof data['securitySettings'] !== 'object') {
+      if (
+        securitySettings === null ||
+        securitySettings === undefined ||
+        typeof securitySettings !== 'object'
+      ) {
         result.errors.push('Security settings are required and must be an object');
       }
 
-      if (!data['paymentSettings'] || typeof data['paymentSettings'] !== 'object') {
+      if (
+        paymentSettings === null ||
+        paymentSettings === undefined ||
+        typeof paymentSettings !== 'object'
+      ) {
         result.errors.push('Payment settings are required and must be an object');
       }
 
       // Validate specific settings if they exist and are objects
-      if (data['platformSettings'] && typeof data['platformSettings'] === 'object') {
+      if (
+        platformSettings !== null &&
+        platformSettings !== undefined &&
+        typeof platformSettings === 'object'
+      ) {
         const platformValidation = this.validatePlatformSettings(
-          data['platformSettings'] as PlatformSettingsPartial,
+          platformSettings as PlatformSettingsPartial,
         );
         result.errors.push(...platformValidation.errors);
         result.warnings.push(...platformValidation.warnings);
       }
 
-      if (data['securitySettings'] && typeof data['securitySettings'] === 'object') {
+      if (
+        securitySettings !== null &&
+        securitySettings !== undefined &&
+        typeof securitySettings === 'object'
+      ) {
         const securityValidation = this.validateSecuritySettings(
-          data['securitySettings'] as SecuritySettingsPartial,
+          securitySettings as SecuritySettingsPartial,
         );
         result.errors.push(...securityValidation.errors);
         result.warnings.push(...securityValidation.warnings);
       }
 
-      if (data['paymentSettings'] && typeof data['paymentSettings'] === 'object') {
+      if (
+        paymentSettings !== null &&
+        paymentSettings !== undefined &&
+        typeof paymentSettings === 'object'
+      ) {
         const paymentValidation = this.validatePaymentSettings(
-          data['paymentSettings'] as PaymentSettingsPartial,
+          paymentSettings as PaymentSettingsPartial,
         );
         result.errors.push(...paymentValidation.errors);
         result.warnings.push(...paymentValidation.warnings);
@@ -558,7 +590,7 @@ export class SystemConfigService {
           : {}),
         ...(data.securitySettings !== undefined ? { securitySettings: data.securitySettings } : {}),
         ...(data.paymentSettings !== undefined ? { paymentSettings: data.paymentSettings } : {}),
-        description: `Imported configuration from version ${data.version || 'unknown'}`,
+        description: `Imported configuration from version ${data.version ?? 'unknown'}`,
       };
 
       return await this.updateSystemConfig(updateDto, adminId, adminEmail, ipAddress, userAgent);
@@ -719,7 +751,7 @@ export class SystemConfigService {
   private validatePaymentSettings(settings: PaymentSettingsPartial): ConfigValidationResult {
     const result: ConfigValidationResult = { isValid: true, errors: [], warnings: [] };
 
-    if (!settings.stripeEnabled && !settings.paypalEnabled) {
+    if (settings.stripeEnabled !== true && settings.paypalEnabled !== true) {
       result.errors.push('At least one payment provider must be enabled');
     }
 
@@ -818,7 +850,7 @@ export class SystemConfigService {
               adminId,
               adminEmail,
               securityChangedFields,
-              (previousConfig.securitySettings as unknown as Record<string, unknown>) || {},
+              (previousConfig.securitySettings as unknown as Record<string, unknown>) ?? {},
               updateDto.securitySettings as unknown as Record<string, unknown>,
             ),
           );
@@ -846,7 +878,7 @@ export class SystemConfigService {
               adminId,
               adminEmail,
               paymentChangedFields,
-              (previousConfig.paymentSettings as unknown as Record<string, unknown>) || {},
+              (previousConfig.paymentSettings as unknown as Record<string, unknown>) ?? {},
               updateDto.paymentSettings as unknown as Record<string, unknown>,
             ),
           );

@@ -15,6 +15,8 @@ import {
 
 import { AdminAction } from '../interfaces/admin-analytics.interface';
 
+import { AnalyticsPeriodType } from './admin-analytics.dto';
+
 // Base Analytics Period DTO
 class AnalyticsPeriodResponseDto {
   @ApiProperty({
@@ -37,11 +39,11 @@ class AnalyticsPeriodResponseDto {
 
   @ApiProperty({
     description: 'Type of period for analytics',
-    enum: ['day', 'week', 'month', 'quarter', 'year', 'custom'],
-    example: 'month',
+    enum: AnalyticsPeriodType,
+    example: AnalyticsPeriodType.MONTH,
   })
-  @IsEnum(['day', 'week', 'month', 'quarter', 'year', 'custom'])
-  periodType!: 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom';
+  @IsEnum(AnalyticsPeriodType)
+  periodType!: AnalyticsPeriodType;
 }
 
 // User Analytics Response DTO

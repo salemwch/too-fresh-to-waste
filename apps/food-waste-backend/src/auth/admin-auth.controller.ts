@@ -70,13 +70,13 @@ export class AdminAuthController {
     @Request() req: AuthenticatedRequest,
   ) {
     const auditData = {
-      ipAddress: req.ip || req.socket?.remoteAddress || 'unknown',
-      userAgent: req.get('User-Agent') || 'unknown',
+      ipAddress: req.ip ?? req.socket?.remoteAddress ?? 'unknown',
+      userAgent: req.get('User-Agent') ?? 'unknown',
     };
 
     // Get user email for clearing Redis attempts
     const user = await this.usersService.findById(userId);
-    if (!user) {
+    if (user === null || user === undefined) {
       return {
         success: false,
         message: 'User not found',
@@ -93,7 +93,7 @@ export class AdminAuthController {
       success: true,
       message: 'Account unlocked successfully',
       unlockedBy: req.user.userId,
-      reason: unlockDto.reason || 'Admin action',
+      reason: unlockDto.reason ?? 'Admin action',
     };
   }
 
@@ -212,7 +212,7 @@ export class AdminAuthController {
   @Get('failed-login-attempts/:userId')
   async getFailedLoginAttempts(@Param('userId') userId: string) {
     const user = await this.usersService.findOne(userId);
-    if (!user) {
+    if (user === null || user === undefined) {
       return {
         success: false,
         message: 'User not found',

@@ -87,6 +87,159 @@ export interface EstablishmentBenchmark {
   };
 }
 
+interface OverallMetricsCurrentAggregate {
+  totalReviews: number;
+  averageRating: number | null;
+  totalEngagement: number;
+}
+
+interface OverallMetricsPreviousAggregate {
+  totalReviews: number;
+  averageRating: number | null;
+}
+
+interface OverallMetricsAggregationResult {
+  current: OverallMetricsCurrentAggregate[];
+  previous: OverallMetricsPreviousAggregate[];
+}
+
+interface ResponseMetricsAggregationResult {
+  totalReviews: number;
+  reviewsWithResponses: number;
+  averageResponseTime: number | null;
+}
+
+interface TrendMetricsAggregationResult {
+  averageRating: number | null;
+  reviewCount: number;
+  positiveReviews: number;
+}
+
+interface SentimentScoreAggregationResult {
+  totalReviews: number;
+  positiveReviews: number;
+  negativeReviews: number;
+  averageConfidence: number | null;
+}
+
+interface EngagementScoreAggregationResult {
+  totalReviews: number;
+  totalHelpfulVotes: number;
+  totalShares: number;
+  totalResponses: number;
+  totalViews: number;
+}
+
+interface IndustryReportAggregationResult {
+  totalReviews: number;
+  averageRating: number | null;
+  totalEstablishments: Types.ObjectId[];
+  sentimentDistribution: string[];
+  ratingDistribution: number[];
+}
+
+interface SentimentDistributionAggregationItem {
+  _id: string | null;
+  count: number;
+}
+
+interface SentimentTrendAggregationItem {
+  _id: string;
+  positive: number;
+  negative: number;
+  neutral: number;
+}
+
+interface KeywordAggregationItem {
+  _id: {
+    keyword: string;
+    sentiment: string;
+  };
+  frequency: number;
+  averageRating: number;
+}
+
+interface SentimentAnalysisAggregationResult {
+  distribution: SentimentDistributionAggregationItem[];
+  trends: SentimentTrendAggregationItem[];
+  keywords: KeywordAggregationItem[];
+}
+
+interface RatingDistributionAggregationItem {
+  _id: number;
+  count: number;
+}
+
+interface RatingTrendAggregationItem {
+  _id: string;
+  averageRating: number;
+  reviewCount: number;
+}
+
+interface RatingCategoryBreakdownAggregate {
+  avgFoodQuality: number | null;
+  avgServiceQuality: number | null;
+  avgValueForMoney: number | null;
+  avgPackaging: number | null;
+  avgPickupExperience: number | null;
+  avgSustainability: number | null;
+}
+
+interface RatingAnalysisAggregationResult {
+  distribution: RatingDistributionAggregationItem[];
+  trends: RatingTrendAggregationItem[];
+  categoryBreakdown: RatingCategoryBreakdownAggregate[];
+}
+
+interface IndustryStatisticsAggregationResult {
+  averageRating: number | null;
+  totalEstablishments: number;
+}
+
+const EMPTY_OVERALL_METRICS_CURRENT: OverallMetricsCurrentAggregate = {
+  totalReviews: 0,
+  averageRating: 0,
+  totalEngagement: 0,
+};
+
+const EMPTY_OVERALL_METRICS_PREVIOUS: OverallMetricsPreviousAggregate = {
+  totalReviews: 0,
+  averageRating: 0,
+};
+
+const EMPTY_RESPONSE_METRICS: ResponseMetricsAggregationResult = {
+  totalReviews: 0,
+  reviewsWithResponses: 0,
+  averageResponseTime: null,
+};
+
+const EMPTY_TREND_METRICS: TrendMetricsAggregationResult = {
+  averageRating: 0,
+  reviewCount: 0,
+  positiveReviews: 0,
+};
+
+const EMPTY_SENTIMENT_ANALYSIS: SentimentAnalysisAggregationResult = {
+  distribution: [],
+  trends: [],
+  keywords: [],
+};
+
+const EMPTY_RATING_CATEGORY_BREAKDOWN: RatingCategoryBreakdownAggregate = {
+  avgFoodQuality: null,
+  avgServiceQuality: null,
+  avgValueForMoney: null,
+  avgPackaging: null,
+  avgPickupExperience: null,
+  avgSustainability: null,
+};
+
+const EMPTY_RATING_ANALYSIS: RatingAnalysisAggregationResult = {
+  distribution: [],
+  trends: [],
+  categoryBreakdown: [],
+};
+
 @Injectable()
 export class ReviewAnalyticsService {
   private readonly logger = new Logger(ReviewAnalyticsService.name);
@@ -185,9 +338,9 @@ export class ReviewAnalyticsService {
       },
     ];
 
-    const [result] = await this.reviewModel.aggregate(pipeline);
-    const current = result.current[0] || { totalReviews: 0, averageRating: 0, totalEngagement: 0 };
-    const previous = result.previous[0] || { totalReviews: 0, averageRating: 0 };
+    const [result] = await this.reviewModel.aggregate<OverallMetricsAggregationResult>(pipeline);
+    const current = result?.current[0] ?? EMPTY_OVERALL_METRICS_CURRENT;
+    const previous = result?.previous[0] ?? EMPTY_OVERALL_METRICS_PREVIOUS;
 
     const reviewGrowthRate =
       previous.totalReviews > 0
@@ -199,7 +352,7 @@ export class ReviewAnalyticsService {
 
     return {
       totalReviews: current.totalReviews,
-      averageRating: Math.round(current.averageRating * 100) / 100,
+      averageRating: Math.round((current.averageRating ?? 0) * 100) / 100,
       reviewGrowthRate: Math.round(reviewGrowthRate * 100) / 100,
       engagementRate: Math.round(engagementRate * 100) / 100,
     };
@@ -256,43 +409,46 @@ export class ReviewAnalyticsService {
     }
 
     // Calculate response rate and average response time
-    const reviewsWithResponses = await this.reviewModel.aggregate([
-      { $match: { establishmentId: new Types.ObjectId(establishmentId) } },
-      {
-        $project: {
-          hasResponse: { $gt: [{ $size: '$responses' }, 0] },
-          responseTime: {
-            $cond: [
-              { $gt: [{ $size: '$responses' }, 0] },
-              {
-                $subtract: [{ $arrayElemAt: ['$responses.respondedAt', 0] }, '$createdAt'],
-              },
-              null,
-            ],
+    const reviewsWithResponses = await this.reviewModel.aggregate<ResponseMetricsAggregationResult>(
+      [
+        { $match: { establishmentId: new Types.ObjectId(establishmentId) } },
+        {
+          $project: {
+            hasResponse: { $gt: [{ $size: '$responses' }, 0] },
+            responseTime: {
+              $cond: [
+                { $gt: [{ $size: '$responses' }, 0] },
+                {
+                  $subtract: [{ $arrayElemAt: ['$responses.respondedAt', 0] }, '$createdAt'],
+                },
+                null,
+              ],
+            },
           },
         },
-      },
-      {
-        $group: {
-          _id: null,
-          totalReviews: { $sum: 1 },
-          reviewsWithResponses: {
-            $sum: { $cond: ['$hasResponse', 1, 0] },
+        {
+          $group: {
+            _id: null,
+            totalReviews: { $sum: 1 },
+            reviewsWithResponses: {
+              $sum: { $cond: ['$hasResponse', 1, 0] },
+            },
+            averageResponseTime: { $avg: '$responseTime' },
           },
-          averageResponseTime: { $avg: '$responseTime' },
         },
-      },
-    ]);
+      ],
+    );
 
-    const responseData = reviewsWithResponses[0] || {};
+    const responseData = reviewsWithResponses[0] ?? EMPTY_RESPONSE_METRICS;
     const responseRate =
       responseData.totalReviews > 0
         ? (responseData.reviewsWithResponses / responseData.totalReviews) * 100
         : 0;
 
-    const averageResponseTime = responseData.averageResponseTime
-      ? Math.round(responseData.averageResponseTime / (1000 * 60 * 60)) // Convert to hours
-      : 0;
+    const averageResponseTime =
+      responseData.averageResponseTime !== null && responseData.averageResponseTime !== undefined
+        ? Math.round(responseData.averageResponseTime / (1000 * 60 * 60)) // Convert to hours
+        : 0;
 
     // Calculate sentiment score
     const sentimentScore = await this.calculateSentimentScore(establishmentId);
@@ -317,7 +473,7 @@ export class ReviewAnalyticsService {
     const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
 
     const [recent, previous] = await Promise.all([
-      this.reviewModel.aggregate([
+      this.reviewModel.aggregate<TrendMetricsAggregationResult>([
         {
           $match: {
             establishmentId: new Types.ObjectId(establishmentId),
@@ -338,7 +494,7 @@ export class ReviewAnalyticsService {
           },
         },
       ]),
-      this.reviewModel.aggregate([
+      this.reviewModel.aggregate<TrendMetricsAggregationResult>([
         {
           $match: {
             establishmentId: new Types.ObjectId(establishmentId),
@@ -361,12 +517,12 @@ export class ReviewAnalyticsService {
       ]),
     ]);
 
-    const recentData = recent[0] || { averageRating: 0, reviewCount: 0, positiveReviews: 0 };
-    const previousData = previous[0] || { averageRating: 0, reviewCount: 0, positiveReviews: 0 };
+    const recentData = recent[0] ?? EMPTY_TREND_METRICS;
+    const previousData = previous[0] ?? EMPTY_TREND_METRICS;
 
     const ratingTrend = this.calculateTrend(
-      recentData.averageRating,
-      previousData.averageRating,
+      recentData.averageRating ?? 0,
+      previousData.averageRating ?? 0,
       0.1,
     );
     const reviewVolumeTrend = this.calculateTrend(
@@ -446,15 +602,15 @@ export class ReviewAnalyticsService {
       },
     ];
 
-    const [result] = await this.reviewModel.aggregate(pipeline);
+    const [result] = await this.reviewModel.aggregate<SentimentScoreAggregationResult>(pipeline);
 
-    if (!result || result.totalReviews === 0) {
+    if (result === null || result === undefined || result.totalReviews === 0) {
       return 50; // Neutral score
     }
 
     const positiveRatio = result.positiveReviews / result.totalReviews;
     const negativeRatio = result.negativeReviews / result.totalReviews;
-    const confidence = result.averageConfidence || 0.5;
+    const confidence = result.averageConfidence ?? 0.5;
 
     // Calculate sentiment score: 0-100 where 50 is neutral
     const sentimentScore = 50 + (positiveRatio - negativeRatio) * 50 * confidence;
@@ -481,9 +637,9 @@ export class ReviewAnalyticsService {
       },
     ];
 
-    const [result] = await this.reviewModel.aggregate(pipeline);
+    const [result] = await this.reviewModel.aggregate<EngagementScoreAggregationResult>(pipeline);
 
-    if (!result || result.totalReviews === 0) {
+    if (result === null || result === undefined || result.totalReviews === 0) {
       return 0;
     }
 
@@ -505,7 +661,7 @@ export class ReviewAnalyticsService {
 
   private processSentimentArray(sentiments: string[]): Record<string, number> {
     return sentiments.reduce<Record<string, number>>((acc, sentiment) => {
-      acc[sentiment || 'unknown'] = (acc[sentiment || 'unknown'] || 0) + 1;
+      acc[sentiment || 'unknown'] = (acc[sentiment || 'unknown'] ?? 0) + 1;
       return acc;
     }, {});
   }
@@ -513,7 +669,7 @@ export class ReviewAnalyticsService {
   private processRatingArray(ratings: number[]): Record<string, number> {
     return ratings.reduce<Record<string, number>>((acc, rating) => {
       const key = `rating_${rating}`;
-      acc[key] = (acc[key] || 0) + 1;
+      acc[key] = (acc[key] ?? 0) + 1;
       return acc;
     }, {});
   }
@@ -602,9 +758,9 @@ export class ReviewAnalyticsService {
         },
       ];
 
-      const [result] = await this.reviewModel.aggregate(pipeline);
+      const [result] = await this.reviewModel.aggregate<IndustryReportAggregationResult>(pipeline);
 
-      if (!result) {
+      if (result === null || result === undefined) {
         return {
           industryType,
           totalReviews: 0,
@@ -618,7 +774,7 @@ export class ReviewAnalyticsService {
         industryType,
         totalReviews: result.totalReviews,
         totalEstablishments: result.totalEstablishments.length,
-        averageRating: Math.round(result.averageRating * 100) / 100,
+        averageRating: Math.round((result.averageRating ?? 0) * 100) / 100,
         sentimentDistribution: this.processSentimentArray(result.sentimentDistribution),
         ratingDistribution: this.processRatingArray(result.ratingDistribution),
         generatedAt: new Date(),
@@ -795,40 +951,33 @@ export class ReviewAnalyticsService {
       },
     ];
 
-    const [result] = await this.reviewModel.aggregate(pipeline);
+    const [result] = await this.reviewModel.aggregate<SentimentAnalysisAggregationResult>(pipeline);
+    const sentimentAnalysis = result ?? EMPTY_SENTIMENT_ANALYSIS;
 
     // Process distribution
-    const distribution = result.distribution.reduce(
-      (acc: Record<string, number>, item: { _id: string | null; count: number }) => {
-        acc[item._id || 'unknown'] = item.count;
+    const distribution = sentimentAnalysis.distribution.reduce(
+      (acc: Record<string, number>, item) => {
+        acc[item._id ?? 'unknown'] = item.count;
         return acc;
       },
       {},
     );
 
     // Process trends
-    const trends = result.trends.map(
-      (item: { _id: string; positive: number; negative: number; neutral: number }) => ({
-        date: item._id,
-        positive: item.positive,
-        negative: item.negative,
-        neutral: item.neutral,
-      }),
-    );
+    const trends = sentimentAnalysis.trends.map((item) => ({
+      date: item._id,
+      positive: item.positive,
+      negative: item.negative,
+      neutral: item.neutral,
+    }));
 
     // Process keywords with impact analysis
-    const keywordAnalysis = result.keywords.map(
-      (item: {
-        _id: { keyword: string; sentiment: string };
-        frequency: number;
-        averageRating: number;
-      }) => ({
-        keyword: item._id.keyword,
-        sentiment: item._id.sentiment,
-        frequency: item.frequency,
-        impact: this.calculateKeywordImpact(item.frequency, item.averageRating),
-      }),
-    );
+    const keywordAnalysis = sentimentAnalysis.keywords.map((item) => ({
+      keyword: item._id.keyword,
+      sentiment: item._id.sentiment,
+      frequency: item.frequency,
+      impact: this.calculateKeywordImpact(item.frequency, item.averageRating),
+    }));
 
     return {
       distribution,
@@ -895,35 +1044,31 @@ export class ReviewAnalyticsService {
       },
     ];
 
-    const [result] = await this.reviewModel.aggregate(pipeline);
+    const [result] = await this.reviewModel.aggregate<RatingAnalysisAggregationResult>(pipeline);
+    const ratingAnalysis = result ?? EMPTY_RATING_ANALYSIS;
 
     // Process distribution
-    const distribution = result.distribution.reduce(
-      (acc: Record<string, number>, item: { _id: number; count: number }) => {
-        acc[`rating_${item._id}`] = item.count;
-        return acc;
-      },
-      {},
-    );
+    const distribution = ratingAnalysis.distribution.reduce((acc: Record<string, number>, item) => {
+      acc[`rating_${item._id}`] = item.count;
+      return acc;
+    }, {});
 
     // Process trends
-    const trends = result.trends.map(
-      (item: { _id: string; averageRating: number; reviewCount: number }) => ({
-        date: item._id,
-        averageRating: Math.round(item.averageRating * 100) / 100,
-        reviewCount: item.reviewCount,
-      }),
-    );
+    const trends = ratingAnalysis.trends.map((item) => ({
+      date: item._id,
+      averageRating: Math.round(item.averageRating * 100) / 100,
+      reviewCount: item.reviewCount,
+    }));
 
     // Process category breakdown
-    const categoryData = result.categoryBreakdown[0] || {};
+    const categoryData = ratingAnalysis.categoryBreakdown[0] ?? EMPTY_RATING_CATEGORY_BREAKDOWN;
     const categoryBreakdown = {
-      foodQuality: Math.round((categoryData.avgFoodQuality || 0) * 100) / 100,
-      serviceQuality: Math.round((categoryData.avgServiceQuality || 0) * 100) / 100,
-      valueForMoney: Math.round((categoryData.avgValueForMoney || 0) * 100) / 100,
-      packaging: Math.round((categoryData.avgPackaging || 0) * 100) / 100,
-      pickupExperience: Math.round((categoryData.avgPickupExperience || 0) * 100) / 100,
-      sustainability: Math.round((categoryData.avgSustainability || 0) * 100) / 100,
+      foodQuality: Math.round((categoryData.avgFoodQuality ?? 0) * 100) / 100,
+      serviceQuality: Math.round((categoryData.avgServiceQuality ?? 0) * 100) / 100,
+      valueForMoney: Math.round((categoryData.avgValueForMoney ?? 0) * 100) / 100,
+      packaging: Math.round((categoryData.avgPackaging ?? 0) * 100) / 100,
+      pickupExperience: Math.round((categoryData.avgPickupExperience ?? 0) * 100) / 100,
+      sustainability: Math.round((categoryData.avgSustainability ?? 0) * 100) / 100,
     };
 
     return {
@@ -1028,7 +1173,7 @@ export class ReviewAnalyticsService {
       const { distribution, keywordAnalysis } = analytics.sentimentAnalysis;
 
       const negativeRatio =
-        (distribution['negative'] || 0) /
+        (distribution['negative'] ?? 0) /
         Object.values(distribution).reduce((a: number, b: number) => a + b, 0);
 
       if (negativeRatio > 0.3) {
@@ -1166,7 +1311,7 @@ export class ReviewAnalyticsService {
     };
 
     return (
-      recommendations[category as keyof typeof recommendations] || [
+      recommendations[category as keyof typeof recommendations] ?? [
         'Analyze customer feedback for specific improvement areas',
         'Implement quality monitoring systems',
         'Train staff on best practices',
@@ -1189,10 +1334,11 @@ export class ReviewAnalyticsService {
       },
     ];
 
-    const [result] = await this.establishmentModel.aggregate(pipeline);
+    const [result] =
+      await this.establishmentModel.aggregate<IndustryStatisticsAggregationResult>(pipeline);
     return {
-      averageRating: Math.round((result?.averageRating || 0) * 100) / 100,
-      totalEstablishments: result?.totalEstablishments || 0,
+      averageRating: Math.round((result?.averageRating ?? 0) * 100) / 100,
+      totalEstablishments: result?.totalEstablishments ?? 0,
     };
   }
 }

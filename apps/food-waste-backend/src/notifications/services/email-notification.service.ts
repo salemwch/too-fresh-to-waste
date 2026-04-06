@@ -9,11 +9,12 @@ import { NotificationPreference } from '../schemas/notification-preference.schem
 import { NotificationTarget, NotificationPayload } from '../types/notification.types';
 
 import type Mail from 'nodemailer/lib/mailer';
+import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 @Injectable()
 export class EmailNotificationService implements INotificationProvider {
   private readonly logger = new Logger(EmailNotificationService.name);
-  private transporter!: nodemailer.Transporter;
+  private transporter!: nodemailer.Transporter<SMTPTransport.SentMessageInfo>;
 
   constructor(
     @InjectModel(NotificationPreference.name)
@@ -24,14 +25,14 @@ export class EmailNotificationService implements INotificationProvider {
     this.initializeTransporter();
   }
 
-  private initializeTransporter() {
-    const emailConfig = {
-      host: this.configService.get('SMTP_HOST'),
-      port: this.configService.get('SMTP_PORT', 587),
-      secure: this.configService.get('SMTP_SECURE', false),
+  private initializeTransporter(): void {
+    const emailConfig: SMTPTransport.Options = {
+      host: this.configService.get<string>('SMTP_HOST') ?? '',
+      port: this.configService.get<number>('SMTP_PORT', 587),
+      secure: this.configService.get<boolean>('SMTP_SECURE', false),
       auth: {
-        user: this.configService.get('SMTP_USER'),
-        pass: this.configService.get('SMTP_PASS'),
+        user: this.configService.get<string>('SMTP_USER') ?? '',
+        pass: this.configService.get<string>('SMTP_PASS') ?? '',
       },
     };
 
@@ -69,8 +70,8 @@ export class EmailNotificationService implements INotificationProvider {
         messageId: info.messageId,
         deliveryStatus: 'sent',
         metadata: {
-          accepted: info.accepted,
-          rejected: info.rejected,
+          accepted: this.normalizeMailRecipients(info.accepted),
+          rejected: this.normalizeMailRecipients(info.rejected),
           response: info.response,
         },
       };
@@ -128,14 +129,14 @@ export class EmailNotificationService implements INotificationProvider {
         };
       }
 
-      const mailOptions = {
-        from: options?.from || this.getDefaultFromAddress(),
+      const mailOptions: Mail.Options = {
+        from: options?.from ?? this.getDefaultFromAddress(),
         to: emailAddress,
         replyTo: options?.replyTo,
         subject: templateData.subject,
         html: templateData.htmlBody,
-        text: templateData.textBody || this.stripHtml(templateData.htmlBody),
-        attachments: options?.attachments || [],
+        text: templateData.textBody ?? this.stripHtml(templateData.htmlBody),
+        attachments: options?.attachments ?? [],
         headers: {
           'X-Mailer': 'TooFreshToWaste-Platform',
           'X-Priority': '3',
@@ -149,8 +150,8 @@ export class EmailNotificationService implements INotificationProvider {
         messageId: info.messageId,
         deliveryStatus: 'sent',
         metadata: {
-          accepted: info.accepted,
-          rejected: info.rejected,
+          accepted: this.normalizeMailRecipients(info.accepted),
+          rejected: this.normalizeMailRecipients(info.rejected),
           response: info.response,
         },
       };
@@ -191,7 +192,7 @@ export class EmailNotificationService implements INotificationProvider {
     };
 
     const template = templates[type];
-    if (!template) {
+    if (template === null || template === undefined) {
       return { success: false, error: `Unknown email template type: ${type}` };
     }
 
@@ -210,7 +211,7 @@ export class EmailNotificationService implements INotificationProvider {
     return null;
   }
 
-  private buildEmailMessage(payload: NotificationPayload, emailAddress: string) {
+  private buildEmailMessage(payload: NotificationPayload, emailAddress: string): Mail.Options {
     return {
       from: this.getDefaultFromAddress(),
       to: emailAddress,
@@ -263,9 +264,15 @@ export class EmailNotificationService implements INotificationProvider {
   }
 
   private getDefaultFromAddress(): string {
-    const fromName = this.configService.get('EMAIL_FROM_NAME', 'Too Fresh To Waste');
-    const fromEmail = this.configService.get('EMAIL_FROM_ADDRESS', 'noreply@foodwaste.com');
+    const fromName = this.configService.get<string>('EMAIL_FROM_NAME', 'Too Fresh To Waste');
+    const fromEmail = this.configService.get<string>('EMAIL_FROM_ADDRESS', 'noreply@foodwaste.com');
     return `"${fromName}" <${fromEmail}>`;
+  }
+
+  private normalizeMailRecipients(recipients: Array<string | Mail.Address>): string[] {
+    return recipients.map((recipient) =>
+      typeof recipient === 'string' ? recipient : recipient.address,
+    );
   }
 
   private stripHtml(html: string): string {

@@ -518,9 +518,18 @@ describe('AuthService', () => {
         // Assert
         expect(result.success).toBe(true);
         expect(result.message).toBe('Login successful');
-        expect(result.user!.userId).toBe(mockUserId);
-        expect(result.tokens!.accessToken).toBe(mockAccessToken);
-        expect(result.tokens!.refreshToken).toBe(mockRefreshToken);
+        expect(result.user).toBeDefined();
+        expect(result.tokens).toBeDefined();
+
+        const resultUser = result.user;
+        const resultTokens = result.tokens;
+        if (!resultUser || !resultTokens) {
+          throw new Error('Expected login result to include user and tokens');
+        }
+
+        expect(resultUser.userId).toBe(mockUserId);
+        expect(resultTokens.accessToken).toBe(mockAccessToken);
+        expect(resultTokens.refreshToken).toBe(mockRefreshToken);
         expect(usersService.resetFailedLoginAttempts).toHaveBeenCalledWith(mockUserId);
         expect(usersService.addRefreshToken).toHaveBeenCalledWith(mockUserId, mockRefreshToken);
         expect(usersService.updateLastLogin).toHaveBeenCalledWith(
@@ -580,6 +589,32 @@ describe('AuthService', () => {
     });
 
     describe('Negative Tests - Invalid Login', () => {
+      const getUnauthorizedLoginError = async (): Promise<UnauthorizedException> => {
+        try {
+          await service.login(mockLoginDto, mockRequestInfo);
+        } catch (error: unknown) {
+          if (error instanceof UnauthorizedException) {
+            return error;
+          }
+
+          throw error;
+        }
+
+        throw new Error('Expected UnauthorizedException');
+      };
+
+      const getUnauthorizedResponse = (
+        error: UnauthorizedException,
+      ): { message?: string | string[]; type?: string } => {
+        const response = error.getResponse();
+
+        if (typeof response === 'string') {
+          return { message: response };
+        }
+
+        return response as { message?: string | string[]; type?: string };
+      };
+
       it('should_ThrowUnauthorizedException_When_UserNotFound', async () => {
         // Arrange
         jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null as unknown as UserDocument);
@@ -626,10 +661,11 @@ describe('AuthService', () => {
           .mockResolvedValue(suspendedUser as unknown as UserDocument);
 
         // Act & Assert
-        const error = await service.login(mockLoginDto, mockRequestInfo).catch((e) => e);
+        const error = await getUnauthorizedLoginError();
+        const response = getUnauthorizedResponse(error);
         expect(error).toBeInstanceOf(UnauthorizedException);
-        expect(error.response.message).toBe('Account is suspended');
-        expect(error.response.type).toBe('ACCOUNT_SUSPENDED');
+        expect(response.message).toBe('Account is suspended');
+        expect(response.type).toBe('ACCOUNT_SUSPENDED');
       });
 
       it('should_ThrowUnauthorizedException_When_AccountInactive', async () => {
@@ -654,10 +690,11 @@ describe('AuthService', () => {
         jest.spyOn(usersService, 'incrementFailedLoginAttempts').mockResolvedValue(undefined);
 
         // Act & Assert
-        const error = await service.login(mockLoginDto, mockRequestInfo).catch((e) => e);
+        const error = await getUnauthorizedLoginError();
+        const response = getUnauthorizedResponse(error);
         expect(error).toBeInstanceOf(UnauthorizedException);
-        expect(error.response.message).toBe('The password you entered is incorrect');
-        expect(error.response.type).toBe('INVALID_PASSWORD');
+        expect(response.message).toBe('The password you entered is incorrect');
+        expect(response.type).toBe('INVALID_PASSWORD');
         // Audit counter persisted to MongoDB
         expect(usersService.incrementFailedLoginAttempts).toHaveBeenCalledWith(
           mockUserId,
@@ -676,7 +713,7 @@ describe('AuthService', () => {
         jest.spyOn(usersService, 'incrementFailedLoginAttempts').mockResolvedValue(undefined);
 
         // Act & Assert
-        const error = await service.login(mockLoginDto, mockRequestInfo).catch((e) => e);
+        const error = await getUnauthorizedLoginError();
         expect(error).toBeInstanceOf(UnauthorizedException);
         expect(usersService.incrementFailedLoginAttempts).toHaveBeenCalledWith(
           mockUserId,

@@ -7,7 +7,7 @@
  * @see https://docs.nestjs.com/techniques/configuration#schema-validation
  */
 
-import * as Joi from 'joi';
+import Joi from 'joi';
 
 export const envValidationSchema = Joi.object({
   // ── Application ──────────────────────────────────────────────────────

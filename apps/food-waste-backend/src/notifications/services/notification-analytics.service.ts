@@ -6,6 +6,55 @@ import { Model, UpdateQuery } from 'mongoose';
 import { INotificationAnalytics, NotificationMetrics } from '../interfaces/notification.interfaces';
 import { Notification } from '../schemas/notification.schema';
 
+type NotificationGroupBy = 'hour' | 'day' | 'week' | 'month';
+
+interface GroupedNotificationEntry {
+  channel?: string;
+  trigger?: string;
+  status: string;
+  isRead?: boolean;
+}
+
+interface NotificationMetricsAggregateResult {
+  totalSent: number;
+  totalDelivered: number;
+  totalFailed: number;
+  totalOpened: number;
+  byChannel: GroupedNotificationEntry[];
+  byTrigger: GroupedNotificationEntry[];
+}
+
+interface NotificationCountAggregateResult {
+  sent: number;
+  delivered: number;
+  failed: number;
+  opened: number;
+}
+
+interface NotificationTimePeriod {
+  year: number;
+  month?: number;
+  day?: number;
+  hour?: number;
+  week?: number;
+}
+
+interface NotificationTimeSeriesAggregateResult {
+  period: NotificationTimePeriod;
+  sent: number;
+  delivered: number;
+  failed: number;
+  opened: number;
+}
+
+function getMetadataDate(
+  metadata: Record<string, unknown> | undefined,
+  key: string,
+): Date | undefined {
+  const value = metadata?.[key];
+  return value instanceof Date ? value : undefined;
+}
+
 @Injectable()
 export class NotificationAnalyticsService implements INotificationAnalytics {
   private readonly logger = new Logger(NotificationAnalyticsService.name);
@@ -82,18 +131,18 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
 
       switch (event) {
         case 'delivered':
-          updateData.deliveredAt = metadata?.['deliveredAt'] || new Date();
+          updateData.deliveredAt = getMetadataDate(metadata, 'deliveredAt') ?? new Date();
           updateData.status = 'delivered';
           break;
         case 'opened':
         case 'read':
-          updateData.readAt = metadata?.['openedAt'] || new Date();
+          updateData.readAt = getMetadataDate(metadata, 'openedAt') ?? new Date();
           updateData.isRead = true;
           updateData.status = 'read';
           break;
         case 'clicked':
-          if (!updateData.readAt) {
-            updateData.readAt = metadata?.['clickedAt'] || new Date();
+          if (updateData.readAt === null || updateData.readAt === undefined) {
+            updateData.readAt = getMetadataDate(metadata, 'clickedAt') ?? new Date();
             updateData.isRead = true;
           }
           break;
@@ -179,13 +228,13 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
         },
       ];
 
-      const result = await this.notificationModel.aggregate(pipeline);
+      const result =
+        await this.notificationModel.aggregate<NotificationMetricsAggregateResult>(pipeline);
+      const [data] = result;
 
-      if (result.length === 0) {
+      if (data === null || data === undefined) {
         return this.getEmptyMetrics();
       }
-
-      const data = result[0];
 
       // Process channel statistics
       const byChannel = this.processGroupedStats(data.byChannel, 'channel');
@@ -268,20 +317,24 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
       },
     ];
 
-    const result = await this.notificationModel.aggregate(pipeline);
+    const result =
+      await this.notificationModel.aggregate<NotificationCountAggregateResult>(pipeline);
+    const [data] = result;
 
-    if (result.length === 0) {
+    if (data === null || data === undefined) {
       return { sent: 0, delivered: 0, failed: 0, opened: 0, deliveryRate: 0, openRate: 0 };
     }
 
-    const data = result[0];
     const deliveryRate =
       data.sent > 0 ? Math.round((data.delivered / data.sent) * 100 * 100) / 100 : 0;
     const openRate =
       data.delivered > 0 ? Math.round((data.opened / data.delivered) * 100 * 100) / 100 : 0;
 
     return {
-      ...data,
+      sent: data.sent,
+      delivered: data.delivered,
+      failed: data.failed,
+      opened: data.opened,
       deliveryRate,
       openRate,
     };
@@ -335,20 +388,24 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
       },
     ];
 
-    const result = await this.notificationModel.aggregate(pipeline);
+    const result =
+      await this.notificationModel.aggregate<NotificationCountAggregateResult>(pipeline);
+    const [data] = result;
 
-    if (result.length === 0) {
+    if (data === null || data === undefined) {
       return { sent: 0, delivered: 0, failed: 0, opened: 0, deliveryRate: 0, openRate: 0 };
     }
 
-    const data = result[0];
     const deliveryRate =
       data.sent > 0 ? Math.round((data.delivered / data.sent) * 100 * 100) / 100 : 0;
     const openRate =
       data.delivered > 0 ? Math.round((data.opened / data.delivered) * 100 * 100) / 100 : 0;
 
     return {
-      ...data,
+      sent: data.sent,
+      delivered: data.delivered,
+      failed: data.failed,
+      opened: data.opened,
       deliveryRate,
       openRate,
     };
@@ -356,7 +413,7 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
 
   async getTimeSeriesMetrics(
     timeRange: { from: Date; to: Date },
-    groupBy: 'hour' | 'day' | 'week' | 'month' = 'day',
+    groupBy: NotificationGroupBy = 'day',
   ): Promise<
     Array<{
       period: string;
@@ -421,13 +478,22 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
 
     const pipeline = [matchStage, groupStage_pipeline, sortStage, projectStage];
 
-    const metrics = await this.notificationModel.aggregate(pipeline).exec();
-    return metrics;
+    const metrics = await this.notificationModel
+      .aggregate<NotificationTimeSeriesAggregateResult>(pipeline)
+      .exec();
+
+    return metrics.map((metric) => ({
+      period: this.formatTimePeriod(metric.period, groupBy),
+      sent: metric.sent,
+      delivered: metric.delivered,
+      failed: metric.failed,
+      opened: metric.opened,
+    }));
   }
 
   private processGroupedStats(
-    data: Array<{ status: string; isRead?: boolean; [key: string]: unknown }>,
-    groupField: string,
+    data: GroupedNotificationEntry[],
+    groupField: 'channel' | 'trigger',
   ): Record<
     string,
     { sent: number; delivered: number; failed: number; opened: number; clicked: number }
@@ -438,10 +504,8 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
     > = {};
 
     data.forEach((item) => {
-      const key = item[groupField] as string;
-      if (!stats[key]) {
-        stats[key] = { sent: 0, delivered: 0, failed: 0, opened: 0, clicked: 0 };
-      }
+      const key = item[groupField] ?? 'unknown';
+      stats[key] ??= { sent: 0, delivered: 0, failed: 0, opened: 0, clicked: 0 };
 
       if (['sent', 'delivered', 'read'].includes(item.status)) {
         stats[key].sent++;
@@ -452,7 +516,7 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
       if (item.status === 'failed') {
         stats[key].failed++;
       }
-      if (item.isRead) {
+      if (item.isRead === true) {
         stats[key].opened++;
       }
     });
@@ -461,7 +525,7 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
   }
 
   private getTimeGroupStage(
-    groupBy: string,
+    groupBy: NotificationGroupBy,
   ): Record<
     string,
     { $year?: string; $month?: string; $dayOfMonth?: string; $hour?: string; $week?: string }
@@ -496,6 +560,25 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
           month: { $month: '$createdAt' },
           day: { $dayOfMonth: '$createdAt' },
         };
+    }
+  }
+
+  private formatTimePeriod(period: NotificationTimePeriod, groupBy: NotificationGroupBy): string {
+    const month = String(period.month ?? 1).padStart(2, '0');
+    const day = String(period.day ?? 1).padStart(2, '0');
+    const hour = String(period.hour ?? 0).padStart(2, '0');
+
+    switch (groupBy) {
+      case 'hour':
+        return `${period.year}-${month}-${day} ${hour}:00`;
+      case 'day':
+        return `${period.year}-${month}-${day}`;
+      case 'week':
+        return `${period.year}-W${String(period.week ?? 1).padStart(2, '0')}`;
+      case 'month':
+        return `${period.year}-${month}`;
+      default:
+        return `${period.year}-${month}-${day}`;
     }
   }
 

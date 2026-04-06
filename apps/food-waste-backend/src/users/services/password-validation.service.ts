@@ -2,11 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as argon2 from 'argon2';
 import { Model } from 'mongoose';
+import zxcvbn from 'zxcvbn';
 
 import { USER_AUDIT_LOG_MAX } from '../../common/constants/database-indexes.constant';
 import { User, UserDocument } from '../schemas/user.schema';
 
-const zxcvbn = require('zxcvbn');
+type ZxcvbnResult = ReturnType<typeof zxcvbn>;
 
 export interface PasswordStrengthResult {
   score: number; // 0-4 (0 = very weak, 4 = very strong)
@@ -346,18 +347,16 @@ export class PasswordValidationService {
       : [];
   }
 
-  private applyZxcvbnResults(
-    zxcvbnResult: {
-      score: number;
-      crack_times_display: { offline_slow_hashing_1e4_per_second: string };
-      feedback: { warning?: string; suggestions: string[] };
-    },
-    result: PasswordStrengthResult,
-  ): void {
+  private applyZxcvbnResults(zxcvbnResult: ZxcvbnResult, result: PasswordStrengthResult): void {
     result.score = zxcvbnResult.score;
-    result.crackTimeDisplay = zxcvbnResult.crack_times_display.offline_slow_hashing_1e4_per_second;
+    result.crackTimeDisplay = String(
+      zxcvbnResult.crack_times_display.offline_slow_hashing_1e4_per_second,
+    );
 
-    if (zxcvbnResult.feedback.warning) {
+    if (
+      typeof zxcvbnResult.feedback.warning === 'string' &&
+      zxcvbnResult.feedback.warning.length > 0
+    ) {
       result.warning = zxcvbnResult.feedback.warning;
     }
 
@@ -405,19 +404,15 @@ export class PasswordValidationService {
       return;
     }
 
-    if (!user.securitySettings) {
-      user.securitySettings = {
-        passwordStrength: { score: 0, feedback: [] },
-        securityQuestions: [],
-        passwordHistory: [],
-        loginNotifications: true,
-        suspiciousActivityNotifications: true,
-      };
-    }
+    user.securitySettings ??= {
+      passwordStrength: { score: 0, feedback: [] },
+      securityQuestions: [],
+      passwordHistory: [],
+      loginNotifications: true,
+      suspiciousActivityNotifications: true,
+    };
 
-    if (!user.securitySettings.passwordHistory) {
-      user.securitySettings.passwordHistory = [];
-    }
+    user.securitySettings.passwordHistory ??= [];
 
     // Add new password to history
     user.securitySettings.passwordHistory.unshift(hashedPassword);
@@ -448,15 +443,13 @@ export class PasswordValidationService {
       return;
     }
 
-    if (!user.securitySettings) {
-      user.securitySettings = {
-        passwordStrength: { score: 0, feedback: [] },
-        securityQuestions: [],
-        passwordHistory: [],
-        loginNotifications: true,
-        suspiciousActivityNotifications: true,
-      };
-    }
+    user.securitySettings ??= {
+      passwordStrength: { score: 0, feedback: [] },
+      securityQuestions: [],
+      passwordHistory: [],
+      loginNotifications: true,
+      suspiciousActivityNotifications: true,
+    };
 
     user.securitySettings.passwordStrength = {
       score: passwordStrength.score,
@@ -502,22 +495,18 @@ export class PasswordValidationService {
       return;
     }
 
-    if (!user.securitySettings) {
-      user.securitySettings = {
-        passwordStrength: { score: 0, feedback: [] },
-        securityQuestions: [],
-        passwordHistory: [],
-        loginNotifications: true,
-        suspiciousActivityNotifications: true,
-      };
-    }
+    user.securitySettings ??= {
+      passwordStrength: { score: 0, feedback: [] },
+      securityQuestions: [],
+      passwordHistory: [],
+      loginNotifications: true,
+      suspiciousActivityNotifications: true,
+    };
 
     user.securitySettings.requirePasswordChangeAt = new Date();
 
     // Add audit log entry
-    if (!user.auditLog) {
-      user.auditLog = [];
-    }
+    user.auditLog ??= [];
 
     user.auditLog.unshift({
       action: 'PASSWORD_CHANGE_REQUIRED',
@@ -565,7 +554,7 @@ export class PasswordValidationService {
     }
 
     const passwordAge = await this.checkPasswordAge(userId);
-    const historyCount = user.securitySettings?.passwordHistory?.length || 0;
+    const historyCount = user.securitySettings?.passwordHistory?.length ?? 0;
 
     const currentStrength = user.securitySettings?.passwordStrength
       ? {
@@ -615,7 +604,7 @@ export class PasswordValidationService {
       recommendations.push('Consider using a stronger password');
     }
 
-    if (!user.mfaSettings?.isEnabled) {
+    if (user.mfaSettings?.isEnabled !== true) {
       recommendations.push('Enable multi-factor authentication for better security');
     }
 

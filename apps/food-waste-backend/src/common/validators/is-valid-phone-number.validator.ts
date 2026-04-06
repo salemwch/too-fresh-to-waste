@@ -55,11 +55,11 @@ class IsValidPhoneNumberConstraint implements ValidatorConstraintInterface {
    */
   validate(value: unknown, args: ValidationArguments): boolean {
     // Get options from decorator
-    const options = (args.constraints[0] as PhoneNumberValidationOptions) || {};
+    const options = (args.constraints[0] as PhoneNumberValidationOptions | undefined) ?? {};
     const { defaultCountry, allowNationalFormat = false, required = false } = options;
 
     // Handle optional fields
-    if (!value || value === '') {
+    if (value === null || value === undefined || value === '') {
       return !required; // Valid if not required, invalid if required
     }
 
@@ -99,10 +99,10 @@ class IsValidPhoneNumberConstraint implements ValidatorConstraintInterface {
    * @returns Error message
    */
   defaultMessage(args: ValidationArguments): string {
-    const options = (args.constraints[0] as PhoneNumberValidationOptions) || {};
+    const options = (args.constraints[0] as PhoneNumberValidationOptions | undefined) ?? {};
     const { defaultCountry, allowNationalFormat } = options;
 
-    if (defaultCountry && allowNationalFormat) {
+    if (defaultCountry && allowNationalFormat === true) {
       return `${args.property} must be a valid phone number (international format with + or ${defaultCountry} national format)`;
     } else if (defaultCountry) {
       return `${args.property} must be a valid phone number in international format (e.g., +1234567890)`;

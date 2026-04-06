@@ -37,6 +37,15 @@ export interface SecureCookieOptions {
  * @rationale FAANG-level security standards for authentication cookies
  */
 export class CookieSecurityUtil {
+  private static normalizeDomain(domain?: string): string | undefined {
+    if (domain === null || domain === undefined) {
+      return undefined;
+    }
+
+    const trimmedDomain = domain.trim();
+    return trimmedDomain.length > 0 ? trimmedDomain : undefined;
+  }
+
   /**
    * Get secure cookie options based on environment with MANDATORY security attributes
    *
@@ -65,7 +74,7 @@ export class CookieSecurityUtil {
       // originates from an external site. 'lax' still prevents CSRF on POST/PUT/DELETE.
       sameSite: 'lax',
       path: '/',
-      domain: domain || undefined, // ✓ HIGH: Domain restriction (undefined = current domain only)
+      domain: this.normalizeDomain(domain), // ✓ HIGH: Domain restriction (undefined = current domain only)
       signed: false, // Optional: Enable for cookie integrity verification
     };
 
@@ -262,7 +271,7 @@ export class CookieSecurityUtil {
         httpOnly: true, // ✓ CRITICAL: XSS protection
         secure: isProduction, // ✓ CRITICAL: HTTPS enforcement
         sameSite: 'strict', // ✓ CRITICAL: CSRF protection
-        domain: domain || 'current-domain-only', // ✓ HIGH: Subdomain protection
+        domain: this.normalizeDomain(domain) ?? 'current-domain-only', // ✓ HIGH: Subdomain protection
         signed: false, // Optional: integrity verification
       },
       tokenLifetime: {

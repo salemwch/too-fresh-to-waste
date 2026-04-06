@@ -79,6 +79,9 @@ export interface SafeUserResponse {
  * @returns Safe user data for client
  */
 export function mapToSafeUserResponse(userDoc: UserDocument): SafeUserResponse {
+  const rawUserId = (userDoc as unknown as Record<string, unknown>)['id'];
+  const safeUserId = typeof rawUserId === 'string' ? rawUserId : String(rawUserId);
+
   // Extract only safe privacy settings
   const safePrivacySettings: SafePrivacySettings | undefined = userDoc.privacySettings
     ? {
@@ -93,7 +96,7 @@ export function mapToSafeUserResponse(userDoc: UserDocument): SafeUserResponse {
     : undefined;
 
   return {
-    userId: userDoc._id?.toString() || userDoc.id,
+    userId: safeUserId,
     email: userDoc.email,
     firstName: userDoc.firstName,
     lastName: userDoc.lastName,

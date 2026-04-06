@@ -42,33 +42,33 @@ All endpoints require JWT authentication (`@UseGuards(JwtAuthGuard)`)
 
 #### Inventory Management
 
-| Method | Endpoint | Auth Roles | Description |
-|--------|----------|------------|-------------|
-| POST | `/` | MERCHANT, ADMIN | Create new inventory item |
-| GET | `/` | ALL | List items with filters (pagination, status, category) |
-| GET | `/:id` | ALL | Get single item by ID |
-| PUT | `/:id` | MERCHANT, ADMIN | Update item (not implemented) |
+| Method | Endpoint | Auth Roles      | Description                                            |
+| ------ | -------- | --------------- | ------------------------------------------------------ |
+| POST   | `/`      | MERCHANT, ADMIN | Create new inventory item                              |
+| GET    | `/`      | ALL             | List items with filters (pagination, status, category) |
+| GET    | `/:id`   | ALL             | Get single item by ID                                  |
+| PUT    | `/:id`   | MERCHANT, ADMIN | Update item (not implemented)                          |
 
 #### Stock Operations
 
-| Method | Endpoint | Auth Roles | Description |
-|--------|----------|------------|-------------|
-| PATCH | `/:id/stock` | MERCHANT, ADMIN | Update stock quantity |
-| POST | `/:id/reserve` | CONSUMER, MERCHANT, ADMIN | Reserve stock for order |
-| POST | `/:id/release` | MERCHANT, ADMIN | Release reserved stock |
-| POST | `/:id/confirm-sale` | MERCHANT, ADMIN | Confirm sale and deduct stock |
-| POST | `/bulk-update` | MERCHANT, ADMIN | Bulk update stock for multiple items |
+| Method | Endpoint            | Auth Roles                | Description                          |
+| ------ | ------------------- | ------------------------- | ------------------------------------ |
+| PATCH  | `/:id/stock`        | MERCHANT, ADMIN           | Update stock quantity                |
+| POST   | `/:id/reserve`      | CONSUMER, MERCHANT, ADMIN | Reserve stock for order              |
+| POST   | `/:id/release`      | MERCHANT, ADMIN           | Release reserved stock               |
+| POST   | `/:id/confirm-sale` | MERCHANT, ADMIN           | Confirm sale and deduct stock        |
+| POST   | `/bulk-update`      | MERCHANT, ADMIN           | Bulk update stock for multiple items |
 
 #### Analytics & Reports
 
-| Method | Endpoint | Auth Roles | Description |
-|--------|----------|------------|-------------|
-| GET | `/analytics/overview` | MERCHANT, ADMIN | Inventory analytics (totals, value, revenue) |
-| GET | `/alerts/active` | MERCHANT, ADMIN | Get active unacknowledged alerts |
-| POST | `/alerts/:alertId/acknowledge` | MERCHANT, ADMIN | Acknowledge alert (not implemented) |
-| GET | `/reports/low-stock` | MERCHANT, ADMIN | Low stock report |
-| GET | `/reports/expiring` | MERCHANT, ADMIN | Expiring items report (default: 3 days) |
-| GET | `/:id/history` | MERCHANT, ADMIN | Stock movement history for item |
+| Method | Endpoint                       | Auth Roles      | Description                                  |
+| ------ | ------------------------------ | --------------- | -------------------------------------------- |
+| GET    | `/analytics/overview`          | MERCHANT, ADMIN | Inventory analytics (totals, value, revenue) |
+| GET    | `/alerts/active`               | MERCHANT, ADMIN | Get active unacknowledged alerts             |
+| POST   | `/alerts/:alertId/acknowledge` | MERCHANT, ADMIN | Acknowledge alert (not implemented)          |
+| GET    | `/reports/low-stock`           | MERCHANT, ADMIN | Low stock report                             |
+| GET    | `/reports/expiring`            | MERCHANT, ADMIN | Expiring items report (default: 3 days)      |
+| GET    | `/:id/history`                 | MERCHANT, ADMIN | Stock movement history for item              |
 
 ---
 
@@ -150,7 +150,7 @@ enum InventoryStatus {
   LOW_STOCK = 'low_stock',
   OUT_OF_STOCK = 'out_of_stock',
   EXPIRED = 'expired',
-  RESERVED = 'reserved'
+  RESERVED = 'reserved',
 }
 
 enum StockUpdateReason {
@@ -160,7 +160,7 @@ enum StockUpdateReason {
   EXPIRED = 'expired',
   DAMAGED = 'damaged',
   SOLD_OUT = 'sold_out',
-  RESTOCKED = 'restocked'
+  RESTOCKED = 'restocked',
 }
 ```
 
@@ -198,11 +198,13 @@ POST /api/v1/inventory/:id/confirm-sale
 ```
 
 **Flow**:
+
 1. Order placed → Reserve stock (`reservedStock += quantity`)
 2. Order cancelled → Release stock (`reservedStock -= quantity`)
 3. Order completed → Confirm sale (`currentStock -= quantity, reservedStock -= quantity`)
 
 **Validation**:
+
 - Reserve: `availableStock >= quantity`
 - Release: `reservedStock >= quantity`
 - Confirm: `reservedStock >= quantity`
@@ -231,6 +233,7 @@ else if (availableStock > 0) → AVAILABLE
 ### 4. Audit Trail
 
 Every stock change recorded in `stockHistory[]`:
+
 - Quantity change
 - Previous/new quantities
 - Reason (enum)
@@ -265,6 +268,7 @@ GET /api/v1/inventory/analytics/overview?establishmentId=676b...
 ```
 
 Returns aggregated metrics:
+
 - Total items/stock/reserved/available
 - Total inventory value
 - Total revenue
@@ -297,6 +301,7 @@ Optional fields: `description`, `lowStockThreshold` (default: 5), `batchNumber`,
 ### InventoryFiltersDto
 
 Supports pagination and filtering:
+
 - `establishmentId`: Filter by merchant
 - `status`: Filter by InventoryStatus
 - `category`: Filter by category
@@ -368,6 +373,7 @@ Run `pnpm verify:indexes` after schema changes.
 ### Validation
 
 All DTOs use class-validator:
+
 - `@IsMongoId()`: ObjectId format validation
 - `@Min(0)`: Non-negative numbers
 - `@IsEnum()`: Valid enum values
@@ -384,6 +390,7 @@ All endpoints require JWT Bearer token via `JwtAuthGuard`.
 ### Authorization
 
 Role-based access control:
+
 - **CONSUMER**: Can reserve stock (order placement)
 - **MERCHANT**: Can manage inventory for own establishments
 - **ADMIN**: Full access to all inventory operations
@@ -399,6 +406,7 @@ Merchants can only update inventory for their own establishments (enforced in se
 ### Unit Tests
 
 Test service methods:
+
 - Stock calculations (available = current - reserved)
 - Alert generation logic
 - Status auto-update logic
@@ -407,6 +415,7 @@ Test service methods:
 ### Integration Tests
 
 Test controller endpoints:
+
 - CRUD operations with authentication
 - Stock reservation flow
 - Bulk operations
@@ -415,6 +424,7 @@ Test controller endpoints:
 ### E2E Tests
 
 Test complete workflows:
+
 1. Create inventory item → Reserve stock → Confirm sale → Verify stock reduced
 2. Create inventory item → Reserve stock → Cancel order → Verify stock released
 3. Item expiration → Verify cron job marks as expired
@@ -498,6 +508,7 @@ Returns sorted stock movements with timestamps and reasons.
 ### Indexes
 
 Compound indexes optimize common queries:
+
 - Merchant inventory listing: `{ establishmentId: 1, status: 1 }`
 - Low stock detection: `{ currentStock: 1, lowStockThreshold: 1 }`
 
@@ -541,12 +552,14 @@ Analytics endpoint uses MongoDB aggregation for efficient calculations without l
 ### Structured Logs
 
 Service uses `Logger` from `@nestjs/common`:
+
 - Info: Stock updates, reservations, bulk operations
 - Error: DB failures, validation errors, cron job failures
 
 ### Metrics
 
 Track via Prometheus (`/metrics`):
+
 - Total inventory items by status
 - Stock reservation rate
 - Alert generation rate
@@ -555,6 +568,7 @@ Track via Prometheus (`/metrics`):
 ### Health Checks
 
 Inventory module health included in `/health/readiness`:
+
 - MongoDB connection status
 - Scheduled job status
 - Alert processing lag
@@ -614,6 +628,7 @@ Filter by `Inventory` tag to view all inventory endpoints.
 ## Contact & Support
 
 For questions or issues related to inventory management:
+
 1. Check this documentation
 2. Review Swagger API docs
 3. Inspect service logs with correlation IDs

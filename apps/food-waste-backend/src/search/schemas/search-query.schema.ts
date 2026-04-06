@@ -101,14 +101,12 @@ export class SearchQuery {
 
 export const SearchQuerySchema = SchemaFactory.createForClass(SearchQuery);
 
-// Indexes for performance
+// Indexes — 5 targeted (trimmed from 6)
 SearchQuerySchema.index({ query: 'text' });
 SearchQuerySchema.index({ userId: 1, createdAt: -1 });
 SearchQuerySchema.index({ sessionId: 1, createdAt: -1 });
-SearchQuerySchema.index({ createdAt: -1 });
 SearchQuerySchema.index({ 'location.coordinates': '2dsphere' });
-
-// TTL index: auto-delete search queries after 90 days to prevent unbounded collection growth
+// TTL: auto-delete after 90 days (also serves createdAt sort via ascending scan)
 SearchQuerySchema.index(
   { createdAt: 1 },
   { expireAfterSeconds: 7776000, name: 'idx_searchqueries_createdAt_ttl_90d' },

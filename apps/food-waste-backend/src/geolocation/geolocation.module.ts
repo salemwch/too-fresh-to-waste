@@ -1,28 +1,27 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { HttpModule } from '@nestjs/axios';
 
 // Schemas
-import { User, UserSchema } from '../users/schemas/user.schema';
+import { EstablishmentsModule } from '../establishments/establishments.module';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
+import { OffersModule } from '../offers/offers.module';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
+import { User, UserSchema } from '../users/schemas/user.schema';
+import { UsersModule } from '../users/user.module';
 
-// Services
-import { GeolocationService } from './services/geolocation.service';
-import { ProximitySearchService } from './services/proximity-search.service';
-import { UserLocationService } from './services/user-location.service';
-import { GooglePlacesService } from './services/google-places.service';
-import { GeoapifyService } from './services/geoapify.service';
-
-// Controllers
 import { GeolocationController } from './controllers/geolocation.controller';
 import { ProximitySearchController } from './controllers/proximity-search.controller';
 import { UserLocationController } from './controllers/user-location.controller';
+import { GeoapifyService } from './services/geoapify.service';
+import { GeolocationService } from './services/geolocation.service';
+import { GooglePlacesService } from './services/google-places.service';
+import { ProximitySearchService } from './services/proximity-search.service';
+import { UserLocationService } from './services/user-location.service';
+
+// Controllers
 
 // Modules
-import { UsersModule } from '../users/user.module';
-import { EstablishmentsModule } from '../establishments/establishments.module';
-import { OffersModule } from '../offers/offers.module';
 
 @Module({
   imports: [
@@ -36,7 +35,7 @@ import { OffersModule } from '../offers/offers.module';
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Establishment.name, schema: EstablishmentSchema },
-      { name: Offer.name, schema: OfferSchema }
+      { name: Offer.name, schema: OfferSchema },
     ]),
 
     // Import related modules (using forwardRef to avoid circular dependencies)
@@ -45,11 +44,7 @@ import { OffersModule } from '../offers/offers.module';
     forwardRef(() => OffersModule),
   ],
 
-  controllers: [
-    GeolocationController,
-    ProximitySearchController,
-    UserLocationController,
-  ],
+  controllers: [GeolocationController, ProximitySearchController, UserLocationController],
 
   providers: [
     GeolocationService,

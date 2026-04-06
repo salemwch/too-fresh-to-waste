@@ -454,8 +454,8 @@ OrderSchema.pre('save', function (next) {
     !this.expiresAt
   ) {
     const pickupDate = new Date(this.pickupDetails.scheduledDate);
-    const endTime = this.pickupDetails.timeSlot.endTime.split(':');
-    pickupDate.setHours(parseInt(endTime[0]!, 10), parseInt(endTime[1]!, 10), 0, 0);
+    const [endHour = '0', endMinute = '0'] = this.pickupDetails.timeSlot.endTime.split(':');
+    pickupDate.setHours(parseInt(endHour, 10), parseInt(endMinute, 10), 0, 0);
     this.expiresAt = new Date(pickupDate.getTime() + 30 * 60 * 1000); // +30 minutes fallback
   }
 
@@ -480,6 +480,9 @@ OrderSchema.pre('save', function (next) {
       case OrderStatus.EXPIRED:
         this.expiredAt = now;
         break;
+      case OrderStatus.PENDING:
+      case OrderStatus.REFUNDED:
+        break;
     }
   }
 
@@ -492,15 +495,16 @@ OrderSchema.pre('save', function (next) {
 // =============================================================================
 
 OrderSchema.pre<Query<OrderDocument[], OrderDocument>>(/^find/, function (next) {
-  if (!this.getOptions()?.['includeDeleted']) {
+  const queryOptions = this.getOptions() as Record<string, unknown> | undefined;
+  if (queryOptions?.['includeDeleted'] !== true) {
     this.where({ isDeleted: { $ne: true } });
   }
   next();
 });
 
 OrderSchema.pre('aggregate', function () {
-  const options = (this as { options?: Record<string, unknown> }).options || {};
-  if (!options['includeDeleted']) {
+  const options = (this as { options?: Record<string, unknown> }).options;
+  if (options?.['includeDeleted'] !== true) {
     this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
   }
 });

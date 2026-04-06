@@ -15,8 +15,8 @@ import type { ExecutionContext } from '@nestjs/common';
  */
 export const TenantCtx = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): TenantContext | null => {
-    const request = ctx.switchToHttp().getRequest();
-    return request.tenantContext || null;
+    const request = ctx.switchToHttp().getRequest<{ tenantContext?: TenantContext }>();
+    return request.tenantContext ?? null;
   },
 );
 
@@ -32,7 +32,8 @@ export const TenantCtx = createParamDecorator(
  */
 export const TenantId = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): string | null => {
-    const request = ctx.switchToHttp().getRequest();
-    return request.tenantContext?.tenantId?.toString() || null;
+    const request = ctx.switchToHttp().getRequest<{ tenantContext?: TenantContext }>();
+    const tenantId = request.tenantContext?.tenantId;
+    return tenantId !== null && tenantId !== undefined ? tenantId.toString() : null;
   },
 );

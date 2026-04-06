@@ -1,6 +1,8 @@
 import { Controller, Get, HttpCode, HttpStatus, Logger } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+
 import { Public } from '../common/decorators/public.decorator';
+
 import { CommunityGoalService } from './community-goal.service';
 import { CommunityGoalStatsResponseDto } from './dto/community-goal.dto';
 

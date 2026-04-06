@@ -20,6 +20,19 @@ import {
   StockAlert,
 } from './schemas/inventory-item.schema';
 
+interface InventoryAnalyticsResult extends Record<string, unknown> {
+  totalItems: number;
+  totalStock: number;
+  totalReservedStock: number;
+  totalAvailableStock: number;
+  totalValue: number;
+  totalRevenue: number;
+  averageDiscount: number;
+  lowStockItems: number;
+  outOfStockItems: number;
+  expiredItems: number;
+}
+
 /** Plain-object shape returned by aggregate pipelines (no Mongoose Document methods). */
 export type InventoryItemLean = FlattenMaps<InventoryItem> & { _id: Types.ObjectId };
 
@@ -82,7 +95,7 @@ export class InventoryService {
         matchConditions['establishmentId'] = new Types.ObjectId(filters.establishmentId);
       }
 
-      if (filters.status) {
+      if (filters.status !== undefined) {
         matchConditions['status'] = filters.status;
       }
 
@@ -90,23 +103,27 @@ export class InventoryService {
         matchConditions['categories'] = { $in: [filters.category] };
       }
 
-      if (filters.lowStock) {
+      if (filters.lowStock === true) {
         matchConditions['$expr'] = { $lte: ['$currentStock', '$lowStockThreshold'] };
       }
 
-      if (filters.expiringSoon) {
-        const daysAhead = filters.expiringInDays || 3;
+      if (filters.expiringSoon === true) {
+        const daysAhead = filters.expiringInDays ?? 3;
         const expiryThreshold = new Date();
         expiryThreshold.setDate(expiryThreshold.getDate() + daysAhead);
         matchConditions['expiryDate'] = { $lte: expiryThreshold, $gt: new Date() };
       }
 
-      const page = filters.page || 1;
-      const limit = filters.limit || 20;
+      const page = filters.page ?? 1;
+      const limit = filters.limit ?? 20;
       const skip = (page - 1) * limit;
 
       // Parse sort field — handle '-field' prefix for descending
-      const sortField = filters.sortBy || '-createdAt';
+      const configuredSortField = filters.sortBy;
+      const sortField =
+        configuredSortField === undefined || configuredSortField.length === 0
+          ? '-createdAt'
+          : configuredSortField;
       const sortDirection: 1 | -1 = sortField.startsWith('-') ? -1 : 1;
       const sortKey = sortField.replace(/^-/, '');
 
@@ -195,7 +212,11 @@ export class InventoryService {
         { new: true },
       );
 
-      await this.checkAndCreateAlerts(mutatedItem!);
+      if (!mutatedItem) {
+        throw new NotFoundException('Inventory item not found');
+      }
+
+      await this.checkAndCreateAlerts(mutatedItem);
 
       this.logger.log(`Stock updated for item ${id}: ${previousQuantity} -> ${newQuantity}`);
       return this.findByIdWithLookups(id);
@@ -259,6 +280,7 @@ export class InventoryService {
   ): Promise<InventoryItemLean> {
     try {
       const item = await this.getInventoryItemRaw(id);
+      const normalizedReleaseNotes = releaseDto.notes?.trim();
 
       if (item.reservedStock < releaseDto.quantity) {
         throw new BadRequestException('Cannot release more stock than reserved');
@@ -275,7 +297,10 @@ export class InventoryService {
               previousQuantity: item.availableStock,
               newQuantity: item.availableStock + releaseDto.quantity,
               reason: releaseDto.reason,
-              notes: releaseDto.notes || 'Stock released',
+              notes:
+                normalizedReleaseNotes !== undefined && normalizedReleaseNotes.length > 0
+                  ? normalizedReleaseNotes
+                  : 'Stock released',
               updatedBy: userId ? new Types.ObjectId(userId) : undefined,
               timestamp: new Date(),
             },
@@ -336,7 +361,11 @@ export class InventoryService {
         { new: true },
       );
 
-      await this.checkAndCreateAlerts(mutatedItem!);
+      if (!mutatedItem) {
+        throw new NotFoundException('Inventory item not found');
+      }
+
+      await this.checkAndCreateAlerts(mutatedItem);
 
       this.logger.log(`Sale confirmed: ${quantity} units for order ${orderId}`);
       return this.findByIdWithLookups(id);
@@ -386,7 +415,7 @@ export class InventoryService {
         ? { $match: { establishmentId: new Types.ObjectId(establishmentId) } }
         : { $match: {} };
 
-      const analytics = await this.inventoryModel.aggregate([
+      const analytics = await this.inventoryModel.aggregate<InventoryAnalyticsResult>([
         matchStage,
         {
           $group: {
@@ -417,7 +446,7 @@ export class InventoryService {
         },
       ]);
 
-      return analytics[0] || {};
+      return analytics[0] ?? {};
     } catch (error) {
       this.logger.error(
         `Error generating analytics: ${error instanceof Error ? error.message : 'Unknown error'}`,

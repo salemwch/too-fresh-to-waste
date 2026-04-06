@@ -8,7 +8,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as Sentry from '@sentry/node';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import express from 'express';
+import { static as expressStatic } from 'express';
 import helmet from 'helmet';
 
 import { AppModule } from './app.module';
@@ -24,10 +24,29 @@ import { SecureIoAdapter } from './websocket/adapters/secure-io.adapter';
 
 import type { Request, Response, NextFunction } from 'express';
 
+function getNonEmptyConfigValue(configService: ConfigService, key: string): string | undefined {
+  const value = configService.get<string>(key);
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  const trimmedValue = value.trim();
+  return trimmedValue.length > 0 ? trimmedValue : undefined;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function getErrorStack(error: unknown): string | undefined {
+  return error instanceof Error ? error.stack : undefined;
+}
+
 async function bootstrap() {
   const configService = new ConfigService();
-  const isProduction = configService.get<string>('NODE_ENV') === 'production';
-  const environment = configService.get<string>('NODE_ENV') || 'development';
+  const configuredEnvironment = getNonEmptyConfigValue(configService, 'NODE_ENV');
+  const isProduction = configuredEnvironment === 'production';
+  const environment = configuredEnvironment ?? 'development';
 
   // ============================================================================
   // SENTRY INITIALIZATION (MUST BE FIRST)
@@ -35,10 +54,11 @@ async function bootstrap() {
   // ============================================================================
   const sentryDsn = configService.get<string>('SENTRY_DSN');
   if (sentryDsn) {
+    const packageVersion = configService.get<string>('npm_package_version') ?? '1.0.0';
     Sentry.init({
       dsn: sentryDsn,
       environment,
-      release: `foodwaste-backend@${configService.get('npm_package_version') || '1.0.0'}`,
+      release: `foodwaste-backend@${packageVersion}`,
 
       // Performance monitoring
       tracesSampleRate: isProduction ? 0.1 : 1.0,
@@ -56,11 +76,12 @@ async function bootstrap() {
       // Filter sensitive data
       beforeSend: (event) => {
         // Remove sensitive environment variables
-        if (event.contexts?.['runtime']?.['env']) {
-          const env = event.contexts['runtime']['env'] as Record<string, unknown>;
+        const runtimeEnv = event.contexts?.['runtime']?.['env'];
+        if (runtimeEnv !== null && runtimeEnv !== undefined && typeof runtimeEnv === 'object') {
+          const env = runtimeEnv as Record<string, unknown>;
           const sensitiveKeys = ['DATABASE_URL', 'JWT_SECRET', 'REDIS_PASSWORD'];
           sensitiveKeys.forEach((key) => {
-            if (env[key]) {
+            if (env[key] !== null && env[key] !== undefined) {
               env[key] = '[REDACTED]';
             }
           });
@@ -79,14 +100,16 @@ async function bootstrap() {
   const enableHttps = configService.get<string>('ENABLE_HTTPS') === 'true';
   if (isProduction || enableHttps) {
     try {
+      const sslKeyPath =
+        getNonEmptyConfigValue(configService, 'SSL_KEY_PATH') ??
+        join(__dirname, '..', 'certs', 'server.key');
+      const sslCertPath =
+        getNonEmptyConfigValue(configService, 'SSL_CERT_PATH') ??
+        join(__dirname, '..', 'certs', 'server.cert');
+
       const httpsOptions = {
-        key: readFileSync(
-          configService.get<string>('SSL_KEY_PATH') || join(__dirname, '..', 'certs', 'server.key'),
-        ),
-        cert: readFileSync(
-          configService.get<string>('SSL_CERT_PATH') ||
-            join(__dirname, '..', 'certs', 'server.cert'),
-        ),
+        key: readFileSync(sslKeyPath),
+        cert: readFileSync(sslCertPath),
       };
       app = await NestFactory.create(AppModule, {
         httpsOptions,
@@ -234,7 +257,8 @@ async function bootstrap() {
    * @see https://expressjs.com/en/resources/middleware/cookie-parser.html
    */
   const cookieSecret =
-    configService.get<string>('COOKIE_SECRET') || configService.get<string>('JWT_SECRET');
+    getNonEmptyConfigValue(configService, 'COOKIE_SECRET') ??
+    getNonEmptyConfigValue(configService, 'JWT_SECRET');
   if (!cookieSecret) {
     logger.warn(
       'COOKIE_SECRET not configured - using fallback. Set COOKIE_SECRET in production.',
@@ -251,7 +275,7 @@ async function bootstrap() {
    *
    * Note: __dirname in compiled code is dist/src/, so we need to go up 2 levels
    */
-  app.use('/public', express.static(join(__dirname, '../..', 'public')));
+  app.use('/public', expressStatic(join(__dirname, '../..', 'public')));
 
   // Legacy static uploads route — backward compatibility for existing DB URLs
   // New uploads go to Firebase Cloud Storage; this serves old local files only
@@ -262,7 +286,7 @@ async function bootstrap() {
       res.setHeader('X-Content-Type-Options', 'nosniff');
       next();
     },
-    express.static(join(__dirname, '../..', 'uploads')),
+    expressStatic(join(__dirname, '../..', 'uploads')),
   );
 
   /**
@@ -336,6 +360,14 @@ async function bootstrap() {
    * @see https://docs.nestjs.com/openapi/introduction
    * @see https://swagger.io/specification/
    */
+  const configuredApiBaseUrl = process.env['API_BASE_URL'];
+  const apiBaseUrl =
+    configuredApiBaseUrl !== null &&
+    configuredApiBaseUrl !== undefined &&
+    configuredApiBaseUrl.length > 0
+      ? configuredApiBaseUrl
+      : 'http://localhost:3000';
+
   const config = new DocumentBuilder()
     .setTitle('Food Waste API')
     .setDescription(
@@ -354,7 +386,7 @@ This API provides comprehensive endpoints for:
 - 📊 **Analytics**: Business intelligence and reporting
 - 🎯 **Loyalty**: Rewards and gamification
 
-**Base URL**: \`${process.env['API_BASE_URL'] || 'http://localhost:3000'}\`
+**Base URL**: \`${apiBaseUrl}\`
 
 **Versioning**: All endpoints use URI versioning (\`/api/v1/...\`)
 
@@ -431,7 +463,12 @@ This API provides comprehensive endpoints for:
         `,
   });
 
-  const port = appConfigService.get('PORT') || 3000;
+  const configuredPort = appConfigService.get<string>('PORT');
+  const parsedPort =
+    configuredPort !== null && configuredPort !== undefined && configuredPort.length > 0
+      ? Number.parseInt(configuredPort, 10)
+      : NaN;
+  const port = Number.isFinite(parsedPort) ? parsedPort : 3000;
   const protocol = isProduction || enableHttps ? 'HTTPS' : 'HTTP';
 
   // Enable shutdown hooks for proper lifecycle management
@@ -508,8 +545,8 @@ This API provides comprehensive endpoints for:
 bootstrap().catch(async (error) => {
   const logger = new AppLoggerService();
   const errorId = logger.error(
-    `Failed to start the application: ${error.message}`,
-    error.stack,
+    `Failed to start the application: ${getErrorMessage(error)}`,
+    getErrorStack(error),
     'Bootstrap',
   );
 
@@ -522,7 +559,7 @@ bootstrap().catch(async (error) => {
       contexts: {
         bootstrap: {
           errorId,
-          message: error.message,
+          message: getErrorMessage(error),
         },
       },
     });

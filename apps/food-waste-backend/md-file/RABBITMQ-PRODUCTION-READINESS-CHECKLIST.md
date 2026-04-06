@@ -43,6 +43,7 @@ queueOptions: {
 **File:** `src/rabbitmq/rabbitmq.module.ts`
 
 The DLX is automatically created by RabbitMQ when the first message fails. It routes failed messages based on:
+
 - **Message expiration** (TTL exceeded)
 - **Consumer Nack with requeue=false**
 - **Queue length exceeded** (if max-length set)
@@ -52,17 +53,20 @@ The DLX is automatically created by RabbitMQ when the first message fails. It ro
 Failed messages from `foodwaste.{module}.{event}` → `foodwaste.dlx.{module}.{event}`
 
 **Example:**
+
 - Original queue: `foodwaste.orders.user-suspended`
 - Dead letter queue: `foodwaste.dlx.orders.user-suspended`
 
 ### Monitoring DLX
 
 **RabbitMQ Management UI:**
+
 ```
 http://localhost:15672/#/queues/%2Ffoodwaste
 ```
 
 **Alert Thresholds:**
+
 - **DLX message count > 0** → Investigate immediately (messages are failing)
 - **DLX message count > 100** → Critical failure (potential data loss)
 
@@ -76,6 +80,7 @@ http://localhost:15672/#/queues/%2Ffoodwaste
 ```
 
 ### ✅ Action Items: COMPLETE
+
 - [x] All 28 queues have DLX configured
 - [x] TTL set to 24 hours (prevents infinite retention)
 - [x] RabbitMQ module creates DLX automatically
@@ -95,6 +100,7 @@ http://localhost:15672/#/queues/%2Ffoodwaste
 **Event Definitions:** Event classes exist in `src/common/events/` but **lack explicit versioning**.
 
 **Example - Current:**
+
 ```typescript
 // src/common/events/order.events.ts
 export class OrderCompletedEvent {
@@ -115,6 +121,7 @@ export class OrderCompletedEvent {
 ### ⚠️ Risk
 
 If we add new required fields to `OrderCompletedEvent`:
+
 - Old consumers will break (missing fields)
 - Old messages in queue will fail deserialization
 
@@ -174,16 +181,19 @@ async handleOrderCompletedRabbitMQ(msg: any): Promise<void | Nack> {
 ### Versioning Strategy
 
 **Schema Evolution Rules:**
+
 1. **Patch version (1.0.0 → 1.0.1):** Bug fixes, no schema change
 2. **Minor version (1.0.0 → 1.1.0):** Add optional fields (backward compatible)
 3. **Major version (1.0.0 → 2.0.0):** Add required fields or remove fields (breaking change)
 
 **Breaking Change Migration:**
+
 - Publish both `order.completed.v1` and `order.completed.v2` events
 - Consumers subscribe to both queues
 - Deprecate v1 after 90 days (allow time for all consumers to migrate)
 
 ### ⚠️ Action Items
+
 - [ ] **TODO:** Add `version: string` field to all event classes
 - [ ] **TODO:** Implement version checking in all RabbitMQ handlers
 - [ ] **TODO:** Create migration utilities (`migrateV1toV2()`, etc.)
@@ -203,10 +213,12 @@ async handleOrderCompletedRabbitMQ(msg: any): Promise<void | Nack> {
 ### Current State
 
 **✅ Idempotency EXISTS in:**
+
 - **Orders:** `order.service.ts:234` - Checks `existingLedger` before creating payout entry
 - **Payments:** Uses `orderId` as idempotency key for payout ledger
 
 **❌ Idempotency MISSING in:**
+
 - **Donations:** May create duplicate donations on retry
 - **Loyalty:** May award points twice on retry
 - **Favorites:** May increment `favoriteCount` twice
@@ -215,6 +227,7 @@ async handleOrderCompletedRabbitMQ(msg: any): Promise<void | Nack> {
 ### ⚠️ Risk
 
 **Scenario 1: Double Points**
+
 ```
 1. User completes order → order.completed event published
 2. Loyalty listener awards 10 points, crashes before ACK
@@ -222,6 +235,7 @@ async handleOrderCompletedRabbitMQ(msg: any): Promise<void | Nack> {
 ```
 
 **Scenario 2: Double Charge**
+
 ```
 1. User completes order → order.completed event published
 2. Donations listener creates donation, crashes before ACK
@@ -233,6 +247,7 @@ async handleOrderCompletedRabbitMQ(msg: any): Promise<void | Nack> {
 #### Option A: Use Message ID (Lightweight)
 
 **RabbitMQ Message Properties:**
+
 ```typescript
 // Publisher (EventBusService)
 await this.amqpConnection.publish(exchange, routingKey, payload, {
@@ -244,6 +259,7 @@ await this.amqpConnection.publish(exchange, routingKey, payload, {
 ```
 
 **Consumer (Listener):**
+
 ```typescript
 @RabbitSubscribe({
   exchange: 'foodwaste.events',
@@ -331,6 +347,7 @@ DonationSchema.index({ orderId: 1 }, { unique: true });
 **Benefit:** Database enforces idempotency, even if application logic fails.
 
 ### ⚠️ Action Items
+
 - [ ] **TODO:** Add `messageId` generation in `RabbitMQAdapter.emit()`
 - [ ] **TODO:** Implement Redis-based deduplication in critical listeners:
   - Donations (prevent double charges)
@@ -356,17 +373,20 @@ DonationSchema.index({ orderId: 1 }, { unique: true });
 ### Current State
 
 **✅ Logging EXISTS:**
+
 - All listeners log event processing start/end
 - Errors are logged with stack traces
 - RabbitMQ adapter logs publish success/failure
 
 **❌ Metrics MISSING:**
+
 - No event processing duration tracking
 - No failure rate metrics
 - No queue depth monitoring
 - No consumer lag tracking
 
 **❌ Distributed Tracing MISSING:**
+
 - No correlation ID propagation across services
 - Can't trace event flow from publisher → queue → consumer
 
@@ -375,6 +395,7 @@ DonationSchema.index({ orderId: 1 }, { unique: true });
 #### A. Add Metrics with Prometheus
 
 **Install dependency:**
+
 ```bash
 pnpm add @willsoto/nestjs-prometheus prom-client
 ```
@@ -401,7 +422,9 @@ export class OrderEventsListener {
     private readonly errorCounter: Counter<string>,
   ) {}
 
-  @RabbitSubscribe({ /* ... */ })
+  @RabbitSubscribe({
+    /* ... */
+  })
   async handleOrderCompletedRabbitMQ(msg: any): Promise<void | Nack> {
     const startTime = Date.now();
     const labels = { event: 'order.completed', module: 'donations' };
@@ -423,6 +446,7 @@ export class OrderEventsListener {
 ```
 
 **Prometheus Metrics to Track:**
+
 - `event_processing_duration_ms{event, module}` - Processing latency (histogram)
 - `event_processing_total{event, module}` - Total events processed (counter)
 - `event_processing_errors_total{event, module, error}` - Failed events (counter)
@@ -481,21 +505,16 @@ export class RabbitMQMetricsService {
     const queues = await this.getRabbitMQQueues();
 
     for (const queue of queues) {
-      this.queueDepthGauge.set(
-        { queue: queue.name },
-        queue.messages,
-      );
+      this.queueDepthGauge.set({ queue: queue.name }, queue.messages);
 
-      this.consumerLagGauge.set(
-        { queue: queue.name },
-        this.calculateLag(queue.idle_since),
-      );
+      this.consumerLagGauge.set({ queue: queue.name }, this.calculateLag(queue.idle_since));
     }
   }
 }
 ```
 
 ### ⚠️ Action Items
+
 - [ ] **TODO:** Install `@willsoto/nestjs-prometheus` and `prom-client`
 - [ ] **TODO:** Add Prometheus metrics to all RabbitMQ handlers
 - [ ] **TODO:** Create Grafana dashboard with:
@@ -541,6 +560,7 @@ async emit(eventName: string, payload: object): Promise<void> {
 ```
 
 **Configuration:**
+
 ```bash
 # .env
 RABBITMQ_ENABLED=true # Global switch
@@ -548,6 +568,7 @@ RABBITMQ_ENABLED_EVENTS=admin.*,order.* # Pattern-based routing
 ```
 
 **All 11 listeners** support dual-mode:
+
 - Legacy: `@OnEvent('event.name')` → EventEmitter2
 - RabbitMQ: `@RabbitSubscribe()` → RabbitMQ
 
@@ -586,6 +607,7 @@ async emit(eventName: string, payload: object): Promise<void> {
 **Solution:** Add idempotency checks (see Section 3).
 
 ### ✅ Action Items: COMPLETE
+
 - [x] EventBusService supports feature flag routing
 - [x] All 11 listeners support dual-mode (@OnEvent + @RabbitSubscribe)
 - [x] Pattern-based event routing (`RABBITMQ_ENABLED_EVENTS`)
@@ -600,17 +622,18 @@ async emit(eventName: string, payload: object): Promise<void> {
 
 ### Completion Status
 
-| Concern | Status | Priority | Action Required |
-|---------|--------|----------|----------------|
-| 1️⃣ Dead Letter Queues | ✅ COMPLETE | HIGH | Set up DLX alerting |
-| 2️⃣ Message Versioning | ⚠️ PARTIAL | HIGH | Add version field to events |
-| 3️⃣ Idempotency | ⚠️ PARTIAL | CRITICAL | Implement deduplication |
-| 4️⃣ Observability | ⚠️ PARTIAL | HIGH | Add Prometheus metrics |
-| 5️⃣ Fallback / Hybrid Mode | ✅ COMPLETE | LOW | Optional enhancements |
+| Concern                   | Status      | Priority | Action Required             |
+| ------------------------- | ----------- | -------- | --------------------------- |
+| 1️⃣ Dead Letter Queues     | ✅ COMPLETE | HIGH     | Set up DLX alerting         |
+| 2️⃣ Message Versioning     | ⚠️ PARTIAL  | HIGH     | Add version field to events |
+| 3️⃣ Idempotency            | ⚠️ PARTIAL  | CRITICAL | Implement deduplication     |
+| 4️⃣ Observability          | ⚠️ PARTIAL  | HIGH     | Add Prometheus metrics      |
+| 5️⃣ Fallback / Hybrid Mode | ✅ COMPLETE | LOW      | Optional enhancements       |
 
 ### Critical Path to Production
 
 **Before Phase 4 Rollout:**
+
 1. ✅ Dead Letter Queues configured (done)
 2. ⚠️ **Add event versioning** (3-5 days)
 3. ⚠️ **Implement idempotency** (5-7 days)

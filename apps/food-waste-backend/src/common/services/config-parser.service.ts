@@ -55,7 +55,13 @@ export class ConfigParserService {
       defaultValue === undefined
         ? this.configService.get<string>(key)
         : this.configService.get<string>(key, defaultValue);
-    return value?.trim() || defaultValue;
+
+    const trimmedValue = value?.trim();
+    if (trimmedValue === '') {
+      return defaultValue;
+    }
+
+    return trimmedValue ?? defaultValue;
   }
 
   /**

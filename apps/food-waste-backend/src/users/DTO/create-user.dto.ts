@@ -1,12 +1,22 @@
 import { Transform } from 'class-transformer';
 import { IsEmail, IsString, MinLength, IsOptional, IsEnum } from 'class-validator';
 
+import type { CreateUserInput } from '@foodwaste/shared';
+
 import { IsValidPhoneNumber } from '../../common/validators/is-valid-phone-number.validator';
 import { UserRole, UserStatus } from '../schemas/user.schema';
 
-export class CreateUserDto {
+function trimTransform({ value }: { value: unknown }): unknown {
+  return typeof value === 'string' ? value.trim() : value;
+}
+
+function normalizedEmailTransform({ value }: { value: unknown }): unknown {
+  return typeof value === 'string' ? value.toLowerCase().trim() : value;
+}
+
+export class CreateUserDto implements CreateUserInput {
   @IsEmail()
-  @Transform(({ value }) => value?.toLowerCase().trim())
+  @Transform(normalizedEmailTransform)
   email!: string;
 
   @IsString()
@@ -14,11 +24,11 @@ export class CreateUserDto {
   password!: string;
 
   @IsString()
-  @Transform(({ value }) => value?.trim())
+  @Transform(trimTransform)
   firstName!: string;
 
   @IsString()
-  @Transform(({ value }) => value?.trim())
+  @Transform(trimTransform)
   lastName!: string;
 
   /**
@@ -28,24 +38,24 @@ export class CreateUserDto {
    */
   @IsOptional()
   @IsString({ message: 'Phone number must be a string' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(trimTransform)
   @IsValidPhoneNumber({
     defaultCountry: 'TN',
     allowNationalFormat: true,
     required: true,
     message: 'Please provide a valid phone number (international format +... or national format)',
   })
-  phoneNumber?: string;
+  phoneNumber?: string | undefined;
 
   @IsOptional()
   @IsEnum(UserRole)
-  role?: UserRole;
+  role?: UserRole | undefined;
 
   @IsOptional()
   @IsString()
-  isEmailVerified?: boolean;
+  isEmailVerified?: boolean | undefined;
 
   @IsOptional()
   @IsString()
-  status?: UserStatus;
+  status?: UserStatus | undefined;
 }

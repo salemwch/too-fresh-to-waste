@@ -72,28 +72,34 @@ All major companies (Uber, Airbnb, Instagram, Slack, Gmail, Facebook) use the **
 ### Files Changed/Created
 
 #### 1. **AuthRedirectController** (NEW)
+
 **File:** `src/auth/auth-redirect.controller.ts`
 
 Handles redirect endpoints:
+
 - `GET /auth/verify-email?token=xxx&email=yyy`
 - `GET /auth/reset-password?token=xxx&email=yyy`
 
 Returns HTML page with JavaScript that:
+
 1. Attempts deep link immediately
 2. Shows loading state
 3. Falls back to manual options after 2 seconds
 4. Allows browser-based verification via API call
 
 #### 2. **EmailService** (UPDATED)
+
 **File:** `src/email/email.service.ts`
 
 **Before:**
+
 ```typescript
 const mobileDeepLink = `foodwaste://auth/verify-email?token=${token}&email=${email}`;
 // ❌ Doesn't work in email clients
 ```
 
 **After:**
+
 ```typescript
 const backendUrl = this.configService.get<string>('BACKEND_URL', 'http://localhost:3000');
 const verificationUrl = `${backendUrl}/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
@@ -101,11 +107,13 @@ const verificationUrl = `${backendUrl}/auth/verify-email?token=${token}&email=${
 ```
 
 #### 3. **AuthModule** (UPDATED)
+
 **File:** `src/auth/auth.module.ts`
 
 Added `AuthRedirectController` to controllers array.
 
 #### 4. **Environment Variables** (UPDATED)
+
 **Files:** `.env`, `.env.example`
 
 ```bash
@@ -158,24 +166,28 @@ WEB_FRONTEND_URL=
 ## How It Compares to Industry Leaders
 
 ### Uber
+
 ```
 Email: https://uber.com/verify?code=xxx
 Page: Attempts uber:// → Falls back to web
 ```
 
 ### Airbnb
+
 ```
 Email: https://airbnb.com/verify?token=xxx
 Uses: Universal Links (iOS) + App Links (Android)
 ```
 
 ### Slack
+
 ```
 Email: https://slack.com/magic-link?token=xxx
 Page: Attempts slack:// → Shows "Open Slack" button
 ```
 
 ### Instagram
+
 ```
 Email: https://ig.me/verify/xxx
 Page: Attempts instagram:// → Opens web profile
@@ -190,12 +202,14 @@ Page: Attempts instagram:// → Opens web profile
 ### Test Email Verification
 
 1. **Start backend:**
+
    ```bash
    cd apps/food-waste-backend
    pnpm dev
    ```
 
 2. **Register new user:**
+
    ```bash
    POST http://localhost:3000/api/v1/auth/register
    {
@@ -229,16 +243,19 @@ Page: Attempts instagram:// → Opens web profile
 ## Production Deployment
 
 ### Development
+
 ```bash
 BACKEND_URL=http://localhost:3000
 ```
 
 ### Staging
+
 ```bash
 BACKEND_URL=https://api-staging.yourapp.com
 ```
 
 ### Production
+
 ```bash
 BACKEND_URL=https://api.yourapp.com
 ```
@@ -252,21 +269,25 @@ BACKEND_URL=https://api.yourapp.com
 For production-grade deep linking without the 2-second delay:
 
 ### iOS Universal Links
+
 1. Host `apple-app-site-association` file at `https://yourapp.com/.well-known/`
 2. Configure in Xcode: Associated Domains
 3. Links like `https://yourapp.com/verify-email?token=xxx` open app directly
 
 ### Android App Links
+
 1. Host `assetlinks.json` at `https://yourapp.com/.well-known/`
 2. Configure in `AndroidManifest.xml`
 3. Links open app instantly on Android
 
 **Benefits:**
+
 - No redirect delay
 - Seamless app opening
 - Falls back to web automatically
 
 **Requirements:**
+
 - Owned domain name
 - Web hosting
 - App store deployment
@@ -323,12 +344,14 @@ For production-grade deep linking without the 2-second delay:
 **Endpoint:** `GET /auth/verify-email`
 
 **Query Parameters:**
+
 - `token` (required): Email verification token
 - `email` (required): User email address
 
 **Returns:** HTML page with smart redirect logic
 
 **Example:**
+
 ```
 GET http://localhost:3000/auth/verify-email?token=abc123&email=user@example.com
 ```
@@ -338,6 +361,7 @@ GET http://localhost:3000/auth/verify-email?token=abc123&email=user@example.com
 **Endpoint:** `GET /auth/reset-password`
 
 **Query Parameters:**
+
 - `token` (required): Password reset token
 - `email` (required): User email address
 
@@ -358,20 +382,21 @@ GET http://localhost:3000/auth/verify-email?token=abc123&email=user@example.com
 ### Implementation (Future)
 
 Add analytics to redirect pages:
+
 ```javascript
 // Track page view
 gtag('event', 'page_view', {
-  page_path: '/auth/verify-email'
+  page_path: '/auth/verify-email',
 });
 
 // Track deep link attempt
 gtag('event', 'deep_link_attempt', {
-  email: EMAIL_HASH
+  email: EMAIL_HASH,
 });
 
 // Track verification success
 gtag('event', 'verification_complete', {
-  method: 'browser'
+  method: 'browser',
 });
 ```
 
@@ -380,12 +405,14 @@ gtag('event', 'verification_complete', {
 ## References
 
 ### Official Documentation
+
 - [Gmail Link Handling](https://support.google.com/mail/answer/12454534)
 - [Apple Universal Links](https://developer.apple.com/ios/universal-links/)
 - [Android App Links](https://developer.android.com/training/app-links)
 - [URI Schemes RFC 3986](https://www.rfc-editor.org/rfc/rfc3986)
 
 ### Industry Examples
+
 - [Uber Magic Links](https://eng.uber.com/tech-stack-part-one/)
 - [Slack Email Links](https://api.slack.com/authentication/magic-links)
 - [Firebase Dynamic Links](https://firebase.google.com/docs/dynamic-links)
@@ -399,6 +426,7 @@ gtag('event', 'verification_complete', {
 **Implementation:** Enterprise-grade smart redirect pattern (same as Uber, Slack, Airbnb)
 
 **Files Changed:**
+
 - `src/auth/auth-redirect.controller.ts` (NEW)
 - `src/email/email.service.ts` (UPDATED)
 - `src/auth/auth.module.ts` (UPDATED)
@@ -408,6 +436,7 @@ gtag('event', 'verification_complete', {
 **User Experience:** Seamless verification on mobile (app opens) and desktop (browser verification)
 
 **Next Steps:**
+
 1. Test registration flow
 2. Verify emails are clickable
 3. Test on multiple devices

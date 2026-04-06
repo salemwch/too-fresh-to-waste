@@ -13,6 +13,7 @@
 **File:** `src/orders/order.service.ts` (Lines 1307-1448)
 
 #### Method 1: `cancelUserPendingOrders(userId, reason)`
+
 - **Purpose:** Cancels all pending/confirmed/ready orders when user is suspended/blocked
 - **Features:**
   - Finds all pending orders (PENDING, CONFIRMED, READY statuses)
@@ -23,6 +24,7 @@
 - **Integration:** Called by `AdminUserEventsListener` in Orders module
 
 #### Method 2: `anonymizeUserOrders(userId)`
+
 - **Purpose:** GDPR-compliant data anonymization for hard-deleted users
 - **Features:**
   - Anonymizes customer name (→ "Anonymous User")
@@ -40,6 +42,7 @@
 **File:** `src/offers/offers.service.ts` (Lines 1526-1604)
 
 #### Method: `deactivateEstablishmentOffers(establishmentId, reason)`
+
 - **Purpose:** Deactivates all offers when establishment is suspended
 - **Features:**
   - Finds all ACTIVE offers for the establishment
@@ -57,10 +60,12 @@
 **File:** `src/auth/auth.module.ts`
 
 **Changes:**
+
 - ✅ Imported `AdminUserEventsListener` (Line 40)
 - ✅ Added to providers array (Line 117)
 
 **Listener Capabilities:**
+
 - Listens to `admin.user.suspended` → Revokes all sessions
 - Listens to `admin.user.blocked` → Immediately revokes all sessions
 - Listens to `admin.user.deleted` → Cleans up auth data
@@ -73,10 +78,12 @@
 **File:** `src/orders/order.module.ts`
 
 **Changes:**
+
 - ✅ Imported `AdminUserEventsListener` (Line 16)
 - ✅ Added to providers array (Line 36)
 
 **Listener Capabilities:**
+
 - Listens to `admin.user.suspended` → Cancels pending orders
 - Listens to `admin.user.blocked` → Cancels all pending orders
 - Listens to `admin.user.deleted` → Cancels orders + anonymizes history
@@ -88,10 +95,12 @@
 **File:** `src/offers/offers.module.ts`
 
 **Changes:**
+
 - ✅ Imported `AdminEstablishmentEventsListener` (Line 7)
 - ✅ Added to providers array (Line 24)
 
 **Listener Capabilities:**
+
 - Listens to `admin.establishment.suspended` → Deactivates all offers
 - Listens to `admin.establishment.reactivated` → Logs event (merchant must reactivate offers manually)
 - Listens to `admin.establishment.approved` → Logs approval
@@ -247,6 +256,7 @@ async handleUserSuspended(event: AdminUserSuspendedEvent): Promise<void> {
 ```
 
 **Why this pattern?**
+
 - Admin operations succeed even if listeners fail
 - Each listener is isolated (one failure doesn't affect others)
 - Errors are logged for debugging
@@ -257,21 +267,25 @@ async handleUserSuspended(event: AdminUserSuspendedEvent): Promise<void> {
 ## Files Modified/Created
 
 ### New Files (3 listeners)
+
 1. ✅ `src/auth/listeners/admin-user-events.listener.ts` (129 lines)
 2. ✅ `src/orders/listeners/admin-user-events.listener.ts` (115 lines)
 3. ✅ `src/offers/listeners/admin-establishment-events.listener.ts` (93 lines)
 
 ### Modified Service Files (3 services)
+
 1. ✅ `src/orders/order.service.ts` (Added 142 lines: methods + section header)
 2. ✅ `src/offers/offers.service.ts` (Added 79 lines: method + section header)
 3. ✅ Already emitting events from Phase 1 (UserManagementService, EstablishmentManagementService, SystemConfigService)
 
 ### Modified Module Files (3 modules)
+
 1. ✅ `src/auth/auth.module.ts` (Added import + provider)
 2. ✅ `src/orders/order.module.ts` (Added import + provider)
 3. ✅ `src/offers/offers.module.ts` (Added import + provider)
 
 ### Documentation Files (2 docs)
+
 1. ✅ `src/admin/ADMIN-EVENTS-IMPLEMENTATION-SUMMARY.md` (Phase 1 summary)
 2. ✅ `src/admin/ADMIN-EVENTS-PHASE2-COMPLETE.md` (This file - Phase 2 completion)
 
@@ -282,6 +296,7 @@ async handleUserSuspended(event: AdminUserSuspendedEvent): Promise<void> {
 ### Manual Testing
 
 **Test 1: User Suspension**
+
 ```bash
 # 1. Create test user with active session
 POST /auth/register { email: "test@example.com", ... }
@@ -308,6 +323,7 @@ GET /orders/{orderId}
 ```
 
 **Test 2: Establishment Suspension**
+
 ```bash
 # 1. Create establishment with active offers
 POST /establishments { name: "Test Restaurant", ... }
@@ -327,6 +343,7 @@ GET /offers/{offerId}
 ```
 
 **Test 3: User Hard Delete (GDPR)**
+
 ```bash
 # 1. Create user with completed orders
 POST /auth/register { ... }
@@ -354,6 +371,7 @@ GET /admin/orders?customerId={userId}
 ### Unit Testing
 
 **Example: Test OrderService Method**
+
 ```typescript
 // order.service.spec.ts
 describe('cancelUserPendingOrders', () => {
@@ -384,6 +402,7 @@ describe('cancelUserPendingOrders', () => {
 ```
 
 **Example: Test Event Listener**
+
 ```typescript
 // admin-user-events.listener.spec.ts
 describe('AdminUserEventsListener', () => {
@@ -414,6 +433,7 @@ describe('AdminUserEventsListener', () => {
 ### Integration Testing
 
 **Example: End-to-End Flow Test**
+
 ```typescript
 describe('Admin User Suspension E2E', () => {
   it('should revoke sessions and cancel orders when admin suspends user', async () => {
@@ -429,7 +449,7 @@ describe('Admin User Suspension E2E', () => {
       .expect(200);
 
     // Wait for async event listeners
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Assert: Session revoked
     const sessionDoc = await sessionModel.findById(session.id);
@@ -450,6 +470,7 @@ describe('Admin User Suspension E2E', () => {
 ### Logs to Monitor
 
 **Successful Operations:**
+
 ```
 [OrderService] Cancelled 3 pending orders for user abc123. Reason: Account suspended by admin
 [OrderService] Anonymized 47 orders for deleted user abc123 (GDPR compliance)
@@ -458,6 +479,7 @@ describe('Admin User Suspension E2E', () => {
 ```
 
 **Error Conditions:**
+
 ```
 [AdminUserEventsListener] Failed to revoke sessions for suspended user abc123: Connection timeout
 [OrderService] Failed to process refund for order order456: Payment already refunded
@@ -493,16 +515,19 @@ describe('Admin User Suspension E2E', () => {
 ## Performance Considerations
 
 ### Async Processing
+
 - ✅ Events don't block admin API responses
 - ✅ Listeners run in parallel (not sequential)
 - ✅ Each listener has independent error handling
 
 ### Database Efficiency
+
 - ✅ `updateMany()` for bulk operations (not loops)
 - ✅ Indexed queries (customerId, establishmentId, status)
 - ✅ Lean queries where document methods not needed
 
 ### Scalability
+
 - ✅ Can add more listeners without modifying services
 - ✅ Can add retry logic per listener if needed
 - ✅ Can move to distributed queue (Bull/RabbitMQ) later
@@ -512,6 +537,7 @@ describe('Admin User Suspension E2E', () => {
 ## Future Enhancements (Phase 3)
 
 ### Short Term (1-2 weeks)
+
 1. **Search Indexing Listener**
    - Listen to `admin.establishment.approved` → Index in search
    - Listen to `admin.establishment.suspended` → Remove from search
@@ -526,6 +552,7 @@ describe('Admin User Suspension E2E', () => {
    - Order cancellation trends
 
 ### Medium Term (1-2 months)
+
 1. **Compliance Automation**
    - Auto-generate GDPR compliance reports
    - Data retention policy enforcement

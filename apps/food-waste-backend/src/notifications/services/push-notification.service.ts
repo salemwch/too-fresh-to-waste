@@ -1,13 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
-import * as admin from 'firebase-admin';
+import { getMessaging } from 'firebase-admin/messaging';
 import { Model } from 'mongoose';
 
 import { FirebaseAdminService } from '../../common/services/firebase-admin.service';
 import { INotificationProvider, NotificationResult } from '../interfaces/notification.interfaces';
 import { NotificationPreference } from '../schemas/notification-preference.schema';
 import { NotificationTarget, NotificationPayload } from '../types/notification.types';
+
+import type { FirebaseError } from 'firebase-admin/app';
+import type {
+  BatchResponse,
+  Message,
+  MulticastMessage,
+  SendResponse,
+  TokenMessage,
+  TopicMessage,
+} from 'firebase-admin/messaging';
+
 @Injectable()
 export class PushNotificationService implements INotificationProvider {
   private readonly logger = new Logger(PushNotificationService.name);
@@ -71,7 +82,7 @@ export class PushNotificationService implements INotificationProvider {
       );
 
       // Clean stale token if the error indicates it's unregistered
-      if (this.isStaleTokenError(error as admin.FirebaseError) && firstToken) {
+      if (this.isStaleTokenError(error as FirebaseError) && firstToken) {
         void this.removeStaleTokens([firstToken]);
       }
 
@@ -141,7 +152,7 @@ export class PushNotificationService implements INotificationProvider {
   async subscribeToTopic(deviceTokens: string[], topic: string): Promise<void> {
     try {
       this.ensureFirebaseInitialized();
-      await admin.messaging().subscribeToTopic(deviceTokens, topic);
+      await getMessaging().subscribeToTopic(deviceTokens, topic);
       this.logger.log(`Subscribed ${deviceTokens.length} devices to topic: ${topic}`);
     } catch (error) {
       this.logger.error(
@@ -154,7 +165,7 @@ export class PushNotificationService implements INotificationProvider {
   async unsubscribeFromTopic(deviceTokens: string[], topic: string): Promise<void> {
     try {
       this.ensureFirebaseInitialized();
-      await admin.messaging().unsubscribeFromTopic(deviceTokens, topic);
+      await getMessaging().unsubscribeFromTopic(deviceTokens, topic);
       this.logger.log(`Unsubscribed ${deviceTokens.length} devices from topic: ${topic}`);
     } catch (error) {
       this.logger.error(
@@ -171,16 +182,13 @@ export class PushNotificationService implements INotificationProvider {
         .select('deviceTokens')
         .exec();
 
-      return preferences?.deviceTokens || [];
+      return preferences?.deviceTokens ?? [];
     }
 
     return [];
   }
 
-  private buildFirebaseMessage(
-    payload: NotificationPayload,
-    token: string,
-  ): admin.messaging.TokenMessage {
+  private buildFirebaseMessage(payload: NotificationPayload, token: string): TokenMessage {
     return {
       token,
       notification: {
@@ -188,17 +196,17 @@ export class PushNotificationService implements INotificationProvider {
         body: payload.body,
         ...(payload.image !== undefined ? { imageUrl: payload.image } : {}),
       },
-      data: this.sanitizeData(payload.data || {}),
+      data: this.sanitizeData(payload.data ?? {}),
       android: {
         notification: {
-          sound: payload.sound || 'default',
+          sound: payload.sound ?? 'default',
           channelId: 'food_waste_notifications',
           priority: 'high',
           defaultSound: true,
           defaultVibrateTimings: true,
           defaultLightSettings: true,
         },
-        data: this.sanitizeData(payload.data || {}),
+        data: this.sanitizeData(payload.data ?? {}),
       },
       apns: {
         payload: {
@@ -207,7 +215,7 @@ export class PushNotificationService implements INotificationProvider {
               title: payload.title,
               body: payload.body,
             },
-            sound: payload.sound || 'default',
+            sound: payload.sound ?? 'default',
             ...(payload.badge !== undefined ? { badge: payload.badge } : {}),
             ...(payload.clickAction !== undefined ? { category: payload.clickAction } : {}),
           },
@@ -233,43 +241,32 @@ export class PushNotificationService implements INotificationProvider {
     };
   }
 
-  private buildMulticastMessage(
-    payload: NotificationPayload,
-    tokens: string[],
-  ): admin.messaging.MulticastMessage {
+  private buildMulticastMessage(payload: NotificationPayload, tokens: string[]): MulticastMessage {
     const { token: _, ...base } = this.buildFirebaseMessage(payload, '');
     return { ...base, tokens };
   }
 
-  private buildTopicMessage(
-    payload: NotificationPayload,
-    topic: string,
-  ): admin.messaging.TopicMessage {
+  private buildTopicMessage(payload: NotificationPayload, topic: string): TopicMessage {
     const { token: _, ...base } = this.buildFirebaseMessage(payload, '');
     return { ...base, topic };
   }
 
-  private async sendFirebaseMessage(message: admin.messaging.Message): Promise<string> {
-    const response = await admin.messaging().send(message);
+  private async sendFirebaseMessage(message: Message): Promise<string> {
+    const response = await getMessaging().send(message);
     return response;
   }
 
-  private async sendMulticastMessage(
-    message: admin.messaging.MulticastMessage,
-  ): Promise<admin.messaging.BatchResponse> {
-    const response = await admin.messaging().sendEachForMulticast(message);
+  private async sendMulticastMessage(message: MulticastMessage): Promise<BatchResponse> {
+    const response = await getMessaging().sendEachForMulticast(message);
     return response;
   }
 
-  private processBulkResponse(
-    response: admin.messaging.BatchResponse,
-    tokens: string[],
-  ): NotificationResult[] {
+  private processBulkResponse(response: BatchResponse, tokens: string[]): NotificationResult[] {
     // Collect stale tokens for cleanup
     const staleTokens: string[] = [];
 
     const results = response.responses.map(
-      (result: admin.messaging.SendResponse, index: number): NotificationResult => {
+      (result: SendResponse, index: number): NotificationResult => {
         const token = tokens[index];
         if (!result.success && token && this.isStaleTokenError(result.error)) {
           staleTokens.push(token);
@@ -297,7 +294,7 @@ export class PushNotificationService implements INotificationProvider {
    * Check if a Firebase messaging error indicates a stale/unregistered token.
    * Ref: https://firebase.google.com/docs/cloud-messaging/manage-tokens
    */
-  private isStaleTokenError(error: admin.FirebaseError | undefined): boolean {
+  private isStaleTokenError(error: FirebaseError | undefined): boolean {
     if (!error) {
       return false;
     }

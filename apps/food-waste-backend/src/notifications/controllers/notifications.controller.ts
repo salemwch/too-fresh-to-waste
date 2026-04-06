@@ -201,9 +201,9 @@ export class NotificationsController {
       })) as NotificationResponseDto[],
       total,
       count: notifications.length,
-      offset: query.offset || 0,
-      limit: query.limit || 20,
-      hasMore: (query.offset || 0) + notifications.length < total,
+      offset: query.offset ?? 0,
+      limit: query.limit ?? 20,
+      hasMore: (query.offset ?? 0) + notifications.length < total,
     };
   }
 
@@ -255,7 +255,7 @@ export class NotificationsController {
 
     return {
       userId,
-      channels: Object.fromEntries(preferences.channels || new Map()),
+      channels: Object.fromEntries(preferences.channels ?? new Map()),
       globalPushEnabled: preferences.globalPushEnabled,
       globalEmailEnabled: preferences.globalEmailEnabled,
       globalSmsEnabled: preferences.globalSmsEnabled,
@@ -285,7 +285,7 @@ export class NotificationsController {
 
     return {
       userId,
-      channels: Object.fromEntries(preferences.channels || new Map()),
+      channels: Object.fromEntries(preferences.channels ?? new Map()),
       globalPushEnabled: preferences.globalPushEnabled,
       globalEmailEnabled: preferences.globalEmailEnabled,
       globalSmsEnabled: preferences.globalSmsEnabled,

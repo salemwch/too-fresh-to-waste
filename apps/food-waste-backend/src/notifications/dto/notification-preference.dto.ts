@@ -12,7 +12,7 @@ import {
   Max,
 } from 'class-validator';
 
-export class ChannelPreferencesDto {
+class ChannelPreferencesDto {
   @ApiProperty({ description: 'Enable push notifications for this channel' })
   @IsBoolean()
   push!: boolean;

@@ -1,11 +1,19 @@
 import { Expose, Type } from 'class-transformer';
 
+import type {
+  OrderItemResponse,
+  PricingResponse,
+  PaymentDetailsResponse,
+  PopulatedUserResponse,
+  PopulatedEstablishmentResponse,
+} from '@foodwaste/shared';
+
 // ---------------------------------------------------------------------------
 // Sub-document DTOs — every @Expose() field is included; absent fields are
 // stripped by plainToInstance({ excludeExtraneousValues: true }).
 // ---------------------------------------------------------------------------
 
-class OrderItemResponseDto {
+class OrderItemResponseDto implements OrderItemResponse {
   @Expose() offerId!: string;
   @Expose() offerTitle!: string;
   @Expose() quantity!: number;
@@ -15,7 +23,7 @@ class OrderItemResponseDto {
   @Expose() discountAmount!: number;
 }
 
-class PricingResponseDto {
+class PricingResponseDto implements PricingResponse {
   @Expose() subtotal!: number;
   @Expose() discountAmount!: number;
   @Expose() taxAmount!: number;
@@ -24,7 +32,7 @@ class PricingResponseDto {
   @Expose() currency!: string;
 }
 
-class PaymentDetailsResponseDto {
+class PaymentDetailsResponseDto implements PaymentDetailsResponse {
   @Expose() method!: string;
   @Expose() amount!: number;
   @Expose() currency!: string;
@@ -37,23 +45,23 @@ class EstablishmentAddressResponseDto {
   @Expose() country!: string;
 }
 
-class PopulatedUserResponseDto {
+class PopulatedUserResponseDto implements PopulatedUserResponse {
   @Expose() _id!: string;
   @Expose() firstName!: string;
   @Expose() lastName!: string;
   @Expose() email!: string;
-  @Expose() phoneNumber!: string;
-  @Expose() avatar!: string;
+  @Expose() phoneNumber?: string | undefined;
+  @Expose() avatar?: string | undefined;
 }
 
-class PopulatedEstablishmentResponseDto {
+class PopulatedEstablishmentResponseDto implements PopulatedEstablishmentResponse {
   @Expose() _id!: string;
   @Expose() name!: string;
-  @Expose() address!: Record<string, unknown>;
-  @Expose() phoneNumber!: string;
+  @Expose() address?: Record<string, unknown> | undefined;
+  @Expose() phoneNumber?: string | undefined;
   @Expose() type!: string;
-  @Expose() images!: string[];
-  @Expose() averageRating!: number;
+  @Expose() images?: string[] | undefined;
+  @Expose() averageRating?: number | undefined;
 }
 
 // ---------------------------------------------------------------------------

@@ -20,7 +20,7 @@
  * Configurable via: AUTO_FEATURE_MIN_EXISTENCE_HOURS env variable
  */
 export const MIN_EXISTENCE_HOURS = parseFloat(
-  process.env['AUTO_FEATURE_MIN_EXISTENCE_HOURS'] || '0.5',
+  process.env['AUTO_FEATURE_MIN_EXISTENCE_HOURS'] ?? '0.5',
 );
 
 /**
@@ -30,7 +30,7 @@ export const MIN_EXISTENCE_HOURS = parseFloat(
  * Default: 3 hours - increased for more offers to be featured
  * Configurable via: AUTO_FEATURE_URGENCY_HOURS env variable
  */
-export const URGENCY_THRESHOLD_HOURS = parseFloat(process.env['AUTO_FEATURE_URGENCY_HOURS'] || '3');
+export const URGENCY_THRESHOLD_HOURS = parseFloat(process.env['AUTO_FEATURE_URGENCY_HOURS'] ?? '3');
 
 /**
  * Cron schedule for auto-featuring job
@@ -39,7 +39,7 @@ export const URGENCY_THRESHOLD_HOURS = parseFloat(process.env['AUTO_FEATURE_URGE
  * Configurable via: AUTO_FEATURE_CRON_SCHEDULE env variable
  */
 export const AUTO_FEATURE_CRON_SCHEDULE =
-  process.env['AUTO_FEATURE_CRON_SCHEDULE'] || '*/1 * * * *';
+  process.env['AUTO_FEATURE_CRON_SCHEDULE'] ?? '*/1 * * * *';
 
 /**
  * Enable/disable auto-featuring system

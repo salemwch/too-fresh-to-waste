@@ -29,6 +29,14 @@ import {
   IsNotProfane,
 } from '../../common/validators/business-constraints.validator';
 
+import type {
+  CreateOrderInput,
+  ConfirmPickupInput,
+  UpdateOrderStatusInput,
+  CancelOrderInput,
+  OrderQueryInput,
+} from '@foodwaste/shared';
+
 /**
  * Business Logic: Order items with sanitization and quantity constraints
  */
@@ -69,7 +77,7 @@ class PickupTimeSlotDto {
  * - Input sanitization for all text fields
  * - Profanity filtering for user-generated content
  */
-export class CreateOrderDto {
+export class CreateOrderDto implements CreateOrderInput {
   @IsArray()
   @ArrayMinSize(1, { message: 'Order must contain at least one item' })
   @ValidateNested({ each: true })
@@ -107,7 +115,7 @@ export class CreateOrderDto {
   @IsNotProfane() // BUSINESS RULE: Content moderation
   @IsString()
   @Length(0, 500)
-  customerNotes?: string;
+  customerNotes?: string | undefined;
 
   /**
    * Payment method: sanitize enum to prevent injection
@@ -127,19 +135,19 @@ export class CreateOrderDto {
     message:
       'Payment method must be one of: cash_on_pickup, pay_on_delivery, stripe, paypal, apple_pay, google_pay',
   })
-  paymentMethod!: string;
+  paymentMethod!: CreateOrderInput['paymentMethod'];
 
   @IsOptional()
   @SanitizeText() // SECURITY
   @IsString()
   @Length(0, 1000)
-  pickupInstructions?: string;
+  pickupInstructions?: string | undefined;
 }
 
 /**
  * Pickup confirmation with sanitized numeric code
  */
-export class ConfirmPickupDto {
+export class ConfirmPickupDto implements ConfirmPickupInput {
   @SanitizeNumeric() // SECURITY: Remove non-digit characters
   @IsNotEmpty()
   @IsString()
@@ -148,34 +156,34 @@ export class ConfirmPickupDto {
 
   @IsOptional()
   @IsString()
-  qrCode?: string;
+  qrCode?: string | undefined;
 
   @IsOptional()
   @SanitizeText() // SECURITY
   @IsString()
   @Length(0, 500)
-  notes?: string;
+  notes?: string | undefined;
 }
 
-export class UpdateOrderStatusDto {
+export class UpdateOrderStatusDto implements UpdateOrderStatusInput {
   @IsNotEmpty()
   @IsEnum(['confirmed', 'ready_for_pickup', 'picked_up', 'cancelled', 'expired'], {
     message: 'Invalid order status',
   })
-  status!: string;
+  status!: UpdateOrderStatusInput['status'];
 
   @IsOptional()
   @IsString()
   @Length(0, 500)
-  reason?: string;
+  reason?: string | undefined;
 
   @IsOptional()
   @IsString()
   @Length(0, 500)
-  notes?: string;
+  notes?: string | undefined;
 }
 
-export class CancelOrderDto {
+export class CancelOrderDto implements CancelOrderInput {
   @IsNotEmpty()
   @IsString()
   @Length(5, 500)
@@ -184,41 +192,41 @@ export class CancelOrderDto {
   @IsOptional()
   @IsString()
   @Length(0, 500)
-  additionalNotes?: string;
+  additionalNotes?: string | undefined;
 }
 
-export class OrderQueryDto {
+export class OrderQueryDto implements OrderQueryInput {
   @IsOptional()
   @IsString()
-  status?: string;
+  status?: string | undefined;
 
   @IsOptional()
   @IsString()
   @IsMongoId()
-  establishmentId?: string;
+  establishmentId?: string | undefined;
 
   @IsOptional()
   @IsString()
   @IsDateString()
-  fromDate?: string;
+  fromDate?: string | undefined;
 
   @IsOptional()
   @IsString()
   @IsDateString()
-  toDate?: string;
+  toDate?: string | undefined;
 
   @IsOptional()
   @IsString()
-  search?: string;
+  search?: string | undefined;
 
   @IsOptional()
   @IsString()
-  sortBy?: string;
+  sortBy?: string | undefined;
 
   @IsOptional()
   @IsString()
   @IsEnum(['asc', 'desc'])
-  sortOrder?: 'asc' | 'desc';
-  @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(50) limit?: number;
+  sortOrder?: 'asc' | 'desc' | undefined;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number | undefined;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(50) limit?: number | undefined;
 }

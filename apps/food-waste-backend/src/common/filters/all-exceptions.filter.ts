@@ -31,6 +31,13 @@ interface ErrorResponse {
   method: string;
 }
 
+type ErrorFilterRequest = Request & {
+  correlationId?: string;
+  user?: {
+    id?: string;
+  };
+};
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger: AppLoggerService;
@@ -45,13 +52,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
+    const request = ctx.getRequest<ErrorFilterRequest>();
 
     // Extract request metadata
-    const correlationId = request.correlationId || 'N/A';
+    const correlationId =
+      typeof request.correlationId === 'string' && request.correlationId.length > 0
+        ? request.correlationId
+        : 'N/A';
     const path = request.url;
     const method = request.method;
-    const userId = (request as Request & { user?: { id?: string } }).user?.id || 'anonymous';
+    const userId =
+      typeof request.user?.id === 'string' && request.user.id.length > 0
+        ? request.user.id
+        : 'anonymous';
 
     // Determine HTTP status code
     const status =
@@ -84,11 +97,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 return item;
               }
               // If item is an object with a message property, extract it
-              if (item && typeof item === 'object' && 'message' in item) {
-                return String(item.message);
+              if (
+                item !== null &&
+                item !== undefined &&
+                typeof item === 'object' &&
+                'message' in item
+              ) {
+                return String((item as { message: unknown }).message);
               }
               // If item is an object, try to stringify it properly
-              if (item && typeof item === 'object') {
+              if (item !== null && item !== undefined && typeof item === 'object') {
                 return JSON.stringify(item);
               }
               // Fallback to string conversion
@@ -117,6 +135,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     // Log error with structured logging
+    const ipAddress =
+      request.ip && request.ip.length > 0 ? request.ip : request.socket.remoteAddress;
     const errorId = this.logger.error(
       `${method} ${path} - ${errorName}: ${message}`,
       exception instanceof Error ? exception : undefined,
@@ -129,7 +149,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         statusCode: status,
         errorName,
         userAgent: request.headers['user-agent'],
-        ip: request.ip || request.connection.remoteAddress,
+        ip: ipAddress,
         query: request.query,
         // Note: Do NOT log request body as it may contain sensitive data (passwords, etc.)
       },
@@ -190,7 +210,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key', 'x-auth-token'];
 
     sensitiveHeaders.forEach((header) => {
-      if (sanitized[header]) {
+      if (sanitized[header] !== undefined) {
         sanitized[header] = '[REDACTED]';
       }
     });

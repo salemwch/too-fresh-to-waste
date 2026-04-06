@@ -33,7 +33,10 @@ import { SupabaseStorageService } from '../common/services/supabase-storage.serv
 import { QueryOptimizer } from '../common/utils/query-optimization.util';
 
 import { CreateEstablishmentDto } from './DTO/create-establishment.dto';
-import { mapToSafeEstablishmentResponse } from './DTO/safe-establishment-response.dto';
+import {
+  mapToSafeEstablishmentResponse,
+  type SafeEstablishmentResponse,
+} from './DTO/safe-establishment-response.dto';
 import { SearchEstablishmentsDto } from './DTO/search-establishments.dto';
 import { UpdateEstablishmentDto } from './DTO/update-establishment.dto';
 import { DocumentType, VerifyDocumentDto } from './DTO/upload-documents.dto';
@@ -127,26 +130,27 @@ export class EstablishmentsController {
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() createEstablishmentDto: CreateEstablishmentDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: Express.Multer.File[] | undefined,
     @Request() req: AuthenticatedRequest,
-  ) {
+  ): Promise<{ message: string; data: SafeEstablishmentResponse }> {
     const logger = new Logger('EstablishmentsController');
 
     try {
+      const uploadedFiles = files ?? [];
       logger.debug('Received createEstablishmentDto:');
       logger.debug(JSON.stringify(createEstablishmentDto, null, 2));
-      logger.debug(`Received files: ${files ? files.length : 0}`);
-      if (files && files.length > 0) {
+      logger.debug(`Received files: ${uploadedFiles.length}`);
+      if (uploadedFiles.length > 0) {
         logger.debug(
-          `File details: ${JSON.stringify(files.map((f) => ({ originalname: f.originalname, mimetype: f.mimetype, size: f.size })))}`,
+          `File details: ${JSON.stringify(uploadedFiles.map((f) => ({ originalname: f.originalname, mimetype: f.mimetype, size: f.size })))}`,
         );
       }
 
       let imageUrls: string[] = [];
 
       // Upload images to Firebase Cloud Storage if provided
-      if (files && files.length > 0) {
-        const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
+      if (uploadedFiles.length > 0) {
+        const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
           folder: 'establishments',
           makePublic: true,
           metadata: { uploadedBy: req.user.userId, category: 'establishment-image' },
@@ -183,7 +187,7 @@ export class EstablishmentsController {
         data: safeEstablishment,
       };
     } catch (error) {
-      logger.error('Failed to create establishment', (error as Error).stack || error);
+      logger.error('Failed to create establishment', (error as Error).stack ?? error);
       throw new BadRequestException((error as Error).message || 'Failed to create establishment');
     }
   }
@@ -312,15 +316,16 @@ export class EstablishmentsController {
   async update(
     @Param('id') id: string,
     @Body() updateEstablishmentDto: UpdateEstablishmentDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: Express.Multer.File[] | undefined,
     @Request() req: AuthenticatedRequest,
   ) {
     try {
+      const uploadedFiles = files ?? [];
       let newImageUrls: string[] = [];
 
       // Upload new images to Firebase Cloud Storage if provided
-      if (files && files.length > 0) {
-        const uploadResults = await this.supabaseStorageService.uploadFiles(files, {
+      if (uploadedFiles.length > 0) {
+        const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
           folder: 'establishments',
           makePublic: true,
           metadata: { uploadedBy: req.user.userId, category: 'establishment-image-update' },
@@ -339,7 +344,7 @@ export class EstablishmentsController {
       const updateData = {
         ...updateEstablishmentDto,
         ...(newImageUrls.length > 0 && {
-          images: [...(updateEstablishmentDto.images || []), ...newImageUrls],
+          images: [...(updateEstablishmentDto.images ?? []), ...newImageUrls],
         }),
       };
 
@@ -448,14 +453,14 @@ export class EstablishmentsController {
     @Body('documentType') documentType: DocumentType,
     @Body('expiryDate') expiryDate: string,
     @Body('notes') notes: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @Request() req: AuthenticatedRequest,
   ) {
     const logger = new Logger('EstablishmentsController');
 
     try {
       // Validate file exists
-      if (!file) {
+      if (file === null || file === undefined) {
         throw new BadRequestException('No document file provided');
       }
 
@@ -522,7 +527,7 @@ export class EstablishmentsController {
         },
       };
     } catch (error) {
-      logger.error('Failed to upload document', (error as Error).stack || error);
+      logger.error('Failed to upload document', (error as Error).stack ?? error);
       throw error;
     }
   }

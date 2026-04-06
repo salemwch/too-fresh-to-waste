@@ -9,6 +9,14 @@ import {
 
 import { TenantContext } from '../interfaces/authorization.interface';
 
+interface TenantIsolationRequest {
+  user?: {
+    role: UserRole;
+    userId: string;
+  };
+  tenantContext?: TenantContext;
+}
+
 /**
  * Tenant Isolation Guard
  * Enforces strict tenant isolation for merchant data
@@ -33,10 +41,10 @@ export class TenantIsolationGuard implements CanActivate {
   private readonly logger = new Logger(TenantIsolationGuard.name);
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<TenantIsolationRequest>();
     const user = request.user;
 
-    if (!user) {
+    if (user === null || user === undefined) {
       throw new ForbiddenException('User not authenticated');
     }
 

@@ -572,7 +572,11 @@ describe('UsersService - create method', () => {
       await service.create(createUserDto);
 
       // Assert
-      expect(savedUser!.save).toHaveBeenCalledTimes(1);
+      expect(savedUser).toBeDefined();
+      if (!savedUser) {
+        throw new Error('Expected saved user mock to be created');
+      }
+      expect(savedUser.save).toHaveBeenCalledTimes(1);
     });
 
     it('should_LogSuccessMessage_When_UserCreatedSuccessfully', async () => {

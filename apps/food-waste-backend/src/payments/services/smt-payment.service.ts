@@ -92,6 +92,33 @@ export interface SMTRefundRequest {
   merchantRefundId: string;
 }
 
+interface SMTGatewayResponseData {
+  success?: boolean;
+  transactionId?: string;
+  status?: string;
+  responseCode?: string;
+  responseMessage?: string;
+  authorizationCode?: string;
+  rrn?: string;
+  redirectUrl?: string;
+  error?: string;
+}
+
+interface SMTGatewayErrorData {
+  message?: string;
+}
+
+interface EncryptedCardPackage {
+  version: string;
+  keyId: string;
+  algorithm: string;
+  iv: string;
+  salt: string;
+  authTag: string;
+  encrypted: string;
+  timestamp: number;
+}
+
 interface EncryptionKeyPair {
   key: Buffer;
   keyId: string;
@@ -104,6 +131,24 @@ interface SecureCardData {
   expiryMonth: string;
   expiryYear: string;
   cvv: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && value !== undefined && typeof value === 'object';
+}
+
+function isEncryptedCardPackage(value: unknown): value is EncryptedCardPackage {
+  return (
+    isRecord(value) &&
+    typeof value['version'] === 'string' &&
+    typeof value['keyId'] === 'string' &&
+    typeof value['algorithm'] === 'string' &&
+    typeof value['iv'] === 'string' &&
+    typeof value['salt'] === 'string' &&
+    typeof value['authTag'] === 'string' &&
+    typeof value['encrypted'] === 'string' &&
+    typeof value['timestamp'] === 'number'
+  );
 }
 
 @Injectable()
@@ -194,13 +239,32 @@ export class SMTPaymentService {
         );
       }
 
-      if (this.config.hsmEnabled && !this.config.hsmKeyId) {
+      if (this.config.hsmEnabled === true && !this.config.hsmKeyId) {
         throw new Error('SMT_HSM_KEY_ID is required when HSM is enabled');
       }
     }
 
     this.logger.log('SMT security configuration validated successfully');
   }
+
+  private getMasterEncryptionKeyOrThrow(): string {
+    const masterEncryptionKey = this.config.masterEncryptionKey;
+    if (!masterEncryptionKey) {
+      throw new Error('Master encryption key not configured');
+    }
+
+    return masterEncryptionKey;
+  }
+
+  private getKeyRotationIntervalOrThrow(): number {
+    const keyRotationInterval = this.config.keyRotationInterval;
+    if (!keyRotationInterval || keyRotationInterval <= 0) {
+      throw new Error('Key rotation interval not configured');
+    }
+
+    return keyRotationInterval;
+  }
+
   private mapSMTStatusToPaymentStatus(smtStatus: string): PaymentStatus | null {
     const statusMap: Record<string, PaymentStatus> = {
       completed: PaymentStatus.COMPLETED,
@@ -216,7 +280,7 @@ export class SMTPaymentService {
       disputed: PaymentStatus.DISPUTED,
     };
 
-    return statusMap[smtStatus.toLowerCase()] || null;
+    return statusMap[smtStatus.toLowerCase()] ?? null;
   }
   private setupInterceptors(): void {
     this.httpClient.interceptors.request.use(
@@ -287,7 +351,10 @@ export class SMTPaymentService {
       };
 
       // Call SMT API
-      const response = await this.httpClient.post('/payments', requestPayload);
+      const response = await this.httpClient.post<SMTGatewayResponseData>(
+        '/payments',
+        requestPayload,
+      );
 
       // Debug log raw SMT response
       this.logger.debug('Raw SMT response:', JSON.stringify(response.data, null, 2));
@@ -334,10 +401,13 @@ export class SMTPaymentService {
       };
     } catch (error) {
       if (error instanceof AxiosError) {
+        const axiosError = error as AxiosError<SMTGatewayErrorData>;
         this.logger.error('SMT payment processing error:', error);
 
-        if (error.response?.status === 400) {
-          throw new BadRequestException(error.response.data.message || 'Invalid payment request');
+        if (axiosError.response?.status === 400) {
+          throw new BadRequestException(
+            axiosError.response.data?.message ?? 'Invalid payment request',
+          );
         }
 
         throw new InternalServerErrorException('Payment processing failed');
@@ -363,24 +433,27 @@ export class SMTPaymentService {
         terminalId: this.config.terminalId,
       };
 
-      const response = await this.httpClient.post('/refunds', requestPayload);
+      const response = await this.httpClient.post<SMTGatewayResponseData>(
+        '/refunds',
+        requestPayload,
+      );
 
-      if (response.data.success) {
+      if (response.data.success === true) {
         this.logger.log(`SMT refund successful: ${response.data.transactionId}`);
         return {
           success: true,
           transactionId: response.data.transactionId,
-          status: response.data.status,
-          responseCode: response.data.responseCode,
-          responseMessage: response.data.responseMessage,
+          status: response.data.status ?? 'completed',
+          responseCode: response.data.responseCode ?? '00',
+          responseMessage: response.data.responseMessage ?? 'Refund completed successfully',
         };
       }
       this.logger.warn(`SMT refund failed: ${response.data.responseMessage}`);
       return {
         success: false,
         status: 'failed',
-        responseCode: response.data.responseCode,
-        responseMessage: response.data.responseMessage,
+        responseCode: response.data.responseCode ?? 'N/A',
+        responseMessage: response.data.responseMessage ?? 'Refund failed',
         error: response.data.error,
       };
     } catch (error) {
@@ -391,7 +464,9 @@ export class SMTPaymentService {
 
   async getTransactionStatus(transactionId: string): Promise<SMTPaymentResponse> {
     try {
-      const response = await this.httpClient.get(`/payments/${transactionId}/status`);
+      const response = await this.httpClient.get<SMTPaymentResponse>(
+        `/payments/${transactionId}/status`,
+      );
       return response.data;
     } catch (error) {
       this.logger.error('SMT transaction status error:', error);
@@ -524,7 +599,7 @@ export class SMTPaymentService {
    */
   private async decryptCardData(encryptedData: string): Promise<SecureCardData> {
     if (this.config.environment === 'development') {
-      return JSON.parse(Buffer.from(encryptedData, 'base64').toString('utf8'));
+      return JSON.parse(Buffer.from(encryptedData, 'base64').toString('utf8')) as SecureCardData;
     }
 
     const startTime = Date.now();
@@ -533,10 +608,12 @@ export class SMTPaymentService {
 
     try {
       // Parse encrypted package
-      const packageData = JSON.parse(Buffer.from(encryptedData, 'base64').toString('utf8'));
+      const packageData: unknown = JSON.parse(
+        Buffer.from(encryptedData, 'base64').toString('utf8'),
+      );
 
       // Validate package structure and version
-      if (!packageData.version || !packageData.keyId || !packageData.encrypted) {
+      if (!isEncryptedCardPackage(packageData)) {
         throw new Error('Invalid encrypted package structure');
       }
 
@@ -568,7 +645,7 @@ export class SMTPaymentService {
       // Decrypt data
       sensitiveData = Buffer.concat([decipher.update(encrypted), decipher.final()]);
 
-      const decryptedData = JSON.parse(sensitiveData.toString('utf8'));
+      const decryptedData = JSON.parse(sensitiveData.toString('utf8')) as SecureCardData;
 
       // Log security audit event
       this.logSecurityEvent('CARD_DATA_DECRYPTED', {
@@ -630,18 +707,20 @@ export class SMTPaymentService {
     let keyMaterial: Buffer | null = null;
 
     try {
-      if (this.config.hsmEnabled) {
+      if (this.config.hsmEnabled === true) {
         // HSM-based key generation (placeholder for HSM integration)
         return await this.generateHSMKey(keyId);
       }
 
       // Software-based key derivation with PBKDF2
       const salt = crypto.randomBytes(this.SALT_SIZE);
-      masterKey = Buffer.from(this.config.masterEncryptionKey!, 'hex');
+      const masterEncryptionKey = this.getMasterEncryptionKeyOrThrow();
+      const masterKeyBuffer = Buffer.from(masterEncryptionKey, 'hex');
+      masterKey = masterKeyBuffer;
 
       // Use PBKDF2 for key stretching (more secure than scrypt for this use case)
       keyMaterial = await new Promise<Buffer>((resolve, reject) => {
-        crypto.pbkdf2(masterKey!, salt, 100000, this.KEY_SIZE, 'sha512', (err, derivedKey) => {
+        crypto.pbkdf2(masterKeyBuffer, salt, 100000, this.KEY_SIZE, 'sha512', (err, derivedKey) => {
           if (err) {
             reject(err);
           } else {
@@ -654,7 +733,7 @@ export class SMTPaymentService {
         key: keyMaterial,
         keyId,
         createdAt: new Date(),
-        expiresAt: new Date(Date.now() + this.config.keyRotationInterval!),
+        expiresAt: new Date(Date.now() + this.getKeyRotationIntervalOrThrow()),
       };
 
       // Store key securely in database
@@ -767,7 +846,9 @@ export class SMTPaymentService {
       // Parse encrypted key package
       let keyPackage: { iv: string; encrypted: string; authTag: string };
       try {
-        keyPackage = JSON.parse(Buffer.from(keyRecord.encryptedKey, 'base64').toString('utf8'));
+        keyPackage = JSON.parse(
+          Buffer.from(keyRecord.encryptedKey, 'base64').toString('utf8'),
+        ) as typeof keyPackage;
       } catch (error) {
         this.logSecurityEvent('KEY_PACKAGE_PARSE_ERROR', {
           keyId,
@@ -783,11 +864,13 @@ export class SMTPaymentService {
       }
 
       // Derive decryption key
-      masterKey = Buffer.from(this.config.masterEncryptionKey, 'hex');
+      const masterEncryptionKey = this.getMasterEncryptionKeyOrThrow();
+      const masterKeyBuffer = Buffer.from(masterEncryptionKey, 'hex');
+      masterKey = masterKeyBuffer;
       const salt = keyRecord.salt ? Buffer.from(keyRecord.salt, 'base64') : crypto.randomBytes(32);
 
       const decryptionKey = await new Promise<Buffer>((resolve, reject) => {
-        crypto.pbkdf2(masterKey!, salt, 100000, 32, 'sha512', (err, derivedKey) => {
+        crypto.pbkdf2(masterKeyBuffer, salt, 100000, 32, 'sha512', (err, derivedKey) => {
           if (err) {
             reject(err);
           } else {
@@ -823,8 +906,8 @@ export class SMTPaymentService {
       };
 
       // Update access tracking (fire-and-forget)
-      this.updateKeyAccessTracking(keyId).catch((error) => {
-        this.logger.warn(`Failed to update key access tracking: ${error.message}`);
+      this.updateKeyAccessTracking(keyId).catch((error: unknown) => {
+        this.logger.warn(`Failed to update key access tracking: ${(error as Error).message}`);
       });
 
       // Cache the decrypted key for performance
@@ -863,7 +946,7 @@ export class SMTPaymentService {
    */
   private loadHSMKey(keyRecord: EncryptionKeyDocument): EncryptionKeyPair | null {
     try {
-      if (!this.config.hsmEnabled || !keyRecord.hsmKeyId) {
+      if (this.config.hsmEnabled !== true || !keyRecord.hsmKeyId) {
         this.logSecurityEvent('HSM_KEY_LOAD_FAILED', {
           keyId: keyRecord.keyId,
           reason: 'HSM not enabled or missing HSM key ID',
@@ -946,9 +1029,11 @@ export class SMTPaymentService {
       const salt = crypto.randomBytes(this.SALT_SIZE);
 
       // Derive encryption key for storing key material
-      masterKey = Buffer.from(this.config.masterEncryptionKey, 'hex');
+      const masterEncryptionKey = this.getMasterEncryptionKeyOrThrow();
+      const masterKeyBuffer = Buffer.from(masterEncryptionKey, 'hex');
+      masterKey = masterKeyBuffer;
       const storageKey = await new Promise<Buffer>((resolve, reject) => {
-        crypto.pbkdf2(masterKey!, salt, 100000, 32, 'sha512', (err, derivedKey) => {
+        crypto.pbkdf2(masterKeyBuffer, salt, 100000, 32, 'sha512', (err, derivedKey) => {
           if (err) {
             reject(err);
           } else {
@@ -987,7 +1072,7 @@ export class SMTPaymentService {
       const encryptionKey = new this.encryptionKeyModel({
         keyId: keyPair.keyId,
         status: KeyStatus.ACTIVE,
-        keyType: this.config.hsmEnabled ? KeyType.HSM_REFERENCE : KeyType.DERIVED_KEY,
+        keyType: this.config.hsmEnabled === true ? KeyType.HSM_REFERENCE : KeyType.DERIVED_KEY,
         merchantId: this.config.merchantId,
         environment: this.config.environment,
         encryptedKey: Buffer.from(JSON.stringify(keyPackage)).toString('base64'),
@@ -1027,7 +1112,7 @@ export class SMTPaymentService {
    * Generate current key ID based on time rotation
    */
   private getCurrentKeyId(): string {
-    const rotationPeriod = this.config.keyRotationInterval!;
+    const rotationPeriod = this.getKeyRotationIntervalOrThrow();
     const currentPeriod = Math.floor(Date.now() / rotationPeriod);
     return `key_${currentPeriod}_${this.config.merchantId}`;
   }

@@ -4,9 +4,10 @@ import {
   PASSWORD_ERROR_MESSAGES,
   buildPasswordRegex,
 } from '@foodwaste/shared';
+import type { ResetPasswordInput } from '@foodwaste/shared';
 import { IsEmail, IsString, MinLength, MaxLength, Matches } from 'class-validator';
 
-export class ResetPasswordDto {
+export class ResetPasswordDto implements ResetPasswordInput {
   @IsEmail()
   email!: string;
 

@@ -5,6 +5,8 @@
  * @module common/events
  */
 
+import type { BusinessInfo } from '@foodwaste/shared';
+
 /**
  * Emitted when a new user successfully registers
  * Listeners: Loyalty (signup bonus), Notifications (welcome email), Analytics
@@ -15,6 +17,8 @@ export class UserRegisteredEvent {
     public readonly email: string,
     public readonly role: string,
     public readonly registeredAt: Date,
+    public readonly businessInfo?: BusinessInfo | undefined,
+    public readonly phoneNumber?: string | undefined,
   ) {}
 }
 

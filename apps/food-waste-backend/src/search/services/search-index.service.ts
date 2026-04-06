@@ -83,10 +83,10 @@ export class SearchIndexService {
         ...this.buildEstablishmentLookupForSearch(),
       ];
 
-      const results = await this.offerModel.aggregate(pipeline).exec();
+      const results = await this.offerModel.aggregate<PopulatedOfferResult>(pipeline).exec();
       const offer = results[0];
 
-      if (!offer) {
+      if (offer === null || offer === undefined) {
         this.logger.warn(`Offer ${offerId} not found for indexing`);
         return;
       }
@@ -139,7 +139,7 @@ export class SearchIndexService {
         { $match: { status: 'active' } },
         ...this.buildEstablishmentLookupForSearch(),
       ];
-      const offers = await this.offerModel.aggregate(offerPipeline).exec();
+      const offers = await this.offerModel.aggregate<PopulatedOfferResult>(offerPipeline).exec();
 
       for (const offer of offers) {
         const searchDocument = this.createOfferSearchDocument(offer);
@@ -197,24 +197,24 @@ export class SearchIndexService {
       type: 'offer',
       title: offer.title,
       description: offer.description,
-      categories: offer.categories || [],
-      establishmentName: offer.establishmentId?.name || '',
-      establishmentAddress: offer.establishmentId?.address || {},
-      location: offer.establishmentId?.address?.coordinates || null,
+      categories: offer.categories ?? [],
+      establishmentName: offer.establishmentId?.name ?? '',
+      establishmentAddress: offer.establishmentId?.address ?? {},
+      location: offer.establishmentId?.address?.coordinates ?? null,
       price: {
-        original: offer.pricing?.originalPrice || 0,
-        discounted: offer.pricing?.discountedPrice || 0,
-        discount: offer.pricing?.discountPercentage || 0,
+        original: offer.pricing?.originalPrice ?? 0,
+        discounted: offer.pricing?.discountedPrice ?? 0,
+        discount: offer.pricing?.discountPercentage ?? 0,
       },
       availability: {
-        quantity: offer.availableQuantity || 0,
+        quantity: offer.availableQuantity ?? 0,
         from: offer.availableFrom,
         until: offer.availableUntil,
       },
       searchText:
-        `${offer.title} ${offer.description} ${offer.categories?.join(' ') || ''} ${offer.establishmentId?.name || ''}`.toLowerCase(),
+        `${offer.title} ${offer.description} ${offer.categories?.join(' ') ?? ''} ${offer.establishmentId?.name ?? ''}`.toLowerCase(),
       status: offer.status,
-      isFeatured: (offer.isFeaturedManual || offer.isFeaturedAuto) ?? false,
+      isFeatured: offer.isFeaturedManual === true || offer.isFeaturedAuto === true,
       createdAt: offer.createdAt,
       updatedAt: offer.updatedAt,
     };
@@ -229,9 +229,9 @@ export class SearchIndexService {
       type: 'establishment',
       name: establishment.name,
       description: establishment.description,
-      categories: establishment.cuisineTypes || [],
-      address: establishment.address || {},
-      location: establishment.address?.coordinates || null,
+      categories: establishment.cuisineTypes ?? [],
+      address: establishment.address ?? {},
+      location: establishment.address?.coordinates ?? null,
       rating: {
         average: establishment.averageRating || 0,
         count: establishment.totalReviews || 0,

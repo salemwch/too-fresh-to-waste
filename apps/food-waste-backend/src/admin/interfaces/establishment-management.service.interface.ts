@@ -1,7 +1,17 @@
-import { IEstablishment, IEstablishmentStats, IEstablishmentOverview, IEstablishmentListResponse } from '../../common/interfaces/establishment.interface';
-import { ApproveEstablishmentDto, UpdateEstablishmentStatusDto, EstablishmentSearchDto, EstablishmentStatsDto } from '../dto/establishment-management.dto';
-import { AdminAuditLogDocument } from '../schemas/admin-audit-log.schema';
-import { LeanDocument } from '../../common/types/mongoose.types';
+import type {
+  IEstablishment,
+  IEstablishmentStats,
+  IEstablishmentOverview,
+  IEstablishmentListResponse,
+} from '../../common/interfaces/establishment.interface';
+import type { LeanDocument } from '../../common/types/mongoose.types';
+import type {
+  ApproveEstablishmentDto,
+  UpdateEstablishmentStatusDto,
+  EstablishmentSearchDto,
+  EstablishmentStatsDto,
+} from '../dto/establishment-management.dto';
+import type { AdminAuditLogDocument } from '../schemas/admin-audit-log.schema';
 
 export interface IEstablishmentManagementService {
   getEstablishmentOverview(): Promise<IEstablishmentOverview>;
@@ -18,7 +28,7 @@ export interface IEstablishmentManagementService {
     adminId: string,
     adminEmail: string,
     ipAddress: string,
-    userAgent: string
+    userAgent: string,
   ): Promise<IEstablishment>;
 
   updateEstablishmentStatus(
@@ -27,17 +37,17 @@ export interface IEstablishmentManagementService {
     adminId: string,
     adminEmail: string,
     ipAddress: string,
-    userAgent: string
+    userAgent: string,
   ): Promise<IEstablishment>;
 
   getEstablishmentStats(
     establishmentId: string,
-    statsDto: EstablishmentStatsDto
+    statsDto: EstablishmentStatsDto,
   ): Promise<IEstablishmentStats>;
 
   getEstablishmentActivity(
     establishmentId: string,
-    days?: number
+    days?: number,
   ): Promise<LeanDocument<AdminAuditLogDocument>[]>;
 
   verifyEstablishmentDocuments(
@@ -45,7 +55,7 @@ export interface IEstablishmentManagementService {
     adminId: string,
     adminEmail: string,
     ipAddress: string,
-    userAgent: string
+    userAgent: string,
   ): Promise<IEstablishment>;
 }
 

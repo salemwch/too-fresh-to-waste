@@ -1,3 +1,14 @@
+import type {
+  AddFavoriteInput,
+  UpdateFavoriteInput,
+  FavoritesFilterInput,
+  CreateFavoriteListInput,
+  UpdateFavoriteListInput,
+  AddToListInput,
+  ShareListInput,
+  RecommendationFiltersInput,
+  TrendsFiltersInput,
+} from '@foodwaste/shared';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type, Transform } from 'class-transformer';
 import {
@@ -17,43 +28,55 @@ import { EstablishmentType } from '../../common/enums';
 import { ListVisibility } from '../schemas/favorite-list.schema';
 import { FavoriteType } from '../schemas/favorite.schema';
 
+function parseBooleanQueryValue(value: unknown): unknown {
+  // Handle string boolean conversion from query params
+  if (value === 'true' || value === '1') {
+    return true;
+  }
+  if (value === 'false' || value === '0') {
+    return false;
+  }
+
+  return value;
+}
+
 class FavoritePreferenceDto {
   @ApiProperty({ required: false, default: true })
   @IsOptional()
   @IsBoolean()
-  notifications?: boolean;
+  notifications?: boolean | undefined;
 
   @ApiProperty({ required: false, default: true })
   @IsOptional()
   @IsBoolean()
-  emailAlerts?: boolean;
+  emailAlerts?: boolean | undefined;
 
   @ApiProperty({ required: false, default: true })
   @IsOptional()
   @IsBoolean()
-  pushNotifications?: boolean;
+  pushNotifications?: boolean | undefined;
 
   @ApiProperty({ type: [String], required: false })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  preferredTimes?: string[];
+  preferredTimes?: string[] | undefined;
 
   @ApiProperty({ type: [Number], required: false })
   @IsOptional()
   @IsArray()
   @IsNumber({}, { each: true })
-  preferredDays?: number[];
+  preferredDays?: number[] | undefined;
 
   @ApiProperty({ required: false, default: 5 })
   @IsOptional()
   @IsNumber()
   @Min(0)
   @Max(50)
-  maxDistance?: number;
+  maxDistance?: number | undefined;
 }
 
-export class AddFavoriteDto {
+export class AddFavoriteDto implements AddFavoriteInput {
   @ApiProperty({ enum: FavoriteType })
   @IsEnum(FavoriteType)
   type!: FavoriteType;
@@ -65,93 +88,78 @@ export class AddFavoriteDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  itemName?: string;
+  itemName?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  itemImage?: string;
+  itemImage?: string | undefined;
 
   @ApiProperty({ type: FavoritePreferenceDto, required: false })
   @IsOptional()
   @ValidateNested()
   @Type(() => FavoritePreferenceDto)
-  preferences?: FavoritePreferenceDto;
+  preferences?: FavoritePreferenceDto | undefined;
 
   @ApiProperty({ type: [String], required: false })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  tags?: string[];
+  tags?: string[] | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | undefined;
 }
 
-export class UpdateFavoriteDto {
+export class UpdateFavoriteDto implements UpdateFavoriteInput {
   @ApiProperty({ type: FavoritePreferenceDto, required: false })
   @IsOptional()
   @ValidateNested()
   @Type(() => FavoritePreferenceDto)
-  preferences?: FavoritePreferenceDto;
+  preferences?: FavoritePreferenceDto | undefined;
 
   @ApiProperty({ type: [String], required: false })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  tags?: string[];
+  tags?: string[] | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  isActive?: boolean | undefined;
 }
 
-export class FavoritesFilterDto {
+export class FavoritesFilterDto implements FavoritesFilterInput {
   @ApiProperty({ enum: FavoriteType, required: false })
   @IsOptional()
   @IsEnum(FavoriteType)
-  type?: FavoriteType;
+  type?: FavoriteType | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  tag?: string;
+  tag?: string | undefined;
 
   @ApiProperty({ required: false, default: true })
   @IsOptional()
-  @Transform(({ value }) => {
-    // Handle string boolean conversion from query params
-    if (value === 'true') {
-      return true;
-    }
-    if (value === 'false') {
-      return false;
-    }
-    if (value === '1') {
-      return true;
-    }
-    if (value === '0') {
-      return false;
-    }
-    return value;
-  })
+  @Transform(({ value }) => parseBooleanQueryValue(value))
   @IsBoolean()
-  isActive?: boolean;
+  isActive?: boolean | undefined;
 
   @ApiProperty({ required: false, default: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
-  page?: number;
+  page!: number;
 
   @ApiProperty({ required: false, default: 20 })
   @IsOptional()
@@ -159,12 +167,12 @@ export class FavoritesFilterDto {
   @IsNumber()
   @Min(1)
   @Max(100)
-  limit?: number;
+  limit!: number;
 
   @ApiProperty({ required: false, default: '-addedAt' })
   @IsOptional()
   @IsString()
-  sortBy?: string;
+  sortBy!: string;
 
   @ApiProperty({
     enum: EstablishmentType,
@@ -173,10 +181,10 @@ export class FavoritesFilterDto {
   })
   @IsOptional()
   @IsEnum(EstablishmentType)
-  establishmentType?: EstablishmentType;
+  establishmentType?: EstablishmentType | undefined;
 }
 
-export class CreateFavoriteListDto {
+export class CreateFavoriteListDto implements CreateFavoriteListInput {
   @ApiProperty()
   @IsString()
   name!: string;
@@ -184,69 +192,69 @@ export class CreateFavoriteListDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  description?: string;
+  description?: string | undefined;
 
   @ApiProperty({ enum: ListVisibility, required: false, default: ListVisibility.PRIVATE })
   @IsOptional()
   @IsEnum(ListVisibility)
-  visibility?: ListVisibility;
+  visibility!: ListVisibility;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  iconEmoji?: string;
+  iconEmoji?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  coverImage?: string;
+  coverImage?: string | undefined;
 
   @ApiProperty({ type: [String], required: false })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  tags?: string[];
+  tags?: string[] | undefined;
 }
 
-export class UpdateFavoriteListDto {
+export class UpdateFavoriteListDto implements UpdateFavoriteListInput {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  name?: string;
+  name?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  description?: string;
+  description?: string | undefined;
 
   @ApiProperty({ enum: ListVisibility, required: false })
   @IsOptional()
   @IsEnum(ListVisibility)
-  visibility?: ListVisibility;
+  visibility?: ListVisibility | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  iconEmoji?: string;
+  iconEmoji?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  coverImage?: string;
+  coverImage?: string | undefined;
 
   @ApiProperty({ type: [String], required: false })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  tags?: string[];
+  tags?: string[] | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  isActive?: boolean | undefined;
 }
 
-export class AddToListDto {
+export class AddToListDto implements AddToListInput {
   @ApiProperty()
   @IsMongoId()
   itemId!: string;
@@ -258,16 +266,16 @@ export class AddToListDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  position?: number;
+  position?: number | undefined;
 }
 
-export class ShareListDto {
+export class ShareListDto implements ShareListInput {
   @ApiProperty({ type: [String] })
   @IsArray()
   @IsMongoId({ each: true })
@@ -276,7 +284,7 @@ export class ShareListDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  message?: string;
+  message?: string | undefined;
 }
 
 export class FavoriteStatsDto {
@@ -418,40 +426,40 @@ export class TrendsResponseDto {
   periodEndDate!: Date;
 }
 
-export class RecommendationFiltersDto {
+export class RecommendationFiltersDto implements RecommendationFiltersInput {
   @ApiProperty({ required: false, default: 10 })
   @IsOptional()
   @IsNumber()
   @Min(1)
   @Max(50)
-  limit?: number;
+  limit!: number;
 
   @ApiProperty({ enum: FavoriteType, required: false })
   @IsOptional()
   @IsEnum(FavoriteType)
-  type?: FavoriteType;
+  type?: FavoriteType | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  category?: string;
+  category?: string | undefined;
 
   @ApiProperty({ required: false, default: 10 })
   @IsOptional()
   @IsNumber()
   @Min(1)
   @Max(100)
-  maxDistance?: number;
+  maxDistance?: number | undefined;
 
   @ApiProperty({ required: false, default: 0.5 })
   @IsOptional()
   @IsNumber()
   @Min(0)
   @Max(1)
-  minConfidence?: number;
+  minConfidence?: number | undefined;
 }
 
-export class TrendsFiltersDto {
+export class TrendsFiltersDto implements TrendsFiltersInput {
   @ApiProperty({
     required: false,
     default: 'week',
@@ -459,28 +467,28 @@ export class TrendsFiltersDto {
   })
   @IsOptional()
   @IsEnum(['day', 'week', 'month', 'quarter', 'year'])
-  period?: string;
+  period!: 'day' | 'week' | 'month' | 'quarter' | 'year';
 
   @ApiProperty({ required: false, default: 20 })
   @IsOptional()
   @IsNumber()
   @Min(1)
   @Max(100)
-  limit?: number;
+  limit!: number;
 
   @ApiProperty({ enum: FavoriteType, required: false })
   @IsOptional()
   @IsEnum(FavoriteType)
-  type?: FavoriteType;
+  type?: FavoriteType | undefined;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  category?: string;
+  category?: string | undefined;
 
   @ApiProperty({ required: false, default: 5 })
   @IsOptional()
   @IsNumber()
   @Min(1)
-  minFavoriteCount?: number;
+  minFavoriteCount?: number | undefined;
 }

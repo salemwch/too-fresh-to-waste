@@ -1,3 +1,5 @@
+import type { AnalyticsPeriodType } from '../dto/admin-analytics.dto';
+
 export interface PlatformAnalytics {
   users: UserAnalytics;
   establishments: EstablishmentAnalytics;
@@ -116,7 +118,7 @@ export interface EstablishmentRevenue {
 export interface AnalyticsPeriod {
   startDate: Date;
   endDate: Date;
-  periodType: 'day' | 'week' | 'month' | 'quarter' | 'year'| 'custom';
+  periodType: AnalyticsPeriodType;
 }
 
 // Union type for audit log values to replace 'any'

@@ -350,7 +350,7 @@ describe('TokenService', () => {
     });
 
     it('should return rememberMe: false for legacy tokens where the field does not exist', async () => {
-      const legacyRecord = (({ rememberMe, ...record }) => record)(buildTokenRecord()); // simulate pre-migration document
+      const legacyRecord = (({ rememberMe: _rememberMe, ...record }) => record)(buildTokenRecord()); // simulate pre-migration document
       mockFindOne.mockResolvedValue(legacyRecord);
 
       const result = await service.validateRefreshToken('legacy.token');
@@ -419,8 +419,13 @@ describe('TokenService', () => {
       expect(validation.rememberMe).toBe(true);
 
       // --- generate step (mirrors what auth.service.refreshTokens does) ---
+      const validationUserId = validation.userId;
+      if (!validationUserId) {
+        throw new Error('Expected refresh token validation to include a userId');
+      }
+
       await service.generateTokenPair(
-        validation.userId!,
+        validationUserId,
         'a@b.com',
         UserRole.CONSUMER,
         undefined,
@@ -468,8 +473,13 @@ describe('TokenService', () => {
       const validation = await service.validateRefreshToken('short.refresh.token');
       expect(validation.rememberMe).toBe(false);
 
+      const validationUserId = validation.userId;
+      if (!validationUserId) {
+        throw new Error('Expected refresh token validation to include a userId');
+      }
+
       await service.generateTokenPair(
-        validation.userId!,
+        validationUserId,
         'x@y.com',
         UserRole.CONSUMER,
         undefined,

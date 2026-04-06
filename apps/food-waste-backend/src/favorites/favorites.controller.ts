@@ -416,7 +416,7 @@ export class FavoritesController {
   @ApiResponse({ status: 200, description: 'Favorites data exported successfully' })
   async exportFavorites(@GetUser('id') userId: string) {
     const [favorites, listsResult] = await Promise.all([
-      this.favoritesService.getUserFavorites(userId, { page: 1, limit: 1000 }),
+      this.favoritesService.getUserFavorites(userId, { page: 1, limit: 1000, sortBy: '-addedAt' }),
       this.favoritesService.getUserFavoriteLists(userId),
     ]);
 

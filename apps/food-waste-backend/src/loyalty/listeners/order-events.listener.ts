@@ -79,7 +79,7 @@ export class OrderEventsListener {
     try {
       this.logger.log(`Processing order.completed event for order: ${event.orderId}`);
 
-      const totalBags = event.metadata?.itemCount || 1;
+      const totalBags = event.metadata?.itemCount ?? 1;
       const pointsToAward = totalBags * this.POINTS_PER_BAG;
 
       // SAFETY FALLBACK: Create loyalty account if it doesn't exist (lazy creation)

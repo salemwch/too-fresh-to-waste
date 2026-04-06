@@ -212,8 +212,8 @@ export class OptOutManagerService {
         phoneNumber: sanitized,
         isOptedOut: true,
         status: OptOutRecordStatus.ACTIVE,
-        scope: optOutRequest.scope || OptOutScope.ALL_SMS,
-        reason: optOutRequest.reason || OptOutReason.USER_REQUESTED,
+        scope: optOutRequest.scope ?? OptOutScope.ALL_SMS,
+        reason: optOutRequest.reason ?? OptOutReason.USER_REQUESTED,
         optedOutAt: new Date(),
         optedInAt: undefined,
         expiresAt,
@@ -229,7 +229,7 @@ export class OptOutManagerService {
           auditLog: {
             action: 'opt_out',
             timestamp: new Date(),
-            reason: optOutRequest.reason || OptOutReason.USER_REQUESTED,
+            reason: optOutRequest.reason ?? OptOutReason.USER_REQUESTED,
             userId: optOutRequest.userId ? new Types.ObjectId(optOutRequest.userId) : undefined,
             ipAddress: optOutRequest.ipAddress,
             userAgent: optOutRequest.userAgent,
@@ -263,8 +263,8 @@ export class OptOutManagerService {
         details: {
           previousStatus: false, // We could check this from existing record
           newStatus: true,
-          reason: optOutRequest.reason || OptOutReason.USER_REQUESTED,
-          scope: optOutRequest.scope || OptOutScope.ALL_SMS,
+          reason: optOutRequest.reason ?? OptOutReason.USER_REQUESTED,
+          scope: optOutRequest.scope ?? OptOutScope.ALL_SMS,
           recordId: result._id.toString(),
         },
         timestamp: new Date(),
@@ -543,7 +543,10 @@ export class OptOutManagerService {
     let totalActive = 0;
 
     for (const sanitized of sanitizedNumbers) {
-      const originalNumber = phoneNumberMap.get(sanitized)!;
+      const originalNumber = phoneNumberMap.get(sanitized);
+      if (!originalNumber) {
+        continue;
+      }
       const record = recordMap.get(sanitized);
 
       if (!record) {
@@ -603,11 +606,11 @@ export class OptOutManagerService {
       updatedAt: record.updatedAt,
     };
 
-    if (bulkRequest.includeAuditLog) {
+    if (bulkRequest.includeAuditLog === true) {
       response.auditLog = record.auditLog;
     }
 
-    if (bulkRequest.includeStats) {
+    if (bulkRequest.includeStats === true) {
       response.messageStats = record.messageStats;
     }
 
@@ -719,10 +722,13 @@ export class OptOutManagerService {
     const startTime = Date.now();
 
     try {
-      const page = query.page || 1;
-      const limit = Math.min(query.limit || 50, 1000);
+      const page = query.page ?? 1;
+      const limit = Math.min(query.limit ?? 50, 1000);
       const skip = (page - 1) * limit;
-      const sortBy = query.sortBy || 'createdAt';
+      const sortBy =
+        query.sortBy !== null && query.sortBy !== undefined && query.sortBy.length > 0
+          ? query.sortBy
+          : 'createdAt';
       const sortOrder = query.sortOrder === 'asc' ? 1 : -1;
 
       // Build filter criteria
@@ -736,15 +742,15 @@ export class OptOutManagerService {
         filter.userId = new Types.ObjectId(query.userId);
       }
 
-      if (query.status) {
+      if (query.status !== null && query.status !== undefined) {
         filter.status = query.status;
       }
 
-      if (query.reason) {
+      if (query.reason !== null && query.reason !== undefined) {
         filter.reason = query.reason;
       }
 
-      if (query.scope) {
+      if (query.scope !== null && query.scope !== undefined) {
         filter.scope = query.scope;
       }
 
@@ -754,13 +760,14 @@ export class OptOutManagerService {
 
       // Date range filtering
       if (query.startDate || query.endDate) {
-        filter.createdAt = {};
+        const createdAtFilter: { $gte?: Date; $lte?: Date } = {};
         if (query.startDate) {
-          filter.createdAt.$gte = query.startDate;
+          createdAtFilter.$gte = query.startDate;
         }
         if (query.endDate) {
-          filter.createdAt.$lte = query.endDate;
+          createdAtFilter.$lte = query.endDate;
         }
+        filter.createdAt = createdAtFilter;
       }
 
       // Text search
@@ -801,11 +808,11 @@ export class OptOutManagerService {
           updatedAt: record.updatedAt,
         };
 
-        if (query.includeAuditLog) {
+        if (query.includeAuditLog === true) {
           response.auditLog = record.auditLog;
         }
 
-        if (query.includeStats) {
+        if (query.includeStats === true) {
           response.messageStats = record.messageStats as IMessageStats | undefined;
         }
 
@@ -826,7 +833,7 @@ export class OptOutManagerService {
         },
         query: {
           filters: filter,
-          sort: { field: sortBy, order: query.sortOrder || 'desc' },
+          sort: { field: sortBy, order: query.sortOrder ?? 'desc' },
           search: query.search,
         },
         timestamp: new Date(),
@@ -979,13 +986,14 @@ export class OptOutManagerService {
     try {
       const dateFilter: FilterQuery<OptOutRecordDocument> = {};
       if (startDate || endDate) {
-        dateFilter.createdAt = {};
+        const createdAtFilter: { $gte?: Date; $lte?: Date } = {};
         if (startDate) {
-          dateFilter.createdAt.$gte = startDate;
+          createdAtFilter.$gte = startDate;
         }
         if (endDate) {
-          dateFilter.createdAt.$lte = endDate;
+          createdAtFilter.$lte = endDate;
         }
+        dateFilter.createdAt = createdAtFilter;
       }
 
       const [

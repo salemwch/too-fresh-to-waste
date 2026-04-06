@@ -2,6 +2,7 @@ import { UserRole, UserStatus } from '@foodwaste/shared';
 import { Logger } from '@nestjs/common';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+
 import { applyStandardSchemaConfig } from 'src/common/utils/schema-config.util';
 
 import { ConsentType, ConsentStatus, LegalBasis } from '../interfaces/privacy-consent.interface';

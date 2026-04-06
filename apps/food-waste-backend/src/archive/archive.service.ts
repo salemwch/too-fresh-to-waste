@@ -194,7 +194,7 @@ export class ArchiveService {
           };
           if (
             mongoErr?.code !== 11000 &&
-            !mongoErr?.writeErrors?.every((e) => e.err?.code === 11000)
+            mongoErr?.writeErrors?.every((e) => e.err?.code === 11000) !== true
           ) {
             throw err;
           }

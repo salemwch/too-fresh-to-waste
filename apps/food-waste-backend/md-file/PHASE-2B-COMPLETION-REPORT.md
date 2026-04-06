@@ -12,6 +12,7 @@
 Successfully migrated 5 decorators from `auth/decorators/` to `common/decorators/`, establishing a centralized location for framework-wide decorators. This eliminates module boundary violations where business logic modules were importing from the auth module.
 
 **Impact:**
+
 - **23 files updated** (5 created + 18 imports updated + 5 auth module files)
 - **5 decorators migrated**
 - **0 breaking changes** (all import paths updated)
@@ -58,6 +59,7 @@ Successfully migrated 5 decorators from `auth/decorators/` to `common/decorators
 **23 files updated in total:**
 
 #### A. Controller Files (18 files)
+
 Files importing decorators from `auth/decorators/` → `common/decorators/`:
 
 ```
@@ -86,6 +88,7 @@ src/geolocation/controllers/user-location.controller.ts (1 import)
 ---
 
 #### B. Auth Module Files (5 files)
+
 Auth module files that imported from local `./decorators/` → `../common/decorators/`:
 
 1. **`auth/admin-auth.controller.ts`**
@@ -109,6 +112,7 @@ Auth module files that imported from local `./decorators/` → `../common/decora
 ### Step 3: Deleted Original Decorators ✅
 
 **Deleted from `auth/decorators/`:**
+
 - `public.decorator.ts`
 - `roles.decorator.ts`
 - `permissions.decorator.ts`
@@ -116,6 +120,7 @@ Auth module files that imported from local `./decorators/` → `../common/decora
 - `check-ownership.decorator.ts`
 
 **Kept in `auth/decorators/`:**
+
 - `tenant-context.decorator.ts` (auth-specific, correct location)
 
 ---
@@ -123,6 +128,7 @@ Auth module files that imported from local `./decorators/` → `../common/decora
 ## Verification Results
 
 ### ✅ TypeScript Compilation
+
 ```bash
 $ pnpm check:ts
 > tsc --noEmit
@@ -135,6 +141,7 @@ $ pnpm check:ts
 ---
 
 ### ✅ Tests (No New Regressions)
+
 ```bash
 $ pnpm test --passWithNoTests
 
@@ -143,6 +150,7 @@ Tests:       61 failed, 246 passed, 307 total
 ```
 
 **Analysis:**
+
 - ✅ **246 tests passed** (same as Phase 2A - no regressions)
 - ❌ **61 tests failed** (same pre-existing failures - DI setup issues)
 - **Confirmation:** No decorator migration introduced any test failures
@@ -167,31 +175,40 @@ x 23 dependency violations (0 errors, 23 warnings)
 ## Violations Fixed (6 Total)
 
 ### ✅ **Payments Module → Auth Decorators** (2 fixed)
+
 **Before:**
+
 ```
 src/payments/payments.controller.ts → src/auth/decorators/roles.decorator.ts
 src/payments/payments.controller.ts → src/auth/decorators/public.decorator.ts
 ```
+
 **After:** Imports from `common/decorators/` ✅
 
 ---
 
 ### ✅ **Offers Module → Auth Decorators** (2 fixed)
+
 **Before:**
+
 ```
 src/offers/offers.controller.ts → src/auth/decorators/roles.decorator.ts
 src/offers/offers.controller.ts → src/auth/decorators/public.decorator.ts
 ```
+
 **After:** Imports from `common/decorators/` ✅
 
 ---
 
 ### ✅ **Common Module → Auth Decorators** (2 fixed)
+
 **Before:**
+
 ```
 src/common/controllers/metrics.controller.ts → src/auth/decorators/public.decorator.ts
 src/common/controllers/csp-report.controller.ts → src/auth/decorators/public.decorator.ts
 ```
+
 **After:** Imports from `common/decorators/` ✅
 
 ---
@@ -199,15 +216,18 @@ src/common/controllers/csp-report.controller.ts → src/auth/decorators/public.d
 ## Remaining Violations (23)
 
 ### Requires Event-Driven Architecture (Phase 2C):
+
 - **Users → Orders/Favorites** (4 violations)
 - **Orders → Loyalty/Donations** (4 violations)
 - **Auth → Loyalty** (2 violations)
 
 ### Guards Still in Auth Module (Acceptable):
+
 - **Payments → Auth Guards** (2 violations) - Guards should stay in auth
 - **Offers → Auth Guards** (2 violations) - Guards should stay in auth
 
 ### Other Issues:
+
 - **Common → User schema** (3 violations) - Session management needs refactor
 - **Circular dependency:** Reviews ↔ Users (1 violation)
 - **Orphan files** (3 violations)
@@ -247,12 +267,14 @@ apps/food-waste-backend/
 ## Architectural Improvements
 
 ### ✅ **Before Phase 2B:**
+
 ```
 Business Logic Modules → Auth Module → Decorators
    (Violations!)
 ```
 
 ### ✅ **After Phase 2B:**
+
 ```
 All Modules → Common Module → Decorators
    (Correct layering!)
@@ -264,11 +286,11 @@ All Modules → Common Module → Decorators
 
 ## Progress Summary
 
-| Phase | Violations | Improvement |
-|-------|-----------|-------------|
-| **Initial** | 30 | - |
-| **Phase 2A** (Enum extraction) | 29 | 3.3% |
-| **Phase 2B** (Decorator migration) | 23 | **23.3% total** |
+| Phase                              | Violations | Improvement     |
+| ---------------------------------- | ---------- | --------------- |
+| **Initial**                        | 30         | -               |
+| **Phase 2A** (Enum extraction)     | 29         | 3.3%            |
+| **Phase 2B** (Decorator migration) | 23         | **23.3% total** |
 
 **Combined improvement:** 7 violations fixed (**23.3% reduction**)
 
@@ -279,6 +301,7 @@ All Modules → Common Module → Decorators
 **Goal:** Decouple modules using domain events
 
 **Recommended approach:**
+
 1. Use `@nestjs/event-emitter` (already installed)
 2. Implement events for cross-module communication:
    - `user.registered` → Loyalty listens (fixes auth → loyalty)
@@ -292,6 +315,7 @@ All Modules → Common Module → Decorators
 ## Rollback Plan
 
 If issues arise:
+
 ```bash
 git revert <commit-hash>
 ```
@@ -303,12 +327,14 @@ All Phase 2B changes are in a single commit, easily reversible.
 ## Risk Assessment
 
 ✅ **Phase 2B: COMPLETE - NO ISSUES**
+
 - All changes verified
 - TypeScript compilation passed
 - No new test failures
 - 20.7% violation reduction achieved
 
 ⏭️ **Phase 2C: MEDIUM RISK**
+
 - Requires event bus implementation
 - Async workflows need careful testing
 - More complex refactor
@@ -318,15 +344,18 @@ All Phase 2B changes are in a single commit, easily reversible.
 ## Recommendations
 
 ### Immediate (Optional Enhancement):
+
 1. ✅ Create `common/decorators/index.ts` barrel export for cleaner imports
 2. ✅ Update auth guards to use barrel export
 
 ### Short-term (Phase 2C):
+
 1. Implement event-driven communication
 2. Refactor direct service calls to emit events
 3. Add event handlers in target modules
 
 ### Medium-term:
+
 1. Refactor session management (move to auth or create abstractions)
 2. Fix circular dependency (reviews ↔ users)
 3. Remove orphan files

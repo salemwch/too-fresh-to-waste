@@ -8,7 +8,7 @@ export class SearchCacheService {
 
   constructor(private readonly configService: ConfigService) {
     this.redis = new Redis({
-      host: this.configService.get('REDIS_HOST') || 'localhost',
+      host: this.configService.get('REDIS_HOST') ?? 'localhost',
       port: parseInt(this.configService.get<string>('REDIS_PORT') ?? '6379', 10) || 6379,
       password: this.configService.get('REDIS_PASSWORD'),
       username: this.configService.get('REDIS_USERNAME'),

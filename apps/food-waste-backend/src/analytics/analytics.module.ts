@@ -16,12 +16,8 @@ import { DashboardController } from './controllers/dashboard.controller';
 import { AlertRule, AlertRuleSchema, Alert, AlertSchema } from './schemas/alert-rule.schema';
 import { AnalyticsCache, AnalyticsCacheSchema } from './schemas/analytics-cache.schema';
 import { DashboardConfig, DashboardConfigSchema } from './schemas/dashboard-config.schema';
-
-// Import services
 import { AnalyticsService } from './services/analytics.service';
 import { DashboardService } from './services/dashboard.service';
-
-// Import controllers
 
 @Module({
   imports: [

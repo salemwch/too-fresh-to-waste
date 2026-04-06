@@ -7,6 +7,7 @@ The Offers module is the core business domain of the Too Fresh To Waste platform
 **Purpose:** Enable merchants to create, manage, and promote time-sensitive food offers with geolocation, pricing, and availability tracking.
 
 **Key Features:**
+
 - Food offer creation and management with image uploads
 - Geolocation-based nearby offer discovery ($geoNear aggregation)
 - Auto-featuring system for urgent offers (expiring soon)
@@ -161,15 +162,16 @@ src/offers/
 Computed on-the-fly (not stored in database):
 
 ```typescript
-availableQuantity: number // totalQuantity - reservedQuantity - soldQuantity
-isExpired: boolean        // new Date() > availableUntil
-isSoldOut: boolean        // availableQuantity <= 0
-isFeatured: boolean       // isFeaturedManual || isFeaturedAuto
+availableQuantity: number; // totalQuantity - reservedQuantity - soldQuantity
+isExpired: boolean; // new Date() > availableUntil
+isSoldOut: boolean; // availableQuantity <= 0
+isFeatured: boolean; // isFeaturedManual || isFeaturedAuto
 ```
 
 ### Database Indexes (25 Total)
 
 **Performance Indexes:**
+
 - `{ establishmentId: 1, status: 1 }` - Establishment offer management
 - `{ merchantId: 1, status: 1 }` - Merchant portfolio queries
 - `{ status: 1, availableFrom: 1, availableUntil: 1 }` - Time-based filtering
@@ -182,6 +184,7 @@ isFeatured: boolean       // isFeaturedManual || isFeaturedAuto
 - `{ 'pricing.discountedPrice': 1, status: 1 }` - Price range filtering
 
 **Enterprise Indexes (Production Readiness):**
+
 - `{ status: 1, isFeaturedManual: 1, availableFrom: 1, createdAt: -1 }` - Homepage featured section
 - `{ type: 1, status: 1, createdAt: -1 }` - Type-based discovery
 - `{ viewCount: -1, favoriteCount: -1, status: 1 }` - Popularity sorting
@@ -200,9 +203,11 @@ Base path: `/api/v1/offers`
 ### Public Endpoints (No Auth Required)
 
 #### `GET /offers`
+
 List all active offers with advanced filtering and pagination.
 
 **Query Parameters:**
+
 ```typescript
 {
   // Pagination
@@ -238,6 +243,7 @@ List all active offers with advanced filtering and pagination.
 ```
 
 **Response:**
+
 ```typescript
 {
   message: string
@@ -252,6 +258,7 @@ List all active offers with advanced filtering and pagination.
 ```
 
 **Business Logic:**
+
 - Public queries: Only returns `ACTIVE` offers within availability window (`availableFrom <= now <= availableUntil`)
 - Admin/merchant queries: Can see all statuses via `status` and `merchantId` filters
 - Geolocation: Uses MongoDB `$geoNear` aggregation on establishments collection
@@ -259,6 +266,7 @@ List all active offers with advanced filtering and pagination.
 - Security: Time-based filtering enforced by backend (users cannot manipulate "now")
 
 **Performance:**
+
 - Field projection: Only fetches required fields (60% payload reduction)
 - `.lean()` queries: 50% memory reduction
 - DoS protection: Max page size = 100
@@ -266,9 +274,11 @@ List all active offers with advanced filtering and pagination.
 ---
 
 #### `GET /offers/featured`
+
 Get featured offers (manually or auto-featured).
 
 **Query Parameters:**
+
 ```typescript
 {
   limit?: number = 10          // Max items (max: 100)
@@ -278,6 +288,7 @@ Get featured offers (manually or auto-featured).
 ```
 
 **Featuring Logic:**
+
 - Returns offers where `isFeaturedManual = true` OR `isFeaturedAuto = true`
 - Filters: `status: ACTIVE`, `availableFrom <= now`, `availableUntil >= now`
 - Sorted by `createdAt DESC` (newest first)
@@ -288,9 +299,11 @@ Get featured offers (manually or auto-featured).
 ---
 
 #### `GET /offers/nearby`
+
 Get nearby offers within radius (geolocation-based).
 
 **Query Parameters:**
+
 ```typescript
 {
   longitude: number            // Required
@@ -301,6 +314,7 @@ Get nearby offers within radius (geolocation-based).
 ```
 
 **Technical Details:**
+
 - Uses MongoDB `$geoNear` aggregation (MUST be first stage in pipeline)
 - Queries `establishments` collection (has 2dsphere index on `address.coordinates`)
 - Joins with `offers` collection via `$lookup`
@@ -312,26 +326,31 @@ Get nearby offers within radius (geolocation-based).
 ---
 
 #### `GET /offers/:id`
+
 Get single offer by ID with full details.
 
 **Response:**
+
 ```typescript
 {
-  message: string
-  data: OfferDocument          // Full offer with populated establishment + merchant
+  message: string;
+  data: OfferDocument; // Full offer with populated establishment + merchant
 }
 ```
 
 **Side Effects:**
+
 - Increments `viewCount` by 1 (atomic operation)
 
 **Populated Fields:**
+
 - `establishmentId`: name, address, type, averageRating, phoneNumber, email
 - `merchantId`: firstName, lastName, email, phoneNumber, profileImage
 
 ---
 
 #### `GET /offers/establishment/:establishmentId`
+
 Get all offers for a specific establishment.
 
 **Query Parameters:** Same pagination as `GET /offers`
@@ -343,6 +362,7 @@ Get all offers for a specific establishment.
 ### Protected Endpoints (Authentication Required)
 
 #### `POST /offers` (Merchant Only)
+
 Create new food offer with optional image uploads.
 
 **Guards:** `JwtAuthGuard`, `RolesGuard` (MERCHANT role required)
@@ -354,12 +374,14 @@ Create new food offer with optional image uploads.
 **Files:** `images` field (up to 5 images, processed via `LocalStorageService`)
 
 **Image Processing:**
+
 - Max width: 800px
 - Max height: 600px
 - Quality: 80%
 - Format: JPEG
 
 **Business Rules:**
+
 1. `availableFrom` cannot be in the past
 2. `availableUntil` must be after `availableFrom`
 3. Discount must be 50-90% (backend-calculated)
@@ -368,30 +390,35 @@ Create new food offer with optional image uploads.
 6. Total slot capacity cannot exceed `totalQuantity`
 
 **Timezone Handling:**
+
 - User provides local time (e.g., 23:20 Tunisia)
 - Backend converts to UTC using `TimezoneUtil.toUTC(date, 'Africa/Tunis')`
 - Database stores UTC timestamps
 
 **Response:**
+
 ```typescript
 {
-  message: 'Offer created successfully'
-  data: OfferDocument
+  message: 'Offer created successfully';
+  data: OfferDocument;
 }
 ```
 
 ---
 
 #### `PATCH /offers/:id` (Merchant/Admin)
+
 Update existing offer with optional new images.
 
 **Guards:** `JwtAuthGuard`
 
 **Authorization:**
+
 - Merchants: Can only update own offers (checked via `merchantId`)
 - Admins: Can update any offer
 
 **Restrictions:**
+
 - Cannot update offers with active reservations (merchants only)
 - New images are ADDED to existing images (not replaced)
 
@@ -400,70 +427,81 @@ Update existing offer with optional new images.
 ---
 
 #### `PATCH /offers/:id/status` (Merchant/Admin)
+
 Update offer status.
 
 **Guards:** `JwtAuthGuard`, `RolesGuard` (MERCHANT or ADMIN)
 
 **Merchant Restrictions:**
+
 - Can only set: `ACTIVE`, `DRAFT`, `CANCELLED`
 - Cannot set: `EXPIRED`, `SOLD_OUT`, `SUSPENDED` (system/admin-managed)
 
 **Admin Permissions:** Can set any status
 
 **Side Effects:**
+
 - Status → ACTIVE: Sets `publishedAt = now`
 
 ---
 
 #### `PATCH /offers/:id/reserve`
+
 Reserve quantity for an order (atomic operation).
 
 **Guards:** `JwtAuthGuard`
 
 **Body:**
+
 ```typescript
 {
-  quantity: number             // Must be > 0
+  quantity: number; // Must be > 0
 }
 ```
 
 **Atomic Validation:**
+
 - Offer must be ACTIVE
 - `availableUntil` must be in the future (not expired)
 - Available quantity must be >= requested quantity
 - Formula: `availableQuantity = totalQuantity - reservedQuantity - soldQuantity`
 
 **Response:**
+
 ```typescript
 {
-  message: string
+  message: string;
   data: {
-    offer: OfferDocument
-    reservedQuantity: number
-    soldQuantity: number
+    offer: OfferDocument;
+    reservedQuantity: number;
+    soldQuantity: number;
   }
 }
 ```
 
 **Error Cases:**
+
 - `NotFoundException`: Offer not found
 - `BadRequestException`: Not enough quantity, offer expired, or not active
 
 ---
 
 #### `PATCH /offers/:id/confirm-sale` (Merchant/Admin)
+
 Convert reserved quantity to sold quantity.
 
 **Guards:** `JwtAuthGuard`, `RolesGuard` (MERCHANT or ADMIN)
 
 **Body:**
+
 ```typescript
 {
-  quantity: number             // Must be > 0 and <= reservedQuantity
+  quantity: number; // Must be > 0 and <= reservedQuantity
 }
 ```
 
 **Atomic Operation:**
+
 ```typescript
 {
   $inc: {
@@ -478,14 +516,16 @@ Convert reserved quantity to sold quantity.
 ---
 
 #### `PATCH /offers/:id/cancel-reservation`
+
 Cancel quantity reservation (returns to available pool).
 
 **Guards:** `JwtAuthGuard`
 
 **Body:**
+
 ```typescript
 {
-  quantity: number
+  quantity: number;
 }
 ```
 
@@ -494,11 +534,13 @@ Cancel quantity reservation (returns to available pool).
 ---
 
 #### `GET /offers/recommended` (Authenticated Users)
+
 Get personalized offer recommendations.
 
 **Guards:** `JwtAuthGuard`
 
 **Query Parameters:**
+
 ```typescript
 {
   limit?: number = 20          // Max items (max: 100)
@@ -530,6 +572,7 @@ Get personalized offer recommendations.
    - Created at DESC (newest tie-breaker)
 
 **Security:**
+
 - Uses stable `categoryId`/slug matching (not `itemName`)
 - De-duplicates offers matching both establishment + category
 
@@ -538,6 +581,7 @@ Get personalized offer recommendations.
 ---
 
 #### `GET /offers/my-offers` (Merchant Only)
+
 Get merchant's own offers across all establishments.
 
 **Guards:** `JwtAuthGuard`, `RolesGuard` (MERCHANT)
@@ -551,11 +595,13 @@ Get merchant's own offers across all establishments.
 ### Admin-Only Endpoints
 
 #### `PATCH /offers/:id/feature` (Admin Only)
+
 Manually feature an offer.
 
 **Guards:** `JwtAuthGuard`, `RolesGuard` (ADMIN)
 
 **Side Effects:**
+
 - Sets `isFeaturedManual = true`
 - Sets `featuredAt = now`
 - Sets `featuredBy = admin user ID`
@@ -565,11 +611,13 @@ Manually feature an offer.
 ---
 
 #### `PATCH /offers/:id/unfeature` (Admin Only)
+
 Manually unfeature an offer.
 
 **Guards:** `JwtAuthGuard`, `RolesGuard` (ADMIN)
 
 **Side Effects:**
+
 - Sets `isFeaturedManual = false`
 - Clears `featuredAt` and `featuredBy`
 
@@ -578,6 +626,7 @@ Manually unfeature an offer.
 ---
 
 #### `POST /offers/admin/trigger-auto-featuring` (Admin Only)
+
 Manually trigger auto-featuring logic (bypasses cron schedule).
 
 **Guards:** `JwtAuthGuard`, `RolesGuard` (ADMIN)
@@ -585,13 +634,14 @@ Manually trigger auto-featuring logic (bypasses cron schedule).
 **Use Case:** Testing and debugging auto-featuring without waiting for cron
 
 **Response:**
+
 ```typescript
 {
-  message: string
+  message: string;
   data: {
-    offersAutoFeatured: number
-    offersAutoUnfeatured: number
-    timestamp: string
+    offersAutoFeatured: number;
+    offersAutoUnfeatured: number;
+    timestamp: string;
   }
 }
 ```
@@ -599,11 +649,13 @@ Manually trigger auto-featuring logic (bypasses cron schedule).
 ---
 
 #### `GET /offers/expiring` (Admin Only)
+
 Get offers expiring within time threshold.
 
 **Guards:** `JwtAuthGuard`, `RolesGuard` (ADMIN)
 
 **Query Parameters:**
+
 ```typescript
 {
   hours?: number = 24          // Hours until expiry
@@ -615,11 +667,13 @@ Get offers expiring within time threshold.
 ---
 
 #### `PUT /offers/update-expired` (Admin Only)
+
 Bulk update expired offers status.
 
 **Guards:** `JwtAuthGuard`, `RolesGuard` (ADMIN)
 
 **Operation:**
+
 ```typescript
 {
   status: ACTIVE,
@@ -635,18 +689,22 @@ Bulk update expired offers status.
 ---
 
 #### `DELETE /offers/:id` (Merchant/Admin)
+
 Soft delete offer.
 
 **Guards:** `JwtAuthGuard`
 
 **Authorization:**
+
 - Merchants: Can only delete own offers
 - Admins: Can delete any offer
 
 **Restrictions:**
+
 - Cannot delete offers with active reservations (`reservedQuantity > 0`)
 
 **Soft Delete Fields:**
+
 ```typescript
 {
   isDeleted: true,
@@ -696,12 +754,13 @@ The auto-featuring system automatically promotes urgent offers to featured statu
 4. **Availability:** `availableQuantity > 0` (not sold out)
 
 **Formula:**
+
 ```typescript
-createdAt <= (now - MIN_EXISTENCE_MS) &&
-availableUntil <= (now + URGENCY_THRESHOLD_MS) &&
-availableUntil >= now &&
-status === ACTIVE &&
-availableQuantity > 0
+createdAt <= now - MIN_EXISTENCE_MS &&
+  availableUntil <= now + URGENCY_THRESHOLD_MS &&
+  availableUntil >= now &&
+  status === ACTIVE &&
+  availableQuantity > 0;
 ```
 
 ### Auto-Unfeaturing Criteria
@@ -717,6 +776,7 @@ availableQuantity > 0
 ### Cron Jobs
 
 **Auto-Featuring Job:**
+
 ```typescript
 @Cron('*/1 * * * *')  // Every 1 minute
 async handleAutoFeaturing() {
@@ -726,6 +786,7 @@ async handleAutoFeaturing() {
 ```
 
 **Expiration Job:**
+
 ```typescript
 @Cron(CronExpression.EVERY_5_MINUTES)
 async handleUpdateExpired() {
@@ -752,18 +813,20 @@ AUTO_FEATURE_ENABLED=true             # Default: true
 ```
 
 **Validation:**
+
 - `MIN_EXISTENCE_HOURS` must be 0-24
 - `URGENCY_THRESHOLD_HOURS` must be 0-24
 
 ### Performance Optimization
 
 **Dedicated Index for Cron Job:**
+
 ```typescript
 OfferSchema.index({
   status: 1,
   createdAt: 1,
   availableUntil: 1,
-  isFeaturedAuto: 1
+  isFeaturedAuto: 1,
 });
 ```
 
@@ -792,16 +855,17 @@ This compound index covers all fields in the auto-featuring query, enabling fast
 
 **Role-Based Access Control (RBAC):**
 
-| Endpoint                  | Roles Allowed      | Ownership Check |
-|---------------------------|--------------------|-----------------|
-| `POST /offers`            | MERCHANT           | N/A             |
-| `PATCH /offers/:id`       | MERCHANT, ADMIN    | Merchant: Own offers only |
-| `PATCH /offers/:id/status`| MERCHANT, ADMIN    | Merchant: Limited statuses |
-| `DELETE /offers/:id`      | MERCHANT, ADMIN    | Merchant: Own offers only |
-| `PATCH /offers/:id/feature` | ADMIN            | N/A             |
-| `GET /offers/expiring`    | ADMIN              | N/A             |
+| Endpoint                    | Roles Allowed   | Ownership Check            |
+| --------------------------- | --------------- | -------------------------- |
+| `POST /offers`              | MERCHANT        | N/A                        |
+| `PATCH /offers/:id`         | MERCHANT, ADMIN | Merchant: Own offers only  |
+| `PATCH /offers/:id/status`  | MERCHANT, ADMIN | Merchant: Limited statuses |
+| `DELETE /offers/:id`        | MERCHANT, ADMIN | Merchant: Own offers only  |
+| `PATCH /offers/:id/feature` | ADMIN           | N/A                        |
+| `GET /offers/expiring`      | ADMIN           | N/A                        |
 
 **Guards Chain:**
+
 ```typescript
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.MERCHANT)
@@ -810,6 +874,7 @@ This compound index covers all fields in the auto-featuring query, enabling fast
 ### Time-Based Security
 
 **Backend-Enforced Time Filtering:**
+
 - Public queries: Only shows offers within availability window (`availableFrom <= now <= availableUntil`)
 - Users cannot manipulate "now" to see future or past offers
 - Timezone conversion: User local time → UTC storage
@@ -817,6 +882,7 @@ This compound index covers all fields in the auto-featuring query, enabling fast
 ### Data Privacy
 
 **OfferPresenter Sanitization:**
+
 - Removes merchant PII (email, phone)
 - Removes internal metrics (`soldQuantity`, `reservedQuantity` exposed as `availableQuantity`)
 - Only exposes establishment name (not full address for merchant privacy)
@@ -824,12 +890,14 @@ This compound index covers all fields in the auto-featuring query, enabling fast
 ### Atomic Operations
 
 **Race Condition Prevention:**
+
 - `reserveQuantity`: Atomic `findOneAndUpdate` with availability check
 - `confirmSale`: Atomic `$inc` operations for quantity adjustments
 
 ### Soft Delete
 
 **Referential Integrity:**
+
 - Offers are soft-deleted (not hard-deleted)
 - Prevents breaking references in `orders` and `reservations` collections
 - Query middleware auto-filters deleted offers (`isDeleted: { $ne: true }`)
@@ -850,8 +918,9 @@ This compound index covers all fields in the auto-featuring query, enabling fast
 ### Quantity Management
 
 1. **Available Quantity Formula:**
+
    ```typescript
-   availableQuantity = totalQuantity - reservedQuantity - soldQuantity
+   availableQuantity = totalQuantity - reservedQuantity - soldQuantity;
    ```
 
 2. **Status Auto-Update:**
@@ -868,6 +937,7 @@ This compound index covers all fields in the auto-featuring query, enabling fast
 **Storage:** All dates stored in UTC
 
 **Conversion:**
+
 ```typescript
 // User input: Local time (e.g., 23:20 Tunisia)
 const availableFrom = TimezoneUtil.toUTC(dto.availableFrom, 'Africa/Tunis');
@@ -905,11 +975,13 @@ const availableFrom = TimezoneUtil.toUTC(dto.availableFrom, 'Africa/Tunis');
 **Challenge:** MongoDB `$geoNear` must be the first aggregation stage
 
 **Solution:**
+
 1. Query `establishments` collection (has 2dsphere index)
 2. Use `$lookup` to join with `offers` collection
 3. Filter offers within the `$lookup` pipeline
 
 **Index:**
+
 ```typescript
 establishments.index({ 'address.coordinates': '2dsphere' });
 ```
@@ -917,6 +989,7 @@ establishments.index({ 'address.coordinates': '2dsphere' });
 ### Caching Strategy (Future Enhancement)
 
 **Recommended:**
+
 - Cache featured offers (Redis, 1-minute TTL)
 - Cache popular searches (Redis, 5-minute TTL)
 - Invalidate on offer status change
@@ -930,6 +1003,7 @@ establishments.index({ 'address.coordinates': '2dsphere' });
 **Test Files:** `offers.service.spec.ts`, `offers.controller.spec.ts`
 
 **Key Test Cases:**
+
 1. Offer creation with valid/invalid data
 2. Discount calculation and validation
 3. Quantity reservation (atomic operations)
@@ -938,6 +1012,7 @@ establishments.index({ 'address.coordinates': '2dsphere' });
 6. OfferPresenter sanitization
 
 **Run:**
+
 ```bash
 pnpm test:unit
 ```
@@ -947,12 +1022,14 @@ pnpm test:unit
 **Test File:** `offers.controller.integration.spec.ts`
 
 **Scenarios:**
+
 1. End-to-end offer creation flow with image uploads
 2. Geolocation queries with mock establishments
 3. Personalized recommendations with mock favorites
 4. Role-based access control (RBAC)
 
 **Run:**
+
 ```bash
 pnpm test:integration
 ```
@@ -962,11 +1039,13 @@ pnpm test:integration
 **Test File:** `test/offers.e2e-spec.ts`
 
 **Scenarios:**
+
 1. Public API: List offers, nearby offers, featured offers
 2. Merchant API: Create, update, delete offers
 3. Admin API: Manual featuring, trigger auto-featuring
 
 **Run:**
+
 ```bash
 pnpm test:e2e
 ```
@@ -978,6 +1057,7 @@ pnpm test:e2e
 ### Schema Migrations
 
 **Index Verification:**
+
 ```bash
 pnpm verify:indexes
 ```
@@ -985,6 +1065,7 @@ pnpm verify:indexes
 Checks all indexes in `offer.schema.ts` against MongoDB.
 
 **Adding New Indexes:**
+
 1. Add index in `offer.schema.ts`
 2. Run `pnpm verify:indexes` to create in database
 3. Monitor index creation with `db.currentOp()` (long-running)
@@ -992,11 +1073,13 @@ Checks all indexes in `offer.schema.ts` against MongoDB.
 ### Data Cleanup Scripts
 
 **Expire Old Offers:**
+
 ```bash
 node scripts/expire-old-offers.js
 ```
 
 **Fix Offer Images (Bulk Update):**
+
 ```bash
 node scripts/fix-offer-images.js
 ```
@@ -1076,6 +1159,7 @@ node scripts/fix-offer-images.js
 **Slack Channel:** `#backend-offers`
 
 **Related Documentation:**
+
 - [Establishments Module](../establishments/establishment.md)
 - [Favorites Module](../favorites/favorites.md)
 - [Analytics Module](../analytics/analytics.md)

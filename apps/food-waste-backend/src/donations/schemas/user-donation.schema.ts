@@ -31,13 +31,13 @@ export interface UserDonationMetadata {
  */
 @Schema({ timestamps: true })
 export class UserDonation {
-  @Prop({ required: true, type: Types.ObjectId, ref: 'User', index: true })
+  @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
   userId!: Types.ObjectId;
 
   @Prop({ required: true, type: Types.ObjectId, ref: 'Order' })
   orderId!: Types.ObjectId;
 
-  @Prop({ required: true, type: Types.ObjectId, ref: 'DonationPool', index: true })
+  @Prop({ required: true, type: Types.ObjectId, ref: 'DonationPool' })
   donationPoolId!: Types.ObjectId;
 
   @Prop({ required: true, min: 0 })
@@ -46,7 +46,7 @@ export class UserDonation {
   @Prop({ required: true, default: 'TND' })
   currency!: string;
 
-  @Prop({ type: Date, required: true, default: Date.now, index: true })
+  @Prop({ type: Date, required: true, default: Date.now })
   contributedAt!: Date;
 
   @Prop({ default: false })
@@ -86,7 +86,8 @@ UserDonationSchema.index({ createdAt: -1 });
 UserDonationSchema.pre<Query<UserDonationDocument[], UserDonationDocument>>(
   /^find/,
   function (next) {
-    if (!this.getOptions()?.['includeDeleted']) {
+    const queryOptions = this.getOptions() as Record<string, unknown> | undefined;
+    if (queryOptions?.['includeDeleted'] !== true) {
       this.where({ isDeleted: { $ne: true } });
     }
     next();
@@ -94,8 +95,8 @@ UserDonationSchema.pre<Query<UserDonationDocument[], UserDonationDocument>>(
 );
 
 UserDonationSchema.pre('aggregate', function () {
-  const options = (this as { options?: Record<string, unknown> }).options || {};
-  if (!options['includeDeleted']) {
+  const options = (this as { options?: Record<string, unknown> }).options;
+  if (options?.['includeDeleted'] !== true) {
     this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
   }
 });

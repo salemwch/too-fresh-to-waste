@@ -12,6 +12,14 @@ import {
 
 import { ModerationActionType, ModerationSeverity } from '../schemas/moderation-action.schema';
 
+function sanitizePlainText(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return value.replace(/<[^>]*>/g, '').trim();
+  }
+
+  return value;
+}
+
 export class CreateModerationActionDto {
   @IsEnum(ModerationActionType, { message: 'Invalid moderation action type' })
   actionType!: ModerationActionType;
@@ -28,23 +36,13 @@ export class CreateModerationActionDto {
 
   @IsString({ message: 'Reason must be a string' })
   @MaxLength(1000, { message: 'Reason cannot exceed 1000 characters' })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value.replace(/<[^>]*>/g, '').trim();
-    }
-    return value;
-  })
+  @Transform(({ value }) => sanitizePlainText(value))
   reason!: string;
 
   @IsOptional()
   @IsString({ message: 'Details must be a string' })
   @MaxLength(2000, { message: 'Details cannot exceed 2000 characters' })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value.replace(/<[^>]*>/g, '').trim();
-    }
-    return value;
-  })
+  @Transform(({ value }) => sanitizePlainText(value))
   details?: string | undefined;
 
   @IsOptional()
@@ -65,12 +63,7 @@ export class UpdateModerationActionDto {
   @IsOptional()
   @IsString({ message: 'Revocation reason must be a string' })
   @MaxLength(500, { message: 'Revocation reason cannot exceed 500 characters' })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value.replace(/<[^>]*>/g, '').trim();
-    }
-    return value;
-  })
+  @Transform(({ value }) => sanitizePlainText(value))
   revocationReason?: string;
 
   @IsOptional()
@@ -96,23 +89,13 @@ export class BulkModerationActionDto {
 
   @IsString({ message: 'Reason must be a string' })
   @MaxLength(1000, { message: 'Reason cannot exceed 1000 characters' })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value.replace(/<[^>]*>/g, '').trim();
-    }
-    return value;
-  })
+  @Transform(({ value }) => sanitizePlainText(value))
   reason!: string;
 
   @IsOptional()
   @IsString({ message: 'Details must be a string' })
   @MaxLength(2000, { message: 'Details cannot exceed 2000 characters' })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value.replace(/<[^>]*>/g, '').trim();
-    }
-    return value;
-  })
+  @Transform(({ value }) => sanitizePlainText(value))
   details?: string;
 
   @IsOptional()

@@ -274,7 +274,7 @@ export class CaptchaService {
     };
 
     const firstError = errorCodes[0] ?? '';
-    return errorMessages[firstError] || 'CAPTCHA verification failed';
+    return errorMessages[firstError] ?? 'CAPTCHA verification failed';
   }
 
   /**

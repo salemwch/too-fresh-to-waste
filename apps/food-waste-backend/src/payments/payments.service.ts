@@ -11,10 +11,11 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, PipelineStage, FilterQuery } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
+
 import { toObjectId } from 'src/common/utils/mongo.utils';
 import { Order, OrderDocument, OrderStatus } from 'src/orders/schemas/order.schema';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
-import { v4 as uuidv4 } from 'uuid';
 
 import { AppLoggerService } from '../common/services/logger.service';
 
@@ -31,6 +32,24 @@ import {
 } from './schemas/payment.schema';
 import { PaymentWebhook, PaymentWebhookDocument, WebhookStatus } from './schemas/webhook.schema';
 import { SMTPaymentService } from './services/smt-payment.service';
+
+interface PaymentOverviewStats {
+  totalPayments: number;
+  totalAmount: number;
+  totalRefunded: number;
+  completedPayments: number;
+  failedPayments: number;
+  pendingPayments: number;
+  refundedPayments: number;
+  averageAmount: number;
+  totalProcessingFees: number;
+}
+
+interface PaymentMethodStat {
+  _id: string | null;
+  count: number;
+  total: number;
+}
 
 @Injectable()
 export class PaymentService {
@@ -143,7 +162,7 @@ export class PaymentService {
           this.mapSMTStatusToPaymentStatus(smtResponse.status) ?? PaymentStatus.PENDING;
 
         savedPayment.smtResponse = {
-          transactionId: smtResponse.transactionId || merchantTransactionId,
+          transactionId: smtResponse.transactionId ?? merchantTransactionId,
           merchantTransactionId,
           status: PaymentStatus.COMPLETED, // keep original SMT status for logging
           responseCode: smtResponse.responseCode || '00',
@@ -288,10 +307,10 @@ export class PaymentService {
     if (userRole === UserRole.MERCHANT && userId) {
       query.merchantId = toObjectId(userId);
     }
-    if (filters.status) {
+    if (filters.status !== null && filters.status !== undefined) {
       query.status = filters.status;
     }
-    if (filters.paymentMethod) {
+    if (filters.paymentMethod !== null && filters.paymentMethod !== undefined) {
       query.paymentMethod = filters.paymentMethod;
     }
     if (filters.customerId) {
@@ -305,25 +324,27 @@ export class PaymentService {
     }
 
     // Date filter
-    if (filters.fromDate || filters.toDate) {
-      query.createdAt = {};
+    if (filters.fromDate ?? filters.toDate) {
+      const dateFilter: { $gte?: Date; $lte?: Date } = {};
       if (filters.fromDate) {
-        query.createdAt.$gte = new Date(filters.fromDate);
+        dateFilter.$gte = new Date(filters.fromDate);
       }
       if (filters.toDate) {
-        query.createdAt.$lte = new Date(filters.toDate);
+        dateFilter.$lte = new Date(filters.toDate);
       }
+      Object.assign(query, { createdAt: dateFilter });
     }
 
     // Amount filter
-    if (filters.minAmount || filters.maxAmount) {
-      query.amount = {};
+    if (filters.minAmount ?? filters.maxAmount) {
+      const amountFilter: { $gte?: number; $lte?: number } = {};
       if (filters.minAmount) {
-        query.amount.$gte = filters.minAmount;
+        amountFilter.$gte = filters.minAmount;
       }
       if (filters.maxAmount) {
-        query.amount.$lte = filters.maxAmount;
+        amountFilter.$lte = filters.maxAmount;
       }
+      Object.assign(query, { amount: amountFilter });
     }
 
     // Free-text search
@@ -339,7 +360,10 @@ export class PaymentService {
     if (after) {
       const afterDoc = await this.paymentModel.findById(after).lean<PaymentDocument>();
       if (afterDoc) {
-        query.createdAt = { ...query.createdAt, $gt: afterDoc.createdAt };
+        const existing = (query as { createdAt?: { $gte?: Date; $lte?: Date } }).createdAt;
+        Object.assign(query, {
+          createdAt: { ...existing, $gt: afterDoc.createdAt },
+        });
       }
     }
 
@@ -353,15 +377,15 @@ export class PaymentService {
       ...this.buildMerchantLookupForPayment(),
     ];
 
-    const payments = await this.paymentModel.aggregate(pipeline).exec();
+    const payments = await this.paymentModel.aggregate<PaymentDocument>(pipeline).exec();
 
     let nextCursor: string | undefined;
     if (payments.length > limit) {
-      const nextItem = payments.pop();
-      nextCursor = nextItem._id.toString();
+      const nextItem = payments.pop() as PaymentDocument;
+      nextCursor = String(nextItem._id);
     }
 
-    return { payments: payments as PaymentDocument[], nextCursor };
+    return { payments, nextCursor };
   }
 
   async findById(
@@ -454,7 +478,7 @@ export class PaymentService {
       const previousStatus = payment.status;
       const newStatus = this.mapSMTStatusToPaymentStatus(webhookPayload.status);
 
-      if (newStatus && newStatus !== previousStatus) {
+      if (newStatus !== null && newStatus !== undefined && newStatus !== previousStatus) {
         payment.status = newStatus;
         payment.smtResponse = {
           ...payment.smtResponse,
@@ -530,12 +554,14 @@ export class PaymentService {
         // Admin sees all payments
         matchCondition = {};
         break;
+      case UserRole.MODERATOR:
+        throw new ForbiddenException('Role not allowed to view stats');
       default:
         throw new ForbiddenException('Role not allowed to view stats');
     }
 
     // Aggregate overview stats
-    const overviewStats = await this.paymentModel.aggregate([
+    const overviewStats = await this.paymentModel.aggregate<PaymentOverviewStats>([
       { $match: matchCondition },
       {
         $group: {
@@ -562,13 +588,13 @@ export class PaymentService {
     ]);
 
     // Aggregate payment method breakdown
-    const paymentMethodStats = await this.paymentModel.aggregate([
+    const paymentMethodStats = await this.paymentModel.aggregate<PaymentMethodStat>([
       { $match: matchCondition },
       { $group: { _id: '$paymentMethod', count: { $sum: 1 }, total: { $sum: '$amount' } } },
     ]);
 
     return {
-      overview: overviewStats[0] || {
+      overview: overviewStats[0] ?? {
         totalPayments: 0,
         totalAmount: 0,
         totalRefunded: 0,
@@ -746,6 +772,6 @@ export class PaymentService {
       disputed: PaymentStatus.DISPUTED,
     };
 
-    return statusMap[smtStatus.toLowerCase()] || null;
+    return statusMap[smtStatus.toLowerCase()] ?? null;
   }
 }

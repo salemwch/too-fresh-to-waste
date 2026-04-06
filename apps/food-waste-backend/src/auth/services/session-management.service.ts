@@ -43,6 +43,21 @@ import {
 import { RedisService } from '../../redis/redis.service';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 
+interface SerializedDeviceInfo extends Omit<DeviceInfo, 'lastActiveAt' | 'createdAt'> {
+  readonly lastActiveAt: string | Date;
+  readonly createdAt: string | Date;
+}
+
+interface SerializedSessionInfo extends Omit<
+  SessionInfo,
+  'deviceInfo' | 'expiresAt' | 'createdAt' | 'lastActivityAt'
+> {
+  readonly deviceInfo: SerializedDeviceInfo;
+  expiresAt: string | Date;
+  readonly createdAt: string | Date;
+  lastActivityAt: string | Date;
+}
+
 /**
  * Unified Session Management Service
  * Single source of truth for all session-related operations
@@ -103,7 +118,8 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
 
     // Calculate expiration
     const expiresAt = new Date(
-      Date.now() + (rememberMe ? this.config.rememberMeDuration : this.config.sessionTimeout),
+      Date.now() +
+        (rememberMe === true ? this.config.rememberMeDuration : this.config.sessionTimeout),
     );
 
     // Create session object (fully synchronous — no I/O)
@@ -124,8 +140,9 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     // return immediately. The remote Redis writes (store, enforce limit,
     // audit trail) complete asynchronously — they are not required for the
     // JWT tokens that actually authenticate subsequent requests.
-    this.persistSessionAsync(session, userId, ipAddress, userAgent, deviceInfo).catch((err) =>
-      this.logger.error(`Background session persistence failed: ${err.message}`),
+    this.persistSessionAsync(session, userId, ipAddress, userAgent, deviceInfo).catch(
+      (error: unknown) =>
+        this.logger.error(`Background session persistence failed: ${this.getErrorMessage(error)}`),
     );
 
     this.logger.log(`Session created for user ${userId}: \n${sessionId}`);
@@ -160,7 +177,9 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       timestamp: new Date(),
       location: deviceInfo.location,
       success: true,
-    }).catch((err) => this.logger.warn(`Failed to write login history: ${err.message}`));
+    }).catch((error: unknown) =>
+      this.logger.warn(`Failed to write login history: ${this.getErrorMessage(error)}`),
+    );
 
     this.logSessionActivity({
       sessionId: session.sessionId,
@@ -318,7 +337,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       }),
     );
 
-    return results.filter((s): s is SessionInfo => !!s?.isActive);
+    return results.filter((s): s is SessionInfo => s?.isActive === true);
   }
 
   /**
@@ -330,9 +349,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       throw new BadRequestException('User not found');
     }
 
-    if (!user.trustedDevices) {
-      user.trustedDevices = [];
-    }
+    user.trustedDevices ??= [];
 
     // Check if device already trusted
     const existingDevice = user.trustedDevices.find((d) => d.deviceId === deviceId);
@@ -390,7 +407,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   async getLoginHistory(userId: string, limit = 50): Promise<LoginHistoryEntry[]> {
     const user = await this.userModel.findById(userId).select('loginHistory');
 
-    if (!user || !user.loginHistory) {
+    if (user?.loginHistory === null || user?.loginHistory === undefined) {
       return [];
     }
 
@@ -423,8 +440,8 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     const browser = this.extractBrowser(userAgent);
 
     return {
-      deviceId: deviceFingerprint || crypto.randomUUID(),
-      deviceFingerprint: deviceFingerprint || this.generateDeviceFingerprint(userAgent, ipAddress),
+      deviceId: deviceFingerprint ?? crypto.randomUUID(),
+      deviceFingerprint: deviceFingerprint ?? this.generateDeviceFingerprint(userAgent, ipAddress),
       deviceName: `${platform} - ${browser}`,
       platform,
       browser,
@@ -528,6 +545,73 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
+  private getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : 'Unknown error';
+  }
+
+  private isSerializedDeviceInfo(value: unknown): value is SerializedDeviceInfo {
+    if (value === null || value === undefined || typeof value !== 'object') {
+      return false;
+    }
+
+    const deviceInfo = value as Record<string, unknown>;
+
+    return (
+      typeof deviceInfo['deviceId'] === 'string' &&
+      typeof deviceInfo['deviceFingerprint'] === 'string' &&
+      typeof deviceInfo['deviceName'] === 'string' &&
+      typeof deviceInfo['platform'] === 'string' &&
+      typeof deviceInfo['browser'] === 'string' &&
+      typeof deviceInfo['ipAddress'] === 'string' &&
+      typeof deviceInfo['userAgent'] === 'string' &&
+      (deviceInfo['location'] === undefined || typeof deviceInfo['location'] === 'string') &&
+      typeof deviceInfo['isTrusted'] === 'boolean' &&
+      (typeof deviceInfo['lastActiveAt'] === 'string' ||
+        deviceInfo['lastActiveAt'] instanceof Date) &&
+      (typeof deviceInfo['createdAt'] === 'string' || deviceInfo['createdAt'] instanceof Date)
+    );
+  }
+
+  private isSerializedSessionInfo(value: unknown): value is SerializedSessionInfo {
+    if (value === null || value === undefined || typeof value !== 'object') {
+      return false;
+    }
+
+    const session = value as Record<string, unknown>;
+
+    return (
+      typeof session['sessionId'] === 'string' &&
+      typeof session['userId'] === 'string' &&
+      this.isSerializedDeviceInfo(session['deviceInfo']) &&
+      typeof session['accessToken'] === 'string' &&
+      typeof session['refreshToken'] === 'string' &&
+      (typeof session['expiresAt'] === 'string' || session['expiresAt'] instanceof Date) &&
+      typeof session['isActive'] === 'boolean' &&
+      (typeof session['createdAt'] === 'string' || session['createdAt'] instanceof Date) &&
+      (typeof session['lastActivityAt'] === 'string' || session['lastActivityAt'] instanceof Date)
+    );
+  }
+
+  private deserializeSession(sessionJson: string): SessionInfo {
+    const parsed: unknown = JSON.parse(sessionJson);
+
+    if (!this.isSerializedSessionInfo(parsed)) {
+      throw new Error('Invalid session payload');
+    }
+
+    return {
+      ...parsed,
+      deviceInfo: {
+        ...parsed.deviceInfo,
+        lastActiveAt: new Date(parsed.deviceInfo.lastActiveAt),
+        createdAt: new Date(parsed.deviceInfo.createdAt),
+      },
+      expiresAt: new Date(parsed.expiresAt),
+      createdAt: new Date(parsed.createdAt),
+      lastActivityAt: new Date(parsed.lastActivityAt),
+    };
+  }
+
   /**
    * Enforce concurrent session limit for a user
    */
@@ -539,8 +623,9 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       const sessions = await this.getUserSessions(userId);
       sessions.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
-      if (sessions.length > 0) {
-        await this.destroySession(sessions[0]!.sessionId);
+      const oldestSession = sessions[0];
+      if (oldestSession) {
+        await this.destroySession(oldestSession.sessionId);
         this.logger.log(`Removed oldest session for user ${userId} due to limit`);
       }
     }
@@ -577,14 +662,12 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
    * Start cleanup timer for expired sessions
    */
   private startCleanupTimer(): void {
-    this.cleanupTimer = setInterval(async () => {
-      try {
-        await this.cleanupExpiredSessions();
-      } catch (error) {
+    this.cleanupTimer = setInterval(() => {
+      void this.cleanupExpiredSessions().catch((error: unknown) => {
         this.logger.error(
           `Session cleanup error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         );
-      }
+      });
     }, this.config.cleanupInterval);
 
     this.logger.log('Session cleanup timer started');
@@ -603,8 +686,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     for (const key of keys) {
       const sessionJson = await redisClient.get(key);
       if (sessionJson) {
-        const session: SessionInfo = JSON.parse(sessionJson);
-        session.expiresAt = new Date(session.expiresAt);
+        const session = this.deserializeSession(sessionJson);
 
         if (new Date() > session.expiresAt) {
           await this.destroySession(session.sessionId);
@@ -657,18 +739,11 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       const sessionJson = await redisClient.get(key);
 
       if (sessionJson) {
-        const session = JSON.parse(sessionJson);
-        // Reconstitute Date objects lost during JSON serialization
-        session.expiresAt = new Date(session.expiresAt);
-        session.createdAt = new Date(session.createdAt);
-        session.lastActivityAt = new Date(session.lastActivityAt);
-        return session;
+        return this.deserializeSession(sessionJson);
       }
     } catch (error: unknown) {
-      this.logger.warn(
-        `Redis retrieval failed, using fallback: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-      return this.fallbackSessions.get(sessionId) || null;
+      this.logger.warn(`Redis retrieval failed, using fallback: ${this.getErrorMessage(error)}`);
+      return this.fallbackSessions.get(sessionId) ?? null;
     }
 
     return null;
@@ -705,7 +780,12 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       if (!this.fallbackUserSessions.has(userId)) {
         this.fallbackUserSessions.set(userId, new Set());
       }
-      this.fallbackUserSessions.get(userId)!.add(sessionId);
+      const fallbackSessions = this.fallbackUserSessions.get(userId);
+      if (!fallbackSessions) {
+        this.logger.warn(`Failed to initialize fallback session set for user ${userId}`);
+        return;
+      }
+      fallbackSessions.add(sessionId);
     }
   }
 
@@ -737,7 +817,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
       this.logger.warn(
         `Redis sMembers failed, using fallback: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      return Array.from(this.fallbackUserSessions.get(userId) || []);
+      return Array.from(this.fallbackUserSessions.get(userId) ?? []);
     }
   }
 }

@@ -1,4 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Transform } from 'class-transformer';
+import { Document, Model, Types, Query } from 'mongoose';
 
 // Interface for review metadata
 export interface IReviewMetadata {
@@ -90,8 +92,7 @@ export interface IReviewMetadata {
   // Custom fields for business logic
   custom?: Record<string, string | number | boolean | Date>;
 }
-import { Transform } from 'class-transformer';
-import { Document, Types, Query } from 'mongoose';
+
 export type ReviewDocument = Review & Document;
 
 export enum ReviewStatus {
@@ -170,7 +171,7 @@ export interface ReviewImages {
 
 @Schema({ timestamps: true, collection: 'reviews' })
 export class Review {
-  @Transform(({ value }) => value.toString())
+  @Transform(({ value }: { value: Types.ObjectId }) => value.toString())
   _id!: Types.ObjectId;
 
   @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
@@ -388,38 +389,15 @@ export class Review {
 
 export const ReviewSchema = SchemaFactory.createForClass(Review);
 
-// Indexes for optimal performance
+// Indexes — 7 targeted (trimmed from 13)
 ReviewSchema.index({ establishmentId: 1, status: 1, createdAt: -1 });
 ReviewSchema.index({ reviewerId: 1, createdAt: -1 });
 ReviewSchema.index({ orderId: 1 }, { sparse: true });
 ReviewSchema.index({ offerId: 1 }, { sparse: true });
-ReviewSchema.index({ overallRating: 1, status: 1 });
 ReviewSchema.index({ status: 1, 'moderationInfo.manualModerationRequired': 1 });
-ReviewSchema.index({ 'sentimentAnalysis.sentiment': 1, overallRating: 1 });
-ReviewSchema.index({ isVerifiedPurchase: 1, status: 1 });
-ReviewSchema.index({ type: 1, establishmentId: 1 });
-ReviewSchema.index({ createdAt: -1 });
-ReviewSchema.index({ 'metrics.helpfulCount': -1, status: 1 });
-
-ReviewSchema.index({
-  comment: 'text',
-  title: 'text',
-  'sentimentAnalysis.keywords': 'text',
-});
-
-ReviewSchema.index({
-  establishmentId: 1,
-  type: 1,
-  status: 1,
-  overallRating: 1,
-  createdAt: -1,
-});
-
-/**
- * Soft Delete Recovery Index
- * - Optimizes archive cron query: find({ isDeleted: true, deletedAt: { $lte: 30d ago } })
- * - Sparse index (only deleted reviews)
- */
+ReviewSchema.index({ comment: 'text', title: 'text', 'sentimentAnalysis.keywords': 'text' });
+// Covers type+establishment, rating+status, and sorted listing in one compound
+ReviewSchema.index({ establishmentId: 1, type: 1, status: 1, overallRating: 1, createdAt: -1 });
 ReviewSchema.index({ isDeleted: 1, deletedAt: 1 }, { sparse: true });
 
 // Virtual fields
@@ -451,21 +429,22 @@ ReviewSchema.pre('save', function (next) {
 });
 
 ReviewSchema.pre<Query<ReviewDocument[], ReviewDocument>>(/^find/, function (next) {
-  if (!this.getOptions()?.['includeDeleted']) {
+  if (this.getOptions()?.['includeDeleted'] !== true) {
     this.where({ isDeleted: { $ne: true } });
   }
   next();
 });
 
 ReviewSchema.pre('aggregate', function () {
-  const options = (this as { options?: Record<string, unknown> }).options || {};
-  if (!options['includeDeleted']) {
+  const options = (this as { options?: Record<string, unknown> }).options ?? {};
+  if (options['includeDeleted'] !== true) {
     this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
   }
 });
 
 // Static methods
 ReviewSchema.statics['findByEstablishment'] = function (
+  this: Model<Review>,
   establishmentId: string,
   options: Record<string, unknown> = {},
 ) {

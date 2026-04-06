@@ -6,6 +6,7 @@ import {
   buildPasswordRegex,
   UserRole,
 } from '@foodwaste/shared';
+import type { RegisterInput } from '@foodwaste/shared';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -38,25 +39,25 @@ class AddressComponentsDto {
   @IsOptional()
   @IsString()
   @MaxLength(200, { message: 'Street cannot exceed 200 characters' })
-  street?: string;
+  street?: string | undefined;
 
   @ApiPropertyOptional({ example: 'Tunis' })
   @IsOptional()
   @IsString()
   @MaxLength(100, { message: 'City cannot exceed 100 characters' })
-  city?: string;
+  city?: string | undefined;
 
   @ApiPropertyOptional({ example: '1000' })
   @IsOptional()
   @IsString()
   @MaxLength(20, { message: 'Postal code cannot exceed 20 characters' })
-  postalCode?: string;
+  postalCode?: string | undefined;
 
   @ApiPropertyOptional({ example: 'Tunisia' })
   @IsOptional()
   @IsString()
   @MaxLength(100, { message: 'Country cannot exceed 100 characters' })
-  country?: string;
+  country?: string | undefined;
 }
 
 /**
@@ -111,7 +112,7 @@ class BusinessInfoDto {
   @IsOptional()
   @ValidateNested()
   @Type(() => AddressComponentsDto)
-  addressComponents?: AddressComponentsDto;
+  addressComponents?: AddressComponentsDto | undefined;
 
   @ApiPropertyOptional({
     description: 'Google Place types for mapping to EstablishmentType',
@@ -120,7 +121,7 @@ class BusinessInfoDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  types?: string[];
+  types?: string[] | undefined;
 }
 
 /**
@@ -133,7 +134,7 @@ class BusinessInfoDto {
  * This prevents XSS payloads from bypassing validation.
  * Reference: PRODUCTION_READINESS_AUDIT_REPORT.md:244-246
  */
-export class RegisterDto {
+export class RegisterDto implements RegisterInput {
   /**
    * Email sanitization runs BEFORE validation
    * Prevents: <script>alert('xss')</script>test@example.com
@@ -224,7 +225,7 @@ export class RegisterDto {
     // Custom error message
     message: 'Please provide a valid phone number (international format +... or national format)',
   })
-  phoneNumber?: string;
+  phoneNumber?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'User role (defaults to "consumer" if not specified)',
@@ -234,7 +235,7 @@ export class RegisterDto {
   })
   @IsOptional()
   @IsEnum(UserRole, { message: 'Invalid user role' })
-  role?: UserRole;
+  role?: UserRole | undefined;
 
   @ApiPropertyOptional({
     description: 'Referral code from an existing user (for friend/business referral rewards)',
@@ -247,7 +248,7 @@ export class RegisterDto {
   @IsString({ message: 'Referral code must be a string' })
   @MinLength(4, { message: 'Referral code must be at least 4 characters' })
   @MaxLength(20, { message: 'Referral code cannot exceed 20 characters' })
-  referralCode?: string;
+  referralCode?: string | undefined;
 
   @ApiPropertyOptional({
     description: 'Business information from Google Places (required for merchant signup)',
@@ -256,5 +257,5 @@ export class RegisterDto {
   @IsOptional()
   @ValidateNested()
   @Type(() => BusinessInfoDto)
-  businessInfo?: BusinessInfoDto;
+  businessInfo?: BusinessInfoDto | undefined;
 }
