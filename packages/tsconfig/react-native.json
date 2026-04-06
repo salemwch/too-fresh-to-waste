@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  // React Native 0.81 — CommonJS, node resolution, react-native JSX.
+  // Metro handles bundling; TypeScript is used for type-checking only.
+  "extends": "./base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "jsx": "react-native",
+    "isolatedModules": true,
+
+    // Metro bundles from source — no emit needed from tsc
+    "noEmit": false,
+    "declaration": true,
+    "sourceMap": true
+  }
+}

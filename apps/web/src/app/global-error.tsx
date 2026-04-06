@@ -8,7 +8,9 @@ export default function GlobalError({
 }) {
   return (
     <html lang="en">
-      <body style={{ fontFamily: 'system-ui, sans-serif', textAlign: 'center', padding: '4rem 1rem' }}>
+      <body
+        style={{ fontFamily: 'system-ui, sans-serif', textAlign: 'center', padding: '4rem 1rem' }}
+      >
         <h1 style={{ fontSize: '3rem', fontWeight: 700, color: '#dc2626' }}>500</h1>
         <p style={{ fontSize: '1.125rem', color: '#64748b', marginTop: '0.5rem' }}>
           Something went wrong

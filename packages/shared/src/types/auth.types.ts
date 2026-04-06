@@ -1,5 +1,5 @@
-import { UserRole } from '../enums/user.enum';
 import type { UserResponse } from './user.types';
+import type { UserRole } from '../enums/user.enum';
 
 export interface LoginRequest {
   email: string;
@@ -14,13 +14,15 @@ export interface BusinessInfo {
   latitude: number;
   longitude: number;
   formattedAddress: string;
-  addressComponents?: {
-    street?: string;
-    city?: string;
-    postalCode?: string;
-    country?: string;
-  };
-  types?: string[];
+  addressComponents?:
+    | {
+        street?: string | undefined;
+        city?: string | undefined;
+        postalCode?: string | undefined;
+        country?: string | undefined;
+      }
+    | undefined;
+  types?: string[] | undefined;
 }
 
 export interface RegisterRequest {

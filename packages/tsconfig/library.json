@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  // Internal workspace library (packages/shared, packages/ui, etc.)
+  // Composite build so apps can reference it via project references.
+  "extends": "./base.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+
+    // Output — declaration + maps enabled; outDir/rootDir MUST be set
+    // in each consumer's tsconfig (they resolve relative to the config file).
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+
+    // Composite build
+    "composite": true,
+    "incremental": true,
+
+    // Libraries are consumed by many apps with different setups —
+    // relax the most painful checks that don't add value in shared code.
+    "exactOptionalPropertyTypes": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false
+  }
+}

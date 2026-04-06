@@ -165,19 +165,13 @@ export default function Footer() {
         {/* Company Info Section */}
         <div className="min-[1200px]:max-w-sm w-full">
           <div className="pr-2">
-            <p className="text-white/80 leading-relaxed text-sm">
-              {t('description')}
-            </p>
-            <p className="text-white/80 leading-relaxed text-sm mt-1.5">
-              {t('tagline')}
-            </p>
+            <p className="text-white/80 leading-relaxed text-sm">{t('description')}</p>
+            <p className="text-white/80 leading-relaxed text-sm mt-1.5">{t('tagline')}</p>
           </div>
 
           {/* Social Media Links */}
           <div className="mt-4">
-            <h4 className="text-white font-semibold text-base mb-3">
-              {t('social.followUs')}
-            </h4>
+            <h4 className="text-white font-semibold text-base mb-3">{t('social.followUs')}</h4>
             <ul className="flex gap-3 sm:gap-4 md:gap-4 flex-wrap" aria-label="Social media links">
               {socialLinks.map((social) => (
                 <li key={social.name} className="flex-shrink-0">
@@ -225,9 +219,7 @@ export default function Footer() {
 
       {/* Copyright */}
       <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-2 sm:gap-4">
-        <p className="text-white/70 text-xs sm:text-sm">
-          {t('copyright', { year: currentYear })}
-        </p>
+        <p className="text-white/70 text-xs sm:text-sm">{t('copyright', { year: currentYear })}</p>
         <p className="text-white/70 text-xs sm:text-sm">
           Created By{' '}
           <a

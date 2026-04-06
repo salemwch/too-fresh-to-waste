@@ -10,8 +10,8 @@ export interface StatCardItem {
   label: string;
   value: string;
   icon: LucideIcon;
-  iconBg: string;    // e.g. "bg-indigo-50"
-  iconColor: string;  // e.g. "text-indigo-600"
+  iconBg: string; // e.g. "bg-indigo-50"
+  iconColor: string; // e.g. "text-indigo-600"
   trend: {
     value: number;
     /** Optional unit appended to the trend value, e.g. '%' */
@@ -38,13 +38,7 @@ interface StatsCardsProps {
 const SPARK_W = 80;
 const SPARK_H = 28;
 
-function Sparkline({
-  data,
-  direction,
-}: {
-  data: number[];
-  direction: 'up' | 'down';
-}) {
+function Sparkline({ data, direction }: { data: number[]; direction: 'up' | 'down' }) {
   if (data.length < 2) return null;
 
   const min = Math.min(...data);
@@ -82,10 +76,7 @@ function Sparkline({
           <stop offset="100%" stopColor={color} stopOpacity="0.02" />
         </linearGradient>
       </defs>
-      <polygon
-        points={areaPoints}
-        fill={`url(#spark-grad-${direction})`}
-      />
+      <polygon points={areaPoints} fill={`url(#spark-grad-${direction})`} />
       <polyline
         points={pts}
         fill="none"
@@ -116,10 +107,20 @@ export function StatsCards({ stats, onCardClick }: StatsCardsProps) {
             role={isClickable ? 'button' : undefined}
             tabIndex={isClickable ? 0 : undefined}
             onClick={isClickable ? () => onCardClick(stat.id!) : undefined}
-            onKeyDown={isClickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCardClick(stat.id!); } } : undefined}
+            onKeyDown={
+              isClickable
+                ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onCardClick(stat.id!);
+                    }
+                  }
+                : undefined
+            }
             className={cn(
               'bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all',
-              isClickable && 'cursor-pointer hover:ring-2 hover:ring-indigo-200 active:scale-[0.98]',
+              isClickable &&
+                'cursor-pointer hover:ring-2 hover:ring-indigo-200 active:scale-[0.98]',
             )}
           >
             {/* Top row: value + icon */}
@@ -128,9 +129,7 @@ export function StatsCards({ stats, onCardClick }: StatsCardsProps) {
                 <h3 className="text-xl font-semibold tracking-tight text-slate-900">
                   {stat.value}
                 </h3>
-                <p className="text-sm text-slate-500 font-medium mt-0.5">
-                  {stat.label}
-                </p>
+                <p className="text-sm text-slate-500 font-medium mt-0.5">{stat.label}</p>
               </div>
               <div
                 className={cn(
@@ -146,10 +145,7 @@ export function StatsCards({ stats, onCardClick }: StatsCardsProps) {
             {/* Sparkline row */}
             {hasSparkline && (
               <div className="mb-2">
-                <Sparkline
-                  data={stat.sparkline!}
-                  direction={stat.trend.direction}
-                />
+                <Sparkline data={stat.sparkline!} direction={stat.trend.direction} />
               </div>
             )}
 
@@ -162,7 +158,8 @@ export function StatsCards({ stats, onCardClick }: StatsCardsProps) {
                 )}
               >
                 <TrendIcon className="w-3.5 h-3.5" />
-                {Math.abs(stat.trend.value)}{stat.trend.suffix ?? ''}
+                {Math.abs(stat.trend.value)}
+                {stat.trend.suffix ?? ''}
               </div>
               <span className="text-xs text-slate-400">{stat.trend.label}</span>
             </div>

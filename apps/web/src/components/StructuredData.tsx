@@ -155,4 +155,3 @@ export function MobileApplicationStructuredData({ locale = 'fr' }: StructuredDat
     />
   );
 }
-

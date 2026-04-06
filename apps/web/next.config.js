@@ -91,7 +91,10 @@ const nextConfig = {
   // cross-origin warnings (Next.js 15+ requirement).
   // Set DEV_ALLOWED_ORIGINS to a comma-separated list of IPs/hostnames.
   ...(process.env.NODE_ENV === 'development' && {
-    allowedDevOrigins: (process.env.DEV_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean),
+    allowedDevOrigins: (process.env.DEV_ALLOWED_ORIGINS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
   }),
 
   // Security headers
@@ -108,10 +111,14 @@ const nextConfig = {
           // HSTS must only be sent over a real HTTPS connection in production.
           // Sending it in dev (over HTTP on an IP) causes the browser to cache
           // the domain as HTTPS-only, breaking future HTTP redirects.
-          ...(isProd ? [{
-            key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload',
-          }] : []),
+          ...(isProd
+            ? [
+                {
+                  key: 'Strict-Transport-Security',
+                  value: 'max-age=63072000; includeSubDomains; preload',
+                },
+              ]
+            : []),
           {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',
@@ -135,7 +142,8 @@ const nextConfig = {
             // geolocation=(self): allow only same-origin GPS requests.
             // identity-credentials-get=(): block FedCM sign-in prompts.
             // publickey-credentials-get=(): block WebAuthn/passkey prompts.
-            value: 'camera=(), microphone=(), geolocation=(self), identity-credentials-get=(), publickey-credentials-get=()',
+            value:
+              'camera=(), microphone=(), geolocation=(self), identity-credentials-get=(), publickey-credentials-get=()',
           },
           {
             key: 'Content-Security-Policy',
@@ -148,7 +156,10 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: http://localhost:* https://storage.googleapis.com https://firebasestorage.googleapis.com https://*.supabase.co https://www.google-analytics.com https://www.googletagmanager.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self' https://api.brevo.com https://www.google-analytics.com https://region1.google-analytics.com " + getApiOrigin() + " " + getApiWsOrigin(),
+              "connect-src 'self' https://api.brevo.com https://www.google-analytics.com https://region1.google-analytics.com " +
+                getApiOrigin() +
+                ' ' +
+                getApiWsOrigin(),
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",

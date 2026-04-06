@@ -6,15 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/lib/auth';
 import { userService } from '@/services/user.service';
 import { Input, Button, Label } from '@foodwaste/ui';
-import {
-  User,
-  Mail,
-  Phone,
-  Camera,
-  Loader2,
-  AlertCircle,
-  CheckCircle2,
-} from 'lucide-react';
+import { User, Mail, Phone, Camera, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const ACCEPTED_IMAGE_TYPES = 'image/jpeg,image/png,image/webp';
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB

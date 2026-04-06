@@ -124,16 +124,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Sanitize email (remove any HTML tags, just in case)
-    const sanitizedEmail = email.replace(/<[^>]*>/g, '').trim().toLowerCase();
+    const sanitizedEmail = email
+      .replace(/<[^>]*>/g, '')
+      .trim()
+      .toLowerCase();
 
     // Check if email is already subscribed (in-memory check)
     if (subscribedEmails.has(sanitizedEmail)) {
       return NextResponse.json(
         {
           error: "You're already subscribed! We'll keep you updated.",
-          code: 'ALREADY_SUBSCRIBED'
+          code: 'ALREADY_SUBSCRIBED',
         },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -147,7 +150,7 @@ export async function POST(request: NextRequest) {
             accept: 'application/json',
             'api-key': brevoApiKey,
           },
-        }
+        },
       );
 
       // If contact exists (status 200), they're already subscribed
@@ -156,9 +159,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: "You're already subscribed! We'll keep you updated.",
-            code: 'ALREADY_SUBSCRIBED'
+            code: 'ALREADY_SUBSCRIBED',
           },
-          { status: 409 }
+          { status: 409 },
         );
       }
       // If status is 404, contact doesn't exist - proceed with subscription
@@ -199,9 +202,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: "You're already subscribed! We'll keep you updated.",
-            code: 'ALREADY_SUBSCRIBED'
+            code: 'ALREADY_SUBSCRIBED',
           },
-          { status: 409 }
+          { status: 409 },
         );
       }
 

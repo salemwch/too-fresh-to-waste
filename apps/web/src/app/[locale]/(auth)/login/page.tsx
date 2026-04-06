@@ -46,10 +46,7 @@ function LoginFormInner() {
 
       if (callbackUrl) {
         router.push(callbackUrl);
-      } else if (
-        result.user.role === UserRole.ADMIN ||
-        result.user.role === UserRole.MODERATOR
-      ) {
+      } else if (result.user.role === UserRole.ADMIN || result.user.role === UserRole.MODERATOR) {
         router.push(`/${locale}/admin/dashboard`);
       } else if (result.user.role === UserRole.MERCHANT) {
         router.push(`/${locale}/merchant/dashboard`);
@@ -70,7 +67,6 @@ function LoginFormInner() {
   return (
     // Fixed overlay that covers the (auth) layout header/footer entirely
     <div className="merchant-signup-theme fixed inset-0 z-50 flex flex-col overflow-hidden lg:flex-row">
-
       {/* ================================================================
           LEFT HERO SECTION — identical to merchant-signup
           ================================================================ */}
@@ -162,7 +158,6 @@ function LoginFormInner() {
           ================================================================ */}
       <div className="flex flex-1 flex-col items-center justify-center bg-background px-5 py-6 sm:p-8 lg:p-16">
         <div className="w-full max-w-md space-y-5 sm:space-y-6">
-
           {/* Back chevron */}
           <button
             type="button"
@@ -194,11 +189,9 @@ function LoginFormInner() {
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             {/* Email */}
             <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="text-sm font-medium text-muted-foreground"
-              >
-                {t('email')}<span className="text-destructive">*</span>
+              <label htmlFor="email" className="text-sm font-medium text-muted-foreground">
+                {t('email')}
+                <span className="text-destructive">*</span>
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -218,11 +211,9 @@ function LoginFormInner() {
 
             {/* Password */}
             <div className="space-y-2">
-              <label
-                htmlFor="password"
-                className="text-sm font-medium text-muted-foreground"
-              >
-                {t('password')}<span className="text-destructive">*</span>
+              <label htmlFor="password" className="text-sm font-medium text-muted-foreground">
+                {t('password')}
+                <span className="text-destructive">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
@@ -243,11 +234,7 @@ function LoginFormInner() {
                   tabIndex={-1}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>

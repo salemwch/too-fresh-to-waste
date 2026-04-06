@@ -1,20 +1,8 @@
 'use client';
 
-import {
-  useState,
-  useEffect,
-  useCallback,
-} from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  X,
-  Minus,
-  Plus,
-  ChevronDown,
-  AlertCircle,
-  CheckCircle2,
-  ImagePlus,
-} from 'lucide-react';
+import { X, Minus, Plus, ChevronDown, AlertCircle, CheckCircle2, ImagePlus } from 'lucide-react';
 import { cn } from '@foodwaste/ui';
 import { useMyEstablishment, useCreateSurpriseBag } from '@/hooks/use-merchant-dashboard';
 import { dashboardService } from '@/services/dashboard.service';
@@ -22,19 +10,19 @@ import type { CreateSurpriseBagPayload, OfferBagType } from '@/types/dashboard';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const MIN_DISCOUNT_PCT   = 35;
-const MAX_QUANTITY        = 100;
-const MAX_PRICE           = 100;
-const DISCOUNT_OPTIONS    = [35, 40, 50, 60, 70, 80, 90] as const;
-const DEFAULT_TITLE       = 'Delicious Surprise Bag';
-const DEFAULT_PRICE       = 10;
-const DEFAULT_DISCOUNT    = 50;
-const TIMEZONE            = 'Africa/Tunis';
+const MIN_DISCOUNT_PCT = 35;
+const MAX_QUANTITY = 100;
+const MAX_PRICE = 100;
+const DISCOUNT_OPTIONS = [35, 40, 50, 60, 70, 80, 90] as const;
+const DEFAULT_TITLE = 'Delicious Surprise Bag';
+const DEFAULT_PRICE = 10;
+const DEFAULT_DISCOUNT = 50;
+const TIMEZONE = 'Africa/Tunis';
 
 const BAG_TYPE_OPTIONS: { value: OfferBagType; label: string }[] = [
-  { value: 'surprise_bag',   label: 'Surprise Bag'  },
+  { value: 'surprise_bag', label: 'Surprise Bag' },
   { value: 'specific_items', label: 'Specific Item' },
-  { value: 'meal_deal',      label: 'Meal Deal'     },
+  { value: 'meal_deal', label: 'Meal Deal' },
 ];
 
 /** 30-minute intervals: 00:00 … 23:30 */
@@ -48,8 +36,8 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
 const UNTIL_OPTIONS = [...TIME_OPTIONS.slice(1), '00:00'];
 
 const PICKUP_PRESETS = [
-  { label: 'Lunch',   from: '12:00', until: '14:00' },
-  { label: 'Dinner',  from: '18:00', until: '21:00' },
+  { label: 'Lunch', from: '12:00', until: '14:00' },
+  { label: 'Dinner', from: '18:00', until: '21:00' },
   { label: 'All Day', from: '08:00', until: '22:00' },
 ] as const;
 
@@ -70,7 +58,7 @@ function formatHHMM(d: Date): string {
  * the backend correctly converts Tunisia local → UTC.
  */
 function nowAsLocalISO(): string {
-  const d   = new Date();
+  const d = new Date();
   const pad = (n: number) => String(n).padStart(2, '0');
   return (
     `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
@@ -86,7 +74,7 @@ function nowAsLocalISO(): string {
  */
 function getAvailableFromTimes(day: 'today' | 'tomorrow'): string[] {
   if (day === 'tomorrow') return TIME_OPTIONS;
-  const now    = new Date();
+  const now = new Date();
   const nowMins = now.getHours() * 60 + now.getMinutes() + 10; // 10-min buffer
   return TIME_OPTIONS.filter((t) => {
     const [h = 0, m = 0] = t.split(':').map(Number);
@@ -119,28 +107,28 @@ interface SurpriseBagPanelProps {
 
 export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
   // ── Form state ──────────────────────────────────────────────────────────
-  const [title, setTitle]               = useState(DEFAULT_TITLE);
-  const [quantity, setQuantity]         = useState(1);
-  const [bagType, setBagType]           = useState<OfferBagType>('surprise_bag');
-  const [rawPrice, setRawPrice]         = useState(DEFAULT_PRICE.toFixed(3));
-  const [discount, setDiscount]         = useState<number>(DEFAULT_DISCOUNT);
-  const [pickupDay, setPickupDay]   = useState<'today' | 'tomorrow'>('today');
+  const [title, setTitle] = useState(DEFAULT_TITLE);
+  const [quantity, setQuantity] = useState(1);
+  const [bagType, setBagType] = useState<OfferBagType>('surprise_bag');
+  const [rawPrice, setRawPrice] = useState(DEFAULT_PRICE.toFixed(3));
+  const [discount, setDiscount] = useState<number>(DEFAULT_DISCOUNT);
+  const [pickupDay, setPickupDay] = useState<'today' | 'tomorrow'>('today');
   const [pickupFrom, setPickupFrom] = useState<string>(PICKUP_PRESETS[0].from);
   const [pickupUntil, setPickupUntil] = useState<string>(PICKUP_PRESETS[0].until);
   const [customOpen, setCustomOpen] = useState(false);
-  const [imageFile, setImageFile]       = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
-  const [errorMsg, setErrorMsg]         = useState('');
-  const [successMsg, setSuccessMsg]     = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   // ── Data ────────────────────────────────────────────────────────────────
   const { data: establishment, isLoading: estLoading } = useMyEstablishment();
   const mutation = useCreateSurpriseBag();
 
   // ── Computed ─────────────────────────────────────────────────────────────
-  const parsedPrice     = Math.max(0, parseFloat(rawPrice) || 0);
+  const parsedPrice = Math.max(0, parseFloat(rawPrice) || 0);
   const discountedPrice = parsedPrice > 0 ? parsedPrice * (1 - discount / 100) : 0;
-  const saving          = parsedPrice - discountedPrice;
+  const saving = parsedPrice - discountedPrice;
 
   const publishLabel = 'Create Offer';
 
@@ -156,7 +144,9 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
   // ── Body scroll lock ─────────────────────────────────────────────────────
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [open]);
 
   // ── Sync pickupFrom when custom opens or day changes ────────────────────
@@ -178,7 +168,10 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
-      if (customOpen) { setCustomOpen(false); return; }
+      if (customOpen) {
+        setCustomOpen(false);
+        return;
+      }
       onClose();
     };
     document.addEventListener('keydown', onKey);
@@ -216,9 +209,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       let val = inputVal.replace(/[^\d.]/g, '');
       const firstDot = val.indexOf('.');
       if (firstDot !== -1) {
-        val =
-          val.slice(0, firstDot + 1) +
-          val.slice(firstDot + 1).replace(/\./g, '');
+        val = val.slice(0, firstDot + 1) + val.slice(firstDot + 1).replace(/\./g, '');
       }
 
       // Cap to 3 decimal places
@@ -229,10 +220,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
       // Auto-insert dot after the 3rd integer digit (only when typing forward)
       if (isGrowing && !val.includes('.') && val.length >= 3) {
-        val =
-          val.slice(0, 3) +
-          '.' +
-          (val.length > 3 ? val.slice(3) : '');
+        val = val.slice(0, 3) + '.' + (val.length > 3 ? val.slice(3) : '');
       }
 
       // Enforce max 100.000
@@ -289,11 +277,15 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
     // Resolve actual from hours/minutes — 'now' uses the real current time
     const nowSnapshot = new Date();
-    const fromH = pickupFrom === 'now' ? nowSnapshot.getHours()   : (parseInt(pickupFrom.split(':')[0] ?? '0', 10));
-    const fromM = pickupFrom === 'now' ? nowSnapshot.getMinutes() : (parseInt(pickupFrom.split(':')[1] ?? '0', 10));
+    const fromH =
+      pickupFrom === 'now' ? nowSnapshot.getHours() : parseInt(pickupFrom.split(':')[0] ?? '0', 10);
+    const fromM =
+      pickupFrom === 'now'
+        ? nowSnapshot.getMinutes()
+        : parseInt(pickupFrom.split(':')[1] ?? '0', 10);
 
     const [untilH = 0, untilM = 0] = pickupUntil.split(':').map(Number);
-    const fromMins  = fromH * 60 + fromM;
+    const fromMins = fromH * 60 + fromM;
     // Treat until "00:00" as 24:00 (midnight end-of-day) for comparison
     const untilMins = untilH === 0 && untilM === 0 ? 24 * 60 : untilH * 60 + untilM;
 
@@ -305,30 +297,32 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     if (pickupDay === 'today' && pickupFrom !== 'now') {
       const currentMins = nowSnapshot.getHours() * 60 + nowSnapshot.getMinutes();
       if (fromMins <= currentMins) {
-        setErrorMsg('Pickup start time has already passed. Please choose a future time or switch to Tomorrow.');
+        setErrorMsg(
+          'Pickup start time has already passed. Please choose a future time or switch to Tomorrow.',
+        );
         return;
       }
     }
 
-    const untilOverflow  = untilH === 0 && untilM === 0; // midnight rolls to next day
+    const untilOverflow = untilH === 0 && untilM === 0; // midnight rolls to next day
     const resolvedFromLabel = pickupFrom === 'now' ? formatHHMM(nowSnapshot) : pickupFrom;
 
     const payload: CreateSurpriseBagPayload = {
-      title:            title.trim(),
-      description:      autoDescription(title.trim(), quantity),
-      establishmentId:  establishment._id,
-      type:             bagType,
+      title: title.trim(),
+      description: autoDescription(title.trim(), quantity),
+      establishmentId: establishment._id,
+      type: bagType,
       pricing: {
-        originalPrice:   parseFloat(parsedPrice.toFixed(3)),
+        originalPrice: parseFloat(parsedPrice.toFixed(3)),
         discountedPrice: parseFloat(discountedPrice.toFixed(3)),
       },
-      totalQuantity:    quantity,
-      availableFrom:    pickupFrom === 'now' ? nowAsLocalISO() : toISO(pickupDay, fromH, fromM),
-      availableUntil:   toISO(pickupDay, untilH, untilM, untilOverflow),
-      pickupTimeSlots:  [{ startTime: resolvedFromLabel, endTime: pickupUntil }],
-      isPickupToday:    pickupDay === 'today',
+      totalQuantity: quantity,
+      availableFrom: pickupFrom === 'now' ? nowAsLocalISO() : toISO(pickupDay, fromH, fromM),
+      availableUntil: toISO(pickupDay, untilH, untilM, untilOverflow),
+      pickupTimeSlots: [{ startTime: resolvedFromLabel, endTime: pickupUntil }],
+      isPickupToday: pickupDay === 'today',
       isPickupTomorrow: pickupDay === 'tomorrow',
-      timezone:         TIMEZONE,
+      timezone: TIMEZONE,
     };
 
     try {
@@ -345,18 +339,25 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
         }
       }
 
-      setSuccessMsg(
-        `${quantity} ${quantity === 1 ? 'bag' : 'bags'} published successfully!`,
-      );
+      setSuccessMsg(`${quantity} ${quantity === 1 ? 'bag' : 'bags'} published successfully!`);
       setTimeout(onClose, 1600);
     } catch (err) {
-      setErrorMsg(
-        err instanceof Error ? err.message : 'Failed to publish. Please try again.',
-      );
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to publish. Please try again.');
     }
   }, [
-    establishment, pickupFrom, pickupUntil, parsedPrice, discountedPrice,
-    discount, title, quantity, bagType, pickupDay, imageFile, mutation, onClose,
+    establishment,
+    pickupFrom,
+    pickupUntil,
+    parsedPrice,
+    discountedPrice,
+    discount,
+    title,
+    quantity,
+    bagType,
+    pickupDay,
+    imageFile,
+    mutation,
+    onClose,
   ]);
 
   // ── Portal guard ─────────────────────────────────────────────────────────
@@ -392,7 +393,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
           <div>
             <h2 className="text-[15px] font-bold tracking-tight text-slate-900">
-              Publish Today's Surplus
+              Publish Today&apos;s Surplus
             </h2>
             <p className="text-[11px] text-slate-400 mt-0.5 leading-none">
               Live on the app the moment you hit publish
@@ -410,7 +411,6 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
         {/* ── Scrollable body ── */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-
           {/* Item Name */}
           <div className="space-y-1">
             <label className="block text-xs font-semibold text-slate-700">Item Name</label>
@@ -426,7 +426,6 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
           {/* Quantity + Offer Type */}
           <div className="flex items-end gap-3">
-
             {/* Quantity */}
             <div className="space-y-1">
               <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
@@ -484,7 +483,6 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                 ))}
               </select>
             </div>
-
           </div>
 
           {/* Divider */}
@@ -541,14 +539,20 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             <div className="space-y-1">
               <p className="text-[11px] text-slate-400">Price after discount</p>
               <div className="flex gap-1">
-                <div className={cn(
-                  'flex-1 h-7 rounded-md border flex items-center px-2',
-                  discountedPrice > 0 ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-slate-50',
-                )}>
-                  <span className={cn(
-                    'text-[11px] font-bold tabular-nums',
-                    discountedPrice > 0 ? 'text-emerald-700' : 'text-slate-400',
-                  )}>
+                <div
+                  className={cn(
+                    'flex-1 h-7 rounded-md border flex items-center px-2',
+                    discountedPrice > 0
+                      ? 'border-emerald-200 bg-emerald-50'
+                      : 'border-slate-200 bg-slate-50',
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'text-[11px] font-bold tabular-nums',
+                      discountedPrice > 0 ? 'text-emerald-700' : 'text-slate-400',
+                    )}
+                  >
                     {discountedPrice > 0 ? discountedPrice.toFixed(3) : '—'}
                   </span>
                 </div>
@@ -593,10 +597,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             {/* Quick presets */}
             <div className="flex gap-1.5">
               {PICKUP_PRESETS.map((p) => {
-                const active =
-                  !customOpen &&
-                  pickupFrom === p.from &&
-                  pickupUntil === p.until;
+                const active = !customOpen && pickupFrom === p.from && pickupUntil === p.until;
                 return (
                   <button
                     key={p.label}
@@ -614,7 +615,12 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                     )}
                   >
                     <span className="text-[11px] font-semibold leading-none">{p.label}</span>
-                    <span className={cn('text-[10px] mt-0.5 tabular-nums', active ? 'text-primary/70' : 'text-slate-400')}>
+                    <span
+                      className={cn(
+                        'text-[10px] mt-0.5 tabular-nums',
+                        active ? 'text-primary/70' : 'text-slate-400',
+                      )}
+                    >
                       {p.from}–{p.until}
                     </span>
                   </button>
@@ -636,7 +642,10 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             >
               <span>Custom range</span>
               <ChevronDown
-                className={cn('h-3 w-3 shrink-0 transition-transform duration-200', customOpen && 'rotate-180')}
+                className={cn(
+                  'h-3 w-3 shrink-0 transition-transform duration-200',
+                  customOpen && 'rotate-180',
+                )}
               />
             </button>
 
@@ -650,11 +659,11 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                     onChange={(e) => setPickupFrom(e.target.value)}
                     className="h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer"
                   >
-                    {pickupDay === 'today' && (
-                      <option value="now">⚡ Right Now</option>
-                    )}
+                    {pickupDay === 'today' && <option value="now">⚡ Right Now</option>}
                     {getAvailableFromTimes(pickupDay).map((t) => (
-                      <option key={t} value={t}>{t}</option>
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -679,23 +688,24 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             {pickupFrom && pickupUntil && (
               <p className="text-[11px] font-medium text-slate-600 tabular-nums">
                 {pickupDay === 'today' ? 'Today' : 'Tomorrow'},{' '}
-                {pickupFrom === 'now' ? `⚡ ${formatHHMM(new Date())}` : pickupFrom}
-                {' '}–{' '}
+                {pickupFrom === 'now' ? `⚡ ${formatHHMM(new Date())}` : pickupFrom} –{' '}
                 {pickupUntil === '00:00' ? '00:00 (midnight)' : pickupUntil}
               </p>
             )}
 
             {/* Today warning if chosen time is in the past — not shown for 'now' */}
-            {pickupDay === 'today' && pickupFrom !== 'now' && (() => {
-              const [h = 0, m = 0] = pickupFrom.split(':').map(Number);
-              const now = new Date();
-              return (h * 60 + m) <= (now.getHours() * 60 + now.getMinutes());
-            })() && (
-              <p className="flex items-center gap-1.5 text-[11px] text-amber-600">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                Start time has passed — choose a later time or switch to Tomorrow.
-              </p>
-            )}
+            {pickupDay === 'today' &&
+              pickupFrom !== 'now' &&
+              (() => {
+                const [h = 0, m = 0] = pickupFrom.split(':').map(Number);
+                const now = new Date();
+                return h * 60 + m <= now.getHours() * 60 + now.getMinutes();
+              })() && (
+                <p className="flex items-center gap-1.5 text-[11px] text-amber-600">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  Start time has passed — choose a later time or switch to Tomorrow.
+                </p>
+              )}
           </div>
 
           {/* Divider */}
@@ -711,11 +721,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             {imagePreview ? (
               <div className="relative rounded-lg overflow-hidden border border-slate-200">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={imagePreview}
-                  alt="Offer preview"
-                  className="w-full h-28 object-cover"
-                />
+                <img src={imagePreview} alt="Offer preview" className="w-full h-28 object-cover" />
                 <button
                   type="button"
                   onClick={removeImage}

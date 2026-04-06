@@ -6,9 +6,16 @@ export type ChartGranularity = 'day' | 'week' | 'month';
 
 /** All available time-window presets for the dashboard date filter. */
 export type DatePreset =
-  | '7d' | '14d' | '30d'       // daily granularity
-  | '4w' | '8w'  | '12w'       // weekly granularity
-  | '3m' | '6m'  | '9m' | '12m'; // monthly granularity
+  | '7d'
+  | '14d'
+  | '30d' // daily granularity
+  | '4w'
+  | '8w'
+  | '12w' // weekly granularity
+  | '3m'
+  | '6m'
+  | '9m'
+  | '12m'; // monthly granularity
 
 interface PresetConfig {
   /** Aggregation granularity sent to the backend. */
@@ -21,29 +28,29 @@ interface PresetConfig {
 
 /** Single source of truth for all preset metadata. */
 export const PRESET_CONFIG: Record<DatePreset, PresetConfig> = {
-  '7d':  { granularity: 'day',   value: 7,  label: '7D'  },
-  '14d': { granularity: 'day',   value: 14, label: '14D' },
-  '30d': { granularity: 'day',   value: 30, label: '30D' },
-  '4w':  { granularity: 'week',  value: 4,  label: '4W'  },
-  '8w':  { granularity: 'week',  value: 8,  label: '8W'  },
-  '12w': { granularity: 'week',  value: 12, label: '12W' },
-  '3m':  { granularity: 'month', value: 3,  label: '3M'  },
-  '6m':  { granularity: 'month', value: 6,  label: '6M'  },
-  '9m':  { granularity: 'month', value: 9,  label: '9M'  },
-  '12m': { granularity: 'month', value: 12, label: '1Y'  },
+  '7d': { granularity: 'day', value: 7, label: '7D' },
+  '14d': { granularity: 'day', value: 14, label: '14D' },
+  '30d': { granularity: 'day', value: 30, label: '30D' },
+  '4w': { granularity: 'week', value: 4, label: '4W' },
+  '8w': { granularity: 'week', value: 8, label: '8W' },
+  '12w': { granularity: 'week', value: 12, label: '12W' },
+  '3m': { granularity: 'month', value: 3, label: '3M' },
+  '6m': { granularity: 'month', value: 6, label: '6M' },
+  '9m': { granularity: 'month', value: 9, label: '9M' },
+  '12m': { granularity: 'month', value: 12, label: '1Y' },
 };
 
 /** Presets grouped by granularity — drives the two-level date-filter UI. */
 export const PRESETS_BY_GRANULARITY: Record<ChartGranularity, DatePreset[]> = {
-  day:   ['7d', '14d', '30d'],
-  week:  ['4w', '8w', '12w'],
+  day: ['7d', '14d', '30d'],
+  week: ['4w', '8w', '12w'],
   month: ['3m', '6m', '9m', '12m'],
 };
 
 /** Which preset to select automatically when the user switches granularity tabs. */
 export const GRANULARITY_DEFAULT_PRESET: Record<ChartGranularity, DatePreset> = {
-  day:   '14d',
-  week:  '8w',
+  day: '14d',
+  week: '8w',
   month: '9m',
 };
 
@@ -307,7 +314,7 @@ export interface CreatedOfferResponse {
 
 export interface SurpriseBagPickupSlot {
   startTime: string; // "18:00"
-  endTime: string;   // "19:00"
+  endTime: string; // "19:00"
 }
 
 export type OfferBagType = 'surprise_bag' | 'specific_items' | 'meal_deal';

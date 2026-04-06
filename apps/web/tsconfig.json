@@ -1,21 +1,9 @@
 {
-  "extends": "../../tsconfig.base.json",
+  // Next.js 15 web app — extends @foodwaste/tsconfig/nextjs preset.
+  // Only app-specific paths and includes live here.
+  "extends": "@foodwaste/tsconfig/nextjs",
   "compilerOptions": {
     "baseUrl": ".",
-    "target": "ES2020",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "module": "esnext",
-    "jsx": "preserve",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "incremental": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "allowImportingTsExtensions": false,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "noEmit": true,
     "paths": {
       "@foodwaste/shared": ["../../packages/shared/src"],
       "@foodwaste/shared/*": ["../../packages/shared/src/*"],
@@ -32,11 +20,7 @@
       "@/types/*": ["./src/types/*"],
       "@/utils/*": ["./src/utils/*"]
     },
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    "allowJs": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules", ".next", "out", "dist"]

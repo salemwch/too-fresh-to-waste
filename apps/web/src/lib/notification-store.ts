@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 
 export interface NewOrderNotification {
-  id: string;          // orderId — used as unique key
+  id: string; // orderId — used as unique key
   orderNumber: string;
   customerName: string;
   total: number;
-  createdAt: string;   // ISO string
+  createdAt: string; // ISO string
   read: boolean;
 }
 

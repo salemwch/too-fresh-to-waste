@@ -3,8 +3,6 @@
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 
-
-
 interface StepCard {
   id: number;
   icon: string;
@@ -54,9 +52,7 @@ export default function Section4() {
         </h2>
 
         {/* Description */}
-        <p className="text-[#f9f3f0]/70 text-base leading-normal mb-6">
-          {t('description')}
-        </p>
+        <p className="text-[#f9f3f0]/70 text-base leading-normal mb-6">{t('description')}</p>
 
         {/* Grid Layout */}
         <div className="steps-grid">
@@ -88,7 +84,7 @@ export default function Section4() {
 
         {/* Browser Support Warning */}
         <div className="no-support">
-          <h2>Your browser doesn't support the `shape()` function yet.</h2>
+          <h2>Your browser doesn&apos;t support the `shape()` function yet.</h2>
           To see the live examples, please switch to a supporting browser.
         </div>
       </div>

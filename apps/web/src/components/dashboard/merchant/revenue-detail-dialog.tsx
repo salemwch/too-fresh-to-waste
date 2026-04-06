@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@foodwaste/ui';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@foodwaste/ui';
 import { cn } from '@foodwaste/ui';
 import {
   DollarSign,
@@ -75,11 +69,18 @@ function DetailRow({ icon: Icon, iconClassName, label, value, highlight, border 
         <div className={cn('w-7 h-7 rounded-full flex items-center justify-center', iconClassName)}>
           <Icon className="w-3.5 h-3.5" />
         </div>
-        <span className={cn('text-sm', highlight ? 'font-semibold text-slate-900' : 'text-slate-600')}>
+        <span
+          className={cn('text-sm', highlight ? 'font-semibold text-slate-900' : 'text-slate-600')}
+        >
           {label}
         </span>
       </div>
-      <span className={cn('text-sm font-medium tabular-nums', highlight ? 'text-slate-900' : 'text-slate-700')}>
+      <span
+        className={cn(
+          'text-sm font-medium tabular-nums',
+          highlight ? 'text-slate-900' : 'text-slate-700',
+        )}
+      >
         {value}
       </span>
     </div>

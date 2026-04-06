@@ -1,0 +1,20 @@
+{
+  "name": "@foodwaste/tsconfig",
+  "version": "1.0.0",
+  "description": "Shared TypeScript configurations for the Food Waste monorepo",
+  "private": true,
+  "exports": {
+    "./base": "./base.json",
+    "./nestjs": "./nestjs.json",
+    "./nextjs": "./nextjs.json",
+    "./react-native": "./react-native.json",
+    "./library": "./library.json",
+    "./ui-library": "./ui-library.json"
+  },
+  "files": [
+    "*.json"
+  ],
+  "scripts": {
+    "clean": "echo nothing to clean"
+  }
+}

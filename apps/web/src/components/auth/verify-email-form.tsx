@@ -25,7 +25,9 @@ export function VerifyEmailForm() {
 
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -59,15 +61,11 @@ export function VerifyEmailForm() {
         </div>
         <CardTitle className="text-2xl">{t('checkInboxTitle')}</CardTitle>
         <CardDescription className="text-base leading-relaxed">
-          {email
-            ? t('checkInboxDescription', { email })
-            : t('checkInboxDescriptionGeneric')}
+          {email ? t('checkInboxDescription', { email }) : t('checkInboxDescriptionGeneric')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-center text-muted-foreground">
-          {t('checkSpamHint')}
-        </p>
+        <p className="text-sm text-center text-muted-foreground">{t('checkSpamHint')}</p>
       </CardContent>
       <CardFooter className="flex flex-col gap-3">
         {email && (
@@ -78,9 +76,7 @@ export function VerifyEmailForm() {
             disabled={isResending || cooldown > 0}
           >
             {isResending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {cooldown > 0
-              ? t('resendCooldown', { seconds: cooldown })
-              : t('resendEmail')}
+            {cooldown > 0 ? t('resendCooldown', { seconds: cooldown }) : t('resendEmail')}
           </Button>
         )}
         {feedback && (

@@ -29,7 +29,7 @@ export function useAuth() {
         store.setLoading(false);
       }
     },
-    [store]
+    [store],
   );
 
   const register = useCallback(
@@ -44,7 +44,7 @@ export function useAuth() {
         store.setLoading(false);
       }
     },
-    [store]
+    [store],
   );
 
   const logout = useCallback(async () => {

@@ -1,4 +1,6 @@
-import { OrderStatus, PaymentStatus } from '../enums/order.enum';
+import { OrderStatus } from '../enums/order.enum';
+
+import type { PaymentStatus } from '../enums/order.enum';
 
 /**
  * Order item representing a single offer in the order

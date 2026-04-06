@@ -1,4 +1,8 @@
-import { EstablishmentType, EstablishmentStatus, DocumentType } from '../enums/establishment.enum';
+import type {
+  EstablishmentType,
+  EstablishmentStatus,
+  DocumentType,
+} from '../enums/establishment.enum';
 
 /**
  * Address shape returned when an establishment is populated within

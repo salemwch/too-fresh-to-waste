@@ -6,6 +6,7 @@
  * @module shared/schemas/inventory
  */
 import { z } from 'zod';
+
 import { InventoryStatus, StockUpdateReason } from '../enums';
 
 // ============================================================================

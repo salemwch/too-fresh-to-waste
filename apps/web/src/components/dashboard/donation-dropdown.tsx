@@ -61,16 +61,11 @@ export function DonationDropdown() {
         aria-expanded={open}
         className={cn(
           'w-7 h-7 rounded-full flex items-center justify-center transition-all',
-          open
-            ? 'bg-rose-100 ring-2 ring-rose-300'
-            : 'bg-rose-50 hover:bg-rose-100',
+          open ? 'bg-rose-100 ring-2 ring-rose-300' : 'bg-rose-50 hover:bg-rose-100',
         )}
       >
         <Heart
-          className={cn(
-            'w-3.5 h-3.5 transition-colors',
-            open ? 'text-rose-600' : 'text-rose-500',
-          )}
+          className={cn('w-3.5 h-3.5 transition-colors', open ? 'text-rose-600' : 'text-rose-500')}
           fill={open ? 'currentColor' : 'none'}
         />
       </button>
@@ -101,12 +96,8 @@ export function DonationDropdown() {
                   <Heart className="w-4 h-4 text-rose-500" fill="currentColor" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900">
-                    Donation Pool
-                  </h3>
-                  <p className="text-[11px] text-slate-400">
-                    Your orders change lives
-                  </p>
+                  <h3 className="text-sm font-semibold text-slate-900">Donation Pool</h3>
+                  <p className="text-[11px] text-slate-400">Your orders change lives</p>
                 </div>
               </div>
 
@@ -118,9 +109,7 @@ export function DonationDropdown() {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
-                    <span className="text-xs font-medium text-slate-400 ml-1">
-                      {currency}
-                    </span>
+                    <span className="text-xs font-medium text-slate-400 ml-1">{currency}</span>
                   </span>
                   <span className="text-xs font-semibold text-rose-500">
                     {stats.progressPercentage.toFixed(0)}%

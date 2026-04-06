@@ -2,8 +2,14 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
-  Plus, Search, X, ChevronLeft, ChevronRight,
-  AlertTriangle, Package, RefreshCw,
+  Plus,
+  Search,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  AlertTriangle,
+  Package,
+  RefreshCw,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@foodwaste/ui';
@@ -24,28 +30,28 @@ import type { ReactivateOfferPayload, MerchantOffer } from '@/types/dashboard';
 const PAGE_SIZE = 10;
 
 const TAB_KEYS = ['all', 'active', 'draft', 'sold_out', 'expired', 'cancelled'] as const;
-type TabKey = typeof TAB_KEYS[number];
+type TabKey = (typeof TAB_KEYS)[number];
 
 const TAB_I18N_MAP: Record<TabKey, string> = {
-  all:       'tabAll',
-  active:    'tabActive',
-  draft:     'tabDraft',
-  sold_out:  'tabSoldOut',
-  expired:   'tabExpired',
+  all: 'tabAll',
+  active: 'tabActive',
+  draft: 'tabDraft',
+  sold_out: 'tabSoldOut',
+  expired: 'tabExpired',
   cancelled: 'tabCancelled',
 };
 
 const TYPE_FILTER_KEYS = [
-  { value: '',               i18nKey: 'allTypes'     },
-  { value: 'surprise_bag',   i18nKey: 'surpriseBag'  },
-  { value: 'specific_items', i18nKey: 'specificItem'  },
-  { value: 'meal_deal',      i18nKey: 'mealDeal'     },
+  { value: '', i18nKey: 'allTypes' },
+  { value: 'surprise_bag', i18nKey: 'surpriseBag' },
+  { value: 'specific_items', i18nKey: 'specificItem' },
+  { value: 'meal_deal', i18nKey: 'mealDeal' },
 ] as const;
 
 const SORT_KEYS = [
-  { value: 'newest',     i18nKey: 'newest'    },
-  { value: 'oldest',     i18nKey: 'oldest'    },
-  { value: 'price_asc',  i18nKey: 'priceAsc'  },
+  { value: 'newest', i18nKey: 'newest' },
+  { value: 'oldest', i18nKey: 'oldest' },
+  { value: 'price_asc', i18nKey: 'priceAsc' },
   { value: 'price_desc', i18nKey: 'priceDesc' },
 ] as const;
 
@@ -60,16 +66,16 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
 const UNTIL_OPTIONS = [...TIME_OPTIONS.slice(1), '00:00'];
 
 const PRESET_KEYS = [
-  { i18nKey: 'presetLunch',  from: '12:00', until: '14:00' },
+  { i18nKey: 'presetLunch', from: '12:00', until: '14:00' },
   { i18nKey: 'presetDinner', from: '18:00', until: '21:00' },
   { i18nKey: 'presetAllDay', from: '08:00', until: '22:00' },
 ] as const;
 
 function getAvailableFromTimes(day: 'today' | 'tomorrow'): string[] {
   if (day === 'tomorrow') return TIME_OPTIONS;
-  const now       = new Date();
-  const bufferMs  = 30 * 60 * 1000;
-  const nowMs     = (now.getHours() * 60 + now.getMinutes()) * 60 * 1000;
+  const now = new Date();
+  const bufferMs = 30 * 60 * 1000;
+  const nowMs = (now.getHours() * 60 + now.getMinutes()) * 60 * 1000;
   return TIME_OPTIONS.filter((t) => {
     const [h, m] = t.split(':').map(Number);
     return ((h ?? 0) * 60 + (m ?? 0)) * 60 * 1000 > nowMs + bufferMs;
@@ -145,10 +151,10 @@ interface ReactivateModalProps {
 }
 
 function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: ReactivateModalProps) {
-  const [day,         setDay]   = useState<'today' | 'tomorrow'>('tomorrow');
-  const [pickupFrom,  setFrom]  = useState('12:00');
+  const [day, setDay] = useState<'today' | 'tomorrow'>('tomorrow');
+  const [pickupFrom, setFrom] = useState('12:00');
   const [pickupUntil, setUntil] = useState('14:00');
-  const [quantity,    setQty]   = useState(offer.totalQuantity ?? 5);
+  const [quantity, setQty] = useState(offer.totalQuantity ?? 5);
 
   const fromOptions = useMemo(() => getAvailableFromTimes(day), [day]);
 
@@ -166,26 +172,25 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [day]);
 
-  function applyPreset(preset: typeof PRESET_KEYS[number]) {
+  function applyPreset(preset: (typeof PRESET_KEYS)[number]) {
     const available = getAvailableFromTimes(day);
     setFrom(available.includes(preset.from) ? preset.from : (available[0] ?? preset.from));
     setUntil(preset.until);
   }
 
   function handleConfirm() {
-    const overflow     = pickupUntil === '00:00';
-    const nowSnap      = new Date();
-    const pad          = (n: number) => String(n).padStart(2, '0');
-    const resolvedFrom = pickupFrom === 'now'
-      ? `${pad(nowSnap.getHours())}:${pad(nowSnap.getMinutes())}`
-      : pickupFrom;
+    const overflow = pickupUntil === '00:00';
+    const nowSnap = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const resolvedFrom =
+      pickupFrom === 'now' ? `${pad(nowSnap.getHours())}:${pad(nowSnap.getMinutes())}` : pickupFrom;
     onConfirm({
-      availableFrom:    pickupFrom === 'now' ? nowSnap.toISOString() : toISO(day, pickupFrom),
-      availableUntil:   toISO(day, pickupUntil, overflow),
-      pickupTimeSlots:  [{ startTime: resolvedFrom, endTime: pickupUntil }],
-      totalQuantity:    quantity,
-      timezone:         Intl.DateTimeFormat().resolvedOptions().timeZone,
-      isPickupToday:    day === 'today',
+      availableFrom: pickupFrom === 'now' ? nowSnap.toISOString() : toISO(day, pickupFrom),
+      availableUntil: toISO(day, pickupUntil, overflow),
+      pickupTimeSlots: [{ startTime: resolvedFrom, endTime: pickupUntil }],
+      totalQuantity: quantity,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      isPickupToday: day === 'today',
       isPickupTomorrow: day === 'tomorrow',
     });
   }
@@ -204,7 +209,9 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <div>
-            <p className="text-sm font-bold text-slate-900">{t('merchantOffers.reactivateTitle')}</p>
+            <p className="text-sm font-bold text-slate-900">
+              {t('merchantOffers.reactivateTitle')}
+            </p>
             <p className="text-xs text-slate-500 mt-0.5 truncate max-w-[220px]">{offer.title}</p>
           </div>
           <button
@@ -217,7 +224,6 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
         </div>
 
         <div className="px-5 py-4 space-y-4">
-
           {/* Day toggle */}
           <div>
             <p className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-2">
@@ -254,7 +260,9 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
             </p>
             <div className="flex gap-2">
               {PRESET_KEYS.map((p) => {
-                const resolvedFrom = fromOptions.includes(p.from) ? p.from : (fromOptions[0] ?? p.from);
+                const resolvedFrom = fromOptions.includes(p.from)
+                  ? p.from
+                  : (fromOptions[0] ?? p.from);
                 const isActive = pickupFrom === resolvedFrom && pickupUntil === p.until;
                 return (
                   <button
@@ -268,8 +276,15 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/30',
                     )}
                   >
-                    <span className="text-[11px] font-semibold leading-none">{t(`merchantOffers.${p.i18nKey}`)}</span>
-                    <span className={cn('text-[10px] mt-0.5 tabular-nums', isActive ? 'text-primary/70' : 'text-slate-400')}>
+                    <span className="text-[11px] font-semibold leading-none">
+                      {t(`merchantOffers.${p.i18nKey}`)}
+                    </span>
+                    <span
+                      className={cn(
+                        'text-[10px] mt-0.5 tabular-nums',
+                        isActive ? 'text-primary/70' : 'text-slate-400',
+                      )}
+                    >
                       {p.from}–{p.until}
                     </span>
                   </button>
@@ -281,22 +296,26 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
           {/* From / Until selects — always visible */}
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="text-[10px] font-semibold text-slate-500 block mb-1">{t('merchantOffers.from')}</label>
+              <label className="text-[10px] font-semibold text-slate-500 block mb-1">
+                {t('merchantOffers.from')}
+              </label>
               <select
                 value={pickupFrom}
                 onChange={(e) => setFrom(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30"
               >
-                {day === 'today' && (
-                  <option value="now">{t('merchantOffers.rightNow')}</option>
-                )}
+                {day === 'today' && <option value="now">{t('merchantOffers.rightNow')}</option>}
                 {fromOptions.map((tm) => (
-                  <option key={tm} value={tm}>{tm}</option>
+                  <option key={tm} value={tm}>
+                    {tm}
+                  </option>
                 ))}
               </select>
             </div>
             <div className="flex-1">
-              <label className="text-[10px] font-semibold text-slate-500 block mb-1">{t('merchantOffers.until')}</label>
+              <label className="text-[10px] font-semibold text-slate-500 block mb-1">
+                {t('merchantOffers.until')}
+              </label>
               <select
                 value={pickupUntil}
                 onChange={(e) => setUntil(e.target.value)}
@@ -313,7 +332,9 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
 
           {/* Live summary */}
           <p className="text-[11px] font-medium text-slate-600 tabular-nums">
-            {day === 'today' ? t('merchantOffers.today') : t('merchantOffers.tomorrow')} · {pickupFrom === 'now' ? t('merchantOffers.rightNow') : pickupFrom} – {pickupUntil === '00:00' ? t('merchantOffers.midnight') : pickupUntil}
+            {day === 'today' ? t('merchantOffers.today') : t('merchantOffers.tomorrow')} ·{' '}
+            {pickupFrom === 'now' ? t('merchantOffers.rightNow') : pickupFrom} –{' '}
+            {pickupUntil === '00:00' ? t('merchantOffers.midnight') : pickupUntil}
           </p>
 
           {/* Quantity */}
@@ -378,42 +399,42 @@ export function MerchantOffersView() {
   const t = useTranslations('dashboard');
 
   // ── UI state ────────────────────────────────────────────────────────────────
-  const [panelOpen,        setPanelOpen]        = useState(false);
-  const [activeTab,        setActiveTab]        = useState<TabKey>('all');
-  const [search,           setSearch]           = useState('');
-  const [typeFilter,       setTypeFilter]       = useState('');
-  const [sort,             setSort]             = useState('newest');
-  const [page,             setPage]             = useState(1);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabKey>('all');
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [sort, setSort] = useState('newest');
+  const [page, setPage] = useState(1);
   const [reactivateTarget, setReactivateTarget] = useState<MerchantOffer | null>(null);
 
   // ── Status counts (lightweight — limit=1, reads meta.total) ────────────────
-  const activeCount    = (useOfferStatusCount('active').data    ?? 0);
-  const draftCount     = (useOfferStatusCount('draft').data     ?? 0);
-  const soldOutCount   = (useOfferStatusCount('sold_out').data  ?? 0);
-  const expiredCount   = (useOfferStatusCount('expired').data   ?? 0);
-  const cancelledCount = (useOfferStatusCount('cancelled').data ?? 0);
-  const totalCount     = activeCount + draftCount + soldOutCount + expiredCount + cancelledCount;
+  const activeCount = useOfferStatusCount('active').data ?? 0;
+  const draftCount = useOfferStatusCount('draft').data ?? 0;
+  const soldOutCount = useOfferStatusCount('sold_out').data ?? 0;
+  const expiredCount = useOfferStatusCount('expired').data ?? 0;
+  const cancelledCount = useOfferStatusCount('cancelled').data ?? 0;
+  const totalCount = activeCount + draftCount + soldOutCount + expiredCount + cancelledCount;
 
   const TAB_COUNTS: Record<TabKey, number> = {
-    all:       totalCount,
-    active:    activeCount,
-    draft:     draftCount,
-    sold_out:  soldOutCount,
-    expired:   expiredCount,
+    all: totalCount,
+    active: activeCount,
+    draft: draftCount,
+    sold_out: soldOutCount,
+    expired: expiredCount,
     cancelled: cancelledCount,
   };
 
   // ── Data ────────────────────────────────────────────────────────────────────
   const statusParam = activeTab === 'all' ? undefined : activeTab;
   const offersQuery = useMerchantOffersFiltered(page, PAGE_SIZE, statusParam);
-  const estabQuery  = useMyEstablishment();
+  const estabQuery = useMyEstablishment();
   const isEstablishmentApproved = estabQuery.data?.status === 'active';
 
   // ── Mutations ───────────────────────────────────────────────────────────────
   const updateStatus = useUpdateOfferStatus();
-  const deleteOffer  = useDeleteOffer();
-  const reactivate   = useReactivateOffer();
-  const anyPending   = updateStatus.isPending || deleteOffer.isPending || reactivate.isPending;
+  const deleteOffer = useDeleteOffer();
+  const reactivate = useReactivateOffer();
+  const anyPending = updateStatus.isPending || deleteOffer.isPending || reactivate.isPending;
 
   // ── Client-side filter + sort (applied on top of the server-paginated list) ─
   const displayedOffers = useMemo(() => {
@@ -447,7 +468,7 @@ export function MerchantOffersView() {
     return list;
   }, [offersQuery.data?.offers, search, typeFilter, sort]);
 
-  const meta       = offersQuery.data?.meta;
+  const meta = offersQuery.data?.meta;
   const hasFilters = !!search || !!typeFilter;
 
   const handleClearFilters = useCallback(() => {
@@ -483,11 +504,12 @@ export function MerchantOffersView() {
       )}
 
       <div className="space-y-5">
-
         {/* ── Page header ──────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-slate-900">{t('merchantOffers.title')}</h1>
+            <h1 className="text-lg font-bold tracking-tight text-slate-900">
+              {t('merchantOffers.title')}
+            </h1>
             <p className="text-sm text-slate-500 mt-0.5">{t('merchantOffers.description')}</p>
           </div>
           <button
@@ -505,21 +527,41 @@ export function MerchantOffersView() {
           <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
             <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-semibold text-amber-800">{t('merchantOffers.approvalTitle')}</p>
-              <p className="text-xs text-amber-700 mt-0.5">
-                {t('merchantOffers.approvalMessage')}
+              <p className="text-sm font-semibold text-amber-800">
+                {t('merchantOffers.approvalTitle')}
               </p>
+              <p className="text-xs text-amber-700 mt-0.5">{t('merchantOffers.approvalMessage')}</p>
             </div>
           </div>
         )}
 
         {/* ── Stats chips ───────────────────────────────────────────────────── */}
         <div className="flex gap-3 flex-wrap">
-          <StatChip label={t('merchantOffers.tabActive')}    count={activeCount}    color="border-emerald-200 bg-emerald-50  text-emerald-700" />
-          <StatChip label={t('merchantOffers.tabDraft')}     count={draftCount}     color="border-slate-200   bg-slate-50   text-slate-600"   />
-          <StatChip label={t('merchantOffers.tabSoldOut')}   count={soldOutCount}   color="border-red-200     bg-red-50     text-red-600"     />
-          <StatChip label={t('merchantOffers.tabExpired')}   count={expiredCount}   color="border-amber-200   bg-amber-50   text-amber-700"  />
-          <StatChip label={t('merchantOffers.tabCancelled')} count={cancelledCount} color="border-slate-200   bg-white      text-slate-500"  />
+          <StatChip
+            label={t('merchantOffers.tabActive')}
+            count={activeCount}
+            color="border-emerald-200 bg-emerald-50  text-emerald-700"
+          />
+          <StatChip
+            label={t('merchantOffers.tabDraft')}
+            count={draftCount}
+            color="border-slate-200   bg-slate-50   text-slate-600"
+          />
+          <StatChip
+            label={t('merchantOffers.tabSoldOut')}
+            count={soldOutCount}
+            color="border-red-200     bg-red-50     text-red-600"
+          />
+          <StatChip
+            label={t('merchantOffers.tabExpired')}
+            count={expiredCount}
+            color="border-amber-200   bg-amber-50   text-amber-700"
+          />
+          <StatChip
+            label={t('merchantOffers.tabCancelled')}
+            count={cancelledCount}
+            color="border-slate-200   bg-white      text-slate-500"
+          />
         </div>
 
         {/* ── Status filter tabs ────────────────────────────────────────────── */}
@@ -557,7 +599,10 @@ export function MerchantOffersView() {
               type="text"
               placeholder={t('merchantOffers.searchPlaceholder')}
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               className="w-full h-9 rounded-xl border border-slate-200 bg-white pl-8 pr-8 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50"
             />
             {search && (
@@ -573,11 +618,16 @@ export function MerchantOffersView() {
 
           <select
             value={typeFilter}
-            onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setTypeFilter(e.target.value);
+              setPage(1);
+            }}
             className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/30"
           >
             {TYPE_FILTER_KEYS.map((o) => (
-              <option key={o.value} value={o.value}>{t(`merchantOffers.${o.i18nKey}`)}</option>
+              <option key={o.value} value={o.value}>
+                {t(`merchantOffers.${o.i18nKey}`)}
+              </option>
             ))}
           </select>
 
@@ -587,7 +637,9 @@ export function MerchantOffersView() {
             className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/30"
           >
             {SORT_KEYS.map((o) => (
-              <option key={o.value} value={o.value}>{t(`merchantOffers.${o.i18nKey}`)}</option>
+              <option key={o.value} value={o.value}>
+                {t(`merchantOffers.${o.i18nKey}`)}
+              </option>
             ))}
           </select>
 
@@ -618,12 +670,8 @@ export function MerchantOffersView() {
                 offer={offer}
                 isEstablishmentApproved={isEstablishmentApproved}
                 isPending={anyPending}
-                onPublish={() =>
-                  updateStatus.mutate({ offerId: offer.id, status: 'active' })
-                }
-                onMarkSoldOut={() =>
-                  updateStatus.mutate({ offerId: offer.id, status: 'sold_out' })
-                }
+                onPublish={() => updateStatus.mutate({ offerId: offer.id, status: 'active' })}
+                onMarkSoldOut={() => updateStatus.mutate({ offerId: offer.id, status: 'sold_out' })}
                 onCancelOffer={() =>
                   updateStatus.mutate({ offerId: offer.id, status: 'cancelled' })
                 }

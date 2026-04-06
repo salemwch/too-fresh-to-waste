@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { formatCurrency } from '@foodwaste/shared';
 import {
   Search,
   Package,
@@ -18,14 +19,15 @@ import {
   ChevronRight,
   Wifi,
 } from 'lucide-react';
-import { useMerchantOrders, useOrderDetail, useCancelOrder, HISTORY_STATUSES } from '@/hooks/use-merchant-dashboard';
+import {
+  useMerchantOrders,
+  useOrderDetail,
+  useCancelOrder,
+  HISTORY_STATUSES,
+} from '@/hooks/use-merchant-dashboard';
 import type { MerchantOrder, OrderStatus, PopulatedUser } from '@/types/dashboard';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function formatCurrency(amount: number, currency = 'EUR') {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency }).format(amount);
-}
 
 function formatRelativeTime(isoDate: string): string {
   const diff = Date.now() - new Date(isoDate).getTime();
@@ -60,14 +62,54 @@ const STATUS_META: Record<
   OrderStatus,
   { label: string; bg: string; text: string; icon: React.ReactNode }
 > = {
-  pending:          { label: 'Pending',          bg: 'bg-amber-100',  text: 'text-amber-700',  icon: <Clock className="h-3 w-3" /> },
-  reserved:         { label: 'Reserved',          bg: 'bg-amber-100',  text: 'text-amber-700',  icon: <Clock className="h-3 w-3" /> },
-  confirmed:        { label: 'Confirmed',         bg: 'bg-blue-100',   text: 'text-blue-700',   icon: <CheckCircle2 className="h-3 w-3" /> },
-  ready_for_pickup: { label: 'Ready',             bg: 'bg-purple-100', text: 'text-purple-700', icon: <Package className="h-3 w-3" /> },
-  picked_up:        { label: 'Picked Up',         bg: 'bg-green-100',  text: 'text-green-700',  icon: <CheckCircle2 className="h-3 w-3" /> },
-  cancelled:        { label: 'Cancelled',         bg: 'bg-red-100',    text: 'text-red-700',    icon: <XCircle className="h-3 w-3" /> },
-  expired:          { label: 'Expired',           bg: 'bg-zinc-100',   text: 'text-zinc-500',   icon: <AlertCircle className="h-3 w-3" /> },
-  refunded:         { label: 'Refunded',          bg: 'bg-orange-100', text: 'text-orange-700', icon: <AlertCircle className="h-3 w-3" /> },
+  pending: {
+    label: 'Pending',
+    bg: 'bg-amber-100',
+    text: 'text-amber-700',
+    icon: <Clock className="h-3 w-3" />,
+  },
+  reserved: {
+    label: 'Reserved',
+    bg: 'bg-amber-100',
+    text: 'text-amber-700',
+    icon: <Clock className="h-3 w-3" />,
+  },
+  confirmed: {
+    label: 'Confirmed',
+    bg: 'bg-blue-100',
+    text: 'text-blue-700',
+    icon: <CheckCircle2 className="h-3 w-3" />,
+  },
+  ready_for_pickup: {
+    label: 'Ready',
+    bg: 'bg-purple-100',
+    text: 'text-purple-700',
+    icon: <Package className="h-3 w-3" />,
+  },
+  picked_up: {
+    label: 'Picked Up',
+    bg: 'bg-green-100',
+    text: 'text-green-700',
+    icon: <CheckCircle2 className="h-3 w-3" />,
+  },
+  cancelled: {
+    label: 'Cancelled',
+    bg: 'bg-red-100',
+    text: 'text-red-700',
+    icon: <XCircle className="h-3 w-3" />,
+  },
+  expired: {
+    label: 'Expired',
+    bg: 'bg-zinc-100',
+    text: 'text-zinc-500',
+    icon: <AlertCircle className="h-3 w-3" />,
+  },
+  refunded: {
+    label: 'Refunded',
+    bg: 'bg-orange-100',
+    text: 'text-orange-700',
+    icon: <AlertCircle className="h-3 w-3" />,
+  },
 };
 
 function StatusBadge({ status }: { status: OrderStatus }) {
@@ -117,8 +159,12 @@ function OrderListCard({ order, isSelected, onClick }: OrderCardProps) {
           </p>
         </div>
         <div className="flex flex-col items-end shrink-0 gap-0.5">
-          <span className="text-xs font-bold text-foreground">{formatCurrency(total, currency)}</span>
-          <span className="text-[10px] text-muted-foreground">{formatRelativeTime(order.createdAt)}</span>
+          <span className="text-xs font-bold text-foreground">
+            {formatCurrency(total, currency)}
+          </span>
+          <span className="text-[10px] text-muted-foreground">
+            {formatRelativeTime(order.createdAt)}
+          </span>
         </div>
       </div>
 
@@ -132,13 +178,7 @@ function OrderListCard({ order, isSelected, onClick }: OrderCardProps) {
 
 // ─── Pickup code display ──────────────────────────────────────────────────────
 
-function PickupCodeBlock({
-  code,
-  status,
-}: {
-  code: string | undefined;
-  status: OrderStatus;
-}) {
+function PickupCodeBlock({ code, status }: { code: string | undefined; status: OrderStatus }) {
   const digits = (code ?? '------').split('');
 
   return (
@@ -295,9 +335,7 @@ function OrderDetailPanel({ orderId }: OrderDetailPanelProps) {
       <div className="px-6 py-4 border-b border-border/60 shrink-0">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-base font-bold text-foreground">
-              Order #{order.orderNumber}
-            </h2>
+            <h2 className="text-base font-bold text-foreground">Order #{order.orderNumber}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               {formatRelativeTime(order.createdAt)}
             </p>
@@ -320,18 +358,15 @@ function OrderDetailPanel({ orderId }: OrderDetailPanelProps) {
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto p-6 space-y-5">
         {/* Pickup code — only for active orders */}
-        {isActive && (
-          <PickupCodeBlock
-            code={pickupCode}
-            status={order.status}
-          />
-        )}
+        {isActive && <PickupCodeBlock code={pickupCode} status={order.status} />}
 
         {/* Picked-up confirmation banner */}
         {order.status === 'picked_up' && (
           <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
             <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
-            <span className="text-xs font-semibold text-green-700">Order picked up successfully</span>
+            <span className="text-xs font-semibold text-green-700">
+              Order picked up successfully
+            </span>
           </div>
         )}
 
@@ -388,14 +423,20 @@ function OrderDetailPanel({ orderId }: OrderDetailPanelProps) {
           </h3>
           <div className="rounded-xl border border-border bg-card p-3 space-y-1.5">
             {[
-              { label: 'Subtotal',    value: order.pricing?.subtotal },
-              { label: 'Discount',    value: order.pricing?.discountAmount ? -order.pricing.discountAmount : null },
-              { label: 'Tax',         value: order.pricing?.taxAmount },
+              { label: 'Subtotal', value: order.pricing?.subtotal },
+              {
+                label: 'Discount',
+                value: order.pricing?.discountAmount ? -order.pricing.discountAmount : null,
+              },
+              { label: 'Tax', value: order.pricing?.taxAmount },
               { label: 'Service Fee', value: order.pricing?.serviceFee },
             ]
               .filter((r) => r.value != null && r.value !== 0)
               .map((row) => (
-                <div key={row.label} className="flex items-center justify-between text-xs text-muted-foreground">
+                <div
+                  key={row.label}
+                  className="flex items-center justify-between text-xs text-muted-foreground"
+                >
                   <span>{row.label}</span>
                   <span className={row.value! < 0 ? 'text-green-600' : ''}>
                     {formatCurrency(row.value!, currency)}
@@ -461,7 +502,7 @@ export default function MerchantOrdersPage() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const { data, isLoading } = useMerchantOrders();
-  const allOrders = data?.orders ?? [];
+  const allOrders = useMemo(() => data?.orders ?? [], [data]);
 
   const { activeOrders, historyOrders } = useMemo(() => {
     const active: MerchantOrder[] = [];

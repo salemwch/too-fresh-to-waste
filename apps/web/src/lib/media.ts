@@ -18,8 +18,8 @@ let _apiPort = '3000';
 let _apiProtocol = 'http:';
 try {
   const parsed = new URL(API_BASE);
-  _apiHost     = parsed.hostname;
-  _apiPort     = parsed.port;
+  _apiHost = parsed.hostname;
+  _apiPort = parsed.port;
   _apiProtocol = parsed.protocol;
 } catch {
   // ignore — defaults above are fine for local dev
@@ -37,8 +37,8 @@ function resolveMediaUrl(url?: string | null): string | undefined {
     // Rewrite emulator-only hostnames to the real API host
     if (EMULATOR_HOSTS.has(parsed.hostname)) {
       parsed.protocol = _apiProtocol;
-      parsed.hostname  = _apiHost;
-      parsed.port      = _apiPort;
+      parsed.hostname = _apiHost;
+      parsed.port = _apiPort;
       return parsed.toString();
     }
 

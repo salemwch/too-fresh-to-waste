@@ -42,7 +42,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }
       applyTheme(newTheme);
     },
-    [applyTheme]
+    [applyTheme],
   );
 
   // Initialize theme from storage on mount

@@ -167,12 +167,10 @@ export function BusinessSearchAutocomplete({
         const availabilityRes = await geolocationService.checkPlaceAvailability(
           suggestion.googlePlaceId,
         );
-        const availability = (availabilityRes.data as any)?.data ?? availabilityRes.data;
+        const availability = availabilityRes.data.data;
 
         if (!availability?.available) {
-          setPlaceConflict(
-            availability?.message ?? t('placeAlreadyRegistered'),
-          );
+          setPlaceConflict(availability?.message ?? t('placeAlreadyRegistered'));
           return;
         }
         // 3. Merge: name + types from autocomplete (free), coords + address from details (Essentials SKU)
@@ -220,9 +218,7 @@ export function BusinessSearchAutocomplete({
               <MapPin className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">
-                {selectedBusiness.name}
-              </p>
+              <p className="text-sm font-semibold text-foreground">{selectedBusiness.name}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {selectedBusiness.formattedAddress}
               </p>
@@ -258,7 +254,7 @@ export function BusinessSearchAutocomplete({
         />
         {/* Right icon: spinner when loading, X to clear when idle with text */}
         <div className="absolute right-3.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center">
-          {(isLoading || isSelectingDetails) ? (
+          {isLoading || isSelectingDetails ? (
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           ) : query.length > 0 ? (
             <button
@@ -299,9 +295,7 @@ export function BusinessSearchAutocomplete({
               {t('searchError')}
             </div>
           ) : suggestions.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-muted-foreground">
-              {t('searchNoResults')}
-            </div>
+            <div className="px-4 py-3 text-sm text-muted-foreground">{t('searchNoResults')}</div>
           ) : (
             <ul className="max-h-64 overflow-y-auto">
               {suggestions.map((suggestion) => (
@@ -316,9 +310,7 @@ export function BusinessSearchAutocomplete({
                       <p className="truncate text-sm font-medium text-foreground">
                         {suggestion.name}
                       </p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {suggestion.subtext}
-                      </p>
+                      <p className="truncate text-xs text-muted-foreground">{suggestion.subtext}</p>
                     </div>
                   </button>
                 </li>

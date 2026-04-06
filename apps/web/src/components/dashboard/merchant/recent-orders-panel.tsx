@@ -3,7 +3,16 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Clock, PackageOpen } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, Avatar, AvatarFallback, AvatarImage, Badge } from '@foodwaste/ui';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Badge,
+} from '@foodwaste/ui';
 import { cn } from '@foodwaste/ui';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -34,11 +43,11 @@ interface RecentOrdersPanelProps {
 
 // ─── Status colors ──────────────────────────────────────────────────────────
 const STATUS_STYLES: Record<OrderStatus, { bg: string; text: string }> = {
-  pending:   { bg: 'bg-amber-50',   text: 'text-amber-700' },
+  pending: { bg: 'bg-amber-50', text: 'text-amber-700' },
   confirmed: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
-  picked_up: { bg: 'bg-blue-50',    text: 'text-blue-700' },
-  expired:   { bg: 'bg-slate-100',  text: 'text-slate-500' },
-  cancelled: { bg: 'bg-red-50',     text: 'text-red-600' },
+  picked_up: { bg: 'bg-blue-50', text: 'text-blue-700' },
+  expired: { bg: 'bg-slate-100', text: 'text-slate-500' },
+  cancelled: { bg: 'bg-red-50', text: 'text-red-600' },
 };
 
 // ─── Live clock helper ───────────────────────────────────────────────────────
@@ -72,9 +81,7 @@ export function RecentOrdersPanel({
     <Card className="flex h-full flex-col rounded-xl border border-slate-100 bg-white shadow-sm">
       <CardHeader className="px-4 py-3 pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-slate-900">
-            {title}
-          </CardTitle>
+          <CardTitle className="text-sm font-semibold text-slate-900">{title}</CardTitle>
           {viewAllHref && (
             <Link
               href={viewAllHref}

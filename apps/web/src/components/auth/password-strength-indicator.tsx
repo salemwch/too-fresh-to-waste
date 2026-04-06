@@ -46,14 +46,12 @@ export function PasswordStrengthIndicator({ password }: PasswordStrengthIndicato
             key={i}
             className={cn(
               'h-1.5 flex-1 rounded-full transition-colors',
-              i < score ? strengthColors[score] : 'bg-muted'
+              i < score ? strengthColors[score] : 'bg-muted',
             )}
           />
         ))}
       </div>
-      <p className="text-xs text-muted-foreground">
-        {t(`passwordStrength.${strengthKey}`)}
-      </p>
+      <p className="text-xs text-muted-foreground">{t(`passwordStrength.${strengthKey}`)}</p>
     </div>
   );
 }

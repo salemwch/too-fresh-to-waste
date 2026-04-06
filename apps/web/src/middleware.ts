@@ -58,7 +58,7 @@ export default async function middleware(request: NextRequest) {
 
   // Check if pathname already has a locale prefix
   const pathnameHasLocale = routing.locales.some(
-    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
   );
 
   // If no locale in pathname, check cookie for user preference
@@ -74,9 +74,7 @@ export default async function middleware(request: NextRequest) {
   }
 
   // Strip locale prefix for route matching
-  const pathWithoutLocale = pathnameHasLocale
-    ? pathname.replace(/^\/[a-z]{2}/, '')
-    : pathname;
+  const pathWithoutLocale = pathnameHasLocale ? pathname.replace(/^\/[a-z]{2}/, '') : pathname;
 
   // ── Verify JWT from HttpOnly cookie (server-side, jose) ──────────────────
   // This replaces the insecure wfa_authenticated flag cookie with real JWT
@@ -89,9 +87,7 @@ export default async function middleware(request: NextRequest) {
   // Auto-redirect authenticated users from public root to their dashboard.
   const isRootPath = pathWithoutLocale === '/' || pathWithoutLocale === '';
   if (isRootPath && isAuthenticated && role) {
-    const locale = pathnameHasLocale
-      ? pathname.split('/')[1] ?? defaultLocale
-      : defaultLocale;
+    const locale = pathnameHasLocale ? (pathname.split('/')[1] ?? defaultLocale) : defaultLocale;
     if (role === 'merchant') {
       return NextResponse.redirect(new URL(`/${locale}/merchant/dashboard`, request.url));
     }
@@ -101,11 +97,10 @@ export default async function middleware(request: NextRequest) {
   }
 
   // Redirect authenticated users away from login/register pages
-  const isAuthPage = pathWithoutLocale.startsWith('/login') || pathWithoutLocale.startsWith('/register');
+  const isAuthPage =
+    pathWithoutLocale.startsWith('/login') || pathWithoutLocale.startsWith('/register');
   if (isAuthPage && isAuthenticated && role) {
-    const locale = pathnameHasLocale
-      ? pathname.split('/')[1] ?? defaultLocale
-      : defaultLocale;
+    const locale = pathnameHasLocale ? (pathname.split('/')[1] ?? defaultLocale) : defaultLocale;
     if (role === 'merchant') {
       return NextResponse.redirect(new URL(`/${locale}/merchant/dashboard`, request.url));
     }
@@ -116,7 +111,7 @@ export default async function middleware(request: NextRequest) {
 
   // Auth protection: check if the path requires authentication
   const isProtectedRoute = PROTECTED_PATH_PATTERNS.some((pattern) =>
-    pathWithoutLocale.startsWith(pattern)
+    pathWithoutLocale.startsWith(pattern),
   );
 
   if (isProtectedRoute && !isAuthenticated) {
@@ -131,10 +126,7 @@ export default async function middleware(request: NextRequest) {
 
     // Redirect to login with callbackUrl
     const callbackUrl = encodeURIComponent(pathname);
-    const loginUrl = new URL(
-      `/${currentLocale}/login?callbackUrl=${callbackUrl}`,
-      request.url
-    );
+    const loginUrl = new URL(`/${currentLocale}/login?callbackUrl=${callbackUrl}`, request.url);
     return NextResponse.redirect(loginUrl);
   }
 

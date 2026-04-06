@@ -3,7 +3,9 @@ import Link from 'next/link';
 export default function NotFound() {
   return (
     <html lang="en">
-      <body style={{ fontFamily: 'system-ui, sans-serif', textAlign: 'center', padding: '4rem 1rem' }}>
+      <body
+        style={{ fontFamily: 'system-ui, sans-serif', textAlign: 'center', padding: '4rem 1rem' }}
+      >
         <h1 style={{ fontSize: '3rem', fontWeight: 700, color: '#005250' }}>404</h1>
         <p style={{ fontSize: '1.125rem', color: '#64748b', marginTop: '0.5rem' }}>
           Page not found

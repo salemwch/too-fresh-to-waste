@@ -13,7 +13,11 @@ interface LanguageSwitcherProps {
   buttonClassName?: string;
 }
 
-export function LanguageSwitcher({ variant = 'dropdown', className = '', buttonClassName }: LanguageSwitcherProps) {
+export function LanguageSwitcher({
+  variant = 'dropdown',
+  className = '',
+  buttonClassName,
+}: LanguageSwitcherProps) {
   const locale = useLocale() as Locale;
   const router = useRouter();
   const pathname = usePathname();
@@ -101,58 +105,61 @@ export function LanguageSwitcher({ variant = 'dropdown', className = '', buttonC
   }
 
   // Render dropdown content
-  const dropdownContent = isOpen && mounted ? (
-    <div
-      ref={dropdownRef}
-      className="fixed bg-white rounded-lg shadow-xl py-1 z-[99999] max-h-[300px] overflow-y-auto"
-      role="listbox"
-      aria-label="Available languages"
-      style={{
-        top: `${dropdownPosition.top + 8}px`,
-        left: `${dropdownPosition.left}px`,
-        width: `${dropdownPosition.width}px`,
-        transform: 'translateX(-50%)',
-        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2)',
-      }}
-    >
-      {locales.map((loc) => {
-        const config = localeConfig[loc];
-        const isSelected = locale === loc;
+  const dropdownContent =
+    isOpen && mounted ? (
+      <div
+        ref={dropdownRef}
+        className="fixed bg-white rounded-lg shadow-xl py-1 z-[99999] max-h-[300px] overflow-y-auto"
+        role="listbox"
+        aria-label="Available languages"
+        style={{
+          top: `${dropdownPosition.top + 8}px`,
+          left: `${dropdownPosition.left}px`,
+          width: `${dropdownPosition.width}px`,
+          transform: 'translateX(-50%)',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2)',
+        }}
+      >
+        {locales.map((loc) => {
+          const config = localeConfig[loc];
+          const isSelected = locale === loc;
 
-        return (
-          <button
-            key={loc}
-            onClick={() => handleLocaleChange(loc)}
-            className={`w-full flex items-center justify-center px-3 py-2.5 text-sm transition-colors ${
-              isSelected
-                ? 'bg-primary-50 text-primary-700 font-semibold'
-                : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
-            }`}
-            role="option"
-            aria-selected={isSelected}
-            style={{ minHeight: '44px' }}
-          >
-            <span className={`flex items-center gap-2 ${config.direction === 'rtl' ? 'font-arabic' : ''}`}>
-              {isSelected && (
-                <svg
-                  className="w-3.5 h-3.5 text-primary-600 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-              <span className="text-sm font-medium">{config.nativeName}</span>
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  ) : null;
+          return (
+            <button
+              key={loc}
+              onClick={() => handleLocaleChange(loc)}
+              className={`w-full flex items-center justify-center px-3 py-2.5 text-sm transition-colors ${
+                isSelected
+                  ? 'bg-primary-50 text-primary-700 font-semibold'
+                  : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
+              }`}
+              role="option"
+              aria-selected={isSelected}
+              style={{ minHeight: '44px' }}
+            >
+              <span
+                className={`flex items-center gap-2 ${config.direction === 'rtl' ? 'font-arabic' : ''}`}
+              >
+                {isSelected && (
+                  <svg
+                    className="w-3.5 h-3.5 text-primary-600 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+                <span className="text-sm font-medium">{config.nativeName}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    ) : null;
 
   return (
     <>
@@ -160,7 +167,10 @@ export function LanguageSwitcher({ variant = 'dropdown', className = '', buttonC
         <button
           ref={buttonRef}
           onClick={() => setIsOpen(!isOpen)}
-          className={buttonClassName || "flex items-center gap-2 px-3 py-2 rounded-md bg-white/10 hover:bg-white/20 transition-colors text-white"}
+          className={
+            buttonClassName ||
+            'flex items-center gap-2 px-3 py-2 rounded-md bg-white/10 hover:bg-white/20 transition-colors text-white'
+          }
           aria-expanded={isOpen}
           aria-haspopup="listbox"
           aria-label="Select language"
@@ -193,7 +203,10 @@ export function LanguageSwitcher({ variant = 'dropdown', className = '', buttonC
       </div>
 
       {/* Render dropdown via portal to escape stacking context */}
-      {mounted && typeof document !== 'undefined' && dropdownContent && createPortal(dropdownContent, document.body)}
+      {mounted &&
+        typeof document !== 'undefined' &&
+        dropdownContent &&
+        createPortal(dropdownContent, document.body)}
     </>
   );
 }

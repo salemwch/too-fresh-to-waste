@@ -68,7 +68,7 @@ export default function ComingSoonPage() {
               className="font-bold text-white drop-shadow-2xl"
               style={{
                 fontSize: '80px',
-                textShadow: '0 4px 6px rgba(0, 0, 0, 0.5)'
+                textShadow: '0 4px 6px rgba(0, 0, 0, 0.5)',
               }}
             >
               {tComingSoon('title')}

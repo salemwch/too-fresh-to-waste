@@ -1,26 +1,17 @@
 {
-  "extends": "../../tsconfig.base.json",
+  // Internal shared library — extends @foodwaste/tsconfig/library preset.
+  // CommonJS output, composite build, relaxed strict settings for cross-platform use.
+  "extends": "@foodwaste/tsconfig/library",
   "compilerOptions": {
     "baseUrl": ".",
-    "rootDir": "./src",
     "outDir": "./dist",
-    "composite": true,
-    "incremental": true,
+    "rootDir": "./src",
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
-    "declaration": true,
-    "declarationMap": true,
-    "declarationDir": "./dist",
-    "sourceMap": true,
-    "module": "commonjs",
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM"],
-    "moduleResolution": "node",
     "jsx": "react-native",
-    "strict": true,
-    "skipLibCheck": true,
-    "exactOptionalPropertyTypes": false,
-    "noPropertyAccessFromIndexSignature": false,
-    "noUncheckedIndexedAccess": false
+    "paths": {
+      "@foodwaste/shared": ["./src"],
+      "@foodwaste/shared/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "coverage"]

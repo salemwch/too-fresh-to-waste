@@ -1,4 +1,4 @@
-import { BadgeType } from '../enums';
+import type { BadgeType } from '../enums';
 
 export type PointTransactionType = 'earned' | 'redeemed' | 'expired' | 'donated';
 

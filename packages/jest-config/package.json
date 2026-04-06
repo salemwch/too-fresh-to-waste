@@ -1,0 +1,27 @@
+{
+  "name": "@foodwaste/jest-config",
+  "version": "1.0.0",
+  "description": "Shared Jest configurations for the Food Waste monorepo",
+  "private": true,
+  "exports": {
+    "./base": "./base.js",
+    "./nestjs": "./nestjs.js",
+    "./next": "./next.js",
+    "./react-native": "./react-native.js"
+  },
+  "files": [
+    "*.js"
+  ],
+  "scripts": {
+    "clean": "echo nothing to clean"
+  },
+  "peerDependencies": {
+    "jest": ">=29",
+    "ts-jest": ">=29"
+  },
+  "peerDependenciesMeta": {
+    "ts-jest": {
+      "optional": true
+    }
+  }
+}

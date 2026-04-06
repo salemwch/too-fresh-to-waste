@@ -90,33 +90,30 @@ export default function MerchantSignupPage() {
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [submitError, setSubmitError] = useState('');
-  const [resendFeedback, setResendFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [resendFeedback, setResendFeedback] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   // ── Field updater ──
-  const updateField = useCallback(
-    <K extends keyof FormData>(key: K, value: FormData[K]) => {
-      setFormData((prev) => ({ ...prev, [key]: value }));
-    },
-    [],
-  );
+  const updateField = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
   // ── Step 1: Business selection ──
-  const handleBusinessSelect = useCallback(
-    (details: PlaceDetails) => {
-      setSelectedBusiness(details);
-      setFormData((prev) => ({
-        ...prev,
-        businessName: details.name,
-        googlePlaceId: details.googlePlaceId,
-        latitude: details.coords.lat,
-        longitude: details.coords.lng,
-        formattedAddress: details.formattedAddress,
-        addressComponents: details.addressComponents ?? null,
-        types: details.types ?? [],
-      }));
-    },
-    [],
-  );
+  const handleBusinessSelect = useCallback((details: PlaceDetails) => {
+    setSelectedBusiness(details);
+    setFormData((prev) => ({
+      ...prev,
+      businessName: details.name,
+      googlePlaceId: details.googlePlaceId,
+      latitude: details.coords.lat,
+      longitude: details.coords.lng,
+      formattedAddress: details.formattedAddress,
+      addressComponents: details.addressComponents ?? null,
+      types: details.types ?? [],
+    }));
+  }, []);
 
   const handleBusinessClear = useCallback(() => {
     setSelectedBusiness(null);
@@ -184,16 +181,12 @@ export default function MerchantSignupPage() {
       await register(payload);
       setRegisteredEmail(payload.email);
     } catch (error: unknown) {
-      const responseData = (error as { response?: { data?: { message?: unknown } } })
-        ?.response?.data?.message;
+      const responseData = (error as { response?: { data?: { message?: unknown } } })?.response
+        ?.data?.message;
       let errorMessage = t('errorGeneric');
       if (typeof responseData === 'string') {
         errorMessage = responseData;
-      } else if (
-        responseData &&
-        typeof responseData === 'object' &&
-        'message' in responseData
-      ) {
+      } else if (responseData && typeof responseData === 'object' && 'message' in responseData) {
         // Backend validation errors: { message: [...], error: "Bad Request", statusCode: 400 }
         const nested = (responseData as { message?: unknown }).message;
         if (typeof nested === 'string') {
@@ -205,7 +198,9 @@ export default function MerchantSignupPage() {
             errorMessage = first;
           } else if (first && typeof first === 'object' && 'constraints' in first) {
             const constraints = (first as { constraints?: Record<string, string> }).constraints;
-            errorMessage = constraints ? Object.values(constraints)[0] ?? errorMessage : errorMessage;
+            errorMessage = constraints
+              ? (Object.values(constraints)[0] ?? errorMessage)
+              : errorMessage;
           }
         }
       }
@@ -256,9 +251,7 @@ export default function MerchantSignupPage() {
           {t('checkInboxDescription', { email: registeredEmail })}
         </p>
       </div>
-      <p className="text-xs text-muted-foreground sm:text-sm">
-        {t('checkSpamHint')}
-      </p>
+      <p className="text-xs text-muted-foreground sm:text-sm">{t('checkSpamHint')}</p>
       <Button
         variant="outline"
         className="w-full h-11 rounded-xl text-sm font-semibold sm:h-12"
@@ -266,9 +259,7 @@ export default function MerchantSignupPage() {
         disabled={isResending || cooldown > 0}
       >
         {isResending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {cooldown > 0
-          ? t('resendCooldown', { seconds: cooldown })
-          : t('resendEmail')}
+        {cooldown > 0 ? t('resendCooldown', { seconds: cooldown }) : t('resendEmail')}
       </Button>
       {resendFeedback && (
         <div
@@ -286,10 +277,7 @@ export default function MerchantSignupPage() {
           <span>{resendFeedback.text}</span>
         </div>
       )}
-      <Link
-        href="/login"
-        className="text-sm font-medium text-primary hover:text-primary/80"
-      >
+      <Link href="/login" className="text-sm font-medium text-primary hover:text-primary/80">
         {t('loginLink')}
       </Link>
     </div>
@@ -659,10 +647,7 @@ export default function MerchantSignupPage() {
 
               <p className="text-center text-sm text-muted-foreground sm:text-base">
                 {t('hasAccount')}{' '}
-                <Link
-                  href="/login"
-                  className="font-medium text-primary hover:text-primary/80"
-                >
+                <Link href="/login" className="font-medium text-primary hover:text-primary/80">
                   {t('loginLink')}
                 </Link>
               </p>

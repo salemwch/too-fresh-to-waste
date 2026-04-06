@@ -1,4 +1,4 @@
-import { OfferStatus, OfferType, CtaState, EstablishmentType, Currency } from '../enums';
+import type { OfferStatus, OfferType, CtaState, EstablishmentType, Currency } from '../enums';
 import type { PopulatedEstablishmentAddress } from './establishment.types';
 
 /**
@@ -55,6 +55,7 @@ export interface RecurringDays {
  */
 export interface Offer {
   id: string; // Backend DTO uses 'id' not '_id'
+  _id?: string; // Some aggregation/population paths still return Mongo-style IDs
   title: string;
   description: string;
   // Can be either ID string or populated object
@@ -146,6 +147,7 @@ export interface Offer {
  */
 export interface OfferListItem {
   id: string; // Backend uses 'id' not '_id' in DTOs
+  _id?: string; // Backward-compatible for raw/aggregated responses
   title: string;
   type: OfferType;
   image?: string | undefined; // Single image (first image only)
@@ -168,6 +170,7 @@ export interface OfferListItem {
     totalReviews?: number; // Number of reviews
     profileImage?: string; // Merchant profile image/logo
   };
+  categories?: string[]; // Present on some list/search endpoints and favorites population paths
   distance?: number; // In meters (for geolocation queries)
   ctaState: CtaState; // Backend-computed UI state (available/low_stock/sold_out)
   status: OfferStatus;

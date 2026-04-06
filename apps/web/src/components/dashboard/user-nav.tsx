@@ -23,7 +23,8 @@ export function UserNav() {
 
   if (!user) return null;
 
-  const initials = `${user.firstName?.charAt(0) ?? ''}${user.lastName?.charAt(0) ?? ''}`.toUpperCase();
+  const initials =
+    `${user.firstName?.charAt(0) ?? ''}${user.lastName?.charAt(0) ?? ''}`.toUpperCase();
 
   return (
     <DropdownMenu>

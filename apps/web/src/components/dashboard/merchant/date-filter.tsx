@@ -21,8 +21,8 @@ interface DateFilterProps {
 const GRANULARITIES: ChartGranularity[] = ['day', 'week', 'month'];
 
 const GRANULARITY_LABELS: Record<ChartGranularity, string> = {
-  day:   'Day',
-  week:  'Week',
+  day: 'Day',
+  week: 'Week',
   month: 'Month',
 };
 

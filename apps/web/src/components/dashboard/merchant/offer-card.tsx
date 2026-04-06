@@ -8,17 +8,17 @@ import type { MerchantOffer } from '@/types/dashboard';
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const TYPE_LABELS: Record<string, string> = {
-  surprise_bag:   'Surprise Bag',
+  surprise_bag: 'Surprise Bag',
   specific_items: 'Specific Item',
-  meal_deal:      'Meal Deal',
-  parcels_bag:    'Parcels Bag',
+  meal_deal: 'Meal Deal',
+  parcels_bag: 'Parcels Bag',
 };
 
 const STATUS_CONFIG: Record<string, { label: string; badge: string }> = {
-  draft:     { label: 'Draft',     badge: 'bg-slate-100 text-slate-600 border-slate-200' },
-  active:    { label: 'Active',    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  sold_out:  { label: 'Sold Out',  badge: 'bg-red-50 text-red-600 border-red-200' },
-  expired:   { label: 'Expired',   badge: 'bg-amber-50 text-amber-700 border-amber-200' },
+  draft: { label: 'Draft', badge: 'bg-slate-100 text-slate-600 border-slate-200' },
+  active: { label: 'Active', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  sold_out: { label: 'Sold Out', badge: 'bg-red-50 text-red-600 border-red-200' },
+  expired: { label: 'Expired', badge: 'bg-amber-50 text-amber-700 border-amber-200' },
   cancelled: { label: 'Cancelled', badge: 'bg-slate-100 text-slate-500 border-slate-200' },
   suspended: { label: 'Suspended', badge: 'bg-rose-50 text-rose-700 border-rose-200' },
 };
@@ -26,7 +26,7 @@ const STATUS_CONFIG: Record<string, { label: string; badge: string }> = {
 const PROGRESS_COLOR: Record<string, string> = {
   available: 'bg-emerald-500',
   low_stock: 'bg-amber-400',
-  sold_out:  'bg-red-400',
+  sold_out: 'bg-red-400',
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ export function OfferCard({
   onReactivate,
 }: OfferCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [confirmCancel, setConfirmCancel]   = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const cfg = (STATUS_CONFIG[offer.status] ?? STATUS_CONFIG['draft'])!;
@@ -78,9 +78,7 @@ export function OfferCard({
 
   // Revenue: only if soldQuantity is available from the backend
   const revenue =
-    offer.soldQuantity != null
-      ? offer.soldQuantity * offer.pricing.discountedPrice
-      : null;
+    offer.soldQuantity != null ? offer.soldQuantity * offer.pricing.discountedPrice : null;
 
   // Progress bar %
   const soldPct =
@@ -91,11 +89,14 @@ export function OfferCard({
   const pickup = pickupLabel(offer);
 
   // ── Shared button styles ────────────────────────────────────────────────
-  const btn   = 'inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed';
-  const prim  = 'bg-primary text-white hover:opacity-90 active:scale-[0.97]';
-  const sec   = 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-[0.97]';
-  const warn  = 'bg-white border border-amber-200 text-amber-700 hover:bg-amber-50 active:scale-[0.97]';
-  const dang  = 'bg-white border border-red-200 text-red-500 hover:bg-red-50 active:scale-[0.97]';
+  const btn =
+    'inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed';
+  const prim = 'bg-primary text-white hover:opacity-90 active:scale-[0.97]';
+  const sec =
+    'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-[0.97]';
+  const warn =
+    'bg-white border border-amber-200 text-amber-700 hover:bg-amber-50 active:scale-[0.97]';
+  const dang = 'bg-white border border-red-200 text-red-500 hover:bg-red-50 active:scale-[0.97]';
   const ghost = 'bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed';
 
   // ── Action buttons per status ───────────────────────────────────────────
@@ -104,7 +105,12 @@ export function OfferCard({
       return (
         <>
           {isEstablishmentApproved ? (
-            <button type="button" disabled={isPending} onClick={onPublish} className={cn(btn, prim)}>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={onPublish}
+              className={cn(btn, prim)}
+            >
               <Zap className="h-3 w-3" /> Publish Now
             </button>
           ) : (
@@ -130,10 +136,20 @@ export function OfferCard({
     if (offer.status === 'active') {
       return (
         <>
-          <button type="button" disabled={isPending} onClick={onMarkSoldOut} className={cn(btn, warn)}>
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={onMarkSoldOut}
+            className={cn(btn, warn)}
+          >
             Mark Sold Out
           </button>
-          <button type="button" disabled={isPending} onClick={() => setConfirmCancel(true)} className={cn(btn, sec)}>
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => setConfirmCancel(true)}
+            className={cn(btn, sec)}
+          >
             Stop Sales
           </button>
           <button type="button" className={cn(btn, sec)}>
@@ -154,7 +170,12 @@ export function OfferCard({
     if (['sold_out', 'expired', 'cancelled'].includes(offer.status)) {
       return (
         <>
-          <button type="button" disabled={isPending} onClick={onReactivate} className={cn(btn, prim)}>
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={onReactivate}
+            className={cn(btn, prim)}
+          >
             <RotateCcw className="h-3 w-3" /> Reactivate
           </button>
           <button
@@ -214,7 +235,6 @@ export function OfferCard({
 
       {/* ── Card body ── */}
       <div className="flex gap-4 p-4">
-
         {/* Image */}
         <div className="w-[72px] h-[72px] shrink-0 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
           {offer.image ? (
@@ -233,7 +253,6 @@ export function OfferCard({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-
           {/* Row 1 — Title + status badge */}
           <div className="flex items-start justify-between gap-2 min-w-0">
             <p className="text-[13px] font-bold text-slate-900 leading-tight truncate">
@@ -326,7 +345,10 @@ export function OfferCard({
             </button>
             <button
               type="button"
-              onClick={() => { setConfirmDelete(false); onDelete(); }}
+              onClick={() => {
+                setConfirmDelete(false);
+                onDelete();
+              }}
               className="inline-flex items-center h-7 px-3 rounded-md text-[11px] font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
             >
               Yes, delete
@@ -351,7 +373,10 @@ export function OfferCard({
             </button>
             <button
               type="button"
-              onClick={() => { setConfirmCancel(false); onCancelOffer(); }}
+              onClick={() => {
+                setConfirmCancel(false);
+                onCancelOffer();
+              }}
               className="inline-flex items-center h-7 px-3 rounded-md text-[11px] font-semibold bg-amber-600 text-white hover:bg-amber-700 transition-colors"
             >
               Stop sales

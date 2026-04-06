@@ -17,12 +17,12 @@ import type {
   CommunityBagGoalStats,
 } from '@/types/dashboard';
 
-const ORDERS_BASE          = '/orders';
-const OFFERS_BASE          = '/offers';
-const ANALYTICS_BASE       = '/analytics';
-const ESTABLISHMENTS_BASE  = '/establishments';
-const DONATIONS_BASE       = '/donations';
-const COMMUNITY_GOAL_BASE  = '/community-goal';
+const ORDERS_BASE = '/orders';
+const OFFERS_BASE = '/offers';
+const ANALYTICS_BASE = '/analytics';
+const ESTABLISHMENTS_BASE = '/establishments';
+const DONATIONS_BASE = '/donations';
+const COMMUNITY_GOAL_BASE = '/community-goal';
 
 export const dashboardService = {
   /**
@@ -31,10 +31,9 @@ export const dashboardService = {
    * Pass startDate to restrict results to a specific time window.
    */
   getOrderStats(startDate?: Date) {
-    return apiClient.get<BackendEnvelope<OrderStatsResponse>>(
-      `${ORDERS_BASE}/stats`,
-      { params: startDate ? { startDate: startDate.toISOString() } : undefined },
-    );
+    return apiClient.get<BackendEnvelope<OrderStatsResponse>>(`${ORDERS_BASE}/stats`, {
+      params: startDate ? { startDate: startDate.toISOString() } : undefined,
+    });
   },
 
   /**
@@ -42,10 +41,9 @@ export const dashboardService = {
    * Paginated list of orders for the authenticated merchant
    */
   getMerchantOrders(page = 1, limit = 10) {
-    return apiClient.get<BackendEnvelope<MerchantOrder[]>>(
-      `${ORDERS_BASE}/merchant-orders`,
-      { params: { page, limit } },
-    );
+    return apiClient.get<BackendEnvelope<MerchantOrder[]>>(`${ORDERS_BASE}/merchant-orders`, {
+      params: { page, limit },
+    });
   },
 
   /**
@@ -53,9 +51,7 @@ export const dashboardService = {
    * Single order detail for merchant (includes pickupCode).
    */
   getOrderById(id: string) {
-    return apiClient.get<BackendEnvelope<MerchantOrder>>(
-      `${ORDERS_BASE}/${id}`,
-    );
+    return apiClient.get<BackendEnvelope<MerchantOrder>>(`${ORDERS_BASE}/${id}`);
   },
 
   /**
@@ -63,10 +59,9 @@ export const dashboardService = {
    * Merchant cancels an active order with a reason.
    */
   cancelOrder(id: string, reason: string) {
-    return apiClient.patch<BackendEnvelope<MerchantOrder>>(
-      `${ORDERS_BASE}/${id}/cancel`,
-      { reason },
-    );
+    return apiClient.patch<BackendEnvelope<MerchantOrder>>(`${ORDERS_BASE}/${id}/cancel`, {
+      reason,
+    });
   },
 
   /**
@@ -74,10 +69,9 @@ export const dashboardService = {
    * Paginated list of offers owned by the authenticated merchant
    */
   getMerchantOffers(page = 1, limit = 10, status?: string) {
-    return apiClient.get<BackendEnvelope<MerchantOffer[]>>(
-      `${OFFERS_BASE}/my-offers`,
-      { params: { page, limit, ...(status && { status }) } },
-    );
+    return apiClient.get<BackendEnvelope<MerchantOffer[]>>(`${OFFERS_BASE}/my-offers`, {
+      params: { page, limit, ...(status && { status }) },
+    });
   },
 
   /**
@@ -96,10 +90,9 @@ export const dashboardService = {
    * Lightweight KPI snapshot for a given period
    */
   getQuickStats(period: 'today' | 'week' | 'month' | 'quarter' = 'month') {
-    return apiClient.get<BackendEnvelope<QuickStatsResponse>>(
-      `${ANALYTICS_BASE}/quick-stats`,
-      { params: { period } },
-    );
+    return apiClient.get<BackendEnvelope<QuickStatsResponse>>(`${ANALYTICS_BASE}/quick-stats`, {
+      params: { period },
+    });
   },
 
   /**
@@ -129,10 +122,7 @@ export const dashboardService = {
    * FilesInterceptor on the backend skips multer for non-multipart requests.
    */
   createSurpriseBag(payload: CreateSurpriseBagPayload) {
-    return apiClient.post<BackendEnvelope<CreatedOfferResponse>>(
-      `${OFFERS_BASE}`,
-      payload,
-    );
+    return apiClient.post<BackendEnvelope<CreatedOfferResponse>>(`${OFFERS_BASE}`, payload);
   },
 
   /**
@@ -143,11 +133,9 @@ export const dashboardService = {
   uploadOfferImage(offerId: string, imageFile: File) {
     const formData = new FormData();
     formData.append('images', imageFile, imageFile.name);
-    return apiClient.patch<BackendEnvelope<unknown>>(
-      `${OFFERS_BASE}/${offerId}`,
-      formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } },
-    );
+    return apiClient.patch<BackendEnvelope<unknown>>(`${OFFERS_BASE}/${offerId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   },
 
   /**
@@ -168,9 +156,7 @@ export const dashboardService = {
    * Fails if offer has active reservations (reservedQuantity > 0).
    */
   deleteOffer(offerId: string) {
-    return apiClient.delete<BackendEnvelope<{ offerId: string }>>(
-      `${OFFERS_BASE}/${offerId}`,
-    );
+    return apiClient.delete<BackendEnvelope<{ offerId: string }>>(`${OFFERS_BASE}/${offerId}`);
   },
 
   /**
@@ -178,9 +164,7 @@ export const dashboardService = {
    * Sets isActive = true (offer becomes visible to customers again).
    */
   enableOffer(offerId: string) {
-    return apiClient.patch<BackendEnvelope<unknown>>(
-      `${OFFERS_BASE}/${offerId}/enable`,
-    );
+    return apiClient.patch<BackendEnvelope<unknown>>(`${OFFERS_BASE}/${offerId}/enable`);
   },
 
   /**
@@ -189,9 +173,7 @@ export const dashboardService = {
    * Fails if reservedQuantity > 0.
    */
   disableOffer(offerId: string) {
-    return apiClient.patch<BackendEnvelope<unknown>>(
-      `${OFFERS_BASE}/${offerId}/disable`,
-    );
+    return apiClient.patch<BackendEnvelope<unknown>>(`${OFFERS_BASE}/${offerId}/disable`);
   },
 
   /**
@@ -212,9 +194,7 @@ export const dashboardService = {
    * Public donation pool statistics (no auth required).
    */
   getDonationStats() {
-    return apiClient.get<BackendEnvelope<DonationStats>>(
-      `${DONATIONS_BASE}/stats`,
-    );
+    return apiClient.get<BackendEnvelope<DonationStats>>(`${DONATIONS_BASE}/stats`);
   },
 
   // ── Community Bag Goal ─────────────────────────────────────────────────
@@ -224,8 +204,6 @@ export const dashboardService = {
    * Public community bag goal progress (no auth required).
    */
   getCommunityGoalStats() {
-    return apiClient.get<BackendEnvelope<CommunityBagGoalStats>>(
-      `${COMMUNITY_GOAL_BASE}/stats`,
-    );
+    return apiClient.get<BackendEnvelope<CommunityBagGoalStats>>(`${COMMUNITY_GOAL_BASE}/stats`);
   },
 };

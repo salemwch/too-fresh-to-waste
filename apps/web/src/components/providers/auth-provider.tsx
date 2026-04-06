@@ -67,7 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     rehydrate();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Proactive token refresh every 13 minutes ───────────────────────────────
@@ -109,11 +111,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (e.key !== 'wfa_tokens_ts') return;
       // Another tab refreshed — HttpOnly cookies already updated by backend.
       // Re-verify our session to update user state if needed.
-      authService.getProfile().then((res) => {
-        useAuthStore.getState().setUser(res.data.data);
-      }).catch(() => {
-        // If profile fails, session may have been invalidated
-      });
+      authService
+        .getProfile()
+        .then((res) => {
+          useAuthStore.getState().setUser(res.data.data);
+        })
+        .catch(() => {
+          // If profile fails, session may have been invalidated
+        });
     };
 
     window.addEventListener('storage', onStorage);

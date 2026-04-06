@@ -7,15 +7,18 @@ export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = 'en';
 
 // Locale metadata for SEO and UI
-export const localeConfig: Record<Locale, {
-  name: string;
-  nativeName: string;
-  direction: 'ltr' | 'rtl';
-  hreflang: string;
-  dateFormat: string;
-  numberFormat: Intl.NumberFormatOptions;
-  currency: string;
-}> = {
+export const localeConfig: Record<
+  Locale,
+  {
+    name: string;
+    nativeName: string;
+    direction: 'ltr' | 'rtl';
+    hreflang: string;
+    dateFormat: string;
+    numberFormat: Intl.NumberFormatOptions;
+    currency: string;
+  }
+> = {
   fr: {
     name: 'French',
     nativeName: 'Fran\u00e7ais',

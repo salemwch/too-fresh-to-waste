@@ -1,4 +1,4 @@
-import { UserRole, UserStatus } from '../enums/user.enum';
+import type { UserRole, UserStatus } from '../enums/user.enum';
 
 /**
  * User address with optional GeoJSON coordinates

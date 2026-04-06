@@ -25,7 +25,8 @@ export const seoConfig = {
       ogLocale: 'fr_TN',
     },
     ar: {
-      title: 'Too Fresh To Waste - \u0642\u0644\u0644 \u0647\u062f\u0631 \u0627\u0644\u0637\u0639\u0627\u0645',
+      title:
+        'Too Fresh To Waste - \u0642\u0644\u0644 \u0647\u062f\u0631 \u0627\u0644\u0637\u0639\u0627\u0645',
       titleTemplate: '%s | Too Fresh To Waste \u062a\u0648\u0646\u0633',
       description:
         '\u062a\u0648\u0627\u0635\u0644 \u0645\u0639 \u0627\u0644\u0645\u0637\u0627\u0639\u0645 \u0627\u0644\u0645\u062d\u0644\u064a\u0629 \u0641\u064a \u062a\u0648\u0646\u0633 \u0644\u0625\u0646\u0642\u0627\u0630 \u0627\u0644\u0637\u0639\u0627\u0645 \u0627\u0644\u0641\u0627\u0626\u0636. \u0648\u0641\u0631 \u062d\u062a\u0649 70% \u0648\u0633\u0627\u0647\u0645 \u0641\u064a \u0645\u0643\u0627\u0641\u062d\u0629 \u0647\u062f\u0631 \u0627\u0644\u0637\u0639\u0627\u0645.',
@@ -71,13 +72,20 @@ export const seoConfig = {
     tiktok: '@toofreshwaste_tn',
   },
   socialUrls: {
-    facebook: process.env['NEXT_PUBLIC_SOCIAL_FACEBOOK'] || 'https://www.facebook.com/profile.php?id=61585767061906',
-    instagram: process.env['NEXT_PUBLIC_SOCIAL_INSTAGRAM'] || 'https://www.instagram.com/toofreshtowaste.tn/',
+    facebook:
+      process.env['NEXT_PUBLIC_SOCIAL_FACEBOOK'] ||
+      'https://www.facebook.com/profile.php?id=61585767061906',
+    instagram:
+      process.env['NEXT_PUBLIC_SOCIAL_INSTAGRAM'] ||
+      'https://www.instagram.com/toofreshtowaste.tn/',
     x: process.env['NEXT_PUBLIC_SOCIAL_X'] || 'https://x.com/TooFresh2Waste',
-    linkedin: process.env['NEXT_PUBLIC_SOCIAL_LINKEDIN'] || 'https://www.linkedin.com/company/too-fresh-to-waste/',
+    linkedin:
+      process.env['NEXT_PUBLIC_SOCIAL_LINKEDIN'] ||
+      'https://www.linkedin.com/company/too-fresh-to-waste/',
   },
   // Creator attribution
-  creatorUrl: process.env['NEXT_PUBLIC_CREATOR_URL'] || 'https://www.linkedin.com/in/salem-wachwacha-h/',
+  creatorUrl:
+    process.env['NEXT_PUBLIC_CREATOR_URL'] || 'https://www.linkedin.com/in/salem-wachwacha-h/',
 
   // Business info for structured data
   business: {
@@ -103,13 +111,41 @@ export const seoConfig = {
     },
     // Service areas in Tunisia
     serviceAreas: [
-      { name: 'Tunis', nameAr: '\u062a\u0648\u0646\u0633', coordinates: { lat: 36.8065, lng: 10.1815 } },
-      { name: 'Sousse', nameAr: '\u0633\u0648\u0633\u0629', coordinates: { lat: 35.8288, lng: 10.6405 } },
-      { name: 'Sfax', nameAr: '\u0635\u0641\u0627\u0642\u0633', coordinates: { lat: 34.7406, lng: 10.7603 } },
-      { name: 'Monastir', nameAr: '\u0627\u0644\u0645\u0646\u0633\u062a\u064a\u0631', coordinates: { lat: 35.7643, lng: 10.8113 } },
-      { name: 'Hammamet', nameAr: '\u0627\u0644\u062d\u0645\u0627\u0645\u0627\u062a', coordinates: { lat: 36.4000, lng: 10.6167 } },
-      { name: 'Bizerte', nameAr: '\u0628\u0646\u0632\u0631\u062a', coordinates: { lat: 37.2744, lng: 9.8739 } },
-      { name: 'Nabeul', nameAr: '\u0646\u0627\u0628\u0644', coordinates: { lat: 36.4561, lng: 10.7376 } },
+      {
+        name: 'Tunis',
+        nameAr: '\u062a\u0648\u0646\u0633',
+        coordinates: { lat: 36.8065, lng: 10.1815 },
+      },
+      {
+        name: 'Sousse',
+        nameAr: '\u0633\u0648\u0633\u0629',
+        coordinates: { lat: 35.8288, lng: 10.6405 },
+      },
+      {
+        name: 'Sfax',
+        nameAr: '\u0635\u0641\u0627\u0642\u0633',
+        coordinates: { lat: 34.7406, lng: 10.7603 },
+      },
+      {
+        name: 'Monastir',
+        nameAr: '\u0627\u0644\u0645\u0646\u0633\u062a\u064a\u0631',
+        coordinates: { lat: 35.7643, lng: 10.8113 },
+      },
+      {
+        name: 'Hammamet',
+        nameAr: '\u0627\u0644\u062d\u0645\u0627\u0645\u0627\u062a',
+        coordinates: { lat: 36.4, lng: 10.6167 },
+      },
+      {
+        name: 'Bizerte',
+        nameAr: '\u0628\u0646\u0632\u0631\u062a',
+        coordinates: { lat: 37.2744, lng: 9.8739 },
+      },
+      {
+        name: 'Nabeul',
+        nameAr: '\u0646\u0627\u0628\u0644',
+        coordinates: { lat: 36.4561, lng: 10.7376 },
+      },
     ],
     // Operating hours
     openingHours: 'Mo-Su 08:00-23:00',
@@ -142,4 +178,3 @@ export function getCanonicalUrl(path: string, locale: Locale): string {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   return `${baseUrl}${localePath}${cleanPath === '/' ? '' : cleanPath}`;
 }
-

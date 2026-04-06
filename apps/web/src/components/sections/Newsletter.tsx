@@ -66,9 +66,7 @@ export default function Newsletter() {
       aria-labelledby="newsletter-heading"
     >
       {/* Label */}
-      <p className="text-primary-500 font-medium text-sm sm:text-base">
-        {t('label')}
-      </p>
+      <p className="text-primary-500 font-medium text-sm sm:text-base">{t('label')}</p>
 
       {/* Heading */}
       <h2
@@ -130,9 +128,7 @@ export default function Newsletter() {
       )}
 
       {/* Privacy Note */}
-      <p className="text-slate-600 text-xs sm:text-sm mt-4 max-w-md">
-        {t('privacy')}
-      </p>
+      <p className="text-slate-600 text-xs sm:text-sm mt-4 max-w-md">{t('privacy')}</p>
     </section>
   );
 }

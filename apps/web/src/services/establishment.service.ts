@@ -36,9 +36,7 @@ export const establishmentService = {
    * Returns an array; merchants typically have one establishment.
    */
   getMyEstablishment() {
-    return apiClient.get<BackendEnvelope<MyEstablishment[]>>(
-      `${BASE}/my-establishment`,
-    );
+    return apiClient.get<BackendEnvelope<MyEstablishment[]>>(`${BASE}/my-establishment`);
   },
 
   /**
@@ -46,10 +44,7 @@ export const establishmentService = {
    * Update editable establishment fields. Ownership is enforced server-side.
    */
   updateEstablishment(id: string, data: UpdateEstablishmentData) {
-    return apiClient.patch<BackendEnvelope<MyEstablishment>>(
-      `${BASE}/${id}`,
-      data,
-    );
+    return apiClient.patch<BackendEnvelope<MyEstablishment>>(`${BASE}/${id}`, data);
   },
 
   /**
@@ -60,11 +55,9 @@ export const establishmentService = {
   uploadImages(id: string, files: File[]) {
     const formData = new FormData();
     files.forEach((f) => formData.append('images', f));
-    return apiClient.patch<BackendEnvelope<MyEstablishment>>(
-      `${BASE}/${id}`,
-      formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } },
-    );
+    return apiClient.patch<BackendEnvelope<MyEstablishment>>(`${BASE}/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   },
 
   /**
@@ -83,11 +76,9 @@ export const establishmentService = {
     if (options?.expiryDate) formData.append('expiryDate', options.expiryDate);
     if (options?.notes) formData.append('notes', options.notes);
     if (options?.additionalType) formData.append('additionalType', options.additionalType);
-    return apiClient.post<BackendEnvelope<MyEstablishment>>(
-      `${BASE}/${id}/documents`,
-      formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } },
-    );
+    return apiClient.post<BackendEnvelope<MyEstablishment>>(`${BASE}/${id}/documents`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   },
 
   /**

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  // NestJS 11 — CommonJS, ES2020, composite build output.
+  "extends": "./base.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+
+    // Output
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": true,
+    "isolatedModules": false,
+
+    // Composite build (required for project references)
+    "composite": true,
+    "incremental": true
+  }
+}

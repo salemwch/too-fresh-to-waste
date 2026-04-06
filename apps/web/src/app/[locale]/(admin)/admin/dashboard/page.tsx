@@ -2,14 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/lib/auth';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Skeleton,
-} from '@foodwaste/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from '@foodwaste/ui';
 import { Users, Building2, ShoppingBag, AlertTriangle } from 'lucide-react';
 
 export default function AdminDashboardPage() {
@@ -38,16 +31,12 @@ export default function AdminDashboardPage() {
           return (
             <Card key={stat.titleKey}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t(`stats.${stat.titleKey}`)}
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">{t(`stats.${stat.titleKey}`)}</CardTitle>
                 <Icon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
-                <CardDescription className="text-xs">
-                  {t('comingSoon')}
-                </CardDescription>
+                <CardDescription className="text-xs">{t('comingSoon')}</CardDescription>
               </CardContent>
             </Card>
           );

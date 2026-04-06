@@ -41,14 +41,16 @@ const CHART_TOP = 20;
 const CHART_BOTTOM = 40;
 const CHART_HEIGHT = SVG_HEIGHT - CHART_TOP - CHART_BOTTOM; // 220
 const PLOT_WIDTH = SVG_WIDTH - CHART_LEFT - CHART_RIGHT_PAD; // 870
-const PLOT_RIGHT = CHART_LEFT + PLOT_WIDTH;                  // 930
-const X_AXIS_Y = CHART_TOP + CHART_HEIGHT;                   // 240
+const PLOT_RIGHT = CHART_LEFT + PLOT_WIDTH; // 930
+const X_AXIS_Y = CHART_TOP + CHART_HEIGHT; // 240
 
 /** px above the dot centre that the tooltip sits (tooltip height ≈ 60 + 6 arrow + 6 gap) */
 const TOOLTIP_ABOVE_PX = 78;
 
 // ─── Y-Axis Tick Computation ────────────────────────────────────────────────
-const NICE_STEPS = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
+const NICE_STEPS = [
+  1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000,
+];
 
 function computeYAxisTicks(values: number[]): { ticks: number[]; maxTick: number } {
   const maxVal = Math.max(0, ...values);
@@ -89,13 +91,19 @@ function formatTickLabel(value: number): string {
 }
 
 // ─── SVG Path Builder ───────────────────────────────────────────────────────
-interface ChartPoint { x: number; y: number; value: number; label: string }
-interface ChartPaths  { linePath: string; areaPath: string; points: ChartPoint[] }
+interface ChartPoint {
+  x: number;
+  y: number;
+  value: number;
+  label: string;
+}
+interface ChartPaths {
+  linePath: string;
+  areaPath: string;
+  points: ChartPoint[];
+}
 
-function buildChartPaths(
-  months: { label: string; value: number }[],
-  maxTick: number,
-): ChartPaths {
+function buildChartPaths(months: { label: string; value: number }[], maxTick: number): ChartPaths {
   const empty: ChartPaths = { linePath: '', areaPath: '', points: [] };
   if (months.length === 0) return empty;
 
@@ -167,31 +175,28 @@ export function RevenueChart({
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const svgRef       = useRef<SVGSVGElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   const activeIndex = hoveredIndex ?? lastIndex;
   const activePoint = activeIndex !== null ? (points[activeIndex] ?? null) : null;
   const isHoveringNonLast = hoveredIndex !== null && hoveredIndex !== lastIndex;
 
   // Convert a ChartPoint (SVG coords) → pixel coords inside containerRef
-  const computeDotPixels = useCallback(
-    (pt: ChartPoint): { x: number; y: number } | null => {
-      const svgEl = svgRef.current;
-      const containerEl = containerRef.current;
-      if (!svgEl || !containerEl) return null;
+  const computeDotPixels = useCallback((pt: ChartPoint): { x: number; y: number } | null => {
+    const svgEl = svgRef.current;
+    const containerEl = containerRef.current;
+    if (!svgEl || !containerEl) return null;
 
-      const svgRect = svgEl.getBoundingClientRect();
-      const cRect   = containerEl.getBoundingClientRect();
+    const svgRect = svgEl.getBoundingClientRect();
+    const cRect = containerEl.getBoundingClientRect();
 
-      const rawX = svgRect.left - cRect.left + (pt.x / SVG_WIDTH)  * svgRect.width;
-      const rawY = svgRect.top  - cRect.top  + (pt.y / SVG_HEIGHT) * svgRect.height;
+    const rawX = svgRect.left - cRect.left + (pt.x / SVG_WIDTH) * svgRect.width;
+    const rawY = svgRect.top - cRect.top + (pt.y / SVG_HEIGHT) * svgRect.height;
 
-      // Clamp X so tooltip never clips the container edges
-      const clampedX = Math.max(50, Math.min(cRect.width - 50, rawX));
-      return { x: clampedX, y: rawY };
-    },
-    [],
-  );
+    // Clamp X so tooltip never clips the container edges
+    const clampedX = Math.max(50, Math.min(cRect.width - 50, rawX));
+    return { x: clampedX, y: rawY };
+  }, []);
 
   // Set / refresh last-point tooltip on mount, data change, and resize
   useEffect(() => {
@@ -226,7 +231,10 @@ export function RevenueChart({
       let minDist = Infinity;
       points.forEach((pt, i) => {
         const dist = Math.abs(pt.x - mouseX);
-        if (dist < minDist) { minDist = dist; closest = i; }
+        if (dist < minDist) {
+          minDist = dist;
+          closest = i;
+        }
       });
 
       setHoveredIndex(closest);
@@ -369,7 +377,10 @@ export function RevenueChart({
                     {formatTickLabel(tick)}
                   </text>
                   <line
-                    x1={CHART_LEFT} y1={y} x2={PLOT_RIGHT} y2={y}
+                    x1={CHART_LEFT}
+                    y1={y}
+                    x2={PLOT_RIGHT}
+                    y2={y}
                     stroke="#e2e8f0"
                     strokeWidth="1"
                     strokeDasharray={tick === 0 ? 'none' : '6 4'}
@@ -381,8 +392,13 @@ export function RevenueChart({
 
             {/* Y-axis vertical line */}
             <line
-              x1={CHART_LEFT} y1={CHART_TOP} x2={CHART_LEFT} y2={X_AXIS_Y}
-              stroke="#e2e8f0" strokeWidth="1" opacity={0.8}
+              x1={CHART_LEFT}
+              y1={CHART_TOP}
+              x2={CHART_LEFT}
+              y2={X_AXIS_Y}
+              stroke="#e2e8f0"
+              strokeWidth="1"
+              opacity={0.8}
             />
 
             {/* Area fill */}
@@ -404,14 +420,30 @@ export function RevenueChart({
             {lastIndex !== null && points[lastIndex] && (
               <>
                 <line
-                  x1={points[lastIndex]!.x} y1={points[lastIndex]!.y}
-                  x2={points[lastIndex]!.x} y2={X_AXIS_Y}
-                  stroke="#94a3b8" strokeWidth="2" strokeDasharray="6 4" opacity={0.7}
+                  x1={points[lastIndex]!.x}
+                  y1={points[lastIndex]!.y}
+                  x2={points[lastIndex]!.x}
+                  y2={X_AXIS_Y}
+                  stroke="#94a3b8"
+                  strokeWidth="2"
+                  strokeDasharray="6 4"
+                  opacity={0.7}
                 />
-                <circle cx={points[lastIndex]!.x} cy={points[lastIndex]!.y}
-                  r="10" fill={CHART_COLOR} opacity={0.15} />
-                <circle cx={points[lastIndex]!.x} cy={points[lastIndex]!.y}
-                  r="6" fill={CHART_COLOR} stroke="#ffffff" strokeWidth="3" />
+                <circle
+                  cx={points[lastIndex]!.x}
+                  cy={points[lastIndex]!.y}
+                  r="10"
+                  fill={CHART_COLOR}
+                  opacity={0.15}
+                />
+                <circle
+                  cx={points[lastIndex]!.x}
+                  cy={points[lastIndex]!.y}
+                  r="6"
+                  fill={CHART_COLOR}
+                  stroke="#ffffff"
+                  strokeWidth="3"
+                />
               </>
             )}
 
@@ -419,29 +451,51 @@ export function RevenueChart({
             {isHoveringNonLast && activePoint && (
               <>
                 <line
-                  x1={activePoint.x} y1={CHART_TOP}
-                  x2={activePoint.x} y2={X_AXIS_Y}
-                  stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 3" opacity={0.45}
+                  x1={activePoint.x}
+                  y1={CHART_TOP}
+                  x2={activePoint.x}
+                  y2={X_AXIS_Y}
+                  stroke="#94a3b8"
+                  strokeWidth="1.5"
+                  strokeDasharray="4 3"
+                  opacity={0.45}
                 />
-                <circle cx={activePoint.x} cy={activePoint.y}
-                  r="5" fill={CHART_COLOR} stroke="#ffffff" strokeWidth="2.5" />
+                <circle
+                  cx={activePoint.x}
+                  cy={activePoint.y}
+                  r="5"
+                  fill={CHART_COLOR}
+                  stroke="#ffffff"
+                  strokeWidth="2.5"
+                />
               </>
             )}
 
             {/* Single-point dot */}
             {points.length === 1 && points[0] && (
               <>
-                <circle cx={points[0].x} cy={points[0].y}
-                  r="10" fill={CHART_COLOR} opacity={0.15} />
-                <circle cx={points[0].x} cy={points[0].y}
-                  r="6" fill={CHART_COLOR} stroke="#ffffff" strokeWidth="3" />
+                <circle
+                  cx={points[0].x}
+                  cy={points[0].y}
+                  r="10"
+                  fill={CHART_COLOR}
+                  opacity={0.15}
+                />
+                <circle
+                  cx={points[0].x}
+                  cy={points[0].y}
+                  r="6"
+                  fill={CHART_COLOR}
+                  stroke="#ffffff"
+                  strokeWidth="3"
+                />
               </>
             )}
 
             {/* Month labels */}
             {points.map((pt, i) => {
               if (showEveryOther && i % 2 !== 0 && i !== points.length - 1) return null;
-              const isLast    = i === points.length - 1;
+              const isLast = i === points.length - 1;
               const isHovered = i === hoveredIndex;
               return (
                 <text
@@ -451,7 +505,9 @@ export function RevenueChart({
                   textAnchor="middle"
                   fontSize="22"
                   fontFamily="system-ui, sans-serif"
-                  className={isHovered ? 'fill-amber-500' : isLast ? 'fill-slate-800' : 'fill-slate-400'}
+                  className={
+                    isHovered ? 'fill-amber-500' : isLast ? 'fill-slate-800' : 'fill-slate-400'
+                  }
                   fontWeight={isLast || isHovered ? 700 : 400}
                 >
                   {pt.label}
@@ -465,8 +521,8 @@ export function RevenueChart({
       {/* Financial summary row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
         <SummaryItem icon={DollarSign} label={expensesLabel} value={data.summary.expenses} />
-        <SummaryItem icon={Wallet}     label={incomeLabel}   value={data.summary.income} />
-        <SummaryItem icon={PiggyBank}  label={profitLabel}   value={data.summary.profit} />
+        <SummaryItem icon={Wallet} label={incomeLabel} value={data.summary.income} />
+        <SummaryItem icon={PiggyBank} label={profitLabel} value={data.summary.profit} />
       </div>
     </div>
   );

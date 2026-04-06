@@ -1,0 +1,43 @@
+{
+  "name": "@foodwaste/eslint-config",
+  "version": "1.0.0",
+  "description": "Shared ESLint configurations for the Food Waste monorepo",
+  "private": true,
+  "exports": {
+    "./base": "./base.js",
+    "./react": "./react.js",
+    "./react-native": "./react-native.js",
+    "./next": "./next.js",
+    "./nest": "./nest.js",
+    "./flat/nest": "./flat/nest.js"
+  },
+  "files": [
+    "*.js",
+    "flat/*.js"
+  ],
+  "scripts": {
+    "clean": "echo nothing to clean"
+  },
+  "peerDependencies": {
+    "@typescript-eslint/eslint-plugin": ">=8",
+    "@typescript-eslint/parser": ">=8",
+    "eslint": ">=8",
+    "eslint-config-prettier": ">=10",
+    "eslint-plugin-import": ">=2",
+    "eslint-plugin-prettier": ">=5",
+    "eslint-plugin-react": ">=7",
+    "eslint-plugin-react-hooks": ">=5",
+    "eslint-plugin-react-native": ">=4"
+  },
+  "peerDependenciesMeta": {
+    "eslint-plugin-react": {
+      "optional": true
+    },
+    "eslint-plugin-react-hooks": {
+      "optional": true
+    },
+    "eslint-plugin-react-native": {
+      "optional": true
+    }
+  }
+}

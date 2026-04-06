@@ -27,12 +27,10 @@ export const dashboardKeys = {
     [...dashboardKeys.all, 'recent-orders', page, limit] as const,
   merchantOrders: (page = 1, limit = 50) =>
     [...dashboardKeys.all, 'merchant-orders', page, limit] as const,
-  orderDetail: (id: string) =>
-    [...dashboardKeys.all, 'order', id] as const,
+  orderDetail: (id: string) => [...dashboardKeys.all, 'order', id] as const,
   offers: (page: number, limit: number, status?: string) =>
     [...dashboardKeys.all, 'offers', page, limit, status] as const,
-  offersStatusCount: (status: string) =>
-    [...dashboardKeys.all, 'offers-count', status] as const,
+  offersStatusCount: (status: string) => [...dashboardKeys.all, 'offers-count', status] as const,
   activeOfferCount: () => [...dashboardKeys.all, 'active-offer-count'] as const,
   donationStats: () => [...dashboardKeys.all, 'donation-stats'] as const,
   communityGoal: () => [...dashboardKeys.all, 'community-goal'] as const,
@@ -195,8 +193,7 @@ export function useOfferStatusCount(status: string) {
 export function useCreateSurpriseBag() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: CreateSurpriseBagPayload) =>
-      dashboardService.createSurpriseBag(payload),
+    mutationFn: (payload: CreateSurpriseBagPayload) => dashboardService.createSurpriseBag(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
     },

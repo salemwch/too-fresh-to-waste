@@ -1,5 +1,5 @@
-import { FavoriteType } from '../enums';
-import type { OfferListItem } from './offer.types';
+import type { FavoriteType } from '../enums';
+import type { Offer, OfferListItem } from './offer.types';
 
 /**
  * Favorite preferences for notifications
@@ -42,14 +42,14 @@ export interface Favorite {
  * Note: When populated, itemId becomes the full offer object
  */
 export interface FavoriteOffer extends Omit<Favorite, 'itemId'> {
-  itemId: string | OfferListItem;
+  itemId: string | OfferListItem | Offer;
 }
 
 /**
  * Favorites list response
  */
 export interface FavoritesResponse {
-  favorites: Favorite[];
+  favorites: Array<Favorite | FavoriteOffer>;
   total: number;
   page: number;
   totalPages: number;

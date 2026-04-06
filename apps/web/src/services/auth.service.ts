@@ -3,6 +3,7 @@ import type {
   LoginRequest,
   LoginResponse,
   RegisterRequest,
+  RegisterResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
   VerifyEmailRequest,
@@ -11,20 +12,6 @@ import type {
   ApiResponse,
   UserResponse,
 } from '@foodwaste/shared';
-
-/** Backend RegisterResponse — no tokens (user must verify email first) */
-export interface RegisterResponse {
-  success: boolean;
-  message: string;
-  user: {
-    userId: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-    isEmailVerified: boolean;
-  };
-}
 
 const AUTH_BASE = '/auth';
 
@@ -56,7 +43,7 @@ export const authService = {
   refresh(data: RefreshTokenRequest) {
     return apiClient.post<ApiResponse<{ tokens: { accessToken: string; refreshToken: string } }>>(
       `${AUTH_BASE}/refresh`,
-      data
+      data,
     );
   },
 
@@ -69,15 +56,21 @@ export const authService = {
   },
 
   getPasswordPolicy() {
-    return apiClient.get<ApiResponse<{ minLength: number; requireUppercase: boolean; requireLowercase: boolean; requireNumbers: boolean; requireSpecialChars: boolean }>>(
-      `${AUTH_BASE}/password-policy`
-    );
+    return apiClient.get<
+      ApiResponse<{
+        minLength: number;
+        requireUppercase: boolean;
+        requireLowercase: boolean;
+        requireNumbers: boolean;
+        requireSpecialChars: boolean;
+      }>
+    >(`${AUTH_BASE}/password-policy`);
   },
 
   checkPasswordStrength(password: string) {
     return apiClient.post<ApiResponse<PasswordStrengthResponse>>(
       `${AUTH_BASE}/check-password-strength`,
-      { password }
+      { password },
     );
   },
 };

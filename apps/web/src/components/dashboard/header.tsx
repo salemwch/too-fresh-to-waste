@@ -41,9 +41,7 @@ export function DashboardHeader({ navItems }: DashboardHeaderProps) {
 
       {/* Right: Actions + Profile */}
       <div className="flex items-center gap-1.5">
-        <LanguageSwitcherCompact
-          className="w-7 h-7 rounded-full bg-slate-50 hover:bg-slate-100 transition-colors text-slate-600"
-        />
+        <LanguageSwitcherCompact className="w-7 h-7 rounded-full bg-slate-50 hover:bg-slate-100 transition-colors text-slate-600" />
 
         {/* Notification bell */}
         <NotificationBell />

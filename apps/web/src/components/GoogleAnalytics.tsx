@@ -34,13 +34,12 @@ export function GoogleAnalytics({
 
   useEffect(() => {
     // Check if analytics should be loaded
-    const isDNTEnabled = respectDNT && (
-      navigator.doNotTrack === '1' ||
-      // @ts-expect-error - some browsers use window.doNotTrack
-      window.doNotTrack === '1' ||
-      // @ts-expect-error - IE/Edge legacy property
-      navigator.msDoNotTrack === '1'
-    );
+    const isDNTEnabled =
+      respectDNT &&
+      (navigator.doNotTrack === '1' ||
+        window.doNotTrack === '1' ||
+        // @ts-expect-error - IE/Edge legacy property
+        navigator.msDoNotTrack === '1');
 
     const shouldEnable = Boolean(enabled && !isDNTEnabled && measurementId);
 

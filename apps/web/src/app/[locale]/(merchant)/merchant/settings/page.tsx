@@ -74,10 +74,8 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col items-center justify-start min-h-full py-10 px-4">
-
       {/* ── Hero block ── */}
       <div className="flex flex-col items-center text-center max-w-xl">
-
         {/* Animated icon */}
         <div className="relative mb-6">
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center shadow-lg shadow-slate-200">
@@ -94,15 +92,9 @@ export default function SettingsPage() {
           {t('comingSoonTitle')}
         </span>
 
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">
-          {t('comingSoonSubtitle')}
-        </h1>
-        <p className="text-sm text-slate-500 leading-relaxed mb-2">
-          {t('comingSoonDescription')}
-        </p>
-        <p className="text-xs text-slate-400 italic">
-          {t('notifyLabel')}
-        </p>
+        <h1 className="text-2xl font-bold text-slate-800 mb-2">{t('comingSoonSubtitle')}</h1>
+        <p className="text-sm text-slate-500 leading-relaxed mb-2">{t('comingSoonDescription')}</p>
+        <p className="text-xs text-slate-400 italic">{t('notifyLabel')}</p>
       </div>
 
       {/* ── Divider ── */}
@@ -123,14 +115,14 @@ export default function SettingsPage() {
                 Soon
               </span>
 
-              <div className={`w-9 h-9 rounded-lg bg-white flex items-center justify-center shadow-sm ring-1 ${colors.ring}`}>
+              <div
+                className={`w-9 h-9 rounded-lg bg-white flex items-center justify-center shadow-sm ring-1 ${colors.ring}`}
+              >
                 <Icon className={`w-4.5 h-4.5 ${colors.icon}`} />
               </div>
 
               <div>
-                <p className="text-sm font-semibold text-slate-700">
-                  {t(`features.${key}.title`)}
-                </p>
+                <p className="text-sm font-semibold text-slate-700">{t(`features.${key}.title`)}</p>
                 <p className="mt-0.5 text-xs text-slate-500 leading-relaxed">
                   {t(`features.${key}.description`)}
                 </p>

@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { io, type Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { WebSocketEvents } from '@foodwaste/shared';
 import { useAuthStore } from '@/lib/auth';
 import { dashboardKeys } from './use-merchant-dashboard';
 import { useNotificationStore } from '@/lib/notification-store';
@@ -13,8 +14,14 @@ import type { MerchantOrder } from '@/types/dashboard';
 // ─── Zod schemas for incoming WebSocket payloads ──────────────────────────────
 // Must match OrderStatus in src/types/dashboard.ts
 const orderStatusValues = [
-  'pending', 'reserved', 'confirmed', 'ready_for_pickup',
-  'picked_up', 'cancelled', 'expired', 'refunded',
+  'pending',
+  'reserved',
+  'confirmed',
+  'ready_for_pickup',
+  'picked_up',
+  'cancelled',
+  'expired',
+  'refunded',
 ] as const;
 
 const orderStatusPayloadSchema = z.object({
@@ -33,12 +40,14 @@ const orderStatusPayloadSchema = z.object({
 
 const newOrderPayloadSchema = z.object({
   event: z.string().optional(),
-  data: z.object({
-    orderId: z.string().min(1),
-    orderNumber: z.string(),
-    customerName: z.string().optional(),
-    pricing: z.object({ total: z.number() }).optional(),
-  }).optional(),
+  data: z
+    .object({
+      orderId: z.string().min(1),
+      orderNumber: z.string(),
+      customerName: z.string().optional(),
+      pricing: z.object({ total: z.number() }).optional(),
+    })
+    .optional(),
   // Fallback — direct fields when payload arrives unwrapped
   orderId: z.string().optional(),
   orderNumber: z.string().optional(),
@@ -56,7 +65,11 @@ const BACKEND_WS_URL = (() => {
   const wsEnv = process.env['NEXT_PUBLIC_WEBSOCKET_URL'];
   if (wsEnv) return wsEnv.replace(/^ws/, 'http'); // Socket.IO needs http(s), upgrades internally
   const apiUrl = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3000';
-  try { return new URL(apiUrl).origin; } catch { return 'http://localhost:3000'; }
+  try {
+    return new URL(apiUrl).origin;
+  } catch {
+    return 'http://localhost:3000';
+  }
 })();
 
 /**
@@ -96,10 +109,10 @@ export function useMerchantOrdersSocket() {
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      socket.emit('join_room', { room: 'merchant_dashboard' });
+      socket.emit(WebSocketEvents.JOIN_ROOM, { room: 'merchant_dashboard' });
     });
 
-    socket.on('order:status_updated', (raw: unknown) => {
+    socket.on(WebSocketEvents.ORDER_STATUS_UPDATED, (raw: unknown) => {
       const parsed = orderStatusPayloadSchema.safeParse(raw);
       if (!parsed.success) {
         if (process.env.NODE_ENV === 'development') {
@@ -116,9 +129,7 @@ export function useMerchantOrdersSocket() {
           if (!old?.orders) return old;
           return {
             ...old,
-            orders: old.orders.map((o) =>
-              o._id === orderId ? { ...o, status } : o,
-            ),
+            orders: old.orders.map((o) => (o._id === orderId ? { ...o, status } : o)),
           };
         },
       );
@@ -128,7 +139,7 @@ export function useMerchantOrdersSocket() {
       });
     });
 
-    socket.on('order:new', (raw: unknown) => {
+    socket.on(WebSocketEvents.ORDER_NEW, (raw: unknown) => {
       const parsed = newOrderPayloadSchema.safeParse(raw);
       if (!parsed.success) {
         if (process.env.NODE_ENV === 'development') {

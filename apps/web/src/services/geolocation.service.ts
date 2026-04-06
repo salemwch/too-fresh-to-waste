@@ -12,10 +12,10 @@ export const geolocationService = {
    * @param signal - Optional AbortSignal to cancel in-flight requests
    */
   autocomplete(query: string, sessionToken: string, limit = 5, signal?: AbortSignal) {
-    return apiClient.get<{ data: PlaceSuggestion[] }>(
-      `${GEO_BASE}/location/autocomplete`,
-      { params: { query, sessionToken, limit }, ...(signal ? { signal } : {}) },
-    );
+    return apiClient.get<{ data: PlaceSuggestion[] }>(`${GEO_BASE}/location/autocomplete`, {
+      params: { query, sessionToken, limit },
+      ...(signal ? { signal } : {}),
+    });
   },
 
   /**
@@ -23,10 +23,9 @@ export const geolocationService = {
    * Concludes the session token (billed as Essentials SKU).
    */
   getPlaceDetails(placeId: string, sessionToken: string) {
-    return apiClient.get<{ data: PlaceDetails }>(
-      `${GEO_BASE}/location/details`,
-      { params: { placeId, sessionToken } },
-    );
+    return apiClient.get<{ data: PlaceDetails }>(`${GEO_BASE}/location/details`, {
+      params: { placeId, sessionToken },
+    });
   },
 
   /**

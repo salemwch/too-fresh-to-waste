@@ -49,15 +49,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Add service area landing pages for Tunisia cities
   // These are important for local SEO
-  const tunisiaCities = [
-    'tunis',
-    'sousse',
-    'sfax',
-    'monastir',
-    'hammamet',
-    'bizerte',
-    'nabeul',
-  ];
+  const tunisiaCities = ['tunis', 'sousse', 'sfax', 'monastir', 'hammamet', 'bizerte', 'nabeul'];
 
   tunisiaCities.forEach((city) => {
     locales.forEach((locale) => {

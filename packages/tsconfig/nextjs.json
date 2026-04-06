@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  // Next.js 15 App Router — ESNext, bundler resolution, no emit
+  // (Next.js compiler handles transpilation).
+  "extends": "./base.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "isolatedModules": true,
+    "incremental": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": false,
+
+    // Relax index-signature checks — Next.js page props patterns
+    // (generateStaticParams etc.) clash with noPropertyAccessFromIndexSignature.
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
+
+    // Next.js language-service plugin for IDE support
+    "plugins": [{ "name": "next" }]
+  }
+}

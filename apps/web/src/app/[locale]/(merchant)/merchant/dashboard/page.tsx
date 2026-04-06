@@ -108,9 +108,10 @@ function buildStatsCards(
       iconBg: 'bg-indigo-50',
       iconColor: 'text-indigo-600',
       trend: {
-        value: stats.totalOrders > 0
-          ? Number(((stats.completedOrders / stats.totalOrders) * 100).toFixed(1))
-          : 0,
+        value:
+          stats.totalOrders > 0
+            ? Number(((stats.completedOrders / stats.totalOrders) * 100).toFixed(1))
+            : 0,
         suffix: '%',
         direction: stats.completedOrders > 0 ? 'up' : 'down',
         label: `${stats.completedOrders} ${t('merchant.completed')}`,
@@ -148,8 +149,8 @@ function buildStatsCards(
 }
 
 const CHART_VS_LABEL: Record<ChartGranularity, string> = {
-  day:   'vs previous day',
-  week:  'vs previous week',
+  day: 'vs previous day',
+  week: 'vs previous week',
   month: 'vs previous month',
 };
 
@@ -158,15 +159,14 @@ function buildRevenueChartData(
   stats: OrderStatsResponse,
   granularity: ChartGranularity,
 ): RevenueChartData {
-  const totalRevenue  = items.reduce((sum, m) => sum + m.revenue, 0);
+  const totalRevenue = items.reduce((sum, m) => sum + m.revenue, 0);
   const activePeriods = items.filter((m) => m.revenue > 0).length || 1;
-  const avgIncome     = totalRevenue / activePeriods;
+  const avgIncome = totalRevenue / activePeriods;
 
   const lastPeriod = items[items.length - 1]?.revenue ?? 0;
   const prevPeriod = items[items.length - 2]?.revenue ?? 0;
-  const trendPct   = prevPeriod > 0
-    ? Number((((lastPeriod - prevPeriod) / prevPeriod) * 100).toFixed(2))
-    : 0;
+  const trendPct =
+    prevPeriod > 0 ? Number((((lastPeriod - prevPeriod) / prevPeriod) * 100).toFixed(2)) : 0;
 
   const cancelledValue = stats.cancelledOrders * stats.averageOrderValue;
 
@@ -174,14 +174,14 @@ function buildRevenueChartData(
     months: items.map((m) => ({ label: m.label, value: m.revenue })),
     averageIncome: formatCompactCurrency(avgIncome),
     trend: {
-      value:     Math.abs(trendPct),
+      value: Math.abs(trendPct),
       direction: trendPct >= 0 ? 'up' : 'down',
-      label:     CHART_VS_LABEL[granularity],
+      label: CHART_VS_LABEL[granularity],
     },
     summary: {
       expenses: formatCompactCurrency(cancelledValue),
-      income:   formatCompactCurrency(totalRevenue),
-      profit:   formatCompactCurrency(Math.max(0, totalRevenue - cancelledValue)),
+      income: formatCompactCurrency(totalRevenue),
+      profit: formatCompactCurrency(Math.max(0, totalRevenue - cancelledValue)),
     },
   };
 }
@@ -252,16 +252,16 @@ export default function MerchantDashboardPage() {
   }, [granularity, value]);
 
   // ── Data fetching (all scoped to the same time window) ──────────────────
-  const orderStatsQuery    = useOrderStats(startDate);
-  const revenueQuery       = useRevenueChart(granularity, value);
+  const orderStatsQuery = useOrderStats(startDate);
+  const revenueQuery = useRevenueChart(granularity, value);
   // Recent orders and active offers are always "current" — not time-scoped
-  const recentOrdersQuery  = useMerchantRecentOrders(1, 5);
+  const recentOrdersQuery = useMerchantRecentOrders(1, 5);
   const activeOfferCountQuery = useActiveOfferCount();
   // ── Data transformation (memoised) ─────────────────────────────────────
   const stats = useMemo(() => {
     if (!orderStatsQuery.data) return null;
-    const activeCount  = activeOfferCountQuery.data ?? 0;
-    const chartItems   = revenueQuery.data ?? [];
+    const activeCount = activeOfferCountQuery.data ?? 0;
+    const chartItems = revenueQuery.data ?? [];
     return buildStatsCards(orderStatsQuery.data, activeCount, chartItems, t);
   }, [orderStatsQuery.data, activeOfferCountQuery.data, revenueQuery.data, t]);
 
@@ -274,7 +274,6 @@ export default function MerchantDashboardPage() {
     if (!recentOrdersQuery.data?.orders) return [];
     return buildRecentOrders(recentOrdersQuery.data.orders);
   }, [recentOrdersQuery.data]);
-
 
   // ── Revenue detail popup data ────────────────────────────────────────
   const revenueDetailData = useMemo<RevenueDetailData | null>(() => {
@@ -297,10 +296,10 @@ export default function MerchantDashboardPage() {
   }, []);
 
   const statusLabels = {
-    pending:   t('merchant.pending'),
+    pending: t('merchant.pending'),
     confirmed: t('merchant.confirmed'),
     picked_up: t('merchant.pickedUp'),
-    expired:   t('merchant.expired'),
+    expired: t('merchant.expired'),
     cancelled: t('merchant.cancelled'),
   } as const;
 
@@ -308,7 +307,6 @@ export default function MerchantDashboardPage() {
 
   return (
     <div className="space-y-5">
-
       {/* Surprise Bag panel (portal-rendered) */}
       <SurpriseBagPanel open={panelOpen} onClose={() => setPanelOpen(false)} />
 
@@ -342,9 +340,7 @@ export default function MerchantDashboardPage() {
                 className="h-5 w-5 shrink-0"
               />
             </h1>
-            <p className="text-sm text-muted-foreground">
-              {t('merchantDashboardDescription')}
-            </p>
+            <p className="text-sm text-muted-foreground">{t('merchantDashboardDescription')}</p>
           </div>
 
           <button
@@ -362,47 +358,50 @@ export default function MerchantDashboardPage() {
 
       {/* ── 12-column content grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-
         {/* Left column */}
         <div className="lg:col-span-8 xl:col-span-9 space-y-5">
-
           {/* KPI Stats */}
-          {orderStatsQuery.isLoading || !stats
-            ? <StatsCardsSkeleton />
-            : <StatsCards stats={stats} onCardClick={handleStatCardClick} />}
+          {orderStatsQuery.isLoading || !stats ? (
+            <StatsCardsSkeleton />
+          ) : (
+            <StatsCards stats={stats} onCardClick={handleStatCardClick} />
+          )}
 
           {/* Revenue Chart */}
-          {revenueQuery.isLoading || !revenueData
-            ? <RevenueChartSkeleton />
-            : (
-              <RevenueChart
-                data={revenueData}
-                title={t(`merchant.${granularity}Revenue`)}
-                avgLabel={t(`merchant.avg${granularity.charAt(0).toUpperCase() + granularity.slice(1)}Income`)}
-                vsLabel={t(`merchant.vsPrevious${granularity.charAt(0).toUpperCase() + granularity.slice(1)}`)}
-                expensesLabel={t('merchant.totalExpenses')}
-                incomeLabel={t('merchant.totalIncome')}
-                profitLabel={t('merchant.totalProfit')}
-                tooltipLabel={t('merchant.totalIncome')}
-                filterSlot={<DateFilter value={datePreset} onChange={setDatePreset} />}
-              />
-            )}
-
+          {revenueQuery.isLoading || !revenueData ? (
+            <RevenueChartSkeleton />
+          ) : (
+            <RevenueChart
+              data={revenueData}
+              title={t(`merchant.${granularity}Revenue`)}
+              avgLabel={t(
+                `merchant.avg${granularity.charAt(0).toUpperCase() + granularity.slice(1)}Income`,
+              )}
+              vsLabel={t(
+                `merchant.vsPrevious${granularity.charAt(0).toUpperCase() + granularity.slice(1)}`,
+              )}
+              expensesLabel={t('merchant.totalExpenses')}
+              incomeLabel={t('merchant.totalIncome')}
+              profitLabel={t('merchant.totalProfit')}
+              tooltipLabel={t('merchant.totalIncome')}
+              filterSlot={<DateFilter value={datePreset} onChange={setDatePreset} />}
+            />
+          )}
         </div>
 
         {/* Right sidebar — starts at the same vertical level as KPI cards */}
         <div className="lg:col-span-4 xl:col-span-3">
-          {recentOrdersQuery.isLoading
-            ? <PanelSkeleton rows={5} />
-            : (
-              <RecentOrdersPanel
-                orders={recentOrders}
-                title={t('merchant.recentOrders')}
-                statusLabels={statusLabels}
-                itemsLabel={t('merchant.items', { count: '{count}' })}
-                viewAllHref="/merchant/orders"
-              />
-            )}
+          {recentOrdersQuery.isLoading ? (
+            <PanelSkeleton rows={5} />
+          ) : (
+            <RecentOrdersPanel
+              orders={recentOrders}
+              title={t('merchant.recentOrders')}
+              statusLabels={statusLabels}
+              itemsLabel={t('merchant.items', { count: '{count}' })}
+              viewAllHref="/merchant/orders"
+            />
+          )}
         </div>
       </div>
     </div>

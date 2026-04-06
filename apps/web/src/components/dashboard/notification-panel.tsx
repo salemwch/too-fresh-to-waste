@@ -5,10 +5,7 @@ import { Bell, ShoppingBag, CheckCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { cn } from '@foodwaste/ui';
-import {
-  useNotificationStore,
-  type NewOrderNotification,
-} from '@/lib/notification-store';
+import { useNotificationStore, type NewOrderNotification } from '@/lib/notification-store';
 
 function formatRelativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -23,8 +20,7 @@ function formatRelativeTime(iso: string): string {
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
-  const { notifications, unreadCount, markRead, markAllRead } =
-    useNotificationStore();
+  const { notifications, unreadCount, markRead, markAllRead } = useNotificationStore();
   const router = useRouter();
   const locale = useLocale();
 
@@ -68,9 +64,7 @@ export function NotificationBell() {
           {/* Panel header */}
           <div className="flex items-center justify-between px-3 py-2.5 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-900">
-                Notifications
-              </span>
+              <span className="text-xs font-semibold text-slate-900">Notifications</span>
               {unreadCount > 0 && (
                 <span className="rounded-full bg-red-100 text-red-600 text-[9px] font-bold px-1.5 py-0.5 leading-tight">
                   {unreadCount} new
@@ -112,10 +106,7 @@ export function NotificationBell() {
                     )}
                   >
                     <ShoppingBag
-                      className={cn(
-                        'w-3.5 h-3.5',
-                        n.read ? 'text-slate-400' : 'text-primary-600',
-                      )}
+                      className={cn('w-3.5 h-3.5', n.read ? 'text-slate-400' : 'text-primary-600')}
                     />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -123,9 +114,7 @@ export function NotificationBell() {
                       <p className="text-xs font-semibold text-slate-900 truncate">
                         New Order #{n.orderNumber}
                       </p>
-                      {!n.read && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                      )}
+                      {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />}
                     </div>
                     <p className="text-[11px] text-slate-500 mt-0.5">
                       {n.customerName} &middot; &euro;{n.total.toFixed(2)}

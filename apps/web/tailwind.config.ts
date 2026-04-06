@@ -19,7 +19,7 @@ const config: Config = {
           200: '#99D3D1',
           300: '#66BDBA',
           400: '#33A6A3',
-          500: '#005250',  // Main brand color
+          500: '#005250', // Main brand color
           600: '#004240',
           700: '#003130',
           800: '#002120',
@@ -33,7 +33,7 @@ const config: Config = {
           200: '#FFCFCB',
           300: '#FFB7B1',
           400: '#FF9F97',
-          500: '#F55449',  // Main accent color
+          500: '#F55449', // Main accent color
           600: '#C4433A',
           700: '#93322C',
           800: '#62221D',

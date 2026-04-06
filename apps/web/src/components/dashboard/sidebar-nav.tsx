@@ -42,40 +42,39 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
               <Icon
                 className={cn(
                   'w-4 h-4 shrink-0',
-                  isActive
-                    ? 'text-white'
-                    : 'text-slate-400 group-hover:text-slate-600',
+                  isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-600',
                 )}
               />
               {!collapsed && <span>{t(item.titleKey)}</span>}
             </div>
-            {!collapsed && (() => {
-              // Orders: live unread count (red — urgent).
-              if (item.titleKey === 'orders' && unreadOrderCount > 0) {
-                return (
-                  <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-medium">
-                    {unreadOrderCount > 99 ? '99+' : unreadOrderCount}
-                  </span>
-                );
-              }
-              // Offers: draft count (amber — needs attention).
-              if (item.titleKey === 'offers' && draftOfferCount > 0) {
-                return (
-                  <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
-                    {draftOfferCount > 99 ? '99+' : draftOfferCount}
-                  </span>
-                );
-              }
-              // Static badge from nav config.
-              if (item.badge) {
-                return (
-                  <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
-                    {item.badge}
-                  </span>
-                );
-              }
-              return null;
-            })()}
+            {!collapsed &&
+              (() => {
+                // Orders: live unread count (red — urgent).
+                if (item.titleKey === 'orders' && unreadOrderCount > 0) {
+                  return (
+                    <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-medium">
+                      {unreadOrderCount > 99 ? '99+' : unreadOrderCount}
+                    </span>
+                  );
+                }
+                // Offers: draft count (amber — needs attention).
+                if (item.titleKey === 'offers' && draftOfferCount > 0) {
+                  return (
+                    <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
+                      {draftOfferCount > 99 ? '99+' : draftOfferCount}
+                    </span>
+                  );
+                }
+                // Static badge from nav config.
+                if (item.badge) {
+                  return (
+                    <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
+                      {item.badge}
+                    </span>
+                  );
+                }
+                return null;
+              })()}
           </Link>
         );
       })}

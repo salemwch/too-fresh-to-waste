@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
@@ -11,9 +12,11 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       {/* Minimal header with logo and locale switcher */}
       <header className="flex items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2">
-          <img
+          <Image
             src="/images/green-header-center.png"
             alt="Too Fresh To Waste"
+            width={160}
+            height={40}
             className="h-10 w-auto"
           />
         </Link>

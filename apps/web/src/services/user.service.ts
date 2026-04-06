@@ -20,9 +20,13 @@ export const userService = {
   uploadAvatar(file: File) {
     const formData = new FormData();
     formData.append('profileImage', file);
-    return apiClient.patch<ApiResponse<{ profileImage: string }>>(`${USERS_BASE}/profile/image`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return apiClient.patch<ApiResponse<{ profileImage: string }>>(
+      `${USERS_BASE}/profile/image`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      },
+    );
   },
 
   getPreferences() {

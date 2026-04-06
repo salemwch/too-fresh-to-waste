@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  // React UI component library — ESNext modules, bundler resolution.
+  // No emit (consumers bundle from TS source via their own compiler).
+  "extends": "./base.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+
+    // Output — declarations for IDE; bundled by consuming app
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noEmit": true,
+
+    // Composite for project references (IDE navigation)
+    "composite": true,
+    "incremental": true,
+
+    // Relax the harshest checks — component prop patterns trigger these
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false
+  }
+}

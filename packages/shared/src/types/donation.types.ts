@@ -1,4 +1,4 @@
-import { DonationPoolStatus } from '../enums';
+import type { DonationPoolStatus } from '../enums';
 
 /**
  * Donation statistics response from backend

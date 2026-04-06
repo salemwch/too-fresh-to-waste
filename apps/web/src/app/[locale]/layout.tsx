@@ -17,7 +17,14 @@ const inter = Inter({
   variable: '--font-inter',
   adjustFontFallback: true,
   preload: true,
-  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+  fallback: [
+    'system-ui',
+    '-apple-system',
+    'BlinkMacSystemFont',
+    'Segoe UI',
+    'Roboto',
+    'sans-serif',
+  ],
 });
 
 // Arabic font (Noto Sans Arabic) for Arabic locale
@@ -79,8 +86,7 @@ export async function generateMetadata({
 
     // Alternate languages for SEO (hreflang)
     alternates: {
-      canonical:
-        locale === seoConfig.defaultLocale ? seoConfig.url : `${seoConfig.url}/${locale}`,
+      canonical: locale === seoConfig.defaultLocale ? seoConfig.url : `${seoConfig.url}/${locale}`,
       languages: alternateLanguages,
     },
 
@@ -91,8 +97,7 @@ export async function generateMetadata({
       alternateLocale: locales
         .filter((l) => l !== locale)
         .map((l) => getLocaleSeoMetadata(l as Locale).ogLocale),
-      url:
-        locale === seoConfig.defaultLocale ? seoConfig.url : `${seoConfig.url}/${locale}`,
+      url: locale === seoConfig.defaultLocale ? seoConfig.url : `${seoConfig.url}/${locale}`,
       siteName: seoConfig.siteName,
       title: localeMetadata.title,
       description: localeMetadata.description,
@@ -218,9 +223,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         )}
 
         <NextIntlClientProvider messages={messages}>
-          <AppProviders>
-            {children}
-          </AppProviders>
+          <AppProviders>{children}</AppProviders>
         </NextIntlClientProvider>
       </body>
     </html>
