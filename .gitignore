@@ -161,5 +161,15 @@ apps/food-waste-backend/scripts/test-*.js
 nul
 NUL
 
+# Business documents (sensitive — use shared drive instead)
+*.docx
+*.xlsx
+~$*.docx
+~$*.xlsx
+
+# Ad-hoc report outputs
+full-report.txt
+*-report.txt
+
 !apps/web/public/images/**
 !apps/web/public/favicon.svg
