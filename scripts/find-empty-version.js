@@ -32,7 +32,7 @@ for (const d of dirs) {
           try {
             const pkg = JSON.parse(fs.readFileSync(sp, 'utf8'));
             if (!pkg.version || pkg.version.trim() === '') {
-              console.log('EMPTY VERSION:', d + '/' + s, '→', JSON.stringify(pkg.version));
+              console.log('EMPTY VERSION:', `${d}/${s}`, '→', JSON.stringify(pkg.version));
               found++;
             }
           } catch (e) {}
@@ -44,7 +44,7 @@ for (const d of dirs) {
 
 // Also check for packages with bin fields and invalid versions
 console.log('\n--- Packages with bin field ---');
-let binConflicts = {};
+const binConflicts = {};
 for (const d of dirs) {
   if (d.startsWith('.')) continue;
   const pkgPath = path.join(nmDir, d, 'package.json');
@@ -72,7 +72,7 @@ for (const d of dirs) {
               const bins = typeof pkg.bin === 'string' ? { [pkg.name]: pkg.bin } : pkg.bin;
               for (const cmd of Object.keys(bins)) {
                 if (!binConflicts[cmd]) binConflicts[cmd] = [];
-                binConflicts[cmd].push({ name: d + '/' + s, version: pkg.version });
+                binConflicts[cmd].push({ name: `${d}/${s}`, version: pkg.version });
               }
             }
           } catch (e) {}

@@ -1,6 +1,5 @@
 ---
-description:
-  Code quality enforcer for clean code, design patterns, refactoring, and
+description: Code quality enforcer for clean code, design patterns, refactoring, and
   technical debt management
 model: sonnet
 ---
@@ -132,11 +131,7 @@ class QueryBuilder {
   }
 }
 
-const query = new QueryBuilder()
-  .select(['id', 'name'])
-  .from('users')
-  .where('age > 18')
-  .build();
+const query = new QueryBuilder().select(['id', 'name']).from('users').where('age > 18').build();
 ```
 
 ## Structural Patterns
@@ -228,7 +223,7 @@ class EventEmitter {
     this.listeners.get(event)!.push(callback);
   }
   emit(event: string, data: any) {
-    this.listeners.get(event)?.forEach(cb => cb(data));
+    this.listeners.get(event)?.forEach((cb) => cb(data));
   }
 }
 ```

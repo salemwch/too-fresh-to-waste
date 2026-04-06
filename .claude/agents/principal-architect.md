@@ -1,6 +1,5 @@
 ---
-description:
-  Principal Architect for system design, scalability, and architectural decision
+description: Principal Architect for system design, scalability, and architectural decision
   records (ADRs)
 model: opus
 ---

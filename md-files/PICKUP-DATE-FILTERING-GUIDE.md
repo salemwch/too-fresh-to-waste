@@ -5,6 +5,7 @@
 ### 1. New Backend Endpoints
 
 #### **GET `/api/v1/offers/pickup-today`**
+
 - **Description**: Fetch all offers available for pickup today (00:00 - 23:59 Africa/Tunis)
 - **Auth**: Public (no login required)
 - **Query Parameters**:
@@ -14,11 +15,13 @@
   - `longitude` (optional) - for distance calculation
 
 **Example Request**:
+
 ```bash
 GET http://localhost:3000/api/v1/offers/pickup-today?page=1&limit=10&latitude=36.8065&longitude=10.1815
 ```
 
 **Example Response**:
+
 ```json
 {
   "message": "Pickup today offers retrieved successfully",
@@ -29,7 +32,7 @@ GET http://localhost:3000/api/v1/offers/pickup-today?page=1&limit=10&latitude=36
       "availableFrom": "2026-01-20T06:00:00.000Z",
       "availableUntil": "2026-01-20T20:00:00.000Z",
       "pricing": {
-        "originalPrice": 15.00,
+        "originalPrice": 15.0,
         "discountedPrice": 5.99,
         "discountPercentage": 60
       },
@@ -48,11 +51,13 @@ GET http://localhost:3000/api/v1/offers/pickup-today?page=1&limit=10&latitude=36
 ---
 
 #### **GET `/api/v1/offers/pickup-tomorrow`**
+
 - **Description**: Fetch all offers available for pickup tomorrow (00:00 - 23:59 Africa/Tunis)
 - **Auth**: Public (no login required)
 - **Query Parameters**: Same as pickup-today
 
 **Example Request**:
+
 ```bash
 GET http://localhost:3000/api/v1/offers/pickup-tomorrow?page=1&limit=10
 ```
@@ -66,12 +71,14 @@ GET http://localhost:3000/api/v1/offers/pickup-tomorrow?page=1&limit=10
 The create offer endpoint **already supports image uploads**. No changes needed!
 
 **How It Works**:
+
 1. Accepts up to **5 images** via `multipart/form-data`
 2. Stores images locally in `uploads/offers/` folder
 3. Auto-processes images: 800x600px, 80% quality, JPEG format
 4. Returns image URLs in response
 
 **Example Request (Postman/Insomnia)**:
+
 ```http
 POST http://localhost:3000/api/v1/offers
 Content-Type: multipart/form-data
@@ -91,6 +98,7 @@ Form Data:
 ```
 
 **Example Response**:
+
 ```json
 {
   "message": "Offer created successfully",
@@ -102,7 +110,7 @@ Form Data:
       "http://localhost:3000/uploads/offers/1705747200001_def456.jpg"
     ],
     "pricing": {
-      "originalPrice": 15.00,
+      "originalPrice": 15.0,
       "discountedPrice": 5.99,
       "discountPercentage": 60,
       "currency": "TND"
@@ -128,10 +136,7 @@ import type { LocationCoordinates } from '@/types';
 /**
  * Hook to fetch offers available for pickup today
  */
-export function usePickupTodayOffers(
-  limit: number = 10,
-  location?: LocationCoordinates
-) {
+export function usePickupTodayOffers(limit: number = 10, location?: LocationCoordinates) {
   return useQuery({
     queryKey: ['offers', 'pickup-today', limit, location?.latitude, location?.longitude],
     queryFn: () => offersService.getPickupTodayOffers(1, limit, location),
@@ -143,10 +148,7 @@ export function usePickupTodayOffers(
 /**
  * Hook to fetch offers available for pickup tomorrow
  */
-export function usePickupTomorrowOffers(
-  limit: number = 10,
-  location?: LocationCoordinates
-) {
+export function usePickupTomorrowOffers(limit: number = 10, location?: LocationCoordinates) {
   return useQuery({
     queryKey: ['offers', 'pickup-tomorrow', limit, location?.latitude, location?.longitude],
     queryFn: () => offersService.getPickupTomorrowOffers(1, limit, location),
@@ -375,6 +377,7 @@ Images are stored in: `apps/food-waste-backend/uploads/offers/`
 ## 🔥 Key Features
 
 ### Pickup Date Filtering
+
 - ✅ Timezone-aware (Africa/Tunis)
 - ✅ Handles offers spanning multiple days
 - ✅ Only shows ACTIVE offers
@@ -383,6 +386,7 @@ Images are stored in: `apps/food-waste-backend/uploads/offers/`
 - ✅ Optional distance calculation
 
 ### Image Upload
+
 - ✅ Up to 5 images per offer
 - ✅ Auto image processing (resize, compress, format)
 - ✅ Local storage (no Firebase/S3 needed)
@@ -394,6 +398,7 @@ Images are stored in: `apps/food-waste-backend/uploads/offers/`
 ## 🎯 Summary
 
 **Backend Changes**:
+
 - ✅ Added `getPickupTodayOffers()` method in `OffersService`
 - ✅ Added `getPickupTomorrowOffers()` method in `OffersService`
 - ✅ Added `GET /offers/pickup-today` endpoint
@@ -401,12 +406,14 @@ Images are stored in: `apps/food-waste-backend/uploads/offers/`
 - ✅ Image upload already works (no changes needed!)
 
 **Mobile Integration Needed**:
+
 1. Create `usePickupDateOffers.ts` hook file
 2. Add service methods to `offersService.ts`
 3. Update `HomeScreen.tsx` to add 2 new sections
 4. Export hooks from `index.ts`
 
 **Next Steps**:
+
 1. Restart backend: `pnpm dev`
 2. Test endpoints with Postman/curl
 3. Implement mobile hooks and UI

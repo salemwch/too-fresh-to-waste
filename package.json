@@ -42,9 +42,9 @@
     "mobile:lint": "pnpm turbo run lint --filter=@foodwaste/mobile",
     "mobile:clean": "pnpm turbo run clean --filter=@foodwaste/mobile",
     "// ENTERPRISE DIRECT COMMANDS (CI/CD)": "",
-    "dev:android": "cd apps/mobile/android && gradlew assembleDebug",
-    "dev:android:clean": "cd apps/mobile/android && gradlew clean",
-    "dev:android:release": "cd apps/mobile/android && gradlew assembleRelease",
+    "dev:android": "cd apps/mobile/android && ./gradlew assembleDebug",
+    "dev:android:clean": "cd apps/mobile/android && ./gradlew clean",
+    "dev:android:release": "cd apps/mobile/android && ./gradlew assembleRelease",
     "dev:metro": "cd apps/mobile && node ./node_modules/metro/src/cli.js start --reset-cache --host 0.0.0.0",
     "dev:android:run": "cd apps/mobile && node ./node_modules/@react-native-community/cli/build/bin.js run-android",
     "release:ios": "turbo run release:ios",
@@ -55,7 +55,13 @@
     "security:check": "turbo run security:check",
     "prepare-release": "turbo run build test:ci security:check && pnpm audit"
   },
+  "dependencies": {
+    "tslib": "^2.8.1"
+  },
   "devDependencies": {
+    "@foodwaste/eslint-config": "workspace:*",
+    "@foodwaste/jest-config": "workspace:*",
+    "@foodwaste/tsconfig": "workspace:*",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@react-native/eslint-config": "0.82.1",

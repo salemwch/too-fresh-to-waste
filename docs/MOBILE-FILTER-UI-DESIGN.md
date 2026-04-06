@@ -5,6 +5,7 @@
 Implemented a complete, production-ready 4-dimensional filter system for the mobile app with modern UI/UX design.
 
 ### Key Features
+
 - ✅ 4 filter dimensions (Offer Type, Establishment Type, Cuisine Type, Food Categories)
 - ✅ Beautiful animated bottom sheet
 - ✅ Icon-based chips for visual appeal
@@ -151,6 +152,7 @@ Implemented a complete, production-ready 4-dimensional filter system for the mob
 ## Color Scheme
 
 ### Light Mode
+
 ```typescript
 {
   // Selected state
@@ -171,6 +173,7 @@ Implemented a complete, production-ready 4-dimensional filter system for the mob
 ```
 
 ### Dark Mode
+
 ```typescript
 {
   primary: '#FF8A8A',           // Lighter coral for dark mode
@@ -188,6 +191,7 @@ Implemented a complete, production-ready 4-dimensional filter system for the mob
 ## Component Specifications
 
 ### IconChip (Establishment Type)
+
 - **Size**: 80x80 dp square
 - **Border**: 2dp, rounded 12dp
 - **Icon**: 24dp emoji
@@ -196,6 +200,7 @@ Implemented a complete, production-ready 4-dimensional filter system for the mob
 - **Animation**: Scale 0.95 on press
 
 ### FlagChip (Cuisine Type)
+
 - **Size**: Auto width, 40dp height
 - **Border**: 2dp, rounded 20dp (fully rounded)
 - **Padding**: 12dp horizontal, 10dp vertical
@@ -204,6 +209,7 @@ Implemented a complete, production-ready 4-dimensional filter system for the mob
 - **Layout**: Horizontal (flag + text)
 
 ### CategoryPill (Food Categories)
+
 - **Size**: Auto width, 36dp height
 - **Border**: 2dp, rounded 20dp
 - **Padding**: 14dp horizontal, 10dp vertical
@@ -212,6 +218,7 @@ Implemented a complete, production-ready 4-dimensional filter system for the mob
 - **Wrap**: Flex wrap with 8dp gap
 
 ### RadioChip (Offer Type)
+
 - **Size**: Full width, 48dp height
 - **Border**: 2dp, rounded 12dp
 - **Padding**: 16dp
@@ -224,35 +231,40 @@ Implemented a complete, production-ready 4-dimensional filter system for the mob
 ## Interaction States
 
 ### Chip States
-| State | Background | Border | Text |
-|-------|-----------|--------|------|
-| **Default** | surface (#F5F5F5) | border (#E0E0E0) | text (#333333) |
-| **Selected** | primary (#FF6B6B) | primary (#FF6B6B) | white (#FFFFFF) |
-| **Pressed** | Scale 0.95 + opacity 0.8 | | |
+
+| State        | Background               | Border            | Text            |
+| ------------ | ------------------------ | ----------------- | --------------- |
+| **Default**  | surface (#F5F5F5)        | border (#E0E0E0)  | text (#333333)  |
+| **Selected** | primary (#FF6B6B)        | primary (#FF6B6B) | white (#FFFFFF) |
+| **Pressed**  | Scale 0.95 + opacity 0.8 |                   |                 |
 
 ### Button States
-| State | Background | Text | Icon |
-|-------|-----------|------|------|
-| **Default** | primary (#FF6B6B) | white | white |
-| **Pressed** | darker primary | white | white |
-| **Disabled** | gray (#CCCCCC) | white | white |
-| **Loading** | primary | spinner | - |
+
+| State        | Background        | Text    | Icon  |
+| ------------ | ----------------- | ------- | ----- |
+| **Default**  | primary (#FF6B6B) | white   | white |
+| **Pressed**  | darker primary    | white   | white |
+| **Disabled** | gray (#CCCCCC)    | white   | white |
+| **Loading**  | primary           | spinner | -     |
 
 ---
 
 ## Animations
 
 ### Bottom Sheet
+
 - **Enter**: Slide up from bottom (300ms, ease-out)
 - **Exit**: Slide down to bottom (250ms, ease-in)
 - **Backdrop**: Fade in/out (200ms)
 
 ### Chips
+
 - **Press**: Scale 0.95 (100ms, ease)
 - **Select**: Background color transition (150ms)
 - **Deselect**: Background color transition (150ms)
 
 ### Active Filter Chips
+
 - **Add**: Slide in from right (200ms)
 - **Remove**: Fade out + scale 0.8 (150ms)
 
@@ -271,12 +283,14 @@ Implemented a complete, production-ready 4-dimensional filter system for the mob
 ## Responsive Behavior
 
 ### Phone (< 600dp width)
+
 - Icon chips: 4 per row
 - Flag chips: 2-3 per row (auto wrap)
 - Category pills: Auto wrap with 8dp gap
 - Bottom sheet: 90% screen height
 
 ### Tablet (≥ 600dp width)
+
 - Icon chips: 6-8 per row
 - Larger touch targets
 - Bottom sheet: 70% screen height, centered
@@ -296,28 +310,30 @@ Implemented a complete, production-ready 4-dimensional filter system for the mob
 ## Backend API Integration
 
 ### Request Format
+
 ```typescript
 // Build query params from filter state
 const params: OfferSearchParams = {
   page: 1,
   limit: 20,
-  type: filters.offerType,                    // 'surprise_bag' | 'specific_items' | 'meal_deal'
-  establishmentType: filters.establishmentTypes[0],  // 'BAKERY' | 'RESTAURANT' | ...
-  cuisineTypes: filters.cuisineTypes,         // ['italian', 'asian']
-  categories: filters.categories,             // ['pizza', 'pasta']
+  type: filters.offerType, // 'surprise_bag' | 'specific_items' | 'meal_deal'
+  establishmentType: filters.establishmentTypes[0], // 'BAKERY' | 'RESTAURANT' | ...
+  cuisineTypes: filters.cuisineTypes, // ['italian', 'asian']
+  categories: filters.categories, // ['pizza', 'pasta']
 };
 ```
 
 ### Response Format
+
 ```typescript
 interface OffersResponse {
-  data: OfferListItem[];  // Filtered offers
+  data: OfferListItem[]; // Filtered offers
   meta: {
-    page: 1,
-    limit: 20,
-    total: 24,              // Used for "Apply Filters (24 offers)" button
-    totalPages: 2
-  }
+    page: 1;
+    limit: 20;
+    total: 24; // Used for "Apply Filters (24 offers)" button
+    totalPages: 2;
+  };
 }
 ```
 
@@ -343,6 +359,7 @@ interface OffersResponse {
 ---
 
 ## File Structure
+
 ```
 apps/mobile/src/features/
 ├── offers/

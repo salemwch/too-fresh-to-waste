@@ -1,6 +1,5 @@
 ---
-description:
-  Regulatory compliance specialist for SOC2, GDPR, HIPAA, PCI-DSS, ISO 27001
+description: Regulatory compliance specialist for SOC2, GDPR, HIPAA, PCI-DSS, ISO 27001
 model: sonnet
 ---
 

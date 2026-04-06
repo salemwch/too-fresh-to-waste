@@ -15,10 +15,12 @@ Implemented a reusable, professional shimmer skeleton loader for offer cards acr
 **Location:** `apps/mobile/src/design-system/components/molecules/SkeletonOfferCard/`
 
 **Files Created:**
+
 - `SkeletonOfferCard.tsx` - Main component with shimmer animation
 - `index.ts` - Export file
 
 **Features:**
+
 - ✅ Smooth shimmer animation (1.5s loop) using React Native Animated API
 - ✅ Uses `react-native-linear-gradient` for gradient sweep effect
 - ✅ Matches OfferCard dimensions exactly (280-320px width, configurable aspect ratio)
@@ -40,6 +42,7 @@ Implemented a reusable, professional shimmer skeleton loader for offer cards acr
 - ✅ Accessibility support
 
 **Technical Details:**
+
 ```typescript
 // Shimmer animation configuration
 const shimmerAnimation = Animated.loop(
@@ -78,6 +81,7 @@ export { SkeletonOfferCard } from './SkeletonOfferCard';
 **File:** `apps/mobile/src/features/home/screens/HomeScreen.tsx`
 
 **Changes:**
+
 - ✅ Imported `SkeletonOfferCard`
 - ✅ Removed unused `ActivityIndicator` import
 - ✅ Removed unused `loadingContainer` style
@@ -88,6 +92,7 @@ export { SkeletonOfferCard } from './SkeletonOfferCard';
   4. **Pickup Tomorrow** - 3 skeleton cards in horizontal FlatList
 
 **Pattern Used:**
+
 ```typescript
 {isLoading && (
   <FlatList
@@ -112,10 +117,12 @@ export { SkeletonOfferCard } from './SkeletonOfferCard';
 **File:** `apps/mobile/src/features/search/screens/SearchScreen.tsx`
 
 **Changes:**
+
 - ✅ Imported `SkeletonOfferCard`
 - ✅ Updated `renderListEmpty` callback to show 3 skeleton cards vertically when loading
 
 **Before:**
+
 ```typescript
 if (isLoadingOffers) {
   return (
@@ -128,6 +135,7 @@ if (isLoadingOffers) {
 ```
 
 **After:**
+
 ```typescript
 if (isLoadingOffers) {
   return (
@@ -145,11 +153,13 @@ if (isLoadingOffers) {
 **File:** `apps/mobile/src/features/favorites\screens\FavoritesScreen.tsx`
 
 **Changes:**
+
 - ✅ Imported `SkeletonOfferCard`
 - ✅ Removed `ActivityIndicator` import
 - ✅ Updated loading state to show 3 skeleton cards
 
 **Before:**
+
 ```typescript
 {isLoading && !refreshing && (
   <View style={styles.loadingContainer}>
@@ -160,6 +170,7 @@ if (isLoadingOffers) {
 ```
 
 **After:**
+
 ```typescript
 {isLoading && !refreshing && (
   <View style={styles.gridContainer}>
@@ -173,32 +184,35 @@ if (isLoadingOffers) {
 ## Benefits
 
 ### User Experience
+
 - ✅ **Better perceived performance** - Users see content placeholders instead of blank spinners
 - ✅ **No layout shift** - Skeleton matches final content dimensions
 - ✅ **Professional appearance** - Smooth shimmer animation (industry standard)
 - ✅ **Visual feedback** - Clear indication that content is loading
 
 ### Developer Experience
+
 - ✅ **Reusable component** - Single source of truth for all offer card loading states
 - ✅ **Consistent pattern** - Same skeleton used across 3 screens
 - ✅ **Easy to use** - Drop-in replacement for ActivityIndicator
 - ✅ **Maintainable** - Matches OfferCard dimensions, so updates stay in sync
 
 ### Performance
+
 - ✅ **Hardware accelerated** - Uses `useNativeDriver: true` for 60fps animation
 - ✅ **React.memo optimization** - Prevents unnecessary re-renders
 - ✅ **Cleanup handling** - Animation properly stopped on unmount
 
 ## Files Modified
 
-| File | Lines Changed | Type |
-|------|---------------|------|
-| `SkeletonOfferCard.tsx` | +300 | Created |
-| `SkeletonOfferCard/index.ts` | +2 | Created |
-| `molecules/index.ts` | +3 | Modified |
-| `HomeScreen.tsx` | +60 | Modified |
-| `SearchScreen.tsx` | +4 | Modified |
-| `FavoritesScreen.tsx` | +4 | Modified |
+| File                         | Lines Changed | Type     |
+| ---------------------------- | ------------- | -------- |
+| `SkeletonOfferCard.tsx`      | +300          | Created  |
+| `SkeletonOfferCard/index.ts` | +2            | Created  |
+| `molecules/index.ts`         | +3            | Modified |
+| `HomeScreen.tsx`             | +60           | Modified |
+| `SearchScreen.tsx`           | +4            | Modified |
+| `FavoritesScreen.tsx`        | +4            | Modified |
 
 **Total:** ~373 lines added, ~30 lines removed
 

@@ -177,28 +177,20 @@ Phase 4: Content Strategy for Tunisia
 4.1 Content Pillars (4-6 Max for Topical Authority)
 
 1. Food Waste Education (Arabic + French)
-
-
-    - هدر الطعام في تونس / Le gaspillage alimentaire en Tunisie
-    - Statistics, environmental impact, solutions
+   - هدر الطعام في تونس / Le gaspillage alimentaire en Tunisie
+   - Statistics, environmental impact, solutions
 
 2. Local Restaurant Partners
-
-
-    - Restaurant profiles in Tunis, Sousse, Sfax
-    - User reviews and ratings (Arabic-first)
+   - Restaurant profiles in Tunis, Sousse, Sfax
+   - User reviews and ratings (Arabic-first)
 
 3. Money-Saving Tips
-
-
-    - كيف توفر المال على الطعام / Comment économiser sur la nourriture
-    - Budget meal guides for Tunisian families
+   - كيف توفر المال على الطعام / Comment économiser sur la nourriture
+   - Budget meal guides for Tunisian families
 
 4. App Guides & How-To
-
-
-    - Step-by-step guides in all 3 languages
-    - Video content for Arabic audience
+   - Step-by-step guides in all 3 languages
+   - Video content for Arabic audience
 
 4.2 Content Calendar Framework
 
@@ -354,26 +346,27 @@ Sources
 - https://nextjs.org/learn/seo/web-performance
 - https://sensortower.com/blog/2024-q3-unified-top-5-food%20delivery%20services-units-tn-63da96fbe1714cfff1c1e5a1
 
- 🟡 Medium Effort (Design + implementation)
+🟡 Medium Effort (Design + implementation)
 
-  3. Module API Contracts
-    - Create public/ folders per module
-    - Build facade services
-    - Refactor existing cross-module imports
-    - Scope: ~8-10 modules to refactor
-  4. Separate Database Schemas
-    - Audit current cross-schema imports
-    - Remove embedded schemas
-    - Replace with ID references
-    - Update queries to use service facades
-    - Scope: Need to scan all *.schema.ts files
+3. Module API Contracts
+   - Create public/ folders per module
+   - Build facade services
+   - Refactor existing cross-module imports
+   - Scope: ~8-10 modules to refactor
 
-  🔴 High Effort (Architecture change)
+4. Separate Database Schemas
+   - Audit current cross-schema imports
+   - Remove embedded schemas
+   - Replace with ID references
+   - Update queries to use service facades
+   - Scope: Need to scan all \*.schema.ts files
 
-  5. Introduce Domain Events
-    - Design event taxonomy (order.created, payment.completed, etc.)
-    - Implement event bus (NestJS EventEmitter or Bull)
-    - Refactor synchronous cross-module calls → events
-    - Add event handlers per module
-    - Test async workflows
-    - Scope: Affects ~15-20 service methods across modules
+🔴 High Effort (Architecture change)
+
+5. Introduce Domain Events
+   - Design event taxonomy (order.created, payment.completed, etc.)
+   - Implement event bus (NestJS EventEmitter or Bull)
+   - Refactor synchronous cross-module calls → events
+   - Add event handlers per module
+   - Test async workflows
+   - Scope: Affects ~15-20 service methods across modules

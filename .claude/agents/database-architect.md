@@ -1,6 +1,5 @@
 ---
-description:
-  Database architect for schema design, migrations, query optimization, and data
+description: Database architect for schema design, migrations, query optimization, and data
   modeling
 model: sonnet
 ---
@@ -326,10 +325,10 @@ for (const user of users) {
 
 // Good: 2 queries with batching
 const users = await User.findAll();
-const userIds = users.map(u => u.id);
+const userIds = users.map((u) => u.id);
 const posts = await Post.findAll({ where: { userId: userIds } });
 const postsByUser = groupBy(posts, 'userId');
-users.forEach(u => (u.posts = postsByUser[u.id] || []));
+users.forEach((u) => (u.posts = postsByUser[u.id] || []));
 ```
 
 **SELECT \* (Fetch unnecessary columns)**:
@@ -368,12 +367,9 @@ SELECT * FROM users WHERE id = 123;
 // PostgreSQL transaction
 import { getConnection } from 'typeorm';
 
-await getConnection().transaction(async manager => {
+await getConnection().transaction(async (manager) => {
   // Deduct inventory
-  await manager.query(
-    'UPDATE products SET quantity = quantity - 1 WHERE id = $1',
-    [productId],
-  );
+  await manager.query('UPDATE products SET quantity = quantity - 1 WHERE id = $1', [productId]);
 
   // Create order
   const order = await manager.save(Order, { userId, productId, total });
@@ -499,9 +495,7 @@ const dbConnections = [
 
 async function getUser(userId: string) {
   const shard = getShardForUser(userId);
-  return dbConnections[shard].query('SELECT * FROM users WHERE id = $1', [
-    userId,
-  ]);
+  return dbConnections[shard].query('SELECT * FROM users WHERE id = $1', [userId]);
 }
 ```
 

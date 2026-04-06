@@ -158,10 +158,7 @@ function checkSecrets() {
     const maxAgePadded = String(result.maxAge).padEnd(8);
     const namePadded = result.name.padEnd(25);
 
-    log(
-      `${namePadded} | ${agePadded} | ${maxAgePadded} | ${result.status}`,
-      result.color
-    );
+    log(`${namePadded} | ${agePadded} | ${maxAgePadded} | ${result.status}`, result.color);
   });
 
   console.log('--------------------------------------------------------\n');

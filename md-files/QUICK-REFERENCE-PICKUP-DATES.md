@@ -12,17 +12,20 @@
 ## 📋 New Backend Endpoints
 
 ### 1. Pickup Today
+
 ```bash
 GET http://localhost:3000/api/v1/offers/pickup-today
 ```
 
 **Query Parameters**:
+
 - `page` (optional, default: 1)
 - `limit` (optional, default: 20)
 - `latitude` (optional) - for distance
 - `longitude` (optional) - for distance
 
 **Example**:
+
 ```bash
 curl "http://localhost:3000/api/v1/offers/pickup-today?limit=10&latitude=36.8065&longitude=10.1815"
 ```
@@ -30,6 +33,7 @@ curl "http://localhost:3000/api/v1/offers/pickup-today?limit=10&latitude=36.8065
 ---
 
 ### 2. Pickup Tomorrow
+
 ```bash
 GET http://localhost:3000/api/v1/offers/pickup-tomorrow
 ```
@@ -37,6 +41,7 @@ GET http://localhost:3000/api/v1/offers/pickup-tomorrow
 **Query Parameters**: Same as pickup-today
 
 **Example**:
+
 ```bash
 curl "http://localhost:3000/api/v1/offers/pickup-tomorrow?limit=10"
 ```
@@ -72,19 +77,24 @@ Form Fields:
 ## 🏗️ Files Changed
 
 ### Backend
+
 ✅ `apps/food-waste-backend/src/offers/offers.service.ts`
+
 - Added `getPickupTodayOffers()` method (line 691)
 - Added `getPickupTomorrowOffers()` method (line 736)
 
 ✅ `apps/food-waste-backend/src/offers/offers.controller.ts`
+
 - Added `GET /offers/pickup-today` endpoint (line 173)
 - Added `GET /offers/pickup-tomorrow` endpoint (line 251)
 
 ✅ `apps/food-waste-backend/src/common/utils/timezone.util.ts`
+
 - Added `getStartOfDay()` method (line 98)
 - Added `getEndOfDay()` method (line 116)
 
 ### Mobile (To Be Implemented)
+
 ⏳ Create `apps/mobile/src/features/offers/hooks/usePickupDateOffers.ts`
 ⏳ Update `apps/mobile/src/features/offers/services/offersService.ts`
 ⏳ Update `apps/mobile/src/features/home/screens/HomeScreen.tsx`
@@ -94,12 +104,14 @@ Form Fields:
 ## 🧪 Test It Now
 
 ### 1. Restart Backend
+
 ```bash
 cd apps/food-waste-backend
 pnpm dev
 ```
 
 You should see:
+
 ```
 ✅ Auto-Featuring Configuration:
    - Minimum Existence: 0.5 hours
@@ -110,16 +122,19 @@ You should see:
 ### 2. Test Endpoints
 
 **Test Pickup Today**:
+
 ```bash
 curl http://localhost:3000/api/v1/offers/pickup-today
 ```
 
 **Test Pickup Tomorrow**:
+
 ```bash
 curl http://localhost:3000/api/v1/offers/pickup-tomorrow
 ```
 
 **Expected Response**:
+
 ```json
 {
   "message": "Pickup today offers retrieved successfully",
@@ -146,6 +161,7 @@ curl http://localhost:3000/api/v1/offers/pickup-tomorrow
 Open: `http://localhost:3000/api/v1/api-docs`
 
 Look for:
+
 - **📅 GET /offers/pickup-today**
 - **📅 GET /offers/pickup-tomorrow**
 
@@ -158,6 +174,7 @@ Look for:
 **Pickup Today**: Offers where pickup window **overlaps** with today (00:00 - 23:59 Tunisia time)
 
 Example:
+
 ```
 Today: 2026-01-20
 Offer: availableFrom=2026-01-20 08:00, availableUntil=2026-01-20 18:00
@@ -207,6 +224,7 @@ Full details in: `PICKUP-DATE-FILTERING-GUIDE.md`
 ## ✅ Checklist
 
 Backend:
+
 - [x] Service methods created
 - [x] Controller endpoints created
 - [x] Timezone utilities added
@@ -214,6 +232,7 @@ Backend:
 - [x] Image upload working (already existed)
 
 Frontend (To Do):
+
 - [ ] Create usePickupDateOffers hook
 - [ ] Add service methods
 - [ ] Update HomeScreen with new sections

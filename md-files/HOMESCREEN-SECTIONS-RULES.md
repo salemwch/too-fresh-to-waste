@@ -1,6 +1,7 @@
 # HomeScreen Sections - Fetch Rules Documentation
 
 ## 🎯 Purpose
+
 This document explains the exact filtering rules for each section in the HomeScreen.
 Used for debugging why the 80% discount offer appears in some sections but not others.
 
@@ -17,6 +18,7 @@ Used for debugging why the 80% discount offer appears in some sections but not o
 **Backend:** `GET /api/v1/offers/recommended?limit=10`
 
 **Rules:**
+
 - ✅ Requires **authentication** (uses accessToken)
 - ✅ Based on user's **favorited establishments and categories**
 - ✅ Includes **geolocation** (distance calculation if coordinates provided)
@@ -24,6 +26,7 @@ Used for debugging why the 80% discount offer appears in some sections but not o
 - ⚠️ Returns **empty array** if not authenticated (graceful fallback)
 
 **Backend Filter:**
+
 ```typescript
 // Personalized based on user's favorites
 // Implementation in: offers.service.ts (getRecommendedOffers method)
@@ -40,6 +43,7 @@ Used for debugging why the 80% discount offer appears in some sections but not o
 **Backend:** `GET /api/v1/offers/featured?limit=10`
 
 **Rules (offers.service.ts:655-693):**
+
 ```typescript
 {
   status: OfferStatus.ACTIVE,        // Must be 'active'
@@ -56,6 +60,7 @@ Used for debugging why the 80% discount offer appears in some sections but not o
 **Sort:** `createdAt: -1` (newest first)
 
 **Your Offer Status:**
+
 - ✅ status: 'active'
 - ✅ isActive: true
 - ✅ isFeaturedAuto: true ← **This is why it appears here**
@@ -76,6 +81,7 @@ Once set, `isFeaturedAuto` stays TRUE until the offer expires (it's not continuo
 **Backend:** `GET /api/v1/offers?status=active&minDiscount=70&limit=10`
 
 **Rules (offers.service.ts:149-388):**
+
 ```typescript
 // Line 160-163: Default filters (when no merchantId/status specified)
 {
@@ -100,6 +106,7 @@ Once set, `isFeaturedAuto` stays TRUE until the offer expires (it's not continuo
 ```
 
 **Your Offer Status:**
+
 - ✅ status: 'active'
 - ✅ isActive: true
 - ✅ pricing.discountPercentage: 80 >= 70
@@ -112,11 +119,13 @@ Once set, `isFeaturedAuto` stays TRUE until the offer expires (it's not continuo
 ## 🔍 Debugging Strategy
 
 ### Current Status
+
 - ✅ Appears in "For You ✨"
 - ✅ Appears in "Urgent Deals ⚡"
 - ❌ Does NOT appear in "Hottest Deals 🔥" ← **PROBLEM**
 
 ### Next Steps
+
 1. ✅ Comment out "For You" section (reduce noise)
 2. Test with only "Urgent Deals" and "Hottest Deals" visible
 3. Check API response for `GET /api/v1/offers?status=active&minDiscount=70&limit=10`
@@ -129,6 +138,7 @@ Once set, `isFeaturedAuto` stays TRUE until the offer expires (it's not continuo
 **Offer ID:** `696e5eb281e3e14a846b60fd`
 
 **Offer Fields:**
+
 ```json
 {
   "title": "Surprise Bag",
@@ -152,6 +162,7 @@ Once set, `isFeaturedAuto` stays TRUE until the offer expires (it's not continuo
 ```
 
 **Establishment Fields:**
+
 ```json
 {
   "name": "riadh palm",
@@ -160,7 +171,7 @@ Once set, `isFeaturedAuto` stays TRUE until the offer expires (it's not continuo
     "street": "kantoui sousse zone touristique",
     "coordinates": {
       "type": "Point",
-      "coordinates": [10.62796, 35.84159]  // [lng, lat]
+      "coordinates": [10.62796, 35.84159] // [lng, lat]
     }
   },
   "isActive": true,

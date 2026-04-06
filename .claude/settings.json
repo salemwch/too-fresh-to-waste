@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git push * --force)",
+      "Bash(git push origin master --force)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf C:*)",
+      "Edit(.env*)",
+      "Write(.env*)"
+    ]
+  }
+}

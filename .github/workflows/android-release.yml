@@ -6,13 +6,13 @@ name: Android Release
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - 'v[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
     inputs:
       version_name:
-        description: "Version name (e.g. 1.2.3)"
+        description: 'Version name (e.g. 1.2.3)'
         required: true
-        default: "1.0.0"
+        default: '1.0.0'
 
 concurrency:
   group: android-release
@@ -32,24 +32,24 @@ jobs:
       - name: Set up Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: "24.11.1"
+          node-version: '24.11.1'
 
       - name: Set up Java 17 (required by Gradle)
         uses: actions/setup-java@v4
         with:
-          distribution: "temurin"
-          java-version: "17"
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: "10.17.0"
+          version: '10.17.0'
 
       - name: Set up Ruby 3.3 (required by Fastlane)
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
-          bundler-cache: true          # caches gems automatically
+          ruby-version: '3.3'
+          bundler-cache: true # caches gems automatically
           working-directory: apps/mobile
 
       # ── Caches ────────────────────────────────────────────────────────────
@@ -109,20 +109,20 @@ jobs:
       - name: Build AAB & upload to Play Store internal track
         working-directory: apps/mobile
         env:
-          KEYSTORE_PATH:        "${{ github.workspace }}/apps/mobile/android/app/release.keystore"
-          KEYSTORE_PASSWORD:    "${{ secrets.KEYSTORE_PASSWORD }}"
-          KEY_ALIAS:            "${{ secrets.KEY_ALIAS }}"
-          KEY_PASSWORD:         "${{ secrets.KEY_PASSWORD }}"
-          GOOGLE_PLAY_JSON_KEY: "${{ secrets.GOOGLE_PLAY_JSON_KEY }}"
-          VERSION_CODE:         "${{ env.VERSION_CODE }}"
-          VERSION_NAME:         "${{ env.VERSION_NAME }}"
+          KEYSTORE_PATH: '${{ github.workspace }}/apps/mobile/android/app/release.keystore'
+          KEYSTORE_PASSWORD: '${{ secrets.KEYSTORE_PASSWORD }}'
+          KEY_ALIAS: '${{ secrets.KEY_ALIAS }}'
+          KEY_PASSWORD: '${{ secrets.KEY_PASSWORD }}'
+          GOOGLE_PLAY_JSON_KEY: '${{ secrets.GOOGLE_PLAY_JSON_KEY }}'
+          VERSION_CODE: '${{ env.VERSION_CODE }}'
+          VERSION_NAME: '${{ env.VERSION_NAME }}'
         run: bundle exec fastlane android release
 
       # ── Artifacts ─────────────────────────────────────────────────────────
       - name: Upload AAB as workflow artifact (for audit trail)
         uses: actions/upload-artifact@v4
         with:
-          name: "app-release-${{ steps.version.outputs.version_name }}.aab"
+          name: 'app-release-${{ steps.version.outputs.version_name }}.aab'
           path: apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
           retention-days: 30
 

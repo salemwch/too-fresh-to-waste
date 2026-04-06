@@ -1,6 +1,5 @@
 ---
-description:
-  Technical documentation specialist for API docs, README files, architecture
+description: Technical documentation specialist for API docs, README files, architecture
   diagrams, and runbooks
 model: sonnet
 ---

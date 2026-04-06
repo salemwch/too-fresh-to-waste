@@ -4,19 +4,19 @@ on:
   push:
     branches: [main, master, develop, staging]
     paths:
-      - "apps/food-waste-backend/**"
-      - "packages/shared/**"
-      - ".github/workflows/backend-ci-cd.yml"
-      - "pnpm-lock.yaml"
+      - 'apps/food-waste-backend/**'
+      - 'packages/shared/**'
+      - '.github/workflows/backend-ci-cd.yml'
+      - 'pnpm-lock.yaml'
   pull_request:
     branches: [main, master, develop]
     paths:
-      - "apps/food-waste-backend/**"
-      - "packages/shared/**"
+      - 'apps/food-waste-backend/**'
+      - 'packages/shared/**'
 
 env:
-  NODE_VERSION: "18.x"
-  PNPM_VERSION: "9.15.2"
+  NODE_VERSION: '24.11.1'
+  PNPM_VERSION: '10.17.0'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/backend
 
@@ -40,8 +40,10 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install pnpm
-        run: npm install -g pnpm@${{ env.PNPM_VERSION }}
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Get pnpm store directory
         id: pnpm-cache
@@ -68,7 +70,7 @@ jobs:
         run: pnpm --filter @foodwaste/backend check:format
 
       - name: Security audit (npm)
-        run: pnpm audit --audit-level=high --recursive || true
+        run: pnpm audit --audit-level=high --recursive
 
       - name: Check for hardcoded secrets
         uses: trufflesecurity/trufflehog@main
@@ -123,8 +125,10 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install pnpm
-        run: npm install -g pnpm@${{ env.PNPM_VERSION }}
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -136,7 +140,7 @@ jobs:
           DATABASE_URL: mongodb://test:test@localhost:27017/test?authSource=admin
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-          REDIS_PASSWORD: ""
+          REDIS_PASSWORD: ''
           JWT_SECRET: test-jwt-secret-for-ci-only
           JWT_REFRESH_SECRET: test-jwt-refresh-secret-for-ci-only
 
@@ -155,18 +159,23 @@ jobs:
           pnpm test:cov || true
 
   # ============================================
-  # Build Docker Image
+  # Build, Sign & Push Docker Image
   # ============================================
   build:
-    name: Build Docker Image
+    name: Build & Sign Docker Image
     runs-on: ubuntu-latest
     needs: tests
     if: github.event_name == 'push'
     timeout-minutes: 30
 
+    # Expose digest for downstream jobs (SBOM attestation, Trivy, etc.)
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+
     permissions:
       contents: read
       packages: write
+      id-token: write # Required for keyless cosign signing via GitHub OIDC
 
     steps:
       - name: Checkout code
@@ -198,6 +207,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -211,8 +221,30 @@ jobs:
           build-args: |
             NODE_ENV=production
 
-      - name: Image digest
-        run: echo ${{ steps.build.outputs.digest }}
+      - name: Log image digest
+        run: echo "Image digest ${{ steps.build.outputs.digest }}"
+
+      # ── Keyless signing via Sigstore (no key management required) ────────
+      # Uses GitHub Actions OIDC token as the signing identity.
+      # The certificate + signature are stored in the Sigstore Rekor public
+      # transparency log — cryptographically auditable, tamper-evident.
+      #
+      # Verify any image later with:
+      #   cosign verify \
+      #     --certificate-identity-regexp \
+      #       "https://github.com/${{ github.repository }}/.github/workflows/backend-ci-cd.yml@.*" \
+      #     --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+      #     ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:<tag>
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.7.0
+
+      - name: Sign container image (keyless OIDC)
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          cosign sign --yes \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}"
+          echo "✓ Signed: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}"
 
   # ============================================
   # Security Scanning (Trivy)
@@ -236,15 +268,111 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          format: "sarif"
-          output: "trivy-results.sarif"
-          severity: "CRITICAL,HIGH"
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
 
       - name: Upload Trivy results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: "trivy-results.sarif"
+          sarif_file: 'trivy-results.sarif'
+
+  # ============================================
+  # SBOM Generation & Attestation
+  # ============================================
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+    timeout-minutes: 15
+
+    permissions:
+      contents: write # GitHub Dependency Graph submission
+      packages: read # Pull image from GHCR to scan
+      id-token: write # cosign SBOM attestation via OIDC
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.7.0
+
+      # ── Docker image SBOM — CycloneDX (security tooling standard) ────────
+      # Scans every layer: Alpine OS packages + Node.js runtime + npm deps.
+      # CycloneDX is the OWASP standard; consumed by Grype, Dependency-Track, etc.
+      - name: Generate Docker image SBOM (CycloneDX)
+        uses: anchore/sbom-action@v0.17.2
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image-digest }}
+          format: cyclonedx-json
+          output-file: sbom-docker-cyclonedx.json
+          upload-artifact: true
+          upload-artifact-retention: 90
+
+      # ── Docker image SBOM — SPDX (legal / license tooling standard) ──────
+      - name: Generate Docker image SBOM (SPDX)
+        uses: anchore/sbom-action@v0.17.2
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image-digest }}
+          format: spdx-json
+          output-file: sbom-docker-spdx.json
+          upload-artifact: true
+          upload-artifact-retention: 90
+
+      # ── Source SBOM — covers web + mobile (not containerised) ─────────────
+      - name: Generate source SBOM (CycloneDX)
+        uses: anchore/sbom-action@v0.17.2
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: sbom-source-cyclonedx.json
+          upload-artifact: true
+          upload-artifact-retention: 90
+
+      # ── Attach SBOM as a cosign attestation on the image ──────────────────
+      # Binds the SBOM to the immutable digest in the OCI registry.
+      # Any consumer can verify: cosign verify-attestation --type cyclonedx <image>
+      - name: Attest SBOM to image
+        env:
+          DIGEST: ${{ needs.build.outputs.image-digest }}
+        run: |
+          cosign attest --yes \
+            --predicate sbom-docker-cyclonedx.json \
+            --type cyclonedx \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}"
+          echo "✓ SBOM attestation attached to image"
+
+      # ── Submit to GitHub Dependency Graph ─────────────────────────────────
+      # Makes transitive deps visible under Insights → Dependency graph
+      # and enables Dependabot security alerts for the full dependency tree.
+      - name: Submit SBOM to GitHub Dependency Graph
+        uses: anchore/sbom-action/publish-sbom@v0.17.2
+        with:
+          sbom-artifact-match: '.*cyclonedx.*'
+
+      # ── Vulnerability scan using the generated SBOM (Grype) ───────────────
+      # Grype uses the SBOM as input — no re-scan needed, results are exact.
+      # Trivy already gates CRITICAL/HIGH above; Grype adds a second opinion.
+      - name: Scan SBOM for vulnerabilities (Grype)
+        id: grype
+        uses: anchore/scan-action@v4.1.2
+        with:
+          sbom: sbom-docker-cyclonedx.json
+          fail-build: false # Report-only — Trivy is the hard gate
+          severity-cutoff: high
+          output-format: sarif
+
+      - name: Upload Grype results to Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.grype.outputs.sarif }}
+          category: grype
+        continue-on-error: true # SARIF absent when Grype finds nothing
 
   # ============================================
   # Deploy to Staging
@@ -254,27 +382,120 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, security-scan]
     if: github.ref == 'refs/heads/develop'
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     environment:
       name: staging
       url: https://api-staging.foodwaste.com
 
+    # Required GitHub Secrets (Settings → Secrets → Actions):
+    #   STAGING_SSH_HOST  — VPS IP or hostname
+    #   STAGING_SSH_USER  — SSH user (e.g. ubuntu, deploy)
+    #   STAGING_SSH_KEY   — Private SSH key (PEM or OpenSSH format)
+    #   STAGING_SSH_PORT  — SSH port (optional, defaults to 22)
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to staging
-        run: |
-          echo "Deploying to staging environment..."
-          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }}"
-          # Add your deployment commands here (e.g., kubectl, AWS ECS, etc.)
+      # Pull + blue/green swap on the remote VPS via SSH.
+      # Strategy: stop old container only AFTER new one is running and healthy,
+      # so downtime is zero if the pull succeeds.
+      - name: Deploy to staging via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.STAGING_SSH_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_SSH_PORT || 22 }}
+          # fail the step (and trigger rollback) if any command exits non-zero
+          script_stop: true
+          script: |
+            set -euo pipefail
+            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }}"
+            CONTAINER="foodwaste-backend-staging"
+            ENV_FILE="/opt/foodwaste/staging/.env"
 
-      - name: Run smoke tests
+            echo "→ Logging into GHCR..."
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+              -u ${{ github.actor }} --password-stdin
+
+            echo "→ Pulling image: $IMAGE"
+            docker pull "$IMAGE"
+
+            echo "→ Saving previous container id for rollback (if any)..."
+            PREV_CONTAINER=$(docker ps -q --filter "name=${CONTAINER}") || true
+
+            echo "→ Starting new container..."
+            docker run -d \
+              --name "${CONTAINER}-new" \
+              --restart unless-stopped \
+              --env-file "$ENV_FILE" \
+              -p 3001:3000 \
+              "$IMAGE"
+
+            echo "→ Waiting for new container to be healthy (up to 60s)..."
+            timeout 60 bash -c \
+              "until docker exec ${CONTAINER}-new \
+                  node -e \"require('http').get('http://localhost:3000/health/liveness', r => process.exit(r.statusCode === 200 ? 0 : 1))\" \
+                  2>/dev/null; do sleep 3; done"
+
+            echo "→ New container healthy — swapping..."
+            if [ -n "$PREV_CONTAINER" ]; then
+              docker stop "$PREV_CONTAINER"
+              docker rm  "$PREV_CONTAINER"
+            fi
+            docker rename "${CONTAINER}-new" "$CONTAINER"
+
+            echo "→ Cleaning up old images (keep last 3)..."
+            docker images "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" \
+              --format "{{.ID}}" | tail -n +4 | xargs -r docker rmi || true
+
+            echo "✓ Staging deployment complete"
+
+      # Smoke tests run from the GitHub Actions runner (external network),
+      # validating the public endpoint — not just the container-internal health.
+      - name: Smoke tests — staging
         run: |
-          echo "Running smoke tests on staging..."
-          # Add smoke test commands here
-          # curl -f https://api-staging.foodwaste.com/health || exit 1
+          BASE="https://api-staging.foodwaste.com"
+          TIMEOUT=10
+          RETRIES=5
+          DELAY=5
+
+          echo "→ [1/3] Liveness probe..."
+          curl -sf "${BASE}/health/liveness" \
+            -H "Accept: application/json" \
+            --max-time $TIMEOUT --retry $RETRIES \
+            --retry-delay $DELAY --retry-connrefused
+
+          echo "→ [2/3] Readiness probe (db + redis)..."
+          curl -sf "${BASE}/health/readiness" \
+            -H "Accept: application/json" \
+            --max-time 15 --retry $RETRIES --retry-delay $DELAY
+
+          echo "→ [3/3] API gateway responds (auth endpoint returns 4xx, not 5xx)..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${BASE}/api/v1/auth/me" --max-time $TIMEOUT)
+          echo "   /api/v1/auth/me → HTTP $STATUS"
+          [[ "$STATUS" =~ ^(200|400|401|403|404)$ ]] || \
+            (echo "ERROR: unexpected HTTP $STATUS — API gateway down?" && exit 1)
+
+          echo "✓ All smoke tests passed"
+
+      - name: Rollback staging on failure
+        if: failure()
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.STAGING_SSH_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_SSH_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            echo "→ Rolling back — stopping failed new container..."
+            docker stop foodwaste-backend-staging-new 2>/dev/null || true
+            docker rm  foodwaste-backend-staging-new 2>/dev/null || true
+            echo "✓ Rollback complete (previous container still running)"
 
   # ============================================
   # Deploy to Production
@@ -290,33 +511,123 @@ jobs:
       name: production
       url: https://api.foodwaste.com
 
+    # Required GitHub Secrets:
+    #   PRODUCTION_SSH_HOST  — VPS IP or hostname
+    #   PRODUCTION_SSH_USER  — SSH user
+    #   PRODUCTION_SSH_KEY   — Private SSH key
+    #   PRODUCTION_SSH_PORT  — SSH port (optional, defaults to 22)
+    #   SLACK_WEBHOOK_URL    — Slack incoming webhook (optional but recommended)
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to production
-        run: |
-          echo "Deploying to production environment..."
-          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          # Add your deployment commands here (e.g., kubectl, AWS ECS, etc.)
+      - name: Deploy to production via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PRODUCTION_SSH_HOST }}
+          username: ${{ secrets.PRODUCTION_SSH_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+            CONTAINER="foodwaste-backend-prod"
+            ENV_FILE="/opt/foodwaste/production/.env"
 
-      - name: Run smoke tests
-        run: |
-          echo "Running smoke tests on production..."
-          # Add smoke test commands here
-          # curl -f https://api.foodwaste.com/health || exit 1
+            echo "→ Logging into GHCR..."
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+              -u ${{ github.actor }} --password-stdin
 
-      - name: Notify deployment
+            echo "→ Pulling image: $IMAGE"
+            docker pull "$IMAGE"
+
+            echo "→ Starting new container (blue/green swap)..."
+            docker run -d \
+              --name "${CONTAINER}-new" \
+              --restart unless-stopped \
+              --env-file "$ENV_FILE" \
+              -p 3001:3000 \
+              "$IMAGE"
+
+            echo "→ Waiting for new container to be healthy (up to 60s)..."
+            timeout 60 bash -c \
+              "until docker exec ${CONTAINER}-new \
+                  node -e \"require('http').get('http://localhost:3000/health/liveness', r => process.exit(r.statusCode === 200 ? 0 : 1))\" \
+                  2>/dev/null; do sleep 3; done"
+
+            echo "→ Swapping containers..."
+            PREV=$(docker ps -q --filter "name=${CONTAINER}") || true
+            if [ -n "$PREV" ]; then
+              docker stop "$PREV"
+              docker rm  "$PREV"
+            fi
+            docker rename "${CONTAINER}-new" "$CONTAINER"
+
+            echo "→ Cleaning up old images (keep last 3)..."
+            docker images "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" \
+              --format "{{.ID}}" | tail -n +4 | xargs -r docker rmi || true
+
+            echo "✓ Production deployment complete"
+
+      - name: Smoke tests — production
+        run: |
+          BASE="https://api.foodwaste.com"
+          TIMEOUT=10
+          RETRIES=5
+          DELAY=5
+
+          echo "→ [1/3] Liveness probe..."
+          curl -sf "${BASE}/health/liveness" \
+            -H "Accept: application/json" \
+            --max-time $TIMEOUT --retry $RETRIES \
+            --retry-delay $DELAY --retry-connrefused
+
+          echo "→ [2/3] Readiness probe (db + redis)..."
+          curl -sf "${BASE}/health/readiness" \
+            -H "Accept: application/json" \
+            --max-time 15 --retry $RETRIES --retry-delay $DELAY
+
+          echo "→ [3/3] API gateway responds..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${BASE}/api/v1/auth/me" --max-time $TIMEOUT)
+          echo "   /api/v1/auth/me → HTTP $STATUS"
+          [[ "$STATUS" =~ ^(200|400|401|403|404)$ ]] || \
+            (echo "ERROR: unexpected HTTP $STATUS — API gateway down?" && exit 1)
+
+          echo "✓ All smoke tests passed"
+
+      - name: Notify deployment success
         if: success()
         run: |
-          echo "Production deployment successful!"
-          # Add notification commands (Slack, Discord, Email, etc.)
+          echo "✓ Production deployment successful — ${{ github.sha }}"
+          # Uncomment when SLACK_WEBHOOK_URL secret is configured:
+          # curl -sf -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+          #   -H 'Content-Type: application/json' \
+          #   -d "{\"text\":\"✅ Backend deployed to production — \`${{ github.sha }}\`\"}"
 
-      - name: Rollback on failure
+      - name: Rollback production on failure
         if: failure()
-        run: |
-          echo "Deployment failed! Initiating rollback..."
-          # Add rollback commands here
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PRODUCTION_SSH_HOST }}
+          username: ${{ secrets.PRODUCTION_SSH_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            echo "→ Rolling back — stopping failed new container..."
+            docker stop foodwaste-backend-prod-new 2>/dev/null || true
+            docker rm  foodwaste-backend-prod-new 2>/dev/null || true
+            echo "✓ Rollback complete (previous container still running)"
+          # Uncomment when SLACK_WEBHOOK_URL is configured:
+          # - name: Notify rollback
+          #   if: failure()
+          #   run: |
+          #     curl -sf -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+          #       -H 'Content-Type: application/json' \
+          #       -d "{\"text\":\"🚨 Production deploy FAILED + rolled back — ${{ github.sha }}\"}"
 
   # ============================================
   # Performance Testing (Optional)

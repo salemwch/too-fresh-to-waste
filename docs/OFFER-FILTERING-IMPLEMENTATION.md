@@ -1,16 +1,17 @@
 # Offer Filtering Implementation
 
 ## Summary
+
 Added support for filtering offers by **Establishment Type** and **Cuisine Types** to the backend search functionality.
 
 ## The 4 Filtering Dimensions
 
-| Filter | Field | Type | Examples | Status |
-|--------|-------|------|----------|--------|
-| **1. Offer Categories** | `offer.categories` | `string[]` | "pizza", "bakery", "breakfast" | ✅ Already existed |
-| **2. Offer Type** | `offer.type` | `OfferType` enum | "SURPRISE_BAG", "SPECIFIC_ITEMS" | ✅ Already existed |
-| **3. Establishment Type** | `establishment.type` | `EstablishmentType` enum | "BAKERY", "RESTAURANT", "HOTEL" | ✅ **ADDED** |
-| **4. Cuisine Types** | `establishment.cuisineTypes` | `string[]` | "italian", "asian", "french" | ✅ **ADDED** |
+| Filter                    | Field                        | Type                     | Examples                         | Status             |
+| ------------------------- | ---------------------------- | ------------------------ | -------------------------------- | ------------------ |
+| **1. Offer Categories**   | `offer.categories`           | `string[]`               | "pizza", "bakery", "breakfast"   | ✅ Already existed |
+| **2. Offer Type**         | `offer.type`                 | `OfferType` enum         | "SURPRISE_BAG", "SPECIFIC_ITEMS" | ✅ Already existed |
+| **3. Establishment Type** | `establishment.type`         | `EstablishmentType` enum | "BAKERY", "RESTAURANT", "HOTEL"  | ✅ **ADDED**       |
+| **4. Cuisine Types**      | `establishment.cuisineTypes` | `string[]`               | "italian", "asian", "french"     | ✅ **ADDED**       |
 
 ---
 
@@ -19,11 +20,13 @@ Added support for filtering offers by **Establishment Type** and **Cuisine Types
 ### 1. SearchOffersDto (`apps/food-waste-backend/src/offers/DTO/search-offers.dto.ts`)
 
 **Added imports:**
+
 ```typescript
 import { EstablishmentType } from '../../common/enums/establishment.enum';
 ```
 
 **Added filter fields:**
+
 ```typescript
 @IsOptional()
 @IsEnum(EstablishmentType)
@@ -38,6 +41,7 @@ cuisineTypes?: string[];
 ### 2. OffersService (`apps/food-waste-backend/src/offers/offers.service.ts`)
 
 **Implementation Strategy:**
+
 - Detects when establishment filters are present
 - Uses MongoDB aggregation pipeline to join and filter by establishment fields
 - Supports both standalone queries and geolocation queries
@@ -45,9 +49,10 @@ cuisineTypes?: string[];
 **Key Changes:**
 
 1. **Detection Logic** (Line 210):
+
    ```typescript
-   const hasEstablishmentFilters = filters.establishmentType ||
-       (filters.cuisineTypes && filters.cuisineTypes.length > 0);
+   const hasEstablishmentFilters =
+     filters.establishmentType || (filters.cuisineTypes && filters.cuisineTypes.length > 0);
    ```
 
 2. **Aggregation Pipeline for Non-Geolocation Queries** (Lines 231-337):
@@ -68,6 +73,7 @@ cuisineTypes?: string[];
 ## API Usage Examples
 
 ### Filter by Establishment Type
+
 ```bash
 # Get offers from bakeries only
 GET /api/offers?establishmentType=BAKERY
@@ -77,6 +83,7 @@ GET /api/offers?establishmentType=HOTEL
 ```
 
 ### Filter by Cuisine Types
+
 ```bash
 # Get offers from Italian restaurants
 GET /api/offers?cuisineTypes=italian
@@ -86,6 +93,7 @@ GET /api/offers?cuisineTypes=asian,mexican
 ```
 
 ### Combined Filters
+
 ```bash
 # Get surprise bags from Italian restaurants near me
 GET /api/offers?type=SURPRISE_BAG&cuisineTypes=italian&longitude=10.1815&latitude=36.8065&maxDistance=5000
@@ -95,6 +103,7 @@ GET /api/offers?establishmentType=BAKERY&categories=pizza,pastries
 ```
 
 ### All 4 Filters Together
+
 ```bash
 GET /api/offers?type=SURPRISE_BAG&categories=pizza&establishmentType=RESTAURANT&cuisineTypes=italian
 ```
@@ -106,11 +115,13 @@ GET /api/offers?type=SURPRISE_BAG&categories=pizza&establishmentType=RESTAURANT&
 ### Indexes Used
 
 **Existing indexes:**
+
 - `{ type: 1, status: 1 }` - Offer type filtering
 - `{ categories: 1, status: 1 }` - Category filtering
 - `{ 'address.coordinates': '2dsphere' }` - Geolocation on establishments
 
 **Establishment indexes:**
+
 - `{ type: 1, isActive: 1, averageRating: -1 }` - Type filtering
 - Cuisine types use array index on `cuisineTypes` field
 
@@ -126,14 +137,14 @@ GET /api/offers?type=SURPRISE_BAG&categories=pizza&establishmentType=RESTAURANT&
 
 ```typescript
 export enum EstablishmentType {
-    RESTAURANT = 'restaurant',
-    BAKERY = 'bakery',           // Covers bakeries & pastry shops
-    GROCERY_STORE = 'grocery_store',
-    CAFE = 'cafe',
-    FAST_FOOD = 'fast_food',
-    SUPERMARKET = 'supermarket',
-    HOTEL = 'hotel',
-    OTHER = 'other',
+  RESTAURANT = 'restaurant',
+  BAKERY = 'bakery', // Covers bakeries & pastry shops
+  GROCERY_STORE = 'grocery_store',
+  CAFE = 'cafe',
+  FAST_FOOD = 'fast_food',
+  SUPERMARKET = 'supermarket',
+  HOTEL = 'hotel',
+  OTHER = 'other',
 }
 ```
 
@@ -156,6 +167,7 @@ export enum EstablishmentType {
 ## Frontend Integration
 
 ### TypeScript Types
+
 ```typescript
 import { EstablishmentType } from '@backend/common/enums/establishment.enum';
 
@@ -175,6 +187,7 @@ interface OfferSearchParams {
 ```
 
 ### Example Usage
+
 ```typescript
 // Search for Italian restaurant surprise bags
 const params = {
@@ -182,7 +195,7 @@ const params = {
   establishmentType: EstablishmentType.RESTAURANT,
   cuisineTypes: ['italian'],
   page: 1,
-  limit: 20
+  limit: 20,
 };
 
 const response = await offersService.search(params);

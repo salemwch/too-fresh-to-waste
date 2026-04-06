@@ -1,6 +1,5 @@
 ---
-description:
-  Test automation expert for unit, integration, E2E testing, TDD, and test
+description: Test automation expert for unit, integration, E2E testing, TDD, and test
   coverage optimization
 model: sonnet
 ---
@@ -423,8 +422,8 @@ export default function () {
   const res = http.get('https://api.example.com/offers');
 
   check(res, {
-    'status is 200': r => r.status === 200,
-    'response time < 500ms': r => r.timings.duration < 500,
+    'status is 200': (r) => r.status === 200,
+    'response time < 500ms': (r) => r.timings.duration < 500,
   });
 
   sleep(1);
@@ -494,7 +493,7 @@ beforeEach(async () => {
 ```typescript
 import { pactWith } from 'jest-pact';
 
-pactWith({ consumer: 'Frontend', provider: 'UserAPI' }, provider => {
+pactWith({ consumer: 'Frontend', provider: 'UserAPI' }, (provider) => {
   it('should fetch user by ID', async () => {
     await provider.addInteraction({
       state: 'user exists',

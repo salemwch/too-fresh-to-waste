@@ -1,6 +1,5 @@
 ---
-description:
-  Performance optimization specialist for profiling, caching, database
+description: Performance optimization specialist for profiling, caching, database
   optimization, and scalability
 model: sonnet
 ---
@@ -71,8 +70,8 @@ import v8 from 'v8';
 import { performance, PerformanceObserver } from 'perf_hooks';
 
 // Detect event loop lag
-const obs = new PerformanceObserver(items => {
-  items.getEntries().forEach(entry => {
+const obs = new PerformanceObserver((items) => {
+  items.getEntries().forEach((entry) => {
     if (entry.duration > 100) {
       console.warn(`Event loop lag: ${entry.duration}ms`);
     }
@@ -329,9 +328,7 @@ app.get('/api/offers', async (req, res) => {
   const cursor = req.query.cursor;
   const limit = 20;
 
-  const offers = await db.offers
-    .find(cursor ? { _id: { $gt: cursor } } : {})
-    .limit(limit);
+  const offers = await db.offers.find(cursor ? { _id: { $gt: cursor } } : {}).limit(limit);
 
   const nextCursor = offers[offers.length - 1]?._id;
 
@@ -464,9 +461,9 @@ server.on('stream', (stream, headers) => {
 ```typescript
 import DataLoader from 'dataloader';
 
-const userLoader = new DataLoader(async userIds => {
+const userLoader = new DataLoader(async (userIds) => {
   const users = await db.users.find({ _id: { $in: userIds } });
-  return userIds.map(id => users.find(u => u.id === id));
+  return userIds.map((id) => users.find((u) => u.id === id));
 });
 
 // Batches multiple requests into single DB query
@@ -547,8 +544,8 @@ export default function () {
   const res = http.get('https://api.example.com/offers');
 
   check(res, {
-    'status is 200': r => r.status === 200,
-    'p95 < 500ms': r => r.timings.duration < 500,
+    'status is 200': (r) => r.status === 200,
+    'p95 < 500ms': (r) => r.timings.duration < 500,
   });
 
   sleep(1);

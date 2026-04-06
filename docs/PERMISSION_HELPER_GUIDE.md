@@ -84,9 +84,7 @@ export interface PermissionRationale {
  * Check if permission is granted
  * Use before requesting to avoid unnecessary dialogs
  */
-export async function checkPermission(
-  permission: Permission,
-): Promise<PermissionResult> {
+export async function checkPermission(permission: Permission): Promise<PermissionResult> {
   const status = await check(permission);
 
   return {
@@ -176,7 +174,7 @@ export async function requestPermission(
  * Returns true if user wants to proceed, false if cancelled
  */
 function showRationaleDialog(rationale: PermissionRationale): Promise<boolean> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     Alert.alert(
       rationale.title,
       rationale.message,
@@ -291,9 +289,7 @@ export function getPlatformPermission(
 
     case 'notifications':
       // Only required on Android 13+
-      return Platform.Version >= 33
-        ? PERMISSIONS.ANDROID.POST_NOTIFICATIONS
-        : null;
+      return Platform.Version >= 33 ? PERMISSIONS.ANDROID.POST_NOTIFICATIONS : null;
 
     default:
       return null;
@@ -353,11 +349,7 @@ export async function requestQRScanPermission(): Promise<PermissionResult> {
 ```typescript
 import { Platform } from 'react-native';
 import { PERMISSIONS } from 'react-native-permissions';
-import {
-  requestPermission,
-  requestMultiplePermissions,
-  PermissionResult,
-} from '../permissions';
+import { requestPermission, requestMultiplePermissions, PermissionResult } from '../permissions';
 
 /**
  * Request location permission for finding nearby food banks
@@ -396,16 +388,13 @@ export async function requestBackgroundLocationPermission(): Promise<PermissionR
   }
 
   // Step 1: Request foreground location first
-  const foregroundResult = await requestPermission(
-    PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-    {
-      title: 'Location Access',
-      message:
-        'To track your delivery in real-time, we need access to your location while using the app.',
-      buttonPositive: 'Allow',
-      buttonNegative: 'Not Now',
-    },
-  );
+  const foregroundResult = await requestPermission(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION, {
+    title: 'Location Access',
+    message:
+      'To track your delivery in real-time, we need access to your location while using the app.',
+    buttonPositive: 'Allow',
+    buttonNegative: 'Not Now',
+  });
 
   if (!foregroundResult.granted) {
     return foregroundResult;
@@ -429,11 +418,7 @@ export async function requestBackgroundLocationPermission(): Promise<PermissionR
 ```typescript
 import { Platform } from 'react-native';
 import { PERMISSIONS } from 'react-native-permissions';
-import {
-  requestPermission,
-  PermissionResult,
-  getPlatformPermission,
-} from '../permissions';
+import { requestPermission, PermissionResult, getPlatformPermission } from '../permissions';
 
 /**
  * Request photo/storage permission for selecting images
@@ -473,11 +458,7 @@ export async function requestPhotoPermission(): Promise<PermissionResult> {
 ```typescript
 import { Platform } from 'react-native';
 import { PERMISSIONS } from 'react-native-permissions';
-import {
-  requestPermission,
-  PermissionResult,
-  getPlatformPermission,
-} from '../permissions';
+import { requestPermission, PermissionResult, getPlatformPermission } from '../permissions';
 
 /**
  * Request notification permission (Android 13+ only)
@@ -589,11 +570,11 @@ async function findNearbyFoodBanks() {
 
   // Permission granted - get current location
   Geolocation.getCurrentPosition(
-    position => {
+    (position) => {
       const { latitude, longitude } = position.coords;
       fetchNearbyFoodBanks(latitude, longitude);
     },
-    error => {
+    (error) => {
       console.error('Location error:', error);
       showManualAddressEntry();
     },
@@ -681,7 +662,7 @@ async function startFoodPhotoUpload() {
     },
   ]);
 
-  const allGranted = results.every(r => r.granted);
+  const allGranted = results.every((r) => r.granted);
 
   if (!allGranted) {
     // At least one permission denied
@@ -750,10 +731,7 @@ import {
  *   );
  * }
  */
-export function usePermission(
-  permission: Permission,
-  rationale?: PermissionRationale,
-) {
+export function usePermission(permission: Permission, rationale?: PermissionRationale) {
   const [result, setResult] = useState<PermissionResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 

@@ -13,6 +13,7 @@ Added comprehensive logging to trace the "Pickup time must be in the future" err
 **Location:** Lines 140-200
 
 **What it logs:**
+
 - Device current time
 - Offer availableFrom and availableUntil
 - Calculated pickup date (step by step)
@@ -20,6 +21,7 @@ Added comprehensive logging to trace the "Pickup time must be in the future" err
 - Final order data being sent
 
 **Look for this in React Native DevTools:**
+
 ```
 ============ PICKUP DATE CALCULATION ============
 📱 Device current time: 2026-02-05T22:00:00.000Z
@@ -40,6 +42,7 @@ Added comprehensive logging to trace the "Pickup time must be in the future" err
 **Location:** Lines 54-95 (IsFutureDate validator)
 
 **What it logs:**
+
 - Received pickupDate value
 - Server current time
 - Parsed date
@@ -47,6 +50,7 @@ Added comprehensive logging to trace the "Pickup time must be in the future" err
 - Validation result
 
 **Look for this in backend terminal:**
+
 ```
 ============ BACKEND: IsFutureDate Validation ============
 🔍 Validating field: pickupDate
@@ -69,6 +73,7 @@ Added comprehensive logging to trace the "Pickup time must be in the future" err
 ### Step 1: Rebuild Both Apps
 
 **Backend:**
+
 ```bash
 cd /c/WFA/apps/food-waste-backend
 # Stop the backend (Ctrl+C)
@@ -77,6 +82,7 @@ pnpm run start:dev
 ```
 
 **Mobile App:**
+
 ```bash
 cd /c/WFA/apps/mobile
 # Stop metro (Ctrl+C)
@@ -85,6 +91,7 @@ pnpm start -- --reset-cache
 ```
 
 In another terminal:
+
 ```bash
 cd /c/WFA/apps/mobile
 pnpm run android
@@ -100,11 +107,13 @@ pnpm run android
 ### Step 3: Check the Logs
 
 **Mobile DevTools (React Native):**
+
 - Look for `============ PICKUP DATE CALCULATION ============`
 - Check what pickupDate is being calculated
 - Note the timestamps
 
 **Backend Terminal:**
+
 - Look for `============ BACKEND: IsFutureDate Validation ============`
 - Check what pickupDate the backend receives
 - Compare server time vs received pickupDate
@@ -116,11 +125,13 @@ pnpm run android
 ### Scenario 1: Times Match (Expected)
 
 **Mobile log:**
+
 ```
 ✅ FINAL pickupDate: 2026-02-05T22:00:30.000Z
 ```
 
 **Backend log:**
+
 ```
 📨 Received value: 2026-02-05T22:00:30.000Z
 ⏰ Server current time: 2026-02-05T22:00:05.000Z
@@ -134,11 +145,13 @@ pnpm run android
 ### Scenario 2: Times Don't Match (Bug)
 
 **Mobile log:**
+
 ```
 ✅ FINAL pickupDate: 2026-02-05T22:00:30.000Z
 ```
 
 **Backend log:**
+
 ```
 📨 Received value: 2026-02-05T21:00:30.000Z  ← 1 HOUR BEHIND!
 ⏰ Server current time: 2026-02-05T22:00:05.000Z
@@ -146,6 +159,7 @@ pnpm run android
 ```
 
 ❌ **This indicates:**
+
 - Timezone conversion issue
 - OR: Different calculation being used
 - OR: Old cached code running
@@ -155,11 +169,13 @@ pnpm run android
 ### Scenario 3: Server Clock is Wrong
 
 **Mobile log:**
+
 ```
 📱 Device current time: 2026-02-05T22:00:00.000Z
 ```
 
 **Backend log:**
+
 ```
 ⏰ Server current time: 2026-02-05T23:00:00.000Z  ← 1 HOUR AHEAD!
 ```
@@ -185,6 +201,7 @@ This will tell us EXACTLY what's going wrong!
 When the order succeeds, you should see:
 
 **Mobile:**
+
 ```
 ============ ORDER DATA TO SEND ============
 📦 Order data: {
@@ -195,6 +212,7 @@ When the order succeeds, you should see:
 ```
 
 **Backend:**
+
 ```
 ============ BACKEND: IsFutureDate Validation ============
 ✅ VALID: Pickup date is in the future
@@ -207,12 +225,12 @@ When the order succeeds, you should see:
 
 ## Common Issues and Solutions
 
-| Symptom | Cause | Solution |
-|---------|-------|----------|
-| pickupDate 1 hour behind | Timezone issue | Check device timezone settings |
-| Server time different from mobile | Clock skew | Sync server clock with NTP |
-| Old pickupDate calculation | Cached code | Clear cache, rebuild |
-| Still using Math.min() | Code not updated | Verify CheckoutScreen.tsx has new code |
+| Symptom                           | Cause            | Solution                               |
+| --------------------------------- | ---------------- | -------------------------------------- |
+| pickupDate 1 hour behind          | Timezone issue   | Check device timezone settings         |
+| Server time different from mobile | Clock skew       | Sync server clock with NTP             |
+| Old pickupDate calculation        | Cached code      | Clear cache, rebuild                   |
+| Still using Math.min()            | Code not updated | Verify CheckoutScreen.tsx has new code |
 
 ---
 

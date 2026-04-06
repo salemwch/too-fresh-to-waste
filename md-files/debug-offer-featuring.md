@@ -19,15 +19,16 @@ db.offers.findOne(
 ```
 
 Expected for your offer (11 hours remaining):
+
 ```json
 {
   "title": "Your Offer Title",
   "availableFrom": "2026-01-19T21:46:00.000Z",
   "availableUntil": "2026-01-20T22:46:00.000Z",
-  "isFeaturedManual": false,  // ❌ Should be false (not manually featured)
-  "isFeaturedAuto": false,    // ❌ Should be false (>3 hours remaining)
+  "isFeaturedManual": false, // ❌ Should be false (not manually featured)
+  "isFeaturedAuto": false, // ❌ Should be false (>3 hours remaining)
   "pricing": {
-    "discountPercentage": 75  // ✅ If ≥70%, shows in "Hottest Deals 🔥"
+    "discountPercentage": 75 // ✅ If ≥70%, shows in "Hottest Deals 🔥"
   }
 }
 ```
@@ -60,13 +61,13 @@ Authorization: Bearer YOUR_ADMIN_TOKEN
 
 For your offer (created 2026-01-19 21:46, expires 2026-01-20 22:46):
 
-| Time | Hours Left | In "Urgent Deals"? | In "Hottest Deals"? | Reason |
-|------|------------|-------------------|-------------------|--------|
-| 2026-01-20 09:00 | 13.75h | ❌ NO | ✅ YES (if ≥70% off) | >3h remaining |
-| 2026-01-20 19:00 | 3.75h | ❌ NO | ✅ YES (if ≥70% off) | >3h remaining |
-| **2026-01-20 19:46** | **3.0h** | **✅ APPEARS HERE** | ✅ YES (if ≥70% off) | ≤3h threshold crossed |
-| 2026-01-20 21:00 | 1.75h | ✅ YES | ✅ YES (if ≥70% off) | <3h remaining |
-| 2026-01-20 22:46 | 0h | ❌ EXPIRED | ❌ EXPIRED | Offer ended |
+| Time                 | Hours Left | In "Urgent Deals"?  | In "Hottest Deals"?  | Reason                |
+| -------------------- | ---------- | ------------------- | -------------------- | --------------------- |
+| 2026-01-20 09:00     | 13.75h     | ❌ NO               | ✅ YES (if ≥70% off) | >3h remaining         |
+| 2026-01-20 19:00     | 3.75h      | ❌ NO               | ✅ YES (if ≥70% off) | >3h remaining         |
+| **2026-01-20 19:46** | **3.0h**   | **✅ APPEARS HERE** | ✅ YES (if ≥70% off) | ≤3h threshold crossed |
+| 2026-01-20 21:00     | 1.75h      | ✅ YES              | ✅ YES (if ≥70% off) | <3h remaining         |
+| 2026-01-20 22:46     | 0h         | ❌ EXPIRED          | ❌ EXPIRED           | Offer ended           |
 
 ## Fix if Incorrectly Showing
 

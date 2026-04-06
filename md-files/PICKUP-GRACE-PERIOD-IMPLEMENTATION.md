@@ -33,45 +33,45 @@
 // apps/food-waste-backend/src/orders/schemas/order.schema.ts
 
 export enum OrderStatus {
-    PENDING = 'pending',
-    RESERVED = 'reserved',
-    CONFIRMED = 'confirmed',
-    GRACE_PERIOD = 'grace_period',    // ✅ NEW - In 30-min grace window
-    READY_FOR_PICKUP = 'ready_for_pickup',
-    PICKED_UP = 'picked_up',
-    CANCELLED = 'cancelled',
-    EXPIRED = 'expired',
-    REFUNDED = 'refunded',
+  PENDING = 'pending',
+  RESERVED = 'reserved',
+  CONFIRMED = 'confirmed',
+  GRACE_PERIOD = 'grace_period', // ✅ NEW - In 30-min grace window
+  READY_FOR_PICKUP = 'ready_for_pickup',
+  PICKED_UP = 'picked_up',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
+  REFUNDED = 'refunded',
 }
 
 export interface GracePeriodDetails {
-    startedAt: Date;                   // When grace period began
-    baseExpiresAt: Date;               // Base 30-min deadline
-    extensionRequested: boolean;       // Customer requested extension
-    extensionRequestedAt?: Date;       // When extension was requested
-    extensionApproved?: boolean;       // Merchant decision
-    extensionApprovedAt?: Date;        // When merchant approved
-    finalExpiresAt: Date;              // Final deadline (with extensions)
-    notificationsSent: string[];       // ['15_min_warning', 'merchant_approved']
+  startedAt: Date; // When grace period began
+  baseExpiresAt: Date; // Base 30-min deadline
+  extensionRequested: boolean; // Customer requested extension
+  extensionRequestedAt?: Date; // When extension was requested
+  extensionApproved?: boolean; // Merchant decision
+  extensionApprovedAt?: Date; // When merchant approved
+  finalExpiresAt: Date; // Final deadline (with extensions)
+  notificationsSent: string[]; // ['15_min_warning', 'merchant_approved']
 }
 
 @Schema({ timestamps: true })
 export class Order {
-    // ... existing fields ...
+  // ... existing fields ...
 
-    @Prop({
-        type: {
-            startedAt: { type: Date, required: true },
-            baseExpiresAt: { type: Date, required: true },
-            extensionRequested: { type: Boolean, default: false },
-            extensionRequestedAt: Date,
-            extensionApproved: { type: Boolean, default: null },
-            extensionApprovedAt: Date,
-            finalExpiresAt: { type: Date, required: true },
-            notificationsSent: { type: [String], default: [] },
-        },
-    })
-    gracePeriodDetails?: GracePeriodDetails;
+  @Prop({
+    type: {
+      startedAt: { type: Date, required: true },
+      baseExpiresAt: { type: Date, required: true },
+      extensionRequested: { type: Boolean, default: false },
+      extensionRequestedAt: Date,
+      extensionApproved: { type: Boolean, default: null },
+      extensionApprovedAt: Date,
+      finalExpiresAt: { type: Date, required: true },
+      notificationsSent: { type: [String], default: [] },
+    },
+  })
+  gracePeriodDetails?: GracePeriodDetails;
 }
 ```
 
@@ -580,18 +580,18 @@ const styles = StyleSheet.create({
 ```typescript
 // Simplified grace period validation
 if (order.status === OrderStatus.GRACE_PERIOD) {
-    const pickupEnd = new Date(order.pickupDetails.scheduledDate);
-    const [h, m] = order.pickupDetails.timeSlot.endTime.split(':').map(Number);
-    pickupEnd.setHours(h, m, 0, 0);
+  const pickupEnd = new Date(order.pickupDetails.scheduledDate);
+  const [h, m] = order.pickupDetails.timeSlot.endTime.split(':').map(Number);
+  pickupEnd.setHours(h, m, 0, 0);
 
-    const graceExpiresAt = new Date(pickupEnd.getTime() + 30 * 60 * 1000); // Fixed 30 min
+  const graceExpiresAt = new Date(pickupEnd.getTime() + 30 * 60 * 1000); // Fixed 30 min
 
-    if (new Date() > graceExpiresAt) {
-        throw new BadRequestException({
-            message: 'Pickup window expired. Order has been refunded.',
-            code: 'GRACE_PERIOD_EXPIRED',
-        });
-    }
+  if (new Date() > graceExpiresAt) {
+    throw new BadRequestException({
+      message: 'Pickup window expired. Order has been refunded.',
+      code: 'GRACE_PERIOD_EXPIRED',
+    });
+  }
 }
 ```
 
@@ -603,6 +603,7 @@ if (order.status === OrderStatus.GRACE_PERIOD) {
 **Cons:** Complex payment logic
 
 ### Structure:
+
 - **0-15 min late:** Full refund if not picked up
 - **15-30 min late:** 80% refund if not picked up (20% platform fee)
 - **30+ min:** No refund, order expired
@@ -638,6 +639,7 @@ function calculateGraceTier(order: Order): TieredGracePeriod {
 **Cons:** SMS costs, requires phone verification
 
 ### Flow:
+
 1. Customer arrives late (after grace expired)
 2. Merchant can send SMS with new temporary code (valid 5 min)
 3. Customer receives: "Your pickup code: 789456 (valid 5 min)"
@@ -681,20 +683,21 @@ async sendEmergencyPickupCode(
 
 ## Comparison Matrix
 
-| Feature | Option 1: Smart Grace | Option 2: Fixed 30min | Option 3: Tiered | Option 4: SMS Override |
-|---------|----------------------|----------------------|------------------|------------------------|
-| **Complexity** | Medium | Low | High | Medium |
-| **Flexibility** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Merchant Control** | Yes | No | No | Yes |
-| **Dev Time** | 2-3 days | 1 day | 3-4 days | 2 days |
-| **User Experience** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Cost** | Free | Free | Free | SMS fees |
+| Feature              | Option 1: Smart Grace | Option 2: Fixed 30min | Option 3: Tiered | Option 4: SMS Override |
+| -------------------- | --------------------- | --------------------- | ---------------- | ---------------------- |
+| **Complexity**       | Medium                | Low                   | High             | Medium                 |
+| **Flexibility**      | ⭐⭐⭐⭐⭐            | ⭐⭐⭐                | ⭐⭐⭐⭐         | ⭐⭐⭐⭐⭐             |
+| **Merchant Control** | Yes                   | No                    | No               | Yes                    |
+| **Dev Time**         | 2-3 days              | 1 day                 | 3-4 days         | 2 days                 |
+| **User Experience**  | ⭐⭐⭐⭐⭐            | ⭐⭐⭐⭐              | ⭐⭐⭐           | ⭐⭐⭐⭐               |
+| **Cost**             | Free                  | Free                  | Free             | SMS fees               |
 
 ---
 
 ## 🏆 Recommendation: Option 1 (Smart Grace Period)
 
 **Why:**
+
 - Best balance of automation + human decision
 - Merchant can help struggling customers
 - Clear communication throughout
@@ -702,6 +705,7 @@ async sendEmergencyPickupCode(
 - No extra costs
 
 **Implementation Timeline:**
+
 - Day 1-2: Backend schema + validation changes
 - Day 3: Cron jobs + notification system
 - Day 4-5: Frontend UI + testing

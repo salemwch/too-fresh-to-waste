@@ -18,6 +18,7 @@ Added **critical gesture handler import** to `index.js` as required by official 
 ### File: `apps/mobile/index.js`
 
 **Before:**
+
 ```javascript
 /**
  * @format
@@ -29,6 +30,7 @@ import App from './src/App';
 ```
 
 **After:**
+
 ```javascript
 /**
  * @format
@@ -50,6 +52,7 @@ import App from './src/App';
 ### The Problem
 
 **Without this import:**
+
 1. ❌ React Native's default touch handling is used
 2. ❌ Gesture recognizers don't initialize properly
 3. ❌ Touch events recognized in native UI but not sent to JavaScript
@@ -57,6 +60,7 @@ import App from './src/App';
 5. ❌ **Result:** Clicks freeze, need reload to work
 
 **With this import:**
+
 1. ✅ Gesture handler overrides React Native's touch system
 2. ✅ All touch events route through gesture-handler first
 3. ✅ Events properly captured and sent to JavaScript
@@ -85,6 +89,7 @@ From React Navigation docs:
 
 > **Additional Step for Android:**
 > "To finalize installation, add the following at the **top** of your entry file (e.g. `index.js`):"
+>
 > ```js
 > import 'react-native-gesture-handler';
 > ```
@@ -160,11 +165,13 @@ Test these WITHOUT pressing 'R' in Metro:
 ## Performance Impact
 
 ### Before Fix
+
 - Touch events: Delayed/dropped (inconsistent)
 - Navigation: Requires reload to work
 - User experience: Broken, frustrating
 
 ### After Fix
+
 - Touch events: Immediate, reliable (10x faster)
 - Navigation: Works on first try, every time
 - User experience: Smooth, production-ready

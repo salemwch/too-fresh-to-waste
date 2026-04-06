@@ -51,7 +51,7 @@ const colors = {
 function isModule(dirPath) {
   try {
     const files = fs.readdirSync(dirPath);
-    return files.some(file => file.endsWith('.module.ts'));
+    return files.some((file) => file.endsWith('.module.ts'));
   } catch (error) {
     return false;
   }
@@ -136,7 +136,7 @@ function main() {
   const modulesWithReadme = [];
   const modulesWithoutReadme = [];
 
-  modules.forEach(modulePath => {
+  modules.forEach((modulePath) => {
     const relativePath = getRelativePath(modulePath);
     const hasDoc = hasReadme(modulePath);
 
@@ -150,7 +150,7 @@ function main() {
   });
 
   // Summary
-  console.log('\n' + '═'.repeat(64));
+  console.log(`\n${'═'.repeat(64)}`);
   console.log(`${colors.bright}SUMMARY${colors.reset}\n`);
 
   const totalModules = modules.length;
@@ -169,9 +169,8 @@ function main() {
   const emptyLength = barLength - filledLength;
   const bar = '█'.repeat(filledLength) + '░'.repeat(emptyLength);
 
-  const barColor = coveragePercent >= 100 ? colors.green :
-                   coveragePercent >= 70 ? colors.yellow :
-                   colors.red;
+  const barColor =
+    coveragePercent >= 100 ? colors.green : coveragePercent >= 70 ? colors.yellow : colors.red;
 
   console.log(`\n${barColor}[${bar}] ${coveragePercent}%${colors.reset}\n`);
 

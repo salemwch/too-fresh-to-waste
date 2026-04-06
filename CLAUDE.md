@@ -4,8 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**Too Fresh To Waste** — Food waste reduction marketplace.
-Monorepo: `apps/mobile` (React Native 0.81) + `apps/food-waste-backend` (NestJS 11) + `packages/shared`.
+**Too Fresh To Waste** — Food waste reduction marketplace (Tunisia market).
+Monorepo: `apps/mobile` (React Native 0.81) + `apps/web` (Next.js 15) + `apps/food-waste-backend` (NestJS 11) + `packages/shared` + `packages/ui`.
 **Node**: 24.11.1 | **pnpm**: 10.17.0 | **Turborepo**: 2.6
 
 ---
@@ -16,9 +16,9 @@ Monorepo: `apps/mobile` (React Native 0.81) + `apps/food-waste-backend` (NestJS 
 
 ```bash
 pnpm install                   # Install all workspace deps
-pnpm build:deps                # Build shared package first (required before mobile/backend)
+pnpm build:deps                # Build shared + ui packages first (required before apps)
 pnpm build                     # Build all apps via Turborepo
-pnpm dev                       # Start Metro + NestJS concurrently (Turborepo persistent)
+pnpm dev                       # Start Metro + NestJS + Next.js concurrently
 pnpm lint / pnpm lint:fix      # ESLint across entire monorepo
 pnpm type-check                # tsc --noEmit across all apps
 pnpm test / pnpm test:ci       # Jest across monorepo (test:ci adds coverage)
@@ -26,6 +26,7 @@ pnpm clean                     # Remove dist/, .turbo, Metro cache
 
 # Scoped shortcuts
 pnpm --filter @foodwaste/mobile <script>
+pnpm --filter @foodwaste/web <script>
 pnpm --filter @foodwaste/backend <script>
 ```
 
@@ -34,15 +35,22 @@ pnpm --filter @foodwaste/backend <script>
 ```bash
 pnpm dev                       # Metro bundler
 pnpm dev:android               # Run on Android device/emulator
-pnpm dev:ios                   # Run on iOS simulator (macOS only)
 pnpm metro:reset               # Metro with cache cleared
 pnpm type-check                # TypeScript check (no emit)
 pnpm test / test:watch         # Jest + RTL
-pnpm build:android:debug       # Debug APK → android/app/build/outputs/apk/debug/
-pnpm build:android:release     # Release APK
-pnpm bundle:android            # JS bundle for distribution
+pnpm build:android:debug       # Debug APK
 pnpm clean                     # Full clean (Metro + Gradle)
-pnpm android:clean             # Gradle clean only
+```
+
+### Web (`apps/web`)
+
+```bash
+pnpm dev                       # Next.js dev on port 3001
+pnpm build                     # Production build
+pnpm start                     # Production server on port 3001
+pnpm type-check                # TypeScript check
+pnpm lint / pnpm lint:fix      # ESLint (next lint)
+pnpm test / pnpm test:ci       # Jest
 ```
 
 ### Backend (`apps/food-waste-backend`)
@@ -52,15 +60,10 @@ pnpm dev                       # NestJS watch mode
 pnpm build                     # Compile to dist/
 pnpm start:prod                # Run compiled app
 pnpm type-check                # TypeScript check
-pnpm lint / pnpm lint:fix      # ESLint
-pnpm test                      # Jest
-pnpm test:unit                 # Unit tests only
-pnpm test:integration          # Integration tests
-pnpm test:ci                   # CI mode with coverage
+pnpm test / pnpm test:unit / pnpm test:integration
 pnpm check:all                 # ts + lint + format + test + docs (full gate)
 pnpm seed:admin                # Seed initial admin user
 pnpm verify:indexes            # Validate MongoDB indexes
-pnpm deps:graph                # Visualize module dependency graph
 ```
 
 ---
@@ -72,164 +75,158 @@ pnpm deps:graph                # Visualize module dependency graph
 ```
 C:\WFA/
 ├── apps/
-│   ├── mobile/                # @foodwaste/mobile — React Native
-│   └── food-waste-backend/    # @foodwaste/backend — NestJS
+│   ├── mobile/                # @foodwaste/mobile — React Native 0.81
+│   ├── web/                   # @foodwaste/web — Next.js 15 (App Router)
+│   └── food-waste-backend/    # @foodwaste/backend — NestJS 11
 ├── packages/
-│   └── shared/                # @foodwaste/shared — shared types/enums
-├── turbo.json                 # Task pipeline + Turborepo caching
+│   ├── shared/                # @foodwaste/shared — types, enums, generated API types
+│   └── ui/                    # @foodwaste/ui — shared UI components
+├── turbo.json
 ├── pnpm-workspace.yaml
 └── tsconfig.base.json         # Strict TS, path aliases
 ```
 
-**`packages/shared` must be built (`pnpm build:deps`) before starting mobile or backend.**
+**`packages/shared` and `packages/ui` must be built (`pnpm build:deps`) before starting any app.**
 
 ### Path Aliases
 
-Defined in `tsconfig.base.json`, `babel.config.js`, and `metro.config.js`:
-
-```typescript
-import { Foo } from '@foodwaste/shared';   // packages/shared/src
-import { Foo } from '@/services/api';      // apps/mobile/src/services/api
-```
-
-Backend uses relative imports, not path aliases.
+- Mobile: `@/` → `apps/mobile/src/`, `@foodwaste/shared` → `packages/shared/src`
+- Web: `@/` → `apps/web/src/`, `@foodwaste/shared`, `@foodwaste/ui`
+- Backend: relative imports only — no path aliases
 
 ---
 
 ### Mobile — `apps/mobile/src/`
 
 **Provider hierarchy** (App.tsx):
+
 ```
 GestureHandlerRootView → SafeAreaProvider → ReduxProvider → PersistGate (MMKV)
   → QueryProvider (TanStack) → ThemeProvider → RootNavigator → Toast
 ```
 
-**Navigation** is driven by `AuthFlowState` enum in Redux (`store/authSlice`):
+**Navigation** driven by `AuthFlowState` enum in Redux (`store/authSlice`):
 
-| AuthFlowState | Renders |
-|---|---|
-| `AUTHENTICATED` | MainStack → BottomTabs |
-| `UNAUTHENTICATED` | AuthStack → Login |
-| `EMAIL_VERIFICATION_PENDING` | AuthStack → VerifyEmail |
-| `PHONE_VERIFICATION_PENDING` | AuthStack → VerifyPhone |
-| `MFA_REQUIRED` | AuthStack → MFAVerification |
-| `SESSION_EXPIRED` | AuthStack → Login (with message) |
+| AuthFlowState                | Screen                           |
+| ---------------------------- | -------------------------------- |
+| `AUTHENTICATED`              | MainStack → BottomTabs           |
+| `UNAUTHENTICATED`            | AuthStack → Login                |
+| `EMAIL_VERIFICATION_PENDING` | AuthStack → VerifyEmail          |
+| `PHONE_VERIFICATION_PENDING` | AuthStack → VerifyPhone          |
+| `MFA_REQUIRED`               | AuthStack → MFAVerification      |
+| `SESSION_EXPIRED`            | AuthStack → Login (with message) |
 
 **Stack structure:**
+
 ```
 RootNavigator
 ├── AuthStack       (Welcome, Login, Register, ForgotPassword, ResetPassword,
 │                    VerifyEmail, VerifyPhone, MFAVerification)
 └── MainStack       (modal-style screens + BottomTabNavigator)
-    └── BottomTabs
-        ├── HomeStack
-        ├── SearchStack
-        ├── FavoritesStack
-        ├── OrdersStack     ← OrdersList → OrderDetails (nested; NOT in MainStack)
-        └── ProfileStack    ← ProfileMain → EditProfile
+    └── BottomTabs  (Home, Search, Favorites, Orders, Profile)
+        └── OrdersStack → OrdersList → OrderDetails (nested; NOT in MainStack)
 ```
 
-> **Critical**: `OrderDetails` lives inside `OrdersStack`. Navigate to it from outside
-> via `CommonActions.reset` with nested state — do not add it to `MainStack`.
+> **Critical**: `OrderDetails` lives inside `OrdersStack`. Navigate from outside via `CommonActions.reset` with nested state.
 
-**State management:**
-- **Redux Toolkit** (`store/`): `authSlice`, `locationSlice`, `favoritesSlice`
-- **Persistence**: MMKV (encrypted, 10-100× faster than AsyncStorage) — UI cache
-- **Authoritative secrets**: React Native Keychain — tokens + user profile
-- **Server state**: TanStack Query v5 — all API data fetching
-- **Auth session middleware**: Proactively refreshes tokens before expiry; auto-logout on expired tokens
-- **Forms**: React Hook Form + Yup/Zod
+**State**: Redux Toolkit (auth, location, favorites) + TanStack Query v5 (server state) + MMKV (persistence) + Keychain (tokens/secrets).
 
-**Feature module layout** (vertical slice):
+**Feature modules**: Vertical slices under `features/<name>/` (screens, components, hooks, services, store, types).
+
+**Design system**: Atomic design in `design-system/` — tokens → atoms → molecules → organisms.
+
+---
+
+### Web — `apps/web/src/`
+
+**Framework**: Next.js 15 App Router + React 19 + next-intl 4.7 + Zustand 5 + TanStack Query 5.
+
+**Provider hierarchy** (app/[locale]/layout.tsx):
+
 ```
-features/<name>/
-├── screens/
-├── components/
-├── hooks/
-├── services/     # API calls
-├── store/        # Redux slice (if needed)
-└── types/
+NextIntlClientProvider → QueryProvider → ThemeProvider → AuthProvider → TooltipProvider → Toaster
 ```
 
-**Design system** (`design-system/`):
-- Atomic design: tokens → atoms → molecules → organisms
-- `import { Button, Text, Card, useTheme } from '@/design-system'`
-- Typography variants: `display.large`, `headline.medium`, `body.medium`, `label.small`
-- Button variants: `primary | secondary | tertiary | ghost | outline | danger | success`
-- Test helper: `renderWithTheme(<Component />)` from `@/design-system/setupTests`
+**Route groups** under `app/[locale]/`:
 
-**Storage layer:**
-- `react-native-keychain` — access/refresh tokens, user profile (source of truth)
-- MMKV — warm UI cache, Redux persist backend
-- `react-native-fast-image` — disk-cached network images
+| Group                   | Purpose                                              | Protection                              |
+| ----------------------- | ---------------------------------------------------- | --------------------------------------- |
+| `(marketing)`           | Landing, business-signup, coming-soon                | Public                                  |
+| `(auth)`                | Login, register, verify-email, forgot/reset-password | Public                                  |
+| `(merchant-onboarding)` | Merchant signup flow                                 | Public                                  |
+| `(merchant)`            | Dashboard, offers, orders, analytics, settings       | AuthGuard + RoleGuard(MERCHANT)         |
+| `(admin)`               | Admin dashboard, users, moderation, settings         | AuthGuard + RoleGuard(ADMIN, MODERATOR) |
+
+**Auth**: HttpOnly cookies (access + refresh tokens set by backend). No tokens in JS memory.
+
+- Middleware (Edge): `jose` JWT verification, redirects unauthenticated users
+- AuthProvider: rehydrates via `GET /auth/me`, proactive refresh every 13min, cross-tab sync via localStorage event
+- AuthGuard/RoleGuard: client-side route protection with loading skeletons
+
+**State**: Zustand stores (`useAuthStore`, `useNotificationStore`). TanStack Query with centralized query key factories (`dashboardKeys`).
+
+**API client**: Axios with `withCredentials: true` (auto-sends cookies). 401 interceptor triggers refresh + retry. Refresh mutex prevents concurrent refresh calls.
+
+**i18n**: Locales `en` (default), `fr`, `ar` (RTL). Locale always in URL prefix. Currency: TND.
+
+**Real-time**: Socket.IO for merchant order notifications. Zod-validates incoming events. Patches TanStack Query cache on updates.
 
 ---
 
 ### Backend — `apps/food-waste-backend/src/`
 
-**Bootstrap order** (`main.ts`): Sentry → HTTPS → Filters → Interceptors → URI versioning (`/api/v1/...`) → Helmet CSP → CORS → ValidationPipe → Swagger (`/api/v1/api-docs`) → Redis IO adapter → graceful shutdown.
+**Bootstrap** (`main.ts`): Sentry → HTTPS → Filters → Interceptors → URI versioning (`/api/v1/...`) → Helmet CSP → CORS → ValidationPipe → Swagger (`/api/v1/api-docs`) → Redis IO adapter → graceful shutdown.
 
-**Module map** (`app.module.ts`):
-```
-AuthModule, UsersModule, EstablishmentsModule, OffersModule,
-OrdersModule, PaymentModule, ReviewsModule, NotificationsModule,
-GeolocationModule, FavoritesModule, DonationsModule, LoyaltyModule,
-InventoryModule, AnalyticsModule, ModerationModule, AdminModule,
-WebSocketModule, SearchModule, ArchiveModule, HealthModule
-```
+**Module map**: Auth, Users, Establishments, Offers, Orders, Payment, Reviews, Notifications, Geolocation, Favorites, Donations, Loyalty, Inventory, Analytics, Moderation, Admin, WebSocket, Search, Archive, Health.
 
-Global middleware: `CorrelationIdMiddleware` (request tracing) + `GlobalSanitizationMiddleware` (XSS prevention).
+**Global middleware**: `CorrelationIdMiddleware` (request tracing) + `GlobalSanitizationMiddleware` (XSS prevention).
 
-**MongoDB** (enterprise config):
-- Pool: maxPoolSize=100, minPoolSize=10
-- Compression: zstd primary, snappy/zlib fallback
-- Write concern: `w:'majority'` + journaling in production
-- Read concern: `level:'majority'`
+**MongoDB**: maxPoolSize=100, minPoolSize=10, zstd compression, write concern `w:'majority'`, journaling in production.
 
 **Redis**: Rate limiting (ThrottlerModule) + Bull job queues + Socket.IO pub/sub adapter.
 
 **Response envelope** (all endpoints):
+
 ```typescript
 { status: 'success' | 'error', message: string, data: T, meta?: { page, total, limit } }
 ```
-Mobile uses `unwrapBackendResponse()` to extract `data`. Access `meta` directly via `response.data.meta` (typed as `PaginationMeta | undefined`).
+
+Mobile uses `unwrapBackendResponse()`. Web accesses `response.data.data` directly.
 
 ---
 
 ## Key Domain Patterns
 
 ### Order Expiration
-- `expiresAt = offer.availableUntil + 30 min` (constant: `ORDER_GRACE_PERIOD_MS = 30 * 60 * 1000`)
+
+- `expiresAt = offer.availableUntil + 30 min` (constant: `ORDER_GRACE_PERIOD_MS`)
 - Pickup code validity = `order.expiresAt`
 - Mobile disables pickup input client-side when `expiresAt` is past
-- Fields exposed in: `ORDER_LIST_FIELDS`, `ORDER_DETAIL_FIELDS`, response DTOs
 
 ### Establishment Population
-`order.establishmentId` can be a `string` OR a populated object. Always use:
-```typescript
-getEstablishmentName(order.establishmentId)
-getEstablishmentImage(order.establishmentId)
-```
+
+`order.establishmentId` can be `string` OR populated object. Always use `getEstablishmentName()` / `getEstablishmentImage()`.
 
 ### User Profile Image
-Two fields exist: `avatar` (legacy) + `profileImage` (newer). Resolution: `profileImage > avatar > null`.
-After upload, persist to **Keychain** (not Redux-only — stale after restart).
+
+Two fields: `avatar` (legacy) + `profileImage` (newer). Resolution: `profileImage > avatar > null`. After upload, persist to Keychain (mobile) — not Redux-only.
 
 ### Loyalty
+
 - Active action: "Save a Bag" (+10 pts); others show "Coming Soon"
-- `totalBagsSaved` schema field tracks bags; `totalOrdersCount` tracks orders
+- `totalBagsSaved` tracks bags; `totalOrdersCount` tracks orders
 - `addPoints()` only increments counters when `orderId` is present
-- `useLoginStreak` fires on `LoyaltyScreen` mount — fire-and-forget POST, **no AbortController**
 
-### Skeleton / Loading UI
-Use `Animated` + `LinearGradient` shimmer pattern (see `SkeletonOfferCard`).
+### Data Fetching
 
-### Data Fetching Hooks
-Use `useQueryWithFocus` for screen-level queries that should refetch when the screen regains focus.
+- Mobile: `useQueryWithFocus` for screen-level queries (refetch on focus)
+- Web: TanStack Query with centralized `dashboardKeys` factory + WebSocket cache patching
 
 ---
 
 ## Known Issues
 
-- iOS builds require macOS with Xcode — all iOS changes need explicit confirmation.
-- Shared package changes require Metro cache reset: `pnpm clean:metro` or `pnpm metro:reset`.
+- iOS builds require macOS with Xcode — require explicit confirmation.
+- Shared package changes require Metro cache reset: `pnpm metro:reset`.
+- `src/store/rehydrationOrchestrator.ts` has pre-existing TS errors (JSX in .ts file).
+- Delivery system: NOT IMPLEMENTED — pickup-only. See `DELIVERY_SYSTEM_ANALYSIS.md`.

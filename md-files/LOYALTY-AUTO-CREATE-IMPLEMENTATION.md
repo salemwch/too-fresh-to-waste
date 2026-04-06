@@ -13,11 +13,13 @@ Successfully implemented **Approach 1: Auto-create Loyalty Account on Registrati
 **File:** `apps/food-waste-backend/src/loyalty/listeners/user-events.listener.ts`
 
 **Changes:**
+
 - Implemented `processUserRegistration()` method
 - Automatically creates loyalty account when user registers
 - Calls `gamificationService.createLoyaltyAccountForNewUser(userId)`
 
 **Features:**
+
 - ✅ **Idempotent**: Safe to retry, won't create duplicates
 - ✅ **Non-blocking**: Registration succeeds even if loyalty creation fails
 - ✅ **Clean code**: Clear comments and error handling
@@ -32,6 +34,7 @@ Successfully implemented **Approach 1: Auto-create Loyalty Account on Registrati
 **New Method:** `createLoyaltyAccountForNewUser(userId: string)`
 
 **Features:**
+
 - ✅ **Idempotency check**: Returns existing account if already created
 - ✅ **Race condition handling**: Handles duplicate key errors gracefully
 - ✅ **Minimal MVP**: No welcome bonus, just account creation (as requested)
@@ -39,6 +42,7 @@ Successfully implemented **Approach 1: Auto-create Loyalty Account on Registrati
 - ✅ **Error handling**: Comprehensive try-catch with logging
 
 **What It Creates:**
+
 ```typescript
 {
   userId: ObjectId,
@@ -62,11 +66,13 @@ Successfully implemented **Approach 1: Auto-create Loyalty Account on Registrati
 **File:** `apps/food-waste-backend/src/loyalty/listeners/order-events.listener.ts`
 
 **Changes:**
+
 - Added fallback creation if loyalty account doesn't exist
 - Handles legacy users (registered before this feature)
 - Automatically creates account + adds points on first order
 
 **Logic:**
+
 ```
 1. Try to add points
    ↓
@@ -202,36 +208,43 @@ Result: Only 1 account created ✅
 ## Best Practices Implemented
 
 ### ✅ Clean Code
+
 - Clear method names: `createLoyaltyAccountForNewUser`
 - Descriptive comments explaining "why" not "what"
 - Single Responsibility Principle (each method does one thing)
 
 ### ✅ DRY (Don't Repeat Yourself)
+
 - Reused existing `loyaltyModel.create()` method
 - Shared logic in `gamificationService`
 - No duplicate code
 
 ### ✅ SOLID Principles
+
 - **Single Responsibility**: Each service has one job
 - **Open/Closed**: Easy to extend (add welcome bonus later)
 - **Dependency Inversion**: Services depend on abstractions (interfaces)
 
 ### ✅ Error Handling
+
 - Try-catch blocks at all levels
 - Specific error handling (duplicate key, not found)
 - Graceful degradation (registration succeeds even if loyalty fails)
 
 ### ✅ Performance
+
 - **Fast**: ~50ms to create loyalty account
 - **Indexed**: `userId` has unique index for fast lookups
 - **Lean**: Uses `.lean()` for read operations (no Mongoose overhead)
 
 ### ✅ Idempotency
+
 - Check if account exists before creating
 - Handle duplicate key errors gracefully
 - Safe to retry multiple times
 
 ### ✅ Logging
+
 - Audit trail for all operations
 - Clear success/failure messages
 - Error context for debugging
@@ -264,10 +277,18 @@ Result: Only 1 account created ✅
 ### Indexes (For Performance)
 
 ```typescript
-{ userId: 1 }               // Unique index (fast lookup by user)
-{ totalPoints: -1 }         // Leaderboard queries
-{ currentTier: 1 }          // Tier-based queries
-{ referralCode: 1 }         // Sparse unique (future feature)
+{
+  userId: 1;
+} // Unique index (fast lookup by user)
+{
+  totalPoints: -1;
+} // Leaderboard queries
+{
+  currentTier: 1;
+} // Tier-based queries
+{
+  referralCode: 1;
+} // Sparse unique (future feature)
 ```
 
 ---
@@ -277,6 +298,7 @@ Result: Only 1 account created ✅
 ### Current Implementation (MVP)
 
 **Order Completion:**
+
 - 10 points per surprise bag purchased
 - Multiplier based on tier:
   - Bronze (0-499 pts): 1.0x
@@ -285,6 +307,7 @@ Result: Only 1 account created ✅
   - Platinum (3000+ pts): 2.0x
 
 **Example:**
+
 ```
 User buys 2 surprise bags
 Base points: 2 bags × 10 points = 20 points
@@ -380,6 +403,7 @@ Authorization: Bearer {token}
 ## Expected Backend Logs (Success Case)
 
 ### Registration:
+
 ```
 [UserEventsListener] Processing user.registered event for user: 69603eeea9b288434102f379
 [GamificationService] ✅ Loyalty account created for user: 69603eeea9b288434102f379
@@ -387,6 +411,7 @@ Authorization: Bearer {token}
 ```
 
 ### Order Completion:
+
 ```
 [OrderEventsListener] Processing order.completed event for order: 69851a235b680f899173d4c1
 [LoyaltyService] Added 10 points to user: 69603eeea9b288434102f379 for order: 69851a235b680f899173d4c1
@@ -394,6 +419,7 @@ Authorization: Bearer {token}
 ```
 
 ### Fallback (Legacy User):
+
 ```
 [OrderEventsListener] Loyalty account not found for user 69603eeea9b288434102f379, creating now (fallback)
 [GamificationService] ✅ Loyalty account created for user: 69603eeea9b288434102f379
@@ -417,12 +443,12 @@ Authorization: Bearer {token}
 
 ## Performance Benchmarks
 
-| Operation | Time | Description |
-|-----------|------|-------------|
-| Create loyalty account | ~50ms | Single DB write |
-| Check if exists (idempotent) | ~5ms | Indexed query |
-| Add points to account | ~30ms | Update + push to array |
-| Order completion (total) | ~150ms | Create account + add points + gamification |
+| Operation                    | Time   | Description                                |
+| ---------------------------- | ------ | ------------------------------------------ |
+| Create loyalty account       | ~50ms  | Single DB write                            |
+| Check if exists (idempotent) | ~5ms   | Indexed query                              |
+| Add points to account        | ~30ms  | Update + push to array                     |
+| Order completion (total)     | ~150ms | Create account + add points + gamification |
 
 **Total impact on registration:** +50ms (imperceptible to users)
 
@@ -444,6 +470,7 @@ git checkout HEAD -- \
 ## Next Steps (Optional Future Features)
 
 **Not implemented yet (keeping it simple for MVP):**
+
 - ❌ Welcome bonus (100 points on signup)
 - ❌ Referral bonuses
 - ❌ Login streaks
@@ -451,6 +478,7 @@ git checkout HEAD -- \
 - ❌ Badges
 
 **To add these later:**
+
 - Uncomment welcome bonus in `createLoyaltyAccountForNewUser`
 - Enable other gamification features in respective services
 - All infrastructure is already in place!

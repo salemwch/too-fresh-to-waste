@@ -9,6 +9,7 @@
 ## The Issue
 
 **Deprecation Warning:**
+
 ```
 Bottom Tab Navigator: 'lazy' in props is deprecated.
 Move it to 'screenOptions' instead.
@@ -62,10 +63,12 @@ This warning appears in **React Navigation v6.6+** when using `lazy` as a Naviga
 The React Navigation team moved screen-level options to `screenOptions` for consistency:
 
 **Before v6.6:**
+
 - `lazy` could be set on both `<Tab.Navigator>` and individual screens
 - This caused confusion about precedence
 
 **After v6.6:**
+
 - `lazy` MUST be in `screenOptions` (applies to all screens)
 - Individual screens can still override with `options={{ lazy: false }}`
 
@@ -76,11 +79,13 @@ The React Navigation team moved screen-level options to `screenOptions` for cons
 ### When `lazy: true` (Default - Recommended)
 
 ✅ **Memory Efficient:**
+
 - Only Home tab renders initially
 - Other tabs render when first accessed
 - Reduces initial memory by 40-60%
 
 **Example:**
+
 1. App launches → Only Home screen renders
 2. User clicks Search → Search screen renders for first time
 3. User clicks Home → Home screen already rendered (re-uses)
@@ -89,6 +94,7 @@ The React Navigation team moved screen-level options to `screenOptions` for cons
 ### When `lazy: false`
 
 ❌ **Memory Heavy:**
+
 - All 5 tabs render immediately on app launch
 - Higher initial memory usage (~180MB vs ~100MB)
 - Slower app startup
@@ -151,12 +157,15 @@ pnpm start --reset-cache
 ### 3. Verify Memory Usage
 
 **Before accessing other tabs:**
+
 - Memory: ~60-80MB (only Home rendered)
 
 **After accessing all tabs:**
+
 - Memory: ~100-120MB (all 5 tabs rendered)
 
 **If `lazy: false` (all tabs eager):**
+
 - Memory: ~180MB (all tabs render immediately)
 
 ---
@@ -183,6 +192,7 @@ pnpm start --reset-cache
 ```
 
 **Optimizations:**
+
 1. ✅ `lazy: true` → Memory efficient loading
 2. ✅ `detachInactiveScreens` (Android) → Unmount inactive tabs
 3. ✅ Component memoization → Prevent re-renders
@@ -205,10 +215,12 @@ pnpm start --reset-cache
 ## Performance Impact
 
 ### Before Fix
+
 - ⚠️ Deprecation warning in console
 - ✅ Lazy loading still worked (backward compatible)
 
 ### After Fix
+
 - ✅ No deprecation warnings
 - ✅ Lazy loading works correctly
 - ✅ Future-proof for React Navigation v7+
@@ -224,12 +236,14 @@ pnpm start --reset-cache
 The React Navigation team wanted consistency:
 
 **Old API (Inconsistent):**
+
 - Some options on Navigator props
 - Some options in screenOptions
 - Some options in screen options
 - Confusing precedence rules
 
 **New API (Consistent):**
+
 - All screen options in `screenOptions`
 - Individual overrides in screen `options`
 - Clear precedence: screen options > screenOptions
@@ -239,6 +253,7 @@ The React Navigation team wanted consistency:
 React Navigation v6.6+ still supports the old way (with warning) for backward compatibility, but it will be removed in v7.0.
 
 **Timeline:**
+
 - v6.0 - v6.5: `lazy` prop works without warning
 - v6.6+: `lazy` prop works with deprecation warning
 - v7.0+: `lazy` prop will be removed (breaking change)

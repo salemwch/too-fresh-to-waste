@@ -687,7 +687,7 @@ systemProp.org.gradle.internal.http.socketTimeout=180000
 | `org.gradle.configuration-cache=false` | Disabled  | Causes crashes with RN 0.81 native modules       |
 | `org.gradle.workers.max=4`             | 4 workers | Balanced parallelism for stability               |
 | `hermesEnabled=true`                   | Enabled   | Required in RN 0.81 (JSC removed)                |
-| `newArchEnabled=true`                 | Enabled   | New Architecture         |
+| `newArchEnabled=true`                  | Enabled   | New Architecture                                 |
 | `android.enableR8.fullMode=true`       | Enabled   | Maximum code optimization for release            |
 
 ---
@@ -1366,8 +1366,7 @@ jobs:
       - name: Upload to Google Play (Internal Testing)
         uses: r0adkll/upload-google-play@v1
         with:
-          serviceAccountJsonPlainText:
-            ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
           packageName: com.foodwasteapp
           releaseFiles: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
           track: internal

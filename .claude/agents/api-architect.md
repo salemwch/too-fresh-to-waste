@@ -1,6 +1,5 @@
 ---
-description:
-  API design specialist for RESTful APIs, GraphQL, microservices integration,
+description: API design specialist for RESTful APIs, GraphQL, microservices integration,
   and API governance
 model: sonnet
 ---
@@ -563,13 +562,11 @@ const resolvers = {
 ```typescript
 import DataLoader from 'dataloader';
 
-const orderLoader = new DataLoader(async userIds => {
+const orderLoader = new DataLoader(async (userIds) => {
   const orders = await db.orders.find({ userId: { $in: userIds } });
 
   // Group orders by userId
-  const ordersByUserId = userIds.map(id =>
-    orders.filter(order => order.userId === id),
-  );
+  const ordersByUserId = userIds.map((id) => orders.filter((order) => order.userId === id));
 
   return ordersByUserId;
 });
@@ -654,7 +651,7 @@ app.get('/mobile/v1/offers', async (req, res) => {
   const offers = await offerService.getOffers();
 
   // Return only fields needed by mobile
-  const mobileOffers = offers.map(o => ({
+  const mobileOffers = offers.map((o) => ({
     id: o.id,
     title: o.title,
     price: o.price,

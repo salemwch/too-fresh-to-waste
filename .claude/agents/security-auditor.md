@@ -1,6 +1,5 @@
 ---
-description:
-  Enterprise security auditor for OWASP Top 10, zero-trust architecture, and
+description: Enterprise security auditor for OWASP Top 10, zero-trust architecture, and
   compliance
 model: opus
 ---

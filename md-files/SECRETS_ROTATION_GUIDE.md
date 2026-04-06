@@ -565,12 +565,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 export class SecretRotationService {
   @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
   async checkSecretAge() {
-    const secrets = [
-      'JWT_SECRET',
-      'JWT_REFRESH_SECRET',
-      'REDIS_PASSWORD',
-      'DATABASE_URL',
-    ];
+    const secrets = ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'REDIS_PASSWORD', 'DATABASE_URL'];
 
     for (const secret of secrets) {
       const age = await this.getSecretAge(secret);

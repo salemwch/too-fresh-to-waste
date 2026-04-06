@@ -1,6 +1,7 @@
 # Merchant Logo Display Fix - Summary
 
 ## Issue
+
 The merchant's profile image (logo) wasn't displaying in the OfferCard component's bottom-left corner because the backend wasn't populating the merchant's `profileImage` field in the API responses.
 
 ## Data Flow Architecture
@@ -8,23 +9,28 @@ The merchant's profile image (logo) wasn't displaying in the OfferCard component
 ### **1. Database Schema**
 
 #### User Schema (`apps/food-waste-backend/src/users/schemas/user.schema.ts:152`)
+
 ```typescript
 @Prop({ type: String, default: null })
 profileImage: string;
 ```
+
 - **Field**: `profileImage`
 - **Type**: String (URL to uploaded image)
 - **Purpose**: Merchant's logo/profile picture
 
 #### Establishment Schema
+
 ```typescript
 @Prop({ type: [String], default: [] })
 images: string[];
 ```
+
 - **Note**: Establishment has `images[]` but NO `profileImage` field
 - **Design**: Merchant profile image belongs to User, not Establishment
 
 #### Offer Schema
+
 ```typescript
 @Prop({ type: Types.ObjectId, ref: 'User', required: true })
 merchantId: Types.ObjectId;
@@ -32,6 +38,7 @@ merchantId: Types.ObjectId;
 @Prop({ type: Types.ObjectId, ref: 'Establishment', required: true })
 establishmentId: Types.ObjectId;
 ```
+
 - **Relationships**: Offer → Merchant (User) → profileImage
 - **Relationships**: Offer → Establishment → name, rating, etc.
 
@@ -42,12 +49,14 @@ establishmentId: Types.ObjectId;
 #### **Step 1: Service Layer - Populate merchantId**
 
 **getFeaturedOffers** (`apps/food-waste-backend/src/offers/offers.service.ts:810`)
+
 ```typescript
 .populate('establishmentId', 'name address type averageRating')
 .populate('merchantId', 'firstName lastName profileImage') // ✅ FIXED
 ```
 
 **getNearbyOffers** (`apps/food-waste-backend/src/offers/offers.service.ts:939`)
+
 ```typescript
 $project: {
   // ...
@@ -56,6 +65,7 @@ $project: {
 ```
 
 **getRecommendedOffers** (`apps/food-waste-backend/src/offers/offers.service.ts:1171`)
+
 ```typescript
 $project: {
   // ...
@@ -64,6 +74,7 @@ $project: {
 ```
 
 **findAll** (`apps/food-waste-backend/src/offers/offers.service.ts:397`)
+
 ```typescript
 .populate('merchantId', 'firstName lastName profileImage') // ✅ Already included
 ```
@@ -71,6 +82,7 @@ $project: {
 #### **Step 2: Presenter Layer - Extract profileImage**
 
 **OfferPresenter** (`apps/food-waste-backend/src/offers/presenters/offer.presenter.ts:89-104`)
+
 ```typescript
 private static getEstablishmentData(offer: OfferDocument): {
   name: string;
@@ -101,6 +113,7 @@ private static getEstablishmentData(offer: OfferDocument): {
 ```
 
 **Key Design**:
+
 - Merchant's `profileImage` is extracted from `offer.merchantId`
 - It's then added to the `establishment` object in the DTO
 - This keeps the frontend API simple (one `establishment` object instead of separate `merchant` and `establishment`)
@@ -108,6 +121,7 @@ private static getEstablishmentData(offer: OfferDocument): {
 #### **Step 3: DTO Structure**
 
 **OfferCardDto** (`apps/food-waste-backend/src/offers/DTO/offer-list.dto.ts:56-61`)
+
 ```typescript
 establishment: {
   name: string;
@@ -122,19 +136,22 @@ establishment: {
 ### **3. API Response**
 
 **GET /api/v1/offers/featured**
+
 ```json
 {
   "statusCode": 200,
-  "data": [{
-    "id": "696f85894e705a8854179511",
-    "title": "Surprise Bag",
-    "image": "http://10.0.2.2:3000/uploads/offers/1_1768916361129_d0cb5896.jpeg",
-    "establishment": {
-      "name": "riadh palm",
-      "averageRating": 0,
-      "profileImage": "http://10.0.2.2:3000/uploads/profile-images/restaurent_1768935196257_efef210b.jpeg"
+  "data": [
+    {
+      "id": "696f85894e705a8854179511",
+      "title": "Surprise Bag",
+      "image": "http://10.0.2.2:3000/uploads/offers/1_1768916361129_d0cb5896.jpeg",
+      "establishment": {
+        "name": "riadh palm",
+        "averageRating": 0,
+        "profileImage": "http://10.0.2.2:3000/uploads/profile-images/restaurent_1768935196257_efef210b.jpeg"
+      }
     }
-  }]
+  ]
 }
 ```
 
@@ -143,6 +160,7 @@ establishment: {
 ### **4. Frontend Processing**
 
 #### **Mobile Type Definition** (`apps/mobile/src/features/offers/types/offer.types.ts:183-189`)
+
 ```typescript
 establishment: {
   name: string;
@@ -153,6 +171,7 @@ establishment: {
 ```
 
 #### **OfferCard Component** (`apps/mobile/src/design-system/components/organisms/OfferCard/OfferCard.tsx:232-250`)
+
 ```typescript
 {/* Establishment Logo/Avatar */}
 {showEstablishment && offer.establishment?.profileImage && (
@@ -167,6 +186,7 @@ establishment: {
 ```
 
 **Styles** (OfferCard.tsx:437-456)
+
 ```typescript
 establishmentLogo: {
   position: 'absolute',
@@ -187,6 +207,7 @@ establishmentLogo: {
 ## Files Modified
 
 ### Backend
+
 1. **`apps/food-waste-backend/src/offers/offers.service.ts:810`**
    - Added `.populate('merchantId', 'firstName lastName profileImage')` to `getFeaturedOffers`
 
@@ -194,6 +215,7 @@ establishmentLogo: {
    - Added `'merchant.profileImage': 1` to projection in `getNearbyOffers`
 
 ### Frontend
+
 - No changes needed! The OfferCard component already had the code to display the logo.
 - It was just waiting for the backend to send the `profileImage` field.
 
@@ -202,17 +224,21 @@ establishmentLogo: {
 ## Verification Steps
 
 ### 1. Test Backend API Response
+
 ```bash
 curl http://localhost:3000/api/v1/offers/featured?limit=1 | grep profileImage
 ```
 
 **Expected Output:**
+
 ```
 "profileImage":"http://10.0.2.2:3000/uploads/profile-images/restaurent_1768935196257_efef210b.jpeg"
 ```
 
 ### 2. Test in Mobile App
+
 1. **Open Android Emulator:**
+
    ```bash
    cd apps/mobile
    pnpm dev:android
@@ -241,15 +267,18 @@ curl http://localhost:3000/api/v1/offers/featured?limit=1 | grep profileImage
 ### Why Merchant profileImage, Not Establishment images?
 
 **Problem:**
+
 - Establishment can have multiple `images[]` (storefront photos, interior, etc.)
 - But OfferCard needs ONE logo to identify the merchant/brand
 
 **Solution:**
+
 - Use Merchant's `profileImage` (their brand logo/avatar)
 - This is set once when merchant creates their account
 - Appears consistently across all their offers
 
 **Benefits:**
+
 1. **Brand Consistency**: Same logo for all offers from one merchant
 2. **Simplicity**: Merchants don't need to upload logo for each establishment
 3. **Performance**: One field instead of array traversal
@@ -260,24 +289,29 @@ curl http://localhost:3000/api/v1/offers/featured?limit=1 | grep profileImage
 **Alternative Designs Considered:**
 
 #### Option A: Separate merchant and establishment objects
+
 ```json
 {
   "establishment": { "name": "..." },
   "merchant": { "profileImage": "..." }
 }
 ```
+
 **Rejected**: Frontend would need to track two objects
 
 #### Option B: Top-level merchantProfileImage field
+
 ```json
 {
   "merchantProfileImage": "...",
   "establishment": { "name": "..." }
 }
 ```
+
 **Rejected**: Inconsistent with component expectations
 
 #### **Option C (Chosen): Merge into establishment object**
+
 ```json
 {
   "establishment": {
@@ -286,7 +320,9 @@ curl http://localhost:3000/api/v1/offers/featured?limit=1 | grep profileImage
   }
 }
 ```
+
 **Benefits**:
+
 - ✅ Single object for all establishment/merchant display data
 - ✅ Frontend components expect one source of truth
 - ✅ Simpler mobile app state management
@@ -297,12 +333,14 @@ curl http://localhost:3000/api/v1/offers/featured?limit=1 | grep profileImage
 ## Testing Checklist
 
 Backend:
+
 - [x] API returns `establishment.profileImage` in featured offers
 - [x] API returns `establishment.profileImage` in nearby offers
 - [x] API returns `establishment.profileImage` in recommended offers
 - [x] API returns `establishment.profileImage` in search/filter offers
 
 Frontend:
+
 - [ ] Merchant logo displays in HomeScreen → Featured Offers
 - [ ] Merchant logo displays in HomeScreen → Hottest Deals
 - [ ] Merchant logo displays in SearchScreen → Offer list
@@ -317,19 +355,23 @@ Frontend:
 ## Known Limitations
 
 ### Merchant Without profileImage
+
 **Scenario**: Merchant hasn't uploaded a profile image
 
 **Current Behavior**: No logo displayed (conditional render)
 
 **Future Enhancement**: Add default placeholder avatar
+
 ```typescript
 const logoUri = offer.establishment?.profileImage || DEFAULT_MERCHANT_AVATAR;
 ```
 
 ### Offer Created Before Fix
+
 **Scenario**: Offers in database created before profileImage population was added
 
 **Solution**: Already handled! Offers fetch merchant data dynamically via `.populate()`
+
 - No database migration needed
 - Old offers will automatically get profileImage on next fetch
 
@@ -345,6 +387,7 @@ These endpoints also fetch offers but are less critical for OfferCard display:
 **Recommendation**: Fix for consistency, but not urgent (these are mutation endpoints, not list endpoints)
 
 **Fix**:
+
 ```typescript
 .populate('merchantId', 'firstName lastName profileImage')
 ```

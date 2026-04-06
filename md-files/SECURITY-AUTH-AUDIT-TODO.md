@@ -44,6 +44,7 @@ throw new BadRequestException('Request failed. Please try again.');
 ```
 
 **Never use**:
+
 ```typescript
 // ❌ WRONG - Leaks information
 throw new NotFoundException('User not found');
@@ -56,6 +57,7 @@ throw new UnauthorizedException('Email not verified');
 ## 📋 AUTH ENDPOINTS TO AUDIT
 
 ### 1. **Token Refresh** (`/auth/refresh`) ✅ FIXED
+
 **File**: `apps/food-waste-backend/src/auth/auth.service.ts:609`
 
 - ✅ **FIXED**: Changed `'User not found'` → `'Session expired. Please log in again.'`
@@ -64,9 +66,11 @@ throw new UnauthorizedException('Email not verified');
 ---
 
 ### 2. **Login** (`/auth/login`) ⚠️ NEEDS FIX
+
 **File**: `apps/food-waste-backend/src/auth/auth.service.ts:357`
 
 **Current** (❌ Information Leak):
+
 ```typescript
 throw new UnauthorizedException({
   message: 'No account found with this email address',
@@ -76,6 +80,7 @@ throw new UnauthorizedException({
 ```
 
 **Should Be** (✅ Generic):
+
 ```typescript
 throw new UnauthorizedException({
   message: 'Invalid email or password',
@@ -89,6 +94,7 @@ throw new UnauthorizedException({
 ---
 
 ### 3. **Forgot Password** (`/auth/forgot-password`) ⚠️ REVIEW NEEDED
+
 **File**: `apps/food-waste-backend/src/auth/auth.service.ts:516`
 
 **Current Behavior**: Returns generic success message (good!)
@@ -104,9 +110,11 @@ return {
 ---
 
 ### 4. **Reset Password** (`/auth/reset-password`) ⚠️ NEEDS AUDIT
+
 **File**: `apps/food-waste-backend/src/auth/auth.service.ts:544`
 
 **Current**:
+
 ```typescript
 if (!user || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
   throw new BadRequestException('Invalid or expired password reset token');
@@ -116,6 +124,7 @@ if (!user || !user.passwordResetExpires || user.passwordResetExpires < new Date(
 **Issue**: "Invalid or expired" might leak information about token validity
 
 **Should Be**:
+
 ```typescript
 throw new BadRequestException('Password reset link is invalid. Please request a new one.');
 ```
@@ -123,9 +132,11 @@ throw new BadRequestException('Password reset link is invalid. Please request a 
 ---
 
 ### 5. **Email Verification** (`/auth/verify-email`) ⚠️ NEEDS AUDIT
+
 **File**: `apps/food-waste-backend/src/auth/auth.service.ts:186`
 
 **Current**:
+
 ```typescript
 if (!user) {
   throw new BadRequestException('Invalid or expired verification token');
@@ -137,9 +148,11 @@ if (!user) {
 ---
 
 ### 6. **Registration** (`/auth/register`) ⚠️ REVIEW NEEDED
+
 **File**: `apps/food-waste-backend/src/auth/auth.service.ts:94`
 
 **Current**:
+
 ```typescript
 if (existingUser) {
   throw new ConflictException('User with this email already exists');
@@ -149,6 +162,7 @@ if (existingUser) {
 **Issue**: Reveals if email is registered (account enumeration)
 
 **Options**:
+
 1. **Keep current** (trade-off: better UX for legitimate users)
 2. **Generic error** (better security, worse UX)
 
@@ -159,6 +173,7 @@ if (existingUser) {
 ## 🛠️ IMPLEMENTATION CHECKLIST
 
 ### Backend Fixes
+
 - [x] Fix `/auth/refresh` - use generic "Session expired"
 - [x] Fix `/auth/login` - use generic "Invalid credentials"
 - [ ] Audit `/auth/reset-password` - generic password reset error
@@ -167,11 +182,13 @@ if (existingUser) {
 - [ ] Audit `/auth/verify-email` - already secure ✅
 
 ### User Service Fixes
+
 - [ ] Audit all `NotFoundException('User not found')` in `user.service.ts`
 - [ ] Replace with `UnauthorizedException('Unauthorized')` or `ForbiddenException('Access denied')`
 - [ ] Ensure authenticated endpoints don't leak user existence
 
 ### Security Enhancements
+
 - [ ] Add rate limiting to all auth endpoints (already implemented ✅)
 - [ ] Add CAPTCHA after N failed attempts (infrastructure ready, needs activation)
 - [ ] Log all auth failures for security monitoring
@@ -183,25 +200,25 @@ if (existingUser) {
 
 ### Auth Error Response Matrix
 
-| Scenario | HTTP Status | Message | Rationale |
-|----------|-------------|---------|-----------|
-| User not found | 401 | "Invalid credentials" | Don't reveal user existence |
-| Wrong password | 401 | "Invalid credentials" | Same as above (identical response) |
-| Email not verified | 401 | "Please verify your email" | OK to reveal (user knows their email) |
-| Account locked | 401 | "Account temporarily locked" | OK to reveal (legitimate security measure) |
-| Token expired | 401 | "Session expired" | Generic, doesn't leak info |
-| Token invalid | 401 | "Session expired" | Same as above (identical response) |
-| Account deleted | 401 | "Session expired" | Don't reveal deletion |
-| Account suspended | 403 | "Access denied" | Generic, doesn't explain why |
+| Scenario           | HTTP Status | Message                      | Rationale                                  |
+| ------------------ | ----------- | ---------------------------- | ------------------------------------------ |
+| User not found     | 401         | "Invalid credentials"        | Don't reveal user existence                |
+| Wrong password     | 401         | "Invalid credentials"        | Same as above (identical response)         |
+| Email not verified | 401         | "Please verify your email"   | OK to reveal (user knows their email)      |
+| Account locked     | 401         | "Account temporarily locked" | OK to reveal (legitimate security measure) |
+| Token expired      | 401         | "Session expired"            | Generic, doesn't leak info                 |
+| Token invalid      | 401         | "Session expired"            | Same as above (identical response)         |
+| Account deleted    | 401         | "Session expired"            | Don't reveal deletion                      |
+| Account suspended  | 403         | "Access denied"              | Generic, doesn't explain why               |
 
 ### Network Error Response Matrix
 
-| Scenario | HTTP Status | Frontend Action | Backend Change |
-|----------|-------------|-----------------|----------------|
-| 500 Internal Error | 500 | Show offline banner, keep session | N/A (backend issue) |
-| 503 Service Unavailable | 503 | Show offline banner, retry | N/A (maintenance) |
-| Network timeout | - | Show offline banner, retry | N/A (network issue) |
-| DNS failure | - | Show offline banner, retry | N/A (connectivity) |
+| Scenario                | HTTP Status | Frontend Action                   | Backend Change      |
+| ----------------------- | ----------- | --------------------------------- | ------------------- |
+| 500 Internal Error      | 500         | Show offline banner, keep session | N/A (backend issue) |
+| 503 Service Unavailable | 503         | Show offline banner, retry        | N/A (maintenance)   |
+| Network timeout         | -           | Show offline banner, retry        | N/A (network issue) |
+| DNS failure             | -           | Show offline banner, retry        | N/A (connectivity)  |
 
 ---
 
@@ -217,12 +234,14 @@ if (existingUser) {
 ## 🚀 Testing Plan
 
 ### Manual Testing
+
 1. Try to login with non-existent email → Should get "Invalid credentials"
 2. Try to refresh token for deleted user → Should get "Session expired"
 3. Try to reset password with invalid token → Should get generic error
 4. Network timeout during refresh → Should show offline banner, NOT logout
 
 ### Automated Testing
+
 ```typescript
 // Test: Auth errors don't leak information
 describe('Auth Security - Information Disclosure', () => {
@@ -260,6 +279,7 @@ describe('Auth Security - Information Disclosure', () => {
 ## 📈 AUDIT STATUS
 
 ### ✅ Phase 1: Critical Auth Endpoints (COMPLETED - 2026-02-06)
+
 - ✅ Fixed `/auth/refresh` - Generic "Session expired"
 - ✅ Fixed `/auth/login` - Generic "Invalid credentials"
 - ✅ Implemented offline mode (network errors don't trigger logout)
@@ -267,7 +287,9 @@ describe('Auth Security - Information Disclosure', () => {
 - ✅ **User Impact**: Deleted users no longer see confusing alerts
 
 ### 🟡 Phase 2: Full Codebase Audit (IN PROGRESS)
+
 **Remaining Work**:
+
 - [ ] Audit 36 instances of `NotFoundException('User not found')` in services
 - [ ] Review all authenticated endpoints
 - [ ] Implement consistent error handling patterns

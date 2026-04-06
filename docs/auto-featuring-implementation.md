@@ -70,6 +70,7 @@ isFeatured = isFeaturedManual || isFeaturedAuto
 ```
 
 **Query Optimization**:
+
 - Cron job uses compound index for fast filtering
 - Minimal database load every 5 minutes
 
@@ -90,6 +91,7 @@ AUTO_FEATURE_CRON_SCHEDULE='*/5 * * * *'            # Cron schedule
 **File**: `apps/food-waste-backend/src/offers/config/featuring.config.ts`
 
 **Defaults**:
+
 - Minimum Existence: **2 hours**
 - Urgency Threshold: **1.5 hours** (90 minutes)
 - Cron Frequency: **Every 5 minutes**
@@ -147,7 +149,7 @@ Query: {
 
 ```typescript
 Update: {
-  isFeaturedAuto: false
+  isFeaturedAuto: false;
 }
 ```
 
@@ -163,6 +165,7 @@ Authorization: Bearer <admin_token>
 ```
 
 **Response**:
+
 ```json
 {
   "message": "Offer manually featured successfully",
@@ -173,6 +176,7 @@ Authorization: Bearer <admin_token>
 **Authorization**: **ADMIN ONLY** (merchants removed)
 
 **What it does**:
+
 - Sets `isFeaturedManual = true`
 - Sets `featuredAt = now`
 - Sets `featuredBy = adminUserId`
@@ -188,6 +192,7 @@ Authorization: Bearer <admin_token>
 ```
 
 **Response**:
+
 ```json
 {
   "message": "Offer manually unfeatured successfully",
@@ -196,6 +201,7 @@ Authorization: Bearer <admin_token>
 ```
 
 **What it does**:
+
 - Sets `isFeaturedManual = false`
 - Clears `featuredAt` and `featuredBy`
 - Offer can still be auto-featured if eligible
@@ -221,6 +227,7 @@ Authorization: Bearer <admin_token>
 ```
 
 **Frontend Usage**:
+
 - Use `isFeatured` to display badge/highlight
 - Use `isFeaturedAuto` to show "Urgent: Only 1.5h left!" messaging
 - Use `isFeaturedManual` to show "Staff Pick" badge
@@ -229,13 +236,13 @@ Authorization: Bearer <admin_token>
 
 ## 📈 Example Scenarios
 
-| Scenario | Created At | Available Until | Current Time | Existed | Remaining | Featured? | Why? |
-|----------|-----------|----------------|--------------|---------|-----------|-----------|------|
-| **A** | 10:00 AM | 11:00 AM | 10:30 AM | 30 min | 30 min | ❌ | Existed < 2 hours (gaming prevention) |
-| **B** | 08:00 AM | 12:00 PM | 11:00 AM | 3 hours | 1 hour | ✅ | Perfect! Existed ≥2h, ≤1.5h left |
-| **C** | 08:00 AM | 12:00 PM | 09:00 AM | 1 hour | 3 hours | ❌ | Too much time remaining |
-| **D** | 08:00 AM | 10:30 AM | 10:15 AM | 2.25h | 15 min | ✅ | Existed ≥2h, ≤1.5h left |
-| **E** | 10:00 AM | 11:00 AM | 11:30 AM | 1.5h | -30 min | ❌ | Expired |
+| Scenario | Created At | Available Until | Current Time | Existed | Remaining | Featured? | Why?                                  |
+| -------- | ---------- | --------------- | ------------ | ------- | --------- | --------- | ------------------------------------- |
+| **A**    | 10:00 AM   | 11:00 AM        | 10:30 AM     | 30 min  | 30 min    | ❌        | Existed < 2 hours (gaming prevention) |
+| **B**    | 08:00 AM   | 12:00 PM        | 11:00 AM     | 3 hours | 1 hour    | ✅        | Perfect! Existed ≥2h, ≤1.5h left      |
+| **C**    | 08:00 AM   | 12:00 PM        | 09:00 AM     | 1 hour  | 3 hours   | ❌        | Too much time remaining               |
+| **D**    | 08:00 AM   | 10:30 AM        | 10:15 AM     | 2.25h   | 15 min    | ✅        | Existed ≥2h, ≤1.5h left               |
+| **E**    | 10:00 AM   | 11:00 AM        | 11:30 AM     | 1.5h    | -30 min   | ❌        | Expired                               |
 
 ---
 
@@ -312,30 +319,36 @@ Authorization: Bearer <admin_token>
 ## 📝 Files Changed
 
 ### 1. Schema (`offer.schema.ts`)
+
 - Added `isFeaturedManual`, `isFeaturedAuto`, `featuredAt`, `featuredBy` fields
 - Added virtual field `isFeatured`
 - Added optimized indexes for auto-featuring queries
 
 ### 2. Configuration (`featuring.config.ts`) ✨ NEW
+
 - Environment variable configuration
 - Validation logic
 - Constants for cron job
 
 ### 3. Service (`offers.service.ts`)
+
 - `setManualFeatured()` - Admin manual featuring
 - `autoFeatureEligibleOffers()` - Auto-featuring logic
 - `autoUnfeatureIneligibleOffers()` - Auto-unfeaturing logic
 - `handleAutoFeaturing()` - Cron job entry point
 
 ### 4. Controller (`offers.controller.ts`)
+
 - Updated `PATCH /:id/feature` to **ADMIN ONLY**
 - Added `PATCH /:id/unfeature` endpoint
 - Added user ID tracking
 
 ### 5. DTO (`offer-list.dto.ts`)
+
 - Added featuring metadata fields
 
 ### 6. Presenter (`offer.presenter.ts`)
+
 - Added featuring metadata to response transformation
 
 ---
@@ -407,6 +420,7 @@ Authorization: Bearer <admin_token>
 ## 📞 Support
 
 For questions or issues, contact the engineering team or refer to:
+
 - `/docs/CLAUDE.md` - Project overview
 - `/apps/food-waste-backend/CLAUDE.md` - Backend architecture
 

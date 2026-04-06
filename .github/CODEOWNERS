@@ -1,0 +1,65 @@
+# CODEOWNERS — GitHub enforces these rules on every PR.
+# At least one owner must approve before a PR can merge into a protected branch.
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Format: <pattern>  <@owner-or-team>
+# Patterns match like .gitignore rules; later rules override earlier ones.
+# Replace @salemwch with your actual GitHub team slugs once the team grows
+# (e.g. @your-org/security-team, @your-org/backend-team).
+
+# ── Default: all files require the repo owner ─────────────────────────────
+*                                           @salemwch
+
+# ── CI/CD & DevSecOps (highest blast radius — any pipeline change) ─────────
+.github/                                    @salemwch
+.github/workflows/                          @salemwch
+.github/dependabot.yml                      @salemwch
+
+# ── Authentication & Authorization (credential exposure risk) ──────────────
+apps/food-waste-backend/src/auth/           @salemwch
+apps/food-waste-backend/src/auth/guards/    @salemwch
+apps/food-waste-backend/src/auth/strategies/ @salemwch
+apps/food-waste-backend/src/auth/services/  @salemwch
+
+# ── Payments (financial data — zero tolerance for unreviewed changes) ───────
+apps/food-waste-backend/src/payments/       @salemwch
+
+# ── User PII & Privacy (GDPR / Tunisia data law) ───────────────────────────
+apps/food-waste-backend/src/users/          @salemwch
+apps/food-waste-backend/src/users/schemas/  @salemwch
+apps/food-waste-backend/src/users/services/privacy-compliance.service.ts @salemwch
+
+# ── Security middleware & sanitization ─────────────────────────────────────
+apps/food-waste-backend/src/common/middleware/  @salemwch
+apps/food-waste-backend/src/common/filters/     @salemwch
+apps/food-waste-backend/src/common/interceptors/ @salemwch
+
+# ── Admin & Moderation (privilege escalation risk) ─────────────────────────
+apps/food-waste-backend/src/admin/          @salemwch
+apps/food-waste-backend/src/moderation/     @salemwch
+
+# ── Web authentication (cookie / token handling) ───────────────────────────
+apps/web/src/middleware.ts                  @salemwch
+apps/web/src/providers/AuthProvider.tsx     @salemwch
+apps/web/src/lib/api/                       @salemwch
+apps/web/src/components/auth/              @salemwch
+
+# ── Mobile token storage (Keychain usage) ──────────────────────────────────
+apps/mobile/src/features/auth/              @salemwch
+apps/mobile/src/store/authSlice.ts          @salemwch
+
+# ── Docker & infrastructure ────────────────────────────────────────────────
+apps/food-waste-backend/Dockerfile          @salemwch
+
+# ── Environment variable templates (schema for what secrets are needed) ────
+**/.env.example                             @salemwch
+
+# ── Dependency manifests (supply chain) ────────────────────────────────────
+package.json                                @salemwch
+pnpm-lock.yaml                              @salemwch
+apps/food-waste-backend/package.json        @salemwch
+apps/web/package.json                       @salemwch
+apps/mobile/package.json                    @salemwch
+
+# ── Shared types (breaking changes ripple across all apps) ─────────────────
+packages/shared/src/                        @salemwch

@@ -9,18 +9,22 @@ You were absolutely right to question hardcoded UTC+1 offsets. Tunisia's DST rul
 ## ✅ What Was Fixed
 
 ### 1. **Backend Documentation** (Fixed)
+
 **Problem**: Comments mentioned "UTC+1" which implies hardcoded offsets
 **Fix**: Updated all documentation to mention "Africa/Tunis timezone (DST-aware)"
 
 **Files Changed**:
+
 - ✅ `apps/food-waste-backend/src/common/utils/timezone.util.ts`
 - ✅ `apps/food-waste-backend/src/payments/tasks/payout.task.ts`
 
 ### 2. **Mobile App Display Logic** (Fixed)
+
 **Problem**: Used `.toLocaleTimeString()` which displays in **device timezone**, not Tunisia timezone
 **Fix**: Added explicit `timeZone: 'Africa/Tunis'` parameter
 
 **File Changed**:
+
 - ✅ `apps/mobile/src/utils/datetime.ts`
 
 ---
@@ -28,6 +32,7 @@ You were absolutely right to question hardcoded UTC+1 offsets. Tunisia's DST rul
 ## ✅ What Was Already Correct
 
 ### 1. **Backend Timezone Handling** ✅
+
 **Status**: CORRECT - Uses Luxon with IANA timezone
 
 ```typescript
@@ -37,11 +42,13 @@ const availableFrom = TimezoneUtil.toUTC(dto.availableFrom, timezone);
 ```
 
 **How it works**:
+
 - Luxon library handles DST automatically
 - `Africa/Tunis` is an IANA timezone identifier
 - Offset calculated dynamically (respects DST changes)
 
 ### 2. **Urgent Deals Calculation** ✅
+
 **Status**: CORRECT - Uses relative time, no timezone conversion needed
 
 ```typescript
@@ -52,6 +59,7 @@ const urgencyDeadline = new Date(now.getTime() + URGENCY_THRESHOLD_MS);
 ```
 
 **Why this works**:
+
 - All DB timestamps stored in UTC
 - Comparison uses UTC timestamps
 - "1 hour from now" works the same in any timezone
@@ -61,6 +69,7 @@ const urgencyDeadline = new Date(now.getTime() + URGENCY_THRESHOLD_MS);
 ## 📊 Your Example - Verified
 
 ### Scenario:
+
 ```
 Merchant creates offer in Tunisia:
   Start: 13:37 Tunisia time
@@ -81,6 +90,7 @@ Urgent deals (1h before end):
 ### Verification:
 
 **Step 1: Merchant creates offer at 13:37 Tunisia**
+
 ```typescript
 // Backend (offers.service.ts:116)
 const timezone = 'Africa/Tunis';
@@ -90,18 +100,20 @@ const availableFrom = TimezoneUtil.toUTC('2026-01-20T13:37:00', timezone);
 ```
 
 **Step 2: Mobile app displays offer**
+
 ```typescript
 // Mobile (datetime.ts)
-formatTime("2026-01-20T12:37:00.000Z");
+formatTime('2026-01-20T12:37:00.000Z');
 // Uses: timeZone: 'Africa/Tunis'
 // Returns: "13:37" ✅
 ```
 
 **Step 3: Urgent deals calculation at 13:37 UTC (14:37 Tunisia)**
+
 ```typescript
 // Backend (offers.service.ts:1386)
-const now = new Date();  // 13:37 UTC
-const urgencyDeadline = new Date(now.getTime() + (1 * 60 * 60 * 1000));
+const now = new Date(); // 13:37 UTC
+const urgencyDeadline = new Date(now.getTime() + 1 * 60 * 60 * 1000);
 // urgencyDeadline = 14:37 UTC
 
 // Query finds offers where:
@@ -114,16 +126,18 @@ const urgencyDeadline = new Date(now.getTime() + (1 * 60 * 60 * 1000));
 ## 🔑 Key Principles Applied
 
 ### ✅ **1. IANA Timezone Identifiers (NOT Offsets)**
+
 ```typescript
 // ❌ BAD: Hardcoded offset
 const offset = +1;
-const localTime = utcTime + (offset * 3600000);
+const localTime = utcTime + offset * 3600000;
 
 // ✅ GOOD: IANA timezone
-const timezone = 'Africa/Tunis';  // Handles DST automatically
+const timezone = 'Africa/Tunis'; // Handles DST automatically
 ```
 
 ### ✅ **2. Always Store UTC in Database**
+
 ```typescript
 // Database schema (MongoDB)
 {
@@ -133,13 +147,15 @@ const timezone = 'Africa/Tunis';  // Handles DST automatically
 ```
 
 ### ✅ **3. Convert for Display Only**
+
 ```typescript
 // Mobile app
-const utcFromDB = "2026-01-20T12:37:00.000Z";
-const displayTime = formatTime(utcFromDB);  // "13:37" Tunisia time
+const utcFromDB = '2026-01-20T12:37:00.000Z';
+const displayTime = formatTime(utcFromDB); // "13:37" Tunisia time
 ```
 
 ### ✅ **4. DST Handling is Automatic**
+
 ```typescript
 // Luxon/Intl.DateTimeFormat handles DST changes
 // No code changes needed when Tunisia changes DST rules
@@ -155,11 +171,11 @@ const displayTime = formatTime(utcFromDB);  // "13:37" Tunisia time
 // If Tunisia switches to DST (UTC+2) in summer:
 
 // March 1, 2026 - Standard time (UTC+1)
-formatTime("2026-03-01T12:00:00.000Z");
+formatTime('2026-03-01T12:00:00.000Z');
 // Returns: "13:00" (UTC+1)
 
 // June 1, 2026 - DST time (UTC+2) - HYPOTHETICAL
-formatTime("2026-06-01T12:00:00.000Z");
+formatTime('2026-06-01T12:00:00.000Z');
 // Would return: "14:00" (UTC+2)
 // ✅ No code changes needed - Luxon/Intl handles it
 ```
@@ -169,6 +185,7 @@ formatTime("2026-06-01T12:00:00.000Z");
 ## 📱 Mobile App Changes
 
 ### Before (WRONG):
+
 ```typescript
 // Used device timezone (could be UTC, Europe/Paris, etc.)
 return date.toLocaleTimeString('en-US', {
@@ -180,6 +197,7 @@ return date.toLocaleTimeString('en-US', {
 ```
 
 ### After (CORRECT):
+
 ```typescript
 // Always uses Tunisia timezone
 return date.toLocaleTimeString('en-US', {
@@ -191,6 +209,7 @@ return date.toLocaleTimeString('en-US', {
 ```
 
 ### New Utility Functions:
+
 ```typescript
 // Get current Tunisia time
 const now = getCurrentTunisiaTime();
@@ -241,6 +260,7 @@ const remaining = getTimeRemaining(offer.availableUntil);
 ## ✅ Files Modified
 
 ### Backend:
+
 1. ✅ `apps/food-waste-backend/src/common/utils/timezone.util.ts`
    - Removed "UTC+1" from documentation
    - Added "DST-aware" notes
@@ -250,6 +270,7 @@ const remaining = getTimeRemaining(offer.availableUntil);
    - Added DST-aware note
 
 ### Mobile:
+
 1. ✅ `apps/mobile/src/utils/datetime.ts`
    - Added explicit `timeZone: 'Africa/Tunis'` parameter
    - Added `getCurrentTunisiaTime()` utility
@@ -260,18 +281,19 @@ const remaining = getTimeRemaining(offer.availableUntil);
 
 ## 🎯 Summary
 
-| Component | Before | After | DST-Safe? |
-|-----------|--------|-------|-----------|
-| Backend timezone conversion | ✅ Correct (Luxon) | ✅ Correct | ✅ Yes |
-| Backend urgent deals | ✅ Correct (relative time) | ✅ Correct | ✅ Yes |
-| Backend documentation | ❌ Mentions "UTC+1" | ✅ Fixed | ✅ Yes |
-| Mobile display | ❌ Device timezone | ✅ Tunisia timezone | ✅ Yes |
+| Component                   | Before                     | After               | DST-Safe? |
+| --------------------------- | -------------------------- | ------------------- | --------- |
+| Backend timezone conversion | ✅ Correct (Luxon)         | ✅ Correct          | ✅ Yes    |
+| Backend urgent deals        | ✅ Correct (relative time) | ✅ Correct          | ✅ Yes    |
+| Backend documentation       | ❌ Mentions "UTC+1"        | ✅ Fixed            | ✅ Yes    |
+| Mobile display              | ❌ Device timezone         | ✅ Tunisia timezone | ✅ Yes    |
 
 ---
 
 ## 🚀 Next Steps
 
 1. **Test the changes**:
+
    ```bash
    # Restart backend
    cd apps/food-waste-backend

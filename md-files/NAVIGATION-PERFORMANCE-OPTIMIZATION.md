@@ -19,6 +19,7 @@ Applied **enterprise-level navigation best practices** to fix navigation freeze 
 **File:** `apps/mobile/index.js`
 
 **Changes:**
+
 ```javascript
 import { enableScreens, enableFreeze } from 'react-native-screens';
 
@@ -30,6 +31,7 @@ enableFreeze(true);
 ```
 
 **Impact:**
+
 - ✅ **Performance:** 30-50% faster screen transitions
 - ✅ **Memory:** ~40% reduction in memory usage
 - ✅ **UX:** Smoother navigation, no jank during transitions
@@ -43,12 +45,14 @@ enableFreeze(true);
 **File:** `apps/mobile/src/navigation/RootNavigator.tsx`
 
 **Features Added:**
+
 - ✅ Navigation state restoration (DEV only - safer than production)
 - ✅ Navigation ready callback for analytics
 - ✅ Screen view tracking with automatic logging
 - ✅ Performance monitoring via `onStateChange`
 
 **Changes:**
+
 ```typescript
 // Navigation state persistence (DEV only)
 const [initialNavigationState, setInitialNavigationState] = useState<any>();
@@ -89,6 +93,7 @@ const handleNavigationStateChange = async (state: any) => {
 ```
 
 **Impact:**
+
 - ✅ **UX:** Users return to last screen after app restart (DEV)
 - ✅ **Analytics:** Automatic screen view tracking ready
 - ✅ **Debug:** Easier to debug navigation flows
@@ -102,6 +107,7 @@ const handleNavigationStateChange = async (state: any) => {
 **File:** `apps/mobile/src/navigation/TabNavigator.tsx`
 
 **Changes:**
+
 ```typescript
 // ✅ Lazy load tabs (only render when accessed)
 lazy={true}
@@ -114,6 +120,7 @@ export const TabNavigator = memo(TabNavigatorComponent);
 ```
 
 **Impact:**
+
 - ✅ **Memory:** 40-60% reduction in initial memory usage
 - ✅ **Performance:** Faster tab switches
 - ✅ **Android:** Better performance with screen detachment
@@ -127,6 +134,7 @@ export const TabNavigator = memo(TabNavigatorComponent);
 **File:** `apps/mobile/src/features/home/screens/HomeScreen.tsx`
 
 **Changes:**
+
 ```typescript
 const [isScreenReady, setIsScreenReady] = useState(false);
 
@@ -139,6 +147,7 @@ useEffect(() => {
 ```
 
 **Impact:**
+
 - ✅ **UX:** No jank during screen transitions
 - ✅ **Performance:** Defers heavy operations until animations complete
 - ✅ **Smooth:** 60fps navigation transitions
@@ -150,12 +159,14 @@ useEffect(() => {
 ## Performance Metrics
 
 ### Before Optimization
+
 - Navigation transitions: ~200ms (with jank)
 - Memory usage (5 tabs): ~180MB
 - Tab switch time: ~150ms
 - Screen mount time: ~300ms
 
 ### After Optimization
+
 - Navigation transitions: ~80ms (smooth 60fps) ⚡ **60% faster**
 - Memory usage (5 tabs): ~100MB 💾 **44% reduction**
 - Tab switch time: ~60ms ⚡ **60% faster**
@@ -232,12 +243,14 @@ pnpm start --reset-cache
 ### Why `enableScreens()` Fixes Navigation Freeze
 
 **Problem:**
+
 - `react-native-screens` v4.20.0 installed (newer version)
 - React Navigation expects `~3.29.0` (older version)
 - Without calling `enableScreens()`, navigation uses plain React Native views
 - Touch events get blocked by view hierarchy conflicts
 
 **Solution:**
+
 - Calling `enableScreens(true)` explicitly enables native screen optimization
 - Forces `react-native-screens` to use native containers
 - Resolves view hierarchy conflicts
@@ -246,23 +259,27 @@ pnpm start --reset-cache
 ### Why `enableFreeze()` Improves Performance
 
 **How It Works:**
+
 - Freezes inactive screens (stops JS execution)
 - Screens remain mounted but paused when not visible
 - Reduces memory usage by ~40%
 - Prevents unnecessary re-renders
 
 **When to Disable:**
+
 - If screens need background updates (WebSocket, timers)
 - If you see blank screens after switching tabs
 
 ### Why Tab `lazy={true}` Matters
 
 **Default Behavior (lazy=false):**
+
 - All 5 tabs render immediately on app launch
 - ~180MB memory usage
 - Slower initial render
 
 **With lazy={true}:**
+
 - Only Home tab renders initially
 - Other tabs render when first accessed
 - ~100MB memory usage (44% reduction)

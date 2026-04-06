@@ -17,14 +17,16 @@ The user switch detection pattern and cross-device location sync have been **ful
 ### 1. ✅ User Switch Detection (Frontend)
 
 **Files Modified:**
+
 - `apps/mobile/src/store/slices/locationSlice.ts` (lines 661-693)
 - `apps/mobile/src/store/slices/favoritesSlice.ts` (lines 337-368)
 
 **Implementation:**
+
 ```typescript
 // Location Slice - User Switch Detection
 builder.addMatcher(
-  action => action.type === 'auth/login/fulfilled',
+  (action) => action.type === 'auth/login/fulfilled',
   (state, action: any) => {
     const newUserId = action.payload?.user?.userId;
 
@@ -41,14 +43,15 @@ builder.addMatcher(
 
 // On logout: Keep location for re-login
 builder.addMatcher(
-  action => action.type === 'auth/logout/fulfilled',
-  state => {
+  (action) => action.type === 'auth/logout/fulfilled',
+  (state) => {
     state.userId = null; // Mark as no user, keep data
   },
 );
 ```
 
 **Key Features:**
+
 - ✅ Tracks `userId` with location/favorites data
 - ✅ Clears data only when userId changes (different user)
 - ✅ Preserves data on logout (same user re-login)
@@ -62,9 +65,11 @@ builder.addMatcher(
 **File**: `apps/food-waste-backend/src/users/user.controller.ts`
 
 #### GET /users/me/location-preferences (lines 668-716)
+
 Fetches user's saved location preferences for cross-device sync.
 
 **Response Example:**
+
 ```json
 {
   "success": true,
@@ -77,9 +82,11 @@ Fetches user's saved location preferences for cross-device sync.
 ```
 
 #### PATCH /users/me/location-preferences (lines 727-776)
+
 Saves location preferences to backend.
 
 **Request Example:**
+
 ```json
 {
   "coordinates": { "latitude": 32.0853, "longitude": 34.7818 },
@@ -90,11 +97,13 @@ Saves location preferences to backend.
 ```
 
 #### PATCH /users/location (lines 360-433)
+
 Legacy endpoint - updates user location (still used by frontend).
 
 **File**: `apps/food-waste-backend/src/users/user.service.ts`
 
 #### updateLocationPreferences() (lines 790-820)
+
 Service method to update location in database.
 
 ```typescript
@@ -171,6 +180,7 @@ useEffect(() => {
 ```
 
 **Key Features:**
+
 - ✅ Auto-fetches location from backend on login (new device)
 - ✅ Skips backend fetch if GPS location already set (prevents overwrite)
 - ✅ Uses reverse geocoding to display location name
@@ -220,6 +230,7 @@ const handleLocationSelection = async (coordinates, name) => {
 ```
 
 **Key Features:**
+
 - ✅ Syncs location to backend after user selects it
 - ✅ Handles both GPS and manual location
 - ✅ Non-blocking: Local storage works even if backend fails
@@ -230,6 +241,7 @@ const handleLocationSelection = async (coordinates, name) => {
 ## 🎯 User Flows Verified
 
 ### Flow 1: Same Device, Same User Re-login ✅
+
 ```
 Day 1:
 1. User A logs in → userId: 'user123'
@@ -246,6 +258,7 @@ Day 2:
 ```
 
 ### Flow 2: Same Device, Different User ✅
+
 ```
 1. User A logs in → Selects "Paris" (userId: 'user123')
 2. User A logs out
@@ -258,6 +271,7 @@ Day 2:
 ```
 
 ### Flow 3: Different Device, Same User (Cross-device) ✅
+
 ```
 Device 1:
 1. User A logs in
@@ -278,12 +292,14 @@ Device 2:
 ## 📊 Architecture Summary
 
 ### Layer 1: Local Storage (MMKV)
+
 - **Purpose**: Fast UX, instant load on app launch
 - **Implementation**: Redux Persist with locationSlice
 - **Lifetime**: Persists until app uninstall or user switch
 - **Key**: `@food_waste_app:location`
 
 ### Layer 2: Backend Sync
+
 - **Purpose**: Cross-device consistency
 - **Implementation**:
   - Save: `PATCH /users/location` (on location change)
@@ -292,6 +308,7 @@ Device 2:
 - **Storage**: MongoDB `users.locationPreferences`
 
 ### User Switch Detection
+
 - **Purpose**: Privacy protection
 - **Implementation**: Track `userId` in Redux state
 - **Logic**:
@@ -304,16 +321,19 @@ Device 2:
 ## 🔒 Privacy & Security Verification
 
 ### ✅ Data Isolation
+
 - Each user's location stored separately (keyed by userId)
 - User switch → Old data cleared automatically
 - No data leak between accounts
 
 ### ✅ GDPR Compliance
+
 - Location data deleted when user deleted (cascade)
 - User controls location sharing (consent)
 - Location history limited (last 10 only)
 
 ### ✅ Storage Strategy
+
 - MMKV: Fast local cache (encrypted)
 - Backend: Authoritative source
 - Keychain: Not needed (location is not as sensitive as tokens)
@@ -323,6 +343,7 @@ Device 2:
 ## 📁 Files Changed Summary
 
 ### Frontend (3 files)
+
 1. `apps/mobile/src/store/slices/locationSlice.ts`
    - Added `userId: string | null` field
    - Implemented user switch detection matcher
@@ -338,6 +359,7 @@ Device 2:
    - Handles GPS fallback to manual
 
 ### Backend (2 files)
+
 1. `apps/food-waste-backend/src/users/user.controller.ts`
    - `GET /users/me/location-preferences` - Fetch location
    - `PATCH /users/me/location-preferences` - Save location
@@ -354,12 +376,14 @@ Device 2:
 These are NOT implemented yet but would be nice-to-have:
 
 ### Phase 4: Dedicated Fetch Endpoint Integration
+
 Currently using `GET /users/me` → `user.locationPreferences`.
 **Future**: Use dedicated `GET /users/me/location-preferences` for cleaner separation.
 
 **Impact**: Low priority - current approach works fine.
 
 ### Phase 5: Multiple Saved Locations
+
 - "Home", "Work", "Favorite spots"
 - Quick switch between saved locations
 - User schema already supports this via `savedLocations` array
@@ -367,6 +391,7 @@ Currently using `GET /users/me` → `user.locationPreferences`.
 **Impact**: Medium priority - nice UX improvement.
 
 ### Phase 6: Offline Queue for Location Updates
+
 - Queue location updates when offline
 - Sync when connection restored
 - Conflict resolution (last-write-wins)
@@ -377,21 +402,22 @@ Currently using `GET /users/me` → `user.locationPreferences`.
 
 ## ✅ Success Metrics
 
-| Metric | Target | Status |
-|--------|--------|--------|
-| No re-selection on re-login | 100% | ✅ **Achieved** |
-| User switch detection accuracy | 100% | ✅ **Achieved** |
-| Cross-device sync on login | Works | ✅ **Implemented** |
-| Data leak prevention | 0 leaks | ✅ **Verified** |
-| GDPR compliance | Full | ✅ **Compliant** |
-| Backend endpoints | Available | ✅ **Live** |
-| Frontend integration | Complete | ✅ **Done** |
+| Metric                         | Target    | Status             |
+| ------------------------------ | --------- | ------------------ |
+| No re-selection on re-login    | 100%      | ✅ **Achieved**    |
+| User switch detection accuracy | 100%      | ✅ **Achieved**    |
+| Cross-device sync on login     | Works     | ✅ **Implemented** |
+| Data leak prevention           | 0 leaks   | ✅ **Verified**    |
+| GDPR compliance                | Full      | ✅ **Compliant**   |
+| Backend endpoints              | Available | ✅ **Live**        |
+| Frontend integration           | Complete  | ✅ **Done**        |
 
 ---
 
 ## 🧪 Testing Checklist
 
 ### Test 1: Same User Re-login ✅
+
 - [ ] Login as User A
 - [ ] Select location "Paris"
 - [ ] Check MMKV: `{ userId: 'user123', coordinates: {...} }`
@@ -401,6 +427,7 @@ Currently using `GET /users/me` → `user.locationPreferences`.
 - [ ] **Expected**: No popup, shows "Paris" automatically ✅
 
 ### Test 2: Different User ✅
+
 - [ ] Login as User A → Select "Paris"
 - [ ] Logout
 - [ ] Delete User A from backend
@@ -410,6 +437,7 @@ Currently using `GET /users/me` → `user.locationPreferences`.
 - [ ] Check MMKV: `{ userId: 'user456', coordinates: {London} }`
 
 ### Test 3: Cross-Device Sync ✅
+
 - [ ] Device 1: Login as User A → Select "Paris"
 - [ ] Device 1: Check backend: `user.locationPreferences.defaultLocation`
 - [ ] Device 2: Login as User A (first time)
@@ -417,6 +445,7 @@ Currently using `GET /users/me` → `user.locationPreferences`.
 - [ ] **Expected**: Shows "Paris" automatically ✅
 
 ### Test 4: Backend Endpoints ✅
+
 - [ ] `GET /users/me/location-preferences` returns saved location
 - [ ] `PATCH /users/me/location-preferences` saves location
 - [ ] `PATCH /users/location` updates location (legacy)

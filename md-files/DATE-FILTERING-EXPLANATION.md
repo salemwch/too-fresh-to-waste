@@ -9,6 +9,7 @@ We use **overlap logic** instead of exact date matching because offers can span 
 ## 📅 Step-by-Step Example
 
 ### Scenario: Current Time
+
 ```
 NOW (UTC): 2026-01-20T10:30:00.000Z
 NOW (Tunisia): 2026-01-20T11:30:00+01:00
@@ -20,7 +21,7 @@ NOW (Tunisia): 2026-01-20T11:30:00+01:00
 
 ```typescript
 // In the code:
-const now = new Date();  // 2026-01-20T10:30:00.000Z (UTC)
+const now = new Date(); // 2026-01-20T10:30:00.000Z (UTC)
 
 const startOfToday = TimezoneUtil.getStartOfDay(now);
 // Returns: 2026-01-19T23:00:00.000Z (UTC)
@@ -32,6 +33,7 @@ const endOfToday = TimezoneUtil.getEndOfDay(now);
 ```
 
 **Visual Representation**:
+
 ```
 Tunisia Time:  |------- Jan 20 (00:00 - 23:59) -------|
 UTC Time:      |------- Jan 19 23:00 to Jan 20 22:59 ---|
@@ -46,15 +48,17 @@ const query = {
   status: 'ACTIVE',
   isActive: true,
   // Overlap detection:
-  availableFrom: { $lte: endOfToday },    // Starts before end of today
-  availableUntil: { $gte: startOfToday }  // Ends after start of today
+  availableFrom: { $lte: endOfToday }, // Starts before end of today
+  availableUntil: { $gte: startOfToday }, // Ends after start of today
 };
 ```
 
 ### Translation:
+
 **"Find all offers where the pickup window overlaps with today"**
 
 An offer is included if:
+
 - It starts before the day ends AND
 - It ends after the day starts
 
@@ -63,6 +67,7 @@ An offer is included if:
 ## 📊 Examples with Real Data
 
 ### Example 1: Offer Fully Within Today ✅
+
 ```javascript
 Offer: {
   availableFrom: "2026-01-20T06:00:00.000Z",  // 7:00 AM Tunisia
@@ -81,6 +86,7 @@ Result: ✅ INCLUDED in "Pickup Today"
 ---
 
 ### Example 2: Offer Spans Yesterday → Today ✅
+
 ```javascript
 Offer: {
   availableFrom: "2026-01-19T19:00:00.000Z",  // Jan 19, 8:00 PM Tunisia
@@ -100,6 +106,7 @@ Reason: Pickup window overlaps with today (available until 2 PM today)
 ---
 
 ### Example 3: Offer Spans Today → Tomorrow ✅
+
 ```javascript
 Offer: {
   availableFrom: "2026-01-20T19:00:00.000Z",  // Jan 20, 8:00 PM Tunisia
@@ -119,6 +126,7 @@ Reason: Pickup window starts today at 8 PM
 ---
 
 ### Example 4: Offer Only Tomorrow ❌
+
 ```javascript
 Offer: {
   availableFrom: "2026-01-21T06:00:00.000Z",  // Jan 21, 7:00 AM Tunisia
@@ -135,6 +143,7 @@ Reason: Pickup window starts tomorrow
 ---
 
 ### Example 5: Offer Only Yesterday ❌
+
 ```javascript
 Offer: {
   availableFrom: "2026-01-19T06:00:00.000Z",  // Jan 19, 7:00 AM Tunisia
@@ -194,14 +203,14 @@ For "Pickup Tomorrow", we just shift the date by +1 day:
 
 ```typescript
 const tomorrow = new Date();
-tomorrow.setDate(tomorrow.getDate() + 1);  // Add 1 day
+tomorrow.setDate(tomorrow.getDate() + 1); // Add 1 day
 
 const startOfTomorrow = TimezoneUtil.getStartOfDay(tomorrow);
 const endOfTomorrow = TimezoneUtil.getEndOfDay(tomorrow);
 
 const query = {
   availableFrom: { $lte: endOfTomorrow },
-  availableUntil: { $gte: startOfTomorrow }
+  availableUntil: { $gte: startOfTomorrow },
 };
 ```
 
@@ -210,20 +219,23 @@ const query = {
 ## 🎯 Why Overlap Logic?
 
 ### ❌ BAD: Exact Date Matching
+
 ```typescript
 // This would MISS offers that span multiple days!
-availableFrom >= startOfToday && availableFrom < endOfToday
+availableFrom >= startOfToday && availableFrom < endOfToday;
 ```
 
 **Problem**: An offer from 8 PM yesterday to 2 PM today would be missed.
 
 ### ✅ GOOD: Overlap Detection
+
 ```typescript
 // This catches ALL offers with pickup window overlapping today
-availableFrom <= endOfToday && availableUntil >= startOfToday
+availableFrom <= endOfToday && availableUntil >= startOfToday;
 ```
 
 **Benefit**: Correctly handles:
+
 - Offers fully within today
 - Offers spanning yesterday → today
 - Offers spanning today → tomorrow
@@ -262,11 +274,11 @@ Offer E:                       |                 | [=====]
 
 ```javascript
 db.offers.find({
-  status: "ACTIVE",
+  status: 'ACTIVE',
   isActive: true,
-  availableFrom: { $lte: ISODate("2026-01-20T22:59:59.999Z") },
-  availableUntil: { $gte: ISODate("2026-01-19T23:00:00.000Z") }
-})
+  availableFrom: { $lte: ISODate('2026-01-20T22:59:59.999Z') },
+  availableUntil: { $gte: ISODate('2026-01-19T23:00:00.000Z') },
+});
 ```
 
 This translates to:

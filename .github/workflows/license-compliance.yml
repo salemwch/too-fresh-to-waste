@@ -1,0 +1,147 @@
+name: License Compliance
+
+# Why: commercial marketplace — GPL/AGPL deps would require open-sourcing
+# the product or negotiating a commercial license. Catch this before it
+# reaches production.
+
+on:
+  push:
+    branches: [main, master, develop]
+    paths:
+      - '**/package.json'
+      - 'pnpm-lock.yaml'
+  pull_request:
+    branches: [main, master, develop]
+    paths:
+      - '**/package.json'
+      - 'pnpm-lock.yaml'
+  schedule:
+    # Weekly scan — catches license changes in transitive deps between PRs
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+jobs:
+  license-check:
+    name: License Compliance Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.11.1'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.17.0'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install license-checker
+        # license-checker-rseidelsohn is the maintained fork of license-checker
+        run: npm install -g license-checker-rseidelsohn@4.4.2
+
+      # ── Allowed licenses for a commercial product ──────────────────────────
+      # MIT, ISC, Apache-2.0, BSD variants, CC0, Unlicense = permissive ✓
+      # GPL, AGPL, LGPL, EUPL, CC-BY-SA = copyleft ✗ (require open-sourcing)
+      # MPL-2.0 = weak copyleft (file-level only) — borderline, allowed here
+      # CDDL, EPL = strong copyleft for file-modified code — blocked
+
+      - name: Check backend licenses
+        working-directory: apps/food-waste-backend
+        run: |
+          license-checker-rseidelsohn \
+            --production \
+            --onlyAllow "MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;BSD-4-Clause;0BSD;Unlicense;CC0-1.0;MPL-2.0;Python-2.0;BlueOak-1.0.0;Artistic-2.0" \
+            --excludePrivatePackages \
+            --excludePackages "$(node -e "const p=require('./package.json'); console.log(p.name)")" \
+            --csv \
+            --out /tmp/backend-licenses.csv
+          echo "✓ Backend license check passed"
+
+      - name: Check web licenses
+        working-directory: apps/web
+        run: |
+          license-checker-rseidelsohn \
+            --production \
+            --onlyAllow "MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;BSD-4-Clause;0BSD;Unlicense;CC0-1.0;MPL-2.0;Python-2.0;BlueOak-1.0.0;Artistic-2.0" \
+            --excludePrivatePackages \
+            --excludePackages "$(node -e "const p=require('./package.json'); console.log(p.name)")" \
+            --csv \
+            --out /tmp/web-licenses.csv
+          echo "✓ Web license check passed"
+
+      - name: Check mobile licenses
+        working-directory: apps/mobile
+        run: |
+          license-checker-rseidelsohn \
+            --production \
+            --onlyAllow "MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;BSD-4-Clause;0BSD;Unlicense;CC0-1.0;MPL-2.0;Python-2.0;BlueOak-1.0.0;Artistic-2.0" \
+            --excludePrivatePackages \
+            --excludePackages "$(node -e "const p=require('./package.json'); console.log(p.name)")" \
+            --csv \
+            --out /tmp/mobile-licenses.csv
+          echo "✓ Mobile license check passed"
+
+      - name: Generate combined license report
+        run: |
+          echo "# License Report — $(date -u +%Y-%m-%dT%H:%M:%SZ)" > /tmp/license-report.md
+          echo "" >> /tmp/license-report.md
+
+          for workspace in backend web mobile; do
+            FILE="/tmp/${workspace}-licenses.csv"
+            if [ -f "$FILE" ]; then
+              echo "## ${workspace^}" >> /tmp/license-report.md
+              # Count unique licenses
+              UNIQUE=$(tail -n +2 "$FILE" | awk -F',' '{print $2}' | sort -u | wc -l)
+              TOTAL=$(tail -n +2 "$FILE" | wc -l)
+              echo "_${TOTAL} packages · ${UNIQUE} distinct licenses_" >> /tmp/license-report.md
+              echo "" >> /tmp/license-report.md
+            fi
+          done
+
+          cat /tmp/license-report.md
+
+      - name: Upload license reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-reports-${{ github.sha }}
+          path: /tmp/*-licenses.csv
+          retention-days: 90
+
+      # Open a GitHub issue when the scheduled weekly scan finds violations.
+      # On PRs the job simply fails the check — no issue needed.
+      - name: Open issue on scheduled violation
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '⚖️ License compliance violation detected',
+              body: `## License Compliance Alert
+
+            A dependency with a non-permissive license was detected in the weekly scan.
+
+            ### Action Required
+            1. Review the [workflow run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details
+            2. Identify the offending package and find a permissive alternative
+            3. Update \`pnpm-lock.yaml\` and re-run this workflow
+
+            ### Allowed licenses
+            MIT, ISC, Apache-2.0, BSD-*, 0BSD, Unlicense, CC0-1.0, MPL-2.0
+
+            ### Blocked licenses (copyleft)
+            GPL-2.0, GPL-3.0, AGPL-3.0, LGPL-*, EUPL-*, CC-BY-SA-*
+
+            **Priority:** HIGH — legal risk for commercial product`,
+              labels: ['security', 'legal', 'high-priority']
+            })

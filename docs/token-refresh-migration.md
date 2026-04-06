@@ -3,6 +3,7 @@
 ## Problem Statement
 
 Current mobile app has **NO automatic token refresh**. When access tokens expire:
+
 - Requests fail with 401
 - Users see errors
 - Must manually logout/login
@@ -39,6 +40,7 @@ Implement centralized API client with axios interceptors for automatic token ref
 ### Step 1: Update Offers Service
 
 **Before** (manual token management):
+
 ```typescript
 // apps/mobile/src/features/offers/services/offersService.ts
 async createOffer(payload: CreateOfferPayload, accessToken: string): Promise<Offer> {
@@ -49,6 +51,7 @@ async createOffer(payload: CreateOfferPayload, accessToken: string): Promise<Off
 ```
 
 **After** (automatic via interceptor):
+
 ```typescript
 import { apiClient, unwrapResponse } from '@/services/apiClient';
 
@@ -64,6 +67,7 @@ async createOffer(payload: CreateOfferPayload): Promise<Offer> {
 ### Step 2: Update Offers Hooks
 
 **Before**:
+
 ```typescript
 // apps/mobile/src/features/offers/hooks/useNearbyOffers.ts
 const { tokens } = useAppSelector(state => state.auth);
@@ -82,6 +86,7 @@ return useQueryWithFocus(
 ```
 
 **After**:
+
 ```typescript
 // No need to check for tokens - interceptor handles it
 const isEnabled = enabled && !!params;
@@ -103,15 +108,18 @@ return useQueryWithFocus(
 Apply the same pattern to all services:
 
 **Offers Service** (`offersService.ts`):
+
 - Remove `accessToken` parameters
 - Replace `this.makeRequest()` with `apiClient.get/post/patch/delete()`
 - Use `unwrapResponse()` helper
 
 **Auth Service** (`authService.ts`):
+
 - Keep as-is (auth endpoints don't need token injection)
 - Login/register/refresh endpoints are handled differently
 
 **Donations API** (`donationsApi.ts`):
+
 - Replace `axios.create()` with shared `apiClient`
 - Remove `setDonationsApiAuthToken()` function
 - Tokens auto-injected by interceptor
@@ -121,6 +129,7 @@ Apply the same pattern to all services:
 ## Example: Complete Service Migration
 
 ### Before
+
 ```typescript
 class OffersService {
   private baseURL = `${environment.api.baseUrl}/offers`;
@@ -129,7 +138,7 @@ class OffersService {
     method: string,
     url: string,
     data?: unknown,
-    headers?: Record<string, string>
+    headers?: Record<string, string>,
   ): Promise<T> {
     const response = await axios({ method, url, data, headers });
     return response.data.data.data; // Manual unwrapping
@@ -148,22 +157,18 @@ class OffersService {
 ```
 
 ### After
+
 ```typescript
 import { apiClient, unwrapResponse, ApiResponseWrapper } from '@/services/apiClient';
 
 class OffersService {
   async getOfferById(offerId: string): Promise<Offer> {
-    const response = await apiClient.get<ApiResponseWrapper<{ data: Offer }>>(
-      `/offers/${offerId}`
-    );
+    const response = await apiClient.get<ApiResponseWrapper<{ data: Offer }>>(`/offers/${offerId}`);
     return unwrapResponse(response.data);
   }
 
   async createOffer(payload: CreateOfferPayload): Promise<Offer> {
-    const response = await apiClient.post<ApiResponseWrapper<{ data: Offer }>>(
-      '/offers',
-      payload
-    );
+    const response = await apiClient.post<ApiResponseWrapper<{ data: Offer }>>('/offers', payload);
     return unwrapResponse(response.data); // Automatic token injection via interceptor
   }
 }
@@ -177,7 +182,7 @@ class OffersService {
 
 ```typescript
 // Before migration: Had to manually check for token
-const { tokens } = useAppSelector(state => state.auth);
+const { tokens } = useAppSelector((state) => state.auth);
 if (!tokens?.accessToken) return;
 
 // After migration: Just call the service
@@ -212,6 +217,7 @@ const offer = await offersService.createOffer(payload); // Token auto-added
 ## Migration Checklist
 
 ### Phase 1: Core Infrastructure ✅
+
 - [x] Create `apiClient.ts` with interceptors
 - [x] Add request interceptor (token injection)
 - [x] Add response interceptor (401 handling)
@@ -219,6 +225,7 @@ const offer = await offersService.createOffer(payload); // Token auto-added
 - [x] Create helper functions (`unwrapResponse`, `unwrapPaginatedResponse`)
 
 ### Phase 2: Service Migration
+
 - [ ] Update `offersService.ts`
 - [ ] Update `establishmentsService.ts` (if exists)
 - [ ] Update `ordersService.ts` (if exists)
@@ -226,12 +233,14 @@ const offer = await offersService.createOffer(payload); // Token auto-added
 - [ ] Update any other services
 
 ### Phase 3: Hook Migration
+
 - [ ] Remove token checks from `useOffers.ts`
 - [ ] Remove token checks from `useNearbyOffers.ts`
 - [ ] Remove token parameters from mutation hooks
 - [ ] Update any custom hooks that pass tokens
 
 ### Phase 4: Testing
+
 - [ ] Test login flow
 - [ ] Test token refresh on 401
 - [ ] Test concurrent requests during refresh
@@ -239,6 +248,7 @@ const offer = await offersService.createOffer(payload); // Token auto-added
 - [ ] Test all CRUD operations
 
 ### Phase 5: Cleanup
+
 - [ ] Remove `setDonationsApiAuthToken` function
 - [ ] Remove manual token checks in hooks
 - [ ] Remove `accessToken` parameters from service methods

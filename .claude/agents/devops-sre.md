@@ -1,6 +1,5 @@
 ---
-description:
-  DevOps/SRE specialist for CI/CD, infrastructure-as-code, monitoring, and
+description: DevOps/SRE specialist for CI/CD, infrastructure-as-code, monitoring, and
   incident response
 model: sonnet
 ---

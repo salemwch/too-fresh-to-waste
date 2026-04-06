@@ -1,6 +1,7 @@
 # Offer Approval Workflow (Optional Enhancement)
 
 ## Current: Self-Service Model ✅
+
 - Merchant creates → draft
 - Merchant activates → active (live immediately)
 - Admin can suspend if needed
@@ -12,21 +13,23 @@
 ### Changes Required
 
 #### 1. Add New Status
+
 ```typescript
 // offer.schema.ts
 export enum OfferStatus {
-    DRAFT = 'draft',
-    PENDING_APPROVAL = 'pending_approval',  // ← New
-    ACTIVE = 'active',
-    REJECTED = 'rejected',                   // ← New
-    SOLD_OUT = 'sold_out',
-    EXPIRED = 'expired',
-    CANCELLED = 'cancelled',
-    SUSPENDED = 'suspended',
+  DRAFT = 'draft',
+  PENDING_APPROVAL = 'pending_approval', // ← New
+  ACTIVE = 'active',
+  REJECTED = 'rejected', // ← New
+  SOLD_OUT = 'sold_out',
+  EXPIRED = 'expired',
+  CANCELLED = 'cancelled',
+  SUSPENDED = 'suspended',
 }
 ```
 
 #### 2. Update Merchant Flow
+
 ```typescript
 // offers.controller.ts - Merchant submits for approval
 @Patch(':id/submit-for-approval')
@@ -51,6 +54,7 @@ async submitForApproval(@Param('id') id: string, @Request() req) {
 ```
 
 #### 3. Admin Approval Endpoints
+
 ```typescript
 // offers.controller.ts - Admin approves/rejects
 @Patch(':id/approve')
@@ -88,6 +92,7 @@ async rejectOffer(
 ```
 
 #### 4. Update Queries
+
 ```typescript
 // offers.service.ts - Only show approved offers publicly
 async findAll(filters: SearchOffersDto): Promise<FindAllResult> {
@@ -109,6 +114,7 @@ async findAll(filters: SearchOffersDto): Promise<FindAllResult> {
 ```
 
 #### 5. Merchant Dashboard Views
+
 ```typescript
 // New endpoint: Get merchant's pending offers
 @Get('my-offers/pending')
@@ -134,6 +140,7 @@ async getMyRejectedOffers(@Request() req) {
 ```
 
 #### 6. Admin Dashboard
+
 ```typescript
 // New endpoint: Get all pending approvals
 @Get('admin/pending-offers')
@@ -151,6 +158,7 @@ async getPendingOffers(@Query('page') page: number = 1) {
 ## Flow Comparison
 
 ### Current (Self-Service)
+
 ```
 Merchant creates → draft
          ↓
@@ -162,6 +170,7 @@ Customers see offer
 ```
 
 ### With Pre-Approval
+
 ```
 Merchant creates → draft
          ↓
@@ -215,6 +224,7 @@ async create(createOfferDto: CreateOfferDto, merchantId: string) {
 ```
 
 **Trust criteria:**
+
 - ✅ 10+ approved offers
 - ✅ No violations in last 90 days
 - ✅ Average rating > 4.0
@@ -227,6 +237,7 @@ async create(createOfferDto: CreateOfferDto, merchantId: string) {
 **For your MVP:** Keep current self-service model ✅
 
 **Phase 2 (after launch):**
+
 1. Add reporting system (customers flag bad offers)
 2. Track merchant reputation score
 3. Implement hybrid auto-approve for trusted merchants

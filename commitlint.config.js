@@ -5,19 +5,19 @@ module.exports = {
       2,
       'always',
       [
-        'feat',     // New feature
-        'fix',      // Bug fix
-        'docs',     // Documentation only changes
-        'style',    // Changes that do not affect the meaning of the code
+        'feat', // New feature
+        'fix', // Bug fix
+        'docs', // Documentation only changes
+        'style', // Changes that do not affect the meaning of the code
         'refactor', // Code change that neither fixes a bug nor adds a feature
-        'perf',     // Code change that improves performance
-        'test',     // Adding missing tests or correcting existing tests
-        'build',    // Changes that affect the build system or external dependencies
-        'ci',       // Changes to CI configuration files and scripts
-        'chore',    // Other changes that don't modify src or test files
-        'revert',   // Reverts a previous commit
+        'perf', // Code change that improves performance
+        'test', // Adding missing tests or correcting existing tests
+        'build', // Changes that affect the build system or external dependencies
+        'ci', // Changes to CI configuration files and scripts
+        'chore', // Other changes that don't modify src or test files
+        'revert', // Reverts a previous commit
         'security', // Security improvements
-        'deps',     // Dependencies update
+        'deps', // Dependencies update
       ],
     ],
     'type-case': [2, 'always', 'lower-case'],
@@ -53,7 +53,8 @@ module.exports = {
             emoji: '📚',
           },
           style: {
-            description: 'Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)',
+            description:
+              'Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)',
             title: 'Styles',
             emoji: '💎',
           },
@@ -73,12 +74,14 @@ module.exports = {
             emoji: '🚨',
           },
           build: {
-            description: 'Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)',
+            description:
+              'Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)',
             title: 'Builds',
             emoji: '🛠',
           },
           ci: {
-            description: 'Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)',
+            description:
+              'Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)',
             title: 'Continuous Integrations',
             emoji: '⚙️',
           },
@@ -117,7 +120,8 @@ module.exports = {
         description: 'Are there any breaking changes?',
       },
       breakingBody: {
-        description: 'A BREAKING CHANGE commit requires a body. Please enter a longer description of the commit itself',
+        description:
+          'A BREAKING CHANGE commit requires a body. Please enter a longer description of the commit itself',
       },
       breaking: {
         description: 'Describe the breaking changes',
@@ -126,7 +130,8 @@ module.exports = {
         description: 'Does this change affect any open issues?',
       },
       issuesBody: {
-        description: 'If issues are closed, the commit requires a body. Please enter a longer description of the commit itself',
+        description:
+          'If issues are closed, the commit requires a body. Please enter a longer description of the commit itself',
       },
       issues: {
         description: 'Add issue references (e.g. "fix #123", "re #123".)',

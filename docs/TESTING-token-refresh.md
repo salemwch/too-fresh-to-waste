@@ -19,6 +19,7 @@ pnpm dev:android  # or pnpm dev:ios
 ```
 
 **Feature Flag Status**:
+
 - ✅ Development: **ENABLED** (useApiClientV2 = true)
 - ✅ Staging: **ENABLED** (useApiClientV2 = true)
 - ⏳ Production: **DISABLED** (Week 2 rollout)
@@ -28,6 +29,7 @@ pnpm dev:android  # or pnpm dev:ios
 ## What's Different?
 
 ### Before (Old Behavior)
+
 ```
 User logged in
    ↓
@@ -41,6 +43,7 @@ User forced to re-login
 ```
 
 ### After (New Behavior) ✅
+
 ```
 User logged in
    ↓
@@ -60,6 +63,7 @@ User never knows token expired!
 ## Manual Test Scenarios
 
 ### Scenario 1: Normal Usage (Baseline Test)
+
 **Expected**: Everything works as before
 
 1. Open the app
@@ -72,6 +76,7 @@ User never knows token expired!
 ---
 
 ### Scenario 2: Token Expiry (Happy Path)
+
 **Expected**: Silent token refresh, no user impact
 
 1. Login to the app
@@ -87,6 +92,7 @@ User never knows token expired!
 ---
 
 ### Scenario 3: Multiple Concurrent Requests During Token Expiry
+
 **Expected**: All requests queue and succeed after refresh
 
 1. Login to the app
@@ -106,6 +112,7 @@ User never knows token expired!
 ---
 
 ### Scenario 4: Refresh Token Expired (Logout Path)
+
 **Expected**: User logged out gracefully
 
 1. Login to the app
@@ -121,6 +128,7 @@ User never knows token expired!
 ---
 
 ### Scenario 5: Network Offline During Refresh
+
 **Expected**: Proper error handling
 
 1. Login to the app
@@ -137,6 +145,7 @@ User never knows token expired!
 ---
 
 ### Scenario 6: App Backgrounded During Token Refresh
+
 **Expected**: Refresh completes when app returns to foreground
 
 1. Login to the app
@@ -159,12 +168,13 @@ Enable detailed logging in development:
 
 ```typescript
 // apps/mobile/src/config/featureFlags.ts
-enableDetailedLogging: true  // Already enabled in dev
+enableDetailedLogging: true; // Already enabled in dev
 ```
 
 ### Key Log Messages
 
 #### ✅ Success Flow
+
 ```
 [OffersService] Using OffersService V2 (auto token refresh)
 [Interceptor] Adding access token to request
@@ -177,6 +187,7 @@ enableDetailedLogging: true  // Already enabled in dev
 ```
 
 #### ❌ Logout Flow (Refresh Failed)
+
 ```
 [Interceptor] Access token expired, attempting refresh...
 [Redux] Token refresh failed
@@ -189,18 +200,21 @@ enableDetailedLogging: true  // Already enabled in dev
 ## How to Force Token Expiry (For Testing)
 
 ### Method 1: Wait (Slow)
+
 - Just wait 1-2 hours after login
 - Token will naturally expire
 
 ### Method 2: Backend Override (Fast)
+
 Ask backend team to reduce token expiry to 1 minute:
 
 ```typescript
 // Backend: apps/food-waste-backend/src/auth/auth.service.ts
-expiresIn: '1m'  // Instead of '1h'
+expiresIn: '1m'; // Instead of '1h'
 ```
 
 ### Method 3: Manual Redux Update (Fastest)
+
 Use React Native Debugger:
 
 ```javascript
@@ -211,9 +225,9 @@ dispatch({
     accessToken: 'EXPIRED_TOKEN',
     refreshToken: state.auth.tokens.refreshToken, // Keep refresh token valid
     expiresIn: 3600,
-    tokenType: 'Bearer'
-  }
-})
+    tokenType: 'Bearer',
+  },
+});
 ```
 
 ---
@@ -221,16 +235,19 @@ dispatch({
 ## Performance Benchmarks
 
 ### Response Times (Target)
+
 - Normal request: <500ms
 - Request with token refresh: <2000ms (includes 1 refresh + 1 retry)
 - Concurrent requests (with queueing): <3000ms
 
 ### Memory Usage
+
 - Before: ~50MB
 - After: ~51MB (+1MB for interceptor logic)
 - **Impact**: Negligible
 
 ### Battery Impact
+
 - **Impact**: <1% increase (minimal background processing)
 
 ---
@@ -243,6 +260,7 @@ If you find critical issues:
 
 1. Open `apps/mobile/src/config/featureFlags.ts`
 2. Change line 27:
+
    ```typescript
    // Before
    const useApiClientV2 = isDevelopment() || isStaging();
@@ -250,6 +268,7 @@ If you find critical issues:
    // After (rollback)
    const useApiClientV2 = false;
    ```
+
 3. Save file
 4. Reload app (no rebuild needed)
 5. **Result**: App uses old token management immediately
@@ -259,8 +278,10 @@ If you find critical issues:
 ## Known Limitations
 
 ### Current Scope
+
 ✅ **Migrated**: Offers service only
 ⏳ **Not Yet Migrated**:
+
 - Establishments service
 - Orders service
 - Profile service
@@ -269,6 +290,7 @@ If you find critical issues:
 **Impact**: Non-migrated services still use manual token management. They won't benefit from auto-refresh yet, but won't break either.
 
 ### Future Enhancements (Phase 2-3)
+
 - Preemptive token refresh (refresh 5min before expiry)
 - Biometric quick re-auth as fallback
 - Token refresh telemetry dashboard
@@ -279,20 +301,20 @@ If you find critical issues:
 
 ### Primary KPIs (Monitor These)
 
-| Metric | Target | How to Measure |
-|--------|--------|----------------|
-| 401 Error Rate | <0.5% | Analytics dashboard |
-| Token Refresh Success | >99% | Backend logs |
-| Session Duration | 6+ hours | Analytics |
-| User Complaints | 0 | Support tickets |
+| Metric                | Target   | How to Measure      |
+| --------------------- | -------- | ------------------- |
+| 401 Error Rate        | <0.5%    | Analytics dashboard |
+| Token Refresh Success | >99%     | Backend logs        |
+| Session Duration      | 6+ hours | Analytics           |
+| User Complaints       | 0        | Support tickets     |
 
 ### Red Flags (Triggers Rollback)
 
-| Metric | Threshold | Action |
-|--------|-----------|--------|
-| 401 Errors | >1% | Investigate immediately |
-| App Crashes | >1% | Rollback + investigate |
-| Token Refresh Failures | >5% | Rollback + fix backend |
+| Metric                 | Threshold | Action                  |
+| ---------------------- | --------- | ----------------------- |
+| 401 Errors             | >1%       | Investigate immediately |
+| App Crashes            | >1%       | Rollback + investigate  |
+| Token Refresh Failures | >5%       | Rollback + fix backend  |
 
 ---
 
@@ -301,11 +323,13 @@ If you find critical issues:
 ### Issue: "Session expired" message appears frequently
 
 **Possible Causes**:
+
 - Refresh token also expired
 - Backend token endpoint down
 - Network issues
 
 **Debug Steps**:
+
 1. Check backend logs for token refresh endpoint
 2. Verify refresh token is valid in Redux state
 3. Test network connectivity
@@ -313,10 +337,12 @@ If you find critical issues:
 ### Issue: Multiple token refresh requests
 
 **Possible Causes**:
+
 - Request queueing not working
 - Concurrent requests not properly queued
 
 **Debug Steps**:
+
 1. Check `isRefreshing` flag in interceptor
 2. Verify `failedQueue` array is being used
 3. Review interceptor logs
@@ -324,10 +350,12 @@ If you find critical issues:
 ### Issue: App hangs after token refresh
 
 **Possible Causes**:
+
 - Retry logic failed
 - Request queue not processed
 
 **Debug Steps**:
+
 1. Check if `processQueue()` was called
 2. Verify original request was retried
 3. Check for infinite loops in interceptor
@@ -338,11 +366,11 @@ If you find critical issues:
 
 Use these accounts for testing:
 
-| Email | Password | Role | Notes |
-|-------|----------|------|-------|
+| Email             | Password | Role     | Notes             |
+| ----------------- | -------- | -------- | ----------------- |
 | merchant@test.com | Test123! | Merchant | Can create offers |
-| consumer@test.com | Test123! | Consumer | Can browse/order |
-| admin@test.com | Test123! | Admin | Full access |
+| consumer@test.com | Test123! | Consumer | Can browse/order  |
+| admin@test.com    | Test123! | Admin    | Full access       |
 
 ---
 
@@ -353,6 +381,7 @@ Use these accounts for testing:
 **Issue**: [Brief description]
 
 **Steps to Reproduce**:
+
 1. Step 1
 2. Step 2
 3. Step 3
@@ -364,6 +393,7 @@ Use these accounts for testing:
 **Logs**: [Paste relevant logs]
 
 **Environment**:
+
 - Device: [iPhone 15 Pro / Samsung Galaxy S23]
 - OS Version: [iOS 17.2 / Android 14]
 - App Version: [1.0.0]
@@ -376,12 +406,14 @@ Use these accounts for testing:
 ## Phase 1 Testing Checklist
 
 ### Day 1-2: Smoke Testing
+
 - [ ] App starts without crashes
 - [ ] Login works normally
 - [ ] All features accessible
 - [ ] No obvious UI glitches
 
 ### Day 3-4: Token Refresh Testing
+
 - [ ] Scenario 1: Normal usage (baseline)
 - [ ] Scenario 2: Token expiry (happy path)
 - [ ] Scenario 3: Concurrent requests
@@ -390,6 +422,7 @@ Use these accounts for testing:
 - [ ] Scenario 6: App backgrounded
 
 ### Day 5: Performance & Monitoring
+
 - [ ] Response times acceptable (<2s)
 - [ ] Memory usage stable
 - [ ] Battery impact minimal (<1%)
@@ -397,12 +430,14 @@ Use these accounts for testing:
 - [ ] Logs confirm auto-refresh working
 
 ### Day 6-7: Edge Cases
+
 - [ ] Long-running sessions (4+ hours)
 - [ ] Multiple device/session handling
 - [ ] Rapid login/logout cycles
 - [ ] Token refresh during active operations
 
 ### Go/No-Go Decision (Day 7)
+
 - [ ] All scenarios pass
 - [ ] Zero critical bugs
 - [ ] Metrics within targets
@@ -413,15 +448,18 @@ Use these accounts for testing:
 ## Next Steps After Phase 1
 
 ### Week 2: Beta 5% Rollout
+
 - Enable for 5% of production users
 - Monitor 24/7 for first 3 days
 - Review metrics daily
 
 ### Week 3: Beta 20% Rollout
+
 - Expand to 20% if Week 2 successful
 - Continue monitoring
 
 ### Week 4: Full Rollout
+
 - 100% of users
 - Remove old code after 1 week stability
 

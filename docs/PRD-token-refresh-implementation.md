@@ -12,6 +12,7 @@
 ### Problem Statement
 
 Current mobile app forces users to re-login every 1-2 hours when access tokens expire, causing:
+
 - **95% of session expirations** result in user-visible errors
 - **40% cart abandonment** when token expires during checkout
 - **2.3★ average rating** mentions on "app keeps logging me out"
@@ -23,13 +24,13 @@ Implement industry-standard automatic token refresh using axios interceptors, el
 
 ### Business Impact
 
-| Metric | Before | After | Impact |
-|--------|--------|-------|--------|
-| Session Duration | 1-2 hours | Unlimited | +300% |
-| Re-login Rate | Every session | Every 30 days | -95% |
-| Cart Abandonment | 40% | <15% | -62% |
-| App Store Rating | 3.2★ | 4.5★ (projected) | +41% |
-| Support Tickets | 500/month | <25/month | -95% |
+| Metric           | Before        | After            | Impact |
+| ---------------- | ------------- | ---------------- | ------ |
+| Session Duration | 1-2 hours     | Unlimited        | +300%  |
+| Re-login Rate    | Every session | Every 30 days    | -95%   |
+| Cart Abandonment | 40%           | <15%             | -62%   |
+| App Store Rating | 3.2★          | 4.5★ (projected) | +41%   |
+| Support Tickets  | 500/month     | <25/month        | -95%   |
 
 **ROI**: $50K/month increase in GMV from reduced cart abandonment
 
@@ -93,15 +94,18 @@ Success → User sees result (no error)
 ## Rollout Strategy (Phased Approach)
 
 ### Phase 1: Internal Testing (Week 1)
+
 **Target**: Dev team only
 **Configuration**:
+
 ```typescript
-development: useApiClientV2 = true
-staging: useApiClientV2 = true
-production: useApiClientV2 = false
+development: useApiClientV2 = true;
+staging: useApiClientV2 = true;
+production: useApiClientV2 = false;
 ```
 
 **Success Criteria**:
+
 - ✅ All manual tests pass
 - ✅ E2E test suite green
 - ✅ Zero crashes in 3 days
@@ -112,19 +116,23 @@ production: useApiClientV2 = false
 ---
 
 ### Phase 2: Beta Testing (Week 2)
+
 **Target**: 5% of production users (500 users)
 **Configuration**:
+
 ```typescript
-production: useApiClientV2 = true (5% rollout)
+production: useApiClientV2 = true(5 % rollout);
 ```
 
 **Monitoring**:
+
 - 401 error rate: Target <0.1%
 - Token refresh success rate: Target >99%
 - App crash rate: Target <0.5%
 - Session duration: Target +200%
 
 **Alert Thresholds**:
+
 - ⚠️ Warning: 401 errors >0.5%
 - 🚨 Rollback: 401 errors >1% OR crash rate >1%
 
@@ -133,18 +141,22 @@ production: useApiClientV2 = true (5% rollout)
 ---
 
 ### Phase 3: Wider Beta (Week 3)
+
 **Target**: 20% of production users (2,000 users)
 **Configuration**:
+
 ```typescript
-production: useApiClientV2 = true (20% rollout)
+production: useApiClientV2 = true(20 % rollout);
 ```
 
 **Additional Monitoring**:
+
 - User feedback via in-app survey
 - App store review sentiment analysis
 - Support ticket volume
 
 **Success Criteria**:
+
 - ✅ 401 errors <0.1%
 - ✅ No increase in support tickets
 - ✅ Positive user feedback (>80% satisfaction)
@@ -152,13 +164,16 @@ production: useApiClientV2 = true (20% rollout)
 ---
 
 ### Phase 4: Full Rollout (Week 4)
+
 **Target**: 100% of production users
 **Configuration**:
+
 ```typescript
 production: useApiClientV2 = true (100%)
 ```
 
 **Post-Launch**:
+
 - Monitor for 7 days
 - Keep V1 code for 2 weeks (emergency rollback)
 - Remove V1 code after stability confirmed
@@ -169,29 +184,29 @@ production: useApiClientV2 = true (100%)
 
 ### Primary Metrics
 
-| Metric | Baseline | Target | Measurement |
-|--------|----------|--------|-------------|
-| Session Duration | 1.5 hours | 6+ hours | Analytics |
-| Forced Re-logins | 100/day | <5/day | Auth events |
-| 401 Error Rate | 8% | <0.5% | Error tracking |
-| Cart Abandonment | 40% | <15% | Conversion funnel |
+| Metric           | Baseline  | Target   | Measurement       |
+| ---------------- | --------- | -------- | ----------------- |
+| Session Duration | 1.5 hours | 6+ hours | Analytics         |
+| Forced Re-logins | 100/day   | <5/day   | Auth events       |
+| 401 Error Rate   | 8%        | <0.5%    | Error tracking    |
+| Cart Abandonment | 40%       | <15%     | Conversion funnel |
 
 ### Secondary Metrics
 
-| Metric | Baseline | Target | Measurement |
-|--------|----------|--------|-------------|
-| Token Refresh Success | N/A | >99% | API logs |
-| Request Retry Success | N/A | >95% | API logs |
-| App Crash Rate | 1.2% | <1.0% | Crashlytics |
-| Support Tickets (Auth) | 500/month | <50/month | Zendesk |
+| Metric                 | Baseline  | Target    | Measurement |
+| ---------------------- | --------- | --------- | ----------- |
+| Token Refresh Success  | N/A       | >99%      | API logs    |
+| Request Retry Success  | N/A       | >95%      | API logs    |
+| App Crash Rate         | 1.2%      | <1.0%     | Crashlytics |
+| Support Tickets (Auth) | 500/month | <50/month | Zendesk     |
 
 ### User Satisfaction
 
-| Metric | Baseline | Target | Measurement |
-|--------|----------|--------|-------------|
-| App Store Rating | 3.2★ | 4.5★ | App Store Connect |
-| NPS Score | 35 | 60 | In-app survey |
-| Session Return Rate | 45% | 70% | Analytics |
+| Metric              | Baseline | Target | Measurement       |
+| ------------------- | -------- | ------ | ----------------- |
+| App Store Rating    | 3.2★     | 4.5★   | App Store Connect |
+| NPS Score           | 35       | 60     | In-app survey     |
+| Session Return Rate | 45%      | 70%    | Analytics         |
 
 ---
 
@@ -199,29 +214,31 @@ production: useApiClientV2 = true (100%)
 
 ### Technical Risks
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| Token refresh loop | Low | High | Rate limiting in interceptor |
-| Concurrent refresh conflicts | Medium | Medium | Request queueing implemented |
-| Backend API changes | Low | High | API contract tests |
-| Mobile OS compatibility | Low | Medium | Test on iOS 14+ and Android 10+ |
+| Risk                         | Probability | Impact | Mitigation                      |
+| ---------------------------- | ----------- | ------ | ------------------------------- |
+| Token refresh loop           | Low         | High   | Rate limiting in interceptor    |
+| Concurrent refresh conflicts | Medium      | Medium | Request queueing implemented    |
+| Backend API changes          | Low         | High   | API contract tests              |
+| Mobile OS compatibility      | Low         | Medium | Test on iOS 14+ and Android 10+ |
 
 ### Business Risks
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| User confusion | Low | Low | Silent operation (no UI change) |
-| Increased server load | Low | Low | Token refresh uses existing endpoint |
-| Delayed rollout | Medium | Medium | Feature flag allows instant pause |
+| Risk                  | Probability | Impact | Mitigation                           |
+| --------------------- | ----------- | ------ | ------------------------------------ |
+| User confusion        | Low         | Low    | Silent operation (no UI change)      |
+| Increased server load | Low         | Low    | Token refresh uses existing endpoint |
+| Delayed rollout       | Medium      | Medium | Feature flag allows instant pause    |
 
 ### Rollback Plan
 
 **Trigger**: Any of these conditions met:
+
 - 401 errors >1%
 - Crash rate increase >0.5%
 - Support tickets spike >50%
 
 **Procedure**:
+
 1. Toggle feature flag: `useApiClientV2 = false`
 2. App uses V1 implementation immediately
 3. No app update required
@@ -234,6 +251,7 @@ production: useApiClientV2 = true (100%)
 ## Testing Plan
 
 ### Unit Tests ✅
+
 - Token injection in requests
 - 401 detection and refresh trigger
 - Request retry after refresh
@@ -241,12 +259,14 @@ production: useApiClientV2 = true (100%)
 - Refresh failure → logout
 
 ### Integration Tests ✅
+
 - End-to-end token refresh flow
 - Multiple 401s with queueing
 - Refresh token expiry handling
 - Network error scenarios
 
 ### Manual QA Checklist
+
 - [ ] Login → use app for 2 hours → verify no logout
 - [ ] Force token expiry → make request → verify silent refresh
 - [ ] Multiple requests while token expired → verify queueing
@@ -255,6 +275,7 @@ production: useApiClientV2 = true (100%)
 - [ ] App backgrounding during refresh → verify resume
 
 ### Performance Tests
+
 - [ ] Token refresh latency <500ms
 - [ ] Request queue throughput >100 req/sec
 - [ ] Memory usage stable (no leaks)
@@ -286,13 +307,13 @@ production: useApiClientV2 = true (100%)
 
 ## Timeline
 
-| Week | Phase | Activities | Stakeholders |
-|------|-------|------------|--------------|
-| 1 | Internal Testing | Dev testing, bug fixes | Eng Team |
-| 2 | Beta 5% | Monitor metrics, user feedback | PM, Eng, QA |
-| 3 | Beta 20% | Expand rollout, refine monitoring | PM, Eng, Support |
-| 4 | Full Rollout | 100% users, continuous monitoring | All |
-| 5-6 | Stabilization | Remove old code, documentation | Eng Team |
+| Week | Phase            | Activities                        | Stakeholders     |
+| ---- | ---------------- | --------------------------------- | ---------------- |
+| 1    | Internal Testing | Dev testing, bug fixes            | Eng Team         |
+| 2    | Beta 5%          | Monitor metrics, user feedback    | PM, Eng, QA      |
+| 3    | Beta 20%         | Expand rollout, refine monitoring | PM, Eng, Support |
+| 4    | Full Rollout     | 100% users, continuous monitoring | All              |
+| 5-6  | Stabilization    | Remove old code, documentation    | Eng Team         |
 
 **Total Duration**: 6 weeks
 **Engineering Effort**: 2 developers × 2 weeks = 4 developer-weeks
@@ -301,29 +322,32 @@ production: useApiClientV2 = true (100%)
 
 ## Stakeholder Sign-Off
 
-| Role | Name | Approval | Date |
-|------|------|----------|------|
-| Product Manager | TBD | ⏳ Pending | - |
-| Engineering Lead | TBD | ⏳ Pending | - |
-| QA Lead | TBD | ⏳ Pending | - |
-| VP Product | TBD | ⏳ Pending | - |
+| Role             | Name | Approval   | Date |
+| ---------------- | ---- | ---------- | ---- |
+| Product Manager  | TBD  | ⏳ Pending | -    |
+| Engineering Lead | TBD  | ⏳ Pending | -    |
+| QA Lead          | TBD  | ⏳ Pending | -    |
+| VP Product       | TBD  | ⏳ Pending | -    |
 
 ---
 
 ## Appendix
 
 ### A. Related Documents
+
 - Architecture Decision Record (ADR): ADR-042-axios-interceptors
 - API Documentation: `/docs/api/authentication.md`
 - Security Review: `/docs/security/token-management.md`
 
 ### B. Competitor Analysis
+
 - Uber Eats: ✅ Seamless token refresh
 - DoorDash: ✅ Seamless token refresh
 - Grubhub: ✅ Seamless token refresh
 - Our App (Before): ❌ Manual re-login
 
 ### C. User Feedback Quotes
+
 > "The app keeps logging me out while I'm trying to order!" - User #12453
 > "I lost my entire cart because it said session expired." - User #9821
 > "Why do I have to login every time I open the app?" - User #15234

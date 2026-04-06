@@ -1,0 +1,54 @@
+# ZAP Baseline Rules — FoodWaste Backend
+# Format: <rule_id>  <IGNORE|WARN|FAIL>  <optional_comment>
+# Full rule list: https://www.zaproxy.org/docs/alerts/
+#
+# Rules are set to IGNORE only when:
+#   (a) they are confirmed false-positives for NestJS/REST APIs, OR
+#   (b) they are handled at the infrastructure layer (nginx, CDN)
+#
+# Everything else defaults to WARN (report but don't fail the build).
+# Set critical issues to FAIL when you are ready to enforce them as gates.
+
+# ── False-positives for JSON REST APIs ────────────────────────────────────
+# "Absence of Anti-CSRF Tokens" — REST APIs use JWT/cookie auth, not form tokens.
+# CSRF is handled by our custom CsrfGuard on state-changing endpoints.
+10202	IGNORE	REST API - CSRF handled by CsrfGuard + SameSite cookies
+
+# "CSP: Wildcard Directive" — only applies to HTML responses; API returns JSON.
+10055	IGNORE	REST API - no HTML content served
+
+# "X-Content-Type-Options Header Missing" — set by Helmet in main.ts.
+# ZAP may not see it on /health endpoints which bypass some middleware.
+10021	WARN	Verify Helmet sets nosniff globally
+
+# ── Infrastructure-layer headers (handled by nginx/CDN, not NestJS) ───────
+# "Permissions-Policy Header Not Set" — set at reverse-proxy level.
+10063	WARN	Set Permissions-Policy at nginx/CDN layer
+
+# "Server Leaks Version Information via 'Server' Header"
+10036	WARN	Hide server version in nginx config
+
+# ── Actively enforced — FAIL the build if detected ────────────────────────
+# "SQL Injection"
+40018	FAIL	SQL injection must never pass
+
+# "Remote OS Command Injection"
+90020	FAIL	Command injection must never pass
+
+# "Path Traversal"
+6	FAIL	Path traversal must never pass
+
+# "Remote File Inclusion"
+7	FAIL	RFI must never pass
+
+# "Cross Site Scripting (Reflected)"
+40012	FAIL	Reflected XSS must never pass
+
+# "Cross Site Scripting (Persistent)"
+40014	FAIL	Stored XSS must never pass
+
+# "Weak Authentication Method"
+10105	FAIL	Weak auth must never pass
+
+# "Private IP Disclosure"
+2	FAIL	Internal IP disclosure must never pass
