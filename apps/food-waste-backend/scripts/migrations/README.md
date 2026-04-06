@@ -346,9 +346,7 @@ const migratedUsers = await UserModel.find({
 
 // Restore original values
 for (const user of migratedUsers) {
-  const migrationLog = user.auditLog.find(
-    log => log.action === 'PHONE_NUMBER_NORMALIZED',
-  );
+  const migrationLog = user.auditLog.find((log) => log.action === 'PHONE_NUMBER_NORMALIZED');
 
   if (migrationLog?.details?.originalPhone) {
     await UserModel.updateOne(
