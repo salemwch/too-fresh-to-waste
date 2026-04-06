@@ -111,7 +111,7 @@ export class SupabaseStorageService implements OnModuleInit {
   ): Promise<UploadedFileInfo> {
     try {
       this.ensureInitialized();
-      this.validateFile(file);
+      await this.validateFile(file);
 
       let processedBuffer: Buffer;
       let finalMimeType = file.mimetype;
@@ -179,7 +179,7 @@ export class SupabaseStorageService implements OnModuleInit {
     }
 
     const results = await Promise.allSettled(
-      files.map(async (file) => {
+      files.map(async file => {
         const uploaded = await this.uploadFile(file, options);
         return uploaded;
       }),
@@ -247,7 +247,7 @@ export class SupabaseStorageService implements OnModuleInit {
     try {
       this.ensureInitialized();
 
-      const filePaths = fileNamesOrUrls.map((f) => this.extractFilePath(f));
+      const filePaths = fileNamesOrUrls.map(f => this.extractFilePath(f));
 
       const { error } = await this.supabase.storage.from(this.bucketName).remove(filePaths);
 
@@ -415,7 +415,7 @@ export class SupabaseStorageService implements OnModuleInit {
     return fileNameOrUrl;
   }
 
-  private validateFile(file: Express.Multer.File | undefined): void {
+  private async validateFile(file: Express.Multer.File | undefined): Promise<void> {
     if (file === null || file === undefined) {
       throw new BadRequestException('No file provided');
     }
@@ -433,9 +433,11 @@ export class SupabaseStorageService implements OnModuleInit {
       throw new BadRequestException(`File size exceeds ${maxSizeMB}MB limit`);
     }
 
+    // Normalise image/jpg → image/jpeg (both refer to the same format)
+    const declaredMime = file.mimetype === 'image/jpg' ? 'image/jpeg' : file.mimetype;
+
     const allowedMimeTypes = [
       'image/jpeg',
-      'image/jpg',
       'image/png',
       'image/webp',
       'image/gif',
@@ -444,8 +446,30 @@ export class SupabaseStorageService implements OnModuleInit {
       'text/csv',
     ];
 
-    if (!allowedMimeTypes.includes(file.mimetype)) {
+    if (!allowedMimeTypes.includes(declaredMime)) {
       throw new BadRequestException(`File type ${file.mimetype} is not allowed`);
+    }
+
+    // Text files have no reliable magic bytes — skip content check
+    if (declaredMime === 'text/plain' || declaredMime === 'text/csv') {
+      return;
+    }
+
+    // Detect actual file type from buffer contents (file-type v22 is ESM-only → dynamic import)
+    const { fileTypeFromBuffer } = await import('file-type');
+    const detected = await fileTypeFromBuffer(file.buffer);
+
+    if (!detected) {
+      throw new BadRequestException('Could not determine file type from content');
+    }
+
+    // Normalise detected mime (file-type returns image/jpeg, never image/jpg)
+    const detectedMime = detected.mime === 'image/jpg' ? 'image/jpeg' : detected.mime;
+
+    if (detectedMime !== declaredMime) {
+      throw new BadRequestException(
+        `File content (${detected.mime}) does not match declared type (${file.mimetype})`,
+      );
     }
   }
 

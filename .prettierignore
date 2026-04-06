@@ -5,8 +5,10 @@ node_modules/
 # Build outputs
 dist/
 build/
+.next/
 **/dist/
 **/build/
+**/.next/
 
 # Platform specific
 android/
@@ -21,6 +23,8 @@ coverage/
 # Generated files
 *.min.js
 *.min.css
+**/*.d.ts
+**/*.d.ts.map
 
 # Package files
 package-lock.json
