@@ -147,11 +147,11 @@ export const ReviewQuerySchema = z.object({
   reviewerId: z.string().optional(),
   verifiedPurchaseOnly: z
     .union([z.boolean(), z.literal('true'), z.literal('false')])
-    .transform((val) => val === true || val === 'true')
+    .transform(val => val === true || val === 'true')
     .optional(),
   recommendedOnly: z
     .union([z.boolean(), z.literal('true'), z.literal('false')])
-    .transform((val) => val === true || val === 'true')
+    .transform(val => val === true || val === 'true')
     .optional(),
   fromDate: z.string().datetime().optional(),
   toDate: z.string().datetime().optional(),

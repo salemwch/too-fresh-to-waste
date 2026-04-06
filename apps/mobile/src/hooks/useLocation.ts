@@ -170,7 +170,7 @@ export function useLocation(): UseLocationReturn {
   // Select state from Redux
   // ─────────────────────────────────────────────────────────────────────────
 
-  const locationState = useAppSelector((state) => state.location);
+  const locationState = useAppSelector(state => state.location);
   const hasValidLocation = useAppSelector(selectHasValidLocation);
   const shouldShowPrompt = useAppSelector(selectShouldShowPrompt);
   const locationSourceDisplay = useAppSelector(selectLocationSourceDisplay);

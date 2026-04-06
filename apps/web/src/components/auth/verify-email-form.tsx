@@ -32,7 +32,7 @@ export function VerifyEmailForm() {
   useEffect(() => {
     if (cooldown <= 0) return;
     const timer = setInterval(() => {
-      setCooldown((prev) => prev - 1);
+      setCooldown(prev => prev - 1);
     }, 1000);
     return () => clearInterval(timer);
   }, [cooldown]);
@@ -55,27 +55,27 @@ export function VerifyEmailForm() {
 
   return (
     <Card>
-      <CardHeader className="space-y-3 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-          <MailCheck className="h-8 w-8 text-green-600" />
+      <CardHeader className='space-y-3 text-center'>
+        <div className='mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100'>
+          <MailCheck className='h-8 w-8 text-green-600' />
         </div>
-        <CardTitle className="text-2xl">{t('checkInboxTitle')}</CardTitle>
-        <CardDescription className="text-base leading-relaxed">
+        <CardTitle className='text-2xl'>{t('checkInboxTitle')}</CardTitle>
+        <CardDescription className='text-base leading-relaxed'>
           {email ? t('checkInboxDescription', { email }) : t('checkInboxDescriptionGeneric')}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-center text-muted-foreground">{t('checkSpamHint')}</p>
+      <CardContent className='space-y-4'>
+        <p className='text-sm text-center text-muted-foreground'>{t('checkSpamHint')}</p>
       </CardContent>
-      <CardFooter className="flex flex-col gap-3">
+      <CardFooter className='flex flex-col gap-3'>
         {email && (
           <Button
-            variant="outline"
-            className="w-full"
+            variant='outline'
+            className='w-full'
             onClick={handleResend}
             disabled={isResending || cooldown > 0}
           >
-            {isResending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isResending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
             {cooldown > 0 ? t('resendCooldown', { seconds: cooldown }) : t('resendEmail')}
           </Button>
         )}
@@ -88,16 +88,16 @@ export function VerifyEmailForm() {
             }`}
           >
             {feedback.type === 'success' ? (
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <CheckCircle2 className='h-4 w-4 shrink-0' />
             ) : (
-              <AlertCircle className="h-4 w-4 shrink-0" />
+              <AlertCircle className='h-4 w-4 shrink-0' />
             )}
             <span>{feedback.text}</span>
           </div>
         )}
         <Link
-          href="/login"
-          className="inline-flex items-center justify-center text-sm text-primary hover:underline font-medium"
+          href='/login'
+          className='inline-flex items-center justify-center text-sm text-primary hover:underline font-medium'
         >
           {t('backToLogin')}
         </Link>

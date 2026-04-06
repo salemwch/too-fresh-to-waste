@@ -335,8 +335,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       headerRight: () => (
         <View style={styles.headerRightRow}>
           <View
-            accessibilityLabel="Donation pool"
-            accessibilityRole="image"
+            accessibilityLabel='Donation pool'
+            accessibilityRole='image'
             style={styles.headerIconButtonRight}
           >
             <HeartInHandsIcon width={28} height={28} />
@@ -344,8 +344,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <Pressable
             onPress={() => navigation.navigate('Leaderboard')}
             style={styles.headerIconButtonRight}
-            accessibilityLabel="Grand prize leaderboard"
-            accessibilityRole="button"
+            accessibilityLabel='Grand prize leaderboard'
+            accessibilityRole='button'
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <SurpriseBoxIcon width={26} height={26} />
@@ -364,10 +364,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
    * Deduplicates by coordinates, keeps max 5, persists to AsyncStorage as side effect
    */
   const saveToRecentLocations = useCallback((location: LocationItem) => {
-    setRecentLocations((prev) => {
+    setRecentLocations(prev => {
       // Deduplicate: Remove if same coordinates already exist
       const filtered = prev.filter(
-        (item) => item.latitude !== location.latitude || item.longitude !== location.longitude,
+        item => item.latitude !== location.latitude || item.longitude !== location.longitude,
       );
 
       // Add new location to front, limit to MAX_RECENT_LOCATIONS
@@ -380,7 +380,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             name: location.name,
           });
         })
-        .catch((error) => {
+        .catch(error => {
           Logger.warn('[HomeScreen] ⚠️ Failed to save recent location:', error);
         });
 
@@ -408,7 +408,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
    * Wrapped to prevent returning promise to event handler
    */
   const handleEnableLocation = useCallback(() => {
-    void requestLocation().then((result) => {
+    void requestLocation().then(result => {
       if (!result.success) {
         // If location request failed, show manual location modal
         openManualLocationModal();
@@ -581,7 +581,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
    * Scroll to urgent offers section (used by "Save A Bag" button in CommunityBagGoalBanner)
    */
   const scrollToOffers = useCallback(() => {
-    const urgentIndex = sections.findIndex((s) => s.type === 'urgentOffers');
+    const urgentIndex = sections.findIndex(s => s.type === 'urgentOffers');
     if (urgentIndex >= 0 && flatListRef.current) {
       flatListRef.current.scrollToIndex({ index: urgentIndex, animated: true });
     }
@@ -605,7 +605,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 onEnable={handleEnableLocation}
                 onDismiss={dismissLocationPrompt}
                 isLoading={isLocationLoading}
-                testID="location-prompt-banner"
+                testID='location-prompt-banner'
               />
             </View>
           );
@@ -623,7 +623,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             pickupTomorrowOffers?.length == null;
 
           if (isInitialLoading) {
-            return <SkeletonHomeSearchBar testID="skeleton-home-search-bar" />;
+            return <SkeletonHomeSearchBar testID='skeleton-home-search-bar' />;
           }
 
           return (
@@ -788,9 +788,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         initialNumToRender={4} // Initial items to render (search, banner, urgent)
         windowSize={5} // Number of screens to render above/below viewport
         // Accessibility
-        accessibilityLabel="Home screen content"
-        accessibilityHint="Scroll to view featured offers, nearby deals, and your impact"
-        testID="home-screen-flatlist"
+        accessibilityLabel='Home screen content'
+        accessibilityHint='Scroll to view featured offers, nearby deals, and your impact'
+        testID='home-screen-flatlist'
       />
 
       {/* Location Selection Modal - First time setup */}
@@ -799,7 +799,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         onLocationSelect={handleLocationSelectionWrapper}
         isLoading={isLocationLoading}
         error={locationError}
-        testID="location-selection-modal"
+        testID='location-selection-modal'
       />
 
       {/* Manual Location Modal - Fallback when GPS permission denied */}
@@ -807,7 +807,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         visible={showManualLocationModal}
         onClose={closeManualLocationModal}
         onLocationSelect={handleManualLocationSelect}
-        testID="manual-location-modal"
+        testID='manual-location-modal'
       />
 
       {/* Filter Bottom Sheet */}
@@ -832,7 +832,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         onUseCurrentLocation={() => {
           void handleUseCurrentLocation();
         }}
-        onSelectLocation={(loc) => {
+        onSelectLocation={loc => {
           void handleSelectLocationFromPicker(loc);
         }}
         onSearchChange={handleLocationSearchChange} // 🆕 Wire up search handler

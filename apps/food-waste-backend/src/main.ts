@@ -74,13 +74,13 @@ async function bootstrap() {
       ],
 
       // Filter sensitive data
-      beforeSend: (event) => {
+      beforeSend: event => {
         // Remove sensitive environment variables
         const runtimeEnv = event.contexts?.['runtime']?.['env'];
         if (runtimeEnv !== null && runtimeEnv !== undefined && typeof runtimeEnv === 'object') {
           const env = runtimeEnv as Record<string, unknown>;
           const sensitiveKeys = ['DATABASE_URL', 'JWT_SECRET', 'REDIS_PASSWORD'];
-          sensitiveKeys.forEach((key) => {
+          sensitiveKeys.forEach(key => {
             if (env[key] !== null && env[key] !== undefined) {
               env[key] = '[REDACTED]';
             }
@@ -313,7 +313,7 @@ async function bootstrap() {
    */
   const corsOrigins = appConfigService.get<string>('CORS_ORIGINS');
   const parsedOrigins: (string | RegExp)[] = corsOrigins
-    ? corsOrigins.split(',').map((origin) => {
+    ? corsOrigins.split(',').map(origin => {
         const trimmed = origin.trim();
         if (trimmed.startsWith('regex:')) {
           return new RegExp(trimmed.slice('regex:'.length));
@@ -342,7 +342,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      exceptionFactory: (errors) => new BadRequestException(errors),
+      exceptionFactory: errors => new BadRequestException(errors),
       disableErrorMessages: appConfigService.get('NODE_ENV') === 'production',
     }),
   );
@@ -542,7 +542,7 @@ This API provides comprehensive endpoints for:
   process.on('SIGTERM', () => void gracefulShutdown('SIGTERM'));
   process.on('SIGINT', () => void gracefulShutdown('SIGINT'));
 }
-bootstrap().catch(async (error) => {
+bootstrap().catch(async error => {
   const logger = new AppLoggerService();
   const errorId = logger.error(
     `Failed to start the application: ${getErrorMessage(error)}`,

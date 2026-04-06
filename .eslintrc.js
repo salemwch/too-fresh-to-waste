@@ -45,7 +45,7 @@ module.exports = {
     'android/',
     'ios/',
     'apps/food-waste-backend/', // has its own eslint.config.js
-    '**/*.d.ts',               // generated declaration files
+    '**/*.d.ts', // generated declaration files
     'packages/shared/src/**/*.js', // compiled JS artifacts in src (belong in dist)
   ],
 };

@@ -108,7 +108,7 @@ export class OffersController {
           },
         });
 
-        imageUrls = uploadResults.map((result) => result.downloadURL);
+        imageUrls = uploadResults.map(result => result.downloadURL);
       }
 
       // Create offer with uploaded image URLs
@@ -703,7 +703,7 @@ export class OffersController {
           },
         });
 
-        newImageUrls = uploadResults.map((result) => result.downloadURL);
+        newImageUrls = uploadResults.map(result => result.downloadURL);
       }
 
       // Combine existing and new images
@@ -779,7 +779,7 @@ export class OffersController {
         },
       });
 
-      const newImageUrls = uploadResults.map((result) => result.downloadURL);
+      const newImageUrls = uploadResults.map(result => result.downloadURL);
 
       // Update offer with new images
       const updatedOffer = await this.offersService.update(

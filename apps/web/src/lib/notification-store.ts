@@ -17,33 +17,31 @@ interface NotificationStore {
   markAllRead: () => void;
 }
 
-export const useNotificationStore = create<NotificationStore>((set) => ({
+export const useNotificationStore = create<NotificationStore>(set => ({
   notifications: [],
   unreadCount: 0,
 
-  addNewOrder: (n) =>
-    set((state) => {
+  addNewOrder: n =>
+    set(state => {
       // Deduplicate: ignore if we already have this orderId
-      if (state.notifications.some((x) => x.id === n.id)) return state;
+      if (state.notifications.some(x => x.id === n.id)) return state;
       const notification: NewOrderNotification = { ...n, read: false };
       const notifications = [notification, ...state.notifications].slice(0, 50);
       return { notifications, unreadCount: state.unreadCount + 1 };
     }),
 
-  markRead: (id) =>
-    set((state) => {
-      const notifications = state.notifications.map((n) =>
-        n.id === id ? { ...n, read: true } : n,
-      );
+  markRead: id =>
+    set(state => {
+      const notifications = state.notifications.map(n => (n.id === id ? { ...n, read: true } : n));
       return {
         notifications,
-        unreadCount: notifications.filter((n) => !n.read).length,
+        unreadCount: notifications.filter(n => !n.read).length,
       };
     }),
 
   markAllRead: () =>
-    set((state) => ({
-      notifications: state.notifications.map((n) => ({ ...n, read: true })),
+    set(state => ({
+      notifications: state.notifications.map(n => ({ ...n, read: true })),
       unreadCount: 0,
     })),
 }));

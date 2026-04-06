@@ -107,6 +107,6 @@ export class CspReportController {
     ];
 
     const violatedDirective = report['violated-directive'] ?? '';
-    return criticalDirectives.some((directive) => violatedDirective.includes(directive));
+    return criticalDirectives.some(directive => violatedDirective.includes(directive));
   }
 }

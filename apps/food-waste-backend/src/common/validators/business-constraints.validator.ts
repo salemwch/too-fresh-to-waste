@@ -375,7 +375,7 @@ export class IsNotProfaneConstraint implements ValidatorConstraintInterface {
     }
 
     const lowerText = text.toLowerCase();
-    return !Array.from(this.bannedWords).some((word) => lowerText.includes(word));
+    return !Array.from(this.bannedWords).some(word => lowerText.includes(word));
   }
 
   defaultMessage(args: ValidationArguments): string {

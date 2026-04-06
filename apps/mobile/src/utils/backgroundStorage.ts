@@ -182,7 +182,7 @@ class BackgroundStorageManager {
    * Delay helper for retry backoff
    */
   private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**

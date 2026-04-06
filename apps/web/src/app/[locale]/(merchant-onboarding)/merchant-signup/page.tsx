@@ -97,13 +97,13 @@ export default function MerchantSignupPage() {
 
   // ── Field updater ──
   const updateField = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+    setFormData(prev => ({ ...prev, [key]: value }));
   }, []);
 
   // ── Step 1: Business selection ──
   const handleBusinessSelect = useCallback((details: PlaceDetails) => {
     setSelectedBusiness(details);
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       businessName: details.name,
       googlePlaceId: details.googlePlaceId,
@@ -117,7 +117,7 @@ export default function MerchantSignupPage() {
 
   const handleBusinessClear = useCallback(() => {
     setSelectedBusiness(null);
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       businessName: '',
       googlePlaceId: '',
@@ -146,11 +146,11 @@ export default function MerchantSignupPage() {
 
   // ── Navigation ──
   const handleNext = useCallback(() => {
-    setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+    setStep(s => Math.min(s + 1, TOTAL_STEPS));
   }, []);
 
   const handleBack = useCallback(() => {
-    setStep((s) => Math.max(s - 1, 1));
+    setStep(s => Math.max(s - 1, 1));
   }, []);
 
   // ── Submit ──
@@ -214,7 +214,7 @@ export default function MerchantSignupPage() {
   useEffect(() => {
     if (cooldown <= 0) return;
     const timer = setInterval(() => {
-      setCooldown((prev) => prev - 1);
+      setCooldown(prev => prev - 1);
     }, 1000);
     return () => clearInterval(timer);
   }, [cooldown]);
@@ -236,29 +236,29 @@ export default function MerchantSignupPage() {
 
   // ── "Check Your Inbox" UI (replaces form after successful registration) ──
   const renderCheckInbox = () => (
-    <div className="flex flex-col items-center text-center space-y-5">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-        <MailCheck className="h-10 w-10 text-green-600" />
+    <div className='flex flex-col items-center text-center space-y-5'>
+      <div className='flex h-20 w-20 items-center justify-center rounded-full bg-green-100'>
+        <MailCheck className='h-10 w-10 text-green-600' />
       </div>
-      <div className="space-y-2">
+      <div className='space-y-2'>
         <h2
-          className="text-xl font-bold text-black sm:text-2xl lg:text-3xl"
+          className='text-xl font-bold text-black sm:text-2xl lg:text-3xl'
           style={{ fontFamily: 'var(--font-serif)' }}
         >
           {t('checkInboxTitle')}
         </h2>
-        <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+        <p className='text-sm leading-relaxed text-muted-foreground sm:text-base'>
           {t('checkInboxDescription', { email: registeredEmail })}
         </p>
       </div>
-      <p className="text-xs text-muted-foreground sm:text-sm">{t('checkSpamHint')}</p>
+      <p className='text-xs text-muted-foreground sm:text-sm'>{t('checkSpamHint')}</p>
       <Button
-        variant="outline"
-        className="w-full h-11 rounded-xl text-sm font-semibold sm:h-12"
+        variant='outline'
+        className='w-full h-11 rounded-xl text-sm font-semibold sm:h-12'
         onClick={handleResend}
         disabled={isResending || cooldown > 0}
       >
-        {isResending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {isResending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
         {cooldown > 0 ? t('resendCooldown', { seconds: cooldown }) : t('resendEmail')}
       </Button>
       {resendFeedback && (
@@ -270,14 +270,14 @@ export default function MerchantSignupPage() {
           }`}
         >
           {resendFeedback.type === 'success' ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <CheckCircle2 className='h-4 w-4 shrink-0' />
           ) : (
-            <AlertCircle className="h-4 w-4 shrink-0" />
+            <AlertCircle className='h-4 w-4 shrink-0' />
           )}
           <span>{resendFeedback.text}</span>
         </div>
       )}
-      <Link href="/login" className="text-sm font-medium text-primary hover:text-primary/80">
+      <Link href='/login' className='text-sm font-medium text-primary hover:text-primary/80'>
         {t('loginLink')}
       </Link>
     </div>
@@ -285,7 +285,7 @@ export default function MerchantSignupPage() {
 
   // ── Step indicator ──
   const renderStepIndicator = () => (
-    <div className="flex items-center gap-2">
+    <div className='flex items-center gap-2'>
       {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
         <div
           key={i}
@@ -302,22 +302,22 @@ export default function MerchantSignupPage() {
     switch (step) {
       case 1:
         return (
-          <div className="space-y-4 sm:space-y-5">
+          <div className='space-y-4 sm:space-y-5'>
             <div>
               <h2
-                className="flex items-center gap-2 text-xl font-bold text-black sm:text-2xl lg:text-3xl"
+                className='flex items-center gap-2 text-xl font-bold text-black sm:text-2xl lg:text-3xl'
                 style={{ fontFamily: 'var(--font-serif)' }}
               >
                 {t('step1Title')}
                 <Image
-                  src="/icons/Blue Bold Modern How to Get Verified Instagram Post.svg"
-                  alt="Verified"
+                  src='/icons/Blue Bold Modern How to Get Verified Instagram Post.svg'
+                  alt='Verified'
                   width={22}
                   height={22}
-                  className="h-3 w-3 shrink-0 sm:h-4 sm:w-4"
+                  className='h-3 w-3 shrink-0 sm:h-4 sm:w-4'
                 />
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+              <p className='mt-1 text-sm text-muted-foreground sm:text-base'>
                 {t('step1Description')}
               </p>
             </div>
@@ -329,18 +329,18 @@ export default function MerchantSignupPage() {
             />
 
             {/* Terms */}
-            <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            <p className='text-xs leading-relaxed text-muted-foreground sm:text-sm'>
               {t('termsPrefix')}{' '}
               <Link
-                href="/privacy"
-                className="text-primary underline underline-offset-2 hover:text-primary/80"
+                href='/privacy'
+                className='text-primary underline underline-offset-2 hover:text-primary/80'
               >
                 {t('privacyPolicy')}
               </Link>{' '}
               {t('termsAnd')}{' '}
               <Link
-                href="/terms"
-                className="text-primary underline underline-offset-2 hover:text-primary/80"
+                href='/terms'
+                className='text-primary underline underline-offset-2 hover:text-primary/80'
               >
                 {t('termsConditions')}
               </Link>
@@ -348,7 +348,7 @@ export default function MerchantSignupPage() {
             </p>
 
             <Button
-              className="h-11 w-full rounded-xl text-sm font-semibold sm:h-12"
+              className='h-11 w-full rounded-xl text-sm font-semibold sm:h-12'
               disabled={!isStep1Valid}
               onClick={handleNext}
             >
@@ -359,47 +359,47 @@ export default function MerchantSignupPage() {
 
       case 2:
         return (
-          <div className="space-y-4 sm:space-y-5">
+          <div className='space-y-4 sm:space-y-5'>
             <div>
               <h2
-                className="text-xl font-bold text-black sm:text-2xl lg:text-3xl"
+                className='text-xl font-bold text-black sm:text-2xl lg:text-3xl'
                 style={{ fontFamily: 'var(--font-serif)' }}
               >
                 {t('step2Title')}
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+              <p className='mt-1 text-sm text-muted-foreground sm:text-base'>
                 {t('step2Description')}
               </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">{t('emailLabel')}</Label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <div className='space-y-2'>
+              <Label htmlFor='email'>{t('emailLabel')}</Label>
+              <div className='relative'>
+                <Mail className='absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
                 <Input
-                  id="email"
-                  type="email"
+                  id='email'
+                  type='email'
                   placeholder={t('emailPlaceholder')}
-                  className="h-11 rounded-xl border-input bg-secondary/50 pl-10 text-sm sm:h-12"
+                  className='h-11 rounded-xl border-input bg-secondary/50 pl-10 text-sm sm:h-12'
                   value={formData.email}
-                  onChange={(e) => updateField('email', e.target.value)}
+                  onChange={e => updateField('email', e.target.value)}
                   maxLength={FIELD_LIMITS.EMAIL_MAX}
-                  autoComplete="email"
+                  autoComplete='email'
                 />
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className='flex gap-3'>
               <Button
-                variant="outline"
-                className="h-11 flex-1 rounded-xl text-sm font-semibold sm:h-12"
+                variant='outline'
+                className='h-11 flex-1 rounded-xl text-sm font-semibold sm:h-12'
                 onClick={handleBack}
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <ArrowLeft className='mr-2 h-4 w-4' />
                 {t('back')}
               </Button>
               <Button
-                className="h-11 flex-[2] rounded-xl text-sm font-semibold sm:h-12"
+                className='h-11 flex-[2] rounded-xl text-sm font-semibold sm:h-12'
                 disabled={!isStep2Valid}
                 onClick={handleNext}
               >
@@ -411,108 +411,108 @@ export default function MerchantSignupPage() {
 
       case 3:
         return (
-          <div className="space-y-4 sm:space-y-5">
+          <div className='space-y-4 sm:space-y-5'>
             <div>
               <h2
-                className="text-xl font-bold text-black sm:text-2xl lg:text-3xl"
+                className='text-xl font-bold text-black sm:text-2xl lg:text-3xl'
                 style={{ fontFamily: 'var(--font-serif)' }}
               >
                 {t('step3Title')}
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+              <p className='mt-1 text-sm text-muted-foreground sm:text-base'>
                 {t('step3Description')}
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">{t('firstNameLabel')}</Label>
+            <div className='grid grid-cols-2 gap-3'>
+              <div className='space-y-2'>
+                <Label htmlFor='firstName'>{t('firstNameLabel')}</Label>
                 <Input
-                  id="firstName"
+                  id='firstName'
                   placeholder={t('firstNamePlaceholder')}
-                  className="h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12"
+                  className='h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12'
                   value={formData.firstName}
-                  onChange={(e) => updateField('firstName', e.target.value)}
+                  onChange={e => updateField('firstName', e.target.value)}
                   maxLength={FIELD_LIMITS.NAME_MAX}
-                  autoComplete="given-name"
+                  autoComplete='given-name'
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">{t('lastNameLabel')}</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='lastName'>{t('lastNameLabel')}</Label>
                 <Input
-                  id="lastName"
+                  id='lastName'
                   placeholder={t('lastNamePlaceholder')}
-                  className="h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12"
+                  className='h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12'
                   value={formData.lastName}
-                  onChange={(e) => updateField('lastName', e.target.value)}
+                  onChange={e => updateField('lastName', e.target.value)}
                   maxLength={FIELD_LIMITS.NAME_MAX}
-                  autoComplete="family-name"
+                  autoComplete='family-name'
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">{t('phoneLabel')}</Label>
+            <div className='space-y-2'>
+              <Label htmlFor='phone'>{t('phoneLabel')}</Label>
               <Input
-                id="phone"
-                type="tel"
-                inputMode="numeric"
+                id='phone'
+                type='tel'
+                inputMode='numeric'
                 placeholder={t('phonePlaceholder')}
-                className="h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12"
+                className='h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12'
                 value={formData.phone}
-                onChange={(e) => {
+                onChange={e => {
                   // Allow only digits and leading +
                   const cleaned = e.target.value.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
                   updateField('phone', cleaned);
                 }}
                 maxLength={FIELD_LIMITS.PHONE_MAX}
-                autoComplete="tel"
+                autoComplete='tel'
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">{t('passwordLabel')}</Label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <div className='space-y-2'>
+              <Label htmlFor='password'>{t('passwordLabel')}</Label>
+              <div className='relative'>
+                <Lock className='absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none' />
                 <Input
-                  id="password"
+                  id='password'
                   type={showPassword ? 'text' : 'password'}
                   placeholder={t('passwordPlaceholder')}
-                  className="h-11 rounded-xl border-input bg-secondary/50 pl-7 pr-10 text-sm sm:h-12"
+                  className='h-11 rounded-xl border-input bg-secondary/50 pl-7 pr-10 text-sm sm:h-12'
                   value={formData.password}
-                  onChange={(e) => updateField('password', e.target.value)}
+                  onChange={e => updateField('password', e.target.value)}
                   maxLength={PASSWORD_MAX_LENGTH}
-                  autoComplete="new-password"
+                  autoComplete='new-password'
                 />
                 <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  type='button'
+                  onClick={() => setShowPassword(v => !v)}
+                  className='absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground'
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
                 </button>
               </div>
               <PasswordStrengthIndicator password={formData.password} />
             </div>
 
             {submitError && (
-              <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive">
-                <AlertCircle className="h-4 w-4 shrink-0" />
+              <div className='flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive'>
+                <AlertCircle className='h-4 w-4 shrink-0' />
                 <span>{submitError}</span>
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className='flex gap-3'>
               <Button
-                variant="outline"
-                className="h-11 flex-1 rounded-xl text-sm font-semibold sm:h-12"
+                variant='outline'
+                className='h-11 flex-1 rounded-xl text-sm font-semibold sm:h-12'
                 onClick={handleBack}
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <ArrowLeft className='mr-2 h-4 w-4' />
                 {t('back')}
               </Button>
               <Button
-                className="h-11 flex-[2] rounded-xl text-sm font-semibold sm:h-12"
+                className='h-11 flex-[2] rounded-xl text-sm font-semibold sm:h-12'
                 disabled={!isStep3Valid || isSubmitting}
                 onClick={handleSubmit}
               >
@@ -528,77 +528,77 @@ export default function MerchantSignupPage() {
   };
 
   return (
-    <div className="merchant-signup-theme flex h-[100dvh] flex-col overflow-hidden lg:flex-row">
+    <div className='merchant-signup-theme flex h-[100dvh] flex-col overflow-hidden lg:flex-row'>
       {/* ================================================================
           LEFT HERO SECTION (unchanged)
           ================================================================ */}
-      <div className="relative flex flex-[1.1] flex-col justify-between px-5 py-3 sm:py-6 sm:px-8 lg:flex-1 lg:p-12">
+      <div className='relative flex flex-[1.1] flex-col justify-between px-5 py-3 sm:py-6 sm:px-8 lg:flex-1 lg:p-12'>
         <Image
-          src="/images/hero-bg.jpg"
-          alt=""
+          src='/images/hero-bg.jpg'
+          alt=''
           fill
-          sizes="(max-width: 1024px) 100vw, 55vw"
-          className="object-cover"
+          sizes='(max-width: 1024px) 100vw, 55vw'
+          className='object-cover'
           priority
           quality={85}
         />
-        <div className="absolute inset-0 bg-[hsl(174,72%,17%)] opacity-85" />
+        <div className='absolute inset-0 bg-[hsl(174,72%,17%)] opacity-85' />
 
-        <div className="relative z-10 flex h-full flex-col justify-between gap-2 sm:gap-5 lg:gap-8">
+        <div className='relative z-10 flex h-full flex-col justify-between gap-2 sm:gap-5 lg:gap-8'>
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <div className='flex items-center gap-2'>
             <Image
-              src="/images/image.svg"
-              alt="Too Fresh To Waste"
+              src='/images/image.svg'
+              alt='Too Fresh To Waste'
               width={32}
               height={32}
-              className="brightness-0 invert sm:w-6"
+              className='brightness-0 invert sm:w-6'
             />
-            <span className="text-sm font-semibold tracking-wide text-white sm:text-base lg:text-lg">
+            <span className='text-sm font-semibold tracking-wide text-white sm:text-base lg:text-lg'>
               Too Fresh To Waste
             </span>
           </div>
 
           {/* Main hero content */}
-          <div className="flex max-w-xl flex-1 flex-col justify-center">
-            <span className="mb-1 inline-block w-fit rounded-full bg-white/15 px-3 py-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/80 sm:mb-4 sm:px-5 sm:py-1.5 sm:text-[10px] sm:tracking-[0.25em]">
+          <div className='flex max-w-xl flex-1 flex-col justify-center'>
+            <span className='mb-1 inline-block w-fit rounded-full bg-white/15 px-3 py-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/80 sm:mb-4 sm:px-5 sm:py-1.5 sm:text-[10px] sm:tracking-[0.25em]'>
               {t('heroBadge')}
             </span>
             <h1
-              className="mb-1 text-xl font-bold leading-[1.2] text-white sm:mb-2 sm:text-2xl lg:mb-3 lg:text-4xl"
+              className='mb-1 text-xl font-bold leading-[1.2] text-white sm:mb-2 sm:text-2xl lg:mb-3 lg:text-4xl'
               style={{ fontFamily: 'var(--font-serif)' }}
             >
               {t('heroTitle')}
             </h1>
-            <p className="mb-1 text-xs leading-snug text-white/75 sm:mb-4 sm:text-sm sm:leading-relaxed lg:mb-6 lg:text-lg">
+            <p className='mb-1 text-xs leading-snug text-white/75 sm:mb-4 sm:text-sm sm:leading-relaxed lg:mb-6 lg:text-lg'>
               {t('heroTitleAccent')}
             </p>
-            <p className="hidden text-white/60 sm:block sm:text-xs lg:text-base">
+            <p className='hidden text-white/60 sm:block sm:text-xs lg:text-base'>
               {t('heroDescription')}
             </p>
           </div>
 
           {/* Stats */}
-          <div className="space-y-2 sm:space-y-4 lg:space-y-8">
-            <div className="flex gap-2 sm:gap-3">
+          <div className='space-y-2 sm:space-y-4 lg:space-y-8'>
+            <div className='flex gap-2 sm:gap-3'>
               {[
                 { value: '34%', label: t('statRevenue'), Icon: TrendingUp },
                 { value: '2+', label: t('statStores'), Icon: Store },
                 { value: '\u221E', label: t('statGrowth'), Icon: Rocket },
-              ].map((stat) => (
+              ].map(stat => (
                 <div
                   key={stat.label}
-                  className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-2 py-2 backdrop-blur-md sm:gap-2 sm:rounded-xl sm:px-3 sm:py-3 lg:gap-3 lg:rounded-2xl lg:px-5 lg:py-4"
+                  className='flex min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-2 py-2 backdrop-blur-md sm:gap-2 sm:rounded-xl sm:px-3 sm:py-3 lg:gap-3 lg:rounded-2xl lg:px-5 lg:py-4'
                 >
-                  <stat.Icon className="h-3.5 w-3.5 shrink-0 text-white/70 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
-                  <div className="min-w-0">
+                  <stat.Icon className='h-3.5 w-3.5 shrink-0 text-white/70 sm:h-4 sm:w-4 lg:h-5 lg:w-5' />
+                  <div className='min-w-0'>
                     <div
-                      className="text-sm font-bold leading-tight text-white sm:text-base lg:text-lg"
+                      className='text-sm font-bold leading-tight text-white sm:text-base lg:text-lg'
                       style={{ fontFamily: 'var(--font-serif)' }}
                     >
                       {stat.value}
                     </div>
-                    <div className="truncate text-[9px] text-white/60 sm:text-[10px] lg:text-xs">
+                    <div className='truncate text-[9px] text-white/60 sm:text-[10px] lg:text-xs'>
                       {stat.label}
                     </div>
                   </div>
@@ -607,11 +607,11 @@ export default function MerchantSignupPage() {
             </div>
 
             {/* Testimonial */}
-            <div className="border-t border-white/15 pt-2 sm:pt-4">
-              <p className="text-[10px] italic leading-relaxed text-white/70 sm:text-xs lg:text-sm">
+            <div className='border-t border-white/15 pt-2 sm:pt-4'>
+              <p className='text-[10px] italic leading-relaxed text-white/70 sm:text-xs lg:text-sm'>
                 &ldquo;{t('testimonialQuote')}&rdquo;
               </p>
-              <p className="mt-1 text-[9px] font-medium text-white/50 sm:text-[10px] lg:text-xs">
+              <p className='mt-1 text-[9px] font-medium text-white/50 sm:text-[10px] lg:text-xs'>
                 {t('testimonialAuthor')}
               </p>
             </div>
@@ -622,8 +622,8 @@ export default function MerchantSignupPage() {
       {/* ================================================================
           RIGHT FORM SECTION — Multi-step
           ================================================================ */}
-      <div className="flex flex-1 flex-col items-center justify-center bg-background px-5 py-6 sm:p-8 lg:p-16">
-        <div className="w-full max-w-md space-y-4 sm:space-y-6 lg:space-y-8">
+      <div className='flex flex-1 flex-col items-center justify-center bg-background px-5 py-6 sm:p-8 lg:p-16'>
+        <div className='w-full max-w-md space-y-4 sm:space-y-6 lg:space-y-8'>
           {registeredEmail ? (
             /* ── "Check Your Inbox" replaces the form ── */
             renderCheckInbox()
@@ -631,12 +631,12 @@ export default function MerchantSignupPage() {
             <>
               {/* Back chevron — router.back() on step 1, previous step on steps 2/3 */}
               <button
-                type="button"
+                type='button'
                 onClick={() => (step === 1 ? router.back() : handleBack())}
-                className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="Go back"
+                className='flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground'
+                aria-label='Go back'
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className='h-5 w-5' />
               </button>
 
               {/* Step indicator */}
@@ -645,9 +645,9 @@ export default function MerchantSignupPage() {
               {/* Step content */}
               {renderStep()}
 
-              <p className="text-center text-sm text-muted-foreground sm:text-base">
+              <p className='text-center text-sm text-muted-foreground sm:text-base'>
                 {t('hasAccount')}{' '}
-                <Link href="/login" className="font-medium text-primary hover:text-primary/80">
+                <Link href='/login' className='font-medium text-primary hover:text-primary/80'>
                   {t('loginLink')}
                 </Link>
               </p>

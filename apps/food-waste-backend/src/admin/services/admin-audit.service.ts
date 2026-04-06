@@ -448,7 +448,7 @@ export class AdminAuditService {
       }
 
       if (Array.isArray(obj)) {
-        return obj.map((item) => sanitizeObject(item));
+        return obj.map(item => sanitizeObject(item));
       }
 
       const sanitized: Record<string, AuditableValue> = {
@@ -456,7 +456,7 @@ export class AdminAuditService {
       } as Record<string, AuditableValue>;
 
       for (const [key, value] of Object.entries(sanitized)) {
-        if (sensitiveFields.some((field) => key.toLowerCase().includes(field))) {
+        if (sensitiveFields.some(field => key.toLowerCase().includes(field))) {
           sanitized[key] = '[REDACTED]';
         } else if (typeof value === 'object' && value !== null) {
           sanitized[key] = sanitizeObject(value);
@@ -533,7 +533,7 @@ export class AdminAuditService {
 
     const csvRows = [
       headers.join(','),
-      ...logs.map((log) =>
+      ...logs.map(log =>
         [
           log.timestamp.toISOString(),
           log.adminEmail,
@@ -638,10 +638,10 @@ export class AdminAuditService {
 
   async logBatchActions(actions: CreateAuditLogData[]): Promise<AdminAuditLogDocument[]> {
     try {
-      const sanitizedActions = actions.map((action) => this.sanitizeAuditData(action));
+      const sanitizedActions = actions.map(action => this.sanitizeAuditData(action));
 
       const auditLogs = sanitizedActions.map(
-        (data) =>
+        data =>
           new this.auditLogModel({
             adminId: new Types.ObjectId(data.adminId),
             adminEmail: data.adminEmail,

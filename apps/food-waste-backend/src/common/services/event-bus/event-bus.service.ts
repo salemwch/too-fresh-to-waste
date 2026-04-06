@@ -50,7 +50,7 @@ export class EventBusService implements IEventBus {
     const eventsConfig = this.configService.get<string>('RABBITMQ_ENABLED_EVENTS', '');
     this.enabledEvents = eventsConfig
       .split(',')
-      .map((e) => e.trim())
+      .map(e => e.trim())
       .filter(Boolean);
 
     this.logger.log(
@@ -102,6 +102,6 @@ export class EventBusService implements IEventBus {
     }
 
     // Match event against patterns (e.g., 'admin.*', 'admin.user.suspended')
-    return this.enabledEvents.some((pattern) => minimatch(eventName, pattern));
+    return this.enabledEvents.some(pattern => minimatch(eventName, pattern));
   }
 }

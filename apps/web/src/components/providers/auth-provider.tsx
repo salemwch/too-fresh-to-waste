@@ -20,7 +20,7 @@ function isHardAuthError(err: unknown): boolean {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setUser, setLoading } = useAuthStore();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pathname = usePathname();
 
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // We verify the session by calling GET /auth/me (cookie-authenticated).
   // Skip on auth-flow pages (e.g. verify-callback) which set cookies themselves.
   useEffect(() => {
-    const isAuthFlowPage = AUTH_FLOW_PAGES.some((p) => pathname.includes(p));
+    const isAuthFlowPage = AUTH_FLOW_PAGES.some(p => pathname.includes(p));
     if (isAuthFlowPage) {
       setLoading(false);
       return;
@@ -113,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Re-verify our session to update user state if needed.
       authService
         .getProfile()
-        .then((res) => {
+        .then(res => {
           useAuthStore.getState().setUser(res.data.data);
         })
         .catch(() => {

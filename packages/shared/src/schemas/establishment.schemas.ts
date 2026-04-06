@@ -113,11 +113,11 @@ export const SearchEstablishmentsSchema = z.object({
   minRating: z.coerce.number().min(1).optional(),
   isVerified: z
     .union([z.boolean(), z.literal('true'), z.literal('false')])
-    .transform((val) => val === true || val === 'true')
+    .transform(val => val === true || val === 'true')
     .optional(),
   acceptsReservations: z
     .union([z.boolean(), z.literal('true'), z.literal('false')])
-    .transform((val) => val === true || val === 'true')
+    .transform(val => val === true || val === 'true')
     .optional(),
 });
 

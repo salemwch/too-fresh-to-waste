@@ -460,9 +460,9 @@ export class UserPreferencesService {
     ];
 
     return (user.auditLog ?? [])
-      .filter((entry) => preferencesActions.includes(entry.action))
+      .filter(entry => preferencesActions.includes(entry.action))
       .slice(0, limit)
-      .map((entry) => ({
+      .map(entry => ({
         action: entry.action,
         timestamp: entry.timestamp,
         changes: entry.details as AuditLogDetails,

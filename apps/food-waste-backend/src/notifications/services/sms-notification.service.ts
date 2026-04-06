@@ -89,7 +89,7 @@ export class SmsNotificationService implements INotificationProvider {
     this.logger.log('✅ SmsNotificationService initialized with shared RedisService');
 
     // Initialize Twilio asynchronously (non-blocking)
-    this.initializeTwilio().catch((error) => {
+    this.initializeTwilio().catch(error => {
       this.logger.error('Failed to initialize Twilio service', {
         error: (error as Error).message,
         impact: 'service_degraded',
@@ -360,7 +360,7 @@ export class SmsNotificationService implements INotificationProvider {
 
         // Exponential backoff delay: 1s, 2s, 4s
         const delayMs = Math.pow(2, attempt - 1) * 1000;
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }
 
@@ -772,8 +772,8 @@ export class SmsNotificationService implements INotificationProvider {
       'sms-messages-inbound',
     ];
 
-    const smsRecords = validRecords.filter((record) => {
-      const isSMSCategory = smsCategories.some((category) =>
+    const smsRecords = validRecords.filter(record => {
+      const isSMSCategory = smsCategories.some(category =>
         record.category.toLowerCase().includes(category.toLowerCase()),
       );
 
@@ -798,7 +798,7 @@ export class SmsNotificationService implements INotificationProvider {
     this.logger.debug('SMS usage records filtered', {
       totalRecords: validRecords.length,
       smsRecords: smsRecords.length,
-      categories: smsRecords.map((r) => r.category),
+      categories: smsRecords.map(r => r.category),
       dateFilter: startDate.toISOString(),
     });
 
@@ -1172,7 +1172,7 @@ export class SmsNotificationService implements INotificationProvider {
     const validRecords = usage.filter(isValidUsageRecord);
 
     const smsUsage = validRecords.find(
-      (record) =>
+      record =>
         record.category === 'sms' ||
         record.category === 'sms-outbound' ||
         record.category === 'sms-inbound',
@@ -1182,7 +1182,7 @@ export class SmsNotificationService implements INotificationProvider {
       this.logger.debug('No SMS usage records found in the response', {
         totalRecords: usage.length,
         validRecords: validRecords.length,
-        categories: validRecords.map((r) => r.category).join(', '),
+        categories: validRecords.map(r => r.category).join(', '),
       });
       return;
     }
@@ -1496,7 +1496,7 @@ export class SmsNotificationService implements INotificationProvider {
 
     for (let i = 0; i < targets.length; i += batchSize) {
       const batch = targets.slice(i, i + batchSize);
-      const batchPromises = batch.map(async (target) => {
+      const batchPromises = batch.map(async target => {
         try {
           return await this.send(payload, target);
         } catch (error) {
@@ -1509,7 +1509,7 @@ export class SmsNotificationService implements INotificationProvider {
       });
 
       const batchResults = await Promise.allSettled(batchPromises);
-      const processedResults = batchResults.map((result) =>
+      const processedResults = batchResults.map(result =>
         result.status === 'fulfilled'
           ? result.value
           : {
@@ -1836,7 +1836,7 @@ export class SmsNotificationService implements INotificationProvider {
       // Development mode fallback when Twilio isn't configured
       if (this.twilioClient === null) {
         this.logger.warn('Twilio client not available - using development mode');
-        await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 100)); // Simulate API delay
 
         return {
           sid: `DEV_SM${Date.now()}${Math.random().toString(36).substring(7)}`,
@@ -2608,7 +2608,7 @@ export class SmsNotificationService implements INotificationProvider {
   }
 
   private async delay(ms: number): Promise<void> {
-    await new Promise<void>((resolve) => setTimeout(resolve, ms));
+    await new Promise<void>(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -2644,7 +2644,7 @@ export class SmsNotificationService implements INotificationProvider {
       // Sort parameters alphabetically by key and create URL-encoded string
       const sortedParams = Object.keys(params)
         .sort()
-        .map((key) => `${key}=${params[key]}`)
+        .map(key => `${key}=${params[key]}`)
         .join('&');
 
       // Create the string to sign: URL + sorted parameters

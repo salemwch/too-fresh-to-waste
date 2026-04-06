@@ -91,7 +91,7 @@ export class EmailNotificationService implements INotificationProvider {
     payload: NotificationPayload,
     targets: NotificationTarget[],
   ): Promise<NotificationResult[]> {
-    const emailPromises = targets.map(async (target) => {
+    const emailPromises = targets.map(async target => {
       try {
         return await this.send(payload, target);
       } catch (error) {
@@ -270,7 +270,7 @@ export class EmailNotificationService implements INotificationProvider {
   }
 
   private normalizeMailRecipients(recipients: Array<string | Mail.Address>): string[] {
-    return recipients.map((recipient) =>
+    return recipients.map(recipient =>
       typeof recipient === 'string' ? recipient : recipient.address,
     );
   }

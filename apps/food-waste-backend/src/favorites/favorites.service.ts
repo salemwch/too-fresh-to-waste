@@ -292,12 +292,12 @@ export class FavoritesService {
       // Before: 20 favorites × 3 queries each = 60 DB round-trips
       // After:  2 aggregates total (offers + establishments)
       const offerItemIds = favorites
-        .filter((f) => f.type === FavoriteType.OFFER)
-        .map((f) => new Types.ObjectId(String(f.itemId)));
+        .filter(f => f.type === FavoriteType.OFFER)
+        .map(f => new Types.ObjectId(String(f.itemId)));
 
       const establishmentItemIds = favorites
-        .filter((f) => f.type === FavoriteType.ESTABLISHMENT)
-        .map((f) => new Types.ObjectId(String(f.itemId)));
+        .filter(f => f.type === FavoriteType.ESTABLISHMENT)
+        .map(f => new Types.ObjectId(String(f.itemId)));
 
       const [batchedOffers, batchedEstablishments] = await Promise.all([
         offerItemIds.length > 0
@@ -343,7 +343,7 @@ export class FavoritesService {
       );
 
       // Map favorites to populated data
-      const populatedFavorites = favorites.map((favorite) => {
+      const populatedFavorites = favorites.map(favorite => {
         let populatedItem:
           | ReturnType<typeof OfferPresenter.toCardDto>
           | Record<string, unknown>
@@ -690,7 +690,7 @@ export class FavoritesService {
 
       // Check if item is already in the list
       const existingItem = list.items.find(
-        (item) => item.itemId.toString() === addToListDto.itemId && item.type === addToListDto.type,
+        item => item.itemId.toString() === addToListDto.itemId && item.type === addToListDto.type,
       );
 
       if (existingItem) {
@@ -763,7 +763,7 @@ export class FavoritesService {
     shareDto: ShareListDto,
   ): Promise<FavoriteListDocument> {
     try {
-      const userIds = shareDto.userIds.map((id) => new Types.ObjectId(id));
+      const userIds = shareDto.userIds.map(id => new Types.ObjectId(id));
 
       const list = await this.favoriteListModel.findOneAndUpdate(
         {
@@ -945,7 +945,7 @@ export class FavoritesService {
 
       // Filter by confidence threshold and limit
       const filteredRecommendations = mergedRecommendations
-        .filter((rec) => rec.similarityScore >= (filters.minConfidence ?? 0.5))
+        .filter(rec => rec.similarityScore >= (filters.minConfidence ?? 0.5))
         .slice(0, filters.limit ?? 10);
 
       const confidence =
@@ -1133,7 +1133,7 @@ export class FavoritesService {
 
       // Score items based on content similarity
       const recommendations: RecommendationDto[] = similarItems
-        .map((item) => {
+        .map(item => {
           const tagSimilarity = this.calculateTagSimilarity(
             Array.from(userPreferences.commonTags.keys()),
             item.flatTags,
@@ -1157,7 +1157,7 @@ export class FavoritesService {
             similarityScore: Math.round(contentScore * 100) / 100,
           };
         })
-        .filter((rec) => rec.score > 0.3); // Minimum content similarity threshold
+        .filter(rec => rec.score > 0.3); // Minimum content similarity threshold
 
       return recommendations;
     } catch (error) {
@@ -1177,7 +1177,7 @@ export class FavoritesService {
     filters: RecommendationFiltersDto,
   ): Promise<RecommendationDto[]> {
     try {
-      const userItemIds = userFavorites.map((f) => f.itemId);
+      const userItemIds = userFavorites.map(f => f.itemId);
 
       // Find users with similar favorites (collaborative filtering)
       const similarUsers = await this.favoriteModel.aggregate<SimilarUserAggregate>([
@@ -1210,7 +1210,7 @@ export class FavoritesService {
         return [];
       }
 
-      const similarUserIds = similarUsers.map((u) => u._id);
+      const similarUserIds = similarUsers.map(u => u._id);
 
       // Get items favorited by similar users that current user hasn't favorited
       const collaborativeItems = await this.favoriteModel.aggregate<CollaborativeItemAggregate>([
@@ -1252,7 +1252,7 @@ export class FavoritesService {
       ]);
 
       // Score collaborative recommendations
-      const recommendations: RecommendationDto[] = collaborativeItems.map((item) => {
+      const recommendations: RecommendationDto[] = collaborativeItems.map(item => {
         const userSimilarityScore = item.userIds.length / similarUsers.length;
         const popularityScore = Math.min(item.favoriteCount / 10, 1);
 
@@ -1332,7 +1332,7 @@ export class FavoritesService {
     const userTagSet = new Set(userTags);
     const itemTagSet = new Set(itemTags);
 
-    const intersection = new Set([...userTagSet].filter((tag) => itemTagSet.has(tag)));
+    const intersection = new Set([...userTagSet].filter(tag => itemTagSet.has(tag)));
     const union = new Set([...userTagSet, ...itemTagSet]);
 
     return union.size > 0 ? intersection.size / union.size : 0;
@@ -1484,10 +1484,10 @@ export class FavoritesService {
     previousTrends: TrendData[],
   ): TrendItemDto[] {
     const previousTrendsMap = new Map(
-      previousTrends.map((trend) => [trend._id.itemId.toString(), trend]),
+      previousTrends.map(trend => [trend._id.itemId.toString(), trend]),
     );
 
-    return currentTrends.map((current) => {
+    return currentTrends.map(current => {
       const previous = previousTrendsMap.get(current._id.itemId.toString());
       const previousCount = previous?.favoriteCount ?? 0;
 
@@ -1558,7 +1558,7 @@ export class FavoritesService {
         .lean()
         .exec();
 
-      return favorites.map((fav) => fav.itemId.toString());
+      return favorites.map(fav => fav.itemId.toString());
     } catch (error) {
       this.logger.error('Failed to get user favorite offer IDs', { userId, error });
       return []; // Graceful degradation: return empty array on error

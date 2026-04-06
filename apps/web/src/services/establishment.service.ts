@@ -54,7 +54,7 @@ export const establishmentService = {
    */
   uploadImages(id: string, files: File[]) {
     const formData = new FormData();
-    files.forEach((f) => formData.append('images', f));
+    files.forEach(f => formData.append('images', f));
     return apiClient.patch<BackendEnvelope<MyEstablishment>>(`${BASE}/${id}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });

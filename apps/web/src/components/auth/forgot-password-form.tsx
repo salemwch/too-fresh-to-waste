@@ -42,14 +42,14 @@ export function ForgotPasswordForm() {
   if (isSubmitted) {
     return (
       <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">{t('checkEmail')}</CardTitle>
+        <CardHeader className='text-center'>
+          <CardTitle className='text-2xl'>{t('checkEmail')}</CardTitle>
           <CardDescription>{t('checkEmailDescription')}</CardDescription>
         </CardHeader>
         <CardFooter>
-          <Link href="/login" className="w-full">
-            <Button variant="outline" className="w-full">
-              <ArrowLeft className="mr-2 h-4 w-4" />
+          <Link href='/login' className='w-full'>
+            <Button variant='outline' className='w-full'>
+              <ArrowLeft className='mr-2 h-4 w-4' />
               {t('backToLogin')}
             </Button>
           </Link>
@@ -60,46 +60,46 @@ export function ForgotPasswordForm() {
 
   return (
     <Card>
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">{t('forgotPasswordTitle')}</CardTitle>
+      <CardHeader className='space-y-1'>
+        <CardTitle className='text-2xl'>{t('forgotPasswordTitle')}</CardTitle>
         <CardDescription>{t('forgotPasswordDescription')}</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">{t('email')}</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+        <CardContent className='space-y-4'>
+          <div className='space-y-2'>
+            <Label htmlFor='email'>{t('email')}</Label>
+            <div className='relative'>
+              <Mail className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none' />
               <Input
-                id="email"
-                type="email"
+                id='email'
+                type='email'
                 placeholder={t('emailPlaceholder')}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
-                autoComplete="email"
-                className="pl-9"
+                autoComplete='email'
+                className='pl-9'
               />
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-4">
+        <CardFooter className='flex flex-col gap-4'>
           {error && (
-            <div className="flex w-full items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4 shrink-0" />
+            <div className='flex w-full items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive'>
+              <AlertCircle className='h-4 w-4 shrink-0' />
               <span>{error}</span>
             </div>
           )}
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type='submit' className='w-full' disabled={isLoading}>
+            {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
             {t('sendResetLink')}
           </Button>
           <Link
-            href="/login"
-            className="text-sm text-center text-muted-foreground hover:text-foreground flex items-center justify-center gap-1"
+            href='/login'
+            className='text-sm text-center text-muted-foreground hover:text-foreground flex items-center justify-center gap-1'
           >
-            <ArrowLeft className="h-3 w-3" />
+            <ArrowLeft className='h-3 w-3' />
             {t('backToLogin')}
           </Link>
         </CardFooter>

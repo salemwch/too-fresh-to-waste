@@ -348,7 +348,7 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, bagCount, tar
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType='slide'
       statusBarTranslucent
       onRequestClose={onClose}
     >
@@ -464,11 +464,11 @@ export const LeaderboardScreen: React.FC<Props> = () => {
   const lastName = user?.lastName ?? '';
 
   // Flatten all pages into one array
-  const allEntries = useMemo(() => data?.pages.flatMap((p) => p.entries) ?? [], [data]);
+  const allEntries = useMemo(() => data?.pages.flatMap(p => p.entries) ?? [], [data]);
 
   // Resolve current user entry (in top-N from any page, or outside)
   const userEntry = useMemo(
-    () => data?.pages[0]?.currentUserEntry ?? allEntries.find((e) => e.isCurrentUser) ?? null,
+    () => data?.pages[0]?.currentUserEntry ?? allEntries.find(e => e.isCurrentUser) ?? null,
     [data, allEntries],
   );
 
@@ -516,7 +516,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
             </Text>
           </View>
           <Pressable style={styles.infoBtn} onPress={() => setShowPrizeModal(true)}>
-            <Icon name="information-circle-outline" family="Ionicons" size={26} color={PRIMARY} />
+            <Icon name='information-circle-outline' family='Ionicons' size={26} color={PRIMARY} />
           </Pressable>
         </View>
 
@@ -559,12 +559,12 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         {/* Initial load states */}
         {isLoading && (
           <View style={styles.centerState}>
-            <ActivityIndicator size="large" color={PRIMARY} />
+            <ActivityIndicator size='large' color={PRIMARY} />
           </View>
         )}
         {isError && (
           <Pressable style={styles.centerState} onPress={handleRetry}>
-            <Icon name="refresh-outline" family="Ionicons" size={28} color="#6B7280" />
+            <Icon name='refresh-outline' family='Ionicons' size={28} color='#6B7280' />
             <Text style={styles.errorText}>Tap to retry</Text>
           </Pressable>
         )}
@@ -591,7 +591,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
       <View>
         {isFetchingNextPage && (
           <View style={styles.loadMoreSpinner}>
-            <ActivityIndicator size="small" color={PRIMARY} />
+            <ActivityIndicator size='small' color={PRIMARY} />
           </View>
         )}
         {userEntry != null && (
@@ -630,7 +630,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
                 </Text>
                 <AnimatedProgressBar
                   percentage={progressPct}
-                  trackColor="rgba(255,255,255,0.2)"
+                  trackColor='rgba(255,255,255,0.2)'
                   fillColor={SUCCESS}
                 />
               </>

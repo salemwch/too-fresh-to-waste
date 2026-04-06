@@ -110,7 +110,7 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
    * Reset error state
    */
   const resetError = useCallback(() => {
-    setState((prev) => ({ ...prev, error: null }));
+    setState(prev => ({ ...prev, error: null }));
   }, []);
 
   /**
@@ -129,7 +129,7 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
    */
   const executeOrderCreation = useCallback(
     async (orderData: CreateOrderDto): Promise<Order | null> => {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }));
+      setState(prev => ({ ...prev, isLoading: true, error: null }));
 
       try {
         const order = await ordersService.createOrder(orderData);

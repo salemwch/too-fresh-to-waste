@@ -231,7 +231,7 @@ export class ReviewCacheService implements OnModuleInit, OnModuleDestroy {
             keysToDelete.push(key);
           }
         });
-        keysToDelete.forEach((key) => this.fallbackCache.delete(key));
+        keysToDelete.forEach(key => this.fallbackCache.delete(key));
       }
 
       this.logger.debug(`Invalidated all cached reviews for establishment ${establishmentId}`);
@@ -263,7 +263,7 @@ export class ReviewCacheService implements OnModuleInit, OnModuleDestroy {
             keysToDelete.push(key);
           }
         });
-        keysToDelete.forEach((key) => this.fallbackCache.delete(key));
+        keysToDelete.forEach(key => this.fallbackCache.delete(key));
       }
 
       this.logger.debug(`Invalidated all cached reviews for user ${userId}`);
@@ -295,7 +295,7 @@ export class ReviewCacheService implements OnModuleInit, OnModuleDestroy {
    */
   async warmUpCache(reviews: ReviewDocument[]): Promise<void> {
     try {
-      const cachePromises = reviews.map(async (review) => {
+      const cachePromises = reviews.map(async review => {
         await this.cacheReview(review, this.DEFAULT_TTL * 2); // Longer TTL for warmed cache
       });
 

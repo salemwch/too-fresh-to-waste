@@ -57,14 +57,14 @@ export const MainStack: React.FC = () => {
   );
 
   return (
-    <Stack.Navigator initialRouteName="MainTabs" screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="MainTabs" component={TabNavigator} />
+    <Stack.Navigator initialRouteName='MainTabs' screenOptions={{ headerShown: false }}>
+      <Stack.Screen name='MainTabs' component={TabNavigator} />
 
       <Stack.Group
         screenOptions={({ navigation }) => ({ ...modalOptions(navigation), headerShown: true })}
       >
         <Stack.Screen
-          name="OfferDetails"
+          name='OfferDetails'
           component={OfferDetailsScreen}
           options={{ title: 'Offer Details' }}
         />
@@ -75,12 +75,12 @@ export const MainStack: React.FC = () => {
         screenOptions={({ navigation }) => ({ ...defaultOptions(navigation), headerShown: true })}
       >
         <Stack.Screen
-          name="OrderHistory"
+          name='OrderHistory'
           component={OrderHistoryScreen}
           options={{ title: 'Order History' }}
         />
         <Stack.Screen
-          name="Checkout"
+          name='Checkout'
           component={CheckoutScreen}
           options={{ title: 'Checkout', presentation: 'modal' }}
         />
@@ -91,24 +91,24 @@ export const MainStack: React.FC = () => {
         screenOptions={({ navigation }) => ({ ...defaultOptions(navigation), headerShown: true })}
       >
         <Stack.Screen
-          name="Leaderboard"
+          name='Leaderboard'
           component={LeaderboardScreen}
           options={{ title: 'Leaderboard' }}
         />
-        <Stack.Screen name="Loyalty" component={LoyaltyScreen} options={{ title: 'My Points' }} />
+        <Stack.Screen name='Loyalty' component={LoyaltyScreen} options={{ title: 'My Points' }} />
       </Stack.Group>
 
       <Stack.Group
         screenLayout={protectedScreenLayout}
         screenOptions={({ navigation }) => ({ ...defaultOptions(navigation), headerShown: true })}
       >
-        <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
+        <Stack.Screen name='Settings' component={SettingsScreen} options={{ title: 'Settings' }} />
         <Stack.Screen
-          name="Privacy"
+          name='Privacy'
           component={PrivacyScreen}
           options={{ title: 'Privacy & Data' }}
         />
-        <Stack.Screen name="Security" component={SecurityScreen} options={{ title: 'Security' }} />
+        <Stack.Screen name='Security' component={SecurityScreen} options={{ title: 'Security' }} />
       </Stack.Group>
 
       <Stack.Group
@@ -116,7 +116,7 @@ export const MainStack: React.FC = () => {
         screenOptions={({ navigation }) => ({ ...defaultOptions(navigation), headerShown: true })}
       >
         <Stack.Screen
-          name="EstablishmentDetails"
+          name='EstablishmentDetails'
           component={EstablishmentDetailsScreen}
           options={{ title: 'Establishment Details' }}
         />
@@ -127,7 +127,7 @@ export const MainStack: React.FC = () => {
         screenOptions={({ navigation }) => ({ ...modalOptions(navigation), headerShown: true })}
       >
         <Stack.Screen
-          name="NearbyOffers"
+          name='NearbyOffers'
           component={NearbyOffersScreen}
           options={{ title: 'Nearby Offers' }}
         />

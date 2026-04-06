@@ -454,7 +454,7 @@ export class DashboardController {
       name: options.name,
       description: options.description ?? `Copy of ${sourceDashboard.name}`,
       category: sourceDashboard.category,
-      widgets: sourceDashboard.widgets.map((widget) => ({
+      widgets: sourceDashboard.widgets.map(widget => ({
         type: widget.type,
         title: widget.title,
         ...(widget.description !== undefined ? { description: widget.description } : {}),
@@ -574,7 +574,7 @@ export class DashboardController {
     ];
 
     // Filter templates based on user role with proper authorization logic
-    const filteredTemplates = allTemplates.filter((template) => {
+    const filteredTemplates = allTemplates.filter(template => {
       // Admin users can access all templates
       if (userRole === 'admin') {
         return true;
@@ -627,7 +627,7 @@ export class DashboardController {
 
     // Get available templates for validation and access control
     const availableTemplates = this.getAvailableTemplates(userRole);
-    const template = availableTemplates.find((t) => t.id === templateId);
+    const template = availableTemplates.find(t => t.id === templateId);
 
     if (!template) {
       this.logger.warn(

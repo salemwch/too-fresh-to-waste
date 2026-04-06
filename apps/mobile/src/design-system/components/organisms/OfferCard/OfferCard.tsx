@@ -217,7 +217,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       <Image
         source={imageSource}
         style={styles.image}
-        resizeMode="cover"
+        resizeMode='cover'
         accessibilityIgnoresInvertColors
       />
 
@@ -225,7 +225,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       <View style={styles.topLeftBadges}>
         {showItemsLeft && itemsLeft > 0 && (
           <View style={styles.itemsLeftBadge}>
-            <Text variant="label.small" style={styles.itemsLeftText}>
+            <Text variant='label.small' style={styles.itemsLeftText}>
               {`${itemsLeft > 5 ? '5+' : itemsLeft} left`}
             </Text>
           </View>
@@ -236,10 +236,10 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       {hasRating && (
         <View style={styles.ratingBadge}>
           <View style={styles.ratingBadgeContent}>
-            <Text variant="label.small" style={styles.starIcon}>
+            <Text variant='label.small' style={styles.starIcon}>
               ★
             </Text>
-            <Text variant="label.small" style={styles.ratingText}>
+            <Text variant='label.small' style={styles.ratingText}>
               {offer.establishment.averageRating!.toFixed(1)}
             </Text>
           </View>
@@ -255,11 +255,11 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
             <Image
               source={{ uri: offer.establishment.profileImage }}
               style={styles.logoImage}
-              resizeMode="cover"
+              resizeMode='cover'
             />
           ) : (
             <View style={styles.logoPlaceholder}>
-              <Text variant="label.small" numberOfLines={1}>
+              <Text variant='label.small' numberOfLines={1}>
                 {offer.establishment.name.charAt(0).toUpperCase()}
               </Text>
             </View>
@@ -270,21 +270,21 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       {/* Not started overlay — shown instead of sold out when offer hasn't begun */}
       {isNotStarted && startTimeText !== null && (
         <View style={styles.notStartedOverlay}>
-          <Badge variant="info" size="md" label={`Starts at ${startTimeText}`} />
+          <Badge variant='info' size='md' label={`Starts at ${startTimeText}`} />
         </View>
       )}
 
       {/* Sold out overlay — only when truly out of stock, not when not started */}
       {isOutOfStock && !isNotStarted && (
         <View style={styles.soldOutOverlay}>
-          <Badge variant="error" size="md" label="SOLD OUT" />
+          <Badge variant='error' size='md' label='SOLD OUT' />
         </View>
       )}
 
       {/* Expired overlay (for favorites view) */}
       {offer.status === 'expired' && (
         <View style={styles.expiredOverlay}>
-          <Badge variant="warning" size="md" label="EXPIRED" />
+          <Badge variant='warning' size='md' label='EXPIRED' />
         </View>
       )}
     </View>
@@ -301,13 +301,13 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
         <Pressable
           onPress={handleEstablishmentPress}
           disabled={!onEstablishmentPress}
-          accessibilityRole="button"
+          accessibilityRole='button'
           accessibilityLabel={`View ${offer.establishment.name}`}
           style={styles.establishmentNameContainer}
         >
           <Text
-            variant="body.medium"
-            weight="semibold"
+            variant='body.medium'
+            weight='semibold'
             numberOfLines={1}
             style={styles.establishmentName}
           >
@@ -320,7 +320,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
           <Pressable
             onPress={handleFavoritePress}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityRole="button"
+            accessibilityRole='button'
             accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             style={styles.favoriteButtonContent}
           >
@@ -336,7 +336,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
    */
   const renderTitle = () => (
     <Text
-      variant="body.small"
+      variant='body.small'
       color={theme.colors.onSurfaceVariant}
       numberOfLines={1}
       style={styles.title}
@@ -365,7 +365,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       <View style={styles.pickupTimeRow}>
         {hasPickupTime && (
           <Text
-            variant="body.small"
+            variant='body.small'
             color={theme.colors.onSurfaceVariant}
             numberOfLines={1}
             style={styles.pickupTime}
@@ -375,7 +375,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
         )}
         {hasDistance && (
           <Text
-            variant="body.small"
+            variant='body.small'
             color={theme.colors.onSurfaceVariant}
             style={styles.distanceText}
           >
@@ -399,7 +399,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
         <View style={styles.priceContainer}>
           {hasDiscount && (
             <Text
-              variant="body.small"
+              variant='body.small'
               color={theme.colors.onSurfaceVariant}
               style={styles.originalPrice}
             >
@@ -407,7 +407,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
               {offer.pricing.originalPrice.toFixed(2)}
             </Text>
           )}
-          <Text variant="body.medium" weight="bold" style={styles.currentPrice}>
+          <Text variant='body.medium' weight='bold' style={styles.currentPrice}>
             {offer.pricing.currency}
             {offer.pricing.discountedPrice.toFixed(2)}
           </Text>
@@ -419,7 +419,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
   // ==================== Main Render ====================
   return (
     <Card
-      variant="elevated"
+      variant='elevated'
       pressable={!!onPress && !disabled && !loading}
       onPress={handleCardPress}
       disabled={disabled || (isOutOfStock && !isNotStarted)}
@@ -427,7 +427,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       testID={testID}
       accessibilityLabel={accessibilityLabelText}
       accessibilityHint={accessibilityHint ?? 'Double tap to view offer details'}
-      accessibilityRole="button"
+      accessibilityRole='button'
     >
       {renderImage()}
 

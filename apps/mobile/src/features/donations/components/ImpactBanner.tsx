@@ -36,7 +36,7 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
   // ✅ BEST PRACTICE: Memoize callback to prevent unnecessary re-renders
   const toggleExpand = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsExpanded((prev) => !prev);
+    setIsExpanded(prev => !prev);
     if (!isExpanded && onExpand) {
       onExpand();
     }

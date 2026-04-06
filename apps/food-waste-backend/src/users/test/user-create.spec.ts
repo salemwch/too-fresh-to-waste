@@ -83,7 +83,7 @@ describe('UsersService - create method', () => {
     });
 
     // Mock user model constructor and methods
-    mockUserModel = jest.fn().mockImplementation((userData) => {
+    mockUserModel = jest.fn().mockImplementation(userData => {
       const user = createMockUser(userData);
       user.save = jest.fn().mockResolvedValue(user);
       return user;

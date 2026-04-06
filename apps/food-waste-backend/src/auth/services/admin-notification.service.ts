@@ -120,7 +120,7 @@ export class AdminNotificationService {
 
     // Send to all configured admin emails
     await Promise.allSettled(
-      this.adminEmails.map(async (email) => {
+      this.adminEmails.map(async email => {
         await this.emailService.sendEmail({
           to: email,
           subject,
@@ -332,8 +332,8 @@ ${JSON.stringify({ ...event.details, ...event.metadata }, null, 2)}
   private parseAdminEmails(emailString: string): string[] {
     return emailString
       .split(',')
-      .map((email) => email.trim())
-      .filter((email) => email.length > 0 && email.includes('@'));
+      .map(email => email.trim())
+      .filter(email => email.length > 0 && email.includes('@'));
   }
 
   /**

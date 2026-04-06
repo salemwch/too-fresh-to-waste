@@ -656,7 +656,7 @@ export class AuthSecurityService {
   private checkSuspiciousUserAgent(ip: string, userAgent: string): boolean {
     const suspiciousPatterns = [/bot/i, /crawler/i, /spider/i, /python/i, /curl/i, /wget/i];
 
-    const isSuspicious = suspiciousPatterns.some((pattern) => pattern.test(userAgent));
+    const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(userAgent));
     if (isSuspicious) {
       this.logger.warn(`Suspicious user agent from IP ${ip}: ${userAgent}`);
       return true;

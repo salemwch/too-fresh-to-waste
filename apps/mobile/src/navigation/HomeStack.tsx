@@ -30,7 +30,7 @@ export const HomeStack: React.FC = () => {
   return (
     <Stack.Navigator screenOptions={getDefaultScreenOptions(theme)}>
       <Stack.Screen
-        name="HomeMain"
+        name='HomeMain'
         component={HomeScreen}
         options={{
           headerTitle: () => <LocationHeader />,

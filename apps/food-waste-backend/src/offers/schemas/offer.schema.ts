@@ -127,7 +127,7 @@ export class Offer {
       validator(slots: PickupTimeSlot[]) {
         return (
           slots.length > 0 &&
-          slots.every((slot) => {
+          slots.every(slot => {
             // Treat "00:00" end time as midnight (end of day),
             // which is always after any start time.
             const endIsValid = slot.endTime === '00:00' || slot.startTime < slot.endTime;

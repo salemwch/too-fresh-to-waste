@@ -407,7 +407,7 @@ export class OrdersService {
         // flatten into a single Promise.all to eliminate serial round-trips.
         // Return updated offers to check for sold-out status.
         const updatedOffers = await Promise.all([
-          ...updates.map((update) =>
+          ...updates.map(update =>
             this.offerModel.findByIdAndUpdate(
               update.offerId,
               {
@@ -416,7 +416,7 @@ export class OrdersService {
               { session, new: true },
             ),
           ),
-          ...updates.map((update) =>
+          ...updates.map(update =>
             this.offerModel.findOneAndUpdate(
               {
                 _id: update.offerId,
@@ -606,7 +606,7 @@ export class OrdersService {
       orderId: order._id.toString(),
       orderNumber: order.orderNumber,
       status: order.status,
-      items: order.items.map((item) => ({
+      items: order.items.map(item => ({
         title: item.offerTitle,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
@@ -1073,7 +1073,7 @@ export class OrdersService {
 
         // 2. Update inventory (release reserved, add to sold)
         await Promise.all(
-          order.items.map((item) =>
+          order.items.map(item =>
             this.offerModel.findByIdAndUpdate(
               item.offerId,
               {
@@ -1236,7 +1236,7 @@ export class OrdersService {
         await session.withTransaction(async () => {
           // 1. Release reserved inventory
           const releasedOffers = await Promise.all(
-            order.items.map((item) =>
+            order.items.map(item =>
               this.offerModel.findByIdAndUpdate(
                 item.offerId,
                 { $inc: { reservedQuantity: -item.quantity } },
@@ -1302,7 +1302,7 @@ export class OrdersService {
         cancelledAt: new Date(),
         cancelledBy: userRole === UserRole.MERCHANT ? 'merchant' : 'consumer',
       }),
-      ...order.items.map((item) =>
+      ...order.items.map(item =>
         this.offerModel.findByIdAndUpdate(
           item.offerId,
           {
@@ -1542,7 +1542,7 @@ export class OrdersService {
           const month = d.getMonth() + 1; // 1-indexed
           const day = d.getDate();
           const found = results.find(
-            (r) => r._id['year'] === year && r._id['month'] === month && r._id['day'] === day,
+            r => r._id['year'] === year && r._id['month'] === month && r._id['day'] === day,
           );
           output.push({
             label: `${day} ${CHART_MONTH_NAMES[month - 1]}`,
@@ -1567,7 +1567,7 @@ export class OrdersService {
           const { isoWeekYear, isoWeek } = this.getIsoWeek(monday);
           const month = monday.getMonth() + 1;
           const found = results.find(
-            (r) => r._id['isoWeekYear'] === isoWeekYear && r._id['week'] === isoWeek,
+            r => r._id['isoWeekYear'] === isoWeekYear && r._id['week'] === isoWeek,
           );
           output.push({
             // Label = Monday's date — e.g. "17 Feb"
@@ -1587,7 +1587,7 @@ export class OrdersService {
           const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
           const year = d.getFullYear();
           const month = d.getMonth() + 1;
-          const found = results.find((r) => r._id['year'] === year && r._id['month'] === month);
+          const found = results.find(r => r._id['year'] === year && r._id['month'] === month);
           output.push({
             label: CHART_MONTH_NAMES[month - 1] ?? d.toLocaleString('en-US', { month: 'short' }),
             year,
@@ -1911,7 +1911,7 @@ export class OrdersService {
   }> {
     const pickupDate = new Date(createOrderDto.pickupDate);
     const now = new Date();
-    const offerIds = createOrderDto.items.map((item) => new Types.ObjectId(item.offerId));
+    const offerIds = createOrderDto.items.map(item => new Types.ObjectId(item.offerId));
     const establishmentId = new Types.ObjectId(createOrderDto.establishmentId);
 
     // Fetch offers (no populate needed — establishment already fetched in create())
@@ -1959,7 +1959,7 @@ export class OrdersService {
     const updates: OrderQuantityUpdate[] = [];
 
     for (const itemDto of createOrderDto.items) {
-      const offer = offers.find((o) => o._id.toString() === itemDto.offerId);
+      const offer = offers.find(o => o._id.toString() === itemDto.offerId);
       if (!offer) {
         validationDetails.push({
           offerId: new Types.ObjectId(itemDto.offerId),
@@ -1978,7 +1978,7 @@ export class OrdersService {
       }
 
       const selectedSlot = offer.pickupTimeSlots.find(
-        (slot) =>
+        slot =>
           slot.startTime.trim() === createOrderDto.pickupTimeSlot.startTime.trim() &&
           slot.endTime.trim() === createOrderDto.pickupTimeSlot.endTime.trim(),
       );
@@ -2046,7 +2046,7 @@ export class OrdersService {
   async approveOrdersForExpiration(orderIds: string[], merchantId: string) {
     const result = await this.orderModel.updateMany(
       {
-        _id: { $in: orderIds.map((id) => new Types.ObjectId(id)) },
+        _id: { $in: orderIds.map(id => new Types.ObjectId(id)) },
         merchantId: new Types.ObjectId(merchantId),
         status: { $ne: OrderStatus.EXPIRED },
       },

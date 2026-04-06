@@ -37,7 +37,7 @@ export function transformLocationResultsToItems(
     return [];
   }
 
-  return results.map((result) => {
+  return results.map(result => {
     // Choose display name based on language preference
     const displayName = preferArabic ? result.nameAr : result.name;
 

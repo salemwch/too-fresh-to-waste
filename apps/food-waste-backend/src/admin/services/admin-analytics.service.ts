@@ -799,8 +799,8 @@ export class AdminAnalyticsService {
       });
 
       // Users who were active in both periods (retained users)
-      const retainedUsersCount = currentPeriodActiveUsers.filter((userId) =>
-        previousPeriodActiveUsers.some((prevUserId) => prevUserId.toString() === userId.toString()),
+      const retainedUsersCount = currentPeriodActiveUsers.filter(userId =>
+        previousPeriodActiveUsers.some(prevUserId => prevUserId.toString() === userId.toString()),
       ).length;
 
       // Calculate retention rate
@@ -985,7 +985,7 @@ export class AdminAnalyticsService {
         pipeline,
       );
 
-    return results.map((result) => ({
+    return results.map(result => ({
       id: result._id.toString(),
       name: result.name,
       type: result.type,
@@ -1020,7 +1020,7 @@ export class AdminAnalyticsService {
 
     const results = await this.orderModel.aggregate<OrderTrendAggregationResult>(pipeline);
 
-    return results.map((result) => ({
+    return results.map(result => ({
       date: result._id,
       orders: result.orders,
       revenue: result.revenue,
@@ -1103,7 +1103,7 @@ export class AdminAnalyticsService {
 
       const results = await this.offerModel.aggregate<CategoryStatsAggregationResult>(pipeline);
 
-      return results.map((result) => ({
+      return results.map(result => ({
         category: result.category,
         count: result.count,
         totalRevenue: result.totalRevenue ?? 0,

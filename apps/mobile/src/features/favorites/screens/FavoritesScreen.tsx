@@ -171,7 +171,7 @@ const toOfferListItem = (offer: Offer | OfferListItem): OfferListItem => {
     availableQuantity,
     availableFrom: offer.availableFrom,
     availableUntil: offer.availableUntil,
-    pickupTimeSlots: offer.pickupTimeSlots?.map((slot) => ({
+    pickupTimeSlots: offer.pickupTimeSlots?.map(slot => ({
       startTime: slot.startTime,
       endTime: slot.endTime,
     })),
@@ -207,7 +207,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
       establishmentType,
     });
 
-  const favorites = useMemo(() => data?.pages.flatMap((page) => page.favorites) ?? [], [data]);
+  const favorites = useMemo(() => data?.pages.flatMap(page => page.favorites) ?? [], [data]);
 
   useFocusEffect(
     useCallback(() => {
@@ -276,7 +276,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
 
   const handleFilterChange = useCallback((filterId: string) => {
     setSelectedFilter(filterId);
-    const filter = CATEGORY_FILTERS.find((item) => item.id === filterId);
+    const filter = CATEGORY_FILTERS.find(item => item.id === filterId);
     setEstablishmentType(filter?.establishmentType);
   }, []);
 
@@ -289,7 +289,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
           return (
             <FavoriteOfferCard
               offer={offer}
-              variant="default"
+              variant='default'
               imageAspectRatio={16 / 9}
               onPress={handleOfferPress}
               style={styles.favoriteCard}
@@ -366,7 +366,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filterScroll}
           >
-            {CATEGORY_FILTERS.map((filter) => renderFilterChip(filter))}
+            {CATEGORY_FILTERS.map(filter => renderFilterChip(filter))}
           </ScrollView>
         </View>
 
@@ -380,14 +380,14 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
 
         {error && !isLoading && (
           <Card style={styles.errorCard}>
-            <Icon name="alert-circle-outline" family="Ionicons" size={48} color={COLORS.danger} />
-            <Text variant="title" size="md" weight="semibold" style={styles.errorTitle}>
+            <Icon name='alert-circle-outline' family='Ionicons' size={48} color={COLORS.danger} />
+            <Text variant='title' size='md' weight='semibold' style={styles.errorTitle}>
               Failed to Load Favorites
             </Text>
-            <Text variant="body" size="sm" style={styles.errorSubtext}>
+            <Text variant='body' size='sm' style={styles.errorSubtext}>
               {error instanceof Error ? error.message : 'An error occurred'}
             </Text>
-            <Button variant="primary" size="md" onPress={handleRetry}>
+            <Button variant='primary' size='md' onPress={handleRetry}>
               Try Again
             </Button>
           </Card>
@@ -401,7 +401,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
               end={{ x: 1, y: 1 }}
               style={styles.emptyIconContainer}
             >
-              <Icon name="heart-outline" family="Ionicons" size={64} color={COLORS.success} />
+              <Icon name='heart-outline' family='Ionicons' size={64} color={COLORS.success} />
             </LinearGradient>
 
             <Text style={styles.emptyTitle}>No Favorites Yet</Text>
@@ -412,13 +412,13 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
             </Text>
 
             <Pressable style={styles.browseButton} onPress={handleBrowseOffers}>
-              <Icon name="search-outline" family="Ionicons" size={20} color={COLORS.textInverse} />
+              <Icon name='search-outline' family='Ionicons' size={20} color={COLORS.textInverse} />
               <Text style={styles.browseButtonText}>Browse Offers</Text>
             </Pressable>
 
             <View style={styles.tipCard}>
               <View style={styles.tipIconContainer}>
-                <Icon name="bulb-outline" family="Ionicons" size={20} color={COLORS.warning} />
+                <Icon name='bulb-outline' family='Ionicons' size={20} color={COLORS.warning} />
               </View>
               <View style={styles.tipContent}>
                 <Text style={styles.tipTitle}>Pro Tip</Text>
@@ -435,7 +435,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
             <FlatList
               data={favorites}
               renderItem={renderFavoriteItem}
-              keyExtractor={(item) => item._id}
+              keyExtractor={item => item._id}
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.listContainer}

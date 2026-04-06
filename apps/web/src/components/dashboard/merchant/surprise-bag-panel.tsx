@@ -76,7 +76,7 @@ function getAvailableFromTimes(day: 'today' | 'tomorrow'): string[] {
   if (day === 'tomorrow') return TIME_OPTIONS;
   const now = new Date();
   const nowMins = now.getHours() * 60 + now.getMinutes() + 10; // 10-min buffer
-  return TIME_OPTIONS.filter((t) => {
+  return TIME_OPTIONS.filter(t => {
     const [h = 0, m = 0] = t.split(':').map(Number);
     return h * 60 + m > nowMins;
   });
@@ -197,8 +197,8 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
   }, [open]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
-  const decrement = useCallback(() => setQuantity((q) => Math.max(1, q - 1)), []);
-  const increment = useCallback(() => setQuantity((q) => Math.min(MAX_QUANTITY, q + 1)), []);
+  const decrement = useCallback(() => setQuantity(q => Math.max(1, q - 1)), []);
+  const increment = useCallback(() => setQuantity(q => Math.min(MAX_QUANTITY, q + 1)), []);
 
   const handlePriceChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,7 +239,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     if (!file) return;
     setImageFile(file);
     const reader = new FileReader();
-    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.onload = ev => setImagePreview(ev.target?.result as string);
     reader.readAsDataURL(file);
     // Reset the input so the same file can be re-selected after removal
     e.target.value = '';
@@ -368,7 +368,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     <>
       {/* Backdrop */}
       <div
-        aria-hidden="true"
+        aria-hidden='true'
         className={cn(
           'fixed inset-0 z-[100] bg-black/40 backdrop-blur-[2px]',
           'transition-opacity duration-300',
@@ -379,8 +379,8 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
       {/* Slide panel */}
       <aside
-        role="dialog"
-        aria-modal="true"
+        role='dialog'
+        aria-modal='true'
         aria-label="Publish Today's Surplus"
         className={cn(
           'fixed right-0 top-0 z-[101] h-full w-full max-w-[440px]',
@@ -390,93 +390,93 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
         )}
       >
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
+        <div className='flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0'>
           <div>
-            <h2 className="text-[15px] font-bold tracking-tight text-slate-900">
+            <h2 className='text-[15px] font-bold tracking-tight text-slate-900'>
               Publish Today&apos;s Surplus
             </h2>
-            <p className="text-[11px] text-slate-400 mt-0.5 leading-none">
+            <p className='text-[11px] text-slate-400 mt-0.5 leading-none'>
               Live on the app the moment you hit publish
             </p>
           </div>
           <button
-            type="button"
+            type='button'
             onClick={onClose}
-            aria-label="Close panel"
-            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+            aria-label='Close panel'
+            className='rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors'
           >
-            <X className="h-5 w-5" />
+            <X className='h-5 w-5' />
           </button>
         </div>
 
         {/* ── Scrollable body ── */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        <div className='flex-1 overflow-y-auto px-4 py-4 space-y-4'>
           {/* Item Name */}
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-slate-700">Item Name</label>
+          <div className='space-y-1'>
+            <label className='block text-xs font-semibold text-slate-700'>Item Name</label>
             <input
-              type="text"
+              type='text'
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={e => setTitle(e.target.value)}
               maxLength={100}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-              placeholder="e.g. Delicious Surprise Bag"
+              className='w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
+              placeholder='e.g. Delicious Surprise Bag'
             />
           </div>
 
           {/* Quantity + Offer Type */}
-          <div className="flex items-end gap-3">
+          <div className='flex items-end gap-3'>
             {/* Quantity */}
-            <div className="space-y-1">
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+            <div className='space-y-1'>
+              <label className='flex items-center gap-1.5 text-xs font-semibold text-slate-700'>
                 Quantity
-                <span className="text-[11px] font-normal text-slate-400">max {MAX_QUANTITY}</span>
+                <span className='text-[11px] font-normal text-slate-400'>max {MAX_QUANTITY}</span>
               </label>
-              <div className="flex items-center gap-1.5">
+              <div className='flex items-center gap-1.5'>
                 <button
-                  type="button"
+                  type='button'
                   onClick={decrement}
                   disabled={quantity <= 1}
-                  aria-label="Decrease quantity"
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label='Decrease quantity'
+                  className='flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
                 >
-                  <Minus className="h-3 w-3" />
+                  <Minus className='h-3 w-3' />
                 </button>
 
                 <input
-                  type="number"
+                  type='number'
                   min={1}
                   max={MAX_QUANTITY}
                   value={quantity}
-                  onChange={(e) => {
+                  onChange={e => {
                     const v = parseInt(e.target.value, 10);
                     if (!isNaN(v)) setQuantity(Math.min(MAX_QUANTITY, Math.max(1, v)));
                   }}
-                  className="h-7 w-12 rounded-md border border-slate-200 bg-white text-center text-xs font-bold tabular-nums text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className='h-7 w-12 rounded-md border border-slate-200 bg-white text-center text-xs font-bold tabular-nums text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
                 />
 
                 <button
-                  type="button"
+                  type='button'
                   onClick={increment}
                   disabled={quantity >= MAX_QUANTITY}
-                  aria-label="Increase quantity"
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label='Increase quantity'
+                  className='flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
                 >
-                  <Plus className="h-3 w-3" />
+                  <Plus className='h-3 w-3' />
                 </button>
               </div>
             </div>
 
             {/* Offer Type */}
-            <div className="flex-1 space-y-1">
-              <label className="block text-xs font-semibold text-slate-700">Offer Type</label>
+            <div className='flex-1 space-y-1'>
+              <label className='block text-xs font-semibold text-slate-700'>Offer Type</label>
               <select
                 value={bagType}
-                onChange={(e) => setBagType(e.target.value as OfferBagType)}
-                aria-label="Offer type"
-                className="h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer"
+                onChange={e => setBagType(e.target.value as OfferBagType)}
+                aria-label='Offer type'
+                className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
               >
-                {BAG_TYPE_OPTIONS.map((opt) => (
+                {BAG_TYPE_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -486,41 +486,41 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
           </div>
 
           {/* Divider */}
-          <div className="border-t border-slate-100" />
+          <div className='border-t border-slate-100' />
 
           {/* Pricing */}
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-slate-700">Pricing</p>
+          <div className='space-y-3'>
+            <p className='text-xs font-semibold text-slate-700'>Pricing</p>
 
             {/* Original value */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] text-slate-400">Original value</p>
-                <p className="text-[10px] text-slate-400">max {MAX_PRICE} TND</p>
+            <div className='space-y-1'>
+              <div className='flex items-center justify-between'>
+                <p className='text-[11px] text-slate-400'>Original value</p>
+                <p className='text-[10px] text-slate-400'>max {MAX_PRICE} TND</p>
               </div>
-              <div className="flex gap-1">
-                <span className="flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2 text-[11px] font-semibold text-slate-500 shrink-0 select-none">
+              <div className='flex gap-1'>
+                <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2 text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
                   TND
                 </span>
                 <input
-                  type="text"
-                  inputMode="decimal"
+                  type='text'
+                  inputMode='decimal'
                   value={rawPrice}
                   onChange={handlePriceChange}
-                  className="h-7 flex-1 rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-                  placeholder="10.000"
+                  className='h-7 flex-1 rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
+                  placeholder='10.000'
                 />
               </div>
             </div>
 
             {/* Discount pills */}
-            <div className="space-y-1">
-              <p className="text-xs text-slate-400">Discount (min. {MIN_DISCOUNT_PCT}%)</p>
-              <div className="grid grid-cols-7 gap-1">
-                {DISCOUNT_OPTIONS.map((pct) => (
+            <div className='space-y-1'>
+              <p className='text-xs text-slate-400'>Discount (min. {MIN_DISCOUNT_PCT}%)</p>
+              <div className='grid grid-cols-7 gap-1'>
+                {DISCOUNT_OPTIONS.map(pct => (
                   <button
                     key={pct}
-                    type="button"
+                    type='button'
                     onClick={() => setDiscount(pct)}
                     className={cn(
                       'h-7 rounded-md border text-[11px] font-semibold transition-all',
@@ -536,9 +536,9 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             </div>
 
             {/* Price after discount */}
-            <div className="space-y-1">
-              <p className="text-[11px] text-slate-400">Price after discount</p>
-              <div className="flex gap-1">
+            <div className='space-y-1'>
+              <p className='text-[11px] text-slate-400'>Price after discount</p>
+              <div className='flex gap-1'>
                 <div
                   className={cn(
                     'flex-1 h-7 rounded-md border flex items-center px-2',
@@ -556,12 +556,12 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                     {discountedPrice > 0 ? discountedPrice.toFixed(3) : '—'}
                   </span>
                 </div>
-                <span className="flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2 text-[11px] font-semibold text-slate-500 shrink-0 select-none">
+                <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2 text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
                   TND
                 </span>
               </div>
               {parsedPrice > 0 && discountedPrice > 0 && (
-                <p className="text-[11px] font-medium text-emerald-600">
+                <p className='text-[11px] font-medium text-emerald-600'>
                   Customer saves {saving.toFixed(3)} TND ({discount}% off)
                 </p>
               )}
@@ -569,18 +569,18 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
           </div>
 
           {/* Divider */}
-          <div className="border-t border-slate-100" />
+          <div className='border-t border-slate-100' />
 
           {/* Pickup window */}
-          <div className="space-y-2.5">
-            <p className="text-xs font-semibold text-slate-700">Pickup Window</p>
+          <div className='space-y-2.5'>
+            <p className='text-xs font-semibold text-slate-700'>Pickup Window</p>
 
             {/* Day toggle */}
-            <div className="flex gap-2">
-              {(['today', 'tomorrow'] as const).map((d) => (
+            <div className='flex gap-2'>
+              {(['today', 'tomorrow'] as const).map(d => (
                 <button
                   key={d}
-                  type="button"
+                  type='button'
                   onClick={() => setPickupDay(d)}
                   className={cn(
                     'flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all',
@@ -595,13 +595,13 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             </div>
 
             {/* Quick presets */}
-            <div className="flex gap-1.5">
-              {PICKUP_PRESETS.map((p) => {
+            <div className='flex gap-1.5'>
+              {PICKUP_PRESETS.map(p => {
                 const active = !customOpen && pickupFrom === p.from && pickupUntil === p.until;
                 return (
                   <button
                     key={p.label}
-                    type="button"
+                    type='button'
                     onClick={() => {
                       setPickupFrom(p.from);
                       setPickupUntil(p.until);
@@ -614,7 +614,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                         : 'border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:bg-primary/5',
                     )}
                   >
-                    <span className="text-[11px] font-semibold leading-none">{p.label}</span>
+                    <span className='text-[11px] font-semibold leading-none'>{p.label}</span>
                     <span
                       className={cn(
                         'text-[10px] mt-0.5 tabular-nums',
@@ -630,8 +630,8 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
             {/* Custom range toggle */}
             <button
-              type="button"
-              onClick={() => setCustomOpen((v) => !v)}
+              type='button'
+              onClick={() => setCustomOpen(v => !v)}
               className={cn(
                 'w-full flex items-center justify-between h-7 rounded-md border px-2.5',
                 'text-[11px] transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30',
@@ -651,30 +651,30 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
             {/* Custom From / Until selects */}
             {customOpen && (
-              <div className="flex gap-2 animate-in slide-in-from-top-1 duration-150">
-                <div className="flex-1 space-y-1">
-                  <p className="text-[10px] font-medium text-slate-500">From</p>
+              <div className='flex gap-2 animate-in slide-in-from-top-1 duration-150'>
+                <div className='flex-1 space-y-1'>
+                  <p className='text-[10px] font-medium text-slate-500'>From</p>
                   <select
                     value={pickupFrom}
-                    onChange={(e) => setPickupFrom(e.target.value)}
-                    className="h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer"
+                    onChange={e => setPickupFrom(e.target.value)}
+                    className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
                   >
-                    {pickupDay === 'today' && <option value="now">⚡ Right Now</option>}
-                    {getAvailableFromTimes(pickupDay).map((t) => (
+                    {pickupDay === 'today' && <option value='now'>⚡ Right Now</option>}
+                    {getAvailableFromTimes(pickupDay).map(t => (
                       <option key={t} value={t}>
                         {t}
                       </option>
                     ))}
                   </select>
                 </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-[10px] font-medium text-slate-500">Until</p>
+                <div className='flex-1 space-y-1'>
+                  <p className='text-[10px] font-medium text-slate-500'>Until</p>
                   <select
                     value={pickupUntil}
-                    onChange={(e) => setPickupUntil(e.target.value)}
-                    className="h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer"
+                    onChange={e => setPickupUntil(e.target.value)}
+                    className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
                   >
-                    {UNTIL_OPTIONS.map((t) => (
+                    {UNTIL_OPTIONS.map(t => (
                       <option key={t} value={t}>
                         {t === '00:00' ? '00:00 (midnight)' : t}
                       </option>
@@ -686,7 +686,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
             {/* Live summary */}
             {pickupFrom && pickupUntil && (
-              <p className="text-[11px] font-medium text-slate-600 tabular-nums">
+              <p className='text-[11px] font-medium text-slate-600 tabular-nums'>
                 {pickupDay === 'today' ? 'Today' : 'Tomorrow'},{' '}
                 {pickupFrom === 'now' ? `⚡ ${formatHHMM(new Date())}` : pickupFrom} –{' '}
                 {pickupUntil === '00:00' ? '00:00 (midnight)' : pickupUntil}
@@ -701,47 +701,47 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                 const now = new Date();
                 return h * 60 + m <= now.getHours() * 60 + now.getMinutes();
               })() && (
-                <p className="flex items-center gap-1.5 text-[11px] text-amber-600">
-                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                <p className='flex items-center gap-1.5 text-[11px] text-amber-600'>
+                  <AlertCircle className='h-3.5 w-3.5 shrink-0' />
                   Start time has passed — choose a later time or switch to Tomorrow.
                 </p>
               )}
           </div>
 
           {/* Divider */}
-          <div className="border-t border-slate-100" />
+          <div className='border-t border-slate-100' />
 
           {/* Offer Image */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-slate-700">Offer Image</p>
-              <span className="text-[11px] text-slate-400">Optional · JPEG / PNG / WebP</span>
+          <div className='space-y-1'>
+            <div className='flex items-center justify-between'>
+              <p className='text-xs font-semibold text-slate-700'>Offer Image</p>
+              <span className='text-[11px] text-slate-400'>Optional · JPEG / PNG / WebP</span>
             </div>
 
             {imagePreview ? (
-              <div className="relative rounded-lg overflow-hidden border border-slate-200">
+              <div className='relative rounded-lg overflow-hidden border border-slate-200'>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imagePreview} alt="Offer preview" className="w-full h-28 object-cover" />
+                <img src={imagePreview} alt='Offer preview' className='w-full h-28 object-cover' />
                 <button
-                  type="button"
+                  type='button'
                   onClick={removeImage}
-                  aria-label="Remove image"
-                  className="absolute top-1.5 right-1.5 rounded-full bg-black/50 p-1 text-white hover:bg-black/70 transition-colors"
+                  aria-label='Remove image'
+                  className='absolute top-1.5 right-1.5 rounded-full bg-black/50 p-1 text-white hover:bg-black/70 transition-colors'
                 >
-                  <X className="h-3 w-3" />
+                  <X className='h-3 w-3' />
                 </button>
-                <p className="absolute bottom-0 left-0 right-0 bg-black/40 px-2 py-1 text-[10px] text-white truncate">
+                <p className='absolute bottom-0 left-0 right-0 bg-black/40 px-2 py-1 text-[10px] text-white truncate'>
                   {imageFile?.name}
                 </p>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center gap-1.5 h-20 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors">
-                <ImagePlus className="h-5 w-5 text-slate-400" />
-                <span className="text-xs text-slate-400">Click to upload</span>
+              <label className='flex flex-col items-center justify-center gap-1.5 h-20 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors'>
+                <ImagePlus className='h-5 w-5 text-slate-400' />
+                <span className='text-xs text-slate-400'>Click to upload</span>
                 <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="sr-only"
+                  type='file'
+                  accept='image/jpeg,image/png,image/webp'
+                  className='sr-only'
                   onChange={handleImageChange}
                 />
               </label>
@@ -750,12 +750,12 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
           {/* Establishment warnings */}
           {estLoading && (
-            <p className="text-xs text-slate-400 animate-pulse">Loading your establishment…</p>
+            <p className='text-xs text-slate-400 animate-pulse'>Loading your establishment…</p>
           )}
           {!estLoading && !establishment && (
-            <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
-              <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
-              <p className="text-xs text-amber-700">
+            <div className='flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2'>
+              <AlertCircle className='h-4 w-4 text-amber-500 shrink-0' />
+              <p className='text-xs text-amber-700'>
                 No establishment found. Please complete your onboarding first.
               </p>
             </div>
@@ -763,23 +763,23 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
           {/* Feedback */}
           {errorMsg && (
-            <div className="flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2.5">
-              <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
-              <p className="text-xs text-red-700">{errorMsg}</p>
+            <div className='flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2.5'>
+              <AlertCircle className='h-4 w-4 text-red-500 mt-0.5 shrink-0' />
+              <p className='text-xs text-red-700'>{errorMsg}</p>
             </div>
           )}
           {successMsg && (
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2.5">
-              <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-              <p className="text-xs font-medium text-emerald-700">{successMsg}</p>
+            <div className='flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2.5'>
+              <CheckCircle2 className='h-4 w-4 text-emerald-500 shrink-0' />
+              <p className='text-xs font-medium text-emerald-700'>{successMsg}</p>
             </div>
           )}
         </div>
 
         {/* ── Footer ── */}
-        <div className="border-t border-slate-100 px-5 py-4 shrink-0 bg-white">
+        <div className='border-t border-slate-100 px-5 py-4 shrink-0 bg-white'>
           <button
-            type="button"
+            type='button'
             onClick={() => void handlePublish()}
             disabled={!canPublish}
             className={cn(

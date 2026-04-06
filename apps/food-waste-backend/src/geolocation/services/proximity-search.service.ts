@@ -177,8 +177,8 @@ export class ProximitySearchService {
       // Exclude specific IDs
       if (searchDto.excludeIds && searchDto.excludeIds.length > 0) {
         const excludeObjectIds = searchDto.excludeIds
-          .filter((id) => Types.ObjectId.isValid(id))
-          .map((id) => new Types.ObjectId(id));
+          .filter(id => Types.ObjectId.isValid(id))
+          .map(id => new Types.ObjectId(id));
 
         if (excludeObjectIds.length > 0) {
           matchConditions._id = { $nin: excludeObjectIds };
@@ -268,7 +268,7 @@ export class ProximitySearchService {
         await this.establishmentModel.aggregate<EstablishmentSearchAggregate>(pipeline);
 
       // Transform results to ProximitySearchResult format
-      const results: ProximitySearchResult<EstablishmentGeoData>[] = establishments.map((est) => {
+      const results: ProximitySearchResult<EstablishmentGeoData>[] = establishments.map(est => {
         const coordinates: GeoCoordinate = {
           longitude: est.coordinates[0],
           latitude: est.coordinates[1],
@@ -342,7 +342,7 @@ export class ProximitySearchService {
         return [];
       }
 
-      const establishmentIds = establishmentResults.map((est) => new Types.ObjectId(est.item._id));
+      const establishmentIds = establishmentResults.map(est => new Types.ObjectId(est.item._id));
 
       // Build offer query
       const offerMatchConditions: FilterQuery<OfferDocument> = {
@@ -374,8 +374,8 @@ export class ProximitySearchService {
       // Exclude specific IDs
       if (searchDto.excludeIds && searchDto.excludeIds.length > 0) {
         const excludeObjectIds = searchDto.excludeIds
-          .filter((id) => Types.ObjectId.isValid(id))
-          .map((id) => new Types.ObjectId(id));
+          .filter(id => Types.ObjectId.isValid(id))
+          .map(id => new Types.ObjectId(id));
 
         if (excludeObjectIds.length > 0) {
           offerMatchConditions._id = { $nin: excludeObjectIds };
@@ -486,7 +486,7 @@ export class ProximitySearchService {
         string,
         { coordinates: GeoCoordinate; address: EstablishmentGeoData['address'] }
       >();
-      establishmentResults.forEach((est) => {
+      establishmentResults.forEach(est => {
         establishmentCoordMap.set(est.item._id, {
           coordinates: est.item.coordinates,
           address: est.item.address,
@@ -706,8 +706,8 @@ export class ProximitySearchService {
       }
       if (searchDto.excludeIds?.length) {
         const ids = searchDto.excludeIds
-          .filter((id) => Types.ObjectId.isValid(id))
-          .map((id) => new Types.ObjectId(id));
+          .filter(id => Types.ObjectId.isValid(id))
+          .map(id => new Types.ObjectId(id));
         if (ids.length) {
           matchConditions._id = { $nin: ids };
         }
@@ -847,56 +847,54 @@ export class ProximitySearchService {
         await this.establishmentModel.aggregate<MapEstablishmentAggregate>(pipeline);
 
       // ── Transform to ProximitySearchResult ──────────────────────────
-      const results: ProximitySearchResult<MapEstablishmentGeoData>[] = establishments.map(
-        (est) => {
-          const coordinates: GeoCoordinate = {
-            longitude: est.coordinates[0],
-            latitude: est.coordinates[1],
-          };
+      const results: ProximitySearchResult<MapEstablishmentGeoData>[] = establishments.map(est => {
+        const coordinates: GeoCoordinate = {
+          longitude: est.coordinates[0],
+          latitude: est.coordinates[1],
+        };
 
-          const distance = DistanceCalculator.calculateDistance(
-            searchDto.center,
-            coordinates,
-            DistanceUnit.METERS,
-          );
+        const distance = DistanceCalculator.calculateDistance(
+          searchDto.center,
+          coordinates,
+          DistanceUnit.METERS,
+        );
 
-          const itemData: MapEstablishmentGeoData = {
-            _id: est._id.toString(),
-            name: est.name,
-            type: est.type,
-            profileImage: est.profileImage ?? null,
-            coordinates,
-            address: {
-              street: est.address.street,
-              city: est.address.city,
-              postalCode: est.address.postalCode,
-              country: est.address.country,
-              formattedAddress: `${est.address.street}, ${est.address.city} ${est.address.postalCode}`,
-            },
-            averageRating: est.averageRating ?? 0,
-            totalReviews: est.totalReviews ?? 0,
-            isVerified: est.isVerified ?? false,
-            activeOfferCount: est.activeOfferCount,
-            offers: (est.activeOffers ?? []).map((o) => ({
-              _id: o._id.toString(),
-              title: o.title,
-              description: o.description ?? '',
-              pricing: o.pricing,
-              availableFrom: o.availableFrom,
-              availableUntil: o.availableUntil,
-              availableQuantity: o.availableQuantity,
-              categories: o.categories ?? [],
-              images: o.images ?? [],
-            })),
-          };
+        const itemData: MapEstablishmentGeoData = {
+          _id: est._id.toString(),
+          name: est.name,
+          type: est.type,
+          profileImage: est.profileImage ?? null,
+          coordinates,
+          address: {
+            street: est.address.street,
+            city: est.address.city,
+            postalCode: est.address.postalCode,
+            country: est.address.country,
+            formattedAddress: `${est.address.street}, ${est.address.city} ${est.address.postalCode}`,
+          },
+          averageRating: est.averageRating ?? 0,
+          totalReviews: est.totalReviews ?? 0,
+          isVerified: est.isVerified ?? false,
+          activeOfferCount: est.activeOfferCount,
+          offers: (est.activeOffers ?? []).map(o => ({
+            _id: o._id.toString(),
+            title: o.title,
+            description: o.description ?? '',
+            pricing: o.pricing,
+            availableFrom: o.availableFrom,
+            availableUntil: o.availableUntil,
+            availableQuantity: o.availableQuantity,
+            categories: o.categories ?? [],
+            images: o.images ?? [],
+          })),
+        };
 
-          return {
-            item: itemData,
-            distance,
-            geoData: { coordinates, address: itemData.address },
-          };
-        },
-      );
+        return {
+          item: itemData,
+          distance,
+          geoData: { coordinates, address: itemData.address },
+        };
+      });
 
       this.logger.log(`Found ${results.length} map establishments within radius`);
       return results;

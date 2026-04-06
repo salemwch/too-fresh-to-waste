@@ -385,7 +385,7 @@ export const logoutAsync = createAsyncThunk(
         Logger.error('[AUTH] Logout failed (unexpected)', { userId, reason }, error as Error);
 
         // Still try to clear storage
-        await SecureStorage.clearAll().catch((storageError) => {
+        await SecureStorage.clearAll().catch(storageError => {
           Logger.error('[AUTH] Failed to clear secure storage', {}, storageError as Error);
         });
       } finally {
@@ -578,7 +578,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    clearError: (state) => {
+    clearError: state => {
       state.error = undefined;
     },
 
@@ -605,7 +605,7 @@ const authSlice = createSlice({
     },
 
     // Transition from email verification to login (phone verification deferred)
-    emailVerified: (state) => {
+    emailVerified: state => {
       if (state.user) {
         state.user = { ...state.user, isEmailVerified: true };
         // Phone verification now happens when placing an order, not during registration
@@ -617,7 +617,7 @@ const authSlice = createSlice({
     },
 
     // Transition from phone verification to login
-    phoneVerified: (state) => {
+    phoneVerified: state => {
       if (state.user) {
         state.user = { ...state.user, isPhoneVerified: true };
         state.flowState = AuthFlowState.UNAUTHENTICATED;
@@ -654,7 +654,7 @@ const authSlice = createSlice({
      * RESILIENT AUTH: Clear network error state (connection restored)
      * Called when network connection is restored
      */
-    clearNetworkError: (state) => {
+    clearNetworkError: state => {
       state.isOffline = false;
       state.offlineMessage = undefined;
       state.retryAfterMs = undefined;
@@ -676,9 +676,9 @@ const authSlice = createSlice({
       };
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // Login
-    builder.addCase(loginAsync.pending, (state) => {
+    builder.addCase(loginAsync.pending, state => {
       state.isLoading = true;
       state.error = undefined;
     });
@@ -722,7 +722,7 @@ const authSlice = createSlice({
     });
 
     // Register
-    builder.addCase(registerAsync.pending, (state) => {
+    builder.addCase(registerAsync.pending, state => {
       state.isLoading = true;
       state.error = undefined;
     });
@@ -775,7 +775,7 @@ const authSlice = createSlice({
     });
 
     // Email Verification with Auto-Login
-    builder.addCase(verifyEmailAsync.pending, (state) => {
+    builder.addCase(verifyEmailAsync.pending, state => {
       state.isLoading = true;
       state.error = undefined;
     });
@@ -808,7 +808,7 @@ const authSlice = createSlice({
     });
 
     // MFA Verification
-    builder.addCase(verifyMFAAsync.pending, (state) => {
+    builder.addCase(verifyMFAAsync.pending, state => {
       state.isLoading = true;
       state.error = undefined;
     });
@@ -840,7 +840,7 @@ const authSlice = createSlice({
     });
 
     // Token Refresh
-    builder.addCase(refreshTokenAsync.pending, (state) => {
+    builder.addCase(refreshTokenAsync.pending, state => {
       // Don't set isLoading here to avoid UI flickering during background refresh
       state.error = undefined;
     });
@@ -883,7 +883,7 @@ const authSlice = createSlice({
     });
 
     // Logout
-    builder.addCase(logoutAsync.pending, (state) => {
+    builder.addCase(logoutAsync.pending, state => {
       state.isLoading = true;
     });
 
@@ -913,7 +913,7 @@ const authSlice = createSlice({
     });
 
     // Delete Account
-    builder.addCase(deleteAccountAsync.pending, (state) => {
+    builder.addCase(deleteAccountAsync.pending, state => {
       state.isLoading = true;
       state.error = undefined;
     });
@@ -938,7 +938,7 @@ const authSlice = createSlice({
     });
 
     // Load Stored Auth
-    builder.addCase(loadStoredAuthAsync.pending, (state) => {
+    builder.addCase(loadStoredAuthAsync.pending, state => {
       state.isLoading = true;
     });
 
@@ -968,14 +968,14 @@ const authSlice = createSlice({
       }
     });
 
-    builder.addCase(loadStoredAuthAsync.rejected, (state) => {
+    builder.addCase(loadStoredAuthAsync.rejected, state => {
       state.isLoading = false;
       state.flowState = AuthFlowState.UNAUTHENTICATED;
       // Keep initial state
     });
 
     // Update Profile
-    builder.addCase(updateProfileAsync.pending, (state) => {
+    builder.addCase(updateProfileAsync.pending, state => {
       state.isLoading = true;
       state.error = undefined;
     });

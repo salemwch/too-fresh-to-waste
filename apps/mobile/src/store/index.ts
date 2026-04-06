@@ -53,11 +53,11 @@ const createTransientStateTransform = <TState extends TransientSliceState<unknow
   errorValue: TState['error'],
 ) =>
   createTransform<TState, PersistedSlice<TState>, RootStateFromReducer, RootStateFromReducer>(
-    (inboundState) => {
+    inboundState => {
       const { error: _error, isLoading: _isLoading, ...rest } = inboundState;
       return rest;
     },
-    (outboundState) =>
+    outboundState =>
       ({
         ...outboundState,
         isLoading: false,
@@ -86,7 +86,7 @@ const persistedReducer = persistReducer<RootStateFromReducer>(persistConfig, roo
 
 export const store = configureStore({
   reducer: persistedReducer,
-  middleware: (getDefaultMiddleware) =>
+  middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],

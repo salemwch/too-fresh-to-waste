@@ -27,7 +27,7 @@ import type { RootState } from '@/store';
  * OfferCard with favorites integration
  * Reads isFavorite from Redux for instant updates
  */
-export const FavoriteOfferCard: React.FC<Omit<OfferCardProps, 'onFavorite'>> = (props) => {
+export const FavoriteOfferCard: React.FC<Omit<OfferCardProps, 'onFavorite'>> = props => {
   const { offer } = props;
 
   // Use optimistic toggle hook (reads from Redux after toggle, updates instantly)

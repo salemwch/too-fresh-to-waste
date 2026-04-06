@@ -125,39 +125,39 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
       >
         <Card style={styles.card}>
-          <Text variant="title" size="md" weight="semibold" style={styles.sectionTitle}>
+          <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
             Change Password
           </Text>
-          <Text variant="body" size="sm" color="secondary" style={styles.subtitle}>
+          <Text variant='body' size='sm' color='secondary' style={styles.subtitle}>
             Set a new password for your account.
           </Text>
 
           {/* New Password */}
           <Controller
             control={control}
-            name="newPassword"
+            name='newPassword'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="New Password"
+                label='New Password'
                 value={value}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   onChange(text);
                   setServerError(null);
                 }}
                 onBlur={onBlur}
                 error={errors.newPassword?.message}
-                placeholder="Enter new password"
+                placeholder='Enter new password'
                 secureTextEntry={!showNew}
-                autoCapitalize="none"
+                autoCapitalize='none'
                 autoCorrect={false}
-                returnKeyType="next"
+                returnKeyType='next'
                 rightIcon={showNew ? 'eye-off-outline' : 'eye-outline'}
-                rightIconFamily="Ionicons"
-                onRightIconPress={() => setShowNew((v) => !v)}
+                rightIconFamily='Ionicons'
+                onRightIconPress={() => setShowNew(v => !v)}
                 style={styles.input}
               />
             )}
@@ -166,25 +166,25 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
           {/* Confirm Password */}
           <Controller
             control={control}
-            name="confirmPassword"
+            name='confirmPassword'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Confirm Password"
+                label='Confirm Password'
                 value={value}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   onChange(text);
                   setServerError(null);
                 }}
                 onBlur={onBlur}
                 error={errors.confirmPassword?.message}
-                placeholder="Re-enter new password"
+                placeholder='Re-enter new password'
                 secureTextEntry={!showConfirm}
-                autoCapitalize="none"
+                autoCapitalize='none'
                 autoCorrect={false}
-                returnKeyType="done"
+                returnKeyType='done'
                 rightIcon={showConfirm ? 'eye-off-outline' : 'eye-outline'}
-                rightIconFamily="Ionicons"
-                onRightIconPress={() => setShowConfirm((v) => !v)}
+                rightIconFamily='Ionicons'
+                onRightIconPress={() => setShowConfirm(v => !v)}
                 onSubmitEditing={handleSubmitEditing}
                 style={styles.input}
               />
@@ -194,12 +194,12 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
           {/* Password requirements hint */}
           <View style={[styles.hintBox, { backgroundColor: theme.colors.surfaceVariant }]}>
             <Icon
-              name="information-circle-outline"
-              family="Ionicons"
+              name='information-circle-outline'
+              family='Ionicons'
               size={16}
               color={theme.colors.onSurfaceVariant}
             />
-            <Text variant="body" size="xs" color="secondary" style={styles.hintText}>
+            <Text variant='body' size='xs' color='secondary' style={styles.hintText}>
               Min. 8 chars · uppercase · lowercase · number · special char (@$!%*?&.)
             </Text>
           </View>
@@ -216,14 +216,14 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
               ]}
             >
               <Icon
-                name="alert-circle-outline"
-                family="Ionicons"
+                name='alert-circle-outline'
+                family='Ionicons'
                 size={16}
                 color={theme.colors.error}
               />
               <Text
-                variant="body"
-                size="sm"
+                variant='body'
+                size='sm'
                 style={[styles.errorText, { color: theme.colors.error }]}
               >
                 {serverError}
@@ -233,8 +233,8 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
 
           {/* Actions */}
           <Button
-            variant="primary"
-            size="lg"
+            variant='primary'
+            size='lg'
             onPress={handleSavePress}
             loading={isPending}
             disabled={!isDirty || isPending}
@@ -244,8 +244,8 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
           </Button>
 
           <Button
-            variant="outline"
-            size="md"
+            variant='outline'
+            size='md'
             onPress={() => navigation.goBack()}
             disabled={isPending}
           >

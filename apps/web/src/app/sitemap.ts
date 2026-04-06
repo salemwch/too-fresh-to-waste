@@ -17,7 +17,7 @@ const pages = [
 function generateAlternateLinks(path: string): Record<string, string> {
   const alternates: Record<string, string> = {};
 
-  locales.forEach((locale) => {
+  locales.forEach(locale => {
     const hreflang = getLocaleConfig(locale).hreflang;
     alternates[hreflang] = getCanonicalUrl(path, locale);
   });
@@ -33,8 +33,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const sitemapEntries: MetadataRoute.Sitemap = [];
 
   // Generate entries for each page in each locale
-  pages.forEach((page) => {
-    locales.forEach((locale) => {
+  pages.forEach(page => {
+    locales.forEach(locale => {
       sitemapEntries.push({
         url: getCanonicalUrl(page.path, locale),
         lastModified: currentDate,
@@ -51,8 +51,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // These are important for local SEO
   const tunisiaCities = ['tunis', 'sousse', 'sfax', 'monastir', 'hammamet', 'bizerte', 'nabeul'];
 
-  tunisiaCities.forEach((city) => {
-    locales.forEach((locale) => {
+  tunisiaCities.forEach(city => {
+    locales.forEach(locale => {
       sitemapEntries.push({
         url: getCanonicalUrl(`/locations/${city}`, locale),
         lastModified: currentDate,

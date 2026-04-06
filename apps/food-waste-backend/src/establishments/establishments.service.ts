@@ -349,7 +349,7 @@ export class EstablishmentsService {
               },
               { $count: 'total' },
             ])
-            .then((r) => r[0]?.total ?? 0)
+            .then(r => r[0]?.total ?? 0)
         : this.establishmentModel.countDocuments(filter),
     ]);
 
@@ -642,7 +642,7 @@ export class EstablishmentsService {
       ]),
       this.establishmentModel
         .aggregate<AggregateCountResult>([geoNearStage, { $count: 'total' }])
-        .then((r) => r[0]?.total ?? 0),
+        .then(r => r[0]?.total ?? 0),
     ]);
 
     return { establishments, total };

@@ -524,7 +524,7 @@ export class OptOutManagerService {
     records: LeanDocument<OptOutRecordDocument>[],
   ): Map<string, LeanDocument<OptOutRecordDocument>> {
     const recordMap = new Map<string, LeanDocument<OptOutRecordDocument>>();
-    records.forEach((record) => recordMap.set(record.phoneNumber, record));
+    records.forEach(record => recordMap.set(record.phoneNumber, record));
     return recordMap;
   }
 
@@ -788,7 +788,7 @@ export class OptOutManagerService {
       ]);
 
       // Transform records to response format
-      const data: OptOutStatusResponseDto[] = records.map((record) => {
+      const data: OptOutStatusResponseDto[] = records.map(record => {
         const isExpired = record.expiresAt ? new Date() > record.expiresAt : false;
 
         const response: OptOutStatusResponseDto = {

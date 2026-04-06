@@ -254,8 +254,8 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
                 ]}
               >
                 <Icon
-                  name="checkmark-circle"
-                  family="Ionicons"
+                  name='checkmark-circle'
+                  family='Ionicons'
                   size={64}
                   color={theme.colors.success}
                 />
@@ -264,10 +264,10 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
 
             {/* Success Title */}
             <Text
-              variant="headline"
-              size="lg"
-              weight="semibold"
-              align="center"
+              variant='headline'
+              size='lg'
+              weight='semibold'
+              align='center'
               style={styles.successTitle}
             >
               Password Reset Successful
@@ -275,10 +275,10 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
 
             {/* Success Message */}
             <Text
-              variant="body"
-              size="md"
-              color="secondary"
-              align="center"
+              variant='body'
+              size='md'
+              color='secondary'
+              align='center'
               style={styles.successMessage}
             >
               Your password has been changed successfully. You can now log in with your new
@@ -288,23 +288,23 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             {/* Security Note */}
             <View style={[styles.securityNote, { backgroundColor: theme.colors.surfaceVariant }]}>
               <Icon
-                name="shield-checkmark"
-                family="Ionicons"
+                name='shield-checkmark'
+                family='Ionicons'
                 size={20}
                 color={theme.colors.primary}
               />
-              <Text variant="body" size="sm" color="secondary" style={styles.securityNoteText}>
+              <Text variant='body' size='sm' color='secondary' style={styles.securityNoteText}>
                 For your security, all other active sessions have been logged out.
               </Text>
             </View>
 
             {/* Go to Login Button */}
             <Button
-              variant="primary"
-              size="lg"
+              variant='primary'
+              size='lg'
               onPress={handleGoToLogin}
               style={styles.successButton}
-              testID="go-to-login-button"
+              testID='go-to-login-button'
             >
               Go to Login
             </Button>
@@ -322,24 +322,24 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
       >
         <Card style={styles.formCard}>
           {/* Icon */}
           <View style={styles.iconContainer}>
             <View style={[styles.iconCircle, { backgroundColor: theme.colors.primaryContainer }]}>
-              <Icon name="key" family="Ionicons" size={48} color={theme.colors.primary} />
+              <Icon name='key' family='Ionicons' size={48} color={theme.colors.primary} />
             </View>
           </View>
 
           {/* Title */}
-          <Text variant="headline" size="lg" weight="semibold" align="center" style={styles.title}>
+          <Text variant='headline' size='lg' weight='semibold' align='center' style={styles.title}>
             Create New Password
           </Text>
 
           {/* Subtitle */}
-          <Text variant="body" size="md" color="secondary" align="center" style={styles.subtitle}>
+          <Text variant='body' size='md' color='secondary' align='center' style={styles.subtitle}>
             Enter a strong password for your account. Make sure it&apos;s at least 12 characters
             long.
           </Text>
@@ -352,16 +352,16 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             ]}
           >
             <Icon
-              name="mail-outline"
-              family="Ionicons"
+              name='mail-outline'
+              family='Ionicons'
               size={16}
               color={theme.colors.onSurfaceVariant}
             />
             <View style={styles.emailTextContainer}>
-              <Text variant="body" size="xs" color="secondary">
+              <Text variant='body' size='xs' color='secondary'>
                 Resetting password for:
               </Text>
-              <Text variant="body" size="sm" weight="semibold" style={styles.emailText}>
+              <Text variant='body' size='sm' weight='semibold' style={styles.emailText}>
                 {email}
               </Text>
             </View>
@@ -372,18 +372,18 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             <View
               style={[styles.errorBanner, { backgroundColor: theme.colors.errorContainer }]}
               accessible
-              accessibilityRole="alert"
+              accessibilityRole='alert'
               accessibilityLabel={`Error: ${error}`}
             >
               <Icon
-                name="alert-circle"
-                family="Ionicons"
+                name='alert-circle'
+                family='Ionicons'
                 size={20}
                 color={theme.colors.onErrorContainer}
               />
               <Text
-                variant="body"
-                size="sm"
+                variant='body'
+                size='sm'
                 style={[styles.errorBannerText, { color: theme.colors.onErrorContainer }]}
               >
                 {error}
@@ -394,34 +394,34 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
           {/* Password Input */}
           <Controller
             control={control}
-            name="password"
+            name='password'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="New Password"
-                placeholder="Enter your new password"
+                label='New Password'
+                placeholder='Enter your new password'
                 value={value}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   onChange(text);
                   setError(null);
                   setPasswordReuseError(null);
                 }}
                 onBlur={onBlur}
                 secureTextEntry={!showPassword}
-                autoCapitalize="none"
+                autoCapitalize='none'
                 autoCorrect={false}
-                autoComplete="password-new"
-                textContentType="newPassword"
-                leftIcon="lock-closed-outline"
-                leftIconFamily="Ionicons"
+                autoComplete='password-new'
+                textContentType='newPassword'
+                leftIcon='lock-closed-outline'
+                leftIconFamily='Ionicons'
                 rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                rightIconFamily="Ionicons"
+                rightIconFamily='Ionicons'
                 onRightIconPress={() => setShowPassword(!showPassword)}
                 hasError={!!formErrors.password || !!passwordReuseError}
                 errorText={formErrors.password?.message}
                 editable={!isLoading}
-                testID="reset-password-new-input"
-                accessibilityLabel="New password input"
-                accessibilityHint="Enter your new password. It must be at least 8 characters long."
+                testID='reset-password-new-input'
+                accessibilityLabel='New password input'
+                accessibilityHint='Enter your new password. It must be at least 8 characters long.'
               />
             )}
           />
@@ -439,16 +439,16 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             enableHaptic
             enableAnimations
             onValidityChange={setIsPasswordValid}
-            testID="reset-password-strength"
+            testID='reset-password-strength'
           />
 
           {/* Password Reuse Error - shown under password field */}
           {passwordReuseError && (
-            <View style={styles.fieldErrorIndicator} accessible accessibilityRole="alert">
-              <Icon name="close-circle" family="Ionicons" size={16} color={theme.colors.error} />
+            <View style={styles.fieldErrorIndicator} accessible accessibilityRole='alert'>
+              <Icon name='close-circle' family='Ionicons' size={16} color={theme.colors.error} />
               <Text
-                variant="body"
-                size="sm"
+                variant='body'
+                size='sm'
                 style={[styles.fieldErrorText, { color: theme.colors.error }]}
               >
                 {passwordReuseError}
@@ -459,50 +459,50 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
           {/* Confirm Password Input */}
           <Controller
             control={control}
-            name="confirmPassword"
+            name='confirmPassword'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Confirm Password"
-                placeholder="Re-enter your new password"
+                label='Confirm Password'
+                placeholder='Re-enter your new password'
                 value={value}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   onChange(text);
                   setError(null);
                 }}
                 onBlur={onBlur}
                 secureTextEntry={!showConfirmPassword}
-                autoCapitalize="none"
+                autoCapitalize='none'
                 autoCorrect={false}
-                autoComplete="password-new"
-                textContentType="newPassword"
-                leftIcon="lock-closed-outline"
-                leftIconFamily="Ionicons"
+                autoComplete='password-new'
+                textContentType='newPassword'
+                leftIcon='lock-closed-outline'
+                leftIconFamily='Ionicons'
                 rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
-                rightIconFamily="Ionicons"
+                rightIconFamily='Ionicons'
                 onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 hasError={!!formErrors.confirmPassword}
                 errorText={formErrors.confirmPassword?.message}
                 editable={!isLoading}
-                testID="reset-password-confirm-input"
-                accessibilityLabel="Confirm password input"
-                accessibilityHint="Re-enter your new password to confirm it matches."
+                testID='reset-password-confirm-input'
+                accessibilityLabel='Confirm password input'
+                accessibilityHint='Re-enter your new password to confirm it matches.'
               />
             )}
           />
 
           {/* Reset Password Button */}
           <Button
-            variant="primary"
-            size="lg"
+            variant='primary'
+            size='lg'
             onPress={() => {
               void handleSubmit(onSubmit)();
             }}
             loading={isLoading}
             disabled={isLoading || !isPasswordValid}
             style={styles.submitButton}
-            testID="reset-password-submit-button"
-            accessibilityLabel="Reset password button"
-            accessibilityHint="Tap to confirm and reset your password"
+            testID='reset-password-submit-button'
+            accessibilityLabel='Reset password button'
+            accessibilityHint='Tap to confirm and reset your password'
             accessibilityState={{ disabled: isLoading || !isPasswordValid, busy: isLoading }}
           >
             {isLoading ? 'Resetting Password...' : 'Reset Password'}
@@ -511,13 +511,13 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
           {/* Request New Link Button (shown on expired/invalid token) */}
           {showRequestNewLinkButton && (
             <Button
-              variant="outline"
-              size="md"
+              variant='outline'
+              size='md'
               onPress={handleRequestNewLink}
               style={styles.linkButton}
-              testID="request-new-link-button"
-              accessibilityLabel="Request new reset link"
-              accessibilityHint="Tap to request a new password reset link via email"
+              testID='request-new-link-button'
+              accessibilityLabel='Request new reset link'
+              accessibilityHint='Tap to request a new password reset link via email'
             >
               Request New Reset Link
             </Button>
@@ -525,28 +525,28 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
 
           {/* Back to Login */}
           <Button
-            variant="ghost"
-            size="md"
+            variant='ghost'
+            size='md'
             onPress={handleBackToLogin}
             disabled={isLoading}
             style={styles.backButton}
-            testID="back-to-login-button"
-            accessibilityLabel="Back to login"
-            accessibilityHint="Tap to return to the login screen"
+            testID='back-to-login-button'
+            accessibilityLabel='Back to login'
+            accessibilityHint='Tap to return to the login screen'
           >
             Back to Login
           </Button>
         </Card>
 
         {/* Security Info */}
-        <View style={styles.securityInfo} accessible accessibilityRole="text">
+        <View style={styles.securityInfo} accessible accessibilityRole='text'>
           <Icon
-            name="shield-checkmark-outline"
-            family="Ionicons"
+            name='shield-checkmark-outline'
+            family='Ionicons'
             size={20}
             color={theme.colors.onSurfaceVariant}
           />
-          <Text variant="body" size="xs" color="secondary" style={styles.securityText}>
+          <Text variant='body' size='xs' color='secondary' style={styles.securityText}>
             Your password is encrypted with industry-standard Argon2 hashing and stored securely.
             For your security, all active sessions will be logged out after password reset.
           </Text>

@@ -108,7 +108,7 @@ export class QueryPerformanceService implements OnModuleDestroy {
       /^(find|findOne|findOneAndUpdate|findOneAndDelete|updateOne|updateMany|deleteOne|deleteMany|countDocuments|aggregate)$/;
 
     // Monitor Mongoose queries
-    this.connection.plugin((schema) => {
+    this.connection.plugin(schema => {
       // Pre-hook to capture start time
       schema.pre(methodPattern, function (this: Record<string, unknown>) {
         this['_startTime'] = Date.now();
@@ -325,7 +325,7 @@ export class QueryPerformanceService implements OnModuleDestroy {
     let metrics = '# HELP mongodb_query_duration_ms MongoDB query duration in milliseconds\n';
     metrics += '# TYPE mongodb_query_duration_ms summary\n';
 
-    stats.forEach((stat) => {
+    stats.forEach(stat => {
       const labels = `{collection="${stat.collection}",operation="${stat.operation}"}`;
       metrics += `mongodb_query_duration_ms_count${labels} ${stat.count}\n`;
       metrics += `mongodb_query_duration_ms_sum${labels} ${stat.totalTime}\n`;

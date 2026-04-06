@@ -332,7 +332,7 @@ const startSessionManager = (dispatch: AppDispatch, getState: () => RootState): 
 
   // LAYER 3: Add AppState listener for background/foreground transitions
   // CRITICAL: Handles token expiry during background throttling
-  sessionManagerState.appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
+  sessionManagerState.appStateSubscription = AppState.addEventListener('change', nextAppState => {
     handleAppStateChange(nextAppState, dispatch, getState);
   });
 
@@ -570,7 +570,7 @@ const refreshTokenWithBackoff = async (
           // Retry with backoff
           if (attempt < CONFIG.REFRESH_MAX_RETRIES) {
             const backoffMs = calculateBackoff(attempt);
-            await new Promise((resolve) => setTimeout(resolve, backoffMs));
+            await new Promise(resolve => setTimeout(resolve, backoffMs));
           }
         } else {
           // Unknown error type - log and don't retry
@@ -784,7 +784,7 @@ const checkAndRefreshToken = async (
  * - Waits for rehydration before starting session manager
  */
 export const authSessionMiddleware: Middleware<object, RootState, AppDispatch> =
-  (storeAPI) => (next) => (action) => {
+  storeAPI => next => action => {
     // Pass action to next middleware/reducer first
     const result = next(action);
 

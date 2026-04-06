@@ -40,7 +40,7 @@ const notoSansArabic = Noto_Sans_Arabic({
 
 // Generate static params for all locales
 export function generateStaticParams() {
-  return locales.map((locale) => ({ locale }));
+  return locales.map(locale => ({ locale }));
 }
 
 // Viewport configuration
@@ -64,7 +64,7 @@ export async function generateMetadata({
 
   // Generate alternate language URLs
   const alternateLanguages: Record<string, string> = {};
-  locales.forEach((loc) => {
+  locales.forEach(loc => {
     const hreflang = getLocaleConfig(loc).hreflang;
     alternateLanguages[hreflang] =
       loc === seoConfig.defaultLocale ? seoConfig.url : `${seoConfig.url}/${loc}`;
@@ -95,8 +95,8 @@ export async function generateMetadata({
       type: 'website',
       locale: localeMetadata.ogLocale,
       alternateLocale: locales
-        .filter((l) => l !== locale)
-        .map((l) => getLocaleSeoMetadata(l as Locale).ogLocale),
+        .filter(l => l !== locale)
+        .map(l => getLocaleSeoMetadata(l as Locale).ogLocale),
       url: locale === seoConfig.defaultLocale ? seoConfig.url : `${seoConfig.url}/${locale}`,
       siteName: seoConfig.siteName,
       title: localeMetadata.title,
@@ -195,16 +195,16 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
       dir={currentLocaleConfig.direction}
       className={fontClass}
       suppressHydrationWarning
-      data-scroll-behavior="smooth"
+      data-scroll-behavior='smooth'
     >
       <head>
         {/* Preconnect to external resources */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel='preconnect' href='https://fonts.googleapis.com' />
+        <link rel='preconnect' href='https://fonts.gstatic.com' crossOrigin='anonymous' />
 
         {/* DNS prefetch for performance */}
-        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
-        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel='dns-prefetch' href='https://www.google-analytics.com' />
+        <link rel='dns-prefetch' href='https://www.googletagmanager.com' />
       </head>
       <body
         className={`font-sans antialiased ${isRTL ? 'text-right' : 'text-left'}`}

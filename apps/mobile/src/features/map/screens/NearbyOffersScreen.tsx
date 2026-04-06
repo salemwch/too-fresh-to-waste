@@ -195,7 +195,7 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
       return (
         <Pressable
           onPress={() => handleOfferPress(item)}
-          accessibilityRole="button"
+          accessibilityRole='button'
           accessibilityLabel={`${item.item.title}, ${item.distance.formatted} away`}
         >
           <Card
@@ -207,25 +207,25 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
           >
             <View style={styles.offerContent}>
               <View style={styles.offerInfo}>
-                <Text variant="title" size="sm" weight="semibold" numberOfLines={1}>
+                <Text variant='title' size='sm' weight='semibold' numberOfLines={1}>
                   {item.item.title}
                 </Text>
-                <Text variant="body" size="sm" color="secondary" numberOfLines={1}>
+                <Text variant='body' size='sm' color='secondary' numberOfLines={1}>
                   {item.item.establishmentName}
                 </Text>
                 <View style={styles.offerMeta}>
-                  <DistanceBadge distance={item.distance.value} variant="compact" />
-                  <Text variant="body" size="sm" color="success" weight="semibold">
+                  <DistanceBadge distance={item.distance.value} variant='compact' />
+                  <Text variant='body' size='sm' color='success' weight='semibold'>
                     {item.item.pricing.currency}
                     {item.item.pricing.discountedPrice.toFixed(2)}
                   </Text>
-                  <Text variant="body" size="xs" color="secondary" style={styles.originalPrice}>
+                  <Text variant='body' size='xs' color='secondary' style={styles.originalPrice}>
                     {item.item.pricing.currency}
                     {item.item.pricing.originalPrice.toFixed(2)}
                   </Text>
                 </View>
               </View>
-              <Icon name="chevron-forward" size={20} color={theme.colors.onSurfaceVariant} />
+              <Icon name='chevron-forward' size={20} color={theme.colors.onSurfaceVariant} />
             </View>
           </Card>
         </Pressable>
@@ -238,28 +238,28 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
     () => (
       <View style={styles.listHeader}>
         <View style={styles.listHeaderRow}>
-          <Text variant="title" size="md" weight="semibold">
+          <Text variant='title' size='md' weight='semibold'>
             {offers?.length ?? 0} offers nearby
           </Text>
           <LocationStatusBadge
             mode={locationSourceDisplay.mode}
             locationName={locationSourceDisplay.label}
-            size="sm"
+            size='sm'
             onPress={handleLocationBadgePress}
           />
         </View>
         <View style={styles.radiusHeader}>
-          <Text variant="label" size="sm" color="secondary">
+          <Text variant='label' size='sm' color='secondary'>
             Search radius
           </Text>
-          <Text variant="title" size="sm" weight="semibold" color="primary">
+          <Text variant='title' size='sm' weight='semibold' color='primary'>
             {preferredRadiusKm} km
           </Text>
         </View>
         <RadiusSelector
           value={preferredRadiusKm}
           onChange={handleRadiusChange}
-          variant="chips"
+          variant='chips'
           presets={[1, 2, 5, 10, 25, 50]}
           style={styles.radiusSelector}
         />
@@ -295,34 +295,34 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.centeredContainer}>
           <Icon
-            name="location-outline"
-            family="Ionicons"
+            name='location-outline'
+            family='Ionicons'
             size={64}
             color={theme.colors.onSurfaceVariant}
           />
           <Text
-            variant="title"
-            size="lg"
-            weight="semibold"
-            align="center"
+            variant='title'
+            size='lg'
+            weight='semibold'
+            align='center'
             style={styles.errorTitle}
           >
             Location Required
           </Text>
-          <Text variant="body" size="md" color="secondary" align="center" style={styles.errorText}>
+          <Text variant='body' size='md' color='secondary' align='center' style={styles.errorText}>
             Please enable location or set a manual location to see nearby offers.
           </Text>
           <Button
-            variant="primary"
-            size="lg"
+            variant='primary'
+            size='lg'
             onPress={() => setShowManualLocationModal(true)}
             style={styles.actionButton}
           >
             Set Location
           </Button>
           <Button
-            variant="outline"
-            size="md"
+            variant='outline'
+            size='md'
             onPress={() => navigation.goBack()}
             style={styles.actionButton}
           >
@@ -352,26 +352,26 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
               style={[styles.mapErrorContainer, { backgroundColor: theme.colors.surfaceVariant }]}
             >
               <Icon
-                name="map-outline"
-                family="Ionicons"
+                name='map-outline'
+                family='Ionicons'
                 size={48}
                 color={theme.colors.onSurfaceVariant}
               />
               <Text
-                variant="title"
-                size="md"
-                weight="semibold"
-                align="center"
+                variant='title'
+                size='md'
+                weight='semibold'
+                align='center'
                 style={styles.mapErrorTitle}
               >
                 Map Unavailable
               </Text>
-              <Text variant="body" size="sm" color="secondary" align="center">
+              <Text variant='body' size='sm' color='secondary' align='center'>
                 Unable to load the map. Please check your internet connection and try again.
               </Text>
               <Button
-                variant="outline"
-                size="sm"
+                variant='outline'
+                size='sm'
                 onPress={() => setMapError(null)}
                 style={styles.mapRetryButton}
               >
@@ -389,7 +389,7 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
                 showsMyLocationButton={false}
                 showsCompass
                 onMapReady={() => setMapError(null)}
-                accessibilityLabel="Map showing nearby offers"
+                accessibilityLabel='Map showing nearby offers'
               >
                 {/* Search radius circle */}
                 <Circle
@@ -401,7 +401,7 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
                 />
 
                 {/* Offer markers */}
-                {offers?.map((offer) => (
+                {offers?.map(offer => (
                   <Marker
                     key={offer.item._id}
                     coordinate={{
@@ -426,23 +426,23 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
                 onPress={() => {
                   mapRef.current?.animateToRegion(mapRegion, 300);
                 }}
-                accessibilityRole="button"
-                accessibilityLabel="Recenter map"
-                accessibilityHint="Centers the map on your current location"
+                accessibilityRole='button'
+                accessibilityLabel='Recenter map'
+                accessibilityHint='Centers the map on your current location'
               >
-                <Icon name="locate" family="Ionicons" size={22} color={theme.colors.primary} />
+                <Icon name='locate' family='Ionicons' size={22} color={theme.colors.primary} />
               </Pressable>
 
               {/* Radius indicator on map */}
               <View style={[styles.radiusIndicator, { backgroundColor: theme.colors.surface }]}>
                 <Icon
-                  name="radio-button-on"
-                  family="Ionicons"
+                  name='radio-button-on'
+                  family='Ionicons'
                   size={14}
                   color={theme.colors.primary}
                   style={styles.radiusIndicatorIcon}
                 />
-                <Text variant="label" size="xs" weight="semibold" color="primary">
+                <Text variant='label' size='xs' weight='semibold' color='primary'>
                   {preferredRadiusKm} km
                 </Text>
               </View>
@@ -450,7 +450,7 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
               {/* Loading overlay on map */}
               {isLoading && (
                 <View style={styles.mapLoadingOverlay}>
-                  <ActivityIndicator size="large" color={theme.colors.primary} />
+                  <ActivityIndicator size='large' color={theme.colors.primary} />
                 </View>
               )}
             </>
@@ -462,7 +462,7 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
       <View style={styles.listContainer}>
         <FlatList
           data={offers ?? []}
-          keyExtractor={(item) => item.item._id}
+          keyExtractor={item => item.item._id}
           renderItem={renderOfferCard}
           ListHeaderComponent={renderListHeader}
           ListEmptyComponent={isLoading ? null : renderEmptyState}
@@ -484,8 +484,8 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
         {/* Loading indicator */}
         {isLoading && offers === undefined && (
           <View style={styles.listLoadingContainer}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text variant="body" size="md" color="secondary" style={styles.loadingText}>
+            <ActivityIndicator size='large' color={theme.colors.primary} />
+            <Text variant='body' size='md' color='secondary' style={styles.loadingText}>
               Finding nearby offers...
             </Text>
           </View>

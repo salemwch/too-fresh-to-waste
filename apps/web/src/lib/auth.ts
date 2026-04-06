@@ -42,7 +42,7 @@ type AuthStore = AuthState & AuthActions;
 // This store only holds the user profile (for UI rendering) and a boolean
 // flag for client-side conditional rendering (e.g. show/hide nav items).
 // The isAuthenticated flag is set by AuthProvider after GET /auth/me succeeds.
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>(set => ({
   // State — isLoading starts TRUE so AuthGuard shows a skeleton until the
   // AuthProvider's rehydration effect completes. Without this, the guard sees
   // isLoading=false + isAuthenticated=false on the first render and immediately
@@ -53,15 +53,15 @@ export const useAuthStore = create<AuthStore>((set) => ({
   isLoggingOut: false,
 
   // Actions
-  setUser: (user) => {
+  setUser: user => {
     set({ user, isAuthenticated: !!user });
   },
 
-  setAuthenticated: (isAuthenticated) => {
+  setAuthenticated: isAuthenticated => {
     set({ isAuthenticated });
   },
 
-  setLoading: (isLoading) => set({ isLoading }),
+  setLoading: isLoading => set({ isLoading }),
 
   logout: () => {
     set({

@@ -964,7 +964,7 @@ export class ReviewAnalyticsService {
     );
 
     // Process trends
-    const trends = sentimentAnalysis.trends.map((item) => ({
+    const trends = sentimentAnalysis.trends.map(item => ({
       date: item._id,
       positive: item.positive,
       negative: item.negative,
@@ -972,7 +972,7 @@ export class ReviewAnalyticsService {
     }));
 
     // Process keywords with impact analysis
-    const keywordAnalysis = sentimentAnalysis.keywords.map((item) => ({
+    const keywordAnalysis = sentimentAnalysis.keywords.map(item => ({
       keyword: item._id.keyword,
       sentiment: item._id.sentiment,
       frequency: item.frequency,
@@ -1054,7 +1054,7 @@ export class ReviewAnalyticsService {
     }, {});
 
     // Process trends
-    const trends = ratingAnalysis.trends.map((item) => ({
+    const trends = ratingAnalysis.trends.map(item => ({
       date: item._id,
       averageRating: Math.round(item.averageRating * 100) / 100,
       reviewCount: item.reviewCount,
@@ -1103,7 +1103,7 @@ export class ReviewAnalyticsService {
       return {
         industryAverage: industryStats.averageRating,
         percentileRank: ranking.percentile,
-        topPerformers: topPerformers.map((performer) => ({
+        topPerformers: topPerformers.map(performer => ({
           establishmentId: performer._id.toString(),
           name: performer.name,
           rating: performer.averageRating,
@@ -1178,7 +1178,7 @@ export class ReviewAnalyticsService {
 
       if (negativeRatio > 0.3) {
         const topNegativeKeywords = keywordAnalysis
-          .filter((k) => k.sentiment === 'negative')
+          .filter(k => k.sentiment === 'negative')
           .sort((a, b) => b.frequency - a.frequency)
           .slice(0, 3);
 
@@ -1188,7 +1188,7 @@ export class ReviewAnalyticsService {
           title: 'High Negative Sentiment',
           description: `${Math.round(negativeRatio * 100)}% of reviews have negative sentiment.`,
           recommendations: [
-            `Address issues related to: ${topNegativeKeywords.map((k) => k.keyword).join(', ')}`,
+            `Address issues related to: ${topNegativeKeywords.map(k => k.keyword).join(', ')}`,
             'Implement systematic quality control measures',
             'Train staff on customer service excellence',
             'Monitor and respond to negative feedback quickly',
@@ -1199,7 +1199,7 @@ export class ReviewAnalyticsService {
 
       // Identify strengths from positive keywords
       const topPositiveKeywords = keywordAnalysis
-        .filter((k) => k.sentiment === 'positive')
+        .filter(k => k.sentiment === 'positive')
         .sort((a, b) => b.frequency - a.frequency)
         .slice(0, 3);
 
@@ -1209,7 +1209,7 @@ export class ReviewAnalyticsService {
           priority: 'medium',
           title: 'Key Strengths Identified',
           description: `Customers frequently praise: ${topPositiveKeywords
-            .map((k) => k.keyword)
+            .map(k => k.keyword)
             .join(', ')}`,
           recommendations: [
             'Continue to excel in these areas',
@@ -1266,7 +1266,7 @@ export class ReviewAnalyticsService {
   private formatCategoryName(category: string): string {
     return category
       .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, (str) => str.toUpperCase())
+      .replace(/^./, str => str.toUpperCase())
       .trim();
   }
 

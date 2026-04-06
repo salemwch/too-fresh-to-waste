@@ -214,7 +214,7 @@ let failedQueue: Array<{
  * Process queued requests after token refresh
  */
 const processQueue = (error: Error | null = null) => {
-  failedQueue.forEach((promise) => {
+  failedQueue.forEach(promise => {
     if (error) {
       promise.reject(error);
     } else {
@@ -289,7 +289,7 @@ const createApiClient = (): AxiosInstance => {
 
       return config;
     },
-    (error) => {
+    error => {
       Logger.error('[API-CLIENT] Request interceptor error', {}, error);
       return Promise.reject(error);
     },
@@ -299,7 +299,7 @@ const createApiClient = (): AxiosInstance => {
   // Response Interceptor - Handle 401 & Token Refresh
   // ──────────────────────────────────────────────────────────────────────────
   client.interceptors.response.use(
-    (response) => {
+    response => {
       // ✅ TYPE SAFETY: Use typed config instead of `any`
       const configWithTiming = response.config as RequestConfigWithTiming;
       const duration = Date.now() - (configWithTiming.requestStartTime ?? 0);
@@ -384,7 +384,7 @@ const createApiClient = (): AxiosInstance => {
               Logger.debug('[API-CLIENT] Queue processed - retrying queued request');
               return client(originalRequest);
             })
-            .catch((err) => {
+            .catch(err => {
               Logger.error(
                 '[API-CLIENT] Queue processing failed',
                 { url: originalRequest.url },
@@ -442,7 +442,7 @@ const createApiClient = (): AxiosInstance => {
 
             // Clear secure storage (fire and forget)
             void import('@/services/SecureStorage').then(({ SecureStorage }) => {
-              SecureStorage.clearAll().catch((err) => {
+              SecureStorage.clearAll().catch(err => {
                 Logger.error('[API-CLIENT] Failed to clear secure storage', {}, err as Error);
               });
             });

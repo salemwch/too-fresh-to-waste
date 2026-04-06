@@ -254,12 +254,12 @@ export function getHashInfo(hashString: string): string {
 
     if (warnings.length > 0) {
       info += `\nWarnings:\n`;
-      warnings.forEach((w) => (info += `  - ${w}\n`));
+      warnings.forEach(w => (info += `  - ${w}\n`));
     }
 
     if (suggestions.length > 0) {
       info += `\nSuggestions:\n`;
-      suggestions.forEach((s) => (info += `  - ${s}\n`));
+      suggestions.forEach(s => (info += `  - ${s}\n`));
     }
 
     return info;

@@ -49,7 +49,7 @@ export interface LogMetadata {
 /**
  * Custom format for production: sanitizes stack traces
  */
-const sanitizeStackTrace = winston.format((info) => {
+const sanitizeStackTrace = winston.format(info => {
   const isProduction = process.env['NODE_ENV'] === 'production';
   const stack = info['stack'];
 
@@ -266,7 +266,7 @@ export class AppLoggerService implements LoggerService {
     }
 
     try {
-      Sentry.withScope((scope) => {
+      Sentry.withScope(scope => {
         // Set context
         scope.setContext('logger', {
           context: this.context,
@@ -326,7 +326,7 @@ export class AppLoggerService implements LoggerService {
     ];
 
     const combined = `${message} ${stack ?? ''}`.toLowerCase();
-    return criticalKeywords.some((keyword) => combined.includes(keyword));
+    return criticalKeywords.some(keyword => combined.includes(keyword));
   }
 
   /**
@@ -430,7 +430,7 @@ export class AppLoggerService implements LoggerService {
    * Close logger and flush pending logs
    */
   async close(): Promise<void> {
-    await new Promise<void>((resolve) => {
+    await new Promise<void>(resolve => {
       this.logger.end(() => {
         resolve();
       });

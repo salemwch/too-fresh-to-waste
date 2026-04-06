@@ -302,7 +302,7 @@ export class PasswordValidationService {
 
   private checkForPersonalInfoInPassword(password: string, personalInfoItems: string[]): boolean {
     const lowerPassword = password.toLowerCase();
-    return personalInfoItems.some((info) => lowerPassword.includes(info.toLowerCase()));
+    return personalInfoItems.some(info => lowerPassword.includes(info.toLowerCase()));
   }
 
   private async validatePasswordHistory(
@@ -366,7 +366,7 @@ export class PasswordValidationService {
   }
 
   private determineAcceptability(result: PasswordStrengthResult, policy: PasswordPolicy): void {
-    const requirementsMet = Object.values(result.requirements).every((req) => req === true);
+    const requirementsMet = Object.values(result.requirements).every(req => req === true);
     const scoreAcceptable = result.score >= policy.minScore;
 
     result.isAcceptable = requirementsMet && scoreAcceptable && result.feedback.length === 0;

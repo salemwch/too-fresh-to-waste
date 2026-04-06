@@ -298,7 +298,7 @@ export class AdminAnalyticsController {
         establishmentsByType: analytics.establishments.establishmentsByType,
         averageRating: analytics.establishments.averageRating,
         topPerformingEstablishments: analytics.establishments.topPerformingEstablishments.map(
-          (perf) => ({
+          perf => ({
             id: perf.id,
             name: perf.name,
             type: perf.type,
@@ -317,7 +317,7 @@ export class AdminAnalyticsController {
         ordersByStatus: analytics.orders.ordersByStatus,
         averageOrderValue: analytics.orders.averageOrderValue,
         orderCompletionRate: analytics.orders.orderCompletionRate,
-        orderTrends: analytics.orders.orderTrends.map((trend) => ({
+        orderTrends: analytics.orders.orderTrends.map(trend => ({
           date: trend.date,
           orders: trend.orders,
           revenue: trend.revenue,
@@ -329,7 +329,7 @@ export class AdminAnalyticsController {
         expiredOffers: analytics.offers.expiredOffers,
         soldOffers: analytics.offers.soldOffers,
         averageDiscount: analytics.offers.averageDiscount,
-        mostPopularCategories: analytics.offers.mostPopularCategories.map((cat) => ({
+        mostPopularCategories: analytics.offers.mostPopularCategories.map(cat => ({
           category: cat.category,
           count: cat.count,
           totalRevenue: cat.totalRevenue,
@@ -360,7 +360,7 @@ export class AdminAnalyticsController {
         revenueThisYear: analytics.revenue.revenueThisYear,
         platformCommission: analytics.revenue.platformCommission,
         averageTransactionValue: analytics.revenue.averageTransactionValue,
-        revenueByEstablishment: analytics.revenue.revenueByEstablishment.map((rev) => ({
+        revenueByEstablishment: analytics.revenue.revenueByEstablishment.map(rev => ({
           establishmentId: rev.establishmentId,
           establishmentName: rev.establishmentName,
           revenue: rev.revenue,
@@ -379,7 +379,7 @@ export class AdminAnalyticsController {
 
   private mapAuditLogsToResponseDto(auditLogs: AuditLogResponse): AuditLogResponseDto {
     return {
-      logs: auditLogs.logs.map((log) => ({
+      logs: auditLogs.logs.map(log => ({
         id: (log._id?.toString() || log.id) as string,
         adminId: log.adminId.toString(),
         adminEmail: log.adminEmail,
@@ -414,13 +414,13 @@ export class AdminAnalyticsController {
     return {
       totalActions: statistics.totalActions,
       actionsByType: statistics.actionsByType,
-      activityByAdmin: statistics.activityByAdmin.map((admin) => ({
+      activityByAdmin: statistics.activityByAdmin.map(admin => ({
         _id: admin._id.toString(),
         adminEmail: admin.adminEmail,
         count: admin.count,
       })),
       targetsByType: statistics.targetsByType,
-      dailyActivity: statistics.dailyActivity.map((daily) => ({
+      dailyActivity: statistics.dailyActivity.map(daily => ({
         _id: daily._id,
         count: daily.count,
       })),

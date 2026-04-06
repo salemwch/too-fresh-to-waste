@@ -144,7 +144,7 @@ export const SearchOffersSchema = z.object({
   minDiscount: z.coerce.number().min(50).max(90).optional(),
   isFeatured: z
     .union([z.boolean(), z.literal('true'), z.literal('false')])
-    .transform((val) => val === true || val === 'true')
+    .transform(val => val === true || val === 'true')
     .optional(),
   establishmentId: z.string().optional(),
   merchantId: z.string().optional(),

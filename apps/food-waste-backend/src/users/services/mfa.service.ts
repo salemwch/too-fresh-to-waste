@@ -50,7 +50,7 @@ export class MfaService {
     // Generate backup codes
     const backupCodes = this.generateBackupCodes();
     const hashedBackupCodes = await Promise.all(
-      backupCodes.map(async (code) => {
+      backupCodes.map(async code => {
         const hashed = await argon2.hash(code);
         return hashed;
       }),
@@ -74,7 +74,7 @@ export class MfaService {
     };
 
     // Remove existing TOTP method if any
-    user.mfaSettings.methods = user.mfaSettings.methods.filter((method) => method.type !== 'totp');
+    user.mfaSettings.methods = user.mfaSettings.methods.filter(method => method.type !== 'totp');
 
     user.mfaSettings.methods.push(mfaMethod);
     await user.save();
@@ -101,7 +101,7 @@ export class MfaService {
     }
 
     const totpMethod = user.mfaSettings.methods.find(
-      (method) => method.type === 'totp' && !method.verified,
+      method => method.type === 'totp' && !method.verified,
     );
 
     if (!totpMethod?.secret) {
@@ -137,7 +137,7 @@ export class MfaService {
     }
 
     const totpMethod = user.mfaSettings.methods.find(
-      (method) => method.type === 'totp' && method.isActive,
+      method => method.type === 'totp' && method.isActive,
     );
 
     if (!totpMethod?.secret) {
@@ -170,7 +170,7 @@ export class MfaService {
     }
 
     const totpMethod = user.mfaSettings.methods.find(
-      (method) => method.type === 'totp' && method.isActive,
+      method => method.type === 'totp' && method.isActive,
     );
 
     if (!totpMethod?.backupCodes) {
@@ -213,7 +213,7 @@ export class MfaService {
     }
 
     const totpMethod = user.mfaSettings.methods.find(
-      (method) => method.type === 'totp' && method.isActive,
+      method => method.type === 'totp' && method.isActive,
     );
 
     if (!totpMethod) {
@@ -222,7 +222,7 @@ export class MfaService {
 
     const newBackupCodes = this.generateBackupCodes();
     const hashedBackupCodes = await Promise.all(
-      newBackupCodes.map(async (code) => {
+      newBackupCodes.map(async code => {
         const hashed = await argon2.hash(code);
         return hashed;
       }),
@@ -267,7 +267,7 @@ export class MfaService {
       return { isEnabled: false, methods: [] };
     }
 
-    const methods = user.mfaSettings.methods.map((method) => ({
+    const methods = user.mfaSettings.methods.map(method => ({
       type: method.type,
       isActive: method.isActive,
       verified: method.verified,
@@ -276,7 +276,7 @@ export class MfaService {
     }));
 
     const totpMethod = user.mfaSettings.methods.find(
-      (method) => method.type === 'totp' && method.isActive,
+      method => method.type === 'totp' && method.isActive,
     );
 
     return {
@@ -329,7 +329,7 @@ export class MfaService {
     // Check if device is trusted
     if (deviceId && user.trustedDevices !== null && user.trustedDevices !== undefined) {
       const trustedDevice = user.trustedDevices.find(
-        (device) =>
+        device =>
           device.deviceId === deviceId &&
           device.isTrusted === true &&
           !device.revokedAt &&

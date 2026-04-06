@@ -93,7 +93,7 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
 
   const toggleExpand = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsExpanded((previousValue) => !previousValue);
+    setIsExpanded(previousValue => !previousValue);
   }, []);
 
   if (isLoading || (stats === undefined && !isError)) {
@@ -111,10 +111,10 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
       <Pressable
         style={styles.banner}
         onPress={toggleExpand}
-        accessibilityRole="button"
+        accessibilityRole='button'
         accessibilityLabel={`Grand Prize unlocks at: ${currentCount.toLocaleString()} of ${targetCount.toLocaleString()} bags saved`}
-        accessibilityHint="Tap to expand for details"
-        testID="community-bag-goal-banner"
+        accessibilityHint='Tap to expand for details'
+        testID='community-bag-goal-banner'
       >
         <View style={styles.collapsedContent}>
           <View style={styles.iconContainer}>
@@ -157,9 +157,9 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
               <Pressable
                 style={styles.saveButton}
                 onPress={onSaveABag}
-                accessibilityRole="button"
-                accessibilityLabel="Save Food"
-                testID="community-goal-save-a-bag"
+                accessibilityRole='button'
+                accessibilityLabel='Save Food'
+                testID='community-goal-save-a-bag'
               >
                 <Text style={styles.saveButtonText}>Save Food</Text>
               </Pressable>

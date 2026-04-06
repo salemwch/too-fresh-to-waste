@@ -99,7 +99,7 @@ export class SystemConfigMapper {
   }
 
   static toInterfaceArray(documents: SystemConfigSource[]): ISystemConfig[] {
-    return documents.map((doc) => this.toInterface(doc));
+    return documents.map(doc => this.toInterface(doc));
   }
 
   static toValidationResult(result: {

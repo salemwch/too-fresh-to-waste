@@ -255,7 +255,7 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
     return (
       <Text
         variant={getSizeStyles.secondary}
-        weight="medium"
+        weight='medium'
         color={getVariantColors.accent}
         style={[savingsSpacingStyle, savingsStyle]}
         testID={`${testID}-savings`}

@@ -414,11 +414,11 @@ export class AnalyticsService {
       const newUsers = newUsersResult[0]?.new ?? 0;
 
       const usersByRole: Record<string, number> = {};
-      usersByRoleResult.forEach((item) => {
+      usersByRoleResult.forEach(item => {
         usersByRole[item._id] = item.count;
       });
 
-      const usersByLocation = locationDataResult.map((item) => ({
+      const usersByLocation = locationDataResult.map(item => ({
         city: item._id.city,
         country: item._id.country,
         count: item.count,
@@ -428,7 +428,7 @@ export class AnalyticsService {
       }));
 
       const userGrowthSeries = AnalyticsUtil.generateTimeSeries(
-        userGrowthResult.map((item) => ({
+        userGrowthResult.map(item => ({
           dateKey: item._id,
           value: item.count,
         })),
@@ -1387,7 +1387,7 @@ export class AnalyticsService {
 
       // Process categories into key-value pairs
       const keysByCategory: Record<string, number> = {};
-      categoriesResult.forEach((item) => {
+      categoriesResult.forEach(item => {
         keysByCategory[item._id ?? 'uncategorized'] = item.count;
       });
 

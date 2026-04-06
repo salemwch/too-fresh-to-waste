@@ -87,7 +87,7 @@ export const UpdateUserSchema = z.object({
   phone: z
     .string()
     .trim()
-    .transform((val) => val || undefined)
+    .transform(val => val || undefined)
     .optional(),
   role: z.nativeEnum(UserRole).optional(),
   avatar: z.string().optional(),

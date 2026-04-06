@@ -60,16 +60,16 @@ const TransactionRow: React.FC<{ tx: PointTransaction }> = ({ tx }) => {
 
   return (
     <View style={styles.txRow}>
-      <Icon name={config.icon} family="Ionicons" size={24} color={config.color} />
+      <Icon name={config.icon} family='Ionicons' size={24} color={config.color} />
       <View style={styles.txInfo}>
-        <Text variant="body" size="sm" weight="medium" numberOfLines={1}>
+        <Text variant='body' size='sm' weight='medium' numberOfLines={1}>
           {tx.reason}
         </Text>
-        <Text variant="body" size="xs" color="secondary">
+        <Text variant='body' size='xs' color='secondary'>
           {formatRelativeTime(tx.createdAt)}
         </Text>
       </View>
-      <Text variant="body" size="sm" weight="bold" style={{ color: config.color }}>
+      <Text variant='body' size='sm' weight='bold' style={{ color: config.color }}>
         {sign}
         {Math.abs(tx.amount)} pts
       </Text>
@@ -91,13 +91,13 @@ const RecentActivityListComponent: React.FC<RecentActivityListProps> = ({
 
   if (recentTxs.length === 0) {
     return (
-      <Card variant="elevated" style={styles.card}>
-        <Text variant="title" size="md" weight="semibold" style={styles.title}>
+      <Card variant='elevated' style={styles.card}>
+        <Text variant='title' size='md' weight='semibold' style={styles.title}>
           Recent Activity
         </Text>
         <View style={styles.emptyState}>
-          <Icon name="receipt-outline" family="Ionicons" size={32} color="#CBD5E1" />
-          <Text variant="body" size="sm" color="secondary" style={styles.emptyText}>
+          <Icon name='receipt-outline' family='Ionicons' size={32} color='#CBD5E1' />
+          <Text variant='body' size='sm' color='secondary' style={styles.emptyText}>
             No activity yet. Save a bag to earn your first points!
           </Text>
         </View>
@@ -106,8 +106,8 @@ const RecentActivityListComponent: React.FC<RecentActivityListProps> = ({
   }
 
   return (
-    <Card variant="elevated" style={styles.card}>
-      <Text variant="title" size="md" weight="semibold" style={styles.title}>
+    <Card variant='elevated' style={styles.card}>
+      <Text variant='title' size='md' weight='semibold' style={styles.title}>
         Recent Activity
       </Text>
       {recentTxs.map((tx, idx) => (

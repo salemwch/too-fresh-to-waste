@@ -55,21 +55,21 @@ export const DistanceBadge: React.FC<DistanceBadgeProps> = ({
       style={containerStyle}
       testID={testID}
       accessibilityLabel={accessibilityLabel ?? `${formattedDistance} away`}
-      accessibilityRole="text"
+      accessibilityRole='text'
     >
       {showIcon && (
         <Icon
-          name="location-outline"
+          name='location-outline'
           size={variant === 'compact' ? 12 : 14}
           color={theme.colors.primary}
           style={styles.icon}
         />
       )}
       <Text
-        variant="label"
+        variant='label'
         size={variant === 'compact' ? 'xs' : 'sm'}
-        weight="medium"
-        color="secondary"
+        weight='medium'
+        color='secondary'
         style={textStyle}
       >
         {formattedDistance}

@@ -78,7 +78,7 @@ class OfflineWriteQueue {
    * If the queue exceeds MAX_ITEMS, the oldest entries are evicted.
    */
   enqueue(item: Omit<QueueItem, 'enqueuedAt'>): void {
-    const items = this.read().filter((i) => i.id !== item.id); // deduplicate by id
+    const items = this.read().filter(i => i.id !== item.id); // deduplicate by id
     const newItem: QueueItem = { ...item, enqueuedAt: Date.now() };
     const updated = [...items, newItem].slice(-MAX_ITEMS); // FIFO eviction
     this.write(updated);
@@ -87,7 +87,7 @@ class OfflineWriteQueue {
 
   /** Remove a successfully processed item from the queue. */
   dequeue(id: string): void {
-    const items = this.read().filter((i) => i.id !== id);
+    const items = this.read().filter(i => i.id !== id);
     this.write(items);
   }
 
@@ -154,7 +154,7 @@ class OfflineWriteQueue {
   startListening(): void {
     if (this._netInfoUnsubscribe) return; // already listening
 
-    this._netInfoUnsubscribe = addNetInfoEventListener((state) => {
+    this._netInfoUnsubscribe = addNetInfoEventListener(state => {
       const isOnline = state.isConnected === true && state.isInternetReachable !== false;
       if (isOnline && this.hasPending()) {
         Logger.info('[OfflineWriteQueue] Online — auto-flushing queue');

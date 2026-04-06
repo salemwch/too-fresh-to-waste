@@ -240,7 +240,7 @@ function useRehydrationStatus(timeout: number = 5000): RehydrationStatus {
       Logger.debug('[RehydrationOrchestrator] Waiting for rehydration', {
         rehydratedSlices,
         waiting: ['location', 'auth', 'favorites'].filter(
-          (slice) => !rehydratedSlices.includes(slice),
+          slice => !rehydratedSlices.includes(slice),
         ),
       });
       return;
@@ -327,7 +327,7 @@ function useRehydrationStatus(timeout: number = 5000): RehydrationStatus {
         });
 
         // Force completion to prevent infinite loading
-        setStatus((prev) => ({
+        setStatus(prev => ({
           ...prev,
           complete: true,
           errors: [...prev.errors, `Rehydration timeout (${timeout}ms)`],
@@ -390,7 +390,7 @@ export function RehydrationGate({
     // Default loading UI
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#10B981" />
+        <ActivityIndicator size='large' color='#10B981' />
       </View>
     );
   }

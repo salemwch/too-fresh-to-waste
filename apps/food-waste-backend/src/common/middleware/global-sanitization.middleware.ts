@@ -46,7 +46,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
       if (typeof req.query === 'object') {
         const result = this.sanitizeQuery(req.query);
         // Mutate in place - req.query is read-only (getter only)
-        Object.keys(req.query).forEach((key) => delete req.query[key]);
+        Object.keys(req.query).forEach(key => delete req.query[key]);
         Object.assign(req.query, result.sanitized);
         sanitizedFields += result.fieldsModified;
         suspiciousDetected = suspiciousDetected || result.suspiciousDetected;
@@ -56,7 +56,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
       if (typeof req.params === 'object') {
         const result = this.sanitizeParams(req.params);
         // Mutate in place - req.params is read-only (getter only)
-        Object.keys(req.params).forEach((key) => delete req.params[key]);
+        Object.keys(req.params).forEach(key => delete req.params[key]);
         Object.assign(req.params, result.sanitized);
         sanitizedFields += result.fieldsModified;
         suspiciousDetected = suspiciousDetected || result.suspiciousDetected;
@@ -117,7 +117,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
       '/favicon.ico',
     ];
 
-    return excludedPaths.some((excluded) => path.startsWith(excluded));
+    return excludedPaths.some(excluded => path.startsWith(excluded));
   }
 
   /**
@@ -137,7 +137,7 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
       }
 
       if (Array.isArray(obj)) {
-        return obj.map((item) => sanitize(item));
+        return obj.map(item => sanitize(item));
       }
 
       if (typeof obj === 'string') {

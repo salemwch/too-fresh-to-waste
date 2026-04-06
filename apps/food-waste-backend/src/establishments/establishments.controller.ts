@@ -142,7 +142,7 @@ export class EstablishmentsController {
       logger.debug(`Received files: ${uploadedFiles.length}`);
       if (uploadedFiles.length > 0) {
         logger.debug(
-          `File details: ${JSON.stringify(uploadedFiles.map((f) => ({ originalname: f.originalname, mimetype: f.mimetype, size: f.size })))}`,
+          `File details: ${JSON.stringify(uploadedFiles.map(f => ({ originalname: f.originalname, mimetype: f.mimetype, size: f.size })))}`,
         );
       }
 
@@ -162,7 +162,7 @@ export class EstablishmentsController {
           },
         });
 
-        imageUrls = uploadResults.map((result) => result.downloadURL);
+        imageUrls = uploadResults.map(result => result.downloadURL);
         logger.debug(`Uploaded ${imageUrls.length} images for establishment`);
       }
 
@@ -337,7 +337,7 @@ export class EstablishmentsController {
           },
         });
 
-        newImageUrls = uploadResults.map((result) => result.downloadURL);
+        newImageUrls = uploadResults.map(result => result.downloadURL);
       }
 
       // Combine existing and new images

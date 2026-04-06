@@ -73,36 +73,36 @@ export default function SettingsPage() {
   const t = useTranslations('dashboard.settings');
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-full py-10 px-4">
+    <div className='flex flex-col items-center justify-start min-h-full py-10 px-4'>
       {/* ── Hero block ── */}
-      <div className="flex flex-col items-center text-center max-w-xl">
+      <div className='flex flex-col items-center text-center max-w-xl'>
         {/* Animated icon */}
-        <div className="relative mb-6">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center shadow-lg shadow-slate-200">
-            <Settings2 className="w-10 h-10 text-white" />
+        <div className='relative mb-6'>
+          <div className='w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center shadow-lg shadow-slate-200'>
+            <Settings2 className='w-10 h-10 text-white' />
           </div>
-          <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 shadow">
-            <Sparkles className="w-3 h-3 text-white" />
+          <span className='absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 shadow'>
+            <Sparkles className='w-3 h-3 text-white' />
           </span>
         </div>
 
         {/* Badge */}
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 mb-4">
-          <Bell className="w-3 h-3" />
+        <span className='inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 mb-4'>
+          <Bell className='w-3 h-3' />
           {t('comingSoonTitle')}
         </span>
 
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">{t('comingSoonSubtitle')}</h1>
-        <p className="text-sm text-slate-500 leading-relaxed mb-2">{t('comingSoonDescription')}</p>
-        <p className="text-xs text-slate-400 italic">{t('notifyLabel')}</p>
+        <h1 className='text-2xl font-bold text-slate-800 mb-2'>{t('comingSoonSubtitle')}</h1>
+        <p className='text-sm text-slate-500 leading-relaxed mb-2'>{t('comingSoonDescription')}</p>
+        <p className='text-xs text-slate-400 italic'>{t('notifyLabel')}</p>
       </div>
 
       {/* ── Divider ── */}
-      <div className="w-full max-w-2xl my-8 border-t border-slate-100" />
+      <div className='w-full max-w-2xl my-8 border-t border-slate-100' />
 
       {/* ── Feature grid ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-2xl">
-        {FEATURE_KEYS.map((key) => {
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-2xl'>
+        {FEATURE_KEYS.map(key => {
           const Icon = FEATURE_ICONS[key];
           const colors = FEATURE_COLORS[key];
           return (
@@ -111,7 +111,7 @@ export default function SettingsPage() {
               className={`relative flex flex-col gap-3 rounded-xl p-4 ring-1 ${colors.bg} ${colors.ring}`}
             >
               {/* Soon pill */}
-              <span className="absolute top-3 right-3 rounded-full bg-white/80 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 ring-1 ring-slate-200">
+              <span className='absolute top-3 right-3 rounded-full bg-white/80 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 ring-1 ring-slate-200'>
                 Soon
               </span>
 
@@ -122,15 +122,15 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <p className="text-sm font-semibold text-slate-700">{t(`features.${key}.title`)}</p>
-                <p className="mt-0.5 text-xs text-slate-500 leading-relaxed">
+                <p className='text-sm font-semibold text-slate-700'>{t(`features.${key}.title`)}</p>
+                <p className='mt-0.5 text-xs text-slate-500 leading-relaxed'>
                   {t(`features.${key}.description`)}
                 </p>
               </div>
 
               {/* Decorative shimmer bar */}
-              <div className="h-1 w-full rounded-full bg-slate-200 overflow-hidden">
-                <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-slate-300 via-white to-slate-300 animate-[shimmer_2s_infinite]" />
+              <div className='h-1 w-full rounded-full bg-slate-200 overflow-hidden'>
+                <div className='h-full w-1/3 rounded-full bg-gradient-to-r from-slate-300 via-white to-slate-300 animate-[shimmer_2s_infinite]' />
               </div>
             </div>
           );

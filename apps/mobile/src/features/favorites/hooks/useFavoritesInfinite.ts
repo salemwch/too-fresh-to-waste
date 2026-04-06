@@ -45,7 +45,7 @@ export const useFavoritesInfinite = (filters?: Omit<FavoritesFilterRequest, 'pag
 
       return response;
     },
-    getNextPageParam: (lastPage) => {
+    getNextPageParam: lastPage => {
       const currentPage = lastPage.page || 1;
       const totalPages = lastPage.totalPages || 1;
 

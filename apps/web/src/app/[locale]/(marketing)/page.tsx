@@ -29,7 +29,7 @@ export default async function HomePage({ params }: HomePageProps) {
       <HashScrollHandler />
       <Header />
 
-      <main role="main">
+      <main role='main'>
         {/* Hero Section with 3D Phone Mockups */}
         <HeroSection locale={locale as Locale} />
 
@@ -59,19 +59,19 @@ function HeroSection({ locale }: { locale: Locale }) {
 
   return (
     <section
-      id="hero"
-      className="bg-primary-500 flex flex-col items-center justify-center px-4 py-12 md:py-16 relative overflow-hidden"
-      aria-labelledby="hero-heading"
+      id='hero'
+      className='bg-primary-500 flex flex-col items-center justify-center px-4 py-12 md:py-16 relative overflow-hidden'
+      aria-labelledby='hero-heading'
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* Language Switcher - Desktop only (positioned top right) */}
-      <div className="hidden lg:block absolute top-4 right-4 z-30">
+      <div className='hidden lg:block absolute top-4 right-4 z-30'>
         <LanguageSwitcher />
       </div>
 
       {/* 3D Phone Mockup Stack - Positioned Above Title */}
       <div
-        className="flex items-start justify-center gap-0"
+        className='flex items-start justify-center gap-0'
         style={{
           perspective: '1500px',
           perspectiveOrigin: 'center center',
@@ -79,7 +79,7 @@ function HeroSection({ locale }: { locale: Locale }) {
       >
         {/* Left Phone - Profile (Back Layer) */}
         <div
-          className="relative transition-all duration-700 ease-out hover:scale-105"
+          className='relative transition-all duration-700 ease-out hover:scale-105'
           style={{
             transform:
               'perspective(1500px) rotateY(-20deg) translateX(-40px) translateZ(-100px) scale(0.85)',
@@ -87,17 +87,17 @@ function HeroSection({ locale }: { locale: Locale }) {
             zIndex: 10,
           }}
         >
-          <div className="relative">
+          <div className='relative'>
             <Image
-              src="/images/profile.png"
-              alt="Profile Screen"
+              src='/images/profile.png'
+              alt='Profile Screen'
               width={390}
               height={844}
-              className="w-32 md:w-44 lg:w-52 h-auto opacity-90"
+              className='w-32 md:w-44 lg:w-52 h-auto opacity-90'
               priority
             />
             <div
-              className="absolute left-1/2 -translate-x-1/2"
+              className='absolute left-1/2 -translate-x-1/2'
               style={{
                 bottom: '-15px',
                 width: '80%',
@@ -112,24 +112,24 @@ function HeroSection({ locale }: { locale: Locale }) {
 
         {/* Center Phone - Get Started (Front Layer - Hero) */}
         <div
-          className="relative transition-all duration-700 ease-out hover:scale-110 hover:translateZ-[100px]"
+          className='relative transition-all duration-700 ease-out hover:scale-110 hover:translateZ-[100px]'
           style={{
             transform: 'perspective(1500px) rotateY(0deg) translateZ(80px) scale(1)',
             transformStyle: 'preserve-3d',
             zIndex: 20,
           }}
         >
-          <div className="relative">
+          <div className='relative'>
             <Image
-              src="/images/getstarted.png"
-              alt="Get Started Screen"
+              src='/images/getstarted.png'
+              alt='Get Started Screen'
               width={390}
               height={844}
-              className="w-40 md:w-48 lg:w-48 h-auto"
+              className='w-40 md:w-48 lg:w-48 h-auto'
               priority
             />
             <div
-              className="absolute left-1/2 -translate-x-1/2"
+              className='absolute left-1/2 -translate-x-1/2'
               style={{
                 bottom: '-18px',
                 width: '85%',
@@ -144,7 +144,7 @@ function HeroSection({ locale }: { locale: Locale }) {
 
         {/* Right Phone - Login (Back Layer) */}
         <div
-          className="relative transition-all duration-700 ease-out hover:scale-105"
+          className='relative transition-all duration-700 ease-out hover:scale-105'
           style={{
             transform:
               'perspective(1500px) rotateY(20deg) translateX(40px) translateZ(-100px) scale(0.85)',
@@ -152,17 +152,17 @@ function HeroSection({ locale }: { locale: Locale }) {
             zIndex: 10,
           }}
         >
-          <div className="relative">
+          <div className='relative'>
             <Image
-              src="/images/login.png"
-              alt="Login Screen"
+              src='/images/login.png'
+              alt='Login Screen'
               width={390}
               height={844}
-              className="w-32 md:w-44 lg:w-52 h-auto opacity-90"
+              className='w-32 md:w-44 lg:w-52 h-auto opacity-90'
               priority
             />
             <div
-              className="absolute left-1/2 -translate-x-1/2"
+              className='absolute left-1/2 -translate-x-1/2'
               style={{
                 bottom: '-15px',
                 width: '80%',
@@ -177,11 +177,11 @@ function HeroSection({ locale }: { locale: Locale }) {
       </div>
 
       {/* Foreground: Text content */}
-      <div className="max-w-5xl w-full text-center font-sans">
-        <div className="space-y-5">
+      <div className='max-w-5xl w-full text-center font-sans'>
+        <div className='space-y-5'>
           <h1
-            id="hero-heading"
-            className="text-white/90 drop-shadow-md pt-[15px] md:pt-0"
+            id='hero-heading'
+            className='text-white/90 drop-shadow-md pt-[15px] md:pt-0'
             style={{
               fontSize: 'clamp(1.5rem, 3vw, 1.875rem)',
               lineHeight: 'calc(1em + 2px)',
@@ -209,17 +209,17 @@ function HeroSection({ locale }: { locale: Locale }) {
           </h1>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch w-full max-w-2xl mx-auto px-4 sm:px-0">
+          <div className='flex flex-col sm:flex-row gap-4 justify-center items-stretch w-full max-w-2xl mx-auto px-4 sm:px-0'>
             <Link
-              href="/coming-soon"
-              className="w-full sm:w-auto sm:flex-1 px-6 py-3.5 border-2 border-white text-white rounded-lg font-bold text-sm sm:text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none text-center whitespace-nowrap"
+              href='/coming-soon'
+              className='w-full sm:w-auto sm:flex-1 px-6 py-3.5 border-2 border-white text-white rounded-lg font-bold text-sm sm:text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none text-center whitespace-nowrap'
               aria-label={t('cta.download')}
             >
               {t('cta.download')}
             </Link>
             <a
-              href="#faq"
-              className="w-full sm:w-auto sm:flex-1 px-6 py-3.5 border-2 border-white text-white rounded-lg font-bold text-sm sm:text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none text-center whitespace-nowrap"
+              href='#faq'
+              className='w-full sm:w-auto sm:flex-1 px-6 py-3.5 border-2 border-white text-white rounded-lg font-bold text-sm sm:text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none text-center whitespace-nowrap'
               aria-label={t('cta.business')}
             >
               {t('cta.business')}

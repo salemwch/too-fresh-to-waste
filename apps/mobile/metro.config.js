@@ -344,7 +344,7 @@ const config = {
     createModuleIdFactory: function () {
       const fileToIdMap = new Map();
       let nextId = 0;
-      return (path) => {
+      return path => {
         if (!fileToIdMap.has(path)) {
           fileToIdMap.set(path, nextId++);
         }
@@ -356,7 +356,7 @@ const config = {
      * Custom process for module filtering
      * Exclude modules that are never actually used
      */
-    processModuleFilter: (module) => {
+    processModuleFilter: module => {
       // Exclude source maps from node_modules in production
       if (isProd && module.path.includes('node_modules') && module.path.endsWith('.map')) {
         return false;
@@ -420,7 +420,7 @@ const config = {
    * Stack trace symbolication for better error reporting
    */
   symbolicator: {
-    customizeFrame: (frame) => {
+    customizeFrame: frame => {
       // Customize stack trace frames (optional)
       return frame;
     },

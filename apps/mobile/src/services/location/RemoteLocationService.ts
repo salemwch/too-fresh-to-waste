@@ -90,7 +90,7 @@ class RemoteLocationService {
       const suggestions = Array.isArray(response.data) ? response.data : [];
 
       // Map suggestions to ILocationResult with placeholder coords
-      const results: ILocationResult[] = suggestions.map((suggestion) => ({
+      const results: ILocationResult[] = suggestions.map(suggestion => ({
         id: suggestion.id,
         name: suggestion.name,
         nameAr: suggestion.nameAr,

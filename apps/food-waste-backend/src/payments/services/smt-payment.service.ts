@@ -284,7 +284,7 @@ export class SMTPaymentService {
   }
   private setupInterceptors(): void {
     this.httpClient.interceptors.request.use(
-      (config) => {
+      config => {
         const timestamp = Date.now().toString();
         const signature = this.generateSignature(config.data, timestamp);
 
@@ -1121,7 +1121,7 @@ export class SMTPaymentService {
    * Secure buffer cleanup - zeros out sensitive memory
    */
   private secureBufferCleanup(buffers: (Buffer | null)[]): void {
-    buffers.forEach((buffer) => {
+    buffers.forEach(buffer => {
       if (buffer && Buffer.isBuffer(buffer)) {
         // Zero out the buffer memory
         buffer.fill(0);

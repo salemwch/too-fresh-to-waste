@@ -190,7 +190,7 @@ export const FormField = memo<FormFieldProps>(
 
     // Toggle password visibility
     const togglePasswordVisibility = useCallback(() => {
-      setIsPasswordVisible((prev) => !prev);
+      setIsPasswordVisible(prev => !prev);
     }, []);
 
     // Determine input properties based on type
@@ -264,7 +264,7 @@ export const FormField = memo<FormFieldProps>(
             onPress={togglePasswordVisibility}
             style={styles.passwordToggle}
             testID={`${testID}-password-toggle`}
-            accessibilityRole="button"
+            accessibilityRole='button'
             accessibilityLabel={isPasswordVisible ? 'Hide password' : 'Show password'}
           >
             {isPasswordVisible ? (

@@ -124,7 +124,7 @@ const ImpactMomentComponent = ({
   if (!visible) return null;
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={handleDismiss}>
+    <Modal visible={visible} transparent animationType='none' onRequestClose={handleDismiss}>
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
         <View style={styles.content}>
           <Animated.Text style={[styles.sparkle, styles.sparkleLeft, { opacity: sparkleOpacity }]}>

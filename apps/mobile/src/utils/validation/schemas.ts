@@ -25,7 +25,7 @@ const emailValidator = yup
   .email('Please enter a valid email address')
   .lowercase()
   .trim()
-  .test('valid-tld', 'Please enter a valid email address', (value) => {
+  .test('valid-tld', 'Please enter a valid email address', value => {
     if (!value) return false;
     // Check if email has a valid TLD (at least 2 characters after the last dot)
     const tldMatch = value.match(/\.([a-z]{2,})$/i);

@@ -199,12 +199,12 @@ export function useUrgentOffers(
       // Apply filters client-side
       if (filters !== undefined) {
         if (filters.type !== undefined) {
-          validOffers = validOffers.filter((offer) => offer.type === filters.type);
+          validOffers = validOffers.filter(offer => offer.type === filters.type);
         }
         const categories = filters.categories;
         if (Array.isArray(categories) && categories.length > 0) {
-          validOffers = validOffers.filter((offer) =>
-            categories.some((cat) => (offer.categories ?? []).includes(cat)),
+          validOffers = validOffers.filter(offer =>
+            categories.some(cat => (offer.categories ?? []).includes(cat)),
           );
         }
         // Note: establishmentTypes and cuisineTypes filtering requires establishment data
@@ -389,12 +389,12 @@ export function usePickupTodayOffers(
       // Apply filters client-side
       if (filters !== undefined) {
         if (filters.type !== undefined) {
-          validOffers = validOffers.filter((offer) => offer.type === filters.type);
+          validOffers = validOffers.filter(offer => offer.type === filters.type);
         }
         const categories = filters.categories;
         if (Array.isArray(categories) && categories.length > 0) {
-          validOffers = validOffers.filter((offer) =>
-            categories.some((cat) => (offer.categories ?? []).includes(cat)),
+          validOffers = validOffers.filter(offer =>
+            categories.some(cat => (offer.categories ?? []).includes(cat)),
           );
         }
         // Note: establishmentTypes and cuisineTypes filtering requires establishment data
@@ -446,12 +446,12 @@ export function usePickupTomorrowOffers(
       // Apply filters client-side
       if (filters !== undefined) {
         if (filters.type !== undefined) {
-          validOffers = validOffers.filter((offer) => offer.type === filters.type);
+          validOffers = validOffers.filter(offer => offer.type === filters.type);
         }
         const categories = filters.categories;
         if (Array.isArray(categories) && categories.length > 0) {
-          validOffers = validOffers.filter((offer) =>
-            categories.some((cat) => (offer.categories ?? []).includes(cat)),
+          validOffers = validOffers.filter(offer =>
+            categories.some(cat => (offer.categories ?? []).includes(cat)),
           );
         }
         // Note: establishmentTypes and cuisineTypes filtering requires establishment data
@@ -492,7 +492,7 @@ export function useReserveOffer(offerId: string) {
       Logger.info('Offer reserved successfully', { offerId, quantity });
       return offer;
     },
-    onSuccess: (updatedOffer) => {
+    onSuccess: updatedOffer => {
       queryClient.setQueryData(offerKeys.detail(offerId), updatedOffer);
       void queryClient.invalidateQueries({ queryKey: offerKeys.lists() });
     },

@@ -58,7 +58,7 @@ function computeYAxisTicks(values: number[]): { ticks: number[]; maxTick: number
 
   const TARGET_TICKS = 5;
   const rawStep = maxVal / TARGET_TICKS;
-  let step = NICE_STEPS.find((s) => s >= rawStep) ?? rawStep;
+  let step = NICE_STEPS.find(s => s >= rawStep) ?? rawStep;
 
   if (step < rawStep) {
     const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
@@ -156,7 +156,7 @@ export function RevenueChart({
   tooltipLabel,
   filterSlot,
 }: RevenueChartProps) {
-  const values = useMemo(() => data.months.map((m) => m.value), [data.months]);
+  const values = useMemo(() => data.months.map(m => m.value), [data.months]);
   const { ticks, maxTick } = useMemo(() => computeYAxisTicks(values), [values]);
   const { linePath, areaPath, points } = useMemo(
     () => buildChartPaths(data.months, maxTick),
@@ -263,20 +263,20 @@ export function RevenueChart({
   const isPositive = data.trend.direction === 'up';
 
   return (
-    <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
+    <div className='bg-white rounded-xl border border-slate-100 shadow-sm p-4'>
       {/* Title row — title on far left, filter on far right */}
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <h3 className="text-base font-semibold tracking-tight text-slate-900 pt-1">{title}</h3>
-        {filterSlot && <div className="ml-auto shrink-0">{filterSlot}</div>}
+      <div className='flex items-start justify-between gap-4 mb-4'>
+        <h3 className='text-base font-semibold tracking-tight text-slate-900 pt-1'>{title}</h3>
+        {filterSlot && <div className='ml-auto shrink-0'>{filterSlot}</div>}
       </div>
 
       {/* Chart area */}
-      <div className="bg-orange-50/30 rounded-xl p-5">
+      <div className='bg-orange-50/30 rounded-xl p-5'>
         {/* Income header */}
-        <div className="mb-4">
-          <p className="text-sm text-slate-500 mb-0.5">{avgLabel}</p>
-          <div className="flex items-center gap-3 flex-wrap">
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
+        <div className='mb-4'>
+          <p className='text-sm text-slate-500 mb-0.5'>{avgLabel}</p>
+          <div className='flex items-center gap-3 flex-wrap'>
+            <h2 className='text-2xl font-semibold tracking-tight text-slate-900'>
               {data.averageIncome}
             </h2>
             <span
@@ -285,19 +285,19 @@ export function RevenueChart({
                 isPositive ? 'text-emerald-600' : 'text-rose-500',
               )}
             >
-              <TrendIcon className="w-3 h-3" />
+              <TrendIcon className='w-3 h-3' />
               {Math.abs(data.trend.value)}%
             </span>
-            <span className="text-sm text-slate-400">{vsLabel}</span>
+            <span className='text-sm text-slate-400'>{vsLabel}</span>
           </div>
         </div>
 
         {/* Chart container — tooltip is positioned relative to this div */}
-        <div ref={containerRef} className="relative" style={{ marginTop: 28 }}>
+        <div ref={containerRef} className='relative' style={{ marginTop: 28 }}>
           {/* Tooltip — follows the active dot in pixel space */}
           {activePoint && (
             <div
-              className="absolute pointer-events-none flex flex-col items-center z-10"
+              className='absolute pointer-events-none flex flex-col items-center z-10'
               style={
                 tooltipPos
                   ? {
@@ -321,10 +321,10 @@ export function RevenueChart({
                   'text-white',
                 )}
               >
-                <p className="text-xs text-slate-300">
+                <p className='text-xs text-slate-300'>
                   {activePoint.label} &middot; {tooltipLabel ?? incomeLabel}
                 </p>
-                <p className="text-sm font-semibold">
+                <p className='text-sm font-semibold'>
                   {activePoint.value.toLocaleString('en-US', {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 3,
@@ -333,7 +333,7 @@ export function RevenueChart({
               </div>
               {/* Arrow */}
               <div
-                className="w-0 h-0"
+                className='w-0 h-0'
                 style={{
                   borderLeft: '6px solid transparent',
                   borderRight: '6px solid transparent',
@@ -347,21 +347,21 @@ export function RevenueChart({
           <svg
             ref={svgRef}
             viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-            className="w-full"
-            preserveAspectRatio="xMidYMid meet"
+            className='w-full'
+            preserveAspectRatio='xMidYMid meet'
             style={{ cursor: points.length > 0 ? 'crosshair' : 'default', display: 'block' }}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
           >
             <defs>
-              <linearGradient id="revenueGradient" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor={CHART_COLOR} stopOpacity="0.15" />
-                <stop offset="100%" stopColor={CHART_COLOR} stopOpacity="0.01" />
+              <linearGradient id='revenueGradient' x1='0' x2='0' y1='0' y2='1'>
+                <stop offset='0%' stopColor={CHART_COLOR} stopOpacity='0.15' />
+                <stop offset='100%' stopColor={CHART_COLOR} stopOpacity='0.01' />
               </linearGradient>
             </defs>
 
             {/* Y-Axis labels + grid lines */}
-            {ticks.map((tick) => {
+            {ticks.map(tick => {
               const yRatio = maxTick === 0 ? 0 : tick / maxTick;
               const y = X_AXIS_Y - yRatio * CHART_HEIGHT;
               return (
@@ -369,10 +369,10 @@ export function RevenueChart({
                   <text
                     x={Y_AXIS_WIDTH}
                     y={y + 4}
-                    textAnchor="end"
-                    className="fill-slate-400"
-                    fontSize="22"
-                    fontFamily="system-ui, sans-serif"
+                    textAnchor='end'
+                    className='fill-slate-400'
+                    fontSize='22'
+                    fontFamily='system-ui, sans-serif'
                   >
                     {formatTickLabel(tick)}
                   </text>
@@ -381,8 +381,8 @@ export function RevenueChart({
                     y1={y}
                     x2={PLOT_RIGHT}
                     y2={y}
-                    stroke="#e2e8f0"
-                    strokeWidth="1"
+                    stroke='#e2e8f0'
+                    strokeWidth='1'
                     strokeDasharray={tick === 0 ? 'none' : '6 4'}
                     opacity={tick === 0 ? 0.8 : 0.5}
                   />
@@ -396,23 +396,23 @@ export function RevenueChart({
               y1={CHART_TOP}
               x2={CHART_LEFT}
               y2={X_AXIS_Y}
-              stroke="#e2e8f0"
-              strokeWidth="1"
+              stroke='#e2e8f0'
+              strokeWidth='1'
               opacity={0.8}
             />
 
             {/* Area fill */}
-            {areaPath && <path d={areaPath} fill="url(#revenueGradient)" />}
+            {areaPath && <path d={areaPath} fill='url(#revenueGradient)' />}
 
             {/* Line */}
             {linePath && (
               <path
                 d={linePath}
-                fill="none"
+                fill='none'
                 stroke={CHART_COLOR}
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+                strokeWidth='3'
+                strokeLinecap='round'
+                strokeLinejoin='round'
               />
             )}
 
@@ -424,25 +424,25 @@ export function RevenueChart({
                   y1={points[lastIndex]!.y}
                   x2={points[lastIndex]!.x}
                   y2={X_AXIS_Y}
-                  stroke="#94a3b8"
-                  strokeWidth="2"
-                  strokeDasharray="6 4"
+                  stroke='#94a3b8'
+                  strokeWidth='2'
+                  strokeDasharray='6 4'
                   opacity={0.7}
                 />
                 <circle
                   cx={points[lastIndex]!.x}
                   cy={points[lastIndex]!.y}
-                  r="10"
+                  r='10'
                   fill={CHART_COLOR}
                   opacity={0.15}
                 />
                 <circle
                   cx={points[lastIndex]!.x}
                   cy={points[lastIndex]!.y}
-                  r="6"
+                  r='6'
                   fill={CHART_COLOR}
-                  stroke="#ffffff"
-                  strokeWidth="3"
+                  stroke='#ffffff'
+                  strokeWidth='3'
                 />
               </>
             )}
@@ -455,18 +455,18 @@ export function RevenueChart({
                   y1={CHART_TOP}
                   x2={activePoint.x}
                   y2={X_AXIS_Y}
-                  stroke="#94a3b8"
-                  strokeWidth="1.5"
-                  strokeDasharray="4 3"
+                  stroke='#94a3b8'
+                  strokeWidth='1.5'
+                  strokeDasharray='4 3'
                   opacity={0.45}
                 />
                 <circle
                   cx={activePoint.x}
                   cy={activePoint.y}
-                  r="5"
+                  r='5'
                   fill={CHART_COLOR}
-                  stroke="#ffffff"
-                  strokeWidth="2.5"
+                  stroke='#ffffff'
+                  strokeWidth='2.5'
                 />
               </>
             )}
@@ -477,17 +477,17 @@ export function RevenueChart({
                 <circle
                   cx={points[0].x}
                   cy={points[0].y}
-                  r="10"
+                  r='10'
                   fill={CHART_COLOR}
                   opacity={0.15}
                 />
                 <circle
                   cx={points[0].x}
                   cy={points[0].y}
-                  r="6"
+                  r='6'
                   fill={CHART_COLOR}
-                  stroke="#ffffff"
-                  strokeWidth="3"
+                  stroke='#ffffff'
+                  strokeWidth='3'
                 />
               </>
             )}
@@ -502,9 +502,9 @@ export function RevenueChart({
                   key={`month-${pt.label}-${i}`}
                   x={pt.x}
                   y={X_AXIS_Y + 28}
-                  textAnchor="middle"
-                  fontSize="22"
-                  fontFamily="system-ui, sans-serif"
+                  textAnchor='middle'
+                  fontSize='22'
+                  fontFamily='system-ui, sans-serif'
                   className={
                     isHovered ? 'fill-amber-500' : isLast ? 'fill-slate-800' : 'fill-slate-400'
                   }
@@ -519,7 +519,7 @@ export function RevenueChart({
       </div>
 
       {/* Financial summary row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mt-4'>
         <SummaryItem icon={DollarSign} label={expensesLabel} value={data.summary.expenses} />
         <SummaryItem icon={Wallet} label={incomeLabel} value={data.summary.income} />
         <SummaryItem icon={PiggyBank} label={profitLabel} value={data.summary.profit} />
@@ -539,13 +539,13 @@ function SummaryItem({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-600">
-        <Icon className="w-4 h-4" />
+    <div className='flex items-center gap-3'>
+      <div className='w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-600'>
+        <Icon className='w-4 h-4' />
       </div>
       <div>
-        <p className="text-sm font-semibold text-slate-900">{value}</p>
-        <p className="text-xs text-slate-500">{label}</p>
+        <p className='text-sm font-semibold text-slate-900'>{value}</p>
+        <p className='text-xs text-slate-500'>{label}</p>
       </div>
     </div>
   );

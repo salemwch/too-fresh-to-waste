@@ -47,13 +47,13 @@ const BadgeCell: React.FC<{ item: BadgeItem }> = ({ item }) => {
         />
         {!item.earned && (
           <View style={styles.lockOverlay}>
-            <Icon name="lock-closed" family="Ionicons" size={12} color={LOCKED_TEXT_COLOR} />
+            <Icon name='lock-closed' family='Ionicons' size={12} color={LOCKED_TEXT_COLOR} />
           </View>
         )}
       </View>
       <Text
-        variant="body"
-        size="xs"
+        variant='body'
+        size='xs'
         weight={item.earned ? 'semibold' : 'regular'}
         style={[styles.badgeTitle, !item.earned && styles.lockedText]}
         numberOfLines={2}
@@ -67,13 +67,13 @@ const BadgeCell: React.FC<{ item: BadgeItem }> = ({ item }) => {
 const BadgeScrollComponent: React.FC<BadgeScrollProps> = ({ earnedBadges }) => {
   const earnedSet = useMemo(() => {
     const set = new Set<string>();
-    earnedBadges.forEach((b) => set.add(b.type));
+    earnedBadges.forEach(b => set.add(b.type));
     return set;
   }, [earnedBadges]);
 
   const items: BadgeItem[] = useMemo(() => {
     const earnedMap = new Map<string, Badge>();
-    earnedBadges.forEach((b) => earnedMap.set(b.type, b));
+    earnedBadges.forEach(b => earnedMap.set(b.type, b));
 
     return ALL_BADGE_TYPES.map((type: BadgeType) => {
       const earnedAt = earnedMap.get(type)?.earnedAt;
@@ -102,16 +102,16 @@ const BadgeScrollComponent: React.FC<BadgeScrollProps> = ({ earnedBadges }) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text variant="title" size="md" weight="semibold">
+        <Text variant='title' size='md' weight='semibold'>
           Badges
         </Text>
-        <Text variant="body" size="sm" color="secondary">
+        <Text variant='body' size='sm' color='secondary'>
           {earnedCount}/{totalCount}
         </Text>
       </View>
       <FlatList
         data={sortedItems}
-        keyExtractor={(item) => item.meta.type}
+        keyExtractor={item => item.meta.type}
         renderItem={renderBadgeItem}
         horizontal
         showsHorizontalScrollIndicator={false}

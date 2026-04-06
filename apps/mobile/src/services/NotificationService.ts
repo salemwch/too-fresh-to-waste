@@ -148,7 +148,7 @@ class NotificationService {
     const m = getMessaging();
 
     // Foreground: app is open, notification arrives
-    this._foregroundUnsubscribe = onMessage(m, (remoteMessage) => {
+    this._foregroundUnsubscribe = onMessage(m, remoteMessage => {
       const data = (remoteMessage.data ?? {}) as NotificationNavData;
       const title = remoteMessage.notification?.title ?? '';
       const body = remoteMessage.notification?.body ?? '';
@@ -157,13 +157,13 @@ class NotificationService {
     });
 
     // Background tap: app in bg, user taps notification → app becomes active
-    onNotificationOpenedApp(m, (remoteMessage) => {
+    onNotificationOpenedApp(m, remoteMessage => {
       Logger.debug('[NotificationService] Background notification tapped');
       navigateFromNotification((remoteMessage.data ?? {}) as NotificationNavData);
     });
 
     // Token refresh: re-register whenever FCM rotates the token
-    this._tokenRefreshUnsubscribe = onTokenRefresh(m, async (newToken) => {
+    this._tokenRefreshUnsubscribe = onTokenRefresh(m, async newToken => {
       Logger.info('[NotificationService] FCM token refreshed');
       await this.registerTokenWithBackend(newToken);
     });

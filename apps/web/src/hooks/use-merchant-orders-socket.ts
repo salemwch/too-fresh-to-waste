@@ -91,7 +91,7 @@ const BACKEND_WS_URL = (() => {
 export function useMerchantOrdersSocket() {
   const queryClient = useQueryClient();
   const socketRef = useRef<Socket | null>(null);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -125,11 +125,11 @@ export function useMerchantOrdersSocket() {
       // Patch the order in every merchant-orders cache page.
       queryClient.setQueriesData<{ orders: MerchantOrder[]; meta: unknown }>(
         { queryKey: dashboardKeys.all, exact: false },
-        (old) => {
+        old => {
           if (!old?.orders) return old;
           return {
             ...old,
-            orders: old.orders.map((o) => (o._id === orderId ? { ...o, status } : o)),
+            orders: old.orders.map(o => (o._id === orderId ? { ...o, status } : o)),
           };
         },
       );
@@ -176,7 +176,7 @@ export function useMerchantOrdersSocket() {
       });
     });
 
-    socket.on('connect_error', (err) => {
+    socket.on('connect_error', err => {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[MerchantOrdersSocket] connect_error:', err.message);
       }

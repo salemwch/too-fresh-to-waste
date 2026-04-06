@@ -264,7 +264,7 @@ export class PhoneNumberService {
     try {
       const results = findPhoneNumbersInText(text, defaultCountry);
 
-      return results.map((result) => this.getPhoneNumberDetails(result.number));
+      return results.map(result => this.getPhoneNumberDetails(result.number));
     } catch {
       return [];
     }

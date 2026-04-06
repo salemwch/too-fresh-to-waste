@@ -253,7 +253,7 @@ export class CreateReviewDto implements CreateReviewInput {
       return value.map((t: string) => t.toLowerCase().trim());
     }
     if (typeof value === 'string') {
-      return value.split(',').map((t) => t.toLowerCase().trim());
+      return value.split(',').map(t => t.toLowerCase().trim());
     }
     return [];
   })

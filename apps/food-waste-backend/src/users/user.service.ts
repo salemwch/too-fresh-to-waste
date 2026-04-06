@@ -539,7 +539,7 @@ export class UsersService implements IUsersService {
       // 3. Rate limiting: Check recent verification attempts
       const recentAttempts =
         user.auditLog?.filter(
-          (log) =>
+          log =>
             log.action === 'PHONE_VERIFICATION_SENT' &&
             log.timestamp > new Date(Date.now() - 60 * 60 * 1000), // Last hour
         ) ?? [];
@@ -1583,7 +1583,7 @@ export class UsersService implements IUsersService {
 
       // Check if device already exists
       const existingDeviceIndex =
-        user.trustedDevices?.findIndex((device) => device.deviceId === deviceInfo.deviceId) ?? -1;
+        user.trustedDevices?.findIndex(device => device.deviceId === deviceInfo.deviceId) ?? -1;
 
       const deviceData = {
         deviceId: deviceInfo.deviceId,

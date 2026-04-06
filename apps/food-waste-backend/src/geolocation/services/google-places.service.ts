@@ -185,7 +185,7 @@ export class GooglePlacesService {
 
       const predictions = await this.fetchAutocompletePredictions(query, sessionToken, limit);
 
-      const suggestions = predictions.map((p) => this.normalizePredictionToSuggestion(p));
+      const suggestions = predictions.map(p => this.normalizePredictionToSuggestion(p));
 
       this.logger.log(`Autocomplete completed: "${query}" - ${suggestions.length} suggestions`);
       return suggestions;
@@ -270,7 +270,7 @@ export class GooglePlacesService {
             placePrediction: NonNullable<(typeof s)['placePrediction']>;
           } => s.placePrediction !== null && s.placePrediction !== undefined,
         )
-        .map((s) => s.placePrediction);
+        .map(s => s.placePrediction);
 
       return predictions.slice(0, limit ?? this.maxResults);
     } catch (error) {
@@ -344,7 +344,7 @@ export class GooglePlacesService {
   private normalizeDetailsToLocationResult(details: PlaceDetailsResponse): GoogleLocationResult {
     const addressComponents = this.parseAddressComponents(details.addressComponents);
 
-    const governorate = details.addressComponents?.find((c) =>
+    const governorate = details.addressComponents?.find(c =>
       c.types.includes('administrative_area_level_1'),
     );
 
@@ -375,7 +375,7 @@ export class GooglePlacesService {
     }
 
     const findByType = (type: string): string | undefined =>
-      components.find((c) => c.types.includes(type))?.longText;
+      components.find(c => c.types.includes(type))?.longText;
 
     return {
       street: findByType('route') ?? findByType('street_address'),

@@ -150,7 +150,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   useEffect(() => {
     if (countdown > 0) {
       countdownTimerRef.current = setTimeout(() => {
-        setCountdown((prev) => prev - 1);
+        setCountdown(prev => prev - 1);
       }, 1000);
     }
 
@@ -374,11 +374,11 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
           </View>
           <TextInput
             style={[styles.input, styles.phoneInput]}
-            placeholder="20 123 456"
-            placeholderTextColor="#9CA3AF"
+            placeholder='20 123 456'
+            placeholderTextColor='#9CA3AF'
             value={phoneNumber.replace(COUNTRY_PREFIX, '')}
             onChangeText={handlePhoneChange}
-            keyboardType="phone-pad"
+            keyboardType='phone-pad'
             maxLength={8}
             autoFocus
             editable={!isLoading}
@@ -394,7 +394,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         disabled={isLoading}
       >
         {isLoading ? (
-          <ActivityIndicator color="#FFFFFF" />
+          <ActivityIndicator color='#FFFFFF' />
         ) : (
           <Text style={styles.buttonText}>Send Verification Code</Text>
         )}
@@ -421,11 +421,11 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         <TextInput
           ref={otpInputRef}
           style={[styles.input, styles.otpInput]}
-          placeholder="123456"
-          placeholderTextColor="#9CA3AF"
+          placeholder='123456'
+          placeholderTextColor='#9CA3AF'
           value={otp}
           onChangeText={handleOTPChange}
-          keyboardType="number-pad"
+          keyboardType='number-pad'
           maxLength={6}
           autoFocus
           editable={!isLoading}
@@ -444,7 +444,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         disabled={isLoading || otp.length !== 6}
       >
         {isLoading ? (
-          <ActivityIndicator color="#FFFFFF" />
+          <ActivityIndicator color='#FFFFFF' />
         ) : (
           <Text style={styles.buttonText}>Verify & Continue</Text>
         )}
@@ -493,7 +493,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   if (!visible) return null;
 
   return (
-    <Modal visible={visible} animationType="none" transparent onRequestClose={handleCloseAnimated}>
+    <Modal visible={visible} animationType='none' transparent onRequestClose={handleCloseAnimated}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.overlay}

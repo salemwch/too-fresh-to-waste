@@ -92,7 +92,7 @@ export class OfferPresenter {
       availableQuantity: availableQty,
       availableFrom: (offer.availableFrom as Date).toISOString(),
       availableUntil: (offer.availableUntil as Date).toISOString(),
-      pickupTimeSlots: offer.pickupTimeSlots?.map((slot) => ({
+      pickupTimeSlots: offer.pickupTimeSlots?.map(slot => ({
         startTime: slot.startTime,
         endTime: slot.endTime,
       })),
@@ -206,7 +206,7 @@ export class OfferPresenter {
    * @returns Array of sanitized DTOs
    */
   static toCardDtoArray(offers: OfferEntity[], distances?: Map<string, number>): OfferCardDto[] {
-    return offers.map((offer) => {
+    return offers.map(offer => {
       // ✅ TYPE SAFETY: Handle both ObjectId and string _id
       const offerId = typeof offer._id === 'string' ? offer._id : (offer._id?.toString() ?? '');
       const distance = distances?.get(offerId);

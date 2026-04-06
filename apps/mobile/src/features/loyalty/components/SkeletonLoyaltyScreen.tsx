@@ -42,7 +42,7 @@ const SkeletonLoyaltyScreenComponent: React.FC = () => {
       {/* Badges scroll */}
       <ShimmerBlock animValue={anim} colors={colors} style={styles.sectionTitle} />
       <View style={styles.badgesRow}>
-        {[0, 1, 2, 3, 4].map((i) => (
+        {[0, 1, 2, 3, 4].map(i => (
           <ShimmerBlock key={i} animValue={anim} colors={colors} style={styles.badgeCircle} />
         ))}
       </View>

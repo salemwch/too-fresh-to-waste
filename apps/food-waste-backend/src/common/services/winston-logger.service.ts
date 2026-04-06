@@ -101,7 +101,7 @@ export class WinstonLoggerService implements LoggerService {
           maxSize: '20m',
           maxFiles: '90d',
           format: winston.format.combine(
-            winston.format((info) => {
+            winston.format(info => {
               // Only log critical errors
               const metadata = info['metadata'] as { critical?: boolean } | undefined;
               return metadata?.critical === true ? info : false;
@@ -257,6 +257,6 @@ export class WinstonLoggerService implements LoggerService {
 
     const messageAndTrace = `${message} ${trace ?? ''}`.toLowerCase();
 
-    return criticalKeywords.some((keyword) => messageAndTrace.includes(keyword));
+    return criticalKeywords.some(keyword => messageAndTrace.includes(keyword));
   }
 }

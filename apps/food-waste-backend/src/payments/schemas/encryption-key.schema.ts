@@ -213,14 +213,14 @@ EncryptionKeySchema.pre('save', function (next) {
 });
 
 // Prevent accidental deletion
-EncryptionKeySchema.pre('deleteOne', (next) => {
+EncryptionKeySchema.pre('deleteOne', next => {
   const error = new Error(
     'Direct deletion of encryption keys is not allowed. Use revocation instead.',
   );
   next(error);
 });
 
-EncryptionKeySchema.pre('deleteMany', (next) => {
+EncryptionKeySchema.pre('deleteMany', next => {
   const error = new Error(
     'Bulk deletion of encryption keys is not allowed. Use revocation instead.',
   );

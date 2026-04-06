@@ -264,7 +264,7 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Your orders retrieved successfully',
-      data: result.orders.map((o) =>
+      data: result.orders.map(o =>
         plainToInstance(ConsumerOrderResponseDto, toPlain(o), { excludeExtraneousValues: true }),
       ),
       meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
@@ -306,7 +306,7 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Your merchant orders retrieved successfully',
-      data: result.orders.map((o) =>
+      data: result.orders.map(o =>
         plainToInstance(MerchantOrderResponseDto, toPlain(o), { excludeExtraneousValues: true }),
       ),
       meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
@@ -655,7 +655,7 @@ export class OrdersController {
       customerName: `${customer.firstName} ${customer.lastName}`,
       orderDate: order.createdAt,
       pickupDate: order.pickupDetails.scheduledDate,
-      items: order.items.map((item) => ({
+      items: order.items.map(item => ({
         title: item.offerTitle,
         quantity: item.quantity,
         unitPrice: item.unitPrice,

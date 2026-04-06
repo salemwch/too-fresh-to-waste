@@ -38,14 +38,14 @@ const CheckIcon = ({ show }: { show: { value: number } }) => {
       <SvgRoot
         width={28}
         height={28}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="white"
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='white'
         strokeWidth={4}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeLinecap='round'
+        strokeLinejoin='round'
       >
-        <Path d="M20 6L9 17l-5-5" />
+        <Path d='M20 6L9 17l-5-5' />
       </SvgRoot>
     </Animated.View>
   );
@@ -178,7 +178,7 @@ export const MorphingButton: React.FC<MorphingButtonProps> = ({
       <TouchableWithoutFeedback
         onPress={handlePress}
         testID={testID}
-        accessibilityRole="button"
+        accessibilityRole='button'
         accessibilityLabel={loading ? `${label}, loading` : success ? successLabel : label}
         accessibilityState={{
           disabled: disabled || loading || success,

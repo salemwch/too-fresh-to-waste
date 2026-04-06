@@ -157,7 +157,7 @@ export class UserLocationService {
       }
 
       const locationIndex = user.locationPreferences.savedLocations.findIndex(
-        (loc) => loc.id === locationId,
+        loc => loc.id === locationId,
       );
 
       if (locationIndex === -1) {
@@ -220,7 +220,7 @@ export class UserLocationService {
 
       const initialLength = user.locationPreferences.savedLocations.length;
       user.locationPreferences.savedLocations = user.locationPreferences.savedLocations.filter(
-        (loc) => loc.id !== locationId,
+        loc => loc.id !== locationId,
       );
 
       if (user.locationPreferences.savedLocations.length === initialLength) {
@@ -257,7 +257,7 @@ export class UserLocationService {
   ): Promise<SavedLocation[]> {
     try {
       const savedLocations = await this.getSavedLocations(userId);
-      return savedLocations.filter((loc) => loc.category === category);
+      return savedLocations.filter(loc => loc.category === category);
     } catch (error) {
       this.logger.error('Failed to get saved locations by category:', error);
       throw error;
@@ -409,11 +409,11 @@ export class UserLocationService {
       const savedLocations = await this.getSavedLocations(userId);
 
       const nearby = savedLocations
-        .map((location) => ({
+        .map(location => ({
           ...location,
           distance: DistanceCalculator.calculateDistance(center, location.coordinates).value * 1000, // Convert to meters
         }))
-        .filter((location) => location.distance <= radiusInMeters)
+        .filter(location => location.distance <= radiusInMeters)
         .sort((a, b) => a.distance - b.distance);
 
       this.logger.log(`Found ${nearby.length} nearby saved locations for user ${userId}`);

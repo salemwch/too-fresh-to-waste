@@ -43,7 +43,7 @@ describe('Text', () => {
       'label.small',
     ];
 
-    variants.forEach((variant) => {
+    variants.forEach(variant => {
       const { getByText } = renderWithTheme(
         <Text variant={variant as TypographyVariant}>{variant}</Text>,
       );
@@ -52,7 +52,7 @@ describe('Text', () => {
   });
 
   it('applies color prop correctly', () => {
-    const { getByText } = renderWithTheme(<Text color="#FF0000">Red Text</Text>);
+    const { getByText } = renderWithTheme(<Text color='#FF0000'>Red Text</Text>);
     const textElement = getByText('Red Text');
     expect(getFlattenedStyle(textElement)).toMatchObject(
       expect.objectContaining({ color: '#FF0000' }),
@@ -67,7 +67,7 @@ describe('Text', () => {
       'justify',
     ];
 
-    alignments.forEach((align) => {
+    alignments.forEach(align => {
       const { getByText } = renderWithTheme(<Text align={align}>{align} aligned</Text>);
       expect(getByText(`${align} aligned`)).toBeTruthy();
     });
@@ -80,7 +80,7 @@ describe('Text', () => {
       'line-through',
     ];
 
-    decorations.forEach((decoration) => {
+    decorations.forEach(decoration => {
       const { getByText } = renderWithTheme(<Text decoration={decoration}>{decoration}</Text>);
       expect(getByText(decoration)).toBeTruthy();
     });
@@ -94,7 +94,7 @@ describe('Text', () => {
       'capitalize',
     ];
 
-    transforms.forEach((transform) => {
+    transforms.forEach(transform => {
       const { getByText } = renderWithTheme(<Text transform={transform}>Test Text</Text>);
       expect(getByText('Test Text')).toBeTruthy();
     });
@@ -112,7 +112,7 @@ describe('Text', () => {
       'black',
     ];
 
-    weights.forEach((weight) => {
+    weights.forEach(weight => {
       const { getByText } = renderWithTheme(<Text weight={weight}>{weight} weight</Text>);
       expect(getByText(`${weight} weight`)).toBeTruthy();
     });
@@ -163,7 +163,7 @@ describe('Text', () => {
   it('handles ellipsizeMode prop', () => {
     const modes: Array<'head' | 'middle' | 'tail' | 'clip'> = ['head', 'middle', 'tail', 'clip'];
 
-    modes.forEach((mode) => {
+    modes.forEach(mode => {
       const { getByText } = renderWithTheme(
         <Text ellipsizeMode={mode} numberOfLines={1}>
           Long text
@@ -189,9 +189,9 @@ describe('Text', () => {
   it('handles accessibility props', () => {
     const { getByLabelText } = renderWithTheme(
       <Text
-        accessibilityLabel="Custom label"
-        accessibilityHint="This is a hint"
-        accessibilityRole="header"
+        accessibilityLabel='Custom label'
+        accessibilityHint='This is a hint'
+        accessibilityRole='header'
       >
         Accessible Text
       </Text>,
@@ -207,7 +207,7 @@ describe('Text', () => {
   it('renders children correctly', () => {
     const { getByText } = renderWithTheme(
       <Text>
-        Hello <Text weight="bold">World</Text>
+        Hello <Text weight='bold'>World</Text>
       </Text>,
     );
     expect(getByText(/Hello/)).toBeTruthy();

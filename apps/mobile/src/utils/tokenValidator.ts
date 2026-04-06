@@ -171,7 +171,7 @@ export const isNetworkError = (error: unknown): boolean => {
     'offline',
   ];
 
-  return networkKeywords.some((keyword) => message.toLowerCase().includes(keyword.toLowerCase()));
+  return networkKeywords.some(keyword => message.toLowerCase().includes(keyword.toLowerCase()));
 };
 
 /**
@@ -196,7 +196,7 @@ export const isFatalAuthError = (error: unknown): boolean => {
 
   // Fatal error messages
   const fatalKeywords = ['invalid', 'revoked', 'expired', 'malformed'];
-  return fatalKeywords.some((keyword) => message.toLowerCase().includes(keyword.toLowerCase()));
+  return fatalKeywords.some(keyword => message.toLowerCase().includes(keyword.toLowerCase()));
 };
 
 /**

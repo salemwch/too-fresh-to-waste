@@ -183,7 +183,7 @@ class LocalLocationService {
     const limitedMatches = allMatches.slice(0, maxResults);
 
     // ✅ BEST PRACTICE: Always return array (prevents spread errors downstream)
-    return limitedMatches.map((match) => match.result);
+    return limitedMatches.map(match => match.result);
   }
 
   /**
@@ -199,7 +199,7 @@ class LocalLocationService {
 
     const cities = tunisianCitiesData as TunisianCity[];
     return cities
-      .map((city) => LocationAdapter.fromTunisianCity(city))
+      .map(city => LocationAdapter.fromTunisianCity(city))
       .filter((result): result is ILocationResult => result !== null);
   }
 
@@ -215,8 +215,8 @@ class LocalLocationService {
     }
 
     return this.searchableLocations
-      .filter((loc) => loc.city.Value === cityValue.toUpperCase())
-      .map((loc) => loc.result);
+      .filter(loc => loc.city.Value === cityValue.toUpperCase())
+      .map(loc => loc.result);
   }
 
   /**

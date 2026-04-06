@@ -75,7 +75,7 @@ export class MfaService {
       // Store the secret temporarily (not yet activated)
       await this.usersService.updateMfaSettings(userId, {
         pendingTotpSecret: secret.base32,
-        backupCodes: backupCodes.map((code) => this.hashBackupCode(code)),
+        backupCodes: backupCodes.map(code => this.hashBackupCode(code)),
       });
 
       this.logger.log(`TOTP setup initiated for user ${userId}`);
@@ -173,7 +173,7 @@ export class MfaService {
 
       const hashedCode = this.hashBackupCode(code);
       const codeIndex = user.mfaSettings.backupCodes.findIndex(
-        (storedCode) => storedCode === hashedCode,
+        storedCode => storedCode === hashedCode,
       );
 
       if (codeIndex === -1) {
@@ -216,7 +216,7 @@ export class MfaService {
       }
 
       const newBackupCodes = this.generateBackupCodes();
-      const hashedCodes = newBackupCodes.map((code) => this.hashBackupCode(code));
+      const hashedCodes = newBackupCodes.map(code => this.hashBackupCode(code));
 
       await this.usersService.updateMfaSettings(userId, {
         backupCodes: hashedCodes,
@@ -288,7 +288,7 @@ export class MfaService {
       }
 
       const emergencyTokens = this.generateBackupCodes();
-      const hashedTokens = emergencyTokens.map((token) => this.hashBackupCode(token));
+      const hashedTokens = emergencyTokens.map(token => this.hashBackupCode(token));
 
       await this.usersService.updateMfaSettings(userId, {
         emergencyTokens: hashedTokens,

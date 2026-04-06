@@ -26,7 +26,7 @@ interface PrivacyScreenProps {
 export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navigation }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const isLoading = useAppSelector((state) => state.auth.isLoading);
+  const isLoading = useAppSelector(state => state.auth.isLoading);
 
   const handleDeleteAccount = useCallback(() => {
     showAlert(
@@ -50,19 +50,19 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Card style={styles.card}>
-          <Text variant="headline" size="lg" weight="bold" style={styles.title}>
+          <Text variant='headline' size='lg' weight='bold' style={styles.title}>
             Privacy & Data
           </Text>
 
           <View style={styles.placeholder}>
-            <Text variant="body" size="md" align="center" color="secondary">
+            <Text variant='body' size='md' align='center' color='secondary'>
               Privacy settings will be here
             </Text>
             <Text
-              variant="body"
-              size="sm"
-              align="center"
-              color="secondary"
+              variant='body'
+              size='sm'
+              align='center'
+              color='secondary'
               style={styles.placeholderNote}
             >
               Data sharing, Analytics, Location, Download data, Delete account
@@ -70,12 +70,12 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
           </View>
 
           <Card style={styles.dangerZone}>
-            <Text variant="title" size="md" weight="semibold" style={styles.dangerTitle}>
+            <Text variant='title' size='md' weight='semibold' style={styles.dangerTitle}>
               Danger Zone
             </Text>
             <Button
-              variant="outline"
-              size="md"
+              variant='outline'
+              size='md'
               onPress={() => {}}
               style={[styles.button, { borderColor: theme.colors.error }]}
               textStyle={{ color: theme.colors.error }}
@@ -83,8 +83,8 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
               Download My Data
             </Button>
             <Button
-              variant="outline"
-              size="md"
+              variant='outline'
+              size='md'
               onPress={handleDeleteAccount}
               loading={isLoading}
               style={[styles.button, { borderColor: theme.colors.error }]}

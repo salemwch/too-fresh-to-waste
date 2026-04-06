@@ -21,7 +21,7 @@ export class AppVersionMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction): void {
     // Skip excluded paths (health probes, docs)
-    if (this.excludedPaths.some((p) => req.originalUrl.startsWith(p))) {
+    if (this.excludedPaths.some(p => req.originalUrl.startsWith(p))) {
       return next();
     }
 
@@ -64,8 +64,8 @@ export class AppVersionMiddleware implements NestMiddleware {
     const parse = (v: string): number[] =>
       v
         .split('.')
-        .map((n) => parseInt(n, 10))
-        .map((n) => (Number.isNaN(n) ? 0 : n));
+        .map(n => parseInt(n, 10))
+        .map(n => (Number.isNaN(n) ? 0 : n));
 
     const current = parse(version);
     const minimum = parse(minVersion);

@@ -165,7 +165,7 @@ export class CommunityGoalService {
     ]);
 
     return {
-      goals: goals.map((g) => this.toStats(g)),
+      goals: goals.map(g => this.toStats(g)),
       total,
     };
   }

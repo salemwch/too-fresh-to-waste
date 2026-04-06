@@ -330,8 +330,8 @@ export class ReviewProcessor {
         'regret',
       ];
 
-      const positiveCount = words.filter((word) => positiveWords.includes(word)).length;
-      const negativeCount = words.filter((word) => negativeWords.includes(word)).length;
+      const positiveCount = words.filter(word => positiveWords.includes(word)).length;
+      const negativeCount = words.filter(word => negativeWords.includes(word)).length;
       const totalWords = words.length;
 
       let sentiment = SentimentType.NEUTRAL;
@@ -354,7 +354,7 @@ export class ReviewProcessor {
         positiveScore: positiveCount / totalWords,
         negativeScore: negativeCount / totalWords,
         neutralScore: 1 - (positiveCount + negativeCount) / totalWords,
-        keywords: [...positiveWords, ...negativeWords].filter((word) => words.includes(word)),
+        keywords: [...positiveWords, ...negativeWords].filter(word => words.includes(word)),
         language: 'en',
       };
     } catch (error) {
@@ -377,7 +377,7 @@ export class ReviewProcessor {
         .toLowerCase()
         .replace(/[^\w\s]/g, ' ')
         .split(/\s+/)
-        .filter((word) => word.length > 3);
+        .filter(word => word.length > 3);
 
       const stopWords = [
         'this',
@@ -391,7 +391,7 @@ export class ReviewProcessor {
         'were',
         'said',
       ];
-      const keywords = words.filter((word) => !stopWords.includes(word));
+      const keywords = words.filter(word => !stopWords.includes(word));
 
       // Return top 10 most relevant keywords
       const keywordCounts: Record<string, number> = keywords.reduce(
@@ -421,16 +421,16 @@ export class ReviewProcessor {
     const words = comment.toLowerCase().split(/\s+/);
     const topics = [];
 
-    if (words.some((word) => foodTopics.includes(word))) {
+    if (words.some(word => foodTopics.includes(word))) {
       topics.push('food_quality');
     }
-    if (words.some((word) => serviceTopics.includes(word))) {
+    if (words.some(word => serviceTopics.includes(word))) {
       topics.push('service');
     }
-    if (words.some((word) => valueTopics.includes(word))) {
+    if (words.some(word => valueTopics.includes(word))) {
       topics.push('value');
     }
-    if (words.some((word) => ambienceTopics.includes(word))) {
+    if (words.some(word => ambienceTopics.includes(word))) {
       topics.push('ambience');
     }
 

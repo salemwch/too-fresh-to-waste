@@ -54,7 +54,7 @@ const SKELETON_DATA = Array.from({ length: SKELETON_COUNT }, (_, i) => ({ key: S
 
 const SkeletonList: React.FC = () => (
   <View style={styles.listContent}>
-    {SKELETON_DATA.map((item) => (
+    {SKELETON_DATA.map(item => (
       <SkeletonOrderCard key={item.key} />
     ))}
   </View>
@@ -77,9 +77,9 @@ const EmptyState: React.FC<EmptyStateProps> = ({ tab, onBrowse }) => {
       <View style={[styles.emptyIconCircle, { backgroundColor: theme.colors.surfaceContainer }]}>
         <Icon
           name={tab === 'active' ? 'receipt-outline' : 'time-outline'}
-          family="Ionicons"
+          family='Ionicons'
           size={56}
-          color="#94A3B8"
+          color='#94A3B8'
         />
       </View>
 
@@ -95,14 +95,14 @@ const EmptyState: React.FC<EmptyStateProps> = ({ tab, onBrowse }) => {
 
       {tab === 'active' && (
         <Button
-          variant="primary"
-          size="lg"
+          variant='primary'
+          size='lg'
           onPress={onBrowse}
-          leftIcon="restaurant-outline"
-          leftIconFamily="Ionicons"
+          leftIcon='restaurant-outline'
+          leftIconFamily='Ionicons'
           style={styles.browseButton}
-          accessibilityLabel="Browse offers"
-          accessibilityHint="Navigate to home screen to discover food offers"
+          accessibilityLabel='Browse offers'
+          accessibilityHint='Navigate to home screen to discover food offers'
         >
           Browse Offers
         </Button>
@@ -153,7 +153,7 @@ const TabPill: React.FC<TabPillProps> = ({ label, count, isActive, onPress }) =>
     onPress={onPress}
     style={[styles.tabPill, isActive && styles.tabPillActive]}
     android_ripple={{ color: 'rgba(0, 82, 80, 0.1)', borderless: false }}
-    accessibilityRole="tab"
+    accessibilityRole='tab'
     accessibilityState={{ selected: isActive }}
     accessibilityLabel={`${label} tab, ${count} orders`}
   >
@@ -220,13 +220,13 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
       {/* ── Tab Bar ── */}
       <View style={styles.tabBar}>
         <TabPill
-          label="Active"
+          label='Active'
           count={activeOrders.length}
           isActive={selectedTab === 'active'}
           onPress={() => setSelectedTab('active')}
         />
         <TabPill
-          label="History"
+          label='History'
           count={historyOrders.length}
           isActive={selectedTab === 'history'}
           onPress={() => setSelectedTab('history')}

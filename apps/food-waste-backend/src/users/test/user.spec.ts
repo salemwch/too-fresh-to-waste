@@ -89,7 +89,7 @@ describe('UsersService - create method', () => {
         {
           provide: getModelToken(User.name),
           useValue: Object.assign(
-            jest.fn().mockImplementation((userData) => {
+            jest.fn().mockImplementation(userData => {
               const user = createMockUser(userData);
               user.save = jest.fn().mockResolvedValue(user);
               return user;

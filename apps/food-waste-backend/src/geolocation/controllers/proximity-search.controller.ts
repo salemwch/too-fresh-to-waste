@@ -457,7 +457,7 @@ export class ProximitySearchController {
       center: { latitude, longitude },
       radius,
       limit: limit ? +limit : 20,
-      categories: categories ? categories.split(',').map((c) => c.trim()) : undefined,
+      categories: categories ? categories.split(',').map(c => c.trim()) : undefined,
     };
 
     const options: ProximitySearchOptions = {

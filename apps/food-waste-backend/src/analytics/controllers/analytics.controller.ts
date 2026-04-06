@@ -365,7 +365,7 @@ export class AnalyticsController {
       throw new BadRequestException('Only administrators can invalidate cache');
     }
 
-    const tagArray = tags ? tags.split(',').map((t) => t.trim()) : undefined;
+    const tagArray = tags ? tags.split(',').map(t => t.trim()) : undefined;
     await this.analyticsService.invalidateCache(category, tagArray);
 
     this.logger.log(`Cache invalidated - category: ${category}, tags: ${tags}`);

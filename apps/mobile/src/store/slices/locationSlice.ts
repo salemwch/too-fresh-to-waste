@@ -534,7 +534,7 @@ const locationSlice = createSlice({
     /**
      * Mark that user has dismissed the location prompt
      */
-    dismissPrompt: (state) => {
+    dismissPrompt: state => {
       state.hasPromptedForLocation = true;
       state.promptDismissedAt = Date.now();
     },
@@ -542,14 +542,14 @@ const locationSlice = createSlice({
     /**
      * Reset prompt dismissal (show prompt again)
      */
-    resetPromptDismissal: (state) => {
+    resetPromptDismissal: state => {
       state.promptDismissedAt = null;
     },
 
     /**
      * Clear all location data
      */
-    clearLocation: (state) => {
+    clearLocation: state => {
       state.coordinates = null;
       state.accuracy = null;
       state.source = null;
@@ -565,7 +565,7 @@ const locationSlice = createSlice({
     /**
      * Clear error state
      */
-    clearError: (state) => {
+    clearError: state => {
       state.error = null;
     },
 
@@ -584,14 +584,14 @@ const locationSlice = createSlice({
       return initialState;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // checkPermissionAsync
     builder.addCase(checkPermissionAsync.fulfilled, (state, action) => {
       state.permissionStatus = action.payload;
     });
 
     // requestLocationAsync
-    builder.addCase(requestLocationAsync.pending, (state) => {
+    builder.addCase(requestLocationAsync.pending, state => {
       state.isLoading = true;
       state.error = null;
       state.hasPromptedForLocation = true;
@@ -715,7 +715,7 @@ const locationSlice = createSlice({
     //
     // Flow: User A logs out → userId stays "A" → User A logs in →
     //   Case 3: same userId → keeps location → no prompt
-    builder.addMatcher(isAuthLogoutAction, (state) => {
+    builder.addMatcher(isAuthLogoutAction, state => {
       Logger.info('[LOCATION] Logout - preserving userId for re-login detection', {
         userId: state.userId,
         hasLocation: !!state.coordinates,

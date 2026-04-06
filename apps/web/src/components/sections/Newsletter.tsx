@@ -61,17 +61,17 @@ export default function Newsletter() {
 
   return (
     <section
-      className="w-full bg-[#f9f3f0] px-4 sm:px-8 lg:px-12 text-center py-12 sm:py-16 lg:py-20 flex flex-col items-center justify-center"
-      role="region"
-      aria-labelledby="newsletter-heading"
+      className='w-full bg-[#f9f3f0] px-4 sm:px-8 lg:px-12 text-center py-12 sm:py-16 lg:py-20 flex flex-col items-center justify-center'
+      role='region'
+      aria-labelledby='newsletter-heading'
     >
       {/* Label */}
-      <p className="text-primary-500 font-medium text-sm sm:text-base">{t('label')}</p>
+      <p className='text-primary-500 font-medium text-sm sm:text-base'>{t('label')}</p>
 
       {/* Heading */}
       <h2
-        id="newsletter-heading"
-        className="max-w-3xl font-semibold text-2xl sm:text-3xl lg:text-4xl leading-tight mt-2 px-4"
+        id='newsletter-heading'
+        className='max-w-3xl font-semibold text-2xl sm:text-3xl lg:text-4xl leading-tight mt-2 px-4'
         style={{ color: '#005250' }}
       >
         {t('heading')}
@@ -80,23 +80,23 @@ export default function Newsletter() {
       {/* Subscription Form */}
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col sm:flex-row items-center justify-center mt-8 sm:mt-10 w-full max-w-md gap-3 sm:gap-0"
+        className='flex flex-col sm:flex-row items-center justify-center mt-8 sm:mt-10 w-full max-w-md gap-3 sm:gap-0'
       >
-        <div className="flex items-center justify-center sm:border sm:border-slate-400 focus-within:outline focus-within:outline-2 focus-within:outline-primary-500 text-sm rounded-full h-12 sm:h-14 w-full">
+        <div className='flex items-center justify-center sm:border sm:border-slate-400 focus-within:outline focus-within:outline-2 focus-within:outline-primary-500 text-sm rounded-full h-12 sm:h-14 w-full'>
           <input
-            type="email"
+            type='email'
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="bg-white sm:bg-transparent border border-slate-400 sm:border-0 outline-none rounded-full px-4 sm:px-4 h-full flex-1 text-slate-900 placeholder:text-slate-500 w-full focus:outline-primary-500 focus:outline focus:outline-2 sm:focus:outline-0"
+            onChange={e => setEmail(e.target.value)}
+            className='bg-white sm:bg-transparent border border-slate-400 sm:border-0 outline-none rounded-full px-4 sm:px-4 h-full flex-1 text-slate-900 placeholder:text-slate-500 w-full focus:outline-primary-500 focus:outline focus:outline-2 sm:focus:outline-0'
             placeholder={t('placeholder')}
             aria-label={t('placeholder')}
             required
             disabled={isSubmitting}
           />
           <button
-            type="submit"
+            type='submit'
             disabled={isSubmitting}
-            className="hidden sm:flex bg-primary-500 text-white rounded-full h-11 mr-1 px-6 lg:px-8 items-center justify-center font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-primary-500"
+            className='hidden sm:flex bg-primary-500 text-white rounded-full h-11 mr-1 px-6 lg:px-8 items-center justify-center font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-primary-500'
             aria-label={t('button')}
           >
             {isSubmitting ? t('submitting') : t('button')}
@@ -105,9 +105,9 @@ export default function Newsletter() {
 
         {/* Mobile button (outside the bordered container) */}
         <button
-          type="submit"
+          type='submit'
           disabled={isSubmitting}
-          className="sm:hidden bg-primary-500 text-white rounded-full h-12 px-8 flex items-center justify-center font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-primary-500 w-full"
+          className='sm:hidden bg-primary-500 text-white rounded-full h-12 px-8 flex items-center justify-center font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-primary-500 w-full'
           aria-label={t('button')}
         >
           {isSubmitting ? t('submitting') : t('button')}
@@ -121,14 +121,14 @@ export default function Newsletter() {
             message.type === 'success' ? 'text-green-600' : 'text-red-600'
           }`}
           role={message.type === 'error' ? 'alert' : 'status'}
-          aria-live="polite"
+          aria-live='polite'
         >
           {message.text}
         </div>
       )}
 
       {/* Privacy Note */}
-      <p className="text-slate-600 text-xs sm:text-sm mt-4 max-w-md">{t('privacy')}</p>
+      <p className='text-slate-600 text-xs sm:text-sm mt-4 max-w-md'>{t('privacy')}</p>
     </section>
   );
 }

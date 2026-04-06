@@ -221,7 +221,7 @@ export class QueryComplexityGuard implements CanActivate {
 
     const mongoOperators = ['$or', '$and', '$in', '$regex', '$ne', '$gt', '$gte', '$lt', '$lte'];
 
-    return Object.keys(obj as Record<string, unknown>).some((key) => mongoOperators.includes(key));
+    return Object.keys(obj as Record<string, unknown>).some(key => mongoOperators.includes(key));
   }
 
   /**

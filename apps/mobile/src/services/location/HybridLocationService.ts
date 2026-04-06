@@ -178,7 +178,7 @@ class HybridLocationService {
   private hasExactMatch(results: ILocationResult[], query: string): boolean {
     const normalizedQuery = this.normalizeText(query);
 
-    return results.some((result) => {
+    return results.some(result => {
       const normalizedName = this.normalizeText(result.name);
       const normalizedNameAr = this.normalizeText(result.nameAr);
 

@@ -150,7 +150,7 @@ export const getDefaultScreenOptions = (
     theme.colors.onSurface,
   ),
   // JS header — reads useSafeAreaInsets().top for correct per-device spacing.
-  header: (props) => createElement(AppHeader, props),
+  header: props => createElement(AppHeader, props),
 });
 
 /**
@@ -186,5 +186,5 @@ export const getAuthScreenOptions = (theme: ThemeContextValue): NativeStackNavig
     theme.colors.onSurface,
   ),
   // JS header — same safe-area approach as getDefaultScreenOptions.
-  header: (props) => createElement(AppHeader, props),
+  header: props => createElement(AppHeader, props),
 });

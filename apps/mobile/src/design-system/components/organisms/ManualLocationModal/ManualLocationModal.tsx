@@ -64,26 +64,26 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
         <Pressable
           style={[styles.resultItem, { borderBottomColor: theme.colors.outline }]}
           onPress={() => handleSelectLocation(item)}
-          accessibilityRole="button"
+          accessibilityRole='button'
           accessibilityLabel={item.displayName}
         >
           <Icon
-            name="location-outline"
+            name='location-outline'
             size={20}
             color={theme.colors.primary}
             style={styles.resultIcon}
           />
           <View style={styles.resultTextContainer}>
-            <Text variant="body" size="md" numberOfLines={1}>
+            <Text variant='body' size='md' numberOfLines={1}>
               {item.address?.city ?? item.displayName.split(',')[0]}
             </Text>
-            <Text variant="body" size="sm" color="secondary" numberOfLines={1}>
+            <Text variant='body' size='sm' color='secondary' numberOfLines={1}>
               {item.displayName}
             </Text>
           </View>
           <Icon
-            name="chevron-forward"
-            family="Ionicons"
+            name='chevron-forward'
+            family='Ionicons'
             size={20}
             color={theme.colors.onSurfaceVariant}
           />
@@ -96,8 +96,8 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
       if (isLoading) {
         return (
           <View style={styles.emptyState}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
+            <ActivityIndicator size='large' color={theme.colors.primary} />
+            <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
               Searching locations...
             </Text>
           </View>
@@ -108,12 +108,12 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
         return (
           <View style={styles.emptyState}>
             <Icon
-              name="alert-circle-outline"
-              family="Ionicons"
+              name='alert-circle-outline'
+              family='Ionicons'
               size={48}
               color={theme.colors.error}
             />
-            <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
+            <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
               Failed to search locations. Please try again.
             </Text>
           </View>
@@ -124,12 +124,12 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
         return (
           <View style={styles.emptyState}>
             <Icon
-              name="search-outline"
-              family="Ionicons"
+              name='search-outline'
+              family='Ionicons'
               size={48}
               color={theme.colors.onSurfaceVariant}
             />
-            <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
+            <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
               No locations found for &ldquo;{debouncedQuery}&rdquo;
             </Text>
           </View>
@@ -139,12 +139,12 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
       return (
         <View style={styles.emptyState}>
           <Icon
-            name="location-sharp"
-            family="Ionicons"
+            name='location-sharp'
+            family='Ionicons'
             size={48}
             color={theme.colors.onSurfaceVariant}
           />
-          <Text variant="body" size="md" color="secondary" style={styles.emptyText}>
+          <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
             Search for a city, address, or place
           </Text>
         </View>
@@ -154,8 +154,8 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
     return (
       <Modal
         visible={visible}
-        animationType="slide"
-        presentationStyle="pageSheet"
+        animationType='slide'
+        presentationStyle='pageSheet'
         onRequestClose={onClose}
         onShow={handleModalShow}
         testID={testID}
@@ -170,16 +170,16 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
           >
             {/* Header */}
             <View style={[styles.header, { borderBottomColor: theme.colors.outline }]}>
-              <Text variant="title" size="lg" weight="semibold">
+              <Text variant='title' size='lg' weight='semibold'>
                 Set Location
               </Text>
               <Pressable
                 onPress={onClose}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                accessibilityLabel="Close"
-                accessibilityRole="button"
+                accessibilityLabel='Close'
+                accessibilityRole='button'
               >
-                <Icon name="close" family="Ionicons" size={24} color={theme.colors.onSurface} />
+                <Icon name='close' family='Ionicons' size={24} color={theme.colors.onSurface} />
               </Pressable>
             </View>
 
@@ -188,11 +188,11 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
               <Input
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                placeholder="Search city or address..."
+                placeholder='Search city or address...'
                 leftIcon={
                   <Icon
-                    name="search"
-                    family="Ionicons"
+                    name='search'
+                    family='Ionicons'
                     size={20}
                     color={theme.colors.onSurfaceVariant}
                   />
@@ -201,8 +201,8 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
                   searchQuery.length > 0 ? (
                     <Pressable onPress={() => setSearchQuery('')}>
                       <Icon
-                        name="close-circle"
-                        family="Ionicons"
+                        name='close-circle'
+                        family='Ionicons'
                         size={20}
                         color={theme.colors.onSurfaceVariant}
                       />
@@ -210,8 +210,8 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
                   ) : undefined
                 }
                 autoFocus
-                returnKeyType="search"
-                accessibilityLabel="Search location"
+                returnKeyType='search'
+                accessibilityLabel='Search location'
               />
             </View>
 
@@ -224,12 +224,12 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
               renderItem={renderSearchResult}
               ListEmptyComponent={renderEmptyState}
               contentContainerStyle={styles.listContent}
-              keyboardShouldPersistTaps="handled"
+              keyboardShouldPersistTaps='handled'
             />
 
             {/* Cancel Button */}
             <View style={[styles.footer, { borderTopColor: theme.colors.outline }]}>
-              <Button variant="outline" size="lg" onPress={onClose} style={styles.cancelButton}>
+              <Button variant='outline' size='lg' onPress={onClose} style={styles.cancelButton}>
                 Cancel
               </Button>
             </View>

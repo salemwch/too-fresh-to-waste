@@ -42,7 +42,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
   // Memoized selector to prevent unnecessary re-renders
   // Only re-render when isLoading or error actually changes
   const authState = useAppSelector(
-    (state) => ({ isLoading: state.auth.isLoading, error: state.auth.error }),
+    state => ({ isLoading: state.auth.isLoading, error: state.auth.error }),
     (left, right) => left.isLoading === right.isLoading && left.error === right.error,
   );
   const { isLoading, error } = authState;
@@ -274,15 +274,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator
-        contentInsetAdjustmentBehavior="automatic"
+        contentInsetAdjustmentBehavior='automatic'
         bounces
         scrollEnabled
         nestedScrollEnabled
       >
         <Card style={styles.formCard}>
-          <Text variant="headline.large" weight="semibold" style={styles.formTitle}>
+          <Text variant='headline.large' weight='semibold' style={styles.formTitle}>
             Create your account
           </Text>
 
@@ -297,13 +297,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
             !error.toLowerCase().includes('password') && (
               <View style={[styles.errorBanner, { backgroundColor: theme.colors.errorContainer }]}>
                 <Icon
-                  name="alert-circle"
+                  name='alert-circle'
                   size={20}
                   color={theme.colors.onErrorContainer}
                   style={styles.errorIcon}
                 />
                 <Text
-                  variant="body.small"
+                  variant='body.small'
                   style={[styles.errorBannerText, { color: theme.colors.onErrorContainer }]}
                 >
                   {error}
@@ -315,7 +315,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
                   }}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <Icon name="close" size={20} color={theme.colors.onErrorContainer} />
+                  <Icon name='close' size={20} color={theme.colors.onErrorContainer} />
                 </Pressable>
               </View>
             )}
@@ -325,20 +325,20 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
             <View style={styles.nameField}>
               <Controller
                 control={control}
-                name="firstName"
+                name='firstName'
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
                     label={renderRequiredLabel('First name')}
-                    placeholder="John"
+                    placeholder='John'
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
-                    autoCapitalize="words"
+                    autoCapitalize='words'
                     autoCorrect={false}
                     hasError={!!formErrors.firstName}
                     errorText={formErrors.firstName?.message}
                     editable={!isLoading}
-                    testID="register-firstName-input"
+                    testID='register-firstName-input'
                   />
                 )}
               />
@@ -346,20 +346,20 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
             <View style={styles.nameField}>
               <Controller
                 control={control}
-                name="lastName"
+                name='lastName'
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
                     label={renderRequiredLabel('Last name')}
-                    placeholder="Doe"
+                    placeholder='Doe'
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
-                    autoCapitalize="words"
+                    autoCapitalize='words'
                     autoCorrect={false}
                     hasError={!!formErrors.lastName}
                     errorText={formErrors.lastName?.message}
                     editable={!isLoading}
-                    testID="register-lastName-input"
+                    testID='register-lastName-input'
                   />
                 )}
               />
@@ -369,22 +369,22 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           {/* Email Input */}
           <Controller
             control={control}
-            name="email"
+            name='email'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 label={renderRequiredLabel('Email address')}
-                placeholder="john.doe@example.com"
+                placeholder='john.doe@example.com'
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
-                keyboardType="email-address"
-                autoCapitalize="none"
+                keyboardType='email-address'
+                autoCapitalize='none'
                 autoCorrect={false}
-                autoComplete="email"
+                autoComplete='email'
                 hasError={!!formErrors.email}
                 errorText={formErrors.email?.message}
                 editable={!isLoading}
-                testID="register-email-input"
+                testID='register-email-input'
                 style={styles.input}
               />
             )}
@@ -395,27 +395,27 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           {/* Password Input */}
           <Controller
             control={control}
-            name="password"
+            name='password'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 label={renderRequiredLabel('Password')}
-                placeholder="Create a strong password"
+                placeholder='Create a strong password'
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 secureTextEntry={!showPassword}
-                autoCapitalize="none"
+                autoCapitalize='none'
                 autoCorrect={false}
-                autoComplete="password-new"
-                leftIcon="lock-closed-outline"
-                leftIconFamily="Ionicons"
+                autoComplete='password-new'
+                leftIcon='lock-closed-outline'
+                leftIconFamily='Ionicons'
                 rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                rightIconFamily="Ionicons"
+                rightIconFamily='Ionicons'
                 onRightIconPress={() => setShowPassword(!showPassword)}
                 hasError={!!formErrors.password}
                 errorText={formErrors.password?.message}
                 editable={!isLoading}
-                testID="register-password-input"
+                testID='register-password-input'
                 style={styles.input}
               />
             )}
@@ -436,33 +436,33 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
             showProgressBar
             enableHaptic
             enableAnimations
-            testID="register-password-strength"
+            testID='register-password-strength'
           />
 
           {/* Confirm Password Input */}
           <Controller
             control={control}
-            name="confirmPassword"
+            name='confirmPassword'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 label={renderRequiredLabel('Confirm password')}
-                placeholder="Re-enter your password"
+                placeholder='Re-enter your password'
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 secureTextEntry={!showConfirmPassword}
-                autoCapitalize="none"
+                autoCapitalize='none'
                 autoCorrect={false}
-                autoComplete="password-new"
-                leftIcon="lock-closed-outline"
-                leftIconFamily="Ionicons"
+                autoComplete='password-new'
+                leftIcon='lock-closed-outline'
+                leftIconFamily='Ionicons'
                 rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
-                rightIconFamily="Ionicons"
+                rightIconFamily='Ionicons'
                 onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 hasError={!!formErrors.confirmPassword}
                 errorText={formErrors.confirmPassword?.message}
                 editable={!isLoading}
-                testID="register-confirmPassword-input"
+                testID='register-confirmPassword-input'
                 style={styles.input}
               />
             )}
@@ -470,13 +470,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
 
           {/* Terms and Privacy Policy - Automatic Acceptance */}
           <View style={styles.termsContainer}>
-            <Text variant="body.small" color="secondary" style={styles.termsText}>
+            <Text variant='body.small' color='secondary' style={styles.termsText}>
               By registering, you agree to the{' '}
-              <Text variant="body.small" weight="bold" style={{ color: theme.colors.primary }}>
+              <Text variant='body.small' weight='bold' style={{ color: theme.colors.primary }}>
                 Terms of Service
               </Text>{' '}
               and{' '}
-              <Text variant="body.small" weight="bold" style={{ color: theme.colors.primary }}>
+              <Text variant='body.small' weight='bold' style={{ color: theme.colors.primary }}>
                 Privacy Policy
               </Text>
             </Text>
@@ -484,29 +484,29 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
 
           {/* Register Button */}
           <Button
-            variant="primary"
-            size="lg"
+            variant='primary'
+            size='lg'
             onPress={() => {
               void handleSubmit(onSubmit)();
             }}
             loading={isLoading}
             disabled={isLoading}
             style={styles.registerButton}
-            testID="register-submit-button"
+            testID='register-submit-button'
           >
             Sign Up
           </Button>
 
           {/* Login Link */}
           <View style={styles.loginContainer}>
-            <Text variant="body.medium" color={theme.colors.onSurfaceVariant}>
+            <Text variant='body.medium' color={theme.colors.onSurfaceVariant}>
               Already have an account?{' '}
             </Text>
             <Pressable onPress={handleNavigateToLogin} disabled={isLoading}>
               <Text
-                variant="body.medium"
+                variant='body.medium'
                 color={theme.colors.primary}
-                weight="semibold"
+                weight='semibold'
                 style={[styles.signInText, { textDecorationColor: theme.colors.primary }]}
               >
                 Sign In

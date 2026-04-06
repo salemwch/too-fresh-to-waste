@@ -39,7 +39,7 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
         '<body onload="steal()">',
       ];
 
-      inputs.forEach((input) => {
+      inputs.forEach(input => {
         const result = sanitizationUtil.sanitizeHtml(input);
         expect(result).not.toContain('onerror');
         expect(result).not.toContain('onclick');
@@ -58,7 +58,7 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
     it('should block object and embed tags', () => {
       const inputs = ['<object data="malicious.swf"></object>', '<embed src="malicious.swf">'];
 
-      inputs.forEach((input) => {
+      inputs.forEach(input => {
         const result = sanitizationUtil.sanitizeHtml(input);
         expect(result).not.toContain('<object');
         expect(result).not.toContain('<embed');
@@ -185,7 +185,7 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
     it('should allow safe relative URLs', () => {
       const urls = ['/path/to/resource', './relative/path'];
 
-      urls.forEach((url) => {
+      urls.forEach(url => {
         const result = sanitizationUtil.sanitizeUrl(url);
         expect(result).toBe(url);
       });
@@ -309,7 +309,7 @@ describe('SanitizationUtil - Enterprise Security Tests', () => {
     it('should detect event handlers', () => {
       const suspicious = ['onclick=alert(1)', 'onerror=steal()', 'onload=malicious()'];
 
-      suspicious.forEach((content) => {
+      suspicious.forEach(content => {
         expect(sanitizationUtil.containsSuspiciousContent(content)).toBe(true);
       });
     });

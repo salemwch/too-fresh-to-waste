@@ -83,7 +83,7 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({
       ]}
     >
       <View style={styles.content}>
-        <Icon name="wifi-off" size={18} color={theme.colors.onError} />
+        <Icon name='wifi-off' size={18} color={theme.colors.onError} />
         <Text style={[styles.message, { color: theme.colors.onError }]}>{message}</Text>
       </View>
     </Animated.View>

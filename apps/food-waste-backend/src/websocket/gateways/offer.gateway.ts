@@ -148,14 +148,14 @@ export class OfferGateway {
     try {
       const notification = {
         title: '⚡ Flash Sale Alert!',
-        message: `Limited time offers available with up to ${Math.max(...offers.map((o) => o.discountPercentage))}% off!`,
+        message: `Limited time offers available with up to ${Math.max(...offers.map(o => o.discountPercentage))}% off!`,
         actionRequired: true,
         action: 'browse_flash_sales',
         priority: 'high' as const,
         data: {
           offerCount: offers.length,
-          maxDiscount: Math.max(...offers.map((o) => o.discountPercentage)),
-          offers: offers.map((o) => ({
+          maxDiscount: Math.max(...offers.map(o => o.discountPercentage)),
+          offers: offers.map(o => ({
             id: o.offerId,
             title: o.title,
             discount: o.discountPercentage,

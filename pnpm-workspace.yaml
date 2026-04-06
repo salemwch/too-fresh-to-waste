@@ -3,9 +3,9 @@ packages:
   - packages/*
 
 onlyBuiltDependencies:
-  - '@firebase/util'
-  - '@nestjs/core'
-  - '@scarf/scarf'
+  - "@firebase/util"
+  - "@nestjs/core"
+  - "@scarf/scarf"
   - argon2
   - bcrypt
   - detox

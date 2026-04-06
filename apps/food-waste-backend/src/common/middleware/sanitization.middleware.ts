@@ -27,7 +27,7 @@ interface QueryParams {
 function isValidQueryParam(value: unknown): value is string | string[] {
   return (
     typeof value === 'string' ||
-    (Array.isArray(value) && value.every((item) => typeof item === 'string'))
+    (Array.isArray(value) && value.every(item => typeof item === 'string'))
   );
 }
 
@@ -81,7 +81,7 @@ export class SanitizationMiddleware implements NestMiddleware {
       '/notification',
     ];
 
-    return notificationPaths.some((notifPath) => path.includes(notifPath));
+    return notificationPaths.some(notifPath => path.includes(notifPath));
   }
 
   private sanitizeRequestBody(body: unknown): NotificationRequestBody {
@@ -100,14 +100,14 @@ export class SanitizationMiddleware implements NestMiddleware {
     }
 
     // Sanitize common string fields
-    ['title', 'body', 'message', 'content', 'description'].forEach((field) => {
+    ['title', 'body', 'message', 'content', 'description'].forEach(field => {
       if (typeof sanitized[field] === 'string') {
         sanitized[field] = this.sanitizationUtil.sanitizeText(sanitized[field]);
       }
     });
 
     // Sanitize nested objects recursively
-    Object.keys(sanitized).forEach((key) => {
+    Object.keys(sanitized).forEach(key => {
       if (
         typeof sanitized[key] === 'object' &&
         sanitized[key] !== null &&
@@ -123,7 +123,7 @@ export class SanitizationMiddleware implements NestMiddleware {
   private sanitizeQueryParams(query: QueryParams): QueryParams {
     const sanitized: QueryParams = {};
 
-    Object.keys(query).forEach((key) => {
+    Object.keys(query).forEach(key => {
       const sanitizedKey = this.sanitizationUtil.sanitizeText(key);
       const value = query[key];
 
@@ -131,7 +131,7 @@ export class SanitizationMiddleware implements NestMiddleware {
         if (typeof value === 'string') {
           sanitized[sanitizedKey] = this.sanitizationUtil.sanitizeText(value);
         } else if (Array.isArray(value)) {
-          sanitized[sanitizedKey] = value.map((item) => this.sanitizationUtil.sanitizeText(item));
+          sanitized[sanitizedKey] = value.map(item => this.sanitizationUtil.sanitizeText(item));
         }
       } else {
         // Skip invalid query parameters

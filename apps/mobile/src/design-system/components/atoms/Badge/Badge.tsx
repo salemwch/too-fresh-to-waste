@@ -83,11 +83,11 @@ export const Badge = forwardRef<
               style={styles.closeButton}
               onPress={onClose}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityLabel="Remove badge"
-              accessibilityRole="button"
+              accessibilityLabel='Remove badge'
+              accessibilityRole='button'
             >
               <Icon
-                name="close"
+                name='close'
                 size={size === 'xs' ? 10 : size === 'sm' ? 12 : 14}
                 color={color ?? theme.colors.onPrimary}
               />

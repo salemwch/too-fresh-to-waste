@@ -95,8 +95,8 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
     if (!enableHaptic || !password) return;
 
     // Check which rules were just met
-    const metRules = rules.filter((rule) => rule.isMet).map((rule) => rule.id);
-    const newlyMetRules = metRules.filter((id) => !previousRulesRef.current.includes(id));
+    const metRules = rules.filter(rule => rule.isMet).map(rule => rule.id);
+    const newlyMetRules = metRules.filter(id => !previousRulesRef.current.includes(id));
 
     // Trigger haptic for each newly met rule
     if (newlyMetRules.length > 0) {
@@ -105,7 +105,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
 
     // Trigger stronger haptic when all basic rules are met
     const basicRules = rules.slice(0, 5);
-    const allBasicMet = basicRules.every((rule) => rule.isMet);
+    const allBasicMet = basicRules.every(rule => rule.isMet);
     const previouslyNotAllMet = !previousRulesRef.current.includes('allBasicMet');
 
     if (allBasicMet && previouslyNotAllMet) {
@@ -237,7 +237,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
             borderWidth={0}
             borderRadius={2}
             animated={enableAnimations}
-            animationType="spring"
+            animationType='spring'
           />
         </View>
       );
@@ -259,7 +259,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
           borderWidth={0}
           borderRadius={4}
           animated={enableAnimations}
-          animationType="spring"
+          animationType='spring'
         />
       </View>
     );
@@ -307,7 +307,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
     if (!showRules) return null;
 
     const basicRules = rules.slice(0, 5); // minLength, upper, lower, number, special
-    const personalInfoRule = rules.find((rule) => rule.id === 'noPersonalInfo'); // Get personal info rule
+    const personalInfoRule = rules.find(rule => rule.id === 'noPersonalInfo'); // Get personal info rule
 
     if (dropdownMode === true) {
       // Compact dropdown layout - show basic rules + personal info rule
@@ -337,7 +337,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
 
     return (
       <View style={styles.successCue as ViewStyle}>
-        <Icon name="check-circle" size={16} color={theme.colors.primary} />
+        <Icon name='check-circle' size={16} color={theme.colors.primary} />
         <Text style={styles.successCueText as TextStyle}>All requirements met!</Text>
       </View>
     );
@@ -352,7 +352,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
     // Determine feedback style based on content
     const getFeedbackStyle = () => {
       if (isValid) return styles.feedbackTextSuccess;
-      if (feedback.some((msg) => msg.toLowerCase().includes('weak'))) {
+      if (feedback.some(msg => msg.toLowerCase().includes('weak'))) {
         return styles.feedbackTextError;
       }
       return undefined;
@@ -381,14 +381,14 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
 
     // Get all basic rules met
     const basicRules = rules.slice(0, 5);
-    const allBasicMet = basicRules.every((rule) => rule.isMet);
+    const allBasicMet = basicRules.every(rule => rule.isMet);
 
     // Only show if basic rules are met but strength is still weak
     if (!allBasicMet) return null;
 
     return (
       <View style={styles.warningBanner}>
-        <Icon name="alert" size={20} color="#FF9800" />
+        <Icon name='alert' size={20} color='#FF9800' />
         <Text style={styles.warningBannerText}>
           Password is too weak. Backend requires at least &ldquo;Fair&rdquo; strength.
         </Text>

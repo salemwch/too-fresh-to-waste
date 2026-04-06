@@ -113,7 +113,7 @@ export class NotificationService {
 
   async sendBulkNotification(requests: ISendNotificationRequest[]): Promise<NotificationResult[]> {
     const results = await Promise.allSettled(
-      requests.map(async (request) => {
+      requests.map(async request => {
         const result = await this.sendNotification(request);
         return result;
       }),
@@ -532,7 +532,7 @@ export class NotificationService {
       { sent: number; delivered: number; failed: number; opened: number; clicked: number }
     > = {};
 
-    data.forEach((item) => {
+    data.forEach(item => {
       const key = item[groupField] ?? 'unknown';
       stats[key] ??= { sent: 0, delivered: 0, failed: 0, opened: 0, clicked: 0 };
 

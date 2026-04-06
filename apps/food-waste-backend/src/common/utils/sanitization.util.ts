@@ -269,7 +269,7 @@ export class SanitizationUtil {
     }
 
     if (Array.isArray(obj)) {
-      return obj.map((item) => this.sanitizeObjectRecursively(item)) as SanitizableArray;
+      return obj.map(item => this.sanitizeObjectRecursively(item)) as SanitizableArray;
     }
 
     if (typeof obj !== 'object') {
@@ -416,7 +416,7 @@ export class SanitizationUtil {
       /constructor.*prototype/i,
     ];
 
-    return suspiciousPatterns.some((pattern) => pattern.test(input));
+    return suspiciousPatterns.some(pattern => pattern.test(input));
   }
 
   /**

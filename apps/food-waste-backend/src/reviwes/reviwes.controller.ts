@@ -121,7 +121,7 @@ export class ReviewsController {
           },
         });
 
-        processedImages = uploadResults.map((result) => ({
+        processedImages = uploadResults.map(result => ({
           url: result.downloadURL,
           filename: result.fileName,
           size: result.size,
@@ -298,7 +298,7 @@ export class ReviewsController {
         id !== null && id !== undefined && typeof id === 'object' ? id.toString() : String(id);
 
       const establishments = await this.reviewsService.getMerchantEstablishments(req.user.userId);
-      const establishmentIds = establishments.map((est) => getIdString(est._id));
+      const establishmentIds = establishments.map(est => getIdString(est._id));
 
       if (establishmentIds.length === 0) {
         const limit = queryDto.limit ?? 10;
@@ -510,7 +510,7 @@ export class ReviewsController {
           },
         });
 
-        newImages = uploadResults.map((result) => ({
+        newImages = uploadResults.map(result => ({
           url: result.downloadURL,
           filename: result.fileName,
           size: result.size,

@@ -63,14 +63,14 @@ export const LocationHeader: React.FC<LocationHeaderProps> = ({ onPress }) => {
     <Pressable
       style={styles.locationHeader}
       onPress={onPress}
-      accessibilityRole="button"
+      accessibilityRole='button'
       accessibilityLabel={`Current location: ${formattedLocationDisplay}`}
-      accessibilityHint="Tap to change your location"
+      accessibilityHint='Tap to change your location'
       disabled={!onPress}
     >
       {/* Location Icon Circle - #005250 */}
       <View style={[styles.locationIconCircle, { backgroundColor: theme.colors.primary }]}>
-        <Icon name="location" family="Ionicons" size={16} color={theme.colors.onPrimary} />
+        <Icon name='location' family='Ionicons' size={16} color={theme.colors.onPrimary} />
       </View>
 
       {/* Location Text Container */}
@@ -83,7 +83,7 @@ export const LocationHeader: React.FC<LocationHeaderProps> = ({ onPress }) => {
         {/* Location Name - Pre-formatted from selector ✅ */}
         <Text
           numberOfLines={1}
-          ellipsizeMode="tail"
+          ellipsizeMode='tail'
           color={theme.colors.onSurface}
           style={styles.locationText}
         >
@@ -92,7 +92,7 @@ export const LocationHeader: React.FC<LocationHeaderProps> = ({ onPress }) => {
       </View>
 
       {/* Dropdown Chevron */}
-      <Icon name="chevron-down" family="Ionicons" size={20} color={theme.colors.onSurface} />
+      <Icon name='chevron-down' family='Ionicons' size={20} color={theme.colors.onSurface} />
     </Pressable>
   );
 };

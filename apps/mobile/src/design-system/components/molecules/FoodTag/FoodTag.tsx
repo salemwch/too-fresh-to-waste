@@ -272,9 +272,9 @@ export const FoodTag: React.FC<FoodTagProps> = ({
           onPress={handleClose}
           style={closeButtonStyle}
           testID={`${testID}-close`}
-          accessibilityRole="button"
-          accessibilityLabel="Remove tag"
-          accessibilityHint="Removes this tag"
+          accessibilityRole='button'
+          accessibilityLabel='Remove tag'
+          accessibilityHint='Removes this tag'
         >
           {resolvedCloseIcon}
         </Pressable>

@@ -18,7 +18,7 @@ export function Breadcrumbs() {
   if (segments.length <= 1) return null;
 
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm text-muted-foreground">
+    <nav aria-label='Breadcrumb' className='flex items-center gap-1 text-sm text-muted-foreground'>
       {segments.map((segment, index) => {
         const href = '/' + segments.slice(0, index + 1).join('/');
         const isLast = index === segments.length - 1;
@@ -31,12 +31,12 @@ export function Breadcrumbs() {
         }
 
         return (
-          <span key={href} className="flex items-center gap-1">
-            {index > 0 && <ChevronRight className="h-3 w-3" />}
+          <span key={href} className='flex items-center gap-1'>
+            {index > 0 && <ChevronRight className='h-3 w-3' />}
             {isLast ? (
               <span className={cn('text-foreground font-medium')}>{label}</span>
             ) : (
-              <Link href={href} className="hover:text-foreground transition-colors">
+              <Link href={href} className='hover:text-foreground transition-colors'>
                 {label}
               </Link>
             )}

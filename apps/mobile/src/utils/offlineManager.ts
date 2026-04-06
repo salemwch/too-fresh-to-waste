@@ -81,7 +81,7 @@ const initializeOfflineManager = (): void => {
   }
 
   // Subscribe to network state updates
-  state.unsubscribe = addEventListener((netInfoState) => {
+  state.unsubscribe = addEventListener(netInfoState => {
     const wasOffline = state.isOffline;
     const isOffline =
       netInfoState.isConnected !== true || netInfoState.isInternetReachable === false;

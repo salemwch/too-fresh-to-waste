@@ -29,7 +29,7 @@ export const SearchStack: React.FC = () => {
       })}
     >
       <Stack.Screen
-        name="SearchMain"
+        name='SearchMain'
         component={SearchScreen}
         options={{ title: 'Search Offers' }}
       />

@@ -124,7 +124,7 @@ export class TemplateService {
     }
 
     // Validate variable syntax
-    const invalidVariables = variables.filter((variable) => !this.isValidVariableSyntax(variable));
+    const invalidVariables = variables.filter(variable => !this.isValidVariableSyntax(variable));
 
     if (invalidVariables.length > 0) {
       errors.push(`Invalid variable syntax: ${invalidVariables.join(', ')}`);
@@ -159,11 +159,11 @@ export class TemplateService {
 
     const variables = new Set<string>();
 
-    this.extractVariables(template.subject).forEach((v) => variables.add(v));
-    this.extractVariables(template.body).forEach((v) => variables.add(v));
+    this.extractVariables(template.subject).forEach(v => variables.add(v));
+    this.extractVariables(template.body).forEach(v => variables.add(v));
 
     if (template.htmlBody) {
-      this.extractVariables(template.htmlBody).forEach((v) => variables.add(v));
+      this.extractVariables(template.htmlBody).forEach(v => variables.add(v));
     }
 
     return Array.from(variables);
@@ -214,7 +214,7 @@ export class TemplateService {
 
   private extractVariables(text: string): string[] {
     const matches = text.match(/\{\{(\w+)\}\}/g) ?? [];
-    return matches.map((match) => match.replace(/\{\{|\}\}/g, ''));
+    return matches.map(match => match.replace(/\{\{|\}\}/g, ''));
   }
 
   private isValidVariableSyntax(variable: string): boolean {

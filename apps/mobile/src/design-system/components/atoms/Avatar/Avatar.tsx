@@ -110,7 +110,7 @@ export const Avatar = forwardRef<
             source={fallbackSource}
             style={[styles.image, imageStyle]}
             onError={() => setImageError(true)}
-            resizeMode="cover"
+            resizeMode='cover'
           />
         );
       }
@@ -157,7 +157,7 @@ export const Avatar = forwardRef<
 
       return (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="small" color={colors.onPrimary} />
+          <ActivityIndicator size='small' color={colors.onPrimary} />
         </View>
       );
     };

@@ -84,7 +84,7 @@ export function useNearbyOffers(
   params: NearbyOffersParams | null,
   options: UseNearbyOffersOptions = {},
 ) {
-  const { tokens } = useAppSelector((state) => state.auth);
+  const { tokens } = useAppSelector(state => state.auth);
 
   const {
     enabled = true,

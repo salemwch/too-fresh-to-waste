@@ -183,7 +183,7 @@ class LoggerService {
 
   public getLogs(level?: LogLevel): LogEntry[] {
     if (level !== undefined) {
-      return this.logs.filter((log) => log.level >= level);
+      return this.logs.filter(log => log.level >= level);
     }
     return [...this.logs];
   }
@@ -194,7 +194,7 @@ class LoggerService {
 
   public exportLogs(): string {
     return this.logs
-      .map((log) => {
+      .map(log => {
         const levelName = LogLevel[log.level];
         let line = `[${log.timestamp}] [${levelName}] ${log.message}`;
 

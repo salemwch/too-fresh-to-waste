@@ -207,7 +207,7 @@ export function useHomeFilters(): UseHomeFiltersResult {
       // Establishment types (validate and sanitize)
       if (filters.establishmentTypes.length > 0) {
         const validTypes = filters.establishmentTypes.filter(
-          (type) => Boolean(type), // Basic validation
+          type => Boolean(type), // Basic validation
         );
         if (validTypes.length > 0) {
           params.establishmentTypes = [...validTypes]; // Defensive copy
@@ -217,20 +217,20 @@ export function useHomeFilters(): UseHomeFiltersResult {
       // Cuisine types (validate and sanitize)
       if (filters.cuisineTypes.length > 0) {
         const validCuisines = filters.cuisineTypes.filter(
-          (cuisine) => typeof cuisine === 'string' && cuisine.trim().length > 0,
+          cuisine => typeof cuisine === 'string' && cuisine.trim().length > 0,
         );
         if (validCuisines.length > 0) {
-          params.cuisineTypes = validCuisines.map((c) => c.trim());
+          params.cuisineTypes = validCuisines.map(c => c.trim());
         }
       }
 
       // Categories (validate and sanitize)
       if (filters.categories.length > 0) {
         const validCategories = filters.categories.filter(
-          (category) => typeof category === 'string' && category.trim().length > 0,
+          category => typeof category === 'string' && category.trim().length > 0,
         );
         if (validCategories.length > 0) {
-          params.categories = validCategories.map((c) => c.trim());
+          params.categories = validCategories.map(c => c.trim());
         }
       }
 
@@ -310,7 +310,7 @@ export function useHomeFilters(): UseHomeFiltersResult {
       source: 'home_screen',
     });
 
-    setFilters((prev) => ({ ...prev, offerType: null }));
+    setFilters(prev => ({ ...prev, offerType: null }));
   }, [filters.offerType]);
 
   /**
@@ -324,9 +324,9 @@ export function useHomeFilters(): UseHomeFiltersResult {
       source: 'home_screen',
     });
 
-    setFilters((prev) => ({
+    setFilters(prev => ({
       ...prev,
-      establishmentTypes: prev.establishmentTypes.filter((t) => t !== type),
+      establishmentTypes: prev.establishmentTypes.filter(t => t !== type),
     }));
   }, []);
 
@@ -341,9 +341,9 @@ export function useHomeFilters(): UseHomeFiltersResult {
       source: 'home_screen',
     });
 
-    setFilters((prev) => ({
+    setFilters(prev => ({
       ...prev,
-      cuisineTypes: prev.cuisineTypes.filter((c) => c !== cuisine),
+      cuisineTypes: prev.cuisineTypes.filter(c => c !== cuisine),
     }));
   }, []);
 
@@ -358,9 +358,9 @@ export function useHomeFilters(): UseHomeFiltersResult {
       source: 'home_screen',
     });
 
-    setFilters((prev) => ({
+    setFilters(prev => ({
       ...prev,
-      categories: prev.categories.filter((c) => c !== category),
+      categories: prev.categories.filter(c => c !== category),
     }));
   }, []);
 

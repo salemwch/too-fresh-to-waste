@@ -203,38 +203,38 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
       >
         {/* Header with establishment name */}
         <View style={[styles.modalHeader, modalHeaderStyle]}>
-          <Text weight="bold" style={styles.modalHeaderTitle}>
+          <Text weight='bold' style={styles.modalHeaderTitle}>
             {establishmentName}
           </Text>
-          <Text size="sm" style={styles.modalHeaderSubtitle}>
+          <Text size='sm' style={styles.modalHeaderSubtitle}>
             {offer.type.replace('_', ' ')}
           </Text>
           <View style={styles.modalTimeRow}>
             <Clock color={WHITE} size={16} />
-            <Text size="sm" style={styles.modalTimeText}>
+            <Text size='sm' style={styles.modalTimeText}>
               Pickup Time: {pickupTime}
             </Text>
           </View>
         </View>
 
         <View style={styles.modalBody}>
-          <Text align="center" color="secondary" size="sm" style={styles.quantityLabel}>
+          <Text align='center' color='secondary' size='sm' style={styles.quantityLabel}>
             Select quantity
           </Text>
 
           {/* Quantity controls */}
           <View style={styles.quantityControls}>
             <Pressable
-              onPress={() => setQuantity((q) => Math.max(1, q - 1))}
+              onPress={() => setQuantity(q => Math.max(1, q - 1))}
               style={[styles.qtyButton, qtyButtonStyle]}
             >
               <Minus color={WHITE} size={20} />
             </Pressable>
-            <Text weight="bold" size="xl">
+            <Text weight='bold' size='xl'>
               {quantity}
             </Text>
             <Pressable
-              onPress={() => setQuantity((q) => Math.min(offer.availableQuantity ?? 1, q + 1))}
+              onPress={() => setQuantity(q => Math.min(offer.availableQuantity ?? 1, q + 1))}
               style={[styles.qtyButton, qtyButtonStyle]}
             >
               <Plus color={WHITE} size={20} />
@@ -243,11 +243,11 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
 
           {/* Terms & Conditions */}
           <View style={styles.termsContainer}>
-            <Text size="xs" color="secondary" align="center" style={styles.termsText}>
+            <Text size='xs' color='secondary' align='center' style={styles.termsText}>
               By reserving this meal you agree to Too Fresh To Waste’s{' '}
               <Text
-                size="xs"
-                weight="semibold"
+                size='xs'
+                weight='semibold'
                 style={[styles.termsLink, termsLinkColorStyle]}
                 onPress={handleTermsPress}
               >
@@ -260,16 +260,16 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
 
           {/* Total */}
           <View style={styles.totalRow}>
-            <Text size="md">Total</Text>
-            <Text weight="bold" size="lg">
+            <Text size='md'>Total</Text>
+            <Text weight='bold' size='lg'>
               {total} {offer.pricing.currency}
             </Text>
           </View>
 
           {/* Reserve button */}
           <Button
-            variant="primary"
-            size="lg"
+            variant='primary'
+            size='lg'
             style={styles.reserveButtonSpacing}
             onPress={() => onConfirm(quantity)}
           >
@@ -278,12 +278,12 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
 
           {/* Payment methods - Below button */}
           <View style={styles.paymentMethodsContainer}>
-            <Text size="xs" color="secondary" align="center" style={styles.paymentSoonLabel}>
+            <Text size='xs' color='secondary' align='center' style={styles.paymentSoonLabel}>
               Available Soon
             </Text>
             <View style={styles.paymentLogos}>
-              <Image source={PayMeImage} style={styles.paymentLogo} resizeMode="contain" />
-              <Image source={ClickToPayImage} style={styles.paymentLogo} resizeMode="contain" />
+              <Image source={PayMeImage} style={styles.paymentLogo} resizeMode='contain' />
+              <Image source={ClickToPayImage} style={styles.paymentLogo} resizeMode='contain' />
             </View>
           </View>
         </View>
@@ -335,10 +335,10 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
   if (error !== null || offer === undefined) {
     return (
       <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
-        <Text weight="bold" color="error">
+        <Text weight='bold' color='error'>
           ⚠️ Error Loading Offer
         </Text>
-        <Button variant="primary" style={styles.retryButton} onPress={() => void refetch()}>
+        <Button variant='primary' style={styles.retryButton} onPress={() => void refetch()}>
           Retry
         </Button>
       </View>
@@ -417,7 +417,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle='light-content' translucent backgroundColor='transparent' />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* --- Header Section --- */}
@@ -430,7 +430,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
 
           <View style={styles.topNav}>
             <Pressable style={styles.iconButton} onPress={() => navigation.goBack()}>
-              <ChevronLeft color="#111827" size={24} />
+              <ChevronLeft color='#111827' size={24} />
             </Pressable>
             <View style={styles.topRightActions}>
               <Pressable
@@ -438,7 +438,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                 onPress={handleFavoritePress}
                 disabled={isFavoriteLoading}
                 accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                accessibilityRole="button"
+                accessibilityRole='button'
               >
                 <Heart
                   color={isFavorite ? '#005250' : '#111827'}
@@ -457,11 +457,11 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                 <Image
                   source={{ uri: merchant.profileImage }}
                   style={styles.merchantLogo}
-                  resizeMode="cover"
+                  resizeMode='cover'
                 />
               ) : (
                 <View style={styles.merchantLogoPlaceholder}>
-                  <Text weight="bold" style={styles.logoPlaceholderText}>
+                  <Text weight='bold' style={styles.logoPlaceholderText}>
                     {establishment?.name !== undefined
                       ? establishment.name.charAt(0).toUpperCase()
                       : 'E'}
@@ -472,7 +472,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           )}
 
           <View style={styles.headerTextContainer}>
-            <Text weight="bold" style={styles.headerTitleText} size="xl">
+            <Text weight='bold' style={styles.headerTitleText} size='xl'>
               {establishment?.name ?? 'Establishment'}
             </Text>
             <Text style={styles.headerSubtitleText}>{offer.categories?.join(' • ')}</Text>
@@ -484,15 +484,15 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           <View style={styles.itemHeader}>
             <View style={styles.itemTitleRow}>
               <ShoppingBag color={theme.colors.secondary} size={20} />
-              <Text weight="semibold" size="md" style={styles.offerTypeText}>
+              <Text weight='semibold' size='md' style={styles.offerTypeText}>
                 {offer.type.replace('_', ' ')}
               </Text>
             </View>
             <View style={styles.priceContainer}>
-              <Text size="md" color="secondary" style={styles.oldPrice}>
+              <Text size='md' color='secondary' style={styles.oldPrice}>
                 {offer.pricing.originalPrice.toFixed(2)} {offer.pricing.currency}
               </Text>
-              <Text weight="bold" size="lg" style={{ color: theme.colors.primary }}>
+              <Text weight='bold' size='lg' style={{ color: theme.colors.primary }}>
                 {offer.pricing.discountedPrice.toFixed(2)} {offer.pricing.currency}
               </Text>
             </View>
@@ -501,12 +501,12 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           {/* --- Rating Section --- */}
           {establishment?.averageRating != null && establishment.averageRating > 0 && (
             <View style={styles.ratingRow}>
-              <Star color="#facc15" fill="#facc15" size={16} />
-              <Text weight="semibold" size="md" style={styles.ratingText}>
+              <Star color='#facc15' fill='#facc15' size={16} />
+              <Text weight='semibold' size='md' style={styles.ratingText}>
                 {establishment.averageRating.toFixed(1)}
               </Text>
               {establishment.totalReviews != null && establishment.totalReviews > 0 && (
-                <Text size="md" color="secondary" style={styles.reviewCount}>
+                <Text size='md' color='secondary' style={styles.reviewCount}>
                   ({establishment.totalReviews})
                 </Text>
               )}
@@ -514,13 +514,13 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           )}
 
           <View style={styles.pickupRow}>
-            <Clock color="#9ca3af" size={20} />
+            <Clock color='#9ca3af' size={20} />
             <Text style={styles.pickupText}>
               Pick up: {offer.pickupTimeSlots?.[0]?.startTime} -{' '}
               {offer.pickupTimeSlots?.[0]?.endTime}
             </Text>
             <View style={[styles.todayBadge, todayBadgeStyle]}>
-              <Text weight="bold" style={styles.todayBadgeText}>
+              <Text weight='bold' style={styles.todayBadgeText}>
                 TODAY
               </Text>
             </View>
@@ -528,7 +528,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
 
           {offer.pickupTimeSlots?.[0]?.maxOrders != null && (
             <View style={styles.slotLimitRow}>
-              <Users color="#9ca3af" size={16} />
+              <Users color='#9ca3af' size={16} />
               <Text style={styles.slotLimitText}>
                 This restaurant allows up to {offer.pickupTimeSlots[0].maxOrders} bag
                 {offer.pickupTimeSlots[0].maxOrders === 1 ? '' : 's'} per offer
@@ -544,15 +544,15 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                   <MapPin color={WHITE} size={16} strokeWidth={2} />
                 </View>
                 <View style={styles.locationTextContainer}>
-                  <Text weight="semibold" style={styles.locationAddress} numberOfLines={1}>
+                  <Text weight='semibold' style={styles.locationAddress} numberOfLines={1}>
                     {establishment.address.street}, {establishment.address.city}
                   </Text>
-                  <Text size="sm" color="secondary" style={styles.locationSubtext}>
+                  <Text size='sm' color='secondary' style={styles.locationSubtext}>
                     Tap to view location on map
                   </Text>
                 </View>
               </View>
-              <ChevronRight color="#9ca3af" size={20} strokeWidth={1.5} />
+              <ChevronRight color='#9ca3af' size={20} strokeWidth={1.5} />
             </Pressable>
           )}
 
@@ -564,18 +564,18 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
               style={styles.accordionHeader}
               onPress={() => setIsDescriptionOpen(!isDescriptionOpen)}
             >
-              <Text weight="semibold" size="md">
+              <Text weight='semibold' size='md'>
                 What you could get
               </Text>
               {isDescriptionOpen ? (
-                <ChevronUp color="#9ca3af" size={20} />
+                <ChevronUp color='#9ca3af' size={20} />
               ) : (
-                <ChevronDown color="#9ca3af" size={20} />
+                <ChevronDown color='#9ca3af' size={20} />
               )}
             </Pressable>
             {isDescriptionOpen && (
               <View style={styles.accordionContent}>
-                <Text color="secondary" style={styles.descriptionText}>
+                <Text color='secondary' style={styles.descriptionText}>
                   {offer.description}
                 </Text>
               </View>
@@ -591,13 +591,13 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                   style={styles.accordionHeader}
                   onPress={() => setIsAllergensOpen(!isAllergensOpen)}
                 >
-                  <Text weight="semibold" size="md">
+                  <Text weight='semibold' size='md'>
                     Ingredients & Allergens
                   </Text>
                   {isAllergensOpen ? (
-                    <ChevronUp color="#9ca3af" size={20} />
+                    <ChevronUp color='#9ca3af' size={20} />
                   ) : (
-                    <ChevronDown color="#9ca3af" size={20} />
+                    <ChevronDown color='#9ca3af' size={20} />
                   )}
                 </Pressable>
                 {isAllergensOpen && (
@@ -605,10 +605,10 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                     {/* Display Allergens */}
                     {(offer.nutritionalInfo.allergens?.length ?? 0) > 0 && (
                       <View style={styles.nutritionSection}>
-                        <Text weight="semibold" size="sm" style={styles.nutritionHeading}>
+                        <Text weight='semibold' size='sm' style={styles.nutritionHeading}>
                           Allergens
                         </Text>
-                        <Text color="secondary" style={styles.nutritionBody}>
+                        <Text color='secondary' style={styles.nutritionBody}>
                           {offer.nutritionalInfo.allergens?.join(', ')}
                         </Text>
                       </View>
@@ -623,13 +623,13 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                             styles.nutritionSectionSpaced,
                         ]}
                       >
-                        <Text weight="semibold" size="sm" style={styles.nutritionHeading}>
+                        <Text weight='semibold' size='sm' style={styles.nutritionHeading}>
                           Dietary Information
                         </Text>
                         <View style={styles.dietaryTags}>
                           {offer.nutritionalInfo.dietaryInfo?.map((item, index) => (
                             <View key={index} style={styles.dietaryTag}>
-                              <Text size="xs" weight="medium" style={styles.dietaryTagText}>
+                              <Text size='xs' weight='medium' style={styles.dietaryTagText}>
                                 {item.charAt(0).toUpperCase() + item.slice(1)}
                               </Text>
                             </View>
@@ -649,10 +649,10 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
       {/* --- Sticky Footer --- */}
       <View style={[styles.footer, footerStyle]}>
         <View style={styles.footerInfo}>
-          <Text size="xs" color="secondary">
+          <Text size='xs' color='secondary'>
             Remaining
           </Text>
-          <Text weight="bold" color={(offer.availableQuantity ?? 0) < 3 ? 'error' : 'primary'}>
+          <Text weight='bold' color={(offer.availableQuantity ?? 0) < 3 ? 'error' : 'primary'}>
             {offer.availableQuantity ?? 0} bags left
           </Text>
         </View>
@@ -661,7 +661,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           onPress={() => canReserve && setSheetVisible(true)}
           disabled={!canReserve}
         >
-          <Text weight="bold" style={styles.reserveButtonText}>
+          <Text weight='bold' style={styles.reserveButtonText}>
             {canReserve ? 'Reserve' : 'Sold Out'}
           </Text>
         </Pressable>

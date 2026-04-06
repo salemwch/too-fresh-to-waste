@@ -138,7 +138,7 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
         <Modal
           visible={visible}
           transparent
-          animationType="fade"
+          animationType='fade'
           statusBarTranslucent
           onRequestClose={() => {}}
           testID={testID}
@@ -156,17 +156,17 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                 <View style={[styles.modalContent, modalContentStyle]}>
                   {/* Header */}
                   <View style={styles.header}>
-                    <Icon name="map-pin" size={48} color={theme.colors.primary} />
+                    <Icon name='map-pin' size={48} color={theme.colors.primary} />
                     <Text
-                      variant="headline"
-                      size="lg"
-                      weight="bold"
-                      align="center"
+                      variant='headline'
+                      size='lg'
+                      weight='bold'
+                      align='center'
                       style={styles.headerTitle}
                     >
                       Where should we look for food?
                     </Text>
-                    <Text variant="body" size="md" color="secondary" align="center">
+                    <Text variant='body' size='md' color='secondary' align='center'>
                       Help us find the best deals near you
                     </Text>
                   </View>
@@ -174,8 +174,8 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                   {/* Error Message */}
                   {error && (
                     <View style={[styles.errorContainer, errorContainerStyle]}>
-                      <Icon name="alert-circle" size={20} color={theme.colors.error} />
-                      <Text variant="body" size="sm" color="error" style={styles.errorText}>
+                      <Icon name='alert-circle' size={20} color={theme.colors.error} />
+                      <Text variant='body' size='sm' color='error' style={styles.errorText}>
                         {error}
                       </Text>
                     </View>
@@ -188,22 +188,22 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                       style={[styles.optionButton, styles.outlinedButton, primaryOptionStyle]}
                       onPress={handleRequestGPSLocation}
                       disabled={isLoading}
-                      accessibilityRole="button"
-                      accessibilityLabel="Find delicious food near me"
-                      accessibilityHint="Uses your current GPS location"
+                      accessibilityRole='button'
+                      accessibilityLabel='Find delicious food near me'
+                      accessibilityHint='Uses your current GPS location'
                     >
                       <View style={styles.optionIconContainer}>
-                        <Icon name="search" size={24} color={theme.colors.primary} />
+                        <Icon name='search' size={24} color={theme.colors.primary} />
                       </View>
                       <View style={styles.optionTextContainer}>
-                        <Text variant="body" size="md" weight="semibold">
+                        <Text variant='body' size='md' weight='semibold'>
                           Delicious food near me
                         </Text>
-                        <Text variant="body" size="sm" color="secondary">
+                        <Text variant='body' size='sm' color='secondary'>
                           Find nearby deals using GPS
                         </Text>
                       </View>
-                      <Icon name="chevron-right" size={20} color={theme.colors.secondary} />
+                      <Icon name='chevron-right' size={20} color={theme.colors.secondary} />
                     </Pressable>
 
                     {/* Option 2: Use my current location */}
@@ -211,22 +211,22 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                       style={[styles.optionButton, styles.outlinedButton, secondaryOptionStyle]}
                       onPress={handleRequestGPSLocation}
                       disabled={isLoading}
-                      accessibilityRole="button"
-                      accessibilityLabel="Use my current location"
-                      accessibilityHint="Request GPS location permission"
+                      accessibilityRole='button'
+                      accessibilityLabel='Use my current location'
+                      accessibilityHint='Request GPS location permission'
                     >
                       <View style={styles.optionIconContainer}>
-                        <Icon name="navigation" size={24} color={theme.colors.primary} />
+                        <Icon name='navigation' size={24} color={theme.colors.primary} />
                       </View>
                       <View style={styles.optionTextContainer}>
-                        <Text variant="body" size="md" weight="semibold">
+                        <Text variant='body' size='md' weight='semibold'>
                           Use my current location
                         </Text>
-                        <Text variant="body" size="sm" color="secondary">
+                        <Text variant='body' size='sm' color='secondary'>
                           We&apos;ll request permission
                         </Text>
                       </View>
-                      <Icon name="chevron-right" size={20} color={theme.colors.secondary} />
+                      <Icon name='chevron-right' size={20} color={theme.colors.secondary} />
                     </Pressable>
 
                     {/* Option 3: Use default location (Sousse) */}
@@ -234,28 +234,28 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                       style={[styles.optionButton, styles.outlinedButton, secondaryOptionStyle]}
                       onPress={handleUseDefaultLocation}
                       disabled={isLoading}
-                      accessibilityRole="button"
-                      accessibilityLabel="Use default location in Sousse"
-                      accessibilityHint="Sets location to Sousse city center"
+                      accessibilityRole='button'
+                      accessibilityLabel='Use default location in Sousse'
+                      accessibilityHint='Sets location to Sousse city center'
                     >
                       <View style={styles.optionIconContainer}>
-                        <Icon name="home" size={24} color={theme.colors.primary} />
+                        <Icon name='home' size={24} color={theme.colors.primary} />
                       </View>
                       <View style={styles.optionTextContainer}>
-                        <Text variant="body" size="md" weight="semibold">
+                        <Text variant='body' size='md' weight='semibold'>
                           Use default location
                         </Text>
-                        <Text variant="body" size="sm" color="secondary">
+                        <Text variant='body' size='sm' color='secondary'>
                           Sousse city center
                         </Text>
                       </View>
-                      <Icon name="chevron-right" size={20} color={theme.colors.secondary} />
+                      <Icon name='chevron-right' size={20} color={theme.colors.secondary} />
                     </Pressable>
 
                     {/* Divider */}
                     <View style={styles.dividerContainer}>
                       <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
-                      <Text variant="body" size="sm" color="secondary" style={styles.dividerText}>
+                      <Text variant='body' size='sm' color='secondary' style={styles.dividerText}>
                         OR
                       </Text>
                       <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
@@ -266,15 +266,15 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                       style={[styles.searchButton, styles.outlinedButton, secondaryOptionStyle]}
                       onPress={handleSearchCityPress}
                       disabled={isLoading}
-                      accessibilityRole="button"
-                      accessibilityLabel="Search for a city"
-                      accessibilityHint="Opens city search modal"
+                      accessibilityRole='button'
+                      accessibilityLabel='Search for a city'
+                      accessibilityHint='Opens city search modal'
                     >
-                      <Icon name="search" size={20} color={theme.colors.secondary} />
+                      <Icon name='search' size={20} color={theme.colors.secondary} />
                       <Text
-                        variant="body"
-                        size="md"
-                        color="secondary"
+                        variant='body'
+                        size='md'
+                        color='secondary'
                         style={styles.searchPlaceholder}
                       >
                         Search by city or area...
@@ -285,8 +285,8 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                   {/* Loading Indicator */}
                   {isLoading && (
                     <View style={styles.loadingContainer}>
-                      <ActivityIndicator size="large" color={theme.colors.primary} />
-                      <Text variant="body" size="sm" color="secondary" style={styles.loadingText}>
+                      <ActivityIndicator size='large' color={theme.colors.primary} />
+                      <Text variant='body' size='sm' color='secondary' style={styles.loadingText}>
                         Getting your location...
                       </Text>
                     </View>
@@ -302,7 +302,7 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
           visible={showCitySearch}
           onClose={() => setShowCitySearch(false)}
           onLocationSelect={handleCitySelect}
-          testID="city-search-modal"
+          testID='city-search-modal'
         />
       </>
     );

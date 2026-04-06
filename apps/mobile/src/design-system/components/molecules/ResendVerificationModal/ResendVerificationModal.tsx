@@ -107,7 +107,7 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
       <Modal
         visible={visible}
         transparent
-        animationType="fade"
+        animationType='fade'
         statusBarTranslucent
         onRequestClose={handleDismiss}
       >
@@ -120,7 +120,7 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
           <Animated.View entering={FadeIn.duration(200)} style={styles.modalContainer}>
             <ScrollView
               contentContainerStyle={styles.scrollContent}
-              keyboardShouldPersistTaps="handled"
+              keyboardShouldPersistTaps='handled'
               showsVerticalScrollIndicator={false}
             >
               <Card style={styles.card}>
@@ -136,19 +136,19 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                       ]}
                     >
                       <Icon
-                        name="mail-outline"
-                        family="Ionicons"
+                        name='mail-outline'
+                        family='Ionicons'
                         size={28}
                         color={theme.colors.primary}
                       />
                     </View>
-                    <Text variant="headline.medium" weight="semibold" style={styles.title}>
+                    <Text variant='headline.medium' weight='semibold' style={styles.title}>
                       Verify Your Email
                     </Text>
                     <Text
-                      variant="body.medium"
-                      color="secondary"
-                      align="center"
+                      variant='body.medium'
+                      color='secondary'
+                      align='center'
                       style={styles.description}
                     >
                       Enter your email address to receive a new verification link
@@ -162,7 +162,7 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                     disabled={isLoading}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
-                    <Icon name="close" family="Ionicons" size={24} color={theme.colors.onSurface} />
+                    <Icon name='close' family='Ionicons' size={24} color={theme.colors.onSurface} />
                   </Pressable>
                 </View>
 
@@ -178,13 +178,13 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                     ]}
                   >
                     <Icon
-                      name="alert-circle-outline"
-                      family="Ionicons"
-                      size="md"
+                      name='alert-circle-outline'
+                      family='Ionicons'
+                      size='md'
                       color={theme.colors.error}
                     />
                     <Text
-                      variant="body.small"
+                      variant='body.small'
                       style={[styles.errorText, { color: theme.colors.onErrorContainer }]}
                     >
                       {errorMessage}
@@ -195,19 +195,19 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                 {/* Email Input */}
                 <Controller
                   control={control}
-                  name="email"
+                  name='email'
                   render={({ field: { onChange, onBlur, value } }) => (
                     <Input
-                      label="Email Address"
-                      placeholder="Enter your email"
+                      label='Email Address'
+                      placeholder='Enter your email'
                       value={value}
                       onChangeText={onChange}
                       onBlur={onBlur}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
+                      keyboardType='email-address'
+                      autoCapitalize='none'
                       autoCorrect={false}
-                      autoComplete="email"
-                      leftIcon={<Icon name="mail-outline" family="Ionicons" size="md" />}
+                      autoComplete='email'
+                      leftIcon={<Icon name='mail-outline' family='Ionicons' size='md' />}
                       hasError={!!formErrors.email}
                       errorText={formErrors.email?.message}
                       editable={!isLoading}
@@ -218,8 +218,8 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
 
                 {/* Send Button */}
                 <Button
-                  variant="primary"
-                  size="lg"
+                  variant='primary'
+                  size='lg'
                   onPress={() => {
                     void handleSubmit(onSubmit)();
                   }}
@@ -232,8 +232,8 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
 
                 {/* Cancel Button */}
                 <Button
-                  variant="outline"
-                  size="md"
+                  variant='outline'
+                  size='md'
                   onPress={handleDismiss}
                   disabled={isLoading}
                   style={styles.cancelButton}
@@ -244,12 +244,12 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                 {/* Help Text */}
                 <View style={styles.helpContainer}>
                   <Icon
-                    name="information-circle-outline"
-                    family="Ionicons"
+                    name='information-circle-outline'
+                    family='Ionicons'
                     size={18}
                     color={theme.colors.onSurfaceVariant}
                   />
-                  <Text variant="body.small" color="secondary" style={styles.helpText}>
+                  <Text variant='body.small' color='secondary' style={styles.helpText}>
                     A verification link will be sent to your email. Please check your inbox and spam
                     folder.
                   </Text>

@@ -246,7 +246,7 @@ export class NotificationPreferencesService {
     }
 
     preferences.locationPreferences.savedLocations =
-      preferences.locationPreferences.savedLocations.filter((loc) => loc.name !== locationName);
+      preferences.locationPreferences.savedLocations.filter(loc => loc.name !== locationName);
 
     return preferences.save();
   }
@@ -316,7 +316,7 @@ export class NotificationPreferencesService {
   async getUsersWithDeviceTokens(userIds?: string[]): Promise<Map<string, string[]>> {
     const query: FilterQuery<NotificationPreferenceDocument> = {};
     if (userIds) {
-      query.userId = { $in: userIds.map((id) => new Types.ObjectId(id)) };
+      query.userId = { $in: userIds.map(id => new Types.ObjectId(id)) };
     }
 
     const preferences = await this.preferencesModel
@@ -326,7 +326,7 @@ export class NotificationPreferencesService {
 
     const userTokensMap = new Map<string, string[]>();
 
-    preferences.forEach((pref) => {
+    preferences.forEach(pref => {
       if ((pref.deviceTokens?.length ?? 0) > 0) {
         userTokensMap.set(pref.userId.toString(), pref.deviceTokens);
       }
@@ -504,7 +504,7 @@ export class NotificationPreferencesService {
       'Pacific/Auckland',
     ];
 
-    return commonTimezones.map((tz) => {
+    return commonTimezones.map(tz => {
       try {
         const dt = DateTime.now().setZone(tz);
         return {

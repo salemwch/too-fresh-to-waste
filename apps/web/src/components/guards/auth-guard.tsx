@@ -22,29 +22,29 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen overflow-hidden bg-background">
+      <div className='flex h-screen overflow-hidden bg-background'>
         {/* Sidebar skeleton */}
-        <div className="hidden lg:flex w-56 shrink-0 flex-col gap-2 border-r bg-card p-4">
-          <Skeleton className="mb-4 h-8 w-36" />
+        <div className='hidden lg:flex w-56 shrink-0 flex-col gap-2 border-r bg-card p-4'>
+          <Skeleton className='mb-4 h-8 w-36' />
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-9 w-full rounded-md" />
+            <Skeleton key={i} className='h-9 w-full rounded-md' />
           ))}
         </div>
         {/* Main area */}
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className='flex flex-1 flex-col overflow-hidden'>
           {/* Header */}
-          <div className="flex h-14 shrink-0 items-center gap-3 border-b bg-card px-4">
-            <Skeleton className="h-7 w-7 rounded-md lg:hidden" />
-            <Skeleton className="h-5 w-40" />
-            <div className="ml-auto flex items-center gap-3">
-              <Skeleton className="h-8 w-8 rounded-full" />
+          <div className='flex h-14 shrink-0 items-center gap-3 border-b bg-card px-4'>
+            <Skeleton className='h-7 w-7 rounded-md lg:hidden' />
+            <Skeleton className='h-5 w-40' />
+            <div className='ml-auto flex items-center gap-3'>
+              <Skeleton className='h-8 w-8 rounded-full' />
             </div>
           </div>
           {/* Content */}
-          <div className="flex-1 space-y-4 p-4 lg:p-[70px]">
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-4 w-64" />
-            <Skeleton className="mt-2 h-36 w-full max-w-md rounded-lg" />
+          <div className='flex-1 space-y-4 p-4 lg:p-[70px]'>
+            <Skeleton className='h-6 w-40' />
+            <Skeleton className='h-4 w-64' />
+            <Skeleton className='mt-2 h-36 w-full max-w-md rounded-lg' />
           </div>
         </div>
       </div>

@@ -66,17 +66,15 @@ export class ReviewModerationService {
       const lowercaseContent = content.toLowerCase();
 
       // Check for explicit profanity
-      const hasProfanity = this.profanityList.some((word) =>
+      const hasProfanity = this.profanityList.some(word =>
         lowercaseContent.includes(word.toLowerCase()),
       );
 
       // Check for spam patterns
-      const hasSpamPatterns = this.spamIndicators.some((pattern) => pattern.test(content));
+      const hasSpamPatterns = this.spamIndicators.some(pattern => pattern.test(content));
 
       // Check for suspicious patterns
-      const hasSuspiciousPatterns = this.suspiciousPatterns.some((pattern) =>
-        pattern.test(content),
-      );
+      const hasSuspiciousPatterns = this.suspiciousPatterns.some(pattern => pattern.test(content));
 
       const containsInappropriateContent = hasProfanity || hasSpamPatterns || hasSuspiciousPatterns;
 
@@ -117,7 +115,7 @@ export class ReviewModerationService {
       };
 
       // Check if content passes basic validation
-      const isValid = Object.values(validations).every((validation) => validation === true);
+      const isValid = Object.values(validations).every(validation => validation === true);
 
       if (!isValid) {
         this.logger.warn(
@@ -366,7 +364,7 @@ export class ReviewModerationService {
     return text
       .trim()
       .split(/\s+/)
-      .filter((word) => word.length > 0).length;
+      .filter(word => word.length > 0).length;
   }
 
   private isAllCaps(text: string): boolean {
@@ -397,8 +395,8 @@ export class ReviewModerationService {
     ];
 
     const lowerContent = content.toLowerCase();
-    const positiveCount = positiveWords.filter((word) => lowerContent.includes(word)).length;
-    const negativeCount = negativeWords.filter((word) => lowerContent.includes(word)).length;
+    const positiveCount = positiveWords.filter(word => lowerContent.includes(word)).length;
+    const negativeCount = negativeWords.filter(word => lowerContent.includes(word)).length;
 
     // 5-star rating with mostly negative words
     if (rating >= 4 && negativeCount > positiveCount && negativeCount > 1) {
@@ -464,7 +462,7 @@ export class ReviewModerationService {
       'perfect for',
     ];
 
-    const hasGenericPhrases = genericPhrases.filter((phrase) =>
+    const hasGenericPhrases = genericPhrases.filter(phrase =>
       content.toLowerCase().includes(phrase),
     ).length;
 

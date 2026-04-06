@@ -44,7 +44,7 @@ const extractValidationReasons = (details: unknown): string[] => {
     return [];
   }
 
-  return details.flatMap((detail) => {
+  return details.flatMap(detail => {
     if (isRecord(detail) && typeof detail['reason'] === 'string' && detail['reason'] !== '') {
       return [detail['reason']];
     }
@@ -124,7 +124,7 @@ const handleApiError = (error: unknown): Error => {
     if (Array.isArray(responseMessage)) {
       // NestJS validation errors: array of objects with constraints
       message = responseMessage
-        .map((err) => {
+        .map(err => {
           // Extract constraint messages from validation error objects
           if (isRecord(err) && isRecord(err['constraints'])) {
             const constraintMessages = Object.values(err['constraints']).filter(

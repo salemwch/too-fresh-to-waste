@@ -788,11 +788,11 @@ export class UserManagementService {
     endDate: Date,
   ): ProcessedAuditEvent[] {
     return auditLogs
-      .filter((log) => {
+      .filter(log => {
         const logDate = new Date(log.timestamp ?? log.createdAt ?? 0);
         return logDate >= startDate && logDate <= endDate;
       })
-      .map((log) => {
+      .map(log => {
         const changes = this.extractChanges(log);
         const action = log.action ?? 'UNKNOWN_ACTION';
         return {
@@ -814,13 +814,13 @@ export class UserManagementService {
     days: number,
   ): UserActivityData['summary'] {
     const statusChanges = events.filter(
-      (e) =>
+      e =>
         e.action.includes('STATUS') ||
         e.action.includes('SUSPENDED') ||
         e.action.includes('ACTIVATED'),
     ).length;
     const loginAttempts = events.filter(
-      (e) => e.action.includes('LOGIN') || e.action.includes('AUTH'),
+      e => e.action.includes('LOGIN') || e.action.includes('AUTH'),
     ).length;
     const lastActivity = events[0]?.timestamp;
     const accountAge = Math.floor(
@@ -901,7 +901,7 @@ export class UserManagementService {
     };
   }
   private extractRecentEvents(events: ProcessedAuditEvent[], limit: number): ActivityEvent[] {
-    return events.slice(0, limit).map((event) => ({
+    return events.slice(0, limit).map(event => ({
       type: this.categorizeEventType(event.action),
       description: event.description,
       timestamp: event.timestamp,
@@ -951,13 +951,13 @@ export class UserManagementService {
     // Normalize action to lowercase for comparison
     const normalizedAction = action.toLowerCase();
 
-    if (criticalActions.some((a) => normalizedAction.includes(a))) {
+    if (criticalActions.some(a => normalizedAction.includes(a))) {
       return 'critical';
     }
-    if (highActions.some((a) => normalizedAction.includes(a))) {
+    if (highActions.some(a => normalizedAction.includes(a))) {
       return 'high';
     }
-    if (mediumActions.some((a) => normalizedAction.includes(a))) {
+    if (mediumActions.some(a => normalizedAction.includes(a))) {
       return 'medium';
     }
     return 'low';
@@ -971,7 +971,7 @@ export class UserManagementService {
     const changes: AuditChange[] = [];
 
     // Extract meaningful changes from audit log
-    Object.keys(log.newValue).forEach((key) => {
+    Object.keys(log.newValue).forEach(key => {
       const oldValue = log.previousValue?.[key];
       const newValue = log.newValue?.[key];
 
@@ -1018,14 +1018,14 @@ export class UserManagementService {
     let riskScore = 0;
 
     // Count critical and high severity events
-    const criticalEvents = events.filter((e) => e?.severity === 'critical').length;
-    const highEvents = events.filter((e) => e?.severity === 'high').length;
+    const criticalEvents = events.filter(e => e?.severity === 'critical').length;
+    const highEvents = events.filter(e => e?.severity === 'high').length;
 
     riskScore += criticalEvents * 30;
     riskScore += highEvents * 15;
 
     // Check for rapid status changes (suspicious pattern) - case insensitive
-    const statusEvents = events.filter((e) => {
+    const statusEvents = events.filter(e => {
       if (typeof e?.action !== 'string') {
         return false;
       }

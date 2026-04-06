@@ -314,7 +314,7 @@ export class ModerationActionService {
     }
 
     // Add audit trail entries
-    changes.forEach((change) => {
+    changes.forEach(change => {
       action.auditTrail.push({
         field: change.field,
         oldValue: change.oldValue,

@@ -631,7 +631,7 @@ export class ReviewsService {
 
       // Check if already responded
       const existingResponse = review.responses.find(
-        (response) => response.respondedBy.toString() === userId,
+        response => response.respondedBy.toString() === userId,
       );
       if (existingResponse) {
         throw new ConflictException('You have already responded to this review');
@@ -687,11 +687,9 @@ export class ReviewsService {
       const userObjectId = new Types.ObjectId(userId);
 
       // Remove any existing interaction from this user
-      review.helpfulVoters = review.helpfulVoters.filter(
-        (voterId) => voterId.toString() !== userId,
-      );
+      review.helpfulVoters = review.helpfulVoters.filter(voterId => voterId.toString() !== userId);
       review.notHelpfulVoters = review.notHelpfulVoters.filter(
-        (voterId) => voterId.toString() !== userId,
+        voterId => voterId.toString() !== userId,
       );
 
       // Add new interaction
@@ -732,9 +730,7 @@ export class ReviewsService {
       if (!review) {
         throw new NotFoundException('Review not found');
       }
-      const existingReport = review.reports.find(
-        (report) => report.reportedBy.toString() === userId,
-      );
+      const existingReport = review.reports.find(report => report.reportedBy.toString() === userId);
       if (existingReport) {
         throw new ConflictException('You have already reported this review');
       }
@@ -934,13 +930,13 @@ export class ReviewsService {
         {},
       );
 
-      const reviewTrends = analyticsResult.reviewTrends.map((item) => ({
+      const reviewTrends = analyticsResult.reviewTrends.map(item => ({
         date: item._id,
         count: item.count,
         averageRating: Math.round(item.averageRating * 100) / 100,
       }));
 
-      const topKeywords = analyticsResult.topKeywords.map((item) => ({
+      const topKeywords = analyticsResult.topKeywords.map(item => ({
         keyword: item._id,
         count: item.count,
       }));
@@ -1082,7 +1078,7 @@ export class ReviewsService {
     analytics: Partial<ReviewAnalytics>;
   }> {
     try {
-      const objectIds = establishmentIds.map((id) => new Types.ObjectId(id));
+      const objectIds = establishmentIds.map(id => new Types.ObjectId(id));
 
       const { establishmentId: _removedId, ...queryWithoutEstId } = queryDto;
       const modifiedQuery = queryWithoutEstId;
@@ -1224,7 +1220,7 @@ export class ReviewsService {
           ratings: Record<string, number> | null,
         ) => {
           if (ratings !== null && ratings !== undefined) {
-            Object.keys(ratings).forEach((key) => {
+            Object.keys(ratings).forEach(key => {
               const ratingValue = ratings[key];
               if (ratingValue !== null && ratingValue !== undefined) {
                 acc[key] = acc[key] ?? { sum: 0, count: 0 };
@@ -1393,7 +1389,7 @@ export class ReviewsService {
 
       const results = await this.reviewModel.aggregate<TrendingKeywordAggregationResult>(pipeline);
 
-      return results.map((item) => ({
+      return results.map(item => ({
         keyword: item._id,
         count: item.count,
         trend:
@@ -1622,8 +1618,8 @@ export class ReviewsService {
         'disappointing',
       ];
 
-      const positiveCount = words.filter((word) => positiveWords.includes(word)).length;
-      const negativeCount = words.filter((word) => negativeWords.includes(word)).length;
+      const positiveCount = words.filter(word => positiveWords.includes(word)).length;
+      const negativeCount = words.filter(word => negativeWords.includes(word)).length;
 
       let sentiment = SentimentType.NEUTRAL;
       let confidence = 0.5;
@@ -1642,7 +1638,7 @@ export class ReviewsService {
         positiveScore: positiveCount / words.length,
         negativeScore: negativeCount / words.length,
         neutralScore: 1 - (positiveCount + negativeCount) / words.length,
-        keywords: [...positiveWords, ...negativeWords].filter((word) => words.includes(word)),
+        keywords: [...positiveWords, ...negativeWords].filter(word => words.includes(word)),
         language: 'en', // Would be detected by AI service
       };
     } catch (error) {
@@ -1696,7 +1692,7 @@ export class ReviewsService {
       /(.)\1{4,}/g, // Repeated characters
     ];
 
-    return spamIndicators.some((pattern) => pattern.test(comment));
+    return spamIndicators.some(pattern => pattern.test(comment));
   }
 
   /**
@@ -1711,7 +1707,7 @@ export class ReviewsService {
     ];
 
     const lowerComment = comment.toLowerCase();
-    return inappropriateWords.some((word) => lowerComment.includes(word));
+    return inappropriateWords.some(word => lowerComment.includes(word));
   }
 
   /**
@@ -1852,7 +1848,7 @@ export class ReviewsService {
     }
 
     if (filters.tags) {
-      const tagArray = filters.tags.split(',').map((tag) => tag.trim());
+      const tagArray = filters.tags.split(',').map(tag => tag.trim());
       matchStage.tags = { $in: tagArray };
     }
 
@@ -1939,7 +1935,7 @@ export class ReviewsService {
         // Emit event for admin notification
         await this.eventBus.emit('reviews.moderation_required', {
           count: reviewsToModerate.length,
-          reviews: reviewsToModerate.map((r) => ({
+          reviews: reviewsToModerate.map(r => ({
             id: r._id,
             flags: r.moderationInfo.autoModerationFlags,
             createdAt: r.createdAt,

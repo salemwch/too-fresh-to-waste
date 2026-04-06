@@ -127,10 +127,10 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     this.logRequest(request);
 
     return next.handle().pipe(
-      tap((responseBody) => {
+      tap(responseBody => {
         this.logResponse(request, response, responseBody);
       }),
-      catchError((error) => {
+      catchError(error => {
         this.logError(request, response, error);
         return throwError((): Error | HttpException => error);
       }),
@@ -238,7 +238,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
 
     // Handle arrays separately
     if (Array.isArray(data)) {
-      return data.map((item) => this.redactSensitiveData(item));
+      return data.map(item => this.redactSensitiveData(item));
     }
 
     const redacted: Record<string, unknown> = { ...(data as Record<string, unknown>) };
@@ -247,7 +247,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
       const lowerKey = key.toLowerCase();
 
       // Redact sensitive fields
-      if (this.sensitiveFields.some((field) => lowerKey.includes(field.toLowerCase()))) {
+      if (this.sensitiveFields.some(field => lowerKey.includes(field.toLowerCase()))) {
         redacted[key] = '[REDACTED]';
       } else if (typeof value === 'object' && value !== null) {
         redacted[key] = this.redactSensitiveData(value);

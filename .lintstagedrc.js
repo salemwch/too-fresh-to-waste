@@ -1,7 +1,7 @@
 module.exports = {
   // Backend TypeScript — run via pnpm filter so CWD = apps/food-waste-backend
   // and ESLint picks up the project's own flat config (eslint.config.js)
-  'apps/food-waste-backend/src/**/*.{ts,js}': (filenames) => [
+  'apps/food-waste-backend/src/**/*.{ts,js}': filenames => [
     `pnpm --filter @foodwaste/backend exec eslint --fix --cache ${filenames.join(' ')}`,
     `prettier --write ${filenames.join(' ')}`,
   ],

@@ -117,11 +117,11 @@ export const InventoryFiltersSchema = z.object({
   category: z.string().optional(),
   lowStock: z
     .union([z.boolean(), z.literal('true'), z.literal('false')])
-    .transform((val) => val === true || val === 'true')
+    .transform(val => val === true || val === 'true')
     .optional(),
   expiringSoon: z
     .union([z.boolean(), z.literal('true'), z.literal('false')])
-    .transform((val) => val === true || val === 'true')
+    .transform(val => val === true || val === 'true')
     .optional(),
   expiringInDays: z.coerce.number().min(1).optional(),
   page: z.coerce.number().int().min(1).optional().default(1),

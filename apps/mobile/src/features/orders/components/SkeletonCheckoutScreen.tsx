@@ -38,10 +38,10 @@ export const SkeletonCheckoutScreen: React.FC = () => {
               <View style={styles.offerImageRow}>
                 <SkeletonBox animValue={anim} width={90} height={90} borderRadius={12} />
                 <View style={styles.offerDetails}>
-                  <SkeletonBox animValue={anim} width="100%" height={20} borderRadius={10} />
+                  <SkeletonBox animValue={anim} width='100%' height={20} borderRadius={10} />
                   <SkeletonBox
                     animValue={anim}
-                    width="70%"
+                    width='70%'
                     height={16}
                     style={styles.blockGap8}
                     borderRadius={8}
@@ -111,10 +111,10 @@ export const SkeletonCheckoutScreen: React.FC = () => {
             <View style={styles.paymentMethod}>
               <SkeletonBox animValue={anim} width={48} height={48} borderRadius={12} />
               <View style={styles.paymentMethodDetails}>
-                <SkeletonBox animValue={anim} width="60%" height={16} borderRadius={8} />
+                <SkeletonBox animValue={anim} width='60%' height={16} borderRadius={8} />
                 <SkeletonBox
                   animValue={anim}
-                  width="80%"
+                  width='80%'
                   height={13}
                   style={styles.blockGap6}
                   borderRadius={6.5}
@@ -155,11 +155,11 @@ export const SkeletonCheckoutScreen: React.FC = () => {
           </View>
 
           <View style={styles.confirmButtonWrapper}>
-            <SkeletonBox animValue={anim} width="100%" height={56} borderRadius={16} />
+            <SkeletonBox animValue={anim} width='100%' height={56} borderRadius={16} />
           </View>
 
           <View style={styles.secondaryActionSpacing}>
-            <SkeletonBox animValue={anim} width="100%" height={48} borderRadius={12} />
+            <SkeletonBox animValue={anim} width='100%' height={48} borderRadius={12} />
           </View>
 
           <View style={styles.trustBadge}>

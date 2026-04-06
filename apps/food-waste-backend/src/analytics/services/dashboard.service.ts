@@ -75,7 +75,7 @@ export class DashboardService {
       }
 
       // Generate widget IDs
-      const widgets = createDashboardDto.widgets.map((widget) => ({
+      const widgets = createDashboardDto.widgets.map(widget => ({
         ...widget,
         id: new Types.ObjectId().toString(),
       }));
@@ -183,7 +183,7 @@ export class DashboardService {
         .sort({ isDefault: -1, updatedAt: -1 })
         .limit(50);
 
-      return dashboards.map((d) => this.mapToInterface(d));
+      return dashboards.map(d => this.mapToInterface(d));
     } catch (error) {
       this.logger.error('Failed to get dashboards:', error);
       throw error;
@@ -215,7 +215,7 @@ export class DashboardService {
       if (updates.widgets) {
         this.validateWidgets(updates.widgets);
         // Update widget IDs for new widgets
-        updates.widgets = updates.widgets.map((widget) => ({
+        updates.widgets = updates.widgets.map(widget => ({
           ...widget,
           id:
             typeof widget.id === 'string' && widget.id.length > 0
@@ -395,7 +395,7 @@ export class DashboardService {
         throw new ForbiddenException('Insufficient permissions to edit dashboard');
       }
 
-      const widgetIndex = dashboard.widgets.findIndex((w) => w.id === widgetId);
+      const widgetIndex = dashboard.widgets.findIndex(w => w.id === widgetId);
       if (widgetIndex === -1) {
         throw new NotFoundException('Widget not found');
       }
@@ -641,7 +641,7 @@ export class DashboardService {
       name: dashboard.name,
       description: dashboard.description,
       category: dashboard.category,
-      widgets: dashboard.widgets.map((w) => ({
+      widgets: dashboard.widgets.map(w => ({
         id: w.id,
         type: w.type,
         title: w.title,

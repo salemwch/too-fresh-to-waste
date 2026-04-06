@@ -73,7 +73,7 @@ try {
 {
   const { isValid, errors } = validateEnvironmentConfig();
   if (!isValid) {
-    errors.forEach((msg) => {
+    errors.forEach(msg => {
       Logger.warn(`[App] Config issue: ${msg}`);
       if (!__DEV__) {
         Sentry.captureMessage(`[Config] ${msg}`, 'warning');
@@ -94,7 +94,7 @@ function AppContent(): React.JSX.Element {
   // ✅ Initialize Local Location Service on app startup (runs once)
   // Loads tunisian-cities.json into memory for fast local searches
   useEffect(() => {
-    localLocationService.initialize().catch((error) => {
+    localLocationService.initialize().catch(error => {
       Logger.error('Failed to initialize LocalLocationService', {}, error);
     });
   }, []);
@@ -127,7 +127,7 @@ function AppContent(): React.JSX.Element {
         await notificationService.registerTokenWithBackend(token);
       };
 
-      registerNotificationToken().catch((error) => {
+      registerNotificationToken().catch(error => {
         Logger.error('[App] Failed to register notification token', {}, error as Error);
       });
     } else if (
@@ -139,7 +139,7 @@ function AppContent(): React.JSX.Element {
         await notificationService.unregisterTokenFromBackend();
       };
 
-      unregisterNotificationToken().catch((error) => {
+      unregisterNotificationToken().catch(error => {
         Logger.error('[App] Failed to unregister notification token', {}, error as Error);
       });
     }
@@ -168,7 +168,7 @@ function AppContent(): React.JSX.Element {
           await dispatch(syncAllFavorites());
         };
 
-        syncFavorites().catch((error) => {
+        syncFavorites().catch(error => {
           Logger.error('[App] Failed to sync favorites', {}, error as Error);
         });
       }
@@ -185,7 +185,7 @@ function AppContent(): React.JSX.Element {
   return (
     <>
       <OfflineBanner />
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle='dark-content' backgroundColor='transparent' translucent />
       <RootNavigator />
       {/* Toast must be last in the component tree to render on top */}
       <Toast config={toastConfig} />
@@ -226,7 +226,7 @@ function App(): React.JSX.Element {
       const { offlineWriteQueue: queue } = await import('@/services/OfflineWriteQueue');
       const { favoritesService } = await import('@/features/favorites/services');
 
-      queue.registerHandler('FAVORITE_TOGGLE', async (item) => {
+      queue.registerHandler('FAVORITE_TOGGLE', async item => {
         const { favoriteType, offerId, offerName, offerImage } = item.payload;
         const typedFavoriteType = favoriteType as FavoriteType;
 
@@ -270,7 +270,7 @@ function App(): React.JSX.Element {
           };
 
           // User tapped the foreground toast — navigate as if it were a background tap
-          navigateFromForegroundNotification().catch((error) => {
+          navigateFromForegroundNotification().catch(error => {
             Logger.error(
               '[App] Failed to navigate from foreground notification tap',
               {},
@@ -320,7 +320,7 @@ function App(): React.JSX.Element {
           <PersistGate loading={null} persistor={persistor}>
             <RehydrationGate>
               <QueryProvider>
-                <ThemeProvider defaultTheme="light">
+                <ThemeProvider defaultTheme='light'>
                   <AppContent />
                 </ThemeProvider>
               </QueryProvider>

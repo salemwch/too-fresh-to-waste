@@ -946,7 +946,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
 
       const result = await this.orderModel.aggregate<MonthlyRevenueAggregation>(pipeline);
 
-      return result.map((item) => ({
+      return result.map(item => ({
         month: `${item._id.year}-${item._id.month.toString().padStart(2, '0')}`,
         revenue: Math.round(item.revenue * 100) / 100,
         orders: item.orders,

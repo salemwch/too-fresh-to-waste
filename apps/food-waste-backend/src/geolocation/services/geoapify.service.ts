@@ -142,7 +142,7 @@ export class GeoapifyService {
           `formatted=${primary.formatted}`,
       );
 
-      const addresses = features.map((f) => this.mapPropertiesToAddress(f.properties));
+      const addresses = features.map(f => this.mapPropertiesToAddress(f.properties));
       const primaryAddress = addresses[0] ?? {
         city: '',
         postalCode: '',
@@ -205,7 +205,7 @@ export class GeoapifyService {
         return [];
       }
 
-      const results = features.map((f) => this.mapFeatureToGeocodingResult(f));
+      const results = features.map(f => this.mapFeatureToGeocodingResult(f));
 
       this.logger.log(`Geocode completed: "${address}" - ${results.length} result(s)`);
       return results;

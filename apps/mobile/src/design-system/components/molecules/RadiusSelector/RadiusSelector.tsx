@@ -55,13 +55,13 @@ export const RadiusSelector = memo<RadiusSelectorProps>(
             style={buttonStyle}
             onPress={() => handleSelect(radiusKm)}
             disabled={disabled}
-            accessibilityRole="radio"
+            accessibilityRole='radio'
             accessibilityState={{ checked: isSelected, disabled }}
             accessibilityLabel={`${radiusKm} kilometers`}
           >
             <Text
-              variant="label"
-              size="sm"
+              variant='label'
+              size='sm'
               weight={isSelected ? 'semibold' : 'medium'}
               style={{ color: isSelected ? theme.colors.onPrimary : theme.colors.onSurface }}
             >
@@ -74,9 +74,9 @@ export const RadiusSelector = memo<RadiusSelectorProps>(
     );
 
     return (
-      <View style={[styles.container, style]} testID={testID} accessibilityRole="radiogroup">
+      <View style={[styles.container, style]} testID={testID} accessibilityRole='radiogroup'>
         {label && (
-          <Text variant="label" size="sm" color="secondary" style={styles.label}>
+          <Text variant='label' size='sm' color='secondary' style={styles.label}>
             {label}
           </Text>
         )}

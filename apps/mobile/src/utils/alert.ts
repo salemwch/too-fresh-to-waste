@@ -128,7 +128,7 @@ export function showAlert(
   // DEVELOPMENT / STAGING: Show native Alert dialog
   // ──────────────────────────────────────────────────────────────────────────
   if (!environment.isProduction) {
-    const alertButtons = buttons?.map((btn) => ({
+    const alertButtons = buttons?.map(btn => ({
       text: btn.text ?? 'OK',
       onPress: invokeAlertAction(btn.onPress, 'button callback'),
       style: btn.style,
@@ -178,7 +178,7 @@ export function showAlert(
   // Execute primary button action if provided
   // In production, we auto-execute the first non-cancel button
   if (buttons && buttons.length > 0) {
-    const primaryButton = buttons.find((btn) => btn.style !== 'cancel') ?? buttons[0];
+    const primaryButton = buttons.find(btn => btn.style !== 'cancel') ?? buttons[0];
 
     // Execute onPress after a short delay (simulates user dismissing Toast)
     if (primaryButton?.onPress) {

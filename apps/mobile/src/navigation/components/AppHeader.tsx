@@ -89,12 +89,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route
           onPress={() => navigation.goBack()}
           style={styles.backButton}
           hitSlop={BACK_HIT_SLOP}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityRole='button'
+          accessibilityLabel='Go back'
         >
           <Icon
             name={Platform.OS === 'ios' ? 'chevron-back' : 'arrow-back'}
-            family="Ionicons"
+            family='Ionicons'
             size={26}
             color={tintColor}
           />

@@ -85,19 +85,19 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
       <Pressable
         style={styles.button}
         onPress={handleMapPress}
-        accessibilityRole="button"
-        accessibilityLabel="Map view"
+        accessibilityRole='button'
+        accessibilityLabel='Map view'
         accessibilityState={{ selected: value === 'map' }}
       >
         <Icon
-          name="map-outline"
-          family="Ionicons"
+          name='map-outline'
+          family='Ionicons'
           size={18}
           color={value === 'map' ? theme.colors.primary : theme.colors.onSurfaceVariant}
         />
         <Text
-          variant="label"
-          size="sm"
+          variant='label'
+          size='sm'
           weight={value === 'map' ? 'bold' : 'medium'}
           color={value === 'map' ? 'primary' : 'secondary'}
           style={styles.buttonText}
@@ -110,19 +110,19 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
       <Pressable
         style={styles.button}
         onPress={handleListPress}
-        accessibilityRole="button"
-        accessibilityLabel="List view"
+        accessibilityRole='button'
+        accessibilityLabel='List view'
         accessibilityState={{ selected: value === 'list' }}
       >
         <Icon
-          name="list-outline"
-          family="Ionicons"
+          name='list-outline'
+          family='Ionicons'
           size={18}
           color={value === 'list' ? theme.colors.primary : theme.colors.onSurfaceVariant}
         />
         <Text
-          variant="label"
-          size="sm"
+          variant='label'
+          size='sm'
           weight={value === 'list' ? 'bold' : 'medium'}
           color={value === 'list' ? 'primary' : 'secondary'}
           style={styles.buttonText}

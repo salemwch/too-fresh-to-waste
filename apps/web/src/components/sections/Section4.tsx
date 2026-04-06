@@ -23,67 +23,67 @@ export default function Section4() {
 
   return (
     <section
-      id="how-to-use"
-      className="bg-[#005250] flex justify-center items-center pt-6 md:pt-0 pb-12 md:pb-16 px-4 relative z-10"
-      aria-labelledby="how-to-use-heading"
+      id='how-to-use'
+      className='bg-[#005250] flex justify-center items-center pt-6 md:pt-0 pb-12 md:pb-16 px-4 relative z-10'
+      aria-labelledby='how-to-use-heading'
     >
       {/* Wave at the top */}
       <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 1440 320"
-        className="absolute top-0 left-0 w-full"
+        xmlns='http://www.w3.org/2000/svg'
+        viewBox='0 0 1440 320'
+        className='absolute top-0 left-0 w-full'
         style={{ transform: 'translateY(-99%)' }}
-        preserveAspectRatio="none"
+        preserveAspectRatio='none'
       >
         <path
-          fill="#005250"
-          fillOpacity="1.00"
-          d="M 0 270 L 0 185.52490399562885 C 102.85714285714286 185.52490399562885 102.85714285714286 278.99517607344757 205.71428571428572 278.99517607344757 C 308.57142857142856 278.99517607344757 308.57142857142856 202.65754578736295 411.42857142857144 202.65754578736295 C 514.2857142857142 202.65754578736295 514.2857142857142 211.86036557464226 617.1428571428571 211.86036557464226 C 720 211.86036557464226 720 155.39411761119555 822.8571428571429 155.39411761119555 C 925.7142857142858 155.39411761119555 925.7142857142858 242.90942100346388 1028.5714285714287 242.90942100346388 C 1131.4285714285716 242.90942100346388 1131.4285714285716 227.68305379355218 1234.2857142857142 227.68305379355218 C 1337.142857142857 227.68305379355218 1337.142857142857 242.284257936268 1440 242.284257936268 C 1440 242.284257936268 1440 320 1440 320 L 1440 320 L 0 320 Z"
+          fill='#005250'
+          fillOpacity='1.00'
+          d='M 0 270 L 0 185.52490399562885 C 102.85714285714286 185.52490399562885 102.85714285714286 278.99517607344757 205.71428571428572 278.99517607344757 C 308.57142857142856 278.99517607344757 308.57142857142856 202.65754578736295 411.42857142857144 202.65754578736295 C 514.2857142857142 202.65754578736295 514.2857142857142 211.86036557464226 617.1428571428571 211.86036557464226 C 720 211.86036557464226 720 155.39411761119555 822.8571428571429 155.39411761119555 C 925.7142857142858 155.39411761119555 925.7142857142858 242.90942100346388 1028.5714285714287 242.90942100346388 C 1131.4285714285716 242.90942100346388 1131.4285714285716 227.68305379355218 1234.2857142857142 227.68305379355218 C 1337.142857142857 227.68305379355218 1337.142857142857 242.284257936268 1440 242.284257936268 C 1440 242.284257936268 1440 320 1440 320 L 1440 320 L 0 320 Z'
         />
       </svg>
 
-      <div className="w-full max-w-[1200px] text-center">
+      <div className='w-full max-w-[1200px] text-center'>
         {/* Title */}
         <h2
-          id="how-to-use-heading"
-          className="text-[#fffb9b] text-xl md:text-3xl leading-tight font-bold mb-2"
+          id='how-to-use-heading'
+          className='text-[#fffb9b] text-xl md:text-3xl leading-tight font-bold mb-2'
         >
           {t('title')}
         </h2>
 
         {/* Description */}
-        <p className="text-[#f9f3f0]/70 text-base leading-normal mb-6">{t('description')}</p>
+        <p className='text-[#f9f3f0]/70 text-base leading-normal mb-6'>{t('description')}</p>
 
         {/* Grid Layout */}
-        <div className="steps-grid">
-          {STEP_CARDS.map((card) => (
-            <article key={card.id} className="card-wrapper">
+        <div className='steps-grid'>
+          {STEP_CARDS.map(card => (
+            <article key={card.id} className='card-wrapper'>
               {/* Circle Badge with Icon */}
-              <div className="card-circle">
+              <div className='card-circle'>
                 <Image
                   src={card.icon}
                   alt={card.iconAlt}
                   width={32}
                   height={32}
-                  className="card-circle-icon"
-                  loading="lazy"
+                  className='card-circle-icon'
+                  loading='lazy'
                 />
               </div>
 
               {/* Card */}
-              <div className="card">
+              <div className='card'>
                 {/* Card Title */}
-                <h3 className="card-title">{t(`slides.step${card.id}.title`)}</h3>
+                <h3 className='card-title'>{t(`slides.step${card.id}.title`)}</h3>
 
                 {/* Card Description */}
-                <p className="card-desc">{t(`slides.step${card.id}.description`)}</p>
+                <p className='card-desc'>{t(`slides.step${card.id}.description`)}</p>
               </div>
             </article>
           ))}
         </div>
 
         {/* Browser Support Warning */}
-        <div className="no-support">
+        <div className='no-support'>
           <h2>Your browser doesn&apos;t support the `shape()` function yet.</h2>
           To see the live examples, please switch to a supporting browser.
         </div>

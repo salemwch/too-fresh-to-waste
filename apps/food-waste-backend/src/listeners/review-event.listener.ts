@@ -700,25 +700,25 @@ export class ReviewEventListener {
 
   private determineReprocessingNeeds(updatedFields: string[]): boolean {
     const reprocessingFields = ['comment', 'title', 'overallRating', 'detailedRatings'];
-    return updatedFields.some((field) => reprocessingFields.includes(field));
+    return updatedFields.some(field => reprocessingFields.includes(field));
   }
 
   private determineRemoderationNeeds(updatedFields: string[]): boolean {
     const moderationFields = ['comment', 'title', 'images'];
-    return updatedFields.some((field) => moderationFields.includes(field));
+    return updatedFields.some(field => moderationFields.includes(field));
   }
 
   private shouldNotifyUpdate(payload: ReviewUpdatedEvent): boolean {
     const notifyFields = ['status', 'overallRating'];
     return (
-      payload.updatedFields.some((field) => notifyFields.includes(field)) ||
+      payload.updatedFields.some(field => notifyFields.includes(field)) ||
       payload.metadata?.updateType === 'moderation'
     );
   }
 
   private isSignificantUpdate(updatedFields: string[]): boolean {
     const significantFields = ['overallRating', 'comment', 'status'];
-    return updatedFields.some((field) => significantFields.includes(field));
+    return updatedFields.some(field => significantFields.includes(field));
   }
 
   private shouldNotifyDeletion(payload: ReviewDeletedEvent): boolean {

@@ -110,7 +110,7 @@ export function useMutationWithOptimistic<
         const previousData = queryClient.getQueryData<TQueryData>(queryKey);
 
         // Optimistically update to the new value
-        queryClient.setQueryData<TQueryData>(queryKey, (old) => updater(old, variables));
+        queryClient.setQueryData<TQueryData>(queryKey, old => updater(old, variables));
 
         Logger.debug('Optimistic update applied', { queryKey });
 

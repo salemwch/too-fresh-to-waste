@@ -438,7 +438,7 @@ export class PrivacyComplianceService {
     // Find the specific consent record
     const consentRecords = user.privacySettings?.consentRecords ?? [];
     const consentIndex = consentRecords.findIndex(
-      (record) =>
+      record =>
         record.consentType === withdrawalData.consentType && record.status === ConsentStatus.GIVEN,
     );
 
@@ -814,12 +814,12 @@ export class PrivacyComplianceService {
         .sort({ createdAt: -1 })
         .toArray()) as PrivacyOrderRecord[];
 
-      return orders.map((order) => ({
+      return orders.map(order => ({
         orderNumber: order.orderNumber,
         status: order.status,
         paymentStatus: order.paymentStatus,
         items:
-          order.items?.map((item) => ({
+          order.items?.map(item => ({
             title: item.offerTitle,
             quantity: item.quantity,
             totalPrice: item.totalPrice,
@@ -875,7 +875,7 @@ export class PrivacyComplianceService {
         .sort({ addedAt: -1 })
         .toArray()) as PrivacyFavoriteRecord[];
 
-      return favorites.map((favorite) => ({
+      return favorites.map(favorite => ({
         type: favorite.type,
         ...(favorite.itemName !== undefined ? { itemName: favorite.itemName } : {}),
         ...(favorite.itemImage !== undefined ? { itemImage: favorite.itemImage } : {}),
@@ -934,7 +934,7 @@ export class PrivacyComplianceService {
         .sort({ createdAt: -1 })
         .toArray()) as PrivacyReviewRecord[];
 
-      return reviews.map((review) => ({
+      return reviews.map(review => ({
         type: review.type,
         overallRating: review.overallRating,
         detailedRatings: {
@@ -1042,7 +1042,7 @@ export class PrivacyComplianceService {
         .lean()
         .exec();
 
-      return notifications.map((notification) => ({
+      return notifications.map(notification => ({
         type: notification.type,
         channel: notification.channel,
         trigger: notification.trigger,

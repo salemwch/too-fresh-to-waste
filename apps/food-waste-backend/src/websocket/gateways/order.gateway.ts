@@ -241,7 +241,7 @@ export class OrderGateway {
    */
   batchNotifyOrderUpdates(updates: OrderStatusUpdate[]): void {
     try {
-      updates.forEach((update) => {
+      updates.forEach(update => {
         this.notifyOrderStatusChange(update);
       });
 

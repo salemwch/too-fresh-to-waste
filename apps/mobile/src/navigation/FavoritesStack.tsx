@@ -29,7 +29,7 @@ export const FavoritesStack: React.FC = () => {
       })}
     >
       <Stack.Screen
-        name="FavoritesMain"
+        name='FavoritesMain'
         component={FavoritesScreen}
         options={{ title: 'My Favorites' }}
       />

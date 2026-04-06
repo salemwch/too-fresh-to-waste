@@ -17,12 +17,12 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
   const pathname = usePathname();
   const locale = useLocale();
   const t = useTranslations('dashboard.nav');
-  const unreadOrderCount = useNotificationStore((s) => s.unreadCount);
+  const unreadOrderCount = useNotificationStore(s => s.unreadCount);
   const { data: draftOfferCount = 0 } = useOfferStatusCount('draft');
 
   return (
-    <nav className="flex flex-col gap-0.5 px-3">
-      {items.map((item) => {
+    <nav className='flex flex-col gap-0.5 px-3'>
+      {items.map(item => {
         const isActive = pathname.startsWith(`/${locale}${item.href}`);
         const Icon = item.icon;
 
@@ -38,7 +38,7 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
             )}
             title={collapsed ? t(item.titleKey) : undefined}
           >
-            <div className="flex items-center gap-2.5">
+            <div className='flex items-center gap-2.5'>
               <Icon
                 className={cn(
                   'w-4 h-4 shrink-0',
@@ -52,7 +52,7 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
                 // Orders: live unread count (red — urgent).
                 if (item.titleKey === 'orders' && unreadOrderCount > 0) {
                   return (
-                    <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-medium">
+                    <span className='w-5 h-5 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-medium'>
                       {unreadOrderCount > 99 ? '99+' : unreadOrderCount}
                     </span>
                   );
@@ -60,7 +60,7 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
                 // Offers: draft count (amber — needs attention).
                 if (item.titleKey === 'offers' && draftOfferCount > 0) {
                   return (
-                    <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
+                    <span className='w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium'>
                       {draftOfferCount > 99 ? '99+' : draftOfferCount}
                     </span>
                   );
@@ -68,7 +68,7 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
                 // Static badge from nav config.
                 if (item.badge) {
                   return (
-                    <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
+                    <span className='w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium'>
                       {item.badge}
                     </span>
                   );

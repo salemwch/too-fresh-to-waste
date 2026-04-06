@@ -6,7 +6,7 @@ import { Skeleton } from '@foodwaste/ui';
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<Skeleton className="h-96 w-full rounded-lg" />}>
+    <Suspense fallback={<Skeleton className='h-96 w-full rounded-lg' />}>
       <ResetPasswordForm />
     </Suspense>
   );

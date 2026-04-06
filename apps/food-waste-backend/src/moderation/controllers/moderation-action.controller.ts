@@ -307,7 +307,7 @@ export class ModerationActionController {
       success: true,
       message: `Bulk action completed. ${result.successful.length} successful, ${result.failed.length} failed`,
       data: {
-        successful: result.successful.map((action) => ({
+        successful: result.successful.map(action => ({
           id: action._id,
           targetUserId: action.targetUserId,
           actionType: action.actionType,

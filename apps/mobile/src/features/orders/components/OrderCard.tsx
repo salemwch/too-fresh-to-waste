@@ -228,9 +228,9 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
       onPress={() => onPress(order)}
       android_ripple={{ color: 'rgba(0, 82, 80, 0.08)', borderless: false }}
       style={({ pressed }) => [styles.card, Platform.OS === 'ios' && pressed && styles.cardPressed]}
-      accessibilityRole="button"
+      accessibilityRole='button'
       accessibilityLabel={`Order ${order.orderNumber}, ${firstItem?.offerTitle ?? 'Order'}, status ${statusConfig.label}`}
-      accessibilityHint="Tap to view order details"
+      accessibilityHint='Tap to view order details'
     >
       {/* ── Status Badge (absolute top-right) ── */}
       <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
@@ -241,10 +241,10 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
       <View style={styles.topRow}>
         {/* Thumbnail — offer image preferred, establishment image fallback */}
         {cardImage ? (
-          <Image source={{ uri: cardImage }} style={styles.thumbnail} resizeMode="cover" />
+          <Image source={{ uri: cardImage }} style={styles.thumbnail} resizeMode='cover' />
         ) : (
           <View style={styles.thumbnailPlaceholder}>
-            <Icon name="fast-food" family="Ionicons" size={28} color="#94A3B8" />
+            <Icon name='fast-food' family='Ionicons' size={28} color='#94A3B8' />
           </View>
         )}
 
@@ -263,7 +263,7 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
       {/* ── Pickup Time Row ── */}
       {startTime && endTime ? (
         <View style={styles.pickupRow}>
-          <Icon name="time-outline" family="Ionicons" size={16} color="#64748B" />
+          <Icon name='time-outline' family='Ionicons' size={16} color='#64748B' />
           <Text style={styles.pickupText}>
             Pickup {pickupDateLabel}: {startTime} - {endTime}
           </Text>
@@ -276,7 +276,7 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
         </View>
       ) : (
         <View style={styles.pickupRow}>
-          <Icon name="time-outline" family="Ionicons" size={16} color="#94A3B8" />
+          <Icon name='time-outline' family='Ionicons' size={16} color='#94A3B8' />
           <Text style={styles.pickupText}>Pickup time pending</Text>
         </View>
       )}

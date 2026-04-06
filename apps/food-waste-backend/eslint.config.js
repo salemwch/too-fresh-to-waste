@@ -26,7 +26,7 @@ module.exports = [
   },
 
   // Spread shared NestJS rules
-  ...nestBase.map((cfg) => ({
+  ...nestBase.map(cfg => ({
     ...cfg,
     languageOptions: {
       ...cfg.languageOptions,
@@ -61,49 +61,201 @@ module.exports = [
         {
           zones: [
             // common → no domain deps
-            { target: './src/common', from: './src/auth', message: 'Common must not depend on auth.' },
-            { target: './src/common', from: './src/users', message: 'Common must not depend on users.' },
-            { target: './src/common', from: './src/orders', message: 'Common must not depend on orders.' },
-            { target: './src/common', from: './src/payments', message: 'Common must not depend on payments.' },
-            { target: './src/common', from: './src/offers', message: 'Common must not depend on offers.' },
-            { target: './src/common', from: './src/establishments', message: 'Common must not depend on establishments.' },
-            { target: './src/common', from: './src/favorites', message: 'Common must not depend on favorites.' },
-            { target: './src/common', from: './src/reviwes', message: 'Common must not depend on reviews.' },
-            { target: './src/common', from: './src/loyalty', message: 'Common must not depend on loyalty.' },
-            { target: './src/common', from: './src/donations', message: 'Common must not depend on donations.' },
-            { target: './src/common', from: './src/inventory', message: 'Common must not depend on inventory.' },
-            { target: './src/common', from: './src/analytics', message: 'Common must not depend on analytics.' },
-            { target: './src/common', from: './src/notifications', message: 'Common must not depend on notifications.' },
-            { target: './src/common', from: './src/moderation', message: 'Common must not depend on moderation.' },
-            { target: './src/common', from: './src/geolocation', message: 'Common must not depend on geolocation.' },
-            { target: './src/common', from: './src/search', message: 'Common must not depend on search.' },
-            { target: './src/common', from: './src/health', message: 'Common must not depend on health.' },
-            { target: './src/common', from: './src/admin', message: 'Common must not depend on admin.' },
+            {
+              target: './src/common',
+              from: './src/auth',
+              message: 'Common must not depend on auth.',
+            },
+            {
+              target: './src/common',
+              from: './src/users',
+              message: 'Common must not depend on users.',
+            },
+            {
+              target: './src/common',
+              from: './src/orders',
+              message: 'Common must not depend on orders.',
+            },
+            {
+              target: './src/common',
+              from: './src/payments',
+              message: 'Common must not depend on payments.',
+            },
+            {
+              target: './src/common',
+              from: './src/offers',
+              message: 'Common must not depend on offers.',
+            },
+            {
+              target: './src/common',
+              from: './src/establishments',
+              message: 'Common must not depend on establishments.',
+            },
+            {
+              target: './src/common',
+              from: './src/favorites',
+              message: 'Common must not depend on favorites.',
+            },
+            {
+              target: './src/common',
+              from: './src/reviwes',
+              message: 'Common must not depend on reviews.',
+            },
+            {
+              target: './src/common',
+              from: './src/loyalty',
+              message: 'Common must not depend on loyalty.',
+            },
+            {
+              target: './src/common',
+              from: './src/donations',
+              message: 'Common must not depend on donations.',
+            },
+            {
+              target: './src/common',
+              from: './src/inventory',
+              message: 'Common must not depend on inventory.',
+            },
+            {
+              target: './src/common',
+              from: './src/analytics',
+              message: 'Common must not depend on analytics.',
+            },
+            {
+              target: './src/common',
+              from: './src/notifications',
+              message: 'Common must not depend on notifications.',
+            },
+            {
+              target: './src/common',
+              from: './src/moderation',
+              message: 'Common must not depend on moderation.',
+            },
+            {
+              target: './src/common',
+              from: './src/geolocation',
+              message: 'Common must not depend on geolocation.',
+            },
+            {
+              target: './src/common',
+              from: './src/search',
+              message: 'Common must not depend on search.',
+            },
+            {
+              target: './src/common',
+              from: './src/health',
+              message: 'Common must not depend on health.',
+            },
+            {
+              target: './src/common',
+              from: './src/admin',
+              message: 'Common must not depend on admin.',
+            },
             // auth → no downstream deps
-            { target: './src/auth', from: './src/orders', message: 'Auth must not depend on orders.' },
-            { target: './src/auth', from: './src/payments', message: 'Auth must not depend on payments.' },
-            { target: './src/auth', from: './src/offers', message: 'Auth must not depend on offers.' },
-            { target: './src/auth', from: './src/establishments', message: 'Auth must not depend on establishments.' },
-            { target: './src/auth', from: './src/favorites', message: 'Auth must not depend on favorites.' },
-            { target: './src/auth', from: './src/loyalty', message: 'Auth must not depend on loyalty.' },
+            {
+              target: './src/auth',
+              from: './src/orders',
+              message: 'Auth must not depend on orders.',
+            },
+            {
+              target: './src/auth',
+              from: './src/payments',
+              message: 'Auth must not depend on payments.',
+            },
+            {
+              target: './src/auth',
+              from: './src/offers',
+              message: 'Auth must not depend on offers.',
+            },
+            {
+              target: './src/auth',
+              from: './src/establishments',
+              message: 'Auth must not depend on establishments.',
+            },
+            {
+              target: './src/auth',
+              from: './src/favorites',
+              message: 'Auth must not depend on favorites.',
+            },
+            {
+              target: './src/auth',
+              from: './src/loyalty',
+              message: 'Auth must not depend on loyalty.',
+            },
             // users → no downstream deps
-            { target: './src/users', from: './src/orders', message: 'Users must not depend on orders.' },
-            { target: './src/users', from: './src/payments', message: 'Users must not depend on payments.' },
-            { target: './src/users', from: './src/offers', message: 'Users must not depend on offers.' },
+            {
+              target: './src/users',
+              from: './src/orders',
+              message: 'Users must not depend on orders.',
+            },
+            {
+              target: './src/users',
+              from: './src/payments',
+              message: 'Users must not depend on payments.',
+            },
+            {
+              target: './src/users',
+              from: './src/offers',
+              message: 'Users must not depend on offers.',
+            },
             // offers → no orders/payments
-            { target: './src/offers', from: './src/orders', message: 'Offers must not depend on orders.' },
-            { target: './src/offers', from: './src/payments', message: 'Offers must not depend on payments.' },
+            {
+              target: './src/offers',
+              from: './src/orders',
+              message: 'Offers must not depend on orders.',
+            },
+            {
+              target: './src/offers',
+              from: './src/payments',
+              message: 'Offers must not depend on payments.',
+            },
             // orders → no favorites/reviews/loyalty/donations/inventory
-            { target: './src/orders', from: './src/favorites', message: 'Orders must not depend on favorites.' },
-            { target: './src/orders', from: './src/reviwes', message: 'Orders must not depend on reviews.' },
-            { target: './src/orders', from: './src/loyalty', message: 'Orders must not depend on loyalty.' },
-            { target: './src/orders', from: './src/donations', message: 'Orders must not depend on donations.' },
-            { target: './src/orders', from: './src/inventory', message: 'Orders must not depend on inventory.' },
+            {
+              target: './src/orders',
+              from: './src/favorites',
+              message: 'Orders must not depend on favorites.',
+            },
+            {
+              target: './src/orders',
+              from: './src/reviwes',
+              message: 'Orders must not depend on reviews.',
+            },
+            {
+              target: './src/orders',
+              from: './src/loyalty',
+              message: 'Orders must not depend on loyalty.',
+            },
+            {
+              target: './src/orders',
+              from: './src/donations',
+              message: 'Orders must not depend on donations.',
+            },
+            {
+              target: './src/orders',
+              from: './src/inventory',
+              message: 'Orders must not depend on inventory.',
+            },
             // payments → only orders/users/common
-            { target: './src/payments', from: './src/offers', message: 'Payments should only depend on orders/users/common.' },
-            { target: './src/payments', from: './src/establishments', message: 'Payments should only depend on orders/users/common.' },
-            { target: './src/payments', from: './src/favorites', message: 'Payments should only depend on orders/users/common.' },
-            { target: './src/payments', from: './src/loyalty', message: 'Payments should only depend on orders/users/common.' },
+            {
+              target: './src/payments',
+              from: './src/offers',
+              message: 'Payments should only depend on orders/users/common.',
+            },
+            {
+              target: './src/payments',
+              from: './src/establishments',
+              message: 'Payments should only depend on orders/users/common.',
+            },
+            {
+              target: './src/payments',
+              from: './src/favorites',
+              message: 'Payments should only depend on orders/users/common.',
+            },
+            {
+              target: './src/payments',
+              from: './src/loyalty',
+              message: 'Payments should only depend on orders/users/common.',
+            },
           ],
         },
       ],

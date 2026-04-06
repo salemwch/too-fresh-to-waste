@@ -171,7 +171,7 @@ export class WebSocketService {
 
   joinRoom(socket: AuthenticatedSocket, roomName: string): void {
     const room: WebSocketRoom | undefined = Object.values(WEBSOCKET_ROOMS).find(
-      (r) => r.name === roomName,
+      r => r.name === roomName,
     );
 
     if (!room) {
@@ -353,7 +353,7 @@ export class WebSocketService {
     userCounts: number;
   } {
     const authenticatedConnections = Array.from(this.connectedClients.values()).filter(
-      (socket) => socket.isAuthenticated,
+      socket => socket.isAuthenticated,
     ).length;
 
     const roomCounts: Record<string, number> = {};
@@ -387,8 +387,8 @@ export class WebSocketService {
     }
 
     return Array.from(participants)
-      .map((socketId) => this.connectedClients.get(socketId))
-      .flatMap((socket) => (socket?.userId ? [socket.userId] : []));
+      .map(socketId => this.connectedClients.get(socketId))
+      .flatMap(socket => (socket?.userId ? [socket.userId] : []));
   }
 
   private wrapEventPayload(event: string, data: unknown, userId?: string): WebSocketEventPayload {

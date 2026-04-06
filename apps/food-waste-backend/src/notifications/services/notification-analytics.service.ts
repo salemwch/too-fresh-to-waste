@@ -482,7 +482,7 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
       .aggregate<NotificationTimeSeriesAggregateResult>(pipeline)
       .exec();
 
-    return metrics.map((metric) => ({
+    return metrics.map(metric => ({
       period: this.formatTimePeriod(metric.period, groupBy),
       sent: metric.sent,
       delivered: metric.delivered,
@@ -503,7 +503,7 @@ export class NotificationAnalyticsService implements INotificationAnalytics {
       { sent: number; delivered: number; failed: number; opened: number; clicked: number }
     > = {};
 
-    data.forEach((item) => {
+    data.forEach(item => {
       const key = item[groupField] ?? 'unknown';
       stats[key] ??= { sent: 0, delivered: 0, failed: 0, opened: 0, clicked: 0 };
 

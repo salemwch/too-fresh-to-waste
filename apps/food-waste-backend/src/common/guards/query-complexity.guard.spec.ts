@@ -465,9 +465,9 @@ describe('QueryComplexityGuard', () => {
 
       expect(stats.passed).toBe(false);
       expect(stats.violations.length).toBeGreaterThan(0);
-      expect(stats.violations.some((v) => v.includes('$or conditions'))).toBe(true);
-      expect(stats.violations.some((v) => v.includes('$in array size'))).toBe(true);
-      expect(stats.violations.some((v) => v.includes('$regex'))).toBe(true);
+      expect(stats.violations.some(v => v.includes('$or conditions'))).toBe(true);
+      expect(stats.violations.some(v => v.includes('$in array size'))).toBe(true);
+      expect(stats.violations.some(v => v.includes('$regex'))).toBe(true);
     });
   });
 

@@ -92,13 +92,13 @@ export class NotificationsController {
   ): Promise<BulkNotificationResponseDto> {
     try {
       // Convert DTOs to service request format
-      const serviceRequests = notifications.map((dto) => this.convertDtoToServiceRequest(dto));
+      const serviceRequests = notifications.map(dto => this.convertDtoToServiceRequest(dto));
       const results = await this.notificationService.sendBulkNotification(serviceRequests);
 
       return {
         totalProcessed: results.length,
-        successCount: results.filter((r) => r.success).length,
-        failureCount: results.filter((r) => !r.success).length,
+        successCount: results.filter(r => r.success).length,
+        failureCount: results.filter(r => !r.success).length,
         results: results as SendNotificationResponseDto[],
       };
     } catch (error) {
@@ -144,8 +144,8 @@ export class NotificationsController {
 
       return {
         totalProcessed: results.length,
-        successCount: results.filter((r) => r.success).length,
-        failureCount: results.filter((r) => !r.success).length,
+        successCount: results.filter(r => r.success).length,
+        failureCount: results.filter(r => !r.success).length,
         results: results as SendNotificationResponseDto[],
       };
     } catch (error) {
@@ -178,7 +178,7 @@ export class NotificationsController {
     });
 
     return {
-      notifications: notifications.map((n) => ({
+      notifications: notifications.map(n => ({
         id: n._id.toString(),
         type: n.type,
         channel: n.channel,

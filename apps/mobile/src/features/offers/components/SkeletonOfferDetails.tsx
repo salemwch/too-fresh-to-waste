@@ -20,7 +20,7 @@ export const SkeletonOfferDetails: React.FC = () => (
   <View style={styles.container}>
     {/* Header Image Skeleton */}
     <View style={styles.headerImageContainer}>
-      <SkeletonBase width="100%" height={280} borderRadius={0} />
+      <SkeletonBase width='100%' height={280} borderRadius={0} />
 
       {/* Merchant Logo Skeleton */}
       <View style={styles.merchantLogoPosition}>
@@ -67,8 +67,8 @@ export const SkeletonOfferDetails: React.FC = () => (
         <View style={styles.locationContent}>
           <SkeletonBase width={32} height={32} borderRadius={16} />
           <View style={styles.locationDetails}>
-            <SkeletonBase width="80%" height={16} borderRadius={4} style={styles.blockGap6} />
-            <SkeletonBase width="60%" height={14} borderRadius={4} />
+            <SkeletonBase width='80%' height={16} borderRadius={4} style={styles.blockGap6} />
+            <SkeletonBase width='60%' height={14} borderRadius={4} />
           </View>
         </View>
         <SkeletonBase width={20} height={20} borderRadius={4} />
@@ -84,9 +84,9 @@ export const SkeletonOfferDetails: React.FC = () => (
           <SkeletonBase width={20} height={20} borderRadius={4} />
         </View>
         <View style={styles.accordionContent}>
-          <SkeletonBase width="100%" height={14} borderRadius={4} style={styles.blockGap6} />
-          <SkeletonBase width="95%" height={14} borderRadius={4} style={styles.blockGap6} />
-          <SkeletonBase width="85%" height={14} borderRadius={4} />
+          <SkeletonBase width='100%' height={14} borderRadius={4} style={styles.blockGap6} />
+          <SkeletonBase width='95%' height={14} borderRadius={4} style={styles.blockGap6} />
+          <SkeletonBase width='85%' height={14} borderRadius={4} />
         </View>
       </View>
 

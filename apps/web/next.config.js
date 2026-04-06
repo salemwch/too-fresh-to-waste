@@ -93,7 +93,7 @@ const nextConfig = {
   ...(process.env.NODE_ENV === 'development' && {
     allowedDevOrigins: (process.env.DEV_ALLOWED_ORIGINS || '')
       .split(',')
-      .map((s) => s.trim())
+      .map(s => s.trim())
       .filter(Boolean),
   }),
 

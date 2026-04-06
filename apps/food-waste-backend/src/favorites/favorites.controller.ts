@@ -405,8 +405,8 @@ export class FavoritesController {
 
     return {
       totalProcessed: items.length,
-      successful: results.filter((r) => r.success).length,
-      failed: results.filter((r) => !r.success).length,
+      successful: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length,
       results,
     };
   }

@@ -331,7 +331,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
 
     // Fetch all sessions in parallel — each is an independent Redis GET
     const results = await Promise.all(
-      sessionIds.map(async (id) => {
+      sessionIds.map(async id => {
         const session = await this.getSessionFromRedis(id);
         return session;
       }),
@@ -352,7 +352,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     user.trustedDevices ??= [];
 
     // Check if device already trusted
-    const existingDevice = user.trustedDevices.find((d) => d.deviceId === deviceId);
+    const existingDevice = user.trustedDevices.find(d => d.deviceId === deviceId);
 
     if (!existingDevice) {
       user.trustedDevices.push({
@@ -380,7 +380,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     const sessions = await this.getUserSessions(userId);
 
     // Check for multiple unique IPs within short time window
-    const uniqueIps = new Set(sessions.map((s) => s.deviceInfo.ipAddress));
+    const uniqueIps = new Set(sessions.map(s => s.deviceInfo.ipAddress));
 
     if (uniqueIps.size >= this.config.suspiciousActivityThreshold) {
       this.logger.warn(`Suspicious activity detected for user ${userId}`);

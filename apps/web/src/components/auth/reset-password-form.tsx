@@ -57,63 +57,63 @@ export function ResetPasswordForm() {
 
   return (
     <Card>
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">{t('resetPasswordTitle')}</CardTitle>
+      <CardHeader className='space-y-1'>
+        <CardTitle className='text-2xl'>{t('resetPasswordTitle')}</CardTitle>
         <CardDescription>{t('resetPasswordDescription')}</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="password">{t('newPassword')}</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+        <CardContent className='space-y-4'>
+          <div className='space-y-2'>
+            <Label htmlFor='password'>{t('newPassword')}</Label>
+            <div className='relative'>
+              <Lock className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none' />
               <Input
-                id="password"
+                id='password'
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                autoComplete="new-password"
-                className="pl-7"
+                autoComplete='new-password'
+                className='pl-7'
               />
               <button
-                type="button"
+                type='button'
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className='absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground'
                 tabIndex={-1}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
               </button>
             </div>
             <PasswordStrengthIndicator password={password} />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">{t('confirmPassword')}</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <div className='space-y-2'>
+            <Label htmlFor='confirmPassword'>{t('confirmPassword')}</Label>
+            <div className='relative'>
+              <Lock className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none' />
               <Input
-                id="confirmPassword"
-                type="password"
+                id='confirmPassword'
+                type='password'
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={e => setConfirmPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                autoComplete="new-password"
-                className="pl-7"
+                autoComplete='new-password'
+                className='pl-7'
               />
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-4">
+        <CardFooter className='flex flex-col gap-4'>
           {error && (
-            <div className="flex w-full items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4 shrink-0" />
+            <div className='flex w-full items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive'>
+              <AlertCircle className='h-4 w-4 shrink-0' />
               <span>{error}</span>
             </div>
           )}
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type='submit' className='w-full' disabled={isLoading}>
+            {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
             {t('resetPasswordButton')}
           </Button>
         </CardFooter>

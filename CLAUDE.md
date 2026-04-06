@@ -1,11 +1,13 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with
+code in this repository.
 
 ## Project
 
 **Too Fresh To Waste** — Food waste reduction marketplace (Tunisia market).
-Monorepo: `apps/mobile` (React Native 0.81) + `apps/web` (Next.js 15) + `apps/food-waste-backend` (NestJS 11) + `packages/shared` + `packages/ui`.
+Monorepo: `apps/mobile` (React Native 0.81) + `apps/web` (Next.js 15) +
+`apps/food-waste-backend` (NestJS 11) + `packages/shared` + `packages/ui`.
 **Node**: 24.11.1 | **pnpm**: 10.17.0 | **Turborepo**: 2.6
 
 ---
@@ -86,7 +88,8 @@ C:\WFA/
 └── tsconfig.base.json         # Strict TS, path aliases
 ```
 
-**`packages/shared` and `packages/ui` must be built (`pnpm build:deps`) before starting any app.**
+**`packages/shared` and `packages/ui` must be built (`pnpm build:deps`) before
+starting any app.**
 
 ### Path Aliases
 
@@ -127,19 +130,24 @@ RootNavigator
         └── OrdersStack → OrdersList → OrderDetails (nested; NOT in MainStack)
 ```
 
-> **Critical**: `OrderDetails` lives inside `OrdersStack`. Navigate from outside via `CommonActions.reset` with nested state.
+> **Critical**: `OrderDetails` lives inside `OrdersStack`. Navigate from outside
+> via `CommonActions.reset` with nested state.
 
-**State**: Redux Toolkit (auth, location, favorites) + TanStack Query v5 (server state) + MMKV (persistence) + Keychain (tokens/secrets).
+**State**: Redux Toolkit (auth, location, favorites) + TanStack Query v5 (server
+state) + MMKV (persistence) + Keychain (tokens/secrets).
 
-**Feature modules**: Vertical slices under `features/<name>/` (screens, components, hooks, services, store, types).
+**Feature modules**: Vertical slices under `features/<name>/` (screens,
+components, hooks, services, store, types).
 
-**Design system**: Atomic design in `design-system/` — tokens → atoms → molecules → organisms.
+**Design system**: Atomic design in `design-system/` — tokens → atoms →
+molecules → organisms.
 
 ---
 
 ### Web — `apps/web/src/`
 
-**Framework**: Next.js 15 App Router + React 19 + next-intl 4.7 + Zustand 5 + TanStack Query 5.
+**Framework**: Next.js 15 App Router + React 19 + next-intl 4.7 + Zustand 5 +
+TanStack Query 5.
 
 **Provider hierarchy** (app/[locale]/layout.tsx):
 
@@ -157,33 +165,47 @@ NextIntlClientProvider → QueryProvider → ThemeProvider → AuthProvider → 
 | `(merchant)`            | Dashboard, offers, orders, analytics, settings       | AuthGuard + RoleGuard(MERCHANT)         |
 | `(admin)`               | Admin dashboard, users, moderation, settings         | AuthGuard + RoleGuard(ADMIN, MODERATOR) |
 
-**Auth**: HttpOnly cookies (access + refresh tokens set by backend). No tokens in JS memory.
+**Auth**: HttpOnly cookies (access + refresh tokens set by backend). No tokens
+in JS memory.
 
 - Middleware (Edge): `jose` JWT verification, redirects unauthenticated users
-- AuthProvider: rehydrates via `GET /auth/me`, proactive refresh every 13min, cross-tab sync via localStorage event
+- AuthProvider: rehydrates via `GET /auth/me`, proactive refresh every 13min,
+  cross-tab sync via localStorage event
 - AuthGuard/RoleGuard: client-side route protection with loading skeletons
 
-**State**: Zustand stores (`useAuthStore`, `useNotificationStore`). TanStack Query with centralized query key factories (`dashboardKeys`).
+**State**: Zustand stores (`useAuthStore`, `useNotificationStore`). TanStack
+Query with centralized query key factories (`dashboardKeys`).
 
-**API client**: Axios with `withCredentials: true` (auto-sends cookies). 401 interceptor triggers refresh + retry. Refresh mutex prevents concurrent refresh calls.
+**API client**: Axios with `withCredentials: true` (auto-sends cookies). 401
+interceptor triggers refresh + retry. Refresh mutex prevents concurrent refresh
+calls.
 
-**i18n**: Locales `en` (default), `fr`, `ar` (RTL). Locale always in URL prefix. Currency: TND.
+**i18n**: Locales `en` (default), `fr`, `ar` (RTL). Locale always in URL prefix.
+Currency: TND.
 
-**Real-time**: Socket.IO for merchant order notifications. Zod-validates incoming events. Patches TanStack Query cache on updates.
+**Real-time**: Socket.IO for merchant order notifications. Zod-validates
+incoming events. Patches TanStack Query cache on updates.
 
 ---
 
 ### Backend — `apps/food-waste-backend/src/`
 
-**Bootstrap** (`main.ts`): Sentry → HTTPS → Filters → Interceptors → URI versioning (`/api/v1/...`) → Helmet CSP → CORS → ValidationPipe → Swagger (`/api/v1/api-docs`) → Redis IO adapter → graceful shutdown.
+**Bootstrap** (`main.ts`): Sentry → HTTPS → Filters → Interceptors → URI
+versioning (`/api/v1/...`) → Helmet CSP → CORS → ValidationPipe → Swagger
+(`/api/v1/api-docs`) → Redis IO adapter → graceful shutdown.
 
-**Module map**: Auth, Users, Establishments, Offers, Orders, Payment, Reviews, Notifications, Geolocation, Favorites, Donations, Loyalty, Inventory, Analytics, Moderation, Admin, WebSocket, Search, Archive, Health.
+**Module map**: Auth, Users, Establishments, Offers, Orders, Payment, Reviews,
+Notifications, Geolocation, Favorites, Donations, Loyalty, Inventory, Analytics,
+Moderation, Admin, WebSocket, Search, Archive, Health.
 
-**Global middleware**: `CorrelationIdMiddleware` (request tracing) + `GlobalSanitizationMiddleware` (XSS prevention).
+**Global middleware**: `CorrelationIdMiddleware` (request tracing) +
+`GlobalSanitizationMiddleware` (XSS prevention).
 
-**MongoDB**: maxPoolSize=100, minPoolSize=10, zstd compression, write concern `w:'majority'`, journaling in production.
+**MongoDB**: maxPoolSize=100, minPoolSize=10, zstd compression, write concern
+`w:'majority'`, journaling in production.
 
-**Redis**: Rate limiting (ThrottlerModule) + Bull job queues + Socket.IO pub/sub adapter.
+**Redis**: Rate limiting (ThrottlerModule) + Bull job queues + Socket.IO pub/sub
+adapter.
 
 **Response envelope** (all endpoints):
 
@@ -191,7 +213,8 @@ NextIntlClientProvider → QueryProvider → ThemeProvider → AuthProvider → 
 { status: 'success' | 'error', message: string, data: T, meta?: { page, total, limit } }
 ```
 
-Mobile uses `unwrapBackendResponse()`. Web accesses `response.data.data` directly.
+Mobile uses `unwrapBackendResponse()`. Web accesses `response.data.data`
+directly.
 
 ---
 
@@ -199,17 +222,21 @@ Mobile uses `unwrapBackendResponse()`. Web accesses `response.data.data` directl
 
 ### Order Expiration
 
-- `expiresAt = offer.availableUntil + 30 min` (constant: `ORDER_GRACE_PERIOD_MS`)
+- `expiresAt = offer.availableUntil + 30 min` (constant:
+  `ORDER_GRACE_PERIOD_MS`)
 - Pickup code validity = `order.expiresAt`
 - Mobile disables pickup input client-side when `expiresAt` is past
 
 ### Establishment Population
 
-`order.establishmentId` can be `string` OR populated object. Always use `getEstablishmentName()` / `getEstablishmentImage()`.
+`order.establishmentId` can be `string` OR populated object. Always use
+`getEstablishmentName()` / `getEstablishmentImage()`.
 
 ### User Profile Image
 
-Two fields: `avatar` (legacy) + `profileImage` (newer). Resolution: `profileImage > avatar > null`. After upload, persist to Keychain (mobile) — not Redux-only.
+Two fields: `avatar` (legacy) + `profileImage` (newer). Resolution:
+`profileImage > avatar > null`. After upload, persist to Keychain (mobile) — not
+Redux-only.
 
 ### Loyalty
 
@@ -220,7 +247,8 @@ Two fields: `avatar` (legacy) + `profileImage` (newer). Resolution: `profileImag
 ### Data Fetching
 
 - Mobile: `useQueryWithFocus` for screen-level queries (refetch on focus)
-- Web: TanStack Query with centralized `dashboardKeys` factory + WebSocket cache patching
+- Web: TanStack Query with centralized `dashboardKeys` factory + WebSocket cache
+  patching
 
 ---
 
@@ -228,5 +256,7 @@ Two fields: `avatar` (legacy) + `profileImage` (newer). Resolution: `profileImag
 
 - iOS builds require macOS with Xcode — require explicit confirmation.
 - Shared package changes require Metro cache reset: `pnpm metro:reset`.
-- `src/store/rehydrationOrchestrator.ts` has pre-existing TS errors (JSX in .ts file).
-- Delivery system: NOT IMPLEMENTED — pickup-only. See `DELIVERY_SYSTEM_ANALYSIS.md`.
+- `src/store/rehydrationOrchestrator.ts` has pre-existing TS errors (JSX in .ts
+  file).
+- Delivery system: NOT IMPLEMENTED — pickup-only. See
+  `DELIVERY_SYSTEM_ANALYSIS.md`.

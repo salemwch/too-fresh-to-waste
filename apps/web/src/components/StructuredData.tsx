@@ -54,7 +54,7 @@ export function OrganizationStructuredData({ locale = 'fr' }: StructuredDataProp
       `https://linkedin.com/${seoConfig.social.linkedin}`,
       `https://tiktok.com/${seoConfig.social.tiktok}`,
     ],
-    areaServed: seoConfig.business.serviceAreas.map((area) => ({
+    areaServed: seoConfig.business.serviceAreas.map(area => ({
       '@type': 'City',
       name: area.name,
       geo: {
@@ -67,7 +67,7 @@ export function OrganizationStructuredData({ locale = 'fr' }: StructuredDataProp
 
   return (
     <script
-      type="application/ld+json"
+      type='application/ld+json'
       dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
     />
   );
@@ -104,7 +104,7 @@ export function WebsiteStructuredData({ locale = 'fr' }: StructuredDataProps) {
 
   return (
     <script
-      type="application/ld+json"
+      type='application/ld+json'
       dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
     />
   );
@@ -150,7 +150,7 @@ export function MobileApplicationStructuredData({ locale = 'fr' }: StructuredDat
 
   return (
     <script
-      type="application/ld+json"
+      type='application/ld+json'
       dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
     />
   );

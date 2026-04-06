@@ -106,28 +106,28 @@ export function OfferCard({
         <>
           {isEstablishmentApproved ? (
             <button
-              type="button"
+              type='button'
               disabled={isPending}
               onClick={onPublish}
               className={cn(btn, prim)}
             >
-              <Zap className="h-3 w-3" /> Publish Now
+              <Zap className='h-3 w-3' /> Publish Now
             </button>
           ) : (
-            <button type="button" disabled className={cn(btn, ghost)}>
-              <Lock className="h-3 w-3" /> Publish — needs approval
+            <button type='button' disabled className={cn(btn, ghost)}>
+              <Lock className='h-3 w-3' /> Publish — needs approval
             </button>
           )}
-          <button type="button" className={cn(btn, sec)}>
-            <Edit3 className="h-3 w-3" /> Edit
+          <button type='button' className={cn(btn, sec)}>
+            <Edit3 className='h-3 w-3' /> Edit
           </button>
           <button
-            type="button"
+            type='button'
             onClick={() => setConfirmDelete(true)}
             className={cn(btn, dang, 'ml-auto')}
-            aria-label="Delete offer"
+            aria-label='Delete offer'
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className='h-3 w-3' />
           </button>
         </>
       );
@@ -137,7 +137,7 @@ export function OfferCard({
       return (
         <>
           <button
-            type="button"
+            type='button'
             disabled={isPending}
             onClick={onMarkSoldOut}
             className={cn(btn, warn)}
@@ -145,23 +145,23 @@ export function OfferCard({
             Mark Sold Out
           </button>
           <button
-            type="button"
+            type='button'
             disabled={isPending}
             onClick={() => setConfirmCancel(true)}
             className={cn(btn, sec)}
           >
             Stop Sales
           </button>
-          <button type="button" className={cn(btn, sec)}>
-            <Edit3 className="h-3 w-3" /> Edit
+          <button type='button' className={cn(btn, sec)}>
+            <Edit3 className='h-3 w-3' /> Edit
           </button>
           <button
-            type="button"
+            type='button'
             onClick={() => setConfirmDelete(true)}
             className={cn(btn, dang, 'ml-auto')}
-            aria-label="Delete offer"
+            aria-label='Delete offer'
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className='h-3 w-3' />
           </button>
         </>
       );
@@ -171,20 +171,20 @@ export function OfferCard({
       return (
         <>
           <button
-            type="button"
+            type='button'
             disabled={isPending}
             onClick={onReactivate}
             className={cn(btn, prim)}
           >
-            <RotateCcw className="h-3 w-3" /> Reactivate
+            <RotateCcw className='h-3 w-3' /> Reactivate
           </button>
           <button
-            type="button"
+            type='button'
             onClick={() => setConfirmDelete(true)}
             className={cn(btn, dang, 'ml-auto')}
-            aria-label="Delete offer"
+            aria-label='Delete offer'
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className='h-3 w-3' />
           </button>
         </>
       );
@@ -193,17 +193,17 @@ export function OfferCard({
     if (offer.status === 'suspended') {
       return (
         <>
-          <span className="flex items-center gap-1.5 text-[11px] text-rose-600">
-            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+          <span className='flex items-center gap-1.5 text-[11px] text-rose-600'>
+            <AlertCircle className='h-3.5 w-3.5 shrink-0' />
             Suspended by admin · Contact support to resolve
           </span>
           <button
-            type="button"
+            type='button'
             onClick={() => setConfirmDelete(true)}
             className={cn(btn, dang, 'ml-auto')}
-            aria-label="Delete offer"
+            aria-label='Delete offer'
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className='h-3 w-3' />
           </button>
         </>
       );
@@ -225,18 +225,18 @@ export function OfferCard({
     >
       {/* ── Draft banner ── */}
       {isDraft && (
-        <div className="flex items-center gap-1.5 px-4 py-1.5 bg-red-50 border-b border-dashed border-red-200">
-          <AlertCircle className="h-3 w-3 text-red-500 shrink-0" />
-          <span className="text-[11px] font-semibold text-red-600">
+        <div className='flex items-center gap-1.5 px-4 py-1.5 bg-red-50 border-b border-dashed border-red-200'>
+          <AlertCircle className='h-3 w-3 text-red-500 shrink-0' />
+          <span className='text-[11px] font-semibold text-red-600'>
             Not published — invisible to customers
           </span>
         </div>
       )}
 
       {/* ── Card body ── */}
-      <div className="flex gap-4 p-4">
+      <div className='flex gap-4 p-4'>
         {/* Image */}
-        <div className="w-[72px] h-[72px] shrink-0 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+        <div className='w-[72px] h-[72px] shrink-0 rounded-lg overflow-hidden border border-slate-200 bg-slate-100'>
           {offer.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -245,17 +245,17 @@ export function OfferCard({
               className={cn('w-full h-full object-cover', isInactive && 'grayscale-[30%]')}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Package className="h-6 w-6 text-slate-300" />
+            <div className='w-full h-full flex items-center justify-center'>
+              <Package className='h-6 w-6 text-slate-300' />
             </div>
           )}
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
+        <div className='flex-1 min-w-0'>
           {/* Row 1 — Title + status badge */}
-          <div className="flex items-start justify-between gap-2 min-w-0">
-            <p className="text-[13px] font-bold text-slate-900 leading-tight truncate">
+          <div className='flex items-start justify-between gap-2 min-w-0'>
+            <p className='text-[13px] font-bold text-slate-900 leading-tight truncate'>
               {offer.title}
             </p>
             <span
@@ -264,48 +264,48 @@ export function OfferCard({
                 cfg.badge,
               )}
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              <span className='h-1.5 w-1.5 rounded-full bg-current' />
               {cfg.label}
             </span>
           </div>
 
           {/* Row 2 — Type · pickup */}
-          <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+          <p className='text-[11px] text-slate-500 mt-0.5 truncate'>
             {TYPE_LABELS[offer.type] ?? offer.type}
             {pickup && <> &middot; {pickup}</>}
           </p>
 
           {/* Row 3 — Pricing */}
-          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <span className="text-[13px] font-bold text-slate-900 tabular-nums">
+          <div className='flex items-center gap-2 mt-1.5 flex-wrap'>
+            <span className='text-[13px] font-bold text-slate-900 tabular-nums'>
               {fmt(offer.pricing.discountedPrice)}
             </span>
-            <span className="text-[11px] text-slate-400 line-through tabular-nums">
+            <span className='text-[11px] text-slate-400 line-through tabular-nums'>
               {fmt(offer.pricing.originalPrice)}
             </span>
-            <span className="text-[11px] font-semibold text-primary">
+            <span className='text-[11px] font-semibold text-primary'>
               {offer.pricing.discountPercentage}% off
             </span>
             {offer.ctaState === 'low_stock' && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200">
+              <span className='px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200'>
                 Low Stock
               </span>
             )}
           </div>
 
           {/* Row 4 — Revenue · sales */}
-          <div className="flex items-center gap-4 mt-1.5 flex-wrap">
+          <div className='flex items-center gap-4 mt-1.5 flex-wrap'>
             {revenue !== null && (
-              <span className="text-[11px] font-semibold text-emerald-700 tabular-nums">
+              <span className='text-[11px] font-semibold text-emerald-700 tabular-nums'>
                 💰 {fmt(revenue)} earned
               </span>
             )}
             {offer.soldQuantity != null && offer.totalQuantity != null ? (
-              <span className="text-[11px] text-slate-500 tabular-nums">
+              <span className='text-[11px] text-slate-500 tabular-nums'>
                 📦 {offer.soldQuantity} / {offer.totalQuantity} sold
               </span>
             ) : (
-              <span className="text-[11px] text-slate-500 tabular-nums">
+              <span className='text-[11px] text-slate-500 tabular-nums'>
                 📦 {offer.availableQuantity} bag{offer.availableQuantity !== 1 ? 's' : ''} left
               </span>
             )}
@@ -313,7 +313,7 @@ export function OfferCard({
 
           {/* Progress bar — only when we have exact numbers */}
           {soldPct !== null && (
-            <div className="mt-2.5 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+            <div className='mt-2.5 h-1.5 rounded-full bg-slate-100 overflow-hidden'>
               <div
                 className={cn(
                   'h-full rounded-full transition-all duration-500',
@@ -327,29 +327,29 @@ export function OfferCard({
       </div>
 
       {/* ── Action bar ── */}
-      <div className="flex items-center gap-2 px-4 py-2.5 border-t border-slate-100 bg-slate-50/60 flex-wrap">
+      <div className='flex items-center gap-2 px-4 py-2.5 border-t border-slate-100 bg-slate-50/60 flex-wrap'>
         <Actions />
       </div>
 
       {/* ── Inline delete confirm ── */}
       {confirmDelete && (
-        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-red-50 border-t border-red-200">
-          <p className="text-xs text-red-700 font-medium">Delete this offer permanently?</p>
-          <div className="flex gap-2">
+        <div className='flex items-center justify-between gap-3 px-4 py-3 bg-red-50 border-t border-red-200'>
+          <p className='text-xs text-red-700 font-medium'>Delete this offer permanently?</p>
+          <div className='flex gap-2'>
             <button
-              type="button"
+              type='button'
               onClick={() => setConfirmDelete(false)}
               className={cn(btn, sec, 'text-[11px]')}
             >
               Keep it
             </button>
             <button
-              type="button"
+              type='button'
               onClick={() => {
                 setConfirmDelete(false);
                 onDelete();
               }}
-              className="inline-flex items-center h-7 px-3 rounded-md text-[11px] font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
+              className='inline-flex items-center h-7 px-3 rounded-md text-[11px] font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors'
             >
               Yes, delete
             </button>
@@ -359,25 +359,25 @@ export function OfferCard({
 
       {/* ── Inline stop-sales confirm ── */}
       {confirmCancel && (
-        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border-t border-amber-200">
-          <p className="text-xs text-amber-800 font-medium">
+        <div className='flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border-t border-amber-200'>
+          <p className='text-xs text-amber-800 font-medium'>
             Stop this active offer? Customers won&apos;t see it anymore.
           </p>
-          <div className="flex gap-2">
+          <div className='flex gap-2'>
             <button
-              type="button"
+              type='button'
               onClick={() => setConfirmCancel(false)}
               className={cn(btn, sec, 'text-[11px]')}
             >
               Keep it live
             </button>
             <button
-              type="button"
+              type='button'
               onClick={() => {
                 setConfirmCancel(false);
                 onCancelOffer();
               }}
-              className="inline-flex items-center h-7 px-3 rounded-md text-[11px] font-semibold bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+              className='inline-flex items-center h-7 px-3 rounded-md text-[11px] font-semibold bg-amber-600 text-white hover:bg-amber-700 transition-colors'
             >
               Stop sales
             </button>

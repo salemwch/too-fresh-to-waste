@@ -38,19 +38,19 @@ export function DateFilter({ value, onChange }: DateFilterProps) {
   };
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className='flex flex-col gap-1.5'>
       {/* ── Row 1: granularity tabs ── */}
       <div
-        role="group"
-        aria-label="Chart granularity"
-        className="inline-flex items-center self-end bg-slate-100 rounded-lg p-1 gap-0.5"
+        role='group'
+        aria-label='Chart granularity'
+        className='inline-flex items-center self-end bg-slate-100 rounded-lg p-1 gap-0.5'
       >
-        {GRANULARITIES.map((g) => {
+        {GRANULARITIES.map(g => {
           const isActive = g === activeGranularity;
           return (
             <button
               key={g}
-              type="button"
+              type='button'
               onClick={() => handleGranularityClick(g)}
               aria-pressed={isActive}
               className={cn(
@@ -68,16 +68,16 @@ export function DateFilter({ value, onChange }: DateFilterProps) {
 
       {/* ── Row 2: value buttons for the active granularity ── */}
       <div
-        role="group"
-        aria-label="Date range"
-        className="inline-flex items-center self-end bg-slate-100 rounded-lg p-1 gap-0.5"
+        role='group'
+        aria-label='Date range'
+        className='inline-flex items-center self-end bg-slate-100 rounded-lg p-1 gap-0.5'
       >
-        {PRESETS_BY_GRANULARITY[activeGranularity].map((preset) => {
+        {PRESETS_BY_GRANULARITY[activeGranularity].map(preset => {
           const isActive = preset === value;
           return (
             <button
               key={preset}
-              type="button"
+              type='button'
               onClick={() => onChange(preset)}
               aria-pressed={isActive}
               className={cn(

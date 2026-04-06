@@ -107,8 +107,8 @@ const HomeSearchBarComponent = ({
         <View style={styles.searchBar}>
           {/* Search Icon */}
           <Icon
-            name="search"
-            family="Ionicons"
+            name='search'
+            family='Ionicons'
             size={20}
             color={COLORS.textPlaceholder}
             style={styles.searchIcon}
@@ -116,17 +116,17 @@ const HomeSearchBarComponent = ({
 
           {/* Search Input */}
           <TextInput
-            placeholder="Search for food..."
+            placeholder='Search for food...'
             placeholderTextColor={COLORS.textPlaceholder}
             value={searchQuery}
             onChangeText={onSearchChange}
-            returnKeyType="search"
-            autoCapitalize="none"
+            returnKeyType='search'
+            autoCapitalize='none'
             autoCorrect={false}
             style={styles.searchInput}
-            accessibilityLabel="Search offers"
-            accessibilityHint="Type to filter offers by establishment, cuisine, or food"
-            testID="home-search-input"
+            accessibilityLabel='Search offers'
+            accessibilityHint='Type to filter offers by establishment, cuisine, or food'
+            testID='home-search-input'
           />
 
           {/* Vertical Divider */}
@@ -137,13 +137,13 @@ const HomeSearchBarComponent = ({
             style={styles.filterButton}
             onPress={onFilterPress}
             accessibilityLabel={`Filters ${hasFilters ? `(${filterCount} active)` : ''}`}
-            accessibilityRole="button"
-            testID="home-filter-button"
+            accessibilityRole='button'
+            testID='home-filter-button'
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Icon
-              name="options-outline"
-              family="Ionicons"
+              name='options-outline'
+              family='Ionicons'
               size={22}
               color={hasFilters ? COLORS.brand : COLORS.textSecondary}
             />
@@ -163,17 +163,17 @@ const HomeSearchBarComponent = ({
           {searchQuery.trim().length > 0 && (
             <View style={styles.searchChipContainer}>
               <View style={styles.searchChip}>
-                <Icon name="search" family="Ionicons" size={14} color={COLORS.brand} />
+                <Icon name='search' family='Ionicons' size={14} color={COLORS.brand} />
                 <Text style={styles.searchChipText} numberOfLines={1}>
                   {searchQuery}
                 </Text>
                 <Pressable
                   onPress={() => onSearchChange('')}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  accessibilityLabel="Clear search"
-                  accessibilityRole="button"
+                  accessibilityLabel='Clear search'
+                  accessibilityRole='button'
                 >
-                  <Icon name="close" family="Ionicons" size={16} color={COLORS.brand} />
+                  <Icon name='close' family='Ionicons' size={16} color={COLORS.brand} />
                 </Pressable>
               </View>
             </View>

@@ -81,35 +81,35 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   // ──────────────────────────────────────────────────────────────────────────
 
   const toggleOfferType = useCallback((type: OfferType | null) => {
-    setLocalFilters((prev) => ({
+    setLocalFilters(prev => ({
       ...prev,
       offerType: prev.offerType === type ? null : type,
     }));
   }, []);
 
   const toggleEstablishmentType = useCallback((type: EstablishmentType) => {
-    setLocalFilters((prev) => ({
+    setLocalFilters(prev => ({
       ...prev,
       establishmentTypes: prev.establishmentTypes.includes(type)
-        ? prev.establishmentTypes.filter((t) => t !== type)
+        ? prev.establishmentTypes.filter(t => t !== type)
         : [...prev.establishmentTypes, type],
     }));
   }, []);
 
   const toggleCuisineType = useCallback((cuisine: string) => {
-    setLocalFilters((prev) => ({
+    setLocalFilters(prev => ({
       ...prev,
       cuisineTypes: prev.cuisineTypes.includes(cuisine)
-        ? prev.cuisineTypes.filter((c) => c !== cuisine)
+        ? prev.cuisineTypes.filter(c => c !== cuisine)
         : [...prev.cuisineTypes, cuisine],
     }));
   }, []);
 
   const toggleCategory = useCallback((category: string) => {
-    setLocalFilters((prev) => ({
+    setLocalFilters(prev => ({
       ...prev,
       categories: prev.categories.includes(category)
-        ? prev.categories.filter((c) => c !== category)
+        ? prev.categories.filter(c => c !== category)
         : [...prev.categories, category],
     }));
   }, []);
@@ -141,13 +141,13 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: colors.outline }]}>
           <Pressable onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color={colors.onSurface} />
+            <Icon name='close' size={24} color={colors.onSurface} />
           </Pressable>
-          <Text variant="headline" style={styles.headerTitle}>
+          <Text variant='headline' style={styles.headerTitle}>
             Filters
           </Text>
           <Pressable onPress={handleClear}>
-            <Text variant="body" style={accentTextStyle}>
+            <Text variant='body' style={accentTextStyle}>
               Clear
             </Text>
           </Pressable>
@@ -161,11 +161,11 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         >
           {/* Offer Type Section */}
           <View style={styles.section}>
-            <Text variant="title" style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
               🎁 Offer Type
             </Text>
             <View style={styles.radioGroup}>
-              {OFFER_TYPE_OPTIONS.map((option) => {
+              {OFFER_TYPE_OPTIONS.map(option => {
                 const isSelected = localFilters.offerType === option.value;
                 return (
                   <Pressable
@@ -181,7 +181,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   >
                     <Text style={styles.offerTypeIcon}>{option.icon}</Text>
                     <Text
-                      variant="body"
+                      variant='body'
                       style={[
                         styles.optionLabel,
                         isSelected ? styles.selectedText : onSurfaceTextStyle,
@@ -197,11 +197,11 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
           {/* Establishment Type Section */}
           <View style={styles.section}>
-            <Text variant="title" style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
               🏪 Establishment Type
             </Text>
             <View style={styles.chipGrid}>
-              {ESTABLISHMENT_TYPE_OPTIONS.map((option) => {
+              {ESTABLISHMENT_TYPE_OPTIONS.map(option => {
                 const isSelected = localFilters.establishmentTypes.includes(option.value);
                 return (
                   <Pressable
@@ -217,7 +217,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   >
                     <Text style={styles.establishmentIcon}>{option.icon}</Text>
                     <Text
-                      variant="caption"
+                      variant='caption'
                       style={[
                         styles.establishmentLabel,
                         isSelected ? styles.selectedText : onSurfaceTextStyle,
@@ -233,11 +233,11 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
           {/* Cuisine Type Section */}
           <View style={styles.section}>
-            <Text variant="title" style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
               🍝 Cuisine Type
             </Text>
             <View style={styles.chipGrid}>
-              {CUISINE_TYPE_OPTIONS.map((option) => {
+              {CUISINE_TYPE_OPTIONS.map(option => {
                 const isSelected = localFilters.cuisineTypes.includes(option.value);
                 return (
                   <Pressable
@@ -253,7 +253,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   >
                     <Text style={styles.cuisineIcon}>{option.flag}</Text>
                     <Text
-                      variant="caption"
+                      variant='caption'
                       style={[
                         styles.cuisineLabel,
                         isSelected ? styles.selectedText : onSurfaceTextStyle,
@@ -269,11 +269,11 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
           {/* Food Categories Section */}
           <View style={styles.section}>
-            <Text variant="title" style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
               🍕 Food Categories
             </Text>
             <View style={styles.chipWrap}>
-              {CATEGORY_OPTIONS.map((option) => {
+              {CATEGORY_OPTIONS.map(option => {
                 const isSelected = localFilters.categories.includes(option.value);
                 return (
                   <Pressable
@@ -289,7 +289,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   >
                     {option.icon && <Text style={styles.categoryIcon}>{option.icon}</Text>}
                     <Text
-                      variant="caption"
+                      variant='caption'
                       style={[
                         styles.optionLabel,
                         isSelected ? styles.selectedText : onSurfaceTextStyle,
@@ -311,15 +311,15 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             onPress={handleApply}
           >
             {isLoading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color='#FFFFFF' />
             ) : (
               <>
-                <Text variant="label" weight="semibold" style={styles.applyButtonText}>
+                <Text variant='label' weight='semibold' style={styles.applyButtonText}>
                   Apply Filters
                 </Text>
                 {resultCount !== undefined && (
                   <View style={styles.resultBadge}>
-                    <Text variant="caption" style={[styles.resultBadgeText, successTextStyle]}>
+                    <Text variant='caption' style={[styles.resultBadgeText, successTextStyle]}>
                       {resultCount}
                     </Text>
                   </View>

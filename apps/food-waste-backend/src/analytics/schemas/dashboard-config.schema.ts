@@ -174,7 +174,7 @@ export class DashboardConfig {
         validate: {
           validator(roles: string[]) {
             const validRoles = ['admin', 'merchant', 'consumer'];
-            return roles.every((role) => validRoles.includes(role));
+            return roles.every(role => validRoles.includes(role));
           },
           message: 'Invalid role in viewRoles',
         },
@@ -185,7 +185,7 @@ export class DashboardConfig {
         validate: {
           validator(roles: string[]) {
             const validRoles = ['admin', 'merchant', 'consumer'];
-            return roles.every((role) => validRoles.includes(role));
+            return roles.every(role => validRoles.includes(role));
           },
           message: 'Invalid role in editRoles',
         },

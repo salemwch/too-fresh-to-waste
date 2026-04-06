@@ -78,14 +78,14 @@ export function RecentOrdersPanel({
   }, []);
 
   return (
-    <Card className="flex h-full flex-col rounded-xl border border-slate-100 bg-white shadow-sm">
-      <CardHeader className="px-4 py-3 pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-slate-900">{title}</CardTitle>
+    <Card className='flex h-full flex-col rounded-xl border border-slate-100 bg-white shadow-sm'>
+      <CardHeader className='px-4 py-3 pb-2'>
+        <div className='flex items-center justify-between'>
+          <CardTitle className='text-sm font-semibold text-slate-900'>{title}</CardTitle>
           {viewAllHref && (
             <Link
               href={viewAllHref}
-              className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+              className='text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors'
             >
               View all
             </Link>
@@ -93,18 +93,18 @@ export function RecentOrdersPanel({
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 overflow-y-auto px-4 pb-4">
+      <CardContent className='flex-1 overflow-y-auto px-4 pb-4'>
         {orders.length === 0 ? (
           /* ── Empty state ── */
-          <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center">
-              <PackageOpen className="w-5 h-5 text-slate-300" />
+          <div className='flex flex-col items-center justify-center py-10 text-center gap-2'>
+            <div className='w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center'>
+              <PackageOpen className='w-5 h-5 text-slate-300' />
             </div>
-            <p className="text-sm text-slate-400">No recent orders yet</p>
+            <p className='text-sm text-slate-400'>No recent orders yet</p>
             {viewAllHref && (
               <Link
                 href={viewAllHref}
-                className="text-xs text-indigo-600 hover:underline font-medium"
+                className='text-xs text-indigo-600 hover:underline font-medium'
               >
                 Go to orders
               </Link>
@@ -112,8 +112,8 @@ export function RecentOrdersPanel({
           </div>
         ) : (
           /* ── Order list ── */
-          <div className="space-y-2">
-            {orders.map((order) => {
+          <div className='space-y-2'>
+            {orders.map(order => {
               const style = STATUS_STYLES[order.status];
               const displayTimeAgo = order.createdAt
                 ? computeTimeAgo(order.createdAt, now)
@@ -122,26 +122,26 @@ export function RecentOrdersPanel({
               return (
                 <div
                   key={order.id}
-                  className="flex items-center gap-2.5 rounded-lg border border-slate-50 bg-slate-50/50 p-2.5 transition-colors hover:bg-slate-50"
+                  className='flex items-center gap-2.5 rounded-lg border border-slate-50 bg-slate-50/50 p-2.5 transition-colors hover:bg-slate-50'
                 >
                   {/* Avatar */}
-                  <Avatar className="h-7 w-7 shrink-0">
+                  <Avatar className='h-7 w-7 shrink-0'>
                     {order.customerAvatar && (
                       <AvatarImage
                         src={order.customerAvatar}
                         alt={order.customerName}
-                        className="object-cover"
+                        className='object-cover'
                       />
                     )}
-                    <AvatarFallback className="bg-primary-100 text-[10px] font-medium text-primary-700">
+                    <AvatarFallback className='bg-primary-100 text-[10px] font-medium text-primary-700'>
                       {order.customerInitials}
                     </AvatarFallback>
                   </Avatar>
 
                   {/* Info */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-1.5">
-                      <p className="truncate text-xs font-medium text-slate-900">
+                  <div className='min-w-0 flex-1'>
+                    <div className='flex items-center justify-between gap-1.5'>
+                      <p className='truncate text-xs font-medium text-slate-900'>
                         {order.customerName}
                       </p>
                       <Badge
@@ -154,17 +154,17 @@ export function RecentOrdersPanel({
                         {statusLabels[order.status]}
                       </Badge>
                     </div>
-                    <div className="mt-0.5 flex items-center justify-between">
-                      <span className="text-[10px] text-slate-400">
+                    <div className='mt-0.5 flex items-center justify-between'>
+                      <span className='text-[10px] text-slate-400'>
                         {order.orderNumber} &middot;{' '}
                         {itemsLabel.replace('{count}', String(order.itemCount))}
                       </span>
-                      <span className="text-[10px] font-semibold text-slate-700">
+                      <span className='text-[10px] font-semibold text-slate-700'>
                         {order.total}
                       </span>
                     </div>
-                    <div className="mt-0.5 flex items-center gap-1 text-[9px] text-slate-400">
-                      <Clock className="h-2 w-2" />
+                    <div className='mt-0.5 flex items-center gap-1 text-[9px] text-slate-400'>
+                      <Clock className='h-2 w-2' />
                       {displayTimeAgo}
                     </div>
                   </div>

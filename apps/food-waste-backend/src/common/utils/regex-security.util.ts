@@ -216,7 +216,7 @@ export class RegexSecurityUtil {
       return [];
     }
 
-    return fields.map((field) => ({
+    return fields.map(field => ({
       [field]: regexQuery,
     }));
   }

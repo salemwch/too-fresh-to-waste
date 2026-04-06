@@ -35,7 +35,7 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
   lifetimePointsEarned,
   currentTier,
 }) => {
-  const { user } = useAppSelector((s) => s.auth);
+  const { user } = useAppSelector(s => s.auth);
   const userImageUri = user?.profileImage ?? user?.avatar ?? undefined;
 
   const tierConfig = getTierConfig(currentTier);
@@ -80,23 +80,23 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
       <View style={styles.topRow}>
         <View style={styles.userInfo}>
           <Avatar
-            size="xl"
+            size='xl'
             initials={initials}
             {...(userImageUri !== undefined && { uri: userImageUri })}
-            variant="circular"
+            variant='circular'
           />
           <View style={styles.nameColumn}>
-            <Text variant="body" size="lg" weight="bold" style={styles.userName}>
+            <Text variant='body' size='lg' weight='bold' style={styles.userName}>
               {user?.firstName ?? ''}
             </Text>
-            <Text variant="body" size="sm" style={styles.userLastName}>
+            <Text variant='body' size='sm' style={styles.userLastName}>
               {user?.lastName ?? ''}
             </Text>
           </View>
         </View>
         <View style={[styles.tierBadge, tierBadgeStyle]}>
-          <Icon name={tierConfig.icon} family="Ionicons" size={16} color={INVERSE_TEXT} />
-          <Text variant="body" size="sm" weight="bold" style={styles.tierBadgeText}>
+          <Icon name={tierConfig.icon} family='Ionicons' size={16} color={INVERSE_TEXT} />
+          <Text variant='body' size='sm' weight='bold' style={styles.tierBadgeText}>
             {currentTier}
           </Text>
         </View>
@@ -106,12 +106,12 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
       <View style={styles.pointsSection}>
         <AnimatedCounter
           value={availablePoints}
-          variant="headline"
-          size="xl"
-          weight="bold"
+          variant='headline'
+          size='xl'
+          weight='bold'
           color={INVERSE_TEXT}
         />
-        <Text variant="body" size="sm" style={styles.pointsSubtitle}>
+        <Text variant='body' size='sm' style={styles.pointsSubtitle}>
           Available Points
         </Text>
       </View>
@@ -123,7 +123,7 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
             style={[styles.progressFill, styles.progressFillSurface, progressFillStyle]}
           />
         </View>
-        <Text variant="body" size="xs" style={styles.progressCaption}>
+        <Text variant='body' size='xs' style={styles.progressCaption}>
           {pointsToNext > 0
             ? `${pointsToNext.toLocaleString()} pts to next tier`
             : 'Maximum tier reached'}

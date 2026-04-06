@@ -47,22 +47,22 @@ export const OrderHistoryScreen: React.FC<OrderHistoryScreenProps> = ({
         }
       >
         <Card style={styles.card}>
-          <Text variant="headline" size="lg" weight="bold" style={styles.title}>
+          <Text variant='headline' size='lg' weight='bold' style={styles.title}>
             Order History
           </Text>
 
           <View style={styles.emptyState}>
-            <Text variant="display" size="xl" style={styles.emptyStateIcon}>
+            <Text variant='display' size='xl' style={styles.emptyStateIcon}>
               📜
             </Text>
-            <Text variant="body" size="md" align="center" color="secondary">
+            <Text variant='body' size='md' align='center' color='secondary'>
               Your order history will appear here
             </Text>
             <Text
-              variant="body"
-              size="sm"
-              align="center"
-              color="secondary"
+              variant='body'
+              size='sm'
+              align='center'
+              color='secondary'
               style={styles.emptyStateNote}
             >
               (API integration pending)

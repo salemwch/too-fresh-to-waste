@@ -801,7 +801,7 @@ export class SystemConfigService {
 
       // Detect changed fields
       if (updateDto.platformSettings) {
-        Object.keys(updateDto.platformSettings).forEach((key) => {
+        Object.keys(updateDto.platformSettings).forEach(key => {
           changedFields.push(`platformSettings.${key}`);
           previousValues[`platformSettings.${key}`] = (
             previousConfig.platformSettings as unknown as Record<string, unknown> | undefined
@@ -831,7 +831,7 @@ export class SystemConfigService {
 
       if (updateDto.securitySettings) {
         const securityChangedFields: string[] = [];
-        Object.keys(updateDto.securitySettings).forEach((key) => {
+        Object.keys(updateDto.securitySettings).forEach(key => {
           securityChangedFields.push(key);
           changedFields.push(`securitySettings.${key}`);
           previousValues[`securitySettings.${key}`] = (
@@ -859,7 +859,7 @@ export class SystemConfigService {
 
       if (updateDto.paymentSettings) {
         const paymentChangedFields: string[] = [];
-        Object.keys(updateDto.paymentSettings).forEach((key) => {
+        Object.keys(updateDto.paymentSettings).forEach(key => {
           paymentChangedFields.push(key);
           changedFields.push(`paymentSettings.${key}`);
           previousValues[`paymentSettings.${key}`] = (
@@ -886,7 +886,7 @@ export class SystemConfigService {
       }
 
       if (updateDto.notificationSettings) {
-        Object.keys(updateDto.notificationSettings).forEach((key) => {
+        Object.keys(updateDto.notificationSettings).forEach(key => {
           changedFields.push(`notificationSettings.${key}`);
           previousValues[`notificationSettings.${key}`] = (
             previousConfig.notificationSettings as unknown as Record<string, unknown> | undefined

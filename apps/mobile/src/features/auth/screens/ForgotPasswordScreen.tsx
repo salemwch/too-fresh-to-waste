@@ -89,8 +89,8 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
             <View style={styles.iconContainer}>
               <View style={[styles.iconCircle, { backgroundColor: theme.colors.successContainer }]}>
                 <Icon
-                  name="checkmark-circle"
-                  family="Ionicons"
+                  name='checkmark-circle'
+                  family='Ionicons'
                   size={64}
                   color={theme.colors.success}
                 />
@@ -98,46 +98,46 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
             </View>
 
             <Text
-              variant="headline"
-              size="lg"
-              weight="semibold"
-              align="center"
+              variant='headline'
+              size='lg'
+              weight='semibold'
+              align='center'
               style={styles.successTitle}
             >
               Check Your Email
             </Text>
 
             <Text
-              variant="body"
-              size="md"
-              color="secondary"
-              align="center"
+              variant='body'
+              size='md'
+              color='secondary'
+              align='center'
               style={styles.successMessage}
             >
               We&apos;ve sent a password reset link to:
             </Text>
 
-            <Text variant="body" size="md" weight="semibold" align="center" style={styles.email}>
+            <Text variant='body' size='md' weight='semibold' align='center' style={styles.email}>
               {getValues('email')}
             </Text>
 
             <Text
-              variant="body"
-              size="sm"
-              color="secondary"
-              align="center"
+              variant='body'
+              size='sm'
+              color='secondary'
+              align='center'
               style={styles.instructions}
             >
               Click the link in the email to reset your password. The link will expire in 1 hour.
             </Text>
 
-            <Button variant="primary" size="lg" onPress={handleBackToLogin} style={styles.button}>
+            <Button variant='primary' size='lg' onPress={handleBackToLogin} style={styles.button}>
               Back to Login
             </Button>
 
             <Button
-              variant="outline"
-              size="md"
+              variant='outline'
+              size='md'
               onPress={() => {
                 void handleResendEmail();
               }}
@@ -150,12 +150,12 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
 
             <View style={[styles.helpContainer, { borderTopColor: theme.colors.outlineVariant }]}>
               <Icon
-                name="information-circle-outline"
-                family="Ionicons"
+                name='information-circle-outline'
+                family='Ionicons'
                 size={16}
                 color={theme.colors.onSurfaceVariant}
               />
-              <Text variant="body" size="xs" color="secondary" style={styles.helpText}>
+              <Text variant='body' size='xs' color='secondary' style={styles.helpText}>
                 Didn&apos;t receive the email? Check your spam folder or try resending.
               </Text>
             </View>
@@ -174,22 +174,22 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
       >
         <Card style={styles.formCard}>
           {/* Icon */}
           <View style={styles.iconContainer}>
             <View style={[styles.iconCircle, { backgroundColor: theme.colors.primaryContainer }]}>
-              <Icon name="lock-closed" family="Ionicons" size={48} color={theme.colors.primary} />
+              <Icon name='lock-closed' family='Ionicons' size={48} color={theme.colors.primary} />
             </View>
           </View>
 
-          <Text variant="headline" size="lg" weight="semibold" align="center" style={styles.title}>
+          <Text variant='headline' size='lg' weight='semibold' align='center' style={styles.title}>
             Forgot Password?
           </Text>
 
-          <Text variant="body" size="md" color="secondary" align="center" style={styles.subtitle}>
+          <Text variant='body' size='md' color='secondary' align='center' style={styles.subtitle}>
             No worries! Enter your email address and we&apos;ll send you a link to reset your
             password.
           </Text>
@@ -197,48 +197,48 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
           {/* Email Input */}
           <Controller
             control={control}
-            name="email"
+            name='email'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Email Address"
-                placeholder="Enter your email"
+                label='Email Address'
+                placeholder='Enter your email'
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
-                keyboardType="email-address"
-                autoCapitalize="none"
+                keyboardType='email-address'
+                autoCapitalize='none'
                 autoCorrect={false}
-                autoComplete="email"
+                autoComplete='email'
                 autoFocus
-                leftIcon="mail-outline"
-                leftIconFamily="Ionicons"
+                leftIcon='mail-outline'
+                leftIconFamily='Ionicons'
                 hasError={!!formErrors.email}
                 errorText={formErrors.email?.message}
                 editable={!isLoading}
-                testID="forgot-password-email-input"
+                testID='forgot-password-email-input'
               />
             )}
           />
 
           {/* Reset Button */}
           <Button
-            variant="primary"
-            size="lg"
+            variant='primary'
+            size='lg'
             onPress={() => {
               void handleSubmit(onSubmit)();
             }}
             loading={isLoading}
             disabled={isLoading}
             style={styles.button}
-            testID="forgot-password-submit-button"
+            testID='forgot-password-submit-button'
           >
             Send Reset Link
           </Button>
 
           {/* Back to Login */}
           <Button
-            variant="ghost"
-            size="md"
+            variant='ghost'
+            size='md'
             onPress={handleBackToLogin}
             disabled={isLoading}
             style={styles.backButton}
@@ -250,12 +250,12 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
         {/* Security Info */}
         <View style={styles.securityInfo}>
           <Icon
-            name="shield-checkmark-outline"
-            family="Ionicons"
+            name='shield-checkmark-outline'
+            family='Ionicons'
             size={20}
             color={theme.colors.onSurfaceVariant}
           />
-          <Text variant="body" size="xs" color="secondary" style={styles.securityText}>
+          <Text variant='body' size='xs' color='secondary' style={styles.securityText}>
             For security reasons, the reset link will expire in 1 hour. We&apos;ll never share your
             email with anyone else.
           </Text>

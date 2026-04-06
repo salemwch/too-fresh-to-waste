@@ -41,7 +41,7 @@ const SkeletonOfferCardComponent: React.FC<SkeletonOfferCardProps> = ({
   );
 
   return (
-    <Card variant="elevated" style={[styles.card, style]} testID={testID}>
+    <Card variant='elevated' style={[styles.card, style]} testID={testID}>
       {/* Image Skeleton */}
       <View style={styles.imageContainer}>
         <ShimmerBlock animValue={anim} colors={colors} style={styles.imageSkeleton} />

@@ -88,7 +88,7 @@ class NativeModuleDebugger {
     this.enabled = false;
 
     // Remove all event listeners
-    this.eventListeners.forEach((listeners) => {
+    this.eventListeners.forEach(listeners => {
       listeners.forEach(({ remove }) => remove());
     });
     this.eventListeners.clear();
@@ -103,7 +103,7 @@ class NativeModuleDebugger {
   private scanNativeModules(): void {
     Logger.info('[NativeModuleLogger] Scanning native modules...');
 
-    Object.keys(NativeModules).forEach((moduleName) => {
+    Object.keys(NativeModules).forEach(moduleName => {
       try {
         const module = NativeModules[moduleName] as unknown;
 
@@ -122,7 +122,7 @@ class NativeModuleDebugger {
         const info: NativeModuleInfo = {
           name: moduleName,
           isRegistered: true,
-          methods: Object.keys(module).filter((key) => typeof module[key] === 'function'),
+          methods: Object.keys(module).filter(key => typeof module[key] === 'function'),
           ...(constants !== undefined && { constants }),
           hasEventEmitter: typeof module.addListener === 'function',
         };
@@ -201,7 +201,7 @@ class NativeModuleDebugger {
 
       const listeners: Array<{ eventName: string; remove: () => void }> = [];
 
-      commonEvents.forEach((eventName) => {
+      commonEvents.forEach(eventName => {
         try {
           const subscription = emitter.addListener(eventName, (data: unknown) => {
             this.logEvent(eventName, moduleName, data);
@@ -261,7 +261,7 @@ class NativeModuleDebugger {
       originalError(...args);
 
       // Check if it's a native module error
-      const message = args.map((arg) => String(arg)).join(' ');
+      const message = args.map(arg => String(arg)).join(' ');
 
       if (
         message.includes('Unsupported top level event type') ||
@@ -317,7 +317,7 @@ class NativeModuleDebugger {
     let logs = [...this.eventLogs];
 
     if (moduleName !== undefined && moduleName !== '') {
-      logs = logs.filter((log) => log.moduleName === moduleName);
+      logs = logs.filter(log => log.moduleName === moduleName);
     }
 
     return logs.slice(-limit);
@@ -368,12 +368,12 @@ class NativeModuleDebugger {
 
     const mapsModules = ['AIRMap', 'AIRMapModule', 'RNMaps', 'AirMapModule'];
 
-    mapsModules.forEach((moduleName) => {
+    mapsModules.forEach(moduleName => {
       const module = NativeModules[moduleName] as unknown;
 
       if (isNativeModuleShape(module)) {
         Logger.info(`[NativeModuleLogger] Found Maps module: ${moduleName}`, {
-          methods: Object.keys(module).filter((k) => typeof module[k] === 'function'),
+          methods: Object.keys(module).filter(k => typeof module[k] === 'function'),
           hasConstants: typeof module.getConstants === 'function',
         });
 

@@ -29,8 +29,8 @@ export class ArchiveTask {
       const results = await this.archiveService.archiveAllExpired();
 
       const summary = results
-        .filter((r) => r.archivedCount > 0)
-        .map((r) => `${r.archivedCount} ${r.sourceCollection}`)
+        .filter(r => r.archivedCount > 0)
+        .map(r => `${r.archivedCount} ${r.sourceCollection}`)
         .join(', ');
 
       if (summary) {

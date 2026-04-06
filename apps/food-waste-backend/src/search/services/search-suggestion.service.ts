@@ -364,7 +364,7 @@ export class SearchSuggestionService {
       { $project: { _id: 1 } },
     ]);
 
-    return userHistory.map((item) => item._id);
+    return userHistory.map(item => item._id);
   }
 
   /**
@@ -383,7 +383,7 @@ export class SearchSuggestionService {
       .select('query')
       .lean();
 
-    return trending.map((item) => item.query);
+    return trending.map(item => item.query);
   }
 
   /**
@@ -484,7 +484,7 @@ export class SearchSuggestionService {
       { $project: { text: 1 } },
     ]);
 
-    return categories.map((cat) => cat.text);
+    return categories.map(cat => cat.text);
   }
 
   /**

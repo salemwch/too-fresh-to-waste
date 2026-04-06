@@ -55,7 +55,7 @@ const isLegacyTokenPayload = (value: unknown): value is LegacyTokenPayload =>
  * Delay helper for exponential backoff
  */
 function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**

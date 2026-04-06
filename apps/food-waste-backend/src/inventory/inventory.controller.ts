@@ -176,15 +176,15 @@ export class InventoryController {
     const result = await this.inventoryService.getInventoryItems(filters);
 
     // Extract items with unacknowledged alerts
-    const itemsWithAlerts = result.items.filter((item) =>
-      item.alerts?.some((alert) => !alert.acknowledged),
+    const itemsWithAlerts = result.items.filter(item =>
+      item.alerts?.some(alert => !alert.acknowledged),
     );
 
     return {
-      alerts: itemsWithAlerts.flatMap((item) =>
+      alerts: itemsWithAlerts.flatMap(item =>
         item.alerts
-          .filter((alert) => !alert.acknowledged)
-          .map((alert) => ({
+          .filter(alert => !alert.acknowledged)
+          .map(alert => ({
             ...alert,
             itemId: item._id,
             itemName: item.name,

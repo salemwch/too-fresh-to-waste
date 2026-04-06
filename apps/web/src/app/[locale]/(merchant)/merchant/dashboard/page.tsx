@@ -97,7 +97,7 @@ function buildStatsCards(
   t: ReturnType<typeof useTranslations<'dashboard'>>,
 ): StatCardItem[] {
   // Sparkline: last 8 revenue values for the Revenue KPI card
-  const revenueSparkline = chartItems.slice(-8).map((m) => m.revenue);
+  const revenueSparkline = chartItems.slice(-8).map(m => m.revenue);
 
   return [
     {
@@ -160,7 +160,7 @@ function buildRevenueChartData(
   granularity: ChartGranularity,
 ): RevenueChartData {
   const totalRevenue = items.reduce((sum, m) => sum + m.revenue, 0);
-  const activePeriods = items.filter((m) => m.revenue > 0).length || 1;
+  const activePeriods = items.filter(m => m.revenue > 0).length || 1;
   const avgIncome = totalRevenue / activePeriods;
 
   const lastPeriod = items[items.length - 1]?.revenue ?? 0;
@@ -171,7 +171,7 @@ function buildRevenueChartData(
   const cancelledValue = stats.cancelledOrders * stats.averageOrderValue;
 
   return {
-    months: items.map((m) => ({ label: m.label, value: m.revenue })),
+    months: items.map(m => ({ label: m.label, value: m.revenue })),
     averageIncome: formatCompactCurrency(avgIncome),
     trend: {
       value: Math.abs(trendPct),
@@ -187,7 +187,7 @@ function buildRevenueChartData(
 }
 
 function buildRecentOrders(orders: MerchantOrder[]): RecentOrderItem[] {
-  return orders.map((order) => {
+  return orders.map(order => {
     const customer = order.customerId;
     const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
     const avatar = resolveProfileImage(customer.profileImage, customer.avatar);
@@ -210,9 +210,9 @@ function buildRecentOrders(orders: MerchantOrder[]): RecentOrderItem[] {
 
 function DashboardError({ message }: { message: string }) {
   return (
-    <div className="bg-red-50 border border-red-200 rounded-lg px-6 py-4 text-center max-w-md mx-auto mt-4">
-      <p className="text-sm font-medium text-red-800">Failed to load dashboard data</p>
-      <p className="text-xs text-red-600 mt-1">{message}</p>
+    <div className='bg-red-50 border border-red-200 rounded-lg px-6 py-4 text-center max-w-md mx-auto mt-4'>
+      <p className='text-sm font-medium text-red-800'>Failed to load dashboard data</p>
+      <p className='text-xs text-red-600 mt-1'>{message}</p>
     </div>
   );
 }
@@ -221,7 +221,7 @@ function DashboardError({ message }: { message: string }) {
 
 export default function MerchantDashboardPage() {
   const t = useTranslations('dashboard');
-  const user = useAuthStore((state) => state.user);
+  const user = useAuthStore(state => state.user);
 
   // ── Panel state ─────────────────────────────────────────────────────────
   const [panelOpen, setPanelOpen] = useState(false);
@@ -306,7 +306,7 @@ export default function MerchantDashboardPage() {
   // ── Render ────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-5">
+    <div className='space-y-5'>
       {/* Surprise Bag panel (portal-rendered) */}
       <SurpriseBagPanel open={panelOpen} onClose={() => setPanelOpen(false)} />
 
@@ -327,39 +327,39 @@ export default function MerchantDashboardPage() {
        * Left 8-col: welcome text + ⚡ button  |  Right 4-col: invisible spacer
        * This keeps Recent Orders vertically aligned with the KPI cards below.
        */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <div className="lg:col-span-8 xl:col-span-9 flex items-center justify-between gap-4">
+      <div className='grid grid-cols-1 lg:grid-cols-12 gap-5'>
+        <div className='lg:col-span-8 xl:col-span-9 flex items-center justify-between gap-4'>
           <div>
-            <h1 className="text-lg font-bold tracking-tight flex items-center gap-1.5">
+            <h1 className='text-lg font-bold tracking-tight flex items-center gap-1.5'>
               {t('welcome', { name: user?.firstName ?? '' })}
               <Image
-                src="/icons/Blue Bold Modern How to Get Verified Instagram Post.svg"
-                alt="Verified"
+                src='/icons/Blue Bold Modern How to Get Verified Instagram Post.svg'
+                alt='Verified'
                 width={20}
                 height={20}
-                className="h-5 w-5 shrink-0"
+                className='h-5 w-5 shrink-0'
               />
             </h1>
-            <p className="text-sm text-muted-foreground">{t('merchantDashboardDescription')}</p>
+            <p className='text-sm text-muted-foreground'>{t('merchantDashboardDescription')}</p>
           </div>
 
           <button
-            type="button"
+            type='button'
             onClick={() => setPanelOpen(true)}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 active:scale-[0.97] transition-all"
+            className='flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 active:scale-[0.97] transition-all'
           >
-            <Zap className="h-4 w-4" />
+            <Zap className='h-4 w-4' />
             Add Surprise Bag
           </button>
         </div>
         {/* Spacer: keeps the grid columns consistent so the header row has the same width as the content grid */}
-        <div className="hidden lg:block lg:col-span-4 xl:col-span-3" aria-hidden="true" />
+        <div className='hidden lg:block lg:col-span-4 xl:col-span-3' aria-hidden='true' />
       </div>
 
       {/* ── 12-column content grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className='grid grid-cols-1 lg:grid-cols-12 gap-5'>
         {/* Left column */}
-        <div className="lg:col-span-8 xl:col-span-9 space-y-5">
+        <div className='lg:col-span-8 xl:col-span-9 space-y-5'>
           {/* KPI Stats */}
           {orderStatsQuery.isLoading || !stats ? (
             <StatsCardsSkeleton />
@@ -390,7 +390,7 @@ export default function MerchantDashboardPage() {
         </div>
 
         {/* Right sidebar — starts at the same vertical level as KPI cards */}
-        <div className="lg:col-span-4 xl:col-span-3">
+        <div className='lg:col-span-4 xl:col-span-3'>
           {recentOrdersQuery.isLoading ? (
             <PanelSkeleton rows={5} />
           ) : (
@@ -399,7 +399,7 @@ export default function MerchantDashboardPage() {
               title={t('merchant.recentOrders')}
               statusLabels={statusLabels}
               itemsLabel={t('merchant.items', { count: '{count}' })}
-              viewAllHref="/merchant/orders"
+              viewAllHref='/merchant/orders'
             />
           )}
         </div>

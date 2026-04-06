@@ -220,7 +220,7 @@ function isAuthEndpoint(url?: string): boolean {
     '/users/me',
   ];
 
-  return authPatterns.some((pattern) => url.includes(pattern));
+  return authPatterns.some(pattern => url.includes(pattern));
 }
 
 /**

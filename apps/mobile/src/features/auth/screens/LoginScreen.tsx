@@ -57,7 +57,7 @@ const isBackendValidationError = (value: unknown): value is BackendValidationErr
   isRecord(value) &&
   typeof value['property'] === 'string' &&
   isRecord(value['constraints']) &&
-  Object.values(value['constraints']).every((constraint) => typeof constraint === 'string');
+  Object.values(value['constraints']).every(constraint => typeof constraint === 'string');
 
 function parseBackendValidationError(error: unknown): Record<string, string> | null {
   try {
@@ -92,7 +92,7 @@ function parseBackendValidationError(error: unknown): Record<string, string> | n
     // Convert to field-message map
     if (validationErrors.length > 0) {
       const fieldErrors: Record<string, string> = {};
-      validationErrors.forEach((err) => {
+      validationErrors.forEach(err => {
         if (err.property != null && err.constraints != null) {
           // Get first constraint message
           const firstConstraint = Object.values(err.constraints)[0];
@@ -113,7 +113,7 @@ function parseBackendValidationError(error: unknown): Record<string, string> | n
 export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector((state) => state.auth);
+  const { isLoading, error } = useAppSelector(state => state.auth);
 
   // React Hook Form setup with Yup validation
   const {
@@ -361,7 +361,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
       >
         {/* Header with Leaf Logo */}
@@ -369,8 +369,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           <Image
             source={LeafLogo}
             style={styles.leafLogo}
-            resizeMode="contain"
-            accessibilityLabel="Too Fresh To Waste logo"
+            resizeMode='contain'
+            accessibilityLabel='Too Fresh To Waste logo'
           />
         </View>
 
@@ -380,8 +380,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {isEmailUnverified && email && (
             <View style={styles.verificationBadge}>
               <View style={[styles.badge, unverifiedBadgeStyle]}>
-                <Icon name="close-circle" family="Ionicons" size="sm" color={theme.colors.error} />
-                <Text variant="label.small" weight="semibold" style={{ color: theme.colors.error }}>
+                <Icon name='close-circle' family='Ionicons' size='sm' color={theme.colors.error} />
+                <Text variant='label.small' weight='semibold' style={{ color: theme.colors.error }}>
                   Unverified
                 </Text>
               </View>
@@ -391,17 +391,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {/* Welcome Back Header with Waving Hand */}
           <View style={styles.welcomeHeader}>
             <View style={styles.welcomeTitleRow}>
-              <Text variant="headline.large" weight="semibold">
+              <Text variant='headline.large' weight='semibold'>
                 Welcome Back
               </Text>
               <Image
                 source={WavingHand}
                 style={styles.wavingHand}
-                resizeMode="contain"
-                accessibilityLabel="Waving hand"
+                resizeMode='contain'
+                accessibilityLabel='Waving hand'
               />
             </View>
-            <Text variant="body.medium" color="secondary" style={styles.welcomeSubtitle}>
+            <Text variant='body.medium' color='secondary' style={styles.welcomeSubtitle}>
               Save food, save money, save the planet
             </Text>
           </View>
@@ -411,14 +411,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <View style={[styles.errorBanner, errorBannerStyle]}>
               <View style={styles.errorBannerContent}>
                 <Icon
-                  name="alert-circle-outline"
-                  family="Ionicons"
-                  size="md"
+                  name='alert-circle-outline'
+                  family='Ionicons'
+                  size='md'
                   color={theme.colors.error}
                 />
                 <Text
-                  variant="body.small"
-                  weight="medium"
+                  variant='body.small'
+                  weight='medium'
                   style={[styles.errorText, { color: theme.colors.onErrorContainer }]}
                 >
                   {error}
@@ -428,7 +428,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               {/* Resend Verification Email Button (only for unverified email errors) */}
               {isEmailUnverified && email && (
                 <View style={[styles.resendSection, resendSectionStyle]}>
-                  <Text variant="body.small" color="secondary" style={styles.resendPrompt}>
+                  <Text variant='body.small' color='secondary' style={styles.resendPrompt}>
                     Didn&apos;t receive the email?
                   </Text>
                   <Pressable
@@ -439,8 +439,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     style={styles.resendButton}
                   >
                     <Text
-                      variant="body.small"
-                      weight="semibold"
+                      variant='body.small'
+                      weight='semibold'
                       style={{
                         color: resendingEmail ? theme.colors.outline : theme.colors.primary,
                       }}
@@ -457,14 +457,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {resendSuccess && (
             <View style={[styles.successBanner, successBannerStyle]}>
               <Icon
-                name="checkmark-circle-outline"
-                family="Ionicons"
-                size="md"
+                name='checkmark-circle-outline'
+                family='Ionicons'
+                size='md'
                 color={theme.colors.primary}
               />
               <Text
-                variant="body.small"
-                weight="medium"
+                variant='body.small'
+                weight='medium'
                 style={[styles.successText, { color: theme.colors.onPrimaryContainer }]}
               >
                 Verification email sent! Check your inbox.
@@ -477,14 +477,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <View style={[styles.errorBanner, errorBannerStyle]}>
               <View style={styles.errorBannerContent}>
                 <Icon
-                  name="alert-circle-outline"
-                  family="Ionicons"
-                  size="md"
+                  name='alert-circle-outline'
+                  family='Ionicons'
+                  size='md'
                   color={theme.colors.error}
                 />
                 <Text
-                  variant="body.small"
-                  weight="medium"
+                  variant='body.small'
+                  weight='medium'
                   style={[styles.errorText, { color: theme.colors.onErrorContainer }]}
                 >
                   {resendError}
@@ -496,26 +496,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {/* Email Input */}
           <Controller
             control={control}
-            name="email"
+            name='email'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Email Address"
-                placeholder="Enter your email"
+                label='Email Address'
+                placeholder='Enter your email'
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
-                keyboardType="email-address"
-                autoCapitalize="none"
+                keyboardType='email-address'
+                autoCapitalize='none'
                 autoCorrect={false}
-                autoComplete="email"
-                textContentType="emailAddress"
-                returnKeyType="next"
+                autoComplete='email'
+                textContentType='emailAddress'
+                returnKeyType='next'
                 onSubmitEditing={() => passwordRef.current?.focus()}
-                leftIcon={<Icon name="mail-outline" family="Ionicons" size="md" />}
+                leftIcon={<Icon name='mail-outline' family='Ionicons' size='md' />}
                 hasError={!!formErrors.email}
                 errorText={formErrors.email?.message}
                 editable={!isLoading}
-                testID="login-email-input"
+                testID='login-email-input'
                 fullWidth
               />
             )}
@@ -524,36 +524,36 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {/* Password Input */}
           <Controller
             control={control}
-            name="password"
+            name='password'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 ref={passwordRef}
-                label="Password"
-                placeholder="Enter your password"
+                label='Password'
+                placeholder='Enter your password'
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 secureTextEntry={!showPassword}
-                autoCapitalize="none"
+                autoCapitalize='none'
                 autoCorrect={false}
-                autoComplete="password"
-                textContentType="password"
-                returnKeyType="done"
+                autoComplete='password'
+                textContentType='password'
+                returnKeyType='done'
                 onSubmitEditing={() => void handleSubmit(onSubmit)()}
-                leftIcon={<Icon name="lock-closed-outline" family="Ionicons" size="md" />}
+                leftIcon={<Icon name='lock-closed-outline' family='Ionicons' size='md' />}
                 rightIcon={
                   <Pressable onPress={() => setShowPassword(!showPassword)}>
                     <Icon
                       name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                      family="Ionicons"
-                      size="md"
+                      family='Ionicons'
+                      size='md'
                     />
                   </Pressable>
                 }
                 hasError={!!formErrors.password}
                 errorText={formErrors.password?.message}
                 editable={!isLoading}
-                testID="login-password-input"
+                testID='login-password-input'
                 containerStyle={styles.passwordInput}
                 fullWidth
               />
@@ -563,7 +563,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {/* Remember Me & Forgot Password Row */}
           <Controller
             control={control}
-            name="rememberMe"
+            name='rememberMe'
             render={({ field: { onChange, value } }) => (
               <View style={styles.optionsRow}>
                 <Pressable
@@ -587,13 +587,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                       </Text>
                     )}
                   </View>
-                  <Text variant="body.small" color="secondary">
+                  <Text variant='body.small' color='secondary'>
                     Remember me
                   </Text>
                 </Pressable>
 
                 <Pressable onPress={handleNavigateToForgotPassword} disabled={isLoading}>
-                  <Text variant="body.small" color="primary" weight="medium">
+                  <Text variant='body.small' color='primary' weight='medium'>
                     Forgot Password?
                   </Text>
                 </Pressable>
@@ -603,21 +603,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           {/* Login Button */}
           <MorphingButton
-            label="Sign In"
-            successLabel="Welcome!"
+            label='Sign In'
+            successLabel='Welcome!'
             loading={isLoading}
             success={loginSuccess}
             onPress={() => {
               void handleSubmit(onSubmit)();
             }}
             style={styles.loginButton}
-            testID="login-submit-button"
+            testID='login-submit-button'
           />
 
           {/* Divider */}
           <View style={styles.divider}>
             <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
-            <Text variant="body.small" color="secondary" style={styles.dividerText}>
+            <Text variant='body.small' color='secondary' style={styles.dividerText}>
               OR
             </Text>
             <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
@@ -625,14 +625,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           {/* Register Link */}
           <View style={styles.registerContainer}>
-            <Text variant="body.medium" color={theme.colors.onSurfaceVariant}>
+            <Text variant='body.medium' color={theme.colors.onSurfaceVariant}>
               Don&apos;t have an account?{' '}
             </Text>
             <Pressable onPress={handleNavigateToRegister} disabled={isLoading}>
               <Text
-                variant="body.medium"
+                variant='body.medium'
                 color={theme.colors.primary}
-                weight="semibold"
+                weight='semibold'
                 style={[styles.signUpText, { textDecorationColor: theme.colors.primary }]}
               >
                 Sign Up
@@ -642,14 +642,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           {/* Resend Verification Link */}
           <View style={styles.verificationLinkContainer}>
-            <Text variant="body.small" color={theme.colors.onSurfaceVariant}>
+            <Text variant='body.small' color={theme.colors.onSurfaceVariant}>
               Need to verify email?{' '}
             </Text>
             <Pressable onPress={() => setShowResendModal(true)} disabled={isLoading}>
               <Text
-                variant="body.small"
+                variant='body.small'
                 color={theme.colors.primary}
-                weight="semibold"
+                weight='semibold'
                 style={[styles.verificationLinkText, { textDecorationColor: theme.colors.primary }]}
               >
                 Resend Link
@@ -659,7 +659,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         </Card>
 
         {/* Footer */}
-        <Text variant="body.small" color="secondary" align="center" style={styles.footer}>
+        <Text variant='body.small' color='secondary' align='center' style={styles.footer}>
           By signing in, you agree to our Terms of Service and Privacy Policy
         </Text>
       </ScrollView>

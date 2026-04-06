@@ -54,7 +54,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
 
     // Offer type
     if (filters.offerType !== undefined && filters.offerType !== null) {
-      const option = OFFER_TYPE_OPTIONS.find((o) => o.value === filters.offerType);
+      const option = OFFER_TYPE_OPTIONS.find(o => o.value === filters.offerType);
       if (option) {
         result.push({
           id: `offer-${filters.offerType}`,
@@ -66,8 +66,8 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
     }
 
     // Establishment types
-    filters.establishmentTypes.forEach((type) => {
-      const option = ESTABLISHMENT_TYPE_OPTIONS.find((o) => o.value === type);
+    filters.establishmentTypes.forEach(type => {
+      const option = ESTABLISHMENT_TYPE_OPTIONS.find(o => o.value === type);
       if (option) {
         result.push({
           id: `establishment-${type}`,
@@ -79,8 +79,8 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
     });
 
     // Cuisine types
-    filters.cuisineTypes.forEach((cuisine) => {
-      const option = CUISINE_TYPE_OPTIONS.find((o) => o.value === cuisine);
+    filters.cuisineTypes.forEach(cuisine => {
+      const option = CUISINE_TYPE_OPTIONS.find(o => o.value === cuisine);
       if (option) {
         result.push({
           id: `cuisine-${cuisine}`,
@@ -92,8 +92,8 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
     });
 
     // Categories
-    filters.categories.forEach((category) => {
-      const option = CATEGORY_OPTIONS.find((o) => o.value === category);
+    filters.categories.forEach(category => {
+      const option = CATEGORY_OPTIONS.find(o => o.value === category);
       if (option) {
         result.push({
           id: `category-${category}`,
@@ -122,7 +122,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {chips.map((chip) => (
+        {chips.map(chip => (
           <View
             key={chip.id}
             style={[
@@ -134,7 +134,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
             ]}
           >
             {chip.icon && <Text style={styles.chipIcon}>{chip.icon}</Text>}
-            <Text variant="caption" style={[styles.chipLabel, { color: colors.accent }]}>
+            <Text variant='caption' style={[styles.chipLabel, { color: colors.accent }]}>
               {chip.label}
             </Text>
             <Pressable
@@ -142,7 +142,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
               style={styles.removeButton}
               hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
             >
-              <Icon name="close" size={14} color={colors.accent} />
+              <Icon name='close' size={14} color={colors.accent} />
             </Pressable>
           </View>
         ))}
@@ -153,7 +153,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
           onPress={onClearAll}
         >
           <Text
-            variant="caption"
+            variant='caption'
             style={[styles.clearAllLabel, { color: colors.onSurfaceVariant }]}
           >
             Clear All

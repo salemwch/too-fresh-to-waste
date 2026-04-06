@@ -87,11 +87,11 @@ const StreakRow: React.FC<StreakRowProps> = ({
       <View style={styles.streakHeader}>
         <View style={styles.titleRow}>
           <Text style={styles.emoji}>{emoji}</Text>
-          <Text variant="body" size="md" weight="semibold" style={styles.title}>
+          <Text variant='body' size='md' weight='semibold' style={styles.title}>
             {title}
           </Text>
         </View>
-        <Text variant="body" size="sm" weight="bold" style={{ color: valueBadgeColor }}>
+        <Text variant='body' size='sm' weight='bold' style={{ color: valueBadgeColor }}>
           {valueBadge}
         </Text>
       </View>
@@ -110,10 +110,10 @@ const StreakRow: React.FC<StreakRowProps> = ({
 
       {/* Footer */}
       <View style={styles.streakFooter}>
-        <Text variant="body" size="xs" color="secondary">
+        <Text variant='body' size='xs' color='secondary'>
           {progressLabel}
         </Text>
-        <Text variant="body" size="xs" color="secondary">
+        <Text variant='body' size='xs' color='secondary'>
           {detailsLabel}
         </Text>
       </View>
@@ -133,7 +133,7 @@ const StreakCardComponent: React.FC<StreakCardProps> = ({ gamification }) => {
 
   return (
     <View style={styles.container}>
-      <Text variant="body" size="xs" weight="semibold" style={styles.sectionLabel}>
+      <Text variant='body' size='xs' weight='semibold' style={styles.sectionLabel}>
         ACTIVE STREAKS
       </Text>
 
@@ -141,9 +141,9 @@ const StreakCardComponent: React.FC<StreakCardProps> = ({ gamification }) => {
         {/* Login Streak */}
         <StreakRow
           emoji={'\uD83D\uDD25'}
-          title="Login Streak"
+          title='Login Streak'
           valueBadge={`${loginStreak.currentStreak} day${loginStreak.currentStreak !== 1 ? 's' : ''}`}
-          valueBadgeColor="#005250"
+          valueBadgeColor='#005250'
           current={loginStreak.currentStreak}
           target={loginStreak.daysRequired}
           gradientColors={TEAL_GRADIENT}
@@ -156,9 +156,9 @@ const StreakCardComponent: React.FC<StreakCardProps> = ({ gamification }) => {
         {/* Purchase Streak */}
         <StreakRow
           emoji={'\uD83D\uDECD\uFE0F'}
-          title="Purchase Streak"
+          title='Purchase Streak'
           valueBadge={`${purchaseStreak.bagsThisPeriod} bag${purchaseStreak.bagsThisPeriod !== 1 ? 's' : ''}`}
-          valueBadgeColor="#BF7E1E"
+          valueBadgeColor='#BF7E1E'
           current={purchaseStreak.bagsThisPeriod}
           target={purchaseStreak.bagsRequired}
           gradientColors={GOLD_GRADIENT}

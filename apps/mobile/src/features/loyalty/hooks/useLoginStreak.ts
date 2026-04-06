@@ -40,7 +40,7 @@ export function useLoginStreak(): void {
     // even if the component unmounts (e.g., navigation transition).
     loyaltyService
       .recordLoginStreak()
-      .then((result) => {
+      .then(result => {
         if (result.pointsAwarded > 0) {
           Logger.info('[LoginStreak] Streak recorded', {
             streakDays: result.streakDays,
@@ -49,7 +49,7 @@ export function useLoginStreak(): void {
 
           // --- Optimistic cache updates for instant UI feedback ---
 
-          queryClient.setQueryData<LoyaltyAccount>(LOYALTY_ACCOUNT_KEY, (prev) => {
+          queryClient.setQueryData<LoyaltyAccount>(LOYALTY_ACCOUNT_KEY, prev => {
             if (!prev) return prev;
             return {
               ...prev,
@@ -66,7 +66,7 @@ export function useLoginStreak(): void {
             };
           });
 
-          queryClient.setQueryData<GamificationStats>(GAMIFICATION_KEY, (prev) => {
+          queryClient.setQueryData<GamificationStats>(GAMIFICATION_KEY, prev => {
             if (!prev) return prev;
             return {
               ...prev,
@@ -88,7 +88,7 @@ export function useLoginStreak(): void {
           });
         }
       })
-      .catch((err) => {
+      .catch(err => {
         Logger.warn('[LoginStreak] Failed to record login streak', {
           error: err instanceof Error ? err.message : String(err),
         });

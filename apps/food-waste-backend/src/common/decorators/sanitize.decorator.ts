@@ -128,7 +128,7 @@ export function SanitizeHtml(): PropertyDecorator {
         'math',
       ];
 
-      dangerousTags.forEach((tag) => {
+      dangerousTags.forEach(tag => {
         const regex = new RegExp(`<\\/?${tag}[^>]*>`, 'gi');
         sanitized = sanitized.replace(regex, '');
       });
@@ -397,7 +397,7 @@ export function SanitizeEnum<T>(allowedValues: T[]): PropertyDecorator {
       }
 
       const stringValue = String(value).toLowerCase().trim();
-      const allowed = allowedValues.map((v) => String(v).toLowerCase());
+      const allowed = allowedValues.map(v => String(v).toLowerCase());
 
       if (!allowed.includes(stringValue)) {
         logger.warn(`Rejected invalid enum value: ${stringValue}`);

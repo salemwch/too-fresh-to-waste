@@ -60,7 +60,7 @@ export const FavoritesFilterSchema = z.object({
   tag: z.string().optional(),
   isActive: z
     .union([z.boolean(), z.literal('true'), z.literal('false'), z.literal('1'), z.literal('0')])
-    .transform((val) => val === true || val === 'true' || val === '1')
+    .transform(val => val === true || val === 'true' || val === '1')
     .optional(),
   page: z.coerce.number().int().min(1).optional().default(1),
   limit: z.coerce.number().int().min(1).max(100).optional().default(20),

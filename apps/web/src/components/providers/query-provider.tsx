@@ -7,7 +7,7 @@ import { getQueryClient } from '@/lib/query-client';
 const ReactQueryDevtools =
   process.env.NODE_ENV === 'development'
     ? dynamic(() =>
-        import('@tanstack/react-query-devtools').then((m) => ({
+        import('@tanstack/react-query-devtools').then(m => ({
           default: m.ReactQueryDevtools,
         })),
       )
@@ -19,7 +19,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
+      <ReactQueryDevtools initialIsOpen={false} buttonPosition='bottom-left' />
     </QueryClientProvider>
   );
 }

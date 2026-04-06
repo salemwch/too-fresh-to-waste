@@ -32,9 +32,9 @@ import type { AppStateStatus } from 'react-native';
 const setupOnlineManager = () => {
   Logger.info('Setting up TanStack Query Online Manager');
 
-  onlineManager.setEventListener((setOnline) => {
+  onlineManager.setEventListener(setOnline => {
     // Subscribe to network state updates
-    const unsubscribe = addNetInfoEventListener((state) => {
+    const unsubscribe = addNetInfoEventListener(state => {
       const isOnline = state.isConnected === true;
 
       Logger.debug('Network state changed', {

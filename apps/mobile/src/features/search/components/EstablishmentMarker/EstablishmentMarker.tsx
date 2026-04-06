@@ -174,7 +174,7 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
             <View
               style={[styles.circle, styles.offerCircle, isSelected && styles.selectedOfferBorder]}
             >
-              <Text variant="label" size="sm" weight="bold" style={styles.countText}>
+              <Text variant='label' size='sm' weight='bold' style={styles.countText}>
                 {displayCount}
               </Text>
             </View>
@@ -196,9 +196,9 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
               ]}
             >
               <Text
-                variant="label"
-                size="md"
-                weight="bold"
+                variant='label'
+                size='md'
+                weight='bold'
                 style={{ color: theme.colors.onPrimaryContainer }}
               >
                 {initial}

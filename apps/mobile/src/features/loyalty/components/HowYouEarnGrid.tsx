@@ -65,24 +65,24 @@ const EarnCard: React.FC<{ method: EarnMethod }> = ({ method }) => {
   };
 
   return (
-    <Card variant="elevated" style={[styles.earnCard, !method.active && styles.earnCardInactive]}>
+    <Card variant='elevated' style={[styles.earnCard, !method.active && styles.earnCardInactive]}>
       <View style={[styles.iconCircle, iconCircleStyle]}>
         <Icon
           name={method.icon}
-          family="Ionicons"
+          family='Ionicons'
           size={24}
           color={method.active ? method.color : INACTIVE_TEXT}
         />
       </View>
       <Text
-        variant="body"
-        size="sm"
-        weight="semibold"
+        variant='body'
+        size='sm'
+        weight='semibold'
         style={[styles.earnLabel, !method.active && styles.inactiveText]}
       >
         {method.label}
       </Text>
-      <Text variant="body" size="xs" weight="bold" style={pointsStyle}>
+      <Text variant='body' size='xs' weight='bold' style={pointsStyle}>
         {method.active ? method.points : 'Coming Soon'}
       </Text>
     </Card>
@@ -91,11 +91,11 @@ const EarnCard: React.FC<{ method: EarnMethod }> = ({ method }) => {
 
 const HowYouEarnGridComponent: React.FC = () => (
   <View style={styles.container}>
-    <Text variant="title" size="md" weight="semibold" style={styles.sectionTitle}>
+    <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
       How You Earn
     </Text>
     <View style={styles.grid}>
-      {EARN_METHODS.map((method) => (
+      {EARN_METHODS.map(method => (
         <EarnCard key={method.label} method={method} />
       ))}
     </View>

@@ -69,11 +69,11 @@ export class AnalyticsUtil {
 
     Object.keys(filters)
       .sort((a, b) => a.localeCompare(b))
-      .forEach((key) => {
+      .forEach(key => {
         let value = filters[key];
         if (value instanceof Types.ObjectId) {
           value = value.toString();
-        } else if (Array.isArray(value) && value.some((v) => v instanceof Types.ObjectId)) {
+        } else if (Array.isArray(value) && value.some(v => v instanceof Types.ObjectId)) {
           const objectIdNormalizedValues = value.map((v): unknown =>
             v instanceof Types.ObjectId ? v.toString() : v,
           );
@@ -207,14 +207,14 @@ export class AnalyticsUtil {
     // Establishment filter
     if (filters.establishmentIds?.length) {
       matchStage.establishmentId = {
-        $in: filters.establishmentIds.map((id) => new Types.ObjectId(id)),
+        $in: filters.establishmentIds.map(id => new Types.ObjectId(id)),
       };
     }
 
     // User filter
     if (filters.userIds?.length) {
       matchStage.userId = {
-        $in: filters.userIds.map((id) => new Types.ObjectId(id)),
+        $in: filters.userIds.map(id => new Types.ObjectId(id)),
       };
     }
 
@@ -262,7 +262,7 @@ export class AnalyticsUtil {
     granularity: DateGranularity,
   ): TimeSeries[] {
     const result: TimeSeries[] = [];
-    const dataMap = new Map(data.map((d) => [d.dateKey, d.value]));
+    const dataMap = new Map(data.map(d => [d.dateKey, d.value]));
 
     const current = new Date(dateRange.startDate);
     const end = new Date(dateRange.endDate);

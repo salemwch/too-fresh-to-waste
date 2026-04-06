@@ -16,7 +16,7 @@
 #   Clean:   docker-compose down -v
 # ============================================
 
-version: '3.9'
+version: "3.9"
 
 services:
   # ============================================
@@ -27,7 +27,7 @@ services:
     container_name: foodwaste-mongodb
     restart: unless-stopped
     ports:
-      - '27017:27017'
+      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password123
@@ -54,7 +54,7 @@ services:
     container_name: foodwaste-redis
     restart: unless-stopped
     ports:
-      - '6379:6379'
+      - "6379:6379"
     command: >
       redis-server
       --requirepass redis_dev_password
@@ -66,7 +66,7 @@ services:
     networks:
       - foodwaste-network
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -80,8 +80,8 @@ services:
     container_name: foodwaste-rabbitmq
     restart: unless-stopped
     ports:
-      - '5672:5672' # AMQP protocol
-      - '15672:15672' # Management UI
+      - "5672:5672" # AMQP protocol
+      - "15672:15672" # Management UI
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: rabbitmq_dev_password
@@ -91,7 +91,7 @@ services:
     networks:
       - foodwaste-network
     healthcheck:
-      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -108,7 +108,7 @@ services:
     container_name: foodwaste-backend
     restart: unless-stopped
     ports:
-      - '3000:3000'
+      - "3000:3000"
     environment:
       # Application
       NODE_ENV: development
@@ -121,12 +121,12 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: redis_dev_password
-      REDIS_TLS: 'false'
+      REDIS_TLS: "false"
 
       # RabbitMQ
       RABBITMQ_URL: amqp://admin:rabbitmq_dev_password@rabbitmq:5672/foodwaste
-      RABBITMQ_ENABLED: 'false'
-      RABBITMQ_ENABLED_EVENTS: ''
+      RABBITMQ_ENABLED: "false"
+      RABBITMQ_ENABLED_EVENTS: ""
       RABBITMQ_EXCHANGE: foodwaste.events
       RABBITMQ_PREFETCH_COUNT: 10
       RABBITMQ_MESSAGE_TTL: 86400000
@@ -156,9 +156,9 @@ services:
     healthcheck:
       test:
         [
-          'CMD',
-          'node',
-          '-e',
+          "CMD",
+          "node",
+          "-e",
           "require('http').get('http://localhost:3000/health/liveness', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})",
         ]
       interval: 30s
@@ -174,16 +174,16 @@ services:
     container_name: foodwaste-prometheus
     restart: unless-stopped
     ports:
-      - '9090:9090'
+      - "9090:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=30d'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
     networks:
       - foodwaste-network
     depends_on:
@@ -197,7 +197,7 @@ services:
     container_name: foodwaste-grafana
     restart: unless-stopped
     ports:
-      - '3001:3000'
+      - "3001:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin123
@@ -219,7 +219,7 @@ services:
     container_name: foodwaste-mongo-express
     restart: unless-stopped
     ports:
-      - '8081:8081'
+      - "8081:8081"
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: password123
@@ -240,7 +240,7 @@ services:
     container_name: foodwaste-redis-commander
     restart: unless-stopped
     ports:
-      - '8082:8081'
+      - "8082:8081"
     environment:
       REDIS_HOSTS: local:redis:6379:0:redis_dev_password
     depends_on:

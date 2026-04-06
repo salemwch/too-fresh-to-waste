@@ -241,7 +241,7 @@ export const multiCountryPhoneNumberValidator = (
     const cleaned = cleanPhoneNumber(value);
 
     // Check if valid for any of the countries
-    const validForAnyCountry = countries.some((country) => isPossible(cleaned, country));
+    const validForAnyCountry = countries.some(country => isPossible(cleaned, country));
 
     if (!validForAnyCountry) {
       return createError({

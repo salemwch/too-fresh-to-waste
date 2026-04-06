@@ -136,8 +136,8 @@ export class PayoutTask {
     try {
       const results = await this.payoutService.retryFailedPayouts(batchId);
 
-      const successCount = results.filter((r) => r.success).length;
-      const failureCount = results.filter((r) => !r.success).length;
+      const successCount = results.filter(r => r.success).length;
+      const failureCount = results.filter(r => !r.success).length;
 
       if (results.length > 0) {
         this.logger.log(

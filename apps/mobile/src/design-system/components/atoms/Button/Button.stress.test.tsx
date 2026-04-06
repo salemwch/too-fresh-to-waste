@@ -25,7 +25,7 @@ describe('Button — Stress Tests', () => {
 
     render(
       <TestWrapper>
-        <Button testID="stress-btn" onPress={onPress}>
+        <Button testID='stress-btn' onPress={onPress}>
           Tap Me
         </Button>
       </TestWrapper>,
@@ -50,7 +50,7 @@ describe('Button — Stress Tests', () => {
 
     render(
       <TestWrapper>
-        <Button testID="guarded-btn" onPress={onPress} pressGuardMs={500}>
+        <Button testID='guarded-btn' onPress={onPress} pressGuardMs={500}>
           Guarded
         </Button>
       </TestWrapper>,
@@ -76,7 +76,7 @@ describe('Button — Stress Tests', () => {
 
     render(
       <TestWrapper>
-        <Button testID="timed-btn" onPress={onPress} pressGuardMs={cooldownMs}>
+        <Button testID='timed-btn' onPress={onPress} pressGuardMs={cooldownMs}>
           Timed
         </Button>
       </TestWrapper>,
@@ -104,7 +104,7 @@ describe('Button — Stress Tests', () => {
 
     render(
       <TestWrapper>
-        <Button testID="disabled-btn" onPress={onPress} disabled pressGuardMs={500}>
+        <Button testID='disabled-btn' onPress={onPress} disabled pressGuardMs={500}>
           Disabled
         </Button>
       </TestWrapper>,
@@ -124,7 +124,7 @@ describe('Button — Stress Tests', () => {
 
     render(
       <TestWrapper>
-        <Button testID="loading-btn" onPress={onPress} loading pressGuardMs={500}>
+        <Button testID='loading-btn' onPress={onPress} loading pressGuardMs={500}>
           Loading
         </Button>
       </TestWrapper>,

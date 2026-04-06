@@ -98,7 +98,7 @@ export class LocationAdapter {
   static fromGooglePlace(place: GooglePlaceResult): ILocationResult {
     // Extract city name from address components (if available)
     const cityComponent = place.address_components?.find(
-      (component) =>
+      component =>
         component.types.includes('locality') ||
         component.types.includes('administrative_area_level_2'),
     );
@@ -212,10 +212,10 @@ export class LocationAdapter {
       }
 
       // Check for coordinate-based duplicates
-      const isDuplicateCoords = result.some((existing) => this.isDuplicate(existing, location));
+      const isDuplicateCoords = result.some(existing => this.isDuplicate(existing, location));
 
       // Check for fuzzy name match
-      const isDuplicateName = result.some((existing) => this.isFuzzyNameMatch(existing, location));
+      const isDuplicateName = result.some(existing => this.isFuzzyNameMatch(existing, location));
 
       if (!isDuplicateCoords && !isDuplicateName) {
         result.push(location);

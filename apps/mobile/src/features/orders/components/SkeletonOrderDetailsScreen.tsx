@@ -139,18 +139,18 @@ export const SkeletonOrderDetailsScreen: React.FC = () => {
             borderRadius={6}
             style={styles.sectionTitle}
           />
-          <SkeletonBox animValue={anim} width="100%" height={13} borderRadius={6} />
+          <SkeletonBox animValue={anim} width='100%' height={13} borderRadius={6} />
           <SkeletonBox
             animValue={anim}
-            width="70%"
+            width='70%'
             height={13}
             borderRadius={6}
             style={styles.confirmationHint}
           />
-          <SkeletonBox animValue={anim} width="100%" height={56} borderRadius={12} />
+          <SkeletonBox animValue={anim} width='100%' height={56} borderRadius={12} />
           <SkeletonBox
             animValue={anim}
-            width="100%"
+            width='100%'
             height={48}
             borderRadius={12}
             style={styles.confirmButton}
@@ -159,7 +159,7 @@ export const SkeletonOrderDetailsScreen: React.FC = () => {
 
         <SkeletonBox
           animValue={anim}
-          width="100%"
+          width='100%'
           height={40}
           borderRadius={8}
           style={styles.footerAction}

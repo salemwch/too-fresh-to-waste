@@ -197,7 +197,7 @@ export class PayoutService {
     const merchantName = firstPendingEntry.merchantName;
     const merchantEmail = firstPendingEntry.merchantEmail;
     const totalAmount = pendingEntries.reduce((sum, e) => sum + e.merchantAmount, 0);
-    const entryIds = pendingEntries.map((e) => e._id);
+    const entryIds = pendingEntries.map(e => e._id);
 
     // Execute bank transfer (stubbed)
     const transferResult = await this.executeBankTransfer({
@@ -278,7 +278,7 @@ export class PayoutService {
     );
 
     // Simulate processing delay
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     // In production: Call actual banking API
     // Example integration points:
@@ -356,8 +356,8 @@ export class PayoutService {
       },
     ]);
 
-    const pending = stats.find((s) => s._id === LedgerStatus.PENDING_SETTLEMENT);
-    const paidOut = stats.find((s) => s._id === LedgerStatus.PAID_OUT);
+    const pending = stats.find(s => s._id === LedgerStatus.PENDING_SETTLEMENT);
+    const paidOut = stats.find(s => s._id === LedgerStatus.PAID_OUT);
 
     return {
       pendingAmount: pending?.totalAmount ?? 0,

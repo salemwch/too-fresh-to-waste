@@ -135,7 +135,7 @@ export function usePlaceSearch(
         // Google Places Autocomplete (FREE with session token)
         remoteLocationService
           .autocomplete(debouncedQuery, sessionToken, googleLimit)
-          .catch((error) => {
+          .catch(error => {
             Logger.warn('[usePlaceSearch] Google autocomplete failed:', error);
             return [] as ILocationResult[];
           }),
@@ -149,7 +149,7 @@ export function usePlaceSearch(
             query: debouncedQuery,
             sortByDistance: true,
           })
-          .catch((error) => {
+          .catch(error => {
             Logger.warn('[usePlaceSearch] App establishment search failed:', error);
             return [] as ProximitySearchResult<NearbyEstablishment>[];
           }),

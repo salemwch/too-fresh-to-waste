@@ -670,7 +670,7 @@ export class AuthController {
 
     return {
       success: true,
-      sessions: sessions.map((session) => ({
+      sessions: sessions.map(session => ({
         sessionId: session.sessionId,
         deviceInfo: {
           deviceName: session.deviceInfo.deviceName,
@@ -696,7 +696,7 @@ export class AuthController {
   ) {
     // Verify the session belongs to the current user
     const userSessions = await this.sessionManagementService.getUserSessions(req.user.userId);
-    const sessionExists = userSessions.some((session) => session.sessionId === sessionId);
+    const sessionExists = userSessions.some(session => session.sessionId === sessionId);
 
     if (!sessionExists) {
       throw new ForbiddenException('Session not found or does not belong to user');

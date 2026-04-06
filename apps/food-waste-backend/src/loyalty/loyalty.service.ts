@@ -235,7 +235,7 @@ export class LoyaltyService {
       if (addPointsDto.orderId) {
         const orderIdObj = new Types.ObjectId(addPointsDto.orderId);
         const alreadyProcessed = account.pointsHistory.some(
-          (transaction) => transaction.orderId?.toString() === orderIdObj.toString(),
+          transaction => transaction.orderId?.toString() === orderIdObj.toString(),
         );
 
         if (alreadyProcessed) {
@@ -400,7 +400,7 @@ export class LoyaltyService {
    */
   async getDonationHistory(userId: string): Promise<PointTransaction[]> {
     const account = await this.getLoyaltyAccount(userId);
-    return account.pointsHistory.filter((tx) => tx.type === 'donated');
+    return account.pointsHistory.filter(tx => tx.type === 'donated');
   }
 
   /**
@@ -414,7 +414,7 @@ export class LoyaltyService {
 
     return (
       this.tiers
-        .filter((tier) => totalPoints >= tier.minPoints)
+        .filter(tier => totalPoints >= tier.minPoints)
         .sort((a, b) => b.minPoints - a.minPoints)[0] ?? defaultTier
     );
   }
@@ -456,7 +456,7 @@ export class LoyaltyService {
 
     if (
       account.totalOrdersCount >= 10 &&
-      !account.badges.some((b) => b.type === BadgeType.FREQUENT_SAVER)
+      !account.badges.some(b => b.type === BadgeType.FREQUENT_SAVER)
     ) {
       badges.push({
         type: BadgeType.FREQUENT_SAVER,
@@ -469,7 +469,7 @@ export class LoyaltyService {
 
     if (
       account.totalAmountSpent >= 1000 &&
-      !account.badges.some((b) => b.type === BadgeType.ECO_WARRIOR)
+      !account.badges.some(b => b.type === BadgeType.ECO_WARRIOR)
     ) {
       badges.push({
         type: BadgeType.ECO_WARRIOR,
@@ -533,7 +533,7 @@ export class LoyaltyService {
     );
 
     // ── Current user's own entry (only when outside top N) ─────────────────
-    const isCurrentUserInTop = entries.some((e) => e.isCurrentUser);
+    const isCurrentUserInTop = entries.some(e => e.isCurrentUser);
     let currentUserEntry: LeaderboardEntry | null = null;
 
     if (!isCurrentUserInTop) {

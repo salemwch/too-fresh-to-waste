@@ -31,7 +31,7 @@ const SkeletonInput: React.FC<SkeletonInputProps> = ({ animValue, color, style }
     <SkeletonBox animValue={animValue} width={80} height={14} borderRadius={7} color={color} />
     <SkeletonBox
       animValue={animValue}
-      width="100%"
+      width='100%'
       height={48}
       borderRadius={12}
       color={color}
@@ -110,14 +110,14 @@ export const SkeletonEditProfileScreen: React.FC = () => {
         <View style={styles.buttonContainer}>
           <SkeletonBox
             animValue={anim}
-            width="100%"
+            width='100%'
             height={52}
             borderRadius={12}
             color={theme.colors.outline}
           />
           <SkeletonBox
             animValue={anim}
-            width="100%"
+            width='100%'
             height={44}
             borderRadius={12}
             color={theme.colors.outline}

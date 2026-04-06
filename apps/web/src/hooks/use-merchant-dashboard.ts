@@ -166,7 +166,7 @@ export function useMerchantOffersFiltered(page = 1, limit = 10, status?: string)
       };
     },
     staleTime: 60 * 1000,
-    placeholderData: (prev) => prev,
+    placeholderData: prev => prev,
   });
 }
 

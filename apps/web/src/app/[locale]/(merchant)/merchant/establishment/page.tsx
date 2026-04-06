@@ -183,14 +183,14 @@ function DocRow({
   }
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-          <span className="text-xs font-medium text-slate-700 truncate">{label}</span>
+    <div className='flex flex-col gap-1'>
+      <div className='flex items-center justify-between gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2'>
+        <div className='flex items-center gap-2 min-w-0'>
+          <FileText className='h-3.5 w-3.5 shrink-0 text-slate-400' />
+          <span className='text-xs font-medium text-slate-700 truncate'>{label}</span>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className='flex items-center gap-2 shrink-0'>
           {/* Status badge */}
           {url && meta && (
             <span
@@ -200,19 +200,19 @@ function DocRow({
             >
               {meta.verified ? (
                 <>
-                  <ShieldCheck className="h-3 w-3" />
+                  <ShieldCheck className='h-3 w-3' />
                   {tVerified}
                 </>
               ) : (
                 <>
-                  <Clock3 className="h-3 w-3" />
+                  <Clock3 className='h-3 w-3' />
                   {tPending}
                 </>
               )}
             </span>
           )}
           {url && !meta && (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">
+            <span className='rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500'>
               {tUploaded}
             </span>
           )}
@@ -220,15 +220,15 @@ function DocRow({
           {/* Actions */}
           {url ? (
             <button
-              type="button"
+              type='button'
               onClick={onDelete}
               disabled={deleting}
-              className="flex items-center gap-1 rounded px-1.5 py-1 text-[10px] text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
+              className='flex items-center gap-1 rounded px-1.5 py-1 text-[10px] text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors'
             >
               {deleting ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <Loader2 className='h-3 w-3 animate-spin' />
               ) : (
-                <Trash2 className="h-3 w-3" />
+                <Trash2 className='h-3 w-3' />
               )}
               {deleting ? tDeletingDoc : tDeleteDoc}
             </button>
@@ -236,21 +236,21 @@ function DocRow({
             <>
               <input
                 ref={inputRef}
-                type="file"
-                accept="application/pdf"
-                className="hidden"
+                type='file'
+                accept='application/pdf'
+                className='hidden'
                 onChange={handleFileChange}
               />
               <button
-                type="button"
+                type='button'
                 onClick={() => inputRef.current?.click()}
                 disabled={uploading}
-                className="flex items-center gap-1 rounded px-1.5 py-1 text-[10px] text-primary-600 hover:bg-primary-50 disabled:opacity-50 transition-colors"
+                className='flex items-center gap-1 rounded px-1.5 py-1 text-[10px] text-primary-600 hover:bg-primary-50 disabled:opacity-50 transition-colors'
               >
                 {uploading ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader2 className='h-3 w-3 animate-spin' />
                 ) : (
-                  <Upload className="h-3 w-3" />
+                  <Upload className='h-3 w-3' />
                 )}
                 {uploading ? tUploadingDoc : tUploadDoc}
               </button>
@@ -261,11 +261,11 @@ function DocRow({
 
       {/* Expiry + local validation error */}
       {url && meta?.expiryDate && (
-        <p className="px-3 text-[10px] text-slate-400">
+        <p className='px-3 text-[10px] text-slate-400'>
           {tExpiry(new Date(meta.expiryDate).toLocaleDateString())}
         </p>
       )}
-      {localError && <p className="px-3 text-[10px] text-red-500">{localError}</p>}
+      {localError && <p className='px-3 text-[10px] text-red-500'>{localError}</p>}
     </div>
   );
 }
@@ -294,8 +294,7 @@ export default function MerchantEstablishmentPage() {
   const [cuisineTypes, setCuisineTypes] = useState<string[]>([]);
   const [cuisineInput, setCuisineInput] = useState('');
   const [businessHours, setBusinessHours] = useState<Record<Day, DayHours>>(
-    () =>
-      Object.fromEntries(DAYS.map((d) => [d, { ...DEFAULT_DAY_HOURS }])) as Record<Day, DayHours>,
+    () => Object.fromEntries(DAYS.map(d => [d, { ...DEFAULT_DAY_HOURS }])) as Record<Day, DayHours>,
   );
 
   // ── Save state ───────────────────────────────────────────────────────────────
@@ -359,7 +358,7 @@ export default function MerchantEstablishmentPage() {
 
     if (est.businessHours) {
       const merged = {
-        ...Object.fromEntries(DAYS.map((d) => [d, { ...DEFAULT_DAY_HOURS }])),
+        ...Object.fromEntries(DAYS.map(d => [d, { ...DEFAULT_DAY_HOURS }])),
       } as Record<Day, DayHours>;
       for (const day of DAYS) {
         const raw = est.businessHours[day];
@@ -394,7 +393,7 @@ export default function MerchantEstablishmentPage() {
       website: website.trim() || undefined,
       cuisineTypes: cuisineTypes.length > 0 ? cuisineTypes : undefined,
       acceptsReservations,
-      businessHours: Object.fromEntries(DAYS.map((d) => [d, businessHours[d]])),
+      businessHours: Object.fromEntries(DAYS.map(d => [d, businessHours[d]])),
     };
 
     try {
@@ -452,7 +451,7 @@ export default function MerchantEstablishmentPage() {
   // ── Legal document handlers ───────────────────────────────────────────────────
   async function handleDocUpload(docType: LegalDocumentType, file: File) {
     if (!establishment) return;
-    setDocUploading((p) => ({ ...p, [docType]: true }));
+    setDocUploading(p => ({ ...p, [docType]: true }));
     setDocFeedback(null);
     try {
       const res = await establishmentService.uploadDocument(establishment._id, docType, file);
@@ -462,13 +461,13 @@ export default function MerchantEstablishmentPage() {
     } catch {
       setDocFeedback({ type: 'error', msg: t('docUploadError') });
     } finally {
-      setDocUploading((p) => ({ ...p, [docType]: false }));
+      setDocUploading(p => ({ ...p, [docType]: false }));
     }
   }
 
   async function handleDocDelete(docType: LegalDocumentType) {
     if (!establishment) return;
-    setDocDeleting((p) => ({ ...p, [docType]: true }));
+    setDocDeleting(p => ({ ...p, [docType]: true }));
     setDocFeedback(null);
     try {
       const res = await establishmentService.deleteDocument(establishment._id, docType);
@@ -478,7 +477,7 @@ export default function MerchantEstablishmentPage() {
     } catch {
       setDocFeedback({ type: 'error', msg: t('docDeleteError') });
     } finally {
-      setDocDeleting((p) => ({ ...p, [docType]: false }));
+      setDocDeleting(p => ({ ...p, [docType]: false }));
     }
   }
 
@@ -499,12 +498,12 @@ export default function MerchantEstablishmentPage() {
   }
 
   function removeCuisineTag(tag: string) {
-    setCuisineTypes(cuisineTypes.filter((t) => t !== tag));
+    setCuisineTypes(cuisineTypes.filter(t => t !== tag));
   }
 
   // ── Business hours helpers ─────────────────────────────────────────────────────
   function updateHour(day: Day, field: keyof DayHours, value: string | boolean) {
-    setBusinessHours((prev) => ({
+    setBusinessHours(prev => ({
       ...prev,
       [day]: { ...prev[day], [field]: value },
     }));
@@ -513,94 +512,94 @@ export default function MerchantEstablishmentPage() {
   // ── Loading / error states ────────────────────────────────────────────────────
   if (isLoadingPage) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-4 lg:px-0 space-y-4 animate-pulse">
+      <div className='mx-auto max-w-2xl px-4 py-4 lg:px-0 space-y-4 animate-pulse'>
         {/* Header row */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1.5">
-            <div className="h-4 w-48 rounded bg-slate-200" />
-            <div className="h-3 w-64 rounded bg-slate-100" />
+        <div className='flex items-start justify-between gap-3'>
+          <div className='space-y-1.5'>
+            <div className='h-4 w-48 rounded bg-slate-200' />
+            <div className='h-3 w-64 rounded bg-slate-100' />
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="h-5 w-16 rounded-full bg-slate-200" />
-            <div className="h-5 w-20 rounded-full bg-slate-200" />
+          <div className='flex items-center gap-2 shrink-0'>
+            <div className='h-5 w-16 rounded-full bg-slate-200' />
+            <div className='h-5 w-20 rounded-full bg-slate-200' />
           </div>
         </div>
 
         {/* Stats row */}
-        <div className="flex flex-wrap items-center gap-4 rounded-xl border bg-white px-4 py-3 shadow-sm">
-          <div className="h-3 w-24 rounded bg-slate-200" />
-          <div className="h-3 w-20 rounded bg-slate-200" />
-          <div className="h-3 w-28 rounded bg-slate-200" />
+        <div className='flex flex-wrap items-center gap-4 rounded-xl border bg-white px-4 py-3 shadow-sm'>
+          <div className='h-3 w-24 rounded bg-slate-200' />
+          <div className='h-3 w-20 rounded bg-slate-200' />
+          <div className='h-3 w-28 rounded bg-slate-200' />
         </div>
 
         {/* Tab nav */}
-        <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="flex-1 h-8 rounded-lg bg-slate-200" />
+        <div className='flex gap-1 rounded-xl bg-slate-100 p-1'>
+          {[0, 1, 2].map(i => (
+            <div key={i} className='flex-1 h-8 rounded-lg bg-slate-200' />
           ))}
         </div>
 
         {/* Photos section */}
-        <div className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <div className="h-3 w-20 rounded bg-slate-200" />
-              <div className="h-2.5 w-52 rounded bg-slate-100" />
+        <div className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+          <div className='flex items-center justify-between'>
+            <div className='space-y-1'>
+              <div className='h-3 w-20 rounded bg-slate-200' />
+              <div className='h-2.5 w-52 rounded bg-slate-100' />
             </div>
-            <div className="h-7 w-24 rounded-lg bg-slate-200" />
+            <div className='h-7 w-24 rounded-lg bg-slate-200' />
           </div>
-          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className="aspect-square rounded-lg bg-slate-200" />
+          <div className='grid grid-cols-4 sm:grid-cols-5 gap-2'>
+            {[0, 1, 2, 3, 4].map(i => (
+              <div key={i} className='aspect-square rounded-lg bg-slate-200' />
             ))}
           </div>
         </div>
 
         {/* 2-col grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           {/* Basic Info */}
-          <div className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3">
-            <div className="h-3 w-24 rounded bg-slate-200" />
+          <div className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+            <div className='h-3 w-24 rounded bg-slate-200' />
             {[60, 72, 48, 96].map((w, i) => (
-              <div key={i} className="space-y-1.5">
-                <div className="h-2.5 rounded bg-slate-100" style={{ width: `${w}px` }} />
-                <div className="h-8 rounded-md bg-slate-200" />
+              <div key={i} className='space-y-1.5'>
+                <div className='h-2.5 rounded bg-slate-100' style={{ width: `${w}px` }} />
+                <div className='h-8 rounded-md bg-slate-200' />
               </div>
             ))}
           </div>
 
           {/* Right column: Contact + Address + Options */}
-          <div className="space-y-4">
-            <div className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3">
-              <div className="h-3 w-20 rounded bg-slate-200" />
+          <div className='space-y-4'>
+            <div className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+              <div className='h-3 w-20 rounded bg-slate-200' />
               {[56, 48].map((w, i) => (
-                <div key={i} className="space-y-1.5">
-                  <div className="h-2.5 rounded bg-slate-100" style={{ width: `${w}px` }} />
-                  <div className="h-8 rounded-md bg-slate-200" />
+                <div key={i} className='space-y-1.5'>
+                  <div className='h-2.5 rounded bg-slate-100' style={{ width: `${w}px` }} />
+                  <div className='h-8 rounded-md bg-slate-200' />
                 </div>
               ))}
             </div>
-            <div className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-2">
-              <div className="h-3 w-20 rounded bg-slate-200" />
-              <div className="rounded-lg bg-slate-50 px-3 py-2 space-y-1.5">
-                <div className="h-2.5 w-40 rounded bg-slate-200" />
-                <div className="h-2.5 w-32 rounded bg-slate-200" />
-                <div className="h-2.5 w-24 rounded bg-slate-200" />
+            <div className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-2'>
+              <div className='h-3 w-20 rounded bg-slate-200' />
+              <div className='rounded-lg bg-slate-50 px-3 py-2 space-y-1.5'>
+                <div className='h-2.5 w-40 rounded bg-slate-200' />
+                <div className='h-2.5 w-32 rounded bg-slate-200' />
+                <div className='h-2.5 w-24 rounded bg-slate-200' />
               </div>
             </div>
-            <div className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3">
-              <div className="h-3 w-20 rounded bg-slate-200" />
-              <div className="space-y-1.5">
-                <div className="h-2.5 w-24 rounded bg-slate-100" />
-                <div className="h-8 rounded-md bg-slate-200" />
+            <div className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+              <div className='h-3 w-20 rounded bg-slate-200' />
+              <div className='space-y-1.5'>
+                <div className='h-2.5 w-24 rounded bg-slate-100' />
+                <div className='h-8 rounded-md bg-slate-200' />
               </div>
             </div>
           </div>
         </div>
 
         {/* Save bar */}
-        <div className="flex justify-end pt-2 border-t border-slate-100">
-          <div className="h-7 w-24 rounded-lg bg-slate-200" />
+        <div className='flex justify-end pt-2 border-t border-slate-100'>
+          <div className='h-7 w-24 rounded-lg bg-slate-200' />
         </div>
       </div>
     );
@@ -608,10 +607,10 @@ export default function MerchantEstablishmentPage() {
 
   if (loadError || !establishment) {
     return (
-      <div className="flex h-64 flex-col items-center justify-center gap-2 text-center">
-        <AlertCircle className="h-8 w-8 text-red-400" />
-        <p className="font-medium text-slate-700">{t('notFound')}</p>
-        <p className="text-sm text-slate-500">{t('notFoundDescription')}</p>
+      <div className='flex h-64 flex-col items-center justify-center gap-2 text-center'>
+        <AlertCircle className='h-8 w-8 text-red-400' />
+        <p className='font-medium text-slate-700'>{t('notFound')}</p>
+        <p className='text-sm text-slate-500'>{t('notFoundDescription')}</p>
       </div>
     );
   }
@@ -622,25 +621,25 @@ export default function MerchantEstablishmentPage() {
 
   // ── Save button (shared between Profile and Hours tabs) ───────────────────
   const SaveBar = () => (
-    <div className="flex items-center justify-between pt-2 border-t border-slate-100 mt-4">
-      <div className="flex-1">
+    <div className='flex items-center justify-between pt-2 border-t border-slate-100 mt-4'>
+      <div className='flex-1'>
         {saveError && (
-          <div className="flex items-center gap-1.5 text-xs text-red-600">
-            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+          <div className='flex items-center gap-1.5 text-xs text-red-600'>
+            <AlertCircle className='h-3.5 w-3.5 shrink-0' />
             {saveError}
           </div>
         )}
         {saveSuccess && (
-          <div className="flex items-center gap-1.5 text-xs text-green-600">
-            <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+          <div className='flex items-center gap-1.5 text-xs text-green-600'>
+            <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
             {t('success')}
           </div>
         )}
       </div>
-      <Button type="submit" size="sm" className="h-7 text-xs px-3" disabled={isSaving}>
+      <Button type='submit' size='sm' className='h-7 text-xs px-3' disabled={isSaving}>
         {isSaving ? (
           <>
-            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+            <Loader2 className='mr-1 h-3 w-3 animate-spin' />
             {t('saving')}
           </>
         ) : (
@@ -651,20 +650,20 @@ export default function MerchantEstablishmentPage() {
   );
 
   return (
-    <div className="mx-auto max-w-2xl px-3 py-3 sm:px-4 sm:py-4 lg:px-0 space-y-4">
+    <div className='mx-auto max-w-2xl px-3 py-3 sm:px-4 sm:py-4 lg:px-0 space-y-4'>
       {/* ── Header row: name + status badge ──────────────────────────────── */}
-      <div className="flex items-start justify-between gap-3">
+      <div className='flex items-start justify-between gap-3'>
         <div>
-          <h1 className="text-base font-semibold text-slate-800">{establishment.name}</h1>
-          <p className="text-xs text-slate-400 mt-0.5">{t('description')}</p>
+          <h1 className='text-base font-semibold text-slate-800'>{establishment.name}</h1>
+          <p className='text-xs text-slate-400 mt-0.5'>{t('description')}</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className='flex items-center gap-2 shrink-0'>
           <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusStyle}`}>
             {t(statusKey)}
           </span>
           {establishment.isVerified && (
-            <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600">
-              <CheckCheck className="h-3 w-3" />
+            <span className='flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600'>
+              <CheckCheck className='h-3 w-3' />
               {t('verified')}
             </span>
           )}
@@ -672,37 +671,37 @@ export default function MerchantEstablishmentPage() {
       </div>
 
       {/* ── Quick stats row ───────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-4 rounded-xl border bg-white px-4 py-3 shadow-sm">
+      <div className='flex flex-wrap items-center gap-4 rounded-xl border bg-white px-4 py-3 shadow-sm'>
         {establishment.averageRating !== undefined && (
-          <div className="flex items-center gap-1.5">
-            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-            <span className="text-xs font-medium text-slate-700">
+          <div className='flex items-center gap-1.5'>
+            <Star className='h-3.5 w-3.5 fill-amber-400 text-amber-400' />
+            <span className='text-xs font-medium text-slate-700'>
               {establishment.averageRating.toFixed(1)}
             </span>
             {establishment.totalReviews !== undefined && (
-              <span className="text-xs text-slate-400">
+              <span className='text-xs text-slate-400'>
                 ({establishment.totalReviews} {t('reviews', { count: establishment.totalReviews })})
               </span>
             )}
           </div>
         )}
         {establishment.completedOrders !== undefined && (
-          <div className="flex items-center gap-1.5">
-            <ShoppingBag className="h-3.5 w-3.5 text-slate-400" />
-            <span className="text-xs text-slate-600">
+          <div className='flex items-center gap-1.5'>
+            <ShoppingBag className='h-3.5 w-3.5 text-slate-400' />
+            <span className='text-xs text-slate-600'>
               {t('completedOrders', { count: establishment.completedOrders })}
             </span>
           </div>
         )}
         {establishment.address?.city && (
-          <div className="flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5 text-slate-400" />
-            <span className="text-xs text-slate-600">{establishment.address.city}</span>
+          <div className='flex items-center gap-1.5'>
+            <MapPin className='h-3.5 w-3.5 text-slate-400' />
+            <span className='text-xs text-slate-600'>{establishment.address.city}</span>
           </div>
         )}
         {establishment.rejectionReason && (
-          <div className="w-full flex items-start gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
-            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <div className='w-full flex items-start gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700'>
+            <AlertCircle className='mt-0.5 h-3.5 w-3.5 shrink-0' />
             <span>
               <strong>{t('rejectionReason')}:</strong> {establishment.rejectionReason}
             </span>
@@ -711,7 +710,7 @@ export default function MerchantEstablishmentPage() {
       </div>
 
       {/* ── Tab navigation ────────────────────────────────────────────────── */}
-      <div className="flex gap-1 rounded-xl bg-slate-100 p-1 overflow-hidden">
+      <div className='flex gap-1 rounded-xl bg-slate-100 p-1 overflow-hidden'>
         {(
           [
             { id: 'profile', icon: Store, label: 'Profile' },
@@ -721,7 +720,7 @@ export default function MerchantEstablishmentPage() {
         ).map(({ id, icon: Icon, label }) => (
           <button
             key={id}
-            type="button"
+            type='button'
             onClick={() => setActiveTab(id)}
             className={`flex flex-1 min-w-0 items-center justify-center gap-1 sm:gap-1.5 rounded-lg px-2 sm:px-3 py-2 text-xs font-medium transition-all ${
               activeTab === id
@@ -729,8 +728,8 @@ export default function MerchantEstablishmentPage() {
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            <Icon className="h-3.5 w-3.5 shrink-0" />
-            <span className="hidden sm:inline">{label}</span>
+            <Icon className='h-3.5 w-3.5 shrink-0' />
+            <span className='hidden sm:inline'>{label}</span>
           </button>
         ))}
       </div>
@@ -739,113 +738,113 @@ export default function MerchantEstablishmentPage() {
       {/* TAB: PROFILE                                                      */}
       {/* ══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'profile' && (
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSave} className='space-y-4'>
           {/* Photos */}
-          <section className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
+          <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm'>
+            <div className='flex items-center justify-between mb-3'>
               <div>
-                <h2 className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
-                  <Camera className="h-3.5 w-3.5 text-primary-500" />
+                <h2 className='text-xs font-medium text-slate-700 flex items-center gap-1.5'>
+                  <Camera className='h-3.5 w-3.5 text-primary-500' />
                   {t('photos')}
-                  <span className="text-slate-400">
+                  <span className='text-slate-400'>
                     ({images.length}/{MAX_TOTAL_IMAGES})
                   </span>
                 </h2>
-                <p className="mt-0.5 text-[10px] text-slate-400">{t('photosHint')}</p>
+                <p className='mt-0.5 text-[10px] text-slate-400'>{t('photosHint')}</p>
               </div>
               <input
                 ref={photoInputRef}
-                type="file"
+                type='file'
                 accept={ACCEPTED_IMAGE_TYPES}
                 multiple
-                className="hidden"
+                className='hidden'
                 onChange={handlePhotosSelect}
               />
               <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs px-2.5"
+                type='button'
+                variant='outline'
+                size='sm'
+                className='h-7 text-xs px-2.5'
                 disabled={isUploadingPhotos || images.length >= MAX_TOTAL_IMAGES}
                 onClick={() => photoInputRef.current?.click()}
               >
                 {isUploadingPhotos ? (
                   <>
-                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    <Loader2 className='mr-1 h-3 w-3 animate-spin' />
                     {t('uploading')}
                   </>
                 ) : (
                   <>
-                    <Camera className="mr-1 h-3 w-3" />
+                    <Camera className='mr-1 h-3 w-3' />
                     {t('uploadPhotos')}
                   </>
                 )}
               </Button>
             </div>
             {photoError && (
-              <div className="mb-3 flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+              <div className='mb-3 flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600'>
+                <AlertCircle className='h-3.5 w-3.5 shrink-0' />
                 {photoError}
               </div>
             )}
             {photoSuccess && (
-              <div className="mb-3 flex items-center gap-1.5 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-600">
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+              <div className='mb-3 flex items-center gap-1.5 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-600'>
+                <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
                 {t('photosSuccess')}
               </div>
             )}
             {images.length > 0 ? (
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+              <div className='grid grid-cols-4 sm:grid-cols-5 gap-2'>
                 {images.map((url, idx) => (
                   <div
                     key={idx}
-                    className="relative aspect-square rounded-lg overflow-hidden border bg-slate-50"
+                    className='relative aspect-square rounded-lg overflow-hidden border bg-slate-50'
                   >
-                    <Image src={url} alt="" fill sizes="20vw" className="object-cover" />
+                    <Image src={url} alt='' fill sizes='20vw' className='object-cover' />
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex h-20 items-center justify-center rounded-lg border-2 border-dashed border-slate-200 text-slate-400 text-xs gap-2">
-                <Camera className="h-4 w-4" />
+              <div className='flex h-20 items-center justify-center rounded-lg border-2 border-dashed border-slate-200 text-slate-400 text-xs gap-2'>
+                <Camera className='h-4 w-4' />
                 {t('uploadPhotos')}
               </div>
             )}
           </section>
 
           {/* Basic Info + Contact side by side on md+ */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             {/* Basic Info */}
-            <section className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3">
-              <h2 className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
-                <Store className="h-3.5 w-3.5 text-primary-500" />
+            <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+              <h2 className='text-xs font-medium text-slate-700 flex items-center gap-1.5'>
+                <Store className='h-3.5 w-3.5 text-primary-500' />
                 {t('basicInfo')}
               </h2>
-              <div className="space-y-1">
-                <Label className="text-xs" htmlFor="est-name">
+              <div className='space-y-1'>
+                <Label className='text-xs' htmlFor='est-name'>
                   {t('name')}
                 </Label>
                 <Input
-                  id="est-name"
+                  id='est-name'
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={e => setName(e.target.value)}
                   minLength={2}
                   maxLength={100}
                   required
-                  className="h-8 text-xs"
+                  className='h-8 text-xs'
                 />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs" htmlFor="est-type">
+              <div className='space-y-1'>
+                <Label className='text-xs' htmlFor='est-type'>
                   {t('type')}
                 </Label>
                 <select
-                  id="est-type"
+                  id='est-type'
                   value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="w-full h-8 rounded-md border border-slate-200 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
+                  onChange={e => setType(e.target.value)}
+                  className='w-full h-8 rounded-md border border-slate-200 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white'
                 >
-                  <option value="" disabled />
+                  <option value='' disabled />
                   {ESTABLISHMENT_TYPES.map(({ value, labelKey }) => (
                     <option key={value} value={value}>
                       {t(labelKey)}
@@ -853,75 +852,75 @@ export default function MerchantEstablishmentPage() {
                   ))}
                 </select>
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs" htmlFor="est-website">
+              <div className='space-y-1'>
+                <Label className='text-xs' htmlFor='est-website'>
                   {t('website')}
                 </Label>
-                <div className="relative">
-                  <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+                <div className='relative'>
+                  <Globe className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400' />
                   <Input
-                    id="est-website"
-                    type="url"
+                    id='est-website'
+                    type='url'
                     value={website}
-                    onChange={(e) => setWebsite(e.target.value)}
+                    onChange={e => setWebsite(e.target.value)}
                     placeholder={t('websitePlaceholder')}
-                    className="h-8 text-xs pl-7"
+                    className='h-8 text-xs pl-7'
                   />
                 </div>
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs" htmlFor="est-description">
+              <div className='space-y-1'>
+                <Label className='text-xs' htmlFor='est-description'>
                   {t('description_field')}{' '}
-                  <span className="text-slate-400">{t('descriptionHint')}</span>
+                  <span className='text-slate-400'>{t('descriptionHint')}</span>
                 </Label>
                 <textarea
-                  id="est-description"
+                  id='est-description'
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={e => setDescription(e.target.value)}
                   minLength={10}
                   maxLength={500}
                   rows={3}
-                  className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-400 resize-none"
+                  className='w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-400 resize-none'
                 />
               </div>
             </section>
 
             {/* Contact + Address + Options stacked */}
-            <div className="space-y-4">
+            <div className='space-y-4'>
               {/* Contact */}
-              <section className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3">
-                <h2 className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
-                  <Phone className="h-3.5 w-3.5 text-primary-500" />
+              <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+                <h2 className='text-xs font-medium text-slate-700 flex items-center gap-1.5'>
+                  <Phone className='h-3.5 w-3.5 text-primary-500' />
                   {t('contact')}
                 </h2>
-                <div className="space-y-1">
-                  <Label className="text-xs" htmlFor="est-phone">
+                <div className='space-y-1'>
+                  <Label className='text-xs' htmlFor='est-phone'>
                     {t('phoneNumber')}
                   </Label>
-                  <div className="relative">
-                    <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+                  <div className='relative'>
+                    <Phone className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400' />
                     <Input
-                      id="est-phone"
-                      type="tel"
+                      id='est-phone'
+                      type='tel'
                       value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="+21620123456"
-                      className="h-8 text-xs pl-7"
+                      onChange={e => setPhoneNumber(e.target.value)}
+                      placeholder='+21620123456'
+                      className='h-8 text-xs pl-7'
                     />
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs" htmlFor="est-email">
+                <div className='space-y-1'>
+                  <Label className='text-xs' htmlFor='est-email'>
                     {t('email')}
                   </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+                  <div className='relative'>
+                    <Mail className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400' />
                     <Input
-                      id="est-email"
-                      type="email"
+                      id='est-email'
+                      type='email'
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="h-8 text-xs pl-7"
+                      onChange={e => setEmail(e.target.value)}
+                      className='h-8 text-xs pl-7'
                     />
                   </div>
                 </div>
@@ -929,12 +928,12 @@ export default function MerchantEstablishmentPage() {
 
               {/* Address (read-only) */}
               {establishment.address && (
-                <section className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-2">
-                  <h2 className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-primary-500" />
+                <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-2'>
+                  <h2 className='text-xs font-medium text-slate-700 flex items-center gap-1.5'>
+                    <MapPin className='h-3.5 w-3.5 text-primary-500' />
                     {t('address')}
                   </h2>
-                  <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600 space-y-0.5">
+                  <div className='rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600 space-y-0.5'>
                     {establishment.address.street && <p>{establishment.address.street}</p>}
                     <p>
                       {[establishment.address.postalCode, establishment.address.city]
@@ -947,39 +946,39 @@ export default function MerchantEstablishmentPage() {
               )}
 
               {/* Options */}
-              <section className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3">
-                <h2 className="text-xs font-medium text-slate-700">{t('options')}</h2>
-                <div className="space-y-1.5">
-                  <Label className="text-xs" htmlFor="est-cuisine">
+              <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+                <h2 className='text-xs font-medium text-slate-700'>{t('options')}</h2>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs' htmlFor='est-cuisine'>
                     {t('cuisineTypes')}{' '}
-                    <span className="text-slate-400">{t('cuisineTypesHint')}</span>
+                    <span className='text-slate-400'>{t('cuisineTypesHint')}</span>
                   </Label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {cuisineTypes.map((tag) => (
+                  <div className='flex flex-wrap gap-1.5'>
+                    {cuisineTypes.map(tag => (
                       <span
                         key={tag}
-                        className="flex items-center gap-1 rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700"
+                        className='flex items-center gap-1 rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700'
                       >
                         {tag}
                         <button
-                          type="button"
+                          type='button'
                           onClick={() => removeCuisineTag(tag)}
-                          className="text-primary-400 hover:text-primary-700"
+                          className='text-primary-400 hover:text-primary-700'
                           aria-label={`Remove ${tag}`}
                         >
-                          <X className="h-3 w-3" />
+                          <X className='h-3 w-3' />
                         </button>
                       </span>
                     ))}
                   </div>
                   <Input
-                    id="est-cuisine"
+                    id='est-cuisine'
                     value={cuisineInput}
-                    onChange={(e) => setCuisineInput(e.target.value)}
+                    onChange={e => setCuisineInput(e.target.value)}
                     onKeyDown={handleCuisineKeyDown}
                     onBlur={addCuisineTag}
-                    placeholder="e.g. Italian"
-                    className="h-8 text-xs"
+                    placeholder='e.g. Italian'
+                    className='h-8 text-xs'
                   />
                 </div>
               </section>
@@ -995,18 +994,18 @@ export default function MerchantEstablishmentPage() {
       {/* ══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'hours' && (
         <form onSubmit={handleSave}>
-          <section className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3">
+          <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
             <div>
-              <h2 className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-primary-500" />
+              <h2 className='text-xs font-medium text-slate-700 flex items-center gap-1.5'>
+                <Clock className='h-3.5 w-3.5 text-primary-500' />
                 {t('businessHours')}
               </h2>
-              <p className="text-[10px] text-slate-400 mt-0.5">
+              <p className='text-[10px] text-slate-400 mt-0.5'>
                 Set the opening hours for each day of the week.
               </p>
             </div>
-            <div className="space-y-1">
-              {DAYS.map((day) => {
+            <div className='space-y-1'>
+              {DAYS.map(day => {
                 const hours = businessHours[day];
                 return (
                   <div
@@ -1018,46 +1017,46 @@ export default function MerchantEstablishmentPage() {
                     >
                       {t(day)}
                     </span>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                    <div className='flex flex-wrap items-center gap-3'>
+                      <label className='flex items-center gap-1.5 cursor-pointer select-none'>
                         <input
-                          type="checkbox"
+                          type='checkbox'
                           checked={hours.closed}
-                          onChange={(e) => updateHour(day, 'closed', e.target.checked)}
-                          className="h-3.5 w-3.5 rounded border-slate-300 text-primary-500"
+                          onChange={e => updateHour(day, 'closed', e.target.checked)}
+                          className='h-3.5 w-3.5 rounded border-slate-300 text-primary-500'
                         />
-                        <span className="text-xs text-slate-500">{t('closed')}</span>
+                        <span className='text-xs text-slate-500'>{t('closed')}</span>
                       </label>
                       {!hours.closed && (
                         <>
-                          <div className="flex items-center gap-1.5">
+                          <div className='flex items-center gap-1.5'>
                             <label
                               htmlFor={`${day}-open`}
-                              className="text-[10px] text-slate-400 uppercase tracking-wide"
+                              className='text-[10px] text-slate-400 uppercase tracking-wide'
                             >
                               {t('open')}
                             </label>
                             <input
                               id={`${day}-open`}
-                              type="time"
+                              type='time'
                               value={hours.open}
-                              onChange={(e) => updateHour(day, 'open', e.target.value)}
-                              className="rounded border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary-400"
+                              onChange={e => updateHour(day, 'open', e.target.value)}
+                              className='rounded border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary-400'
                             />
                           </div>
-                          <div className="flex items-center gap-1.5">
+                          <div className='flex items-center gap-1.5'>
                             <label
                               htmlFor={`${day}-close`}
-                              className="text-[10px] text-slate-400 uppercase tracking-wide"
+                              className='text-[10px] text-slate-400 uppercase tracking-wide'
                             >
                               {t('close')}
                             </label>
                             <input
                               id={`${day}-close`}
-                              type="time"
+                              type='time'
                               value={hours.close}
-                              onChange={(e) => updateHour(day, 'close', e.target.value)}
-                              className="rounded border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary-400"
+                              onChange={e => updateHour(day, 'close', e.target.value)}
+                              className='rounded border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary-400'
                             />
                           </div>
                         </>
@@ -1076,28 +1075,28 @@ export default function MerchantEstablishmentPage() {
       {/* TAB: DOCUMENTS                                                    */}
       {/* ══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'documents' && (
-        <div className="space-y-4">
-          <section className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3">
+        <div className='space-y-4'>
+          <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
             <div>
-              <h2 className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
-                <FileText className="h-3.5 w-3.5 text-primary-500" />
+              <h2 className='text-xs font-medium text-slate-700 flex items-center gap-1.5'>
+                <FileText className='h-3.5 w-3.5 text-primary-500' />
                 {t('legalDocuments')}
               </h2>
-              <p className="text-[10px] text-slate-400 mt-0.5">{t('legalDocumentsHint')}</p>
+              <p className='text-[10px] text-slate-400 mt-0.5'>{t('legalDocumentsHint')}</p>
             </div>
             {docFeedback && (
               <div
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs ${docFeedback.type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}
               >
                 {docFeedback.type === 'success' ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                  <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
                 ) : (
-                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  <AlertCircle className='h-3.5 w-3.5 shrink-0' />
                 )}
                 {docFeedback.msg}
               </div>
             )}
-            <div className="space-y-2">
+            <div className='space-y-2'>
               {LEGAL_DOCS.map(({ type, urlKey, metaKey, labelKey }) => (
                 <DocRow
                   key={type}
@@ -1110,7 +1109,7 @@ export default function MerchantEstablishmentPage() {
                   }
                   uploading={!!docUploading[type]}
                   deleting={!!docDeleting[type]}
-                  onUpload={(file) => handleDocUpload(type, file)}
+                  onUpload={file => handleDocUpload(type, file)}
                   onDelete={() => handleDocDelete(type)}
                   tPdfOnly={t('docPdfOnly')}
                   tSizeError={t('docSizeError')}
@@ -1121,54 +1120,54 @@ export default function MerchantEstablishmentPage() {
                   tVerified={t('docVerified')}
                   tPending={t('docPending')}
                   tUploaded={t('docUploaded')}
-                  tExpiry={(date) => t('docExpiry', { date })}
+                  tExpiry={date => t('docExpiry', { date })}
                 />
               ))}
             </div>
           </section>
 
           {/* Registration numbers */}
-          <section className="rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3">
-            <h2 className="text-xs font-medium text-slate-700">{t('registrationNumbers')}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs" htmlFor="est-siret">
+          <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+            <h2 className='text-xs font-medium text-slate-700'>{t('registrationNumbers')}</h2>
+            <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+              <div className='space-y-1'>
+                <Label className='text-xs' htmlFor='est-siret'>
                   {t('siret')}
                 </Label>
                 <Input
-                  id="est-siret"
-                  className="h-8 text-xs bg-slate-50"
+                  id='est-siret'
+                  className='h-8 text-xs bg-slate-50'
                   defaultValue={establishment.legalDocuments?.siret ?? '—'}
                   readOnly
                   tabIndex={-1}
                 />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs" htmlFor="est-license">
+              <div className='space-y-1'>
+                <Label className='text-xs' htmlFor='est-license'>
                   {t('licenseNumber')}
                 </Label>
                 <Input
-                  id="est-license"
-                  className="h-8 text-xs bg-slate-50"
+                  id='est-license'
+                  className='h-8 text-xs bg-slate-50'
                   defaultValue={establishment.legalDocuments?.license ?? '—'}
                   readOnly
                   tabIndex={-1}
                 />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs" htmlFor="est-vat">
+              <div className='space-y-1'>
+                <Label className='text-xs' htmlFor='est-vat'>
                   {t('vatNumber')}
                 </Label>
                 <Input
-                  id="est-vat"
-                  className="h-8 text-xs bg-slate-50"
+                  id='est-vat'
+                  className='h-8 text-xs bg-slate-50'
                   defaultValue={establishment.legalDocuments?.vatNumber ?? '—'}
                   readOnly
                   tabIndex={-1}
                 />
               </div>
             </div>
-            <p className="text-[10px] text-slate-400">
+            <p className='text-[10px] text-slate-400'>
               Registration numbers are assigned by admin during verification.
             </p>
           </section>

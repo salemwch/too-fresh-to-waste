@@ -74,19 +74,19 @@ const ImpactStatsRowComponent: React.FC<ImpactStatsRowProps> = ({ totalBagsSaved
 
   return (
     <View style={styles.container}>
-      <Text variant="body" size="xs" weight="semibold" style={styles.sectionLabel}>
+      <Text variant='body' size='xs' weight='semibold' style={styles.sectionLabel}>
         IMPACT
       </Text>
       <View style={styles.row}>
-        {cards.map((card) => (
+        {cards.map(card => (
           <View key={card.label} style={styles.card}>
-            <Text variant="headline" size="lg" weight="bold" style={styles.value}>
+            <Text variant='headline' size='lg' weight='bold' style={styles.value}>
               {card.value}
             </Text>
-            <Text variant="body" size="sm" weight="medium" style={styles.label}>
+            <Text variant='body' size='sm' weight='medium' style={styles.label}>
               {card.label}
             </Text>
-            <Text variant="body" size="xs" color="secondary">
+            <Text variant='body' size='xs' color='secondary'>
               {card.sublabel}
             </Text>
           </View>

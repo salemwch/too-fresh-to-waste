@@ -31,7 +31,7 @@ export const toastConfig: ToastConfig = {
   success: (props: ToastRenderProps) => (
     <Pressable onPress={props.onPress} style={[styles.containerBase, styles.successContainer]}>
       <View style={styles.iconContainer}>
-        <Icon name="checkmark-circle" size={24} color={TOAST_COLORS.success} />
+        <Icon name='checkmark-circle' size={24} color={TOAST_COLORS.success} />
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.text1}>{props.text1}</Text>
@@ -42,7 +42,7 @@ export const toastConfig: ToastConfig = {
   error: (props: ToastRenderProps) => (
     <Pressable onPress={props.onPress} style={[styles.containerBase, styles.errorContainer]}>
       <View style={styles.iconContainer}>
-        <Icon name="close-circle" size={24} color={TOAST_COLORS.error} />
+        <Icon name='close-circle' size={24} color={TOAST_COLORS.error} />
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.text1}>{props.text1}</Text>
@@ -53,7 +53,7 @@ export const toastConfig: ToastConfig = {
   info: (props: ToastRenderProps) => (
     <Pressable onPress={props.onPress} style={[styles.containerBase, styles.infoContainer]}>
       <View style={styles.iconContainer}>
-        <Icon name="information-circle" size={24} color={TOAST_COLORS.info} />
+        <Icon name='information-circle' size={24} color={TOAST_COLORS.info} />
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.text1}>{props.text1}</Text>
@@ -64,7 +64,7 @@ export const toastConfig: ToastConfig = {
   warning: (props: ToastRenderProps) => (
     <Pressable onPress={props.onPress} style={[styles.containerBase, styles.warningContainer]}>
       <View style={styles.iconContainer}>
-        <Icon name="warning" size={24} color={TOAST_COLORS.warning} />
+        <Icon name='warning' size={24} color={TOAST_COLORS.warning} />
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.text1}>{props.text1}</Text>

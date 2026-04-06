@@ -26,14 +26,14 @@ const COLORS = {
 export const DeletedOfferCard: React.FC<DeletedOfferCardProps> = ({ onRemove, style }) => (
   <View style={[styles.container, style]}>
     <View style={styles.iconContainer}>
-      <Icon name="alert-circle-outline" size={48} color={COLORS.textMuted} />
+      <Icon name='alert-circle-outline' size={48} color={COLORS.textMuted} />
     </View>
 
     <Text style={styles.title}>Offer No Longer Available</Text>
     <Text style={styles.description}>This offer has been removed by the merchant</Text>
 
     <Pressable style={styles.removeButton} onPress={onRemove}>
-      <Icon name="trash-outline" size={18} color={COLORS.danger} />
+      <Icon name='trash-outline' size={18} color={COLORS.danger} />
       <Text style={styles.removeButtonText}>Remove from Favorites</Text>
     </Pressable>
   </View>

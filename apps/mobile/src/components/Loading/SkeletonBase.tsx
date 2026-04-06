@@ -69,8 +69,8 @@ export const SkeletonBase: React.FC<SkeletonBaseProps> = ({
         style,
       ]}
       testID={testID}
-      accessibilityLabel="Loading"
-      accessibilityRole="progressbar"
+      accessibilityLabel='Loading'
+      accessibilityRole='progressbar'
     />
   );
 };

@@ -67,9 +67,9 @@ export const CreateOrderSchema = z.object({
   pickupDate: z
     .string()
     .datetime({ message: 'pickupDate must be a valid ISO 8601 date string' })
-    .refine((val) => new Date(val) > new Date(), { message: 'Pickup time must be in the future' })
+    .refine(val => new Date(val) > new Date(), { message: 'Pickup time must be in the future' })
     .refine(
-      (val) => {
+      val => {
         const maxDate = new Date();
         maxDate.setDate(maxDate.getDate() + 30);
         return new Date(val) <= maxDate;

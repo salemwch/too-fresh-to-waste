@@ -38,7 +38,7 @@ export class DonationsService {
     @InjectModel(UserDonation.name)
     private readonly userDonationModel: Model<UserDonationDocument>,
   ) {
-    this.initializeDefaultPool().catch((error) => {
+    this.initializeDefaultPool().catch(error => {
       this.logger.error('Failed to initialize default donation pool', error);
     });
   }

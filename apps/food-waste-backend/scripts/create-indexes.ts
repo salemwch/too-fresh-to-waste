@@ -62,7 +62,7 @@ async function createIndexesForCollection(
     try {
       // Check if index already exists
       const existingIndexes = await collection.indexes();
-      const indexExists = existingIndexes.some((idx) => idx.name === indexName);
+      const indexExists = existingIndexes.some(idx => idx.name === indexName);
 
       if (indexExists) {
         console.log(`   ⏭️  ${indexName} - Already exists`);
@@ -128,7 +128,7 @@ async function verifyIndexes(
 
   for (const indexDef of expectedIndexes) {
     const indexName = indexDef.options?.name || Object.keys(indexDef.fields).join('_');
-    const exists = existingIndexes.some((idx) => idx.name === indexName);
+    const exists = existingIndexes.some(idx => idx.name === indexName);
 
     if (exists) {
       console.log(`   ✅ ${indexName}`);
@@ -178,9 +178,9 @@ async function main() {
     console.log('📊 SUMMARY');
     console.log('='.repeat(60));
 
-    const created = allResults.filter((r) => r.status === 'created').length;
-    const alreadyExists = allResults.filter((r) => r.status === 'already_exists').length;
-    const errors = allResults.filter((r) => r.status === 'error').length;
+    const created = allResults.filter(r => r.status === 'created').length;
+    const alreadyExists = allResults.filter(r => r.status === 'already_exists').length;
+    const errors = allResults.filter(r => r.status === 'error').length;
 
     console.log(`✅ Created: ${created}`);
     console.log(`⏭️  Already Exists: ${alreadyExists}`);
@@ -190,8 +190,8 @@ async function main() {
     if (errors > 0) {
       console.log('\n⚠️  ERRORS OCCURRED:');
       allResults
-        .filter((r) => r.status === 'error')
-        .forEach((r) => {
+        .filter(r => r.status === 'error')
+        .forEach(r => {
           console.log(`   ❌ ${r.collection}.${r.indexName}: ${r.error}`);
         });
     }

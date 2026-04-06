@@ -32,7 +32,7 @@ let failedQueue: Array<{
 }> = [];
 
 function processQueue(error: unknown, result: string | null) {
-  failedQueue.forEach((promise) => {
+  failedQueue.forEach(promise => {
     if (error) {
       promise.reject(error);
     } else if (result) {
@@ -122,7 +122,7 @@ export async function performRefreshOnce(): Promise<string> {
 
 // Response interceptor — handle 401 with token refresh
 apiClient.interceptors.response.use(
-  (response) => response,
+  response => response,
   async (error: AxiosError<ApiError>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 

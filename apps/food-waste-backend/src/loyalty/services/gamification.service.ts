@@ -210,7 +210,7 @@ export class GamificationService {
 
     // Check if this friend is already referred
     const existingReferral = referrerAccount.friendReferrals?.find(
-      (r) => r.friendUserId.toString() === friendUserId,
+      r => r.friendUserId.toString() === friendUserId,
     );
 
     if (existingReferral) {
@@ -252,7 +252,7 @@ export class GamificationService {
 
     for (const referrer of referrers) {
       const referralIndex = referrer.friendReferrals.findIndex(
-        (r) =>
+        r =>
           r.friendUserId.toString() === friendUserId && r.status === FriendReferralStatus.PENDING,
       );
 
@@ -319,7 +319,7 @@ export class GamificationService {
 
     // Check if this business is already referred
     const existingReferral = referrerAccount.businessReferrals?.find(
-      (r) => r.businessUserId.toString() === businessUserId,
+      r => r.businessUserId.toString() === businessUserId,
     );
 
     if (existingReferral) {
@@ -364,7 +364,7 @@ export class GamificationService {
 
     for (const referrer of referrers) {
       const referralIndex = referrer.businessReferrals.findIndex(
-        (r) =>
+        r =>
           r.businessUserId.toString() === businessUserId &&
           r.status === BusinessReferralStatus.PENDING,
       );
@@ -667,7 +667,7 @@ export class GamificationService {
       totalReviewsCount: 0,
       totalReviewPoints: 0,
     };
-    if (reviewTracking.reviewedOrderIds?.some((id) => id.toString() === orderId)) {
+    if (reviewTracking.reviewedOrderIds?.some(id => id.toString() === orderId)) {
       return { awarded: false, pointsAwarded: 0, reason: 'Already reviewed this order' };
     }
 
@@ -675,7 +675,7 @@ export class GamificationService {
     const wordCount = reviewText
       .trim()
       .split(/\s+/)
-      .filter((w) => w.length > 0).length;
+      .filter(w => w.length > 0).length;
     if (wordCount < GAMIFICATION_CONSTANTS.REVIEW_MIN_WORDS) {
       return {
         awarded: false,
@@ -726,12 +726,12 @@ export class GamificationService {
       referralCode: account.referralCode,
       friendReferrals: {
         pending:
-          account.friendReferrals?.filter((r) => r.status === FriendReferralStatus.PENDING)
-            .length || 0,
+          account.friendReferrals?.filter(r => r.status === FriendReferralStatus.PENDING).length ||
+          0,
         completed: account.friendReferralsCompleted || 0,
         pendingDetails: account.friendReferrals
-          ?.filter((r) => r.status === FriendReferralStatus.PENDING)
-          .map((r) => ({
+          ?.filter(r => r.status === FriendReferralStatus.PENDING)
+          .map(r => ({
             friendBagCount: r.friendBagCount,
             bagsRequired: GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_BAGS_REQUIRED,
             expiresAt: r.expiresAt,
@@ -739,12 +739,12 @@ export class GamificationService {
       },
       businessReferrals: {
         pending:
-          account.businessReferrals?.filter((r) => r.status === BusinessReferralStatus.PENDING)
+          account.businessReferrals?.filter(r => r.status === BusinessReferralStatus.PENDING)
             .length || 0,
         completed: account.businessReferralsCompleted || 0,
         pendingDetails: account.businessReferrals
-          ?.filter((r) => r.status === BusinessReferralStatus.PENDING)
-          .map((r) => ({
+          ?.filter(r => r.status === BusinessReferralStatus.PENDING)
+          .map(r => ({
             businessOrderCount: r.businessOrderCount,
             ordersRequired: GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_ORDERS_REQUIRED,
             expiresAt: r.expiresAt,

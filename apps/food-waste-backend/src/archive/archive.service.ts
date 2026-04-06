@@ -170,14 +170,14 @@ export class ArchiveService {
       // Process in batches to keep memory and write size bounded
       for (let i = 0; i < docs.length; i += BATCH_SIZE) {
         const batch = docs.slice(i, i + BATCH_SIZE);
-        const archiveDocs = batch.map((doc) => ({
+        const archiveDocs = batch.map(doc => ({
           sourceCollection,
           originalId: doc._id as Types.ObjectId,
           archivedAt: new Date(),
           document: doc,
         }));
 
-        const ids = batch.map((doc) => doc._id);
+        const ids = batch.map(doc => doc._id);
 
         try {
           // ordered: false — skip duplicates (e.g. if a previous run
@@ -194,7 +194,7 @@ export class ArchiveService {
           };
           if (
             mongoErr?.code !== 11000 &&
-            mongoErr?.writeErrors?.every((e) => e.err?.code === 11000) !== true
+            mongoErr?.writeErrors?.every(e => e.err?.code === 11000) !== true
           ) {
             throw err;
           }

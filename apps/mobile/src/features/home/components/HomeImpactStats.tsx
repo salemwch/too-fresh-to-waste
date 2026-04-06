@@ -127,10 +127,10 @@ const HomeImpactStatsComponent = () => {
   // Show loading skeleton
   if (isLoading) {
     return (
-      <Card style={styles.impactCard} testID="impact-stats-card-loading">
+      <Card style={styles.impactCard} testID='impact-stats-card-loading'>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text variant="body" size="sm" color="secondary" style={styles.loadingText}>
+          <ActivityIndicator size='large' color={theme.colors.primary} />
+          <Text variant='body' size='sm' color='secondary' style={styles.loadingText}>
             Loading your impact...
           </Text>
         </View>
@@ -153,9 +153,9 @@ const HomeImpactStatsComponent = () => {
   // ============================================================================
 
   return (
-    <Card style={styles.impactCard} testID="impact-stats-card">
+    <Card style={styles.impactCard} testID='impact-stats-card'>
       {/* Section Title */}
-      <Text variant="title" size="md" weight="semibold" style={styles.sectionTitle}>
+      <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
         Your Impact
       </Text>
 
@@ -165,12 +165,12 @@ const HomeImpactStatsComponent = () => {
         <View
           style={styles.statItem}
           accessibilityLabel={`Meals saved: ${stats.mealsSaved}`}
-          accessibilityHint="Total number of meals you have contributed through donations"
+          accessibilityHint='Total number of meals you have contributed through donations'
         >
-          <Text variant="headline" size="lg" weight="bold" color="primary">
+          <Text variant='headline' size='lg' weight='bold' color='primary'>
             {stats.mealsSaved.toLocaleString()}
           </Text>
-          <Text variant="body" size="sm" color="secondary">
+          <Text variant='body' size='sm' color='secondary'>
             Meals Saved
           </Text>
         </View>
@@ -179,12 +179,12 @@ const HomeImpactStatsComponent = () => {
         <View
           style={styles.statItem}
           accessibilityLabel={`Money donated: ${stats.moneySaved} ${stats.currency}`}
-          accessibilityHint="Total amount you have donated to support meals"
+          accessibilityHint='Total amount you have donated to support meals'
         >
-          <Text variant="headline" size="lg" weight="bold" color="success">
+          <Text variant='headline' size='lg' weight='bold' color='success'>
             {stats.moneySaved.toLocaleString()} {stats.currency}
           </Text>
-          <Text variant="body" size="sm" color="secondary">
+          <Text variant='body' size='sm' color='secondary'>
             Donated
           </Text>
         </View>
@@ -193,12 +193,12 @@ const HomeImpactStatsComponent = () => {
         <View
           style={styles.statItem}
           accessibilityLabel={`CO2 reduced: ${stats.co2Reduced} kilograms`}
-          accessibilityHint="Carbon dioxide emissions prevented by your contributions"
+          accessibilityHint='Carbon dioxide emissions prevented by your contributions'
         >
-          <Text variant="headline" size="lg" weight="bold" style={{ color: theme.colors.warning }}>
+          <Text variant='headline' size='lg' weight='bold' style={{ color: theme.colors.warning }}>
             {stats.co2Reduced.toLocaleString()}kg
           </Text>
-          <Text variant="body" size="sm" color="secondary">
+          <Text variant='body' size='sm' color='secondary'>
             CO₂ Reduced
           </Text>
         </View>

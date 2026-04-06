@@ -50,7 +50,7 @@ export class LocalStorageService {
       path.join(this.uploadsDir, 'profile-images'),
     ];
 
-    dirs.forEach((dir) => {
+    dirs.forEach(dir => {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
         this.logger.log(`Created directory: ${dir}`);
@@ -153,7 +153,7 @@ export class LocalStorageService {
   ): Promise<LocalUploadResult[]> {
     this.logger.log(`📤 Uploading ${files.length} file(s) to local storage...`);
 
-    const uploadPromises = files.map(async (file) => {
+    const uploadPromises = files.map(async file => {
       const result = await this.uploadFile(file, options);
       return result;
     });

@@ -310,7 +310,7 @@ describe('CookieSecurityUtil', () => {
       CookieSecurityUtil.clearAuthCookies(mockResponse as Response, true, 'example.com');
 
       const calls = (mockResponse.clearCookie as jest.Mock).mock.calls;
-      calls.forEach((call) => {
+      calls.forEach(call => {
         expect(call[1].domain).toBe('example.com');
       });
     });
@@ -427,7 +427,7 @@ describe('CookieSecurityUtil', () => {
       // Verify cookies were cleared with same domain
       expect(mockResponse.clearCookie).toHaveBeenCalledTimes(2);
       const clearCalls = (mockResponse.clearCookie as jest.Mock).mock.calls;
-      clearCalls.forEach((call) => {
+      clearCalls.forEach(call => {
         expect(call[1].domain).toBe('example.com');
       });
     });

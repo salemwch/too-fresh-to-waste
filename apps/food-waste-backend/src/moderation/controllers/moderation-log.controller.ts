@@ -176,7 +176,7 @@ export class ModerationLogController {
     // Filter sensitive information for moderators
     const filteredHistory =
       userRole === UserRole.MODERATOR
-        ? history.map((log) => ({
+        ? history.map(log => ({
             level: log.level,
             category: log.category,
             action: log.action,

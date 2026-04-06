@@ -72,11 +72,11 @@ export const AuthStack: React.FC = () => {
       ]}
     >
       <Pressable onPress={() => navigation.goBack()} style={styles.headerBackButton}>
-        <Icon name="arrow-back" size={24} color={theme.colors.onSurface} />
+        <Icon name='arrow-back' size={24} color={theme.colors.onSurface} />
       </Pressable>
       <Text
-        variant="headline.medium"
-        weight="semibold"
+        variant='headline.medium'
+        weight='semibold'
         style={[styles.headerTitle, { color: theme.colors.onSurface }]}
       >
         {title}
@@ -101,7 +101,7 @@ export const AuthStack: React.FC = () => {
 
   // Access Redux state for fallback data (deep linking, session restoration)
   // This is NOT used for navigation logic, only for initial params
-  const pendingVerificationEmail = useAppSelector((state) => state.auth?.pendingVerificationEmail);
+  const pendingVerificationEmail = useAppSelector(state => state.auth?.pendingVerificationEmail);
 
   return (
     <Stack.Navigator
@@ -111,7 +111,7 @@ export const AuthStack: React.FC = () => {
       {/* Welcome Screen - ONLY for first-time users (device-level onboarding) */}
       {!hasSeenWelcome && (
         <Stack.Screen
-          name="Welcome"
+          name='Welcome'
           component={WelcomeScreen}
           options={{
             headerShown: false,
@@ -124,7 +124,7 @@ export const AuthStack: React.FC = () => {
 
       {/* Login Screen */}
       <Stack.Screen
-        name="Login"
+        name='Login'
         component={LoginScreen}
         options={{
           headerShown: false,
@@ -134,17 +134,17 @@ export const AuthStack: React.FC = () => {
 
       {/* Register Screen */}
       <Stack.Screen
-        name="Register"
+        name='Register'
         component={RegisterScreen}
         options={({ navigation }) => ({
           headerShown: true,
-          header: () => <CustomHeader navigation={navigation} title="Sign Up" />,
+          header: () => <CustomHeader navigation={navigation} title='Sign Up' />,
         })}
       />
 
       {/* Forgot Password Screen */}
       <Stack.Screen
-        name="ForgotPassword"
+        name='ForgotPassword'
         component={ForgotPasswordScreen}
         options={{
           headerShown: true,
@@ -155,7 +155,7 @@ export const AuthStack: React.FC = () => {
 
       {/* Reset Password Screen */}
       <Stack.Screen
-        name="ResetPassword"
+        name='ResetPassword'
         component={ResetPasswordScreen}
         options={{
           headerShown: true,
@@ -167,7 +167,7 @@ export const AuthStack: React.FC = () => {
 
       {/* Email Verification Screen */}
       <Stack.Screen
-        name="VerifyEmail"
+        name='VerifyEmail'
         component={VerifyEmailScreen}
         options={{
           headerShown: true,
@@ -185,7 +185,7 @@ export const AuthStack: React.FC = () => {
 
       {/* Phone Verification Screen */}
       <Stack.Screen
-        name="VerifyPhone"
+        name='VerifyPhone'
         component={VerifyPhoneScreen}
         options={{
           headerShown: true,
@@ -198,7 +198,7 @@ export const AuthStack: React.FC = () => {
 
       {/* MFA Verification Screen */}
       <Stack.Screen
-        name="MFAVerification"
+        name='MFAVerification'
         component={MFAVerificationScreen}
         options={{
           headerShown: true,

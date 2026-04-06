@@ -278,7 +278,7 @@ describe('Business Constraints Validators', () => {
       const dto = plainToInstance(RangeDto, { minValue: 10, maxValue: 5 });
       const errors = await validate(dto);
 
-      const maxValueErrors = errors.filter((e) => e.property === 'maxValue');
+      const maxValueErrors = errors.filter(e => e.property === 'maxValue');
       expect(maxValueErrors.length).toBeGreaterThan(0);
     });
 
@@ -286,7 +286,7 @@ describe('Business Constraints Validators', () => {
       const dto = plainToInstance(RangeDto, { minValue: 10, maxValue: 10 });
       const errors = await validate(dto);
 
-      const maxValueErrors = errors.filter((e) => e.property === 'maxValue');
+      const maxValueErrors = errors.filter(e => e.property === 'maxValue');
       expect(maxValueErrors.length).toBeGreaterThan(0);
     });
 
@@ -294,7 +294,7 @@ describe('Business Constraints Validators', () => {
       const dto = plainToInstance(RangeDto, { minValue: 10, maxValue: 20 });
       const errors = await validate(dto);
 
-      const maxValueErrors = errors.filter((e) => e.property === 'maxValue');
+      const maxValueErrors = errors.filter(e => e.property === 'maxValue');
       expect(maxValueErrors.length).toBe(0);
     });
   });
@@ -313,7 +313,7 @@ describe('Business Constraints Validators', () => {
       const dto = plainToInstance(OfferDto, { originalPrice: 100, discountedPrice: 120 });
       const errors = await validate(dto);
 
-      const discountErrors = errors.filter((e) => e.property === 'discountedPrice');
+      const discountErrors = errors.filter(e => e.property === 'discountedPrice');
       expect(discountErrors.length).toBeGreaterThan(0);
     });
 
@@ -321,7 +321,7 @@ describe('Business Constraints Validators', () => {
       const dto = plainToInstance(OfferDto, { originalPrice: 100, discountedPrice: 75 });
       const errors = await validate(dto);
 
-      const discountErrors = errors.filter((e) => e.property === 'discountedPrice');
+      const discountErrors = errors.filter(e => e.property === 'discountedPrice');
       expect(discountErrors.length).toBe(0);
     });
   });
@@ -341,7 +341,7 @@ describe('Business Constraints Validators', () => {
       const dto = plainToInstance(LocationDto, { latitude: 95, longitude: 0 });
       const errors = await validate(dto);
 
-      const latErrors = errors.filter((e) => e.property === 'latitude');
+      const latErrors = errors.filter(e => e.property === 'latitude');
       expect(latErrors.length).toBeGreaterThan(0);
     });
 
@@ -349,7 +349,7 @@ describe('Business Constraints Validators', () => {
       const dto = plainToInstance(LocationDto, { latitude: 0, longitude: 200 });
       const errors = await validate(dto);
 
-      const lngErrors = errors.filter((e) => e.property === 'longitude');
+      const lngErrors = errors.filter(e => e.property === 'longitude');
       expect(lngErrors.length).toBeGreaterThan(0);
     });
 
@@ -414,10 +414,10 @@ describe('Business Constraints Validators', () => {
       expect(errors.length).toBeGreaterThan(0);
 
       // Verify each field has appropriate error
-      expect(errors.some((e) => e.property === 'pickupTime')).toBe(true);
-      expect(errors.some((e) => e.property === 'quantity')).toBe(true);
-      expect(errors.some((e) => e.property === 'totalPrice')).toBe(true);
-      expect(errors.some((e) => e.property === 'notes')).toBe(true);
+      expect(errors.some(e => e.property === 'pickupTime')).toBe(true);
+      expect(errors.some(e => e.property === 'quantity')).toBe(true);
+      expect(errors.some(e => e.property === 'totalPrice')).toBe(true);
+      expect(errors.some(e => e.property === 'notes')).toBe(true);
     });
   });
 });

@@ -102,7 +102,7 @@ export class PushNotificationService implements INotificationProvider {
 
     for (const target of targets) {
       const tokens = await this.getDeviceTokens(target);
-      tokens.forEach((token) => allTokens.add(token));
+      tokens.forEach(token => allTokens.add(token));
     }
 
     if (allTokens.size === 0) {

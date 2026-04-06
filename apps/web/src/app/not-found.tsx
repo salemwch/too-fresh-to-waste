@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <html lang="en">
+    <html lang='en'>
       <body
         style={{ fontFamily: 'system-ui, sans-serif', textAlign: 'center', padding: '4rem 1rem' }}
       >
@@ -11,7 +11,7 @@ export default function NotFound() {
           Page not found
         </p>
         <Link
-          href="/"
+          href='/'
           style={{
             display: 'inline-block',
             marginTop: '1.5rem',

@@ -159,20 +159,20 @@ export const OTPInput = memo<OTPInputProps>(
               style={[styles.inputContainer, inputContainerDynamicStyle]}
             >
               <TextInput
-                ref={(ref) => {
+                ref={ref => {
                   inputRefs.current[index] = ref;
                 }}
                 style={[styles.input, inputTextStyle]}
                 value={value[index] ?? ''}
-                onChangeText={(text) => handleChangeText(text, index)}
-                onKeyPress={(e) => handleKeyPress(e, index)}
+                onChangeText={text => handleChangeText(text, index)}
+                onKeyPress={e => handleKeyPress(e, index)}
                 onFocus={() => handleFocus(index)}
                 onBlur={handleBlur}
-                keyboardType="number-pad"
+                keyboardType='number-pad'
                 maxLength={1}
                 selectTextOnFocus
                 editable={!disabled}
-                textContentType="oneTimeCode"
+                textContentType='oneTimeCode'
                 autoComplete={Platform.OS === 'android' ? 'sms-otp' : 'one-time-code'}
               />
             </Pressable>

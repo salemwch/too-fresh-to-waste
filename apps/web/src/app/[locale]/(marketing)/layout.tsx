@@ -23,7 +23,7 @@ export default async function MarketingLayout({ children, params }: MarketingLay
       <MobileApplicationStructuredData locale={locale as Locale} />
 
       {/* Main content */}
-      <div id="main-content">{children}</div>
+      <div id='main-content'>{children}</div>
 
       {/* Newsletter */}
       <Newsletter />

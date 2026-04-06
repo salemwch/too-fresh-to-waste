@@ -77,7 +77,7 @@ export const Card = forwardRef<
 
       return (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <ActivityIndicator size='large' color={theme.colors.primary} />
         </View>
       );
     };

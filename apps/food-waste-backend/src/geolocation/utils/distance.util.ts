@@ -158,7 +158,7 @@ export class DistanceCalculator {
     unit: DistanceUnit = DistanceUnit.KILOMETERS,
   ): Array<T & { distance: Distance }> {
     return points
-      .map((point) => ({
+      .map(point => ({
         ...point,
         distance: this.calculateDistance(reference, point.coordinates, unit),
       }))
@@ -175,11 +175,11 @@ export class DistanceCalculator {
     unit: DistanceUnit = DistanceUnit.KILOMETERS,
   ): Array<T & { distance: Distance }> {
     return points
-      .map((point) => ({
+      .map(point => ({
         ...point,
         distance: this.calculateDistance(center, point.coordinates, unit),
       }))
-      .filter((point) => point.distance.value <= radius)
+      .filter(point => point.distance.value <= radius)
       .sort((a, b) => a.distance.value - b.distance.value);
   }
 

@@ -120,7 +120,7 @@ export class EstablishmentMapper {
   }
 
   static toInterfaceArray(documents: EstablishmentLike[]): IEstablishment[] {
-    return documents.map((doc) => this.toInterface(doc));
+    return documents.map(doc => this.toInterface(doc));
   }
 
   static toOverviewInterface(data: OverviewLike): IEstablishmentOverview {

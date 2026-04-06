@@ -209,7 +209,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
     <Modal
       visible={visible}
       transparent
-      animationType="none"
+      animationType='none'
       onRequestClose={handleClose}
       statusBarTranslucent
     >
@@ -230,7 +230,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.contentContainer}
-            keyboardShouldPersistTaps="handled"
+            keyboardShouldPersistTaps='handled'
             showsVerticalScrollIndicator={false}
           >
             {/* Search Input */}
@@ -244,19 +244,19 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
               ]}
             >
               <Icon
-                name="search"
-                family="Ionicons"
+                name='search'
+                family='Ionicons'
                 size={20}
                 color={theme.colors.onSurfaceVariant}
               />
               <TextInput
                 value={searchQuery}
                 onChangeText={handleSearchChange}
-                placeholder="Search city or area..."
+                placeholder='Search city or area...'
                 placeholderTextColor={theme.colors.onSurfaceVariant}
                 style={[styles.searchInput, { color: theme.colors.onSurface }]}
-                returnKeyType="search"
-                autoCapitalize="words"
+                returnKeyType='search'
+                autoCapitalize='words'
                 autoCorrect={false}
               />
               {searchQuery.length > 0 && (
@@ -265,8 +265,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <Icon
-                    name="close-circle"
-                    family="Ionicons"
+                    name='close-circle'
+                    family='Ionicons'
                     size={20}
                     color={theme.colors.onSurfaceVariant}
                   />
@@ -285,8 +285,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
               ]}
               onPress={handleUseCurrentLocation}
               disabled={isLoadingGPS}
-              accessibilityLabel="Use current GPS location"
-              accessibilityRole="button"
+              accessibilityLabel='Use current GPS location'
+              accessibilityRole='button'
             >
               <View
                 style={[
@@ -298,7 +298,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
               >
                 <Icon
                   name={isLoadingGPS ? 'hourglass-outline' : 'locate'}
-                  family="Ionicons"
+                  family='Ionicons'
                   size={20}
                   color={theme.colors.onPrimary}
                 />
@@ -336,7 +336,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                     Searching for locations...
                   </Text>
                 ) : searchResults !== undefined && searchResults.length > 0 ? (
-                  searchResults.map((location) => (
+                  searchResults.map(location => (
                     <Pressable
                       key={location.id}
                       style={
@@ -354,8 +354,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                           ]}
                         >
                           <Icon
-                            name="location-sharp"
-                            family="Ionicons"
+                            name='location-sharp'
+                            family='Ionicons'
                             size={16}
                             color={theme.colors.onSecondaryContainer}
                           />
@@ -420,7 +420,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                   RECENT LOCATIONS
                 </Text>
 
-                {recentLocations.map((location) => (
+                {recentLocations.map(location => (
                   <Pressable
                     key={location.id}
                     style={
@@ -430,14 +430,14 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                     }
                     onPress={() => handleSelectLocation(location)}
                     accessibilityLabel={`Select ${location.name}`}
-                    accessibilityRole="button"
+                    accessibilityRole='button'
                   >
                     <View
                       style={[styles.iconCircle, { backgroundColor: theme.colors.surfaceVariant }]}
                     >
                       <Icon
-                        name="time-outline"
-                        family="Ionicons"
+                        name='time-outline'
+                        family='Ionicons'
                         size={20}
                         color={theme.colors.onSurfaceVariant}
                       />
@@ -478,8 +478,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                     </View>
                     {currentLocation === location.name && (
                       <Icon
-                        name="checkmark-circle"
-                        family="Ionicons"
+                        name='checkmark-circle'
+                        family='Ionicons'
                         size={20}
                         color={theme.colors.primary}
                       />
@@ -493,8 +493,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
             {recentLocations.length === 0 && (
               <View style={styles.emptyState}>
                 <Icon
-                  name="location-outline"
-                  family="Ionicons"
+                  name='location-outline'
+                  family='Ionicons'
                   size={48}
                   color={theme.colors.onSurfaceVariant}
                 />

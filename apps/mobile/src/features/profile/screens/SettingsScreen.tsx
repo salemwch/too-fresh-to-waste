@@ -25,19 +25,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Card style={styles.card}>
-          <Text variant="headline" size="lg" weight="bold" style={styles.title}>
+          <Text variant='headline' size='lg' weight='bold' style={styles.title}>
             Settings
           </Text>
 
           <View style={styles.placeholder}>
-            <Text variant="body" size="md" align="center" color="secondary">
+            <Text variant='body' size='md' align='center' color='secondary'>
               ⚙️ Settings options will be here
             </Text>
             <Text
-              variant="body"
-              size="sm"
-              align="center"
-              color="secondary"
+              variant='body'
+              size='sm'
+              align='center'
+              color='secondary'
               style={styles.placeholderNote}
             >
               Notifications, Language, Theme, Units, etc.

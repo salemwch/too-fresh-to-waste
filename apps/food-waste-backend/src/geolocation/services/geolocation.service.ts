@@ -83,7 +83,7 @@ export class GeolocationService {
         throw new BadRequestException('Invalid origin coordinates');
       }
 
-      return destinations.map((destination) => {
+      return destinations.map(destination => {
         if (!DistanceCalculator.isValidCoordinate(destination)) {
           throw new BadRequestException('Invalid destination coordinates');
         }
@@ -560,7 +560,7 @@ export class GeolocationService {
 
       // Try exact match first (case-insensitive)
       const exactMatch = Object.keys(countryNameMappings).find(
-        (key) => key.toLowerCase() === normalizedCountry.toLowerCase(),
+        key => key.toLowerCase() === normalizedCountry.toLowerCase(),
       );
 
       if (exactMatch) {
@@ -572,7 +572,7 @@ export class GeolocationService {
 
       // Try partial match for common abbreviations and partial names
       const partialMatch = Object.keys(countryNameMappings).find(
-        (key) =>
+        key =>
           key.toLowerCase().includes(normalizedCountry.toLowerCase()) ||
           normalizedCountry.toLowerCase().includes(key.toLowerCase()),
       );

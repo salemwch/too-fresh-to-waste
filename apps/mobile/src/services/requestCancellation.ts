@@ -11,7 +11,7 @@ export const createTrackedAbortController = (): AbortController => {
 export const releaseTrackedAbortController = (signal?: unknown): void => {
   if (!(signal instanceof AbortSignal)) return;
 
-  activeAbortControllers.forEach((controller) => {
+  activeAbortControllers.forEach(controller => {
     if (controller.signal === signal) {
       activeAbortControllers.delete(controller);
     }
@@ -25,7 +25,7 @@ export const cancelInflightRequests = (): void => {
     activeRequests: activeAbortControllers.size,
   });
 
-  activeAbortControllers.forEach((controller) => {
+  activeAbortControllers.forEach(controller => {
     try {
       controller.abort();
     } catch {

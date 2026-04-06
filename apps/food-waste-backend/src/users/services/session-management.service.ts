@@ -208,7 +208,7 @@ export class SessionManagementService {
 
     // Check if device is already trusted
     const existingDevice = user.trustedDevices.find(
-      (device) => device.deviceId === deviceInfo.deviceId && !device.revokedAt,
+      device => device.deviceId === deviceInfo.deviceId && !device.revokedAt,
     );
 
     if (existingDevice) {
@@ -220,7 +220,7 @@ export class SessionManagementService {
     } else {
       // Remove oldest trusted devices if we've hit the limit
       const activeTrustedDevices = user.trustedDevices.filter(
-        (device) =>
+        device =>
           !device.revokedAt && device.expiresAt !== undefined && device.expiresAt > new Date(),
       );
 
@@ -290,7 +290,7 @@ export class SessionManagementService {
     }
 
     const device = user.trustedDevices.find(
-      (device) => device.deviceId === deviceId && !device.revokedAt,
+      device => device.deviceId === deviceId && !device.revokedAt,
     );
 
     if (device) {
@@ -329,7 +329,7 @@ export class SessionManagementService {
     }
 
     const device = user.trustedDevices.find(
-      (device) =>
+      device =>
         device.deviceId === deviceId &&
         device.isTrusted === true &&
         !device.revokedAt &&
@@ -365,7 +365,7 @@ export class SessionManagementService {
       return [];
     }
 
-    return user.trustedDevices.flatMap((device) => {
+    return user.trustedDevices.flatMap(device => {
       if (
         device.revokedAt ||
         !device.trustedAt ||
@@ -408,7 +408,7 @@ export class SessionManagementService {
 
     // Check for new device
     const isKnownDevice = user.trustedDevices?.some(
-      (device) => device.deviceFingerprint === deviceInfo.deviceFingerprint,
+      device => device.deviceFingerprint === deviceInfo.deviceFingerprint,
     );
 
     if (!isKnownDevice) {
@@ -421,7 +421,7 @@ export class SessionManagementService {
     const currentLocation = this.getLocationFromIP(deviceInfo.ipAddress);
 
     if (currentLocation && recentLogins.length > 0) {
-      const hasLocationHistory = recentLogins.some((login) => login.location === currentLocation);
+      const hasLocationHistory = recentLogins.some(login => login.location === currentLocation);
 
       if (!hasLocationHistory) {
         reasons.push('Login from unusual location');

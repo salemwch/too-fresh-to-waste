@@ -125,9 +125,9 @@ function printSummary(results: SchemaIndexCount[]): void {
 
   const totalExpected = results.reduce((sum, r) => sum + r.expectedMin, 0);
   const totalActual = results.reduce((sum, r) => sum + r.actual, 0);
-  const passed = results.filter((r) => r.status === 'PASS').length;
-  const warnings = results.filter((r) => r.status === 'WARNING').length;
-  const failed = results.filter((r) => r.status === 'FAIL').length;
+  const passed = results.filter(r => r.status === 'PASS').length;
+  const warnings = results.filter(r => r.status === 'WARNING').length;
+  const failed = results.filter(r => r.status === 'FAIL').length;
 
   console.log(`Total Schemas Checked: ${results.length}`);
   console.log(`Total Indexes Expected: ≥${totalExpected}`);

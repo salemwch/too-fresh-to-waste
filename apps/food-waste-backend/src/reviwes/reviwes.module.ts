@@ -141,8 +141,8 @@ import { Review, ReviewSchema } from './schemas/reviwe.schema';
             const positiveWords = ['great', 'excellent', 'amazing', 'wonderful', 'fantastic'];
             const negativeWords = ['terrible', 'awful', 'bad', 'horrible', 'disgusting'];
 
-            const positiveCount = words.filter((word) => positiveWords.includes(word)).length;
-            const negativeCount = words.filter((word) => negativeWords.includes(word)).length;
+            const positiveCount = words.filter(word => positiveWords.includes(word)).length;
+            const negativeCount = words.filter(word => negativeWords.includes(word)).length;
 
             let sentiment: string;
             if (positiveCount > negativeCount) {

@@ -233,8 +233,8 @@ export class SentryService implements OnModuleInit {
       ];
 
       const env = runtimeEnv as Record<string, unknown>;
-      Object.keys(env).forEach((key) => {
-        if (sensitiveKeys.some((sensitiveKey) => key.includes(sensitiveKey))) {
+      Object.keys(env).forEach(key => {
+        if (sensitiveKeys.some(sensitiveKey => key.includes(sensitiveKey))) {
           env[key] = '[REDACTED]';
         }
       });
@@ -246,7 +246,7 @@ export class SentryService implements OnModuleInit {
       if (event.request.headers) {
         const requestHeaders = event.request.headers;
         const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key'];
-        sensitiveHeaders.forEach((header) => {
+        sensitiveHeaders.forEach(header => {
           if (requestHeaders[header] !== null && requestHeaders[header] !== undefined) {
             requestHeaders[header] = '[REDACTED]';
           }
@@ -281,10 +281,10 @@ export class SentryService implements OnModuleInit {
       return;
     }
 
-    Object.keys(obj).forEach((key) => {
+    Object.keys(obj).forEach(key => {
       const lowerKey = key.toLowerCase();
 
-      if (sensitiveFields.some((field) => lowerKey.includes(field.toLowerCase()))) {
+      if (sensitiveFields.some(field => lowerKey.includes(field.toLowerCase()))) {
         obj[key] = '[REDACTED]';
       } else if (typeof obj[key] === 'object' && obj[key] !== null) {
         this.redactSensitiveFields(obj[key] as Record<string, unknown>, sensitiveFields);

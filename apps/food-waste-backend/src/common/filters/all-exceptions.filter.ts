@@ -91,7 +91,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         if (Array.isArray(msgValue)) {
           // Extract readable messages from array elements
           message = msgValue
-            .map((item) => {
+            .map(item => {
               // If item is a string, use it directly
               if (typeof item === 'string') {
                 return item;
@@ -157,7 +157,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // Send error to Sentry (if configured)
     if (process.env['SENTRY_DSN']) {
-      Sentry.withScope((scope) => {
+      Sentry.withScope(scope => {
         scope.setTag('errorId', errorId);
         scope.setTag('correlationId', correlationId);
         scope.setTag('path', path);
@@ -209,7 +209,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     // Remove sensitive headers
     const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key', 'x-auth-token'];
 
-    sensitiveHeaders.forEach((header) => {
+    sensitiveHeaders.forEach(header => {
       if (sanitized[header] !== undefined) {
         sanitized[header] = '[REDACTED]';
       }

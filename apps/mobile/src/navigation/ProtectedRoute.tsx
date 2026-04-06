@@ -49,7 +49,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [isSessionLogoutPending, setIsSessionLogoutPending] = useState(false);
 
   const { isAuthenticated, isLoading, user, tokens, sessionExpiresAt } = useAppSelector(
-    (state) => state.auth,
+    state => state.auth,
   );
 
   const hasRequiredRole = (): boolean => {
@@ -149,10 +149,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.content}>
-          <Text variant="headline" size="lg" color="error" align="center" style={styles.title}>
+          <Text variant='headline' size='lg' color='error' align='center' style={styles.title}>
             Access Denied
           </Text>
-          <Text variant="body" size="md" color="secondary" align="center" style={styles.message}>
+          <Text variant='body' size='md' color='secondary' align='center' style={styles.message}>
             You don&apos;t have permission to access this content.
             {requiredRoles && `\n\nRequired role: ${requiredRoles.join(', ')}`}
           </Text>
@@ -163,7 +163,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   const renderLoading = () => (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ActivityIndicator size="large" color={theme.colors.primary} />
+      <ActivityIndicator size='large' color={theme.colors.primary} />
     </View>
   );
 
@@ -179,10 +179,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.content}>
-          <Text variant="headline" size="lg" color="warning" align="center" style={styles.title}>
+          <Text variant='headline' size='lg' color='warning' align='center' style={styles.title}>
             Email Verification Required
           </Text>
-          <Text variant="body" size="md" color="secondary" align="center" style={styles.message}>
+          <Text variant='body' size='md' color='secondary' align='center' style={styles.message}>
             Please verify your email address to access this content. Check your inbox for the
             verification link.
           </Text>

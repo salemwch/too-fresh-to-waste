@@ -229,7 +229,7 @@ const favoritesSlice = createSlice({
       // Add to recent favorites (max 50)
       state.recentFavorites = [
         action.payload,
-        ...state.recentFavorites.filter((f) => f.itemId !== action.payload.itemId),
+        ...state.recentFavorites.filter(f => f.itemId !== action.payload.itemId),
       ].slice(0, 50);
     },
 
@@ -240,15 +240,13 @@ const favoritesSlice = createSlice({
       state.favoriteMap[action.payload.itemId] = false;
 
       // Remove from recent favorites
-      state.recentFavorites = state.recentFavorites.filter(
-        (f) => f.itemId !== action.payload.itemId,
-      );
+      state.recentFavorites = state.recentFavorites.filter(f => f.itemId !== action.payload.itemId);
     },
 
     /**
      * Clear all favorites (logout)
      */
-    clearFavorites: (state) => {
+    clearFavorites: state => {
       state.favoriteMap = {};
       state.recentFavorites = [];
       state.lastSyncedAt = null;
@@ -258,14 +256,14 @@ const favoritesSlice = createSlice({
     /**
      * Clear error
      */
-    clearError: (state) => {
+    clearError: state => {
       state.error = null;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // Check if favorite
     builder
-      .addCase(checkIsFavorite.pending, (state) => {
+      .addCase(checkIsFavorite.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -281,7 +279,7 @@ const favoritesSlice = createSlice({
 
     // Toggle favorite
     builder
-      .addCase(toggleFavorite.pending, (state) => {
+      .addCase(toggleFavorite.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -298,12 +296,12 @@ const favoritesSlice = createSlice({
           };
           state.recentFavorites = [
             favoriteItem,
-            ...state.recentFavorites.filter((f) => f.itemId !== action.payload.itemId),
+            ...state.recentFavorites.filter(f => f.itemId !== action.payload.itemId),
           ].slice(0, 50);
         } else {
           // Remove from recent favorites
           state.recentFavorites = state.recentFavorites.filter(
-            (f) => f.itemId !== action.payload.itemId,
+            f => f.itemId !== action.payload.itemId,
           );
         }
 
@@ -316,7 +314,7 @@ const favoritesSlice = createSlice({
 
     // Batch check favorites
     builder
-      .addCase(batchCheckFavorites.pending, (state) => {
+      .addCase(batchCheckFavorites.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -331,7 +329,7 @@ const favoritesSlice = createSlice({
       })
 
       // Sync all favorites
-      .addCase(syncAllFavorites.pending, (state) => {
+      .addCase(syncAllFavorites.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -375,7 +373,7 @@ const favoritesSlice = createSlice({
     });
 
     // On logout: Keep favorites but clear userId (for potential re-login)
-    builder.addMatcher(isAuthLogoutAction, (state) => {
+    builder.addMatcher(isAuthLogoutAction, state => {
       Logger.info('[FAVORITES] Logout - keeping favorites for potential re-login');
       state.userId = null;
     });
@@ -405,25 +403,25 @@ export const selectIsFavorite = createSelector(
 /** Select recent favorites */
 export const selectRecentFavorites = createSelector(
   [selectFavoritesState],
-  (favoritesState) => favoritesState.recentFavorites,
+  favoritesState => favoritesState.recentFavorites,
 );
 
 /** Select loading state */
 export const selectFavoritesLoading = createSelector(
   [selectFavoritesState],
-  (favoritesState) => favoritesState.isLoading,
+  favoritesState => favoritesState.isLoading,
 );
 
 /** Select error */
 export const selectFavoritesError = createSelector(
   [selectFavoritesState],
-  (favoritesState) => favoritesState.error,
+  favoritesState => favoritesState.error,
 );
 
 /** Select total favorites count */
 export const selectFavoritesCount = createSelector(
   [selectFavoritesState],
-  (favoritesState) => Object.values(favoritesState.favoriteMap).filter(Boolean).length,
+  favoritesState => Object.values(favoritesState.favoriteMap).filter(Boolean).length,
 );
 
 // ============================================================================

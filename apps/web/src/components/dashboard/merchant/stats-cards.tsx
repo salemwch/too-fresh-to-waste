@@ -66,24 +66,24 @@ function Sparkline({ data, direction }: { data: number[]; direction: 'up' | 'dow
       width={SPARK_W}
       height={SPARK_H}
       viewBox={`0 0 ${SPARK_W} ${SPARK_H}`}
-      className="overflow-visible"
-      aria-hidden="true"
+      className='overflow-visible'
+      aria-hidden='true'
     >
       {/* Gradient fill under the line */}
       <defs>
-        <linearGradient id={`spark-grad-${direction}`} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.18" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+        <linearGradient id={`spark-grad-${direction}`} x1='0' x2='0' y1='0' y2='1'>
+          <stop offset='0%' stopColor={color} stopOpacity='0.18' />
+          <stop offset='100%' stopColor={color} stopOpacity='0.02' />
         </linearGradient>
       </defs>
       <polygon points={areaPoints} fill={`url(#spark-grad-${direction})`} />
       <polyline
         points={pts}
-        fill="none"
+        fill='none'
         stroke={color}
         strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeLinecap='round'
+        strokeLinejoin='round'
         opacity={0.85}
       />
     </svg>
@@ -93,8 +93,8 @@ function Sparkline({ data, direction }: { data: number[]; direction: 'up' | 'dow
 // ─── Component ──────────────────────────────────────────────────────────────
 export function StatsCards({ stats, onCardClick }: StatsCardsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {stats.map((stat) => {
+    <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+      {stats.map(stat => {
         const Icon = stat.icon;
         const TrendIcon = stat.trend.direction === 'up' ? ArrowUpRight : ArrowDownRight;
         const isPositive = stat.trend.direction === 'up';
@@ -109,7 +109,7 @@ export function StatsCards({ stats, onCardClick }: StatsCardsProps) {
             onClick={isClickable ? () => onCardClick(stat.id!) : undefined}
             onKeyDown={
               isClickable
-                ? (e) => {
+                ? e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       onCardClick(stat.id!);
@@ -124,12 +124,12 @@ export function StatsCards({ stats, onCardClick }: StatsCardsProps) {
             )}
           >
             {/* Top row: value + icon */}
-            <div className="flex justify-between items-start mb-2">
+            <div className='flex justify-between items-start mb-2'>
               <div>
-                <h3 className="text-xl font-semibold tracking-tight text-slate-900">
+                <h3 className='text-xl font-semibold tracking-tight text-slate-900'>
                   {stat.value}
                 </h3>
-                <p className="text-sm text-slate-500 font-medium mt-0.5">{stat.label}</p>
+                <p className='text-sm text-slate-500 font-medium mt-0.5'>{stat.label}</p>
               </div>
               <div
                 className={cn(
@@ -138,30 +138,30 @@ export function StatsCards({ stats, onCardClick }: StatsCardsProps) {
                   stat.iconColor,
                 )}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className='w-3.5 h-3.5' />
               </div>
             </div>
 
             {/* Sparkline row */}
             {hasSparkline && (
-              <div className="mb-2">
+              <div className='mb-2'>
                 <Sparkline data={stat.sparkline!} direction={stat.trend.direction} />
               </div>
             )}
 
             {/* Trend row */}
-            <div className="flex items-center gap-1.5">
+            <div className='flex items-center gap-1.5'>
               <div
                 className={cn(
                   'flex items-center gap-0.5 text-xs font-medium',
                   isPositive ? 'text-emerald-500' : 'text-rose-500',
                 )}
               >
-                <TrendIcon className="w-3.5 h-3.5" />
+                <TrendIcon className='w-3.5 h-3.5' />
                 {Math.abs(stat.trend.value)}
                 {stat.trend.suffix ?? ''}
               </div>
-              <span className="text-xs text-slate-400">{stat.trend.label}</span>
+              <span className='text-xs text-slate-400'>{stat.trend.label}</span>
             </div>
           </div>
         );

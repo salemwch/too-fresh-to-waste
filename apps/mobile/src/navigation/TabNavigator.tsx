@@ -68,13 +68,13 @@ const TabNavigatorComponent: React.FC = () => {
 
   return (
     <Tab.Navigator
-      initialRouteName="Home"
+      initialRouteName='Home'
       screenOptions={({ route }) => ({
         headerShown: false,
         lazy: true,
         tabBarIcon: ({ focused, color, size }) => {
           const iconName = getTabIcon(route.name, focused);
-          return <Icon name={iconName} family="Ionicons" size={size} color={color} />;
+          return <Icon name={iconName} family='Ionicons' size={size} color={color} />;
         },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
@@ -102,20 +102,20 @@ const TabNavigatorComponent: React.FC = () => {
         tabBarHideOnKeyboard: true,
       })}
     >
-      <Tab.Screen name="Home" component={HomeStack} options={{ title: 'Home' }} />
-      <Tab.Screen name="Search" component={SearchStack} options={{ title: 'Search' }} />
-      <Tab.Screen name="Favorites" component={FavoritesStack} options={{ title: 'Favorites' }} />
-      <Tab.Screen name="Orders" component={OrdersStack} options={{ title: 'Orders' }} />
+      <Tab.Screen name='Home' component={HomeStack} options={{ title: 'Home' }} />
+      <Tab.Screen name='Search' component={SearchStack} options={{ title: 'Search' }} />
+      <Tab.Screen name='Favorites' component={FavoritesStack} options={{ title: 'Favorites' }} />
+      <Tab.Screen name='Orders' component={OrdersStack} options={{ title: 'Orders' }} />
 
       {/* Reset ProfileStack to ProfileMain whenever the Profile tab is pressed. */}
       <Tab.Screen
-        name="Profile"
+        name='Profile'
         component={ProfileStack}
         options={{ title: 'Profile' }}
         listeners={({ navigation }) => ({
-          tabPress: (event) => {
+          tabPress: event => {
             const state = navigation.getState();
-            const profileIndex = state.routes.findIndex((route) => route.name === 'Profile');
+            const profileIndex = state.routes.findIndex(route => route.name === 'Profile');
 
             if (profileIndex < 0) {
               return;

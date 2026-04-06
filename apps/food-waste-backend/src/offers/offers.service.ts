@@ -203,7 +203,7 @@ export class OffersService {
       .project({ itemId: 1 })
       .toArray()) as Array<{ itemId?: Types.ObjectId | string }>;
 
-    return favorites.flatMap((favorite) =>
+    return favorites.flatMap(favorite =>
       favorite.itemId !== undefined ? [favorite.itemId.toString()] : [],
     );
   }
@@ -223,13 +223,13 @@ export class OffersService {
       .toArray()) as FavoriteSignalRecord[];
 
     const establishmentIds = favorites
-      .filter((favorite) => favorite.type === 'establishment' && favorite.itemId !== undefined)
-      .map((favorite) => favorite.itemId?.toString() ?? '')
+      .filter(favorite => favorite.type === 'establishment' && favorite.itemId !== undefined)
+      .map(favorite => favorite.itemId?.toString() ?? '')
       .filter((itemId): itemId is string => itemId.length > 0);
 
     const categories = favorites
-      .filter((favorite) => favorite.type === 'category')
-      .map((favorite) => favorite.itemName ?? '')
+      .filter(favorite => favorite.type === 'category')
+      .map(favorite => favorite.itemName ?? '')
       .filter((category): category is string => category.length > 0);
 
     return { establishmentIds, categories };
@@ -262,7 +262,7 @@ export class OffersService {
     }
 
     // Map offers to DTOs with isFavorite
-    return offers.map((offer) => {
+    return offers.map(offer => {
       // ✅ TYPE SAFETY: Extract distance from lean objects (aggregations)
       const distance = (offer as OfferLean).distance;
 
@@ -1882,7 +1882,7 @@ export class OffersService {
   ): void {
     // Only validate when at least one slot has a limit set
     const slotsWithLimits = slots.filter(
-      (slot) => slot.maxOrders !== null && slot.maxOrders !== undefined,
+      slot => slot.maxOrders !== null && slot.maxOrders !== undefined,
     );
     if (slotsWithLimits.length === 0) {
       return;
@@ -1989,7 +1989,7 @@ export class OffersService {
     this.validatePickupSlotsAgainstQuantity(dto.pickupTimeSlots, totalQuantity);
 
     // Reset pickup slot counters
-    const cleanSlots = dto.pickupTimeSlots.map((slot) => ({
+    const cleanSlots = dto.pickupTimeSlots.map(slot => ({
       startTime: slot.startTime,
       endTime: slot.endTime,
       maxOrders: slot.maxOrders,
@@ -2236,7 +2236,7 @@ export class OffersService {
       .exec();
 
     // Filter out sold-out offers (must check virtual field)
-    const offersToFeature = eligibleOffers.filter((offer) => {
+    const offersToFeature = eligibleOffers.filter(offer => {
       const availableQuantity = offer.totalQuantity - offer.reservedQuantity - offer.soldQuantity;
       return availableQuantity > 0;
     });
@@ -2246,7 +2246,7 @@ export class OffersService {
     }
 
     // Bulk update to auto-feature
-    const offerIds = offersToFeature.map((o) => o._id);
+    const offerIds = offersToFeature.map(o => o._id);
     const result = await this.offerModel
       .updateMany(
         { _id: { $in: offerIds } },

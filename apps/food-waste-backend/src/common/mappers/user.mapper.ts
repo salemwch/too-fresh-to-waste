@@ -151,7 +151,7 @@ export class UserMapper {
   }
 
   static toInterfaceArray(documents: UserLike[]): IUser[] {
-    return documents.map((doc) => this.toInterface(doc));
+    return documents.map(doc => this.toInterface(doc));
   }
 
   static toStatsInterface(data: StatsLike): IUserStats {

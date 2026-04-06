@@ -386,7 +386,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps='handled'
       >
         {/* Header with animated phone icon */}
         <Animated.View entering={FadeInUp.delay(100)} style={styles.header}>
@@ -397,7 +397,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
               phoneIconAnimatedStyle,
             ]}
           >
-            <Icon name="phone" size={48} color={theme.colors.primary} />
+            <Icon name='phone' size={48} color={theme.colors.primary} />
           </Animated.View>
 
           <Animated.View style={successAnimatedStyle}>
@@ -405,7 +405,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
               <View
                 style={[styles.successBadge, { backgroundColor: theme.colors.successContainer }]}
               >
-                <Icon name="check-circle" size={32} color={theme.colors.success} />
+                <Icon name='check-circle' size={32} color={theme.colors.success} />
               </View>
             )}
           </Animated.View>
@@ -413,11 +413,11 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
         {/* Title and Description */}
         <Animated.View entering={FadeInUp.delay(200)} style={styles.titleContainer}>
-          <Text variant="headline.large" style={styles.title}>
+          <Text variant='headline.large' style={styles.title}>
             Verify Your Phone
           </Text>
           <Text
-            variant="body.large"
+            variant='body.large'
             style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}
           >
             {hasCodeBeenSent
@@ -439,9 +439,9 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
             {error && (
               <Animated.View entering={FadeInDown} style={styles.errorContainer}>
-                <Icon name="alert-circle" size={16} color={theme.colors.error} />
+                <Icon name='alert-circle' size={16} color={theme.colors.error} />
                 <Text
-                  variant="body.small"
+                  variant='body.small'
                   style={[styles.errorText, { color: theme.colors.error }]}
                 >
                   {error}
@@ -480,13 +480,13 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
               {/* Resend Button */}
               <View style={styles.resendContainer}>
                 <Text
-                  variant="body.medium"
+                  variant='body.medium'
                   style={[styles.resendText, { color: theme.colors.onSurfaceVariant }]}
                 >
                   Didn&apos;t receive the code?
                 </Text>
                 <Button
-                  variant="text"
+                  variant='text'
                   onPress={() => {
                     void handleResendCode();
                   }}
@@ -503,7 +503,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
           {/* Back Button - only show if not from email verification */}
           {fromEmailVerification !== true && (
             <Button
-              variant="text"
+              variant='text'
               onPress={handleBack}
               disabled={isVerifying || isSendingCode}
               style={styles.backButton}
@@ -515,9 +515,9 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
         {/* Help Text */}
         <Animated.View entering={FadeInUp.delay(500)} style={styles.helpContainer}>
-          <Icon name="info" size={20} color={theme.colors.onSurfaceVariant} />
+          <Icon name='info' size={20} color={theme.colors.onSurfaceVariant} />
           <Text
-            variant="body.small"
+            variant='body.small'
             style={[styles.helpText, { color: theme.colors.onSurfaceVariant }]}
           >
             {fromEmailVerification === true

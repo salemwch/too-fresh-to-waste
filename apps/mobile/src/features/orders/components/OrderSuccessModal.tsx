@@ -99,7 +99,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   const pickupCodeAccentStyle = { color: theme.colors.primary };
   const updatePickupState = useCallback(
     (updater: (state: PickupState) => PickupState) => {
-      setPickupState((prev) => {
+      setPickupState(prev => {
         const base = prev.orderId === activeOrderId ? prev : createPickupState(activeOrderId);
         return updater(base);
       });
@@ -119,7 +119,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   const confirmMutation = useMutation({
     mutationFn: (pickupCode: string) => ordersService.confirmPickup(order!._id, { pickupCode }),
     onSuccess: () => {
-      updatePickupState((state) => ({
+      updatePickupState(state => ({
         ...state,
         pickupConfirmed: true,
         code: '',
@@ -127,9 +127,9 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
       }));
       void queryClient.invalidateQueries({ queryKey: ['orders', 'detail', order?._id] });
     },
-    onError: (error) => {
+    onError: error => {
       const nextError = isPickupError(error) ? error.code : 'INVALID_CODE';
-      updatePickupState((state) => ({
+      updatePickupState(state => ({
         ...state,
         pickupError: nextError,
       }));
@@ -137,7 +137,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   });
 
   const handleConfirmPickup = useCallback(() => {
-    updatePickupState((state) => ({
+    updatePickupState(state => ({
       ...state,
       pickupError: null,
     }));
@@ -146,7 +146,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
 
   const handleCodeChange = useCallback(
     (text: string) => {
-      updatePickupState((state) => ({
+      updatePickupState(state => ({
         ...state,
         code: text,
         pickupError: null,
@@ -162,7 +162,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType='fade'
       statusBarTranslucent
       onRequestClose={showLoading ? undefined : onDismiss}
     >
@@ -172,7 +172,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
             {showLoading ? (
               /* ── Loading state: same card frame, spinner inside ── */
               <View style={styles.loadingContent}>
-                <ActivityIndicator size="large" color="#005250" />
+                <ActivityIndicator size='large' color='#005250' />
                 <Text style={styles.loadingText}>Placing your order...</Text>
               </View>
             ) : (
@@ -181,7 +181,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                 <View style={styles.content}>
                   {/* Order Number */}
                   <View style={styles.orderNumberRow}>
-                    <Icon name="receipt-outline" family="Ionicons" size={18} color="#005250" />
+                    <Icon name='receipt-outline' family='Ionicons' size={18} color='#005250' />
                     <Text style={styles.orderNumberLabel}>Order</Text>
                     <Text style={styles.orderNumberText}>{order.orderNumber}</Text>
                   </View>
@@ -191,7 +191,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                   {/* Items Summary */}
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                      <Icon name="bag-check" family="Ionicons" size={18} color="#005250" />
+                      <Icon name='bag-check' family='Ionicons' size={18} color='#005250' />
                       <Text style={styles.sectionTitle}>Order Summary</Text>
                     </View>
 
@@ -223,7 +223,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                   <View style={styles.section}>
                     <View style={styles.pickupInfo}>
                       <View style={styles.pickupRow}>
-                        <Icon name="calendar" family="Ionicons" size={16} color="#64748B" />
+                        <Icon name='calendar' family='Ionicons' size={16} color='#64748B' />
                         <Text style={styles.pickupText}>
                           {new Date(order.pickupDetails.scheduledDate).toLocaleDateString('en-US', {
                             weekday: 'short',
@@ -233,14 +233,14 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                         </Text>
                       </View>
                       <View style={styles.pickupRow}>
-                        <Icon name="time" family="Ionicons" size={16} color="#64748B" />
+                        <Icon name='time' family='Ionicons' size={16} color='#64748B' />
                         <Text style={styles.pickupText}>
                           {order.pickupDetails.timeSlot.startTime} -{' '}
                           {order.pickupDetails.timeSlot.endTime}
                         </Text>
                       </View>
                       <View style={styles.pickupRow}>
-                        <Icon name="location" family="Ionicons" size={16} color="#64748B" />
+                        <Icon name='location' family='Ionicons' size={16} color='#64748B' />
                         <Text style={styles.pickupText} numberOfLines={1}>
                           {typeof order.establishmentId === 'string'
                             ? 'Restaurant location'
@@ -255,16 +255,16 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                   {/* Confirm Pickup */}
                   {pickupConfirmed ? (
                     <View style={styles.pickupSuccessRow}>
-                      <Icon name="checkmark-circle" family="Ionicons" size={24} color={SUCCESS} />
+                      <Icon name='checkmark-circle' family='Ionicons' size={24} color={SUCCESS} />
                       <Text style={styles.pickupSuccessText}>Pickup confirmed!</Text>
                     </View>
                   ) : isOrderExpired ? (
                     <View style={styles.expiredRow}>
                       <Icon
-                        name="timer-off-outline"
-                        family="MaterialCommunityIcons"
+                        name='timer-off-outline'
+                        family='MaterialCommunityIcons'
                         size={24}
-                        color="#EF4444"
+                        color='#EF4444'
                       />
                       <View style={styles.expiredTextContainer}>
                         <Text style={styles.expiredTitle}>Order Expired</Text>
@@ -283,19 +283,19 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                         style={[styles.codeInput, pickupError && styles.codeInputError]}
                         value={code}
                         onChangeText={handleCodeChange}
-                        keyboardType="numeric"
+                        keyboardType='numeric'
                         maxLength={6}
-                        placeholder="------"
-                        placeholderTextColor="#ccc"
+                        placeholder='------'
+                        placeholderTextColor='#ccc'
                         autoFocus={false}
                         editable={!confirmMutation.isPending}
-                        textAlign="center"
-                        accessibilityLabel="Pickup code input"
+                        textAlign='center'
+                        accessibilityLabel='Pickup code input'
                       />
 
                       {pickupError ? (
                         <View style={styles.inlineError}>
-                          <Icon name="alert-circle" family="Ionicons" size={14} color="#EF4444" />
+                          <Icon name='alert-circle' family='Ionicons' size={14} color='#EF4444' />
                           <Text style={styles.inlineErrorText}>
                             {PICKUP_ERROR_MESSAGES[pickupError]}
                           </Text>

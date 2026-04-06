@@ -101,7 +101,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     phoneVerificationModal,
     closePhoneVerificationModal,
   } = useCreateOrder({
-    onSuccess: (order) => {
+    onSuccess: order => {
       // Show success modal immediately — do not block on query invalidation.
       setCreatedOrder(order);
       setSuccessModalVisible(true);
@@ -119,7 +119,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       void queryClient.invalidateQueries({ queryKey: ['nearby-offers'] });
       void queryClient.invalidateQueries({ queryKey: ['featured-offers'] });
     },
-    onError: (error) => {
+    onError: error => {
       Logger.error('[CheckoutScreen] Order creation failed', {}, error);
     },
   });
@@ -339,13 +339,13 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     return (
       <View style={styles.container}>
         <View style={styles.errorContainer}>
-          <Icon name="alert-circle" family="Ionicons" size={64} color="#EF4444" />
-          <Text variant="title" size="lg" weight="bold" style={styles.errorTitle}>
+          <Icon name='alert-circle' family='Ionicons' size={64} color='#EF4444' />
+          <Text variant='title' size='lg' weight='bold' style={styles.errorTitle}>
             Offer Not Found
           </Text>
           <Button
-            variant="primary"
-            size="md"
+            variant='primary'
+            size='md'
             onPress={() => navigation.goBack()}
             style={styles.errorGoBackButton}
           >
@@ -363,7 +363,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
         {/* Payment Method Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Icon name="wallet" family="Ionicons" size={20} color="#005250" />
+            <Icon name='wallet' family='Ionicons' size={20} color='#005250' />
             <Text style={styles.sectionTitle}>Payment Method</Text>
           </View>
 
@@ -376,17 +376,17 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                 selectedPaymentMethod === 'cash_on_pickup' && styles.paymentMethodCardActive,
               ]}
               onPress={() => setSelectedPaymentMethod('cash_on_pickup')}
-              accessibilityLabel="Pay on Pickup"
-              accessibilityRole="button"
+              accessibilityLabel='Pay on Pickup'
+              accessibilityRole='button'
             >
               {selectedPaymentMethod === 'cash_on_pickup' && (
                 <View style={styles.paymentCardCheck}>
-                  <Icon name="checkmark-circle" family="Ionicons" size={16} color="#10B981" />
+                  <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
                 </View>
               )}
               <Icon
-                name="cash"
-                family="Ionicons"
+                name='cash'
+                family='Ionicons'
                 size={28}
                 color={selectedPaymentMethod === 'cash_on_pickup' ? '#005250' : '#64748B'}
               />
@@ -407,17 +407,17 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                 selectedPaymentMethod === 'pay_on_delivery' && styles.paymentMethodCardActive,
               ]}
               onPress={() => setSelectedPaymentMethod('pay_on_delivery')}
-              accessibilityLabel="Pay on Delivery"
-              accessibilityRole="button"
+              accessibilityLabel='Pay on Delivery'
+              accessibilityRole='button'
             >
               {selectedPaymentMethod === 'pay_on_delivery' && (
                 <View style={styles.paymentCardCheck}>
-                  <Icon name="checkmark-circle" family="Ionicons" size={16} color="#10B981" />
+                  <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
                 </View>
               )}
               <Icon
-                name="bicycle"
-                family="Ionicons"
+                name='bicycle'
+                family='Ionicons'
                 size={28}
                 color={selectedPaymentMethod === 'pay_on_delivery' ? '#005250' : '#64748B'}
               />
@@ -433,7 +433,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
             {/* Online Payment — Coming Soon */}
             <View style={[styles.paymentMethodCard, styles.paymentMethodCardDisabled]}>
-              <Icon name="card" family="Ionicons" size={28} color="#CBD5E1" />
+              <Icon name='card' family='Ionicons' size={28} color='#CBD5E1' />
               <Text style={[styles.paymentCardLabel, styles.paymentCardLabelDisabled]}>
                 {'Online\nPayment'}
               </Text>
@@ -450,7 +450,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
         {/* Price Summary Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Icon name="receipt" family="Ionicons" size={20} color="#005250" />
+            <Icon name='receipt' family='Ionicons' size={20} color='#005250' />
             <Text style={styles.sectionTitle}>Order Summary</Text>
           </View>
 
@@ -474,7 +474,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
             {/* Savings Badge */}
             {savings > 0 && (
               <View style={styles.savingsBadge}>
-                <Icon name="trending-down" family="Ionicons" size={16} color="#10B981" />
+                <Icon name='trending-down' family='Ionicons' size={16} color='#10B981' />
                 <Text style={styles.savingsText}>
                   You save {savings.toFixed(2)} {currency}
                 </Text>
@@ -494,7 +494,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
         {/* Error Message */}
         {orderError != null && (
           <View style={styles.errorBanner}>
-            <Icon name="warning" family="Ionicons" size={20} color="#EF4444" />
+            <Icon name='warning' family='Ionicons' size={20} color='#EF4444' />
             <Text style={styles.errorText}>{orderError}</Text>
           </View>
         )}
@@ -513,7 +513,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
             end={{ x: 1, y: 0 }}
             style={[styles.confirmButton, isCreatingOrder && styles.confirmButtonDisabled]}
           >
-            <Icon name="checkmark-circle" family="Ionicons" size={24} color="#FFFFFF" />
+            <Icon name='checkmark-circle' family='Ionicons' size={24} color='#FFFFFF' />
             <Text style={styles.confirmButtonText}>
               Confirm Order • {total.toFixed(2)} {currency}
             </Text>

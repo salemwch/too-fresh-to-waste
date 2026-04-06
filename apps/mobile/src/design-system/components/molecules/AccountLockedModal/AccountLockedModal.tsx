@@ -95,7 +95,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
       <Modal
         visible={visible}
         transparent
-        animationType="fade"
+        animationType='fade'
         onRequestClose={onDismiss}
         statusBarTranslucent
       >
@@ -116,9 +116,9 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Icon
-                name="close"
-                family="Ionicons"
-                size="md"
+                name='close'
+                family='Ionicons'
+                size='md'
                 color={theme.colors.onSurfaceVariant}
               />
             </Pressable>
@@ -136,19 +136,19 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
             >
               <Icon
                 name={isExpired ? 'lock-open-outline' : 'lock-closed-outline'}
-                family="Ionicons"
-                size="xl"
+                family='Ionicons'
+                size='xl'
                 color={isExpired ? theme.colors.success : theme.colors.error}
               />
             </View>
 
             {/* Title */}
-            <Text variant="headline.medium" weight="semibold" align="center" style={styles.title}>
+            <Text variant='headline.medium' weight='semibold' align='center' style={styles.title}>
               {isExpired ? 'Account Unlocked' : 'Account Temporarily Locked'}
             </Text>
 
             {/* Description */}
-            <Text variant="body.medium" color="secondary" align="center" style={styles.description}>
+            <Text variant='body.medium' color='secondary' align='center' style={styles.description}>
               {isExpired
                 ? 'You can now try logging in again.'
                 : 'Your account has been temporarily locked due to multiple failed login attempts. This is a security measure to protect your account.'}
@@ -166,16 +166,16 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
                 ]}
               >
                 <Icon
-                  name="time-outline"
-                  family="Ionicons"
-                  size="md"
+                  name='time-outline'
+                  family='Ionicons'
+                  size='md'
                   color={theme.colors.primary}
                 />
                 <View style={styles.timerTextContainer}>
-                  <Text variant="label.small" color="secondary">
+                  <Text variant='label.small' color='secondary'>
                     Unlocks in
                   </Text>
-                  <Text variant="body.large" weight="semibold" color="primary">
+                  <Text variant='body.large' weight='semibold' color='primary'>
                     {timeRemaining}
                   </Text>
                 </View>
@@ -185,42 +185,42 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
             {/* Helpful suggestions */}
             {!isExpired && (
               <View style={styles.suggestionsContainer}>
-                <Text variant="label.medium" weight="semibold" style={styles.suggestionsTitle}>
+                <Text variant='label.medium' weight='semibold' style={styles.suggestionsTitle}>
                   What can you do?
                 </Text>
 
                 <View style={styles.suggestionItem}>
                   <Icon
-                    name="checkmark-circle"
-                    family="Ionicons"
-                    size="sm"
+                    name='checkmark-circle'
+                    family='Ionicons'
+                    size='sm'
                     color={theme.colors.primary}
                   />
-                  <Text variant="body.small" color="secondary" style={styles.suggestionText}>
+                  <Text variant='body.small' color='secondary' style={styles.suggestionText}>
                     Wait for the timer to expire and try again
                   </Text>
                 </View>
 
                 <View style={styles.suggestionItem}>
                   <Icon
-                    name="checkmark-circle"
-                    family="Ionicons"
-                    size="sm"
+                    name='checkmark-circle'
+                    family='Ionicons'
+                    size='sm'
                     color={theme.colors.primary}
                   />
-                  <Text variant="body.small" color="secondary" style={styles.suggestionText}>
+                  <Text variant='body.small' color='secondary' style={styles.suggestionText}>
                     Make sure you&apos;re using the correct password
                   </Text>
                 </View>
 
                 <View style={styles.suggestionItem}>
                   <Icon
-                    name="checkmark-circle"
-                    family="Ionicons"
-                    size="sm"
+                    name='checkmark-circle'
+                    family='Ionicons'
+                    size='sm'
                     color={theme.colors.primary}
                   />
-                  <Text variant="body.small" color="secondary" style={styles.suggestionText}>
+                  <Text variant='body.small' color='secondary' style={styles.suggestionText}>
                     Reset your password if you&apos;ve forgotten it
                   </Text>
                 </View>
@@ -231,8 +231,8 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
             <View style={styles.buttonContainer}>
               {onPasswordReset && !isExpired && (
                 <Button
-                  variant="outline"
-                  size="md"
+                  variant='outline'
+                  size='md'
                   onPress={handlePasswordReset}
                   style={styles.resetButton}
                 >
@@ -242,7 +242,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
 
               <Button
                 variant={isExpired ? 'primary' : 'tertiary'}
-                size="md"
+                size='md'
                 onPress={onDismiss}
                 style={styles.okButton}
               >

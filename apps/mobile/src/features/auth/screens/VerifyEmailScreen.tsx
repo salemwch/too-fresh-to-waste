@@ -27,7 +27,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
 
   // Get email from route params OR Redux state (state-driven approach)
   const { email: routeEmail, token } = route.params;
-  const { pendingVerificationEmail } = useAppSelector((state) => state.auth);
+  const { pendingVerificationEmail } = useAppSelector(state => state.auth);
   const email =
     typeof routeEmail === 'string' && routeEmail.trim() !== ''
       ? routeEmail
@@ -194,7 +194,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                       ? 'close-circle-outline'
                       : 'mail-outline'
                 }
-                family="Ionicons"
+                family='Ionicons'
                 size={64}
                 color={
                   verificationStatus === 'success'
@@ -208,7 +208,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
           </View>
 
           {/* Title */}
-          <Text variant="headline" size="lg" weight="semibold" align="center" style={styles.title}>
+          <Text variant='headline' size='lg' weight='semibold' align='center' style={styles.title}>
             {isVerifying
               ? 'Verifying Email...'
               : verificationStatus === 'success'
@@ -222,10 +222,10 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
           {isVerifying ? (
             <>
               <Text
-                variant="body"
-                size="md"
-                color="secondary"
-                align="center"
+                variant='body'
+                size='md'
+                color='secondary'
+                align='center'
                 style={styles.description}
               >
                 Please wait while we verify your email...
@@ -235,26 +235,26 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
           ) : verificationStatus === 'success' ? (
             <>
               <Text
-                variant="body"
-                size="md"
-                color="secondary"
-                align="center"
+                variant='body'
+                size='md'
+                color='secondary'
+                align='center'
                 style={styles.description}
               >
                 Your email has been verified successfully!
               </Text>
               <Text
-                variant="body"
-                size="sm"
-                color="secondary"
-                align="center"
+                variant='body'
+                size='sm'
+                color='secondary'
+                align='center'
                 style={styles.instructions}
               >
                 You can now login to your account and start reducing food waste.
               </Text>
               <Button
-                variant="primary"
-                size="lg"
+                variant='primary'
+                size='lg'
                 onPress={handleBackToLogin}
                 style={[styles.verifiedButton, styles.actionButtonSpacing]}
               >
@@ -264,26 +264,26 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
           ) : verificationStatus === 'error' ? (
             <>
               <Text
-                variant="body"
-                size="md"
-                color="secondary"
-                align="center"
+                variant='body'
+                size='md'
+                color='secondary'
+                align='center'
                 style={styles.description}
               >
                 The verification link may be invalid or expired.
               </Text>
               <Text
-                variant="body"
-                size="sm"
-                color="secondary"
-                align="center"
+                variant='body'
+                size='sm'
+                color='secondary'
+                align='center'
                 style={styles.instructions}
               >
                 Please request a new verification email and try again.
               </Text>
               <Button
-                variant="primary"
-                size="lg"
+                variant='primary'
+                size='lg'
                 onPress={() => {
                   void handleResendVerification();
                 }}
@@ -294,8 +294,8 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Verification Email'}
               </Button>
               <Button
-                variant="outline"
-                size="md"
+                variant='outline'
+                size='md'
                 onPress={handleBackToLogin}
                 disabled={isResending}
                 style={[styles.backButton, outlineButtonStyle]}
@@ -307,10 +307,10 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
             <>
               {/* Pending state - waiting for user to verify */}
               <Text
-                variant="body"
-                size="md"
-                color="secondary"
-                align="center"
+                variant='body'
+                size='md'
+                color='secondary'
+                align='center'
                 style={styles.description}
               >
                 We&apos;ve sent a verification link to:
@@ -320,15 +320,15 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
               <View
                 style={[styles.emailContainer, { backgroundColor: theme.colors.surfaceContainer }]}
               >
-                <Text variant="body" size="md" weight="semibold" align="center">
+                <Text variant='body' size='md' weight='semibold' align='center'>
                   {email}
                 </Text>
               </View>
 
               {/* Open Email App Button */}
               <Button
-                variant="primary"
-                size="lg"
+                variant='primary'
+                size='lg'
                 onPress={() => {
                   void handleOpenEmailApp();
                 }}
@@ -339,8 +339,8 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
 
               {/* Resend Button */}
               <Button
-                variant="outline"
-                size="md"
+                variant='outline'
+                size='md'
                 onPress={() => {
                   void handleResendVerification();
                 }}
@@ -353,8 +353,8 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
 
               {/* Back to Login */}
               <Button
-                variant="outline"
-                size="md"
+                variant='outline'
+                size='md'
                 onPress={handleBackToLogin}
                 disabled={isResending}
                 style={[styles.backButton, outlineButtonStyle]}
@@ -368,28 +368,28 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
           {verificationStatus !== 'success' && (
             <View style={[styles.helpContainer, { borderTopColor: theme.colors.outlineVariant }]}>
               <Icon
-                name="information-circle-outline"
-                family="Ionicons"
+                name='information-circle-outline'
+                family='Ionicons'
                 size={20}
                 color={theme.colors.onSurfaceVariant}
               />
               <View style={styles.helpTextContainer}>
                 <Text
-                  variant="body"
-                  size="xs"
-                  weight="medium"
-                  color="secondary"
+                  variant='body'
+                  size='xs'
+                  weight='medium'
+                  color='secondary'
                   style={styles.helpTitle}
                 >
                   Didn&lsquo;t receive the email?
                 </Text>
-                <Text variant="body" size="xs" color="secondary" style={styles.helpText}>
+                <Text variant='body' size='xs' color='secondary' style={styles.helpText}>
                   • Check your spam or junk folder{'\n'}• Make sure you entered the correct email
                   address{'\n'}• Wait a few minutes and try resending{'\n'}• Contact{' '}
                   <Text
-                    variant="body"
-                    size="xs"
-                    weight="semibold"
+                    variant='body'
+                    size='xs'
+                    weight='semibold'
                     onPress={() => {
                       void Linking.openURL('mailto:support@toofreshtowaste.com');
                     }}

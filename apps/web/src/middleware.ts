@@ -58,7 +58,7 @@ export default async function middleware(request: NextRequest) {
 
   // Check if pathname already has a locale prefix
   const pathnameHasLocale = routing.locales.some(
-    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
+    locale => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
   );
 
   // If no locale in pathname, check cookie for user preference
@@ -110,7 +110,7 @@ export default async function middleware(request: NextRequest) {
   }
 
   // Auth protection: check if the path requires authentication
-  const isProtectedRoute = PROTECTED_PATH_PATTERNS.some((pattern) =>
+  const isProtectedRoute = PROTECTED_PATH_PATTERNS.some(pattern =>
     pathWithoutLocale.startsWith(pattern),
   );
 

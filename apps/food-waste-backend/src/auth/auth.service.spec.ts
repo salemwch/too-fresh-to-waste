@@ -838,7 +838,7 @@ describe('AuthService', () => {
 
         // Mock JWT service to have realistic delays
         jest.spyOn(jwtService, 'signAsync').mockImplementation(async () => {
-          const token = await new Promise<string>((resolve) =>
+          const token = await new Promise<string>(resolve =>
             setTimeout(() => resolve(mockAccessToken), 50),
           );
           return token;

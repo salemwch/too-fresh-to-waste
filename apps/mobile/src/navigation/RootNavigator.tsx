@@ -83,7 +83,7 @@ export const RootNavigator: React.FC = () => {
   // NOTE: We intentionally do NOT use isLoading here.
   // isLoading should NOT trigger global LoadingScreen - each screen handles its own loading state.
   // Using isLoading here causes premature unmounting during async operations (login, register, etc.)
-  const { flowState } = useAppSelector((state) => state.auth);
+  const { flowState } = useAppSelector(state => state.auth);
 
   // ============================================================================
   // DEVICE CONNECTIVITY: Use NetInfo (real network state), NOT auth/API errors
@@ -95,7 +95,7 @@ export const RootNavigator: React.FC = () => {
   const networkErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const unsubscribe = addNetInfoEventListener((state) => {
+    const unsubscribe = addNetInfoEventListener(state => {
       const offline = state.isConnected !== true || state.isInternetReachable === false;
       setIsDeviceOffline(offline);
     });
@@ -302,7 +302,7 @@ export const RootNavigator: React.FC = () => {
       // BYPASS onboarding check - authenticated users don't need it
       case AuthFlowState.AUTHENTICATED:
         return (
-          <Stack.Screen name="MainStack" component={MainStack} options={{ headerShown: false }} />
+          <Stack.Screen name='MainStack' component={MainStack} options={{ headerShown: false }} />
         );
 
       // For all other flow states, check onboarding gate
@@ -319,13 +319,13 @@ export const RootNavigator: React.FC = () => {
         if (!hasSeenWelcome) {
           // New user - show Welcome/Onboarding screen
           return (
-            <Stack.Screen name="AuthStack" component={AuthStack} options={{ headerShown: false }} />
+            <Stack.Screen name='AuthStack' component={AuthStack} options={{ headerShown: false }} />
           );
         }
 
         // Returning user (seen welcome) but not authenticated - show Login
         return (
-          <Stack.Screen name="AuthStack" component={AuthStack} options={{ headerShown: false }} />
+          <Stack.Screen name='AuthStack' component={AuthStack} options={{ headerShown: false }} />
         );
     }
   };
@@ -355,7 +355,7 @@ export const RootNavigator: React.FC = () => {
    */
   const handleNavigationStateChange = (state: Readonly<NavigationState> | undefined) => {
     if (__DEV__ && state !== undefined) {
-      void AsyncStorage.setItem(NAVIGATION_STATE_KEY, JSON.stringify(state)).catch((error) => {
+      void AsyncStorage.setItem(NAVIGATION_STATE_KEY, JSON.stringify(state)).catch(error => {
         Logger.warn('[RootNavigator] Failed to save navigation state', {
           error: (error as Error).message,
         });
@@ -386,7 +386,7 @@ export const RootNavigator: React.FC = () => {
   if (!isAppReady || !isNavigationReady) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#10B981" />
+        <ActivityIndicator size='large' color='#10B981' />
       </View>
     );
   }

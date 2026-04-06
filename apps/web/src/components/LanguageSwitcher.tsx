@@ -85,7 +85,7 @@ export function LanguageSwitcher({
   if (variant === 'inline') {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
-        {locales.map((loc) => (
+        {locales.map(loc => (
           <button
             key={loc}
             onClick={() => handleLocaleChange(loc)}
@@ -109,9 +109,9 @@ export function LanguageSwitcher({
     isOpen && mounted ? (
       <div
         ref={dropdownRef}
-        className="fixed bg-white rounded-lg shadow-xl py-1 z-[99999] max-h-[300px] overflow-y-auto"
-        role="listbox"
-        aria-label="Available languages"
+        className='fixed bg-white rounded-lg shadow-xl py-1 z-[99999] max-h-[300px] overflow-y-auto'
+        role='listbox'
+        aria-label='Available languages'
         style={{
           top: `${dropdownPosition.top + 8}px`,
           left: `${dropdownPosition.left}px`,
@@ -120,7 +120,7 @@ export function LanguageSwitcher({
           boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2)',
         }}
       >
-        {locales.map((loc) => {
+        {locales.map(loc => {
           const config = localeConfig[loc];
           const isSelected = locale === loc;
 
@@ -133,7 +133,7 @@ export function LanguageSwitcher({
                   ? 'bg-primary-50 text-primary-700 font-semibold'
                   : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
               }`}
-              role="option"
+              role='option'
               aria-selected={isSelected}
               style={{ minHeight: '44px' }}
             >
@@ -142,18 +142,18 @@ export function LanguageSwitcher({
               >
                 {isSelected && (
                   <svg
-                    className="w-3.5 h-3.5 text-primary-600 flex-shrink-0"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
+                    className='w-3.5 h-3.5 text-primary-600 flex-shrink-0'
+                    fill='currentColor'
+                    viewBox='0 0 20 20'
                   >
                     <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
+                      fillRule='evenodd'
+                      d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+                      clipRule='evenodd'
                     />
                   </svg>
                 )}
-                <span className="text-sm font-medium">{config.nativeName}</span>
+                <span className='text-sm font-medium'>{config.nativeName}</span>
               </span>
             </button>
           );
@@ -172,32 +172,32 @@ export function LanguageSwitcher({
             'flex items-center gap-2 px-3 py-2 rounded-md bg-white/10 hover:bg-white/20 transition-colors text-white'
           }
           aria-expanded={isOpen}
-          aria-haspopup="listbox"
-          aria-label="Select language"
+          aria-haspopup='listbox'
+          aria-label='Select language'
         >
           <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
+            className='w-5 h-5'
+            fill='none'
+            stroke='currentColor'
+            viewBox='0 0 24 24'
+            aria-hidden='true'
           >
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              strokeLinecap='round'
+              strokeLinejoin='round'
               strokeWidth={2}
-              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+              d='M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9'
             />
           </svg>
-          <span className="text-sm font-medium">{currentLocale.nativeName}</span>
+          <span className='text-sm font-medium'>{currentLocale.nativeName}</span>
           <svg
             className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
+            fill='none'
+            stroke='currentColor'
+            viewBox='0 0 24 24'
+            aria-hidden='true'
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
           </svg>
         </button>
       </div>
@@ -238,7 +238,7 @@ export function LanguageSwitcherCompact({ className = '' }: { className?: string
       )}
       aria-label={`Current language: ${localeConfig[locale].name}. Click to change.`}
     >
-      <span className="text-xs font-bold uppercase">{locale}</span>
+      <span className='text-xs font-bold uppercase'>{locale}</span>
     </button>
   );
 }
