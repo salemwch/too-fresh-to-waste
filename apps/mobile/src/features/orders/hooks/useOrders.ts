@@ -20,6 +20,9 @@ import type { Order, PaginatedOrdersResponse } from '../types/order.types';
 /** Query key factory — single source of truth */
 const ORDERS_QUERY_KEY = ['orders', 'my-orders'] as const;
 
+/** Order detail query key — kept in sync with OrderDetailsScreen */
+export const orderDetailQueryKey = (orderId: string) => ['orders', 'detail', orderId] as const;
+
 export function useOrders() {
   const queryClient = useQueryClient();
 
@@ -65,4 +68,22 @@ export function useOrders() {
     invalidate,
     totalCount: response?.meta?.total ?? orders.length,
   };
+}
+
+/**
+ * Returns a stable callback that prefetches an order into the TanStack cache.
+ * Call on tap (before navigation.navigate) so data is ready when the screen mounts.
+ */
+export function usePrefetchOrder() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (orderId: string) => {
+      void queryClient.prefetchQuery({
+        queryKey: orderDetailQueryKey(orderId),
+        queryFn: () => ordersService.getOrderById(orderId),
+        staleTime: 1000 * 60 * 2,
+      });
+    },
+    [queryClient],
+  );
 }

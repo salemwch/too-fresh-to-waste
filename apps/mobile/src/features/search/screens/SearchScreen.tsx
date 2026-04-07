@@ -12,12 +12,12 @@
  */
 
 import { Currency } from '@foodwaste/shared';
+import { FlashList } from '@shopify/flash-list';
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   StyleSheet,
   Dimensions,
-  FlatList,
   ActivityIndicator,
   RefreshControl,
   StatusBar,
@@ -53,6 +53,7 @@ import {
   EstablishmentBottomSheet,
   type ViewMode,
 } from '../components';
+import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
 import { usePlaceSearch } from '../hooks/usePlaceSearch';
 
 import type { OfferListItem } from '@/features/offers/types/offer.types';
@@ -149,6 +150,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const dispatch = useAppDispatch();
+  const prefetchOffer = usePrefetchOffer();
 
   // Location hook
   const {
@@ -338,9 +340,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   const handleBottomSheetOfferPress = useCallback(
     (offerId: string) => {
+      prefetchOffer(offerId);
       navigation.navigate('OfferDetails', { offerId });
     },
-    [navigation],
+    [navigation, prefetchOffer],
   );
 
   const handleLocationPress = useCallback(() => {
@@ -449,16 +452,18 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   const handleEstablishmentOfferPress = useCallback(
     (offerId: string) => {
+      prefetchOffer(offerId);
       navigation.navigate('OfferDetails', { offerId });
     },
-    [navigation],
+    [navigation, prefetchOffer],
   );
 
   const handleOfferPress = useCallback(
     (offer: ProximitySearchResult<NearbyOffer>) => {
+      prefetchOffer(offer.item._id);
       navigation.navigate('OfferDetails', { offerId: offer.item._id });
     },
-    [navigation],
+    [navigation, prefetchOffer],
   );
 
   const handleMapPress = useCallback((event?: { nativeEvent?: { action?: string } }) => {
@@ -812,18 +817,19 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
       {/* List View */}
       {viewMode === 'list' && (
-        <FlatList
+        <FlashList
           data={displayOffers}
           keyExtractor={item => item.item._id}
           renderItem={renderListItem}
+          estimatedItemSize={280}
           ListHeaderComponent={renderListHeader}
           ListEmptyComponent={renderListEmpty}
-          contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 120 }]}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: 24,
+            paddingTop: insets.top + 120,
+          }}
           showsVerticalScrollIndicator={false}
-          removeClippedSubviews
-          maxToRenderPerBatch={6}
-          windowSize={7}
-          initialNumToRender={5}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}

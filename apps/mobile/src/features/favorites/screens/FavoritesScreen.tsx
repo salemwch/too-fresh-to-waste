@@ -5,6 +5,7 @@
 
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
+import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
 import {
   View,
   StyleSheet,
@@ -197,6 +198,7 @@ const toOfferListItem = (offer: Offer | OfferListItem): OfferListItem => {
 
 export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) => {
   const theme = useTheme();
+  const prefetchOffer = usePrefetchOffer();
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [establishmentType, setEstablishmentType] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
@@ -241,9 +243,10 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
         offerId,
         offerTitle: offer.title,
       });
+      prefetchOffer(offerId);
       navigation.navigate('OfferDetails', { offerId });
     },
-    [navigation],
+    [navigation, prefetchOffer],
   );
 
   const handleLoadMore = useCallback(() => {

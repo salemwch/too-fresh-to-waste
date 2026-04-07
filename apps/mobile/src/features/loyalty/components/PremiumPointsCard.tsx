@@ -10,6 +10,7 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import { Avatar, Icon, Text } from '@/design-system/components/atoms';
 import { useAppSelector } from '@/hooks/redux';
+import { selectAuthUser } from '@/features/auth/store/authSlice';
 
 import { getTierConfig, getTierProgress, getPointsToNextTier } from '../constants/tiers';
 
@@ -35,7 +36,7 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
   lifetimePointsEarned,
   currentTier,
 }) => {
-  const { user } = useAppSelector(s => s.auth);
+  const user = useAppSelector(selectAuthUser);
   const userImageUri = user?.profileImage ?? user?.avatar ?? undefined;
 
   const tierConfig = getTierConfig(currentTier);

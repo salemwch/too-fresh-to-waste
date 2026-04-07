@@ -137,6 +137,7 @@ uploads/
 
 # Local Claude project settings (machine-specific)
 .claude/settings.local.json
+**/.claude/settings.local.json
 
 # Runtime logs (never commit live server output)
 /logs.md
@@ -154,6 +155,17 @@ apps/web/dashboard.md
 apps/web/phase1.md
 apps/web/readl-data-dashboard.md
 
+# Backend local/dev artifacts
+apps/food-waste-backend/certs/
+apps/food-waste-backend/dependency-graph.svg
+apps/food-waste-backend/documentation-functionality.pdf
+apps/food-waste-backend/md-file/user-login-details.md
+
+# Local generated mobile asset-export folders
+apps/mobile/android/android/
+apps/mobile/ios/ios/
+apps/mobile/config-output.json
+
 # Backend ad-hoc test scratchpads (local only)
 apps/food-waste-backend/scripts/test-*.js
 
@@ -170,6 +182,8 @@ NUL
 # Ad-hoc report outputs
 full-report.txt
 *-report.txt
+bp_extracted.txt
+generate_bp.js
 
 !apps/web/public/images/**
 !apps/web/public/favicon.svg

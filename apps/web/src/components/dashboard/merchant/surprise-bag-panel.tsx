@@ -82,6 +82,20 @@ function getAvailableFromTimes(day: 'today' | 'tomorrow'): string[] {
   });
 }
 
+/** Returns Until options that are strictly after the selected From time.
+ *  '00:00' is treated as midnight (24:00) so it always appears when valid. */
+function getAvailableUntilTimes(from: string): string[] {
+  const now = new Date();
+  const fH = from === 'now' ? now.getHours() : parseInt(from.split(':')[0] ?? '0', 10);
+  const fM = from === 'now' ? now.getMinutes() : parseInt(from.split(':')[1] ?? '0', 10);
+  const fromMins = fH * 60 + fM;
+  return UNTIL_OPTIONS.filter(t => {
+    const [h = 0, m = 0] = t.split(':').map(Number);
+    const tMins = h === 0 && m === 0 ? 24 * 60 : h * 60 + m;
+    return tMins > fromMins;
+  });
+}
+
 function toISO(day: 'today' | 'tomorrow', hour: number, minute = 0, overflow = false) {
   const d = new Date();
   if (day === 'tomorrow') d.setDate(d.getDate() + 1);
@@ -157,11 +171,36 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
   useEffect(() => {
     const available = getAvailableFromTimes(pickupDay);
     if (pickupFrom === 'now') return; // 'now' is always valid for today
+    if (pickupDay === 'today' && available.length === 0) {
+      // No scheduled slots remain — only 'now' is valid; snap state to match the select
+      setPickupFrom('now');
+      return;
+    }
     if (available.length > 0 && !available.includes(pickupFrom)) {
       setPickupFrom(available[0] ?? PICKUP_PRESETS[0].from);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickupDay, customOpen]);
+
+  // ── Sync pickupUntil when pickupFrom changes ──────────────────────────────
+  // Ensures the Until select never holds a value that's before From.
+  // Defaults to ~1 hr after From; falls back to first valid slot.
+  useEffect(() => {
+    const available = getAvailableUntilTimes(pickupFrom);
+    if (available.includes(pickupUntil)) return;
+    const now = new Date();
+    const fH =
+      pickupFrom === 'now' ? now.getHours() : parseInt(pickupFrom.split(':')[0] ?? '0', 10);
+    const fM =
+      pickupFrom === 'now' ? now.getMinutes() : parseInt(pickupFrom.split(':')[1] ?? '0', 10);
+    const fromMins = fH * 60 + fM;
+    const oneHourSlot = available.find(t => {
+      const [h = 0, m = 0] = t.split(':').map(Number);
+      return (h === 0 && m === 0 ? 1440 : h * 60 + m) >= fromMins + 60;
+    });
+    setPickupUntil(oneHourSlot ?? available[0] ?? '00:00');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickupFrom]);
 
   // ── Esc key ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -674,7 +713,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                     onChange={e => setPickupUntil(e.target.value)}
                     className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
                   >
-                    {UNTIL_OPTIONS.map(t => (
+                    {getAvailableUntilTimes(pickupFrom).map(t => (
                       <option key={t} value={t}>
                         {t === '00:00' ? '00:00 (midnight)' : t}
                       </option>

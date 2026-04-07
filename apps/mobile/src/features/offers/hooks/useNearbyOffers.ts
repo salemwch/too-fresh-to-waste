@@ -21,6 +21,7 @@
 
 import { useAppSelector } from '@/hooks/redux';
 import { useQueryWithFocus } from '@/lib/react-query/hooks';
+import { selectAuthTokens } from '@/features/auth/store/authSlice';
 
 import {
   nearbyOffersService,
@@ -84,7 +85,7 @@ export function useNearbyOffers(
   params: NearbyOffersParams | null,
   options: UseNearbyOffersOptions = {},
 ) {
-  const { tokens } = useAppSelector(state => state.auth);
+  const tokens = useAppSelector(selectAuthTokens);
 
   const {
     enabled = true,

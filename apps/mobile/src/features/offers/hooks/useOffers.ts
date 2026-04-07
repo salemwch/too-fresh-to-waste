@@ -7,6 +7,7 @@
 
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import axios from 'axios';
+import { useCallback } from 'react';
 
 import { Logger } from '@/utils/logger';
 
@@ -473,6 +474,32 @@ export function usePickupTomorrowOffers(
     gcTime: 1000 * 60 * 15, // Keep in cache for 15 minutes
     ...options,
   });
+}
+
+// ============================================================================
+// Prefetch Utilities
+// ============================================================================
+
+/**
+ * Returns a stable callback that prefetches an offer into the TanStack cache.
+ * Call on tap (before navigation.navigate) so data is ready when the screen mounts.
+ *
+ * Usage:
+ *   const prefetchOffer = usePrefetchOffer();
+ *   const handlePress = (offerId) => { prefetchOffer(offerId); navigation.navigate('OfferDetails', { offerId }); }
+ */
+export function usePrefetchOffer() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (offerId: string) => {
+      void queryClient.prefetchQuery({
+        queryKey: offerKeys.detail(offerId),
+        queryFn: () => offersService.getOfferById(offerId),
+        staleTime: 1000 * 60 * 5, // Matches useOffer — skip refetch if already fresh
+      });
+    },
+    [queryClient],
+  );
 }
 
 // ============================================================================

@@ -4,7 +4,7 @@
  * Handles token expiration and role-based access control
  */
 
-import React, { useEffect, useEffectEvent, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 
 import { Text } from '@/design-system/components/atoms';
@@ -58,17 +58,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return requiredRoles.includes(user.role);
   };
 
-  const checkAndRefreshToken = useEffectEvent(() => {
-    if (!isAuthenticated || !tokens?.refreshToken || !sessionExpiresAt) {
-      return;
-    }
+  // useEffectEvent polyfill: stable identity, always reads latest closure values
+  const checkAndRefreshTokenLatest = useRef(() => {});
+  checkAndRefreshTokenLatest.current = () => {
+    if (!isAuthenticated || !tokens?.refreshToken || !sessionExpiresAt) return;
 
     const expiresAt = new Date(sessionExpiresAt).getTime();
     const fiveMinutes = 5 * 60 * 1000;
 
-    if (!Number.isFinite(expiresAt) || expiresAt - Date.now() >= fiveMinutes) {
-      return;
-    }
+    if (!Number.isFinite(expiresAt) || expiresAt - Date.now() >= fiveMinutes) return;
 
     void dispatch(refreshTokenAsync())
       .unwrap()
@@ -93,20 +91,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
         Logger.error(
           '[ProtectedRoute] Token refresh failed and session will expire',
-          {
-            message: rejectionPayload?.message,
-          },
+          { message: rejectionPayload?.message },
           refreshError,
         );
       });
-  });
+  };
+  const checkAndRefreshToken = useCallback(() => checkAndRefreshTokenLatest.current(), []);
 
-  const triggerSessionLogout = useEffectEvent(() => {
+  const triggerSessionLogoutLatest = useRef(() => {});
+  triggerSessionLogoutLatest.current = () => {
     setIsSessionLogoutPending(true);
     void dispatch(logoutAsync({})).finally(() => {
       setIsSessionLogoutPending(false);
     });
-  });
+  };
+  const triggerSessionLogout = useCallback(() => triggerSessionLogoutLatest.current(), []);
 
   useEffect(() => {
     checkAndRefreshToken();

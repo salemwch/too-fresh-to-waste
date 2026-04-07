@@ -96,6 +96,9 @@
     "@typescript-eslint/visitor-keys": "^8.44.1"
   },
   "pnpm": {
+    "patchedDependencies": {
+      "recyclerlistview@4.2.3": "patches/recyclerlistview@4.2.3.patch"
+    },
     "overrides": {
       "typescript": "^5.9.3",
       "jest": "^29.7.0",

@@ -38,16 +38,15 @@ export class NotificationPreferencesService {
 
     // Update fields if provided
     if (updateDto.channels !== undefined) {
-      const channelsMap = new Map<
-        NotificationChannel,
-        { push: boolean; email: boolean; sms: boolean }
-      >();
+      // Merge into the existing Map (not replace) so untouched channels are preserved.
+      // Normalize incoming keys to lowercase to match the NotificationChannel enum values.
       Object.entries(updateDto.channels).forEach(([key, value]) => {
-        if (Object.values(NotificationChannel).includes(key as NotificationChannel)) {
-          channelsMap.set(key as NotificationChannel, value);
+        const normalizedKey = key.toLowerCase() as NotificationChannel;
+        if (Object.values(NotificationChannel).includes(normalizedKey)) {
+          preferences.channels.set(normalizedKey, value);
         }
       });
-      preferences.channels = channelsMap;
+      preferences.markModified('channels');
     }
 
     if (updateDto.globalPushEnabled !== undefined) {

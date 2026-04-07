@@ -27,6 +27,7 @@ import {
   Linking,
   Alert,
   Easing,
+  InteractionManager,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSelector } from 'react-redux';
@@ -320,11 +321,13 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
   const [isAllergensOpen, setIsAllergensOpen] = useState(false);
   const [isSheetVisible, setSheetVisible] = useState(false);
 
-  // Fire once when offer data arrives
+  // Fire once when offer data arrives — deferred until after navigation animation completes
   useEffect(() => {
-    if (offer !== undefined) {
+    if (offer === undefined) return;
+    const task = InteractionManager.runAfterInteractions(() => {
       analytics.trackOfferViewed(offerId, offer.title, offer.pricing.discountedPrice);
-    }
+    });
+    return () => task.cancel();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offer?._id, offer?.id, offerId]);
 

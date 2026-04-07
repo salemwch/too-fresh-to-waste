@@ -19,7 +19,7 @@ import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { showAlert, showSuccessAlert, showErrorAlert } from '@/utils/alert';
 
-import { verifyMFAAsync } from '../store/authSlice';
+import { verifyMFAAsync, selectAuthIsLoading, selectAuthError } from '../store/authSlice';
 
 import type {
   MFAVerificationScreenNavigationProp,
@@ -39,7 +39,8 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
 }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector(state => state.auth);
+  const isLoading = useAppSelector(selectAuthIsLoading);
+  const error = useAppSelector(selectAuthError);
 
   const { mfaToken } = route.params;
 

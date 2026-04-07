@@ -11,11 +11,11 @@
  * - Manual location fallback
  */
 
+import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useState, useRef } from 'react';
 import {
   View,
   StyleSheet,
-  FlatList,
   Pressable,
   ActivityIndicator,
   RefreshControl,
@@ -39,6 +39,7 @@ import {
   type ProximitySearchResult,
   type NearbyOffer,
 } from '@/features/offers/hooks';
+import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
 import { useLocation } from '@/hooks/useLocation';
 
 import type { MainStackParamList } from '@/navigation/types';
@@ -78,6 +79,7 @@ const SHADOW = '#000';
 export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
   const mapRef = useRef<MapView>(null);
+  const prefetchOffer = usePrefetchOffer();
 
   // Location hook
   const {
@@ -156,10 +158,10 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
   const handleOfferPress = useCallback(
     (offer: ProximitySearchResult<NearbyOffer>) => {
       setSelectedOfferId(offer.item._id);
-      // Navigate to offer details
+      prefetchOffer(offer.item._id);
       navigation.navigate('OfferDetails', { offerId: offer.item._id });
     },
-    [navigation],
+    [navigation, prefetchOffer],
   );
 
   const handleMarkerPress = useCallback((offerId: string) => {
@@ -460,18 +462,15 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
 
       {/* Offers List */}
       <View style={styles.listContainer}>
-        <FlatList
+        <FlashList
           data={offers ?? []}
           keyExtractor={item => item.item._id}
           renderItem={renderOfferCard}
+          estimatedItemSize={90}
           ListHeaderComponent={renderListHeader}
           ListEmptyComponent={isLoading ? null : renderEmptyState}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          removeClippedSubviews
-          maxToRenderPerBatch={6}
-          windowSize={7}
-          initialNumToRender={5}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}

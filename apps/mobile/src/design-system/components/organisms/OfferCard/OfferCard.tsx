@@ -12,7 +12,7 @@
  */
 
 import { Heart } from 'lucide-react-native';
-import React, { memo, useMemo, useCallback } from 'react';
+import React, { memo, useMemo, useCallback, useState, useEffect } from 'react';
 import { View, Image, Pressable, StyleSheet, type GestureResponderEvent } from 'react-native';
 
 import { CtaState } from '@/features/offers/types';
@@ -21,7 +21,9 @@ import { Logger } from '@/utils/logger';
 import { useTheme } from '../../../providers';
 import { Badge } from '../../atoms/Badge';
 import { Card } from '../../atoms/Card';
+import { ShimmerBlock } from '../../atoms/ShimmerBlock/ShimmerBlock';
 import { Text } from '../../atoms/Text';
+import { useShimmerAnimation } from '../../atoms/ShimmerBlock/useShimmerAnimation';
 
 import {
   formatPickupTime,
@@ -96,6 +98,15 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
 }) => {
   const theme = useTheme();
   const styles = createStyles(theme, orientation, layout, imageAspectRatio);
+
+  // ==================== Image shimmer placeholder ====================
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const shimmerAnim = useShimmerAnimation('gradient', !isImageLoaded);
+
+  // Reset shimmer when FlashList recycles this cell for a different offer
+  useEffect(() => {
+    setIsImageLoaded(false);
+  }, [offer.image]);
 
   // ✅ PERFORMANCE: Debug logs removed (use React DevTools Profiler instead)
 
@@ -219,7 +230,17 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
         style={styles.image}
         resizeMode='cover'
         accessibilityIgnoresInvertColors
+        onLoad={() => setIsImageLoaded(true)}
       />
+      {!isImageLoaded && (
+        <ShimmerBlock
+          animValue={shimmerAnim}
+          width='100%'
+          height='100%'
+          borderRadius={10}
+          style={styles.imageShimmer}
+        />
+      )}
 
       {/* Top left badge - items left only */}
       <View style={styles.topLeftBadges}>
@@ -457,8 +478,8 @@ const createStyles = (
   return StyleSheet.create({
     card: {
       flexDirection: isHorizontal ? 'row' : 'column',
-      minWidth: isHorizontal ? 300 : 280,
-      maxWidth: isHorizontal ? 400 : 320,
+      minWidth: isHorizontal ? 160 : 170,
+      maxWidth: isHorizontal ? 180 : 270,
       borderRadius: 20,
       overflow: 'hidden',
       padding: 5, // Override Card component's default padding: 16
@@ -481,6 +502,11 @@ const createStyles = (
       width: '100%',
       height: '100%',
       borderRadius: 10,
+    },
+    imageShimmer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
     },
     topLeftBadges: {
       position: 'absolute',

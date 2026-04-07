@@ -12,6 +12,7 @@
  *  5. Pinned current-user progress card at the bottom
  */
 
+import { FlashList } from '@shopify/flash-list';
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
@@ -22,7 +23,6 @@ import {
   Easing,
   ActivityIndicator,
   Platform,
-  FlatList,
   Modal,
   ScrollView,
 } from 'react-native';
@@ -661,20 +661,17 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         bagCount={goal?.currentCount ?? 0}
         targetCount={goal?.targetCount ?? 10_000}
       />
-      <FlatList
+      <FlashList
         data={allEntries}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
+        estimatedItemSize={68}
         ListHeaderComponent={ListHeader}
         ListFooterComponent={ListFooter}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        initialNumToRender={20}
-        maxToRenderPerBatch={10}
-        windowSize={10}
-        removeClippedSubviews
       />
     </View>
   );

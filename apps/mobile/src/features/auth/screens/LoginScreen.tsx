@@ -15,6 +15,7 @@ import {
   Pressable,
   Image,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import LeafLogo from '@/assets/images/leaf.png';
 import WavingHand from '@/assets/images/waving-hand.png';
@@ -32,7 +33,7 @@ import { showSuccessToast } from '@/utils/toast';
 import { loginSchema, type LoginFormData } from '@/utils/validation/schemas';
 
 import { authService } from '../services/authService';
-import { loginAsync, clearError } from '../store/authSlice';
+import { loginAsync, clearError, selectAuthIsLoading, selectAuthError } from '../store/authSlice';
 
 import type { LoginScreenNavigationProp } from '@/navigation/types';
 import type { TextInput } from 'react-native';
@@ -112,8 +113,10 @@ function parseBackendValidationError(error: unknown): Record<string, string> | n
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector(state => state.auth);
+  const isLoading = useAppSelector(selectAuthIsLoading);
+  const error = useAppSelector(selectAuthError);
 
   // React Hook Form setup with Yup validation
   const {
@@ -207,7 +210,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           }),
         ).unwrap();
 
-        // Check if MFA is required
         if (
           result.requiresMFA === true &&
           typeof result.mfaToken === 'string' &&
@@ -217,76 +219,39 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             mfaToken: result.mfaToken,
             userId: result.user.userId,
           });
-        } else {
-          // ✅ SUCCESS: trigger MorphingButton success animation, then show toast
-          setLoginSuccess(true);
-          const firstName = result.user.firstName || 'User';
-          showSuccessToast(`Welcome back, ${firstName}! 🎉`);
-
-          // ✅ Navigation happens automatically via state-driven flow
-          // RootNavigator detects flowState = AUTHENTICATED and switches to MainStack
-          // No manual navigation needed - RootNavigator now checks auth state FIRST (before onboarding)
-          //
-          // Flow:
-          // 1. loginAsync.fulfilled sets flowState = AUTHENTICATED
-          // 2. RootNavigator re-renders (useAppSelector hook detects state change)
-          // 3. renderNavigator() checks flowState first (GATE 1)
-          // 4. flowState === AUTHENTICATED → returns MainStack screen
-          // 5. React Navigation switches from AuthStack to MainStack
-          //
-          // Why no manual navigation?
-          // - State-driven navigation is more reliable (React pattern)
-          // - No risk of navigation errors (RESET action not handled)
-          // - Easier to test and debug (single source of truth: Redux state)
+          return;
         }
+
+        // State-driven: RootNavigator switches to MainStack on AUTHENTICATED
+        setLoginSuccess(true);
+        showSuccessToast(`Welcome back, ${result.user.firstName || 'User'}! 🎉`);
       } catch (err: unknown) {
         Logger.error('Login error', undefined, err instanceof Error ? err : undefined);
         const errorMessage = getErrorMessage(err, 'Invalid value');
         const appError = isAppError(err) ? err : undefined;
 
-        // Check if this is an account lockout error (403 with blockedUntil)
         if (appError?.isAccountLocked === true && appError.blockedUntil != null) {
-          Logger.warn('[LoginScreen] Account locked error detected', {
-            blockedUntil: appError.blockedUntil,
-            message: appError.message,
-          });
-
-          // Show account locked modal instead of inline error
           setBlockedUntil(appError.blockedUntil);
           setShowLockedModal(true);
-
-          // Clear the global error from Redux since we're showing the modal
           dispatch(clearError());
           return;
         }
 
-        // Check if error has field-specific information from backend
-        // Backend now returns: { field: 'email' | 'password', type: 'EMAIL_NOT_FOUND' | 'INVALID_PASSWORD' }
         if (appError?.field === 'email' || appError?.field === 'password') {
-          // Set inline error on the specific field
-          setError(appError.field, {
-            type: 'manual',
-            message: errorMessage,
-          });
-          // Clear the global error from Redux since we're showing field-specific error
+          setError(appError.field, { type: 'manual', message: errorMessage });
           dispatch(clearError());
-        } else {
-          // Try to parse backend validation errors for other cases
-          const fieldErrors = parseBackendValidationError(err);
-          if (fieldErrors) {
-            // Set field-specific errors from backend validation
-            Object.entries(fieldErrors).forEach(([field, message]) => {
-              if (field === 'email' || field === 'password') {
-                setError(field, {
-                  type: 'manual',
-                  message,
-                });
-              }
-            });
-          }
+          return;
         }
-        // Global error is handled by Redux state and displayed in error banner
-        // Only shown if no field-specific error was set
+
+        // Fall back to backend validation errors
+        const fieldErrors = parseBackendValidationError(err);
+        if (fieldErrors) {
+          Object.entries(fieldErrors)
+            .filter(([field]) => field === 'email' || field === 'password')
+            .forEach(([field, message]) => {
+              setError(field as 'email' | 'password', { type: 'manual', message });
+            });
+        }
       }
     },
     [dispatch, navigation, setError],
@@ -356,13 +321,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior='padding'
       keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+      enabled={false}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 },
+        ]}
         keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
+        scrollEnabled
       >
         {/* Header with Leaf Logo */}
         <View style={styles.header}>
@@ -614,6 +584,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             testID='login-submit-button'
           />
 
+          {/* Terms of Service */}
+          <Text variant='body.small' color='secondary' align='center' style={styles.terms}>
+            By signing in, you agree to our Terms of Service and Privacy Policy
+          </Text>
+
           {/* Divider */}
           <View style={styles.divider}>
             <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
@@ -657,11 +632,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             </Pressable>
           </View>
         </Card>
-
-        {/* Footer */}
-        <Text variant='body.small' color='secondary' align='center' style={styles.footer}>
-          By signing in, you agree to our Terms of Service and Privacy Policy
-        </Text>
       </ScrollView>
 
       {/* Resend Verification Modal */}
@@ -694,12 +664,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 24,
-    justifyContent: 'center',
+    paddingHorizontal: 24,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 24,
   },
   leafLogo: {
     width: 80,
@@ -850,8 +818,9 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     // textDecorationColor is set inline using theme.colors.primary for dynamic theming
   },
-  footer: {
-    marginTop: 24,
-    paddingHorizontal: 16,
+  terms: {
+    marginTop: 4,
+    marginBottom: 16,
+    paddingHorizontal: 8,
   },
 });

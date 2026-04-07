@@ -59,6 +59,7 @@ import {
   useLocationSetup,
   COMMUNITY_GOAL_QUERY_KEY,
 } from '../hooks';
+import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
 
 import type { LocationItem } from '@/navigation/components';
 import type { HomeScreenNavigationProp } from '@/navigation/types';
@@ -123,6 +124,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
+  const prefetchOffer = usePrefetchOffer();
 
   // ──────────────────────────────────────────────────────────────────────────
   // Location Picker State & Search
@@ -417,16 +419,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   }, [requestLocation, openManualLocationModal]);
 
   /**
-   * Navigate to offer details
+   * Navigate to offer details — prefetch before navigate so data is in cache during transition
    */
   const handleOfferPress = useCallback(
     (offerId: string) => {
       if (__DEV__) {
         Logger.debug('[HomeScreen] handleOfferPress called', { offerId });
       }
+      prefetchOffer(offerId);
       navigation.navigate('OfferDetails', { offerId });
     },
-    [navigation],
+    [navigation, prefetchOffer],
   );
 
   /**

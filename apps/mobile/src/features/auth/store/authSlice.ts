@@ -1011,9 +1011,15 @@ export const {
 export default authSlice.reducer;
 
 // ── Named selectors (co-located with slice per Redux best practices) ──
+// Use individual field selectors instead of `state.auth` to prevent
+// re-renders when unrelated auth fields change (e.g. sessionExpiresAt refresh).
 
 /** Primitive boolean — no createSelector needed (returns stable ref). */
 export const selectIsPhoneVerified = (state: RootState): boolean =>
   state.auth.user?.isPhoneVerified ?? false;
 
 export const selectAuthUser = (state: RootState) => state.auth.user;
+export const selectAuthIsLoading = (state: RootState) => state.auth.isLoading;
+export const selectAuthError = (state: RootState) => state.auth.error;
+export const selectAuthTokens = (state: RootState) => state.auth.tokens;
+export const selectAuthFlowState = (state: RootState) => state.auth.flowState;

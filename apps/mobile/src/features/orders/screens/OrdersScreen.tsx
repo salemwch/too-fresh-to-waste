@@ -12,15 +12,16 @@
  *   - Contextual empty states per tab
  */
 
+import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useState, useMemo } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl, Platform, Pressable } from 'react-native';
+import { View, StyleSheet, RefreshControl, Platform, Pressable } from 'react-native';
 
 import { Text, Icon, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 
 import { OrderCard } from '../components/OrderCard';
 import { SkeletonOrderCard } from '../components/SkeletonOrderCard';
-import { useOrders } from '../hooks/useOrders';
+import { useOrders, usePrefetchOrder } from '../hooks/useOrders';
 
 import type { Order } from '../types/order.types';
 import type { OrdersScreenNavigationProp } from '@/navigation/types';
@@ -175,6 +176,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState<TabKey>('active');
 
   const { activeOrders, historyOrders, isLoading, isRefetching, refetch } = useOrders();
+  const prefetchOrder = usePrefetchOrder();
 
   const currentOrders = useMemo(
     () => (selectedTab === 'active' ? activeOrders : historyOrders),
@@ -187,9 +189,10 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
 
   const handleOrderPress = useCallback(
     (order: Order) => {
+      prefetchOrder(order._id);
       navigation.navigate('OrderDetails', { orderId: order._id });
     },
-    [navigation],
+    [navigation, prefetchOrder],
   );
 
   const handleBrowseOffers = useCallback(() => {
@@ -239,16 +242,13 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
       ) : currentOrders.length === 0 ? (
         <EmptyState tab={selectedTab} onBrowse={handleBrowseOffers} />
       ) : (
-        <FlatList
+        <FlashList
           data={currentOrders}
           renderItem={renderOrderCard}
           keyExtractor={keyExtractor}
+          estimatedItemSize={140}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          removeClippedSubviews
-          maxToRenderPerBatch={8}
-          windowSize={7}
-          initialNumToRender={6}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
