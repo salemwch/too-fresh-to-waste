@@ -19,7 +19,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('RABBITMQ_URL', 'amqp://localhost:5672'),
-        connectionInitOptions: { wait: true },
+        connectionInitOptions: { wait: false },
         exchanges: [
           {
             name: configService.get<string>('RABBITMQ_EXCHANGE', 'foodwaste.events'),

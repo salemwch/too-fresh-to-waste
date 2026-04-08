@@ -23,8 +23,8 @@ LABEL version="1.0.0"
 # Set working directory
 WORKDIR /app
 
-# Install pnpm globally
-RUN npm install -g pnpm@9.15.2
+# Install pnpm globally (must match engines.pnpm in package.json)
+RUN npm install -g pnpm@10.17.0
 
 # Copy package management files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -43,7 +43,7 @@ FROM node:24.11.1-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm@9.15.2
+RUN npm install -g pnpm@10.17.0
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules

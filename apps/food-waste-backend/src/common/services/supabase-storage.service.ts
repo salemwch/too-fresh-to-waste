@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { fromBuffer as fileTypeFromBuffer } from 'file-type';
 import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -455,18 +456,14 @@ export class SupabaseStorageService implements OnModuleInit {
       return;
     }
 
-    // Detect actual file type from buffer contents (file-type v22 is ESM-only → dynamic import)
-    const { fileTypeFromBuffer } = await import('file-type');
+    // Detect actual file type from buffer contents (magic bytes)
     const detected = await fileTypeFromBuffer(file.buffer);
 
     if (!detected) {
       throw new BadRequestException('Could not determine file type from content');
     }
 
-    // Normalise detected mime (file-type returns image/jpeg, never image/jpg)
-    const detectedMime = detected.mime === 'image/jpg' ? 'image/jpeg' : detected.mime;
-
-    if (detectedMime !== declaredMime) {
+    if (detected.mime !== declaredMime) {
       throw new BadRequestException(
         `File content (${detected.mime}) does not match declared type (${file.mimetype})`,
       );
