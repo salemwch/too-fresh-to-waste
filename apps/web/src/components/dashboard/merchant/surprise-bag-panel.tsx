@@ -375,7 +375,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     const payload: CreateSurpriseBagPayload = {
       title: title.trim(),
       description: autoDescription(title.trim(), quantity),
-      establishmentId: establishment._id,
+      establishmentId: establishment?._id ?? '',
       type: bagType,
       pricing: {
         originalPrice: Number.parseFloat(parsedPrice.toFixed(3)),
