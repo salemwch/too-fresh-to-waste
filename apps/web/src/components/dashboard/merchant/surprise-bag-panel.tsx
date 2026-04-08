@@ -2,9 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { X, Minus, Plus, ChevronDown, AlertCircle, CheckCircle2, ImagePlus } from 'lucide-react';
 import { cn } from '@foodwaste/ui';
-import { useMyEstablishment, useCreateSurpriseBag } from '@/hooks/use-merchant-dashboard';
+import {
+  useMyEstablishment,
+  useCreateSurpriseBag,
+  dashboardKeys,
+} from '@/hooks/use-merchant-dashboard';
 import { dashboardService } from '@/services/dashboard.service';
 import type { CreateSurpriseBagPayload, OfferBagType } from '@/types/dashboard';
 
@@ -86,8 +91,8 @@ function getAvailableFromTimes(day: 'today' | 'tomorrow'): string[] {
  *  '00:00' is treated as midnight (24:00) so it always appears when valid. */
 function getAvailableUntilTimes(from: string): string[] {
   const now = new Date();
-  const fH = from === 'now' ? now.getHours() : parseInt(from.split(':')[0] ?? '0', 10);
-  const fM = from === 'now' ? now.getMinutes() : parseInt(from.split(':')[1] ?? '0', 10);
+  const fH = from === 'now' ? now.getHours() : Number.parseInt(from.split(':')[0] ?? '0', 10);
+  const fM = from === 'now' ? now.getMinutes() : Number.parseInt(from.split(':')[1] ?? '0', 10);
   const fromMins = fH * 60 + fM;
   return UNTIL_OPTIONS.filter(t => {
     const [h = 0, m = 0] = t.split(':').map(Number);
@@ -110,6 +115,32 @@ function autoDescription(title: string, qty: number): string {
     `${title} — ${qty} handpicked surplus ${qty === 1 ? 'bag' : 'bags'} from our kitchen, ` +
     `available for pickup. Fresh, delicious, and discounted — grab yours today!`
   );
+}
+
+// ─── Validation ───────────────────────────────────────────────────────────────
+
+function validatePublishForm({
+  establishment,
+  pickupFrom,
+  pickupUntil,
+  parsedPrice,
+  discount,
+  title,
+}: {
+  establishment: { _id?: string } | null | undefined;
+  pickupFrom: string;
+  pickupUntil: string;
+  parsedPrice: number;
+  discount: number;
+  title: string;
+}): string | null {
+  if (!establishment?._id)
+    return 'Your establishment could not be found. Please refresh and try again.';
+  if (!pickupFrom || !pickupUntil) return 'Please select a pickup time window.';
+  if (parsedPrice <= 0) return 'Please enter a valid original price.';
+  if (discount < MIN_DISCOUNT_PCT) return `Minimum allowed discount is ${MIN_DISCOUNT_PCT}%.`;
+  if (title.trim().length < 5) return 'Item name must be at least 5 characters.';
+  return null;
 }
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
@@ -138,9 +169,10 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
   // ── Data ────────────────────────────────────────────────────────────────
   const { data: establishment, isLoading: estLoading } = useMyEstablishment();
   const mutation = useCreateSurpriseBag();
+  const queryClient = useQueryClient();
 
   // ── Computed ─────────────────────────────────────────────────────────────
-  const parsedPrice = Math.max(0, parseFloat(rawPrice) || 0);
+  const parsedPrice = Math.max(0, Number.parseFloat(rawPrice) || 0);
   const discountedPrice = parsedPrice > 0 ? parsedPrice * (1 - discount / 100) : 0;
   const saving = parsedPrice - discountedPrice;
 
@@ -176,7 +208,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       setPickupFrom('now');
       return;
     }
-    if (available.length > 0 && !available.includes(pickupFrom)) {
+    if (!available.includes(pickupFrom)) {
       setPickupFrom(available[0] ?? PICKUP_PRESETS[0].from);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -190,9 +222,11 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     if (available.includes(pickupUntil)) return;
     const now = new Date();
     const fH =
-      pickupFrom === 'now' ? now.getHours() : parseInt(pickupFrom.split(':')[0] ?? '0', 10);
+      pickupFrom === 'now' ? now.getHours() : Number.parseInt(pickupFrom.split(':')[0] ?? '0', 10);
     const fM =
-      pickupFrom === 'now' ? now.getMinutes() : parseInt(pickupFrom.split(':')[1] ?? '0', 10);
+      pickupFrom === 'now'
+        ? now.getMinutes()
+        : Number.parseInt(pickupFrom.split(':')[1] ?? '0', 10);
     const fromMins = fH * 60 + fM;
     const oneHourSlot = available.find(t => {
       const [h = 0, m = 0] = t.split(':').map(Number);
@@ -245,10 +279,10 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       const isGrowing = inputVal.length > rawPrice.length;
 
       // Keep only digits and at most one dot
-      let val = inputVal.replace(/[^\d.]/g, '');
+      let val = inputVal.replaceAll(/[^\d.]/g, '');
       const firstDot = val.indexOf('.');
       if (firstDot !== -1) {
-        val = val.slice(0, firstDot + 1) + val.slice(firstDot + 1).replace(/\./g, '');
+        val = val.slice(0, firstDot + 1) + val.slice(firstDot + 1).replaceAll(/\./g, '');
       }
 
       // Cap to 3 decimal places
@@ -263,8 +297,8 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       }
 
       // Enforce max 100.000
-      const num = parseFloat(val);
-      if (!isNaN(num) && num > MAX_PRICE) {
+      const num = Number.parseFloat(val);
+      if (!Number.isNaN(num) && num > MAX_PRICE) {
         val = MAX_PRICE.toFixed(3);
       }
 
@@ -293,35 +327,29 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (!establishment?._id) {
-      setErrorMsg('Your establishment could not be found. Please refresh and try again.');
-      return;
-    }
-    if (!pickupFrom || !pickupUntil) {
-      setErrorMsg('Please select a pickup time window.');
-      return;
-    }
-    if (parsedPrice <= 0) {
-      setErrorMsg('Please enter a valid original price.');
-      return;
-    }
-    if (discount < MIN_DISCOUNT_PCT) {
-      setErrorMsg(`Minimum allowed discount is ${MIN_DISCOUNT_PCT}%.`);
-      return;
-    }
-    if (title.trim().length < 5) {
-      setErrorMsg('Item name must be at least 5 characters.');
+    const validationError = validatePublishForm({
+      establishment,
+      pickupFrom,
+      pickupUntil,
+      parsedPrice,
+      discount,
+      title,
+    });
+    if (validationError) {
+      setErrorMsg(validationError);
       return;
     }
 
     // Resolve actual from hours/minutes — 'now' uses the real current time
     const nowSnapshot = new Date();
     const fromH =
-      pickupFrom === 'now' ? nowSnapshot.getHours() : parseInt(pickupFrom.split(':')[0] ?? '0', 10);
+      pickupFrom === 'now'
+        ? nowSnapshot.getHours()
+        : Number.parseInt(pickupFrom.split(':')[0] ?? '0', 10);
     const fromM =
       pickupFrom === 'now'
         ? nowSnapshot.getMinutes()
-        : parseInt(pickupFrom.split(':')[1] ?? '0', 10);
+        : Number.parseInt(pickupFrom.split(':')[1] ?? '0', 10);
 
     const [untilH = 0, untilM = 0] = pickupUntil.split(':').map(Number);
     const fromMins = fromH * 60 + fromM;
@@ -333,14 +361,12 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       return;
     }
     // Skip past-time check for 'now' — current time is always valid
-    if (pickupDay === 'today' && pickupFrom !== 'now') {
-      const currentMins = nowSnapshot.getHours() * 60 + nowSnapshot.getMinutes();
-      if (fromMins <= currentMins) {
-        setErrorMsg(
-          'Pickup start time has already passed. Please choose a future time or switch to Tomorrow.',
-        );
-        return;
-      }
+    const currentMins = nowSnapshot.getHours() * 60 + nowSnapshot.getMinutes();
+    if (pickupDay === 'today' && pickupFrom !== 'now' && fromMins <= currentMins) {
+      setErrorMsg(
+        'Pickup start time has already passed. Please choose a future time or switch to Tomorrow.',
+      );
+      return;
     }
 
     const untilOverflow = untilH === 0 && untilM === 0; // midnight rolls to next day
@@ -352,8 +378,8 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       establishmentId: establishment._id,
       type: bagType,
       pricing: {
-        originalPrice: parseFloat(parsedPrice.toFixed(3)),
-        discountedPrice: parseFloat(discountedPrice.toFixed(3)),
+        originalPrice: Number.parseFloat(parsedPrice.toFixed(3)),
+        discountedPrice: Number.parseFloat(discountedPrice.toFixed(3)),
       },
       totalQuantity: quantity,
       availableFrom: pickupFrom === 'now' ? nowAsLocalISO() : toISO(pickupDay, fromH, fromM),
@@ -373,6 +399,8 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       if (imageFile && offerId) {
         try {
           await dashboardService.uploadOfferImage(offerId, imageFile);
+          // Invalidate again so the list reflects the newly-uploaded image URL
+          void queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
         } catch {
           // Image upload failure is non-critical — offer was already created
         }
@@ -396,6 +424,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     pickupDay,
     imageFile,
     mutation,
+    queryClient,
     onClose,
   ]);
 
@@ -417,12 +446,11 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       />
 
       {/* Slide panel */}
-      <aside
-        role='dialog'
-        aria-modal='true'
+      <dialog
+        open
         aria-label="Publish Today's Surplus"
         className={cn(
-          'fixed right-0 top-0 z-[101] h-full w-full max-w-[440px]',
+          'fixed right-0 top-0 z-[101] h-full w-full max-w-[440px] m-0 p-0 border-0 max-h-none',
           'bg-white shadow-2xl flex flex-col',
           'transition-transform duration-300 ease-in-out',
           open ? 'translate-x-0' : 'translate-x-full',
@@ -452,8 +480,11 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
         <div className='flex-1 overflow-y-auto px-4 py-4 space-y-4'>
           {/* Item Name */}
           <div className='space-y-1'>
-            <label className='block text-xs font-semibold text-slate-700'>Item Name</label>
+            <label htmlFor='offer-title' className='block text-xs font-semibold text-slate-700'>
+              Item Name
+            </label>
             <input
+              id='offer-title'
               type='text'
               value={title}
               onChange={e => setTitle(e.target.value)}
@@ -468,7 +499,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             {/* Quantity */}
             <div className='space-y-1'>
               <label className='flex items-center gap-1.5 text-xs font-semibold text-slate-700'>
-                Quantity
+                {'Quantity'}
                 <span className='text-[11px] font-normal text-slate-400'>max {MAX_QUANTITY}</span>
               </label>
               <div className='flex items-center gap-1.5'>
@@ -487,9 +518,10 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                   min={1}
                   max={MAX_QUANTITY}
                   value={quantity}
+                  aria-label='Quantity'
                   onChange={e => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!isNaN(v)) setQuantity(Math.min(MAX_QUANTITY, Math.max(1, v)));
+                    const v = Number.parseInt(e.target.value, 10);
+                    if (!Number.isNaN(v)) setQuantity(Math.min(MAX_QUANTITY, Math.max(1, v)));
                   }}
                   className='h-7 w-12 rounded-md border border-slate-200 bg-white text-center text-xs font-bold tabular-nums text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
                 />
@@ -508,11 +540,13 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
             {/* Offer Type */}
             <div className='flex-1 space-y-1'>
-              <label className='block text-xs font-semibold text-slate-700'>Offer Type</label>
+              <label htmlFor='offer-type' className='block text-xs font-semibold text-slate-700'>
+                Offer Type
+              </label>
               <select
+                id='offer-type'
                 value={bagType}
                 onChange={e => setBagType(e.target.value as OfferBagType)}
-                aria-label='Offer type'
                 className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
               >
                 {BAG_TYPE_OPTIONS.map(opt => (
@@ -695,6 +729,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                   <p className='text-[10px] font-medium text-slate-500'>From</p>
                   <select
                     value={pickupFrom}
+                    aria-label='Pickup from time'
                     onChange={e => setPickupFrom(e.target.value)}
                     className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
                   >
@@ -710,6 +745,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                   <p className='text-[10px] font-medium text-slate-500'>Until</p>
                   <select
                     value={pickupUntil}
+                    aria-label='Pickup until time'
                     onChange={e => setPickupUntil(e.target.value)}
                     className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
                   >
@@ -833,7 +869,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             {mutation.isPending ? 'Creating…' : publishLabel}
           </button>
         </div>
-      </aside>
+      </dialog>
     </>,
     document.body,
   );

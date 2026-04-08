@@ -74,32 +74,37 @@ android {
             keyPassword 'android'
         }
 
-        // Release signing - configured via CI/CD environment variables
+        // Release signing — two paths (priority order):
+        //
+        // 1. LOCAL: android/keystore.properties (gitignored, never committed)
+        //    Copy android/keystore.properties.example → android/keystore.properties
+        //    and fill in your values.
+        //
+        // 2. CI/CD: Fastlane injects signing via android.injected.signing.* Gradle
+        //    properties (see fastlane/Fastfile). If running Gradle directly in CI,
+        //    set KEYSTORE_PATH, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD env vars.
+        //
         // Source: https://developer.android.com/studio/publish/app-signing
-        //
-        // Required environment variables for release builds:
-        // - KEYSTORE_FILE: Path to release keystore file
-        // - KEYSTORE_PASSWORD: Keystore password
-        // - KEY_ALIAS: Key alias name
-        // - KEY_PASSWORD: Key password
-        //
-        // CI/CD setup example (GitHub Actions):
-        // env:
-        //   KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
-        //   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        //   KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        //   KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         release {
-            def keystoreFile = System.getenv("KEYSTORE_FILE")
-            if (keystoreFile) {
-                storeFile file(keystoreFile)
-                storePassword System.getenv("KEYSTORE_PASSWORD")
-                keyAlias System.getenv("KEY_ALIAS")
-                keyPassword System.getenv("KEY_PASSWORD")
+            def propsFile = rootProject.file("keystore.properties")
+            if (propsFile.exists()) {
+                def props = new Properties()
+                props.load(new FileInputStream(propsFile))
+                storeFile     file(props['storeFile'])
+                storePassword props['storePassword']
+                keyAlias      props['keyAlias']
+                keyPassword   props['keyPassword']
             } else {
-                // Fallback for local testing (NOT for production)
-                // Production builds MUST set environment variables
-                logger.warn("⚠️  WARNING: Release signing not configured. Set KEYSTORE_FILE environment variable for production builds.")
+                // CI fallback: direct Gradle invocation (not via Fastlane)
+                def keystorePath = System.getenv("KEYSTORE_PATH") ?: System.getenv("KEYSTORE_FILE")
+                if (keystorePath) {
+                    storeFile     file(keystorePath)
+                    storePassword System.getenv("KEYSTORE_PASSWORD")
+                    keyAlias      System.getenv("KEY_ALIAS")
+                    keyPassword   System.getenv("KEY_PASSWORD")
+                } else {
+                    logger.warn("⚠️  WARNING: Release signing not configured. Copy android/keystore.properties.example → android/keystore.properties and fill in your keystore details.")
+                }
             }
         }
     }

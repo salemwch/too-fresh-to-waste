@@ -47,7 +47,7 @@ export default function Section5() {
               {' '}
               {/* Increased from 5/12 to 7/12 */}
               <Image
-                src='/images/pickuptoday.png'
+                src='/images/PickUpToday.svg'
                 alt={t('imageAlt')}
                 width={520}
                 height={530}

@@ -58,6 +58,7 @@ pnpm-debug.log*
 **/android/local.properties
 **/android/app/local.properties
 **/android/app/.cxx
+**/android/keystore.properties
 # Build log artifacts
 build-log.txt
 build2.log
