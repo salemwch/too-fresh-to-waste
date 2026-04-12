@@ -302,6 +302,9 @@ export interface MyEstablishment {
   legalDocuments?: LegalDocuments;
   createdAt?: string;
   updatedAt?: string;
+  /** Trial / subscription lifecycle */
+  subscriptionStatus?: 'trial' | 'paid' | 'suspended';
+  trialEndsAt?: string;
 }
 
 // ─── Created offer (response from POST /offers) ──────────────────────────────

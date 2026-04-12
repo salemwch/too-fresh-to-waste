@@ -284,10 +284,23 @@ function LoginFormInner() {
   );
 }
 
+// ── Full-screen fallback shown while useSearchParams resolves ────────────────
+// Covers the (auth) layout header so it never flashes through during streaming.
+function LoginFallback() {
+  return (
+    <div className='merchant-signup-theme fixed inset-0 z-50 flex flex-col overflow-hidden lg:flex-row'>
+      {/* Left hero — static, no interactivity needed */}
+      <div className='relative flex flex-[1.1] flex-col justify-between px-5 py-3 sm:py-6 sm:px-8 lg:flex-1 lg:p-12 bg-[hsl(174,72%,17%)]' />
+      {/* Right — blank white panel while JS loads */}
+      <div className='flex flex-1 bg-background' />
+    </div>
+  );
+}
+
 // ── Page export — wraps inner form in Suspense for useSearchParams ────────────
 export default function LoginPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<LoginFallback />}>
       <LoginFormInner />
     </Suspense>
   );

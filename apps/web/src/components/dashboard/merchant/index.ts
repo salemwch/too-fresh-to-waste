@@ -4,5 +4,6 @@ export { RecentOrdersPanel, type RecentOrderItem, type OrderStatus } from './rec
 export { DateFilter } from './date-filter';
 export { StatsCardsSkeleton, RevenueChartSkeleton, PanelSkeleton } from './skeletons';
 export { SurpriseBagPanel } from './surprise-bag-panel';
+export { TrialStatusBanner } from './trial-status-banner';
 export { MerchantOffersView } from './offers-page';
 export { RevenueDetailDialog, type RevenueDetailData } from './revenue-detail-dialog';

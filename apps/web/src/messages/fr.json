@@ -516,6 +516,8 @@
       "users": "Utilisateurs",
       "establishments": "Établissements",
       "moderation": "Modération",
+      "adminOffers": "Gestion des offres",
+      "health": "Santé système",
       "settings": "Paramètres",
       "merchant": "Marchand",
       "admin": "Admin",
@@ -586,6 +588,385 @@
       "saving": "Enregistrement...",
       "success": "Profil mis à jour avec succès",
       "error": "Échec de la mise à jour du profil"
+    },
+    "admin": {
+      "title": "Tableau de bord Admin",
+      "description": "Vue d'ensemble et gestion de la plateforme",
+      "kpi": {
+        "totalUsers": "Utilisateurs",
+        "totalEstablishments": "Établissements",
+        "totalOrders": "Commandes",
+        "totalRevenue": "Revenu Total",
+        "pendingApprovals": "En attente",
+        "newThisWeek": "nouveaux cette semaine",
+        "vsLastWeek": "vs semaine dernière"
+      },
+      "waste": {
+        "title": "Impact Environnemental",
+        "subtitle": "Nourriture sauvée du gaspillage depuis le lancement",
+        "kgSaved": "kg de nourriture sauvée",
+        "mealsSaved": "repas sauvés",
+        "co2Reduced": "kg CO₂ réduit"
+      },
+      "activity": {
+        "title": "Activité Récente",
+        "subtitle": "Dernières actions admin sur la plateforme",
+        "empty": "Aucune activité admin récente",
+        "emptyDescription": "Les actions des admins et modérateurs apparaîtront ici"
+      },
+      "quickActions": {
+        "title": "Actions Rapides",
+        "approvePending": "Approuver en attente",
+        "reviewReports": "Voir les signalements",
+        "manageUsers": "Gérer les utilisateurs",
+        "systemConfig": "Configuration système"
+      },
+      "pendingQueue": {
+        "title": "Approbations en attente",
+        "empty": "Aucun établissement en attente",
+        "viewAll": "Voir tous les établissements",
+        "approve": "Approuver",
+        "reject": "Rejeter"
+      },
+      "users": {
+        "title": "Gestion des utilisateurs",
+        "description": "Rechercher, filtrer et gérer les utilisateurs",
+        "searchPlaceholder": "Rechercher par nom ou email…",
+        "filterRole": "Filtrer par rôle",
+        "filterStatus": "Filtrer par statut",
+        "allRoles": "Tous les rôles",
+        "allStatuses": "Tous les statuts",
+        "totalUsers": "Total",
+        "activeUsers": "Actifs",
+        "suspendedUsers": "Suspendus",
+        "pendingUsers": "En attente",
+        "columns": {
+          "user": "Utilisateur",
+          "email": "Email",
+          "role": "Rôle",
+          "status": "Statut",
+          "joined": "Inscrit le",
+          "actions": "Actions"
+        },
+        "actions": {
+          "view": "Voir les détails",
+          "suspend": "Suspendre",
+          "activate": "Activer",
+          "block": "Bloquer",
+          "delete": "Supprimer l'utilisateur"
+        },
+        "detail": {
+          "title": "Détails utilisateur",
+          "emailVerified": "Email vérifié",
+          "phoneVerified": "Téléphone vérifié",
+          "lastLogin": "Dernière connexion",
+          "memberSince": "Membre depuis",
+          "noActivity": "Aucune activité récente"
+        },
+        "confirmSuspend": {
+          "title": "Suspendre l'utilisateur",
+          "description": "Cet utilisateur perdra l'accès à la plateforme.",
+          "reasonLabel": "Raison",
+          "reasonPlaceholder": "Décrivez pourquoi cet utilisateur est suspendu…"
+        },
+        "confirmActivate": {
+          "title": "Activer l'utilisateur",
+          "description": "Cet utilisateur retrouvera un accès complet.",
+          "reasonLabel": "Raison",
+          "reasonPlaceholder": "Décrivez pourquoi cet utilisateur est réactivé…"
+        },
+        "confirmBlock": {
+          "title": "Bloquer l'utilisateur",
+          "description": "Action permanente. L'utilisateur sera définitivement banni.",
+          "reasonLabel": "Raison",
+          "reasonPlaceholder": "Décrivez pourquoi cet utilisateur est bloqué…"
+        },
+        "confirmDelete": {
+          "title": "Supprimer l'utilisateur",
+          "description": "Cette action supprimera définitivement l'utilisateur et toutes ses données. Elle est irréversible.",
+          "reasonLabel": "Raison",
+          "reasonPlaceholder": "Décrivez pourquoi cet utilisateur est supprimé…"
+        },
+        "empty": "Aucun utilisateur trouvé",
+        "emptyDescription": "Essayez d'ajuster votre recherche ou vos filtres"
+      },
+      "establishments": {
+        "title": "Gestion des établissements",
+        "description": "Examiner les demandes et gérer les établissements",
+        "searchPlaceholder": "Rechercher par nom ou ville…",
+        "filterStatus": "Filtrer par statut",
+        "filterType": "Filtrer par type",
+        "allStatuses": "Tous les statuts",
+        "allTypes": "Tous les types",
+        "totalEstablishments": "Total",
+        "activeEstablishments": "Actifs",
+        "pendingEstablishments": "En attente",
+        "suspendedEstablishments": "Suspendus",
+        "rejectedEstablishments": "Rejetés",
+        "pendingSection": "Approbations en attente",
+        "pendingSectionDescription": "Ces établissements attendent votre examen",
+        "expandPending": "Afficher les en attente",
+        "collapsePending": "Masquer les en attente",
+        "columns": {
+          "name": "Nom",
+          "type": "Type",
+          "status": "Statut",
+          "city": "Ville",
+          "rating": "Note",
+          "created": "Soumis le",
+          "actions": "Actions"
+        },
+        "actions": {
+          "approve": "Approuver",
+          "reject": "Rejeter",
+          "suspend": "Suspendre",
+          "reactivate": "Réactiver",
+          "view": "Voir les détails"
+        },
+        "confirmApprove": {
+          "title": "Approuver l'établissement",
+          "description": "Cet établissement sera actif et visible par les clients.",
+          "reasonLabel": "Note (optionnel)",
+          "reasonPlaceholder": "Ajouter une note optionnelle pour le marchand…"
+        },
+        "confirmReject": {
+          "title": "Rejeter l'établissement",
+          "description": "Le marchand sera notifié avec votre raison.",
+          "reasonLabel": "Raison",
+          "reasonPlaceholder": "Expliquez pourquoi cet établissement est rejeté…"
+        },
+        "confirmSuspend": {
+          "title": "Suspendre l'établissement",
+          "description": "Cet établissement sera masqué des clients.",
+          "reasonLabel": "Raison",
+          "reasonPlaceholder": "Décrivez la raison de la suspension…"
+        },
+        "detail": {
+          "title": "Détails de l'établissement",
+          "contact": "Contact",
+          "address": "Adresse",
+          "verified": "Vérifié",
+          "notVerified": "Non vérifié",
+          "rating": "{value} / 5",
+          "reviews": "{count} avis"
+        },
+        "empty": "Aucun établissement trouvé",
+        "emptyDescription": "Essayez d'ajuster votre recherche ou vos filtres"
+      },
+      "moderation": {
+        "title": "Modération du contenu",
+        "description": "Examiner les signalements et agir sur les violations",
+        "stats": {
+          "totalReports": "Signalements",
+          "pending": "En attente",
+          "inReview": "En examen",
+          "resolved": "Résolus"
+        },
+        "tabs": {
+          "all": "Tous",
+          "pending": "En attente",
+          "inReview": "En examen",
+          "resolved": "Résolus",
+          "escalated": "Escaladés"
+        },
+        "columns": {
+          "type": "Type",
+          "target": "Cible",
+          "reason": "Raison",
+          "priority": "Priorité",
+          "status": "Statut",
+          "reported": "Signalé le",
+          "actions": "Actions"
+        },
+        "actions": {
+          "view": "Voir le signalement",
+          "assign": "M'assigner",
+          "resolve": "Résoudre",
+          "escalate": "Escalader",
+          "reject": "Rejeter",
+          "warn": "Avertir",
+          "suspend": "Suspendre",
+          "ban": "Bannir"
+        },
+        "detail": {
+          "title": "Détails du signalement",
+          "reportedBy": "Signalé par",
+          "target": "Cible",
+          "reason": "Raison",
+          "description": "Description",
+          "evidence": "Preuves",
+          "timeline": "Historique",
+          "takeAction": "Agir",
+          "resolutionNotes": "Notes de résolution",
+          "resolutionPlaceholder": "Ajoutez des notes sur la résolution…",
+          "actionType": "Type d'action",
+          "severity": "Sévérité"
+        },
+        "empty": "Aucun signalement trouvé",
+        "emptyDescription": "Ajustez l'onglet ou les filtres"
+      },
+      "settings": {
+        "title": "Configuration Système",
+        "description": "Gérer les paramètres globaux de la plateforme",
+        "currentVersion": "Version actuelle",
+        "noChanges": "Aucune modification non enregistrée",
+        "saveChanges": "Enregistrer la configuration",
+        "saving": "Enregistrement…",
+        "saveSuccess": "Configuration enregistrée avec succès",
+        "saveError": "Échec de l'enregistrement",
+        "confirmSave": {
+          "title": "Appliquer la configuration",
+          "description": "Les paramètres de la plateforme seront mis à jour pour tous les utilisateurs."
+        },
+        "tabs": {
+          "platform": "Plateforme",
+          "security": "Sécurité",
+          "notifications": "Notifications",
+          "payment": "Paiement"
+        },
+        "platform": {
+          "title": "Paramètres plateforme",
+          "maintenanceMode": "Mode maintenance",
+          "maintenanceModeDescription": "Désactiver temporairement l'accès pour les non-admins",
+          "allowRegistrations": "Autoriser les inscriptions",
+          "allowRegistrationsDescription": "Activer ou désactiver les nouvelles inscriptions",
+          "requireApproval": "Approbation requise",
+          "requireApprovalDescription": "Approuver manuellement les nouveaux établissements",
+          "maxOffersPerEstablishment": "Max offres par établissement",
+          "defaultOfferExpiration": "Expiration d'offre par défaut (heures)",
+          "minOrderValue": "Valeur min. de commande (TND)",
+          "maxOrderValue": "Valeur max. de commande (TND)",
+          "commissionRate": "Commission plateforme (%)",
+          "refundTimeout": "Délai de remboursement auto (heures)"
+        },
+        "security": {
+          "title": "Paramètres de sécurité",
+          "maxLoginAttempts": "Tentatives de connexion max",
+          "loginAttemptWindow": "Fenêtre de tentatives (minutes)",
+          "lockoutDuration": "Durée de verrouillage (minutes)",
+          "passwordMinLength": "Longueur minimale du mot de passe",
+          "requireSpecialChar": "Caractères spéciaux requis",
+          "requireNumbers": "Chiffres requis",
+          "requireUppercase": "Majuscules requises",
+          "sessionTimeout": "Délai de session (minutes)",
+          "require2FA": "Authentification à deux facteurs requise"
+        },
+        "notifications": {
+          "title": "Paramètres de notification",
+          "emailEnabled": "Notifications email",
+          "smsEnabled": "Notifications SMS",
+          "pushEnabled": "Notifications push",
+          "adminAlerts": "Alertes email admin",
+          "orderConfirmation": "Confirmation de commande",
+          "orderReminder": "Rappel de retrait",
+          "promotionalEmails": "Emails promotionnels"
+        },
+        "payment": {
+          "title": "Paramètres de paiement",
+          "stripeEnabled": "Paiements Stripe",
+          "paypalEnabled": "Paiements PayPal",
+          "minimumPayout": "Montant min. de paiement (TND)",
+          "payoutFrequency": "Fréquence de paiement",
+          "automaticPayouts": "Paiements automatiques",
+          "refundProcessingDays": "Jours de traitement des remboursements",
+          "daily": "Quotidien",
+          "weekly": "Hebdomadaire",
+          "monthly": "Mensuel"
+        },
+        "history": {
+          "title": "Historique des versions",
+          "version": "Version",
+          "description": "Description",
+          "createdBy": "Créé par",
+          "createdAt": "Date",
+          "rollback": "Restaurer",
+          "confirmRollback": {
+            "title": "Restaurer la configuration",
+            "description": "Cela restaurera la plateforme à la version {version}."
+          },
+          "noDescription": "Aucune description"
+        }
+      }
+    },
+    "adminHealth": {
+      "title": "Santé système",
+      "description": "État en temps réel de tous les services de la plateforme",
+      "overall": {
+        "healthy": "Tous les systèmes opérationnels",
+        "degraded": "Performance dégradée",
+        "down": "Interruption de service"
+      },
+      "services": {
+        "database": "Base de données",
+        "redis": "Cache / File d'attente",
+        "memory_heap": "Mémoire Heap",
+        "memory_rss": "Mémoire RSS"
+      },
+      "status": { "up": "Opérationnel", "down": "Hors ligne", "unknown": "Inconnu" },
+      "liveness": {
+        "title": "Infos instance",
+        "uptime": "Disponibilité",
+        "environment": "Environnement",
+        "checkedAt": "Dernière vérification"
+      },
+      "refresh": "Actualiser",
+      "autoRefresh": "Actualisation toutes les 30s",
+      "lastChecked": "Dernière vérification"
+    },
+    "adminOffers": {
+      "title": "Gestion des offres",
+      "description": "Surveiller, modérer et gérer toutes les offres de la plateforme",
+      "stats": {
+        "totalActive": "Offres actives",
+        "totalBagsSold": "Sacs vendus",
+        "avgDiscount": "Remise moyenne",
+        "pickupRate": "Taux de retrait",
+        "featured": "Mis en avant",
+        "priceViolations": "Violations de prix",
+        "lowPickup": "Faible retrait"
+      },
+      "tabs": {
+        "all": "Toutes les offres",
+        "lowPickup": "Faible taux de retrait",
+        "violations": "Violations de prix",
+        "deleted": "Supprimées"
+      },
+      "columns": {
+        "offer": "Offre",
+        "establishment": "Établissement",
+        "status": "Statut",
+        "discount": "Remise",
+        "pickupRate": "Taux retrait",
+        "quantity": "Qté",
+        "featured": "Mis en avant",
+        "created": "Créée"
+      },
+      "filters": {
+        "searchPlaceholder": "Rechercher par titre…",
+        "allStatuses": "Tous les statuts",
+        "allTypes": "Tous les types"
+      },
+      "bulk": {
+        "selected": "{count} sélectionnés",
+        "feature": "Mettre en avant",
+        "unfeature": "Retirer",
+        "disable": "Désactiver",
+        "enable": "Activer",
+        "delete": "Supprimer",
+        "clearSelection": "Effacer",
+        "deleteReason": "Raison de la suppression",
+        "deleteReasonPlaceholder": "Expliquez pourquoi ces offres sont supprimées…"
+      },
+      "actions": {
+        "export": "Exporter CSV",
+        "restore": "Restaurer",
+        "restoreConfirm": "Restaurer en brouillon"
+      },
+      "empty": "Aucune offre trouvée",
+      "emptyDescription": "Ajustez les filtres pour voir plus d'offres",
+      "lowPickupEmpty": "Aucune offre sous le seuil de retrait",
+      "violationsEmpty": "Aucune violation de prix détectée",
+      "deletedEmpty": "Aucune offre supprimée"
     },
     "merchantSecurity": {
       "title": "Sécurité",

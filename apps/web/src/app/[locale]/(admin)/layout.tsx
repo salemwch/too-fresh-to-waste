@@ -15,11 +15,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <AuthGuard>
       <RoleGuard allowedRoles={[UserRole.ADMIN, UserRole.MODERATOR]}>
-        <div className='flex h-screen overflow-hidden bg-background'>
-          <Sidebar items={adminNavItems} />
-          <div className='flex-1 flex flex-col overflow-hidden'>
-            <DashboardHeader navItems={adminNavItems} />
-            <main className='flex-1 overflow-y-auto p-4 lg:p-6'>{children}</main>
+        <div className='fixed inset-0 flex flex-col bg-background'>
+          {/* Header spans full width — sits above both sidebar and content */}
+          <DashboardHeader navItems={adminNavItems} />
+
+          {/* Body row: sidebar + scrollable content */}
+          <div className='flex flex-1 min-h-0 overflow-hidden'>
+            <Sidebar items={adminNavItems} />
+            <main className='flex-1 overflow-y-auto overscroll-contain min-h-0 p-4 lg:p-6'>
+              {children}
+            </main>
           </div>
         </div>
       </RoleGuard>

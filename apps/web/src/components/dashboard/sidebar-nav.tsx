@@ -5,7 +5,9 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { cn } from '@foodwaste/ui';
 import { useNotificationStore } from '@/lib/notification-store';
+import { useAuthStore } from '@/lib/auth';
 import { useOfferStatusCount } from '@/hooks/use-merchant-dashboard';
+import { UserRole } from '@foodwaste/shared';
 import type { NavItem } from '@/config/navigation.config';
 
 interface SidebarNavProps {
@@ -18,7 +20,8 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
   const locale = useLocale();
   const t = useTranslations('dashboard.nav');
   const unreadOrderCount = useNotificationStore(s => s.unreadCount);
-  const { data: draftOfferCount = 0 } = useOfferStatusCount('draft');
+  const isMerchant = useAuthStore(s => s.user?.role === UserRole.MERCHANT);
+  const { data: draftOfferCount = 0 } = useOfferStatusCount('draft', isMerchant);
 
   return (
     <nav className='flex flex-col gap-0.5 px-3'>

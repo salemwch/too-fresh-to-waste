@@ -25,6 +25,7 @@ import {
   useMerchantRecentOrders,
   useActiveOfferCount,
   useRevenueChart,
+  useMyEstablishment,
 } from '@/hooks/use-merchant-dashboard';
 import {
   type DatePreset,
@@ -257,6 +258,8 @@ export default function MerchantDashboardPage() {
   // Recent orders and active offers are always "current" — not time-scoped
   const recentOrdersQuery = useMerchantRecentOrders(1, 5);
   const activeOfferCountQuery = useActiveOfferCount();
+  const myEstablishmentQuery = useMyEstablishment();
+  const isTrialSuspended = myEstablishmentQuery.data?.subscriptionStatus === 'suspended';
   // ── Data transformation (memoised) ─────────────────────────────────────
   const stats = useMemo(() => {
     if (!orderStatsQuery.data) return null;
@@ -346,7 +349,18 @@ export default function MerchantDashboardPage() {
           <button
             type='button'
             onClick={() => setPanelOpen(true)}
-            className='flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 active:scale-[0.97] transition-all'
+            disabled={isTrialSuspended}
+            aria-label={
+              isTrialSuspended
+                ? 'Creating new offers is paused — your free trial has ended. Contact the admin team to reactivate your account.'
+                : 'Add Surprise Bag'
+            }
+            title={
+              isTrialSuspended
+                ? 'Your free trial has ended. Contact the admin team to reactivate your account.'
+                : undefined
+            }
+            className='flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:opacity-50 disabled:active:scale-100'
           >
             <Zap className='h-4 w-4' />
             Add Surprise Bag

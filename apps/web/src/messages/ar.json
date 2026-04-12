@@ -516,6 +516,8 @@
       "users": "المستخدمون",
       "establishments": "المؤسسات",
       "moderation": "الإشراف",
+      "adminOffers": "إدارة العروض",
+      "health": "صحة النظام",
       "settings": "الإعدادات",
       "merchant": "التاجر",
       "admin": "المسؤول",
@@ -586,6 +588,385 @@
       "saving": "جاري الحفظ...",
       "success": "تم تحديث الملف الشخصي بنجاح",
       "error": "فشل تحديث الملف الشخصي"
+    },
+    "admin": {
+      "title": "لوحة تحكم المسؤول",
+      "description": "نظرة عامة وإدارة المنصة",
+      "kpi": {
+        "totalUsers": "المستخدمون",
+        "totalEstablishments": "المنشآت",
+        "totalOrders": "الطلبات",
+        "totalRevenue": "إجمالي الإيرادات",
+        "pendingApprovals": "في الانتظار",
+        "newThisWeek": "جديد هذا الأسبوع",
+        "vsLastWeek": "مقارنة بالأسبوع الماضي"
+      },
+      "waste": {
+        "title": "الأثر البيئي",
+        "subtitle": "الطعام المنقذ من الهدر منذ الإطلاق",
+        "kgSaved": "كجم طعام منقذ",
+        "mealsSaved": "وجبة منقذة",
+        "co2Reduced": "كجم CO₂ مخفض"
+      },
+      "activity": {
+        "title": "النشاط الأخير",
+        "subtitle": "آخر إجراءات المسؤولين على المنصة",
+        "empty": "لا يوجد نشاط مسؤول حديث",
+        "emptyDescription": "ستظهر إجراءات المسؤولين والمشرفين هنا"
+      },
+      "quickActions": {
+        "title": "إجراءات سريعة",
+        "approvePending": "الموافقة على المعلقة",
+        "reviewReports": "مراجعة البلاغات",
+        "manageUsers": "إدارة المستخدمين",
+        "systemConfig": "إعدادات النظام"
+      },
+      "pendingQueue": {
+        "title": "الموافقات المعلقة",
+        "empty": "لا توجد منشآت معلقة",
+        "viewAll": "عرض جميع المنشآت",
+        "approve": "موافقة",
+        "reject": "رفض"
+      },
+      "users": {
+        "title": "إدارة المستخدمين",
+        "description": "البحث والتصفية وإدارة مستخدمي المنصة",
+        "searchPlaceholder": "البحث بالاسم أو البريد الإلكتروني…",
+        "filterRole": "تصفية حسب الدور",
+        "filterStatus": "تصفية حسب الحالة",
+        "allRoles": "جميع الأدوار",
+        "allStatuses": "جميع الحالات",
+        "totalUsers": "الإجمالي",
+        "activeUsers": "نشطون",
+        "suspendedUsers": "موقوفون",
+        "pendingUsers": "معلقون",
+        "columns": {
+          "user": "المستخدم",
+          "email": "البريد الإلكتروني",
+          "role": "الدور",
+          "status": "الحالة",
+          "joined": "تاريخ الانضمام",
+          "actions": "الإجراءات"
+        },
+        "actions": {
+          "view": "عرض التفاصيل",
+          "suspend": "إيقاف",
+          "activate": "تفعيل",
+          "block": "حظر",
+          "delete": "حذف المستخدم"
+        },
+        "detail": {
+          "title": "تفاصيل المستخدم",
+          "emailVerified": "البريد الإلكتروني مُحقَّق",
+          "phoneVerified": "الهاتف مُحقَّق",
+          "lastLogin": "آخر تسجيل دخول",
+          "memberSince": "عضو منذ",
+          "noActivity": "لا يوجد نشاط حديث"
+        },
+        "confirmSuspend": {
+          "title": "إيقاف المستخدم",
+          "description": "سيفقد هذا المستخدم الوصول إلى المنصة.",
+          "reasonLabel": "السبب",
+          "reasonPlaceholder": "اذكر سبب إيقاف هذا المستخدم…"
+        },
+        "confirmActivate": {
+          "title": "تفعيل المستخدم",
+          "description": "سيستعيد هذا المستخدم الوصول الكامل إلى المنصة.",
+          "reasonLabel": "السبب",
+          "reasonPlaceholder": "صف سبب إعادة تفعيل هذا المستخدم…"
+        },
+        "confirmBlock": {
+          "title": "حظر المستخدم",
+          "description": "إجراء دائم. سيُحظر المستخدم نهائياً من المنصة.",
+          "reasonLabel": "السبب",
+          "reasonPlaceholder": "اذكر سبب حظر هذا المستخدم…"
+        },
+        "confirmDelete": {
+          "title": "حذف المستخدم",
+          "description": "سيؤدي هذا إلى حذف المستخدم وجميع بياناته نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+          "reasonLabel": "السبب",
+          "reasonPlaceholder": "اذكر سبب حذف هذا المستخدم…"
+        },
+        "empty": "لم يتم العثور على مستخدمين",
+        "emptyDescription": "حاول تعديل البحث أو الفلاتر"
+      },
+      "establishments": {
+        "title": "إدارة المنشآت",
+        "description": "مراجعة الطلبات وإدارة المنشآت النشطة",
+        "searchPlaceholder": "البحث بالاسم أو المدينة…",
+        "filterStatus": "تصفية حسب الحالة",
+        "filterType": "تصفية حسب النوع",
+        "allStatuses": "جميع الحالات",
+        "allTypes": "جميع الأنواع",
+        "totalEstablishments": "الإجمالي",
+        "activeEstablishments": "نشطة",
+        "pendingEstablishments": "معلقة",
+        "suspendedEstablishments": "موقوفة",
+        "rejectedEstablishments": "مرفوضة",
+        "pendingSection": "الموافقات المعلقة",
+        "pendingSectionDescription": "هذه المنشآت تنتظر مراجعتك",
+        "expandPending": "إظهار المعلقة",
+        "collapsePending": "إخفاء المعلقة",
+        "columns": {
+          "name": "الاسم",
+          "type": "النوع",
+          "status": "الحالة",
+          "city": "المدينة",
+          "rating": "التقييم",
+          "created": "تاريخ التقديم",
+          "actions": "الإجراءات"
+        },
+        "actions": {
+          "approve": "موافقة",
+          "reject": "رفض",
+          "suspend": "إيقاف",
+          "reactivate": "إعادة تفعيل",
+          "view": "عرض التفاصيل"
+        },
+        "confirmApprove": {
+          "title": "الموافقة على المنشأة",
+          "description": "ستصبح هذه المنشأة نشطة ومرئية للعملاء.",
+          "reasonLabel": "ملاحظة (اختياري)",
+          "reasonPlaceholder": "أضف ملاحظة اختيارية للتاجر…"
+        },
+        "confirmReject": {
+          "title": "رفض المنشأة",
+          "description": "سيتم إخطار التاجر بسببك.",
+          "reasonLabel": "السبب",
+          "reasonPlaceholder": "اشرح سبب رفض هذه المنشأة…"
+        },
+        "confirmSuspend": {
+          "title": "إيقاف المنشأة",
+          "description": "ستُخفى هذه المنشأة عن العملاء.",
+          "reasonLabel": "السبب",
+          "reasonPlaceholder": "اذكر سبب الإيقاف…"
+        },
+        "detail": {
+          "title": "تفاصيل المنشأة",
+          "contact": "التواصل",
+          "address": "العنوان",
+          "verified": "مُحقَّق",
+          "notVerified": "غير محقق",
+          "rating": "{value} / 5",
+          "reviews": "{count} مراجعة"
+        },
+        "empty": "لم يتم العثور على منشآت",
+        "emptyDescription": "حاول تعديل البحث أو الفلاتر"
+      },
+      "moderation": {
+        "title": "إدارة المحتوى",
+        "description": "مراجعة البلاغات واتخاذ إجراءات بشأن الانتهاكات",
+        "stats": {
+          "totalReports": "البلاغات",
+          "pending": "معلقة",
+          "inReview": "قيد المراجعة",
+          "resolved": "محلولة"
+        },
+        "tabs": {
+          "all": "الكل",
+          "pending": "معلقة",
+          "inReview": "قيد المراجعة",
+          "resolved": "محلولة",
+          "escalated": "مُصعَّدة"
+        },
+        "columns": {
+          "type": "النوع",
+          "target": "الهدف",
+          "reason": "السبب",
+          "priority": "الأولوية",
+          "status": "الحالة",
+          "reported": "تاريخ البلاغ",
+          "actions": "الإجراءات"
+        },
+        "actions": {
+          "view": "عرض البلاغ",
+          "assign": "تعيين لي",
+          "resolve": "حل",
+          "escalate": "تصعيد",
+          "reject": "رفض",
+          "warn": "تحذير",
+          "suspend": "إيقاف",
+          "ban": "حظر"
+        },
+        "detail": {
+          "title": "تفاصيل البلاغ",
+          "reportedBy": "أبلغ عنه",
+          "target": "الهدف",
+          "reason": "السبب",
+          "description": "الوصف",
+          "evidence": "الأدلة",
+          "timeline": "السجل الزمني",
+          "takeAction": "اتخاذ إجراء",
+          "resolutionNotes": "ملاحظات الحل",
+          "resolutionPlaceholder": "أضف ملاحظات حول طريقة الحل…",
+          "actionType": "نوع الإجراء",
+          "severity": "الخطورة"
+        },
+        "empty": "لم يتم العثور على بلاغات",
+        "emptyDescription": "عدّل التبويب أو الفلاتر"
+      },
+      "settings": {
+        "title": "إعدادات النظام",
+        "description": "إدارة الإعدادات والسياسات العامة للمنصة",
+        "currentVersion": "الإصدار الحالي",
+        "noChanges": "لا توجد تغييرات غير محفوظة",
+        "saveChanges": "حفظ الإعدادات",
+        "saving": "جاري الحفظ…",
+        "saveSuccess": "تم حفظ الإعدادات بنجاح",
+        "saveError": "فشل حفظ الإعدادات",
+        "confirmSave": {
+          "title": "تطبيق الإعدادات",
+          "description": "سيتم تحديث إعدادات المنصة لجميع المستخدمين."
+        },
+        "tabs": {
+          "platform": "المنصة",
+          "security": "الأمان",
+          "notifications": "الإشعارات",
+          "payment": "الدفع"
+        },
+        "platform": {
+          "title": "إعدادات المنصة",
+          "maintenanceMode": "وضع الصيانة",
+          "maintenanceModeDescription": "تعطيل الوصول مؤقتاً للمستخدمين غير المسؤولين",
+          "allowRegistrations": "السماح بالتسجيل",
+          "allowRegistrationsDescription": "تفعيل أو تعطيل التسجيلات الجديدة",
+          "requireApproval": "الموافقة المطلوبة",
+          "requireApprovalDescription": "الموافقة يدوياً على المنشآت الجديدة",
+          "maxOffersPerEstablishment": "أقصى عروض لكل منشأة",
+          "defaultOfferExpiration": "انتهاء صلاحية العرض الافتراضي (ساعات)",
+          "minOrderValue": "الحد الأدنى للطلب (TND)",
+          "maxOrderValue": "الحد الأقصى للطلب (TND)",
+          "commissionRate": "عمولة المنصة (%)",
+          "refundTimeout": "مهلة الاسترداد التلقائي (ساعات)"
+        },
+        "security": {
+          "title": "إعدادات الأمان",
+          "maxLoginAttempts": "أقصى محاولات تسجيل دخول",
+          "loginAttemptWindow": "نافذة المحاولات (دقائق)",
+          "lockoutDuration": "مدة القفل (دقائق)",
+          "passwordMinLength": "الحد الأدنى لطول كلمة المرور",
+          "requireSpecialChar": "أحرف خاصة مطلوبة",
+          "requireNumbers": "أرقام مطلوبة",
+          "requireUppercase": "أحرف كبيرة مطلوبة",
+          "sessionTimeout": "مهلة الجلسة (دقائق)",
+          "require2FA": "المصادقة الثنائية مطلوبة"
+        },
+        "notifications": {
+          "title": "إعدادات الإشعارات",
+          "emailEnabled": "إشعارات البريد الإلكتروني",
+          "smsEnabled": "إشعارات SMS",
+          "pushEnabled": "الإشعارات الفورية",
+          "adminAlerts": "تنبيهات البريد للمسؤول",
+          "orderConfirmation": "تأكيد الطلب",
+          "orderReminder": "تذكير بالاستلام",
+          "promotionalEmails": "رسائل ترويجية"
+        },
+        "payment": {
+          "title": "إعدادات الدفع",
+          "stripeEnabled": "مدفوعات Stripe",
+          "paypalEnabled": "مدفوعات PayPal",
+          "minimumPayout": "الحد الأدنى للصرف (TND)",
+          "payoutFrequency": "تكرار الصرف",
+          "automaticPayouts": "صرف تلقائي",
+          "refundProcessingDays": "أيام معالجة الاسترداد",
+          "daily": "يومي",
+          "weekly": "أسبوعي",
+          "monthly": "شهري"
+        },
+        "history": {
+          "title": "سجل الإصدارات",
+          "version": "الإصدار",
+          "description": "الوصف",
+          "createdBy": "أنشأه",
+          "createdAt": "التاريخ",
+          "rollback": "استعادة",
+          "confirmRollback": {
+            "title": "استعادة الإعدادات",
+            "description": "سيتم استعادة المنصة إلى الإصدار {version}."
+          },
+          "noDescription": "لا يوجد وصف"
+        }
+      }
+    },
+    "adminHealth": {
+      "title": "صحة النظام",
+      "description": "الحالة الفورية لجميع خدمات المنصة",
+      "overall": {
+        "healthy": "جميع الأنظمة تعمل",
+        "degraded": "أداء متدهور",
+        "down": "انقطاع الخدمة"
+      },
+      "services": {
+        "database": "قاعدة البيانات",
+        "redis": "الذاكرة المؤقتة / الطابور",
+        "memory_heap": "ذاكرة Heap",
+        "memory_rss": "ذاكرة RSS"
+      },
+      "status": { "up": "يعمل", "down": "معطل", "unknown": "غير معروف" },
+      "liveness": {
+        "title": "معلومات الخادم",
+        "uptime": "وقت التشغيل",
+        "environment": "البيئة",
+        "checkedAt": "آخر فحص"
+      },
+      "refresh": "تحديث",
+      "autoRefresh": "تحديث تلقائي كل 30 ثانية",
+      "lastChecked": "آخر فحص"
+    },
+    "adminOffers": {
+      "title": "إدارة العروض",
+      "description": "مراقبة وإدارة جميع العروض على المنصة",
+      "stats": {
+        "totalActive": "العروض النشطة",
+        "totalBagsSold": "الأكياس المباعة",
+        "avgDiscount": "متوسط الخصم",
+        "pickupRate": "معدل الاستلام",
+        "featured": "المميزة",
+        "priceViolations": "انتهاكات السعر",
+        "lowPickup": "استلام منخفض"
+      },
+      "tabs": {
+        "all": "جميع العروض",
+        "lowPickup": "معدل استلام منخفض",
+        "violations": "انتهاكات السعر",
+        "deleted": "المحذوفة"
+      },
+      "columns": {
+        "offer": "العرض",
+        "establishment": "المؤسسة",
+        "status": "الحالة",
+        "discount": "الخصم",
+        "pickupRate": "معدل الاستلام",
+        "quantity": "الكمية",
+        "featured": "مميز",
+        "created": "تاريخ الإنشاء"
+      },
+      "filters": {
+        "searchPlaceholder": "البحث بعنوان العرض…",
+        "allStatuses": "جميع الحالات",
+        "allTypes": "جميع الأنواع"
+      },
+      "bulk": {
+        "selected": "{count} محدد",
+        "feature": "تمييز",
+        "unfeature": "إلغاء التمييز",
+        "disable": "تعطيل",
+        "enable": "تفعيل",
+        "delete": "حذف",
+        "clearSelection": "مسح",
+        "deleteReason": "سبب الحذف",
+        "deleteReasonPlaceholder": "اشرح سبب إزالة هذه العروض…"
+      },
+      "actions": {
+        "export": "تصدير CSV",
+        "restore": "استعادة",
+        "restoreConfirm": "استعادة كمسودة"
+      },
+      "empty": "لا توجد عروض",
+      "emptyDescription": "اضبط الفلاتر لرؤية المزيد من العروض",
+      "lowPickupEmpty": "لا توجد عروض دون حد الاستلام",
+      "violationsEmpty": "لا توجد انتهاكات سعرية",
+      "deletedEmpty": "لا توجد عروض محذوفة"
     },
     "merchantSecurity": {
       "title": "الأمان",

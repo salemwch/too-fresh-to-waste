@@ -182,7 +182,7 @@ const nextConfig = {
 
   // Experimental features
   experimental: {
-    optimizePackageImports: ['@foodwaste/shared', '@foodwaste/ui'],
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
 };
 

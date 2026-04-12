@@ -8,6 +8,7 @@ import {
   Building2,
   Shield,
   Settings,
+  Activity,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '@foodwaste/shared';
@@ -83,6 +84,18 @@ export const adminNavItems: NavItem[] = [
     href: '/admin/moderation',
     icon: Shield,
     roles: [UserRole.ADMIN, UserRole.MODERATOR],
+  },
+  {
+    titleKey: 'adminOffers',
+    href: '/admin/offers',
+    icon: Tag,
+    roles: [UserRole.ADMIN],
+  },
+  {
+    titleKey: 'health',
+    href: '/admin/health',
+    icon: Activity,
+    roles: [UserRole.ADMIN],
   },
   {
     titleKey: 'settings',

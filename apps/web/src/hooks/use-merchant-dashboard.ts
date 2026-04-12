@@ -174,7 +174,7 @@ export function useMerchantOffersFiltered(page = 1, limit = 10, status?: string)
  * Count of offers for a given status — lightweight (limit=1, reads meta.total).
  * Used by the stats bar on the Offers page.
  */
-export function useOfferStatusCount(status: string) {
+export function useOfferStatusCount(status: string, enabled = true) {
   return useQuery({
     queryKey: dashboardKeys.offersStatusCount(status),
     queryFn: async (): Promise<number> => {
@@ -182,6 +182,7 @@ export function useOfferStatusCount(status: string) {
       return response.data.meta?.total ?? 0;
     },
     staleTime: 2 * 60 * 1000,
+    enabled,
   });
 }
 

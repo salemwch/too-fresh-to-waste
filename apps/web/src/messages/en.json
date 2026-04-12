@@ -516,6 +516,8 @@
       "users": "Users",
       "establishments": "Establishments",
       "moderation": "Moderation",
+      "adminOffers": "Offer Management",
+      "health": "System Health",
       "settings": "Settings",
       "merchant": "Merchant",
       "admin": "Admin",
@@ -586,6 +588,389 @@
       "saving": "Saving...",
       "success": "Profile updated successfully",
       "error": "Failed to update profile"
+    },
+    "admin": {
+      "title": "Admin Dashboard",
+      "description": "Platform overview and management",
+      "kpi": {
+        "totalUsers": "Total Users",
+        "totalEstablishments": "Establishments",
+        "totalOrders": "Total Orders",
+        "totalRevenue": "Total Revenue",
+        "pendingApprovals": "Pending Approvals",
+        "newThisWeek": "new this week",
+        "vsLastWeek": "vs last week"
+      },
+      "waste": {
+        "title": "Environmental Impact",
+        "subtitle": "Food saved from waste since launch",
+        "kgSaved": "kg food saved",
+        "mealsSaved": "meals rescued",
+        "co2Reduced": "kg CO₂ reduced"
+      },
+      "activity": {
+        "title": "Recent Activity",
+        "subtitle": "Latest admin actions on the platform",
+        "empty": "No recent admin activity",
+        "emptyDescription": "Actions taken by admins and moderators will appear here"
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "approvePending": "Approve Pending",
+        "reviewReports": "Review Reports",
+        "manageUsers": "Manage Users",
+        "systemConfig": "System Config"
+      },
+      "pendingQueue": {
+        "title": "Pending Approvals",
+        "empty": "No pending establishments",
+        "viewAll": "View All Establishments",
+        "approve": "Approve",
+        "reject": "Reject"
+      },
+      "users": {
+        "title": "User Management",
+        "description": "Search, filter, and manage platform users",
+        "searchPlaceholder": "Search by name or email…",
+        "filterRole": "Filter by role",
+        "filterStatus": "Filter by status",
+        "allRoles": "All Roles",
+        "allStatuses": "All Statuses",
+        "totalUsers": "Total Users",
+        "activeUsers": "Active",
+        "suspendedUsers": "Suspended",
+        "pendingUsers": "Pending",
+        "columns": {
+          "user": "User",
+          "email": "Email",
+          "role": "Role",
+          "status": "Status",
+          "joined": "Joined",
+          "actions": "Actions"
+        },
+        "actions": {
+          "view": "View Details",
+          "suspend": "Suspend",
+          "activate": "Activate",
+          "block": "Block",
+          "delete": "Delete User"
+        },
+        "detail": {
+          "title": "User Details",
+          "emailVerified": "Email Verified",
+          "phoneVerified": "Phone Verified",
+          "lastLogin": "Last Login",
+          "memberSince": "Member Since",
+          "noActivity": "No recent activity"
+        },
+        "confirmSuspend": {
+          "title": "Suspend User",
+          "description": "This user will lose access to the platform. You can reactivate them at any time.",
+          "reasonLabel": "Reason",
+          "reasonPlaceholder": "Describe why this user is being suspended…"
+        },
+        "confirmActivate": {
+          "title": "Activate User",
+          "description": "This user will regain full access to the platform.",
+          "reasonLabel": "Reason",
+          "reasonPlaceholder": "Describe why this user is being reactivated…"
+        },
+        "confirmBlock": {
+          "title": "Block User",
+          "description": "This is a permanent action. The user will be permanently banned from the platform.",
+          "reasonLabel": "Reason",
+          "reasonPlaceholder": "Describe why this user is being blocked…"
+        },
+        "confirmDelete": {
+          "title": "Delete User",
+          "description": "This will permanently remove the user and all their data. This action cannot be undone.",
+          "reasonLabel": "Reason",
+          "reasonPlaceholder": "Describe why this user is being deleted…"
+        },
+        "empty": "No users found",
+        "emptyDescription": "Try adjusting your search or filters"
+      },
+      "establishments": {
+        "title": "Establishment Management",
+        "description": "Review pending applications and manage active establishments",
+        "searchPlaceholder": "Search by name or city…",
+        "filterStatus": "Filter by status",
+        "filterType": "Filter by type",
+        "allStatuses": "All Statuses",
+        "allTypes": "All Types",
+        "totalEstablishments": "Total",
+        "activeEstablishments": "Active",
+        "pendingEstablishments": "Pending",
+        "suspendedEstablishments": "Suspended",
+        "rejectedEstablishments": "Rejected",
+        "pendingSection": "Pending Approvals",
+        "pendingSectionDescription": "These establishments are waiting for your review",
+        "expandPending": "Show pending",
+        "collapsePending": "Hide pending",
+        "columns": {
+          "name": "Name",
+          "type": "Type",
+          "status": "Status",
+          "city": "City",
+          "rating": "Rating",
+          "created": "Submitted",
+          "actions": "Actions"
+        },
+        "actions": {
+          "approve": "Approve",
+          "reject": "Reject",
+          "suspend": "Suspend",
+          "reactivate": "Reactivate",
+          "view": "View Details"
+        },
+        "confirmApprove": {
+          "title": "Approve Establishment",
+          "description": "This establishment will become active and visible to customers.",
+          "reasonLabel": "Note (optional)",
+          "reasonPlaceholder": "Add an optional note for the merchant…"
+        },
+        "confirmReject": {
+          "title": "Reject Establishment",
+          "description": "The merchant will be notified with your reason.",
+          "reasonLabel": "Reason",
+          "reasonPlaceholder": "Explain why this establishment was rejected…"
+        },
+        "confirmSuspend": {
+          "title": "Suspend Establishment",
+          "description": "This establishment will be hidden from customers.",
+          "reasonLabel": "Reason",
+          "reasonPlaceholder": "Describe the reason for suspension…"
+        },
+        "detail": {
+          "title": "Establishment Details",
+          "contact": "Contact",
+          "address": "Address",
+          "verified": "Verified",
+          "notVerified": "Not Verified",
+          "rating": "{value} / 5",
+          "reviews": "{count} reviews"
+        },
+        "empty": "No establishments found",
+        "emptyDescription": "Try adjusting your search or filters"
+      },
+      "moderation": {
+        "title": "Content Moderation",
+        "description": "Review reports and take action on policy violations",
+        "stats": {
+          "totalReports": "Total Reports",
+          "pending": "Pending",
+          "inReview": "In Review",
+          "resolved": "Resolved"
+        },
+        "tabs": {
+          "all": "All",
+          "pending": "Pending",
+          "inReview": "In Review",
+          "resolved": "Resolved",
+          "escalated": "Escalated"
+        },
+        "columns": {
+          "type": "Type",
+          "target": "Target",
+          "reason": "Reason",
+          "priority": "Priority",
+          "status": "Status",
+          "reported": "Reported",
+          "actions": "Actions"
+        },
+        "actions": {
+          "view": "View Report",
+          "assign": "Assign to Me",
+          "resolve": "Resolve",
+          "escalate": "Escalate",
+          "reject": "Reject",
+          "warn": "Warn User",
+          "suspend": "Suspend User",
+          "ban": "Ban User"
+        },
+        "detail": {
+          "title": "Report Details",
+          "reportedBy": "Reported by",
+          "target": "Target",
+          "reason": "Reason",
+          "description": "Description",
+          "evidence": "Evidence",
+          "timeline": "Timeline",
+          "takeAction": "Take Action",
+          "resolutionNotes": "Resolution Notes",
+          "resolutionPlaceholder": "Add notes about how this was resolved…",
+          "actionType": "Action Type",
+          "severity": "Severity"
+        },
+        "empty": "No reports found",
+        "emptyDescription": "Adjust the tab or filters to see more reports"
+      },
+      "settings": {
+        "title": "System Configuration",
+        "description": "Manage platform-wide settings and policies",
+        "currentVersion": "Current Version",
+        "noChanges": "No unsaved changes",
+        "saveChanges": "Save Configuration",
+        "saving": "Saving…",
+        "saveSuccess": "Configuration saved successfully",
+        "saveError": "Failed to save configuration",
+        "confirmSave": {
+          "title": "Apply Configuration",
+          "description": "This will update platform settings for all users. A new version will be created."
+        },
+        "tabs": {
+          "platform": "Platform",
+          "security": "Security",
+          "notifications": "Notifications",
+          "payment": "Payment"
+        },
+        "platform": {
+          "title": "Platform Settings",
+          "maintenanceMode": "Maintenance Mode",
+          "maintenanceModeDescription": "Temporarily disable access for all non-admin users",
+          "allowRegistrations": "Allow New Registrations",
+          "allowRegistrationsDescription": "Enable or disable new user sign-ups",
+          "requireApproval": "Require Establishment Approval",
+          "requireApprovalDescription": "Manually approve new merchant establishments",
+          "maxOffersPerEstablishment": "Max Offers per Establishment",
+          "defaultOfferExpiration": "Default Offer Expiration (hours)",
+          "minOrderValue": "Minimum Order Value (TND)",
+          "maxOrderValue": "Maximum Order Value (TND)",
+          "commissionRate": "Platform Commission (%)",
+          "refundTimeout": "Auto-Refund Timeout (hours)"
+        },
+        "security": {
+          "title": "Security Settings",
+          "maxLoginAttempts": "Max Login Attempts",
+          "loginAttemptWindow": "Login Attempt Window (minutes)",
+          "lockoutDuration": "Account Lockout Duration (minutes)",
+          "passwordMinLength": "Minimum Password Length",
+          "requireSpecialChar": "Require Special Characters",
+          "requireNumbers": "Require Numbers",
+          "requireUppercase": "Require Uppercase",
+          "sessionTimeout": "Session Timeout (minutes)",
+          "require2FA": "Require Two-Factor Authentication"
+        },
+        "notifications": {
+          "title": "Notification Settings",
+          "emailEnabled": "Email Notifications",
+          "smsEnabled": "SMS Notifications",
+          "pushEnabled": "Push Notifications",
+          "adminAlerts": "Admin Email Alerts",
+          "orderConfirmation": "Order Confirmation",
+          "orderReminder": "Order Pickup Reminder",
+          "promotionalEmails": "Promotional Emails"
+        },
+        "payment": {
+          "title": "Payment Settings",
+          "stripeEnabled": "Stripe Payments",
+          "paypalEnabled": "PayPal Payments",
+          "minimumPayout": "Minimum Payout Amount (TND)",
+          "payoutFrequency": "Payout Frequency",
+          "automaticPayouts": "Automatic Payouts",
+          "refundProcessingDays": "Refund Processing Days",
+          "daily": "Daily",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        },
+        "history": {
+          "title": "Version History",
+          "version": "Version",
+          "description": "Description",
+          "createdBy": "Created By",
+          "createdAt": "Date",
+          "rollback": "Rollback",
+          "confirmRollback": {
+            "title": "Rollback Configuration",
+            "description": "This will restore the platform to version {version}. The current config will be archived."
+          },
+          "noDescription": "No description"
+        }
+      }
+    },
+    "adminHealth": {
+      "title": "System Health",
+      "description": "Real-time status of all platform services",
+      "overall": {
+        "healthy": "All Systems Operational",
+        "degraded": "Degraded Performance",
+        "down": "Service Disruption"
+      },
+      "services": {
+        "database": "Database",
+        "redis": "Cache / Queue",
+        "memory_heap": "Memory Heap",
+        "memory_rss": "Memory RSS"
+      },
+      "status": {
+        "up": "Operational",
+        "down": "Down",
+        "unknown": "Unknown"
+      },
+      "liveness": {
+        "title": "Instance Info",
+        "uptime": "Uptime",
+        "environment": "Environment",
+        "checkedAt": "Last Checked"
+      },
+      "refresh": "Refresh",
+      "autoRefresh": "Auto-refreshes every 30s",
+      "lastChecked": "Last checked"
+    },
+    "adminOffers": {
+      "title": "Offer Management",
+      "description": "Monitor, moderate and manage all offers across the platform",
+      "stats": {
+        "totalActive": "Active Offers",
+        "totalBagsSold": "Bags Sold",
+        "avgDiscount": "Avg Discount",
+        "pickupRate": "Pickup Rate",
+        "featured": "Featured",
+        "priceViolations": "Price Violations",
+        "lowPickup": "Low Pickup"
+      },
+      "tabs": {
+        "all": "All Offers",
+        "lowPickup": "Low Pickup Rate",
+        "violations": "Price Violations",
+        "deleted": "Deleted"
+      },
+      "columns": {
+        "offer": "Offer",
+        "establishment": "Establishment",
+        "status": "Status",
+        "discount": "Discount",
+        "pickupRate": "Pickup Rate",
+        "quantity": "Qty",
+        "featured": "Featured",
+        "created": "Created"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by offer title…",
+        "allStatuses": "All Statuses",
+        "allTypes": "All Types"
+      },
+      "bulk": {
+        "selected": "{count} selected",
+        "feature": "Feature",
+        "unfeature": "Unfeature",
+        "disable": "Disable",
+        "enable": "Enable",
+        "delete": "Delete",
+        "clearSelection": "Clear",
+        "deleteReason": "Reason for deletion",
+        "deleteReasonPlaceholder": "Explain why these offers are being removed…"
+      },
+      "actions": {
+        "export": "Export CSV",
+        "restore": "Restore",
+        "restoreConfirm": "Restore to Draft"
+      },
+      "empty": "No offers found",
+      "emptyDescription": "Adjust filters to see more offers",
+      "lowPickupEmpty": "No offers below the pickup threshold",
+      "violationsEmpty": "No price violations detected",
+      "deletedEmpty": "No deleted offers"
     },
     "merchantSecurity": {
       "title": "Security",

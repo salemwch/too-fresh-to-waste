@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { X, Minus, Plus, ChevronDown, AlertCircle, CheckCircle2, ImagePlus } from 'lucide-react';
@@ -433,7 +433,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
   // ── Render ───────────────────────────────────────────────────────────────
   return createPortal(
-    <>
+    <React.Fragment key='surprise-bag-panel'>
       {/* Backdrop */}
       <div
         aria-hidden='true'
@@ -446,11 +446,12 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       />
 
       {/* Slide panel */}
-      <dialog
-        open
+      <div
+        role='dialog'
+        aria-modal='true'
         aria-label="Publish Today's Surplus"
         className={cn(
-          'fixed right-0 top-0 z-[101] h-full w-full max-w-[440px] m-0 p-0 border-0 max-h-none',
+          'fixed right-0 top-0 z-[101] h-full w-full max-w-[440px]',
           'bg-white shadow-2xl flex flex-col',
           'transition-transform duration-300 ease-in-out',
           open ? 'translate-x-0' : 'translate-x-full',
@@ -869,8 +870,8 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             {mutation.isPending ? 'Creating…' : publishLabel}
           </button>
         </div>
-      </dialog>
-    </>,
+      </div>
+    </React.Fragment>,
     document.body,
   );
 }
