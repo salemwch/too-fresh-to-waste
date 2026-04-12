@@ -1,9 +1,7 @@
 # Product Requirements Document: Automatic Token Refresh
 
-**Version**: 1.0
-**Date**: 2026-01-09
-**Owner**: Product Management
-**Status**: ✅ **Implementation Complete - Ready for Rollout**
+**Version**: 1.0 **Date**: 2026-01-09 **Owner**: Product Management **Status**:
+✅ **Implementation Complete - Ready for Rollout**
 
 ---
 
@@ -11,7 +9,8 @@
 
 ### Problem Statement
 
-Current mobile app forces users to re-login every 1-2 hours when access tokens expire, causing:
+Current mobile app forces users to re-login every 1-2 hours when access tokens
+expire, causing:
 
 - **95% of session expirations** result in user-visible errors
 - **40% cart abandonment** when token expires during checkout
@@ -20,7 +19,9 @@ Current mobile app forces users to re-login every 1-2 hours when access tokens e
 
 ### Solution
 
-Implement industry-standard automatic token refresh using axios interceptors, eliminating 95% of forced re-logins and improving user experience to match competitors (Uber Eats, DoorDash).
+Implement industry-standard automatic token refresh using axios interceptors,
+eliminating 95% of forced re-logins and improving user experience to match
+competitors (Uber Eats, DoorDash).
 
 ### Business Impact
 
@@ -95,8 +96,7 @@ Success → User sees result (no error)
 
 ### Phase 1: Internal Testing (Week 1)
 
-**Target**: Dev team only
-**Configuration**:
+**Target**: Dev team only **Configuration**:
 
 ```typescript
 development: useApiClientV2 = true;
@@ -117,8 +117,7 @@ production: useApiClientV2 = false;
 
 ### Phase 2: Beta Testing (Week 2)
 
-**Target**: 5% of production users (500 users)
-**Configuration**:
+**Target**: 5% of production users (500 users) **Configuration**:
 
 ```typescript
 production: useApiClientV2 = true(5 % rollout);
@@ -142,8 +141,7 @@ production: useApiClientV2 = true(5 % rollout);
 
 ### Phase 3: Wider Beta (Week 3)
 
-**Target**: 20% of production users (2,000 users)
-**Configuration**:
+**Target**: 20% of production users (2,000 users) **Configuration**:
 
 ```typescript
 production: useApiClientV2 = true(20 % rollout);
@@ -165,8 +163,7 @@ production: useApiClientV2 = true(20 % rollout);
 
 ### Phase 4: Full Rollout (Week 4)
 
-**Target**: 100% of production users
-**Configuration**:
+**Target**: 100% of production users **Configuration**:
 
 ```typescript
 production: useApiClientV2 = true (100%)
@@ -315,8 +312,8 @@ production: useApiClientV2 = true (100%)
 | 4    | Full Rollout     | 100% users, continuous monitoring | All              |
 | 5-6  | Stabilization    | Remove old code, documentation    | Eng Team         |
 
-**Total Duration**: 6 weeks
-**Engineering Effort**: 2 developers × 2 weeks = 4 developer-weeks
+**Total Duration**: 6 weeks **Engineering Effort**: 2 developers × 2 weeks = 4
+developer-weeks
 
 ---
 
@@ -348,9 +345,9 @@ production: useApiClientV2 = true (100%)
 
 ### C. User Feedback Quotes
 
-> "The app keeps logging me out while I'm trying to order!" - User #12453
-> "I lost my entire cart because it said session expired." - User #9821
-> "Why do I have to login every time I open the app?" - User #15234
+> "The app keeps logging me out while I'm trying to order!" - User #12453 "I
+> lost my entire cart because it said session expired." - User #9821 "Why do I
+> have to login every time I open the app?" - User #15234
 
 **Post-Implementation Target**: Zero complaints about authentication
 
@@ -358,4 +355,5 @@ production: useApiClientV2 = true (100%)
 
 **Status**: ✅ **READY FOR ROLLOUT**
 
-All technical implementation complete. Awaiting stakeholder approval to begin Phase 1 (Internal Testing).
+All technical implementation complete. Awaiting stakeholder approval to begin
+Phase 1 (Internal Testing).

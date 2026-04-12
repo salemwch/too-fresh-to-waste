@@ -478,7 +478,10 @@ release {
 import JailMonkey from 'jail-monkey';
 
 if (JailMonkey.isJailBroken()) {
-  Alert.alert('Security Warning', 'This device appears to be rooted. Some features may not work.');
+  Alert.alert(
+    'Security Warning',
+    'This device appears to be rooted. Some features may not work.',
+  );
 }
 ```
 

@@ -2,11 +2,11 @@
 
 ## 📋 Overview
 
-Professional implementation of **automatic offer featuring** based on urgency criteria with hybrid manual/auto system.
+Professional implementation of **automatic offer featuring** based on urgency
+criteria with hybrid manual/auto system.
 
-**Implemented by:** Senior Engineer
-**Date:** 2026-01-10
-**Status:** ✅ Production Ready
+**Implemented by:** Senior Engineer **Date:** 2026-01-10 **Status:** ✅
+Production Ready
 
 ---
 
@@ -24,9 +24,12 @@ An offer becomes **auto-featured** when ALL conditions are met:
 
 ### Why Minimum Existence?
 
-**Problem**: Merchants could game the system by creating 1-hour offers that immediately appear urgent/featured.
+**Problem**: Merchants could game the system by creating 1-hour offers that
+immediately appear urgent/featured.
 
-**Solution**: Offers must exist for at least 2 hours before auto-featuring. This ensures only genuinely time-sensitive offers (not newly created short offers) get featured.
+**Solution**: Offers must exist for at least 2 hours before auto-featuring. This
+ensures only genuinely time-sensitive offers (not newly created short offers)
+get featured.
 
 ---
 
@@ -379,7 +382,8 @@ Authorization: Bearer <admin_token>
 
 ### Problem: All offers getting featured
 
-**Solution**: Check `MIN_EXISTENCE_HOURS` and `URGENCY_THRESHOLD_HOURS` configuration
+**Solution**: Check `MIN_EXISTENCE_HOURS` and `URGENCY_THRESHOLD_HOURS`
+configuration
 
 ### Problem: Manual featuring not working
 

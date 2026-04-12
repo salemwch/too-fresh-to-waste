@@ -2,7 +2,8 @@
 
 ## Problem Statement
 
-Current mobile app has **NO automatic token refresh**. When access tokens expire:
+Current mobile app has **NO automatic token refresh**. When access tokens
+expire:
 
 - Requests fail with 401
 - Users see errors
@@ -10,7 +11,8 @@ Current mobile app has **NO automatic token refresh**. When access tokens expire
 
 ## Solution
 
-Implement centralized API client with axios interceptors for automatic token refresh.
+Implement centralized API client with axios interceptors for automatic token
+refresh.
 
 ---
 
@@ -26,12 +28,12 @@ Implement centralized API client with axios interceptors for automatic token ref
 
 ### Features
 
-✅ **Automatic Token Injection** - No need to manually pass tokens
-✅ **401 Detection** - Catches expired tokens
-✅ **Token Refresh** - Calls `refreshTokenAsync` from Redux
-✅ **Request Retry** - Automatically retries failed request with new token
-✅ **Request Queueing** - Prevents multiple simultaneous refresh attempts
-✅ **Logout on Refresh Failure** - Handles invalid refresh tokens
+✅ **Automatic Token Injection** - No need to manually pass tokens ✅ **401
+Detection** - Catches expired tokens ✅ **Token Refresh** - Calls
+`refreshTokenAsync` from Redux ✅ **Request Retry** - Automatically retries
+failed request with new token ✅ **Request Queueing** - Prevents multiple
+simultaneous refresh attempts ✅ **Logout on Refresh Failure** - Handles invalid
+refresh tokens
 
 ---
 
@@ -148,7 +150,10 @@ class OffersService {
     return this.makeRequest('GET', `${this.baseURL}/${offerId}`);
   }
 
-  async createOffer(payload: CreateOfferPayload, accessToken: string): Promise<Offer> {
+  async createOffer(
+    payload: CreateOfferPayload,
+    accessToken: string,
+  ): Promise<Offer> {
     return this.makeRequest('POST', this.baseURL, payload, {
       Authorization: `Bearer ${accessToken}`, // Manual token
     });
@@ -159,16 +164,25 @@ class OffersService {
 ### After
 
 ```typescript
-import { apiClient, unwrapResponse, ApiResponseWrapper } from '@/services/apiClient';
+import {
+  apiClient,
+  unwrapResponse,
+  ApiResponseWrapper,
+} from '@/services/apiClient';
 
 class OffersService {
   async getOfferById(offerId: string): Promise<Offer> {
-    const response = await apiClient.get<ApiResponseWrapper<{ data: Offer }>>(`/offers/${offerId}`);
+    const response = await apiClient.get<ApiResponseWrapper<{ data: Offer }>>(
+      `/offers/${offerId}`,
+    );
     return unwrapResponse(response.data);
   }
 
   async createOffer(payload: CreateOfferPayload): Promise<Offer> {
-    const response = await apiClient.post<ApiResponseWrapper<{ data: Offer }>>('/offers', payload);
+    const response = await apiClient.post<ApiResponseWrapper<{ data: Offer }>>(
+      '/offers',
+      payload,
+    );
     return unwrapResponse(response.data); // Automatic token injection via interceptor
   }
 }
@@ -182,7 +196,7 @@ class OffersService {
 
 ```typescript
 // Before migration: Had to manually check for token
-const { tokens } = useAppSelector((state) => state.auth);
+const { tokens } = useAppSelector(state => state.auth);
 if (!tokens?.accessToken) return;
 
 // After migration: Just call the service
@@ -258,12 +272,12 @@ const offer = await offersService.createOffer(payload); // Token auto-added
 
 ## Benefits After Migration
 
-✅ **No more manual token management** - Interceptors handle everything
-✅ **Seamless user experience** - Tokens refresh automatically in background
-✅ **Less code** - Remove token checks from every hook/service
-✅ **Type safety** - Centralized types for API responses
-✅ **Consistent error handling** - One place to handle all API errors
-✅ **Production-ready** - Follows industry best practices (Axios interceptors)
+✅ **No more manual token management** - Interceptors handle everything ✅
+**Seamless user experience** - Tokens refresh automatically in background ✅
+**Less code** - Remove token checks from every hook/service ✅ **Type safety** -
+Centralized types for API responses ✅ **Consistent error handling** - One place
+to handle all API errors ✅ **Production-ready** - Follows industry best
+practices (Axios interceptors)
 
 ---
 
@@ -271,4 +285,5 @@ const offer = await offersService.createOffer(payload); // Token auto-added
 
 - **Big platforms using this pattern**: Airbnb, Uber, Netflix mobile apps
 - **Axios interceptors docs**: https://axios-http.com/docs/interceptors
-- **JWT refresh best practices**: https://auth0.com/blog/refresh-tokens-what-are-they-and-when-to-use-them/
+- **JWT refresh best practices**:
+  https://auth0.com/blog/refresh-tokens-what-are-they-and-when-to-use-them/

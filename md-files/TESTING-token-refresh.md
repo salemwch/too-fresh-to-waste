@@ -1,7 +1,6 @@
 # Testing Guide: Automatic Token Refresh
 
-**Status**: ✅ **LIVE IN DEVELOPMENT - Ready for Testing**
-**Version**: 1.0
+**Status**: ✅ **LIVE IN DEVELOPMENT - Ready for Testing** **Version**: 1.0
 **Date**: 2026-01-09
 
 ---
@@ -10,7 +9,8 @@
 
 ### ✅ **IT'S LIVE NOW!**
 
-The automatic token refresh is **already enabled** in development mode. Just run the app and test!
+The automatic token refresh is **already enabled** in development mode. Just run
+the app and test!
 
 ```bash
 # Start the app
@@ -279,15 +279,15 @@ If you find critical issues:
 
 ### Current Scope
 
-✅ **Migrated**: Offers service only
-⏳ **Not Yet Migrated**:
+✅ **Migrated**: Offers service only ⏳ **Not Yet Migrated**:
 
 - Establishments service
 - Orders service
 - Profile service
 - Donations service
 
-**Impact**: Non-migrated services still use manual token management. They won't benefit from auto-refresh yet, but won't break either.
+**Impact**: Non-migrated services still use manual token management. They won't
+benefit from auto-refresh yet, but won't break either.
 
 ### Future Enhancements (Phase 2-3)
 

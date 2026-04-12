@@ -2,7 +2,8 @@
 
 ## Summary
 
-Added support for filtering offers by **Establishment Type** and **Cuisine Types** to the backend search functionality.
+Added support for filtering offers by **Establishment Type** and **Cuisine
+Types** to the backend search functionality.
 
 ## The 4 Filtering Dimensions
 
@@ -52,7 +53,8 @@ cuisineTypes?: string[];
 
    ```typescript
    const hasEstablishmentFilters =
-     filters.establishmentType || (filters.cuisineTypes && filters.cuisineTypes.length > 0);
+     filters.establishmentType ||
+     (filters.cuisineTypes && filters.cuisineTypes.length > 0);
    ```
 
 2. **Aggregation Pipeline for Non-Geolocation Queries** (Lines 231-337):
@@ -129,7 +131,8 @@ GET /api/offers?type=SURPRISE_BAG&categories=pizza&establishmentType=RESTAURANT&
 
 - **No establishment filters**: Uses fast `.find()` query with populate
 - **With establishment filters**: Uses aggregation pipeline with $lookup
-- **With geolocation + establishment filters**: Filters establishments first in $geoNear, then lookups offers
+- **With geolocation + establishment filters**: Filters establishments first in
+  $geoNear, then lookups offers
 
 ---
 
@@ -214,11 +217,12 @@ const response = await offersService.search(params);
 
 ## Related Documentation
 
-- Establishment Schema: `apps/food-waste-backend/src/establishments/schemas/establishment.schema.ts`
+- Establishment Schema:
+  `apps/food-waste-backend/src/establishments/schemas/establishment.schema.ts`
 - Offer Schema: `apps/food-waste-backend/src/offers/schemas/offer.schema.ts`
-- Establishment Enums: `apps/food-waste-backend/src/common/enums/establishment.enum.ts`
+- Establishment Enums:
+  `apps/food-waste-backend/src/common/enums/establishment.enum.ts`
 
 ---
 
-**Implementation Date**: 2026-01-24
-**Status**: ✅ Complete
+**Implementation Date**: 2026-01-24 **Status**: ✅ Complete

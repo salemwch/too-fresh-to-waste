@@ -1366,7 +1366,8 @@ jobs:
       - name: Upload to Google Play (Internal Testing)
         uses: r0adkll/upload-google-play@v1
         with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+          serviceAccountJsonPlainText:
+            ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
           packageName: com.foodwasteapp
           releaseFiles: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
           track: internal

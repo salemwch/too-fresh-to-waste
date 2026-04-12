@@ -2,7 +2,9 @@
 
 ## Summary
 
-Updated the pickup categorization system from automatic time-based logic to merchant-controlled categorization. This gives merchants full control over which sections their offers appear in on the mobile app.
+Updated the pickup categorization system from automatic time-based logic to
+merchant-controlled categorization. This gives merchants full control over which
+sections their offers appear in on the mobile app.
 
 ## Changes Made
 
@@ -10,8 +12,10 @@ Updated the pickup categorization system from automatic time-based logic to merc
 
 **Added Fields:**
 
-- `isPickupToday: boolean` - Merchant sets this to show offer in "Pickup Today" section
-- `isPickupTomorrow: boolean` - Merchant sets this to show offer in "Pickup Tomorrow" section
+- `isPickupToday: boolean` - Merchant sets this to show offer in "Pickup Today"
+  section
+- `isPickupTomorrow: boolean` - Merchant sets this to show offer in "Pickup
+  Tomorrow" section
 
 **Added Indexes:**
 
@@ -44,8 +48,8 @@ const query = {
 };
 ```
 
-**Added Merchant Population:**
-Both `getPickupTodayOffers()` and `getPickupTomorrowOffers()` now populate merchant data:
+**Added Merchant Population:** Both `getPickupTodayOffers()` and
+`getPickupTomorrowOffers()` now populate merchant data:
 
 ```typescript
 .populate('merchantId', 'firstName lastName profileImage')
@@ -53,7 +57,9 @@ Both `getPickupTodayOffers()` and `getPickupTomorrowOffers()` now populate merch
 
 ### 3. Controller Updates (offers.controller.ts)
 
-Updated both pickup endpoints to use aggregation-aware distance logic (checks for pre-calculated distance from aggregation pipeline before manual calculation).
+Updated both pickup endpoints to use aggregation-aware distance logic (checks
+for pre-calculated distance from aggregation pipeline before manual
+calculation).
 
 ### 4. Field Consistency
 
@@ -139,11 +145,12 @@ Merchants can update these flags via PATCH `/api/v1/offers/:id`:
 
 ## Migration Notes
 
-**Existing Offers:**
-All existing offers will have `isPickupToday: false` and `isPickupTomorrow: false` by default. Merchants will need to manually update their offers to appear in these sections.
+**Existing Offers:** All existing offers will have `isPickupToday: false` and
+`isPickupTomorrow: false` by default. Merchants will need to manually update
+their offers to appear in these sections.
 
-**No Breaking Changes:**
-The fields are optional with default values, so existing API clients continue to work without modification.
+**No Breaking Changes:** The fields are optional with default values, so
+existing API clients continue to work without modification.
 
 ## Testing
 
@@ -161,7 +168,10 @@ curl http://localhost:3000/api/v1/offers/pickup-tomorrow?latitude=36.8065&longit
 
 ```javascript
 // Update an existing offer to appear in Pickup Today
-db.offers.updateOne({ _id: ObjectId('OFFER_ID_HERE') }, { $set: { isPickupToday: true } });
+db.offers.updateOne(
+  { _id: ObjectId('OFFER_ID_HERE') },
+  { $set: { isPickupToday: true } },
+);
 ```
 
 ## Benefits
@@ -170,7 +180,8 @@ db.offers.updateOne({ _id: ObjectId('OFFER_ID_HERE') }, { $set: { isPickupToday:
 2. **No Time Logic Bugs**: Eliminates timezone and date calculation issues
 3. **Flexibility**: Offers can appear in both sections if needed
 4. **Performance**: Simple boolean queries are faster than date range queries
-5. **Consistency**: All home screen sections now return identical offer data structures
+5. **Consistency**: All home screen sections now return identical offer data
+   structures
 
 ## Files Changed
 
