@@ -54,13 +54,13 @@ import { WebSocketModule } from './websocket/websocket.module';
     }),
     CommonModule, // Common utilities including sanitization (MUST be early)
     RedisModule, // Shared Redis connection pool (MUST be first after Config)
-    RabbitMQModule, // Message broker for event-driven architecture
+    RabbitMQModule.forRoot(), // Message broker for event-driven architecture
     ThrottlerModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
         throttlers: [
           {
-            ttl: parseInt(configService.get('THROTTLE_TTL', '60000')),
-            limit: parseInt(configService.get('THROTTLE_LIMIT', '100')),
+            ttl: Number.parseInt(configService.get('THROTTLE_TTL', '60000')),
+            limit: Number.parseInt(configService.get('THROTTLE_LIMIT', '100')),
           },
         ],
         storage: new ThrottlerStorageRedisService(
@@ -75,7 +75,7 @@ import { WebSocketModule } from './websocket/websocket.module';
       useFactory: (configService: ConfigService) => ({
         redis: {
           host: configService.get('REDIS_HOST') ?? 'localhost',
-          port: parseInt(configService.get('REDIS_PORT', '6379'), 10) || 6379,
+          port: Number.parseInt(configService.get('REDIS_PORT', '6379'), 10) || 6379,
           password: configService.get('REDIS_PASSWORD'),
           username: configService.get('REDIS_USERNAME'),
           // Explicitly disable TLS for development/internal networks
@@ -96,19 +96,21 @@ import { WebSocketModule } from './websocket/websocket.module';
         uri: configService.get<string>('DATABASE_URL') ?? 'mongodb://localhost:27017/foodwaste',
         // Enterprise-grade connection pooling configuration
         // Ref: https://www.mongodb.com/docs/drivers/node/current/fundamentals/connection/connection-options/
-        maxPoolSize: parseInt(configService.get('MONGO_MAX_POOL_SIZE', '100'), 10) || 100, // Max connections (default: 100)
-        minPoolSize: parseInt(configService.get('MONGO_MIN_POOL_SIZE', '10'), 10) || 10, // Min connections (default: 10)
-        maxIdleTimeMS: parseInt(configService.get('MONGO_MAX_IDLE_TIME_MS', '60000'), 10) || 60000, // 60s - close idle connections
+        maxPoolSize: Number.parseInt(configService.get('MONGO_MAX_POOL_SIZE', '100'), 10) || 100, // Max connections (default: 100)
+        minPoolSize: Number.parseInt(configService.get('MONGO_MIN_POOL_SIZE', '10'), 10) || 10, // Min connections (default: 10)
+        maxIdleTimeMS:
+          Number.parseInt(configService.get('MONGO_MAX_IDLE_TIME_MS', '60000'), 10) || 60000, // 60s - close idle connections
         waitQueueTimeoutMS:
-          parseInt(configService.get('MONGO_WAIT_QUEUE_TIMEOUT_MS', '10000'), 10) || 10000, // 10s - wait for available connection
+          Number.parseInt(configService.get('MONGO_WAIT_QUEUE_TIMEOUT_MS', '10000'), 10) || 10000, // 10s - wait for available connection
         socketTimeoutMS:
-          parseInt(configService.get('MONGO_SOCKET_TIMEOUT_MS', '45000'), 10) || 45000, // 45s - socket timeout
+          Number.parseInt(configService.get('MONGO_SOCKET_TIMEOUT_MS', '45000'), 10) || 45000, // 45s - socket timeout
         connectTimeoutMS:
-          parseInt(configService.get('MONGO_CONNECT_TIMEOUT_MS', '30000'), 10) || 30000, // 30s - initial connection timeout
+          Number.parseInt(configService.get('MONGO_CONNECT_TIMEOUT_MS', '30000'), 10) || 30000, // 30s - initial connection timeout
         serverSelectionTimeoutMS:
-          parseInt(configService.get('MONGO_SERVER_SELECTION_TIMEOUT_MS', '30000'), 10) || 30000, // 30s - server selection
+          Number.parseInt(configService.get('MONGO_SERVER_SELECTION_TIMEOUT_MS', '30000'), 10) ||
+          30000, // 30s - server selection
         heartbeatFrequencyMS:
-          parseInt(configService.get('MONGO_HEARTBEAT_FREQUENCY_MS', '10000'), 10) || 10000, // 10s - health check interval
+          Number.parseInt(configService.get('MONGO_HEARTBEAT_FREQUENCY_MS', '10000'), 10) || 10000, // 10s - health check interval
         // Performance optimizations
         retryWrites: true, // Automatic retry for write operations
         retryReads: true, // Automatic retry for read operations
@@ -153,19 +155,16 @@ import { WebSocketModule } from './websocket/websocket.module';
     LoyaltyModule,
     InventoryModule,
     FavoritesModule,
-    DonationsModule, // Community donation tracking and impact
-    CommunityGoalModule, // Community bag saving goal with real-time updates
+    DonationsModule,
+    CommunityGoalModule,
 
-    // Enhanced modules for production-ready features
     WebSocketModule,
     SearchModule,
     //SocialModule,
 
-    // Data lifecycle management
-    ArchiveModule, // Nightly archive + purge of expired soft-deleted records
+    ArchiveModule,
 
-    // Monitoring and health checks
-    HealthModule, // Health check endpoints (liveness/readiness probes)
+    HealthModule,
   ],
   controllers: [],
   providers: [],

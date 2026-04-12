@@ -26,7 +26,7 @@ import { SanitizationUtil } from './utils/sanitization.util';
 import { IsNotProfaneConstraint } from './validators/business-constraints.validator';
 
 @Module({
-  imports: [ConfigModule, ThrottlerModule, RedisModule, RabbitMQModule],
+  imports: [ConfigModule, ThrottlerModule, RedisModule, RabbitMQModule.forRoot()],
   controllers: [
     CspReportController, // CSP violation reporting endpoint
     MetricsController, // Prometheus metrics endpoint

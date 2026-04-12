@@ -163,7 +163,7 @@ export const envValidationSchema = Joi.object({
     }),
     otherwise: Joi.string().optional(),
   }),
-  RABBITMQ_ENABLED: Joi.boolean().default(true),
+  RABBITMQ_ENABLED: Joi.boolean().default(false),
 }).options({
   // Allow additional env vars not listed above (system vars, optional config)
   allowUnknown: true,

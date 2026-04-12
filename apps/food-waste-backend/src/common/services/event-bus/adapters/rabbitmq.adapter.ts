@@ -1,5 +1,5 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { IEventBus } from '../event-bus.interface';
@@ -21,7 +21,7 @@ export class RabbitMQAdapter implements IEventBus {
   private readonly exchange: string;
 
   constructor(
-    private readonly amqpConnection: AmqpConnection,
+    @Optional() private readonly amqpConnection: AmqpConnection,
     private readonly configService: ConfigService,
   ) {
     this.exchange = this.configService.get<string>('RABBITMQ_EXCHANGE', 'foodwaste.events');
@@ -35,6 +35,10 @@ export class RabbitMQAdapter implements IEventBus {
    * @throws Error if publish fails
    */
   async emit(eventName: string, payload: object): Promise<void> {
+    if (!this.amqpConnection) {
+      this.logger.warn(`RabbitMQ not initialized — event dropped: ${eventName}`);
+      return;
+    }
     try {
       // Serialize: Convert Date objects to ISO strings for safe JSON transport
       const serialized = this.serializePayload(payload);
