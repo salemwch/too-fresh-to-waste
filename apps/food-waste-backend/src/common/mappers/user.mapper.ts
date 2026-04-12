@@ -8,11 +8,12 @@ interface UserLike {
   email?: string;
   firstName?: string;
   lastName?: string;
+  phoneNumber?: string;
   phone?: string;
   role?: IUser['role'];
   status?: IUser['status'];
-  emailVerified?: boolean;
-  phoneVerified?: boolean;
+  isEmailVerified?: boolean;
+  isPhoneVerified?: boolean;
   avatar?: string;
   profile?: { firstName?: string; lastName?: string; phone?: string; avatar?: string };
   preferences?: {
@@ -47,6 +48,7 @@ interface UserLike {
     coordinates?: { latitude?: number; longitude?: number };
   };
   loyaltyPoints?: number;
+  noShowCount?: number;
   stats?: { totalOrders?: number; totalSpent?: number; averageRating?: number };
   lastLoginAt?: Date;
   createdAt?: Date;
@@ -92,11 +94,11 @@ export class UserMapper {
       email: document.email ?? '',
       firstName: document.firstName ?? document.profile?.firstName ?? '',
       lastName: document.lastName ?? document.profile?.lastName ?? '',
-      phone: document.phone ?? document.profile?.phone,
+      phoneNumber: document.phoneNumber ?? document.phone ?? document.profile?.phone,
       role: document.role ?? UserRole.CONSUMER,
       status: document.status ?? UserStatus.ACTIVE,
-      emailVerified: document.emailVerified ?? false,
-      phoneVerified: document.phoneVerified ?? false,
+      isEmailVerified: document.isEmailVerified ?? false,
+      isPhoneVerified: document.isPhoneVerified ?? false,
       avatar: document.avatar ?? document.profile?.avatar,
       preferences: {
         notifications: {
@@ -141,6 +143,7 @@ export class UserMapper {
           }
         : undefined,
       loyaltyPoints: document.loyaltyPoints ?? 0,
+      noShowCount: document.noShowCount ?? 0,
       totalOrders: document.stats?.totalOrders ?? 0,
       totalSpent: document.stats?.totalSpent ?? 0,
       averageRating: document.stats?.averageRating,

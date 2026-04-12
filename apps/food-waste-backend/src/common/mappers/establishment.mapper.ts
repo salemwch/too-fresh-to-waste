@@ -37,6 +37,13 @@ interface EstablishmentLike {
   ownerId?: { toString(): string };
   createdAt?: Date;
   updatedAt?: Date;
+  // Activity fields computed by admin aggregation pipeline
+  lastOrderAt?: Date;
+  lastOfferCreatedAt?: Date;
+  ownerLastLoginAt?: Date;
+  lastActivityAt?: Date;
+  subscriptionStatus?: 'trial' | 'paid' | 'suspended';
+  trialEndsAt?: Date;
 }
 
 interface OverviewLike {
@@ -47,6 +54,7 @@ interface OverviewLike {
   rejected?: number;
   recentApprovals?: number;
   avgApprovalTime?: number;
+  activeLastThirtyDays?: number;
 }
 
 interface StatsLike {
@@ -116,6 +124,16 @@ export class EstablishmentMapper {
       owner: document.owner?.toString() ?? document.ownerId?.toString() ?? '',
       createdAt: document.createdAt ?? new Date(),
       updatedAt: document.updatedAt ?? new Date(),
+      ...(document.lastOrderAt !== undefined ? { lastOrderAt: document.lastOrderAt } : {}),
+      ...(document.lastOfferCreatedAt !== undefined
+        ? { lastOfferCreatedAt: document.lastOfferCreatedAt }
+        : {}),
+      ...(document.ownerLastLoginAt !== undefined
+        ? { ownerLastLoginAt: document.ownerLastLoginAt }
+        : {}),
+      ...(document.lastActivityAt !== undefined ? { lastActivityAt: document.lastActivityAt } : {}),
+      subscriptionStatus: document.subscriptionStatus ?? 'trial',
+      ...(document.trialEndsAt !== undefined ? { trialEndsAt: document.trialEndsAt } : {}),
     };
   }
 
@@ -132,6 +150,7 @@ export class EstablishmentMapper {
       rejected: data.rejected ?? 0,
       recentApprovals: data.recentApprovals ?? 0,
       avgApprovalTime: data.avgApprovalTime ?? 0,
+      activeLastThirtyDays: data.activeLastThirtyDays ?? 0,
     };
   }
 

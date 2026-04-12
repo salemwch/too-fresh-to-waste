@@ -1810,6 +1810,16 @@ export class OffersService {
       throw new ForbiddenException('You can only create offers for your own establishment');
     }
 
+    // Trial-expiry gate: merchant can still log in and manage existing offers,
+    // but cannot create new ones until admin reactivates their subscription.
+    if (establishment.subscriptionStatus === 'suspended') {
+      throw new ForbiddenException({
+        code: 'TRIAL_EXPIRED',
+        message:
+          'Your free trial has ended. Contact the admin team to reactivate your account before creating new offers.',
+      });
+    }
+
     return establishment;
   }
 

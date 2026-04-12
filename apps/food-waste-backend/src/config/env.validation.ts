@@ -97,23 +97,72 @@ export const envValidationSchema = Joi.object({
   }),
 
   // ── Firebase ─────────────────────────────────────────────────────────
-  FIREBASE_SERVICE_ACCOUNT_PATH: Joi.string().optional(),
-  FIREBASE_PROJECT_ID: Joi.string().optional(),
+  FIREBASE_SERVICE_ACCOUNT_PATH: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required().messages({
+      'any.required':
+        'FIREBASE_SERVICE_ACCOUNT_PATH is required in production (push notifications)',
+    }),
+    otherwise: Joi.string().optional(),
+  }),
+  FIREBASE_PROJECT_ID: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required().messages({
+      'any.required': 'FIREBASE_PROJECT_ID is required in production',
+    }),
+    otherwise: Joi.string().optional(),
+  }),
 
   // ── Supabase Storage ─────────────────────────────────────────────────
-  SUPABASE_URL: Joi.string().optional(),
-  SUPABASE_SERVICE_ROLE_KEY: Joi.string().optional(),
+  SUPABASE_URL: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().uri().required().messages({
+      'any.required': 'SUPABASE_URL is required in production (image uploads)',
+    }),
+    otherwise: Joi.string().optional(),
+  }),
+  SUPABASE_SERVICE_ROLE_KEY: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required().messages({
+      'any.required': 'SUPABASE_SERVICE_ROLE_KEY is required in production',
+    }),
+    otherwise: Joi.string().optional(),
+  }),
 
   // ── Twilio SMS ───────────────────────────────────────────────────────
-  TWILIO_ACCOUNT_SID: Joi.string().optional(),
-  TWILIO_AUTH_TOKEN: Joi.string().optional(),
-  TWILIO_PHONE_NUMBER: Joi.string().optional(),
+  TWILIO_ACCOUNT_SID: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required().messages({
+      'any.required': 'TWILIO_ACCOUNT_SID is required in production (SMS verification)',
+    }),
+    otherwise: Joi.string().optional(),
+  }),
+  TWILIO_AUTH_TOKEN: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required().messages({
+      'any.required': 'TWILIO_AUTH_TOKEN is required in production',
+    }),
+    otherwise: Joi.string().optional(),
+  }),
+  TWILIO_PHONE_NUMBER: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required().messages({
+      'any.required': 'TWILIO_PHONE_NUMBER is required in production',
+    }),
+    otherwise: Joi.string().optional(),
+  }),
 
   // ── Sentry ───────────────────────────────────────────────────────────
-  SENTRY_DSN: Joi.string().allow('').optional(),
+  SENTRY_DSN: Joi.string().allow('').optional(), // optional — app runs without it, but errors won't be tracked
 
   // ── RabbitMQ ─────────────────────────────────────────────────────────
-  RABBITMQ_URL: Joi.string().optional(),
+  RABBITMQ_URL: Joi.when('RABBITMQ_ENABLED', {
+    is: Joi.valid(true, 'true'),
+    then: Joi.string().required().messages({
+      'any.required': 'RABBITMQ_URL is required when RABBITMQ_ENABLED=true',
+    }),
+    otherwise: Joi.string().optional(),
+  }),
   RABBITMQ_ENABLED: Joi.boolean().default(true),
 }).options({
   // Allow additional env vars not listed above (system vars, optional config)

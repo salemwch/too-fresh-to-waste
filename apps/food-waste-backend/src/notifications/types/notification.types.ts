@@ -42,6 +42,8 @@ export enum NotificationTrigger {
   SECURITY_ALERT = 'security_alert',
   ESTABLISHMENT_APPROVED = 'establishment_approved',
   ESTABLISHMENT_REJECTED = 'establishment_rejected',
+  ESTABLISHMENT_TRIAL_EXPIRING_SOON = 'establishment_trial_expiring_soon',
+  ESTABLISHMENT_TRIAL_EXPIRED = 'establishment_trial_expired',
   NEW_REVIEW = 'new_review',
 }
 

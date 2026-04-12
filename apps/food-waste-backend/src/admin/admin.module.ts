@@ -17,6 +17,7 @@ import {
   UserManagementController,
   EstablishmentManagementController,
   SystemConfigController,
+  OfferManagementController,
 } from './controllers';
 import { AdminOnlyGuard } from './guards/admin-only.guard';
 import { AdminAuditLog, AdminAuditLogSchema } from './schemas/admin-audit-log.schema';
@@ -28,7 +29,9 @@ import {
   UserManagementService,
   EstablishmentManagementService,
   SystemConfigService,
+  OfferManagementService,
 } from './services';
+import { TrialExpiryTask } from './tasks/trial-expiry.task';
 
 // Controllers
 
@@ -60,6 +63,7 @@ import {
     UserManagementController,
     EstablishmentManagementController,
     SystemConfigController,
+    OfferManagementController,
   ],
 
   providers: [
@@ -69,6 +73,10 @@ import {
     UserManagementService,
     EstablishmentManagementService,
     SystemConfigService,
+    OfferManagementService,
+
+    // Scheduled tasks
+    TrialExpiryTask,
 
     // Guards
     AdminOnlyGuard,

@@ -404,6 +404,9 @@ export class User {
   }>;
 
   @Prop({ default: 0 })
+  noShowCount!: number;
+
+  @Prop({ default: 0 })
   failedLoginAttempts!: number;
 
   @Prop()

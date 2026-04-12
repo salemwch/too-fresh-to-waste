@@ -16,52 +16,32 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import { createClient } from 'redis';
 
 import type { INestApplication } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
-import type { RedisClientOptions } from 'redis';
 import type { Server, ServerOptions } from 'socket.io';
 
 export class RedisIoAdapter extends IoAdapter {
   private readonly logger = new Logger(RedisIoAdapter.name);
   private adapterConstructor: ReturnType<typeof createAdapter> | null = null;
 
-  constructor(
-    app: INestApplication,
-    private readonly configService: ConfigService,
-  ) {
+  constructor(app: INestApplication) {
     super(app);
   }
 
-  async connectToRedis(): Promise<void> {
-    const host = this.configService.get<string>('REDIS_HOST', 'localhost');
-    const port = parseInt(this.configService.get<string>('REDIS_PORT', '6379'));
-    const password = this.configService.get<string>('REDIS_PASSWORD');
-    const username = this.configService.get<string>('REDIS_USERNAME');
-
-    const clientOptions: RedisClientOptions = {
-      socket: { host, port },
-    };
-
-    if (password) {
-      clientOptions.password = password;
-    }
-    if (username) {
-      clientOptions.username = username;
-    }
-
-    const pubClient = createClient(clientOptions);
+  /**
+   * @param pubClient — pass the already-connected RedisService client to reuse
+   *   the existing connection instead of opening a new one. Only the subClient
+   *   (needed for SUBSCRIBE mode) is created as a duplicate.
+   */
+  async connectToRedis(pubClient: ReturnType<typeof createClient>): Promise<void> {
     const subClient = pubClient.duplicate();
 
-    pubClient.on('error', (err: Error) =>
-      this.logger.error(`Redis pub client error: ${err.message}`),
-    );
     subClient.on('error', (err: Error) =>
       this.logger.error(`Redis sub client error: ${err.message}`),
     );
 
-    await Promise.all([pubClient.connect(), subClient.connect()]);
+    await subClient.connect();
 
     this.adapterConstructor = createAdapter(pubClient, subClient);
-    this.logger.log(`Redis IO adapter connected to ${host}:${port} (pub/sub channels ready)`);
+    this.logger.log('Redis IO adapter ready (reusing shared client, sub channel connected)');
   }
 
   override createIOServer(port: number, options?: ServerOptions): Server {

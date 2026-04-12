@@ -7,12 +7,12 @@
  * - Graceful shutdown
  */
 
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, RedisClientOptions } from 'redis';
 
 @Injectable()
-export class RedisService implements OnModuleInit {
+export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
   private client: ReturnType<typeof createClient> | null = null;
   private isConnecting = false;
@@ -21,7 +21,7 @@ export class RedisService implements OnModuleInit {
   constructor(private readonly configService: ConfigService) {}
 
   private getConnectedClientOrThrow(): ReturnType<typeof createClient> {
-    if (!this.client || !this.client.isOpen) {
+    if (!this.client?.isOpen) {
       throw new Error('Redis client is not connected');
     }
 
@@ -33,12 +33,17 @@ export class RedisService implements OnModuleInit {
     await this.connect();
   }
 
+  async onModuleDestroy() {
+    // Close connection on module teardown (dev hot-reload + graceful shutdown)
+    await this.disconnect();
+  }
+
   /**
    * Get Redis client instance (singleton)
    * Lazy initialization with connection reuse
    */
   async getClient(): Promise<ReturnType<typeof createClient>> {
-    if (this.client && this.client.isOpen) {
+    if (this.client?.isOpen) {
       return this.client;
     }
 
@@ -57,7 +62,7 @@ export class RedisService implements OnModuleInit {
    * Connect to Redis (or reuse existing connection)
    */
   private async connect(): Promise<void> {
-    if (this.client && this.client.isOpen) {
+    if (this.client?.isOpen) {
       this.logger.log('✅ Reusing existing Redis connection');
       return;
     }
@@ -182,7 +187,7 @@ export class RedisService implements OnModuleInit {
    * Called on application shutdown
    */
   async disconnect(): Promise<void> {
-    if (this.client && this.client.isOpen) {
+    if (this.client?.isOpen) {
       try {
         this.logger.log('👋 Disconnecting from Redis...');
         await this.client.quit();

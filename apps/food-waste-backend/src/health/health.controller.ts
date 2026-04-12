@@ -79,15 +79,15 @@ export class HealthController {
         return r;
       },
 
-      // Memory health (heap < 150MB)
+      // Memory health (heap < 300MB)
       async () => {
-        const r = await this.memory.checkHeap('memory_heap', 150 * 1024 * 1024);
+        const r = await this.memory.checkHeap('memory_heap', 300 * 1024 * 1024);
         return r;
       },
 
-      // Memory health (RSS < 150MB)
+      // Memory health (RSS < 512MB)
       async () => {
-        const r = await this.memory.checkRSS('memory_rss', 150 * 1024 * 1024);
+        const r = await this.memory.checkRSS('memory_rss', 512 * 1024 * 1024);
         return r;
       },
     ]);

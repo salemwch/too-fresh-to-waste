@@ -276,6 +276,9 @@ applyStandardSchemaConfig(OfferSchema);
 // Establishment offer listing: find({ establishmentId, status })
 OfferSchema.index({ establishmentId: 1, status: 1 });
 
+// Establishment last-offer lookup: admin $lookup sort { createdAt: -1 } + limit 1
+OfferSchema.index({ establishmentId: 1, createdAt: -1 });
+
 // Merchant dashboard: find({ merchantId, status })
 OfferSchema.index({ merchantId: 1, status: 1 });
 

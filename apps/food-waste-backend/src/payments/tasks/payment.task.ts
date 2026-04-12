@@ -1,24 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable } from '@nestjs/common';
 
 import { PaymentService } from '../payments.service';
 
+/**
+ * Payment task runner — webhook retry cron removed (payment not active).
+ * Re-add @Cron(CronExpression.EVERY_5_MINUTES) on handleFailedWebhooks()
+ * when SMT payment integration goes live, and register PaymentTasks in
+ * payments.module.ts providers array.
+ */
 @Injectable()
 export class PaymentTasks {
-  private readonly logger = new Logger(PaymentTasks.name);
-
   constructor(private readonly paymentService: PaymentService) {}
 
-  // Retry failed webhooks every 5 minutes
-  @Cron(CronExpression.EVERY_5_MINUTES)
   async handleFailedWebhooks() {
-    try {
-      const retriedCount = await this.paymentService.retryFailedWebhooks();
-      if (retriedCount > 0) {
-        this.logger.log(`Retried ${retriedCount} failed webhooks`);
-      }
-    } catch (error) {
-      this.logger.error('Failed to retry webhooks:', error);
-    }
+    const result = await this.paymentService.retryFailedWebhooks();
+    return result;
   }
 }

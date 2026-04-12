@@ -145,3 +145,72 @@ export class AdminEstablishmentReactivationScheduledEvent extends BaseAdminEstab
     super(establishmentId, adminId, adminEmail, 'Reactivation scheduled', correlationId);
   }
 }
+
+/**
+ * Emitted by the daily scanner when a merchant's free trial is within 2 days of expiry
+ * Triggers: email + in-app warning notification
+ */
+export class EstablishmentTrialExpiringSoonEvent extends BaseAdminEstablishmentEvent {
+  constructor(
+    establishmentId: string,
+    public readonly establishmentName: string,
+    public readonly ownerId: string,
+    public readonly trialEndsAt: Date,
+    public readonly daysRemaining: number,
+    correlationId?: string,
+  ) {
+    super(establishmentId, 'system', 'system@foodwaste', 'Trial expiring soon', correlationId);
+  }
+}
+
+/**
+ * Emitted by the daily scanner when a merchant's free trial has expired and was auto-suspended
+ * Triggers: notification to owner, analytics, offer creation block (via subscriptionStatus flag)
+ */
+export class EstablishmentTrialExpiredEvent extends BaseAdminEstablishmentEvent {
+  constructor(
+    establishmentId: string,
+    public readonly establishmentName: string,
+    public readonly ownerId: string,
+    public readonly trialEndedAt: Date,
+    correlationId?: string,
+  ) {
+    super(establishmentId, 'system', 'system@foodwaste', 'Trial expired', correlationId);
+  }
+}
+
+/**
+ * Emitted when an admin extends a merchant's free trial
+ * Triggers: notification to owner, audit log
+ */
+export class EstablishmentTrialExtendedEvent extends BaseAdminEstablishmentEvent {
+  constructor(
+    establishmentId: string,
+    adminId: string,
+    adminEmail: string,
+    public readonly establishmentName: string,
+    public readonly ownerId: string,
+    public readonly previousTrialEndsAt: Date | undefined,
+    public readonly newTrialEndsAt: Date,
+    correlationId?: string,
+  ) {
+    super(establishmentId, adminId, adminEmail, 'Trial extended', correlationId);
+  }
+}
+
+/**
+ * Emitted when an admin marks an establishment as paid (trial bypass)
+ * Triggers: notification to owner, audit log, analytics
+ */
+export class EstablishmentMarkedAsPaidEvent extends BaseAdminEstablishmentEvent {
+  constructor(
+    establishmentId: string,
+    adminId: string,
+    adminEmail: string,
+    public readonly establishmentName: string,
+    public readonly ownerId: string,
+    correlationId?: string,
+  ) {
+    super(establishmentId, adminId, adminEmail, 'Marked as paid', correlationId);
+  }
+}

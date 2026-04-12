@@ -13,7 +13,6 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { Model, Types, ClientSession, FlattenMaps, PipelineStage } from 'mongoose';
 
 import { OrderCompletedEvent } from '../common/events';
@@ -189,190 +188,6 @@ export class OrdersService {
   ) {
     void this.POINTS_PER_BAG;
   }
-  @Cron(CronExpression.EVERY_10_MINUTES)
-  async expireApprovedOrdersCron() {
-    const now = new Date();
-
-    // ⚠️ CRITICAL: Process in batches to prevent memory issues with 10K+ orders
-    // Enterprise pattern: Cursor-based iteration for large datasets
-    const BATCH_SIZE = 100; // Process 100 orders at a time
-    let processedCount = 0;
-    let batchNumber = 0;
-
-    while (true) {
-      batchNumber++;
-
-      // Fetch orders in batches using .lean() for better performance
-      const ordersToExpire = await this.orderModel
-        .find({
-          'pickupDetails.scheduledDate': { $lte: now },
-          status: { $ne: OrderStatus.EXPIRED },
-          merchantApprovedExpiration: true,
-        })
-        .select('_id items') // Only fetch required fields
-        .lean() // Plain objects, 50% less memory
-        .limit(BATCH_SIZE)
-        .exec();
-
-      if (ordersToExpire.length === 0) {
-        break; // No more orders to process
-      }
-
-      // Process batch
-      for (const order of ordersToExpire) {
-        try {
-          // Release reserved quantity
-          const releasedOffers = await Promise.all(
-            order.items.map((item: OrderItem) =>
-              this.offerModel.findByIdAndUpdate(
-                item.offerId,
-                {
-                  $inc: { reservedQuantity: -item.quantity },
-                },
-                { new: true },
-              ),
-            ),
-          );
-
-          // Revert sold_out → active if bags became available
-          await this.autoUpdateOfferSoldOutStatus(releasedOffers as OfferDocument[]);
-
-          // Mark order as expired
-          await this.orderModel.findByIdAndUpdate(order._id, {
-            status: OrderStatus.EXPIRED,
-            expiredAt: now,
-            cancellationReason: 'Order expired after merchant approval',
-          });
-
-          processedCount++;
-        } catch (error) {
-          this.logger.error(`Failed to expire order ${order._id}: ${error}`);
-        }
-      }
-
-      this.logger.log(`Batch ${batchNumber}: Expired ${ordersToExpire.length} orders`);
-
-      // If we got less than BATCH_SIZE, we've processed all orders
-      if (ordersToExpire.length < BATCH_SIZE) {
-        break;
-      }
-    }
-
-    this.logger.log(
-      `✅ Total expired: ${processedCount} orders (merchant-approved) in ${batchNumber} batches`,
-    );
-  }
-
-  /**
-   * TGTG Model: Expire RESERVED orders and process automatic refunds
-   *
-   * Runs every 10 minutes to find RESERVED orders past their pickup window.
-   * For each expired order:
-   * 1. Release reserved inventory
-   * 2. Process SMT refund via RefundService
-   * 3. Update order status to EXPIRED
-   *
-   * Uses batched processing and transactions for data integrity.
-   */
-  @Cron(CronExpression.EVERY_10_MINUTES)
-  async expireReservedOrdersWithRefundCron(): Promise<void> {
-    const now = new Date();
-    const BATCH_SIZE = 50; // Smaller batch for refund processing (involves external API calls)
-    let processedCount = 0;
-    let refundSuccessCount = 0;
-    let refundFailedCount = 0;
-    let batchNumber = 0;
-
-    this.logger.log('Starting RESERVED order expiry with auto-refund...');
-
-    while (true) {
-      batchNumber++;
-
-      // Find RESERVED orders past their pickup end time
-      const ordersToExpire = await this.orderModel
-        .find({
-          status: OrderStatus.RESERVED,
-          expiresAt: { $lte: now },
-        })
-        .select('_id items customerId totalAmount')
-        .lean()
-        .limit(BATCH_SIZE)
-        .exec();
-
-      if (ordersToExpire.length === 0) {
-        break;
-      }
-
-      // Process each order with refund
-      for (const order of ordersToExpire) {
-        const session = await this.orderModel.db.startSession();
-
-        try {
-          await session.withTransaction(async () => {
-            // 1. Release reserved inventory
-            const releasedOffers = await Promise.all(
-              order.items.map((item: OrderItem) =>
-                this.offerModel.findByIdAndUpdate(
-                  item.offerId,
-                  { $inc: { reservedQuantity: -item.quantity } },
-                  { session, new: true },
-                ),
-              ),
-            );
-
-            // Revert sold_out → active if bags became available
-            await this.autoUpdateOfferSoldOutStatus(releasedOffers as OfferDocument[], session);
-
-            // 2. Process refund via RefundService
-            const refundResult = await this.refundService.processExpiredOrderRefund(
-              order._id.toString(),
-              session,
-            );
-
-            if (refundResult.success) {
-              refundSuccessCount++;
-              this.appLogger.log(
-                `Refund processed for expired order ${order._id}: ${refundResult.amount} TND`,
-                'OrdersService.ExpiryCron',
-              );
-            } else {
-              refundFailedCount++;
-              // Schedule retry if refund failed
-              if (refundResult.willRetry === true && refundResult.paymentId) {
-                await this.refundService.scheduleRefundRetry(refundResult.paymentId);
-              }
-              this.appLogger.warn(
-                `Refund failed for expired order ${order._id}: ${refundResult.error}`,
-                'OrdersService.ExpiryCron',
-              );
-            }
-          });
-
-          processedCount++;
-        } catch (error) {
-          this.logger.error(
-            `Failed to expire RESERVED order ${order._id}: ${(error as Error).message}`,
-          );
-        } finally {
-          await session.endSession();
-        }
-      }
-
-      this.logger.log(`Batch ${batchNumber}: Processed ${ordersToExpire.length} RESERVED orders`);
-
-      if (ordersToExpire.length < BATCH_SIZE) {
-        break;
-      }
-    }
-
-    if (processedCount > 0) {
-      this.logger.log(
-        `✅ RESERVED order expiry complete: ${processedCount} orders processed, ` +
-          `${refundSuccessCount} refunds successful, ${refundFailedCount} refunds failed`,
-      );
-    }
-  }
-
   async create(createOrderDto: CreateOrderDto, customerId: string): Promise<OrderDocument> {
     const session = await this.orderModel.db.startSession();
 
@@ -1094,7 +909,7 @@ export class OrdersService {
           })
           .session(session);
 
-        if (payment && payment.status === PaymentStatus.HELD) {
+        if (payment?.status === PaymentStatus.HELD) {
           payment.status = PaymentStatus.EARNED;
           payment.earnedAt = new Date();
           await payment.save({ session });

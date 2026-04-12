@@ -16,6 +16,14 @@ export interface IEstablishment {
   readonly owner: string;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+  // Activity tracking (computed from orders/offers/owner)
+  readonly lastOrderAt?: Date;
+  readonly lastOfferCreatedAt?: Date;
+  readonly ownerLastLoginAt?: Date;
+  readonly lastActivityAt?: Date;
+  // Trial / subscription lifecycle
+  readonly subscriptionStatus: 'trial' | 'paid' | 'suspended';
+  readonly trialEndsAt?: Date;
 }
 
 export interface IEstablishmentAddress {
@@ -73,6 +81,7 @@ export interface IEstablishmentOverview {
   readonly rejected: number;
   readonly recentApprovals: number;
   readonly avgApprovalTime: number;
+  readonly activeLastThirtyDays: number;
 }
 
 export interface IEstablishmentListResponse {

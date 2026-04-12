@@ -32,7 +32,7 @@ import { AdminAction } from '../interfaces/admin-analytics.interface';
 import { AdminAuditService, AuditableObject } from './admin-audit.service';
 
 export interface UserListResponse {
-  users: LeanDocument<UserDocument>[];
+  users: IUser[];
   total: number;
   page: number;
   limit: number;
@@ -255,11 +255,11 @@ export class UserManagementService {
         ];
       }
 
-      if (role !== null) {
+      if (role !== null && role !== undefined) {
         filter['role'] = role;
       }
 
-      if (status !== null) {
+      if (status !== null && status !== undefined) {
         filter['status'] = status;
       }
 
@@ -319,7 +319,12 @@ export class UserManagementService {
       const totalPages = Math.ceil(total / limit);
 
       return {
-        users,
+        // Map lean docs so each user has `id` (string) instead of raw `_id` (ObjectId).
+        // Without this the frontend receives `_id` only, making setSelectedUserId(user.id)
+        // a no-op and preventing the detail sheet from opening.
+        users: UserMapper.toInterfaceArray(
+          users as unknown as Parameters<typeof UserMapper.toInterfaceArray>[0],
+        ),
         total,
         page,
         limit,

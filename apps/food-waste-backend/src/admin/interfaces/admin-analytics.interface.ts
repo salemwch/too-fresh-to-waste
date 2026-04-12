@@ -162,11 +162,21 @@ export enum AdminAction {
   ESTABLISHMENT_SUSPENDED = 'establishment_suspended',
   ESTABLISHMENT_REACTIVATED = 'establishment_reactivated',
   ESTABLISHMENT_UPDATED = 'establishment_updated',
+  ESTABLISHMENT_TRIAL_EXTENDED = 'establishment_trial_extended',
+  ESTABLISHMENT_MARKED_AS_PAID = 'establishment_marked_as_paid',
 
   // Order Actions
   ORDER_CANCELLED = 'order_cancelled',
   ORDER_REFUNDED = 'order_refunded',
   ORDER_UPDATED = 'order_updated',
+
+  // Offer Actions
+  OFFER_FEATURED = 'offer_featured',
+  OFFER_UNFEATURED = 'offer_unfeatured',
+  OFFER_DISABLED = 'offer_disabled',
+  OFFER_ENABLED = 'offer_enabled',
+  OFFER_DELETED = 'offer_deleted',
+  OFFER_RESTORED = 'offer_restored',
 
   // Review Actions
   REVIEW_FLAGGED = 'review_flagged',

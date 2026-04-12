@@ -319,6 +319,13 @@ OrderSchema.index({ merchantId: 1, status: 1 });
 OrderSchema.index({ establishmentId: 1, status: 1 });
 
 /**
+ * Establishment Last-Order Lookup Index
+ * - Optimises admin $lookup: { establishmentId } + sort { createdAt: -1 } + limit 1
+ * - Without this MongoDB does a full collection scan per establishment row
+ */
+OrderSchema.index({ establishmentId: 1, createdAt: -1 });
+
+/**
  * Order Expiration Management Index
  * - Critical for automated expiration cron jobs
  * - Query pattern: find({ status: 'confirmed', expiresAt: { $lt: now } })

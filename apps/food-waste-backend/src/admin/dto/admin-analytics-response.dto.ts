@@ -942,6 +942,13 @@ export class AuditLogItemResponseDto {
   adminEmail!: string;
 
   @ApiProperty({
+    description: 'Admin first name from user record',
+    example: 'Admin',
+  })
+  @IsString()
+  adminFirstName!: string;
+
+  @ApiProperty({
     description: 'Action performed',
     enum: AdminAction,
     example: AdminAction.USER_SUSPENDED,

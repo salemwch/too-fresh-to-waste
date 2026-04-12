@@ -19,6 +19,7 @@ import { RequestLoggingInterceptor } from './common/interceptors/request-logging
 import { TransformInterceptor } from './common/interceptors/transFormInterceptor';
 import { AppLoggerService } from './common/services/logger.service';
 import { PrometheusMetricsService } from './common/services/prometheus-metrics.service';
+import { RedisService } from './redis/redis.service';
 import { RedisIoAdapter } from './websocket/adapters/redis-io.adapter';
 import { SecureIoAdapter } from './websocket/adapters/secure-io.adapter';
 
@@ -485,9 +486,11 @@ This API provides comprehensive endpoints for:
   // manifests as "Invalid namespace" on the client).
   // ========================================================================
   if (isProduction) {
-    const redisIoAdapter = new RedisIoAdapter(app, appConfigService);
+    const redisIoAdapter = new RedisIoAdapter(app);
     try {
-      await redisIoAdapter.connectToRedis();
+      const redisService = app.get(RedisService);
+      const pubClient = await redisService.getClient();
+      await redisIoAdapter.connectToRedis(pubClient);
       app.useWebSocketAdapter(redisIoAdapter);
       logger.startup('Redis IO adapter enabled for WebSocket horizontal scaling');
     } catch (err) {

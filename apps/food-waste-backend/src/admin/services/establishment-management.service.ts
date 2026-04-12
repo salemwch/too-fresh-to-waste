@@ -19,6 +19,8 @@ import {
   AdminEstablishmentReactivatedEvent,
   AdminEstablishmentVerifiedEvent,
   AdminEstablishmentReactivationScheduledEvent,
+  EstablishmentTrialExtendedEvent,
+  EstablishmentMarkedAsPaidEvent,
 } from '../../common/events/admin-establishment.events';
 import {
   IEstablishment,
@@ -48,6 +50,8 @@ import {
   UpdateEstablishmentStatusDto,
   EstablishmentSearchDto,
   EstablishmentStatsDto,
+  ExtendTrialDto,
+  MarkAsPaidDto,
 } from '../dto/establishment-management.dto';
 import { AdminAction } from '../interfaces/admin-analytics.interface';
 import { IEstablishmentManagementService } from '../interfaces/establishment-management.service.interface';
@@ -71,6 +75,7 @@ interface EstablishmentAggregationGroup {
 interface EstablishmentAggregationResult {
   establishmentsByType: EstablishmentAggregationGroup[];
   establishmentsByStatus: EstablishmentAggregationGroup[];
+  activeLastThirtyDays: Array<{ count: number }>;
 }
 
 type EstablishmentAggregateLookupResult = NonNullable<
@@ -152,6 +157,10 @@ interface OfferMatchFilter extends Record<string, unknown> {
 // Utility type for creating professional aggregation pipelines
 type EstablishmentPipeline = PipelineStage[];
 
+// Free trial duration granted on merchant approval: 2 months (60 days)
+const TRIAL_DURATION_DAYS = 60;
+const TRIAL_DURATION_MS = TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000;
+
 // Pipeline stage builder functions for reusability
 interface PipelineBuilder {
   buildMatchStage(filter: Record<string, unknown>): PipelineStage.Match;
@@ -227,7 +236,11 @@ function isEstablishmentAggregationResult(
     return false;
   }
   const r = first as Record<string, unknown>;
-  return Array.isArray(r['establishmentsByType']) && Array.isArray(r['establishmentsByStatus']);
+  return (
+    Array.isArray(r['establishmentsByType']) &&
+    Array.isArray(r['establishmentsByStatus']) &&
+    Array.isArray(r['activeLastThirtyDays'])
+  );
 }
 
 export interface EstablishmentListResponse {
@@ -344,6 +357,15 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
             $facet: {
               establishmentsByType: [{ $group: { _id: '$type', count: { $sum: 1 } } }],
               establishmentsByStatus: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
+              activeLastThirtyDays: [
+                {
+                  $match: {
+                    status: EstablishmentStatus.ACTIVE,
+                    updatedAt: { $gte: thirtyDaysAgo },
+                  },
+                },
+                { $count: 'count' },
+              ],
             },
           },
         ]),
@@ -375,6 +397,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
         rejected: establishmentsByStatus[EstablishmentStatus.REJECTED] ?? 0,
         recentApprovals: recentSubmissions?.length ?? 0,
         avgApprovalTime: 24, // Calculate actual average approval time later
+        activeLastThirtyDays: stats.activeLastThirtyDays[0]?.count ?? 0,
       };
 
       return EstablishmentMapper.toOverviewInterface(overviewData);
@@ -444,7 +467,8 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
           { $sort: sort },
           { $skip: skip },
           { $limit: limit },
-          ...this.getOwnerLookupStages(),
+          ...this.getOwnerLookupStages(['firstName', 'lastName', 'email', 'lastLoginAt']),
+          ...this.getActivityLookupStages(),
         ]),
         this.establishmentModel.countDocuments(filter),
       ]);
@@ -471,7 +495,14 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const [establishment] =
         await this.establishmentModel.aggregate<EstablishmentAggregateLookupResult>([
           { $match: { _id: new Types.ObjectId(establishmentId) } },
-          ...this.getOwnerLookupStages(['firstName', 'lastName', 'email', 'phoneNumber']),
+          ...this.getOwnerLookupStages([
+            'firstName',
+            'lastName',
+            'email',
+            'phoneNumber',
+            'lastLoginAt',
+          ]),
+          ...this.getActivityLookupStages(),
           { $limit: 1 },
         ]);
 
@@ -516,6 +547,10 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
         establishment.status = EstablishmentStatus.ACTIVE;
         establishment.isVerified = true;
         establishment.verifiedAt = new Date();
+        // Start the 2-month free trial — clock begins on admin approval, not registration
+        establishment.subscriptionStatus = 'trial';
+        establishment.trialEndsAt = new Date(Date.now() + TRIAL_DURATION_MS);
+        delete (establishment as { trialExpiringNotifiedAt?: Date }).trialExpiringNotifiedAt;
         delete (establishment as { rejectionReason?: string }).rejectionReason;
       } else {
         establishment.status = EstablishmentStatus.REJECTED;
@@ -1115,6 +1150,57 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
    * @param fields - Owner fields to project (default: firstName, lastName, email)
    * @see https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection
    */
+  /**
+   * Builds $lookup stages that fetch the most recent order date, most recent
+   * offer date, and owner's lastLoginAt for each establishment.
+   * Uses the existing indexes on { establishmentId: 1, status: 1 } for O(log n) per doc.
+   */
+  private getActivityLookupStages(): PipelineStage[] {
+    return [
+      {
+        $lookup: {
+          from: 'orders',
+          let: { estId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$establishmentId', '$$estId'] } } },
+            { $sort: { createdAt: -1 as const } },
+            { $limit: 1 },
+            { $project: { _id: 0, createdAt: 1 } },
+          ],
+          as: '_lastOrder',
+        },
+      },
+      {
+        $lookup: {
+          from: 'offers',
+          let: { estId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$establishmentId', '$$estId'] } } },
+            { $sort: { createdAt: -1 as const } },
+            { $limit: 1 },
+            { $project: { _id: 0, createdAt: 1 } },
+          ],
+          as: '_lastOffer',
+        },
+      },
+      {
+        $addFields: {
+          lastOrderAt: { $arrayElemAt: ['$_lastOrder.createdAt', 0] },
+          lastOfferCreatedAt: { $arrayElemAt: ['$_lastOffer.createdAt', 0] },
+          ownerLastLoginAt: '$ownerId.lastLoginAt',
+          lastActivityAt: {
+            $max: [
+              { $arrayElemAt: ['$_lastOrder.createdAt', 0] },
+              { $arrayElemAt: ['$_lastOffer.createdAt', 0] },
+              '$ownerId.lastLoginAt',
+            ],
+          },
+        },
+      },
+      { $project: { _lastOrder: 0, _lastOffer: 0 } },
+    ];
+  }
+
   private getOwnerLookupStages(
     fields: string[] = ['firstName', 'lastName', 'email'],
   ): PipelineStage[] {
@@ -1197,6 +1283,13 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       }
 
       const isApproved = approveDto.approved;
+      const trialEndsAtFormatted = establishment.trialEndsAt
+        ? establishment.trialEndsAt.toLocaleDateString('en-GB', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })
+        : '';
       const notificationData: ISendNotificationRequest = {
         type: 'email',
         trigger: isApproved
@@ -1211,7 +1304,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
             ? `🎉 Your establishment "${establishment.name}" has been approved!`
             : `❌ Your establishment "${establishment.name}" application was not approved`,
           body: isApproved
-            ? `Congratulations! Your establishment has been approved and is now active on our platform. You can start creating offers immediately.`
+            ? `Congratulations! Your establishment is approved and you can now create offers. Your ${TRIAL_DURATION_DAYS}-day free trial runs until ${trialEndsAtFormatted}. After that, contact the admin team to continue.`
             : `We regret to inform you that your establishment application was not approved. Reason: ${approveDto.reason ?? 'Not specified'}`,
           data: {
             establishmentId: establishment._id.toString(),
@@ -1615,5 +1708,184 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
         error,
       );
     }
+  }
+
+  /**
+   * Extends a merchant's free trial. Accepts either an absolute `trialEndsAt` or
+   * a relative `extendByDays` offset. Flips `subscriptionStatus` back to 'trial'
+   * if the merchant was already suspended, clears the expiring-soon notification
+   * gate so the 2-day warning can fire again, and emits an audit event.
+   */
+  async extendTrial(
+    establishmentId: string,
+    extendDto: ExtendTrialDto,
+    adminId: string,
+    adminEmail: string,
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<IEstablishment> {
+    const establishment = await this.establishmentModel.findById(establishmentId);
+    if (!establishment) {
+      throw new NotFoundException(`Establishment with ID ${establishmentId} not found`);
+    }
+
+    if (extendDto.trialEndsAt === undefined && extendDto.extendByDays === undefined) {
+      throw new BadRequestException('Either trialEndsAt or extendByDays must be provided');
+    }
+
+    const previousTrialEndsAt = establishment.trialEndsAt;
+    const previousSubscriptionStatus = establishment.subscriptionStatus;
+
+    let newTrialEndsAt: Date;
+    if (extendDto.trialEndsAt !== undefined) {
+      newTrialEndsAt = new Date(extendDto.trialEndsAt);
+      if (Number.isNaN(newTrialEndsAt.getTime()) || newTrialEndsAt.getTime() <= Date.now()) {
+        throw new BadRequestException('trialEndsAt must be a valid future date');
+      }
+    } else {
+      const base =
+        previousTrialEndsAt && previousTrialEndsAt.getTime() > Date.now()
+          ? previousTrialEndsAt
+          : new Date();
+      newTrialEndsAt = new Date(
+        base.getTime() + (extendDto.extendByDays ?? 0) * 24 * 60 * 60 * 1000,
+      );
+    }
+
+    establishment.trialEndsAt = newTrialEndsAt;
+    establishment.subscriptionStatus = 'trial';
+    delete (establishment as { trialExpiringNotifiedAt?: Date }).trialExpiringNotifiedAt;
+    if (!establishment.isActive) {
+      establishment.isActive = true;
+    }
+    if (establishment.status === EstablishmentStatus.SUSPENDED) {
+      establishment.status = EstablishmentStatus.ACTIVE;
+    }
+
+    const updatedEstablishment = await establishment.save();
+
+    await this.auditService.logEstablishmentAction({
+      adminId,
+      adminEmail,
+      action: AdminAction.ESTABLISHMENT_TRIAL_EXTENDED,
+      establishmentId,
+      previousValue: {
+        trialEndsAt: previousTrialEndsAt,
+        subscriptionStatus: previousSubscriptionStatus,
+      },
+      newValue: {
+        trialEndsAt: newTrialEndsAt,
+        subscriptionStatus: 'trial',
+        adminNotes: extendDto.adminNotes,
+      },
+      reason: extendDto.adminNotes,
+      ipAddress,
+      userAgent,
+    });
+
+    this.logger.log(
+      `Trial for establishment ${establishmentId} extended to ${newTrialEndsAt.toISOString()} by admin ${adminEmail}`,
+    );
+
+    try {
+      await this.eventBus.emit(
+        'establishment.trial.extended',
+        new EstablishmentTrialExtendedEvent(
+          establishment._id.toString(),
+          adminId,
+          adminEmail,
+          establishment.name,
+          establishment.ownerId.toString(),
+          previousTrialEndsAt,
+          newTrialEndsAt,
+        ),
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to emit establishment.trial.extended event for ${establishmentId}:`,
+        error,
+      );
+    }
+
+    return EstablishmentMapper.toInterface(
+      updatedEstablishment as unknown as Parameters<typeof EstablishmentMapper.toInterface>[0],
+    );
+  }
+
+  /**
+   * Marks a merchant as paid (bypasses the trial scanner). Sets
+   * `subscriptionStatus = 'paid'` and clears `trialEndsAt`. Merchants in this
+   * state are excluded from the daily expiry scan forever (until manually
+   * reverted to trial via another admin action).
+   */
+  async markAsPaid(
+    establishmentId: string,
+    markAsPaidDto: MarkAsPaidDto,
+    adminId: string,
+    adminEmail: string,
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<IEstablishment> {
+    const establishment = await this.establishmentModel.findById(establishmentId);
+    if (!establishment) {
+      throw new NotFoundException(`Establishment with ID ${establishmentId} not found`);
+    }
+
+    const previousSubscriptionStatus = establishment.subscriptionStatus;
+    const previousTrialEndsAt = establishment.trialEndsAt;
+
+    establishment.subscriptionStatus = 'paid';
+    delete (establishment as { trialEndsAt?: Date }).trialEndsAt;
+    delete (establishment as { trialExpiringNotifiedAt?: Date }).trialExpiringNotifiedAt;
+    if (!establishment.isActive) {
+      establishment.isActive = true;
+    }
+    if (establishment.status === EstablishmentStatus.SUSPENDED) {
+      establishment.status = EstablishmentStatus.ACTIVE;
+    }
+
+    const updatedEstablishment = await establishment.save();
+
+    await this.auditService.logEstablishmentAction({
+      adminId,
+      adminEmail,
+      action: AdminAction.ESTABLISHMENT_MARKED_AS_PAID,
+      establishmentId,
+      previousValue: {
+        subscriptionStatus: previousSubscriptionStatus,
+        trialEndsAt: previousTrialEndsAt,
+      },
+      newValue: {
+        subscriptionStatus: 'paid',
+        adminNotes: markAsPaidDto.adminNotes,
+      },
+      reason: markAsPaidDto.adminNotes,
+      ipAddress,
+      userAgent,
+    });
+
+    this.logger.log(`Establishment ${establishmentId} marked as paid by admin ${adminEmail}`);
+
+    try {
+      await this.eventBus.emit(
+        'establishment.marked_as_paid',
+        new EstablishmentMarkedAsPaidEvent(
+          establishment._id.toString(),
+          adminId,
+          adminEmail,
+          establishment.name,
+          establishment.ownerId.toString(),
+        ),
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to emit establishment.marked_as_paid event for ${establishmentId}:`,
+        error,
+      );
+    }
+
+    return EstablishmentMapper.toInterface(
+      updatedEstablishment as unknown as Parameters<typeof EstablishmentMapper.toInterface>[0],
+    );
   }
 }

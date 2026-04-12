@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { fromBuffer as fileTypeFromBuffer } from 'file-type';
 import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -112,7 +111,7 @@ export class SupabaseStorageService implements OnModuleInit {
   ): Promise<UploadedFileInfo> {
     try {
       this.ensureInitialized();
-      await this.validateFile(file);
+      this.validateFile(file);
 
       let processedBuffer: Buffer;
       let finalMimeType = file.mimetype;
@@ -416,7 +415,7 @@ export class SupabaseStorageService implements OnModuleInit {
     return fileNameOrUrl;
   }
 
-  private async validateFile(file: Express.Multer.File | undefined): Promise<void> {
+  private validateFile(file: Express.Multer.File | undefined): void {
     if (file === null || file === undefined) {
       throw new BadRequestException('No file provided');
     }
@@ -457,7 +456,7 @@ export class SupabaseStorageService implements OnModuleInit {
     }
 
     // Detect actual file type from buffer contents (magic bytes)
-    const detected = await fileTypeFromBuffer(file.buffer);
+    const detected = this.detectMimeType(file.buffer);
 
     if (!detected) {
       throw new BadRequestException('Could not determine file type from content');
@@ -468,6 +467,68 @@ export class SupabaseStorageService implements OnModuleInit {
         `File content (${detected.mime}) does not match declared type (${file.mimetype})`,
       );
     }
+  }
+
+  // Inline magic-bytes detection for the MIME types accepted by this service.
+  // Replaces the `file-type` npm package (v17+ is ESM-only, incompatible with CJS NestJS).
+  private detectMimeType(buffer: Buffer): { mime: string; ext: string } | undefined {
+    if (buffer.length < 4) {
+      return undefined;
+    }
+
+    // JPEG: FF D8 FF
+    if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+      return { mime: 'image/jpeg', ext: 'jpg' };
+    }
+
+    // PNG: 89 50 4E 47 0D 0A 1A 0A
+    if (
+      buffer.length >= 8 &&
+      buffer[0] === 0x89 &&
+      buffer[1] === 0x50 &&
+      buffer[2] === 0x4e &&
+      buffer[3] === 0x47 &&
+      buffer[4] === 0x0d &&
+      buffer[5] === 0x0a &&
+      buffer[6] === 0x1a &&
+      buffer[7] === 0x0a
+    ) {
+      return { mime: 'image/png', ext: 'png' };
+    }
+
+    // GIF87a or GIF89a: 47 49 46 38 [37|39] 61
+    if (
+      buffer[0] === 0x47 &&
+      buffer[1] === 0x49 &&
+      buffer[2] === 0x46 &&
+      buffer[3] === 0x38 &&
+      (buffer[4] === 0x37 || buffer[4] === 0x39) &&
+      buffer[5] === 0x61
+    ) {
+      return { mime: 'image/gif', ext: 'gif' };
+    }
+
+    // WebP: RIFF????WEBP (bytes 0-3 = "RIFF", bytes 8-11 = "WEBP")
+    if (
+      buffer.length >= 12 &&
+      buffer[0] === 0x52 &&
+      buffer[1] === 0x49 &&
+      buffer[2] === 0x46 &&
+      buffer[3] === 0x46 &&
+      buffer[8] === 0x57 &&
+      buffer[9] === 0x45 &&
+      buffer[10] === 0x42 &&
+      buffer[11] === 0x50
+    ) {
+      return { mime: 'image/webp', ext: 'webp' };
+    }
+
+    // PDF: %PDF
+    if (buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46) {
+      return { mime: 'application/pdf', ext: 'pdf' };
+    }
+
+    return undefined;
   }
 
   private isImageFile(file: Express.Multer.File): boolean {

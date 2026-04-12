@@ -379,26 +379,43 @@ export class AdminAnalyticsController {
 
   private mapAuditLogsToResponseDto(auditLogs: AuditLogResponse): AuditLogResponseDto {
     return {
-      logs: auditLogs.logs.map(log => ({
-        id: (log._id?.toString() || log.id) as string,
-        adminId: log.adminId.toString(),
-        adminEmail: log.adminEmail,
-        action: log.action,
-        targetType: log.targetType as
-          | 'user'
-          | 'establishment'
-          | 'order'
-          | 'review'
-          | 'offer'
-          | 'system',
-        ...(log.targetId !== undefined && { targetId: log.targetId }),
-        ...(log.previousValue !== undefined && { previousValue: log.previousValue }),
-        ...(log.newValue !== undefined && { newValue: log.newValue }),
-        ...(log.reason !== undefined && { reason: log.reason }),
-        timestamp: log.timestamp,
-        ipAddress: log.ipAddress,
-        userAgent: log.userAgent,
-      })),
+      logs: auditLogs.logs.map(log => {
+        const populatedAdmin = log.adminId as unknown as
+          | { _id: Types.ObjectId; firstName?: string }
+          | Types.ObjectId
+          | null;
+        const adminFirstName =
+          populatedAdmin !== null &&
+          typeof populatedAdmin === 'object' &&
+          'firstName' in populatedAdmin
+            ? (populatedAdmin.firstName ?? '')
+            : '';
+        const adminId =
+          populatedAdmin !== null && typeof populatedAdmin === 'object' && '_id' in populatedAdmin
+            ? populatedAdmin._id.toString()
+            : String(populatedAdmin ?? '');
+        return {
+          id: (log._id?.toString() || log.id) as string,
+          adminId,
+          adminEmail: log.adminEmail,
+          adminFirstName,
+          action: log.action,
+          targetType: log.targetType as
+            | 'user'
+            | 'establishment'
+            | 'order'
+            | 'review'
+            | 'offer'
+            | 'system',
+          ...(log.targetId !== undefined && { targetId: log.targetId }),
+          ...(log.previousValue !== undefined && { previousValue: log.previousValue }),
+          ...(log.newValue !== undefined && { newValue: log.newValue }),
+          ...(log.reason !== undefined && { reason: log.reason }),
+          timestamp: log.timestamp,
+          ipAddress: log.ipAddress,
+          userAgent: log.userAgent,
+        };
+      }),
       total: auditLogs.total,
       page: auditLogs.page,
       limit: auditLogs.limit,
@@ -439,30 +456,47 @@ export class AdminAnalyticsController {
   ): RecentActivityResponseDto {
     return {
       activities: (activities as Record<string, unknown>[]).map(
-        (activity: Record<string, unknown>) => ({
-          id: (activity['_id']?.toString() ?? activity['id']) as string,
-          adminId: (activity['adminId'] as Types.ObjectId).toString(),
-          adminEmail: activity['adminEmail'] as string,
-          action: activity['action'] as AdminAction,
-          targetType: activity['targetType'] as
-            | 'user'
-            | 'establishment'
-            | 'order'
-            | 'review'
-            | 'offer'
-            | 'system',
-          ...(activity['targetId'] !== undefined && { targetId: activity['targetId'] as string }),
-          ...(activity['previousValue'] !== undefined && {
-            previousValue: activity['previousValue'] as Record<string, AuditLogValue>,
-          }),
-          ...(activity['newValue'] !== undefined && {
-            newValue: activity['newValue'] as Record<string, AuditLogValue>,
-          }),
-          ...(activity['reason'] !== undefined && { reason: activity['reason'] as string }),
-          timestamp: activity['timestamp'] as Date,
-          ipAddress: activity['ipAddress'] as string,
-          userAgent: activity['userAgent'] as string,
-        }),
+        (activity: Record<string, unknown>) => {
+          const populatedAdmin = activity['adminId'] as
+            | { _id: Types.ObjectId; firstName?: string }
+            | Types.ObjectId
+            | null;
+          const adminFirstName =
+            populatedAdmin !== null &&
+            typeof populatedAdmin === 'object' &&
+            'firstName' in populatedAdmin
+              ? (populatedAdmin.firstName ?? '')
+              : '';
+          const adminId =
+            populatedAdmin !== null && typeof populatedAdmin === 'object' && '_id' in populatedAdmin
+              ? populatedAdmin._id.toString()
+              : String(populatedAdmin ?? '');
+          return {
+            id: (activity['_id']?.toString() ?? activity['id']) as string,
+            adminId,
+            adminEmail: activity['adminEmail'] as string,
+            adminFirstName,
+            action: activity['action'] as AdminAction,
+            targetType: activity['targetType'] as
+              | 'user'
+              | 'establishment'
+              | 'order'
+              | 'review'
+              | 'offer'
+              | 'system',
+            ...(activity['targetId'] !== undefined && { targetId: activity['targetId'] as string }),
+            ...(activity['previousValue'] !== undefined && {
+              previousValue: activity['previousValue'] as Record<string, AuditLogValue>,
+            }),
+            ...(activity['newValue'] !== undefined && {
+              newValue: activity['newValue'] as Record<string, AuditLogValue>,
+            }),
+            ...(activity['reason'] !== undefined && { reason: activity['reason'] as string }),
+            timestamp: activity['timestamp'] as Date,
+            ipAddress: activity['ipAddress'] as string,
+            userAgent: activity['userAgent'] as string,
+          };
+        },
       ),
       hoursAnalyzed,
       maxActivities,

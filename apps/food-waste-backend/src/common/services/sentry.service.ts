@@ -68,6 +68,16 @@ export class SentryService implements OnModuleInit {
       return;
     }
 
+    // main.ts calls Sentry.init() at bootstrap (before NestJS modules load)
+    // to catch early startup errors. Detect that and skip duplicate init —
+    // calling init() twice re-registers OpenTelemetry globals and errors.
+    const client = Sentry.getClient();
+    if (client) {
+      this.isInitialized = true;
+      this.logger.log('Sentry already initialized by bootstrap — skipping duplicate init');
+      return;
+    }
+
     try {
       const serverName =
         this.getNonEmptyConfigValue('SERVER_NAME') ??
@@ -78,54 +88,37 @@ export class SentryService implements OnModuleInit {
         dsn,
         environment: this.environment,
 
-        // Release tracking for deployment correlation
-        // Format: project-name@version
         release:
           this.configService.get<string>('SENTRY_RELEASE') ??
           `foodwaste-backend@${this.configService.get<string>('npm_package_version') ?? '1.0.0'}`,
 
-        // Sample rate configuration
         tracesSampleRate: this.getTracesSampleRate(),
         profilesSampleRate: this.getProfilesSampleRate(),
 
-        // Only send errors in production and staging
         enabled: this.environment !== 'development' && this.environment !== 'test',
 
-        // Integrations
         integrations: [
-          // Node.js integrations
           Sentry.httpIntegration(),
           Sentry.mongoIntegration(),
           Sentry.mongooseIntegration(),
         ],
 
-        // Before send hook - sanitize sensitive data
         beforeSend: (event, _hint) => this.beforeSend(event) as Sentry.ErrorEvent,
 
-        // Before breadcrumb - filter sensitive breadcrumbs
         beforeBreadcrumb: (breadcrumb, _hint) => this.beforeBreadcrumb(breadcrumb, _hint),
 
-        // Ignore certain errors
         ignoreErrors: [
-          // Browser/client errors that shouldn't be tracked server-side
           'Non-Error exception captured',
           'Non-Error promise rejection captured',
-
-          // Validation errors (expected behavior)
           'ValidationError',
           'BadRequestException',
-
-          // Network errors (client-side issues)
           'NetworkError',
           'AbortError',
-
-          // Known safe errors
           'ECONNRESET',
           'ECONNREFUSED',
           'ETIMEDOUT',
         ],
 
-        // Ignore transactions (URLs) that shouldn't be tracked
         ignoreTransactions: [
           '/health',
           '/health/liveness',
@@ -134,19 +127,10 @@ export class SentryService implements OnModuleInit {
           '/favicon.ico',
         ],
 
-        // Maximum breadcrumbs to store
         maxBreadcrumbs: 50,
-
-        // Attach stack traces to all messages
         attachStacktrace: true,
-
-        // Server name (useful for multi-instance deployments)
         serverName,
-
-        // Debug mode (development only)
         debug: this.environment === 'development',
-
-        // Maximum value length before truncation
         maxValueLength: 1000,
       });
 

@@ -32,6 +32,8 @@ import {
   UpdateEstablishmentStatusDto,
   EstablishmentSearchDto,
   EstablishmentStatsDto,
+  ExtendTrialDto,
+  MarkAsPaidDto,
 } from '../dto/establishment-management.dto';
 import { AdminOnlyGuard } from '../guards/admin-only.guard';
 import { EstablishmentManagementService } from '../services/establishment-management.service';
@@ -161,6 +163,74 @@ export class EstablishmentManagementController {
     const result = await this.establishmentManagementService.approveEstablishment(
       establishmentId,
       approveDto,
+      admin.userId,
+      admin.email,
+      ipAddress,
+      userAgent,
+    );
+    return result;
+  }
+
+  @Patch(':establishmentId/trial')
+  @ApiOperation({
+    summary: 'Extend establishment free trial',
+    description:
+      'Extends the merchant trial. Accepts an absolute trialEndsAt or a relative extendByDays offset. Automatically flips subscriptionStatus back to "trial" and reactivates suspended merchants.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Trial extended successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Establishment not found',
+  })
+  @ApiParam({ name: 'establishmentId', description: 'Establishment ID' })
+  async extendTrial(
+    @Param('establishmentId') establishmentId: string,
+    @Body() extendDto: ExtendTrialDto,
+    @Req() req: { user: { userId: string; email: string } },
+    @IpAddress() ipAddress: string,
+    @UserAgent() userAgent: string,
+  ): Promise<IEstablishment> {
+    const admin = req.user;
+    const result = await this.establishmentManagementService.extendTrial(
+      establishmentId,
+      extendDto,
+      admin.userId,
+      admin.email,
+      ipAddress,
+      userAgent,
+    );
+    return result;
+  }
+
+  @Patch(':establishmentId/subscription/mark-as-paid')
+  @ApiOperation({
+    summary: 'Mark establishment as paid',
+    description:
+      'Marks the merchant as paid (bypasses the daily trial-expiry scan). Clears trialEndsAt and reactivates the merchant if they were suspended.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Establishment marked as paid',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Establishment not found',
+  })
+  @ApiParam({ name: 'establishmentId', description: 'Establishment ID' })
+  async markAsPaid(
+    @Param('establishmentId') establishmentId: string,
+    @Body() markAsPaidDto: MarkAsPaidDto,
+    @Req() req: { user: { userId: string; email: string } },
+    @IpAddress() ipAddress: string,
+    @UserAgent() userAgent: string,
+  ): Promise<IEstablishment> {
+    const admin = req.user;
+    const result = await this.establishmentManagementService.markAsPaid(
+      establishmentId,
+      markAsPaidDto,
       admin.userId,
       admin.email,
       ipAddress,

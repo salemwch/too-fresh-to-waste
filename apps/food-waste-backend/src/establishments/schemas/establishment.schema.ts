@@ -294,6 +294,19 @@ export class Establishment {
   @Prop({ default: false })
   isVerified!: boolean;
 
+  @Prop({
+    type: String,
+    enum: ['trial', 'paid', 'suspended'],
+    default: 'trial',
+  })
+  subscriptionStatus!: 'trial' | 'paid' | 'suspended';
+
+  @Prop({ type: Date })
+  trialEndsAt?: Date;
+
+  @Prop({ type: Date })
+  trialExpiringNotifiedAt?: Date;
+
   @Prop({ default: false })
   acceptsReservations!: boolean;
 
@@ -519,6 +532,14 @@ EstablishmentSchema.index(
   },
   { sparse: true },
 );
+
+/**
+ * Trial Expiry Scanner Index
+ * - Powers the daily trial-expiry cron that finds merchants whose free trial has ended
+ * - Query pattern: find({ subscriptionStatus: 'trial', trialEndsAt: { $lt: now } })
+ * - Also covers expiring-soon queries with a date range on trialEndsAt
+ */
+EstablishmentSchema.index({ subscriptionStatus: 1, trialEndsAt: 1 }, { sparse: true });
 
 /**
  * Soft Delete Recovery Index

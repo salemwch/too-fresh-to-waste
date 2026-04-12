@@ -1,6 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsEnum, IsString, MaxLength, IsBoolean } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  IsString,
+  MaxLength,
+  IsBoolean,
+  IsDateString,
+  IsInt,
+  Min,
+  Max,
+} from 'class-validator';
 
 import {
   EstablishmentStatus,
@@ -173,6 +184,65 @@ export class EstablishmentSearchDto {
   @IsOptional()
   @Type(() => Number)
   limit?: number = 20;
+}
+
+export class ExtendTrialDto {
+  @ApiPropertyOptional({
+    description: 'New trial end date (ISO string). If omitted, extendByDays must be provided.',
+    example: '2026-06-11T23:59:59.999Z',
+  })
+  @IsOptional()
+  @IsDateString()
+  trialEndsAt?: string;
+
+  @ApiPropertyOptional({
+    description: 'Shortcut: extend the current trial by N days. Ignored if trialEndsAt is set.',
+    example: 30,
+    minimum: 1,
+    maximum: 365,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(365)
+  extendByDays?: number;
+
+  @ApiPropertyOptional({
+    description: 'Internal admin notes for audit log',
+    maxLength: 1000,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  adminNotes?: string;
+
+  @ApiPropertyOptional({
+    description: 'Send notification to merchant owner',
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  sendNotification?: boolean = true;
+}
+
+export class MarkAsPaidDto {
+  @ApiPropertyOptional({
+    description: 'Internal admin notes for audit log',
+    maxLength: 1000,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  adminNotes?: string;
+
+  @ApiPropertyOptional({
+    description: 'Send notification to merchant owner',
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  sendNotification?: boolean = true;
 }
 
 export class EstablishmentStatsDto {
