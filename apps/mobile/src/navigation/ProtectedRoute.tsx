@@ -9,8 +9,9 @@ import { View, StyleSheet, ActivityIndicator } from 'react-native';
 
 import { Text } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
-import { logoutAsync, refreshTokenAsync } from '@/features/auth/store/authSlice';
+import { logoutAsync } from '@/features/auth/store/authSlice';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { refreshTokenSafe } from '@/services/authRefresh';
 import { Logger } from '@/utils/logger';
 
 import type { UserRole } from '@/features/auth/types';
@@ -58,7 +59,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return requiredRoles.includes(user.role);
   };
 
-  // useEffectEvent polyfill: stable identity, always reads latest closure values
+  // useEffectEvent polyfill: stable identity, always reads latest closure values.
+  //
+  // IMPORTANT: Route refresh through `refreshTokenSafe`, NOT a direct
+  // `dispatch(refreshTokenAsync())`. The session middleware and axios 401
+  // interceptor share a single-flight lock in `services/authRefresh.ts`;
+  // dispatching the thunk directly here would run in parallel to them and
+  // send a STALE refresh token right after the middleware has already
+  // rotated it on the backend — producing the "Token has been revoked"
+  // loop seen on app resume after long background periods.
   const checkAndRefreshTokenLatest = useRef(() => {});
   checkAndRefreshTokenLatest.current = () => {
     if (!isAuthenticated || !tokens?.refreshToken || !sessionExpiresAt) return;
@@ -68,33 +77,25 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     if (!Number.isFinite(expiresAt) || expiresAt - Date.now() >= fiveMinutes) return;
 
-    void dispatch(refreshTokenAsync())
-      .unwrap()
-      .then(() => {
+    void refreshTokenSafe(dispatch).then(result => {
+      if (result.success) {
         Logger.info('[ProtectedRoute] Token refreshed successfully');
-      })
-      .catch((error: unknown) => {
-        const rejectionPayload =
-          typeof error === 'object' && error !== null
-            ? (error as { message?: string; isNetworkError?: boolean })
-            : undefined;
+        return;
+      }
 
-        if (rejectionPayload?.isNetworkError === true) {
-          Logger.warn('[ProtectedRoute] Token refresh failed due to network error', {
-            message: rejectionPayload.message,
-          });
-          return;
-        }
+      if (result.isNetworkError === true) {
+        Logger.warn('[ProtectedRoute] Token refresh failed due to network error', {
+          message: result.error,
+        });
+        return;
+      }
 
-        const refreshError =
-          error instanceof Error ? error : new Error(rejectionPayload?.message ?? 'Unknown error');
-
-        Logger.error(
-          '[ProtectedRoute] Token refresh failed and session will expire',
-          { message: rejectionPayload?.message },
-          refreshError,
-        );
-      });
+      Logger.error(
+        '[ProtectedRoute] Token refresh failed and session will expire',
+        { message: result.error },
+        new Error(result.error ?? 'Unknown error'),
+      );
+    });
   };
   const checkAndRefreshToken = useCallback(() => checkAndRefreshTokenLatest.current(), []);
 

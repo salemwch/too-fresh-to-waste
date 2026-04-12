@@ -15,6 +15,7 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios';
 
 import { environment } from '@/config/environment';
+import { apiClient, unwrapBackendResponse } from '@/services/apiClient';
 import { Logger, NetworkLogger } from '@/utils/logger';
 
 import type {
@@ -91,6 +92,11 @@ class NearbyOffersService {
   // Private Helpers
   // ─────────────────────────────────────────────────────────────────────────
 
+  /**
+   * Raw-axios request helper for PUBLIC endpoints (no auth).
+   * Authenticated endpoints must go through `apiClient` so 401s route
+   * through the shared `refreshTokenSafe` pipeline — see `searchOffers`.
+   */
   private async makeRequest<T>(
     method: 'GET' | 'POST',
     url: string,
@@ -113,7 +119,6 @@ class NearbyOffersService {
           ...headers,
         },
         timeout: this.timeout,
-        // ✅ Only include signal if defined (exactOptionalPropertyTypes compatibility)
         ...(signal && { signal }),
       });
 
@@ -140,7 +145,6 @@ class NearbyOffersService {
         new Error(message),
       );
 
-      // Re-throw with user-friendly message
       throw new Error(message || 'Failed to fetch nearby offers');
     }
 
@@ -153,19 +157,22 @@ class NearbyOffersService {
   // ─────────────────────────────────────────────────────────────────────────
 
   /**
-   * Search for offers within a radius of a point
+   * Search for offers within a radius of a point.
    *
-   * @param params - Search parameters
-   * @param accessToken - JWT access token (required)
-   * @returns Array of offers with distance information
+   * Routes through the shared `apiClient` (not raw axios) so:
+   * - Bearer token is injected from Redux on every call — no stale token
+   *   passed by the caller
+   * - 401 responses flow through `refreshTokenSafe` (single-flight refresh)
+   *   and the original request is retried with the new token
+   *
+   * This was the root cause of the post-background-resume 401 flood on
+   * `/proximity-search/offers`: the previous raw-axios path bypassed the
+   * interceptor entirely, so each 401 bubbled up as a query error instead
+   * of triggering a refresh.
    */
-  async searchOffers(
-    params: NearbyOffersParams,
-    accessToken: string,
-  ): Promise<ProximitySearchResult<NearbyOffer>[]> {
-    const url = `${this.proximityBaseURL}/offers`;
-
-    const requestBody = {
+  async searchOffers(params: NearbyOffersParams): Promise<ProximitySearchResult<NearbyOffer>[]> {
+    const url = '/proximity-search/offers';
+    const body = {
       center: params.center,
       radius: params.radius,
       limit: params.limit ?? 20,
@@ -175,21 +182,32 @@ class NearbyOffersService {
       ...(params.query ? { query: params.query } : {}),
     };
 
-    return this.makeRequest<ProximitySearchResult<NearbyOffer>[]>('POST', url, requestBody, {
-      Authorization: `Bearer ${accessToken}`,
-    });
+    try {
+      const response = await apiClient.post(url, body);
+      return unwrapBackendResponse<ProximitySearchResult<NearbyOffer>[]>(
+        response,
+        'nearby offers search',
+      );
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError<{ message?: string }>;
+        const message = axiosError.response?.data?.message ?? axiosError.message;
+        Logger.error(
+          'Nearby offers API error',
+          { url, status: axiosError.response?.status },
+          new Error(message),
+        );
+        throw new Error(message || 'Failed to fetch nearby offers');
+      }
+      Logger.error('Network error in nearby offers service', { url }, error as Error);
+      throw new Error('Network error. Please check your connection.');
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
   // Proximity Search (Establishments) - Public
   // ─────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Search for establishments within a radius of a point
-   *
-   * @param params - Search parameters
-   * @returns Array of establishments with distance information
-   */
   async searchEstablishments(
     params: NearbyOffersParams,
   ): Promise<ProximitySearchResult<NearbyEstablishment>[]> {
@@ -211,13 +229,6 @@ class NearbyOffersService {
   // Proximity Search (Map Establishments) - Public
   // ─────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Search for establishments with their active offers for map markers.
-   * Public endpoint — no JWT required.
-   *
-   * @param params - Search parameters
-   * @returns Array of establishments with embedded offers and distance info
-   */
   async searchMapEstablishments(
     params: NearbyOffersParams,
   ): Promise<ProximitySearchResult<MapEstablishment>[]> {
@@ -239,14 +250,6 @@ class NearbyOffersService {
   // Quick Search - Public
   // ─────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Quick search using query parameters (simpler API)
-   *
-   * @param latitude - Center latitude
-   * @param longitude - Center longitude
-   * @param radius - Search radius in meters
-   * @returns Array of nearby establishments
-   */
   async quickSearch(
     latitude: number,
     longitude: number,
@@ -262,9 +265,7 @@ class NearbyOffersService {
       const response = await axios.get<ApiResponse<ProximitySearchResult<NearbyEstablishment>[]>>(
         url,
         {
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           timeout: this.timeout,
         },
       );
@@ -284,28 +285,11 @@ class NearbyOffersService {
   // Geocoding - Public
   // ─────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Search for locations by address/city name (forward geocoding)
-   *
-   * @param query - Search query (e.g., "Paris, France")
-   * @param limit - Maximum results (default 5)
-   * @returns Array of matching locations
-   */
   async geocodeSearch(query: string, limit: number = 5): Promise<GeocodeResult[]> {
     const url = `${this.geolocationBaseURL}/geocode`;
-
-    // Backend expects 'address' field, not 'query'
     return this.makeRequest<GeocodeResult[]>('POST', url, { address: query, limit });
   }
 
-  /**
-   * Get address from coordinates (reverse geocoding)
-   *
-   * @param coordinates - Lat/lng to reverse geocode
-   * @param language - Preferred language (default 'en')
-   * @param signal - Optional AbortSignal for request cancellation
-   * @returns Address information
-   */
   async reverseGeocode(
     coordinates: GeoCoordinates,
     language: string = 'en',
@@ -313,7 +297,6 @@ class NearbyOffersService {
   ): Promise<AddressInfo> {
     const url = `${this.geolocationBaseURL}/reverse-geocode`;
 
-    // Backend expects nested 'coordinates' object per ReverseGeocodingDto
     return this.makeRequest<AddressInfo>(
       'POST',
       url,
@@ -324,8 +307,8 @@ class NearbyOffersService {
         },
         language,
       },
-      undefined, // headers
-      signal, // ✅ Pass abort signal through
+      undefined,
+      signal,
     );
   }
 }

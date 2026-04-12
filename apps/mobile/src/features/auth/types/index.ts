@@ -88,6 +88,11 @@ export interface AuthState {
   readonly offlineMessage?: string | undefined; // Message to show in banner ("You're offline. Trying to reconnect…")
   readonly retryAfterMs?: number | undefined; // When to retry connection
   readonly offlineSince?: string | undefined; // When offline mode started (ISO timestamp)
+
+  // True while the session middleware is running post-resume token recovery.
+  // Protected queries should wait on this flag before firing so they don't
+  // race the refresh and trigger a 401 flood.
+  readonly isRecoveringSession: boolean;
 }
 
 export interface BiometricAuthState {

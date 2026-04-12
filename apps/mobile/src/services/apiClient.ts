@@ -19,7 +19,7 @@
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
 import { environment } from '@/config/environment';
-import { refreshTokenAsync } from '@/features/auth/store/authSlice';
+import { refreshTokenSafe } from '@/services/authRefresh';
 import {
   cancelInflightRequests as cancelTrackedRequests,
   createTrackedAbortController,
@@ -199,50 +199,15 @@ export function unwrapBackendResponseSafe<T>(
   }
 }
 
-// ✅ PROMISE-BASED LOCK: Prevents duplicate refresh attempts (not boolean flag)
-let refreshLock: Promise<void> | null = null;
-
-// ✅ PER-REQUEST ABORT CONTROLLERS: Track all active requests
-// Each request gets its own AbortController, stored in a Set for global abort
-// Queue for requests waiting on token refresh
-let failedQueue: Array<{
-  resolve: (value?: unknown) => void;
-  reject: (reason?: unknown) => void;
-}> = [];
-
-/**
- * Process queued requests after token refresh
- */
-const processQueue = (error: Error | null = null) => {
-  failedQueue.forEach(promise => {
-    if (error) {
-      promise.reject(error);
-    } else {
-      promise.resolve();
-    }
-  });
-
-  failedQueue = [];
-};
-
-/**
- * Create AbortController for a request and track it globally
- * Automatically removed when request completes
- */
 /**
  * Cancel all inflight requests
  * Called on logout to prevent orphaned requests from re-triggering auth flows
  *
- * ✅ CRITICAL: Aborts ALL active requests globally
+ * Refresh single-flight now lives in services/authRefresh.ts and is shared
+ * with the session middleware — no local refreshLock / failedQueue here.
  */
 export const cancelInflightRequests = (): void => {
   cancelTrackedRequests();
-
-  // Clear queued requests
-  processQueue(new Error('Logout - all requests cancelled'));
-
-  // Clear refresh lock
-  refreshLock = null;
 };
 
 /**
@@ -357,8 +322,14 @@ const createApiClient = (): AxiosInstance => {
         // Continue to 401 handling...
       }
 
-      // Handle 401 Unauthorized - Token Refresh
-      // ✅ ESLINT FIX: Explicitly check for false instead of using ! operator
+      // Handle 401 Unauthorized - delegate to shared refresh pipeline
+      //
+      // Concurrency is guaranteed by services/authRefresh.ts — all callers
+      // (this interceptor, the session middleware, background tasks) share
+      // one promise-based lock. No local refreshLock / failedQueue needed:
+      // if multiple 401s arrive in parallel they all await the same
+      // refreshTokenSafe() promise, and their request-interceptor retries
+      // pick up the freshly-written access token from Redux state.
       if (
         error.response?.status === 401 &&
         originalRequest != null &&
@@ -366,103 +337,53 @@ const createApiClient = (): AxiosInstance => {
       ) {
         Logger.debug('[API-CLIENT] 401 Unauthorized detected', {
           url: originalRequest.url,
-          hasRefreshLock: refreshLock !== null,
-          queuedRequests: failedQueue.length,
         });
-
-        // ✅ PROMISE LOCK: Check if refresh already in progress
-        if (refreshLock !== null) {
-          // Queue this request until refresh completes
-          Logger.debug('[API-CLIENT] Queueing request (refresh in progress)', {
-            queueSize: failedQueue.length + 1,
-          });
-
-          return new Promise((resolve, reject) => {
-            failedQueue.push({ resolve, reject });
-          })
-            .then(() => {
-              Logger.debug('[API-CLIENT] Queue processed - retrying queued request');
-              return client(originalRequest);
-            })
-            .catch(err => {
-              Logger.error(
-                '[API-CLIENT] Queue processing failed',
-                { url: originalRequest.url },
-                err as Error,
-              );
-              return Promise.reject(err);
-            });
-        }
 
         originalRequest._retry = true;
 
-        // Create refresh promise and store as lock
-        refreshLock = (async () => {
-          const dispatch = getAppDispatch<AppDispatch>();
+        const dispatch = getAppDispatch<AppDispatch>();
+        Logger.info('[API-CLIENT] Requesting shared token refresh');
+        const refreshResult = await refreshTokenSafe(dispatch);
 
-          try {
-            Logger.info('[API-CLIENT] Starting token refresh flow');
-
-            // ✅ SAFE ERROR HANDLING: Don't use unwrap() - handle rejection via match
-            const result = await dispatch(refreshTokenAsync());
-
-            if (refreshTokenAsync.fulfilled.match(result)) {
-              const newAccessToken = result.payload.tokens.accessToken;
-
-              Logger.info('[API-CLIENT] Token refresh successful', {
-                expiresIn: result.payload.tokens.expiresIn,
-                queuedRequests: failedQueue.length,
-              });
-
-              // Process queue successfully
-              processQueue();
-
-              // Retry original request with new token
-              originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-              Logger.debug('[API-CLIENT] Retrying original request', { url: originalRequest.url });
-            } else {
-              // Refresh rejected
-              throw new Error('Token refresh failed - refresh action did not fulfill');
-            }
-          } catch (refreshError) {
-            Logger.error(
-              '[API-CLIENT] Token refresh failed, clearing local session',
-              {},
-              refreshError as Error,
-            );
-
-            // Process queue with error
-            processQueue(refreshError as Error);
-
-            // ✅ CRITICAL: Clear local state WITHOUT making API call
-            // This prevents infinite loop: 401 → refresh fail → logout API → 401 → ...
-            // Import forceLocalLogout action which clears state without network call
-            const { forceLocalLogout } = await import('@/features/auth/store/authSlice');
-            dispatch(forceLocalLogout());
-
-            // Clear secure storage (fire and forget)
-            void import('@/services/SecureStorage').then(({ SecureStorage }) => {
-              SecureStorage.clearAll().catch(err => {
-                Logger.error('[API-CLIENT] Failed to clear secure storage', {}, err as Error);
-              });
-            });
-
-            throw refreshError;
-          } finally {
-            // Clear lock
-            refreshLock = null;
+        if (refreshResult.success) {
+          Logger.info('[API-CLIENT] Shared refresh succeeded, retrying request', {
+            url: originalRequest.url,
+          });
+          // Strip the stale Authorization header so the request interceptor
+          // injects the fresh one on retry.
+          if (originalRequest.headers !== undefined) {
+            delete originalRequest.headers.Authorization;
           }
-        })();
-
-        // Wait for refresh to complete, then retry request
-        try {
-          await refreshLock;
-          // Refresh succeeded, retry request
           return client(originalRequest);
-        } catch (refreshError) {
-          // Refresh failed, reject request
-          return Promise.reject(refreshError);
         }
+
+        if (refreshResult.isNetworkError === true) {
+          // Connectivity issue — keep the session, surface the error to the
+          // caller. Middleware's AppState / retry loop will try again when
+          // the network comes back.
+          Logger.warn('[API-CLIENT] Shared refresh failed (network), preserving session', {
+            error: refreshResult.error,
+          });
+          return Promise.reject(error);
+        }
+
+        // Fatal auth failure — refresh token is genuinely invalid/revoked.
+        Logger.error(
+          '[API-CLIENT] Shared refresh failed (fatal), clearing local session',
+          { error: refreshResult.error },
+          new Error(refreshResult.error ?? 'Token refresh failed'),
+        );
+
+        const { forceLocalLogout } = await import('@/features/auth/store/authSlice');
+        dispatch(forceLocalLogout());
+
+        void import('@/services/SecureStorage').then(({ SecureStorage }) => {
+          SecureStorage.clearAll().catch(err => {
+            Logger.error('[API-CLIENT] Failed to clear secure storage', {}, err as Error);
+          });
+        });
+
+        return Promise.reject(error);
       }
 
       // Handle other errors

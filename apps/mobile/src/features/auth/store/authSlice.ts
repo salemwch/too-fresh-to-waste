@@ -37,6 +37,8 @@ const initialState: AuthState = {
   offlineMessage: undefined,
   retryAfterMs: undefined,
   offlineSince: undefined,
+  // Post-resume token-recovery gate (see authSessionMiddleware)
+  isRecoveringSession: false,
 };
 
 // ✅ PROMISE-BASED LOCK: Prevent concurrent logout calls
@@ -663,6 +665,23 @@ const authSlice = createSlice({
     },
 
     /**
+     * Mark that post-resume token recovery has started.
+     * Protected query hooks use this flag to wait for refresh before firing.
+     */
+    sessionRecoveryStarted: state => {
+      state.isRecoveringSession = true;
+    },
+
+    /**
+     * Clear the recovery flag once checkAndRefreshToken has resolved
+     * (success OR fatal failure). The flag must always be cleared so
+     * queries don't stay gated forever.
+     */
+    sessionRecoveryFinished: state => {
+      state.isRecoveringSession = false;
+    },
+
+    /**
      * CRITICAL: Force local logout WITHOUT making any API call
      * Used by apiClient interceptor when token refresh fails
      * This prevents infinite loop: 401 → refresh fail → logout API → 401 → ...
@@ -946,6 +965,23 @@ const authSlice = createSlice({
       state.isLoading = false;
 
       if (action.payload) {
+        // Guard: tokens were found in Keychain but user data is null/corrupt
+        // (can happen when JSON.stringify(null) was stored, or the fire-and-forget
+        // Keychain write in loginAsync did not complete before the app was killed).
+        // Treat this as unauthenticated so we don't persist an inconsistent state
+        // to MMKV and trigger the RehydrationOrchestrator validation error on next boot.
+        if (!action.payload.user) {
+          state.user = null;
+          state.tokens = null;
+          state.isAuthenticated = false;
+          state.flowState = AuthFlowState.UNAUTHENTICATED;
+
+          Logger.warn('[STATE-DRIVEN NAV] Tokens found but user data is null — clearing session', {
+            flowState: AuthFlowState.UNAUTHENTICATED,
+          });
+          return;
+        }
+
         state.user = action.payload.user;
         state.tokens = action.payload.tokens;
         state.isAuthenticated = true;
@@ -1007,6 +1043,9 @@ export const {
   updateUser,
 
   forceLocalLogout,
+
+  sessionRecoveryStarted,
+  sessionRecoveryFinished,
 } = authSlice.actions;
 export default authSlice.reducer;
 
@@ -1023,3 +1062,5 @@ export const selectAuthIsLoading = (state: RootState) => state.auth.isLoading;
 export const selectAuthError = (state: RootState) => state.auth.error;
 export const selectAuthTokens = (state: RootState) => state.auth.tokens;
 export const selectAuthFlowState = (state: RootState) => state.auth.flowState;
+export const selectIsRecoveringSession = (state: RootState): boolean =>
+  state.auth.isRecoveringSession;

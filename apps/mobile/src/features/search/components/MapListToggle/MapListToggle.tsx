@@ -100,6 +100,7 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
           size='sm'
           weight={value === 'map' ? 'bold' : 'medium'}
           color={value === 'map' ? 'primary' : 'secondary'}
+          lineHeight={20}
           style={styles.buttonText}
         >
           Map
@@ -125,6 +126,7 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
           size='sm'
           weight={value === 'list' ? 'bold' : 'medium'}
           color={value === 'list' ? 'primary' : 'secondary'}
+          lineHeight={20}
           style={styles.buttonText}
         >
           List

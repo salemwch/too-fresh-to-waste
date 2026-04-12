@@ -307,7 +307,10 @@ function useRehydrationStatus(timeout: number = 5000): RehydrationStatus {
     });
 
     if (errors.length > 0) {
-      Logger.error('[RehydrationOrchestrator] Validation errors detected', { errors });
+      // WARN not ERROR: these are diagnostic hints, not crashes.
+      // The loadStoredAuthAsync guard now prevents persisting the inconsistent
+      // state to MMKV, so this should never fire after one clean boot cycle.
+      Logger.warn('[RehydrationOrchestrator] Validation warnings detected', { errors });
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -291,13 +291,13 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
             />
 
             <View style={styles.sliderLabels}>
-              <Text variant='label' size='xs' color='secondary'>
+              <Text variant='label' size='xs' color='secondary' lineHeight={18}>
                 500m
               </Text>
-              <Text variant='label' size='xs' color='secondary'>
+              <Text variant='label' size='xs' color='secondary' lineHeight={18}>
                 25km
               </Text>
-              <Text variant='label' size='xs' color='secondary'>
+              <Text variant='label' size='xs' color='secondary' lineHeight={18}>
                 30km
               </Text>
             </View>

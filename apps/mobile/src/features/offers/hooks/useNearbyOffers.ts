@@ -21,7 +21,7 @@
 
 import { useAppSelector } from '@/hooks/redux';
 import { useQueryWithFocus } from '@/lib/react-query/hooks';
-import { selectAuthTokens } from '@/features/auth/store/authSlice';
+import { selectAuthTokens, selectIsRecoveringSession } from '@/features/auth/store/authSlice';
 
 import {
   nearbyOffersService,
@@ -85,7 +85,13 @@ export function useNearbyOffers(
   params: NearbyOffersParams | null,
   options: UseNearbyOffersOptions = {},
 ) {
+  // Still check auth presence — no point firing a protected query
+  // for a logged-out user — but don't pass the token to the service.
+  // The shared `apiClient` injects it from Redux at request time.
   const tokens = useAppSelector(selectAuthTokens);
+  // Wait for the session middleware's post-resume refresh to finish
+  // before firing, so we don't race it with a stale access token.
+  const isRecoveringSession = useAppSelector(selectIsRecoveringSession);
 
   const {
     enabled = true,
@@ -93,15 +99,15 @@ export function useNearbyOffers(
     refetchOnFocus = true,
   } = options;
 
-  const isEnabled = enabled && !!params && !!tokens?.accessToken;
+  const isEnabled = enabled && !!params && !!tokens?.accessToken && !isRecoveringSession;
 
   return useQueryWithFocus<ProximitySearchResult<NearbyOffer>[], Error>(
     nearbyOffersKeys.offers(params),
     async () => {
-      if (!params || !tokens?.accessToken) {
+      if (!params) {
         throw new Error('Missing required parameters');
       }
-      return nearbyOffersService.searchOffers(params, tokens.accessToken);
+      return nearbyOffersService.searchOffers(params);
     },
     {
       enabled: isEnabled,

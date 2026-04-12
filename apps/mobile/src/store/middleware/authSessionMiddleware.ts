@@ -42,12 +42,17 @@
 
 import { AppState, type AppStateStatus } from 'react-native';
 
-import { refreshTokenAsync, forceLocalLogout } from '@/features/auth/store/authSlice';
+import {
+  forceLocalLogout,
+  sessionRecoveryStarted,
+  sessionRecoveryFinished,
+} from '@/features/auth/store/authSlice';
 import { AuthFlowState } from '@/features/auth/types';
+import { refreshTokenSafe } from '@/services/authRefresh';
 import { Logger } from '@/utils/logger';
 import { offlineManager } from '@/utils/offlineManager';
 import { SafeAnalytics } from '@/utils/safeAnalytics';
-import { validateTokenLocally, isNetworkError, isFatalAuthError } from '@/utils/tokenValidator';
+import { validateTokenLocally } from '@/utils/tokenValidator';
 
 import type { RootState, AppDispatch } from '../index';
 import type { Middleware } from '@reduxjs/toolkit';
@@ -113,9 +118,8 @@ interface SessionManagerState {
   lastAppState: AppStateStatus;
   jitterTimeoutId: TimerId | null;
 
-  // ✅ CRITICAL: Promise-based locks (not boolean flags)
-  // Prevents race conditions and duplicate operations
-  refreshLock: Promise<void> | null;
+  // Logout single-flight (refresh single-flight now lives in
+  // services/authRefresh.ts and is shared with the axios interceptor).
   logoutLock: Promise<void> | null;
 
   // ✅ Session manager start guard (idempotency)
@@ -138,7 +142,6 @@ const sessionManagerState: SessionManagerState = {
   appStateSubscription: null,
   lastAppState: AppState.currentState,
   jitterTimeoutId: null,
-  refreshLock: null,
   logoutLock: null,
   isManagerRunning: false,
   lastErrorLogTime: 0,
@@ -207,6 +210,32 @@ const handleAppStateChange = (
 ): void => {
   const { lastAppState } = sessionManagerState;
 
+  // Detect active → background transition (user leaving app).
+  //
+  // Raise the recovery gate NOW — before the JS thread gets suspended —
+  // so that when the user returns, any focus-refetch that fires in the
+  // same tick as the `active` event sees isRecoveringSession=true and
+  // holds back. Without this, the AppState change listeners for
+  // TanStack Query's focusManager and this middleware race on resume:
+  // if focusManager runs first, queries refetch with the STALE access
+  // token, producing a burst of backend 401s before our middleware
+  // gets a chance to start the refresh.
+  //
+  // The gate is cleared in checkAndRefreshToken's finally block, which
+  // runs unconditionally once the resume-side handler reaches it.
+  if (lastAppState === 'active' && nextAppState.match(/inactive|background/)) {
+    const backgroundState = getState();
+    const shouldGate =
+      backgroundState.auth.flowState === AuthFlowState.AUTHENTICATED &&
+      backgroundState.auth.tokens !== null;
+    if (shouldGate) {
+      dispatch(sessionRecoveryStarted());
+      if (CONFIG.ENABLE_LOGGING) {
+        Logger.debug('[AUTH-MIDDLEWARE] Raised recovery gate on background (pre-suspend)');
+      }
+    }
+  }
+
   // Detect background → active transition (user returned to app)
   if (lastAppState.match(/inactive|background/) && nextAppState === 'active') {
     // Clear any existing jitter timeout to prevent duplicate checks
@@ -222,23 +251,40 @@ const handleAppStateChange = (
       }
     }
 
-    // Generate random jitter delay (0 to JITTER_MAX_MS)
-    // This prevents thundering herd when many users activate simultaneously
-    // Example: Push notification tapped by 100K users at once
-    const jitterDelayMs = Math.floor(Math.random() * CONFIG.JITTER_MAX_MS);
+    // AppState active → NO jitter. The jitter logic was borrowed from push-notification
+    // thundering-herd prevention (100k users tapping a notification simultaneously).
+    // For a regular foreground transition that is NOT notification-driven there is
+    // no server-side thundering herd: each user's timer is already de-synchronized by
+    // their individual login time. Adding jitter here just guarantees the token refresh
+    // fires AFTER TanStack Query's onFocus queries, causing avoidable 401 floods.
+    const jitterDelayMs = 0;
 
-    Logger.info('[AUTH-MIDDLEWARE] App became active, scheduling session check with jitter', {
+    Logger.info('[AUTH-MIDDLEWARE] App became active, checking session immediately', {
       previousState: lastAppState,
       currentState: nextAppState,
-      jitterDelayMs,
     });
 
-    // Track jitter delay for monitoring distribution
     SafeAnalytics.track('session_foreground_jitter', {
       jitter_delay_ms: jitterDelayMs,
       previous_state: lastAppState,
       trigger: 'appstate_change',
     });
+
+    // ✅ GATE PROTECTED QUERIES DURING RECOVERY
+    // Raise the flag SYNCHRONOUSLY at the top of the resume handler so any
+    // TanStack Query hook re-evaluated on focus sees isRecoveringSession=true
+    // and holds back. The flag is cleared inside checkAndRefreshToken's
+    // finally block (see below) once refresh has actually run.
+    //
+    // Only raise it for authenticated users — anonymous users don't need a
+    // recovery gate and wouldn't benefit from waiting.
+    const resumeState = getState();
+    const needsRecoveryGate =
+      resumeState.auth.flowState === AuthFlowState.AUTHENTICATED &&
+      resumeState.auth.tokens !== null;
+    if (needsRecoveryGate) {
+      dispatch(sessionRecoveryStarted());
+    }
 
     // Schedule session check with jitter delay
     // This spreads load across time instead of hitting backend all at once
@@ -263,6 +309,10 @@ const handleAppStateChange = (
             flowState: currentState.auth.flowState,
             hasTokens: currentState.auth.tokens !== null,
           });
+        }
+        // Release the gate — nothing to recover.
+        if (needsRecoveryGate) {
+          dispatch(sessionRecoveryFinished());
         }
         return; // Don't attempt refresh for logged-out user
       }
@@ -467,169 +517,116 @@ const performLocalLogout = async (
 
 /**
  * Refresh Token with Exponential Backoff
- * Retries refresh on transient failures (network errors, timeouts)
  *
- * ✅ OFFLINE-FIRST: Network errors don't cause logout
- * ✅ PROMISE-BASED LOCK: Prevents concurrent refresh attempts
- * ✅ EXPONENTIAL BACKOFF: Graceful handling of temporary issues
- * ✅ MAX RETRIES: Prevents infinite loops
+ * Delegates the actual refresh call to the shared single-flight pipeline
+ * (`refreshTokenSafe`). This module owns the *retry* policy — backoff on
+ * transient network errors — but no longer owns the concurrency lock.
  *
- * @returns true if refresh succeeded, false if fatal auth error, undefined if network error
+ * Contract:
+ * - Returns `true` if a refresh succeeded OR all retries were exhausted due
+ *   to network errors (Facebook pattern: never logout for connectivity).
+ * - Returns `false` only for fatal auth errors — caller should log out.
  */
 const refreshTokenWithBackoff = async (
   dispatch: AppDispatch,
-  getState: () => RootState,
+  _getState: () => RootState,
   _currentTokens: { accessToken: string; refreshToken: string },
 ): Promise<boolean> => {
-  // ✅ PROMISE LOCK: Check if refresh already in progress
-  if (sessionManagerState.refreshLock !== null) {
+  let attempt = 0;
+  let lastError: string | undefined;
+  let wasNetworkError = false;
+
+  while (attempt < CONFIG.REFRESH_MAX_RETRIES) {
+    const refreshStartTime = Date.now();
+
     if (CONFIG.ENABLE_LOGGING) {
-      Logger.debug('[AUTH-MIDDLEWARE] Refresh already in progress, waiting for completion');
-    }
-    // Wait for existing refresh to complete
-    await sessionManagerState.refreshLock;
-    // Check if refresh was successful by verifying state
-    const newState = getState();
-    return newState.auth.flowState === AuthFlowState.AUTHENTICATED;
-  }
-
-  // Create refresh promise and store as lock
-  const refreshPromise = (async (): Promise<boolean> => {
-    let attempt = 0;
-    let lastError: Error | null = null;
-    let wasNetworkError = false;
-
-    while (attempt < CONFIG.REFRESH_MAX_RETRIES) {
-      try {
-        const refreshStartTime = Date.now();
-
-        if (CONFIG.ENABLE_LOGGING) {
-          Logger.debug('[AUTH-MIDDLEWARE] Attempting token refresh', {
-            attempt: attempt + 1,
-            maxRetries: CONFIG.REFRESH_MAX_RETRIES,
-          });
-        }
-
-        // ✅ CRITICAL: Pass refresh token explicitly (don't read from state)
-        // State might be stale by the time async thunk executes
-        const result = await dispatch(refreshTokenAsync()).unwrap();
-
-        const refreshDuration = Date.now() - refreshStartTime;
-
-        Logger.info('[AUTH-MIDDLEWARE] Token refreshed successfully', {
-          attempt: attempt + 1,
-          refreshDuration,
-          expiresIn: result.tokens.expiresIn,
-        });
-
-        // Track successful refresh
-        SafeAnalytics.track('token_refresh_success', {
-          trigger: 'proactive',
-          attempt: attempt + 1,
-          refresh_duration_ms: refreshDuration,
-        });
-
-        // Reset retry counter
-        sessionManagerState.refreshRetryCount = 0;
-
-        return true;
-      } catch (error) {
-        lastError = error as Error;
-        attempt++;
-
-        // ✅ CRITICAL: Use utility functions for error categorization
-        const isNetworkErr = isNetworkError(error);
-        const isFatalErr = isFatalAuthError(error);
-
-        wasNetworkError = isNetworkErr;
-
-        if (isFatalErr) {
-          // Fatal auth error - token invalid/revoked
-          Logger.warn('[AUTH-MIDDLEWARE] Refresh failed with fatal auth error', {
-            attempt,
-            error: lastError.message,
-          });
-          SafeAnalytics.track('token_refresh_fatal_error', {
-            error_message: lastError.message,
-            attempt,
-          });
-          break; // Don't retry on fatal errors
-        }
-
-        if (isNetworkErr) {
-          // ✅ FACEBOOK PATTERN: Network error - don't logout, retry silently
-          Logger.info('[AUTH-MIDDLEWARE] Refresh failed due to network error, will retry', {
-            attempt,
-            nextRetryIn: attempt < CONFIG.REFRESH_MAX_RETRIES ? calculateBackoff(attempt) : 'N/A',
-            error: lastError.message,
-          });
-
-          // Show offline toast (rate-limited)
-          offlineManager.showOfflineToast();
-
-          // Retry with backoff
-          if (attempt < CONFIG.REFRESH_MAX_RETRIES) {
-            const backoffMs = calculateBackoff(attempt);
-            await new Promise(resolve => setTimeout(resolve, backoffMs));
-          }
-        } else {
-          // Unknown error type - log and don't retry
-          Logger.error('[AUTH-MIDDLEWARE] Refresh failed with unknown error type', {
-            attempt,
-            error: lastError.message,
-          });
-          break;
-        }
-      }
+      Logger.debug('[AUTH-MIDDLEWARE] Attempting token refresh via shared pipeline', {
+        attempt: attempt + 1,
+        maxRetries: CONFIG.REFRESH_MAX_RETRIES,
+      });
     }
 
-    // ✅ CRITICAL: If all retries exhausted due to network errors, DON'T LOGOUT
-    // Facebook Pattern: Keep user logged in, they can still browse cached content
-    if (wasNetworkError) {
-      Logger.info(
-        '[AUTH-MIDDLEWARE] Refresh attempts exhausted (network error), keeping user logged in',
-        {
-          attempts: attempt,
-        },
-      );
+    const result = await refreshTokenSafe(dispatch);
+    const refreshDuration = Date.now() - refreshStartTime;
 
-      SafeAnalytics.track('token_refresh_network_exhausted', {
-        attempts: attempt,
-        action: 'keep_logged_in',
+    if (result.success) {
+      Logger.info('[AUTH-MIDDLEWARE] Token refreshed successfully', {
+        attempt: attempt + 1,
+        refreshDuration,
       });
 
-      // Return true to prevent logout
-      // User stays logged in, will retry when network comes back
+      SafeAnalytics.track('token_refresh_success', {
+        trigger: 'proactive',
+        attempt: attempt + 1,
+        refresh_duration_ms: refreshDuration,
+      });
+
+      sessionManagerState.refreshRetryCount = 0;
       return true;
     }
 
-    // Fatal error or unknown error - return false to trigger logout
-    logErrorRateLimited(
-      '[AUTH-MIDDLEWARE] Token refresh failed with fatal error',
-      {
-        attempts: attempt,
-        error: lastError?.message ?? 'Unknown error',
-      },
-      lastError ?? undefined,
+    attempt++;
+    lastError = result.error;
+    wasNetworkError = result.isNetworkError === true;
+
+    if (wasNetworkError) {
+      // Transient connectivity issue. Never logout — retry with backoff.
+      Logger.info('[AUTH-MIDDLEWARE] Refresh failed due to network error, will retry', {
+        attempt,
+        nextRetryIn: attempt < CONFIG.REFRESH_MAX_RETRIES ? calculateBackoff(attempt) : 'N/A',
+        error: lastError,
+      });
+
+      offlineManager.showOfflineToast();
+
+      if (attempt < CONFIG.REFRESH_MAX_RETRIES) {
+        const backoffMs = calculateBackoff(attempt);
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+      }
+      continue;
+    }
+
+    // Fatal auth error (invalid/revoked refresh token, 401/403, etc.).
+    Logger.warn('[AUTH-MIDDLEWARE] Refresh failed with fatal auth error', {
+      attempt,
+      error: lastError,
+    });
+    SafeAnalytics.track('token_refresh_fatal_error', {
+      error_message: lastError ?? 'unknown',
+      attempt,
+    });
+    break; // Don't retry on fatal errors
+  }
+
+  if (wasNetworkError) {
+    // All attempts hit network errors — keep the user logged in.
+    Logger.info(
+      '[AUTH-MIDDLEWARE] Refresh attempts exhausted (network error), keeping user logged in',
+      { attempts: attempt },
     );
 
-    SafeAnalytics.track('token_refresh_failed', {
-      trigger: 'proactive',
+    SafeAnalytics.track('token_refresh_network_exhausted', {
       attempts: attempt,
-      error_message: lastError?.message ?? 'Unknown error',
+      action: 'keep_logged_in',
     });
 
-    return false;
-  })();
+    return true;
+  }
 
-  // Store promise as lock (map to void to satisfy Promise<void> type)
-  sessionManagerState.refreshLock = refreshPromise.then(() => {});
+  // Fatal error — caller will logout.
+  logErrorRateLimited(
+    '[AUTH-MIDDLEWARE] Token refresh failed with fatal error',
+    { attempts: attempt, error: lastError ?? 'Unknown error' },
+    lastError !== undefined ? new Error(lastError) : undefined,
+  );
 
-  // Wait for completion and clear lock
-  const success = await refreshPromise;
-  sessionManagerState.refreshLock = null;
+  SafeAnalytics.track('token_refresh_failed', {
+    trigger: 'proactive',
+    attempts: attempt,
+    error_message: lastError ?? 'Unknown error',
+  });
 
-  return success;
+  return false;
 };
 
 /**
@@ -651,122 +648,142 @@ const checkAndRefreshToken = async (
 
   // Only manage sessions for authenticated users
   if (flowState !== AuthFlowState.AUTHENTICATED) {
+    // Nothing to recover — release the gate if it was raised.
+    dispatch(sessionRecoveryFinished());
     return;
   }
 
-  // ✅ STEP 1: LOCAL PRE-FLIGHT CHECK (No Network Call)
-  // Validate token locally BEFORE attempting network refresh
-  // Facebook Pattern: Check expiry timestamp locally first
-  const validationResult = validateTokenLocally(tokens?.refreshToken, sessionExpiresAt);
+  // Always release the recovery gate on exit, no matter which branch
+  // finishes the flow. This prevents protected queries from hanging forever
+  // if something unexpected happens in refresh/logout.
+  try {
+    // ✅ STEP 1: LOCAL PRE-FLIGHT CHECK (No Network Call)
+    // Validate refresh-token format + access-token expiry locally.
+    //
+    // IMPORTANT: `validateTokenLocally` flags `reason: 'expired'` when the
+    // ACCESS token is past its expiry. An expired access token is NOT a
+    // reason to log out — that's exactly when we should use the refresh
+    // token. Only missing/malformed refresh tokens (`missing`,
+    // `invalid_format`, `malformed`) are terminal.
+    const validationResult = validateTokenLocally(tokens?.refreshToken, sessionExpiresAt);
 
-  if (!validationResult.isValid) {
-    // Token is invalid/expired locally - no need for network call
-    Logger.info('[AUTH-MIDDLEWARE] Token invalid locally, clearing session', {
-      reason: validationResult.reason,
-    });
+    const isRefreshTokenBroken =
+      validationResult.isValid === false &&
+      (validationResult.reason === 'missing' ||
+        validationResult.reason === 'invalid_format' ||
+        validationResult.reason === 'malformed');
 
-    // Track local validation failure
-    SafeAnalytics.track('token_invalid_locally', {
-      reason: validationResult.reason,
-    });
+    if (isRefreshTokenBroken) {
+      // Refresh token itself is missing/malformed — cannot recover.
+      Logger.info('[AUTH-MIDDLEWARE] Refresh token missing or malformed, clearing session', {
+        reason: validationResult.reason,
+      });
 
-    // Clear session without calling logout API (tokens already invalid)
-    await performLocalLogout(dispatch, LogoutReason.TOKEN_EXPIRED, {
-      reason: validationResult.reason,
-      validation_type: 'local',
-    });
-    return;
-  }
+      SafeAnalytics.track('token_invalid_locally', {
+        reason: validationResult.reason,
+      });
 
-  // ✅ STEP 2: CHECK NETWORK CONNECTIVITY
-  // If offline, skip network refresh and keep user logged in
-  // Facebook Pattern: Never kick users out for network errors
-  if (offlineManager.isOffline()) {
-    Logger.info('[AUTH-MIDDLEWARE] Device offline, skipping token refresh', {
-      minutesRemaining: Math.floor((validationResult.timeUntilExpiry ?? 0) / 60000),
-    });
-
-    // Show offline toast if token is approaching expiry
-    if (validationResult.isApproachingExpiry === true) {
-      offlineManager.showOfflineToast();
+      await performLocalLogout(dispatch, LogoutReason.TOKEN_MISSING, {
+        reason: validationResult.reason ?? 'unknown',
+        validation_type: 'local',
+      });
+      return;
     }
 
-    // Don't logout - keep user in the app with cached data
-    // Will retry when network comes back (AppState listener)
-    return;
-  }
+    // At this point the refresh token looks usable. The access token may be
+    // still valid, approaching expiry, or already expired — we decide below.
+    const isAccessTokenExpired =
+      validationResult.isValid === false && validationResult.reason === 'expired';
 
-  const timeUntilExpiry = validationResult.timeUntilExpiry ?? 0;
-  const minutesRemaining = Math.floor(timeUntilExpiry / 60000);
+    // ✅ STEP 2: CHECK NETWORK CONNECTIVITY
+    // Offline → keep user logged in with cached data. If the access token
+    // is already expired the user may see 401s until connectivity returns,
+    // but we never log them out for network reasons.
+    if (offlineManager.isOffline()) {
+      Logger.info('[AUTH-MIDDLEWARE] Device offline, skipping token refresh', {
+        accessTokenExpired: isAccessTokenExpired,
+        minutesRemaining: Math.floor((validationResult.timeUntilExpiry ?? 0) / 60000),
+      });
 
-  // Update last check time for monitoring
-  sessionManagerState.lastCheckTime = Date.now();
+      if (isAccessTokenExpired || validationResult.isApproachingExpiry === true) {
+        offlineManager.showOfflineToast();
+      }
 
-  // Log current state in development
-  if (CONFIG.ENABLE_LOGGING) {
-    Logger.debug('[AUTH-MIDDLEWARE] Token check', {
-      minutesRemaining,
-      isApproachingExpiry: validationResult.isApproachingExpiry,
-    });
-  }
+      return;
+    }
 
-  // ✅ STEP 3: DETERMINE IF REFRESH NEEDED
-  // CASE 1: Token expired → Try refresh (silent recovery)
-  // CASE 2: Token approaching expiry → Proactive refresh
-  const needsRefresh = timeUntilExpiry <= CONFIG.REFRESH_THRESHOLD_MS;
+    const timeUntilExpiry = validationResult.timeUntilExpiry ?? 0;
+    const minutesRemaining = Math.floor(timeUntilExpiry / 60000);
 
-  if (!needsRefresh) {
-    // Token still valid, no refresh needed
-    return;
-  }
+    // Update last check time for monitoring
+    sessionManagerState.lastCheckTime = Date.now();
 
-  // ✅ STEP 4: ATTEMPT TOKEN REFRESH
-  const isExpired = timeUntilExpiry <= 0;
+    if (CONFIG.ENABLE_LOGGING) {
+      Logger.debug('[AUTH-MIDDLEWARE] Token check', {
+        isAccessTokenExpired,
+        minutesRemaining,
+        isApproachingExpiry: validationResult.isApproachingExpiry,
+      });
+    }
 
-  if (isExpired) {
-    Logger.info('[AUTH-MIDDLEWARE] Access token expired, attempting silent refresh', {
-      minutesOverdue: Math.abs(minutesRemaining),
-    });
-  } else {
-    Logger.info('[AUTH-MIDDLEWARE] Token approaching expiry, refreshing proactively', {
-      minutesRemaining,
-    });
-  }
+    // ✅ STEP 3: DETERMINE IF REFRESH NEEDED
+    // CASE 1: Access token already expired → silent refresh (recovery)
+    // CASE 2: Access token approaching expiry → proactive refresh
+    // CASE 3: Token still comfortably valid → no-op
+    const needsRefresh = isAccessTokenExpired || timeUntilExpiry <= CONFIG.REFRESH_THRESHOLD_MS;
 
-  // ✅ PASS TOKENS EXPLICITLY: Don't rely on state inside async operations
-  const currentTokens = {
-    accessToken: tokens!.accessToken,
-    refreshToken: tokens!.refreshToken,
-  };
+    if (!needsRefresh) {
+      return;
+    }
 
-  // Attempt refresh with exponential backoff
-  const refreshSuccess = await refreshTokenWithBackoff(dispatch, getState, currentTokens);
+    // ✅ STEP 4: ATTEMPT TOKEN REFRESH
+    if (isAccessTokenExpired) {
+      Logger.info('[AUTH-MIDDLEWARE] Access token expired, attempting silent refresh', {
+        minutesOverdue: Math.abs(minutesRemaining),
+      });
+    } else {
+      Logger.info('[AUTH-MIDDLEWARE] Token approaching expiry, refreshing proactively', {
+        minutesRemaining,
+      });
+    }
 
-  if (!refreshSuccess) {
-    // ✅ CRITICAL: Only logout for FATAL errors, not network errors
-    // Network errors are already handled in refreshTokenWithBackoff
-    // This code only runs for fatal auth errors (401, 403)
-    Logger.warn('[AUTH-MIDDLEWARE] Refresh failed with fatal error, performing logout', {
-      minutesRemaining: isExpired ? Math.abs(minutesRemaining) : minutesRemaining,
-    });
+    // Pass tokens explicitly — state may change during async work
+    const currentTokens = {
+      accessToken: tokens!.accessToken,
+      refreshToken: tokens!.refreshToken,
+    };
 
-    await performLocalLogout(dispatch, LogoutReason.REFRESH_FAILED, {
-      minutes_remaining: minutesRemaining,
-      was_expired: isExpired,
-    });
-  } else {
-    // Refresh succeeded - user stays logged in seamlessly
+    const refreshSuccess = await refreshTokenWithBackoff(dispatch, getState, currentTokens);
+
+    if (!refreshSuccess) {
+      // Only FATAL errors reach here — network errors already handled in
+      // refreshTokenWithBackoff (returns true to keep user logged in).
+      Logger.warn('[AUTH-MIDDLEWARE] Refresh failed with fatal error, performing logout', {
+        wasExpired: isAccessTokenExpired,
+        minutesRemaining,
+      });
+
+      await performLocalLogout(dispatch, LogoutReason.REFRESH_FAILED, {
+        minutes_remaining: minutesRemaining,
+        was_expired: isAccessTokenExpired,
+      });
+      return;
+    }
+
     Logger.info('[AUTH-MIDDLEWARE] Token refreshed successfully', {
-      wasExpired: isExpired,
-      minutesOverdue: isExpired ? Math.abs(minutesRemaining) : 0,
+      wasExpired: isAccessTokenExpired,
+      minutesOverdue: isAccessTokenExpired ? Math.abs(minutesRemaining) : 0,
     });
 
-    if (isExpired) {
+    if (isAccessTokenExpired) {
       SafeAnalytics.track('session_restored_after_expiry', {
         minutes_overdue: Math.abs(minutesRemaining),
         trigger: 'expired_token_refresh',
       });
     }
+  } finally {
+    // Always release the recovery gate so protected queries can fire.
+    dispatch(sessionRecoveryFinished());
   }
 };
 
@@ -840,7 +857,6 @@ export const authSessionMiddleware: Middleware<object, RootState, AppDispatch> =
  */
 export const cleanupSessionManager = (): void => {
   stopSessionManager();
-  sessionManagerState.refreshLock = null;
   sessionManagerState.logoutLock = null;
 };
 
