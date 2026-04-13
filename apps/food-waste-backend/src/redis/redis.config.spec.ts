@@ -31,6 +31,32 @@ describe('redis.config', () => {
     expect(buildRedisTlsOptions(redisConfig)).toBeUndefined();
   });
 
+  it('parses REDIS_URL into discrete connection parts (Upstash/Render convention)', () => {
+    const redisConfig = getRedisConnectionConfigFromEnv({
+      REDIS_URL:
+        'rediss://default:gQAAAAAAAX7eAAIncDFkNzJkYThmMTQ0MzE0NTlhOWZiY2E1Y2FiNWIwYmYyZXAxOTgwMTQ@nice-chamois-98014.upstash.io:6379',
+    });
+
+    expect(redisConfig.host).toBe('nice-chamois-98014.upstash.io');
+    expect(redisConfig.port).toBe(6379);
+    expect(redisConfig.username).toBe('default');
+    expect(redisConfig.password).toBe(
+      'gQAAAAAAAX7eAAIncDFkNzJkYThmMTQ0MzE0NTlhOWZiY2E1Y2FiNWIwYmYyZXAxOTgwMTQ',
+    );
+    expect(redisConfig.useTls).toBe(true);
+  });
+
+  it('recovers when a full connection URL was accidentally pasted into REDIS_HOST', () => {
+    const redisConfig = getRedisConnectionConfigFromEnv({
+      REDIS_HOST: 'rediss://default:secret@nice-chamois-98014.upstash.io:6379',
+    });
+
+    expect(redisConfig.host).toBe('nice-chamois-98014.upstash.io');
+    expect(redisConfig.port).toBe(6379);
+    expect(redisConfig.password).toBe('secret');
+    expect(redisConfig.useTls).toBe(true);
+  });
+
   it('builds TLS options that can relax certificate checks when explicitly configured', () => {
     const redisConfig = getRedisConnectionConfigFromEnv({
       REDIS_TLS: 'true',

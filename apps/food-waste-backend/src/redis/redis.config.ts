@@ -41,18 +41,76 @@ function parseBoolean(value: string | undefined, fallback: boolean): boolean {
   return value === 'true';
 }
 
+interface ParsedRedisUrl {
+  host: string;
+  port?: number;
+  username?: string;
+  password?: string;
+  useTls?: boolean;
+}
+
+function parseRedisUrl(raw: string | undefined): ParsedRedisUrl | undefined {
+  if (!raw?.includes('://')) {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(raw);
+    const protocol = url.protocol.replace(':', '').toLowerCase();
+    const parsed: ParsedRedisUrl = {
+      host: url.hostname,
+      useTls: protocol === 'rediss',
+    };
+
+    const portNumber = Number.parseInt(url.port, 10);
+    if (Number.isFinite(portNumber)) {
+      parsed.port = portNumber;
+    }
+
+    if (url.username) {
+      parsed.username = decodeURIComponent(url.username);
+    }
+    if (url.password) {
+      parsed.password = decodeURIComponent(url.password);
+    }
+
+    return parsed;
+  } catch {
+    return undefined;
+  }
+}
+
 function buildRedisConnectionConfig(read: RedisValueReader): RedisConnectionConfig {
+  // Support REDIS_URL (Upstash/Render convention). Also defensively parse
+  // REDIS_HOST in case the full connection URL was pasted there by mistake.
+  const urlFromEnv = parseRedisUrl(read('REDIS_URL'));
+  const urlFromHost = parseRedisUrl(read('REDIS_HOST'));
+  const urlParts = urlFromEnv ?? urlFromHost;
+
   const redisPort = parseInteger(read('REDIS_PORT', `${DEFAULT_PORT}`), DEFAULT_PORT);
   const redisTlsPort = parseInteger(read('REDIS_TLS_PORT', '0'), 0);
-  const useTls = parseBoolean(read('REDIS_TLS', 'false'), false);
+  const explicitTls = read('REDIS_TLS');
+  const useTls =
+    explicitTls !== undefined && explicitTls !== ''
+      ? parseBoolean(explicitTls, false)
+      : (urlParts?.useTls ?? false);
+
   const minVersion =
     read('REDIS_TLS_MIN_VERSION', DEFAULT_TLS_MIN_VERSION) ?? DEFAULT_TLS_MIN_VERSION;
 
+  const host = urlParts?.host ?? read('REDIS_HOST', DEFAULT_HOST) ?? DEFAULT_HOST;
+  const portFromUrl = urlParts?.port;
+  const portFromEnv = useTls && redisTlsPort > 0 ? redisTlsPort : redisPort;
+  const port = portFromUrl ?? portFromEnv;
+
+  const username = urlParts?.username ?? read('REDIS_USERNAME', 'default') ?? 'default';
+  const password = urlParts?.password ?? read('REDIS_PASSWORD', '') ?? '';
+
   return {
-    host: read('REDIS_HOST', DEFAULT_HOST) ?? DEFAULT_HOST,
-    port: useTls && redisTlsPort > 0 ? redisTlsPort : redisPort,
-    username: read('REDIS_USERNAME', 'default') ?? 'default',
-    password: read('REDIS_PASSWORD', '') ?? '',
+    host,
+    port,
+    username,
+    password,
     useTls,
     rejectUnauthorized: parseBoolean(read('REDIS_TLS_REJECT_UNAUTHORIZED', 'true'), true),
     checkServerIdentity: parseBoolean(read('REDIS_TLS_CHECK_SERVER_IDENTITY', 'true'), true),
