@@ -194,8 +194,10 @@ export class SMTPaymentService {
       hsmKeyId: this.configService.get<string>('SMT_HSM_KEY_ID'),
     };
 
-    // Validate critical security configurations only when payment is enabled
-    const paymentEnabled = this.configService.get<string>('PAYMENT_ENABLED') !== 'false';
+    // Validate critical security configurations only when payment is enabled.
+    // Joi boolean() coerces 'false' → false, so compare against both types.
+    const paymentEnabledRaw = this.configService.get('PAYMENT_ENABLED');
+    const paymentEnabled = paymentEnabledRaw !== false && paymentEnabledRaw !== 'false';
     if (paymentEnabled) {
       this.validateSecurityConfig();
     }
