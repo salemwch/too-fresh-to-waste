@@ -194,8 +194,11 @@ export class SMTPaymentService {
       hsmKeyId: this.configService.get<string>('SMT_HSM_KEY_ID'),
     };
 
-    // Validate critical security configurations
-    this.validateSecurityConfig();
+    // Validate critical security configurations only when payment is enabled
+    const paymentEnabled = this.configService.get<string>('PAYMENT_ENABLED') !== 'false';
+    if (paymentEnabled) {
+      this.validateSecurityConfig();
+    }
 
     this.httpClient = axios.create({
       baseURL: this.config.baseUrl,

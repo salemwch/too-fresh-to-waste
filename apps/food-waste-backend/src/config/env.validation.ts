@@ -90,6 +90,7 @@ export const envValidationSchema = Joi.object({
   }),
 
   // ── Payment (SMT) ───────────────────────────────────────────────────
+  PAYMENT_ENABLED: Joi.boolean().default(true),
   SMT_WEBHOOK_SECRET: Joi.string().optional(),
   SMT_API_SECRET: Joi.string().optional(),
   PAYMENT_ENCRYPTION_KEY: Joi.string().optional(),
