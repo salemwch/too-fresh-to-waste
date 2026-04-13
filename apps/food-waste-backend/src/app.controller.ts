@@ -1,4 +1,5 @@
 import { Controller, Get, HttpStatus } from '@nestjs/common';
+// TODO: remove after Sentry verification
 import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
@@ -40,6 +41,13 @@ export class AppController {
       timestamp: new Date().toISOString(),
       environment: this.configService.get<string>('NODE_ENV', 'development'),
     };
+  }
+
+  // TODO: remove after Sentry verification
+  @Get('debug-sentry')
+  @Public()
+  getDebugSentry() {
+    throw new Error('Sentry test error — delete this endpoint after verification');
   }
 
   @ApiOperation({
