@@ -48,17 +48,13 @@ export class FirebaseAdminService implements OnModuleInit {
 
       // Initialize Firebase Admin SDK
       if (getApps().length === 0) {
-        const storageBucket = this.configService.get<string>(
-          'FIREBASE_STORAGE_BUCKET',
-          `${serviceAccountObj.projectId}.appspot.com`,
-        );
-
+        // Storage bucket intentionally omitted — file uploads use Supabase Storage.
+        // Firebase is used exclusively for FCM push notifications (firebase-admin/messaging).
         initializeApp({
           credential: cert(serviceAccountObj),
           ...(serviceAccountObj.projectId !== undefined
             ? { projectId: serviceAccountObj.projectId }
             : {}),
-          storageBucket,
         });
       }
 

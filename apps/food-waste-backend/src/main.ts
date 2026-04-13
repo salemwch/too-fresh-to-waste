@@ -285,7 +285,7 @@ async function bootstrap() {
   app.use('/public', expressStatic(join(__dirname, '../..', 'public')));
 
   // Legacy static uploads route — backward compatibility for existing DB URLs
-  // New uploads go to Firebase Cloud Storage; this serves old local files only
+  // New uploads go to Supabase Storage; this serves old local files only
   app.use(
     '/uploads',
     (_req: Request, res: Response, next: NextFunction) => {
@@ -367,18 +367,26 @@ async function bootstrap() {
    * @see https://docs.nestjs.com/openapi/introduction
    * @see https://swagger.io/specification/
    */
-  const configuredApiBaseUrl = process.env['API_BASE_URL'];
-  const apiBaseUrl =
-    configuredApiBaseUrl !== null &&
-    configuredApiBaseUrl !== undefined &&
-    configuredApiBaseUrl.length > 0
-      ? configuredApiBaseUrl
-      : 'http://localhost:3000';
+  // ============================================================================
+  // SWAGGER — development and staging only.
+  // Disabled in production: exposes full API schema, enables unauthenticated
+  // "Try it out" calls, and the Swagger UI conflicts with the strict production CSP.
+  // ============================================================================
+  if (isProduction) {
+    logger.startup('Swagger UI disabled in production');
+  } else {
+    const configuredApiBaseUrl = process.env['API_BASE_URL'];
+    const apiBaseUrl =
+      configuredApiBaseUrl !== null &&
+      configuredApiBaseUrl !== undefined &&
+      configuredApiBaseUrl.length > 0
+        ? configuredApiBaseUrl
+        : 'http://localhost:3000';
 
-  const config = new DocumentBuilder()
-    .setTitle('Food Waste API')
-    .setDescription(
-      `**Enterprise-grade API for Food Waste Reduction Platform**
+    const config = new DocumentBuilder()
+      .setTitle('Food Waste API')
+      .setDescription(
+        `**Enterprise-grade API for Food Waste Reduction Platform**
 
 This API provides comprehensive endpoints for:
 - 🔐 **Authentication & Authorization**: JWT-based auth with MFA support
@@ -404,71 +412,72 @@ This API provides comprehensive endpoints for:
 
 **Support**: support@foodwaste.app
 `,
-    )
-    .setVersion('1.0.0')
-    .setContact('Food Waste Platform Team', 'https://foodwaste.app', 'support@foodwaste.app')
-    .setLicense('Proprietary', 'https://foodwaste.app/license')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'Enter JWT access token',
-        in: 'header',
-      },
-      'JWT-auth', // Security scheme ID
-    )
-    .addApiKey(
-      {
-        type: 'apiKey',
-        name: 'X-API-Key',
-        in: 'header',
-        description: 'API Key for service-to-service authentication',
-      },
-      'API-Key',
-    )
-    .addServer('http://localhost:3000', 'Local Development')
-    .addServer('https://staging-api.foodwaste.app', 'Staging Environment')
-    .addServer('https://api.foodwaste.app', 'Production')
-    .addTag('Authentication', 'User authentication and authorization endpoints')
-    .addTag('👥 User Management', 'User profile and preferences management')
-    .addTag('🏪 Establishments Management', 'Restaurant and merchant management')
-    .addTag('Offers Management', 'Surplus food offers and listings')
-    .addTag('Orders', 'Order creation and management')
-    .addTag('Reviews', 'Review and rating system')
-    .addTag('Favorites', 'User favorites and bookmarks')
-    .addTag('Geolocation', 'Location-based services and search')
-    .addTag('Notifications', 'Push notifications and alerts')
-    .addTag('Payments', 'Payment processing')
-    .addTag('Loyalty', 'Loyalty program and rewards')
-    .addTag('Analytics', 'Business analytics and reporting')
-    .addTag('Admin', 'Administrative operations (admin only)')
-    .addTag('🔍 Advanced Search', 'Global search functionality')
-    .addTag('Donations', 'Food donation features')
-    .addTag('Inventory', 'Inventory management')
-    .addTag('Moderation - Actions', 'Moderation actions')
-    .addTag('Moderation - Logs', 'Moderation audit logs')
-    .addTag('Moderation - Reports', 'Content reports and reviews')
-    .build();
+      )
+      .setVersion('1.0.0')
+      .setContact('Food Waste Platform Team', 'https://foodwaste.app', 'support@foodwaste.app')
+      .setLicense('Proprietary', 'https://foodwaste.app/license')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          name: 'JWT',
+          description: 'Enter JWT access token',
+          in: 'header',
+        },
+        'JWT-auth', // Security scheme ID
+      )
+      .addApiKey(
+        {
+          type: 'apiKey',
+          name: 'X-API-Key',
+          in: 'header',
+          description: 'API Key for service-to-service authentication',
+        },
+        'API-Key',
+      )
+      .addServer('http://localhost:3000', 'Local Development')
+      .addServer('https://staging-api.foodwaste.app', 'Staging Environment')
+      .addServer('https://api.foodwaste.app', 'Production')
+      .addTag('Authentication', 'User authentication and authorization endpoints')
+      .addTag('👥 User Management', 'User profile and preferences management')
+      .addTag('🏪 Establishments Management', 'Restaurant and merchant management')
+      .addTag('Offers Management', 'Surplus food offers and listings')
+      .addTag('Orders', 'Order creation and management')
+      .addTag('Reviews', 'Review and rating system')
+      .addTag('Favorites', 'User favorites and bookmarks')
+      .addTag('Geolocation', 'Location-based services and search')
+      .addTag('Notifications', 'Push notifications and alerts')
+      .addTag('Payments', 'Payment processing')
+      .addTag('Loyalty', 'Loyalty program and rewards')
+      .addTag('Analytics', 'Business analytics and reporting')
+      .addTag('Admin', 'Administrative operations (admin only)')
+      .addTag('🔍 Advanced Search', 'Global search functionality')
+      .addTag('Donations', 'Food donation features')
+      .addTag('Inventory', 'Inventory management')
+      .addTag('Moderation - Actions', 'Moderation actions')
+      .addTag('Moderation - Logs', 'Moderation audit logs')
+      .addTag('Moderation - Reports', 'Content reports and reviews')
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/v1/api-docs', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true, // Persist auth between page refreshes
-      tagsSorter: 'alpha', // Sort tags alphabetically
-      operationsSorter: 'alpha', // Sort operations alphabetically
-      docExpansion: 'none', // Collapse all sections by default
-      filter: true, // Enable search filter
-      showRequestDuration: true, // Show request duration in Try it out
-      tryItOutEnabled: true, // Enable Try it out by default
-    },
-    customSiteTitle: 'Food Waste API Documentation',
-    customCss: `
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/v1/api-docs', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true, // Persist auth between page refreshes
+        tagsSorter: 'alpha', // Sort tags alphabetically
+        operationsSorter: 'alpha', // Sort operations alphabetically
+        docExpansion: 'none', // Collapse all sections by default
+        filter: true, // Enable search filter
+        showRequestDuration: true, // Show request duration in Try it out
+        tryItOutEnabled: true, // Enable Try it out by default
+      },
+      customSiteTitle: 'Food Waste API Documentation',
+      customCss: `
             .swagger-ui .topbar { display: none }
             .swagger-ui .info .title { color: #2c3e50; }
         `,
-  });
+    });
+  } // end of !isProduction Swagger block
 
   // Joi coerces PORT to a number, so get it typed correctly and fall back to 3000.
   const port = appConfigService.get<number>('PORT') ?? 3000;

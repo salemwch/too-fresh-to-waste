@@ -396,21 +396,6 @@ export class SupabaseStorageService implements OnModuleInit {
       }
     }
 
-    // Also handle legacy Firebase Storage URLs (gs:// or https://storage.googleapis.com/)
-    if (fileNameOrUrl.startsWith('gs://')) {
-      const parts = fileNameOrUrl.replace('gs://', '').split('/');
-      parts.shift(); // remove bucket name
-      return parts.join('/');
-    }
-
-    const googleStoragePrefix = 'https://storage.googleapis.com/';
-    if (fileNameOrUrl.startsWith(googleStoragePrefix)) {
-      const withoutHost = fileNameOrUrl.substring(googleStoragePrefix.length);
-      const parts = withoutHost.split('/');
-      parts.shift(); // remove bucket name
-      return parts.join('/');
-    }
-
     // Already a relative path — return as-is
     return fileNameOrUrl;
   }

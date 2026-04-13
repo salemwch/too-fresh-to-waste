@@ -148,7 +148,7 @@ export class EstablishmentsController {
 
       let imageUrls: string[] = [];
 
-      // Upload images to Firebase Cloud Storage if provided
+      // Upload images to Supabase Storage if provided
       if (uploadedFiles.length > 0) {
         const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
           folder: 'establishments',
@@ -323,7 +323,7 @@ export class EstablishmentsController {
       const uploadedFiles = files ?? [];
       let newImageUrls: string[] = [];
 
-      // Upload new images to Firebase Cloud Storage if provided
+      // Upload new images to Supabase Storage if provided
       if (uploadedFiles.length > 0) {
         const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
           folder: 'establishments',
@@ -476,7 +476,7 @@ export class EstablishmentsController {
 
       logger.debug(`Uploading ${documentType} for establishment ${id}`);
 
-      // Upload to Firebase Cloud Storage (private — documents use signed URLs)
+      // Upload to Supabase Storage (private — documents use signed URLs)
       const uploadResult = await this.supabaseStorageService.uploadFile(file, {
         folder: `establishments/${id}/documents`,
         makePublic: false,

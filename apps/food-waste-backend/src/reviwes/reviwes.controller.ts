@@ -103,7 +103,7 @@ export class ReviewsController {
       const uploadedFiles = files ?? [];
       let processedImages: ReviewImages[] = [];
 
-      // Upload images to Firebase Storage if provided
+      // Upload images to Supabase Storage if provided
       if (uploadedFiles.length > 0) {
         const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
           folder: 'reviews',
@@ -492,7 +492,7 @@ export class ReviewsController {
       const uploadedFiles = files ?? [];
       let newImages: ReviewImages[] = [];
 
-      // Upload new images to Firebase Storage if provided
+      // Upload new images to Supabase Storage if provided
       if (uploadedFiles.length > 0) {
         const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
           folder: 'reviews',

@@ -29,7 +29,7 @@ export class UpdateUserDto
 
   /**
    * Profile image URL
-   * Can be a Firebase Storage URL or any valid image URL
+   * Can be a Supabase Storage URL or any valid image URL
    */
   @IsOptional()
   @IsString()

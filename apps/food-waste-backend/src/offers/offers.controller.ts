@@ -94,7 +94,7 @@ export class OffersController {
       const uploadedFiles = files ?? [];
       let imageUrls: string[] = [];
 
-      // Upload images to Firebase Cloud Storage if provided
+      // Upload images to Supabase Storage if provided
       if (uploadedFiles.length > 0) {
         const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
           folder: 'offers',
@@ -689,7 +689,7 @@ export class OffersController {
       const uploadedFiles = files ?? [];
       let newImageUrls: string[] = [];
 
-      // Upload new images to Firebase Cloud Storage if provided
+      // Upload new images to Supabase Storage if provided
       if (uploadedFiles.length > 0) {
         const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
           folder: 'offers',
@@ -766,7 +766,7 @@ export class OffersController {
         throw new BadRequestException('No images provided');
       }
 
-      // Upload images to Firebase Cloud Storage
+      // Upload images to Supabase Storage
       const uploadResults = await this.supabaseStorageService.uploadFiles(uploadedFiles, {
         folder: 'offers',
         makePublic: true,

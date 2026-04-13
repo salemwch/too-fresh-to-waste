@@ -146,7 +146,7 @@ export class UsersController {
     try {
       let profileImageUrl: string | null = null;
 
-      // Upload profile image to Firebase Cloud Storage if provided
+      // Upload profile image to Supabase Storage if provided
       if (file !== null && file !== undefined) {
         const uploadResult = await this.supabaseStorageService.uploadFile(file, {
           folder: 'profile-images',
@@ -341,7 +341,7 @@ export class UsersController {
     }
 
     try {
-      // Upload to Firebase Cloud Storage
+      // Upload to Supabase Storage
       const uploadResult = await this.supabaseStorageService.uploadFile(file, {
         folder: 'profile-images',
         makePublic: true,
