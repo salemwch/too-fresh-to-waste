@@ -1,3 +1,4 @@
+const { withSentryConfig } = require('@sentry/nextjs');
 const createNextIntlPlugin = require('next-intl/plugin');
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
@@ -186,4 +187,26 @@ const nextConfig = {
   },
 };
 
-module.exports = withNextIntl(nextConfig);
+module.exports = withSentryConfig(withNextIntl(nextConfig), {
+  // Sentry CLI org + project — set via Vercel env vars or CI secrets
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Only print Sentry output when running in CI (not on every local build)
+  silent: !process.env.CI,
+
+  // Upload a wider set of source maps for cleaner stack traces
+  widenClientFileUpload: true,
+
+  // Proxy Sentry events through /monitoring route so ad-blockers can't drop them.
+  // Browser → /monitoring (same-origin) → Sentry ingest (server-side).
+  // No CSP changes needed.
+  tunnelRoute: '/monitoring',
+
+  // Keep source maps off the client bundle (security: hides your source)
+  hideSourceMaps: true,
+
+  // Tree-shake Sentry logger statements from production bundle
+  disableLogger: true,
+});

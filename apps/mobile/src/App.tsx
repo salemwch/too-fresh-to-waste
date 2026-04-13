@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/react-native';
 import React, { useEffect } from 'react';
+import { Config } from 'react-native-config';
 import { StatusBar, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -43,7 +44,9 @@ ErrorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
 // Prevents app crash if Sentry native module fails to initialize
 try {
   Sentry.init({
-    dsn: 'https://3eb5740ce926140949722896873723e8@o4510811308359680.ingest.de.sentry.io/4510811312947280',
+    // DSN is injected at build time via react-native-config (SENTRY_DSN in .env.*).
+    // Never hardcode it — rotation requires a new release if baked in.
+    dsn: Config['SENTRY_DSN'] ?? '',
 
     // Adds more context data to events (IP address, cookies, user, etc.)
     // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/

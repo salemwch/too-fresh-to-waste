@@ -19,6 +19,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 export interface SentryUser {
   id: string;
@@ -98,6 +99,7 @@ export class SentryService implements OnModuleInit {
         enabled: this.environment !== 'development' && this.environment !== 'test',
 
         integrations: [
+          nodeProfilingIntegration(),
           Sentry.httpIntegration(),
           Sentry.mongoIntegration(),
           Sentry.mongooseIntegration(),

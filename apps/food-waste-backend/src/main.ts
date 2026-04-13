@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { static as expressStatic } from 'express';
@@ -64,11 +65,16 @@ async function bootstrap() {
       // Performance monitoring
       tracesSampleRate: isProduction ? 0.1 : 1.0,
 
+      // CPU profiling — sampled at same rate as traces
+      // nodeProfilingIntegration must be in the integrations array for this to work
+      profilesSampleRate: isProduction ? 0.1 : environment === 'staging' ? 0.5 : 0,
+
       // Only enable in production and staging
       enabled: environment !== 'development' && environment !== 'test',
 
       // Integrations
       integrations: [
+        nodeProfilingIntegration(),
         Sentry.httpIntegration(),
         Sentry.mongoIntegration(),
         Sentry.mongooseIntegration(),
