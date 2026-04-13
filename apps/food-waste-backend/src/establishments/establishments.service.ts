@@ -19,6 +19,7 @@ import {
   EstablishmentDocumentDeletedEvent,
   EstablishmentStatsUpdatedEvent,
 } from '../common/events';
+import { CacheService } from '../common/services/cache.service';
 
 import { CreateEstablishmentDto } from './DTO/create-establishment.dto';
 import { SearchEstablishmentsDto } from './DTO/search-establishments.dto';
@@ -58,10 +59,15 @@ interface AggregateCountResult {
 export class EstablishmentsService {
   private readonly logger = new Logger(EstablishmentsService.name);
 
+  // Cache TTL constants (seconds)
+  private static readonly TTL_ESTABLISHMENT = 1800; // 30 min — establishments rarely change
+  private static readonly TTL_PLACE_CHECK = 3600; // 1 h — Google Place availability is stable
+
   constructor(
     @InjectModel(Establishment.name)
     readonly establishmentModel: Model<EstablishmentDocument>,
     private readonly eventEmitter: EventEmitter2,
+    private readonly cacheService: CacheService,
   ) {}
 
   async create(
@@ -129,13 +135,21 @@ export class EstablishmentsService {
    * registration — pending/rejected ones do not.
    */
   async isGooglePlaceRegistered(googlePlaceId: string): Promise<boolean> {
-    const count = await this.establishmentModel.countDocuments({
-      googlePlaceId,
-      status: EstablishmentStatus.ACTIVE,
-      isVerified: true,
-      isDeleted: { $ne: true },
-    });
-    return count > 0;
+    const cacheKey = `estab:place:${googlePlaceId}`;
+    const result = await this.cacheService.getOrSet(
+      cacheKey,
+      async () => {
+        const count = await this.establishmentModel.countDocuments({
+          googlePlaceId,
+          status: EstablishmentStatus.ACTIVE,
+          isVerified: true,
+          isDeleted: { $ne: true },
+        });
+        return count > 0;
+      },
+      EstablishmentsService.TTL_PLACE_CHECK,
+    );
+    return result;
   }
 
   async createFromSignup(
@@ -452,6 +466,9 @@ export class EstablishmentsService {
       .findByIdAndUpdate(id, updateEstablishmentDto, { new: true })
       .exec();
 
+    // Invalidate stale cache so next read fetches fresh data
+    await this.cacheService.del(`estab:owner:${id}`);
+
     // Step 2: Fetch updated document with owner via $lookup (single round-trip)
     const updatedEstablishment = await this.findByIdWithOwner(id);
 
@@ -501,6 +518,15 @@ export class EstablishmentsService {
     if (!updateResult) {
       throw new NotFoundException('Establishment not found');
     }
+
+    // Invalidate stale cache entries
+    await Promise.all([
+      this.cacheService.del(`estab:owner:${id}`),
+      // When status becomes ACTIVE+verified, the place check result changes
+      ...(status === EstablishmentStatus.ACTIVE && updateResult.googlePlaceId
+        ? [this.cacheService.del(`estab:place:${updateResult.googlePlaceId}`)]
+        : []),
+    ]);
 
     // Step 2: Fetch updated document with owner via $lookup (single round-trip)
     const establishment = await this.findByIdWithOwner(id);
@@ -559,7 +585,7 @@ export class EstablishmentsService {
       deletionReason ?? (isAdminDeletion ? 'Admin deletion' : 'Owner deletion');
 
     // Soft delete: mark as deleted instead of removing from database
-    await this.establishmentModel
+    const deleted = await this.establishmentModel
       .findByIdAndUpdate(
         id,
         {
@@ -573,6 +599,14 @@ export class EstablishmentsService {
         { new: true },
       )
       .exec();
+
+    // Invalidate all cached data for this establishment
+    void Promise.all([
+      this.cacheService.del(`estab:owner:${id}`),
+      ...(deleted?.googlePlaceId
+        ? [this.cacheService.del(`estab:place:${deleted.googlePlaceId}`)]
+        : []),
+    ]);
 
     // ✅ EVENT: Emit establishment deleted event
     try {
@@ -1020,16 +1054,24 @@ export class EstablishmentsService {
       throw new BadRequestException('Invalid establishment ID');
     }
 
-    const [establishment] = await this.establishmentModel.aggregate<EstablishmentLean>([
-      { $match: { _id: new Types.ObjectId(id) } },
-      { $limit: 1 },
-      ...this.getOwnerLookupStages(['firstName', 'lastName', 'email', 'phoneNumber']),
-    ]);
+    const cacheKey = `estab:owner:${id}`;
+    const result = await this.cacheService.getOrSet(
+      cacheKey,
+      async () => {
+        const [establishment] = await this.establishmentModel.aggregate<EstablishmentLean>([
+          { $match: { _id: new Types.ObjectId(id) } },
+          { $limit: 1 },
+          ...this.getOwnerLookupStages(['firstName', 'lastName', 'email', 'phoneNumber']),
+        ]);
 
-    if (!establishment) {
-      throw new NotFoundException('Establishment not found');
-    }
+        if (!establishment) {
+          throw new NotFoundException('Establishment not found');
+        }
 
-    return establishment;
+        return establishment;
+      },
+      EstablishmentsService.TTL_ESTABLISHMENT,
+    );
+    return result;
   }
 }

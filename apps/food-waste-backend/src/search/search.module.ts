@@ -13,7 +13,6 @@ import { PopularSearch, PopularSearchSchema } from './schemas/popular-search.sch
 import { SearchQuery, SearchQuerySchema } from './schemas/search-query.schema';
 import { SearchSuggestion, SearchSuggestionSchema } from './schemas/search-suggestion.schema';
 import { SearchController } from './search.controller';
-import { SearchService } from './search.service';
 import { SearchAnalyticsService } from './services/search-analytics.service';
 import { SearchCacheService } from './services/search-cache.service';
 import { SearchIndexService } from './services/search-index.service';
@@ -57,13 +56,12 @@ import { SearchSuggestionService } from './services/search-suggestion.service';
   ],
   controllers: [SearchController],
   providers: [
-    SearchService,
     SearchCacheService,
     SearchAnalyticsService,
     SearchIndexService,
     SearchSuggestionService,
     SearchProcessor,
   ],
-  exports: [SearchService, SearchSuggestionService, SearchAnalyticsService, SearchIndexService],
+  exports: [SearchSuggestionService, SearchAnalyticsService, SearchIndexService],
 })
 export class SearchModule {}

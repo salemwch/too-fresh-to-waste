@@ -419,6 +419,14 @@ OrderSchema.index({ 'pickupDetails.scheduledDate': 1, status: 1 });
 OrderSchema.index({ isRated: 1, status: 1, pickedUpAt: 1 });
 
 /**
+ * Establishment Filtered History Index
+ * - Completes the triple compound for establishment-scoped dashboard queries
+ * - Supports pagination, status filtering, and date sorting simultaneously
+ * - Query pattern: find({ establishmentId, status }).sort({ createdAt: -1 })
+ */
+OrderSchema.index({ establishmentId: 1, status: 1, createdAt: -1 });
+
+/**
  * Geospatial Index - Establishment Address
  * - Enables location-based order analytics
  * - Query pattern: find({ 'establishmentAddress.coordinates': { $near: point } })

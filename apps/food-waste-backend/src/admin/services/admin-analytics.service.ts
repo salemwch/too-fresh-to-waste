@@ -10,6 +10,7 @@ import { Offer, OfferDocument } from '../../offers/schemas/offer.schema';
 import { Order, OrderDocument } from '../../orders/schemas/order.schema';
 import { Review, ReviewDocument, ReviewStatus } from '../../reviwes/schemas/reviwe.schema';
 import { User, UserDocument } from '../../users/schemas/user.schema';
+import { CacheService } from '../../common/services/cache.service';
 import { GetAnalyticsQueryDto, AnalyticsPeriodType } from '../dto/admin-analytics.dto';
 import {
   PlatformAnalytics,
@@ -153,6 +154,16 @@ type RevenueByEstablishmentAggregationResult = EstablishmentRevenue;
 export class AdminAnalyticsService {
   private readonly logger = new Logger(AdminAnalyticsService.name);
 
+  // TTL per period type — shorter for recent data, longer for historical
+  private static readonly ANALYTICS_TTL: Record<AnalyticsPeriodType, number> = {
+    [AnalyticsPeriodType.DAY]: 5 * 60, // 5 min — daily dashboard refreshes often
+    [AnalyticsPeriodType.WEEK]: 15 * 60, // 15 min
+    [AnalyticsPeriodType.MONTH]: 30 * 60, // 30 min
+    [AnalyticsPeriodType.QUARTER]: 60 * 60, // 1 hour
+    [AnalyticsPeriodType.YEAR]: 60 * 60, // 1 hour
+    [AnalyticsPeriodType.CUSTOM]: 5 * 60, // 5 min — custom ranges can be anything
+  };
+
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Establishment.name)
@@ -160,9 +171,30 @@ export class AdminAnalyticsService {
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
     @InjectModel(Offer.name) private readonly offerModel: Model<OfferDocument>,
     @InjectModel(Review.name) private readonly reviewModel: Model<ReviewDocument>,
+    private readonly redisCache: CacheService,
   ) {}
 
   async getPlatformAnalytics(query: GetAnalyticsQueryDto): Promise<PlatformAnalytics> {
+    const periodType = query.period ?? AnalyticsPeriodType.WEEK;
+    const ttl = AdminAnalyticsService.ANALYTICS_TTL[periodType];
+    // Custom date ranges include the dates in the key so different ranges don't collide
+    const cacheKey =
+      periodType === AnalyticsPeriodType.CUSTOM
+        ? `admin:analytics:${periodType}:${query.startDate ?? ''}:${query.endDate ?? ''}:${String(query.includeDetails ?? false)}`
+        : `admin:analytics:${periodType}:${String(query.includeDetails ?? false)}`;
+
+    const result = await this.redisCache.getOrSet(
+      cacheKey,
+      async () => {
+        const analytics = await this.fetchPlatformAnalytics(query);
+        return analytics;
+      },
+      ttl,
+    );
+    return result;
+  }
+
+  private async fetchPlatformAnalytics(query: GetAnalyticsQueryDto): Promise<PlatformAnalytics> {
     try {
       const period = this.calculateAnalyticsPeriod(query);
 

@@ -18,7 +18,7 @@ import {
 
 import { SearchCacheService } from './search-cache.service';
 
-interface SuggestionResult {
+export interface SuggestionResult {
   text: string;
   type: SuggestionType;
   source: SuggestionSource;

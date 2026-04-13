@@ -399,6 +399,8 @@ ReviewSchema.index({ comment: 'text', title: 'text', 'sentimentAnalysis.keywords
 // Covers type+establishment, rating+status, and sorted listing in one compound
 ReviewSchema.index({ establishmentId: 1, type: 1, status: 1, overallRating: 1, createdAt: -1 });
 ReviewSchema.index({ isDeleted: 1, deletedAt: 1 }, { sparse: true });
+// Moderation queue sorted by arrival time (no manual-review-required filter)
+ReviewSchema.index({ status: 1, createdAt: -1 });
 
 // Virtual fields
 ReviewSchema.virtual('helpfulnessRatio').get(function () {

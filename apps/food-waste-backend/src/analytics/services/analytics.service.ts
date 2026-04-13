@@ -40,6 +40,7 @@ import {
   AggregationOptions,
   CacheStatistics,
 } from '../interfaces/analytics.interface';
+import { CacheService } from '../../common/services/cache.service';
 import { AnalyticsCache, AnalyticsCacheDocument } from '../schemas/analytics-cache.schema';
 import { AnalyticsUtil } from '../utils/analytics.util';
 
@@ -129,6 +130,7 @@ export class AnalyticsService {
     @InjectModel(AnalyticsCache.name) private readonly cacheModel: Model<AnalyticsCacheDocument>,
     private readonly eventEmitter: EventEmitter2,
     private readonly configService: ConfigService,
+    private readonly redisCache: CacheService,
   ) {
     this.cacheEnabled = this.configService.get<boolean>('ANALYTICS_CACHE_ENABLED', true);
     void this._establishmentModel;
@@ -469,6 +471,18 @@ export class AnalyticsService {
   // ==================== Real-time Metrics ====================
 
   async getRealTimeMetrics(): Promise<RealTimeMetrics> {
+    const result = await this.redisCache.getOrSet(
+      'analytics:realtime',
+      async () => {
+        const metrics = await this.fetchRealTimeMetrics();
+        return metrics;
+      },
+      30,
+    );
+    return result;
+  }
+
+  private async fetchRealTimeMetrics(): Promise<RealTimeMetrics> {
     try {
       const now = new Date();
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());

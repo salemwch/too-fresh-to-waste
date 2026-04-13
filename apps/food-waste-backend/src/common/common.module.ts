@@ -10,6 +10,7 @@ import { CspReportController } from './controllers/csp-report.controller';
 import { MetricsController } from './controllers/metrics.controller';
 import { QueryComplexityGuard } from './guards/query-complexity.guard';
 import { GlobalSanitizationMiddleware } from './middleware/global-sanitization.middleware';
+import { CacheService } from './services/cache.service';
 import { ConfigParserService } from './services/config-parser.service';
 import { EventEmitter2Adapter } from './services/event-bus/adapters/eventemitter2.adapter';
 import { RabbitMQAdapter } from './services/event-bus/adapters/rabbitmq.adapter';
@@ -36,6 +37,7 @@ import { IsNotProfaneConstraint } from './validators/business-constraints.valida
     RegexSecurityUtil,
     QueryComplexityGuard,
     ConfigParserService,
+    CacheService,
     AppLoggerService,
     SentryService, // Enterprise error tracking and monitoring
     PrometheusMetricsService, // Prometheus metrics collection
@@ -54,6 +56,7 @@ import { IsNotProfaneConstraint } from './validators/business-constraints.valida
     RegexSecurityUtil,
     QueryComplexityGuard,
     ConfigParserService,
+    CacheService,
     AppLoggerService,
     SentryService, // Export for global error tracking
     PrometheusMetricsService, // Export for application-wide metrics

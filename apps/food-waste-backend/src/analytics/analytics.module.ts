@@ -4,6 +4,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MongooseModule } from '@nestjs/mongoose';
 
 // Import schemas
+import { CommonModule } from '../common/common.module';
 import { AppLoggerService } from '../common/services/logger.service';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
@@ -21,6 +22,7 @@ import { DashboardService } from './services/dashboard.service';
 
 @Module({
   imports: [
+    CommonModule,
     ConfigModule,
     EventEmitterModule,
     MongooseModule.forFeature([

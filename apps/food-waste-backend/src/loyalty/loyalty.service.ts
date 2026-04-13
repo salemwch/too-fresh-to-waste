@@ -510,22 +510,25 @@ export class LoyaltyService {
 
     const userProjection = { firstName: 1, lastName: 1, profileImage: 1, avatar: 1 };
 
-    // ── Top-N entries with offset pagination ──────────────────────────────
-    const raw = await this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
-      { $match: { isActive: true } },
-      { $sort: { totalPoints: -1, _id: 1 } },
-      { $skip: offset },
-      { $limit: limit },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'userId',
-          foreignField: '_id',
-          pipeline: [{ $project: userProjection }],
-          as: 'userInfo',
+    // ── Top-N entries and total count are independent — run in parallel ────
+    const [raw, total] = await Promise.all([
+      this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
+        { $match: { isActive: true } },
+        { $sort: { totalPoints: -1, _id: 1 } },
+        { $skip: offset },
+        { $limit: limit },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            pipeline: [{ $project: userProjection }],
+            as: 'userInfo',
+          },
         },
-      },
-      { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
+      ]),
+      this.loyaltyModel.countDocuments({ isActive: true }),
     ]);
 
     const entries: LeaderboardEntry[] = raw.map((doc, index) =>
@@ -553,6 +556,7 @@ export class LoyaltyService {
 
       const ownEntry = ownRaw[0];
       if (ownEntry) {
+        // aboveCount depends on ownEntry.totalPoints — must run after ownRaw
         const aboveCount = await this.loyaltyModel.countDocuments({
           isActive: true,
           totalPoints: { $gt: ownEntry.totalPoints },
@@ -564,8 +568,6 @@ export class LoyaltyService {
         );
       }
     }
-
-    const total = await this.loyaltyModel.countDocuments({ isActive: true });
 
     return { entries, currentUserEntry, total };
   }

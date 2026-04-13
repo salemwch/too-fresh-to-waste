@@ -8,6 +8,7 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Connection, Model, Types, isValidObjectId, PipelineStage, FlattenMaps } from 'mongoose';
 
+import { CacheService } from '../common/services/cache.service';
 import { AppLoggerService } from '../common/services/logger.service';
 import { TimezoneUtil } from '../common/utils/timezone.util';
 import { EstablishmentsService } from '../establishments/establishments.service';
@@ -152,12 +153,17 @@ interface FavoriteSignalRecord {
 
 @Injectable()
 export class OffersService {
+  // Cache TTL constants (seconds)
+  private static readonly TTL_FEATURED = 120; // 2 min — offers change infrequently
+  private static readonly TTL_URGENT = 60; // 1 min — expiry-based, time-sensitive
+
   constructor(
     @InjectModel(Offer.name)
     private readonly offerModel: Model<OfferDocument>,
     @InjectConnection() private readonly connection: Connection,
     private readonly logger: AppLoggerService,
     private readonly establishmentsService: EstablishmentsService,
+    private readonly cacheService: CacheService,
   ) {}
 
   // ============================================================================
@@ -238,11 +244,12 @@ export class OffersService {
   private async mapOffersToDto(
     offers: (OfferDocument | OfferLean)[],
     userId?: string,
+    prefetchedFavoriteSet?: Set<string>, // avoids a second DB hit when caller already fetched IDs
   ): Promise<OfferCardDto[]> {
-    let favoriteSet: Set<string> = new Set();
+    let favoriteSet: Set<string> = prefetchedFavoriteSet ?? new Set();
 
-    // If user is authenticated, fetch their favorite IDs
-    if (userId) {
+    // Only fetch from DB when not pre-supplied by the caller
+    if (userId && !prefetchedFavoriteSet) {
       try {
         const favoriteIds = await this.getUserFavoriteOfferIds(userId);
         favoriteSet = new Set(favoriteIds); // O(1) lookup per offer
@@ -920,6 +927,10 @@ export class OffersService {
       throw new NotFoundException('Offer not found');
     }
 
+    // Activating/deactivating an offer changes the featured and urgent lists
+    void this.cacheService.delByPrefix('offers:featured:');
+    void this.cacheService.delByPrefix('offers:urgent:');
+
     return updatedOffer;
   }
 
@@ -1078,6 +1089,12 @@ export class OffersService {
       )
       .exec();
 
+    // Purge from any cached lists — deleted offer must not reappear
+    void Promise.all([
+      this.cacheService.delByPrefix('offers:featured:'),
+      this.cacheService.delByPrefix('offers:urgent:'),
+    ]);
+
     this.logger.log(`Offer ${id} soft deleted by user ${userId} (${userRole})`);
   }
   /**
@@ -1226,6 +1243,23 @@ export class OffersService {
     page: number = 1,
     limit: number = 10,
     userId?: string, // NEW: For isFavorite computation
+  ): Promise<{ data: OfferCardDto[]; total: number }> {
+    const cacheKey = `offers:featured:${page}:${Math.min(limit, 100)}:${userId ?? 'anon'}`;
+    const result = await this.cacheService.getOrSet(
+      cacheKey,
+      async () => {
+        const offers = await this.fetchFeaturedOffers(page, limit, userId);
+        return offers;
+      },
+      OffersService.TTL_FEATURED,
+    );
+    return result;
+  }
+
+  private async fetchFeaturedOffers(
+    page: number,
+    limit: number,
+    userId?: string,
   ): Promise<{ data: OfferCardDto[]; total: number }> {
     // ✅ ENTERPRISE: DOS protection - limit max page size
     const safeLimit = Math.min(limit, 100);
@@ -1507,12 +1541,19 @@ export class OffersService {
     userId?: string,
     userLocation?: { latitude: number; longitude: number },
   ): Promise<{ data: OfferCardDto[]; total: number }> {
-    const result = await this.getExpiringOffers(
-      hoursUntilExpiry,
-      page,
-      limit,
-      userId,
-      userLocation,
+    // Location-based results vary per user — only cache the non-location variant
+    if (userLocation) {
+      return this.getExpiringOffers(hoursUntilExpiry, page, limit, userId, userLocation);
+    }
+    const safeLimit = Math.min(limit, 100);
+    const cacheKey = `offers:urgent:${hoursUntilExpiry}:${page}:${safeLimit}:${userId ?? 'anon'}`;
+    const result = await this.cacheService.getOrSet(
+      cacheKey,
+      async () => {
+        const offers = await this.getExpiringOffers(hoursUntilExpiry, page, limit, userId);
+        return offers;
+      },
+      OffersService.TTL_URGENT,
     );
     return result;
   }
@@ -1548,10 +1589,15 @@ export class OffersService {
     // ✅ ENTERPRISE: DOS protection - limit max page size
     const safeLimit = Math.min(limit, 100);
 
-    // Step 1: Get user's active favorites from the favorites collection
-    const favoriteSignals = await this.getUserFavoriteSignals(userId);
+    // Step 1: Fetch establishment/category signals AND offer IDs in parallel (single round-trip).
+    // Both query the favorites collection — running them concurrently halves the DB wait time.
+    const [favoriteSignals, favoriteOfferIds] = await Promise.all([
+      this.getUserFavoriteSignals(userId),
+      this.getUserFavoriteOfferIds(userId),
+    ]);
     const favoritedEstablishments = favoriteSignals.establishmentIds;
     const favoritedCategories = favoriteSignals.categories;
+    const prefetchedFavoriteSet = new Set(favoriteOfferIds);
 
     // Step 2: Fallback - If no favorites, return featured offers
     if (favoritedEstablishments.length === 0 && favoritedCategories.length === 0) {
@@ -1687,8 +1733,8 @@ export class OffersService {
       'OffersService',
     );
 
-    // ✅ Map to DTOs with isFavorite field
-    return this.mapOffersToDto(offers as OfferDocument[], userId);
+    // ✅ Map to DTOs — pass pre-fetched favorite set to skip a second DB hit
+    return this.mapOffersToDto(offers as OfferDocument[], userId, prefetchedFavoriteSet);
   }
 
   // =========================================================================
@@ -2199,6 +2245,9 @@ export class OffersService {
       `Offer ${offerId} manually ${isFeatured ? 'featured' : 'unfeatured'} by admin ${userId ?? 'unknown'}`,
       'OffersService',
     );
+
+    // Invalidate featured cache — featured list changed
+    void this.cacheService.delByPrefix('offers:featured:');
 
     return offer;
   }
