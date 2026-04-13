@@ -540,6 +540,19 @@ This API provides comprehensive endpoints for:
 
   process.on('SIGTERM', () => void gracefulShutdown('SIGTERM'));
   process.on('SIGINT', () => void gracefulShutdown('SIGINT'));
+
+  // Bull/ioredis rejects in-flight queue operations with `undefined` when Redis
+  // closes during graceful shutdown. Suppress these to avoid noisy log spam.
+  process.on('unhandledRejection', reason => {
+    if (reason === undefined || reason === null) {
+      return;
+    }
+    logger.error(
+      'Unhandled promise rejection',
+      reason instanceof Error ? reason.stack : String(reason),
+      'Bootstrap',
+    );
+  });
 }
 bootstrap().catch(async error => {
   const logger = new AppLoggerService();
