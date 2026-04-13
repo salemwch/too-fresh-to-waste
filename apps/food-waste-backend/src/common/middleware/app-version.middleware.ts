@@ -13,13 +13,23 @@ import { NextFunction, Request, Response } from 'express';
 export class AppVersionMiddleware implements NestMiddleware {
   private readonly logger = new Logger(AppVersionMiddleware.name);
   private readonly minVersion: string;
-  private readonly excludedPaths = ['/api/v1/health', '/api/v1/api-docs'];
+  private readonly excludedPaths = [
+    '/health', // VERSION_NEUTRAL — Render health probes hit this directly
+    '/api/v1/health',
+    '/api/v1/api-docs',
+  ];
+  private readonly loopbackIps = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
 
   constructor(private readonly configService: ConfigService) {
     this.minVersion = this.configService.get<string>('MIN_APP_VERSION', '0.0.0');
   }
 
   use(req: Request, res: Response, next: NextFunction): void {
+    // Skip internal probes (Render health checks, loopback)
+    if (this.loopbackIps.includes(req.ip ?? '')) {
+      return next();
+    }
+
     // Skip excluded paths (health probes, docs)
     if (this.excludedPaths.some(p => req.originalUrl.startsWith(p))) {
       return next();
