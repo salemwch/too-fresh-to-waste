@@ -1,12 +1,22 @@
+import { randomUUID } from 'node:crypto';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { z } from 'zod';
 
 // ─── Brevo configuration (centralised, no hardcoded values in route body) ─────
-const BREVO_API_BASE = process.env['BREVO_API_BASE_URL'] || 'https://api.brevo.com/v3';
-const BREVO_LIST_ID = parseInt(process.env['BREVO_LIST_ID'] || '2', 10);
-const SENDER_EMAIL = process.env['BREVO_SENDER_EMAIL'] || 'noreply@toofreshtowaste.com';
+const BREVO_API_BASE = (process.env['BREVO_API_BASE_URL'] || 'https://api.brevo.com/v3').replace(
+  /\/$/,
+  '',
+);
+const parsedBrevoListId = Number.parseInt(process.env['BREVO_LIST_ID'] || '2', 10);
+const BREVO_LIST_ID = Number.isFinite(parsedBrevoListId) ? parsedBrevoListId : 2;
+const SENDER_NAME = process.env['BREVO_FROM_NAME'] || 'Too Fresh To Waste';
+const SENDER_EMAIL =
+  process.env['BREVO_FROM_EMAIL'] ||
+  process.env['BREVO_SENDER_EMAIL'] ||
+  'noreply@toofreshtowaste.com';
 const SUPPORT_EMAIL = process.env['BREVO_SUPPORT_EMAIL'] || 'support@toofreshtowaste.com';
 const SITE_URL = process.env['NEXT_PUBLIC_SITE_URL'] || 'http://localhost:3001';
 
@@ -230,7 +240,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         sender: {
-          name: 'Too Fresh To Waste',
+          name: SENDER_NAME,
           email: SENDER_EMAIL,
         },
         to: [
@@ -240,6 +250,10 @@ export async function POST(request: NextRequest) {
           },
         ],
         subject: 'New Newsletter Subscription - First 1000 Users',
+        headers: {
+          'X-Mailer': 'TooFreshToWaste-Web',
+          'Idempotency-Key': randomUUID(),
+        },
         htmlContent: `
           <h2>New Newsletter Subscription</h2>
           <p><strong>Email:</strong> ${sanitizedEmail}</p>
@@ -265,7 +279,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         sender: {
-          name: 'Too Fresh To Waste',
+          name: SENDER_NAME,
           email: SENDER_EMAIL,
         },
         to: [
@@ -275,6 +289,10 @@ export async function POST(request: NextRequest) {
           },
         ],
         subject: "Welcome to Too Fresh To Waste - You're in the First 1000!",
+        headers: {
+          'X-Mailer': 'TooFreshToWaste-Web',
+          'Idempotency-Key': randomUUID(),
+        },
         htmlContent: `
           <!DOCTYPE html>
           <html>

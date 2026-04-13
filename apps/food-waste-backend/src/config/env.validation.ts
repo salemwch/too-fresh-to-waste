@@ -24,6 +24,7 @@ export const envValidationSchema = Joi.object({
   // ── Redis ────────────────────────────────────────────────────────────
   REDIS_HOST: Joi.string().default('localhost'),
   REDIS_PORT: Joi.number().default(6379),
+  REDIS_TLS_PORT: Joi.number().port().optional(),
   REDIS_PASSWORD: Joi.string().allow('').default(''),
   REDIS_USERNAME: Joi.string().default('default'),
 
@@ -50,13 +51,14 @@ export const envValidationSchema = Joi.object({
   }),
 
   // ── Email / SMTP ─────────────────────────────────────────────────────
-  SMTP_HOST: Joi.string().required().messages({
-    'any.required': 'SMTP_HOST is required for email delivery',
+  BREVO_API_KEY: Joi.string().required().messages({
+    'any.required': 'BREVO_API_KEY is required for Brevo email delivery',
   }),
-  SMTP_PORT: Joi.number().default(587),
-  SMTP_USER: Joi.string().required(),
-  SMTP_PASS: Joi.string().required(),
-  SMTP_FROM_EMAIL: Joi.string().email().required(),
+  BREVO_API_BASE_URL: Joi.string().uri().default('https://api.brevo.com/v3'),
+  BREVO_FROM_EMAIL: Joi.string().email().required().messages({
+    'any.required': 'BREVO_FROM_EMAIL is required for Brevo email delivery',
+  }),
+  BREVO_FROM_NAME: Joi.string().default('Too Fresh To Waste'),
 
   // ── URLs ─────────────────────────────────────────────────────────────
   BACKEND_URL: Joi.string().uri().required().messages({
@@ -72,6 +74,11 @@ export const envValidationSchema = Joi.object({
   // ── Redis TLS ──────────────────────────────────────────────────────
   REDIS_TLS: Joi.string().valid('true', 'false').default('false'),
   REDIS_TLS_REJECT_UNAUTHORIZED: Joi.string().valid('true', 'false').default('true'),
+  REDIS_TLS_CHECK_SERVER_IDENTITY: Joi.string().valid('true', 'false').default('true'),
+  REDIS_TLS_MIN_VERSION: Joi.string().default('TLSv1.2'),
+  REDIS_CONNECT_TIMEOUT: Joi.number().positive().default(10000),
+  REDIS_COMMAND_TIMEOUT: Joi.number().positive().default(5000),
+  REDIS_MAX_RETRIES: Joi.number().integer().min(0).default(10),
 
   // ── Cookie ───────────────────────────────────────────────────────────
   COOKIE_SECRET: Joi.when('NODE_ENV', {

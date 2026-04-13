@@ -1,29 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
+
+import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
 export class SearchCacheService {
-  private readonly redis: Redis;
-
-  constructor(private readonly configService: ConfigService) {
-    this.redis = new Redis({
-      host: this.configService.get('REDIS_HOST') ?? 'localhost',
-      port: parseInt(this.configService.get<string>('REDIS_PORT') ?? '6379', 10) || 6379,
-      password: this.configService.get('REDIS_PASSWORD'),
-      username: this.configService.get('REDIS_USERNAME'),
-      // Explicitly disable TLS for search cache service
-      tls: undefined,
-      lazyConnect: true,
-      maxRetriesPerRequest: 3,
-      connectTimeout: 10000,
-      commandTimeout: 5000,
-    });
-  }
+  constructor(private readonly redisService: RedisService) {}
 
   async get(key: string): Promise<unknown> {
     try {
-      const cached = await this.redis.get(`search:${key}`);
+      const redis = await this.redisService.getClient();
+      const cached = await redis.get(`search:${key}`);
       return cached ? JSON.parse(cached) : null;
     } catch {
       return null;
@@ -32,7 +18,8 @@ export class SearchCacheService {
 
   async set(key: string, value: unknown, ttl: number = 300): Promise<void> {
     try {
-      await this.redis.setex(`search:${key}`, ttl, JSON.stringify(value));
+      const redis = await this.redisService.getClient();
+      await redis.setEx(`search:${key}`, ttl, JSON.stringify(value));
     } catch {
       // Fail silently
     }
@@ -40,7 +27,8 @@ export class SearchCacheService {
 
   async del(key: string): Promise<void> {
     try {
-      await this.redis.del(`search:${key}`);
+      const redis = await this.redisService.getClient();
+      await redis.del(`search:${key}`);
     } catch {
       // Fail silently
     }
@@ -57,9 +45,10 @@ export class SearchCacheService {
 
   async clearPattern(pattern: string): Promise<void> {
     try {
-      const keys = await this.redis.keys(pattern);
+      const redis = await this.redisService.getClient();
+      const keys = await redis.keys(pattern);
       if (keys.length > 0) {
-        await this.redis.del(...keys);
+        await redis.del(keys);
       }
     } catch {
       // Fail silently

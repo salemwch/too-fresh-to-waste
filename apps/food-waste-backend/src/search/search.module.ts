@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
+import { buildBullRedisOptions, getRedisConnectionConfig } from '../redis/redis.config';
 import { User, UserSchema } from '../users/schemas/user.schema';
 
 import { SearchProcessor } from './processors/search.processor';
@@ -17,10 +18,6 @@ import { SearchAnalyticsService } from './services/search-analytics.service';
 import { SearchCacheService } from './services/search-cache.service';
 import { SearchIndexService } from './services/search-index.service';
 import { SearchSuggestionService } from './services/search-suggestion.service';
-
-// Import existing schemas
-
-// New search-specific schemas
 
 @Module({
   imports: [
@@ -36,17 +33,7 @@ import { SearchSuggestionService } from './services/search-suggestion.service';
     BullModule.registerQueueAsync({
       name: 'search-indexing',
       useFactory: (configService: ConfigService) => ({
-        redis: {
-          host: configService.get('REDIS_HOST') ?? 'localhost',
-          port: parseInt(configService.get<string>('REDIS_PORT') ?? '6379', 10) || 6379,
-          password: configService.get('REDIS_PASSWORD'),
-          username: configService.get('REDIS_USERNAME'),
-          // Explicitly disable TLS for search indexing queue
-          tls: undefined,
-          lazyConnect: true,
-          maxRetriesPerRequest: 3,
-          connectTimeout: 10000,
-        },
+        redis: buildBullRedisOptions(getRedisConnectionConfig(configService)),
         defaultJobOptions: {
           removeOnComplete: 10,
           removeOnFail: 5,
@@ -58,17 +45,7 @@ import { SearchSuggestionService } from './services/search-suggestion.service';
     BullModule.registerQueueAsync({
       name: 'search-analytics',
       useFactory: (configService: ConfigService) => ({
-        redis: {
-          host: configService.get('REDIS_HOST') ?? 'localhost',
-          port: parseInt(configService.get<string>('REDIS_PORT') ?? '6379', 10) || 6379,
-          password: configService.get('REDIS_PASSWORD'),
-          username: configService.get('REDIS_USERNAME'),
-          // Explicitly disable TLS for search analytics queue
-          tls: undefined,
-          lazyConnect: true,
-          maxRetriesPerRequest: 3,
-          connectTimeout: 10000,
-        },
+        redis: buildBullRedisOptions(getRedisConnectionConfig(configService)),
         defaultJobOptions: {
           removeOnComplete: 5,
           removeOnFail: 5,

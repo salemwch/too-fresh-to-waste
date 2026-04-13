@@ -270,7 +270,7 @@ export class CookieSecurityUtil {
       securityAttributes: {
         httpOnly: true, // ✓ CRITICAL: XSS protection
         secure: isProduction, // ✓ CRITICAL: HTTPS enforcement
-        sameSite: 'strict', // ✓ CRITICAL: CSRF protection
+        sameSite: 'lax', // ✓ CRITICAL: CSRF protection
         domain: this.normalizeDomain(domain) ?? 'current-domain-only', // ✓ HIGH: Subdomain protection
         signed: false, // Optional: integrity verification
       },

@@ -1,6 +1,7 @@
 # Authentication & Authorization Module - Technical Documentation
 
-> **Technical Reference** | **Status:** Production Ready | **Last Updated:** January 15, 2026
+> **Technical Reference** | **Status:** Production Ready | **Last Updated:**
+> January 15, 2026
 
 ## Table of Contents
 
@@ -18,7 +19,9 @@
 
 ## Overview
 
-The `auth` module is the security backbone of the Too Fresh To Waste platform. It implements enterprise-grade authentication, authorization, and session management using industry best practices and OWASP guidelines.
+The `auth` module is the security backbone of the Too Fresh To Waste platform.
+It implements enterprise-grade authentication, authorization, and session
+management using industry best practices and OWASP guidelines.
 
 **For API endpoint documentation, see [README.md](./README.md)**
 
@@ -33,14 +36,14 @@ The `auth` module is the security backbone of the Too Fresh To Waste platform. I
 
 ### Key Features
 
-✅ **Stateless Authentication** - JWT-based with refresh token rotation
-✅ **Multi-Factor Authentication** - TOTP, SMS, Email, backup codes
-✅ **Session Management** - Multi-device tracking with selective revocation
-✅ **Brute-Force Protection** - IP + email-based rate limiting with exponential backoff
-✅ **Password Security** - NIST 800-63B compliant policies with entropy validation
-✅ **CSRF Protection** - Double-submit cookie pattern
-✅ **Role-Based Access Control** - Hierarchical roles with fine-grained permissions
-✅ **Tenant Isolation** - Multi-tenant support for merchants
+✅ **Stateless Authentication** - JWT-based with refresh token rotation ✅
+**Multi-Factor Authentication** - TOTP, SMS, Email, backup codes ✅ **Session
+Management** - Multi-device tracking with selective revocation ✅ **Brute-Force
+Protection** - IP + email-based rate limiting with exponential backoff ✅
+**Password Security** - NIST 800-63B compliant policies with entropy validation
+✅ **CSRF Protection** - Double-submit cookie pattern ✅ **Role-Based Access
+Control** - Hierarchical roles with fine-grained permissions ✅ **Tenant
+Isolation** - Multi-tenant support for merchants
 
 ---
 
@@ -260,7 +263,8 @@ auth/
 - `POST /auth/mfa/setup` - MFA enrollment
 - `POST /auth/mfa/verify` - MFA verification
 
-**Design Pattern:** Thin controller pattern (business logic delegated to services)
+**Design Pattern:** Thin controller pattern (business logic delegated to
+services)
 
 **Example:**
 
@@ -304,7 +308,8 @@ async login(
 
 #### `admin-auth.controller.ts`
 
-**Purpose:** Admin-specific authentication endpoints (e.g., admin login with enhanced security)
+**Purpose:** Admin-specific authentication endpoints (e.g., admin login with
+enhanced security)
 
 #### `auth-redirect.controller.ts`
 
@@ -699,7 +704,10 @@ deleteUser(@Param('id') id: string) { ... }
 @Injectable()
 export class RolesGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
+    const requiredRoles = this.reflector.get<string[]>(
+      'roles',
+      context.getHandler(),
+    );
     if (!requiredRoles) {
       return true; // No role requirement
     }
@@ -779,7 +787,8 @@ export const Roles = (...roles: string[]) => SetMetadata('roles', roles);
 **Implementation:**
 
 ```typescript
-export const Permissions = (...permissions: string[]) => SetMetadata('permissions', permissions);
+export const Permissions = (...permissions: string[]) =>
+  SetMetadata('permissions', permissions);
 ```
 
 ---
@@ -801,12 +810,14 @@ getProfile(@GetUser() user: User) {
 **Implementation:**
 
 ```typescript
-export const GetUser = createParamDecorator((data: string | undefined, ctx: ExecutionContext) => {
-  const request = ctx.switchToHttp().getRequest();
-  const user = request.user;
+export const GetUser = createParamDecorator(
+  (data: string | undefined, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    const user = request.user;
 
-  return data ? user?.[data] : user;
-});
+    return data ? user?.[data] : user;
+  },
+);
 ```
 
 ---
@@ -951,7 +962,7 @@ if (headerToken !== cookieToken) {
 res.cookie('session_id', sessionId, {
   httpOnly: true, // Prevent XSS access
   secure: true, // HTTPS only
-  sameSite: 'strict', // Prevent CSRF
+  sameSite: 'lax', // Prevent CSRF
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: '/', // Available to all routes
   domain: '.example.com', // Subdomain sharing (if needed)
@@ -1147,7 +1158,10 @@ describe('AuthService', () => {
 
   it('should register a new user', async () => {
     mockUsersService.findByEmail.mockResolvedValue(null);
-    mockUsersService.create.mockResolvedValue({ id: '1', email: 'test@example.com' });
+    mockUsersService.create.mockResolvedValue({
+      id: '1',
+      email: 'test@example.com',
+    });
 
     const result = await service.register({
       email: 'test@example.com',
@@ -1203,7 +1217,7 @@ describe('AuthController (Integration)', () => {
         password: 'SecurePass123!',
       })
       .expect(201)
-      .expect((res) => {
+      .expect(res => {
         expect(res.body.user.email).toBe('test@example.com');
       });
   });
@@ -1296,7 +1310,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback) {
+  async validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: any,
+    done: VerifyCallback,
+  ) {
     const { name, emails, photos } = profile;
     const user = {
       email: emails[0].value,
@@ -1356,7 +1375,11 @@ providers: [..., GoogleStrategy],
 ```typescript
 // seeds/permissions.seed.ts
 const permissions = [
-  { name: 'offers:approve', description: 'Approve pending offers', roles: ['ADMIN', 'MODERATOR'] },
+  {
+    name: 'offers:approve',
+    description: 'Approve pending offers',
+    roles: ['ADMIN', 'MODERATOR'],
+  },
   // ...
 ];
 ```
@@ -1512,7 +1535,5 @@ await this.redisClient.set(key, '1', 'EX', 900); // 15 min expiry
 
 ---
 
-**Document Version:** 1.0.0
-**Last Updated:** January 15, 2026
-**Maintained By:** Backend Security Team
-**Review Cycle:** Quarterly
+**Document Version:** 1.0.0 **Last Updated:** January 15, 2026 **Maintained
+By:** Backend Security Team **Review Cycle:** Quarterly

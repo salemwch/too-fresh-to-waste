@@ -6,28 +6,14 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { HealthIndicator, HealthIndicatorResult, HealthCheckError } from '@nestjs/terminus';
-import Redis from 'ioredis';
+
+import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
 export class RedisHealthIndicator extends HealthIndicator {
-  private readonly redis: Redis;
-
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly redisService: RedisService) {
     super();
-
-    // Initialize Redis client for health checks
-    this.redis = new Redis({
-      host: this.configService.get<string>('REDIS_HOST', 'localhost'),
-      port: this.configService.get<number>('REDIS_PORT', 6379),
-      password: this.configService.get<string>('REDIS_PASSWORD'),
-      username: this.configService.get<string>('REDIS_USERNAME', 'default'),
-      tls: this.configService.get<string>('REDIS_TLS') === 'true' ? {} : undefined,
-      connectTimeout: 3000,
-      maxRetriesPerRequest: 1,
-      retryStrategy: () => null, // Don't retry on health check
-    });
   }
 
   /**
@@ -38,13 +24,14 @@ export class RedisHealthIndicator extends HealthIndicator {
    */
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
     try {
-      // Ping Redis
-      const result = await this.redis.ping();
+      const redis = await this.redisService.getClient();
+      const start = Date.now();
+      const result = await redis.ping();
 
       if (result === 'PONG') {
         return this.getStatus(key, true, {
           message: 'Redis is healthy',
-          latency: await this.getLatency(),
+          latency: Date.now() - start,
         });
       }
 
@@ -57,27 +44,5 @@ export class RedisHealthIndicator extends HealthIndicator {
         }),
       );
     }
-  }
-
-  /**
-   * Get Redis Latency
-   *
-   * @returns Latency in milliseconds
-   */
-  private async getLatency(): Promise<number> {
-    try {
-      const start = Date.now();
-      await this.redis.ping();
-      return Date.now() - start;
-    } catch {
-      return -1;
-    }
-  }
-
-  /**
-   * Cleanup on module destroy
-   */
-  async onModuleDestroy() {
-    await this.redis.quit();
   }
 }

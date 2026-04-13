@@ -1,20 +1,20 @@
 // src/email/email.service.ts
+import { randomUUID } from 'node:crypto';
+
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import axios, { AxiosInstance } from 'axios';
 
 import { User } from '../users/schemas/user.schema';
 
 import { IEmailService, EmailOptions } from './interfaces/email-service.interface';
-
-import type SMTPPool from 'nodemailer/lib/smtp-pool';
 
 /**
  * EmailService - Concrete implementation of IEmailService
  *
  * Implements enterprise-grade email functionality with:
  * - Interface-based dependency inversion
- * - SMTP configuration
+ * - Brevo transactional email API integration
  * - Templated emails (verification, welcome, password reset)
  * - Mobile deep linking support
  *
@@ -23,10 +23,25 @@ import type SMTPPool from 'nodemailer/lib/smtp-pool';
 @Injectable()
 export class EmailService implements IEmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter!: nodemailer.Transporter<SMTPPool.SentMessageInfo>;
+  private readonly brevoClient: AxiosInstance;
+  private readonly brevoApiUrl: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.createTransporter();
+    const apiKey = this.getRequiredConfigValue('BREVO_API_KEY');
+    const apiBaseUrl =
+      this.getNonEmptyConfigValue('BREVO_API_BASE_URL') ?? 'https://api.brevo.com/v3';
+    this.brevoApiUrl = `${apiBaseUrl.replace(/\/$/, '')}/smtp/email`;
+
+    this.brevoClient = axios.create({
+      timeout: 10_000,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'api-key': apiKey,
+      },
+    });
+
+    this.logger.log('Brevo email service initialized');
   }
 
   private getNonEmptyConfigValue(key: string): string | undefined {
@@ -39,62 +54,63 @@ export class EmailService implements IEmailService {
     return trimmedValue.length > 0 ? trimmedValue : undefined;
   }
 
-  private createTransporter(): void {
-    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    const configuredSmtpPort = this.configService.get<number>('SMTP_PORT');
-    const smtpPort = configuredSmtpPort ?? 587;
-    const smtpConfig: SMTPPool.Options = {
-      host: this.configService.get<string>('SMTP_HOST'),
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: {
-        user: this.configService.get<string>('SMTP_USER'),
-        pass: this.configService.get<string>('SMTP_PASS'),
-      },
-      tls: {
-        // SECURITY: Must be true in production to prevent MITM on SMTP connection
-        // Only disable in development for self-signed certs / local mail servers
-        rejectUnauthorized: isProduction,
-      },
-      // Connection pool for better throughput
-      pool: true,
-      maxConnections: 5,
-      maxMessages: 100,
-      // Timeouts to prevent hanging connections
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 30_000,
-    };
-
-    this.transporter = nodemailer.createTransport(smtpConfig);
-
-    this.transporter.verify((error, _success) => {
-      if (error) {
-        this.logger.error('Email service connection failed:', error);
-      } else {
-        this.logger.log('Email service is ready to send messages');
-      }
-    });
+  private getRequiredConfigValue(key: string): string {
+    const value = this.getNonEmptyConfigValue(key);
+    if (!value) {
+      throw new Error(`${key} is required for Brevo email delivery`);
+    }
+    return value;
   }
 
   /**
    * Send email with exponential backoff retry (3 attempts).
-   * Retries on transient SMTP errors (connection reset, timeout, rate limit).
+   * Retries on transient HTTP/network/provider errors.
    */
   async sendEmail(emailOptions: EmailOptions): Promise<boolean> {
     const maxRetries = 3;
-    const smtpUser = this.getNonEmptyConfigValue('SMTP_USER') ?? 'noreply@foodwaste.com';
-    const fromName = this.configService.get<string>('SMTP_FROM_NAME', 'Too Fresh To Waste');
-    const fromEmail = this.getNonEmptyConfigValue('SMTP_FROM_EMAIL') ?? smtpUser;
-    const mailOptions: nodemailer.SendMailOptions = {
-      from: `"${fromName}" <${fromEmail}>`,
-      ...emailOptions,
+    const fromName = this.configService.get<string>('BREVO_FROM_NAME', 'Too Fresh To Waste');
+    const fromEmail = this.getRequiredConfigValue('BREVO_FROM_EMAIL');
+
+    const recipients = Array.isArray(emailOptions.to) ? emailOptions.to : [emailOptions.to];
+    const to = recipients
+      .filter((recipient): recipient is string => typeof recipient === 'string')
+      .map(email => ({ email }));
+
+    if (to.length === 0) {
+      this.logger.error('Failed to send email: no valid recipients provided');
+      return false;
+    }
+
+    const idempotencyKey = randomUUID();
+    const payload = {
+      sender: {
+        name: fromName,
+        email: fromEmail,
+      },
+      to,
+      subject: emailOptions.subject,
+      htmlContent: emailOptions.html,
+      textContent: emailOptions.text,
+      replyTo: {
+        email: fromEmail,
+        name: fromName,
+      },
+      headers: {
+        'X-Mailer': 'TooFreshToWaste-Platform',
+        'Idempotency-Key': idempotencyKey,
+      },
     };
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const info = await this.transporter.sendMail(mailOptions);
-        this.logger.log(`Email sent to ${emailOptions.to}: ${info.messageId}`);
+        const response = await this.brevoClient.post<{
+          messageId?: string;
+        }>(this.brevoApiUrl, payload);
+
+        const messageId = response.data.messageId ?? 'unknown';
+        this.logger.log(
+          `Email sent to ${to.map(recipient => recipient.email).join(', ')}: ${messageId}`,
+        );
         return true;
       } catch (error) {
         const isLastAttempt = attempt === maxRetries;
@@ -102,41 +118,50 @@ export class EmailService implements IEmailService {
 
         if (isLastAttempt || !isRetryable) {
           this.logger.error(
-            `Failed to send email to ${emailOptions.to} after ${attempt} attempt(s):`,
-            error,
+            `Failed to send email to ${to.map(recipient => recipient.email).join(', ')} after ${attempt} attempt(s):`,
+            error instanceof Error ? error.stack : String(error),
           );
           return false;
         }
 
-        // Exponential backoff: 1s, 2s, 4s
         const delayMs = Math.pow(2, attempt - 1) * 1000;
         this.logger.warn(
-          `Email to ${emailOptions.to} failed (attempt ${attempt}/${maxRetries}), retrying in ${delayMs}ms...`,
+          `Email to ${to.map(recipient => recipient.email).join(', ')} failed (attempt ${attempt}/${maxRetries}), retrying in ${delayMs}ms...`,
         );
         await this.delay(delayMs);
       }
     }
+
     return false;
   }
 
-  /** Determine if an SMTP error is transient and worth retrying */
+  /** Determine if an HTTP/provider error is transient and worth retrying */
   private isRetryableError(error: unknown): boolean {
-    if (!(error instanceof Error)) {
-      return false;
+    if (!axios.isAxiosError(error)) {
+      return error instanceof Error;
     }
-    const msg = error.message.toLowerCase();
-    const code = (error as NodeJS.ErrnoException).code ?? '';
-    // Transient: connection reset, timeout, DNS issues, SMTP 4xx, rate limiting
+
+    const status = error.response?.status;
+    const code = error.code ?? '';
+    const message = error.message.toLowerCase();
+
     return (
+      status === 429 ||
+      status === 408 ||
+      status === 425 ||
+      status === 500 ||
+      status === 502 ||
+      status === 503 ||
+      status === 504 ||
+      code === 'ECONNABORTED' ||
       code === 'ECONNRESET' ||
       code === 'ETIMEDOUT' ||
-      code === 'ECONNREFUSED' ||
-      code === 'ESOCKET' ||
-      code === 'EDNS' ||
-      msg.includes('timeout') ||
-      msg.includes('too many connections') ||
-      msg.includes('try again') ||
-      msg.includes('temporarily')
+      code === 'ENOTFOUND' ||
+      code === 'EAI_AGAIN' ||
+      message.includes('timeout') ||
+      message.includes('network') ||
+      message.includes('socket hang up') ||
+      message.includes('temporarily unavailable')
     );
   }
 
@@ -146,11 +171,6 @@ export class EmailService implements IEmailService {
 
   // eslint-disable-next-line require-await
   async sendVerificationEmail(user: User, verificationToken: string): Promise<boolean> {
-    // PRODUCTION-READY: Use HTTPS redirect endpoint (works in ALL email clients)
-    // Backend serves smart redirect page that:
-    // 1. Attempts to open mobile app (deep link)
-    // 2. Falls back to web verification if app not installed
-    // 3. Works on desktop, mobile, all email clients (Gmail, Outlook, Apple Mail, etc.)
     const backendUrl = this.configService.get<string>('BACKEND_URL', 'http://localhost:3000');
     const verificationUrl = `${backendUrl}/api/v1/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
 
@@ -206,7 +226,6 @@ export class EmailService implements IEmailService {
 
   // eslint-disable-next-line require-await
   async sendPasswordResetEmail(user: User, resetToken: string): Promise<boolean> {
-    // PRODUCTION-READY: Use HTTPS redirect endpoint (same as email verification)
     const backendUrl = this.configService.get<string>('BACKEND_URL', 'http://localhost:3000');
     const resetUrl = `${backendUrl}/api/v1/auth/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
 

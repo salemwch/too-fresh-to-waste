@@ -68,7 +68,7 @@ export class CsrfGuard implements CanActivate {
         response.cookie('csrf-token', csrfToken, {
           httpOnly: false, // Frontend needs to read this
           secure: this.configService.get<string>('NODE_ENV') === 'production',
-          sameSite: 'strict',
+          sameSite: 'lax',
           maxAge: 60 * 60 * 1000, // 1 hour
         });
         return true;

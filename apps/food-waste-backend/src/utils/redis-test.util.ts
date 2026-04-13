@@ -1,6 +1,7 @@
 import { createClient } from 'redis';
 
 import { AppLoggerService } from '../common/services/logger.service';
+import { buildRedisTlsOptions, getRedisConnectionConfigFromEnv } from '../redis/redis.config';
 
 /**
  * Test Redis connectivity using environment variables.
@@ -14,25 +15,17 @@ export async function testRedisConnection(): Promise<boolean> {
   const logger = new AppLoggerService();
   logger.log('Testing Redis connection...', 'RedisTest');
 
-  const host = process.env['REDIS_HOST'];
-  const port = parseInt(process.env['REDIS_PORT'] ?? '6379', 10);
-  const password = process.env['REDIS_PASSWORD'];
-  const username = process.env['REDIS_USERNAME'] ?? 'default';
-  const useTls = process.env['REDIS_TLS'] === 'true';
-
-  if (!host) {
-    logger.error('REDIS_HOST environment variable is not set', undefined, 'RedisTest');
-    return false;
-  }
+  const redisConfig = getRedisConnectionConfigFromEnv(process.env);
+  const tlsOptions = buildRedisTlsOptions(redisConfig);
 
   const client = createClient({
-    username,
-    ...(password ? { password } : {}),
+    ...(redisConfig.username ? { username: redisConfig.username } : {}),
+    ...(redisConfig.password ? { password: redisConfig.password } : {}),
     socket: {
-      host,
-      port,
-      ...(useTls ? { tls: true as const } : {}),
-      connectTimeout: 10000,
+      host: redisConfig.host,
+      port: redisConfig.port,
+      connectTimeout: redisConfig.connectTimeout,
+      ...(redisConfig.useTls ? { tls: true as const, ...tlsOptions } : {}),
     },
   });
 
@@ -48,6 +41,7 @@ export async function testRedisConnection(): Promise<boolean> {
       await client.del('test:connectivity');
       return true;
     }
+
     logger.log('Redis test failed - unexpected result', 'RedisTest');
     return false;
   } catch (error) {
@@ -58,6 +52,8 @@ export async function testRedisConnection(): Promise<boolean> {
     );
     return false;
   } finally {
-    await client.quit();
+    if (client.isOpen) {
+      await client.quit();
+    }
   }
 }

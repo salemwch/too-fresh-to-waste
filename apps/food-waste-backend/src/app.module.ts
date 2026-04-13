@@ -33,14 +33,18 @@ import { OffersModule } from './offers/offers.module';
 import { OrdersModule } from './orders/order.module';
 import { PaymentModule } from './payments/payments.module';
 import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
+import {
+  buildBullRedisOptions,
+  buildRedisUrl,
+  buildThrottlerRedisOptions,
+  getRedisConnectionConfig,
+} from './redis/redis.config';
 import { RedisModule } from './redis/redis.module';
 import { ReviewsModule } from './reviwes/reviwes.module';
 import { SearchModule } from './search/search.module';
 import { UsersModule } from './users/user.module';
 import { WebSocketModule } from './websocket/websocket.module';
 //import { SocialModule } from './social/social.module';
-
-// Global middleware
 
 @Module({
   imports: [
@@ -49,44 +53,36 @@ import { WebSocketModule } from './websocket/websocket.module';
       envFilePath: '.env',
       validationSchema: envValidationSchema,
       validationOptions: {
-        abortEarly: false, // Report ALL missing vars, not just the first
+        abortEarly: false,
       },
     }),
-    CommonModule, // Common utilities including sanitization (MUST be early)
-    RedisModule, // Shared Redis connection pool (MUST be first after Config)
-    RabbitMQModule.forRoot(), // Message broker for event-driven architecture
+    CommonModule,
+    RedisModule,
+    RabbitMQModule.forRoot(),
     ThrottlerModule.forRootAsync({
-      useFactory: (configService: ConfigService) => ({
-        throttlers: [
-          {
-            ttl: Number.parseInt(configService.get('THROTTLE_TTL', '60000')),
-            limit: Number.parseInt(configService.get('THROTTLE_LIMIT', '100')),
-          },
-        ],
-        storage: new ThrottlerStorageRedisService(
-          `redis://${configService.get('REDIS_USERNAME', 'default')}:${configService.get('REDIS_PASSWORD', '')}@${configService.get('REDIS_HOST', 'localhost')}:${configService.get('REDIS_PORT', '6379')}`,
-        ),
-      }),
+      useFactory: (configService: ConfigService) => {
+        const redisConfig = getRedisConnectionConfig(configService);
+
+        return {
+          throttlers: [
+            {
+              ttl: Number.parseInt(configService.get('THROTTLE_TTL', '60000')),
+              limit: Number.parseInt(configService.get('THROTTLE_LIMIT', '100')),
+            },
+          ],
+          storage: new ThrottlerStorageRedisService(
+            buildRedisUrl(redisConfig),
+            buildThrottlerRedisOptions(redisConfig),
+          ),
+        };
+      },
       inject: [ConfigService],
     }),
     EventEmitterModule.forRoot(),
-    ScheduleModule.forRoot(), // Required for @Cron decorators in DonationsService
+    ScheduleModule.forRoot(),
     BullModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
-        redis: {
-          host: configService.get('REDIS_HOST') ?? 'localhost',
-          port: Number.parseInt(configService.get('REDIS_PORT', '6379'), 10) || 6379,
-          password: configService.get('REDIS_PASSWORD'),
-          username: configService.get('REDIS_USERNAME'),
-          // Explicitly disable TLS for development/internal networks
-          tls: undefined,
-          // Additional Redis options for better connectivity
-          lazyConnect: true,
-          maxRetriesPerRequest: 3,
-          retryDelayOnFailover: 100,
-          connectTimeout: 10000,
-          commandTimeout: 5000,
-        },
+        redis: buildBullRedisOptions(getRedisConnectionConfig(configService)),
       }),
       inject: [ConfigService],
     }),
@@ -94,44 +90,32 @@ import { WebSocketModule } from './websocket/websocket.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('DATABASE_URL') ?? 'mongodb://localhost:27017/foodwaste',
-        // Enterprise-grade connection pooling configuration
-        // Ref: https://www.mongodb.com/docs/drivers/node/current/fundamentals/connection/connection-options/
-        maxPoolSize: Number.parseInt(configService.get('MONGO_MAX_POOL_SIZE', '100'), 10) || 100, // Max connections (default: 100)
-        minPoolSize: Number.parseInt(configService.get('MONGO_MIN_POOL_SIZE', '10'), 10) || 10, // Min connections (default: 10)
+        maxPoolSize: Number.parseInt(configService.get('MONGO_MAX_POOL_SIZE', '100'), 10) || 100,
+        minPoolSize: Number.parseInt(configService.get('MONGO_MIN_POOL_SIZE', '10'), 10) || 10,
         maxIdleTimeMS:
-          Number.parseInt(configService.get('MONGO_MAX_IDLE_TIME_MS', '60000'), 10) || 60000, // 60s - close idle connections
+          Number.parseInt(configService.get('MONGO_MAX_IDLE_TIME_MS', '60000'), 10) || 60000,
         waitQueueTimeoutMS:
-          Number.parseInt(configService.get('MONGO_WAIT_QUEUE_TIMEOUT_MS', '10000'), 10) || 10000, // 10s - wait for available connection
+          Number.parseInt(configService.get('MONGO_WAIT_QUEUE_TIMEOUT_MS', '10000'), 10) || 10000,
         socketTimeoutMS:
-          Number.parseInt(configService.get('MONGO_SOCKET_TIMEOUT_MS', '45000'), 10) || 45000, // 45s - socket timeout
+          Number.parseInt(configService.get('MONGO_SOCKET_TIMEOUT_MS', '45000'), 10) || 45000,
         connectTimeoutMS:
-          Number.parseInt(configService.get('MONGO_CONNECT_TIMEOUT_MS', '30000'), 10) || 30000, // 30s - initial connection timeout
+          Number.parseInt(configService.get('MONGO_CONNECT_TIMEOUT_MS', '30000'), 10) || 30000,
         serverSelectionTimeoutMS:
           Number.parseInt(configService.get('MONGO_SERVER_SELECTION_TIMEOUT_MS', '30000'), 10) ||
-          30000, // 30s - server selection
+          30000,
         heartbeatFrequencyMS:
-          Number.parseInt(configService.get('MONGO_HEARTBEAT_FREQUENCY_MS', '10000'), 10) || 10000, // 10s - health check interval
-        // Performance optimizations
-        retryWrites: true, // Automatic retry for write operations
-        retryReads: true, // Automatic retry for read operations
-        compressors: ['zstd', 'snappy', 'zlib'], // Network compression: zstd (30-50% better than snappy), with fallbacks
-        // Read/Write concerns for production
-        readConcern: { level: 'majority' }, // Read committed data
+          Number.parseInt(configService.get('MONGO_HEARTBEAT_FREQUENCY_MS', '10000'), 10) || 10000,
+        retryWrites: true,
+        retryReads: true,
+        compressors: ['zstd', 'snappy', 'zlib'],
+        readConcern: { level: 'majority' },
         writeConcern: {
           w: configService.get('NODE_ENV') === 'production' ? 'majority' : 1,
-          j: configService.get('NODE_ENV') === 'production', // Journal sync in production
+          j: configService.get('NODE_ENV') === 'production',
         },
-        // Production safety: fail fast on DB disconnect instead of buffering requests in memory
-        // Ref: https://mongoosejs.com/docs/guide.html#bufferCommands
         bufferCommands: false,
-        // Production safety: disable auto-index creation at startup to avoid collection locks under load
-        // Run `pnpm verify:indexes` manually after deploying schema changes
-        // Ref: https://mongoosejs.com/docs/guide.html#autoIndex
         autoIndex: configService.get('NODE_ENV') !== 'production',
-        // Monitoring
         monitorCommands: configService.get('NODE_ENV') === 'development',
-        // Disable __v versionKey globally — no code uses optimistic concurrency via __v
-        // Existing documents keep their __v (harmless, ignored on read)
         connectionFactory: (connection: mongoose.Connection) => {
           connection.set('versionKey', false);
           return connection;
@@ -157,13 +141,10 @@ import { WebSocketModule } from './websocket/websocket.module';
     FavoritesModule,
     DonationsModule,
     CommunityGoalModule,
-
     WebSocketModule,
     SearchModule,
     //SocialModule,
-
     ArchiveModule,
-
     HealthModule,
   ],
   controllers: [],
@@ -172,12 +153,7 @@ import { WebSocketModule } from './websocket/websocket.module';
 export class AppModule implements NestModule {
   /**
    * Configure global middleware
-   * Order matters: Correlation ID → Sanitization → ValidationPipe (in main.ts)
-   *
-   * @rationale
-   * 1. CorrelationIdMiddleware: Generates unique request IDs for tracing
-   * 2. GlobalSanitizationMiddleware: Sanitizes input before validation
-   * 3. ValidationPipe (main.ts): Validates sanitized data
+   * Order matters: CorrelationIdMiddleware -> Sanitization -> ValidationPipe (in main.ts)
    */
   configure(consumer: MiddlewareConsumer) {
     consumer

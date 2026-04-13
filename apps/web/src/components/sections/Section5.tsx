@@ -82,7 +82,7 @@ export default function Section5() {
                   type='button'
                   className='border-b border-slate-300 py-4 cursor-pointer w-full text-left focus:outline-none'
                   onClick={() => toggleFAQ(index)}
-                  aria-expanded={openIndex === index}
+                  aria-expanded={openIndex === index ? 'true' : 'false'}
                   aria-controls={`faq-answer-${faq.id}`}
                 >
                   {/* Question */}

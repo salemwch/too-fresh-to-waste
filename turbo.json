@@ -2,7 +2,15 @@
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["package.json", "pnpm-lock.yaml", "tsconfig.base.json"],
   "globalEnv": ["NODE_ENV", "CI"],
-  "globalPassThroughEnv": ["BREVO_API_KEY", "SENTRY_AUTH_TOKEN"],
+  "globalPassThroughEnv": [
+    "BREVO_API_KEY",
+    "BREVO_API_BASE_URL",
+    "BREVO_LIST_ID",
+    "BREVO_FROM_EMAIL",
+    "BREVO_FROM_NAME",
+    "BREVO_SUPPORT_EMAIL",
+    "SENTRY_AUTH_TOKEN"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

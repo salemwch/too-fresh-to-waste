@@ -1,20 +1,22 @@
+import { randomUUID } from 'node:crypto';
+
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as nodemailer from 'nodemailer';
+import axios, { AxiosInstance } from 'axios';
 
 import { INotificationProvider, NotificationResult } from '../interfaces/notification.interfaces';
 import { NotificationPreference } from '../schemas/notification-preference.schema';
 import { NotificationTarget, NotificationPayload } from '../types/notification.types';
 
 import type Mail from 'nodemailer/lib/mailer';
-import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 @Injectable()
 export class EmailNotificationService implements INotificationProvider {
   private readonly logger = new Logger(EmailNotificationService.name);
-  private transporter!: nodemailer.Transporter<SMTPTransport.SentMessageInfo>;
+  private readonly brevoClient: AxiosInstance;
+  private readonly brevoApiUrl: string;
 
   constructor(
     @InjectModel(NotificationPreference.name)
@@ -22,30 +24,39 @@ export class EmailNotificationService implements INotificationProvider {
     private readonly configService: ConfigService,
   ) {
     void this.preferencesModel;
-    this.initializeTransporter();
+
+    const apiKey = this.getRequiredConfigValue('BREVO_API_KEY');
+    const apiBaseUrl =
+      this.getNonEmptyConfigValue('BREVO_API_BASE_URL') ?? 'https://api.brevo.com/v3';
+    this.brevoApiUrl = `${apiBaseUrl.replace(/\/$/, '')}/smtp/email`;
+    this.brevoClient = axios.create({
+      timeout: 10_000,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'api-key': apiKey,
+      },
+    });
+
+    this.logger.log('Brevo notification email service initialized');
   }
 
-  private initializeTransporter(): void {
-    const emailConfig: SMTPTransport.Options = {
-      host: this.configService.get<string>('SMTP_HOST') ?? '',
-      port: this.configService.get<number>('SMTP_PORT', 587),
-      secure: this.configService.get<boolean>('SMTP_SECURE', false),
-      auth: {
-        user: this.configService.get<string>('SMTP_USER') ?? '',
-        pass: this.configService.get<string>('SMTP_PASS') ?? '',
-      },
-    };
+  private getNonEmptyConfigValue(key: string): string | undefined {
+    const value = this.configService.get<string>(key);
+    if (value === null || value === undefined) {
+      return undefined;
+    }
 
-    this.transporter = nodemailer.createTransport(emailConfig);
+    const trimmedValue = value.trim();
+    return trimmedValue.length > 0 ? trimmedValue : undefined;
+  }
 
-    // Verify connection configuration
-    this.transporter.verify((error, _success) => {
-      if (error) {
-        this.logger.error('SMTP configuration error:', error);
-      } else {
-        this.logger.log('SMTP server connection established successfully');
-      }
-    });
+  private getRequiredConfigValue(key: string): string {
+    const value = this.getNonEmptyConfigValue(key);
+    if (!value) {
+      throw new Error(`${key} is required for Brevo email delivery`);
+    }
+    return value;
   }
 
   async send(
@@ -62,19 +73,16 @@ export class EmailNotificationService implements INotificationProvider {
         };
       }
 
-      const mailOptions = this.buildEmailMessage(payload, emailAddress);
-      const info = await this.transporter.sendMail(mailOptions);
-
-      return {
-        success: true,
-        messageId: info.messageId,
-        deliveryStatus: 'sent',
-        metadata: {
-          accepted: this.normalizeMailRecipients(info.accepted),
-          rejected: this.normalizeMailRecipients(info.rejected),
-          response: info.response,
+      return await this.sendViaBrevo({
+        to: [{ email: emailAddress }],
+        subject: payload.title,
+        htmlContent: this.buildHtmlBody(payload),
+        textContent: payload.body,
+        headers: {
+          'X-Mailer': 'TooFreshToWaste-Platform',
+          'X-Priority': '3',
         },
-      };
+      });
     } catch (error) {
       this.logger.error(
         `Email notification failed: ${(error as Error).message}`,
@@ -129,32 +137,29 @@ export class EmailNotificationService implements INotificationProvider {
         };
       }
 
-      const mailOptions: Mail.Options = {
-        from: options?.from ?? this.getDefaultFromAddress(),
-        to: emailAddress,
-        replyTo: options?.replyTo,
+      const from = this.parseAddress(
+        options?.from ?? this.getDefaultFromAddress(),
+        this.getDefaultSenderEmail(),
+      );
+      const replyTo = options?.replyTo
+        ? this.parseAddress(options.replyTo, this.getDefaultSenderEmail())
+        : undefined;
+
+      const result = await this.sendViaBrevo({
+        sender: from,
+        to: [{ email: emailAddress }],
         subject: templateData.subject,
-        html: templateData.htmlBody,
-        text: templateData.textBody ?? this.stripHtml(templateData.htmlBody),
-        attachments: options?.attachments ?? [],
+        htmlContent: templateData.htmlBody,
+        textContent: templateData.textBody ?? this.stripHtml(templateData.htmlBody),
+        attachment: this.mapAttachments(options?.attachments ?? []),
         headers: {
           'X-Mailer': 'TooFreshToWaste-Platform',
           'X-Priority': '3',
         },
-      };
+        ...(replyTo ? { replyTo } : {}),
+      });
 
-      const info = await this.transporter.sendMail(mailOptions);
-
-      return {
-        success: true,
-        messageId: info.messageId,
-        deliveryStatus: 'sent',
-        metadata: {
-          accepted: this.normalizeMailRecipients(info.accepted),
-          rejected: this.normalizeMailRecipients(info.rejected),
-          response: info.response,
-        },
-      };
+      return result;
     } catch (error) {
       this.logger.error(
         `Template email failed: ${(error as Error).message}`,
@@ -200,29 +205,75 @@ export class EmailNotificationService implements INotificationProvider {
     return result;
   }
 
+  private async sendViaBrevo(payload: {
+    sender?: { name?: string; email: string };
+    to: Array<{ email: string; name?: string }>;
+    replyTo?: { name?: string; email: string };
+    subject: string;
+    htmlContent: string;
+    textContent?: string;
+    attachment?: Array<{ name: string; content: string }>;
+    headers?: Record<string, string>;
+  }): Promise<NotificationResult> {
+    try {
+      const sender =
+        payload.sender ??
+        this.parseAddress(this.getDefaultFromAddress(), this.getDefaultSenderEmail());
+      const headers = {
+        ...(payload.headers ?? {}),
+        'Idempotency-Key': payload.headers?.['Idempotency-Key'] ?? randomUUID(),
+      };
+
+      const response = await this.brevoClient.post<{
+        messageId?: string;
+      }>(this.brevoApiUrl, {
+        ...payload,
+        headers,
+        sender,
+      });
+
+      const recipients = payload.to.map(recipient => recipient.email);
+      const messageId = response.data.messageId ?? 'unknown';
+
+      return {
+        success: true,
+        messageId,
+        deliveryStatus: 'sent',
+        metadata: {
+          accepted: recipients,
+          rejected: [],
+          response: messageId,
+        },
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const responseData =
+          typeof error.response?.data === 'string'
+            ? error.response.data
+            : JSON.stringify(error.response?.data ?? {});
+        this.logger.error(
+          `Brevo email request failed with status ${error.response?.status ?? 'unknown'}: ${responseData}`,
+        );
+      } else {
+        this.logger.error(
+          `Brevo email request failed: ${(error as Error).message}`,
+          (error as Error).stack,
+        );
+      }
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
   private getEmailAddress(target: NotificationTarget): string | null {
     if (target.userId) {
-      // Get user email from user collection or preferences
-      // This would typically require injecting the User model
-      // For now, return a placeholder
       return `user_${target.userId}@example.com`;
     }
 
     return null;
-  }
-
-  private buildEmailMessage(payload: NotificationPayload, emailAddress: string): Mail.Options {
-    return {
-      from: this.getDefaultFromAddress(),
-      to: emailAddress,
-      subject: payload.title,
-      html: this.buildHtmlBody(payload),
-      text: payload.body,
-      headers: {
-        'X-Mailer': 'TooFreshToWaste-Platform',
-        'X-Priority': '3',
-      },
-    };
   }
 
   private buildHtmlBody(payload: NotificationPayload): string {
@@ -263,16 +314,69 @@ export class EmailNotificationService implements INotificationProvider {
     `;
   }
 
+  private getDefaultSenderEmail(): string {
+    return this.getRequiredConfigValue('BREVO_FROM_EMAIL');
+  }
+
   private getDefaultFromAddress(): string {
-    const fromName = this.configService.get<string>('EMAIL_FROM_NAME', 'Too Fresh To Waste');
-    const fromEmail = this.configService.get<string>('EMAIL_FROM_ADDRESS', 'noreply@foodwaste.com');
+    const fromName = this.configService.get<string>('BREVO_FROM_NAME', 'Too Fresh To Waste');
+    const fromEmail = this.getDefaultSenderEmail();
     return `"${fromName}" <${fromEmail}>`;
   }
 
-  private normalizeMailRecipients(recipients: Array<string | Mail.Address>): string[] {
-    return recipients.map(recipient =>
-      typeof recipient === 'string' ? recipient : recipient.address,
-    );
+  private parseAddress(
+    rawAddress: string,
+    fallbackEmail: string,
+  ): {
+    name?: string;
+    email: string;
+  } {
+    const trimmed = rawAddress.trim();
+    const namedMatch = /^"?([^"]+)"?\s*<([^>]+)>$/.exec(trimmed);
+
+    if (namedMatch) {
+      const name = namedMatch[1]?.trim();
+      const email = namedMatch[2]?.trim();
+
+      if (email) {
+        return {
+          ...(name ? { name } : {}),
+          email,
+        };
+      }
+    }
+
+    return {
+      email: trimmed.length > 0 ? trimmed : fallbackEmail,
+    };
+  }
+
+  private mapAttachments(attachments: Mail.Attachment[]): Array<{
+    name: string;
+    content: string;
+  }> {
+    return attachments
+      .filter(
+        (
+          attachment,
+        ): attachment is Mail.Attachment & {
+          filename: string;
+          content: string | Buffer;
+        } => {
+          return (
+            typeof attachment.filename === 'string' &&
+            attachment.filename.length > 0 &&
+            (typeof attachment.content === 'string' || Buffer.isBuffer(attachment.content))
+          );
+        },
+      )
+      .map(attachment => ({
+        name: attachment.filename,
+        content:
+          typeof attachment.content === 'string'
+            ? Buffer.from(attachment.content).toString('base64')
+            : attachment.content.toString('base64'),
+      }));
   }
 
   private stripHtml(html: string): string {
@@ -282,7 +386,6 @@ export class EmailNotificationService implements INotificationProvider {
       .trim();
   }
 
-  // Template methods - these would typically be in separate template files
   private getOrderConfirmationTemplate(data: Record<string, unknown>): string {
     return `
       <h2>Order Confirmed!</h2>

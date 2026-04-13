@@ -1022,7 +1022,7 @@ export class AuthController {
         securityAttributes: {
           httpOnly: true,
           secure: isProduction,
-          sameSite: 'strict',
+          sameSite: 'lax',
         },
       });
     } catch (error) {

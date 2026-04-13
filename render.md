@@ -1,0 +1,237 @@
+NODE_ENV ••••••••••••
+
+PORT ••••••••••••
+
+DATABASE_URL ••••••••••••
+
+REDIS_HOST ••••••••••••
+
+REDIS_PORT ••••••••••••
+
+REDIS_USERNAME ••••••••••••
+
+REDIS_PASSWORD ••••••••••••
+
+REDIS_TLS_CHECK_SERVER_IDENTITY ••••••••••••
+
+REDIS_TLS ••••••••••••
+
+REDIS_TLS_REJECT_UNAUTHORIZED ••••••••••••
+
+REDIS_TLS_MIN_VERSION ••••••••••••
+
+REDIS_CONNECT_TIMEOUT 10000
+
+REDIS_COMMAND_TIMEOUT ••••••••••••
+
+REDIS_MAX_RETRIES ••••••••••••
+
+JWT_SECRET ••••••••••••
+
+JWT_REFRESH_SECRET ••••••••••••
+
+JWT_EXPIRES_IN ••••••••••••
+
+JWT_REFRESH_EXPIRES_IN ••••••••••••
+
+JWT_REFRESH_REMEMBER_ME_EXPIRES_IN ••••••••••••
+
+COOKIE_SECRET ••••••••••••
+
+COOKIE_DOMAIN ••••••••••••
+
+CORS_ORIGINS ••••••••••••
+
+BACKEND_URL value
+
+FRONTEND_URL ••••••••••••
+
+WEB_FRONTEND_URL ••••••••••••
+
+SMTP_HOST ••••••••••••
+
+SMTP_PORT ••••••••••••
+
+SMTP_SECURE ••••••••••••
+
+SMTP_USER ••••••••••••
+
+SMTP_PASS ••••••••••••
+
+SMTP_FROM_EMAIL ••••••••••••
+
+SMTP_FROM_NAME ••••••••••••
+
+EMAIL_FROM_NAME ••••••••••••
+
+EMAIL_FROM_ADDRESS ••••••••••••
+
+PRIVACY_ENCRYPTION_KEY ••••••••••••
+
+FIREBASE_SERVICE_ACCOUNT ••••••••••••
+
+FIREBASE_SERVICE_ACCOUNT_PATH ••••••••••••
+
+FIREBASE_PROJECT_ID ••••••••••••
+
+SUPABASE_URL ••••••••••••
+
+SUPABASE_SERVICE_ROLE_KEY ••••••••••••
+
+SUPABASE_STORAGE_BUCKET ••••••••••••
+
+SUPABASE_MAX_FILE_SIZE_MB ••••••••••••
+
+TWILIO_ACCOUNT_SID ••••••••••••
+
+TWILIO_AUTH_TOKEN ••••••••••••
+
+TWILIO_PHONE_NUMBER ••••••••••••
+
+GOOGLE_PLACES_API_KEY ••••••••••••
+
+GOOGLE_PLACES_TIMEOUT ••••••••••••
+
+GOOGLE_PLACES_MAX_RESULTS ••••••••••••
+
+GEOAPIFY_API_KEY ••••••••••••
+
+GEOAPIFY_TIMEOUT ••••••••••••
+
+MFA_ISSUER_NAME ••••••••••••
+
+SENTRY_DSN ••••••••••••
+
+SENTRY_ENVIRONMENT ••••••••••••
+
+SENTRY_RELEASE ••••••••••••
+
+SENTRY_TRACES_SAMPLE_RATE ••••••••••••
+
+SENTRY_PROFILES_SAMPLE_RATE ••••••••••••
+
+RABBITMQ_ENABLED false
+
+RABBITMQ_URL ••••••••••••
+
+RABBITMQ_EXCHANGE foodwaste.events
+
+RABBITMQ_PREFETCH_COUNT 10
+
+RABBITMQ_MESSAGE_TTL ••••••••••••
+
+APP_NAME ••••••••••••
+
+SUPPORT_EMAIL ••••••••••••
+
+ADMIN_EMAIL ••••••••••••
+
+ADMIN_PASSWORD ••••••••••••
+
+ADMIN_NOTIFICATION_EMAILS ••••••••••••
+
+ADMIN_NOTIFICATIONS_ENABLED ••••••••••••
+
+THROTTLE_TTL ••••••••••••
+
+THROTTLE_LIMIT ••••••••••••
+
+MIN_APP_VERSION ••••••••••••
+
+CAPTCHA_ENABLED ••••••••••••
+
+ANALYTICS_CACHE_ENABLED ••••••••••••
+
+ENABLE_HTTPS ••••••••••••
+
+ENABLE_QUERY_MONITORING ••••••••••••
+
+SLOW_QUERY_THRESHOLD_MS ••••••••••••
+
+PROMETHEUS_METRICS_ENABLED ••••••••••••
+
+LOG_LEVEL ••••••••••••
+
+LOGS_DIR ••••••••••••
+
+AUTO_FEATURE_MIN_EXISTENCE_HOURS ••••••••••••
+
+AUTO_FEATURE_URGENCY_HOURS ••••••••••••
+
+AUTO_FEATURE_CRON_SCHEDULE ••••••••••••
+
+AUTO_FEATURE_ENABLED ••••••••••••
+
+MAX_FAILED_LOGIN_ATTEMPTS ••••••••••••
+
+ACCOUNT_LOCKOUT_DURATION ••••••••••••
+
+SESSION_MAX_CONCURRENT ••••••••••••
+
+SESSION_TIMEOUT_MS ••••••••••••
+
+SESSION_REMEMBER_ME_MS ••••••••••••
+
+SESSION_CLEANUP_INTERVAL_MS ••••••••••••
+
+SESSION_SUSPICIOUS_THRESHOLD ••••••••••••
+
+PASSWORD_HISTORY_COUNT ••••••••••••
+
+PASSWORD_ENFORCE_HISTORY ••••••••••••
+
+PASSWORD_MIN_LENGTH ••••••••••••
+
+PASSWORD_MAX_LENGTH ••••••••••••
+
+PASSWORD_REQUIRE_UPPERCASE ••••••••••••
+
+PASSWORD_REQUIRE_LOWERCASE ••••••••••••
+
+PASSWORD_REQUIRE_NUMBERS ••••••••••••
+
+PASSWORD_REQUIRE_SPECIAL_CHARS ••••••••••••
+
+PASSWORD_MIN_SCORE ••••••••••••
+
+PASSWORD_PREVENT_COMMON ••••••••••••
+
+PASSWORD_PREVENT_PERSONAL_INFO ••••••••••••
+
+PASSWORD_PREVENT_SEQUENTIAL ••••••••••••
+
+PASSWORD_PREVENT_REPEATING ••••••••••••
+
+PASSWORD_MAX_REPEATING_CHARS ••••••••••••
+
+PASSWORD_SPECIAL_CHARACTERS ••••••••••••
+
+MONGO_MAX_POOL_SIZE ••••••••••••
+
+MONGO_MIN_POOL_SIZE ••••••••••••
+
+MONGO_MAX_IDLE_TIME_MS ••••••••••••
+
+MONGO_WAIT_QUEUE_TIMEOUT_MS ••••••••••••
+
+MONGO_SOCKET_TIMEOUT_MS ••••••••••••
+
+MONGO_CONNECT_TIMEOUT_MS ••••••••••••
+
+MONGO_SERVER_SELECTION_TIMEOUT_MS ••••••••••••
+
+MONGO_HEARTBEAT_FREQUENCY_MS ••••••••••••
+
+HEALTH_CHECK_MEMORY_HEAP_THRESHOLD_MB ••••••••••••
+
+HEALTH_CHECK_MEMORY_RSS_THRESHOLD_MB ••••••••••••
+
+HEALTH_CHECK_DB_TIMEOUT_MS ••••••••••••
+
+HEALTH_CHECK_REDIS_TIMEOUT_MS ••••••••••••
+
+MAX_FILE_SIZE ••••••••••••
+
+UPLOAD_PATH ••••••••••••
+
+API_BASE_URL ••••••••••••
