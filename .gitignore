@@ -85,6 +85,8 @@ firebase-debug.log
 .firebase
 **/firebase-service-account.json
 firebase-service-account.json
+**/*adminsdk*.json
+apps/food-waste-backend/config/
 
 # Secrets & Keys
 *.pem
