@@ -181,6 +181,11 @@ const nextConfig = {
   // Transpile workspace packages
   transpilePackages: ['@foodwaste/ui', '@foodwaste/shared'],
 
+  // Generate source maps for all production bundles so Sentry can upload them.
+  // hideSourceMaps:true in withSentryConfig strips the public //# sourceMappingURL
+  // references, so end users cannot download the maps from the deployed bundle.
+  productionBrowserSourceMaps: true,
+
   // Experimental features
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
