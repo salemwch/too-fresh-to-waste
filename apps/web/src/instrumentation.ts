@@ -9,7 +9,3 @@ export async function register() {
     await import('../sentry.edge.config');
   }
 }
-
-// Propagate unhandled errors from Server Components to Sentry.
-// @sentry/nextjs wires this up automatically when it detects the export.
-export { onRequestError } from '@sentry/nextjs';
