@@ -5,6 +5,9 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { z } from 'zod';
 
+// Force dynamic rendering — this route uses request headers and external services
+export const dynamic = 'force-dynamic';
+
 // ─── Brevo configuration (centralised, no hardcoded values in route body) ─────
 const BREVO_API_BASE = (process.env['BREVO_API_BASE_URL'] || 'https://api.brevo.com/v3').replace(
   /\/$/,
@@ -26,18 +29,21 @@ const SITE_URL = process.env['NEXT_PUBLIC_SITE_URL'] || 'http://localhost:3001';
 const RATE_LIMIT_MAX_REQUESTS = 5;
 const RATE_LIMIT_WINDOW_SECONDS = 15 * 60; // 15 minutes
 
-const upstashUrl = process.env['UPSTASH_REDIS_REST_URL'];
-const upstashToken = process.env['UPSTASH_REDIS_REST_TOKEN'];
-
-const ratelimit =
-  upstashUrl && upstashToken
-    ? new Ratelimit({
-        redis: new Redis({ url: upstashUrl, token: upstashToken }),
-        limiter: Ratelimit.slidingWindow(RATE_LIMIT_MAX_REQUESTS, `${RATE_LIMIT_WINDOW_SECONDS} s`),
-        prefix: 'newsletter',
-        analytics: true,
-      })
-    : null;
+// Lazy singleton — created on first request, not at module load time
+let ratelimit: Ratelimit | null = null;
+function getRatelimit(): Ratelimit | null {
+  if (ratelimit) return ratelimit;
+  const upstashUrl = process.env['UPSTASH_REDIS_REST_URL'];
+  const upstashToken = process.env['UPSTASH_REDIS_REST_TOKEN'];
+  if (!upstashUrl || !upstashToken) return null;
+  ratelimit = new Ratelimit({
+    redis: new Redis({ url: upstashUrl, token: upstashToken }),
+    limiter: Ratelimit.slidingWindow(RATE_LIMIT_MAX_REQUESTS, `${RATE_LIMIT_WINDOW_SECONDS} s`),
+    prefix: 'newsletter',
+    analytics: true,
+  });
+  return ratelimit;
+}
 
 // In-memory fallback for local development (NOT production-safe)
 const memoryRateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -54,8 +60,9 @@ async function checkRateLimit(
   const ip = getClientIp(request);
 
   // Production path — Redis-backed, survives cold starts
-  if (ratelimit) {
-    const result = await ratelimit.limit(ip);
+  const rl = getRatelimit();
+  if (rl) {
+    const result = await rl.limit(ip);
     return { allowed: result.success, remaining: result.remaining };
   }
 
