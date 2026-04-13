@@ -49,11 +49,9 @@ const ADMIN = '/admin';
 const MOD = '/moderation';
 
 // Health controller uses VERSION_NEUTRAL — it's at /health, NOT /api/v1/health.
-// Strip the version segment so we hit the right path.
-const BACKEND_ROOT = (process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3000/api/v1').replace(
-  /\/api\/v\d+\/?$/,
-  '',
-);
+// Use NEXT_PUBLIC_WS_URL (always the real backend origin) so this works in both
+// direct mode and proxy mode (where NEXT_PUBLIC_API_URL is a relative path /api/v1).
+const BACKEND_ROOT = process.env['NEXT_PUBLIC_WS_URL'] ?? 'http://localhost:3000';
 
 export const adminService = {
   // ── Analytics ──────────────────────────────────────────────────────────────

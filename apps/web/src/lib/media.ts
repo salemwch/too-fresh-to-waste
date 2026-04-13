@@ -9,8 +9,10 @@
  * always load regardless of which client originally uploaded them.
  */
 
+// Use the actual backend origin (not the proxied /api/v1 relative path).
+// NEXT_PUBLIC_WS_URL is always the full origin: https://api.toofreshtowaste.com
 const API_BASE =
-  (process.env['NEXT_PUBLIC_API_URL'] as string | undefined) ?? 'http://localhost:3000';
+  (process.env['NEXT_PUBLIC_WS_URL'] as string | undefined) ?? 'http://localhost:3000';
 
 // Pre-parse once so we don't re-parse on every call
 let _apiHost = 'localhost';

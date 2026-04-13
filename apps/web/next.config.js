@@ -47,18 +47,8 @@ const nextConfig = {
     qualities: [25, 50, 75, 85, 100],
     deviceSizes: [360, 640, 768, 1024, 1280, 1536],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60,
+    minimumCacheTTL: 86400, // 1 day — optimized images are immutable until the source changes
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'storage.googleapis.com',
-        pathname: '/toofreshtowaste.firebasestorage.app/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'firebasestorage.googleapis.com',
-        pathname: '/v0/b/toofreshtowaste**',
-      },
       // Supabase storage (user-uploaded avatars)
       {
         protocol: 'https',
@@ -176,6 +166,31 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
+  },
+
+  // API proxy rewrite: browser calls /api/* (same-origin, no CORS headers needed).
+  // Vercel edge forwards to the actual backend; cookies flow through unchanged.
+  //
+  // Uses NEXT_PUBLIC_WS_URL (always the real backend origin) as the destination,
+  // so the rewrite works even when NEXT_PUBLIC_API_URL is a relative path (/api/v1).
+  //
+  // ACTIVATE proxy mode on Vercel:
+  //   NEXT_PUBLIC_API_URL  = /api/v1            ← Axios uses relative paths
+  //   NEXT_PUBLIC_WS_URL   = https://api.toofreshtowaste.com  ← rewrite destination + Socket.IO
+  //
+  // Direct mode (current — no Vercel rewrite needed):
+  //   NEXT_PUBLIC_API_URL  = https://api.toofreshtowaste.com/api/v1
+  //   NEXT_PUBLIC_WS_URL   = https://api.toofreshtowaste.com
+  async rewrites() {
+    const backendUrl = process.env.NEXT_PUBLIC_WS_URL;
+    if (!backendUrl) return [];
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
+      },
+    ];
   },
 
   // Transpile workspace packages

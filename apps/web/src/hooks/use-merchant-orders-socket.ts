@@ -56,21 +56,14 @@ const newOrderPayloadSchema = z.object({
 });
 
 /**
- * Socket.IO URL must point to the server origin WITHOUT a path.
- * `NEXT_PUBLIC_API_URL` includes `/api/v1` which Socket.IO would interpret as
- * a namespace, causing "Invalid namespace". Use the dedicated WS env var or
- * fall back to extracting just the origin from the API URL.
+ * Socket.IO URL must be the server ORIGIN only — no path, no /api/v1.
+ * Socket.IO interprets any path as a namespace, causing "Invalid namespace".
+ *
+ * NEXT_PUBLIC_WS_URL = https://api.toofreshtowaste.com  (always the actual backend)
+ * This is separate from NEXT_PUBLIC_API_URL which may be a relative path (/api/v1)
+ * when the Vercel rewrite proxy is active.
  */
-const BACKEND_WS_URL = (() => {
-  const wsEnv = process.env['NEXT_PUBLIC_WEBSOCKET_URL'];
-  if (wsEnv) return wsEnv.replace(/^ws/, 'http'); // Socket.IO needs http(s), upgrades internally
-  const apiUrl = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3000';
-  try {
-    return new URL(apiUrl).origin;
-  } catch {
-    return 'http://localhost:3000';
-  }
-})();
+const BACKEND_WS_URL = process.env['NEXT_PUBLIC_WS_URL'] ?? 'http://localhost:3000';
 
 /**
  * Connects to the NestJS WebSocket gateway and listens for order events.

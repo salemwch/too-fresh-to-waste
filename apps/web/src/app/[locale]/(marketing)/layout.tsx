@@ -1,4 +1,9 @@
 import { type Locale } from '@/i18n/config';
+
+// Marketing pages are static content — revalidate every 24h (ISR).
+// Vercel serves cached HTML instantly; regenerates in background when stale.
+// Lower this value if marketing copy changes frequently.
+export const revalidate = 86400;
 import {
   OrganizationStructuredData,
   WebsiteStructuredData,

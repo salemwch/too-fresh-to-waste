@@ -5,13 +5,16 @@ import { useAuthStore } from './auth';
 /**
  * Resolve the API base URL.
  *
- * During Next.js static prerendering (`next build`), NEXT_PUBLIC_*
- * variables may not be injected yet because the build worker is not
- * the production runtime.  We fall back to localhost so the module
- * can load without throwing — the real URL is used at request time
- * once the env var is available (set it in Vercel project settings).
+ * Two modes:
+ * - Direct:  NEXT_PUBLIC_API_URL=https://api.toofreshtowaste.com/api/v1
+ *            Axios calls the backend directly (cross-origin, CORS required).
+ * - Proxy:   NEXT_PUBLIC_API_URL=/api/v1
+ *            Axios uses relative paths; Vercel edge rewrites /api/* → backend.
+ *            Same-origin to the browser — no CORS needed, cookies sent naturally.
+ *
+ * NEXT_PUBLIC_WS_URL is always the actual backend origin (Socket.IO, media, health).
  */
-const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3000';
+const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3000/api/v1';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
