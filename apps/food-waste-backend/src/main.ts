@@ -464,12 +464,8 @@ This API provides comprehensive endpoints for:
         `,
   });
 
-  const configuredPort = appConfigService.get<string>('PORT');
-  const parsedPort =
-    configuredPort !== null && configuredPort !== undefined && configuredPort.length > 0
-      ? Number.parseInt(configuredPort, 10)
-      : NaN;
-  const port = Number.isFinite(parsedPort) ? parsedPort : 3000;
+  // Joi coerces PORT to a number, so get it typed correctly and fall back to 3000.
+  const port = appConfigService.get<number>('PORT') ?? 3000;
   const protocol = isProduction || enableHttps ? 'HTTPS' : 'HTTP';
 
   // Enable shutdown hooks for proper lifecycle management
