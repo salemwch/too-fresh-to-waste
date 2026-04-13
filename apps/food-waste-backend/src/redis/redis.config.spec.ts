@@ -57,6 +57,15 @@ describe('redis.config', () => {
     expect(redisConfig.useTls).toBe(true);
   });
 
+  it('URL protocol is authoritative over REDIS_TLS env var', () => {
+    const redisConfig = getRedisConnectionConfigFromEnv({
+      REDIS_URL: 'rediss://default:secret@nice-chamois-98014.upstash.io:6379',
+      REDIS_TLS: 'false',
+    });
+
+    expect(redisConfig.useTls).toBe(true);
+  });
+
   it('builds TLS options that can relax certificate checks when explicitly configured', () => {
     const redisConfig = getRedisConnectionConfigFromEnv({
       REDIS_TLS: 'true',

@@ -90,10 +90,14 @@ function buildRedisConnectionConfig(read: RedisValueReader): RedisConnectionConf
   const redisPort = parseInteger(read('REDIS_PORT', `${DEFAULT_PORT}`), DEFAULT_PORT);
   const redisTlsPort = parseInteger(read('REDIS_TLS_PORT', '0'), 0);
   const explicitTls = read('REDIS_TLS');
+  // URL protocol is authoritative: `rediss://` → always TLS, `redis://` → always plain.
+  // REDIS_TLS env var only applies when no URL is provided.
   const useTls =
-    explicitTls !== undefined && explicitTls !== ''
-      ? parseBoolean(explicitTls, false)
-      : (urlParts?.useTls ?? false);
+    urlParts?.useTls !== undefined
+      ? urlParts.useTls
+      : explicitTls !== undefined && explicitTls !== ''
+        ? parseBoolean(explicitTls, false)
+        : false;
 
   const minVersion =
     read('REDIS_TLS_MIN_VERSION', DEFAULT_TLS_MIN_VERSION) ?? DEFAULT_TLS_MIN_VERSION;
