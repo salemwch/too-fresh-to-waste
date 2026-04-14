@@ -409,6 +409,7 @@
     "checkInboxDescription": "Click the link we've sent to {email} to confirm it's really you.",
     "checkInboxDescriptionGeneric": "Click the verification link we sent to your email address.",
     "checkSpamHint": "If you can't see the email, check your Spam or Junk folder.",
+    "resendPrompt": "Didn't receive it? Enter your email to resend:",
     "resendEmail": "Resend Email",
     "resendCooldown": "Resend in {seconds}s",
     "welcomeToast": "Welcome to Too Fresh To Waste!",

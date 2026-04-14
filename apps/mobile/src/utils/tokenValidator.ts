@@ -228,7 +228,6 @@ export const isFatalAuthError = (error: unknown): boolean => {
  */
 export const isAuthReadyForApiCalls = (authState: {
   isAuthenticated: boolean;
-  tokens: { accessToken: string; refreshToken: string } | null;
   sessionExpiresAt: string | null;
 }): { isReady: boolean; reason?: string } => {
   // Check authentication flag
@@ -236,10 +235,8 @@ export const isAuthReadyForApiCalls = (authState: {
     return { isReady: false, reason: 'not_authenticated' };
   }
 
-  // Check token existence
-  if (!authState.tokens?.accessToken) {
-    return { isReady: false, reason: 'no_access_token' };
-  }
+  // NOTE: Token existence is not checked here — tokens live in Keychain, not Redux.
+  // The apiClient interceptor reads the access token from Keychain at request time.
 
   // Check local expiry timestamp
   const { sessionExpiresAt } = authState;

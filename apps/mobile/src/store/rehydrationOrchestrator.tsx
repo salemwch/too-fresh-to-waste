@@ -156,22 +156,18 @@ function validateAuthStateConsistency(state: RootState): {
   valid: boolean;
   errors: string[];
 } {
-  const { isAuthenticated, user, tokens } = state.auth;
+  const { isAuthenticated, user } = state.auth;
 
   const errors: string[] = [];
 
-  // If has tokens, must be authenticated
-  if ((tokens?.accessToken || tokens?.refreshToken) && !isAuthenticated) {
-    errors.push('INCONSISTENT: Has tokens but isAuthenticated is false');
+  // If authenticated, user profile must be present
+  if (isAuthenticated && !user) {
+    errors.push('INCONSISTENT: Authenticated but missing user data');
   }
 
-  // If authenticated and tokens are present, user must also be present
-  if (isAuthenticated && tokens?.accessToken && !user) {
-    errors.push('INCONSISTENT: Authenticated with tokens but missing user data');
-  }
-
-  // NOTE: `isAuthenticated && !tokens` is EXPECTED right after MMKV rehydration.
-  // The authSessionMiddleware loads Keychain tokens asynchronously → not an error.
+  // NOTE: Tokens live in Keychain (authoritative source) — not in Redux state.
+  // Token presence is validated by authSessionMiddleware after Keychain reads.
+  // Token-based checks here would always see null and produce false positives.
 
   return {
     valid: errors.length === 0,

@@ -2,6 +2,7 @@ import { UserRole } from '@foodwaste/shared';
 import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { parse as parseCookies } from 'cookie';
 
 import { AuthenticatedSocket } from '../interfaces/websocket.interface';
 
@@ -83,8 +84,10 @@ export class WebSocketAuthGuard implements CanActivate {
     if (!cookieHeader) {
       return null;
     }
-    const match = cookieHeader.match(/(?:^|;\s*)access_token=([^;]+)/);
-    return match?.[1] ? decodeURIComponent(match[1]) : null;
+    // Use the `cookie` package for spec-compliant parsing — handles edge cases
+    // (values with `=`, whitespace, URL-encoded chars) that a simple regex misses.
+    const cookies = parseCookies(cookieHeader);
+    return cookies['access_token'] ?? null;
   }
 
   private async verifyToken(

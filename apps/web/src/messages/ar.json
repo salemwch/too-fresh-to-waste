@@ -409,6 +409,7 @@
     "checkInboxDescription": "انقر على الرابط الذي أرسلناه إلى {email} لتأكيد هويتك.",
     "checkInboxDescriptionGeneric": "انقر على رابط التحقق الذي أرسلناه إلى بريدك الإلكتروني.",
     "checkSpamHint": "إذا لم تجد الرسالة، تحقق من مجلد البريد العشوائي.",
+    "resendPrompt": "لم تستلمه؟ أدخل بريدك الإلكتروني لإعادة الإرسال:",
     "resendEmail": "إعادة إرسال البريد",
     "resendCooldown": "إعادة الإرسال خلال {seconds} ثانية",
     "welcomeToast": "مرحبًا بك في Too Fresh To Waste!",

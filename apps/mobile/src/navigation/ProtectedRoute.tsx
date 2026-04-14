@@ -49,7 +49,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const dispatch = useAppDispatch();
   const [isSessionLogoutPending, setIsSessionLogoutPending] = useState(false);
 
-  const { isAuthenticated, isLoading, user, tokens, sessionExpiresAt } = useAppSelector(
+  const { isAuthenticated, isLoading, user, sessionExpiresAt } = useAppSelector(
     state => state.auth,
   );
 
@@ -70,7 +70,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // loop seen on app resume after long background periods.
   const checkAndRefreshTokenLatest = useRef(() => {});
   checkAndRefreshTokenLatest.current = () => {
-    if (!isAuthenticated || !tokens?.refreshToken || !sessionExpiresAt) return;
+    if (!isAuthenticated || !sessionExpiresAt) return;
 
     const expiresAt = new Date(sessionExpiresAt).getTime();
     const fiveMinutes = 5 * 60 * 1000;
@@ -110,7 +110,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   useEffect(() => {
     checkAndRefreshToken();
-  }, [isAuthenticated, sessionExpiresAt, tokens?.refreshToken]);
+  }, [isAuthenticated, sessionExpiresAt]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {

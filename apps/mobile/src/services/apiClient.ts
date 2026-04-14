@@ -25,7 +25,8 @@ import {
   createTrackedAbortController,
   releaseTrackedAbortController,
 } from '@/services/requestCancellation';
-import { getAppDispatch, getAppState } from '@/store/storeAccessor';
+import { SecureStorage } from '@/services/SecureStorage';
+import { getAppDispatch } from '@/store/storeAccessor';
 import { Logger, NetworkLogger } from '@/utils/logger';
 import { decodeEntitiesDeep } from '@/utils/strings';
 
@@ -41,14 +42,6 @@ export type { PaginationMeta };
 interface RequestConfigWithTiming extends InternalAxiosRequestConfig {
   requestStartTime?: number;
   _retry?: boolean;
-}
-
-interface ApiClientStateSnapshot {
-  auth: {
-    tokens: {
-      accessToken?: string;
-    } | null;
-  };
 }
 
 /**
@@ -227,25 +220,23 @@ const createApiClient = (): AxiosInstance => {
   // Request Interceptor - Add Auth Token + AbortController
   // ──────────────────────────────────────────────────────────────────────────
   client.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
+    async (config: InternalAxiosRequestConfig) => {
       // ✅ TYPE SAFETY: Use typed config instead of `any`
       const configWithTiming = config as RequestConfigWithTiming;
-      const startTime = Date.now();
-      configWithTiming.requestStartTime = startTime;
+      configWithTiming.requestStartTime = Date.now();
 
       // ✅ PER-REQUEST ABORT CONTROLLER: Create and attach to this request
       const abortController = createTrackedAbortController();
       config.signal = abortController.signal;
 
-      // Get access token from secure storage or Redux
-      const state = getAppState<ApiClientStateSnapshot>();
-      const accessToken = state.auth.tokens?.accessToken;
+      // Read access token from Keychain — authoritative source.
+      // Never read tokens from Redux state (tokens must not live in Redux).
+      const accessToken = await SecureStorage.getAccessToken();
 
       if (accessToken != null) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
 
-      // ✅ TYPE SAFETY: Fixed logic error (was `!= null || ''` which creates boolean)
       NetworkLogger.logRequest(
         config.url ?? '',
         config.method?.toUpperCase() ?? 'GET',

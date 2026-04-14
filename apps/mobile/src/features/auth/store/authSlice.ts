@@ -11,7 +11,6 @@ import { AuthFlowState } from '../types';
 import type {
   AuthState,
   User,
-  AuthTokens,
   LoginRequest,
   RegisterRequest,
   MFAVerificationRequest,
@@ -21,7 +20,6 @@ import type { RootState } from '@/store';
 // Initial state
 const initialState: AuthState = {
   user: null,
-  tokens: null,
   isAuthenticated: false,
   isLoading: false,
   error: undefined,
@@ -227,10 +225,10 @@ export const verifyMFAAsync = createAsyncThunk(
 
 export const refreshTokenAsync = createAsyncThunk(
   'auth/refreshToken',
-  async (_, { getState, rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const state = getState() as { auth: AuthState };
-      const refreshToken = state.auth.tokens?.refreshToken;
+      // Read refresh token from Keychain — never from Redux state
+      const refreshToken = await SecureStorage.getRefreshToken();
 
       if (refreshToken == null || refreshToken === '') {
         throw new Error('No refresh token available');
@@ -332,9 +330,10 @@ export const logoutAsync = createAsyncThunk(
 
     // Snapshot state before async operations
     const state = getState() as { auth: AuthState };
-    const { isAuthenticated, tokens, user } = state.auth;
+    const { isAuthenticated, user } = state.auth;
     const userId = user?.userId;
-    const accessToken = tokens?.accessToken;
+    // Read access token from Keychain — never from Redux state
+    const accessToken = await SecureStorage.getAccessToken();
     const reason = params.reason ?? 'user_action';
 
     // Create logout promise and store as lock
@@ -414,9 +413,9 @@ export const logoutAsync = createAsyncThunk(
  */
 export const deleteAccountAsync = createAsyncThunk(
   'auth/deleteAccount',
-  async (_, { getState, rejectWithValue }) => {
-    const state = getState() as { auth: AuthState };
-    const accessToken = state.auth.tokens?.accessToken;
+  async (_, { rejectWithValue }) => {
+    // Read access token from Keychain — never from Redux state
+    const accessToken = await SecureStorage.getAccessToken();
 
     if (accessToken == null || accessToken === '') {
       return rejectWithValue({ message: 'No access token available' });
@@ -486,18 +485,11 @@ export const loadStoredAuthAsync = createAsyncThunk(
 
       const parsedUser = JSON.parse(userJson) as unknown;
       const user = parsedUser as User;
-      const tokens: AuthTokens = {
-        accessToken,
-        refreshToken,
-        expiresIn: 3600, // Default, will be updated on refresh
-        tokenType: 'Bearer',
-      };
 
       // Check if the access token has expired on disk.
       // NOTE: We intentionally do NOT clear storage or return null here.
       // The refresh token may still be valid (it has a much longer TTL).
-      // Returning the tokens lets the Redux slice set flowState=AUTHENTICATED,
-      // the user sees the app immediately, and the reactive 401 handler in
+      // flowState=AUTHENTICATED is set in the reducer; the reactive 401 handler in
       // apiClient silently exchanges the stale access token for a new one on
       // the first API call — completely transparent to the user.
       // If the refresh token is also expired, apiClient dispatches forceLocalLogout
@@ -508,14 +500,13 @@ export const loadStoredAuthAsync = createAsyncThunk(
           Logger.info('[Auth] Access token expired on cold start — will refresh transparently', {
             expiresAt,
           });
-          // Fall through: return tokens so the reactive refresh can recover the session.
+          // Fall through: tokens stay in Keychain; reactive refresh handles renewal.
         }
       }
 
       Logger.info('Stored authentication data loaded successfully', { userId: user.userId });
       return {
         user,
-        tokens,
         lastLoginTime,
         sessionExpiresAt: expiresAt,
       };
@@ -536,11 +527,11 @@ export const updateProfileAsync = createAsyncThunk(
   'auth/updateProfile',
   async (
     updates: Partial<Omit<User, 'userId' | 'email' | 'role' | 'createdAt' | 'updatedAt'>>,
-    { getState, rejectWithValue },
+    { rejectWithValue },
   ) => {
     try {
-      const state = getState() as { auth: AuthState };
-      const accessToken = state.auth.tokens?.accessToken;
+      // Read access token from Keychain — never from Redux state
+      const accessToken = await SecureStorage.getAccessToken();
 
       if (accessToken == null || accessToken === '') {
         throw new Error('No access token available');
@@ -582,12 +573,6 @@ const authSlice = createSlice({
   reducers: {
     clearError: state => {
       state.error = undefined;
-    },
-
-    updateTokens: (state, action: PayloadAction<AuthTokens>) => {
-      state.tokens = action.payload;
-      const expiresAt = new Date(Date.now() + action.payload.expiresIn * 1000);
-      state.sessionExpiresAt = expiresAt.toISOString();
     },
 
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
@@ -714,7 +699,6 @@ const authSlice = createSlice({
       }
 
       state.user = action.payload.user;
-      state.tokens = action.payload.tokens;
       state.isAuthenticated = true;
       state.lastLoginTime = new Date().toISOString();
 
@@ -736,7 +720,6 @@ const authSlice = createSlice({
         payload?.message != null && payload.message !== '' ? payload.message : 'Login failed';
       state.isAuthenticated = false;
       state.user = null;
-      state.tokens = null;
       state.flowState = AuthFlowState.UNAUTHENTICATED;
     });
 
@@ -803,7 +786,6 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.error = undefined;
       state.user = action.payload.user;
-      state.tokens = action.payload.tokens;
       state.isAuthenticated = true;
       state.lastLoginTime = new Date().toISOString();
 
@@ -836,7 +818,6 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.error = undefined;
       state.user = action.payload.user;
-      state.tokens = action.payload.tokens;
       state.isAuthenticated = true;
       state.lastLoginTime = new Date().toISOString();
 
@@ -865,7 +846,6 @@ const authSlice = createSlice({
     });
 
     builder.addCase(refreshTokenAsync.fulfilled, (state, action) => {
-      state.tokens = action.payload.tokens;
       const expiresAt = new Date(Date.now() + action.payload.tokens.expiresIn * 1000);
       state.sessionExpiresAt = expiresAt.toISOString();
 
@@ -890,7 +870,6 @@ const authSlice = createSlice({
       } else {
         // AUTH ERROR (401/403/invalid token): Session truly expired.
         state.user = null;
-        state.tokens = null;
         state.isAuthenticated = false;
         state.error = 'Session expired. Please login again.';
         state.flowState = AuthFlowState.SESSION_EXPIRED;
@@ -972,7 +951,6 @@ const authSlice = createSlice({
         // to MMKV and trigger the RehydrationOrchestrator validation error on next boot.
         if (!action.payload.user) {
           state.user = null;
-          state.tokens = null;
           state.isAuthenticated = false;
           state.flowState = AuthFlowState.UNAUTHENTICATED;
 
@@ -983,7 +961,6 @@ const authSlice = createSlice({
         }
 
         state.user = action.payload.user;
-        state.tokens = action.payload.tokens;
         state.isAuthenticated = true;
         state.lastLoginTime = action.payload.lastLoginTime;
         state.sessionExpiresAt = action.payload.sessionExpiresAt;
@@ -1060,7 +1037,7 @@ export const selectIsPhoneVerified = (state: RootState): boolean =>
 export const selectAuthUser = (state: RootState) => state.auth.user;
 export const selectAuthIsLoading = (state: RootState) => state.auth.isLoading;
 export const selectAuthError = (state: RootState) => state.auth.error;
-export const selectAuthTokens = (state: RootState) => state.auth.tokens;
+export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated;
 export const selectAuthFlowState = (state: RootState) => state.auth.flowState;
 export const selectIsRecoveringSession = (state: RootState): boolean =>
   state.auth.isRecoveringSession;

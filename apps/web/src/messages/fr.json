@@ -409,6 +409,7 @@
     "checkInboxDescription": "Cliquez sur le lien que nous avons envoyé à {email} pour confirmer votre identité.",
     "checkInboxDescriptionGeneric": "Cliquez sur le lien de vérification envoyé à votre adresse e-mail.",
     "checkSpamHint": "Si vous ne voyez pas l'e-mail, vérifiez votre dossier Spam ou Courrier indésirable.",
+    "resendPrompt": "Vous ne l'avez pas reçu ? Entrez votre e-mail pour renvoyer :",
     "resendEmail": "Renvoyer l'e-mail",
     "resendCooldown": "Renvoyer dans {seconds}s",
     "welcomeToast": "Bienvenue sur Too Fresh To Waste !",

@@ -49,6 +49,7 @@ import {
 } from '@/features/auth/store/authSlice';
 import { AuthFlowState } from '@/features/auth/types';
 import { refreshTokenSafe } from '@/services/authRefresh';
+import { SecureStorage } from '@/services/SecureStorage';
 import { Logger } from '@/utils/logger';
 import { offlineManager } from '@/utils/offlineManager';
 import { SafeAnalytics } from '@/utils/safeAnalytics';
@@ -227,7 +228,7 @@ const handleAppStateChange = (
     const backgroundState = getState();
     const shouldGate =
       backgroundState.auth.flowState === AuthFlowState.AUTHENTICATED &&
-      backgroundState.auth.tokens !== null;
+      backgroundState.auth.isAuthenticated;
     if (shouldGate) {
       dispatch(sessionRecoveryStarted());
       if (CONFIG.ENABLE_LOGGING) {
@@ -281,7 +282,7 @@ const handleAppStateChange = (
     const resumeState = getState();
     const needsRecoveryGate =
       resumeState.auth.flowState === AuthFlowState.AUTHENTICATED &&
-      resumeState.auth.tokens !== null;
+      resumeState.auth.isAuthenticated;
     if (needsRecoveryGate) {
       dispatch(sessionRecoveryStarted());
     }
@@ -302,12 +303,12 @@ const handleAppStateChange = (
       const currentState = getState();
       if (
         currentState.auth.flowState !== AuthFlowState.AUTHENTICATED ||
-        currentState.auth.tokens === null
+        !currentState.auth.isAuthenticated
       ) {
         if (CONFIG.ENABLE_LOGGING) {
           Logger.debug('[AUTH-MIDDLEWARE] User no longer authenticated, skipping session check', {
             flowState: currentState.auth.flowState,
-            hasTokens: currentState.auth.tokens !== null,
+            isAuthenticated: currentState.auth.isAuthenticated,
           });
         }
         // Release the gate — nothing to recover.
@@ -530,7 +531,6 @@ const performLocalLogout = async (
 const refreshTokenWithBackoff = async (
   dispatch: AppDispatch,
   _getState: () => RootState,
-  _currentTokens: { accessToken: string; refreshToken: string },
 ): Promise<boolean> => {
   let attempt = 0;
   let lastError: string | undefined;
@@ -644,7 +644,7 @@ const checkAndRefreshToken = async (
 ): Promise<void> => {
   // ✅ SNAPSHOT STATE: Read once at start to avoid stale data
   const state = getState();
-  const { flowState, sessionExpiresAt, tokens } = state.auth;
+  const { flowState, sessionExpiresAt } = state.auth;
 
   // Only manage sessions for authenticated users
   if (flowState !== AuthFlowState.AUTHENTICATED) {
@@ -658,6 +658,7 @@ const checkAndRefreshToken = async (
   // if something unexpected happens in refresh/logout.
   try {
     // ✅ STEP 1: LOCAL PRE-FLIGHT CHECK (No Network Call)
+    // Read refresh token from Keychain (authoritative source — not Redux state).
     // Validate refresh-token format + access-token expiry locally.
     //
     // IMPORTANT: `validateTokenLocally` flags `reason: 'expired'` when the
@@ -665,7 +666,8 @@ const checkAndRefreshToken = async (
     // reason to log out — that's exactly when we should use the refresh
     // token. Only missing/malformed refresh tokens (`missing`,
     // `invalid_format`, `malformed`) are terminal.
-    const validationResult = validateTokenLocally(tokens?.refreshToken, sessionExpiresAt);
+    const refreshToken = await SecureStorage.getRefreshToken();
+    const validationResult = validateTokenLocally(refreshToken, sessionExpiresAt);
 
     const isRefreshTokenBroken =
       validationResult.isValid === false &&
@@ -747,13 +749,7 @@ const checkAndRefreshToken = async (
       });
     }
 
-    // Pass tokens explicitly — state may change during async work
-    const currentTokens = {
-      accessToken: tokens!.accessToken,
-      refreshToken: tokens!.refreshToken,
-    };
-
-    const refreshSuccess = await refreshTokenWithBackoff(dispatch, getState, currentTokens);
+    const refreshSuccess = await refreshTokenWithBackoff(dispatch, getState);
 
     if (!refreshSuccess) {
       // Only FATAL errors reach here — network errors already handled in
@@ -819,7 +815,7 @@ export const authSessionMiddleware: Middleware<object, RootState, AppDispatch> =
       sessionManagerState.hasRehydrated = true;
       Logger.info('[AUTH-MIDDLEWARE] Redux rehydration complete', {
         flowState,
-        hasTokens: state.auth.tokens !== null,
+        isAuthenticated: state.auth.isAuthenticated,
       });
     }
 

@@ -340,7 +340,7 @@ export class AuthController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @UseGuards(ThrottlerGuard)
-  @Throttle({ default: { limit: 10, ttl: 900000 } }) // 3 attempts per 15 minutes
+  @Throttle({ default: { limit: 5, ttl: 300000 } }) // 5 attempts per 5 minutes
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     try {
       const result = await this.authService.forgotPassword(forgotPasswordDto);
@@ -372,7 +372,7 @@ export class AuthController {
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @UseGuards(ThrottlerGuard)
-  @Throttle({ default: { limit: 10, ttl: 900000 } }) // 3 attempts per 15 minutes
+  @Throttle({ default: { limit: 5, ttl: 300000 } }) // 5 attempts per 5 minutes
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     try {
       const result = await this.authService.resetPassword(resetPasswordDto);

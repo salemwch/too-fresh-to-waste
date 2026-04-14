@@ -28,7 +28,7 @@ export type {
 // Backward-compatible alias: mobile uses PasswordResetRequest, shared uses ForgotPasswordRequest
 export type { ForgotPasswordRequest as PasswordResetRequest } from '@foodwaste/shared';
 
-import type { AuthTokens, UserResponse } from '@foodwaste/shared';
+import type { UserResponse } from '@foodwaste/shared';
 
 /**
  * Mobile-friendly alias with readonly semantics.
@@ -67,7 +67,6 @@ export enum AuthFlowState {
 // Auth State Types
 export interface AuthState {
   readonly user: User | null;
-  readonly tokens: AuthTokens | null;
   readonly isAuthenticated: boolean;
   readonly isLoading: boolean;
   readonly error: string | undefined;

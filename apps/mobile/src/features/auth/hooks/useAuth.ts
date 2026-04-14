@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useCallback } from 'react';
 
+import { SecureStorage } from '../../../services/SecureStorage';
 import { Logger } from '../../../utils/logger';
 
 import type { User, AuthTokens } from '../types';
@@ -9,8 +9,8 @@ const getError = (error: unknown): Error | undefined =>
   error instanceof Error ? error : undefined;
 
 /**
- * Custom hook for managing authentication state
- * Loads tokens and user data from AsyncStorage and provides auth state
+ * Custom hook for managing authentication state.
+ * Reads tokens exclusively from Keychain (SecureStorage) — never AsyncStorage.
  *
  * @returns {Object} Auth state including tokens, user, loading, and authenticated status
  *
@@ -23,21 +23,20 @@ export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   /**
-   * Load authentication state from AsyncStorage
-   * Retrieves both auth tokens and user data in parallel
+   * Load authentication state from Keychain + AsyncStorage (non-sensitive user data).
+   * SecureStorage is the authoritative source for tokens.
    */
   const loadAuthState = useCallback(async () => {
     try {
       setIsLoading(true);
 
-      const [tokensStr, userStr] = await Promise.all([
-        AsyncStorage.getItem('auth_tokens'),
-        AsyncStorage.getItem('auth_user'),
+      const [{ accessToken, refreshToken }, userStr] = await Promise.all([
+        SecureStorage.getTokensWithRetry(),
+        SecureStorage.getUserData(),
       ]);
 
-      if (tokensStr != null) {
-        const parsedTokens = JSON.parse(tokensStr) as AuthTokens;
-        setTokens(parsedTokens);
+      if (accessToken != null && refreshToken != null) {
+        setTokens({ accessToken, refreshToken, expiresIn: 3600, tokenType: 'Bearer' });
       }
 
       if (userStr != null) {
@@ -46,22 +45,20 @@ export const useAuth = () => {
       }
     } catch (error) {
       Logger.error('[useAuth] Failed to load auth state', undefined, getError(error));
-      // Clear potentially corrupted data
-      await AsyncStorage.multiRemove(['auth_tokens', 'auth_user']);
+      await SecureStorage.clearAll();
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   /**
-   * Save authentication state to AsyncStorage
-   * Persists both tokens and user data
+   * Save authentication state to Keychain (tokens) and AsyncStorage (user data).
    */
   const saveAuthState = useCallback(async (newTokens: AuthTokens, newUser: User) => {
     try {
-      await AsyncStorage.multiSet([
-        ['auth_tokens', JSON.stringify(newTokens)],
-        ['auth_user', JSON.stringify(newUser)],
+      await Promise.all([
+        SecureStorage.setTokens(newTokens.accessToken, newTokens.refreshToken),
+        SecureStorage.setUserData(JSON.stringify(newUser)),
       ]);
       setTokens(newTokens);
       setUser(newUser);
@@ -72,12 +69,11 @@ export const useAuth = () => {
   }, []);
 
   /**
-   * Clear authentication state from AsyncStorage
-   * Removes both tokens and user data
+   * Clear all authentication state from secure storage.
    */
   const clearAuthState = useCallback(async () => {
     try {
-      await AsyncStorage.multiRemove(['auth_tokens', 'auth_user']);
+      await SecureStorage.clearAll();
       setTokens(null);
       setUser(null);
     } catch (error) {
@@ -103,41 +99,13 @@ export const useAuth = () => {
 };
 
 /**
- * Get access token directly from AsyncStorage
- * Useful for one-off operations without hook
- *
- * @returns {Promise<string | null>} The access token or null
+ * Get access token directly from Keychain.
+ * Delegates to SecureStorage — tokens are never stored in AsyncStorage.
  */
-export const getAccessToken = async (): Promise<string | null> => {
-  try {
-    const tokensStr = await AsyncStorage.getItem('auth_tokens');
-    if (tokensStr != null) {
-      const tokens = JSON.parse(tokensStr) as AuthTokens;
-      return tokens.accessToken;
-    }
-    return null;
-  } catch (error) {
-    Logger.error('[getAccessToken] Failed to get access token', undefined, getError(error));
-    return null;
-  }
-};
+export const getAccessToken = (): Promise<string | null> => SecureStorage.getAccessToken();
 
 /**
- * Get refresh token directly from AsyncStorage
- * Useful for token refresh operations
- *
- * @returns {Promise<string | null>} The refresh token or null
+ * Get refresh token directly from Keychain.
+ * Delegates to SecureStorage — tokens are never stored in AsyncStorage.
  */
-export const getRefreshToken = async (): Promise<string | null> => {
-  try {
-    const tokensStr = await AsyncStorage.getItem('auth_tokens');
-    if (tokensStr != null) {
-      const tokens = JSON.parse(tokensStr) as AuthTokens;
-      return tokens.refreshToken;
-    }
-    return null;
-  } catch (error) {
-    Logger.error('[getRefreshToken] Failed to get refresh token', undefined, getError(error));
-    return null;
-  }
-};
+export const getRefreshToken = (): Promise<string | null> => SecureStorage.getRefreshToken();

@@ -435,8 +435,16 @@ export class SupabaseStorageService implements OnModuleInit {
       throw new BadRequestException(`File type ${file.mimetype} is not allowed`);
     }
 
-    // Text files have no reliable magic bytes — skip content check
+    // Text files: scan for null bytes — pure UTF-8/ASCII never contains them,
+    // but every binary format (EXE, PHP, ZIP, PDF…) does.
+    // Scanning the first 8 KB is sufficient; binaries have null bytes near the start.
     if (declaredMime === 'text/plain' || declaredMime === 'text/csv') {
+      const scanLength = Math.min(file.buffer.length, 8192);
+      for (let i = 0; i < scanLength; i++) {
+        if (file.buffer[i] === 0x00) {
+          throw new BadRequestException('File content is binary despite declared text MIME type');
+        }
+      }
       return;
     }
 
