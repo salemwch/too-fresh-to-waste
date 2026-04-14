@@ -48,6 +48,7 @@
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
+    "@foodwaste/email-templates": "workspace:*",
     "@foodwaste/shared": "workspace:*",
     "@golevelup/nestjs-rabbitmq": "^7.1.1",
     "@nest-lab/throttler-storage-redis": "1.2.0",

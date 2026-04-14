@@ -1,0 +1,36 @@
+{
+  "name": "@foodwaste/email-templates",
+  "version": "1.0.0",
+  "description": "Transactional email templates for Too Fresh To Waste (react-email)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "dev": "tsc --build --watch",
+    "preview": "email dev --dir src/templates --port 3003",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf dist node_modules"
+  },
+  "dependencies": {
+    "@react-email/components": "0.0.31",
+    "@react-email/render": "1.0.5",
+    "react": "19.1.0"
+  },
+  "devDependencies": {
+    "@foodwaste/tsconfig": "workspace:*",
+    "@types/react": "^19.1.0",
+    "react-email": "3.0.6",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  }
+}

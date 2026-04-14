@@ -11,7 +11,8 @@
   "scripts": {
     "prepare": "husky",
     "postinstall": "pnpm build:deps",
-    "build:deps": "pnpm --filter @foodwaste/shared build",
+    "build:deps": "pnpm --filter @foodwaste/shared build && pnpm --filter @foodwaste/email-templates build",
+    "email:preview": "pnpm --filter @foodwaste/email-templates preview",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",

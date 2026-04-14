@@ -1,0 +1,17 @@
+{
+  // Email template library — extends base with CommonJS output + React JSX.
+  // CommonJS is required so NestJS (CJS runtime) can import the built output.
+  "extends": "@foodwaste/tsconfig/library",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    // Relax checks that conflict with react-email component patterns
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -465,33 +465,41 @@ export class UsersService implements IUsersService {
     return user;
   }
 
-  async findByEmailVerificationToken(email: string, token: string): Promise<UserDocument | null> {
-    const normalizedEmail = email.trim().toLowerCase();
+  async findByEmailVerificationToken(token: string, email?: string): Promise<UserDocument | null> {
     const tokenHash = CryptoUtil.hashToken(token);
 
-    const user = await this.userModel
-      .findOne({
-        email: normalizedEmail,
-        emailVerificationToken: tokenHash,
-        isEmailVerified: false,
-        deletedAt: null,
-        emailVerificationExpires: { $gt: new Date() },
-      })
-      .exec();
+    const query: Record<string, unknown> = {
+      emailVerificationToken: tokenHash,
+      isEmailVerified: false,
+      deletedAt: null,
+      emailVerificationExpires: { $gt: new Date() },
+    };
+
+    // Optional email binding: if provided (e.g., legacy mobile POST), enforce it
+    // to prevent cross-account token misuse. Not required because hashToken is
+    // cryptographically unique and already uniquely identifies the user.
+    if (email) {
+      query['email'] = email.trim().toLowerCase();
+    }
+
+    const user = await this.userModel.findOne(query).exec();
     return user;
   }
 
-  async findByPasswordResetToken(email: string, token: string): Promise<UserDocument | null> {
-    // Normalize email to match stored format
-    const normalizedEmail = email.trim().toLowerCase();
+  async findByPasswordResetToken(token: string, email?: string): Promise<UserDocument | null> {
+    const tokenHash = CryptoUtil.hashToken(token);
 
-    const user = await this.userModel
-      .findOne({
-        email: normalizedEmail,
-        passwordResetToken: token,
-        deletedAt: null, // Exclude soft-deleted users
-      })
-      .exec();
+    const query: Record<string, unknown> = {
+      passwordResetToken: tokenHash,
+      deletedAt: null,
+    };
+
+    // Optional email binding for defense-in-depth when caller provides it
+    if (email) {
+      query['email'] = email.trim().toLowerCase();
+    }
+
+    const user = await this.userModel.findOne(query).exec();
     return user;
   }
 
@@ -870,7 +878,7 @@ export class UsersService implements IUsersService {
 
   async setPasswordResetToken(userId: string, token: string, expires: Date): Promise<void> {
     await this.userModel.findByIdAndUpdate(userId, {
-      passwordResetToken: token,
+      passwordResetToken: CryptoUtil.hashToken(token), // Store hashed — raw token stays in email link only
       passwordResetExpires: expires,
     });
   }

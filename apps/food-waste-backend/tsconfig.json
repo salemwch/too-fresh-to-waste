@@ -8,6 +8,8 @@
     "incremental": true,
     "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
     "paths": {
+      "@foodwaste/email-templates": ["../../packages/email-templates/src"],
+      "@foodwaste/email-templates/*": ["../../packages/email-templates/src/*"],
       "@foodwaste/shared": ["../../packages/shared/src"],
       "@foodwaste/shared/*": ["../../packages/shared/src/*"],
       "src/*": ["./src/*"],
@@ -30,5 +32,5 @@
     "**/*.test.js",
     "**/*.d.ts"
   ],
-  "references": [{ "path": "../../packages/shared" }]
+  "references": [{ "path": "../../packages/shared" }, { "path": "../../packages/email-templates" }]
 }

@@ -201,9 +201,20 @@ export class AuthService {
     verifyEmailDto: VerifyEmailDto,
     requestInfo?: { ipAddress?: string; userAgent?: string; location?: string },
   ): Promise<LoginResponse> {
-    const { email, token } = verifyEmailDto;
+    const result = await this.verifyEmailByToken(
+      verifyEmailDto.token,
+      requestInfo,
+      verifyEmailDto.email,
+    );
+    return result;
+  }
 
-    const user = await this.usersService.findByEmailVerificationToken(email, token);
+  async verifyEmailByToken(
+    token: string,
+    requestInfo?: { ipAddress?: string; userAgent?: string; location?: string },
+    expectedEmail?: string,
+  ): Promise<LoginResponse> {
+    const user = await this.usersService.findByEmailVerificationToken(token, expectedEmail);
 
     if (!user) {
       throw new BadRequestException('Invalid or expired verification token');
@@ -578,9 +589,9 @@ export class AuthService {
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
     const { email, token, newPassword } = resetPasswordDto;
 
-    const user = await this.usersService.findByPasswordResetToken(email, token);
+    const user = await this.usersService.findByPasswordResetToken(token, email);
 
-    if (!user || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+    if (!user || !(user.passwordResetExpires && user.passwordResetExpires >= new Date())) {
       throw new BadRequestException('Invalid or expired password reset token');
     }
 

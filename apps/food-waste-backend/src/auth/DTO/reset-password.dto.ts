@@ -4,12 +4,13 @@ import {
   PASSWORD_ERROR_MESSAGES,
   buildPasswordRegex,
 } from '@foodwaste/shared';
-import type { ResetPasswordInput } from '@foodwaste/shared';
-import { IsEmail, IsString, MinLength, MaxLength, Matches } from 'class-validator';
+import { IsEmail, IsOptional, IsString, MinLength, MaxLength, Matches } from 'class-validator';
 
-export class ResetPasswordDto implements ResetPasswordInput {
+export class ResetPasswordDto {
+  // Optional: web form sends token only. Mobile may still send email for binding.
+  @IsOptional()
   @IsEmail()
-  email!: string;
+  email?: string;
 
   @IsString()
   token!: string;
