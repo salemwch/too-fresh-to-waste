@@ -129,6 +129,9 @@ importers:
 
   apps/food-waste-backend:
     dependencies:
+      "@foodwaste/email-templates":
+        specifier: workspace:*
+        version: link:../../packages/email-templates
       "@foodwaste/shared":
         specifier: workspace:*
         version: link:../../packages/shared
