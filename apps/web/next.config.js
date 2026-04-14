@@ -204,6 +204,9 @@ const nextConfig = {
   // Experimental features
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
+    // Generate source maps for server-side bundles so Sentry can upload them.
+    // Fixes "could not determine a source map reference" upload warnings.
+    serverSourceMaps: true,
   },
 };
 
@@ -227,6 +230,11 @@ module.exports = withSentryConfig(withNextIntl(nextConfig), {
   // Keep source maps off the client bundle (security: hides your source)
   hideSourceMaps: true,
 
-  // Tree-shake Sentry logger statements from production bundle
-  disableLogger: true,
+  // Tree-shake Sentry logger statements from production bundle.
+  // disableLogger was deprecated in favour of the nested option below.
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
 });

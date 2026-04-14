@@ -1,8 +1,8 @@
 import * as Sentry from '@sentry/nextjs';
 
 // Client-side Sentry initialization.
-// This file is imported automatically by @sentry/nextjs on the browser.
-// Keep it lightweight — only add integrations that make sense client-side.
+// Next.js 15 picks this file up automatically for browser initialization.
+// Replaces the deprecated sentry.client.config.ts convention (not supported by Turbopack).
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   environment: process.env.NODE_ENV,

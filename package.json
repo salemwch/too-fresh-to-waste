@@ -143,9 +143,11 @@
     },
     "onlyBuiltDependencies": [
       "@firebase/util",
+      "@mongodb-js/zstd",
       "@nestjs/core",
       "@parcel/watcher",
       "@scarf/scarf",
+      "@sentry-internal/node-cpu-profiler",
       "@sentry/cli",
       "@swc/core",
       "argon2",
