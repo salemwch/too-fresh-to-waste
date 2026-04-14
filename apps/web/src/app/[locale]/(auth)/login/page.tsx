@@ -27,7 +27,7 @@ import '../../(merchant-onboarding)/merchant-signup/merchant-signup.css';
 function LoginFormInner() {
   const t = useTranslations('auth');
   const tHero = useTranslations('merchantSignup');
-  const { login, isLoading } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
   const locale = useLocale();
   const searchParams = useSearchParams();
@@ -37,10 +37,14 @@ function LoginFormInner() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
+  // Track only this form's own submission — not the global auth store's isLoading
+  // (which starts true so AuthGuard skeletons work, but should not freeze the login form).
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoginError('');
+    setIsSubmitting(true);
     try {
       const result = await login({ email, password, rememberMe: false });
 
@@ -55,6 +59,8 @@ function LoginFormInner() {
       }
     } catch {
       setLoginError(t('loginError'));
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -70,7 +76,10 @@ function LoginFormInner() {
       {/* ================================================================
           LEFT HERO SECTION — identical to merchant-signup
           ================================================================ */}
-      <div className='relative flex flex-[1.1] flex-col justify-between px-5 py-3 sm:py-6 sm:px-8 lg:flex-1 lg:p-12'>
+      {/* bg-[hsl(174,72%,17%)] is the base colour: keeps the panel dark while the
+          hero-bg.jpg is loading, matching the LoginFallback exactly so there
+          is no flash on hydration. */}
+      <div className='relative flex flex-[1.1] flex-col justify-between px-5 py-3 sm:py-6 sm:px-8 lg:flex-1 lg:p-12 bg-[hsl(174,72%,17%)]'>
         <Image
           src='/images/hero-bg.jpg'
           alt=''
@@ -204,7 +213,7 @@ function LoginFormInner() {
                   onChange={e => setEmail(e.target.value)}
                   required
                   autoComplete='email'
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -225,7 +234,7 @@ function LoginFormInner() {
                   onChange={e => setPassword(e.target.value)}
                   required
                   autoComplete='current-password'
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 />
                 <button
                   type='button'
@@ -261,9 +270,9 @@ function LoginFormInner() {
             <Button
               type='submit'
               className='h-11 w-full rounded-xl text-sm font-semibold sm:h-12'
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
-              {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+              {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
               {t('loginButton')}
             </Button>
 
@@ -273,7 +282,7 @@ function LoginFormInner() {
               variant='outline'
               className='h-11 w-full rounded-xl text-sm font-semibold sm:h-12'
               onClick={() => router.push(`/${locale}/merchant-signup`)}
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
               {t('signUpBusiness')}
             </Button>
