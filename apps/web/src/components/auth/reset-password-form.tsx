@@ -22,6 +22,7 @@ import {
 import { Button, Input } from '@foodwaste/ui';
 import { Link } from '@/i18n/routing';
 import { PasswordStrengthIndicator } from './password-strength-indicator';
+import { isAxiosError } from 'axios';
 import { authService } from '@/services/auth.service';
 import '../../app/[locale]/(merchant-onboarding)/merchant-signup/merchant-signup.css';
 
@@ -54,8 +55,12 @@ export function ResetPasswordForm() {
     try {
       await authService.resetPassword({ token, newPassword: password });
       setIsSuccess(true);
-    } catch {
-      setError(t('resetPasswordError'));
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.data?.message?.type === 'PASSWORD_REUSE_VIOLATION') {
+        setError(t('passwordReuseViolation'));
+      } else {
+        setError(t('resetPasswordError'));
+      }
     } finally {
       setIsLoading(false);
     }

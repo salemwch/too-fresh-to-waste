@@ -390,6 +390,7 @@
     "resetPasswordButton": "Reset Password",
     "resetPasswordSuccess": "Password reset successfully! Please sign in.",
     "resetPasswordError": "Could not reset password. The link may have expired.",
+    "passwordReuseViolation": "You cannot reuse your previous password. Please choose a different one.",
     "verifyEmail": "Verify Your Email",
     "verifyEmailDescription": "We've sent a 6-digit code to your email address",
     "verificationCodePlaceholder": "000000",

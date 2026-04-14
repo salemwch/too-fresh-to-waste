@@ -116,8 +116,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .then(res => {
           useAuthStore.getState().setUser(res.data.data);
         })
-        .catch(() => {
-          // If profile fails, session may have been invalidated
+        .catch(err => {
+          // Hard auth error (401/403) means the session is no longer valid — log out.
+          // Network errors are ignored; the next proactive refresh will handle them.
+          if (isHardAuthError(err)) {
+            useAuthStore.getState().logout();
+          }
         });
     };
 

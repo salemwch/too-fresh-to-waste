@@ -390,6 +390,7 @@
     "resetPasswordButton": "إعادة تعيين",
     "resetPasswordSuccess": "تم إعادة تعيين كلمة المرور! سجل دخولك.",
     "resetPasswordError": "تعذرت إعادة التعيين. ربما انتهت صلاحية الرابط.",
+    "passwordReuseViolation": "لا يمكنك إعادة استخدام كلمة مرورك السابقة. يرجى اختيار كلمة مرور مختلفة.",
     "verifyEmail": "تحقق من بريدك الإلكتروني",
     "verifyEmailDescription": "لقد أرسلنا رمزًا مكونًا من 6 أرقام إلى بريدك الإلكتروني",
     "verificationCodePlaceholder": "000000",

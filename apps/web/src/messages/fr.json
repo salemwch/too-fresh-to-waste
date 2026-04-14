@@ -390,6 +390,7 @@
     "resetPasswordButton": "Réinitialiser",
     "resetPasswordSuccess": "Mot de passe réinitialisé ! Veuillez vous connecter.",
     "resetPasswordError": "Impossible de réinitialiser. Le lien a peut-être expiré.",
+    "passwordReuseViolation": "Vous ne pouvez pas réutiliser votre ancien mot de passe. Veuillez en choisir un autre.",
     "verifyEmail": "Vérifiez votre email",
     "verifyEmailDescription": "Nous avons envoyé un code à 6 chiffres à votre adresse email",
     "verificationCodePlaceholder": "000000",
