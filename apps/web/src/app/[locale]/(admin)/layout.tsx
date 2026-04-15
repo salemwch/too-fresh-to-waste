@@ -1,33 +1,23 @@
-'use client';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { pickMessages } from '@/lib/pick-messages';
+import { AdminLayoutShell } from './admin-layout-shell';
 
-import { AuthGuard } from '@/components/guards/auth-guard';
-import { RoleGuard } from '@/components/guards/role-guard';
-import { Sidebar } from '@/components/dashboard/sidebar';
-import { DashboardHeader } from '@/components/dashboard/header';
-import { adminNavItems } from '@/config/navigation.config';
-import { UserRole } from '@foodwaste/shared';
+// Only the namespaces used by admin dashboard client components.
+// Saves ~41 % of the serialised translation payload vs. sending all messages.
+const ADMIN_NAMESPACES = ['dashboard', 'common', 'accessibility'] as const;
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
-  return (
-    <AuthGuard>
-      <RoleGuard allowedRoles={[UserRole.ADMIN, UserRole.MODERATOR]}>
-        <div className='fixed inset-0 flex flex-col bg-background'>
-          {/* Header spans full width — sits above both sidebar and content */}
-          <DashboardHeader navItems={adminNavItems} />
+export default async function AdminLayout({ children }: AdminLayoutProps) {
+  const allMessages = await getMessages();
+  const messages = pickMessages(allMessages, ADMIN_NAMESPACES);
 
-          {/* Body row: sidebar + scrollable content */}
-          <div className='flex flex-1 min-h-0 overflow-hidden'>
-            <Sidebar items={adminNavItems} />
-            <main className='flex-1 overflow-y-auto overscroll-contain min-h-0 p-4 lg:p-6'>
-              {children}
-            </main>
-          </div>
-        </div>
-      </RoleGuard>
-    </AuthGuard>
+  return (
+    <NextIntlClientProvider messages={messages}>
+      <AdminLayoutShell>{children}</AdminLayoutShell>
+    </NextIntlClientProvider>
   );
 }

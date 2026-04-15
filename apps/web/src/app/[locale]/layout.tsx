@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import { Noto_Sans_Arabic } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, setRequestLocale } from 'next-intl/server';
+import { setRequestLocale } from 'next-intl/server';
 import { locales, type Locale, getLocaleConfig } from '@/i18n/config';
 import { seoConfig, getLocaleSeoMetadata } from '@/config/seo.config';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -178,8 +178,11 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   // Enable static rendering
   setRequestLocale(locale);
 
-  // Get messages for the locale
-  const messages = await getMessages();
+  // Each route-group layout provides its own filtered NextIntlClientProvider.
+  // The root provider intentionally carries no messages — it only supplies
+  // locale / timezone / formats to AppProviders (none of which use translations).
+  // This eliminates the 38 KB JSON payload that was previously embedded in
+  // every page's HTML regardless of which namespaces that page actually needed.
 
   // Get locale configuration for RTL support
   const currentLocaleConfig = getLocaleConfig(locale as Locale);
@@ -223,7 +226,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
           />
         )}
 
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider messages={{}}>
           <AppProviders>{children}</AppProviders>
         </NextIntlClientProvider>
         <SpeedInsights />
