@@ -22,6 +22,7 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 import { ordersService } from '../services/ordersService';
 import { isPickupError } from '../types/order.types';
@@ -47,7 +48,7 @@ const BORDER = '#E2E8F0';
 const SURFACE_MUTED = '#F1F5F9';
 const SURFACE_SUBTLE = '#F8FAFC';
 const INPUT_SURFACE = '#FAFAFA';
-const PRIMARY = '#005250';
+const PRIMARY = colorTokens.base.primary[500];
 const SUCCESS = '#10B981';
 const SUCCESS_SURFACE = '#F0FDF4';
 const SUCCESS_BORDER = '#D1FAE5';
@@ -172,7 +173,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
             {showLoading ? (
               /* ── Loading state: same card frame, spinner inside ── */
               <View style={styles.loadingContent}>
-                <ActivityIndicator size='large' color='#005250' />
+                <ActivityIndicator size='large' color={PRIMARY} />
                 <Text style={styles.loadingText}>Placing your order...</Text>
               </View>
             ) : (
@@ -181,7 +182,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                 <View style={styles.content}>
                   {/* Order Number */}
                   <View style={styles.orderNumberRow}>
-                    <Icon name='receipt-outline' family='Ionicons' size={18} color='#005250' />
+                    <Icon name='receipt-outline' family='Ionicons' size={18} color={PRIMARY} />
                     <Text style={styles.orderNumberLabel}>Order</Text>
                     <Text style={styles.orderNumberText}>{order.orderNumber}</Text>
                   </View>
@@ -191,7 +192,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                   {/* Items Summary */}
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                      <Icon name='bag-check' family='Ionicons' size={18} color='#005250' />
+                      <Icon name='bag-check' family='Ionicons' size={18} color={PRIMARY} />
                       <Text style={styles.sectionTitle}>Order Summary</Text>
                     </View>
 
@@ -327,7 +328,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                 <View style={styles.footer}>
                   <Pressable onPress={onDismiss} style={styles.ctaButtonWrapper}>
                     <LinearGradient
-                      colors={['#005250', '#007B77']}
+                      colors={[PRIMARY, colorTokens.base.primary[400]]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
                       style={styles.ctaButton}

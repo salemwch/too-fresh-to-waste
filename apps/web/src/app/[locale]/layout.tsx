@@ -61,7 +61,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: '#005250',
+  themeColor: '#1E4448',
   interactiveWidget: 'resizes-content',
 };
 

@@ -72,7 +72,7 @@ export default function Newsletter() {
       <h2
         id='newsletter-heading'
         className='max-w-3xl font-semibold text-2xl sm:text-3xl lg:text-4xl leading-tight mt-2 px-4'
-        style={{ color: '#005250' }}
+        className='text-primary-500'
       >
         {t('heading')}
       </h2>

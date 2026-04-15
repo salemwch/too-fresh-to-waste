@@ -6,7 +6,7 @@
  * COLOR USAGE GUIDE:
  * ==================
  *
- * PRIMARY (Teal #005250):
+ * PRIMARY (Teal #1E4448):
  * - Primary buttons and CTAs
  * - Trust and professionalism
  * - Active links and icons
@@ -33,16 +33,16 @@
 const baseColors = {
   // Brand Colors - Primary Identity (Teal)
   primary: {
-    50: '#E6F4F4', // HSL(178°, 45%, 93%) - Very light teal for subtle backgrounds
-    100: '#B3E0DE', // HSL(178°, 42%, 79%) - Light teal for hover states
-    200: '#80CBC8', // HSL(178°, 42%, 64%) - Medium-light teal for borders
-    300: '#4DB6B2', // HSL(178°, 42%, 50%) - Medium teal for interactive elements
-    400: '#26A19C', // HSL(178°, 60%, 37%) - Medium-dark teal for active states
-    500: '#005250', // HSL(178°, 100%, 16%) - Main brand color - Trust, professionalism, primary actions
-    600: '#004240', // HSL(178°, 100%, 13%) - Dark teal for pressed states
-    700: '#003130', // HSL(178°, 100%, 10%) - Darker teal for depth
-    800: '#002120', // HSL(178°, 100%, 6%) - Very dark teal for contrast
-    900: '#001110', // HSL(178°, 100%, 3%)  - Almost black teal for maximum contrast
+    50: '#EBF3F4', // HSL(186°, 30%, 94%) - Very light teal for subtle backgrounds
+    100: '#C2DDE0', // HSL(186°, 33%, 82%) - Light teal for hover states
+    200: '#8BC4CB', // HSL(186°, 38%, 67%) - Medium-light teal for borders
+    300: '#54ACB5', // HSL(186°, 40%, 52%) - Medium teal for interactive elements
+    400: '#367A81', // HSL(186°, 41%, 36%) - Medium-dark teal for active states
+    500: '#1E4448', // HSL(186°, 41%, 20%) - Main brand color - Trust, professionalism, primary actions
+    600: '#18363A', // HSL(186°, 41%, 16%) - Dark teal for pressed states
+    700: '#112528', // HSL(186°, 41%, 11%) - Darker teal for depth
+    800: '#0B1819', // HSL(186°, 41%,  7%) - Very dark teal for contrast
+    900: '#050A0B', // HSL(186°, 41%,  3%) - Almost black teal for maximum contrast
   },
 
   // Accent Colors - Call to Action (Coral/Salmon)
@@ -126,7 +126,7 @@ const baseColors = {
 // Food-Specific Color Tokens
 const foodColors = {
   freshness: {
-    fresh: '#005250', // Uses primary brand color for consistency
+    fresh: baseColors.primary[500], // Uses primary brand color for consistency
     moderate: '#FF9800',
     urgent: '#F44336',
     expired: '#9E9E9E',
@@ -153,7 +153,7 @@ const foodColors = {
   },
 } as const;
 
-// Harmonious Colors - Color Theory Based on Primary Teal (#005250)
+// Harmonious Colors - Color Theory Based on Primary Teal (#1E4448)
 // These colors create professional visual harmony with the primary brand color
 const harmoniousColors = {
   // Complementary (opposite on color wheel - 180°) - Maximum contrast
@@ -183,9 +183,9 @@ const statusColors = {
   pending: '#FF9800',
   confirmed: '#2196F3',
   preparing: '#9C27B0',
-  ready: '#005250', // Uses primary brand color for consistency
+  ready: baseColors.primary[500], // Uses primary brand color for consistency
   pickedUp: '#607D8B',
-  completed: '#005250', // Uses primary brand color for consistency
+  completed: baseColors.primary[500], // Uses primary brand color for consistency
   cancelled: '#F44336',
   expired: '#9E9E9E',
   refunded: '#FF5722',

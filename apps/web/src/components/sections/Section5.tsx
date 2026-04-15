@@ -35,8 +35,8 @@ export default function Section5() {
       <div className='max-w-6xl mx-auto w-full'>
         {/* Main Title */}
         <h2 className='text-center text-2xl md:text-4xl font-bold mb-8 md:mb-12'>
-          <span style={{ color: '#005250' }}>{t('mainTitle.businessSolution')}</span>
-          <span style={{ color: '#005250' }}> {t('mainTitle.separator')} </span>
+          <span className='text-primary-500'>{t('mainTitle.businessSolution')}</span>
+          <span className='text-primary-500'> {t('mainTitle.separator')} </span>
           <span style={{ color: '#c0392b' }}>{t('mainTitle.bigPrize')}</span>
         </h2>
 
@@ -98,14 +98,14 @@ export default function Section5() {
                       viewBox='0 0 18 18'
                       fill='none'
                       xmlns='http://www.w3.org/2000/svg'
-                      className={`flex-shrink-0 transition-transform duration-500 ease-in-out ${
+                      className={`flex-shrink-0 transition-transform duration-500 ease-in-out text-primary-500 ${
                         openIndex === index ? 'rotate-180' : ''
                       }`}
                       aria-hidden='true'
                     >
                       <path
                         d='m4.5 7.2 3.793 3.793a1 1 0 0 0 1.414 0L13.5 7.2'
-                        stroke='#005250'
+                        stroke='currentColor'
                         strokeWidth='1.5'
                         strokeLinecap='round'
                         strokeLinejoin='round'

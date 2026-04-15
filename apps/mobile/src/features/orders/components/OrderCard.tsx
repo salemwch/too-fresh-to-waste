@@ -22,6 +22,7 @@ import React, { memo, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Pressable, Image, Platform, Animated } from 'react-native';
 
 import { Icon, Text } from '@/design-system/components/atoms';
+import { colorTokens } from '@/design-system/tokens/colors';
 import { Logger } from '@/utils/logger';
 
 import {
@@ -65,7 +66,7 @@ const TEXT_MUTED = '#475569';
 const SUCCESS_SOFT = '#D1FAE5';
 const SUCCESS_TEXT = '#065F46';
 const SUCCESS = '#10B981';
-const PRIMARY = '#005250';
+const PRIMARY = colorTokens.base.primary[500];
 const SHADOW = '#000';
 
 // ---------------------------------------------------------------------------

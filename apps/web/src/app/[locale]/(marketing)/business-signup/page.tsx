@@ -80,7 +80,7 @@ export default function BusinessSignUpPage() {
         dir={isRTL ? 'rtl' : 'ltr'}
         className='min-h-screen flex items-center justify-center px-4 py-20 relative overflow-hidden'
         style={{
-          background: 'linear-gradient(135deg, #002520 0%, #005250 50%, #002520 100%)',
+          background: 'linear-gradient(135deg, #0B1819 0%, #1E4448 50%, #0B1819 100%)',
         }}
       >
         {/* Animated Background Circles */}

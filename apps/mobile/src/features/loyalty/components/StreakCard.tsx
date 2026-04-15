@@ -16,6 +16,7 @@ import { View, StyleSheet, Animated, Easing, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { Text } from '@/design-system/components/atoms';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 import type { GamificationStats } from '../types/loyalty.types';
 
@@ -27,7 +28,7 @@ interface StreakCardProps {
 // Gradient configs
 // ---------------------------------------------------------------------------
 
-const TEAL_GRADIENT: [string, string] = ['#005251', '#2DB89B'];
+const TEAL_GRADIENT: [string, string] = [colorTokens.base.primary[500], '#2DB89B'];
 const GOLD_GRADIENT: [string, string] = ['#F5C518', '#BF7E1E'];
 const BAR_BG = '#E5E7EB'; // neutral grey
 const SURFACE = '#FFFFFF';
@@ -143,7 +144,7 @@ const StreakCardComponent: React.FC<StreakCardProps> = ({ gamification }) => {
           emoji={'\uD83D\uDD25'}
           title='Login Streak'
           valueBadge={`${loginStreak.currentStreak} day${loginStreak.currentStreak !== 1 ? 's' : ''}`}
-          valueBadgeColor='#005250'
+          valueBadgeColor={colorTokens.base.primary[500]}
           current={loginStreak.currentStreak}
           target={loginStreak.daysRequired}
           gradientColors={TEAL_GRADIENT}

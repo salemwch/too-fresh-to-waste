@@ -14,16 +14,16 @@ const config: Config = {
       colors: {
         // Brand colors from mobile design system (landing page uses these)
         primary: {
-          50: '#E6F4F4',
-          100: '#CCE9E8',
-          200: '#99D3D1',
-          300: '#66BDBA',
-          400: '#33A6A3',
-          500: '#005250', // Main brand color
-          600: '#004240',
-          700: '#003130',
-          800: '#002120',
-          900: '#001110',
+          50: '#EBF3F4',
+          100: '#C2DDE0',
+          200: '#8BC4CB',
+          300: '#54ACB5',
+          400: '#367A81',
+          500: '#1E4448', // Main brand color
+          600: '#18363A',
+          700: '#112528',
+          800: '#0B1819',
+          900: '#050A0B',
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
         },

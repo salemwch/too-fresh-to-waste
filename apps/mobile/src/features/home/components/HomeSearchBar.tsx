@@ -20,6 +20,7 @@ import { memo } from 'react';
 import { View, StyleSheet, Pressable, TextInput } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
+import { colorTokens } from '@/design-system/tokens/colors';
 import { ActiveFilterChips } from '@/features/search/components';
 import { hasActiveFilters, countActiveFilters } from '@/features/search/types/filter.types';
 
@@ -52,7 +53,7 @@ interface HomeSearchBarProps {
 }
 
 const COLORS = {
-  brand: '#005250',
+  brand: colorTokens.base.primary[500],
   danger: '#EF4444',
   surface: '#F8FAFC',
   surfaceAccent: '#D1FAE5',

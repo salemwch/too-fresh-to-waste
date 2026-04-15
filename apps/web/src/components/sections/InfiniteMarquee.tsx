@@ -8,7 +8,7 @@ import { useTranslations } from 'next-intl';
  * Features:
  * - Smooth infinite scroll animation from right to left
  * - Features key benefits with icons
- * - Primary brand color background (#005250)
+ * - Primary brand color background (#1E4448)
  * - Accessibility support (respects prefers-reduced-motion)
  * - Seamless loop with duplicated content
  *
@@ -139,9 +139,9 @@ export default function InfiniteMarquee() {
             fill='white'
           />
           <ellipse cx='12' cy='18' rx='6.5' ry='1' fill='white' opacity='0.6' />
-          <circle cx='9' cy='15' r='0.7' fill='#005250' opacity='0.5' />
-          <circle cx='12' cy='14.5' r='0.7' fill='#005250' opacity='0.5' />
-          <circle cx='15' cy='15' r='0.7' fill='#005250' opacity='0.5' />
+          <circle cx='9' cy='15' r='0.7' fill='hsl(var(--primary))' opacity='0.5' />
+          <circle cx='12' cy='14.5' r='0.7' fill='hsl(var(--primary))' opacity='0.5' />
+          <circle cx='15' cy='15' r='0.7' fill='hsl(var(--primary))' opacity='0.5' />
         </svg>
       ),
     },

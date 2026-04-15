@@ -5,6 +5,7 @@ import { View, StyleSheet, Pressable, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { Text, Button, Icon } from '@/design-system/components/atoms';
+import { colorTokens } from '@/design-system/tokens/colors';
 import { updateUser, selectIsPhoneVerified } from '@/features/auth/store/authSlice';
 import { offersService } from '@/features/offers/services/offersService';
 import { useAppSelector, useAppDispatch } from '@/hooks';
@@ -39,7 +40,7 @@ const TEXT_SECONDARY = '#64748B';
 const TEXT_TERTIARY = '#475569';
 const TEXT_DISABLED = '#94A3B8';
 const BORDER_SUBTLE = '#E2E8F0';
-const BRAND_PRIMARY = '#005250';
+const BRAND_PRIMARY = colorTokens.base.primary[500];
 const SUCCESS_BORDER = '#10B981';
 const SUCCESS_SURFACE = '#F0FDF4';
 const SUCCESS_TINT = '#D1FAE5';
@@ -363,7 +364,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
         {/* Payment Method Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Icon name='wallet' family='Ionicons' size={20} color='#005250' />
+            <Icon name='wallet' family='Ionicons' size={20} color={BRAND_PRIMARY} />
             <Text style={styles.sectionTitle}>Payment Method</Text>
           </View>
 
@@ -388,7 +389,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                 name='cash'
                 family='Ionicons'
                 size={28}
-                color={selectedPaymentMethod === 'cash_on_pickup' ? '#005250' : '#64748B'}
+                color={selectedPaymentMethod === 'cash_on_pickup' ? BRAND_PRIMARY : '#64748B'}
               />
               <Text
                 style={[
@@ -419,7 +420,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                 name='bicycle'
                 family='Ionicons'
                 size={28}
-                color={selectedPaymentMethod === 'pay_on_delivery' ? '#005250' : '#64748B'}
+                color={selectedPaymentMethod === 'pay_on_delivery' ? BRAND_PRIMARY : '#64748B'}
               />
               <Text
                 style={[
@@ -450,7 +451,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
         {/* Price Summary Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Icon name='receipt' family='Ionicons' size={20} color='#005250' />
+            <Icon name='receipt' family='Ionicons' size={20} color={BRAND_PRIMARY} />
             <Text style={styles.sectionTitle}>Order Summary</Text>
           </View>
 
@@ -508,7 +509,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
           style={styles.confirmButtonWrapper}
         >
           <LinearGradient
-            colors={['#005250', '#007B77']}
+            colors={[BRAND_PRIMARY, colorTokens.base.primary[400]]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={[styles.confirmButton, isCreatingOrder && styles.confirmButtonDisabled]}
@@ -762,7 +763,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     ...Platform.select({
       ios: {
-        shadowColor: '#005250',
+        shadowColor: BRAND_PRIMARY,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,

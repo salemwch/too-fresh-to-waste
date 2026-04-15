@@ -18,6 +18,7 @@ import { View, StyleSheet, RefreshControl, Platform, Pressable } from 'react-nat
 
 import { Text, Icon, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 import { OrderCard } from '../components/OrderCard';
 import { SkeletonOrderCard } from '../components/SkeletonOrderCard';
@@ -37,7 +38,7 @@ interface OrdersScreenProps {
 }
 
 const TAB_BORDER = '#F1F5F9';
-const BRAND_PRIMARY = '#005250';
+const BRAND_PRIMARY = colorTokens.base.primary[500];
 const TEXT_SECONDARY = '#64748B';
 const WHITE = '#FFFFFF';
 const BADGE_BACKGROUND = '#E2E8F0';

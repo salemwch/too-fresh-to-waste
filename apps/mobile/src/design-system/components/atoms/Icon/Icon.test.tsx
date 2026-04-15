@@ -38,7 +38,7 @@ describe('Icon', () => {
   });
 
   it('renders with background color', () => {
-    const { getByLabelText } = renderWithTheme(<Icon name='check' backgroundColor='#005250' />);
+    const { getByLabelText } = renderWithTheme(<Icon name='check' backgroundColor='#1E4448' />);
     expect(getByLabelText('check')).toBeTruthy();
   });
 

@@ -19,6 +19,7 @@ import { CtaState } from '@/features/offers/types';
 import { Logger } from '@/utils/logger';
 
 import { useTheme } from '../../../providers';
+import { colorTokens } from '../../../tokens/colors';
 import { Badge } from '../../atoms/Badge';
 import { Card } from '../../atoms/Card';
 import { ShimmerBlock } from '../../atoms/ShimmerBlock/ShimmerBlock';
@@ -44,10 +45,10 @@ const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/400x300/E5E7EB/9CA3AF?tex
  * Extracted to comply with react-native/no-color-literals rule
  */
 const COLORS = {
-  HEART_DEFAULT: '#005250', // ✅ Brand green for filled heart
+  HEART_DEFAULT: colorTokens.base.primary[500], // ✅ Brand green for filled heart
   HEART_UNFILLED: '#9CA3AF',
   ITEMS_LEFT_BG: '#fbf9be',
-  ITEMS_LEFT_TEXT: '#005250',
+  ITEMS_LEFT_TEXT: colorTokens.base.primary[500],
   WHITE: '#FFFFFF',
   BLACK: '#000',
   SOLD_OUT_OVERLAY: 'rgba(0, 0, 0, 0.5)',

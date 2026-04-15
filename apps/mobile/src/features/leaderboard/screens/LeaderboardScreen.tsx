@@ -31,6 +31,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { colorTokens } from '@/design-system/tokens/colors';
 import { useCommunityBagGoal } from '@/features/home/hooks/useCommunityBagGoal';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
@@ -40,7 +41,7 @@ import type { LeaderboardEntry } from '../types/leaderboard.types';
 import type { MainStackNavigationProp } from '@/navigation/types';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-const PRIMARY = '#005250';
+const PRIMARY = colorTokens.base.primary[500];
 const GOLD = '#F59E0B';
 const GOLD_TEXT = '#B45309';
 const SILVER = '#9CA3AF';

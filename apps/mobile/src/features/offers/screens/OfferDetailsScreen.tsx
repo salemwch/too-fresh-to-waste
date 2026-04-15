@@ -36,6 +36,9 @@ import ClickToPayImage from '@/assets/images/ClickToPay.png';
 import PayMeImage from '@/assets/images/PayMe.png';
 import { Text, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { colorTokens } from '@/design-system/tokens/colors';
+
+const PRIMARY_COLOR = colorTokens.base.primary[500];
 import { useFavoriteToggle } from '@/features/favorites/hooks';
 import { selectIsFavorite } from '@/store/slices/favoritesSlice';
 import { analytics } from '@/utils/analytics';
@@ -444,9 +447,9 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                 accessibilityRole='button'
               >
                 <Heart
-                  color={isFavorite ? '#005250' : '#111827'}
+                  color={isFavorite ? PRIMARY_COLOR : '#111827'}
                   size={20}
-                  fill={isFavorite ? '#005250' : 'transparent'}
+                  fill={isFavorite ? PRIMARY_COLOR : 'transparent'}
                   strokeWidth={isFavorite ? 0 : 2}
                 />
               </Pressable>

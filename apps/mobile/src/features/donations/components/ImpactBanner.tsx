@@ -10,6 +10,8 @@ import { View, Text, StyleSheet, Pressable, LayoutAnimation } from 'react-native
 import HeartInHandsIcon from '../../../assets/images/RedHeartinHands IconMedicalCareLogo.svg';
 import { useDonationStats } from '../hooks/useDonations';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 import { SkeletonImpactBanner } from './SkeletonImpactBanner';
 interface ImpactBannerProps {
   onExpand?: () => void;
@@ -20,7 +22,7 @@ const COLORS = {
   shadow: '#000',
   textPrimary: '#1F2937',
   textSecondary: '#6B7280',
-  brand: '#005250',
+  brand: colorTokens.base.primary[500],
   border: '#E5E7EB',
   surfaceMuted: '#F3F4F6',
 } as const;

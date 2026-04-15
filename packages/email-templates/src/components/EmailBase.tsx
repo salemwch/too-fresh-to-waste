@@ -11,7 +11,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 
-const BRAND_COLOR = '#005250';
+const BRAND_COLOR = '#1E4448';
 const FONT_FAMILY =
   '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 

@@ -20,6 +20,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Text, Button, Card, Icon } from '@/design-system/components/atoms';
 import { SkeletonOfferCard } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
+import { colorTokens } from '@/design-system/tokens/colors';
 import { CtaState, OfferStatus } from '@/features/offers/types';
 import { Logger } from '@/utils/logger';
 
@@ -98,7 +99,7 @@ const CATEGORY_FILTERS: CategoryFilter[] = [
 ];
 
 const COLORS = {
-  brand: '#005250',
+  brand: colorTokens.base.primary[500],
   brandSoftStart: '#F0FDF4',
   brandSoftEnd: '#DCFCE7',
   success: '#10B981',

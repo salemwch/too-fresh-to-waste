@@ -15,6 +15,7 @@ import React, { memo } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 
 import { Text } from '@/design-system/components/atoms';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 interface ImpactStatsRowProps {
   totalBagsSaved: number;
@@ -43,7 +44,7 @@ interface StatCard {
   sublabel: string;
 }
 
-const TEAL = '#005250';
+const TEAL = colorTokens.base.primary[500];
 const SURFACE = '#FFFFFF';
 const TEXT_PRIMARY = '#1F2937';
 const TEXT_SECONDARY = '#64748B';

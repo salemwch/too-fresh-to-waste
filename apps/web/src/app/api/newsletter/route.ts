@@ -314,7 +314,7 @@ export async function POST(request: NextRequest) {
                   <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                     <!-- Header -->
                     <tr>
-                      <td style="background-color: #005250; padding: 30px 20px; text-align: center;">
+                      <td style="background-color: #1E4448; padding: 30px 20px; text-align: center;">
                         <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Welcome to Too Fresh To Waste!</h1>
                       </td>
                     </tr>
@@ -322,7 +322,7 @@ export async function POST(request: NextRequest) {
                     <!-- Content -->
                     <tr>
                       <td style="padding: 40px 30px;">
-                        <h2 style="color: #005250; margin-top: 0;">Thank You for Joining Us! 🎉</h2>
+                        <h2 style="color: #1E4448; margin-top: 0;">Thank You for Joining Us! 🎉</h2>
 
                         <p style="color: #333333; line-height: 1.6; font-size: 16px;">
                           We're thrilled to have you as part of our mission to reduce food waste in Tunisia!
@@ -344,7 +344,7 @@ export async function POST(request: NextRequest) {
                         </p>
 
                         <div style="text-align: center; margin: 30px 0;">
-                          <a href="${SITE_URL}" style="background-color: #005250; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
+                          <a href="${SITE_URL}" style="background-color: #1E4448; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
                             Visit Our Website
                           </a>
                         </div>

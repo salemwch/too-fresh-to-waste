@@ -9,6 +9,8 @@ import { View, Text, StyleSheet, Pressable, LayoutAnimation, Animated, Easing } 
 import SurpriseBoxIcon from '../../../assets/images/surprise-box.svg';
 import { useCommunityBagGoal } from '../hooks/useCommunityBagGoal';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 import { SkeletonCommunityBagGoal } from './SkeletonCommunityBagGoal';
 
 interface CommunityBagGoalBannerProps {
@@ -16,7 +18,7 @@ interface CommunityBagGoalBannerProps {
 }
 
 const COLORS = {
-  brand: '#005250',
+  brand: colorTokens.base.primary[500],
   brandSurface: '#E0F2F1',
   surface: '#FFFFFF',
   shadow: '#000',

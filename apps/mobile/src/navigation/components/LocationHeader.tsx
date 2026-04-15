@@ -9,7 +9,7 @@
  * - Accessible with proper ARIA labels
  *
  * Design:
- * - Green circle (#005250) with location icon
+ * - Green circle (#1E4448) with location icon
  * - "Chosen Location" label
  * - Location name with ellipsis for overflow
  * - Chevron down indicator
@@ -68,7 +68,7 @@ export const LocationHeader: React.FC<LocationHeaderProps> = ({ onPress }) => {
       accessibilityHint='Tap to change your location'
       disabled={!onPress}
     >
-      {/* Location Icon Circle - #005250 */}
+      {/* Location Icon Circle - #1E4448 */}
       <View style={[styles.locationIconCircle, { backgroundColor: theme.colors.primary }]}>
         <Icon name='location' family='Ionicons' size={16} color={theme.colors.onPrimary} />
       </View>
