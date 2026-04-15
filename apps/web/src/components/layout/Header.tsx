@@ -102,7 +102,7 @@ export default function Header() {
         }}
         role='banner'
       >
-        <div className='w-full px-3 lg:px-6'>
+        <div className='w-full px-3 lg:px-6 pt-[5px]'>
           <nav
             className='grid grid-cols-[1fr_auto_1fr] items-center h-14 gap-2'
             role='navigation'
@@ -139,7 +139,7 @@ export default function Header() {
             {/* CENTER — Logo (always centered) */}
             <div className='flex items-center justify-center'>
               <Link href='/' aria-label='Too Fresh To Waste Home'>
-                <div className='relative w-16 lg:w-20 xl:w-28 h-8 lg:h-10 xl:h-14'>
+                <div className='relative w-20 lg:w-24 xl:w-32 h-10 lg:h-12 xl:h-16'>
                   {/* Primary-bg logo (when not scrolled) */}
                   <Image
                     src='/images/green-header-center.png'
@@ -172,18 +172,23 @@ export default function Header() {
               <div className='hidden lg:flex items-center gap-2 xl:gap-3'>
                 <Link
                   href='/coming-soon'
-                  className={`px-3 xl:px-4 py-1.5 border-[0.5px] rounded-full font-bold text-[10px] xl:text-xs tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`px-4 xl:px-5 py-2 border-[0.5px] rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   aria-label={t('cta.downloadApp')}
                 >
                   {t('cta.downloadApp')}
                 </Link>
                 <Link
                   href='/merchant-signup'
-                  className={`px-3 xl:px-4 py-1.5 border-[0.5px] rounded-full font-bold text-[10px] xl:text-xs tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`px-4 xl:px-5 py-2 border-[0.5px] rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   aria-label={t('cta.businessSignup')}
                 >
                   {t('cta.businessSignupShort')}
                 </Link>
+                {/* Language Switcher — between Sign Up and Login */}
+                <LanguageSwitcher
+                  showIcon={false}
+                  buttonClassName={`flex items-center gap-1 px-3 xl:px-4 py-2 rounded-full border-[0.5px] font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                />
                 <Link
                   href='/login'
                   className={`flex flex-col items-center gap-0.5 shrink-0 transition-all duration-200 hover:opacity-75 outline-none ${linkColorClass}`}
@@ -192,12 +197,12 @@ export default function Header() {
                   <Image
                     src='/icons/login.svg'
                     alt=''
-                    width={20}
-                    height={20}
+                    width={22}
+                    height={22}
                     aria-hidden='true'
                     className={`transition-all duration-200 ${isScrolledState ? '' : 'brightness-0 invert'}`}
                   />
-                  <span className='text-[10px] xl:text-xs font-bold tracking-wide whitespace-nowrap'>
+                  <span className='text-xs xl:text-sm font-bold tracking-wide whitespace-nowrap'>
                     {t('cta.login')}
                   </span>
                 </Link>
@@ -245,7 +250,7 @@ export default function Header() {
           {/* Menu Panel */}
           <div
             id='mobile-menu'
-            className={`absolute top-14 left-0 right-0 max-h-[calc(100vh-3.5rem)] overflow-y-auto shadow-xl ${
+            className={`absolute top-16 left-0 right-0 max-h-[calc(100vh-4rem)] overflow-y-auto shadow-xl ${
               isScrolledState ? 'bg-[#f9f3f0]' : 'bg-primary-500'
             }`}
             onClick={e => e.stopPropagation()}
@@ -311,7 +316,7 @@ export default function Header() {
       )}
 
       {/* Spacer to prevent content from being hidden under fixed header */}
-      <div className='h-14' aria-hidden='true' />
+      <div className='h-16' aria-hidden='true' />
     </>
   );
 }
