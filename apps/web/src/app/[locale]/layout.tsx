@@ -8,6 +8,7 @@ import { seoConfig, getLocaleSeoMetadata } from '@/config/seo.config';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { AppProviders } from '@/components/providers/app-providers';
+import { ChunkErrorBoundary } from '@/components/providers/chunk-error-boundary';
 import '../globals.css';
 
 // Latin font (Inter) for French and English
@@ -238,7 +239,9 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         )}
 
         <NextIntlClientProvider messages={{}}>
-          <AppProviders>{children}</AppProviders>
+          <ChunkErrorBoundary>
+            <AppProviders>{children}</AppProviders>
+          </ChunkErrorBoundary>
         </NextIntlClientProvider>
         <SpeedInsights />
       </body>
