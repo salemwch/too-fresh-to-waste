@@ -53,7 +53,7 @@ export default function Footer() {
     {
       title: t('sections.legal.title'),
       links: [
-        { label: t('sections.legal.terms'), href: '/terms-of-service' },
+        { label: t('sections.legal.terms'), href: '/terms-and-conditions' },
         { label: t('sections.legal.privacy'), href: '/privacy-policy' },
         { label: t('sections.legal.cookies'), href: '/cookie-policy' },
         { label: t('sections.legal.security'), href: '/security' },
