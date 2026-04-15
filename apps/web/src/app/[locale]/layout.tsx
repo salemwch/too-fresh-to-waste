@@ -7,6 +7,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { locales, type Locale, getLocaleConfig } from '@/i18n/config';
 import { seoConfig, getLocaleSeoMetadata } from '@/config/seo.config';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/next';
 import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { AppProviders } from '@/components/providers/app-providers';
 import '../globals.css';
@@ -226,6 +227,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         <NextIntlClientProvider messages={messages}>
           <AppProviders>{children}</AppProviders>
         </NextIntlClientProvider>
+        <Analytics />
         <SpeedInsights />
       </body>
     </html>
