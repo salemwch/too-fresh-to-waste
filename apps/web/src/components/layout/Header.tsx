@@ -172,7 +172,11 @@ export default function Header() {
               <div className='hidden lg:flex items-center gap-2 xl:gap-3'>
                 <Link
                   href='/coming-soon'
-                  className={`px-4 xl:px-5 py-2 border-[0.5px] rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`px-4 xl:px-5 py-2 border-[0.5px] rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-90 whitespace-nowrap outline-none ${
+                    isScrolledState
+                      ? 'bg-primary-500 text-white border-primary-500'
+                      : 'bg-white text-primary-500 border-white'
+                  }`}
                   aria-label={t('cta.downloadApp')}
                 >
                   {t('cta.downloadApp')}

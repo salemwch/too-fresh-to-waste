@@ -44,9 +44,9 @@
   },
   "header": {
     "nav": {
-      "theApp": "L'APPLICATION",
-      "whyChooseUs": "POURQUOI NOUS CHOISIR",
-      "businessSolution": "SOLUTION ENTREPRISE"
+      "theApp": "CONSOMMATEUR",
+      "whyChooseUs": "À PROPOS",
+      "businessSolution": "ENTREPRISE"
     },
     "cta": {
       "downloadApp": "TÉLÉCHARGER L'APP",
