@@ -171,7 +171,7 @@ export default function Footer() {
 
           {/* Social Media Links */}
           <div className='mt-4'>
-            <h4 className='text-white font-semibold text-base mb-3'>{t('social.followUs')}</h4>
+            <h3 className='text-white font-semibold text-base mb-3'>{t('social.followUs')}</h3>
             <ul className='flex gap-3 sm:gap-4 md:gap-4 flex-wrap' aria-label='Social media links'>
               {socialLinks.map(social => (
                 <li key={social.name} className='flex-shrink-0'>
@@ -194,15 +194,15 @@ export default function Footer() {
         <div className='min-[1200px]:col-span-2 grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6'>
           {footerSections.map(section => (
             <div key={section.title} className='min-w-0'>
-              <h4 className='text-white font-semibold text-sm sm:text-base mb-2 sm:mb-3'>
+              <h3 className='text-white font-semibold text-sm sm:text-base mb-2 sm:mb-3'>
                 {section.title}
-              </h4>
+              </h3>
               <ul className='space-y-2'>
                 {section.links.map(link => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className='hover:text-white text-white/70 text-xs sm:text-sm font-normal transition-colors block'
+                      className='hover:text-white text-white/70 text-xs sm:text-sm font-normal transition-colors flex items-center min-h-[44px]'
                     >
                       {link.label}
                     </Link>

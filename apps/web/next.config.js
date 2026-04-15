@@ -124,7 +124,11 @@ const nextConfig = {
           },
           {
             key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
+            // strict-origin-when-cross-origin: sends full URL for same-origin,
+            // origin-only for cross-origin HTTPS→HTTPS, nothing for HTTPS→HTTP.
+            // Eliminates the "origin-when-cross-origin ignored for cross-site
+            // request" browser console noise produced by the previous value.
+            value: 'strict-origin-when-cross-origin',
           },
           {
             key: 'Permissions-Policy',
@@ -135,6 +139,12 @@ const nextConfig = {
             // publickey-credentials-get=(): block WebAuthn/passkey prompts.
             value:
               'camera=(), microphone=(), geolocation=(self), identity-credentials-get=(), publickey-credentials-get=()',
+          },
+          {
+            // Isolates the top-level browsing context from cross-origin documents
+            // (e.g. OAuth pop-ups). Required for SharedArrayBuffer on some browsers.
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
           },
           {
             key: 'Content-Security-Policy',
@@ -151,6 +161,8 @@ const nextConfig = {
                 getApiOrigin() +
                 ' ' +
                 getApiWsOrigin(),
+              // Allow blob: workers (e.g. Sentry's worker-based envelope transport)
+              "worker-src 'self' blob:",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",

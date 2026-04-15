@@ -6,7 +6,8 @@
  * Values are taken directly from the approved signup.md design spec.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
+/* Playfair Display is self-hosted via next/font/google in the root layout
+   (--font-playfair CSS variable). No external fonts.googleapis.com request. */
 
 .merchant-signup-theme {
   --background: 0 0% 100%;
@@ -39,7 +40,7 @@
 
   --radius: 0.75rem;
 
-  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-serif: var(--font-playfair), Georgia, serif;
   --font-sans: 'Inter', system-ui, sans-serif;
 }
 

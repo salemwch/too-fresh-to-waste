@@ -121,7 +121,7 @@ export default function Header() {
                       isScrolledState ? 'opacity-0' : 'opacity-100'
                     }`}
                     sizes='(max-width: 1024px) 80px, (max-width: 1280px) 112px, 160px'
-                    priority
+                    loading='eager'
                   />
                   {/* White logo (when scrolled) */}
                   <Image
@@ -132,7 +132,7 @@ export default function Header() {
                       isScrolledState ? 'opacity-100' : 'opacity-0'
                     }`}
                     sizes='(max-width: 1024px) 80px, (max-width: 1280px) 112px, 160px'
-                    priority
+                    loading='eager'
                   />
                 </div>
               </Link>

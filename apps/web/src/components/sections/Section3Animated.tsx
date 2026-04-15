@@ -28,7 +28,7 @@ export default function Section3Animated() {
           >
             {t('titleLine1')}
             <span
-              className='text-[#ff7973] text-4xl md:text-5xl lg:text-6xl block'
+              className='text-[#c0392b] text-4xl md:text-5xl lg:text-6xl block'
               style={{ fontWeight: 999 }}
             >
               {t('titleLine2')}
@@ -209,6 +209,7 @@ export default function Section3Animated() {
               width={500}
               height={500}
               className='w-full h-auto object-contain drop-shadow-xl'
+              sizes='(max-width: 640px) calc(100vw - 2rem), (max-width: 768px) 384px, (max-width: 1024px) 448px, 512px'
               loading='lazy'
             />
           </div>

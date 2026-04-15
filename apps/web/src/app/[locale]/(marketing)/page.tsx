@@ -129,6 +129,7 @@ function HeroSection({ locale }: { locale: Locale }) {
               sizes='(max-width: 768px) 160px, 192px'
               className='w-40 md:w-48 lg:w-48 h-auto'
               priority
+              fetchPriority='high'
             />
             <div
               className='absolute left-1/2 -translate-x-1/2'

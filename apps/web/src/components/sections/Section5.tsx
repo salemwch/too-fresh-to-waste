@@ -37,7 +37,7 @@ export default function Section5() {
         <h2 className='text-center text-2xl md:text-4xl font-bold mb-8 md:mb-12'>
           <span style={{ color: '#005250' }}>{t('mainTitle.businessSolution')}</span>
           <span style={{ color: '#005250' }}> {t('mainTitle.separator')} </span>
-          <span style={{ color: '#ff7973' }}>{t('mainTitle.bigPrize')}</span>
+          <span style={{ color: '#c0392b' }}>{t('mainTitle.bigPrize')}</span>
         </h2>
 
         <div className='flex flex-col md:flex-row items-start justify-center '>
@@ -203,15 +203,13 @@ export default function Section5() {
         </div>
       </div>
 
-      {/* Poppins Font Import and Emoji Styling */}
+      {/* FAQ typography — self-hosted Inter (no external font fetch) */}
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-
         #faq * {
-          font-family: 'Poppins', sans-serif;
+          font-family: var(--font-inter), system-ui, sans-serif;
         }
 
-        /* Make emojis in FAQ answers larger and more visible */
+        /* FAQ answer sizing */
         #faq .faq-answer {
           font-size: 1.125rem;
           line-height: 1.75rem;

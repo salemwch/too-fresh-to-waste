@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
-import { Noto_Sans_Arabic } from 'next/font/google';
+import { Inter, Noto_Sans_Arabic, Playfair_Display } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
@@ -34,9 +33,21 @@ const notoSansArabic = Noto_Sans_Arabic({
   display: 'swap',
   variable: '--font-noto-arabic',
   adjustFontFallback: true,
-  preload: true,
+  // preload: false — Arabic is only needed on the ar locale; preloading it on
+  // every page (en/fr) causes "preloaded resource not used" console warnings.
+  preload: false,
   weight: ['400', '500', '600', '700'],
   fallback: ['Tahoma', 'Arial', 'sans-serif'],
+});
+
+// Serif font for merchant-signup / auth screens (self-hosted via next/font/google
+// to avoid the external fonts.googleapis.com @import in merchant-signup.css)
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-playfair',
+  weight: ['400', '500', '600', '700'],
+  preload: false,
 });
 
 // Generate static params for all locales
@@ -190,8 +201,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
   // Select font based on locale
   const fontClass = isRTL
-    ? `${notoSansArabic.variable} ${inter.variable}`
-    : `${inter.variable} ${notoSansArabic.variable}`;
+    ? `${notoSansArabic.variable} ${inter.variable} ${playfairDisplay.variable}`
+    : `${inter.variable} ${notoSansArabic.variable} ${playfairDisplay.variable}`;
 
   return (
     <html
@@ -202,11 +213,11 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
       data-scroll-behavior='smooth'
     >
       <head>
-        {/* Preconnect to external resources */}
-        <link rel='preconnect' href='https://fonts.googleapis.com' />
-        <link rel='preconnect' href='https://fonts.gstatic.com' crossOrigin='anonymous' />
-
-        {/* DNS prefetch for performance */}
+        {/* next/font/google self-hosts all fonts at build time — no runtime
+            fetch to fonts.googleapis.com or fonts.gstatic.com is needed.
+            Preconnect hints to those origins were removed to avoid opening
+            unnecessary TCP connections. */}
+        {/* DNS prefetch for analytics (non-critical, deferred) */}
         <link rel='dns-prefetch' href='https://www.google-analytics.com' />
         <link rel='dns-prefetch' href='https://www.googletagmanager.com' />
       </head>
