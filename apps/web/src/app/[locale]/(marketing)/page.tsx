@@ -93,6 +93,7 @@ function HeroSection({ locale }: { locale: Locale }) {
               alt='Profile Screen'
               width={390}
               height={844}
+              sizes='(max-width: 768px) 128px, (max-width: 1024px) 176px, 208px'
               className='w-32 md:w-44 lg:w-52 h-auto opacity-90'
               priority
             />
@@ -125,6 +126,7 @@ function HeroSection({ locale }: { locale: Locale }) {
               alt='Get Started Screen'
               width={390}
               height={844}
+              sizes='(max-width: 768px) 160px, 192px'
               className='w-40 md:w-48 lg:w-48 h-auto'
               priority
             />
@@ -158,6 +160,7 @@ function HeroSection({ locale }: { locale: Locale }) {
               alt='Login Screen'
               width={390}
               height={844}
+              sizes='(max-width: 768px) 128px, (max-width: 1024px) 176px, 208px'
               className='w-32 md:w-44 lg:w-52 h-auto opacity-90'
               priority
             />

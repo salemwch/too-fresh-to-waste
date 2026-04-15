@@ -76,16 +76,26 @@ export default async function middleware(request: NextRequest) {
   // Strip locale prefix for route matching
   const pathWithoutLocale = pathnameHasLocale ? pathname.replace(/^\/[a-z]{2}/, '') : pathname;
 
+  const isRootPath = pathWithoutLocale === '/' || pathWithoutLocale === '';
+  const isAuthPage =
+    pathWithoutLocale.startsWith('/login') || pathWithoutLocale.startsWith('/register');
+  const isProtectedRoute = PROTECTED_PATH_PATTERNS.some(pattern =>
+    pathWithoutLocale.startsWith(pattern),
+  );
+
   // ── Verify JWT from HttpOnly cookie (server-side, jose) ──────────────────
-  // This replaces the insecure wfa_authenticated flag cookie with real JWT
-  // signature verification at the Edge. The access_token cookie is HttpOnly,
-  // so it is never accessible to client-side JavaScript.
-  const session = await verifySession(request);
+  // Only run the crypto work when the result can actually change routing:
+  //   • root path  — authenticated users are redirected to their dashboard
+  //   • auth pages — authenticated users are redirected away from login/register
+  //   • protected routes — unauthenticated users are redirected to login
+  // All other pages (marketing, reset-password, etc.) skip verification entirely,
+  // removing unnecessary Edge crypto latency from every public page request.
+  const needsAuthCheck = isRootPath || isAuthPage || isProtectedRoute;
+  const session = needsAuthCheck ? await verifySession(request) : null;
   const isAuthenticated = !!session;
   const role = session?.role ?? null;
 
   // Auto-redirect authenticated users from public root to their dashboard.
-  const isRootPath = pathWithoutLocale === '/' || pathWithoutLocale === '';
   if (isRootPath && isAuthenticated && role) {
     const locale = pathnameHasLocale ? (pathname.split('/')[1] ?? defaultLocale) : defaultLocale;
     if (role === 'merchant') {
@@ -97,8 +107,6 @@ export default async function middleware(request: NextRequest) {
   }
 
   // Redirect authenticated users away from login/register pages
-  const isAuthPage =
-    pathWithoutLocale.startsWith('/login') || pathWithoutLocale.startsWith('/register');
   if (isAuthPage && isAuthenticated && role) {
     const locale = pathnameHasLocale ? (pathname.split('/')[1] ?? defaultLocale) : defaultLocale;
     if (role === 'merchant') {
@@ -108,11 +116,6 @@ export default async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(`/${locale}/admin/dashboard`, request.url));
     }
   }
-
-  // Auth protection: check if the path requires authentication
-  const isProtectedRoute = PROTECTED_PATH_PATTERNS.some(pattern =>
-    pathWithoutLocale.startsWith(pattern),
-  );
 
   if (isProtectedRoute && !isAuthenticated) {
     // Extract current locale from pathname
