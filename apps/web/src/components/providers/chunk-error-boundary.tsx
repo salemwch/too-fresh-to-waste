@@ -41,7 +41,7 @@ export class ChunkErrorBoundary extends React.Component<{ children: React.ReactN
     this.state = { hasError: false, isChunk: false };
   }
 
-  static override getDerivedStateFromError(error: unknown): State {
+  static getDerivedStateFromError(error: unknown): State {
     return {
       hasError: true,
       isChunk: isChunkLoadError(error),
