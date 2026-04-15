@@ -41,14 +41,14 @@ export class ChunkErrorBoundary extends React.Component<{ children: React.ReactN
     this.state = { hasError: false, isChunk: false };
   }
 
-  static getDerivedStateFromError(error: unknown): State {
+  static override getDerivedStateFromError(error: unknown): State {
     return {
       hasError: true,
       isChunk: isChunkLoadError(error),
     };
   }
 
-  componentDidCatch(error: unknown, info: React.ErrorInfo): void {
+  override componentDidCatch(error: unknown, info: React.ErrorInfo): void {
     if (isChunkLoadError(error)) {
       const key = reloadKey();
       const alreadyAttempted = sessionStorage.getItem(key) === '1';
@@ -72,7 +72,7 @@ export class ChunkErrorBoundary extends React.Component<{ children: React.ReactN
     window.location.reload();
   };
 
-  render() {
+  override render() {
     if (!this.state.hasError) return this.props.children;
 
     return (
