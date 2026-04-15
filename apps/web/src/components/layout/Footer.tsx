@@ -197,12 +197,12 @@ export default function Footer() {
               <h3 className='text-white font-semibold text-sm sm:text-base mb-2 sm:mb-3'>
                 {section.title}
               </h3>
-              <ul className='space-y-2'>
+              <ul className='space-y-1'>
                 {section.links.map(link => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className='hover:text-white text-white/70 text-xs sm:text-sm font-normal transition-colors flex items-center min-h-[44px]'
+                      className='hover:text-white text-white/70 text-xs sm:text-sm font-normal transition-colors flex items-center py-0.5'
                     >
                       {link.label}
                     </Link>
