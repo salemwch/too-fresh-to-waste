@@ -44,10 +44,10 @@
   },
   "header": {
     "nav": {
-      "theApp": "CONSUMER",
+      "theApp": "Consumer",
       "whyChooseUs": "About Us",
-      "businessSolution": "BUSINESS",
-      "enterprise": "COMPANIES"
+      "businessSolution": "Business",
+      "enterprise": "Companies"
     },
     "cta": {
       "downloadApp": "DOWNLOAD APP",

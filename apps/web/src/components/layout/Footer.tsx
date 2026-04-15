@@ -53,10 +53,10 @@ export default function Footer() {
     {
       title: t('sections.legal.title'),
       links: [
-        { label: t('sections.legal.terms'), href: '/coming-soon' },
-        { label: t('sections.legal.privacy'), href: '/coming-soon' },
-        { label: t('sections.legal.cookies'), href: '/coming-soon' },
-        { label: t('sections.legal.security'), href: '/coming-soon' },
+        { label: t('sections.legal.terms'), href: '/terms-of-service' },
+        { label: t('sections.legal.privacy'), href: '/privacy-policy' },
+        { label: t('sections.legal.cookies'), href: '/cookie-policy' },
+        { label: t('sections.legal.security'), href: '/security' },
       ],
     },
   ];

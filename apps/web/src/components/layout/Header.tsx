@@ -78,6 +78,7 @@ export default function Header() {
           title: 'Business Solution',
           links: [
             { label: 'Marketplace Surprise Bag', href: '/coming-soon' },
+            { label: 'Parcless Bag', href: '/coming-soon' },
             { label: 'Specific Items', href: '/coming-soon' },
           ],
         },
@@ -167,7 +168,7 @@ export default function Header() {
         }}
         role='banner'
       >
-        <div className='w-full px-3 lg:px-6 pt-[5px]'>
+        <div className='w-full px-3 lg:px-6 pb-[5px]'>
           <nav
             className='grid grid-cols-[1fr_auto_1fr] items-center h-14 gap-2'
             role='navigation'
@@ -222,7 +223,7 @@ export default function Header() {
                     {/* Dropdown */}
                     {item.dropdown && openDropdown === item.label && (
                       <div
-                        className='absolute top-full left-0 mt-2 bg-black/85 backdrop-blur-sm rounded-xl shadow-2xl z-[60] min-w-[240px] py-4 px-4'
+                        className='absolute top-full left-0 mt-2 bg-black/60 backdrop-blur-md rounded-xl shadow-2xl z-[60] min-w-[240px] py-4 px-4'
                         onMouseEnter={() => handleNavEnter(item.label)}
                         onMouseLeave={handleNavLeave}
                       >
