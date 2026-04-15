@@ -79,7 +79,7 @@ export default function SecurityPage() {
 
       {/* Content */}
       <article className='max-w-4xl mx-auto px-4 py-14'>
-        <div className='space-y-10 text-foreground'>
+        <div className='space-y-6 text-foreground'>
           {/* Security Features Grid */}
           <section>
             <h2 className='text-xl font-bold text-primary-500 mb-6'>How We Protect Your Account</h2>

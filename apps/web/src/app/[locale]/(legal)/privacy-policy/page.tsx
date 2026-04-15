@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
 
       {/* Content */}
       <article className='max-w-4xl mx-auto px-4 py-14 prose-legal'>
-        <div className='space-y-10 text-foreground'>
+        <div className='space-y-6 text-foreground'>
           {/* Introduction */}
           <section>
             <p className='text-base leading-relaxed text-muted-foreground'>

@@ -200,7 +200,7 @@
       },
       "legal": {
         "title": "Legal",
-        "terms": "Terms of Service",
+        "terms": "Terms & Conditions",
         "privacy": "Privacy Policy",
         "cookies": "Cookie Policy",
         "security": "Security"
@@ -211,7 +211,7 @@
       "followUsOn": "Follow us on"
     },
     "legal": {
-      "terms": "Terms of Service",
+      "terms": "Terms & Conditions",
       "privacy": "Privacy Policy",
       "cookies": "Cookie Policy"
     },

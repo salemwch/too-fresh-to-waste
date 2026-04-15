@@ -22,7 +22,7 @@ export default function CookiePolicyPage() {
 
       {/* Content */}
       <article className='max-w-3xl mx-auto px-4 py-14'>
-        <div className='space-y-10 text-foreground'>
+        <div className='space-y-6 text-foreground'>
           {/* Intro */}
           <section>
             <p className='text-sm leading-relaxed text-muted-foreground'>

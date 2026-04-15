@@ -26,7 +26,7 @@ export default function TermsAndConditionsPage() {
 
       {/* Content */}
       <article className='max-w-4xl mx-auto px-4 py-14'>
-        <div className='space-y-10 text-foreground'>
+        <div className='space-y-6 text-foreground'>
           {/* 1. Joining the Movement */}
           <section>
             <h2 className='text-xl font-bold text-primary-500 mb-3'>
