@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 const LAST_UPDATED = 'April 15, 2026';
-const SECURITY_EMAIL = 'security@toofresh.tn';
+const SECURITY_EMAIL = 'support@toofreshtowaste.com';
 
 const SECURITY_FEATURES = [
   {
@@ -82,7 +82,9 @@ export default function SecurityPage() {
         <div className='space-y-6 text-foreground'>
           {/* Security Features Grid */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-6'>How We Protect Your Account</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-6'>
+              How We Protect Your Account
+            </h2>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               {SECURITY_FEATURES.map(feature => (
                 <div
@@ -109,7 +111,7 @@ export default function SecurityPage() {
 
           {/* What You Can Do */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>How You Can Stay Safe</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>How You Can Stay Safe</h2>
             <p className='text-sm text-muted-foreground mb-4'>
               Security is a shared responsibility. Here are steps you can take to protect your
               account:
@@ -148,7 +150,7 @@ export default function SecurityPage() {
 
           {/* Responsible Disclosure */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>Responsible Disclosure</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>Responsible Disclosure</h2>
             <p className='text-sm text-muted-foreground mb-3'>
               We take security reports seriously. If you discover a vulnerability in our platform,
               we encourage you to disclose it responsibly so we can fix it before it is exploited.
@@ -212,7 +214,7 @@ export default function SecurityPage() {
 
           {/* Contact */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>Security Contact</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>Security Contact</h2>
             <div className='p-4 bg-muted rounded-lg text-sm space-y-1'>
               <p>
                 <strong className='text-foreground'>Too Fresh To Waste — Security Team</strong>
@@ -229,10 +231,10 @@ export default function SecurityPage() {
               <p className='text-muted-foreground text-xs mt-2'>
                 For general support requests, please use{' '}
                 <a
-                  href='mailto:support@toofresh.tn'
+                  href='mailto:support@toofreshtowaste.com'
                   className='text-primary-500 underline underline-offset-2 hover:opacity-75'
                 >
-                  support@toofresh.tn
+                  support@toofreshtowaste.com
                 </a>{' '}
                 instead.
               </p>

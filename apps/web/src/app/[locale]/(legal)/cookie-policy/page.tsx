@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 const LAST_UPDATED = 'April 15, 2026';
-const CONTACT_EMAIL = 'privacy@toofresh.tn';
+const CONTACT_EMAIL = 'support@toofreshtowaste.com';
 
 export default function CookiePolicyPage() {
   return (
@@ -37,7 +37,7 @@ export default function CookiePolicyPage() {
 
           {/* What are cookies */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>What Are Cookies?</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>What Are Cookies?</h2>
             <p className='text-sm leading-relaxed text-muted-foreground'>
               Cookies are small files stored on your device when you visit a website or use an app.
               They let the service remember things about your visit — like whether you are logged in
@@ -49,7 +49,7 @@ export default function CookiePolicyPage() {
 
           {/* What we use */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-5'>Cookies We Use</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-5'>Cookies We Use</h2>
 
             <div className='space-y-4'>
               {/* Essential */}
@@ -98,7 +98,7 @@ export default function CookiePolicyPage() {
 
           {/* How to manage */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>How to Manage Cookies</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>How to Manage Cookies</h2>
 
             <p className='text-sm text-muted-foreground mb-4'>
               You are in control. Here are your options:
@@ -134,7 +134,7 @@ export default function CookiePolicyPage() {
 
           {/* Changes */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>Updates to This Policy</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>Updates to This Policy</h2>
             <p className='text-sm text-muted-foreground'>
               If we start using new cookies or change how we use existing ones, we will update this
               page and revise the date at the top. We encourage you to check back from time to time.
@@ -145,7 +145,7 @@ export default function CookiePolicyPage() {
 
           {/* Contact */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>Questions?</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>Questions?</h2>
             <p className='text-sm text-muted-foreground'>
               Reach us at{' '}
               <a

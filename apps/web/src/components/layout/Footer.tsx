@@ -25,29 +25,25 @@ export default function Footer() {
     {
       title: t('sections.about.title'),
       links: [
-        { label: t('sections.about.whoWeAre'), href: '/coming-soon' },
-        { label: t('sections.about.mission'), href: '/coming-soon' },
-        { label: t('sections.about.careers'), href: '/coming-soon' },
-        { label: t('sections.about.blog'), href: '/coming-soon' },
-        { label: t('sections.about.press'), href: '/coming-soon' },
+        { label: t('sections.about.whoWeAre'), href: '#' },
+        { label: t('sections.about.mission'), href: '#' },
+        { label: t('sections.about.careers'), href: '#' },
       ],
     },
     {
       title: t('sections.services.title'),
       links: [
-        { label: t('sections.services.forConsumers'), href: '/#app' },
-        { label: t('sections.services.forBusinesses'), href: '/business-signup' },
-        { label: t('sections.services.howItWorks'), href: '/#features' },
-        { label: t('sections.services.pricing'), href: '/coming-soon' },
+        { label: t('sections.services.consumer'), href: '/#app' },
+        { label: t('sections.services.business'), href: '/business-signup' },
+        { label: t('sections.services.companies'), href: '#' },
       ],
     },
     {
       title: t('sections.support.title'),
       links: [
-        { label: t('sections.support.helpCenter'), href: '/coming-soon' },
         { label: t('sections.support.faq'), href: '/#faq' },
-        { label: t('sections.support.contact'), href: '/coming-soon' },
-        { label: t('sections.support.partners'), href: '/coming-soon' },
+        { label: t('sections.support.contact'), href: '#' },
+        { label: t('sections.support.partners'), href: '#' },
       ],
     },
     {
@@ -202,7 +198,7 @@ export default function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className='hover:text-white text-white/70 text-xs sm:text-sm font-normal transition-colors flex items-center py-0.5'
+                      className='hover:text-white text-white/70 text-xs sm:text-sm font-normal transition-colors inline-flex items-center py-0.5'
                     >
                       {link.label}
                     </Link>
@@ -218,19 +214,8 @@ export default function Footer() {
       <hr className='mt-6 mb-4 border-white/20' />
 
       {/* Copyright */}
-      <div className='flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-2 sm:gap-4'>
+      <div className='flex items-center justify-center sm:justify-end'>
         <p className='text-white/70 text-xs sm:text-sm'>{t('copyright', { year: currentYear })}</p>
-        <p className='text-white/70 text-xs sm:text-sm'>
-          Created By{' '}
-          <a
-            href={seoConfig.creatorUrl}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='text-white/90 hover:text-white transition-colors underline'
-          >
-            Salem Ouachouacha
-          </a>
-        </p>
       </div>
     </footer>
   );

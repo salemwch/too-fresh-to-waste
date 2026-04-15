@@ -209,7 +209,7 @@ function HeroSection({ locale }: { locale: Locale }) {
           {/* CTA Buttons */}
           <div className='flex flex-col sm:flex-row gap-4 justify-center items-stretch w-full max-w-2xl mx-auto px-4 sm:px-0'>
             <Link
-              href='/coming-soon'
+              href='#'
               className='w-full sm:w-auto sm:flex-1 px-6 py-3.5 border-[0.5px] border-white text-white rounded-full font-bold text-sm sm:text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none text-center whitespace-nowrap'
               aria-label={t('cta.download')}
             >

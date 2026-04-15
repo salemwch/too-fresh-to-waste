@@ -180,20 +180,16 @@
         "title": "À propos",
         "whoWeAre": "Qui sommes-nous",
         "mission": "Notre mission",
-        "careers": "Carrières",
-        "blog": "Blog",
-        "press": "Kit de presse"
+        "careers": "Carrières"
       },
       "services": {
         "title": "Services",
-        "forConsumers": "Pour les consommateurs",
-        "forBusinesses": "Pour les entreprises",
-        "howItWorks": "Comment ça marche",
-        "pricing": "Tarification"
+        "consumer": "Consommateur",
+        "business": "Business",
+        "companies": "Entreprises"
       },
       "support": {
         "title": "Support",
-        "helpCenter": "Centre d'aide",
         "faq": "FAQ",
         "contact": "Nous contacter",
         "partners": "Partenaires"

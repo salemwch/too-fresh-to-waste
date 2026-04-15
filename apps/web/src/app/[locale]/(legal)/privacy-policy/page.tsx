@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 const LAST_UPDATED = 'April 15, 2026';
 const EFFECTIVE_DATE = 'April 15, 2026';
-const CONTACT_EMAIL = 'privacy@toofresh.tn';
+const CONTACT_EMAIL = 'support@toofreshtowaste.com';
 const COMPANY_NAME = 'Too Fresh To Waste';
 const COMPANY_COUNTRY = 'Tunisia';
 
@@ -59,7 +59,7 @@ export default function PrivacyPolicyPage() {
 
           {/* 1. Data We Collect */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>1. Data We Collect</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>1. Data We Collect</h2>
 
             <h3 className='text-base font-semibold mb-2'>1.1 Account Information</h3>
             <ul className='list-disc list-outside ms-5 space-y-1 text-sm text-muted-foreground'>
@@ -109,7 +109,7 @@ export default function PrivacyPolicyPage() {
 
           {/* 2. How We Use Your Data */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>2. How We Use Your Data</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>2. How We Use Your Data</h2>
             <div className='overflow-x-auto'>
               <table className='w-full text-sm border-collapse'>
                 <thead>
@@ -148,7 +148,7 @@ export default function PrivacyPolicyPage() {
 
           {/* 3. Data Storage & Security */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>
               3. Data Storage &amp; Security
             </h2>
             <p className='text-sm text-muted-foreground mb-3'>
@@ -184,7 +184,7 @@ export default function PrivacyPolicyPage() {
 
           {/* 4. Third Parties */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>4. Third-Party Services</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>4. Third-Party Services</h2>
             <p className='text-sm text-muted-foreground mb-3'>
               We share data only with trusted processors strictly necessary to operate the Service:
             </p>
@@ -217,7 +217,7 @@ export default function PrivacyPolicyPage() {
 
           {/* 5. Data Retention */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>5. Data Retention</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>5. Data Retention</h2>
             <ul className='list-disc list-outside ms-5 space-y-1 text-sm text-muted-foreground'>
               <li>Active account data: retained for as long as your account is open</li>
               <li>
@@ -236,7 +236,7 @@ export default function PrivacyPolicyPage() {
 
           {/* 6. Your Rights */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>6. Your Rights</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>6. Your Rights</h2>
             <p className='text-sm text-muted-foreground mb-3'>
               Under Tunisian data protection law (INPDP) and, where applicable, the GDPR, you have
               the right to:
@@ -286,7 +286,7 @@ export default function PrivacyPolicyPage() {
 
           {/* 7. International Transfers */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>
               7. International Data Transfers
             </h2>
             <p className='text-sm text-muted-foreground'>
@@ -301,7 +301,7 @@ export default function PrivacyPolicyPage() {
 
           {/* 8. Children */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>8. Children&apos;s Privacy</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>8. Children&apos;s Privacy</h2>
             <p className='text-sm text-muted-foreground'>
               Our Service is not directed at children under 16. We do not knowingly collect personal
               data from anyone under 16. If you become aware that a child has provided us with
@@ -313,7 +313,7 @@ export default function PrivacyPolicyPage() {
 
           {/* 9. Changes */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>9. Changes to This Policy</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>9. Changes to This Policy</h2>
             <p className='text-sm text-muted-foreground'>
               We may update this Privacy Policy periodically. Material changes will be communicated
               via email or a prominent notice on the platform at least 7 days before they take
@@ -326,7 +326,7 @@ export default function PrivacyPolicyPage() {
 
           {/* 10. Contact */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-4'>10. Contact Us</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-4'>10. Contact Us</h2>
             <p className='text-sm text-muted-foreground'>
               For privacy-related questions or to exercise your rights, contact our Data Protection
               Team:

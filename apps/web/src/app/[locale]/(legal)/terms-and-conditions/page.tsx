@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 const LAST_UPDATED = 'April 15, 2026';
 const EFFECTIVE_DATE = 'April 15, 2026';
-const CONTACT_EMAIL = 'legal@toofresh.tn';
+const CONTACT_EMAIL = 'support@toofreshtowaste.com';
 
 export default function TermsAndConditionsPage() {
   return (
@@ -29,7 +29,7 @@ export default function TermsAndConditionsPage() {
         <div className='space-y-6 text-foreground'>
           {/* 1. Joining the Movement */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>
               1. Joining the Too Fresh To Waste Movement
             </h2>
             <p className='text-sm leading-relaxed text-muted-foreground mb-3'>
@@ -59,7 +59,7 @@ export default function TermsAndConditionsPage() {
 
           {/* 2. What's Covered */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>2. What These Terms Cover</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>2. What These Terms Cover</h2>
             <p className='text-sm leading-relaxed text-muted-foreground mb-3'>
               These Terms and Conditions ("<strong className='text-foreground'>Terms</strong>") are
               a binding legal agreement between you and Too Fresh To Waste governing your use of our
@@ -92,7 +92,9 @@ export default function TermsAndConditionsPage() {
 
           {/* 3. Using TFTW */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-5'>3. Using Too Fresh To Waste</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-5'>
+              3. Using Too Fresh To Waste
+            </h2>
 
             <div className='space-y-6'>
               <div>
@@ -205,7 +207,7 @@ export default function TermsAndConditionsPage() {
 
           {/* 4. Contents of Surprise Bags */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>
               4. Contents of Surprise Bags
             </h2>
             <p className='text-sm text-muted-foreground mb-3'>
@@ -231,7 +233,7 @@ export default function TermsAndConditionsPage() {
 
           {/* 5. Price, Payment, Refunds */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-5'>
+            <h2 className='text-4xl font-bold text-primary-500 mb-5'>
               5. Price, Payment &amp; Refunds
             </h2>
 
@@ -272,7 +274,7 @@ export default function TermsAndConditionsPage() {
 
           {/* 6. Complaints */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>6. Complaints</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>6. Complaints</h2>
             <p className='text-sm text-muted-foreground'>
               If something goes wrong, contact us first through the Help section in the app or at{' '}
               <a
@@ -291,7 +293,7 @@ export default function TermsAndConditionsPage() {
 
           {/* 7. Your Responsibilities */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>7. Your Responsibilities</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>7. Your Responsibilities</h2>
             <p className='text-sm text-muted-foreground mb-3'>
               By using the Platform you agree to:
             </p>
@@ -327,7 +329,7 @@ export default function TermsAndConditionsPage() {
 
           {/* 8. Privacy */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>8. Privacy</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>8. Privacy</h2>
             <p className='text-sm text-muted-foreground'>
               We take your privacy seriously. When you use the Platform, we collect and process
               personal data about you in accordance with our{' '}
@@ -346,7 +348,7 @@ export default function TermsAndConditionsPage() {
 
           {/* 9. Limitation of Liability */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>9. Limitation of Liability</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>9. Limitation of Liability</h2>
             <p className='text-sm text-muted-foreground mb-3'>
               To the maximum extent permitted by Tunisian law:
             </p>
@@ -379,7 +381,7 @@ export default function TermsAndConditionsPage() {
 
           {/* 10. Intellectual Property */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>10. Intellectual Property</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>10. Intellectual Property</h2>
             <p className='text-sm text-muted-foreground mb-2'>
               All content, design, code, trademarks, and logos on the Platform are owned by TFTW or
               its licensors. You may not copy, reproduce, modify, or distribute any part of the
@@ -396,7 +398,7 @@ export default function TermsAndConditionsPage() {
 
           {/* 11. Suspension & Termination */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-3'>
+            <h2 className='text-4xl font-bold text-primary-500 mb-3'>
               11. Suspension &amp; Termination
             </h2>
             <p className='text-sm text-muted-foreground mb-2'>
@@ -426,7 +428,7 @@ export default function TermsAndConditionsPage() {
 
           {/* 12. General */}
           <section>
-            <h2 className='text-xl font-bold text-primary-500 mb-5'>12. General</h2>
+            <h2 className='text-4xl font-bold text-primary-500 mb-5'>12. General</h2>
 
             <div className='space-y-4'>
               <div>

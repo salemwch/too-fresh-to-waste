@@ -31,13 +31,8 @@ export default function Header() {
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pathname = usePathname();
 
-  // Check if we're on the home page
-  // Note: usePathname() from @/i18n/routing returns pathname WITHOUT locale prefix
   const isHomePage = pathname === '/';
 
-  // Navigation configuration
-  // When on home page: use hash links (#app)
-  // When on other pages: use full path with hash (/#app) - locale prefix added automatically by Link
   const NAV_ITEMS: NavItem[] = [
     {
       label: t('nav.whyChooseUs'),
@@ -45,23 +40,21 @@ export default function Header() {
       dropdown: [
         {
           title: 'The App',
-          links: [
-            { label: 'How to Collect a Too Fresh To Waste Surprise Bag?', href: '/coming-soon' },
-          ],
+          links: [{ label: 'How to Collect a Too Fresh To Waste Surprise Bag?', href: '#' }],
         },
         {
           title: 'About Us',
           links: [
-            { label: 'About Too Fresh To Waste', href: '/coming-soon' },
-            { label: 'Careers', href: '/coming-soon' },
-            { label: 'Mission-driven business', href: '/coming-soon' },
+            { label: 'About Too Fresh To Waste', href: '#' },
+            { label: 'Careers', href: '#' },
+            { label: 'Mission-driven business', href: '#' },
           ],
         },
         {
           title: 'About Food Waste',
           links: [
-            { label: 'Food Waste Facts', href: '/coming-soon' },
-            { label: 'Resources', href: '/coming-soon' },
+            { label: 'Food Waste Facts', href: '#' },
+            { label: 'Resources', href: '#' },
           ],
         },
       ],
@@ -77,40 +70,31 @@ export default function Header() {
         {
           title: 'Business Solution',
           links: [
-            { label: 'Marketplace Surprise Bag', href: '/coming-soon' },
-            { label: 'Parcless Bag', href: '/coming-soon' },
-            { label: 'Specific Items', href: '/coming-soon' },
+            { label: 'Marketplace Surprise Bag', href: '#' },
+            { label: 'Parcless Bag', href: '#' },
+            { label: 'Specific Items', href: '#' },
           ],
         },
       ],
     },
     {
       label: t('nav.enterprise'),
-      href: '/coming-soon',
+      href: '#',
     },
   ];
 
-  // Prevent hydration mismatch by waiting for client-side mount
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
-  // CRITICAL: Reset scroll position on route change to prevent header color persistence
-  // This ensures the header always starts with the primary color on new pages
   useEffect(() => {
-    // Immediately scroll to top
     window.scrollTo(0, 0);
-
-    // Force a small delay to ensure scroll position is properly reset
-    // This prevents the useScrollPosition hook from retaining old scroll state
     const timer = setTimeout(() => {
       window.scrollTo(0, 0);
     }, 10);
-
     return () => clearTimeout(timer);
   }, [pathname]);
 
-  // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -122,7 +106,6 @@ export default function Header() {
     };
   }, [isMobileMenuOpen]);
 
-  // Close mobile menu on scroll
   useEffect(() => {
     if (isMobileMenuOpen) {
       setIsMobileMenuOpen(false);
@@ -143,19 +126,21 @@ export default function Header() {
     closeTimerRef.current = setTimeout(() => setOpenDropdown(null), 120);
   };
 
-  // Use scroll state only after mount to prevent hydration mismatch
   const isScrolledState = hasMounted ? isScrolled : false;
 
-  // Dynamic classes based on scroll state (optimized for performance)
   const headerBgClass = isScrolledState ? 'bg-[#f9f3f0]' : 'bg-primary-500';
   const linkColorClass = isScrolledState ? 'text-primary-500' : 'text-white';
   const buttonBorderClass = isScrolledState
     ? 'border-primary-500 text-primary-500'
     : 'border-white text-white';
-  // Shadow changes based on scroll state
   const headerShadow = isScrolledState
     ? '0 4px 6px -1px rgba(0, 37, 32, 0.5), 0 2px 4px -2px rgba(0, 37, 32, 0.3)'
     : 'none';
+
+  // Active mega-menu sections (null when nothing is open)
+  const activeMegaMenu = openDropdown
+    ? (NAV_ITEMS.find(i => i.label === openDropdown)?.dropdown ?? null)
+    : null;
 
   return (
     <>
@@ -192,7 +177,6 @@ export default function Header() {
                 {NAV_ITEMS.map(item => (
                   <div
                     key={item.label}
-                    className='relative'
                     onMouseEnter={() => item.dropdown && handleNavEnter(item.label)}
                     onMouseLeave={() => item.dropdown && handleNavLeave()}
                   >
@@ -219,43 +203,15 @@ export default function Header() {
                         </svg>
                       )}
                     </Link>
-
-                    {/* Dropdown */}
-                    {item.dropdown && openDropdown === item.label && (
-                      <div
-                        className='absolute top-full left-0 mt-2 bg-black/60 backdrop-blur-md rounded-xl shadow-2xl z-[60] min-w-[240px] py-4 px-4'
-                        onMouseEnter={() => handleNavEnter(item.label)}
-                        onMouseLeave={handleNavLeave}
-                      >
-                        {item.dropdown.map((section, sIdx) => (
-                          <div key={section.title}>
-                            {sIdx > 0 && <div className='border-t border-white/20 my-3' />}
-                            <p className='text-white/50 text-[9px] font-bold uppercase tracking-widest mb-2'>
-                              {section.title}
-                            </p>
-                            {section.links.map(link => (
-                              <Link
-                                key={link.label}
-                                href={link.href}
-                                className='block text-white text-xs leading-snug py-1.5 hover:text-white/60 transition-colors'
-                              >
-                                {link.label}
-                              </Link>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* CENTER — Logo (always centered) */}
+            {/* CENTER — Logo */}
             <div className='flex items-center justify-center'>
               <Link href='/' aria-label='Too Fresh To Waste Home'>
                 <div className='relative w-20 lg:w-24 xl:w-32 h-10 lg:h-12 xl:h-16'>
-                  {/* Primary-bg logo (when not scrolled) */}
                   <Image
                     src='/images/green-header-center.png'
                     alt='Too Fresh To Waste Logo'
@@ -266,7 +222,6 @@ export default function Header() {
                     sizes='(max-width: 1024px) 64px, (max-width: 1280px) 80px, 112px'
                     loading='eager'
                   />
-                  {/* Scrolled logo */}
                   <Image
                     src='/images/white-header-center-logo.png'
                     alt='Too Fresh To Waste Logo'
@@ -286,8 +241,8 @@ export default function Header() {
               {/* Desktop: CTA Buttons */}
               <div className='hidden lg:flex items-center gap-2 xl:gap-3'>
                 <Link
-                  href='/coming-soon'
-                  className={`px-4 xl:px-5 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-90 whitespace-nowrap outline-none ${
+                  href='#'
+                  className={`px-2.5 xl:px-3 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-90 whitespace-nowrap outline-none ${
                     isScrolledState ? 'bg-primary-500 text-white' : 'bg-white text-primary-500'
                   }`}
                   aria-label={t('cta.downloadApp')}
@@ -301,15 +256,14 @@ export default function Header() {
                 </span>
                 <Link
                   href='/merchant-signup'
-                  className={`px-4 xl:px-5 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${linkColorClass}`}
+                  className={`px-2.5 xl:px-3 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${linkColorClass}`}
                   aria-label={t('cta.businessSignup')}
                 >
                   {t('cta.businessSignupShort')}
                 </Link>
-                {/* Language Switcher — between Sign Up and Login */}
                 <LanguageSwitcher
                   showIcon={false}
-                  buttonClassName={`flex items-center gap-2 px-4 xl:px-5 py-2 rounded-full border-[0.5px] font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  buttonClassName={`flex items-center gap-2 px-2.5 xl:px-3 py-2 rounded-full border-[0.5px] font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
                 />
                 <Link
                   href='/login'
@@ -330,7 +284,7 @@ export default function Header() {
                 </Link>
               </div>
 
-              {/* Mobile: Hamburger Menu Button */}
+              {/* Mobile: Hamburger */}
               <button
                 onClick={toggleMobileMenu}
                 className={`lg:hidden p-2 rounded-md transition-colors duration-300 ${linkColorClass}`}
@@ -357,6 +311,42 @@ export default function Header() {
             </div>
           </nav>
         </div>
+
+        {/* ── Mega Menu — full-width, drops from bottom of header ── */}
+        {activeMegaMenu && (
+          <div
+            className='hidden lg:block absolute top-full left-0 right-0 bg-black/25 backdrop-blur-md shadow-2xl z-[60]'
+            onMouseEnter={() => handleNavEnter(openDropdown!)}
+            onMouseLeave={handleNavLeave}
+          >
+            <div className='w-full px-6 lg:px-10 py-6'>
+              <div className='flex gap-10 xl:gap-16'>
+                {activeMegaMenu.map((section, sIdx) => (
+                  <div key={section.title} className='min-w-0'>
+                    {sIdx > 0 && (
+                      <div className='hidden' /> // visual gap via gap-10
+                    )}
+                    <p className='text-white/50 text-[9px] font-bold uppercase tracking-widest mb-3'>
+                      {section.title}
+                    </p>
+                    <div className='space-y-1'>
+                      {section.links.map(link => (
+                        <Link
+                          key={link.label}
+                          href={link.href}
+                          className='block text-white text-sm py-1 hover:text-white/60 transition-colors whitespace-nowrap'
+                          onClick={() => setOpenDropdown(null)}
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Mobile Menu Overlay */}
@@ -366,10 +356,7 @@ export default function Header() {
           onClick={() => setIsMobileMenuOpen(false)}
           role='presentation'
         >
-          {/* Backdrop */}
           <div className='absolute inset-0 bg-black/50 backdrop-blur-sm' />
-
-          {/* Menu Panel */}
           <div
             id='mobile-menu'
             className={`absolute top-16 left-0 right-0 max-h-[calc(100vh-4rem)] overflow-y-auto shadow-xl ${
@@ -379,7 +366,6 @@ export default function Header() {
             role='menu'
           >
             <div className='px-4 py-6 space-y-1'>
-              {/* Navigation Links */}
               {NAV_ITEMS.map(item => (
                 <Link
                   key={item.label}
@@ -391,16 +377,12 @@ export default function Header() {
                   {item.label}
                 </Link>
               ))}
-
-              {/* Divider */}
               <div
                 className={`my-4 border-t ${isScrolledState ? 'border-primary-500/20' : 'border-white/20'}`}
               />
-
-              {/* CTA Buttons */}
               <div className='space-y-3 px-4'>
                 <Link
-                  href='/coming-soon'
+                  href='#'
                   className={`block text-center px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   role='menuitem'
@@ -437,12 +419,8 @@ export default function Header() {
         </div>
       )}
 
-      {/* Spacer — matches header height; mirrors header bg to avoid a gap on pages
-          where the first section shares the header's initial primary color */}
-      <div
-        className={`h-16 ${isHomePage && !isScrolledState ? 'bg-primary-500' : ''}`}
-        aria-hidden='true'
-      />
+      {/* Spacer */}
+      <div className={`h-16 ${!isScrolledState ? 'bg-primary-500' : ''}`} aria-hidden='true' />
     </>
   );
 }

@@ -180,20 +180,16 @@
         "title": "من نحن",
         "whoWeAre": "من نحن",
         "mission": "مهمتنا",
-        "careers": "الوظائف",
-        "blog": "المدونة",
-        "press": "الملف الصحفي"
+        "careers": "الوظائف"
       },
       "services": {
         "title": "الخدمات",
-        "forConsumers": "للمستهلكين",
-        "forBusinesses": "للشركات",
-        "howItWorks": "كيف يعمل",
-        "pricing": "الأسعار"
+        "consumer": "المستهلك",
+        "business": "الأعمال",
+        "companies": "الشركات"
       },
       "support": {
         "title": "الدعم",
-        "helpCenter": "مركز المساعدة",
         "faq": "الأسئلة الشائعة",
         "contact": "اتصل بنا",
         "partners": "الشركاء"
