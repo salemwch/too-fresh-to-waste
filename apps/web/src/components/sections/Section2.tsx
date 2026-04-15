@@ -54,7 +54,7 @@ export default function Section2() {
           {/* App Store Button */}
           <Link
             href='/coming-soon'
-            className='group flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto'
+            className='group flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto'
             aria-label='Download on the App Store'
           >
             <svg className='w-6 h-6 flex-shrink-0' viewBox='0 0 24 24' fill='currentColor'>
@@ -71,7 +71,7 @@ export default function Section2() {
           {/* Google Play Button */}
           <Link
             href='/coming-soon'
-            className='group flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto'
+            className='group flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto'
             aria-label='Get it on Google Play'
           >
             <svg className='w-6 h-6 flex-shrink-0' viewBox='0 0 24 24' fill='currentColor'>

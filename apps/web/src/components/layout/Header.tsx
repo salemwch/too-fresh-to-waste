@@ -102,7 +102,7 @@ export default function Header() {
         }}
         role='banner'
       >
-        <div className='container mx-auto px-2 lg:px-0'>
+        <div className='w-full px-3 lg:px-6'>
           <nav
             className='grid grid-cols-[auto_1fr_auto] lg:flex lg:items-center lg:justify-between items-center h-20 gap-4'
             role='navigation'
@@ -157,7 +157,7 @@ export default function Header() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`text-[11px] lg:text-sm xl:text-base font-bold tracking-tighter lg:tracking-tight xl:tracking-wide transition-colors duration-200 hover:opacity-75 whitespace-nowrap outline-none ${linkColorClass}`}
+                    className={`text-[10px] lg:text-xs xl:text-sm font-bold tracking-tighter lg:tracking-tight xl:tracking-wide transition-colors duration-200 hover:opacity-75 whitespace-nowrap outline-none ${linkColorClass}`}
                     aria-label={link.label}
                   >
                     {link.label}
@@ -172,7 +172,7 @@ export default function Header() {
               <div className='hidden lg:flex items-center gap-1.5 xl:gap-4'>
                 <Link
                   href='/coming-soon'
-                  className={`px-2 lg:px-3 xl:px-6 py-2 xl:py-2.5 border-2 rounded-lg font-bold text-[10px] lg:text-xs xl:text-base tracking-tighter lg:tracking-tight xl:tracking-wide transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`px-2 lg:px-3 xl:px-5 py-1.5 xl:py-2 border-[0.5px] rounded-full font-bold text-[9px] lg:text-[11px] xl:text-xs tracking-tighter lg:tracking-tight xl:tracking-wide transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   aria-label={t('cta.downloadApp')}
                 >
                   <span className='hidden 2xl:inline'>{t('cta.downloadApp')}</span>
@@ -180,7 +180,7 @@ export default function Header() {
                 </Link>
                 <Link
                   href='/merchant-signup'
-                  className={`px-2 lg:px-3 xl:px-6 py-2 xl:py-2.5 border-2 rounded-lg font-bold text-[10px] lg:text-xs xl:text-base tracking-tighter lg:tracking-tight xl:tracking-wide transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`px-2 lg:px-3 xl:px-5 py-1.5 xl:py-2 border-[0.5px] rounded-full font-bold text-[9px] lg:text-[11px] xl:text-xs tracking-tighter lg:tracking-tight xl:tracking-wide transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   aria-label={t('cta.businessSignup')}
                 >
                   <span className='hidden 2xl:inline'>{t('cta.businessSignup')}</span>
@@ -276,7 +276,7 @@ export default function Header() {
               <div className='space-y-3 px-4'>
                 <Link
                   href='/coming-soon'
-                  className={`block text-center px-6 py-3 border-2 rounded-lg font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`block text-center px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   role='menuitem'
                 >
@@ -284,7 +284,7 @@ export default function Header() {
                 </Link>
                 <Link
                   href='/merchant-signup'
-                  className={`block text-center px-6 py-3 border-2 rounded-lg font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`block text-center px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   role='menuitem'
                 >
@@ -292,7 +292,7 @@ export default function Header() {
                 </Link>
                 <Link
                   href='/login'
-                  className={`flex items-center justify-center gap-2 px-6 py-3 border-2 rounded-lg font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`flex items-center justify-center gap-2 px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   role='menuitem'
                 >

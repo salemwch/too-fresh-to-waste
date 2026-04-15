@@ -193,7 +193,7 @@ export default function Section5() {
             <div className='mt-8 text-center md:text-left'>
               <a
                 href='mailto:support@toofreshtoowaste.com?subject=Support Inquiry - Too Fresh To Waste'
-                className='inline-block px-6 py-3 bg-primary-500 text-white rounded-lg font-bold text-sm md:text-base transition-all duration-300 hover:bg-primary-600 hover:scale-105 outline-none'
+                className='inline-block px-6 py-3 bg-primary-500 text-white rounded-full font-bold text-sm md:text-base transition-all duration-300 hover:bg-primary-600 hover:scale-105 outline-none'
                 aria-label={t('ctaButton')}
               >
                 {t('ctaButton')}
