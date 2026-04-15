@@ -1,16 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useScrollPosition } from '@/hooks/useScrollPosition';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Link, usePathname } from '@/i18n/routing';
 
-// Navigation link type
-interface NavLink {
+// Navigation types
+interface DropdownLink {
   label: string;
   href: string;
+}
+interface DropdownSection {
+  title: string;
+  links: DropdownLink[];
+}
+interface NavItem {
+  label: string;
+  href: string;
+  dropdown?: DropdownSection[];
 }
 
 export default function Header() {
@@ -18,6 +27,8 @@ export default function Header() {
   const { isScrolled } = useScrollPosition(50);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pathname = usePathname();
 
   // Check if we're on the home page
@@ -27,10 +38,55 @@ export default function Header() {
   // Navigation configuration
   // When on home page: use hash links (#app)
   // When on other pages: use full path with hash (/#app) - locale prefix added automatically by Link
-  const NAV_LINKS: NavLink[] = [
-    { label: t('nav.theApp'), href: isHomePage ? '#app' : '/#app' },
-    { label: t('nav.whyChooseUs'), href: isHomePage ? '#features' : '/#features' },
-    { label: t('nav.businessSolution'), href: isHomePage ? '#faq' : '/#faq' },
+  const NAV_ITEMS: NavItem[] = [
+    {
+      label: t('nav.whyChooseUs'),
+      href: isHomePage ? '#features' : '/#features',
+      dropdown: [
+        {
+          title: 'The App',
+          links: [
+            { label: 'How to Collect a Too Fresh To Waste Surprise Bag?', href: '/coming-soon' },
+          ],
+        },
+        {
+          title: 'About Us',
+          links: [
+            { label: 'About Too Fresh To Waste', href: '/coming-soon' },
+            { label: 'Careers', href: '/coming-soon' },
+            { label: 'Mission-driven business', href: '/coming-soon' },
+          ],
+        },
+        {
+          title: 'About Food Waste',
+          links: [
+            { label: 'Food Waste Facts', href: '/coming-soon' },
+            { label: 'Resources', href: '/coming-soon' },
+          ],
+        },
+      ],
+    },
+    {
+      label: t('nav.theApp'),
+      href: isHomePage ? '#app' : '/#app',
+    },
+    {
+      label: t('nav.businessSolution'),
+      href: isHomePage ? '#faq' : '/#faq',
+      dropdown: [
+        {
+          title: 'Business Solution',
+          links: [
+            { label: 'Marketplace Surprise Bag', href: '/coming-soon' },
+            { label: 'Specific Items', href: '/coming-soon' },
+          ],
+        },
+      ],
+    },
+    {
+      label: t('nav.enterprise'),
+      href: '/coming-soon',
+    },
   ];
 
   // Prevent hydration mismatch by waiting for client-side mount
@@ -75,6 +131,15 @@ export default function Header() {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleNavEnter = (label: string) => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    setOpenDropdown(label);
+  };
+
+  const handleNavLeave = () => {
+    closeTimerRef.current = setTimeout(() => setOpenDropdown(null), 120);
   };
 
   // Use scroll state only after mount to prevent hydration mismatch
@@ -123,15 +188,64 @@ export default function Header() {
 
               {/* Desktop: Navigation Links */}
               <div className='hidden lg:flex items-center gap-3 xl:gap-6'>
-                {NAV_LINKS.map(link => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`text-[10px] lg:text-xs xl:text-sm font-bold tracking-tighter lg:tracking-tight xl:tracking-wide transition-colors duration-200 hover:opacity-75 whitespace-nowrap outline-none ${linkColorClass}`}
-                    aria-label={link.label}
+                {NAV_ITEMS.map(item => (
+                  <div
+                    key={item.label}
+                    className='relative'
+                    onMouseEnter={() => item.dropdown && handleNavEnter(item.label)}
+                    onMouseLeave={() => item.dropdown && handleNavLeave()}
                   >
-                    {link.label}
-                  </Link>
+                    <Link
+                      href={item.href}
+                      className={`text-[10px] lg:text-xs xl:text-sm font-bold tracking-tighter lg:tracking-tight xl:tracking-wide transition-colors duration-200 hover:opacity-75 whitespace-nowrap outline-none flex items-center gap-1 ${linkColorClass}`}
+                      aria-label={item.label}
+                    >
+                      {item.label}
+                      {item.dropdown && (
+                        <svg
+                          className={`w-3 h-3 transition-transform duration-200 ${openDropdown === item.label ? 'rotate-180' : ''}`}
+                          fill='none'
+                          stroke='currentColor'
+                          viewBox='0 0 24 24'
+                          aria-hidden='true'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M19 9l-7 7-7-7'
+                          />
+                        </svg>
+                      )}
+                    </Link>
+
+                    {/* Dropdown */}
+                    {item.dropdown && openDropdown === item.label && (
+                      <div
+                        className='absolute top-full left-0 mt-2 bg-black/85 backdrop-blur-sm rounded-xl shadow-2xl z-[60] min-w-[240px] py-4 px-4'
+                        onMouseEnter={() => handleNavEnter(item.label)}
+                        onMouseLeave={handleNavLeave}
+                      >
+                        {item.dropdown.map((section, sIdx) => (
+                          <div key={section.title}>
+                            {sIdx > 0 && <div className='border-t border-white/20 my-3' />}
+                            <p className='text-white/50 text-[9px] font-bold uppercase tracking-widest mb-2'>
+                              {section.title}
+                            </p>
+                            {section.links.map(link => (
+                              <Link
+                                key={link.label}
+                                href={link.href}
+                                className='block text-white text-xs leading-snug py-1.5 hover:text-white/60 transition-colors'
+                              >
+                                {link.label}
+                              </Link>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
@@ -172,18 +286,21 @@ export default function Header() {
               <div className='hidden lg:flex items-center gap-2 xl:gap-3'>
                 <Link
                   href='/coming-soon'
-                  className={`px-4 xl:px-5 py-2 border-[0.5px] rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-90 whitespace-nowrap outline-none ${
-                    isScrolledState
-                      ? 'bg-primary-500 text-white border-primary-500'
-                      : 'bg-white text-primary-500 border-white'
+                  className={`px-4 xl:px-5 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-90 whitespace-nowrap outline-none ${
+                    isScrolledState ? 'bg-primary-500 text-white' : 'bg-white text-primary-500'
                   }`}
                   aria-label={t('cta.downloadApp')}
                 >
                   {t('cta.downloadApp')}
                 </Link>
+                <span
+                  className={`text-base font-light select-none ${isScrolledState ? 'text-primary-500/40' : 'text-white/40'}`}
+                >
+                  |
+                </span>
                 <Link
                   href='/merchant-signup'
-                  className={`px-4 xl:px-5 py-2 border-[0.5px] rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`px-4 xl:px-5 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${linkColorClass}`}
                   aria-label={t('cta.businessSignup')}
                 >
                   {t('cta.businessSignupShort')}
@@ -262,15 +379,15 @@ export default function Header() {
           >
             <div className='px-4 py-6 space-y-1'>
               {/* Navigation Links */}
-              {NAV_LINKS.map(link => (
+              {NAV_ITEMS.map(item => (
                 <Link
-                  key={link.href}
-                  href={link.href}
+                  key={item.label}
+                  href={item.href}
                   className={`block px-4 py-3 text-base font-semibold tracking-wide transition-colors duration-200 hover:bg-white/10 rounded-lg outline-none ${linkColorClass}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   role='menuitem'
                 >
-                  {link.label}
+                  {item.label}
                 </Link>
               ))}
 

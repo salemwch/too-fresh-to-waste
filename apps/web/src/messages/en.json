@@ -45,8 +45,9 @@
   "header": {
     "nav": {
       "theApp": "CONSUMER",
-      "whyChooseUs": "ABOUT US",
-      "businessSolution": "BUSINESS"
+      "whyChooseUs": "About Us",
+      "businessSolution": "BUSINESS",
+      "enterprise": "COMPANIES"
     },
     "cta": {
       "downloadApp": "DOWNLOAD APP",
