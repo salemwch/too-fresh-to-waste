@@ -104,46 +104,16 @@ export default function Header() {
       >
         <div className='w-full px-3 lg:px-6'>
           <nav
-            className='grid grid-cols-[auto_1fr_auto] lg:flex lg:items-center lg:justify-between items-center h-20 gap-4'
+            className='grid grid-cols-[1fr_auto_1fr] items-center h-14 gap-2'
             role='navigation'
             aria-label='Main navigation'
           >
-            {/* Left: Logo */}
-            <div className='flex items-center'>
-              <Link href='/' aria-label='Too Fresh To Waste Home'>
-                <div className='relative w-20 lg:w-28 xl:w-40 h-10 lg:h-14 xl:h-20'>
-                  {/* Green logo (when not scrolled) */}
-                  <Image
-                    src='/images/green-header-center.png'
-                    alt='Too Fresh To Waste Logo'
-                    fill
-                    className={`object-contain transition-opacity duration-200 ${
-                      isScrolledState ? 'opacity-0' : 'opacity-100'
-                    }`}
-                    sizes='(max-width: 1024px) 80px, (max-width: 1280px) 112px, 160px'
-                    loading='eager'
-                  />
-                  {/* White logo (when scrolled) */}
-                  <Image
-                    src='/images/white-header-center-logo.png'
-                    alt='Too Fresh To Waste Logo'
-                    fill
-                    className={`object-contain transition-opacity duration-200 ${
-                      isScrolledState ? 'opacity-100' : 'opacity-0'
-                    }`}
-                    sizes='(max-width: 1024px) 80px, (max-width: 1280px) 112px, 160px'
-                    loading='eager'
-                  />
-                </div>
-              </Link>
-            </div>
-
-            {/* Center: Language Switcher (Mobile) / Navigation Links (Desktop) */}
-            <div className='flex items-center justify-center'>
+            {/* LEFT — Nav links (desktop) / Language switcher (mobile) */}
+            <div className='flex items-center justify-start'>
               {/* Mobile: Language Switcher */}
               <div className='lg:hidden'>
                 <LanguageSwitcher
-                  buttonClassName={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                  buttonClassName={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${
                     isScrolledState
                       ? 'bg-primary-500/10 text-primary-500 hover:bg-primary-500/20'
                       : 'bg-white/10 text-white hover:bg-white/20'
@@ -152,7 +122,7 @@ export default function Header() {
               </div>
 
               {/* Desktop: Navigation Links */}
-              <div className='hidden lg:flex items-center gap-2 lg:gap-3 xl:gap-6'>
+              <div className='hidden lg:flex items-center gap-3 xl:gap-6'>
                 {NAV_LINKS.map(link => (
                   <Link
                     key={link.href}
@@ -166,25 +136,53 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Right: Hamburger (Mobile) / CTA Buttons (Desktop) */}
+            {/* CENTER — Logo (always centered) */}
+            <div className='flex items-center justify-center'>
+              <Link href='/' aria-label='Too Fresh To Waste Home'>
+                <div className='relative w-16 lg:w-20 xl:w-28 h-8 lg:h-10 xl:h-14'>
+                  {/* Primary-bg logo (when not scrolled) */}
+                  <Image
+                    src='/images/green-header-center.png'
+                    alt='Too Fresh To Waste Logo'
+                    fill
+                    className={`object-contain transition-opacity duration-200 ${
+                      isScrolledState ? 'opacity-0' : 'opacity-100'
+                    }`}
+                    sizes='(max-width: 1024px) 64px, (max-width: 1280px) 80px, 112px'
+                    loading='eager'
+                  />
+                  {/* Scrolled logo */}
+                  <Image
+                    src='/images/white-header-center-logo.png'
+                    alt='Too Fresh To Waste Logo'
+                    fill
+                    className={`object-contain transition-opacity duration-200 ${
+                      isScrolledState ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    sizes='(max-width: 1024px) 64px, (max-width: 1280px) 80px, 112px'
+                    loading='eager'
+                  />
+                </div>
+              </Link>
+            </div>
+
+            {/* RIGHT — CTA buttons (desktop) / Hamburger (mobile) */}
             <div className='flex items-center justify-end gap-2'>
               {/* Desktop: CTA Buttons */}
-              <div className='hidden lg:flex items-center gap-1.5 xl:gap-4'>
+              <div className='hidden lg:flex items-center gap-2 xl:gap-3'>
                 <Link
                   href='/coming-soon'
-                  className={`px-2 lg:px-3 xl:px-5 py-1.5 xl:py-2 border-[0.5px] rounded-full font-bold text-[9px] lg:text-[11px] xl:text-xs tracking-tighter lg:tracking-tight xl:tracking-wide transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`px-3 xl:px-4 py-1.5 border-[0.5px] rounded-full font-bold text-[10px] xl:text-xs tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   aria-label={t('cta.downloadApp')}
                 >
-                  <span className='hidden 2xl:inline'>{t('cta.downloadApp')}</span>
-                  <span className='2xl:hidden'>{t('cta.downloadAppShort')}</span>
+                  {t('cta.downloadApp')}
                 </Link>
                 <Link
                   href='/merchant-signup'
-                  className={`px-2 lg:px-3 xl:px-5 py-1.5 xl:py-2 border-[0.5px] rounded-full font-bold text-[9px] lg:text-[11px] xl:text-xs tracking-tighter lg:tracking-tight xl:tracking-wide transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`px-3 xl:px-4 py-1.5 border-[0.5px] rounded-full font-bold text-[10px] xl:text-xs tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   aria-label={t('cta.businessSignup')}
                 >
-                  <span className='hidden 2xl:inline'>{t('cta.businessSignup')}</span>
-                  <span className='2xl:hidden'>{t('cta.businessSignupShort')}</span>
+                  {t('cta.businessSignupShort')}
                 </Link>
                 <Link
                   href='/login'
@@ -194,12 +192,12 @@ export default function Header() {
                   <Image
                     src='/icons/login.svg'
                     alt=''
-                    width={28}
-                    height={28}
+                    width={20}
+                    height={20}
                     aria-hidden='true'
                     className={`transition-all duration-200 ${isScrolledState ? '' : 'brightness-0 invert'}`}
                   />
-                  <span className='text-xs lg:text-sm xl:text-sm font-bold tracking-wide whitespace-nowrap'>
+                  <span className='text-[10px] xl:text-xs font-bold tracking-wide whitespace-nowrap'>
                     {t('cta.login')}
                   </span>
                 </Link>
@@ -214,7 +212,7 @@ export default function Header() {
                 aria-controls='mobile-menu'
               >
                 <svg
-                  className='w-6 h-6'
+                  className='w-5 h-5'
                   fill='none'
                   strokeLinecap='round'
                   strokeLinejoin='round'
@@ -247,7 +245,7 @@ export default function Header() {
           {/* Menu Panel */}
           <div
             id='mobile-menu'
-            className={`absolute top-20 left-0 right-0 max-h-[calc(100vh-5rem)] overflow-y-auto shadow-xl ${
+            className={`absolute top-14 left-0 right-0 max-h-[calc(100vh-3.5rem)] overflow-y-auto shadow-xl ${
               isScrolledState ? 'bg-[#f9f3f0]' : 'bg-primary-500'
             }`}
             onClick={e => e.stopPropagation()}
@@ -313,7 +311,7 @@ export default function Header() {
       )}
 
       {/* Spacer to prevent content from being hidden under fixed header */}
-      <div className='h-20' aria-hidden='true' />
+      <div className='h-14' aria-hidden='true' />
     </>
   );
 }
