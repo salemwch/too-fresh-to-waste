@@ -9,7 +9,6 @@ import {
   Section5,
   InfiniteMarquee,
 } from '@/components/sections';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { HashScrollHandler } from '@/components/HashScrollHandler';
 import { Link } from '@/i18n/routing';
 import type { Locale } from '@/i18n/config';
@@ -64,11 +63,6 @@ function HeroSection({ locale }: { locale: Locale }) {
       aria-labelledby='hero-heading'
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* Language Switcher - Desktop only (positioned top right) */}
-      <div className='hidden lg:block absolute top-4 right-4 z-30'>
-        <LanguageSwitcher />
-      </div>
-
       {/* 3D Phone Mockup Stack - Positioned Above Title */}
       <div
         className='flex items-start justify-center gap-0'

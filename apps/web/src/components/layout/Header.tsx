@@ -89,7 +89,7 @@ export default function Header() {
   // Shadow changes based on scroll state
   const headerShadow = isScrolledState
     ? '0 4px 6px -1px rgba(0, 37, 32, 0.5), 0 2px 4px -2px rgba(0, 37, 32, 0.3)'
-    : '0 4px 6px -1px rgba(249, 243, 240, 0.5), 0 2px 4px -2px rgba(249, 243, 240, 0.3)';
+    : 'none';
 
   return (
     <>
@@ -187,7 +187,7 @@ export default function Header() {
                 {/* Language Switcher — between Sign Up and Login */}
                 <LanguageSwitcher
                   showIcon={false}
-                  buttonClassName={`flex items-center gap-1 px-3 xl:px-4 py-2 rounded-full border-[0.5px] font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  buttonClassName={`flex items-center gap-2 px-4 xl:px-5 py-2 rounded-full border-[0.5px] font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
                 />
                 <Link
                   href='/login'
@@ -315,8 +315,12 @@ export default function Header() {
         </div>
       )}
 
-      {/* Spacer to prevent content from being hidden under fixed header */}
-      <div className='h-16' aria-hidden='true' />
+      {/* Spacer — matches header height; mirrors header bg to avoid a gap on pages
+          where the first section shares the header's initial primary color */}
+      <div
+        className={`h-16 ${isHomePage && !isScrolledState ? 'bg-primary-500' : ''}`}
+        aria-hidden='true'
+      />
     </>
   );
 }
