@@ -28,7 +28,7 @@ export default function Section3Animated() {
           >
             {t('titleLine1')}
             <span
-              className='text-[#c0392b] text-4xl md:text-5xl lg:text-6xl block'
+              className='text-[#ff7973] text-4xl md:text-5xl lg:text-6xl block'
               style={{ fontWeight: 999 }}
             >
               {t('titleLine2')}

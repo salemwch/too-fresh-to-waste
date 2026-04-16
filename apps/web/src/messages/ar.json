@@ -55,11 +55,51 @@
       "businessSignup": "تسجيل الشركات",
       "businessSignupShort": "تسجيل",
       "login": "تسجيل الدخول"
+    },
+    "dropdown": {
+      "about": {
+        "sections": {
+          "theApp": {
+            "title": "التطبيق",
+            "links": {
+              "howToCollect": "كيف تجمع حقيبة المفاجآت من Too Fresh To Waste؟"
+            }
+          },
+          "aboutUs": {
+            "title": "من نحن",
+            "links": {
+              "aboutTFTW": "عن Too Fresh To Waste",
+              "careers": "الوظائف",
+              "missionDriven": "مشروع ذو رسالة",
+              "esg": "ESG"
+            }
+          },
+          "aboutFoodWaste": {
+            "title": "حول هدر الطعام",
+            "links": {
+              "facts": "حقائق عن هدر الطعام",
+              "resources": "الموارد"
+            }
+          }
+        }
+      },
+      "business": {
+        "sections": {
+          "businessSolution": {
+            "title": "حلول الأعمال",
+            "links": {
+              "marketplaceBag": "حقيبة المفاجآت في السوق",
+              "parclessBag": "حقيبة Parcless",
+              "specificItems": "عناصر محددة"
+            }
+          }
+        }
+      }
     }
   },
   "section2": {
     "title": "التطبيق الذي يحول فائض الطعام إلى وفورات ومكافآت",
-    "subtitle": "انضم إلى مهمة إنهاء هدر الطعام في تونس—معًا، لنجعل كل وجبة مهمة",
+    "subtitle": "Too Fresh To Waste شركة ذات تأثير اجتماعي، مهمتها إلهام الجميع وتمكينهم من مكافحة هدر الطعام معًا",
     "description": "تطبيقنا هو سوق ذكي للأغذية الفائضة في تونس. يربط الشركات الغذائية بالمستخدمين لإنقاذ الوجبات غير المباعة من الهدر—مما يساعد الشركات على استرداد الإيرادات بينما يسمح للمستخدمين بالاستمتاع بطعام لذيذ بأسعار أقل.",
     "downloadButtons": {
       "appStore": {
@@ -296,9 +336,9 @@
   },
   "section5": {
     "mainTitle": {
-      "businessSolution": "حلنا للأعمال",
+      "businessSolution": "الأسئلة الشائعة",
       "separator": "و",
-      "bigPrize": "جائزتنا الكبرى"
+      "bigPrize": "الجوائز الكبرى"
     },
     "sectionLabel": "الأسئلة الشائعة",
     "title": "تبحث عن إجابات؟",
@@ -434,10 +474,6 @@
     "adminDashboardDescription": "نظرة عامة على النظام والإدارة",
     "profile": "الملف الشخصي",
     "security": "الأمان",
-    "settings": "الإعدادات",
-    "logout": "تسجيل الخروج",
-    "search": "بحث...",
-    "comingSoon": "قريبًا",
     "settings": {
       "comingSoonTitle": "الإعدادات — قريبًا",
       "comingSoonSubtitle": "إعدادات العمل الكاملة في طريقها إليك",
@@ -470,6 +506,9 @@
         }
       }
     },
+    "logout": "تسجيل الخروج",
+    "search": "بحث...",
+    "comingSoon": "قريبًا",
     "analytics": {
       "comingSoonTitle": "التحليلات — قريبًا",
       "comingSoonSubtitle": "رؤى تجارية قوية في طريقها إليك",
@@ -901,7 +940,11 @@
         "memory_heap": "ذاكرة Heap",
         "memory_rss": "ذاكرة RSS"
       },
-      "status": { "up": "يعمل", "down": "معطل", "unknown": "غير معروف" },
+      "status": {
+        "up": "يعمل",
+        "down": "معطل",
+        "unknown": "غير معروف"
+      },
       "liveness": {
         "title": "معلومات الخادم",
         "uptime": "وقت التشغيل",

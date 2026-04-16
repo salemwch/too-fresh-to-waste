@@ -37,7 +37,7 @@ export default function Section5() {
         <h2 className='text-center text-2xl md:text-4xl font-bold mb-8 md:mb-12'>
           <span className='text-primary-500'>{t('mainTitle.businessSolution')}</span>
           <span className='text-primary-500'> {t('mainTitle.separator')} </span>
-          <span style={{ color: '#c0392b' }}>{t('mainTitle.bigPrize')}</span>
+          <span style={{ color: '#ff7973' }}>{t('mainTitle.bigPrize')}</span>
         </h2>
 
         <div className='flex flex-col md:flex-row items-start justify-center '>

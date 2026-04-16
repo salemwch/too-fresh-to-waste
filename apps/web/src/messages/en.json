@@ -55,11 +55,51 @@
       "businessSignup": "BUSINESS SIGN-UP",
       "businessSignupShort": "SIGN UP",
       "login": "Login"
+    },
+    "dropdown": {
+      "about": {
+        "sections": {
+          "theApp": {
+            "title": "The App",
+            "links": {
+              "howToCollect": "How to Collect a Too Fresh To Waste Surprise Bag?"
+            }
+          },
+          "aboutUs": {
+            "title": "About Us",
+            "links": {
+              "aboutTFTW": "About Too Fresh To Waste",
+              "careers": "Careers",
+              "missionDriven": "Mission-driven business",
+              "esg": "ESG"
+            }
+          },
+          "aboutFoodWaste": {
+            "title": "About Food Waste",
+            "links": {
+              "facts": "Food Waste Facts",
+              "resources": "Resources"
+            }
+          }
+        }
+      },
+      "business": {
+        "sections": {
+          "businessSolution": {
+            "title": "Business Solution",
+            "links": {
+              "marketplaceBag": "Marketplace Surprise Bag",
+              "parclessBag": "Parcless Bag",
+              "specificItems": "Specific Items"
+            }
+          }
+        }
+      }
     }
   },
   "section2": {
     "title": "The app that turns surplus food into savings and rewards",
-    "subtitle": "Join the mission to end food waste in Tunisia—together, let's make every meal count",
+    "subtitle": "Too Fresh To Waste is a social impact company on a mission to inspire and empower everyone to fight food waste together",
     "description": "Our app is a smart marketplace for surplus food in Tunisia. It connects food businesses with users to rescue unsold meals from going to waste—helping businesses recover revenue while allowing users to enjoy delicious food at lower prices.",
     "downloadButtons": {
       "appStore": {
@@ -296,9 +336,9 @@
   },
   "section5": {
     "mainTitle": {
-      "businessSolution": "OUR BUSINESS SOLUTION",
+      "businessSolution": "FAQ",
       "separator": "&",
-      "bigPrize": "OUR BIG PRIZE"
+      "bigPrize": "THE BIG PRIZES"
     },
     "sectionLabel": "FAQ's",
     "title": "Looking for answers?",
@@ -434,10 +474,6 @@
     "adminDashboardDescription": "System overview and management",
     "profile": "Profile",
     "security": "Security",
-    "settings": "Settings",
-    "logout": "Log Out",
-    "search": "Search...",
-    "comingSoon": "Coming soon",
     "settings": {
       "comingSoonTitle": "Settings — Coming Soon",
       "comingSoonSubtitle": "Full business configuration is on its way",
@@ -470,6 +506,9 @@
         }
       }
     },
+    "logout": "Log Out",
+    "search": "Search...",
+    "comingSoon": "Coming soon",
     "analytics": {
       "comingSoonTitle": "Analytics — Coming Soon",
       "comingSoonSubtitle": "Powerful business insights are on their way",

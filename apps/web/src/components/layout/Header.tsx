@@ -39,22 +39,23 @@ export default function Header() {
       href: isHomePage ? '#features' : '/#features',
       dropdown: [
         {
-          title: 'The App',
-          links: [{ label: 'How to Collect a Too Fresh To Waste Surprise Bag?', href: '#' }],
+          title: t('dropdown.about.sections.theApp.title'),
+          links: [{ label: t('dropdown.about.sections.theApp.links.howToCollect'), href: '#' }],
         },
         {
-          title: 'About Us',
+          title: t('dropdown.about.sections.aboutUs.title'),
           links: [
-            { label: 'About Too Fresh To Waste', href: '#' },
-            { label: 'Careers', href: '#' },
-            { label: 'Mission-driven business', href: '#' },
+            { label: t('dropdown.about.sections.aboutUs.links.aboutTFTW'), href: '#' },
+            { label: t('dropdown.about.sections.aboutUs.links.careers'), href: '#' },
+            { label: t('dropdown.about.sections.aboutUs.links.missionDriven'), href: '#' },
+            { label: t('dropdown.about.sections.aboutUs.links.esg'), href: '#' },
           ],
         },
         {
-          title: 'About Food Waste',
+          title: t('dropdown.about.sections.aboutFoodWaste.title'),
           links: [
-            { label: 'Food Waste Facts', href: '#' },
-            { label: 'Resources', href: '#' },
+            { label: t('dropdown.about.sections.aboutFoodWaste.links.facts'), href: '#' },
+            { label: t('dropdown.about.sections.aboutFoodWaste.links.resources'), href: '#' },
           ],
         },
       ],
@@ -68,11 +69,20 @@ export default function Header() {
       href: isHomePage ? '#faq' : '/#faq',
       dropdown: [
         {
-          title: 'Business Solution',
+          title: t('dropdown.business.sections.businessSolution.title'),
           links: [
-            { label: 'Marketplace Surprise Bag', href: '#' },
-            { label: 'Parcless Bag', href: '#' },
-            { label: 'Specific Items', href: '#' },
+            {
+              label: t('dropdown.business.sections.businessSolution.links.marketplaceBag'),
+              href: '#',
+            },
+            {
+              label: t('dropdown.business.sections.businessSolution.links.parclessBag'),
+              href: '#',
+            },
+            {
+              label: t('dropdown.business.sections.businessSolution.links.specificItems'),
+              href: '#',
+            },
           ],
         },
       ],
@@ -334,10 +344,15 @@ export default function Header() {
                         <Link
                           key={link.label}
                           href={link.href}
-                          className='block text-white text-sm py-1 hover:text-white/60 transition-colors whitespace-nowrap'
+                          className='group flex items-center gap-1 text-white text-sm py-1 hover:text-white/60 transition-colors whitespace-nowrap'
                           onClick={() => setOpenDropdown(null)}
                         >
-                          {link.label}
+                          <span className='group-hover:translate-x-0.5 transition-transform duration-150'>
+                            {link.label}
+                          </span>
+                          <span className='opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-xs'>
+                            ›
+                          </span>
                         </Link>
                       ))}
                     </div>

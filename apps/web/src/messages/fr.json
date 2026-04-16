@@ -55,11 +55,51 @@
       "businessSignup": "INSCRIPTION ENTREPRISE",
       "businessSignupShort": "INSCRIPTION",
       "login": "Connexion"
+    },
+    "dropdown": {
+      "about": {
+        "sections": {
+          "theApp": {
+            "title": "L'Application",
+            "links": {
+              "howToCollect": "Comment Collecter un Sac Surprise Too Fresh To Waste ?"
+            }
+          },
+          "aboutUs": {
+            "title": "À Propos de Nous",
+            "links": {
+              "aboutTFTW": "À Propos de Too Fresh To Waste",
+              "careers": "Carrières",
+              "missionDriven": "Entreprise à mission",
+              "esg": "RSE"
+            }
+          },
+          "aboutFoodWaste": {
+            "title": "Sur le Gaspillage Alimentaire",
+            "links": {
+              "facts": "Faits sur le Gaspillage",
+              "resources": "Ressources"
+            }
+          }
+        }
+      },
+      "business": {
+        "sections": {
+          "businessSolution": {
+            "title": "Solution Entreprise",
+            "links": {
+              "marketplaceBag": "Sac Surprise Marketplace",
+              "parclessBag": "Sac Parcless",
+              "specificItems": "Articles Spécifiques"
+            }
+          }
+        }
+      }
     }
   },
   "section2": {
     "title": "L'application qui transforme les surplus alimentaires en économies et récompenses",
-    "subtitle": "Rejoignez la mission pour mettre fin au gaspillage alimentaire en Tunisie—ensemble, faisons compter chaque repas",
+    "subtitle": "Too Fresh To Waste est une entreprise à impact social dont la mission est d'inspirer et de donner à chacun les moyens de lutter ensemble contre le gaspillage alimentaire",
     "description": "Notre application est une marketplace intelligente pour les surplus alimentaires en Tunisie. Elle connecte les entreprises alimentaires avec les utilisateurs pour sauver les repas invendus du gaspillage—aidant les entreprises à récupérer des revenus tout en permettant aux utilisateurs de profiter de délicieuse nourriture à prix réduits.",
     "downloadButtons": {
       "appStore": {
@@ -296,9 +336,9 @@
   },
   "section5": {
     "mainTitle": {
-      "businessSolution": "NOTRE SOLUTION ENTREPRISE",
+      "businessSolution": "FAQ",
       "separator": "&",
-      "bigPrize": "NOTRE GRAND PRIX"
+      "bigPrize": "LES GRANDS PRIX"
     },
     "sectionLabel": "FAQ's",
     "title": "Vous cherchez des réponses ?",
@@ -434,10 +474,6 @@
     "adminDashboardDescription": "Vue d'ensemble et gestion du système",
     "profile": "Profil",
     "security": "Sécurité",
-    "settings": "Paramètres",
-    "logout": "Se déconnecter",
-    "search": "Rechercher...",
-    "comingSoon": "Bientôt disponible",
     "settings": {
       "comingSoonTitle": "Paramètres — Bientôt disponible",
       "comingSoonSubtitle": "La configuration complète de votre commerce arrive bientôt",
@@ -470,6 +506,9 @@
         }
       }
     },
+    "logout": "Se déconnecter",
+    "search": "Rechercher...",
+    "comingSoon": "Bientôt disponible",
     "analytics": {
       "comingSoonTitle": "Analytique — Bientôt disponible",
       "comingSoonSubtitle": "Des insights commerciaux puissants arrivent bientôt",
@@ -901,7 +940,11 @@
         "memory_heap": "Mémoire Heap",
         "memory_rss": "Mémoire RSS"
       },
-      "status": { "up": "Opérationnel", "down": "Hors ligne", "unknown": "Inconnu" },
+      "status": {
+        "up": "Opérationnel",
+        "down": "Hors ligne",
+        "unknown": "Inconnu"
+      },
       "liveness": {
         "title": "Infos instance",
         "uptime": "Disponibilité",
@@ -1170,56 +1213,56 @@
     }
   },
   "merchantSignup": {
-    "heroBadge": "Pour les entreprises engag\u00e9es",
+    "heroBadge": "Pour les entreprises engagées",
     "heroTitle": "Transformez vos surplus en revenus.",
-    "heroTitleAccent": "D\u00e9veloppez votre activit\u00e9 avec un marketing intelligent.",
-    "heroDescription": "Rejoignez plus de 2 000 magasins qui r\u00e9duisent d\u00e9j\u00e0 le gaspillage et augmentent leurs b\u00e9n\u00e9fices.",
+    "heroTitleAccent": "Développez votre activité avec un marketing intelligent.",
+    "heroDescription": "Rejoignez plus de 2 000 magasins qui réduisent déjà le gaspillage et augmentent leurs bénéfices.",
     "statRevenue": "Hausse du CA",
     "statStores": "Magasins inscrits",
-    "statGrowth": "Croissance strat\u00e9gique",
-    "testimonialQuote": "Nous avons r\u00e9duit le gaspillage de 60 % et gagn\u00e9 des centaines de nouveaux clients en seulement 3 mois.",
-    "testimonialAuthor": "\u2014 Sarah K., Green Grocers Amsterdam",
+    "statGrowth": "Croissance stratégique",
+    "testimonialQuote": "Nous avons réduit le gaspillage de 60 % et gagné des centaines de nouveaux clients en seulement 3 mois.",
+    "testimonialAuthor": "— Sarah K., Green Grocers Amsterdam",
     "searchPlaceholder": "Recherchez votre magasin...",
     "termsPrefix": "En continuant, vous acceptez la",
-    "privacyPolicy": "Politique de confidentialit\u00e9",
+    "privacyPolicy": "Politique de confidentialité",
     "termsAnd": "et les",
-    "termsConditions": "Conditions g\u00e9n\u00e9rales",
-    "hasAccount": "D\u00e9j\u00e0 un compte commerce ?",
+    "termsConditions": "Conditions générales",
+    "hasAccount": "Déjà un compte commerce ?",
     "loginLink": "Connexion",
     "step1Title": "Trouvez votre commerce",
     "step1Description": "Recherchez votre magasin sur Google Maps",
     "step2Title": "Votre adresse e-mail",
-    "step2Description": "Nous l'utiliserons pour v\u00e9rifier votre compte",
-    "step3Title": "Cr\u00e9ez votre compte",
+    "step2Description": "Nous l'utiliserons pour vérifier votre compte",
+    "step3Title": "Créez votre compte",
     "step3Description": "Configurez vos identifiants de connexion",
-    "businessSelected": "Commerce s\u00e9lectionn\u00e9",
+    "businessSelected": "Commerce sélectionné",
     "changeSelection": "Modifier",
-    "searchNoResults": "Aucun commerce trouv\u00e9. Essayez un autre nom.",
-    "searchError": "Impossible de rechercher pour le moment. Veuillez r\u00e9essayer.",
+    "searchNoResults": "Aucun commerce trouvé. Essayez un autre nom.",
+    "searchError": "Impossible de rechercher pour le moment. Veuillez réessayer.",
     "searchLoading": "Recherche en cours...",
     "back": "Retour",
     "next": "Continuer",
-    "createAccount": "Cr\u00e9er le compte",
-    "submitting": "Cr\u00e9ation du compte...",
+    "createAccount": "Créer le compte",
+    "submitting": "Création du compte...",
     "emailLabel": "E-mail",
     "emailPlaceholder": "votre@email.com",
-    "firstNameLabel": "Pr\u00e9nom",
+    "firstNameLabel": "Prénom",
     "firstNamePlaceholder": "Jean",
     "lastNameLabel": "Nom",
     "lastNamePlaceholder": "Dupont",
-    "phoneLabel": "T\u00e9l\u00e9phone (optionnel)",
+    "phoneLabel": "Téléphone (optionnel)",
     "phonePlaceholder": "+216 XX XXX XXX",
     "passwordLabel": "Mot de passe",
-    "passwordPlaceholder": "Minimum 8 caract\u00e8res",
+    "passwordPlaceholder": "Minimum 8 caractères",
     "confirmPasswordLabel": "Confirmer le mot de passe",
     "confirmPasswordPlaceholder": "Retapez votre mot de passe",
     "passwordMismatch": "Les mots de passe ne correspondent pas",
-    "errorGeneric": "Une erreur est survenue. Veuillez r\u00e9essayer.",
-    "checkInboxTitle": "V\u00e9rifiez votre bo\u00eete de r\u00e9ception",
-    "checkInboxDescription": "Cliquez sur le lien que nous avons envoy\u00e9 \u00e0 {email} pour confirmer votre identit\u00e9.",
-    "checkSpamHint": "Si vous ne voyez pas l'e-mail, v\u00e9rifiez votre dossier Spam.",
+    "errorGeneric": "Une erreur est survenue. Veuillez réessayer.",
+    "checkInboxTitle": "Vérifiez votre boîte de réception",
+    "checkInboxDescription": "Cliquez sur le lien que nous avons envoyé à {email} pour confirmer votre identité.",
+    "checkSpamHint": "Si vous ne voyez pas l'e-mail, vérifiez votre dossier Spam.",
     "resendEmail": "Renvoyer l'e-mail",
     "resendCooldown": "Renvoyer dans {seconds}s",
-    "resendSuccess": "E-mail de v\u00e9rification renvoy\u00e9 !"
+    "resendSuccess": "E-mail de vérification renvoyé !"
   }
 }
