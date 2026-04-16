@@ -84,19 +84,14 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
   }, [dispatch, email, token]);
 
   /**
-   * Auto-verify if token is present in URL
+   * Auto-verify when a token is present (Universal Link or manual entry).
+   * Email is not required — backend validates by token alone when email is absent.
    */
   useEffect(() => {
-    if (
-      typeof token === 'string' &&
-      token.trim() !== '' &&
-      typeof email === 'string' &&
-      email.trim() !== '' &&
-      verificationStatus === 'pending'
-    ) {
+    if (typeof token === 'string' && token.trim() !== '' && verificationStatus === 'pending') {
       void handleAutoVerification();
     }
-  }, [email, handleAutoVerification, token, verificationStatus]);
+  }, [handleAutoVerification, token, verificationStatus]);
 
   /**
    * Cooldown timer for resend button

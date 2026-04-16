@@ -69,11 +69,11 @@ export default function Section3Animated() {
             />
           </div>
 
-          {/* Row 1, Col 3: Earn Points */}
+          {/* Row 1, Col 3: Help Others Live */}
           <div className='flex flex-col items-start text-left w-[320px] self-end'>
             <Image
-              src='/images/points.png'
-              alt='Points'
+              src='/icons/share.png'
+              alt='Help Others'
               width={60}
               height={60}
               className='mb-3'
@@ -146,11 +146,11 @@ export default function Section3Animated() {
               </p>
             </div>
 
-            {/* 2. Earn Points */}
+            {/* 2. Help Others Live */}
             <div className='flex flex-col items-center text-center px-2'>
               <Image
-                src='/images/points.png'
-                alt='Points'
+                src='/icons/share.png'
+                alt='Help Others'
                 width={50}
                 height={50}
                 className='mb-2 md:w-14 md:h-14 lg:w-16 lg:h-16'

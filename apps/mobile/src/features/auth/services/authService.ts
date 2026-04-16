@@ -442,13 +442,15 @@ class AuthService {
    * Verify email with token and auto-login
    * Returns tokens for automatic authentication (no separate login required)
    */
-  public async verifyEmail(request: { email: string; token: string }): Promise<LoginResponse> {
+  public async verifyEmail(request: { email?: string; token: string }): Promise<LoginResponse> {
     Logger.info('Verifying email with auto-login');
 
-    const response = await this.makeRequest<LoginResponse>('POST', '/verify-email', {
-      email: request.email,
-      token: request.token,
-    });
+    // email is @IsOptional() on the backend — omit it when absent to avoid
+    // class-validator @IsEmail() rejection on an empty string.
+    const body: Record<string, string> = { token: request.token };
+    if (request.email) body['email'] = request.email;
+
+    const response = await this.makeRequest<LoginResponse>('POST', '/verify-email', body);
 
     Logger.info('Email verified with auto-login successful', { userId: response.user?.userId });
     return response;

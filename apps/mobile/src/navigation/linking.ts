@@ -1,7 +1,24 @@
 /**
  * Deep Linking Configuration
- * Defines URL schemes and screen mappings for deep links
- * Supports both custom URL scheme (foodwaste://) and universal links (https://foodwasteapp.com)
+ *
+ * Handles two link types:
+ *   1. Custom scheme  — foodwaste://  (development, QR codes)
+ *   2. Universal Links — https://toofreshtowaste.com  (production email links)
+ *
+ * Universal Links require:
+ *   - Android: assetlinks.json at /.well-known/assetlinks.json (autoVerify in manifest)
+ *   - iOS:     apple-app-site-association at /.well-known/apple-app-site-association
+ *              + Associated Domains entitlement in Xcode (applinks:toofreshtowaste.com)
+ *
+ * Path ↔ Screen mapping (consistent with Next.js web URL structure):
+ *   /verify-callback   → AuthStack › VerifyEmail   (email magic link)
+ *   /reset-password    → AuthStack › ResetPassword (password reset)
+ *   /login             → AuthStack › Login
+ *   /register          → AuthStack › Register
+ *   /forgot-password   → AuthStack › ForgotPassword
+ *   /verify-phone      → AuthStack › VerifyPhone
+ *   /mfa-verification  → AuthStack › MFAVerification
+ *   /app               → MainStack
  */
 
 import { Linking } from 'react-native';
@@ -11,33 +28,31 @@ import { Logger } from '@/utils/logger';
 import type { RootNavigatorParamList } from './types';
 import type { LinkingOptions } from '@react-navigation/native';
 
-/**
- * Linking configuration for React Navigation
- * Maps URLs to app screens
- */
 export const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
-  prefixes: ['foodwaste://', 'https://foodwasteapp.com', 'https://www.foodwasteapp.com'],
+  prefixes: ['foodwaste://', 'https://toofreshtowaste.com', 'https://www.toofreshtowaste.com'],
 
   config: {
     screens: {
       AuthStack: {
-        path: 'auth',
+        // No path prefix — auth screens live at URL root, matching the web app's structure.
+        // e.g. https://toofreshtowaste.com/verify-callback maps directly to VerifyEmail.
         screens: {
           Welcome: 'welcome',
           Login: 'login',
           Register: 'register',
           ForgotPassword: 'forgot-password',
           ResetPassword: {
+            // Backend redirects password-reset emails to /reset-password?token=...
             path: 'reset-password',
             parse: {
-              email: (email: string) => decodeURIComponent(email),
               token: (token: string) => token,
             },
           },
           VerifyEmail: {
-            path: 'verify-email',
+            // Email magic links land on /verify-callback?token=...
+            // Email is intentionally absent from the URL (prevents user enumeration).
+            path: 'verify-callback',
             parse: {
-              email: (email: string) => decodeURIComponent(email),
               token: (token: string) => token,
             },
           },
@@ -55,108 +70,55 @@ export const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
   } as NonNullable<LinkingOptions<RootNavigatorParamList>['config']>,
 
   /**
-   * Handle initial URL for cold-start deep links
-   * CRITICAL: Must return the actual URL, not null!
+   * Cold-start: URL that launched the app from a terminated state.
+   * CRITICAL: must return the actual URL, not null.
    */
   async getInitialURL() {
-    // Get the URL that opened the app (cold start)
     const url = await Linking.getInitialURL();
-
     if (typeof url === 'string' && url !== '') {
-      Logger.debug('[DeepLink] Initial URL', { url });
+      Logger.debug('[DeepLink] Cold-start URL', { url });
     }
-
     return url;
   },
 
   /**
-   * Subscribe to incoming links while app is running (warm start)
-   * CRITICAL: Must properly subscribe to link events!
+   * Warm-start: incoming link while the app is already running.
+   * Returns the unsubscribe function — React Navigation calls it on cleanup.
    */
   subscribe(listener) {
-    // Listen for incoming URLs when app is already open
     const subscription = Linking.addEventListener('url', ({ url }) => {
       Logger.debug('[DeepLink] Incoming URL', { url });
       listener(url);
     });
-
-    // Return unsubscribe function
-    return () => {
-      subscription.remove();
-    };
+    return () => subscription.remove();
   },
 };
 
-/**
- * Helper function to build deep link URLs
- * Useful for generating share links, email links, etc.
- */
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Build a custom-scheme deep link (dev / QR codes). */
 export const buildDeepLink = (screen: string, params?: Record<string, string | number>): string => {
-  const baseUrl = 'foodwaste://';
-  let url = baseUrl + screen;
-
+  let url = `foodwaste://${screen}`;
   if (params) {
-    const paramString = Object.entries(params)
-      .map(([key, value]) => `${key}=${value}`)
+    const qs = Object.entries(params)
+      .map(([k, v]) => `${k}=${v}`)
       .join('&');
-
-    if (paramString) {
-      url += `?${paramString}`;
-    }
+    if (qs) url += `?${qs}`;
   }
-
   return url;
 };
 
-/**
- * Helper function to build universal links (for sharing)
- * These work on web and deep link to app if installed
- */
+/** Build a Universal Link (shareable, works on web + opens app if installed). */
 export const buildUniversalLink = (
   screen: string,
   params?: Record<string, string | number>,
 ): string => {
-  const baseUrl = 'https://foodwasteapp.com/';
-  let url = baseUrl + screen;
-
+  let url = `https://toofreshtowaste.com/${screen}`;
   if (params) {
-    const paramString = Object.entries(params)
-      .map(([key, value]) => `${key}/${value}`)
-      .join('/');
-
-    if (paramString) {
-      url += `/${paramString}`;
-    }
+    const qs = Object.entries(params)
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+      .join('&');
+    if (qs) url += `?${qs}`;
   }
-
   return url;
 };
-
-/**
- * Example deep link URLs:
- *
- * // Auth Stack - Custom URL Scheme (foodwaste://)
- * foodwaste://auth/login
- * foodwaste://auth/register
- * foodwaste://auth/forgot-password
- * foodwaste://auth/reset-password?token=abc123&email=user@example.com
- * foodwaste://auth/verify-email?email=user@example.com
- * foodwaste://auth/mfa-verification
- *
- * // Auth Stack - Universal Links (https://foodwasteapp.com)
- * https://foodwasteapp.com/auth/login
- * https://foodwasteapp.com/auth/reset-password?token=abc123&email=user@example.com
- * https://foodwasteapp.com/auth/verify-email?email=user@example.com
- *
- * // Main Stack - Custom URL Scheme
- * foodwaste://app/home
- * foodwaste://app/search
- * foodwaste://app/offer/123
- * foodwaste://app/establishment/456
- * foodwaste://app/order/789
- *
- * // Main Stack - Universal Links
- * https://foodwasteapp.com/app/home
- * https://foodwasteapp.com/app/offer/123
- * https://foodwasteapp.com/app/establishment/456
- */

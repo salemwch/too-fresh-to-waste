@@ -85,46 +85,43 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
 
       <main className='min-h-screen bg-cream'>
         {/* ── HERO ─────────────────────────────────────────────── */}
-        <section className='relative bg-primary-500 overflow-hidden'>
+        <section
+          className='relative overflow-hidden'
+          style={{
+            backgroundImage: "url('/images/hero-impact.jpg')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+          }}
+        >
           {/* Decorative floating hearts */}
           <span
-            className='absolute top-16 left-[8%] text-brand-coral opacity-30 text-5xl animate-float select-none pointer-events-none'
+            className='absolute top-16 left-[8%] text-primary-500 text-5xl animate-float select-none pointer-events-none'
             aria-hidden='true'
           >
             ♥
           </span>
           <span
-            className='absolute top-24 right-[10%] text-brand-coral opacity-20 text-3xl animate-float-slow select-none pointer-events-none'
+            className='absolute top-24 right-[10%] text-primary-500 text-3xl animate-float-slow select-none pointer-events-none'
             aria-hidden='true'
           >
             ♥
           </span>
           <span
-            className='absolute bottom-20 left-[20%] text-brand-coral opacity-15 text-2xl animate-float-slower select-none pointer-events-none'
+            className='absolute bottom-20 left-[20%] text-primary-500 text-2xl animate-float-slower select-none pointer-events-none'
             aria-hidden='true'
           >
             ♥
           </span>
           <span
-            className='absolute bottom-16 right-[18%] text-brand-coral opacity-25 text-4xl animate-float select-none pointer-events-none'
+            className='absolute bottom-16 right-[18%] text-primary-500 text-4xl animate-float select-none pointer-events-none'
             aria-hidden='true'
           >
             ♥
           </span>
-
-          {/* Radial glow */}
-          <div
-            className='absolute inset-0 pointer-events-none'
-            style={{
-              background:
-                'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(255,121,115,0.08) 0%, transparent 70%)',
-            }}
-            aria-hidden='true'
-          />
 
           <div className='relative max-w-3xl mx-auto px-4 pt-36 pb-20 text-center'>
             {/* Eyebrow */}
-            <p className='inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-4'>
+            <p className='inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-primary-500 mb-4'>
               <svg viewBox='0 0 512 512' className='w-3 h-3 flex-shrink-0' aria-hidden='true'>
                 <path
                   d='M365.4,59.628c60.56,0,109.6,49.03,109.6,109.47c0,109.47-109.6,171.8-219.06,281.271
@@ -163,18 +160,15 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
             </div>
           </div>
 
-          {/* Wave bottom */}
-          <div
-            className='absolute bottom-0 left-0 right-0 overflow-hidden leading-none'
-            aria-hidden='true'
-          >
+          {/* Wave into cream — fill covers from wave DOWN so no gap band */}
+          <div className='absolute bottom-0 left-0 right-0' aria-hidden='true'>
             <svg
-              viewBox='0 0 1440 60'
+              viewBox='0 0 1440 72'
               xmlns='http://www.w3.org/2000/svg'
               className='block w-full'
               preserveAspectRatio='none'
             >
-              <path d='M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z' fill='#f9f3f0' />
+              <path d='M0,40 C360,72 1080,8 1440,40 L1440,72 L0,72 Z' fill='#f9f3f0' />
             </svg>
           </div>
         </section>
@@ -182,7 +176,7 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
         {/* ── 5% PLEDGE ────────────────────────────────────────── */}
         <section className='bg-cream px-4 pt-16 pb-20'>
           <div className='max-w-2xl mx-auto text-center'>
-            <p className='text-xs font-bold uppercase tracking-[0.2em] text-brand-coral mb-3'>
+            <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-500 mb-3'>
               {t('pledge.eyebrow')}
             </p>
 
@@ -221,7 +215,7 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
           <div className='max-w-5xl mx-auto'>
             {/* Section header */}
             <div className='text-center mb-12'>
-              <p className='text-xs font-bold uppercase tracking-[0.2em] text-brand-coral mb-2'>
+              <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-500 mb-2'>
                 {t('pillars.eyebrow')}
               </p>
               <h2 className='text-3xl md:text-4xl font-bold text-primary-500 font-playfair'>
@@ -237,7 +231,7 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
                   className='group bg-cream rounded-2xl p-6 border border-brand-coral/10 hover:border-brand-coral/30 hover:shadow-md transition-all duration-300'
                 >
                   {/* Icon circle */}
-                  <div className='w-14 h-14 rounded-full bg-brand-coral/10 flex items-center justify-center mb-4 text-brand-coral group-hover:bg-brand-coral/20 transition-colors duration-300'>
+                  <div className='w-14 h-14 rounded-full bg-brand-coral/10 flex items-center justify-center mb-4 text-primary-500 group-hover:bg-brand-coral/20 transition-colors duration-300'>
                     {PillarIcons[i]}
                   </div>
 
@@ -255,35 +249,32 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
         <section className='bg-primary-500 px-4 py-20 relative overflow-hidden'>
           {/* Decorative hearts */}
           <span
-            className='absolute top-10 right-[6%] text-brand-coral opacity-15 text-6xl animate-float-slow select-none pointer-events-none'
+            className='absolute top-10 right-[6%] text-primary-500 opacity-15 text-6xl animate-float-slow select-none pointer-events-none'
             aria-hidden='true'
           >
             ♥
           </span>
           <span
-            className='absolute bottom-10 left-[4%] text-brand-coral opacity-10 text-4xl animate-float select-none pointer-events-none'
+            className='absolute bottom-10 left-[4%] text-primary-500 opacity-10 text-4xl animate-float select-none pointer-events-none'
             aria-hidden='true'
           >
             ♥
           </span>
 
-          {/* Wave top */}
-          <div
-            className='absolute top-0 left-0 right-0 overflow-hidden leading-none rotate-180'
-            aria-hidden='true'
-          >
+          {/* Wave from white pillars section — fill covers from TOP down to wave */}
+          <div className='absolute top-0 left-0 right-0' aria-hidden='true'>
             <svg
-              viewBox='0 0 1440 40'
+              viewBox='0 0 1440 72'
               xmlns='http://www.w3.org/2000/svg'
               className='block w-full'
               preserveAspectRatio='none'
             >
-              <path d='M0,20 C360,40 1080,0 1440,20 L1440,40 L0,40 Z' fill='white' />
+              <path d='M0,32 C360,0 1080,64 1440,32 L1440,0 L0,0 Z' fill='white' />
             </svg>
           </div>
 
-          <div className='relative max-w-3xl mx-auto text-center pt-6'>
-            <p className='text-xs font-bold uppercase tracking-[0.2em] text-brand-coral mb-3'>
+          <div className='relative max-w-3xl mx-auto text-center pt-16'>
+            <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-300 mb-3'>
               {t('partner.eyebrow')}
             </p>
             <h2 className='text-3xl md:text-4xl font-bold text-white font-playfair mb-5'>

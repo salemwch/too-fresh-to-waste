@@ -144,7 +144,7 @@ export const registerAsync = createAsyncThunk(
 
 export const verifyEmailAsync = createAsyncThunk(
   'auth/verifyEmail',
-  async (request: { email: string; token: string }, { rejectWithValue }) => {
+  async (request: { email?: string; token: string }, { rejectWithValue }) => {
     try {
       Logger.info('Email verification attempt started', { email: request.email });
       const response = await authService.verifyEmail(request);

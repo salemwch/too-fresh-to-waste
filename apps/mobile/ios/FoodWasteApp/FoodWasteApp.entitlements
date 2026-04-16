@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    Associated Domains — enables Universal Links for toofreshtowaste.com.
+
+    REQUIRED XCODE STEP (one-time):
+      1. Open ios/FoodWasteApp.xcworkspace in Xcode
+      2. Select the FoodWasteApp target → Signing & Capabilities
+      3. Click "+ Capability" → add "Associated Domains"
+      4. Xcode will detect this file automatically (same name as target)
+
+    The apple-app-site-association (AASA) file must be live at:
+      https://toofreshtowaste.com/.well-known/apple-app-site-association
+    before submitting to the App Store.
+  -->
+  <key>com.apple.developer.associated-domains</key>
+  <array>
+    <string>applinks:toofreshtowaste.com</string>
+    <string>applinks:www.toofreshtowaste.com</string>
+  </array>
+</dict>
+</plist>

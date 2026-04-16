@@ -93,7 +93,8 @@ export interface ChangePasswordRequest {
 }
 
 export interface VerifyEmailRequest {
-  email: string;
+  /** Optional: backend validates by token alone. Include for extra binding when available. */
+  email?: string;
   token: string;
 }
 

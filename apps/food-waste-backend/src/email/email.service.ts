@@ -175,8 +175,10 @@ export class EmailService implements IEmailService {
   // ── Typed send helpers ──────────────────────────────────────────────────────
 
   async sendVerificationEmail(user: User, verificationToken: string): Promise<boolean> {
-    const backendUrl = this.getBackendUrl();
-    const verificationUrl = `${backendUrl}/api/v1/auth/verify-email?token=${encodeURIComponent(verificationToken)}`;
+    // Link goes to the web frontend (toofreshtowaste.com/verify-callback).
+    // On mobile: Android/iOS intercepts via Universal Links → opens app directly.
+    // On web (app not installed): Next.js verify-callback page handles the token.
+    const verificationUrl = `${this.getFrontendUrl()}/verify-callback?token=${encodeURIComponent(verificationToken)}`;
 
     const html = await render(
       React.createElement(VerificationEmail, {

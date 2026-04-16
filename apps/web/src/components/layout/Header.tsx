@@ -348,25 +348,25 @@ export default function Header() {
             onMouseLeave={handleNavLeave}
           >
             <div className='w-full px-6 lg:px-10 py-6'>
-              <div className='flex gap-10 xl:gap-16'>
+              <div className='flex gap-8 xl:gap-12'>
                 {activeMegaMenu.map((section, sIdx) => (
-                  <div key={section.title} className='min-w-0'>
+                  <div key={section.title} className='w-44 xl:w-52 shrink-0'>
                     {sIdx > 0 && (
-                      <div className='hidden' /> // visual gap via gap-10
+                      <div className='hidden' /> // visual gap via gap-8
                     )}
                     <p
-                      className={`text-[9px] font-bold uppercase tracking-widest mb-3 ${
+                      className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${
                         isScrolledState ? 'text-primary-500/60' : 'text-white/50'
                       }`}
                     >
                       {section.title}
                     </p>
-                    <div className='space-y-1'>
+                    <div className='space-y-1.5'>
                       {section.links.map(link => (
                         <Link
                           key={link.label}
                           href={link.href}
-                          className={`group flex items-center gap-1 text-sm py-1 transition-colors whitespace-nowrap ${
+                          className={`group flex items-start gap-1 text-base py-1 transition-colors leading-snug ${
                             isScrolledState
                               ? 'text-gray-800 hover:text-primary-500'
                               : 'text-white hover:text-white/60'
@@ -376,7 +376,7 @@ export default function Header() {
                           <span className='group-hover:translate-x-0.5 transition-transform duration-150'>
                             {link.label}
                           </span>
-                          <span className='opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-xs'>
+                          <span className='opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-sm shrink-0 mt-0.5'>
                             ›
                           </span>
                         </Link>

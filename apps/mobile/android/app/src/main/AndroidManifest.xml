@@ -42,7 +42,7 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
 
-        <!-- Custom URL Scheme: foodwaste:// -->
+        <!-- Custom URL Scheme: foodwaste:// (development / QR testing) -->
         <intent-filter>
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.DEFAULT" />
@@ -50,13 +50,33 @@
             <data android:scheme="foodwaste" />
         </intent-filter>
 
-        <!-- Universal Links / App Links: https://foodwasteapp.com -->
+        <!--
+          Android App Links — toofreshtowaste.com
+          autoVerify="true" → Android fetches
+          https://toofreshtowaste.com/.well-known/assetlinks.json at install time.
+          Once verified, the OS opens the app directly without a disambiguation dialog.
+
+          Paths are intentionally narrow: only intercept links this app can handle.
+          Other paths (e.g. /about, /blog) continue to open in the browser.
+        -->
+        <!-- Email verification magic link -->
         <intent-filter android:autoVerify="true">
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
-            <data android:scheme="https" android:host="foodwasteapp.com" />
-            <data android:scheme="https" android:host="www.foodwasteapp.com" />
+            <data android:scheme="https"
+                  android:host="toofreshtowaste.com"
+                  android:pathPrefix="/verify-callback" />
+        </intent-filter>
+
+        <!-- Password reset link (backend redirects here after validating the token) -->
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https"
+                  android:host="toofreshtowaste.com"
+                  android:pathPrefix="/reset-password" />
         </intent-filter>
       </activity>
     </application>

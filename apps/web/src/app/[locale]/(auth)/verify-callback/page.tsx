@@ -6,10 +6,10 @@ import { useLocale, useTranslations } from 'next-intl';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@foodwaste/ui';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import Image from 'next/image';
@@ -28,38 +28,39 @@ function VerifyCallbackInner() {
   const locale = useLocale();
   const store = useAuthStore();
 
+  // Email is omitted from the magic-link URL (prevents user enumeration).
+  // The backend validates by token alone — email is @IsOptional() in VerifyEmailDto.
   const token = searchParams.get('token') ?? '';
-  const email = searchParams.get('email') ?? '';
 
   const [state, setState] = useState<VerifyState>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const calledRef = useRef(false);
 
   useEffect(() => {
-    if (calledRef.current || !token || !email) {
-      if (!token || !email) {
-        setState('error');
-        setErrorMessage(t('verifyMissingParams'));
-      }
+    if (calledRef.current) return;
+
+    if (!token) {
+      setState('error');
+      setErrorMessage(t('verifyMissingParams'));
       return;
     }
+
     calledRef.current = true;
 
     async function verify() {
       try {
-        const response = await authService.verifyEmail({ email, token });
+        // POST /auth/verify-email — backend sets HttpOnly cookies via Set-Cookie.
+        // Email is omitted intentionally; the backend accepts token-only requests.
+        const response = await authService.verifyEmail({ token });
         const data = response.data.data;
 
         const userRole = data.user?.role;
         const isMerchant = userRole === UserRole.MERCHANT || userRole === UserRole.ADMIN;
 
         if (isMerchant && data.tokens && data.user) {
-          // Backend sets HttpOnly cookies via Set-Cookie header on verify-email.
           store.setAuthenticated(true);
           store.setUser(data.user);
-
           setState('success-merchant');
-
           setTimeout(() => {
             router.push(`/${locale}/merchant/dashboard`);
           }, 1500);
@@ -73,7 +74,7 @@ function VerifyCallbackInner() {
     }
 
     verify();
-  }, [token, email, store, router, locale, t]);
+  }, [token, store, router, locale, t]);
 
   return (
     <Card>
@@ -182,7 +183,7 @@ function VerifyCallbackInner() {
   );
 }
 
-// ── Page export — covers auth layout (fixed overlay), wraps inner in Suspense ──
+// ── Page export ───────────────────────────────────────────────────────────────
 export default function VerifyCallbackPage() {
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-background px-4'>

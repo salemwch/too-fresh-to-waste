@@ -30,7 +30,8 @@ export interface AuthStackParamList extends Record<string, object | undefined> {
   Register: undefined;
   ForgotPassword: undefined;
   ResetPassword: { email: string; token: string };
-  VerifyEmail: { email: string; token?: string };
+  // email is optional: Universal Link magic links carry only the token.
+  VerifyEmail: { email?: string; token?: string };
   VerifyPhone: {
     phoneNumber?: string;
     fromEmailVerification?: boolean;

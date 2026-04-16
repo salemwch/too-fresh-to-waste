@@ -31,6 +31,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     return true
   }
+
+  // ── Universal Links (iOS 9+) ────────────────────────────────────────────────
+  // Called when a verified Universal Link is tapped and the app is the handler.
+  // Passes the URL to React Native's Linking module so React Navigation can route it.
+  func application(
+    _ application: UIApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+  ) -> Bool {
+    return RCTLinkingManager.application(
+      application,
+      continue: userActivity,
+      restorationHandler: restorationHandler
+    )
+  }
+
+  // ── Custom URL Scheme (foodwaste://) ───────────────────────────────────────
+  // Called for custom scheme links (development / QR codes).
+  func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+  ) -> Bool {
+    return RCTLinkingManager.application(app, open: url, options: options)
+  }
 }
 
 class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
