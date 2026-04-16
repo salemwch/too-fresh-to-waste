@@ -94,7 +94,7 @@ export default function Header() {
     },
     {
       label: t('nav.humanityMission'),
-      href: '#',
+      href: '/humanity-mission',
       icon: (
         <svg viewBox='0 0 512 512' className='w-3.5 h-3.5 flex-shrink-0' aria-hidden='true'>
           <path

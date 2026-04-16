@@ -42,6 +42,7 @@ const MARKETING_NAMESPACES = [
   'business',
   'companies',
   'contact',
+  'humanityMission',
 ] as const;
 
 interface MarketingLayoutProps {

@@ -18,6 +18,7 @@ const config: Config = {
           teal: '#005250',
           'teal-light': '#007a78',
           dark: '#0a1f1e',
+          coral: '#ff7973',
         },
         // Brand colors from mobile design system (landing page uses these)
         primary: {
@@ -148,6 +149,10 @@ const config: Config = {
         '2xl': '1536px',
       },
       keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
         marquee: {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-25%)' },
@@ -166,6 +171,9 @@ const config: Config = {
         },
       },
       animation: {
+        float: 'float 4s ease-in-out infinite',
+        'float-slow': 'float 6s ease-in-out infinite',
+        'float-slower': 'float 8s ease-in-out infinite',
         marquee: 'marquee 30s linear infinite',
         slideUp: 'slideUp 0.3s ease-out',
         'accordion-down': 'accordion-down 0.2s ease-out',

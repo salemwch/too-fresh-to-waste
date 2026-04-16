@@ -1428,5 +1428,50 @@
         "desc": "Partenariats, presse et tout le reste."
       }
     ]
+  },
+  "humanityMission": {
+    "meta": {
+      "title": "Mission Humanitaire | Too Fresh To Waste",
+      "description": "5% de chaque bénéfice est consacré à ceux qui en ont le plus besoin — nourriture, médicaments, éducation et chaleur pour les plus vulnérables de Tunisie."
+    },
+    "hero": {
+      "eyebrow": "NOTRE MISSION HUMANITAIRE",
+      "headline": "Nourrir les Corps. Chérir les Vies.",
+      "sub": "Chez Too Fresh To Waste, notre mission va bien au-delà de la table. Nous croyons que chaque repas sauvé devrait aider à sauver une vie dans notre communauté."
+    },
+    "pledge": {
+      "eyebrow": "L'ENGAGEMENT",
+      "percent": "5%",
+      "headline": "Notre Engagement des 5%.",
+      "body": "Le vrai changement ne vous demande pas de payer plus. Nous consacrons automatiquement 5% de nos bénéfices nets de chaque sac vendu sur notre marketplace. Que vous achetiez un repas ou en vendiez un, vous financez activement la dignité humaine — sans dépenser un seul dinar supplémentaire."
+    },
+    "pillars": {
+      "eyebrow": "QUATRE PILIERS D'IMPACT",
+      "headline": "Où Va Chaque Dinar",
+      "items": [
+        {
+          "title": "Zéro Nuit Affamée",
+          "body": "Nous transformons les revenus du gaspillage alimentaire en denrées et repas pour les familles en grande pauvreté. Aucune famille ne devrait jamais coucher ses enfants en ayant faim."
+        },
+        {
+          "title": "Dignité pour les Aînés",
+          "body": "Beaucoup de grands-parents ne peuvent pas se permettre de traitements essentiels. Nous finançons directement des pharmacies pour couvrir le coût des médicaments chroniques des personnes âgées sans filet de sécurité."
+        },
+        {
+          "title": "Donner du Pouvoir aux Jeunes",
+          "body": "Un esprit brillant ne devrait jamais être tenu à l'écart de la classe par manque de moyens. Nous fournissons des fournitures scolaires et couvrons les frais d'éducation pour que les enfants puissent construire un avenir meilleur."
+        },
+        {
+          "title": "Chaleur & Soin",
+          "body": "Chaque saison apporte de nouvelles difficultés. Nous fournissons des vêtements essentiels pour que les personnes vulnérables et leurs familles restent au chaud, protégées et traitées avec respect."
+        }
+      ]
+    },
+    "partner": {
+      "eyebrow": "LE MOTEUR DERRIÈRE TOUT ÇA",
+      "headline": "Alimenté par les Entreprises Tunisiennes.",
+      "body": "Cet impact est entièrement rendu possible par les restaurants, boulangeries, hôtels, pâtisseries, épiceries, supermarchés et entreprises utilisant notre application. Chaque fois que votre entreprise utilise Too Fresh To Waste, vous recevez un rapport d'impact mensuel montrant exactement combien de vies vos opérations quotidiennes ont contribué à transformer.",
+      "cta": "Devenir Partenaire"
+    }
   }
 }

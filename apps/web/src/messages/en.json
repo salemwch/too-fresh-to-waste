@@ -1428,5 +1428,50 @@
         "desc": "Partnerships, press, and everything else."
       }
     ]
+  },
+  "humanityMission": {
+    "meta": {
+      "title": "Humanity Mission | Too Fresh To Waste",
+      "description": "5% of every profit goes to those who need it most — food, medicine, education, and warmth for Tunisia's most vulnerable."
+    },
+    "hero": {
+      "eyebrow": "OUR HUMANITY MISSION",
+      "headline": "Nourishing Bodies. Nurturing Lives.",
+      "sub": "At Too Fresh To Waste, our mission goes beyond the lunch table. We believe that every meal saved should help save a life in our community."
+    },
+    "pledge": {
+      "eyebrow": "THE COMMITMENT",
+      "percent": "5%",
+      "headline": "Our 5% Profit Pledge.",
+      "body": "True change doesn't ask you to pay extra. We automatically dedicate 5% of our net profits from every surplus bag sold on our marketplace. Whether you are buying a meal or selling one, you are actively funding human dignity — without spending a single extra dinar."
+    },
+    "pillars": {
+      "eyebrow": "FOUR PILLARS OF IMPACT",
+      "headline": "Where Every Dinar Goes",
+      "items": [
+        {
+          "title": "Zero Hungry Nights",
+          "body": "We transform food waste revenue into actual groceries and meals for families facing extreme poverty. No family should ever have to put their young children to bed hungry."
+        },
+        {
+          "title": "Dignity for the Elderly",
+          "body": "Many grandparents cannot afford essential treatments. We directly fund pharmacies to cover the cost of chronic medications for elderly patients without a safety net."
+        },
+        {
+          "title": "Empowering the Next Generation",
+          "body": "A bright mind should never be kept out of the classroom due to a lack of funds. We provide school supplies and cover education fees so children can build a better future."
+        },
+        {
+          "title": "Warmth & Care",
+          "body": "Every season brings new hardships. We provide essential clothing to ensure that vulnerable individuals and families stay warm, protected, and treated with respect."
+        }
+      ]
+    },
+    "partner": {
+      "eyebrow": "THE ENGINE BEHIND IT ALL",
+      "headline": "Fueled by Tunisian Businesses.",
+      "body": "This impact is entirely made possible by the restaurants, bakeries, hotels, patisseries, grocery stores, supermarkets, and enterprise companies using our app. Every time your company uses Too Fresh To Waste, you receive a monthly impact report showing exactly how many lives your daily operations helped transform.",
+      "cta": "Become a Partner"
+    }
   }
 }
