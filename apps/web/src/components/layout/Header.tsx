@@ -325,7 +325,9 @@ export default function Header() {
         {/* ── Mega Menu — full-width, drops from bottom of header ── */}
         {activeMegaMenu && (
           <div
-            className='hidden lg:block absolute top-full left-0 right-0 bg-black/25 backdrop-blur-md shadow-2xl z-[60]'
+            className={`hidden lg:block absolute top-full left-0 right-0 shadow-2xl z-[60] backdrop-blur-md ${
+              isScrolledState ? 'bg-white/95 border-t border-gray-100' : 'bg-black/25'
+            }`}
             onMouseEnter={() => handleNavEnter(openDropdown!)}
             onMouseLeave={handleNavLeave}
           >
@@ -336,7 +338,11 @@ export default function Header() {
                     {sIdx > 0 && (
                       <div className='hidden' /> // visual gap via gap-10
                     )}
-                    <p className='text-white/50 text-[9px] font-bold uppercase tracking-widest mb-3'>
+                    <p
+                      className={`text-[9px] font-bold uppercase tracking-widest mb-3 ${
+                        isScrolledState ? 'text-primary-500/60' : 'text-white/50'
+                      }`}
+                    >
                       {section.title}
                     </p>
                     <div className='space-y-1'>
@@ -344,7 +350,11 @@ export default function Header() {
                         <Link
                           key={link.label}
                           href={link.href}
-                          className='group flex items-center gap-1 text-white text-sm py-1 hover:text-white/60 transition-colors whitespace-nowrap'
+                          className={`group flex items-center gap-1 text-sm py-1 transition-colors whitespace-nowrap ${
+                            isScrolledState
+                              ? 'text-gray-800 hover:text-primary-500'
+                              : 'text-white hover:text-white/60'
+                          }`}
                           onClick={() => setOpenDropdown(null)}
                         >
                           <span className='group-hover:translate-x-0.5 transition-transform duration-150'>

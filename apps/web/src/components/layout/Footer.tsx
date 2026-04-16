@@ -35,15 +35,14 @@ export default function Footer() {
       links: [
         { label: t('sections.services.consumer'), href: '/#app' },
         { label: t('sections.services.business'), href: '/business-signup' },
-        { label: t('sections.services.companies'), href: '#' },
+        { label: t('sections.services.companies'), href: '/companies' },
       ],
     },
     {
       title: t('sections.support.title'),
       links: [
         { label: t('sections.support.faq'), href: '/#faq' },
-        { label: t('sections.support.contact'), href: '#' },
-        { label: t('sections.support.partners'), href: '#' },
+        { label: t('sections.support.contact'), href: '/contact' },
       ],
     },
     {

@@ -231,8 +231,7 @@
       "support": {
         "title": "Support",
         "faq": "FAQ",
-        "contact": "Nous contacter",
-        "partners": "Partenaires"
+        "contact": "Nous contacter"
       },
       "legal": {
         "title": "Légal",
@@ -1264,5 +1263,146 @@
     "resendEmail": "Renvoyer l'e-mail",
     "resendCooldown": "Renvoyer dans {seconds}s",
     "resendSuccess": "E-mail de vérification renvoyé !"
+  },
+  "companies": {
+    "meta": {
+      "title": "Solutions Entreprise | Too Fresh To Waste",
+      "description": "Rejoignez les leaders mondiaux agissant sur ESG, Scope 3, CBAM et ISO 14001."
+    },
+    "hero": {
+      "eyebrow": "PROGRAMME ENTREPRISE",
+      "headline": "Votre Scope 3 commence à la table du déjeuner.",
+      "sub": "Les entreprises partenaires de Too Fresh To Waste réduisent les dépenses alimentaires de leurs employés, diminuent leurs émissions indirectes Scope 3 et font avancer leurs KPIs ESG — en un seul geste.",
+      "cta": "Demander un Partenariat",
+      "stats": [
+        {
+          "value": "73%",
+          "label": "des employés s'inquiètent de leurs dépenses alimentaires quotidiennes"
+        },
+        {
+          "value": "8%",
+          "label": "des émissions mondiales de GES liées au gaspillage alimentaire"
+        },
+        {
+          "value": "50G€+",
+          "label": "de coûts de conformité CBAM d'ici 2030 en UE"
+        }
+      ]
+    },
+    "urgency": {
+      "title": "L'horloge réglementaire tourne.",
+      "body": "CBAM, la directive CSRD de l'UE, et l'alignement émergent de la Tunisie sur l'ISO 26000 signifient que l'inaction est désormais une responsabilité financière — pas seulement éthique."
+    },
+    "frameworks": {
+      "title": "Chaque standard. Un seul partenariat.",
+      "items": [
+        {
+          "code": "ESG",
+          "title": "Reporting ESG",
+          "body": "Démontrez un impact environnemental et social mesurable aux investisseurs, auditeurs et régulateurs."
+        },
+        {
+          "code": "S3",
+          "title": "Émissions Scope 3",
+          "body": "La consommation des employés est une émission indirecte que vous pouvez réellement influencer — et déclarer."
+        },
+        {
+          "code": "RSE",
+          "title": "RSE / CSR",
+          "body": "La Responsabilité Sociale des Entreprises n'est plus optionnelle. Montrez votre leadership."
+        },
+        {
+          "code": "CBAM",
+          "title": "CBAM",
+          "body": "Le Mécanisme d'Ajustement Carbone aux Frontières récompense les entreprises qui réduisent leurs émissions."
+        },
+        {
+          "code": "26000",
+          "title": "ISO 26000",
+          "body": "La norme mondiale de responsabilité sociale — bien-être des employés et environnement en un cadre."
+        },
+        {
+          "code": "14001",
+          "title": "ISO 14001",
+          "body": "Certification de management environnemental de plus en plus exigée par les auditeurs."
+        },
+        {
+          "code": "ODD",
+          "title": "ODD / SDGs",
+          "body": "Alignez votre marque sur les Objectifs de Développement Durable de l'ONU — SDG 2, 12 et 13."
+        },
+        {
+          "code": "BC",
+          "title": "Bilan Carbone",
+          "body": "La méthodologie Bilan Carbone® — cartographiez, mesurez et réduisez votre empreinte carbone."
+        }
+      ]
+    },
+    "employee": {
+      "title": "Employés heureux. Empreinte réduite.",
+      "points": [
+        {
+          "title": "Réduire les dépenses alimentaires jusqu'à 70%",
+          "body": "Les employés économisent réellement sur des repas de qualité — chaque jour."
+        },
+        {
+          "title": "Booster le moral et le bien-être",
+          "body": "Un avantage durable que le personnel utilise et recommande."
+        },
+        {
+          "title": "L'imputer à votre budget RSE",
+          "body": "Avantage salarié + action environnementale = double ROI sur vos dépenses RSE."
+        },
+        {
+          "title": "Zéro charge administrative",
+          "body": "Nous gérons tout. Vous rapportez l'impact."
+        }
+      ]
+    },
+    "form": {
+      "title": "Devenir partenaire",
+      "sub": "Remplissez vos coordonnées et notre équipe entreprise vous contactera sous 24 heures.",
+      "fields": {
+        "businessName": "Nom de l'entreprise",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "phone": "Téléphone",
+        "message": "Quelque chose à ajouter ? (optionnel)"
+      },
+      "submit": "Demander un partenariat",
+      "submitting": "Envoi…",
+      "success": "Merci ! Notre équipe vous contactera sous peu.",
+      "error": "Une erreur s'est produite. Veuillez réessayer."
+    }
+  },
+  "contact": {
+    "meta": {
+      "title": "Contactez-nous | Too Fresh To Waste",
+      "description": "Contactez l'équipe Too Fresh To Waste."
+    },
+    "hero": {
+      "title": "Contactez-nous",
+      "subtitle": "Nous sommes là pour vous aider. Contactez-nous à tout moment."
+    },
+    "provider": {
+      "title": "Prestataire légal",
+      "name": "Too Fresh To Waste",
+      "country": "Tunisie",
+      "city": "Sousse",
+      "zip": "4013",
+      "address": "Messadine"
+    },
+    "cards": [
+      {
+        "title": "Support Client",
+        "email": "support@toofreshtowaste.com",
+        "desc": "Pour les problèmes d'application, commandes et questions générales."
+      },
+      {
+        "title": "Demandes Générales",
+        "email": "contact@toofreshtowaste.com",
+        "desc": "Partenariats, presse et tout le reste."
+      }
+    ]
   }
 }

@@ -40,6 +40,8 @@ const MARKETING_NAMESPACES = [
   'accessibility',
   'metadata',
   'business',
+  'companies',
+  'contact',
 ] as const;
 
 interface MarketingLayoutProps {
