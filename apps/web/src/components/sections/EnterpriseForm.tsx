@@ -9,6 +9,7 @@ export function EnterpriseForm() {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [form, setForm] = useState({
     businessName: '',
+    email: '',
     firstName: '',
     lastName: '',
     phone: '',
@@ -33,36 +34,16 @@ export function EnterpriseForm() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className='relative rounded-3xl overflow-hidden'
-      style={{
-        background: 'linear-gradient(135deg, rgba(0,82,80,0.15) 0%, rgba(2,15,12,0.95) 100%)',
-        border: '1px solid rgba(0,82,80,0.4)',
-        backdropFilter: 'blur(12px)',
-      }}
+      className='relative rounded-3xl overflow-hidden bg-white border border-brand-teal/15 shadow-teal-form'
     >
-      {/* Corner accent */}
-      <div
-        className='absolute top-0 right-0 w-32 h-32 rounded-bl-full opacity-20'
-        style={{ background: 'radial-gradient(circle, #ff7973, transparent 70%)' }}
-        aria-hidden='true'
-      />
-
-      <div className='p-8 md:p-10 relative z-10'>
-        <p
-          className='text-xs font-bold uppercase tracking-[0.2em] mb-2'
-          style={{ color: '#ff7973' }}
-        >
+      <div className='p-8 md:p-10'>
+        <p className='text-xs font-bold uppercase tracking-[0.2em] mb-2 text-accent-500'>
           {t('hero.eyebrow')}
         </p>
-        <h2
-          className='text-2xl md:text-3xl font-bold text-white mb-2'
-          style={{ fontFamily: 'var(--font-playfair)' }}
-        >
+        <h2 className='text-2xl md:text-3xl font-bold mb-2 font-playfair text-brand-dark'>
           {t('form.title')}
         </h2>
-        <p className='text-sm mb-8' style={{ color: 'rgba(240,236,228,0.6)' }}>
-          {t('form.sub')}
-        </p>
+        <p className='text-sm mb-8 text-brand-dark/55'>{t('form.sub')}</p>
 
         <AnimatePresence mode='wait'>
           {status === 'success' ? (
@@ -72,12 +53,9 @@ export function EnterpriseForm() {
               animate={{ opacity: 1, scale: 1 }}
               className='flex flex-col items-center text-center py-8 gap-4'
             >
-              <div
-                className='w-16 h-16 rounded-full flex items-center justify-center'
-                style={{ background: 'rgba(0,82,80,0.3)', border: '1px solid #005250' }}
-              >
+              <div className='w-16 h-16 rounded-full flex items-center justify-center bg-brand-teal/[.08] border border-brand-teal/25'>
                 <svg
-                  className='w-8 h-8 text-[#7fb89a]'
+                  className='w-8 h-8 text-brand-teal'
                   fill='none'
                   stroke='currentColor'
                   viewBox='0 0 24 24'
@@ -90,7 +68,7 @@ export function EnterpriseForm() {
                   />
                 </svg>
               </div>
-              <p className='text-white font-semibold text-lg'>{t('form.success')}</p>
+              <p className='font-semibold text-lg text-brand-dark'>{t('form.success')}</p>
             </motion.div>
           ) : (
             <motion.form
@@ -100,12 +78,9 @@ export function EnterpriseForm() {
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {/* Business Name */}
+              {/* Company Name */}
               <div>
-                <label
-                  className='block text-xs font-semibold mb-1.5'
-                  style={{ color: 'rgba(240,236,228,0.7)' }}
-                >
+                <label className='block text-xs font-semibold mb-1 text-brand-dark/70'>
                   {t('form.fields.businessName')} *
                 </label>
                 <input
@@ -114,21 +89,29 @@ export function EnterpriseForm() {
                   required
                   value={form.businessName}
                   onChange={handleChange}
-                  className='w-full rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-[#005250] transition-all'
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                  }}
+                  className='w-full rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-teal transition-all bg-cream border border-brand-teal/15 text-brand-dark'
+                />
+              </div>
+
+              {/* Work Email */}
+              <div>
+                <label className='block text-xs font-semibold mb-1 text-brand-dark/70'>
+                  {t('form.fields.email')} *
+                </label>
+                <input
+                  type='email'
+                  name='email'
+                  required
+                  value={form.email}
+                  onChange={handleChange}
+                  className='w-full rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-teal transition-all bg-cream border border-brand-teal/15 text-brand-dark'
                 />
               </div>
 
               {/* First / Last Name */}
               <div className='grid grid-cols-2 gap-3'>
                 <div>
-                  <label
-                    className='block text-xs font-semibold mb-1.5'
-                    style={{ color: 'rgba(240,236,228,0.7)' }}
-                  >
+                  <label className='block text-xs font-semibold mb-1 text-brand-dark/70'>
                     {t('form.fields.firstName')} *
                   </label>
                   <input
@@ -137,18 +120,11 @@ export function EnterpriseForm() {
                     required
                     value={form.firstName}
                     onChange={handleChange}
-                    className='w-full rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-[#005250] transition-all'
-                    style={{
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.12)',
-                    }}
+                    className='w-full rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-teal transition-all bg-cream border border-brand-teal/15 text-brand-dark'
                   />
                 </div>
                 <div>
-                  <label
-                    className='block text-xs font-semibold mb-1.5'
-                    style={{ color: 'rgba(240,236,228,0.7)' }}
-                  >
+                  <label className='block text-xs font-semibold mb-1 text-brand-dark/70'>
                     {t('form.fields.lastName')} *
                   </label>
                   <input
@@ -157,21 +133,14 @@ export function EnterpriseForm() {
                     required
                     value={form.lastName}
                     onChange={handleChange}
-                    className='w-full rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-[#005250] transition-all'
-                    style={{
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.12)',
-                    }}
+                    className='w-full rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-teal transition-all bg-cream border border-brand-teal/15 text-brand-dark'
                   />
                 </div>
               </div>
 
               {/* Phone */}
               <div>
-                <label
-                  className='block text-xs font-semibold mb-1.5'
-                  style={{ color: 'rgba(240,236,228,0.7)' }}
-                >
+                <label className='block text-xs font-semibold mb-1 text-brand-dark/70'>
                   {t('form.fields.phone')} *
                 </label>
                 <input
@@ -180,32 +149,21 @@ export function EnterpriseForm() {
                   required
                   value={form.phone}
                   onChange={handleChange}
-                  className='w-full rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-[#005250] transition-all'
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                  }}
+                  className='w-full rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-teal transition-all bg-cream border border-brand-teal/15 text-brand-dark'
                 />
               </div>
 
               {/* Optional message */}
               <div>
-                <label
-                  className='block text-xs font-semibold mb-1.5'
-                  style={{ color: 'rgba(240,236,228,0.7)' }}
-                >
+                <label className='block text-xs font-semibold mb-1 text-brand-dark/70'>
                   {t('form.fields.message')}
                 </label>
                 <textarea
                   name='message'
-                  rows={3}
+                  rows={2}
                   value={form.message}
                   onChange={handleChange}
-                  className='w-full rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-[#005250] transition-all resize-none'
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                  }}
+                  className='w-full rounded-2xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-teal transition-all resize-none bg-cream border border-brand-teal/15 text-brand-dark'
                 />
               </div>
 
@@ -214,8 +172,7 @@ export function EnterpriseForm() {
                 disabled={status === 'submitting'}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className='w-full py-4 rounded-xl font-bold text-sm tracking-wide text-white flex items-center justify-center gap-2 transition-opacity disabled:opacity-70'
-                style={{ background: 'linear-gradient(135deg, #005250 0%, #007a78 100%)' }}
+                className='w-full py-2.5 rounded-full font-bold text-sm tracking-wide text-white flex items-center justify-center gap-2 transition-opacity disabled:opacity-70 bg-gradient-teal'
               >
                 {status === 'submitting' ? (
                   <>
@@ -248,9 +205,7 @@ export function EnterpriseForm() {
               </motion.button>
 
               {status === 'error' && (
-                <p className='text-center text-sm' style={{ color: '#ff7973' }}>
-                  {t('form.error')}
-                </p>
+                <p className='text-center text-sm text-accent-500'>{t('form.error')}</p>
               )}
             </motion.form>
           )}

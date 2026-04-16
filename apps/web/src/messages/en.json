@@ -47,7 +47,8 @@
       "theApp": "Consumer",
       "whyChooseUs": "About Us",
       "businessSolution": "Business",
-      "enterprise": "Companies"
+      "enterprise": "Companies",
+      "humanityMission": "Humanity Mission"
     },
     "cta": {
       "downloadApp": "DOWNLOAD APP",
@@ -249,6 +250,17 @@
       "terms": "Terms & Conditions",
       "privacy": "Privacy Policy",
       "cookies": "Cookie Policy"
+    },
+    "beWithUs": {
+      "title": "Be With Us",
+      "appStore": {
+        "prefix": "Download on the",
+        "name": "App Store"
+      },
+      "playStore": {
+        "prefix": "GET IT ON",
+        "name": "Google Play"
+      }
     },
     "copyright": "© {year} Too Fresh To Waste Tunisia. All rights reserved.",
     "locations": "Tunis • Sousse • Sfax • Monastir • Hammamet"
@@ -1272,7 +1284,7 @@
     "hero": {
       "eyebrow": "ENTERPRISE PROGRAM",
       "headline": "Your Scope 3 starts at the lunch table.",
-      "sub": "Companies that partner with Too Fresh To Waste reduce their employees food costs, cut Scope 3 indirect emissions, and advance ESG KPIs — in a single move.",
+      "sub": "Companies that partner with Too Fresh To Waste reduce their employees' food costs, cut Scope 3 indirect emissions, and advance ESG KPIs — in a single move.",
       "cta": "Request a Partnership",
       "stats": [
         {
@@ -1290,10 +1302,12 @@
       ]
     },
     "urgency": {
+      "eyebrow": "WHY IT MATTERS",
       "title": "The regulatory clock is ticking.",
       "body": "CBAM, the EU Corporate Sustainability Reporting Directive, and Tunisia's emerging ESG alignment with ISO 26000 mean inaction is now a financial liability — not just an ethical choice."
     },
     "frameworks": {
+      "eyebrow": "COMPLIANCE & STANDARDS",
       "title": "Every standard. One partnership.",
       "items": [
         {
@@ -1339,6 +1353,7 @@
       ]
     },
     "employee": {
+      "eyebrow": "WHY YOUR TEAM WILL LOVE IT",
       "title": "Happy employees. Lower footprint.",
       "points": [
         {
@@ -1360,10 +1375,19 @@
       ]
     },
     "form": {
+      "ctaEyebrow": "BECOME A PARTNER",
+      "ctaSubheadline": "Start today.",
+      "trust": [
+        "Response within 24 hours, guaranteed",
+        "Dedicated enterprise account manager",
+        "Free ESG impact report for your first year",
+        "Fully customisable employee benefit plan"
+      ],
       "title": "Become a partner",
       "sub": "Fill in your details and our enterprise team will reach out within 24 hours.",
       "fields": {
         "businessName": "Company Name",
+        "email": "Work Email",
         "firstName": "First Name",
         "lastName": "Last Name",
         "phone": "Phone Number",

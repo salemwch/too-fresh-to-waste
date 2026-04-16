@@ -12,6 +12,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Companies page palette (cream + teal + dark)
+        cream: '#f9f3f0',
+        brand: {
+          teal: '#005250',
+          'teal-light': '#007a78',
+          dark: '#0a1f1e',
+        },
         // Brand colors from mobile design system (landing page uses these)
         primary: {
           50: '#EBF3F4',
@@ -78,6 +85,7 @@ const config: Config = {
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         heading: ['Korolev', 'Verdana', 'Arial Black', 'Arial', 'sans-serif'],
+        playfair: ['var(--font-playfair)', 'Georgia', 'serif'],
         mono: ['monospace'],
       },
       fontSize: {
@@ -121,6 +129,8 @@ const config: Config = {
         full: '9999px',
       },
       boxShadow: {
+        'teal-sm': '0 2px 12px rgba(0, 82, 80, 0.06)',
+        'teal-form': '0 8px 40px rgba(0, 82, 80, 0.12)',
         xs: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
         sm: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
         DEFAULT: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',

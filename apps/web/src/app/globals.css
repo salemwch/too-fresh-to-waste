@@ -126,4 +126,20 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Companies page — explicit font stack including Noto Arabic for bilingual support */
+  .font-inter-arabic {
+    font-family: var(--font-inter), var(--font-noto-arabic), sans-serif;
+  }
+
+  /* Companies page — gradient backgrounds that can't be expressed as a single Tailwind class */
+  .bg-companies-hero {
+    background: linear-gradient(135deg, #f9f3f0 0%, rgba(0, 82, 80, 0.06) 50%, #f9f3f0 100%);
+  }
+  .bg-gradient-teal {
+    background: linear-gradient(135deg, #005250 0%, #007a78 100%);
+  }
+  .bg-gradient-teal-r {
+    background: linear-gradient(to right, #005250, #007a78);
+  }
 }

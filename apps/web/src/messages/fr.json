@@ -47,7 +47,8 @@
       "theApp": "Consommateur",
       "whyChooseUs": "À Propos",
       "businessSolution": "Entreprise",
-      "enterprise": "Sociétés"
+      "enterprise": "Sociétés",
+      "humanityMission": "Mission Humanitaire"
     },
     "cta": {
       "downloadApp": "TÉLÉCHARGER L'APP",
@@ -225,7 +226,7 @@
       "services": {
         "title": "Services",
         "consumer": "Consommateur",
-        "business": "Business",
+        "business": "Sociétés",
         "companies": "Entreprises"
       },
       "support": {
@@ -249,6 +250,17 @@
       "terms": "Termes & Conditions",
       "privacy": "Politique de confidentialité",
       "cookies": "Politique de cookies"
+    },
+    "beWithUs": {
+      "title": "Soyez avec nous",
+      "appStore": {
+        "prefix": "Télécharger sur l'",
+        "name": "App Store"
+      },
+      "playStore": {
+        "prefix": "DISPONIBLE SUR",
+        "name": "Google Play"
+      }
     },
     "copyright": "© {year} Too Fresh To Waste Tunisie. Tous droits réservés.",
     "locations": "Tunis • Sousse • Sfax • Monastir • Hammamet"
@@ -1290,10 +1302,12 @@
       ]
     },
     "urgency": {
+      "eyebrow": "POURQUOI C'EST IMPORTANT",
       "title": "L'horloge réglementaire tourne.",
       "body": "CBAM, la directive CSRD de l'UE, et l'alignement émergent de la Tunisie sur l'ISO 26000 signifient que l'inaction est désormais une responsabilité financière — pas seulement éthique."
     },
     "frameworks": {
+      "eyebrow": "CONFORMITÉ & NORMES",
       "title": "Chaque standard. Un seul partenariat.",
       "items": [
         {
@@ -1339,6 +1353,7 @@
       ]
     },
     "employee": {
+      "eyebrow": "POURQUOI VOS ÉQUIPES VONT ADORER",
       "title": "Employés heureux. Empreinte réduite.",
       "points": [
         {
@@ -1360,10 +1375,19 @@
       ]
     },
     "form": {
+      "ctaEyebrow": "DEVENEZ PARTENAIRE",
+      "ctaSubheadline": "Commencez aujourd'hui.",
+      "trust": [
+        "Réponse garantie sous 24 heures",
+        "Responsable de compte entreprise dédié",
+        "Rapport d'impact ESG gratuit pour la première année",
+        "Programme d'avantages entièrement personnalisable"
+      ],
       "title": "Devenir partenaire",
       "sub": "Remplissez vos coordonnées et notre équipe entreprise vous contactera sous 24 heures.",
       "fields": {
         "businessName": "Nom de l'entreprise",
+        "email": "Email professionnel",
         "firstName": "Prénom",
         "lastName": "Nom",
         "phone": "Téléphone",
