@@ -16,6 +16,7 @@ import type {
   LoyaltyAccount,
   GamificationStats,
   LoginStreakResponse,
+  ReferralLinkResponse,
 } from '../types/loyalty.types';
 
 interface LoyaltyApiError {
@@ -85,6 +86,21 @@ export const loyaltyService = {
         { ...(signal !== undefined && { signal }) },
       );
       return unwrapBackendResponse(response, 'login streak');
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+
+  /**
+   * Get the authenticated user's personal referral link
+   */
+  async getReferralLink(signal?: AbortSignal): Promise<ReferralLinkResponse> {
+    try {
+      const response = await apiClient.get<BackendApiResponse<ReferralLinkResponse>>(
+        '/loyalty/referral-link',
+        { ...(signal !== undefined && { signal }) },
+      );
+      return unwrapBackendResponse(response, 'referral link');
     } catch (error) {
       throw handleApiError(error);
     }

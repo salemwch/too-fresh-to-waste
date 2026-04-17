@@ -19,7 +19,9 @@ export type {
   LoginStreak,
   PurchaseStreak,
   ReviewTracking,
+  LeaderboardConsent,
   LoyaltyAccount,
   GamificationStats,
   LoginStreakResponse,
+  ReferralLinkResponse,
 } from '@foodwaste/shared';
