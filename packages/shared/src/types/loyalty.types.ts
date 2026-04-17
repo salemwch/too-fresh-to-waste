@@ -52,6 +52,12 @@ export interface ReviewTracking {
 // Main loyalty account (GET /loyalty/account response)
 // ---------------------------------------------------------------------------
 
+export interface LeaderboardConsent {
+  given: boolean;
+  showRealName: boolean;
+  setAt?: string | null;
+}
+
 export interface LoyaltyAccount {
   _id: string;
   userId: string;
@@ -72,6 +78,7 @@ export interface LoyaltyAccount {
   purchaseStreak: PurchaseStreak;
   reviewTracking: ReviewTracking;
   referralCode?: string;
+  leaderboardConsent: LeaderboardConsent;
 }
 
 // ---------------------------------------------------------------------------
@@ -83,6 +90,7 @@ export interface GamificationStats {
   friendReferrals: {
     pending: number;
     completed: number;
+    pointsReward: number;
     pendingDetails: Array<{
       friendBagCount: number;
       bagsRequired: number;
@@ -92,6 +100,7 @@ export interface GamificationStats {
   businessReferrals: {
     pending: number;
     completed: number;
+    pointsReward: number;
     pendingDetails: Array<{
       businessOrderCount: number;
       ordersRequired: number;
@@ -128,6 +137,15 @@ export interface LoginStreakResponse {
   streakDays: number;
   pointsAwarded: number;
   message: string;
+}
+
+// ---------------------------------------------------------------------------
+// Referral link response (GET /loyalty/referral-link)
+// ---------------------------------------------------------------------------
+
+export interface ReferralLinkResponse {
+  referralCode: string;
+  referralLink: string;
 }
 
 // ---------------------------------------------------------------------------
