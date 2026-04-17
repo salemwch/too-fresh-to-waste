@@ -10,6 +10,7 @@ import {
   FriendReferralStatus,
   BusinessReferralStatus,
 } from '../schemas/loyalty-account.schema';
+import { ReferredIdentity, ReferredIdentityDocument } from '../schemas/referred-identity.schema';
 
 /**
  * Gamification Constants
@@ -50,6 +51,8 @@ export class GamificationService {
 
   constructor(
     @InjectModel(LoyaltyAccount.name) private readonly loyaltyModel: Model<LoyaltyAccountDocument>,
+    @InjectModel(ReferredIdentity.name)
+    private readonly referredIdentityModel: Model<ReferredIdentityDocument>,
     private readonly loyaltyService: LoyaltyService,
   ) {}
 
@@ -190,6 +193,53 @@ export class GamificationService {
   async findReferrerByCode(code: string): Promise<LoyaltyAccountDocument | null> {
     const result = await this.loyaltyModel.findOne({ referralCode: code.toUpperCase() });
     return result;
+  }
+
+  /**
+   * Anti-fraud: Check if a referred identity (email/phone) was already used in a referral.
+   * Records the identity if new; returns false if duplicate.
+   */
+  async checkAndRecordReferredIdentity(
+    email: string,
+    phone: string | undefined,
+    referredUserId: string,
+    referrerUserId: string,
+    referredAs: 'consumer' | 'merchant',
+  ): Promise<boolean> {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const existing = await this.referredIdentityModel.findOne({
+      $or: [{ email: normalizedEmail }, ...(phone ? [{ phone }] : [])],
+    });
+
+    if (existing) {
+      this.logger.warn(
+        `Anti-fraud: Blocked duplicate referral for email=${normalizedEmail} phone=${phone ?? 'none'} ` +
+          `(previously referred as userId=${existing.referredUserId})`,
+      );
+      return false;
+    }
+
+    try {
+      await this.referredIdentityModel.create({
+        email: normalizedEmail,
+        ...(phone ? { phone } : {}),
+        referredUserId: new Types.ObjectId(referredUserId),
+        referrerUserId: new Types.ObjectId(referrerUserId),
+        referredAs,
+      });
+      return true;
+    } catch (error) {
+      const errorCode =
+        typeof error === 'object' && error !== null && 'code' in error
+          ? (error as { code?: number }).code
+          : undefined;
+      if (errorCode === 11000) {
+        this.logger.warn(`Anti-fraud: Race condition caught for email=${normalizedEmail}`);
+        return false;
+      }
+      throw error;
+    }
   }
 
   // =============================================================================
@@ -352,11 +402,13 @@ export class GamificationService {
   }
 
   /**
-   * Update business's order count when they complete an order
-   * Called from OrderService when pickup is confirmed (for merchant)
+   * Update business's order count when they complete an order.
+   * Called from OrderService when pickup is confirmed (for merchant).
+   *
+   * First-sale timing: The 30-day expiry window starts from the business's
+   * first bag sold (firstSaleAt), not from the registration date.
    */
   async updateBusinessOrderCount(businessUserId: string): Promise<void> {
-    // Find all referrers who have this business in their pending referrals
     const referrers = await this.loyaltyModel.find({
       'businessReferrals.businessUserId': new Types.ObjectId(businessUserId),
       'businessReferrals.status': BusinessReferralStatus.PENDING,
@@ -377,22 +429,34 @@ export class GamificationService {
       if (!referral) {
         continue;
       }
+
+      const now = new Date();
       const newOrderCount = referral.businessOrderCount + 1;
 
-      // Check if threshold reached
+      const isFirstSale = !referral.firstSaleAt;
+      const firstSaleAt = referral.firstSaleAt ?? now;
+      const expiresAt = isFirstSale
+        ? new Date(
+            now.getTime() +
+              GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
+          )
+        : referral.expiresAt;
+
       if (newOrderCount >= GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_ORDERS_REQUIRED) {
-        // Award points!
         await this.loyaltyService.addPoints(referrer.userId.toString(), {
           amount: GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_POINTS,
-          reason: `Business referral completed: Business sold ${newOrderCount} orders`,
+          reason: `Business referral completed: Business sold ${newOrderCount} bags`,
           bypassMultiplier: true,
         });
 
-        // Update referral status
         referral.businessOrderCount = newOrderCount;
         referral.status = BusinessReferralStatus.COMPLETED;
-        referral.completedAt = new Date();
+        referral.completedAt = now;
         referral.pointsAwarded = GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_POINTS;
+        if (isFirstSale) {
+          referral.firstSaleAt = firstSaleAt;
+          referral.expiresAt = expiresAt;
+        }
         referrer.businessReferralsCompleted = (referrer.businessReferralsCompleted || 0) + 1;
 
         await referrer.save();
@@ -401,13 +465,20 @@ export class GamificationService {
           `Business referral completed! Awarded ${GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_POINTS} points to ${referrer.userId}`,
         );
       } else {
-        // Just update order count
+        const updateFields: Record<string, unknown> = {
+          'businessReferrals.$.businessOrderCount': newOrderCount,
+        };
+        if (isFirstSale) {
+          updateFields['businessReferrals.$.firstSaleAt'] = firstSaleAt;
+          updateFields['businessReferrals.$.expiresAt'] = expiresAt;
+        }
+
         await this.loyaltyModel.updateOne(
           {
             _id: referrer._id,
             'businessReferrals.businessUserId': new Types.ObjectId(businessUserId),
           },
-          { $set: { 'businessReferrals.$.businessOrderCount': newOrderCount } },
+          { $set: updateFields },
         );
       }
     }
