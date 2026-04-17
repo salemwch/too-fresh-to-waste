@@ -7,7 +7,7 @@
  *   useLoginStreak → fire-and-forget login streak recording on mount
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
@@ -22,6 +22,7 @@ import { SkeletonLoyaltyScreen } from '../components/SkeletonLoyaltyScreen';
 import { StreakCard } from '../components/StreakCard';
 import { useLoginStreak } from '../hooks/useLoginStreak';
 import { useLoyalty } from '../hooks/useLoyalty';
+import { ReferralBottomSheet } from '../components/ReferralBottomSheet';
 
 export const LoyaltyScreen: React.FC = () => {
   const theme = useTheme();
@@ -29,6 +30,12 @@ export const LoyaltyScreen: React.FC = () => {
 
   // Fire-and-forget: record daily login streak
   useLoginStreak();
+
+  const [referralSheetVisible, setReferralSheetVisible] = useState(false);
+
+  const handleReferPress = useCallback(() => {
+    setReferralSheetVisible(true);
+  }, []);
 
   const handleRefresh = useCallback(async () => {
     await refetch();
@@ -87,7 +94,7 @@ export const LoyaltyScreen: React.FC = () => {
         <ImpactStatsRow totalBagsSaved={account.totalBagsSaved || account.totalOrdersCount} />
 
         {/* How You Earn */}
-        <HowYouEarnGrid />
+        <HowYouEarnGrid onReferPress={handleReferPress} />
 
         {/* Active Streaks */}
         {gamification && <StreakCard gamification={gamification} />}
@@ -98,6 +105,10 @@ export const LoyaltyScreen: React.FC = () => {
         {/* Recent Activity */}
         <RecentActivityList transactions={account.pointsHistory} />
       </ScrollView>
+      <ReferralBottomSheet
+        visible={referralSheetVisible}
+        onClose={() => setReferralSheetVisible(false)}
+      />
     </View>
   );
 };

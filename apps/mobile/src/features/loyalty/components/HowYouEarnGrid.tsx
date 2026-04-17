@@ -1,11 +1,11 @@
 /**
  * HowYouEarnGrid
  * 2x2 grid showing ways to earn points.
- * Currently only "Save a Bag" is active — others show "Coming Soon".
+ * "Save a Bag" and "Refer Friend" are active; others show "Coming Soon".
  */
 
 import React, { memo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 
 import { Card, Icon, Text } from '@/design-system/components/atoms';
 
@@ -16,10 +16,12 @@ interface EarnMethod {
   color: string;
   bgColor: string;
   active: boolean;
+  key: string;
 }
 
 const EARN_METHODS: EarnMethod[] = [
   {
+    key: 'save-bag',
     icon: 'bag-handle-outline',
     label: 'Save a Bag',
     points: '+10 pts',
@@ -28,6 +30,7 @@ const EARN_METHODS: EarnMethod[] = [
     active: true,
   },
   {
+    key: 'review',
     icon: 'chatbubble-ellipses-outline',
     label: 'Write Review',
     points: '+10 pts',
@@ -36,6 +39,7 @@ const EARN_METHODS: EarnMethod[] = [
     active: false,
   },
   {
+    key: 'login',
     icon: 'flame-outline',
     label: 'Daily Login',
     points: '+2 pts',
@@ -44,19 +48,24 @@ const EARN_METHODS: EarnMethod[] = [
     active: true,
   },
   {
+    key: 'refer',
     icon: 'people-outline',
     label: 'Refer Friend',
-    points: '+15 pts',
+    points: '+50 pts',
     color: '#EC4899',
     bgColor: '#FCE7F3',
-    active: false,
+    active: true,
   },
 ];
 
 const INACTIVE_BACKGROUND = '#F1F5F9';
 const INACTIVE_TEXT = '#94A3B8';
 
-const EarnCard: React.FC<{ method: EarnMethod }> = ({ method }) => {
+interface HowYouEarnGridProps {
+  onReferPress?: () => void;
+}
+
+const EarnCard: React.FC<{ method: EarnMethod; onPress?: () => void }> = ({ method, onPress }) => {
   const iconCircleStyle = {
     backgroundColor: method.active ? method.bgColor : INACTIVE_BACKGROUND,
   };
@@ -64,7 +73,7 @@ const EarnCard: React.FC<{ method: EarnMethod }> = ({ method }) => {
     color: method.active ? method.color : INACTIVE_TEXT,
   };
 
-  return (
+  const content = (
     <Card variant='elevated' style={[styles.earnCard, !method.active && styles.earnCardInactive]}>
       <View style={[styles.iconCircle, iconCircleStyle]}>
         <Icon
@@ -87,16 +96,25 @@ const EarnCard: React.FC<{ method: EarnMethod }> = ({ method }) => {
       </Text>
     </Card>
   );
+
+  if (onPress) {
+    return <Pressable onPress={onPress}>{content}</Pressable>;
+  }
+  return content;
 };
 
-const HowYouEarnGridComponent: React.FC = () => (
+const HowYouEarnGridComponent: React.FC<HowYouEarnGridProps> = ({ onReferPress }) => (
   <View style={styles.container}>
     <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
       How You Earn
     </Text>
     <View style={styles.grid}>
       {EARN_METHODS.map(method => (
-        <EarnCard key={method.label} method={method} />
+        <EarnCard
+          key={method.key}
+          method={method}
+          {...(method.key === 'refer' && onReferPress ? { onPress: onReferPress } : {})}
+        />
       ))}
     </View>
   </View>
