@@ -175,6 +175,7 @@ export class AuthService {
           new Date(),
           registerDto.businessInfo,
           normalizedPhone,
+          registerDto.referralCode,
         ),
       );
       this.logger.log(`User registered event emitted for user: ${user._id}`);

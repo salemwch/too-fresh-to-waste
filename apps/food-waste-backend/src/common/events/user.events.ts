@@ -19,6 +19,7 @@ export class UserRegisteredEvent {
     public readonly registeredAt: Date,
     public readonly businessInfo?: BusinessInfo | undefined,
     public readonly phoneNumber?: string | undefined,
+    public readonly referralCode?: string | undefined,
   ) {}
 }
 
