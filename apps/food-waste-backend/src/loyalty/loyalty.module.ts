@@ -10,12 +10,14 @@ import { UserEventsListener } from './listeners/user-events.listener';
 import { LoyaltyController } from './loyalty.controller';
 import { LoyaltyService } from './loyalty.service';
 import { LoyaltyAccount, LoyaltyAccountSchema } from './schemas/loyalty-account.schema';
+import { ReferredIdentity, ReferredIdentitySchema } from './schemas/referred-identity.schema';
 import { GamificationService } from './services/gamification.service';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: LoyaltyAccount.name, schema: LoyaltyAccountSchema },
+      { name: ReferredIdentity.name, schema: ReferredIdentitySchema },
       { name: Order.name, schema: OrderSchema },
     ]),
     forwardRef(() => DonationsModule),
