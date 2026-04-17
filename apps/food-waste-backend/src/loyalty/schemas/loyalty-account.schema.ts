@@ -112,9 +112,9 @@ export class FriendReferral {
 // =============================================================================
 
 export enum BusinessReferralStatus {
-  PENDING = 'pending', // Business signed up, hasn't sold 30 orders yet
-  COMPLETED = 'completed', // Business sold 30 orders, points awarded
-  EXPIRED = 'expired', // First month passed without 30 orders
+  PENDING = 'pending', // Business signed up, hasn't sold 20 bags in first month from first sale
+  COMPLETED = 'completed', // Business sold 20 bags from first sale, points awarded
+  EXPIRED = 'expired', // 30 days from first sale passed without 20 bags
 }
 
 @Schema({ _id: false })
@@ -133,6 +133,9 @@ export class BusinessReferral {
 
   @Prop({ required: true, default: 0 })
   businessOrderCount!: number;
+
+  @Prop({ type: Date })
+  firstSaleAt?: Date;
 
   @Prop({ required: true, enum: BusinessReferralStatus, default: BusinessReferralStatus.PENDING })
   status!: BusinessReferralStatus;
@@ -202,6 +205,24 @@ export class ReviewTracking {
 
   @Prop({ default: 0 })
   totalReviewPoints!: number;
+}
+
+// =============================================================================
+// LEADERBOARD CONSENT
+// =============================================================================
+
+@Schema({ _id: false })
+export class LeaderboardConsent {
+  /** true once the user has responded to the consent prompt */
+  @Prop({ required: true, default: false })
+  given!: boolean;
+
+  /** true = real identity, false = show as "Anonymous" */
+  @Prop({ required: true, default: false })
+  showRealName!: boolean;
+
+  @Prop({ type: Date, default: null })
+  setAt?: Date | null;
 }
 
 // =============================================================================
@@ -303,6 +324,13 @@ export class LoyaltyAccount {
 
   @Prop({ type: ReviewTracking, default: () => ({}) })
   reviewTracking!: ReviewTracking;
+
+  // =============================================================================
+  // LEADERBOARD CONSENT
+  // =============================================================================
+
+  @Prop({ type: LeaderboardConsent, default: () => ({}) })
+  leaderboardConsent!: LeaderboardConsent;
 }
 
 export type LoyaltyAccountDocument = LoyaltyAccount & Document;

@@ -15,14 +15,14 @@ import {
  * Gamification Constants
  */
 export const GAMIFICATION_CONSTANTS = {
-  // Friend Referral: Friend buys 10 bags in first month → 15 points
+  // Friend Referral: Friend buys 10 bags in first month → 50 points
   FRIEND_REFERRAL_BAGS_REQUIRED: 10,
-  FRIEND_REFERRAL_POINTS: 15,
+  FRIEND_REFERRAL_POINTS: 50,
   FRIEND_REFERRAL_EXPIRY_DAYS: 30,
 
-  // Business Referral: Business sells 30 orders in first month → 30 points
-  BUSINESS_REFERRAL_ORDERS_REQUIRED: 30,
-  BUSINESS_REFERRAL_POINTS: 30,
+  // Business Referral: Business sells 20 bags in first month from first sale → 50 points
+  BUSINESS_REFERRAL_ORDERS_REQUIRED: 20,
+  BUSINESS_REFERRAL_POINTS: 50,
   BUSINESS_REFERRAL_EXPIRY_DAYS: 30,
 
   // Login Streak: 10 days consecutive login → 2 points/day (max 20/month)
