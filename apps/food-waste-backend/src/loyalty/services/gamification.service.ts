@@ -800,6 +800,7 @@ export class GamificationService {
           account.friendReferrals?.filter(r => r.status === FriendReferralStatus.PENDING).length ||
           0,
         completed: account.friendReferralsCompleted || 0,
+        pointsReward: GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_POINTS,
         pendingDetails: account.friendReferrals
           ?.filter(r => r.status === FriendReferralStatus.PENDING)
           .map(r => ({
@@ -813,6 +814,7 @@ export class GamificationService {
           account.businessReferrals?.filter(r => r.status === BusinessReferralStatus.PENDING)
             .length || 0,
         completed: account.businessReferralsCompleted || 0,
+        pointsReward: GAMIFICATION_CONSTANTS.BUSINESS_REFERRAL_POINTS,
         pendingDetails: account.businessReferrals
           ?.filter(r => r.status === BusinessReferralStatus.PENDING)
           .map(r => ({
