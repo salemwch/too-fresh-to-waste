@@ -61,40 +61,86 @@ export class UserEventsListener {
     }
   }
 
-  /**
-   * Shared logic: Create loyalty account for new users
-   *
-   * BEST PRACTICE: Auto-create loyalty account on registration
-   * - Ensures account exists before first order
-   * - Prevents "Loyalty account not found" errors
-   * - Simple MVP: No welcome bonus, just account creation
-   *
-   * IDEMPOTENT: Safe to retry - checks if account exists first
-   */
   private async processUserRegistration(event: UserRegisteredEvent): Promise<void> {
     try {
       this.logger.log(
         `Processing user.registered event for user: ${event.userId} (role: ${event.role})`,
       );
 
-      // Loyalty accounts are only for consumers — merchants/admins don't earn points
-      if (event.role === 'merchant' || event.role === 'admin') {
-        this.logger.log(`Skipping loyalty account for ${event.role} user: ${event.userId}`);
+      // Create loyalty account for consumers only
+      if (event.role !== 'merchant' && event.role !== 'admin') {
+        await this.gamificationService.createLoyaltyAccountForNewUser(event.userId);
+        this.logger.log(`Successfully created loyalty account for user: ${event.userId}`);
+      }
+
+      // Process referral code (applies to BOTH consumers and merchants)
+      if (event.referralCode) {
+        await this.processReferralCode(event);
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to process user registration for ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+    }
+  }
+
+  private async processReferralCode(event: UserRegisteredEvent): Promise<void> {
+    const { referralCode, userId, email, phoneNumber, role } = event;
+    if (!referralCode) {
+      return;
+    }
+
+    try {
+      const referrerAccount = await this.gamificationService.findReferrerByCode(referralCode);
+      if (!referrerAccount) {
+        this.logger.warn(`Referral code "${referralCode}" not found — ignoring`);
         return;
       }
 
-      // Create loyalty account via gamification service
-      // This is idempotent - won't create duplicates
-      await this.gamificationService.createLoyaltyAccountForNewUser(event.userId);
+      if (referrerAccount.userId.toString() === userId) {
+        this.logger.warn(`Self-referral blocked for user ${userId}`);
+        return;
+      }
 
-      this.logger.log(`Successfully created loyalty account for user: ${event.userId}`);
+      const referredAs = role === 'merchant' ? 'merchant' : 'consumer';
+      const isNewIdentity = await this.gamificationService.checkAndRecordReferredIdentity(
+        email,
+        phoneNumber,
+        userId,
+        referrerAccount.userId.toString(),
+        referredAs,
+      );
+
+      if (!isNewIdentity) {
+        this.logger.warn(
+          `Anti-fraud blocked referral: email=${email} or phone=${phoneNumber} already referred`,
+        );
+        return;
+      }
+
+      if (role === 'merchant') {
+        await this.gamificationService.registerBusinessReferral(
+          referrerAccount.userId.toString(),
+          userId,
+        );
+        this.logger.log(
+          `Business referral registered: ${userId} referred by ${referrerAccount.userId}`,
+        );
+      } else {
+        await this.gamificationService.registerFriendReferral(
+          referrerAccount.userId.toString(),
+          userId,
+        );
+        this.logger.log(
+          `Friend referral registered: ${userId} referred by ${referrerAccount.userId}`,
+        );
+      }
     } catch (error) {
       this.logger.error(
-        `Failed to create loyalty account for user ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to process referral code "${referralCode}" for user ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
         error instanceof Error ? error.stack : undefined,
       );
-      // CRITICAL: Don't throw - event listeners should not break registration flow
-      // User can still use the app, loyalty account will be created lazily on first order
     }
   }
 }
