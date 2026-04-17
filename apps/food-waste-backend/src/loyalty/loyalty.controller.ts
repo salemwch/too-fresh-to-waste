@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   Param,
   Query,
@@ -22,6 +23,7 @@ import {
   AddPointsDto,
   DonatePointsDto,
   DonatePointsResponseDto,
+  UpdateLeaderboardConsentDto,
 } from './dto/loyalty-account.dto';
 import { LoyaltyService } from './loyalty.service';
 import { GamificationService } from './services/gamification.service';
@@ -141,6 +143,23 @@ export class LoyaltyController {
     return { message: 'Referral code retrieved successfully', data: { referralCode: code } };
   }
 
+  @Get('referral-link')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get full referral link for sharing',
+    description: "Returns the user's referral link URL for sharing with friends and businesses",
+  })
+  @ApiResponse({ status: 200, description: 'Referral link retrieved successfully' })
+  async getReferralLink(@GetUser('id') userId: string) {
+    const code = await this.gamificationService.getReferralCode(userId);
+    const baseUrl = 'https://toofreshtowaste.com';
+    const referralLink = `${baseUrl}/r/${code}`;
+    return {
+      message: 'Referral link retrieved successfully',
+      data: { referralCode: code, referralLink },
+    };
+  }
+
   // =============================================================================
   // GAMIFICATION: STATS
   // =============================================================================
@@ -202,5 +221,29 @@ export class LoyaltyController {
     const parsedOffset = offset ? Math.max(parseInt(offset, 10) || 0, 0) : 0;
     const data = await this.loyaltyService.getLeaderboard(userId, parsedLimit, parsedOffset);
     return { message: 'Leaderboard retrieved successfully', data };
+  }
+
+  // =============================================================================
+  // LEADERBOARD CONSENT
+  // =============================================================================
+
+  @Patch('leaderboard-consent')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Set leaderboard display preference',
+    description:
+      'Save whether the user wants to appear with their real name/photo or as Anonymous. ' +
+      'Must be called at least once before the user appears in the leaderboard.',
+  })
+  @ApiResponse({ status: 200, description: 'Leaderboard consent saved successfully' })
+  async updateLeaderboardConsent(
+    @GetUser('id') userId: string,
+    @Body() dto: UpdateLeaderboardConsentDto,
+  ) {
+    await this.loyaltyService.updateLeaderboardConsent(userId, dto.showRealName);
+    return {
+      message: 'Leaderboard consent saved successfully',
+      data: { showRealName: dto.showRealName },
+    };
   }
 }
