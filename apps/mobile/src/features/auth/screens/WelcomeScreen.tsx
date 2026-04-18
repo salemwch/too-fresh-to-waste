@@ -37,32 +37,18 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
    * Uses navigation.replace to prevent going back to Welcome screen
    */
   const handleGetStarted = useCallback(() => {
-    // Prevent double-tap
     if (isNavigating) return;
     setIsNavigating(true);
-
-    // Mark welcome screen as seen (device-level flag)
     onboardingStorage.markWelcomeSeen();
-
-    // Use replace instead of navigate to prevent back navigation to Welcome
-    navigation.replace('Register');
+    // Reset stack to [Login, Register] so back from Register goes to Login
+    navigation.reset({ index: 1, routes: [{ name: 'Login' }, { name: 'Register' }] });
   }, [navigation, isNavigating]);
 
-  /**
-   * Mark onboarding as complete and navigate to Register screen
-   * Alternative entry point to registration (same as Get Started button)
-   * Uses navigation.replace to prevent going back to Welcome screen
-   */
   const handleSignUp = useCallback(() => {
-    // Prevent double-tap
     if (isNavigating) return;
     setIsNavigating(true);
-
-    // Mark welcome screen as seen (device-level flag)
     onboardingStorage.markWelcomeSeen();
-
-    // Use replace instead of navigate to prevent back navigation to Welcome
-    navigation.replace('Register');
+    navigation.reset({ index: 1, routes: [{ name: 'Login' }, { name: 'Register' }] });
   }, [navigation, isNavigating]);
 
   return (
