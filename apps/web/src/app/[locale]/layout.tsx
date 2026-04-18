@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Noto_Sans_Arabic, Playfair_Display } from 'next/font/google';
+import { Fraunces, Inter, Noto_Sans_Arabic, Playfair_Display } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
@@ -39,6 +39,16 @@ const notoSansArabic = Noto_Sans_Arabic({
   preload: false,
   weight: ['400', '500', '600', '700'],
   fallback: ['Tahoma', 'Arial', 'sans-serif'],
+});
+
+// Display serif for the food-waste-facts editorial page
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-fraunces',
+  weight: ['300', '400', '500', '700', '900'],
+  preload: false,
+  adjustFontFallback: false,
 });
 
 // Serif font for merchant-signup / auth screens (self-hosted via next/font/google
@@ -202,8 +212,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
   // Select font based on locale
   const fontClass = isRTL
-    ? `${notoSansArabic.variable} ${inter.variable} ${playfairDisplay.variable}`
-    : `${inter.variable} ${notoSansArabic.variable} ${playfairDisplay.variable}`;
+    ? `${notoSansArabic.variable} ${inter.variable} ${playfairDisplay.variable} ${fraunces.variable}`
+    : `${inter.variable} ${notoSansArabic.variable} ${playfairDisplay.variable} ${fraunces.variable}`;
 
   return (
     <html

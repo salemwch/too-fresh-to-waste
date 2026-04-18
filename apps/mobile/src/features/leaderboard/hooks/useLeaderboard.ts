@@ -6,7 +6,7 @@ import type { LeaderboardResponse } from '../types/leaderboard.types';
 
 const LEADERBOARD_QUERY_KEY = ['loyalty', 'leaderboard'] as const;
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 10;
 
 export function useLeaderboard(limit = PAGE_SIZE) {
   return useInfiniteQuery<LeaderboardResponse, Error>({

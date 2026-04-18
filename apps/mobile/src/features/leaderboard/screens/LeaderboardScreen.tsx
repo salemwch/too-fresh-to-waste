@@ -3,24 +3,22 @@
  *
  * Layout:
  *  1. Greeting header — avatar + "Morning/Afternoon/Evening, [firstName]!"
- *  2. Community Challenge card — dark gradient, live progress toward bag goal, prize tiers
- *  3. Top 3 Champions — avatars + medals, no podium blocks
+ *  2. Prize tier strip — highlights the user's current tier
+ *  3. Top 5 Champions — avatars + medals, visual pyramid
  *  4. Single unified ranked list:
- *       rank 1–5  → gold left-border  + 📱 icon  (Smartphone prize)
- *       rank 6–10 → silver left-border + ⌚ icon  (Smart Watch prize)
+ *       rank 1–5  → gold left-border   (Smartphone prize)
+ *       rank 6–10 → silver left-border (Smart Watch prize)
  *       rank 11+  → neutral
- *  5. Pinned current-user progress card at the bottom
+ *  5. PrivacyConsentModal gates participation on first visit
  */
 
 import { FlashList } from '@shopify/flash-list';
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Pressable,
-  Animated,
-  Easing,
   ActivityIndicator,
   Platform,
   Modal,
@@ -35,6 +33,7 @@ import { colorTokens } from '@/design-system/tokens/colors';
 import { useCommunityBagGoal } from '@/features/home/hooks/useCommunityBagGoal';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
+import { PrivacyConsentModal } from '../components/PrivacyConsentModal';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 
 import type { LeaderboardEntry } from '../types/leaderboard.types';
@@ -61,7 +60,6 @@ const INVERSE_TEXT = '#FFFFFF';
 const INVERSE_TEXT_MUTED = 'rgba(255,255,255,0.65)';
 const INVERSE_TEXT_SOFT = 'rgba(255,255,255,0.85)';
 const INVERSE_SURFACE = 'rgba(255,255,255,0.15)';
-const INVERSE_TRACK = 'rgba(255,255,255,0.12)';
 const PHONE_MAX = 5; // ranks 1–5 win Smartphone
 const WATCH_MAX = 10; // ranks 6–10 win Smart Watch
 
@@ -81,48 +79,6 @@ function getGreeting(): string {
   if (h < 17) return 'Afternoon';
   return 'Evening';
 }
-
-// ─── Animated progress bar ───────────────────────────────────────────────────
-interface ProgressBarProps {
-  percentage: number;
-  trackColor?: string;
-  fillColor?: string;
-}
-
-const AnimatedProgressBar: React.FC<ProgressBarProps> = ({
-  percentage,
-  trackColor = INVERSE_TRACK,
-  fillColor = SUCCESS,
-}) => {
-  const [widthAnim] = useState(() => new Animated.Value(0));
-
-  useEffect(() => {
-    Animated.timing(widthAnim, {
-      toValue: Math.min(Math.max(percentage, 0), 100),
-      duration: 900,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
-    }).start();
-  }, [percentage, widthAnim]);
-
-  const animatedWidth = useMemo(
-    () =>
-      widthAnim.interpolate({
-        inputRange: [0, 100],
-        outputRange: ['0%', '100%'],
-        extrapolate: 'clamp',
-      }),
-    [widthAnim],
-  );
-
-  return (
-    <View style={[styles.progressTrack, { backgroundColor: trackColor }]}>
-      <Animated.View
-        style={[styles.progressFill, { width: animatedWidth, backgroundColor: fillColor }]}
-      />
-    </View>
-  );
-};
 
 // ─── Reusable avatar ─────────────────────────────────────────────────────────
 interface AvatarProps {
@@ -288,12 +244,6 @@ const LeaderboardRow: React.FC<RowProps> = ({ entry }) => {
 
   return (
     <View style={[styles.row, { borderLeftColor: leftColor }, entry.isCurrentUser && styles.rowMe]}>
-      {/* Prize icon (only for prize zones) */}
-      <View style={styles.prizeIconCol}>
-        {isPhone && <Text style={styles.prizeIcon}>📱</Text>}
-        {isWatch && <Text style={styles.prizeIcon}>⌚</Text>}
-      </View>
-
       {/* Rank */}
       <View style={styles.rankCol}>
         <Text style={[styles.rankNum, { color: rankColor }]}>{entry.rank}</Text>
@@ -353,10 +303,17 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, bagCount, tar
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
+      <Pressable
+        style={styles.modalOverlay}
+        onPress={onClose}
+        accessibilityRole='button'
+        accessibilityLabel='Close'
+        accessibilityHint='Closes the prize information sheet'
+      >
         {/* Inner Pressable stops tap-through closing when tapping inside sheet */}
         <Pressable
           style={[styles.modalSheet, { paddingBottom: sheetBottomPad }]}
+          accessibilityRole='none'
           onPress={() => undefined}
         >
           <View style={styles.modalHandle} />
@@ -439,7 +396,13 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, bagCount, tar
           </ScrollView>
 
           {/* Fixed action button — always visible regardless of scroll position */}
-          <Pressable style={styles.modalBtn} onPress={onClose}>
+          <Pressable
+            style={styles.modalBtn}
+            onPress={onClose}
+            accessibilityRole='button'
+            accessibilityLabel='Got it'
+            accessibilityHint='Dismisses the prize information'
+          >
             <Text style={styles.modalBtnTxt}>Got it!</Text>
           </Pressable>
         </Pressable>
@@ -457,7 +420,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
   const theme = useTheme();
   const { user, avatarUri } = useUserProfile();
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useLeaderboard(50);
+    useLeaderboard();
   const { data: goal } = useCommunityBagGoal();
 
   const greeting = getGreeting();
@@ -467,25 +430,33 @@ export const LeaderboardScreen: React.FC<Props> = () => {
   // Flatten all pages into one array
   const allEntries = useMemo(() => data?.pages.flatMap(p => p.entries) ?? [], [data]);
 
-  // Resolve current user entry (in top-N from any page, or outside)
+  // Consent gate — default true while loading so modal doesn't flash before data arrives
+  const hasSetConsent = data?.pages[0]?.hasSetConsent ?? true;
+  const [consentModalVisible, setConsentModalVisible] = useState(false);
+  const consentChecked = useRef(false);
+
+  useEffect(() => {
+    // Trigger once after data loads; never re-open after the user has acted
+    if (!isLoading && !consentChecked.current) {
+      consentChecked.current = true;
+      if (!hasSetConsent) setConsentModalVisible(true);
+    }
+  }, [isLoading, hasSetConsent]);
+
+  // Used only for prize-strip tier highlighting
   const userEntry = useMemo(
     () => data?.pages[0]?.currentUserEntry ?? allEntries.find(e => e.isCurrentUser) ?? null,
     [data, allEntries],
   );
-
   const userTier = userEntry != null ? getRowTier(userEntry.rank) : 'other';
-  const rank10Pts = allEntries[9]?.totalPoints ?? 0;
-  const userPts = userEntry?.totalPoints ?? 0;
-  const progressPct = rank10Pts > 0 ? Math.min((userPts / rank10Pts) * 100, 100) : 0;
-  const ptsNeeded = Math.max(rank10Pts - userPts, 0);
 
   const [showPrizeModal, setShowPrizeModal] = useState(false);
 
   const handleRetry = useCallback(() => {
-    void refetch();
+    refetch().catch(() => undefined);
   }, [refetch]);
   const handleEndReached = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage().catch(() => undefined);
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const keyExtractor = useCallback((item: (typeof allEntries)[0]) => item.userId, []);
@@ -516,7 +487,13 @@ export const LeaderboardScreen: React.FC<Props> = () => {
               <Text style={styles.greetingName}>{firstName}!</Text>
             </Text>
           </View>
-          <Pressable style={styles.infoBtn} onPress={() => setShowPrizeModal(true)}>
+          <Pressable
+            style={styles.infoBtn}
+            onPress={() => setShowPrizeModal(true)}
+            accessibilityRole='button'
+            accessibilityLabel='Show prize information'
+            accessibilityHint='Displays prize details for each leaderboard tier'
+          >
             <Icon name='information-circle-outline' family='Ionicons' size={26} color={PRIMARY} />
           </Pressable>
         </View>
@@ -525,7 +502,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         <View style={styles.prizeStrip}>
           {/* Smartphone — rank 1-5 */}
           <View style={[styles.stripTile, userTier === 'phone' && styles.stripTileActive]}>
-            <Text style={styles.stripEmoji}>📱</Text>
+            <Icon name='phone-portrait-outline' family='Ionicons' size={22} color={GOLD_TEXT} />
             <Text style={styles.stripPrize}>Smartphone</Text>
             <Text style={styles.stripTierTxt}>Rank 1 – 5</Text>
           </View>
@@ -534,7 +511,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
 
           {/* Smart Watch — rank 6-10 */}
           <View style={[styles.stripTile, userTier === 'watch' && styles.stripTileActive]}>
-            <Text style={styles.stripEmoji}>⌚</Text>
+            <Icon name='watch-outline' family='Ionicons' size={22} color={SILVER} />
             <Text style={styles.stripPrize}>Smart Watch</Text>
             <Text style={styles.stripTierTxt}>Rank 6 – 10</Text>
           </View>
@@ -543,7 +520,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
 
           {/* 15% discount — everyone else */}
           <View style={[styles.stripTile, userTier === 'other' && styles.stripTileActive]}>
-            <Text style={styles.stripEmoji}>🎁</Text>
+            <Icon name='gift-outline' family='Ionicons' size={22} color={SUCCESS} />
             <Text style={styles.stripPrize}>15% Discount</Text>
             <Text style={styles.stripTierTxt}>Rank 11+</Text>
           </View>
@@ -564,13 +541,18 @@ export const LeaderboardScreen: React.FC<Props> = () => {
           </View>
         )}
         {isError && (
-          <Pressable style={styles.centerState} onPress={handleRetry}>
+          <Pressable
+            style={styles.centerState}
+            onPress={handleRetry}
+            accessibilityRole='button'
+            accessibilityLabel='Retry loading'
+            accessibilityHint='Reloads the leaderboard'
+          >
             <Icon name='refresh-outline' family='Ionicons' size={28} color='#6B7280' />
             <Text style={styles.errorText}>Tap to retry</Text>
           </Pressable>
         )}
       </View>
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     ),
     [
       allEntries,
@@ -586,76 +568,22 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     ],
   );
 
-  // ── List footer — loading-more spinner + user card ────────────────────────
-  const ListFooter = useMemo(
-    () => (
-      <View>
-        {isFetchingNextPage && (
-          <View style={styles.loadMoreSpinner}>
-            <ActivityIndicator size='small' color={PRIMARY} />
-          </View>
-        )}
-        {userEntry != null && (
-          <View style={styles.userCard}>
-            <View style={styles.userCardRow}>
-              <UserAvatar
-                uri={avatarUri ?? null}
-                firstName={firstName}
-                lastName={lastName}
-                size={40}
-              />
-              <View style={styles.userCardInfo}>
-                <Text style={styles.userCardName}>
-                  {firstName} {lastName}
-                </Text>
-                <Text style={styles.userCardSub}>
-                  Rank #{userEntry.rank} · {userEntry.totalPoints.toLocaleString()} pts
-                </Text>
-              </View>
-              <View style={styles.userTierBadge}>
-                <Text style={styles.userTierIcon}>
-                  {userTier === 'phone' ? '📱' : userTier === 'watch' ? '⌚' : '🎯'}
-                </Text>
-              </View>
-            </View>
-            {userTier === 'phone' && (
-              <Text style={styles.userCardMsg}>🏆 You’re in the Smartphone prize zone!</Text>
-            )}
-            {userTier === 'watch' && (
-              <Text style={styles.userCardMsg}>🏆 You’re in the Smart Watch prize zone!</Text>
-            )}
-            {userTier === 'other' && rank10Pts > 0 && (
-              <>
-                <Text style={styles.userCardMsg}>
-                  💡 {ptsNeeded.toLocaleString()} pts away from ⌚ Smart Watch zone
-                </Text>
-                <AnimatedProgressBar
-                  percentage={progressPct}
-                  trackColor='rgba(255,255,255,0.2)'
-                  fillColor={SUCCESS}
-                />
-              </>
-            )}
-          </View>
-        )}
+  // ── List footer — load-more spinner only ─────────────────────────────────
+  const ListFooter = useMemo(() => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View style={styles.loadMoreSpinner}>
+        <ActivityIndicator size='small' color={PRIMARY} />
       </View>
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    ),
-    [
-      isFetchingNextPage,
-      userEntry,
-      userTier,
-      rank10Pts,
-      ptsNeeded,
-      progressPct,
-      firstName,
-      lastName,
-      avatarUri,
-    ],
-  );
+    );
+  }, [isFetchingNextPage]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <PrivacyConsentModal
+        visible={consentModalVisible}
+        onConsentSaved={() => setConsentModalVisible(false)}
+      />
       <PrizeModal
         visible={showPrizeModal}
         onClose={() => setShowPrizeModal(false)}
@@ -755,7 +683,6 @@ const styles = StyleSheet.create({
     backgroundColor: BORDER,
     marginVertical: 12,
   },
-  stripEmoji: { fontSize: 22 },
   stripPrize: { fontSize: 12, fontWeight: '700', color: TEXT_PRIMARY, textAlign: 'center' },
   stripTierTxt: { fontSize: 10, color: TEXT_TERTIARY, textAlign: 'center' },
 
@@ -849,8 +776,6 @@ const styles = StyleSheet.create({
     backgroundColor: `${PRIMARY}06`,
   },
 
-  prizeIconCol: { width: 18, alignItems: 'center' },
-  prizeIcon: { fontSize: 13 },
   rankCol: { width: 22, alignItems: 'center' },
   rankNum: { fontSize: 14, fontWeight: '700' },
 

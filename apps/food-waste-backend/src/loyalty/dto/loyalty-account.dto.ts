@@ -137,6 +137,12 @@ export class DonatePointsDto implements DonatePointsInput {
   message?: string | undefined;
 }
 
+export class UpdateLeaderboardConsentDto {
+  @ApiProperty({ description: 'true = show real name & photo, false = show as Anonymous' })
+  @IsBoolean()
+  showRealName!: boolean;
+}
+
 export class DonatePointsResponseDto implements DonatePointsResponse {
   @ApiProperty()
   success!: boolean;

@@ -46,16 +46,21 @@ export default function Header() {
         {
           title: t('dropdown.about.sections.aboutUs.title'),
           links: [
-            { label: t('dropdown.about.sections.aboutUs.links.aboutTFTW'), href: '#' },
-            { label: t('dropdown.about.sections.aboutUs.links.careers'), href: '#' },
-            { label: t('dropdown.about.sections.aboutUs.links.missionDriven'), href: '#' },
-            { label: t('dropdown.about.sections.aboutUs.links.esg'), href: '#' },
+            { label: t('dropdown.about.sections.aboutUs.links.careers'), href: '/careers' },
+            {
+              label: t('dropdown.about.sections.aboutUs.links.missionDriven'),
+              href: '/mission-driven',
+            },
+            { label: t('dropdown.about.sections.aboutUs.links.esg'), href: '/esg' },
           ],
         },
         {
           title: t('dropdown.about.sections.aboutFoodWaste.title'),
           links: [
-            { label: t('dropdown.about.sections.aboutFoodWaste.links.facts'), href: '#' },
+            {
+              label: t('dropdown.about.sections.aboutFoodWaste.links.facts'),
+              href: '/food-waste-facts',
+            },
             { label: t('dropdown.about.sections.aboutFoodWaste.links.resources'), href: '#' },
           ],
         },
@@ -63,7 +68,7 @@ export default function Header() {
     },
     {
       label: t('nav.theApp'),
-      href: isHomePage ? '#app' : '/#app',
+      href: '/consumer',
     },
     {
       label: t('nav.businessSolution'),
@@ -74,7 +79,7 @@ export default function Header() {
           links: [
             {
               label: t('dropdown.business.sections.businessSolution.links.marketplaceBag'),
-              href: '#',
+              href: '/marketplace-surprise-bag',
             },
             {
               label: t('dropdown.business.sections.businessSolution.links.parclessBag'),
@@ -404,7 +409,9 @@ export default function Header() {
               isScrolledState ? 'bg-[#f9f3f0]' : 'bg-primary-500'
             }`}
             onClick={e => e.stopPropagation()}
+            onKeyDown={e => e.stopPropagation()}
             role='menu'
+            tabIndex={-1}
           >
             <div className='px-4 py-6 space-y-1'>
               {NAV_ITEMS.map(item => (

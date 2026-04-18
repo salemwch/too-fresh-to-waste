@@ -127,6 +127,48 @@
     text-wrap: balance;
   }
 
+  /* Revenue calculator — custom range slider */
+  .revenue-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 9999px;
+    outline: none;
+    cursor: pointer;
+  }
+  .revenue-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .revenue-slider::-webkit-slider-thumb:hover,
+  .revenue-slider::-webkit-slider-thumb:active {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 5px rgba(255, 121, 115, 0.25), 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+  .revenue-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Food-waste editorial page — grain texture overlay */
+  .bg-grain {
+    background-image: radial-gradient(hsl(187 50% 20% / 0.04) 1px, transparent 1px);
+    background-size: 4px 4px;
+  }
+
   /* Companies page — explicit font stack including Noto Arabic for bilingual support */
   .font-inter-arabic {
     font-family: var(--font-inter), var(--font-noto-arabic), sans-serif;

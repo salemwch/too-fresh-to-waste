@@ -19,6 +19,9 @@ const config: Config = {
           'teal-light': '#007a78',
           dark: '#0a1f1e',
           coral: '#ff7973',
+          // Food-waste editorial page tokens (alias of primary-500 / cream)
+          deep: '#1E4448',
+          cream: '#F9F3F0',
         },
         // Brand colors from mobile design system (landing page uses these)
         primary: {
@@ -87,6 +90,7 @@ const config: Config = {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         heading: ['Korolev', 'Verdana', 'Arial Black', 'Arial', 'sans-serif'],
         playfair: ['var(--font-playfair)', 'Georgia', 'serif'],
+        display: ['var(--font-fraunces)', 'Georgia', 'serif'],
         mono: ['monospace'],
       },
       fontSize: {
@@ -132,6 +136,8 @@ const config: Config = {
       boxShadow: {
         'teal-sm': '0 2px 12px rgba(0, 82, 80, 0.06)',
         'teal-form': '0 8px 40px rgba(0, 82, 80, 0.12)',
+        soft: '0 30px 60px -30px rgba(30, 68, 72, 0.25)',
+        coral: '0 20px 50px -20px rgba(255, 121, 115, 0.5)',
         xs: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
         sm: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
         DEFAULT: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
@@ -149,6 +155,15 @@ const config: Config = {
         '2xl': '1536px',
       },
       keyframes: {
+        // Food-waste editorial page animations
+        'marquee-fw': {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-50%)' },
+        },
+        rise: {
+          from: { opacity: '0', transform: 'translateY(20px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-10px)' },
@@ -171,6 +186,8 @@ const config: Config = {
         },
       },
       animation: {
+        'marquee-fw': 'marquee-fw 40s linear infinite',
+        rise: 'rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both',
         float: 'float 4s ease-in-out infinite',
         'float-slow': 'float 6s ease-in-out infinite',
         'float-slower': 'float 8s ease-in-out infinite',

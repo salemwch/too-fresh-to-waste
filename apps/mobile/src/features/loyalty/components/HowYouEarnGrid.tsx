@@ -73,7 +73,7 @@ const EarnCard: React.FC<{ method: EarnMethod; onPress?: () => void }> = ({ meth
     color: method.active ? method.color : INACTIVE_TEXT,
   };
 
-  const content = (
+  const card = (
     <Card variant='elevated' style={[styles.earnCard, !method.active && styles.earnCardInactive]}>
       <View style={[styles.iconCircle, iconCircleStyle]}>
         <Icon
@@ -98,9 +98,19 @@ const EarnCard: React.FC<{ method: EarnMethod; onPress?: () => void }> = ({ meth
   );
 
   if (onPress) {
-    return <Pressable onPress={onPress}>{content}</Pressable>;
+    return (
+      <Pressable
+        style={styles.cardWrapper}
+        onPress={onPress}
+        accessibilityRole='button'
+        accessibilityLabel={method.label}
+        accessibilityHint='Opens earn points options'
+      >
+        {card}
+      </Pressable>
+    );
   }
-  return content;
+  return <View style={styles.cardWrapper}>{card}</View>;
 };
 
 const HowYouEarnGridComponent: React.FC<HowYouEarnGridProps> = ({ onReferPress }) => (
@@ -136,8 +146,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 12,
   },
-  earnCard: {
+  cardWrapper: {
     width: '47%',
+  },
+  earnCard: {
+    width: '100%',
     padding: 16,
     alignItems: 'center',
     borderRadius: 16,

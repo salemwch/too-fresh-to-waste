@@ -10,6 +10,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Text, Button, Card, Avatar, Icon, Badge } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { logoutAsync } from '@/features/auth/store/authSlice';
+import { useLeaderboardConsent } from '@/features/leaderboard/hooks/useLeaderboardConsent';
 import { getTierConfig } from '@/features/loyalty/constants/tiers';
 import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';
 import { useAppDispatch } from '@/hooks/redux';
@@ -33,168 +34,33 @@ const WHITE_15 = 'rgba(255,255,255,0.15)';
 const LEADERBOARD_SHADOW = '#5a42e0';
 const LEADERBOARD_SUBTEXT = 'rgba(224,214,255,0.85)';
 
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
+interface MenuItemProps {
+  icon: string;
+  label: string;
+  onPress?: () => void;
+  badge?: string;
+  showArrow?: boolean;
+  switchValue?: boolean;
+  onSwitchChange?: (value: boolean) => void;
+  disabled?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+}
+
+const MenuItem: React.FC<MenuItemProps> = ({
+  icon,
+  label,
+  onPress,
+  badge,
+  showArrow = true,
+  switchValue,
+  onSwitchChange,
+  disabled = false,
+  accessibilityLabel,
+  accessibilityHint,
+}) => {
   const theme = useTheme();
-  const dispatch = useAppDispatch();
-  const { user, avatarUri, initials } = useUserProfile();
-
-  // Biometric authentication state
-  const [biometricEnabled, setBiometricEnabled] = useState(false);
-  const [biometricSupported, setBiometricSupported] = useState(false);
-  const [biometricType, setBiometricType] = useState<BiometricType>(BiometricType.NONE);
-  const [loadingBiometric, setLoadingBiometric] = useState(true);
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  // Loyalty points preview — shares TanStack Query cache with LoyaltyScreen
-  const { account: loyaltyAccount } = useLoyalty();
-  const availablePoints = loyaltyAccount?.availablePoints ?? null;
-  const currentTier: TierName = loyaltyAccount?.currentTier ?? 'Bronze';
-
-  /**
-   * Load biometric settings on mount
-   */
-  useEffect(() => {
-    const loadBiometricSettings = async () => {
-      try {
-        // Check if device supports biometric
-        const supportResult = await BiometricAuth.isSupported();
-        setBiometricSupported(supportResult.success);
-
-        if (supportResult.success && supportResult.biometricType != null) {
-          setBiometricType(supportResult.biometricType);
-        }
-
-        // Check if user has enabled biometric
-        const enabled = await SecureStorage.isBiometricEnabled();
-        setBiometricEnabled(enabled);
-      } catch (error) {
-        // Log the error for debugging, but don't disrupt the user flow
-        Logger.error(
-          'Failed to load biometric settings',
-          {
-            component: 'SecuritySettings',
-          },
-          error as Error,
-        );
-      } finally {
-        setLoadingBiometric(false);
-      }
-    };
-
-    void loadBiometricSettings();
-  }, []);
-
-  /**
-   * Handle biometric toggle
-   */
-  const handleBiometricToggle = useCallback(
-    async (value: boolean) => {
-      if (value) {
-        // Enabling biometric - verify first
-        const authResult = await BiometricAuth.authenticate(
-          `Enable ${BiometricAuth.getBiometricTypeName(biometricType)} for quick login`,
-        );
-
-        if (authResult.success) {
-          await SecureStorage.setBiometricEnabled(true);
-          setBiometricEnabled(true);
-          Alert.alert(
-            'Biometric Enabled',
-            `${BiometricAuth.getBiometricTypeName(biometricType)} authentication has been enabled for this device.`,
-          );
-        } else {
-          Alert.alert(
-            'Authentication Failed',
-            authResult.errorMessage ?? 'Failed to enable biometric authentication.',
-          );
-        }
-      } else {
-        // Disabling biometric
-        Alert.alert(
-          'Disable Biometric',
-          `Are you sure you want to disable ${BiometricAuth.getBiometricTypeName(biometricType)} authentication?`,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Disable',
-              style: 'destructive',
-              onPress: () => {
-                void (async () => {
-                  await SecureStorage.setBiometricEnabled(false);
-                  setBiometricEnabled(false);
-                })();
-              },
-            },
-          ],
-        );
-      }
-    },
-    [biometricType],
-  );
-
-  /**
-   * Handle logout - directly logout with spinner, no confirmation
-   */
-  const handleLogout = useCallback(async () => {
-    setLoggingOut(true);
-    try {
-      await dispatch(logoutAsync({})).unwrap();
-      // RootNavigator will automatically navigate to AuthStack
-    } catch (error) {
-      Logger.error('Logout failed', { component: 'ProfileScreen' }, error as Error);
-      // Still redirect to login even on error - clear local state
-    } finally {
-      setLoggingOut(false);
-    }
-  }, [dispatch]);
-
-  /**
-   * Navigate to edit profile
-   */
-  const handleEditProfile = useCallback(() => {
-    navigation.navigate('EditProfile');
-  }, [navigation]);
-
-  /**
-   * Navigate to settings
-   */
-  const handleNavigateToSettings = useCallback(() => {
-    navigation.navigate('Settings');
-  }, [navigation]);
-
-  /**
-   * Navigate to security
-   */
-  const handleNavigateToSecurity = useCallback(() => {
-    navigation.navigate('Security');
-  }, [navigation]);
-
-  /**
-   * Menu item component
-   */
-  const MenuItem = ({
-    icon,
-    label,
-    onPress,
-    badge,
-    showArrow = true,
-    switchValue,
-    onSwitchChange,
-    disabled = false,
-    accessibilityLabel,
-    accessibilityHint,
-  }: {
-    icon: string;
-    label: string;
-    onPress?: () => void;
-    badge?: string;
-    showArrow?: boolean;
-    switchValue?: boolean;
-    onSwitchChange?: (value: boolean) => void;
-    disabled?: boolean;
-    accessibilityLabel?: string;
-    accessibilityHint?: string;
-  }) => (
+  return (
     <Pressable
       style={[
         styles.menuItem,
@@ -253,6 +119,157 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       </View>
     </Pressable>
   );
+};
+
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
+  const theme = useTheme();
+  const dispatch = useAppDispatch();
+  const { user, avatarUri, initials } = useUserProfile();
+
+  // Biometric authentication state
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [biometricSupported, setBiometricSupported] = useState(false);
+  const [biometricType, setBiometricType] = useState<BiometricType>(BiometricType.NONE);
+  const [loadingBiometric, setLoadingBiometric] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  // Loyalty points preview — shares TanStack Query cache with LoyaltyScreen
+  const { account: loyaltyAccount } = useLoyalty();
+  const availablePoints = loyaltyAccount?.availablePoints ?? null;
+  const currentTier: TierName = loyaltyAccount?.currentTier ?? 'Bronze';
+
+  // Leaderboard real-name consent
+  const leaderboardConsentMutation = useLeaderboardConsent();
+  const showRealName = loyaltyAccount?.leaderboardConsent?.showRealName ?? false;
+
+  /**
+   * Load biometric settings on mount
+   */
+  useEffect(() => {
+    const loadBiometricSettings = async () => {
+      try {
+        // Check if device supports biometric
+        const supportResult = await BiometricAuth.isSupported();
+        setBiometricSupported(supportResult.success);
+
+        if (supportResult.success && supportResult.biometricType != null) {
+          setBiometricType(supportResult.biometricType);
+        }
+
+        // Check if user has enabled biometric
+        const enabled = await SecureStorage.isBiometricEnabled();
+        setBiometricEnabled(enabled);
+      } catch (error) {
+        // Log the error for debugging, but don't disrupt the user flow
+        Logger.error(
+          'Failed to load biometric settings',
+          {
+            component: 'SecuritySettings',
+          },
+          error as Error,
+        );
+      } finally {
+        setLoadingBiometric(false);
+      }
+    };
+
+    loadBiometricSettings().catch(() => undefined);
+  }, []);
+
+  /**
+   * Handle biometric toggle
+   */
+  const handleBiometricToggle = useCallback(
+    async (value: boolean) => {
+      if (value) {
+        // Enabling biometric - verify first
+        const authResult = await BiometricAuth.authenticate(
+          `Enable ${BiometricAuth.getBiometricTypeName(biometricType)} for quick login`,
+        );
+
+        if (authResult.success) {
+          await SecureStorage.setBiometricEnabled(true);
+          setBiometricEnabled(true);
+          Alert.alert(
+            'Biometric Enabled',
+            `${BiometricAuth.getBiometricTypeName(biometricType)} authentication has been enabled for this device.`,
+          );
+        } else {
+          Alert.alert(
+            'Authentication Failed',
+            authResult.errorMessage ?? 'Failed to enable biometric authentication.',
+          );
+        }
+      } else {
+        // Disabling biometric
+        Alert.alert(
+          'Disable Biometric',
+          `Are you sure you want to disable ${BiometricAuth.getBiometricTypeName(biometricType)} authentication?`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Disable',
+              style: 'destructive',
+              onPress: () => {
+                (async () => {
+                  await SecureStorage.setBiometricEnabled(false);
+                  setBiometricEnabled(false);
+                })().catch(() => undefined);
+              },
+            },
+          ],
+        );
+      }
+    },
+    [biometricType],
+  );
+
+  /**
+   * Handle logout - directly logout with spinner, no confirmation
+   */
+  const handleLogout = useCallback(async () => {
+    setLoggingOut(true);
+    try {
+      await dispatch(logoutAsync({})).unwrap();
+      // RootNavigator will automatically navigate to AuthStack
+    } catch (error) {
+      Logger.error('Logout failed', { component: 'ProfileScreen' }, error as Error);
+      // Still redirect to login even on error - clear local state
+    } finally {
+      setLoggingOut(false);
+    }
+  }, [dispatch]);
+
+  /**
+   * Toggle leaderboard real-name visibility
+   */
+  const handleLeaderboardNameToggle = useCallback(
+    (value: boolean) => {
+      leaderboardConsentMutation.mutate(value);
+    },
+    [leaderboardConsentMutation],
+  );
+
+  /**
+   * Navigate to edit profile
+   */
+  const handleEditProfile = useCallback(() => {
+    navigation.navigate('EditProfile');
+  }, [navigation]);
+
+  /**
+   * Navigate to settings
+   */
+  const handleNavigateToSettings = useCallback(() => {
+    navigation.navigate('Settings');
+  }, [navigation]);
+
+  /**
+   * Navigate to security
+   */
+  const handleNavigateToSecurity = useCallback(() => {
+    navigation.navigate('Security');
+  }, [navigation]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -425,7 +442,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               label={`${BiometricAuth.getBiometricTypeName(biometricType)} Login`}
               switchValue={biometricEnabled}
               onSwitchChange={value => {
-                void handleBiometricToggle(value);
+                handleBiometricToggle(value).catch(() => undefined);
               }}
               disabled={!biometricSupported || loadingBiometric}
               accessibilityLabel={`${BiometricAuth.getBiometricTypeName(biometricType)} login, ${biometricEnabled ? 'enabled' : 'disabled'}`}
@@ -442,6 +459,30 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               Use {BiometricAuth.getBiometricTypeName(biometricType)} for quick and secure login
             </Text>
           )}
+        </Card>
+
+        {/* Privacy Settings */}
+        <Card style={styles.menuCard}>
+          <Text variant='title' size='md' weight='semibold' style={styles.menuTitle}>
+            Privacy
+          </Text>
+          <View style={styles.menuList}>
+            <MenuItem
+              icon='eye-outline'
+              label='Use my real name'
+              switchValue={showRealName}
+              onSwitchChange={handleLeaderboardNameToggle}
+              disabled={leaderboardConsentMutation.isPending}
+              showArrow={false}
+              accessibilityLabel={`Use my real name on leaderboard, ${showRealName ? 'enabled' : 'disabled'}`}
+              accessibilityHint='Double tap to toggle your name visibility on the community leaderboard'
+            />
+          </View>
+          <Text variant='body' size='xs' color='secondary' style={styles.biometricHint}>
+            {showRealName
+              ? 'Your name and photo are visible on the community leaderboard'
+              : 'You appear as Anonymous on the community leaderboard'}
+          </Text>
         </Card>
 
         <Card style={styles.menuCard}>
@@ -476,7 +517,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         <Button
           variant='outline'
           size='lg'
-          onPress={() => void handleLogout()}
+          onPress={() => {
+            handleLogout().catch(() => undefined);
+          }}
           loading={loggingOut}
           disabled={loggingOut}
           leftIcon='log-out-outline'

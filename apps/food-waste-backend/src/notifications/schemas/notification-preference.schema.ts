@@ -38,7 +38,7 @@ export class NotificationPreference {
     }
   >;
 
-  @Prop({ default: true })
+  @Prop({ default: false })
   globalPushEnabled!: boolean;
 
   @Prop({ default: true })

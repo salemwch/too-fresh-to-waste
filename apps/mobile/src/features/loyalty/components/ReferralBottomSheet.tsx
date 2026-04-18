@@ -17,6 +17,7 @@ import {
   Pressable,
   Share,
   Linking,
+  Alert,
   ActivityIndicator,
   Platform,
 } from 'react-native';
@@ -108,14 +109,23 @@ export const ReferralBottomSheet: React.FC<ReferralBottomSheetProps> = ({ visibl
     const canOpen = await Linking.canOpenURL(url);
     if (canOpen) {
       await Linking.openURL(url);
+    } else {
+      Alert.alert('WhatsApp not found', 'Please install WhatsApp to share via this option.');
     }
   }, [referralLink]);
 
   return (
     <Modal visible={visible} transparent animationType='slide' onRequestClose={onClose}>
-      <Pressable style={styles.overlay} onPress={onClose}>
+      <Pressable
+        style={styles.overlay}
+        onPress={onClose}
+        accessibilityRole='button'
+        accessibilityLabel='Close'
+        accessibilityHint='Closes the referral sheet'
+      >
         <Pressable
           style={[styles.sheet, { backgroundColor: theme.colors.surface }]}
+          accessibilityRole='none'
           onPress={() => {
             // Prevent dismiss when tapping inside the sheet
           }}
@@ -154,6 +164,7 @@ export const ReferralBottomSheet: React.FC<ReferralBottomSheetProps> = ({ visibl
                   ]}
                   onPress={handleCopy}
                   accessibilityLabel={copied ? 'Link copied' : 'Copy referral link'}
+                  accessibilityHint='Copies the referral link to your clipboard'
                   accessibilityRole='button'
                 >
                   <Icon
@@ -170,8 +181,11 @@ export const ReferralBottomSheet: React.FC<ReferralBottomSheetProps> = ({ visibl
                 {/* Share */}
                 <Pressable
                   style={[styles.actionBtn, { backgroundColor: SURFACE_MUTED }]}
-                  onPress={() => void handleShare()}
+                  onPress={() => {
+                    handleShare().catch(() => undefined);
+                  }}
                   accessibilityLabel='Share referral link'
+                  accessibilityHint='Opens the system share menu'
                   accessibilityRole='button'
                 >
                   <Icon
@@ -188,8 +202,11 @@ export const ReferralBottomSheet: React.FC<ReferralBottomSheetProps> = ({ visibl
                 {/* WhatsApp */}
                 <Pressable
                   style={[styles.actionBtn, { backgroundColor: WHATSAPP_BG }]}
-                  onPress={() => void handleWhatsApp()}
+                  onPress={() => {
+                    handleWhatsApp().catch(() => undefined);
+                  }}
                   accessibilityLabel='Share via WhatsApp'
+                  accessibilityHint='Opens WhatsApp to share your referral link'
                   accessibilityRole='button'
                 >
                   <Icon name='logo-whatsapp' family='Ionicons' size={24} color={WHATSAPP_FG} />

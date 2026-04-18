@@ -21,4 +21,6 @@ export interface LeaderboardResponse {
   entries: LeaderboardEntry[];
   currentUserEntry: LeaderboardEntry | null;
   total: number;
+  /** true if the calling user has already responded to the consent prompt */
+  hasSetConsent: boolean;
 }

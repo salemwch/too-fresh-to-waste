@@ -46,6 +46,7 @@ interface LeaderboardAggregateDoc {
   currentTier?: string;
   badges?: Array<{ type: string; name: string }>;
   userInfo?: LeaderboardUserInfo;
+  leaderboardConsent?: { given: boolean; showRealName: boolean };
 }
 
 // ---------------------------------------------------------------------------
@@ -505,15 +506,18 @@ export class LoyaltyService {
     entries: LeaderboardEntry[];
     currentUserEntry: LeaderboardEntry | null;
     total: number;
+    hasSetConsent: boolean;
   }> {
     const currentUserObjectId = new Types.ObjectId(currentUserId);
 
     const userProjection = { firstName: 1, lastName: 1, profileImage: 1, avatar: 1 };
+    // Only users who have explicitly responded to the consent prompt are shown
+    const consentFilter = { isActive: true, 'leaderboardConsent.given': true };
 
-    // ── Top-N entries and total count are independent — run in parallel ────
-    const [raw, total] = await Promise.all([
+    // ── Top-N entries, total count, and caller consent status run in parallel ─
+    const [raw, total, callerAccount] = await Promise.all([
       this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
-        { $match: { isActive: true } },
+        { $match: consentFilter },
         { $sort: { totalPoints: -1, _id: 1 } },
         { $skip: offset },
         { $limit: limit },
@@ -528,18 +532,23 @@ export class LoyaltyService {
         },
         { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
       ]),
-      this.loyaltyModel.countDocuments({ isActive: true }),
+      this.loyaltyModel.countDocuments(consentFilter),
+      this.loyaltyModel
+        .findOne({ userId: currentUserObjectId }, { 'leaderboardConsent.given': 1 })
+        .lean(),
     ]);
+
+    const hasSetConsent = callerAccount?.leaderboardConsent?.given ?? false;
 
     const entries: LeaderboardEntry[] = raw.map((doc, index) =>
       this.mapToLeaderboardEntry(doc, offset + index + 1, currentUserObjectId),
     );
 
-    // ── Current user's own entry (only when outside top N) ─────────────────
+    // ── Current user's own entry (only when outside top N and consent given) ─
     const isCurrentUserInTop = entries.some(e => e.isCurrentUser);
     let currentUserEntry: LeaderboardEntry | null = null;
 
-    if (!isCurrentUserInTop) {
+    if (!isCurrentUserInTop && hasSetConsent) {
       const ownRaw = await this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
         { $match: { userId: currentUserObjectId } },
         {
@@ -558,7 +567,7 @@ export class LoyaltyService {
       if (ownEntry) {
         // aboveCount depends on ownEntry.totalPoints — must run after ownRaw
         const aboveCount = await this.loyaltyModel.countDocuments({
-          isActive: true,
+          ...consentFilter,
           totalPoints: { $gt: ownEntry.totalPoints },
         });
         currentUserEntry = this.mapToLeaderboardEntry(
@@ -569,7 +578,24 @@ export class LoyaltyService {
       }
     }
 
-    return { entries, currentUserEntry, total };
+    return { entries, currentUserEntry, total, hasSetConsent };
+  }
+
+  /**
+   * Save or update the user's leaderboard display preference.
+   * Sets leaderboardConsent.given = true so the user appears in the leaderboard.
+   */
+  async updateLeaderboardConsent(userId: string, showRealName: boolean): Promise<void> {
+    await this.loyaltyModel.findOneAndUpdate(
+      { userId: new Types.ObjectId(userId) },
+      {
+        $set: {
+          'leaderboardConsent.given': true,
+          'leaderboardConsent.showRealName': showRealName,
+          'leaderboardConsent.setAt': new Date(),
+        },
+      },
+    );
   }
 
   /** Maps a raw aggregation document to a typed LeaderboardEntry */
@@ -581,13 +607,14 @@ export class LoyaltyService {
     const user = doc.userInfo ?? {};
     const badges = doc.badges ?? [];
     const mostRecentBadge = badges.length > 0 ? badges[badges.length - 1] : null;
+    const showReal = doc.leaderboardConsent?.showRealName ?? true;
 
     return {
       rank,
       userId: doc.userId.toString(),
-      firstName: user.firstName ?? 'Unknown',
-      lastName: user.lastName ?? '',
-      profileImage: user.profileImage ?? user.avatar ?? null,
+      firstName: showReal ? (user.firstName ?? 'Unknown') : 'Anonymous',
+      lastName: showReal ? (user.lastName ?? '') : '',
+      profileImage: showReal ? (user.profileImage ?? user.avatar ?? null) : null,
       currentBadge: mostRecentBadge?.name ?? null,
       currentBadgeType: mostRecentBadge?.type ?? null,
       currentTier: doc.currentTier ?? 'Bronze',

@@ -36,4 +36,12 @@ export const leaderboardService = {
       throw handleApiError(error);
     }
   },
+
+  async updateLeaderboardConsent(showRealName: boolean): Promise<void> {
+    try {
+      await apiClient.patch('/loyalty/leaderboard-consent', { showRealName });
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
 };
