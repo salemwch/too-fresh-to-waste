@@ -11,6 +11,7 @@ import {
   BusinessReferralStatus,
 } from '../schemas/loyalty-account.schema';
 import { ReferredIdentity, ReferredIdentityDocument } from '../schemas/referred-identity.schema';
+import { User, UserDocument } from '../../users/schemas/user.schema';
 
 /**
  * Gamification Constants
@@ -53,6 +54,7 @@ export class GamificationService {
     @InjectModel(LoyaltyAccount.name) private readonly loyaltyModel: Model<LoyaltyAccountDocument>,
     @InjectModel(ReferredIdentity.name)
     private readonly referredIdentityModel: Model<ReferredIdentityDocument>,
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly loyaltyService: LoyaltyService,
   ) {}
 
@@ -134,64 +136,75 @@ export class GamificationService {
   // =============================================================================
 
   /**
-   * Generate a unique referral code for a user
-   * Format: First 4 chars of name + 4 random alphanumeric
+   * Derive a 6-char base36 suffix from a MongoDB ObjectId.
+   * Deterministic and unique at app scale — no retry loop needed.
    */
-  async generateReferralCode(userId: string, userName?: string): Promise<string> {
+  private deriveBase36Suffix(objectId: Types.ObjectId): string {
+    return BigInt(`0x${objectId.toString()}`).toString(36).slice(-6);
+  }
+
+  /**
+   * Normalize a firstName into a safe lowercase alphabetic prefix.
+   */
+  private deriveNamePrefix(firstName: string | undefined): string {
+    if (!firstName) {
+      return 'user';
+    }
+    const normalized = firstName
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z]/g, '')
+      .slice(0, 10);
+    return normalized.length > 0 ? normalized : 'user';
+  }
+
+  /**
+   * Generate a unique referral code for a user.
+   * Format: {firstName}-{6-char base36 of LoyaltyAccount ObjectId}
+   * Example: salem-k3m9p1
+   */
+  async generateReferralCode(userId: string): Promise<string> {
     const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
     if (!account) {
       throw new NotFoundException('Loyalty account not found');
     }
 
-    if (account.referralCode) {
-      return account.referralCode;
-    }
-
-    // Generate code: NAME1234 format
-    const normalizedUserName =
-      userName !== null && userName !== undefined && userName.trim().length > 0 ? userName : 'USER';
-    const prefix = normalizedUserName.substring(0, 4).toUpperCase();
-    let code: string;
-    let attempts = 0;
-
-    do {
-      const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-      code = `${prefix}${random}`;
-      attempts++;
-    } while ((await this.loyaltyModel.exists({ referralCode: code })) && attempts < 10);
-
-    if (attempts >= 10) {
-      // Fallback to fully random
-      code = `REF${Date.now().toString(36).toUpperCase()}`;
-    }
+    const user = await this.userModel.findById(userId).select('firstName').lean();
+    const prefix = this.deriveNamePrefix(user?.firstName);
+    const suffix = this.deriveBase36Suffix(account._id as Types.ObjectId);
+    const code = `${prefix}-${suffix}`;
 
     await this.loyaltyModel.findByIdAndUpdate(account._id, { referralCode: code });
     this.logger.log(`Generated referral code ${code} for user ${userId}`);
-
     return code;
   }
 
   /**
-   * Get user's referral code (generate if doesn't exist)
+   * Get user's referral code, generating it if absent or in the old format.
+   * Old format (no hyphen) is auto-migrated to the new personalized format.
    */
-  async getReferralCode(userId: string, userName?: string): Promise<string> {
+  async getReferralCode(userId: string): Promise<string> {
     const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
     if (!account) {
       throw new NotFoundException('Loyalty account not found');
     }
 
-    if (account.referralCode) {
+    // Auto-migrate old-format codes (e.g. USERPEEF, JOHN1234) that lack a hyphen
+    if (account.referralCode?.includes('-')) {
       return account.referralCode;
     }
 
-    return this.generateReferralCode(userId, userName);
+    return this.generateReferralCode(userId);
   }
 
   /**
-   * Find referrer by referral code
+   * Find referrer by referral code (case-insensitive for forward/backward compatibility).
    */
   async findReferrerByCode(code: string): Promise<LoyaltyAccountDocument | null> {
-    const result = await this.loyaltyModel.findOne({ referralCode: code.toUpperCase() });
+    const safeCode = code.replace(/[^a-zA-Z0-9-]/g, '');
+    const result = await this.loyaltyModel.findOne({
+      referralCode: { $regex: new RegExp(`^${safeCode}$`, 'i') },
+    });
     return result;
   }
 

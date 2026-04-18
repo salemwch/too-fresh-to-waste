@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CommunityGoalModule } from '../community-goal/community-goal.module';
 import { DonationsModule } from '../donations/donations.module';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
+import { User, UserSchema } from '../users/schemas/user.schema';
 
 import { OrderEventsListener } from './listeners/order-events.listener';
 import { UserEventsListener } from './listeners/user-events.listener';
@@ -19,6 +20,7 @@ import { GamificationService } from './services/gamification.service';
       { name: LoyaltyAccount.name, schema: LoyaltyAccountSchema },
       { name: ReferredIdentity.name, schema: ReferredIdentitySchema },
       { name: Order.name, schema: OrderSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     forwardRef(() => DonationsModule),
     CommunityGoalModule,
