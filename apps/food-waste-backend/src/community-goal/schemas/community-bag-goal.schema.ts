@@ -9,6 +9,14 @@ export enum CommunityGoalStatus {
   ARCHIVED = 'archived',
 }
 
+/** Extensible — add new values here and to the shared CommunityGoalCauseType enum */
+export enum CommunityGoalCauseType {
+  FOOD = 'FOOD',
+  CLOTHING = 'CLOTHING',
+  EDUCATION = 'EDUCATION',
+  MEDICINE = 'MEDICINE',
+}
+
 @Schema({ timestamps: true })
 export class CommunityBagGoal {
   @Prop({ required: true, default: 0, min: 0 })
@@ -26,6 +34,15 @@ export class CommunityBagGoal {
     default: CommunityGoalStatus.ACTIVE,
   })
   status!: CommunityGoalStatus;
+
+  @Prop({ type: String, enum: CommunityGoalCauseType })
+  causeType?: CommunityGoalCauseType;
+
+  @Prop({ type: String, maxlength: 80 })
+  causeTitle?: string;
+
+  @Prop({ type: String, maxlength: 600 })
+  causeDescription?: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
   createdBy?: Types.ObjectId;

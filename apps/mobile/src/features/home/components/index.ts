@@ -8,3 +8,4 @@ export { HomeOfferSection } from './HomeOfferSection';
 export { HomeImpactStats } from './HomeImpactStats';
 export { SkeletonHomeSearchBar } from './SkeletonHomeSearchBar';
 export { CommunityBagGoalBanner } from './CommunityBagGoalBanner';
+export { CharityDonationBottomSheet } from './CharityDonationBottomSheet';

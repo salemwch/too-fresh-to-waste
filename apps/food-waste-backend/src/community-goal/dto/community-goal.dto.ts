@@ -1,6 +1,8 @@
 import type { SetGoalTargetInput, CommunityGoalStats } from '@foodwaste/shared';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, Min, Max } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNumber, Min, Max, IsOptional, IsEnum, IsString, MaxLength } from 'class-validator';
+
+import { CommunityGoalCauseType } from '../schemas/community-bag-goal.schema';
 
 export class SetGoalTargetDto implements SetGoalTargetInput {
   @ApiProperty({
@@ -13,6 +15,23 @@ export class SetGoalTargetDto implements SetGoalTargetInput {
   @Min(100)
   @Max(1_000_000)
   targetCount!: number;
+
+  @ApiPropertyOptional({ enum: CommunityGoalCauseType, example: CommunityGoalCauseType.FOOD })
+  @IsOptional()
+  @IsEnum(CommunityGoalCauseType)
+  causeType?: CommunityGoalCauseType;
+
+  @ApiPropertyOptional({ example: 'Feed Families This Ramadan', maxLength: 80 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  causeTitle?: string;
+
+  @ApiPropertyOptional({ maxLength: 600 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(600)
+  causeDescription?: string;
 }
 
 export class CommunityGoalStatsResponseDto implements CommunityGoalStats {
@@ -36,4 +55,13 @@ export class CommunityGoalStatsResponseDto implements CommunityGoalStats {
 
   @ApiProperty({ example: '2026-02-23T12:00:00.000Z' })
   lastUpdatedAt!: string;
+
+  @ApiPropertyOptional({ enum: CommunityGoalCauseType })
+  causeType?: CommunityGoalCauseType;
+
+  @ApiPropertyOptional({ example: 'Feed Families This Ramadan' })
+  causeTitle?: string;
+
+  @ApiPropertyOptional()
+  causeDescription?: string;
 }

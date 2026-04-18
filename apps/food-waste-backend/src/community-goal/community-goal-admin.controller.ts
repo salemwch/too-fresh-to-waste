@@ -44,7 +44,11 @@ export class CommunityGoalAdminController {
     @CurrentUser('_id') adminId: string,
   ): Promise<{ message: string; data: CommunityGoalStatsResponseDto }> {
     this.logger.log(`Admin ${adminId} setting community goal target to ${dto.targetCount}`);
-    const stats = await this.communityGoalService.setGoalTarget(dto.targetCount, adminId);
+    const stats = await this.communityGoalService.setGoalTarget(dto.targetCount, adminId, {
+      ...(dto.causeType !== undefined && { causeType: dto.causeType }),
+      ...(dto.causeTitle !== undefined && { causeTitle: dto.causeTitle }),
+      ...(dto.causeDescription !== undefined && { causeDescription: dto.causeDescription }),
+    });
     return {
       message: `Community goal target updated to ${dto.targetCount}`,
       data: stats,

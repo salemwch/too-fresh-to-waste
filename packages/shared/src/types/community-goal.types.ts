@@ -9,6 +9,14 @@ export enum CommunityGoalStatus {
   ARCHIVED = 'archived',
 }
 
+/** Extensible cause enum — add new values here as the programme grows */
+export enum CommunityGoalCauseType {
+  FOOD = 'FOOD',
+  CLOTHING = 'CLOTHING',
+  EDUCATION = 'EDUCATION',
+  MEDICINE = 'MEDICINE',
+}
+
 export interface CommunityBagGoalStats {
   currentCount: number;
   targetCount: number;
@@ -17,4 +25,8 @@ export interface CommunityBagGoalStats {
   cycleNumber: number;
   status: CommunityGoalStatus;
   lastUpdatedAt: string;
+  /** Optional — absent on legacy goals that pre-date the cause feature */
+  causeType?: CommunityGoalCauseType;
+  causeTitle?: string;
+  causeDescription?: string;
 }

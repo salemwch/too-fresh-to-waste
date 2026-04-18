@@ -9,6 +9,7 @@ import {
   CommunityBagGoal,
   CommunityBagGoalDocument,
   CommunityGoalStatus,
+  CommunityGoalCauseType,
 } from './schemas/community-bag-goal.schema';
 
 import type { CommunityBagGoalStats } from '@foodwaste/shared';
@@ -22,6 +23,9 @@ interface GoalLean {
   targetCount: number;
   cycleNumber: number;
   status: string;
+  causeType?: CommunityGoalCauseType;
+  causeTitle?: string;
+  causeDescription?: string;
   createdBy?: unknown;
   completedAt?: Date;
   resetAt?: Date;
@@ -91,13 +95,23 @@ export class CommunityGoalService {
   }
 
   /**
-   * Admin: Set a new target on the active goal.
+   * Admin: Set a new target and optional cause on the active goal.
    */
-  async setGoalTarget(targetCount: number, adminId: string): Promise<CommunityBagGoalStats> {
+  async setGoalTarget(
+    targetCount: number,
+    adminId: string,
+    cause?: { causeType?: CommunityGoalCauseType; causeTitle?: string; causeDescription?: string },
+  ): Promise<CommunityBagGoalStats> {
+    const causeFields = {
+      ...(cause?.causeType !== undefined && { causeType: cause.causeType }),
+      ...(cause?.causeTitle !== undefined && { causeTitle: cause.causeTitle }),
+      ...(cause?.causeDescription !== undefined && { causeDescription: cause.causeDescription }),
+    };
+
     const goal = (await this.goalModel
       .findOneAndUpdate(
         { status: CommunityGoalStatus.ACTIVE },
-        { $set: { targetCount } },
+        { $set: { targetCount, ...causeFields } },
         { new: true, lean: true },
       )
       .exec()) as GoalLean | null;
@@ -109,6 +123,7 @@ export class CommunityGoalService {
         cycleNumber: 1,
         status: CommunityGoalStatus.ACTIVE,
         createdBy: adminId,
+        ...causeFields,
       });
       return this.toStats(newGoal.toObject() as GoalLean);
     }
@@ -254,6 +269,10 @@ export class CommunityGoalService {
       cycleNumber: goal.cycleNumber,
       status: goal.status as CommunityBagGoalStats['status'],
       lastUpdatedAt: (goal.updatedAt ?? new Date()).toISOString(),
+      // Cause fields are optional — omit rather than null so legacy goals stay clean
+      ...(goal.causeType !== undefined && { causeType: goal.causeType }),
+      ...(goal.causeTitle !== undefined && { causeTitle: goal.causeTitle }),
+      ...(goal.causeDescription !== undefined && { causeDescription: goal.causeDescription }),
     };
   }
 

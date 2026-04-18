@@ -51,6 +51,7 @@ import {
   HomeImpactStats,
   SkeletonHomeSearchBar,
   CommunityBagGoalBanner,
+  CharityDonationBottomSheet,
 } from '../components';
 import { OFFER_SECTIONS } from '../constants/homeConstants';
 import {
@@ -132,6 +133,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   const [isLocationPickerVisible, setIsLocationPickerVisible] = useState(false);
   const [locationSearchQuery, setLocationSearchQuery] = useState('');
+  const [isCharitySheetVisible, setIsCharitySheetVisible] = useState(false);
 
   // Hybrid location search hook with session token cost optimization
   const {
@@ -336,13 +338,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       headerTitle: () => <LocationHeader onPress={() => setIsLocationPickerVisible(true)} />,
       headerRight: () => (
         <View style={styles.headerRightRow}>
-          <View
-            accessibilityLabel='Donation pool'
-            accessibilityRole='image'
+          <Pressable
+            onPress={() => setIsCharitySheetVisible(true)}
             style={styles.headerIconButtonRight}
+            accessibilityLabel='Learn about our charity donations'
+            accessibilityRole='button'
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <HeartInHandsIcon width={28} height={28} />
-          </View>
+          </Pressable>
           <Pressable
             onPress={() => navigation.navigate('Leaderboard')}
             style={styles.headerIconButtonRight}
@@ -820,6 +824,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         onClose={() => setIsFilterVisible(false)}
         onApply={handleApplyFilters}
         onClear={handleClearAllFilters}
+      />
+
+      {/* Charity Donation Info Bottom Sheet */}
+      <CharityDonationBottomSheet
+        visible={isCharitySheetVisible}
+        onClose={() => setIsCharitySheetVisible(false)}
       />
 
       {/* Location Picker Bottom Sheet */}
