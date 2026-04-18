@@ -386,8 +386,7 @@ export const reverseGeocodeAsync = createAsyncThunk<
       age: Date.now() - state.gpsLocationTimestamp,
     });
     // Return cached data as successful result
-    const [city, country] = state.gpsLocationName.split(', ');
-    return { city: city ?? '', country: country ?? '' };
+    return { city: state.gpsLocationName, country: '' };
   }
 
   try {
@@ -622,7 +621,7 @@ const locationSlice = createSlice({
     // reverseGeocodeAsync Handlers
     // ────────────────────────────────────────────────────────────────────────
     builder.addCase(reverseGeocodeAsync.fulfilled, (state, action) => {
-      const { city, country } = action.payload;
+      const { city } = action.payload;
 
       // ────────────────────────────────────────────────────────────────────────
       // 🛡️ RACE CONDITION GUARD: Verify coordinates still match
@@ -640,7 +639,7 @@ const locationSlice = createSlice({
         // ✅ Coordinates match (or very close after rounding) → safe to update
 
         // Build location name from address components
-        const locationName = [city, country].filter(Boolean).join(', ') || null;
+        const locationName = city || null;
 
         if (locationName) {
           // ✅ Anti-flicker: only update when we have a valid name
@@ -655,7 +654,7 @@ const locationSlice = createSlice({
         Logger.warn('Discarding stale reverse geocoding result', {
           geocodedCoords,
           currentCoords,
-          staleName: [city, country].filter(Boolean).join(', '),
+          staleName: city,
         });
       }
     });

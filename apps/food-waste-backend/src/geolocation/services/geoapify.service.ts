@@ -224,14 +224,26 @@ export class GeoapifyService {
       ? `${props.housenumber}, ${props.street ?? ''}`
       : (props.street ?? '');
 
-    // Prefer the most granular locality available.
-    // Geoapify hierarchy: name → suburb → district → city → county → state
-    // For small towns (e.g. Messadine within M'saken delegation, Sousse governorate):
-    //   name="Messadine", district="Msaken", city="Sousse", state="Sousse"
-    // Without this chain, users see the broad administrative region instead of their locality.
+    // Prefer the most granular settlement-level name available.
+    // `name` is only trusted when result_type indicates a settlement (city/suburb/village/etc).
+    // For street or building result_types, `name` is the street/building name — skip it.
+    const SETTLEMENT_TYPES = new Set([
+      'city',
+      'suburb',
+      'village',
+      'hamlet',
+      'locality',
+      'district',
+      'county',
+      'state',
+      'region',
+      'postcode',
+    ]);
+    const nameIsSettlement = !props.result_type || SETTLEMENT_TYPES.has(props.result_type);
+
     const city =
       props.suburb ??
-      props.name ??
+      (nameIsSettlement ? props.name : undefined) ??
       props.district ??
       props.city ??
       props.county ??

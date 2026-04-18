@@ -184,9 +184,6 @@ export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose }
 
   const causeType = stats?.causeType;
   const cause = causeType ? (CAUSE_CONFIG[causeType] ?? DEFAULT_CAUSE) : DEFAULT_CAUSE;
-  const title = stats?.causeTitle ?? cause.defaultTitle;
-  const story = stats?.causeDescription ?? cause.defaultStory;
-
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
@@ -271,26 +268,6 @@ export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose }
                 {' — covering pharmacy costs for elderly men and women who cannot afford treatment'}
               </Text>
             </View>
-          </View>
-
-          {/* Divider */}
-          <View style={styles.divider} />
-
-          {/* Current active cause card */}
-          <Text style={styles.sectionLabel}>Current cause</Text>
-          <View
-            style={[
-              styles.causeCard,
-              { borderLeftColor: cause.accentColor, backgroundColor: cause.bgColor },
-            ]}
-          >
-            <View style={styles.causeCardHeader}>
-              <Text style={styles.causeCardEmoji}>{cause.emoji}</Text>
-              <Text style={[styles.causeCardTitle, { color: cause.accentColor }]} numberOfLines={2}>
-                {title}
-              </Text>
-            </View>
-            <Text style={styles.causeStory}>{story}</Text>
           </View>
 
           {/* Community progress */}
@@ -464,33 +441,6 @@ const styles = StyleSheet.create({
   destinationBold: {
     fontWeight: '700',
     color: '#1F2937',
-  },
-  // Current cause card
-  causeCard: {
-    borderLeftWidth: 4,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-  },
-  causeCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    gap: 8,
-  },
-  causeCardEmoji: {
-    fontSize: 20,
-  },
-  causeCardTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    flex: 1,
-    lineHeight: 22,
-  },
-  causeStory: {
-    fontSize: 13,
-    color: '#374151',
-    lineHeight: 21,
   },
   // Progress
   progressSection: {
