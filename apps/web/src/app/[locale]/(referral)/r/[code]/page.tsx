@@ -14,7 +14,7 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
   const { code, locale } = await params;
 
   const consumerAppLink = `toofreshtowaste://register?referralCode=${code}`;
-  const businessSignupLink = `/${locale}/business-signup?ref=${code}`;
+  const businessSignupLink = `/${locale}/merchant-signup?ref=${code}`;
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-center px-4 py-12'>
