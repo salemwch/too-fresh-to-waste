@@ -1,10 +1,10 @@
 /**
  * CharityDonationBottomSheet
- * Explains the 5% charity mechanism and displays the current live community cause.
- * Designed to create genuine emotional connection — users should feel their purchase matters.
+ * Explains our 5% charity programme — from the app's revenue, not the user's pocket.
+ * Informative, warm, and emotionally resonant without being manipulative.
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Modal,
   View,
@@ -24,6 +24,12 @@ import { colorTokens } from '@/design-system/tokens/colors';
 
 import { useCommunityBagGoal } from '../hooks/useCommunityBagGoal';
 
+// ─── Animation constants ──────────────────────────────────────────────────────
+
+const OPEN_DURATION = 320;
+const CLOSE_DURATION = 260;
+const SHEET_START_Y = 700; // large enough to start below any screen
+
 // ─── Cause config ─────────────────────────────────────────────────────────────
 
 interface CauseConfig {
@@ -39,25 +45,25 @@ const CAUSE_CONFIG: Record<CommunityGoalCauseType, CauseConfig> = {
     emoji: '🍞',
     accentColor: '#E65100',
     bgColor: '#FFF3E0',
-    defaultTitle: 'Feeding Families in Need',
+    defaultTitle: 'Food for Families in Need',
     defaultStory:
-      "Every night, families across Tunisia go to bed unsure about tomorrow's meal. Children fall asleep hungry — not because there isn't enough food in the world, but because it never reached them. Your bag changes that.",
+      'Every day, families across Tunisia struggle to put a meal on the table — not because food does not exist, but because it never reached them. Our donations go directly to food banks and local organisations that distribute meals to those who need them most.',
   },
   [CommunityGoalCauseType.CLOTHING]: {
     emoji: '👕',
     accentColor: '#1565C0',
     bgColor: '#E3F2FD',
-    defaultTitle: 'Warmth for Those Who Have None',
+    defaultTitle: 'Clothes for Children',
     defaultStory:
-      'As temperatures drop, thousands of people in Tunisia face the cold without a warm jacket. A child walks to school shivering. An elderly woman wraps herself in a thin blanket. One bag saved means one person kept warm.',
+      'Thousands of children in Tunisia head to school wearing clothes that are worn out or too thin for the cold. Our donations fund the purchase and distribution of clothing to children whose families cannot afford them.',
   },
   [CommunityGoalCauseType.EDUCATION]: {
     emoji: '📚',
     accentColor: '#6A1B9A',
     bgColor: '#F3E5F5',
-    defaultTitle: 'Every Child Deserves to Learn',
+    defaultTitle: 'Education for Every Child',
     defaultStory:
-      "Somewhere right now, a bright child is unable to go to school because their family can't afford notebooks or fees. Education is the one gift that no one can take away — and together, we're giving it.",
+      "Some families in Tunisia cannot afford school supplies, uniforms, or registration fees — and so their children stay home. Our donations cover those costs so that a child's future is never decided by their family's income.",
   },
   [CommunityGoalCauseType.MEDICINE]: {
     emoji: '💊',
@@ -65,7 +71,7 @@ const CAUSE_CONFIG: Record<CommunityGoalCauseType, CauseConfig> = {
     bgColor: '#FFEBEE',
     defaultTitle: 'Medicine for Our Elders',
     defaultStory:
-      "Our grandparents built everything we have. Now some of them are forced to choose between food and medicine. With every bag you save, you're making sure an elder gets the treatment they deserve.",
+      "Many elderly men and women in Tunisia — our grandparents' generation — are forced to choose between food and medicine. Our donations go directly to pharmacies and health organisations to cover the cost of essential medication for those who cannot afford it.",
   },
 };
 
@@ -75,64 +81,24 @@ const DEFAULT_CAUSE: CauseConfig = {
   bgColor: '#E0F2F1',
   defaultTitle: 'Supporting Our Community',
   defaultStory:
-    'Every bag you save is more than just food rescued from waste — it is a small act of kindness that ripples outward. Together, we are building a Tunisia where no one is left behind.',
+    "Our donations support a rotating set of causes chosen based on the community's most urgent needs — food, clothing, education, and healthcare for those who cannot afford them.",
 };
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Step row ─────────────────────────────────────────────────────────────────
 
-const PulsingEmoji = ({ emoji, color }: { emoji: string; color: string }) => {
-  const scale = useRef(new Animated.Value(1)).current;
-  const glow = useRef(new Animated.Value(0.6)).current;
-
-  useEffect(() => {
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.parallel([
-          Animated.timing(scale, {
-            toValue: 1.12,
-            duration: 900,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(glow, {
-            toValue: 1,
-            duration: 900,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.timing(scale, {
-            toValue: 1,
-            duration: 900,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(glow, {
-            toValue: 0.6,
-            duration: 900,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-        ]),
-      ]),
-    );
-    pulse.start();
-    return () => pulse.stop();
-  }, [scale, glow]);
-
-  return (
-    <View style={styles.emojiWrapper}>
-      <Animated.View
-        style={[
-          styles.emojiGlow,
-          { backgroundColor: color, opacity: glow, transform: [{ scale }] },
-        ]}
-      />
-      <Animated.Text style={[styles.emoji, { transform: [{ scale }] }]}>{emoji}</Animated.Text>
+const Step = ({ emoji, label, isLast }: { emoji: string; label: string; isLast: boolean }) => (
+  <View style={styles.stepRow}>
+    <View style={styles.step}>
+      <Text style={styles.stepEmoji}>{emoji}</Text>
+      <Text style={styles.stepLabel} numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.75}>
+        {label}
+      </Text>
     </View>
-  );
-};
+    {!isLast && <Text style={styles.stepArrow}>›</Text>}
+  </View>
+);
+
+// ─── Progress bar ─────────────────────────────────────────────────────────────
 
 const ProgressBar = ({ percentage }: { percentage: number }) => {
   const width = useRef(new Animated.Value(0)).current;
@@ -164,137 +130,196 @@ const ProgressBar = ({ percentage }: { percentage: number }) => {
   );
 };
 
-// ─── Step item — responsive, wraps gracefully on small screens ────────────────
-
-const HowItWorksStep = ({
-  emoji,
-  label,
-  isLast,
-}: {
-  emoji: string;
-  label: string;
-  isLast: boolean;
-}) => (
-  <View style={styles.stepRow}>
-    <View style={styles.step}>
-      <Text style={styles.stepEmoji}>{emoji}</Text>
-      <Text style={styles.stepLabel} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8}>
-        {label}
-      </Text>
-    </View>
-    {!isLast && <Text style={styles.stepArrow}>›</Text>}
-  </View>
-);
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 interface Props {
   visible: boolean;
   onClose: () => void;
-  onCtaPress?: () => void;
 }
 
-export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose, onCtaPress }) => {
+export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose }) => {
   const insets = useSafeAreaInsets();
   const { data: stats } = useCommunityBagGoal();
+
+  // Keep Modal mounted until close animation fully finishes
+  const [isModalMounted, setIsModalMounted] = useState(false);
+
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const sheetTranslateY = useRef(new Animated.Value(SHEET_START_Y)).current;
+
+  useEffect(() => {
+    if (visible) {
+      setIsModalMounted(true);
+      Animated.parallel([
+        Animated.timing(overlayOpacity, {
+          toValue: 1,
+          duration: OPEN_DURATION,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(sheetTranslateY, {
+          toValue: 0,
+          duration: OPEN_DURATION,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(overlayOpacity, {
+          toValue: 0,
+          duration: CLOSE_DURATION,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(sheetTranslateY, {
+          toValue: SHEET_START_Y,
+          duration: CLOSE_DURATION,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start(() => setIsModalMounted(false));
+    }
+  }, [visible, overlayOpacity, sheetTranslateY]);
 
   const causeType = stats?.causeType;
   const cause = causeType ? (CAUSE_CONFIG[causeType] ?? DEFAULT_CAUSE) : DEFAULT_CAUSE;
   const title = stats?.causeTitle ?? cause.defaultTitle;
   const story = stats?.causeDescription ?? cause.defaultStory;
 
-  const handleCta = useCallback(() => {
+  const handleClose = useCallback(() => {
     onClose();
-    onCtaPress?.();
-  }, [onClose, onCtaPress]);
+  }, [onClose]);
+
+  if (!isModalMounted) return null;
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType='slide'
-      onRequestClose={onClose}
-      statusBarTranslucent
-    >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + 24 }]} onPress={() => {}}>
-          {/* Handle */}
-          <View style={styles.handle} />
+    <Modal visible transparent animationType='none' onRequestClose={handleClose}>
+      {/* Overlay — fades in/out smoothly, no hard edge */}
+      <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
+      </Animated.View>
 
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-            bounces={false}
+      {/* Sheet — slides up from below */}
+      <Animated.View
+        style={[
+          styles.sheet,
+          { paddingBottom: insets.bottom + 24, transform: [{ translateY: sheetTranslateY }] },
+        ]}
+        pointerEvents='box-none'
+      >
+        {/* Handle */}
+        <View style={styles.handle} />
+
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          bounces={false}
+        >
+          {/* Cause icon — static, no animation */}
+          <View style={[styles.causeIconBadge, { backgroundColor: cause.bgColor }]}>
+            <Text style={styles.causeIconEmoji}>{cause.emoji}</Text>
+          </View>
+
+          {/* Main headline */}
+          <Text style={styles.headline}>We give back — at no cost to you</Text>
+          <Text style={styles.subline}>
+            5% of our app's revenue goes to people who need it most. You always pay the same price.
+          </Text>
+
+          {/* Divider */}
+          <View style={styles.divider} />
+
+          {/* How it works */}
+          <Text style={styles.sectionLabel}>How it works</Text>
+          <View style={styles.stepsContainer}>
+            <Step emoji='🛍' label={'You buy a\nsurprise bag'} isLast={false} />
+            <Step emoji='💚' label={'We donate\n5% of our cut'} isLast={false} />
+            <Step emoji='🤲' label={'It reaches\npeople in need'} isLast />
+          </View>
+
+          {/* What the money funds */}
+          <View style={styles.divider} />
+          <Text style={styles.sectionLabel}>Where your impact goes</Text>
+
+          <View style={styles.destinationsList}>
+            <View style={styles.destinationRow}>
+              <Text style={styles.destinationEmoji}>🍞</Text>
+              <Text style={styles.destinationText}>
+                <Text style={styles.destinationBold}>Meals for families</Text>
+                {' — food for households that cannot afford to eat every day'}
+              </Text>
+            </View>
+            <View style={styles.destinationRow}>
+              <Text style={styles.destinationEmoji}>👕</Text>
+              <Text style={styles.destinationText}>
+                <Text style={styles.destinationBold}>Clothes for children</Text>
+                {' — uniforms and warm clothing for kids whose parents cannot cover the cost'}
+              </Text>
+            </View>
+            <View style={styles.destinationRow}>
+              <Text style={styles.destinationEmoji}>📚</Text>
+              <Text style={styles.destinationText}>
+                <Text style={styles.destinationBold}>School for every child</Text>
+                {' — supplies, fees, and uniforms so no child misses school because of money'}
+              </Text>
+            </View>
+            <View style={styles.destinationRow}>
+              <Text style={styles.destinationEmoji}>💊</Text>
+              <Text style={styles.destinationText}>
+                <Text style={styles.destinationBold}>Medicine for elders</Text>
+                {' — covering pharmacy costs for elderly men and women who cannot afford treatment'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Divider */}
+          <View style={styles.divider} />
+
+          {/* Current active cause card */}
+          <Text style={styles.sectionLabel}>Current cause</Text>
+          <View
+            style={[
+              styles.causeCard,
+              { borderLeftColor: cause.accentColor, backgroundColor: cause.bgColor },
+            ]}
           >
-            {/* Animated cause icon */}
-            <PulsingEmoji emoji={cause.emoji} color={cause.accentColor} />
-
-            {/* Emotional hook */}
-            <Text style={styles.hookLine}>Every bag you save{'\n'}changes a life.</Text>
-            <Text style={styles.subHook}>While you save money, someone somewhere finds hope.</Text>
-
-            {/* Divider */}
-            <View style={styles.divider} />
-
-            {/* How it works */}
-            <Text style={styles.sectionLabel}>Here's how it works</Text>
-            <View style={styles.stepsContainer}>
-              <HowItWorksStep emoji='🛍' label='You save a bag' isLast={false} />
-              <HowItWorksStep emoji='💚' label='5% goes to our charity pool' isLast={false} />
-              <HowItWorksStep emoji='🤲' label='Real people are helped' isLast />
+            <View style={styles.causeCardHeader}>
+              <Text style={styles.causeCardEmoji}>{cause.emoji}</Text>
+              <Text style={[styles.causeCardTitle, { color: cause.accentColor }]} numberOfLines={2}>
+                {title}
+              </Text>
             </View>
+            <Text style={styles.causeStory}>{story}</Text>
+          </View>
 
-            {/* Divider */}
-            <View style={styles.divider} />
-
-            {/* Live cause card */}
-            <View
-              style={[
-                styles.causeCard,
-                { borderLeftColor: cause.accentColor, backgroundColor: cause.bgColor },
-              ]}
-            >
-              <View style={styles.causeCardHeader}>
-                <Text style={styles.causeEmoji}>{cause.emoji}</Text>
-                <Text
-                  style={[styles.causeCardTitle, { color: cause.accentColor }]}
-                  numberOfLines={2}
-                >
-                  {title}
+          {/* Community progress */}
+          {stats != null && (
+            <View style={styles.progressSection}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressLabel}>Community progress</Text>
+                <Text style={styles.progressFraction}>
+                  {stats.currentCount.toLocaleString()} / {stats.targetCount.toLocaleString()} bags
                 </Text>
               </View>
-              <Text style={styles.causeStory}>{story}</Text>
+              <ProgressBar percentage={stats.progressPercentage} />
+              <Text style={styles.progressCaption}>
+                {stats.remaining.toLocaleString()} more bags until the next cause is fully funded
+              </Text>
             </View>
+          )}
 
-            {/* Community progress */}
-            {stats != null && (
-              <View style={styles.progressSection}>
-                <View style={styles.progressHeader}>
-                  <Text style={styles.progressLabel}>Community Progress</Text>
-                  <Text style={styles.progressFraction}>
-                    {stats.currentCount.toLocaleString()} / {stats.targetCount.toLocaleString()}{' '}
-                    bags
-                  </Text>
-                </View>
-                <ProgressBar percentage={stats.progressPercentage} />
-                <Text style={styles.progressCaption}>
-                  {stats.remaining.toLocaleString()} more bags until we fund the next cause
-                </Text>
-              </View>
-            )}
-
-            {/* CTA */}
-            <Pressable
-              style={[styles.cta, { backgroundColor: colorTokens.base.primary[500] }]}
-              onPress={handleCta}
-              accessibilityRole='button'
-              accessibilityLabel='Start saving bags'
-            >
-              <Text style={styles.ctaText}>Start Saving Bags 🛍</Text>
-            </Pressable>
-          </ScrollView>
-        </Pressable>
-      </Pressable>
+          {/* Close */}
+          <Pressable
+            style={[styles.closeButton, { backgroundColor: colorTokens.base.primary[500] }]}
+            onPress={handleClose}
+            accessibilityRole='button'
+            accessibilityLabel='Close'
+          >
+            <Text style={styles.closeButtonText}>Got it</Text>
+          </Pressable>
+        </ScrollView>
+      </Animated.View>
     </Modal>
   );
 };
@@ -303,11 +328,14 @@ export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose, 
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
   },
   sheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -335,37 +363,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 16,
   },
-  // Emoji
-  emojiWrapper: {
+  // Cause icon badge — static, no animation
+  causeIconBadge: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 96,
     marginBottom: 16,
   },
-  emojiGlow: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  causeIconEmoji: {
+    fontSize: 36,
   },
-  emoji: {
-    fontSize: 52,
-    lineHeight: 64,
-  },
-  // Hook
-  hookLine: {
-    fontSize: 24,
+  // Headline
+  headline: {
+    fontSize: 22,
     fontWeight: '700',
     color: '#1F2937',
     textAlign: 'center',
-    lineHeight: 32,
+    lineHeight: 30,
     marginBottom: 8,
   },
-  subHook: {
+  subline: {
     fontSize: 14,
     color: '#6B7280',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 21,
     marginBottom: 20,
   },
   divider: {
@@ -373,22 +397,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     marginBottom: 20,
   },
-  // How it works
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: '#9CA3AF',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: 14,
     textAlign: 'center',
   },
+  // How it works steps
   stepsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'flex-start',
     marginBottom: 20,
-    flexWrap: 'nowrap',
   },
   stepRow: {
     flexDirection: 'row',
@@ -397,11 +420,11 @@ const styles = StyleSheet.create({
   },
   step: {
     alignItems: 'center',
-    maxWidth: 88,
+    maxWidth: 82,
     flexShrink: 1,
   },
   stepEmoji: {
-    fontSize: 26,
+    fontSize: 24,
     marginBottom: 6,
   },
   stepLabel: {
@@ -411,12 +434,38 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
   stepArrow: {
-    fontSize: 22,
+    fontSize: 20,
     color: '#D1D5DB',
     marginHorizontal: 4,
-    marginBottom: 18,
+    marginBottom: 16,
   },
-  // Cause card
+  // Destinations list
+  destinationsList: {
+    gap: 12,
+    marginBottom: 20,
+  },
+  destinationRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  destinationEmoji: {
+    fontSize: 18,
+    lineHeight: 24,
+    width: 24,
+    textAlign: 'center',
+  },
+  destinationText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#374151',
+    lineHeight: 20,
+  },
+  destinationBold: {
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  // Current cause card
   causeCard: {
     borderLeftWidth: 4,
     borderRadius: 12,
@@ -429,19 +478,19 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     gap: 8,
   },
-  causeEmoji: {
+  causeCardEmoji: {
     fontSize: 20,
   },
   causeCardTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     flex: 1,
     lineHeight: 22,
   },
   causeStory: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#374151',
-    lineHeight: 22,
+    lineHeight: 21,
   },
   // Progress
   progressSection: {
@@ -479,16 +528,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
-  // CTA
-  cta: {
+  // Close button
+  closeButton: {
     borderRadius: 14,
-    paddingVertical: 16,
+    paddingVertical: 15,
     alignItems: 'center',
     marginBottom: 4,
   },
-  ctaText: {
+  closeButtonText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#FFFFFF',
   },
 });
