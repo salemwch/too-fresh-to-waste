@@ -30,12 +30,16 @@ import { UserRole } from '../types';
 
 import type { RegisterRequest, RegisterResponse } from '../types';
 import type { RegisterScreenNavigationProp } from '@/navigation/types';
+import type { RouteProp } from '@react-navigation/native';
+import type { AuthStackParamList } from '@/navigation/types';
 
 interface RegisterScreenProps {
   navigation: RegisterScreenNavigationProp;
+  route: RouteProp<AuthStackParamList, 'Register'>;
 }
 
-export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
+export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, route }) => {
+  const referralCode = route.params?.referralCode;
   const theme = useTheme();
   const dispatch = useAppDispatch();
 
@@ -135,6 +139,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           firstName: formData.firstName.trim(),
           lastName: formData.lastName.trim(),
           role: UserRole.CONSUMER,
+          ...(referralCode ? { referralCode } : {}),
         };
 
         const dispatchResult = await dispatch(registerAsync(registerData));

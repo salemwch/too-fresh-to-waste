@@ -39,7 +39,12 @@ export const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
         screens: {
           Welcome: 'welcome',
           Login: 'login',
-          Register: 'register',
+          Register: {
+            path: 'register',
+            parse: {
+              referralCode: (referralCode: string) => referralCode,
+            },
+          },
           ForgotPassword: 'forgot-password',
           ResetPassword: {
             // Backend redirects password-reset emails to /reset-password?token=...

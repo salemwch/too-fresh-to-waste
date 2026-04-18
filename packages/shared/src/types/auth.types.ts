@@ -32,6 +32,7 @@ export interface RegisterRequest {
   password: string;
   phoneNumber?: string;
   role?: UserRole;
+  referralCode?: string;
   businessInfo?: BusinessInfo;
   privacyConsents?: {
     dataProcessingConsent: boolean;

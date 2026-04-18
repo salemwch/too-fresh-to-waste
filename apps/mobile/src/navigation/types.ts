@@ -27,7 +27,7 @@ export interface RootNavigatorParamList extends Record<string, object | undefine
 export interface AuthStackParamList extends Record<string, object | undefined> {
   Welcome: undefined;
   Login: undefined;
-  Register: undefined;
+  Register: { referralCode?: string } | undefined;
   ForgotPassword: undefined;
   ResetPassword: { email: string; token: string };
   // email is optional: Universal Link magic links carry only the token.

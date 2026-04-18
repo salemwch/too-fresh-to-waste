@@ -13,7 +13,7 @@ interface ReferralPageProps {
 export default async function ReferralPage({ params }: ReferralPageProps) {
   const { code, locale } = await params;
 
-  const consumerAppLink = `toofreshtowaste://register?referralCode=${code}`;
+  const consumerAppLink = `foodwaste://register?referralCode=${code}`;
   const businessSignupLink = `/${locale}/merchant-signup?ref=${code}`;
 
   return (
