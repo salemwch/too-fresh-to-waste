@@ -220,12 +220,72 @@ class LocalLocationService {
   }
 
   /**
+   * Reverse-geocode coordinates using the local JSON.
+   *
+   * Finds the delegation whose representative point is closest to the given
+   * coordinates and returns the human-readable locality name extracted from
+   * the delegation's Name field:
+   *
+   *   "MSAKEN (Messadine)"        → "Messadine"
+   *   "LA MARSA (Cite Essalama)"  → "Cite Essalama"
+   *   "TUNIS"                     → "Tunis"
+   *
+   * Returns null if no delegation is found within maxRadiusKm (the caller
+   * should then fall back to Geoapify).
+   *
+   * @param lat - Latitude of the GPS fix
+   * @param lng - Longitude of the GPS fix
+   * @param maxRadiusKm - Maximum search radius in km (default: 50)
+   */
+  findNearestLocalityName(lat: number, lng: number, maxRadiusKm: number = 50): string | null {
+    if (!this.isInitialized) return null;
+
+    let nearest: SearchableLocation | null = null;
+    let nearestDistanceM = Infinity;
+
+    for (const loc of this.searchableLocations) {
+      const distM = this.haversineDistance(
+        lat,
+        lng,
+        loc.delegation.Latitude,
+        loc.delegation.Longitude,
+      );
+      if (distM < nearestDistanceM) {
+        nearestDistanceM = distM;
+        nearest = loc;
+      }
+    }
+
+    if (!nearest || nearestDistanceM > maxRadiusKm * 1000) return null;
+
+    // Extract the parenthetical locality: "MSAKEN (Messadine)" → "Messadine"
+    const parenthetical = nearest.delegation.Name.match(/\(([^)]+)\)/)?.[1];
+    if (parenthetical) return parenthetical;
+
+    // No parenthetical — title-case the main delegation name
+    return nearest.delegation.Name.split(' ')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  /**
    * Check if service is initialized
    *
    * @returns True if initialized
    */
   isReady(): boolean {
     return this.isInitialized;
+  }
+
+  /** Haversine distance between two points, returns metres. */
+  private haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6_371_000;
+    const φ1 = (lat1 * Math.PI) / 180;
+    const φ2 = (lat2 * Math.PI) / 180;
+    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+    const Δλ = ((lng2 - lng1) * Math.PI) / 180;
+    const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 }
 

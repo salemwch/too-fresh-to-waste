@@ -424,6 +424,23 @@ export const reverseGeocodeAsync = createAsyncThunk<
     const roundedCoords = roundCoordinates(coordinates);
     Logger.debug('Reverse geocoding with rounded coordinates', { roundedCoords });
 
+    // ────────────────────────────────────────────────────────────────────────
+    // LOCAL JSON LOOKUP — try before the backend call.
+    // Geoapify has data gaps for small Tunisian communes (returns amenity-level
+    // names or empty city fields). The bundled tunisian-cities.json is
+    // authoritative for our market and avoids a network round-trip entirely.
+    // "MSAKEN (Messadine)" → extracts "Messadine" as the display label.
+    // ────────────────────────────────────────────────────────────────────────
+    const { localLocationService } = await import('@/services/location/LocalLocationService');
+    const localName = localLocationService.findNearestLocalityName(
+      roundedCoords.latitude,
+      roundedCoords.longitude,
+    );
+    if (localName) {
+      Logger.info('Reverse geocoding resolved via local JSON', { localName });
+      return { city: localName, country: 'Tunisia' };
+    }
+
     // ✅ Pass Redux signal to API call for proper cancellation
     const geocodePromise = nearbyOffersService.reverseGeocode(
       roundedCoords,
