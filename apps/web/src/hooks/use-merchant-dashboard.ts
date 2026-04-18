@@ -14,6 +14,10 @@ import type {
   CreateSurpriseBagPayload,
   ReactivateOfferPayload,
   DonationStats,
+  EsgTierResponse,
+  MonthlyGoalResponse,
+  CarbonMetricsResponse,
+  SocialImpactResponse,
 } from '@/types/dashboard';
 
 // ─── Query keys (central, predictable) ─────────────────────────────────────
@@ -37,6 +41,12 @@ export const dashboardKeys = {
   revenueChart: (granularity: ChartGranularity, value: number) =>
     [...dashboardKeys.all, 'revenue-chart', granularity, value] as const,
   myEstablishment: () => [...dashboardKeys.all, 'my-establishment'] as const,
+  esgTier: () => [...dashboardKeys.all, 'esg-tier'] as const,
+  monthlyGoal: () => [...dashboardKeys.all, 'monthly-goal'] as const,
+  carbonMetrics: (since?: string) =>
+    [...dashboardKeys.all, 'carbon-metrics', since ?? 'all'] as const,
+  socialImpact: (since?: string) =>
+    [...dashboardKeys.all, 'social-impact', since ?? 'all'] as const,
 };
 
 // ─── Result types ───────────────────────────────────────────────────────────
@@ -282,6 +292,63 @@ export function useOrderDetail(orderId: string | null) {
     },
     enabled: !!orderId,
     staleTime: 30 * 1000,
+  });
+}
+
+// ─── Sustainability hooks ────────────────────────────────────────────────────
+
+export function useEsgTier() {
+  return useQuery({
+    queryKey: dashboardKeys.esgTier(),
+    queryFn: async (): Promise<EsgTierResponse> => {
+      const response = await dashboardService.getEsgTier();
+      return response.data.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useMonthlyGoal() {
+  return useQuery({
+    queryKey: dashboardKeys.monthlyGoal(),
+    queryFn: async (): Promise<MonthlyGoalResponse> => {
+      const response = await dashboardService.getMonthlyGoal();
+      return response.data.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useUpdateMonthlyGoal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (targetBagsPerMonth: number) =>
+      dashboardService.updateMonthlyGoal(targetBagsPerMonth),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: dashboardKeys.monthlyGoal() });
+    },
+  });
+}
+
+export function useCarbonMetrics(since?: string) {
+  return useQuery({
+    queryKey: dashboardKeys.carbonMetrics(since),
+    queryFn: async (): Promise<CarbonMetricsResponse> => {
+      const response = await dashboardService.getCarbonMetrics(since);
+      return response.data.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useSocialImpact(since?: string) {
+  return useQuery({
+    queryKey: dashboardKeys.socialImpact(since),
+    queryFn: async (): Promise<SocialImpactResponse> => {
+      const response = await dashboardService.getSocialImpact(since);
+      return response.data.data;
+    },
+    staleTime: 5 * 60 * 1000,
   });
 }
 

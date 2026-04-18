@@ -80,6 +80,7 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        gold: '#D4A017',
         // Keep legacy utility colors
         success: '#2E7D32',
         error: '#D32F2F',
@@ -137,6 +138,8 @@ const config: Config = {
         'teal-sm': '0 2px 12px rgba(0, 82, 80, 0.06)',
         'teal-form': '0 8px 40px rgba(0, 82, 80, 0.12)',
         soft: '0 30px 60px -30px rgba(30, 68, 72, 0.25)',
+        elegant: '0 24px 60px -24px rgba(30, 68, 72, 0.25)',
+        'glow-coral': '0 0 0 1px rgba(255, 121, 115, 0.4), 0 0 24px -4px rgba(255, 121, 115, 0.55)',
         coral: '0 20px 50px -20px rgba(255, 121, 115, 0.5)',
         xs: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
         sm: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',

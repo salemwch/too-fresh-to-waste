@@ -4,6 +4,7 @@ import {
   Tag,
   ShoppingBag,
   PieChart,
+  Leaf,
   Users,
   Building2,
   Shield,
@@ -50,6 +51,18 @@ export const merchantNavItems: NavItem[] = [
     titleKey: 'analytics',
     href: '/merchant/analytics',
     icon: PieChart,
+    roles: [UserRole.MERCHANT],
+  },
+  {
+    titleKey: 'esg',
+    href: '/merchant/esg',
+    icon: Leaf,
+    roles: [UserRole.MERCHANT],
+  },
+  {
+    titleKey: 'community',
+    href: '/merchant/community',
+    icon: Users,
     roles: [UserRole.MERCHANT],
   },
   {

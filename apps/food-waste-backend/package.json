@@ -84,6 +84,7 @@
     "cookie": "0.7.2",
     "cookie-parser": "^1.4.7",
     "csv-writer": "^1.6.0",
+    "pdf-lib": "1.17.1",
     "express": "^4.19.2",
     "express-rate-limit": "^7.4.1",
     "firebase-admin": "^13.5.0",

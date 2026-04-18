@@ -15,6 +15,10 @@ import type {
   ReactivateOfferPayload,
   DonationStats,
   CommunityBagGoalStats,
+  EsgTierResponse,
+  MonthlyGoalResponse,
+  CarbonMetricsResponse,
+  SocialImpactResponse,
 } from '@/types/dashboard';
 
 const ORDERS_BASE = '/orders';
@@ -23,6 +27,7 @@ const ANALYTICS_BASE = '/analytics';
 const ESTABLISHMENTS_BASE = '/establishments';
 const DONATIONS_BASE = '/donations';
 const COMMUNITY_GOAL_BASE = '/community-goal';
+const SUSTAINABILITY_BASE = '/sustainability';
 
 export const dashboardService = {
   /**
@@ -205,5 +210,44 @@ export const dashboardService = {
    */
   getCommunityGoalStats() {
     return apiClient.get<BackendEnvelope<CommunityBagGoalStats>>(`${COMMUNITY_GOAL_BASE}/stats`);
+  },
+
+  // ── Sustainability ─────────────────────────────────────────────────────
+
+  getEsgTier() {
+    return apiClient.get<BackendEnvelope<EsgTierResponse>>(`${SUSTAINABILITY_BASE}/tier`);
+  },
+
+  getMonthlyGoal() {
+    return apiClient.get<BackendEnvelope<MonthlyGoalResponse>>(
+      `${SUSTAINABILITY_BASE}/monthly-goal`,
+    );
+  },
+
+  updateMonthlyGoal(targetBagsPerMonth: number) {
+    return apiClient.patch<BackendEnvelope<MonthlyGoalResponse>>(
+      `${SUSTAINABILITY_BASE}/monthly-goal`,
+      { targetBagsPerMonth },
+    );
+  },
+
+  getCarbonMetrics(since?: string) {
+    return apiClient.get<BackendEnvelope<CarbonMetricsResponse>>(
+      `${SUSTAINABILITY_BASE}/carbon-metrics`,
+      { params: since ? { since } : undefined },
+    );
+  },
+
+  getSocialImpact(since?: string) {
+    return apiClient.get<BackendEnvelope<SocialImpactResponse>>(
+      `${SUSTAINABILITY_BASE}/social-impact`,
+      { params: since ? { since } : undefined },
+    );
+  },
+
+  downloadCarbonBalanceReport() {
+    return apiClient.get(`${SUSTAINABILITY_BASE}/reports/carbon-balance`, {
+      responseType: 'blob',
+    });
   },
 };

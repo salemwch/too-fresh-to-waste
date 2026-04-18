@@ -38,3 +38,5 @@ Sentry.init({
     'SecurityError: The operation is insecure',
   ],
 });
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

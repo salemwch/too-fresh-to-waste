@@ -184,4 +184,25 @@
   .bg-gradient-teal-r {
     background: linear-gradient(to right, #005250, #007a78);
   }
+
+  /* ── New merchant dashboard design system ── */
+  .glass {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+  }
+
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #1e4448, #2a5e63);
+  }
+
+  .bg-gradient-coral {
+    background: linear-gradient(135deg, #ff7973, #ff5e56);
+  }
+
+  /* Dashboard cream background */
+  .bg-dashboard {
+    background-color: #f9f3f0;
+  }
 }

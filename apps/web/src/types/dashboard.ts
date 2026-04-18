@@ -421,3 +421,54 @@ export interface CommunityBagGoalStats {
   status: CommunityGoalStatus;
   lastUpdatedAt: string;
 }
+
+// ─── Sustainability ──────────────────────────────────────────────────────────
+
+export interface EsgTierInfo {
+  name: string;
+  label: string;
+  badge: string | null;
+  threshold: number;
+  reached: boolean;
+}
+
+export interface EsgTierResponse {
+  currentTier: string;
+  currentLabel: string;
+  currentBadge: string | null;
+  bagsSaved: number;
+  ringProgress: number;
+  nextTier: string | null;
+  nextMilestoneAt: number | null;
+  remaining: number | null;
+  allTiers: EsgTierInfo[];
+}
+
+export interface MonthlyGoalResponse {
+  targetBagsPerMonth: number;
+  currentMonthBags: number;
+  progressPercentage: number;
+  month: string;
+  treesEquivalent: number;
+}
+
+export interface CarbonMetricsResponse {
+  bagsSaved: number;
+  foodWeightKg: number;
+  carbonKgAvoided: number;
+  waterLitersAvoided: number;
+  packagingKgSaved: number;
+  energyKwhSaved: number;
+  carKmEquivalent: number;
+  treesEquivalent: number;
+  periodLabel: string;
+}
+
+export interface SocialImpactResponse {
+  bagsSaved: number;
+  mealsDistributed: number;
+  peopleServedEstimate: number;
+  foodWeightKg: number;
+  estimatedValueTnd: number;
+  periodLabel: string;
+}
