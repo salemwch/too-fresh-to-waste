@@ -95,16 +95,25 @@ export class GeoapifyService {
     try {
       this.logger.debug(`Reverse geocode: lat=${lat}, lng=${lng}, lang=${language}`);
 
-      const response = await this.axiosInstance.get<GeoapifyResponse>('/reverse', {
-        params: {
-          lat,
-          lon: lng,
-          lang: language,
-          apiKey: this.apiKey,
-        },
-      });
+      const baseParams = { lat, lon: lng, lang: language, apiKey: this.apiKey };
 
-      const features = response.data?.features ?? [];
+      // Run the default call (street-level for full address) and a suburb-level call
+      // (municipality name) in parallel to avoid serial latency.
+      // The suburb call resolves small municipalities like "Messadine" that a
+      // street-level result never surfaces — it only returns the delegation ("Msaken").
+      const [defaultResult, suburbResult] = await Promise.allSettled([
+        this.axiosInstance.get<GeoapifyResponse>('/reverse', { params: baseParams }),
+        this.axiosInstance.get<GeoapifyResponse>('/reverse', {
+          params: { ...baseParams, type: 'suburb' },
+        }),
+      ]);
+
+      if (defaultResult.status === 'rejected') {
+        this.handleError(defaultResult.reason, 'reverseGeocode');
+        throw new HttpException('Reverse geocoding failed', HttpStatus.BAD_GATEWAY);
+      }
+
+      const features = defaultResult.value.data?.features ?? [];
 
       if (features.length === 0) {
         this.logger.warn(`No results for reverse geocode: lat=${lat}, lng=${lng}`);
@@ -120,7 +129,6 @@ export class GeoapifyService {
         };
       }
 
-      // Log raw Geoapify fields for debugging locality resolution
       const primaryFeature = features[0];
       if (!primaryFeature) {
         return {
@@ -134,6 +142,7 @@ export class GeoapifyService {
           },
         };
       }
+
       const primary = primaryFeature.properties;
       this.logger.debug(
         `Geoapify raw fields: name=${primary.name}, suburb=${primary.suburb}, ` +
@@ -149,6 +158,18 @@ export class GeoapifyService {
         country: '',
         formattedAddress: '',
       };
+
+      // Override locality with the suburb-level result when available.
+      // For a GPS fix on a street in a small municipality (e.g. Messadine inside
+      // Msaken delegation), the default result returns district="Msaken" and a
+      // street name in `name`. The suburb call returns the municipality boundary
+      // itself with name="Messadine" — exactly what users expect to see.
+      const suburbFeature =
+        suburbResult.status === 'fulfilled' ? suburbResult.value.data?.features?.[0] : undefined;
+      if (suburbFeature?.properties.name) {
+        primaryAddress.city = suburbFeature.properties.name;
+        this.logger.debug(`Locality resolved via suburb result: ${primaryAddress.city}`);
+      }
 
       this.logger.log(
         `Reverse geocode completed: ${primaryAddress.city}, ${primaryAddress.country}`,
