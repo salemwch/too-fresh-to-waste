@@ -24,7 +24,6 @@ import {
   Input,
   Label,
   Separator,
-  Badge,
 } from '@foodwaste/ui';
 import { Textarea } from '@/components/ui/textarea';
 import { ConfirmActionDialog } from '@/components/dashboard/admin/confirm-action-dialog';
