@@ -27,7 +27,7 @@ export function CampaignSidePanel({
     const total = offer.totalQuantity ?? 0;
     const available = offer.availableQuantity ?? 0;
     const sold = total - available;
-    return { id: offer.id ?? offer._id, name: offer.title, saved: sold, total };
+    return { id: offer.id, name: offer.title, saved: sold, total };
   });
 
   return (

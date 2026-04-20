@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Snowflake, Trophy, AlertTriangle, Plus } from 'lucide-react';
+import { Snowflake, Trophy, AlertTriangle, Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useStreakData } from '@/hooks/use-merchant-dashboard';
 
