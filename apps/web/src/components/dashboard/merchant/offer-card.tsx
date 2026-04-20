@@ -90,7 +90,7 @@ export function OfferCard({
 
   // ── Shared button styles ────────────────────────────────────────────────
   const btn =
-    'inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed';
+    'inline-flex items-center gap-1.5 h-6 px-3 rounded-full text-[11px] font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed';
   const prim = 'bg-primary text-white hover:opacity-90 active:scale-[0.97]';
   const sec =
     'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-[0.97]';
@@ -255,9 +255,7 @@ export function OfferCard({
         <div className='flex-1 min-w-0'>
           {/* Row 1 — Title + status badge */}
           <div className='flex items-start justify-between gap-2 min-w-0'>
-            <p className='text-[13px] font-bold text-slate-900 leading-tight truncate'>
-              {offer.title}
-            </p>
+            <p className='text-sm font-bold text-slate-900 leading-tight truncate'>{offer.title}</p>
             <span
               className={cn(
                 'shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border',
@@ -270,46 +268,46 @@ export function OfferCard({
           </div>
 
           {/* Row 2 — Type · pickup */}
-          <p className='text-[11px] text-slate-500 mt-0.5 truncate'>
+          <p className='text-xs text-slate-500 mt-0.5 truncate'>
             {TYPE_LABELS[offer.type] ?? offer.type}
             {pickup && <> &middot; {pickup}</>}
           </p>
 
-          {/* Row 3 — Pricing */}
+          {/* Row 3 — Pricing + bags left */}
           <div className='flex items-center gap-2 mt-1.5 flex-wrap'>
-            <span className='text-[13px] font-bold text-slate-900 tabular-nums'>
+            <span className='font-display font-bold text-sm text-white bg-primary-500 px-2.5 py-0.5 rounded-full tabular-nums'>
               {fmt(offer.pricing.discountedPrice)}
             </span>
-            <span className='text-[11px] text-slate-400 line-through tabular-nums'>
+            <span className='text-xs text-slate-400 line-through tabular-nums'>
               {fmt(offer.pricing.originalPrice)}
             </span>
-            <span className='text-[11px] font-semibold text-primary'>
-              {offer.pricing.discountPercentage}% off
+            <span className='px-2 py-0.5 rounded-full bg-primary-500/10 text-[11px] font-bold text-primary-500 border border-primary-500/20'>
+              -{offer.pricing.discountPercentage}%
             </span>
+            {offer.soldQuantity != null && offer.totalQuantity != null ? (
+              <span className='text-xs text-slate-500 tabular-nums'>
+                📦 {offer.soldQuantity}/{offer.totalQuantity} sold
+              </span>
+            ) : (
+              <span className='text-xs text-slate-500 tabular-nums'>
+                📦 {offer.availableQuantity} bag{offer.availableQuantity !== 1 ? 's' : ''} left
+              </span>
+            )}
             {offer.ctaState === 'low_stock' && (
-              <span className='px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200'>
+              <span className='px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200'>
                 Low Stock
               </span>
             )}
           </div>
 
-          {/* Row 4 — Revenue · sales */}
-          <div className='flex items-center gap-4 mt-1.5 flex-wrap'>
-            {revenue !== null && (
-              <span className='text-[11px] font-semibold text-emerald-700 tabular-nums'>
+          {/* Row 4 — Revenue */}
+          {revenue !== null && (
+            <div className='mt-1'>
+              <span className='text-xs font-semibold text-emerald-700 tabular-nums'>
                 💰 {fmt(revenue)} earned
               </span>
-            )}
-            {offer.soldQuantity != null && offer.totalQuantity != null ? (
-              <span className='text-[11px] text-slate-500 tabular-nums'>
-                📦 {offer.soldQuantity} / {offer.totalQuantity} sold
-              </span>
-            ) : (
-              <span className='text-[11px] text-slate-500 tabular-nums'>
-                📦 {offer.availableQuantity} bag{offer.availableQuantity !== 1 ? 's' : ''} left
-              </span>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Progress bar — only when we have exact numbers */}
           {soldPct !== null && (
@@ -349,7 +347,7 @@ export function OfferCard({
                 setConfirmDelete(false);
                 onDelete();
               }}
-              className='inline-flex items-center h-7 px-3 rounded-md text-[11px] font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors'
+              className='inline-flex items-center h-6 px-3 rounded-full text-[11px] font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors'
             >
               Yes, delete
             </button>
@@ -377,7 +375,7 @@ export function OfferCard({
                 setConfirmCancel(false);
                 onCancelOffer();
               }}
-              className='inline-flex items-center h-7 px-3 rounded-md text-[11px] font-semibold bg-amber-600 text-white hover:bg-amber-700 transition-colors'
+              className='inline-flex items-center h-6 px-3 rounded-full text-[11px] font-semibold bg-amber-600 text-white hover:bg-amber-700 transition-colors'
             >
               Stop sales
             </button>

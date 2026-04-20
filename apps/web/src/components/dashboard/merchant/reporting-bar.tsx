@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { FileText, Download, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import { dashboardService } from '@/services/dashboard.service';
 
 export function ReportingBar() {
+  const t = useTranslations('dashboard.reportingBar');
   const [loading, setLoading] = useState(false);
 
   async function handleGenerate() {
@@ -17,12 +19,12 @@ export function ReportingBar() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `bilan-carbone-${new Date().toISOString().split('T')[0]}.pdf`;
+      a.download = `carbon-report-${new Date().toISOString().split('T')[0]}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success('Rapport PDF téléchargé avec succès.');
+      toast.success(t('toastSuccess'));
     } catch {
-      toast.error('Erreur lors de la génération du rapport. Veuillez réessayer.');
+      toast.error(t('toastError'));
     } finally {
       setLoading(false);
     }
@@ -35,12 +37,8 @@ export function ReportingBar() {
           <FileText size={20} />
         </div>
         <div className='min-w-0'>
-          <div className='font-display text-lg text-primary-500 leading-tight'>
-            Besoin de votre Bilan Carbone&nbsp;?
-          </div>
-          <p className='text-xs text-primary-500/65 mt-1'>
-            Rapport PDF formaté pour votre audit ISO&nbsp;14001 · données impact 2026 incluses.
-          </p>
+          <div className='font-display text-lg text-primary-500 leading-tight'>{t('title')}</div>
+          <p className='text-xs text-primary-500/65 mt-1'>{t('description')}</p>
         </div>
       </div>
       <button
@@ -49,7 +47,7 @@ export function ReportingBar() {
         className='inline-flex items-center gap-2 px-[20px] py-3 rounded-full bg-primary-500 text-white text-sm font-medium hover:opacity-90 transition shadow-soft shrink-0 disabled:opacity-60'
       >
         {loading ? <Loader2 size={16} className='animate-spin' /> : <Download size={16} />}
-        {loading ? 'Génération…' : 'Générer le rapport 2026'}
+        {loading ? t('generating') : t('generateButton')}
       </button>
     </div>
   );

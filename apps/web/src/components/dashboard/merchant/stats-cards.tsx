@@ -126,7 +126,7 @@ export function StatsCards({ stats, onCardClick }: StatsCardsProps) {
             {/* Top row: value + icon */}
             <div className='flex justify-between items-start mb-2'>
               <div>
-                <h3 className='text-xl font-semibold tracking-tight text-slate-900'>
+                <h3 className='font-display text-xl font-semibold tracking-tight text-slate-900'>
                   {stat.value}
                 </h3>
                 <p className='text-sm text-slate-500 font-medium mt-0.5'>{stat.label}</p>

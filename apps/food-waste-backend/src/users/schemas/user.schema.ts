@@ -157,6 +157,24 @@ export class User {
   lastLoginAt?: Date;
   @Prop({ type: String, default: null })
   profileImage!: string;
+
+  /** null = choice not yet made, true = anonymous, false = show real name */
+  @Prop({ type: Boolean, default: null })
+  leaderboardAnonymous!: boolean | null;
+
+  @Prop({ type: Number, default: 0 })
+  listingStreak!: number;
+
+  @Prop({ type: Number, default: 0 })
+  longestStreak!: number;
+
+  /** YYYY-MM-DD in Africa/Tunis timezone — last calendar day an offer was created */
+  @Prop({ type: String, default: null })
+  lastListedDate!: string | null;
+
+  @Prop({ type: Number, default: 0 })
+  streakFreezeCount!: number;
+
   // Mongoose timestamps automatically adds these fields
   createdAt?: Date;
   updatedAt?: Date;

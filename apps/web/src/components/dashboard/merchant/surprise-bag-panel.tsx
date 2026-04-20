@@ -460,7 +460,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
         {/* ── Header ── */}
         <div className='flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0'>
           <div>
-            <h2 className='text-[15px] font-bold tracking-tight text-slate-900'>
+            <h2 className='font-display text-[15px] font-bold tracking-tight text-slate-900'>
               Publish Today&apos;s Surplus
             </h2>
             <p className='text-[11px] text-slate-400 mt-0.5 leading-none'>

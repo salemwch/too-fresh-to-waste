@@ -539,7 +539,7 @@ export default function MerchantOrdersPage() {
       {/* Page header */}
       <div className='shrink-0 flex items-center justify-between pb-4'>
         <div>
-          <h1 className='text-lg font-bold tracking-tight text-foreground flex items-center gap-2'>
+          <h1 className='font-display text-lg font-bold tracking-tight text-foreground flex items-center gap-2'>
             {t('title')}
             {/* Live indicator */}
             <span className='inline-flex items-center gap-1 text-[10px] font-medium text-green-600 bg-green-50 border border-green-200 rounded-full px-2 py-0.5'>

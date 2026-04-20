@@ -11,6 +11,7 @@ import {
   TrendChartSkeleton,
   CampaignSidePanel,
   ReportingBar,
+  StreakWidget,
 } from '@/components/dashboard/merchant';
 import { useOrderStats, useRevenueChart, useMyEstablishment } from '@/hooks/use-merchant-dashboard';
 import { type DatePreset, PRESET_CONFIG } from '@/types/dashboard';
@@ -49,6 +50,9 @@ export default function MerchantDashboardPage() {
 
       {/* ── Welcome header: greeting + ESG badge + goal progress ── */}
       <DashboardWelcomeHeader establishment={myEstablishmentQuery.data} />
+
+      {/* ── Daily listing streak ── */}
+      <StreakWidget onListOffer={() => setPanelOpen(true)} />
 
       {/* ── Impact KPI cards ── */}
       {orderStatsQuery.isLoading ? (

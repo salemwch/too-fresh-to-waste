@@ -573,7 +573,8 @@
       "merchant": "Marchand",
       "admin": "Admin",
       "profile": "Profil",
-      "security": "Sécurité"
+      "security": "Sécurité",
+      "leaderboard": "Classement"
     },
     "stats": {
       "activeOffers": "Offres actives",
@@ -1091,6 +1092,9 @@
       "cuisineTypes": "Types de cuisine",
       "cuisineTypesHint": "Appuyez sur Entrée ou virgule pour ajouter",
       "businessHours": "Horaires d'ouverture",
+      "openingHours": "Horaires d'ouverture",
+      "openingHoursHint": "Vos clients verront votre établissement uniquement pendant ces horaires",
+      "applyToAll": "Appliquer à tous",
       "closed": "Fermé",
       "open": "Ouverture",
       "close": "Fermeture",
@@ -1116,8 +1120,10 @@
       "docInsurance": "Document d'assurance",
       "docTaxCertificate": "Certificat fiscal",
       "docOwnerId": "Pièce d'identité du propriétaire",
-      "uploadDoc": "Télécharger PDF",
+      "uploadDoc": "Télécharger",
       "uploadingDoc": "Téléchargement...",
+      "replaceDoc": "Remplacer",
+      "awaitingUpload": "En attente de téléchargement",
       "deleteDoc": "Supprimer",
       "deletingDoc": "Suppression...",
       "docVerified": "Vérifié",
@@ -1179,6 +1185,7 @@
     },
     "merchantOffers": {
       "title": "Offres",
+      "manageLabel": "Gérer Vos Offres",
       "description": "Gérez et suivez toutes vos offres alimentaires",
       "newOffer": "Nouvelle Offre",
       "tabAll": "Toutes",
@@ -1223,6 +1230,72 @@
       "cancel": "Annuler",
       "reactivating": "Réactivation…",
       "reactivate": "Réactiver"
+    },
+    "impactCards": {
+      "revenue": {
+        "title": "Revenus Sauvés",
+        "unit": "TND",
+        "delta": "+{rate}% taux complétion",
+        "note": "La durabilité est rentable. Vos revenus de sauvetage cette période."
+      },
+      "carbon": {
+        "title": "Impact Carbone (Scope 3)",
+        "unit": "kg CO₂",
+        "delta": "évités cette période",
+        "note": "Équivalent à {km} km parcourus en voiture."
+      },
+      "social": {
+        "title": "Impact Social",
+        "unit": "repas",
+        "delta": "distribués",
+        "note": "~{people} personnes nourries ce mois-ci."
+      }
+    },
+    "greeting": "Félicitations, {name}.",
+    "impactStatement": "Votre impact aujourd'hui est équivalent à {trees} arbres plantés.",
+    "trendChart": {
+      "subtitle": "Tendance hebdomadaire",
+      "title": "Ressources Préservées",
+      "periods": {
+        "7d": "7J",
+        "30d": "30J",
+        "12m": "Année"
+      },
+      "bagsUnit": "paniers",
+      "peakLabel": "★ Performance maximale !",
+      "noData": "Aucune donnée disponible"
+    },
+    "reportingBar": {
+      "title": "Besoin de votre Bilan Carbone ?",
+      "description": "Rapport PDF formaté pour votre audit ISO 14001 · données impact 2026 incluses.",
+      "generateButton": "Générer le rapport 2026",
+      "generating": "Génération…",
+      "toastSuccess": "Rapport PDF téléchargé avec succès.",
+      "toastError": "Erreur lors de la génération du rapport. Veuillez réessayer."
+    },
+    "streak": {
+      "days": "j. de suite",
+      "record": "Record",
+      "listedToday": "✓ Offre publiée aujourd'hui",
+      "startStreak": "Publiez une offre pour démarrer",
+      "notListedYet": "Publiez une offre pour maintenir",
+      "freezes": "Gels",
+      "inDays": "dans {n} j.",
+      "best": "Meilleur",
+      "listNow": "Publier",
+      "listToday": "Publier aujourd'hui",
+      "nextFreeze": "Prochain gel"
+    },
+    "campaign": {
+      "quickAction": "Action rapide",
+      "launchCampaign": "Créer une Nouvelle Offre",
+      "activeCampaigns": "Campagnes actives",
+      "inProgress": "{count} en cours",
+      "none": "Aucune",
+      "noCampaigns": "Lancez votre première campagne de sauvetage.",
+      "nextTier": "Prochain palier",
+      "nextTierText": "Plus que {remaining} paniers avant le statut Légende.",
+      "nextTierReward": "Vous débloquerez un rapport ESG annuel certifié et la mise en avant prioritaire."
     }
   },
   "merchantSignup": {

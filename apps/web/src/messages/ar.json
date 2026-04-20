@@ -573,7 +573,8 @@
       "merchant": "التاجر",
       "admin": "المسؤول",
       "profile": "الملف الشخصي",
-      "security": "الأمان"
+      "security": "الأمان",
+      "leaderboard": "لوحة المتصدرين"
     },
     "stats": {
       "activeOffers": "العروض النشطة",
@@ -1091,6 +1092,9 @@
       "cuisineTypes": "أنواع المطبخ",
       "cuisineTypesHint": "اضغط Enter أو فاصلة للإضافة",
       "businessHours": "ساعات العمل",
+      "openingHours": "أوقات الفتح",
+      "openingHoursHint": "سيرى العملاء مكانك فقط خلال هذه الأوقات",
+      "applyToAll": "تطبيق على الكل",
       "closed": "مغلق",
       "open": "الفتح",
       "close": "الإغلاق",
@@ -1116,8 +1120,10 @@
       "docInsurance": "وثيقة التأمين",
       "docTaxCertificate": "شهادة ضريبية",
       "docOwnerId": "وثيقة هوية المالك",
-      "uploadDoc": "رفع PDF",
+      "uploadDoc": "رفع",
       "uploadingDoc": "جاري الرفع...",
+      "replaceDoc": "استبدال",
+      "awaitingUpload": "في انتظار الرفع",
       "deleteDoc": "حذف",
       "deletingDoc": "جاري الحذف...",
       "docVerified": "تم التحقق",
@@ -1179,6 +1185,7 @@
     },
     "merchantOffers": {
       "title": "العروض",
+      "manageLabel": "إدارة عروضك",
       "description": "إدارة وتتبع جميع عروضك الغذائية",
       "newOffer": "عرض جديد",
       "tabAll": "الكل",
@@ -1223,6 +1230,72 @@
       "cancel": "إلغاء",
       "reactivating": "جارٍ إعادة التفعيل…",
       "reactivate": "إعادة تفعيل"
+    },
+    "impactCards": {
+      "revenue": {
+        "title": "الإيرادات المحفوظة",
+        "unit": "TND",
+        "delta": "+{rate}% معدل الإتمام",
+        "note": "الاستدامة مربحة. إيرادات الإنقاذ خلال هذه الفترة."
+      },
+      "carbon": {
+        "title": "التأثير الكربوني (النطاق 3)",
+        "unit": "كغ CO₂",
+        "delta": "تم تجنبها هذه الفترة",
+        "note": "ما يعادل {km} كم بالسيارة."
+      },
+      "social": {
+        "title": "التأثير الاجتماعي",
+        "unit": "وجبة",
+        "delta": "موزعة",
+        "note": "~{people} شخص تمت خدمتهم هذا الشهر."
+      }
+    },
+    "greeting": "تهانينا، {name}.",
+    "impactStatement": "تأثيرك اليوم يعادل {trees} أشجار مزروعة.",
+    "trendChart": {
+      "subtitle": "الاتجاه الأسبوعي",
+      "title": "الموارد المحفوظة",
+      "periods": {
+        "7d": "7أ",
+        "30d": "30أ",
+        "12m": "سنة"
+      },
+      "bagsUnit": "أكياس",
+      "peakLabel": "★ أعلى أداء!",
+      "noData": "لا توجد بيانات"
+    },
+    "reportingBar": {
+      "title": "هل تحتاج تقرير الكربون؟",
+      "description": "تقرير PDF لتدقيق ISO 14001 · بيانات التأثير لعام 2026 مضمنة.",
+      "generateButton": "إنشاء تقرير 2026",
+      "generating": "جاري الإنشاء…",
+      "toastSuccess": "تم تنزيل تقرير PDF بنجاح.",
+      "toastError": "خطأ في إنشاء التقرير. يرجى المحاولة مرة أخرى."
+    },
+    "streak": {
+      "days": "يوم متواصل",
+      "record": "رقم قياسي",
+      "listedToday": "✓ تم النشر اليوم",
+      "startStreak": "انشر عرضاً لبدء سلسلتك",
+      "notListedYet": "انشر عرضاً للحفاظ على سلسلتك",
+      "freezes": "تجميدات",
+      "inDays": "بعد {n} أيام",
+      "best": "الأفضل",
+      "listNow": "انشر الآن",
+      "listToday": "انشر اليوم",
+      "nextFreeze": "التجميد القادم"
+    },
+    "campaign": {
+      "quickAction": "إجراء سريع",
+      "launchCampaign": "إنشاء عرض جديد",
+      "activeCampaigns": "الحملات النشطة",
+      "inProgress": "{count} جارية",
+      "none": "لا يوجد",
+      "noCampaigns": "أطلق حملة الإنقاذ الأولى.",
+      "nextTier": "المستوى التالي",
+      "nextTierText": "{remaining} كيس إضافي قبل مرتبة أسطورة.",
+      "nextTierReward": "ستفتح تقرير ESG سنوي معتمد وأولوية العرض."
     }
   },
   "merchantSignup": {

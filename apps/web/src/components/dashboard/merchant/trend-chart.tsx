@@ -9,6 +9,7 @@ import {
   YAxis,
   ReferenceDot,
 } from 'recharts';
+import { useTranslations } from 'next-intl';
 import type { RevenueChartItem, DatePreset } from '@/types/dashboard';
 
 interface TrendChartProps {
@@ -17,34 +18,30 @@ interface TrendChartProps {
   onDatePresetChange: (preset: DatePreset) => void;
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label, bagsUnit, peakLabel }: any) {
   if (!active || !payload?.length) return null;
   const v: number = payload[0].value;
-  const isRecord = v === Math.max(...(payload[0].payload ? [v] : [v]));
+  const dataArr: { v: number }[] = payload[0].payload ? [{ v }] : [{ v }];
+  const isRecord = v === Math.max(...dataArr.map((d: { v: number }) => d.v));
   return (
     <div className='glass rounded-xl px-[16px] py-3 shadow-elegant'>
       <div className='text-[10px] uppercase tracking-wider text-primary-500/60'>{label}</div>
-      <div className='font-display text-xl text-primary-500'>{v} paniers</div>
+      <div className='font-display text-xl text-primary-500'>
+        {v} {bagsUnit}
+      </div>
       {isRecord && v > 0 && (
-        <div className='mt-1 text-[11px] font-medium text-brand-coral'>
-          ★ Performance maximale !
-        </div>
+        <div className='mt-1 text-[11px] font-medium text-brand-coral'>{peakLabel}</div>
       )}
     </div>
   );
 }
 
-const RANGE_LABELS: { key: DatePreset; label: string }[] = [
-  { key: '7d', label: '7J' },
-  { key: '30d', label: '30J' },
-  { key: '12m', label: 'Année' },
-];
+const RANGE_KEYS: DatePreset[] = ['7d', '30d', '12m'];
 
 export function TrendChart({ data, datePreset, onDatePresetChange }: TrendChartProps) {
-  // Map RevenueChartItem → simple chart point
-  const chartData = data.map(item => ({ day: item.label, v: item.orderCount }));
+  const t = useTranslations('dashboard.trendChart');
 
-  // Find the peak data point for ReferenceDot
+  const chartData = data.map(item => ({ day: item.label, v: item.bagCount }));
   const peak = chartData.reduce(
     (max, d) => (d.v > max.v ? d : max),
     chartData[0] ?? { day: '', v: 0 },
@@ -55,12 +52,12 @@ export function TrendChart({ data, datePreset, onDatePresetChange }: TrendChartP
       <div className='flex items-start justify-between mb-[24px] flex-wrap gap-3'>
         <div>
           <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-1'>
-            Tendance hebdomadaire
+            {t('subtitle')}
           </div>
-          <h3 className='font-display text-2xl text-primary-500'>Ressources Préservées</h3>
+          <h3 className='font-display text-2xl text-primary-500'>{t('title')}</h3>
         </div>
         <div className='flex items-center gap-2 text-xs'>
-          {RANGE_LABELS.map(({ key, label }) => (
+          {RANGE_KEYS.map(key => (
             <button
               key={key}
               onClick={() => onDatePresetChange(key)}
@@ -70,7 +67,7 @@ export function TrendChart({ data, datePreset, onDatePresetChange }: TrendChartP
                   : 'text-primary-500/60 hover:text-primary-500'
               }`}
             >
-              {label}
+              {t(`periods.${key}`)}
             </button>
           ))}
         </div>
@@ -78,7 +75,7 @@ export function TrendChart({ data, datePreset, onDatePresetChange }: TrendChartP
 
       {chartData.length === 0 ? (
         <div className='h-64 flex items-center justify-center text-primary-500/40 text-sm'>
-          Aucune donnée disponible
+          {t('noData')}
         </div>
       ) : (
         <div className='h-64 -ml-2'>
@@ -98,7 +95,7 @@ export function TrendChart({ data, datePreset, onDatePresetChange }: TrendChartP
               />
               <YAxis hide />
               <Tooltip
-                content={<CustomTooltip />}
+                content={<CustomTooltip bagsUnit={t('bagsUnit')} peakLabel={t('peakLabel')} />}
                 cursor={{ stroke: 'rgba(30,68,72,0.2)', strokeDasharray: '4 4' }}
               />
               <Area

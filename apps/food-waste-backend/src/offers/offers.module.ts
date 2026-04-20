@@ -4,6 +4,7 @@ import { MulterModule } from '@nestjs/platform-express';
 
 import { CommonModule } from '../common/common.module';
 import { EstablishmentsModule } from '../establishments/establishments.module';
+import { SustainabilityModule } from '../sustainability/sustainability.module';
 
 import { AdminEstablishmentEventsListener } from './listeners/admin-establishment-events.listener';
 import { FavoriteEventsListener } from './listeners/favorite-events.listener';
@@ -18,6 +19,7 @@ import { Offer, OfferSchema } from './schemas/offer.schema';
   imports: [
     CommonModule,
     EstablishmentsModule, // For ownership + approval validation on offer creation
+    SustainabilityModule, // For StreakService — records listing streak on offer creation
     MongooseModule.forFeature([{ name: Offer.name, schema: OfferSchema }]),
     // ✅ MULTER CONFIGURATION: Handle file uploads with proper limits
     MulterModule.register({

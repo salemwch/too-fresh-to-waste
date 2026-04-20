@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dashboardService } from '@/services/dashboard.service';
+import { useAuthStore } from '@/lib/auth';
 import type {
   OrderStatsResponse,
   MerchantOrder,
@@ -18,6 +19,9 @@ import type {
   MonthlyGoalResponse,
   CarbonMetricsResponse,
   SocialImpactResponse,
+  LeaderboardEntry,
+  MerchantRankResponse,
+  StreakResponse,
 } from '@/types/dashboard';
 
 // ─── Query keys (central, predictable) ─────────────────────────────────────
@@ -47,6 +51,9 @@ export const dashboardKeys = {
     [...dashboardKeys.all, 'carbon-metrics', since ?? 'all'] as const,
   socialImpact: (since?: string) =>
     [...dashboardKeys.all, 'social-impact', since ?? 'all'] as const,
+  leaderboard: (limit: number) => [...dashboardKeys.all, 'leaderboard', limit] as const,
+  myRank: () => [...dashboardKeys.all, 'my-rank'] as const,
+  streak: () => [...dashboardKeys.all, 'streak'] as const,
 };
 
 // ─── Result types ───────────────────────────────────────────────────────────
@@ -363,6 +370,58 @@ export function useCancelOrder() {
       dashboardService.cancelOrder(orderId, reason),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: dashboardKeys.merchantOrders() });
+    },
+  });
+}
+
+export function useLeaderboard(limit = 50) {
+  return useQuery({
+    queryKey: dashboardKeys.leaderboard(limit),
+    queryFn: async (): Promise<LeaderboardEntry[]> => {
+      const response = await dashboardService.getLeaderboard(limit);
+      return response.data.data;
+    },
+    staleTime: 0, // always considered stale → refetch on every mount
+    gcTime: 0, // purge cache immediately on unmount → next visit always fresh
+  });
+}
+
+export function useMerchantRank() {
+  return useQuery({
+    queryKey: dashboardKeys.myRank(),
+    queryFn: async (): Promise<MerchantRankResponse> => {
+      const response = await dashboardService.getMyRank();
+      return response.data.data;
+    },
+    staleTime: 0,
+    gcTime: 0,
+  });
+}
+
+export function useStreakData() {
+  return useQuery({
+    queryKey: dashboardKeys.streak(),
+    queryFn: async (): Promise<StreakResponse> => {
+      const response = await dashboardService.getStreakData();
+      return response.data.data;
+    },
+    staleTime: 60 * 1000,
+    refetchInterval: 5 * 60 * 1000, // re-check every 5 min so streakAtRisk flag updates
+  });
+}
+
+export function useUpdateLeaderboardPreference() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (anonymous: boolean) => dashboardService.updateLeaderboardPreference(anonymous),
+    onSuccess: (_data, anonymous) => {
+      // Sync auth store with the server-confirmed value (not just optimistic)
+      const current = useAuthStore.getState().user;
+      if (current) {
+        useAuthStore.getState().setUser({ ...current, leaderboardAnonymous: anonymous });
+      }
+      void queryClient.invalidateQueries({ queryKey: dashboardKeys.myRank() });
+      void queryClient.invalidateQueries({ queryKey: dashboardKeys.leaderboard(50) });
     },
   });
 }

@@ -44,7 +44,7 @@ export default function MerchantSecurityPage() {
   return (
     <div className='max-w-md'>
       <div className='mb-5'>
-        <h1 className='text-lg font-semibold text-slate-900'>{t('title')}</h1>
+        <h1 className='font-display text-lg font-semibold text-slate-900'>{t('title')}</h1>
         <p className='text-xs text-slate-500 mt-0.5'>{t('description')}</p>
       </div>
 

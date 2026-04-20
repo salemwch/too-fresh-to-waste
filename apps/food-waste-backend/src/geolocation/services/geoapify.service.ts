@@ -27,6 +27,11 @@ interface GeoapifyFeatureProperties {
   country_code: string;
   state?: string;
   county?: string;
+  // Commune / municipality-level fields — Geoapify may return these for finer granularity
+  municipality?: string;
+  locality?: string;
+  village?: string;
+  town?: string;
   city?: string;
   district?: string;
   suburb?: string;
@@ -35,6 +40,8 @@ interface GeoapifyFeatureProperties {
   street?: string;
   housenumber?: string;
   formatted: string;
+  address_line1?: string;
+  address_line2?: string;
   lat: number;
   lon: number;
   result_type?: string;
@@ -44,6 +51,8 @@ interface GeoapifyFeatureProperties {
     confidence_city_level?: number;
     match_type?: string;
   };
+  // Allow any additional Geoapify fields we have not yet mapped
+  [key: string]: unknown;
 }
 
 interface GeoapifyFeature {
@@ -97,14 +106,18 @@ export class GeoapifyService {
 
       const baseParams = { lat, lon: lng, lang: language, apiKey: this.apiKey };
 
-      // Three parallel calls at different granularity levels (no serial latency).
-      //   default = street-level — full address details (street, postcode, formatted)
-      //   suburb  = municipality boundary — e.g. "Messadine" inside Msaken delegation
-      //   city    = city-level boundary — fallback when area is not modelled as a suburb
-      const [defaultResult, suburbResult, cityResult] = await Promise.allSettled([
+      // Four parallel calls at different granularity levels (no serial latency).
+      //   default  = most precise match (amenity / street / building) — full address data
+      //   suburb   = suburb / quarter boundary
+      //   district = commune / town boundary (e.g. "Messadine" under M'Saken delegation)
+      //   city     = city-level boundary — broadest fallback
+      const [defaultResult, suburbResult, districtResult, cityResult] = await Promise.allSettled([
         this.axiosInstance.get<GeoapifyResponse>('/reverse', { params: baseParams }),
         this.axiosInstance.get<GeoapifyResponse>('/reverse', {
           params: { ...baseParams, type: 'suburb' },
+        }),
+        this.axiosInstance.get<GeoapifyResponse>('/reverse', {
+          params: { ...baseParams, type: 'district' },
         }),
         this.axiosInstance.get<GeoapifyResponse>('/reverse', {
           params: { ...baseParams, type: 'city' },
@@ -136,31 +149,42 @@ export class GeoapifyService {
         };
       }
 
-      // Log every returned feature so the exact field where the municipality name
-      // lives is always visible in backend logs — essential for diagnosing locality mismatches.
+      // Log every feature with its complete raw JSON so no hidden field is missed.
       features.forEach((f, i) => {
-        const p = f.properties;
-        this.logger.debug(
-          `[geocode feature ${i}] result_type=${p.result_type ?? '—'} | ` +
-            `name=${p.name ?? '—'} | suburb=${p.suburb ?? '—'} | ` +
-            `district=${p.district ?? '—'} | city=${p.city ?? '—'} | ` +
-            `county=${p.county ?? '—'} | state=${p.state ?? '—'} | ` +
-            `formatted="${p.formatted}"`,
-        );
+        this.logger.debug(`[geocode feature ${i}] ${JSON.stringify(f.properties)}`);
       });
 
+      // Extract results for typed calls — only trust the name when the returned
+      // result_type actually matches what we requested (Geoapify silently upgrades
+      // to the nearest higher-level boundary when the requested type has no data).
       const suburbFeature =
         suburbResult.status === 'fulfilled' ? suburbResult.value.data?.features?.[0] : undefined;
+      const districtFeature =
+        districtResult.status === 'fulfilled'
+          ? districtResult.value.data?.features?.[0]
+          : undefined;
       const cityFeature =
         cityResult.status === 'fulfilled' ? cityResult.value.data?.features?.[0] : undefined;
 
+      const suburbName =
+        suburbFeature?.properties.result_type === 'suburb'
+          ? suburbFeature.properties.name
+          : undefined;
+      const districtName =
+        districtFeature?.properties.result_type === 'district'
+          ? districtFeature.properties.name
+          : undefined;
+      const cityName =
+        cityFeature?.properties.result_type === 'city' ? cityFeature.properties.name : undefined;
+
       this.logger.debug(
-        `[suburb-call] name=${suburbFeature?.properties.name ?? '—'} | ` +
-          `result_type=${suburbFeature?.properties.result_type ?? '—'}`,
+        `[suburb-call]   result_type=${suburbFeature?.properties.result_type ?? '—'} | name=${suburbFeature?.properties.name ?? '—'} | accepted=${suburbName ?? '✗'}`,
       );
       this.logger.debug(
-        `[city-call]   name=${cityFeature?.properties.name ?? '—'} | ` +
-          `result_type=${cityFeature?.properties.result_type ?? '—'}`,
+        `[district-call] result_type=${districtFeature?.properties.result_type ?? '—'} | name=${districtFeature?.properties.name ?? '—'} | accepted=${districtName ?? '✗'}`,
+      );
+      this.logger.debug(
+        `[city-call]     result_type=${cityFeature?.properties.result_type ?? '—'} | name=${cityFeature?.properties.name ?? '—'} | accepted=${cityName ?? '✗'}`,
       );
 
       const addresses = features.map(f => this.mapPropertiesToAddress(f.properties));
@@ -171,15 +195,31 @@ export class GeoapifyService {
         formattedAddress: '',
       };
 
-      // Locality resolution — four layers, most-specific first:
-      // 1. suburb-type result name  — finest granularity (e.g. "Messadine")
-      // 2. city-type result name    — city/commune boundary fallback
-      // 3. formatted string parse   — extract the token between street and delegation
-      // 4. existing field hierarchy — already set in primaryAddress (district → city → …)
+      // Locality resolution — five layers, most-specific first.
+      // Amenity names (mosques, schools, etc.) are deliberately excluded from all
+      // layers — they identify a POI, not the place the user is in.
+      //
+      // 1. suburb-type call name    — finest boundary (quarter / small commune)
+      // 2. district-type call name  — commune / town boundary (e.g. "Messadine")
+      // 3. city-type call name      — city boundary (validated: not silently upgraded)
+      // 4. commune fields in primary response: municipality → locality → village → town → suburb
+      // 5. formatted-string parse   — second token after skipping amenity/street name
+      // 6. county from primary      — delegation name (e.g. "M'Saken") — last resort
+      const primaryProps = primaryFeature.properties;
+      const communeFromPrimary =
+        primaryProps.municipality ??
+        primaryProps.locality ??
+        primaryProps.village ??
+        primaryProps.town ??
+        primaryProps.suburb;
+
       const localityOverride =
-        suburbFeature?.properties.name ??
-        cityFeature?.properties.name ??
-        this.extractLocalityFromFormatted(primaryFeature.properties);
+        suburbName ??
+        districtName ??
+        cityName ??
+        communeFromPrimary ??
+        this.extractLocalityFromFormatted(primaryProps) ??
+        primaryProps.county;
 
       if (localityOverride) {
         primaryAddress.city = localityOverride;
@@ -296,16 +336,18 @@ export class GeoapifyService {
   }
 
   /**
-   * Extract the locality (municipality/town) from Geoapify's `formatted` address string.
+   * Extract the locality name from Geoapify's `formatted` address string.
    *
-   * A street-level `formatted` value looks like:
-   *   "Rue de la Paix, Messadine, M'saken, Sousse Governorate, Tunisia"
+   * Examples:
+   *   amenity → "Sidi Joubrane, M'Saken, Tunisia"       → skip POI name → "M'Saken"
+   *   street  → "Rue X, Messadine, M'Saken, Sousse, TN" → skip street   → "Messadine"
+   *   suburb  → "Messadine, M'Saken, Tunisia"            → first token   → "Messadine"
    *
    * Strategy:
-   * 1. Split on ", " and strip trailing tokens that match the known country, state, county,
-   *    or look like a postcode (3–6 digits).
-   * 2. For street / building / amenity result_types skip the leading street component.
-   * 3. The next token is the municipality: "Messadine".
+   * 1. Split on ", " and remove the trailing country token and pure postcodes.
+   *    We intentionally keep county / state tokens so they can surface as fallback.
+   * 2. For amenity / street / building results skip the leading POI/street token.
+   * 3. Return the first remaining token.
    */
   private extractLocalityFromFormatted(props: GeoapifyFeatureProperties): string | undefined {
     if (!props.formatted) {
@@ -317,14 +359,12 @@ export class GeoapifyService {
       .map(p => p.trim())
       .filter(Boolean);
 
-    const stripValues = new Set(
-      [props.country, props.state, props.county].filter((v): v is string => Boolean(v)),
-    );
+    // Strip only the country name and bare postcodes — keep county / state so
+    // they surface as fallback tokens rather than leaving an empty array.
+    const stripped = parts.filter(p => p !== props.country && !/^\d{3,6}$/.test(p));
 
-    const stripped = parts.filter(p => !stripValues.has(p) && !/^\d{3,6}$/.test(p));
-
-    const isStreetLevel = ['street', 'building', 'amenity'].includes(props.result_type ?? '');
-    const candidates = isStreetLevel && stripped.length > 1 ? stripped.slice(1) : stripped;
+    const skipFirst = ['amenity', 'street', 'building'].includes(props.result_type ?? '');
+    const candidates = skipFirst && stripped.length > 1 ? stripped.slice(1) : stripped;
 
     return candidates[0] ?? undefined;
   }

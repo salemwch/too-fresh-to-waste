@@ -59,6 +59,9 @@ export interface SafeUserResponse {
   /** Profile image URL (optional) */
   profileImage?: string | null | undefined;
 
+  /** null = choice not yet made, true = anonymous, false = show real name */
+  leaderboardAnonymous?: boolean | null;
+
   /** Minimal privacy settings */
   privacySettings?: SafePrivacySettings | undefined;
 
@@ -106,6 +109,7 @@ export function mapToSafeUserResponse(userDoc: UserDocument): SafeUserResponse {
     isEmailVerified: userDoc.isEmailVerified,
     isPhoneVerified: userDoc.isPhoneVerified,
     profileImage: userDoc.profileImage,
+    leaderboardAnonymous: userDoc.leaderboardAnonymous ?? null,
     privacySettings: safePrivacySettings,
     createdAt: userDoc.createdAt ?? new Date(),
     updatedAt: userDoc.updatedAt ?? new Date(),

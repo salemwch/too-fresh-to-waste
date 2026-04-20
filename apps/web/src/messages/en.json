@@ -573,7 +573,8 @@
       "merchant": "Merchant",
       "admin": "Admin",
       "profile": "Profile",
-      "security": "Security"
+      "security": "Security",
+      "leaderboard": "Leaderboard"
     },
     "stats": {
       "activeOffers": "Active Offers",
@@ -1091,6 +1092,9 @@
       "cuisineTypes": "Cuisine Types",
       "cuisineTypesHint": "Press Enter or comma to add a tag",
       "businessHours": "Business Hours",
+      "openingHours": "Opening hours",
+      "openingHoursHint": "Customers will only see your venue during these times",
+      "applyToAll": "Apply to all",
       "closed": "Closed",
       "open": "Open",
       "close": "Close",
@@ -1116,8 +1120,10 @@
       "docInsurance": "Insurance Document",
       "docTaxCertificate": "Tax Certificate",
       "docOwnerId": "Owner ID Document",
-      "uploadDoc": "Upload PDF",
+      "uploadDoc": "Upload",
       "uploadingDoc": "Uploading...",
+      "replaceDoc": "Replace",
+      "awaitingUpload": "Awaiting upload",
       "deleteDoc": "Delete",
       "deletingDoc": "Deleting...",
       "docVerified": "Verified",
@@ -1179,6 +1185,7 @@
     },
     "merchantOffers": {
       "title": "Offers",
+      "manageLabel": "Manage Your Offers",
       "description": "Manage and track all your food offers",
       "newOffer": "New Offer",
       "tabAll": "All",
@@ -1223,6 +1230,72 @@
       "cancel": "Cancel",
       "reactivating": "Reactivating…",
       "reactivate": "Reactivate"
+    },
+    "impactCards": {
+      "revenue": {
+        "title": "Saved Revenue",
+        "unit": "TND",
+        "delta": "+{rate}% completion rate",
+        "note": "Sustainability is profitable. Your rescue revenue this period."
+      },
+      "carbon": {
+        "title": "Carbon Impact (Scope 3)",
+        "unit": "kg CO₂",
+        "delta": "avoided this period",
+        "note": "Equivalent to {km} km driven by car."
+      },
+      "social": {
+        "title": "Social Impact",
+        "unit": "meals",
+        "delta": "distributed",
+        "note": "~{people} people served this month."
+      }
+    },
+    "greeting": "Congratulations, {name}.",
+    "impactStatement": "Your impact today is equivalent to {trees} trees planted.",
+    "trendChart": {
+      "subtitle": "Weekly trend",
+      "title": "Resources Saved",
+      "periods": {
+        "7d": "7D",
+        "30d": "30D",
+        "12m": "Year"
+      },
+      "bagsUnit": "bags",
+      "peakLabel": "★ Peak performance!",
+      "noData": "No data available"
+    },
+    "reportingBar": {
+      "title": "Need your Carbon Report?",
+      "description": "PDF report formatted for your ISO 14001 audit · 2026 impact data included.",
+      "generateButton": "Generate 2026 Report",
+      "generating": "Generating…",
+      "toastSuccess": "PDF report downloaded successfully.",
+      "toastError": "Error generating the report. Please try again."
+    },
+    "streak": {
+      "days": "day streak",
+      "record": "Record",
+      "listedToday": "✓ Listed today — streak protected",
+      "startStreak": "List an offer to start your streak",
+      "notListedYet": "List an offer to keep your streak",
+      "freezes": "Freezes",
+      "inDays": "in {n} days",
+      "best": "Best",
+      "listNow": "List Now",
+      "listToday": "List Today",
+      "nextFreeze": "Next freeze"
+    },
+    "campaign": {
+      "quickAction": "Quick action",
+      "launchCampaign": "Create a New Offer",
+      "activeCampaigns": "Active campaigns",
+      "inProgress": "{count} in progress",
+      "none": "None",
+      "noCampaigns": "Launch your first rescue campaign.",
+      "nextTier": "Next milestone",
+      "nextTierText": "{remaining} more bags to reach Legendary status.",
+      "nextTierReward": "You will unlock a certified annual ESG report and priority listing."
     }
   },
   "merchantSignup": {

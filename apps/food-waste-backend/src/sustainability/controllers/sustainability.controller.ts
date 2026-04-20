@@ -26,8 +26,10 @@ import type {
   EsgTierResponse,
   MonthlyGoalResponse,
   SocialImpactResponse,
+  StreakResponse,
 } from '../dto/sustainability.dto';
 import { PdfReportService } from '../services/pdf-report.service';
+import { StreakService } from '../services/streak.service';
 import { SustainabilityService } from '../services/sustainability.service';
 
 @ApiTags('Sustainability')
@@ -41,6 +43,7 @@ export class SustainabilityController {
   constructor(
     private readonly sustainabilityService: SustainabilityService,
     private readonly pdfReportService: PdfReportService,
+    private readonly streakService: StreakService,
   ) {}
 
   @Get('tier')
@@ -106,6 +109,16 @@ export class SustainabilityController {
     const startDate = since ? new Date(since) : undefined;
     const data = await this.sustainabilityService.getSocialImpact(req.user.userId, startDate);
     return { message: 'Social impact retrieved successfully', data };
+  }
+
+  @Get('streak')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get merchant daily listing streak data' })
+  async getStreak(
+    @Request() req: AuthenticatedRequest,
+  ): Promise<{ message: string; data: StreakResponse }> {
+    const data = await this.streakService.getStreakData(req.user.userId);
+    return { message: 'Streak data retrieved successfully', data };
   }
 
   @Get('reports/carbon-balance')

@@ -6,7 +6,17 @@ import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/lib/auth';
 import { userService } from '@/services/user.service';
 import { Input, Button, Label } from '@foodwaste/ui';
-import { User, Mail, Phone, Camera, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import {
+  User,
+  Mail,
+  Phone,
+  Camera,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  Trophy,
+} from 'lucide-react';
+import { useUpdateLeaderboardPreference } from '@/hooks/use-merchant-dashboard';
 
 const ACCEPTED_IMAGE_TYPES = 'image/jpeg,image/png,image/webp';
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -22,6 +32,23 @@ export default function MerchantProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  const updateLeaderboardPref = useUpdateLeaderboardPreference();
+  const isPublicOnLeaderboard = user?.leaderboardAnonymous === false;
+  const [leaderboardToggleError, setLeaderboardToggleError] = useState(false);
+
+  async function handleLeaderboardToggle() {
+    if (!user || updateLeaderboardPref.isPending) return;
+    setLeaderboardToggleError(false);
+    const newAnonymous = isPublicOnLeaderboard; // currently public → make anonymous, and vice versa
+    setUser({ ...user, leaderboardAnonymous: newAnonymous });
+    try {
+      await updateLeaderboardPref.mutateAsync(newAnonymous);
+    } catch {
+      setUser({ ...user, leaderboardAnonymous: !newAnonymous });
+      setLeaderboardToggleError(true);
+    }
+  }
 
   // ── Avatar state ──────────────────────────────────────────────────────────
   const [isUploading, setIsUploading] = useState(false);
@@ -90,7 +117,7 @@ export default function MerchantProfilePage() {
   return (
     <div className='max-w-md'>
       <div className='mb-5'>
-        <h1 className='text-lg font-semibold text-slate-900'>{t('title')}</h1>
+        <h1 className='font-display text-lg font-semibold text-slate-900'>{t('title')}</h1>
         <p className='text-xs text-slate-500 mt-0.5'>{t('description')}</p>
       </div>
 
@@ -259,6 +286,48 @@ export default function MerchantProfilePage() {
           {isLoading ? t('saving') : t('saveChanges')}
         </Button>
       </form>
+
+      {/* ── Leaderboard preference ─────────────────────────────────────────── */}
+      <div className='mt-6 pt-5 border-t border-slate-100'>
+        <div className='flex items-center gap-2 mb-3'>
+          <Trophy className='h-3.5 w-3.5 text-slate-400' />
+          <span className='text-xs font-medium text-slate-700'>Leaderboard</span>
+        </div>
+        <button
+          type='button'
+          onClick={handleLeaderboardToggle}
+          disabled={user?.leaderboardAnonymous === null || user?.leaderboardAnonymous === undefined}
+          className='w-full flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-left hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+        >
+          <div>
+            <div className='text-xs font-medium text-slate-800'>Show my real name and photo</div>
+            <div className='text-[11px] text-slate-400 mt-0.5'>
+              Appears in the merchant rankings leaderboard
+            </div>
+          </div>
+          <div
+            className={`relative h-[24px] w-[42px] rounded-full transition-colors duration-200 shrink-0 ${
+              isPublicOnLeaderboard ? 'bg-primary-500' : 'bg-slate-200'
+            }`}
+          >
+            <div
+              className={`absolute top-[4px] left-[4px] h-[16px] w-[16px] rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                isPublicOnLeaderboard ? 'translate-x-[18px]' : 'translate-x-0'
+              }`}
+            />
+          </div>
+        </button>
+        {(user?.leaderboardAnonymous === null || user?.leaderboardAnonymous === undefined) && (
+          <p className='mt-1.5 text-[11px] text-slate-400'>
+            Visit the Leaderboard page to set your initial preference.
+          </p>
+        )}
+        {leaderboardToggleError && (
+          <p className='mt-1.5 text-[11px] text-red-500'>
+            Failed to save preference. Please try again.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

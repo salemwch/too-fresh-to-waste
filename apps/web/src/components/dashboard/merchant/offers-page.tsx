@@ -10,6 +10,12 @@ import {
   AlertTriangle,
   Package,
   RefreshCw,
+  Sparkles,
+  FilePen,
+  PackageOpen,
+  CalendarX2,
+  Ban,
+  LayoutGrid,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@foodwaste/ui';
@@ -95,14 +101,25 @@ function toISO(day: 'today' | 'tomorrow', time: string, overflow = false): strin
 interface StatChipProps {
   label: string;
   count: number;
-  color: string;
+  bg: string;
+  text: string;
+  iconColor: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
-function StatChip({ label, count, color }: StatChipProps) {
+function StatChip({ label, count, bg, text, iconColor, icon: Icon }: StatChipProps) {
   return (
-    <div className={cn('flex-1 min-w-[80px] rounded-xl border px-4 py-3 text-center', color)}>
-      <p className='text-lg font-bold tabular-nums'>{count}</p>
-      <p className='text-[11px] font-medium mt-0.5 opacity-80'>{label}</p>
+    <div
+      className={cn('flex-1 min-w-[100px] rounded-2xl px-4 py-3 flex flex-col justify-between', bg)}
+      style={{ minHeight: 72 }}
+    >
+      <div className='flex items-start justify-between gap-2'>
+        <span className={cn('font-display text-3xl font-bold leading-none tabular-nums', text)}>
+          {count}
+        </span>
+        <Icon className={cn('h-4 w-4 mt-0.5 shrink-0', iconColor)} />
+      </div>
+      <span className={cn('text-xs font-medium mt-2 block', text)}>{label}</span>
     </div>
   );
 }
@@ -507,10 +524,13 @@ export function MerchantOffersView() {
         {/* ── Page header ──────────────────────────────────────────────────── */}
         <div className='flex items-center justify-between gap-4 flex-wrap'>
           <div>
-            <h1 className='text-lg font-bold tracking-tight text-slate-900'>
+            <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-[12px] font-medium text-red-400 mb-2'>
+              <Sparkles className='h-3 w-3' />
+              {t('merchantOffers.manageLabel')}
+            </span>
+            <h1 className='font-display text-4xl font-bold tracking-tight text-primary-500'>
               {t('merchantOffers.title')}
             </h1>
-            <p className='text-sm text-slate-500 mt-0.5'>{t('merchantOffers.description')}</p>
           </div>
           <button
             type='button'
@@ -538,51 +558,67 @@ export function MerchantOffersView() {
         {/* ── Stats chips ───────────────────────────────────────────────────── */}
         <div className='flex gap-3 flex-wrap'>
           <StatChip
+            icon={Sparkles}
             label={t('merchantOffers.tabActive')}
             count={activeCount}
-            color='border-emerald-200 bg-emerald-50  text-emerald-700'
+            bg='bg-[#c8e6df]'
+            text='text-primary-500'
+            iconColor='text-primary-500/50'
           />
           <StatChip
+            icon={FilePen}
             label={t('merchantOffers.tabDraft')}
             count={draftCount}
-            color='border-slate-200   bg-slate-50   text-slate-600'
+            bg='bg-slate-100'
+            text='text-slate-700'
+            iconColor='text-slate-400'
           />
           <StatChip
+            icon={PackageOpen}
             label={t('merchantOffers.tabSoldOut')}
             count={soldOutCount}
-            color='border-red-200     bg-red-50     text-red-600'
+            bg='bg-red-100'
+            text='text-red-500'
+            iconColor='text-red-400/70'
           />
           <StatChip
+            icon={CalendarX2}
             label={t('merchantOffers.tabExpired')}
             count={expiredCount}
-            color='border-amber-200   bg-amber-50   text-amber-700'
+            bg='bg-amber-100'
+            text='text-amber-700'
+            iconColor='text-amber-500/70'
           />
           <StatChip
+            icon={Ban}
             label={t('merchantOffers.tabCancelled')}
             count={cancelledCount}
-            color='border-slate-200   bg-white      text-slate-500'
+            bg='bg-white border border-slate-200'
+            text='text-slate-400'
+            iconColor='text-slate-300'
           />
         </div>
 
         {/* ── Status filter tabs ────────────────────────────────────────────── */}
-        <div className='flex gap-1 overflow-x-auto pb-1 scrollbar-none'>
+        <div className='flex gap-1.5 overflow-x-auto pb-1 scrollbar-none'>
           {TAB_KEYS.map(key => (
             <button
               key={key}
               type='button'
               onClick={() => handleTabChange(key)}
               className={cn(
-                'shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold border transition-all',
+                'shrink-0 flex items-center gap-1.5 h-8 px-3.5 rounded-full text-xs font-semibold border transition-all',
                 activeTab === key
-                  ? 'bg-primary text-white border-primary shadow-sm'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:text-primary',
+                  ? 'bg-primary-500 text-white border-primary-500 shadow-sm'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-primary-500/40 hover:text-primary-500',
               )}
             >
+              {key === 'all' && <LayoutGrid className='h-3 w-3' />}
               {t(`merchantOffers.${TAB_I18N_MAP[key]}`)}
               <span
                 className={cn(
                   'min-w-[18px] px-1 py-px rounded-full text-[10px] font-bold tabular-nums text-center',
-                  activeTab === key ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500',
+                  activeTab === key ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500',
                 )}
               >
                 {TAB_COUNTS[key]}
@@ -603,7 +639,7 @@ export function MerchantOffersView() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className='w-full h-9 rounded-xl border border-slate-200 bg-white pl-8 pr-8 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50'
+              className='w-full h-7 rounded-full border border-slate-200 bg-white pl-8 pr-8 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50'
             />
             {search && (
               <button
@@ -622,7 +658,7 @@ export function MerchantOffersView() {
               setTypeFilter(e.target.value);
               setPage(1);
             }}
-            className='h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/30'
+            className='h-7 rounded-full border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/30'
           >
             {TYPE_FILTER_KEYS.map(o => (
               <option key={o.value} value={o.value}>
@@ -634,7 +670,7 @@ export function MerchantOffersView() {
           <select
             value={sort}
             onChange={e => setSort(e.target.value)}
-            className='h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/30'
+            className='h-7 rounded-full border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/30'
           >
             {SORT_KEYS.map(o => (
               <option key={o.value} value={o.value}>

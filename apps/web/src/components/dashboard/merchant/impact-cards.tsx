@@ -2,6 +2,7 @@
 
 import { Coins, Leaf, HeartHandshake, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import { useCarbonMetrics, useSocialImpact } from '@/hooks/use-merchant-dashboard';
 import type { OrderStatsResponse } from '@/types/dashboard';
 
@@ -12,10 +13,11 @@ interface ImpactCardsProps {
 function formatValue(v: number): string {
   if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
   if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
-  return v.toLocaleString('fr-FR');
+  return v.toLocaleString();
 }
 
 export function ImpactCards({ stats }: ImpactCardsProps) {
+  const t = useTranslations('dashboard.impactCards');
   const carbonQuery = useCarbonMetrics();
   const socialQuery = useSocialImpact();
 
@@ -28,31 +30,32 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
   const carbonKg = carbonQuery.data?.carbonKgAvoided ?? 0;
   const carKm = carbonQuery.data?.carKmEquivalent ?? 0;
   const meals = socialQuery.data?.mealsDistributed ?? 0;
+  const people = socialQuery.data?.peopleServedEstimate ?? 0;
 
   const cards = [
     {
-      title: 'Revenus Sauvés',
+      title: t('revenue.title'),
       value: formatValue(revenue),
-      unit: 'TND',
-      delta: `+${completionRate}% taux complétion`,
+      unit: t('revenue.unit'),
+      delta: t('revenue.delta', { rate: completionRate }),
       icon: Coins,
-      note: 'Sustainability is profitable. Your rescue revenue this period.',
+      note: t('revenue.note'),
     },
     {
-      title: 'Impact Carbone (Scope 3)',
+      title: t('carbon.title'),
       value: carbonKg.toString(),
-      unit: 'kg CO₂',
-      delta: 'évités cette période',
+      unit: t('carbon.unit'),
+      delta: t('carbon.delta'),
       icon: Leaf,
-      note: `C'est l'équivalent d'un trajet de ${carKm} km en voiture.`,
+      note: t('carbon.note', { km: carKm }),
     },
     {
-      title: 'Impact Social',
+      title: t('social.title'),
       value: meals.toString(),
-      unit: 'repas',
-      delta: 'distribués',
+      unit: t('social.unit'),
+      delta: t('social.delta'),
       icon: HeartHandshake,
-      note: `Vous avez nourri ~${socialQuery.data?.peopleServedEstimate ?? 0} bénéficiaires ce mois-ci.`,
+      note: t('social.note', { people }),
     },
   ];
 

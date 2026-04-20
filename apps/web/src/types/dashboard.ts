@@ -232,6 +232,7 @@ export interface RevenueChartItem {
   day?: number;
   revenue: number;
   orderCount: number;
+  bagCount: number;
 }
 
 // ─── My Establishment ────────────────────────────────────────────────────────
@@ -471,4 +472,34 @@ export interface SocialImpactResponse {
   foodWeightKg: number;
   estimatedValueTnd: number;
   periodLabel: string;
+}
+
+// ─── Leaderboard ─────────────────────────────────────────────────────────────
+
+export interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  displayName: string;
+  profileImage: string | null;
+  isAnonymous: boolean;
+  mealsSaved: number;
+}
+
+export interface MerchantRankResponse {
+  rank: number;
+  mealsSaved: number;
+  totalMerchants: number;
+  percentile: number;
+}
+
+// ─── Streak ───────────────────────────────────────────────────────────────────
+
+export interface StreakResponse {
+  currentStreak: number;
+  longestStreak: number;
+  freezesAvailable: number;
+  lastListedDate: string | null;
+  streakAtRisk: boolean;
+  listedToday: boolean;
+  nextFreezeAt: number;
 }

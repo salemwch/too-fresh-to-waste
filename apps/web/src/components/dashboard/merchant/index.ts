@@ -14,3 +14,4 @@ export { ImpactCards, ImpactCardsSkeleton } from './impact-cards';
 export { TrendChart, TrendChartSkeleton } from './trend-chart';
 export { CampaignSidePanel } from './campaign-side-panel';
 export { ReportingBar } from './reporting-bar';
+export { StreakWidget, StreakWidgetSkeleton } from './streak-widget';

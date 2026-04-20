@@ -19,7 +19,6 @@
 
     // ── Emit helpers ───────────────────────────────────────────────
     "importHelpers": true,
-    "downlevelIteration": true,
     "preserveConstEnums": true,
 
     // ── Skip vendored types ────────────────────────────────────────

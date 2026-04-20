@@ -6,6 +6,7 @@ import {
   PieChart,
   Leaf,
   Users,
+  Trophy,
   Building2,
   Shield,
   Settings,
@@ -63,6 +64,12 @@ export const merchantNavItems: NavItem[] = [
     titleKey: 'community',
     href: '/merchant/community',
     icon: Users,
+    roles: [UserRole.MERCHANT],
+  },
+  {
+    titleKey: 'leaderboard',
+    href: '/merchant/leaderboard',
+    icon: Trophy,
     roles: [UserRole.MERCHANT],
   },
   {

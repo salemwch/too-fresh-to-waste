@@ -3,7 +3,6 @@
   // Only app-specific paths and includes live here.
   "extends": "@foodwaste/tsconfig/nextjs",
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@foodwaste/shared": ["../../packages/shared/src"],
       "@foodwaste/shared/*": ["../../packages/shared/src/*"],

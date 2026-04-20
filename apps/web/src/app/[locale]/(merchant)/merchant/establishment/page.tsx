@@ -5,12 +5,13 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { establishmentService, type LegalDocumentType } from '@/services/establishment.service';
 import type { MyEstablishment, DocumentMetadata } from '@/types/dashboard';
-import { Input, Button, Label } from '@foodwaste/ui';
+import { Input, Button } from '@foodwaste/ui';
 import {
   Store,
   Phone,
   Mail,
   Globe,
+  Hash,
   MapPin,
   Clock,
   Camera,
@@ -21,11 +22,11 @@ import {
   Star,
   ShoppingBag,
   CheckCheck,
+  Eye,
   FileText,
   Upload,
-  Trash2,
-  ShieldCheck,
   Clock3,
+  Copy,
 } from 'lucide-react';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -106,14 +107,6 @@ const DEFAULT_DAY_HOURS: DayHours = { open: '09:00', close: '18:00', closed: fal
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
-const STATUS_STYLES: Record<string, string> = {
-  active: 'bg-green-100 text-green-700',
-  pending: 'bg-amber-100 text-amber-700',
-  suspended: 'bg-red-100 text-red-700',
-  rejected: 'bg-red-100 text-red-700',
-  inactive: 'bg-slate-100 text-slate-600',
-};
-
 const STATUS_LABEL_KEYS: Record<string, string> = {
   active: 'statusActive',
   pending: 'statusPending',
@@ -122,6 +115,28 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
   inactive: 'statusInactive',
 };
 
+const HEADER_STATUS_STYLES: Record<string, string> = {
+  active: 'bg-green-500/20 border border-green-400/30 text-green-300',
+  pending: 'bg-amber-500/20 border border-amber-400/30 text-amber-300',
+  suspended: 'bg-red-500/20 border border-red-400/30 text-red-300',
+  rejected: 'bg-red-500/20 border border-red-400/30 text-red-300',
+  inactive: 'bg-white/10 border border-white/20 text-white/60',
+};
+
+function computeProfileCompletion(est: MyEstablishment): number {
+  let score = 0;
+  if (est.name) score += 15;
+  if (est.description) score += 10;
+  if (est.type) score += 10;
+  if (est.phoneNumber) score += 10;
+  if (est.email) score += 10;
+  if (est.website) score += 5;
+  if ((est.images?.length ?? 0) > 0) score += 10;
+  const docCount = LEGAL_DOCS.filter(d => !!est.legalDocuments?.[d.urlKey]).length;
+  score += docCount * 6;
+  return Math.min(score, 100);
+}
+
 // ─── DocRow sub-component ─────────────────────────────────────────────────────
 
 interface DocRowProps {
@@ -129,19 +144,13 @@ interface DocRowProps {
   url: string | undefined;
   meta: DocumentMetadata | undefined;
   uploading: boolean;
-  deleting: boolean;
   onUpload: (file: File) => void;
-  onDelete: () => void;
   tPdfOnly: string;
   tSizeError: string;
   tUploadDoc: string;
   tUploadingDoc: string;
-  tDeleteDoc: string;
-  tDeletingDoc: string;
-  tVerified: string;
-  tPending: string;
-  tUploaded: string;
-  tExpiry: (date: string) => string;
+  tReplaceDoc: string;
+  tAwaitingUpload: string;
 }
 
 function DocRow({
@@ -149,19 +158,13 @@ function DocRow({
   url,
   meta,
   uploading,
-  deleting,
   onUpload,
-  onDelete,
   tPdfOnly,
   tSizeError,
   tUploadDoc,
   tUploadingDoc,
-  tDeleteDoc,
-  tDeletingDoc,
-  tVerified,
-  tPending,
-  tUploaded,
-  tExpiry,
+  tReplaceDoc,
+  tAwaitingUpload,
 }: DocRowProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [localError, setLocalError] = useState('');
@@ -182,90 +185,82 @@ function DocRow({
     onUpload(file);
   }
 
+  const isUploaded = !!url;
+  const isVerified = isUploaded && !!meta?.verified;
+  const uploadDate = meta?.uploadedAt
+    ? new Date(meta.uploadedAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : null;
+
   return (
-    <div className='flex flex-col gap-1'>
-      <div className='flex items-center justify-between gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2'>
-        <div className='flex items-center gap-2 min-w-0'>
-          <FileText className='h-3.5 w-3.5 shrink-0 text-slate-400' />
-          <span className='text-xs font-medium text-slate-700 truncate'>{label}</span>
+    <div className='flex flex-col'>
+      <div className='flex items-center gap-3 px-5 py-2.5'>
+        {/* Status icon */}
+        <div
+          className={`h-7 w-7 shrink-0 rounded-full flex items-center justify-center ${
+            isUploaded ? (isVerified ? 'bg-green-100' : 'bg-amber-50') : 'bg-amber-50'
+          }`}
+        >
+          {isUploaded ? (
+            isVerified ? (
+              <CheckCircle2 className='h-3.5 w-3.5 text-green-600' />
+            ) : (
+              <Clock3 className='h-3.5 w-3.5 text-amber-500' />
+            )
+          ) : (
+            <Clock3 className='h-3.5 w-3.5 text-amber-400' />
+          )}
         </div>
 
-        <div className='flex items-center gap-2 shrink-0'>
-          {/* Status badge */}
-          {url && meta && (
-            <span
-              className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                meta.verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-              }`}
-            >
-              {meta.verified ? (
-                <>
-                  <ShieldCheck className='h-3 w-3' />
-                  {tVerified}
-                </>
-              ) : (
-                <>
-                  <Clock3 className='h-3 w-3' />
-                  {tPending}
-                </>
-              )}
-            </span>
-          )}
-          {url && !meta && (
-            <span className='rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500'>
-              {tUploaded}
-            </span>
-          )}
+        {/* Label + date */}
+        <div className='flex-1 min-w-0'>
+          <p className='text-sm font-semibold text-slate-800'>{label}</p>
+          <p className='text-xs text-slate-400 mt-0.5'>
+            {isUploaded && uploadDate ? uploadDate : tAwaitingUpload}
+          </p>
+        </div>
 
-          {/* Actions */}
-          {url ? (
+        {/* Action button */}
+        <div className='shrink-0'>
+          <input
+            ref={inputRef}
+            type='file'
+            accept='application/pdf'
+            className='hidden'
+            onChange={handleFileChange}
+            aria-label={isUploaded ? tReplaceDoc : tUploadDoc}
+          />
+          {isUploaded ? (
             <button
               type='button'
-              onClick={onDelete}
-              disabled={deleting}
-              className='flex items-center gap-1 rounded px-1.5 py-1 text-[10px] text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors'
+              onClick={() => inputRef.current?.click()}
+              disabled={uploading}
+              className='rounded-full border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors'
             >
-              {deleting ? (
-                <Loader2 className='h-3 w-3 animate-spin' />
-              ) : (
-                <Trash2 className='h-3 w-3' />
-              )}
-              {deleting ? tDeletingDoc : tDeleteDoc}
+              {uploading ? tUploadingDoc : tReplaceDoc}
             </button>
           ) : (
-            <>
-              <input
-                ref={inputRef}
-                type='file'
-                accept='application/pdf'
-                className='hidden'
-                onChange={handleFileChange}
-              />
-              <button
-                type='button'
-                onClick={() => inputRef.current?.click()}
-                disabled={uploading}
-                className='flex items-center gap-1 rounded px-1.5 py-1 text-[10px] text-primary-600 hover:bg-primary-50 disabled:opacity-50 transition-colors'
-              >
-                {uploading ? (
-                  <Loader2 className='h-3 w-3 animate-spin' />
-                ) : (
-                  <Upload className='h-3 w-3' />
-                )}
-                {uploading ? tUploadingDoc : tUploadDoc}
-              </button>
-            </>
+            <button
+              type='button'
+              onClick={() => inputRef.current?.click()}
+              disabled={uploading}
+              className='flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50 transition-colors'
+            >
+              {uploading ? (
+                <Loader2 className='h-3.5 w-3.5 animate-spin' />
+              ) : (
+                <Upload className='h-3.5 w-3.5' />
+              )}
+              {uploading ? tUploadingDoc : tUploadDoc}
+            </button>
           )}
         </div>
       </div>
 
-      {/* Expiry + local validation error */}
-      {url && meta?.expiryDate && (
-        <p className='px-3 text-[10px] text-slate-400'>
-          {tExpiry(new Date(meta.expiryDate).toLocaleDateString())}
-        </p>
-      )}
-      {localError && <p className='px-3 text-[10px] text-red-500'>{localError}</p>}
+      {localError && <p className='px-5 pb-2 text-[10px] text-red-500'>{localError}</p>}
     </div>
   );
 }
@@ -310,7 +305,6 @@ export default function MerchantEstablishmentPage() {
 
   // ── Legal documents state ─────────────────────────────────────────────────────
   const [docUploading, setDocUploading] = useState<Partial<Record<LegalDocumentType, boolean>>>({});
-  const [docDeleting, setDocDeleting] = useState<Partial<Record<LegalDocumentType, boolean>>>({});
   const [docFeedback, setDocFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(
     null,
   );
@@ -374,8 +368,7 @@ export default function MerchantEstablishmentPage() {
   }
 
   // ── Save handler ──────────────────────────────────────────────────────────────
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault();
+  async function doSave() {
     if (!establishment) return;
 
     setIsSaving(true);
@@ -407,6 +400,11 @@ export default function MerchantEstablishmentPage() {
     } finally {
       setIsSaving(false);
     }
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    await doSave();
   }
 
   // ── Photo upload handler ──────────────────────────────────────────────────────
@@ -465,22 +463,6 @@ export default function MerchantEstablishmentPage() {
     }
   }
 
-  async function handleDocDelete(docType: LegalDocumentType) {
-    if (!establishment) return;
-    setDocDeleting(p => ({ ...p, [docType]: true }));
-    setDocFeedback(null);
-    try {
-      const res = await establishmentService.deleteDocument(establishment._id, docType);
-      setEstablishment(res.data.data);
-      setDocFeedback({ type: 'success', msg: t('docDeleteSuccess') });
-      setTimeout(() => setDocFeedback(null), 4000);
-    } catch {
-      setDocFeedback({ type: 'error', msg: t('docDeleteError') });
-    } finally {
-      setDocDeleting(p => ({ ...p, [docType]: false }));
-    }
-  }
-
   // ── Cuisine tag helpers ────────────────────────────────────────────────────────
   function addCuisineTag() {
     const tag = cuisineInput.trim();
@@ -509,10 +491,17 @@ export default function MerchantEstablishmentPage() {
     }));
   }
 
+  function applyToAll(fromDay: Day) {
+    const source = businessHours[fromDay];
+    setBusinessHours(
+      Object.fromEntries(DAYS.map(d => [d, { ...source }])) as Record<Day, DayHours>,
+    );
+  }
+
   // ── Loading / error states ────────────────────────────────────────────────────
   if (isLoadingPage) {
     return (
-      <div className='mx-auto max-w-2xl px-4 py-4 lg:px-0 space-y-4 animate-pulse'>
+      <div className='space-y-4 animate-pulse'>
         {/* Header row */}
         <div className='flex items-start justify-between gap-3'>
           <div className='space-y-1.5'>
@@ -616,8 +605,11 @@ export default function MerchantEstablishmentPage() {
   }
 
   const statusKey = STATUS_LABEL_KEYS[establishment.status ?? ''] ?? 'statusInactive';
-  const statusStyle = STATUS_STYLES[establishment.status ?? ''] ?? STATUS_STYLES['inactive'];
+  const headerStatusStyle =
+    HEADER_STATUS_STYLES[establishment.status ?? ''] ?? HEADER_STATUS_STYLES['inactive'];
   const images = establishment.images ?? [];
+  const profileCompletion = computeProfileCompletion(establishment);
+  const pendingDocs = LEGAL_DOCS.filter(d => !establishment.legalDocuments?.[d.urlKey]).length;
 
   // ── Save button (shared between Profile and Hours tabs) ───────────────────
   const SaveBar = () => (
@@ -650,86 +642,172 @@ export default function MerchantEstablishmentPage() {
   );
 
   return (
-    <div className='mx-auto max-w-2xl px-3 py-3 sm:px-4 sm:py-4 lg:px-0 space-y-4'>
-      {/* ── Header row: name + status badge ──────────────────────────────── */}
-      <div className='flex items-start justify-between gap-3'>
-        <div>
-          <h1 className='text-base font-semibold text-slate-800'>{establishment.name}</h1>
-          <p className='text-xs text-slate-400 mt-0.5'>{t('description')}</p>
-        </div>
-        <div className='flex items-center gap-2 shrink-0'>
-          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusStyle}`}>
-            {t(statusKey)}
-          </span>
-          {establishment.isVerified && (
-            <span className='flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600'>
-              <CheckCheck className='h-3 w-3' />
-              {t('verified')}
-            </span>
-          )}
+    <div className='space-y-4'>
+      {/* ── Header Card ──────────────────────────────────────────────────── */}
+      <div className='relative rounded-2xl bg-primary overflow-hidden'>
+        <div className='absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none' />
+        <div className='relative p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+          {/* Left: avatar + info */}
+          <div className='flex items-center gap-4'>
+            <div className='h-14 w-14 rounded-2xl bg-accent flex items-center justify-center shrink-0'>
+              <span className='text-xl font-bold text-white'>
+                {establishment.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className='space-y-1.5 min-w-0'>
+              <div className='flex flex-wrap items-center gap-1.5'>
+                <span
+                  className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${headerStatusStyle}`}
+                >
+                  {establishment.status === 'active' && (
+                    <span className='h-1.5 w-1.5 rounded-full bg-green-400' />
+                  )}
+                  {t(statusKey)}
+                </span>
+                {establishment.isVerified && (
+                  <span className='flex items-center gap-1 rounded-full bg-accent/20 border border-accent/30 px-2.5 py-0.5 text-xs font-medium text-white/90'>
+                    <CheckCheck className='h-3 w-3' />
+                    {t('verified')}
+                  </span>
+                )}
+              </div>
+              <h1 className='text-xl sm:text-2xl font-display font-bold text-white leading-tight truncate'>
+                {establishment.name}
+              </h1>
+              <p className='text-xs text-white/60'>{t('description')}</p>
+            </div>
+          </div>
+          {/* Right: action buttons */}
+          <div className='flex items-center gap-2 shrink-0'>
+            <button
+              type='button'
+              className='flex items-center gap-1.5 rounded-full bg-white/10 hover:bg-white/20 px-3 py-1.5 text-xs font-medium text-white transition-colors'
+            >
+              <Eye className='h-3.5 w-3.5' />
+              Preview
+            </button>
+            <button
+              type='button'
+              onClick={doSave}
+              disabled={isSaving || activeTab === 'documents'}
+              className='flex items-center gap-1.5 rounded-full bg-accent hover:bg-accent/90 disabled:opacity-50 px-3 py-1.5 text-xs font-medium text-white transition-colors'
+            >
+              {isSaving ? (
+                <Loader2 className='h-3.5 w-3.5 animate-spin' />
+              ) : (
+                <CheckCircle2 className='h-3.5 w-3.5' />
+              )}
+              {isSaving ? t('saving') : t('saveChanges')}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ── Quick stats row ───────────────────────────────────────────────── */}
-      <div className='flex flex-wrap items-center gap-4 rounded-xl border bg-white px-4 py-3 shadow-sm'>
-        {establishment.averageRating !== undefined && (
-          <div className='flex items-center gap-1.5'>
-            <Star className='h-3.5 w-3.5 fill-amber-400 text-amber-400' />
-            <span className='text-xs font-medium text-slate-700'>
-              {establishment.averageRating.toFixed(1)}
-            </span>
-            {establishment.totalReviews !== undefined && (
-              <span className='text-xs text-slate-400'>
-                ({establishment.totalReviews} {t('reviews', { count: establishment.totalReviews })})
-              </span>
-            )}
+      {/* ── Stat Cards ───────────────────────────────────────────────────── */}
+      <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
+        {/* Rating */}
+        <div className='rounded-xl border bg-white p-4 shadow-sm'>
+          <div className='flex items-start justify-between mb-2'>
+            <p className='text-[10px] font-semibold uppercase tracking-wider text-slate-400'>
+              Rating
+            </p>
+            <div className='flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 shrink-0'>
+              <Star className='h-3.5 w-3.5 text-accent' />
+            </div>
           </div>
-        )}
-        {establishment.completedOrders !== undefined && (
-          <div className='flex items-center gap-1.5'>
-            <ShoppingBag className='h-3.5 w-3.5 text-slate-400' />
-            <span className='text-xs text-slate-600'>
-              {t('completedOrders', { count: establishment.completedOrders })}
-            </span>
+          <p className='text-2xl font-bold text-slate-800 leading-tight'>
+            {(establishment.averageRating ?? 0).toFixed(1)}
+          </p>
+          <p className='text-xs text-primary mt-1'>
+            {(establishment.totalReviews ?? 0) > 0
+              ? `${establishment.totalReviews} ${t('reviews', { count: establishment.totalReviews ?? 0 })}`
+              : 'No reviews yet'}
+          </p>
+        </div>
+
+        {/* Orders */}
+        <div className='rounded-xl border bg-white p-4 shadow-sm'>
+          <div className='flex items-start justify-between mb-2'>
+            <p className='text-[10px] font-semibold uppercase tracking-wider text-slate-400'>
+              Orders
+            </p>
+            <div className='flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 shrink-0'>
+              <ShoppingBag className='h-3.5 w-3.5 text-slate-500' />
+            </div>
           </div>
-        )}
-        {establishment.address?.city && (
-          <div className='flex items-center gap-1.5'>
-            <MapPin className='h-3.5 w-3.5 text-slate-400' />
-            <span className='text-xs text-slate-600'>{establishment.address.city}</span>
+          <p className='text-2xl font-bold text-slate-800 leading-tight'>
+            {establishment.completedOrders ?? 0}
+          </p>
+          <p className='text-xs text-primary mt-1'>Last 30 days</p>
+        </div>
+
+        {/* Location */}
+        <div className='rounded-xl border bg-white p-4 shadow-sm'>
+          <div className='flex items-start justify-between mb-2'>
+            <p className='text-[10px] font-semibold uppercase tracking-wider text-slate-400'>
+              Location
+            </p>
+            <div className='flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 shrink-0'>
+              <MapPin className='h-3.5 w-3.5 text-blue-500' />
+            </div>
           </div>
-        )}
-        {establishment.rejectionReason && (
-          <div className='w-full flex items-start gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700'>
-            <AlertCircle className='mt-0.5 h-3.5 w-3.5 shrink-0' />
-            <span>
-              <strong>{t('rejectionReason')}:</strong> {establishment.rejectionReason}
-            </span>
+          <p className='text-xl font-bold text-slate-800 leading-tight truncate'>
+            {establishment.address?.city ?? '—'}
+          </p>
+          <p className='text-xs text-primary mt-1 truncate'>
+            {establishment.address?.street ?? ''}
+          </p>
+        </div>
+
+        {/* Profile Completion */}
+        <div className='rounded-xl border bg-white p-4 shadow-sm'>
+          <div className='flex items-start justify-between mb-2'>
+            <p className='text-[10px] font-semibold uppercase tracking-wider text-slate-400 leading-tight'>
+              Profile
+              <br />
+              Completion
+            </p>
+            <div className='flex h-7 w-7 items-center justify-center rounded-lg bg-green-50 shrink-0'>
+              <CheckCircle2 className='h-3.5 w-3.5 text-green-600' />
+            </div>
           </div>
-        )}
+          <p className='text-2xl font-bold text-slate-800 leading-tight'>{profileCompletion}%</p>
+          <p className='text-xs text-primary mt-1'>
+            {pendingDocs > 0 ? `${pendingDocs} documents pending` : 'Profile complete'}
+          </p>
+        </div>
       </div>
+
+      {/* ── Rejection reason (full-width alert) ──────────────────────────── */}
+      {establishment.rejectionReason && (
+        <div className='flex items-start gap-1.5 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-xs text-red-700'>
+          <AlertCircle className='mt-0.5 h-3.5 w-3.5 shrink-0' />
+          <span>
+            <strong>{t('rejectionReason')}:</strong> {establishment.rejectionReason}
+          </span>
+        </div>
+      )}
 
       {/* ── Tab navigation ────────────────────────────────────────────────── */}
-      <div className='flex gap-1 rounded-xl bg-slate-100 p-1 overflow-hidden'>
+      <div className='inline-flex gap-1 rounded-full border border-slate-200 bg-white p-1'>
         {(
           [
-            { id: 'profile', icon: Store, label: 'Profile' },
-            { id: 'hours', icon: Clock, label: 'Hours' },
-            { id: 'documents', icon: FileText, label: 'Documents' },
+            { id: 'profile', label: 'Profile' },
+            { id: 'hours', label: 'Hours' },
+            { id: 'documents', label: 'Documents' },
           ] as const
-        ).map(({ id, icon: Icon, label }) => (
+        ).map(({ id, label }) => (
           <button
             key={id}
             type='button'
             onClick={() => setActiveTab(id)}
-            className={`flex flex-1 min-w-0 items-center justify-center gap-1 sm:gap-1.5 rounded-lg px-2 sm:px-3 py-2 text-xs font-medium transition-all ${
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
               activeTab === id
-                ? 'bg-white text-slate-800 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'bg-primary text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Icon className='h-3.5 w-3.5 shrink-0' />
-            <span className='hidden sm:inline'>{label}</span>
+            {label}
           </button>
         ))}
       </div>
@@ -812,18 +890,27 @@ export default function MerchantEstablishmentPage() {
             )}
           </section>
 
-          {/* Basic Info + Contact side by side on md+ */}
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            {/* Basic Info */}
-            <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
-              <h2 className='text-xs font-medium text-slate-700 flex items-center gap-1.5'>
-                <Store className='h-3.5 w-3.5 text-primary-500' />
-                {t('basicInfo')}
-              </h2>
-              <div className='space-y-1'>
-                <Label className='text-xs' htmlFor='est-name'>
-                  {t('name')}
-                </Label>
+          {/* Basic Info + Contact & Location side by side */}
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+            {/* ── Basic Information ─────────────────────────────────────── */}
+            <section className='rounded-2xl border bg-white p-4 sm:p-5 shadow-sm space-y-4'>
+              <div className='flex items-center gap-3'>
+                <div className='h-11 w-11 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0'>
+                  <Store className='h-5 w-5 text-primary' />
+                </div>
+                <div>
+                  <h2 className='text-sm font-semibold text-slate-800'>Basic information</h2>
+                  <p className='text-xs text-slate-400'>How your venue appears to customers</p>
+                </div>
+              </div>
+
+              <div className='space-y-1.5'>
+                <label
+                  htmlFor='est-name'
+                  className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'
+                >
+                  Establishment Name
+                </label>
                 <Input
                   id='est-name'
                   value={name}
@@ -831,158 +918,201 @@ export default function MerchantEstablishmentPage() {
                   minLength={2}
                   maxLength={100}
                   required
-                  className='h-8 text-xs'
+                  className='h-7 rounded-lg text-xs'
                 />
               </div>
-              <div className='space-y-1'>
-                <Label className='text-xs' htmlFor='est-type'>
-                  {t('type')}
-                </Label>
-                <select
-                  id='est-type'
-                  value={type}
-                  onChange={e => setType(e.target.value)}
-                  className='w-full h-8 rounded-md border border-slate-200 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white'
-                >
-                  <option value='' disabled />
-                  {ESTABLISHMENT_TYPES.map(({ value, labelKey }) => (
-                    <option key={value} value={value}>
-                      {t(labelKey)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className='space-y-1'>
-                <Label className='text-xs' htmlFor='est-website'>
-                  {t('website')}
-                </Label>
-                <div className='relative'>
-                  <Globe className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400' />
-                  <Input
-                    id='est-website'
-                    type='url'
-                    value={website}
-                    onChange={e => setWebsite(e.target.value)}
-                    placeholder={t('websitePlaceholder')}
-                    className='h-8 text-xs pl-7'
-                  />
-                </div>
-              </div>
-              <div className='space-y-1'>
-                <Label className='text-xs' htmlFor='est-description'>
-                  {t('description_field')}{' '}
-                  <span className='text-slate-400'>{t('descriptionHint')}</span>
-                </Label>
-                <textarea
-                  id='est-description'
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  minLength={10}
-                  maxLength={500}
-                  rows={3}
-                  className='w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-400 resize-none'
-                />
-              </div>
-            </section>
 
-            {/* Contact + Address + Options stacked */}
-            <div className='space-y-4'>
-              {/* Contact */}
-              <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
-                <h2 className='text-xs font-medium text-slate-700 flex items-center gap-1.5'>
-                  <Phone className='h-3.5 w-3.5 text-primary-500' />
-                  {t('contact')}
-                </h2>
-                <div className='space-y-1'>
-                  <Label className='text-xs' htmlFor='est-phone'>
-                    {t('phoneNumber')}
-                  </Label>
-                  <div className='relative'>
-                    <Phone className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400' />
-                    <Input
-                      id='est-phone'
-                      type='tel'
-                      value={phoneNumber}
-                      onChange={e => setPhoneNumber(e.target.value)}
-                      placeholder='+21620123456'
-                      className='h-8 text-xs pl-7'
-                    />
-                  </div>
-                </div>
-                <div className='space-y-1'>
-                  <Label className='text-xs' htmlFor='est-email'>
-                    {t('email')}
-                  </Label>
-                  <div className='relative'>
-                    <Mail className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400' />
-                    <Input
-                      id='est-email'
-                      type='email'
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      className='h-8 text-xs pl-7'
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Address (read-only) */}
-              {establishment.address && (
-                <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-2'>
-                  <h2 className='text-xs font-medium text-slate-700 flex items-center gap-1.5'>
-                    <MapPin className='h-3.5 w-3.5 text-primary-500' />
-                    {t('address')}
-                  </h2>
-                  <div className='rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600 space-y-0.5'>
-                    {establishment.address.street && <p>{establishment.address.street}</p>}
-                    <p>
-                      {[establishment.address.postalCode, establishment.address.city]
-                        .filter(Boolean)
-                        .join(' ')}
-                    </p>
-                    {establishment.address.country && <p>{establishment.address.country}</p>}
-                  </div>
-                </section>
-              )}
-
-              {/* Options */}
-              <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
-                <h2 className='text-xs font-medium text-slate-700'>{t('options')}</h2>
+              <div className='grid grid-cols-2 gap-3'>
                 <div className='space-y-1.5'>
-                  <Label className='text-xs' htmlFor='est-cuisine'>
-                    {t('cuisineTypes')}{' '}
-                    <span className='text-slate-400'>{t('cuisineTypesHint')}</span>
-                  </Label>
-                  <div className='flex flex-wrap gap-1.5'>
+                  <label
+                    htmlFor='est-type'
+                    className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'
+                  >
+                    Type
+                  </label>
+                  <select
+                    id='est-type'
+                    value={type}
+                    onChange={e => setType(e.target.value)}
+                    className='w-full h-7 rounded-lg border border-slate-200 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white'
+                  >
+                    <option value='' disabled />
+                    {ESTABLISHMENT_TYPES.map(({ value, labelKey }) => (
+                      <option key={value} value={value}>
+                        {t(labelKey)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className='space-y-1.5'>
+                  <label
+                    htmlFor='est-cuisine'
+                    className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'
+                  >
+                    Cuisine / Category
+                  </label>
+                  <div className='flex flex-wrap items-center gap-1 min-h-[28px] rounded-lg border border-slate-200 px-2.5 py-1 focus-within:ring-2 focus-within:ring-primary/30 bg-white cursor-text'>
                     {cuisineTypes.map(tag => (
                       <span
                         key={tag}
-                        className='flex items-center gap-1 rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700'
+                        className='flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary'
                       >
                         {tag}
                         <button
                           type='button'
                           onClick={() => removeCuisineTag(tag)}
-                          className='text-primary-400 hover:text-primary-700'
+                          className='text-primary/50 hover:text-primary'
                           aria-label={`Remove ${tag}`}
                         >
                           <X className='h-3 w-3' />
                         </button>
                       </span>
                     ))}
+                    <input
+                      id='est-cuisine'
+                      value={cuisineInput}
+                      onChange={e => setCuisineInput(e.target.value)}
+                      onKeyDown={handleCuisineKeyDown}
+                      onBlur={addCuisineTag}
+                      placeholder={cuisineTypes.length === 0 ? 'e.g. Italian' : ''}
+                      className='flex-1 min-w-[60px] text-sm bg-transparent outline-none placeholder:text-slate-400'
+                    />
                   </div>
+                </div>
+              </div>
+
+              <div className='space-y-1.5'>
+                <label
+                  htmlFor='est-description'
+                  className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'
+                >
+                  Description
+                </label>
+                <textarea
+                  id='est-description'
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  minLength={10}
+                  maxLength={280}
+                  rows={4}
+                  className='w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none'
+                />
+                <p className='text-[10px] text-slate-400'>Up to 280 characters</p>
+              </div>
+            </section>
+
+            {/* ── Contact & Location ────────────────────────────────────── */}
+            <section className='rounded-2xl border bg-white p-4 sm:p-5 shadow-sm space-y-4'>
+              <div className='flex items-center gap-3'>
+                <div className='h-11 w-11 rounded-2xl bg-accent/10 flex items-center justify-center shrink-0'>
+                  <Phone className='h-5 w-5 text-accent' />
+                </div>
+                <div>
+                  <h2 className='text-sm font-semibold text-slate-800'>Contact &amp; location</h2>
+                  <p className='text-xs text-slate-400'>How customers reach you</p>
+                </div>
+              </div>
+
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='space-y-1.5'>
+                  <label
+                    htmlFor='est-phone'
+                    className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'
+                  >
+                    Phone
+                  </label>
+                  <div className='relative'>
+                    <Phone className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
+                    <Input
+                      id='est-phone'
+                      type='tel'
+                      value={phoneNumber}
+                      onChange={e => setPhoneNumber(e.target.value)}
+                      placeholder='+216 XX XXX XXX'
+                      className='h-7 rounded-lg pl-8 text-xs'
+                    />
+                  </div>
+                </div>
+                <div className='space-y-1.5'>
+                  <label
+                    htmlFor='est-website'
+                    className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'
+                  >
+                    Website
+                  </label>
+                  <div className='relative'>
+                    <Globe className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
+                    <Input
+                      id='est-website'
+                      type='url'
+                      value={website}
+                      onChange={e => setWebsite(e.target.value)}
+                      placeholder={t('websitePlaceholder')}
+                      className='h-7 rounded-lg pl-8 text-xs'
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className='space-y-1.5'>
+                <label
+                  htmlFor='est-email'
+                  className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'
+                >
+                  Email
+                </label>
+                <div className='relative'>
+                  <Mail className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
                   <Input
-                    id='est-cuisine'
-                    value={cuisineInput}
-                    onChange={e => setCuisineInput(e.target.value)}
-                    onKeyDown={handleCuisineKeyDown}
-                    onBlur={addCuisineTag}
-                    placeholder='e.g. Italian'
-                    className='h-8 text-xs'
+                    id='est-email'
+                    type='email'
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className='h-7 rounded-lg pl-8 text-xs'
                   />
                 </div>
-              </section>
-            </div>
+              </div>
+
+              {establishment.address && (
+                <>
+                  <div className='space-y-1.5'>
+                    <label className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'>
+                      Address
+                    </label>
+                    <div className='relative'>
+                      <MapPin className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
+                      <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 flex items-center text-xs text-slate-600 truncate'>
+                        {establishment.address.street ?? '—'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className='grid grid-cols-2 gap-3'>
+                    <div className='space-y-1.5'>
+                      <label className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'>
+                        City
+                      </label>
+                      <div className='relative'>
+                        <MapPin className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
+                        <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 flex items-center text-xs text-slate-600'>
+                          {establishment.address.city ?? '—'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className='space-y-1.5'>
+                      <label className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'>
+                        Postal Code
+                      </label>
+                      <div className='relative'>
+                        <Hash className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
+                        <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 flex items-center text-xs text-slate-600'>
+                          {establishment.address.postalCode ?? '—'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </section>
           </div>
 
           <SaveBar />
@@ -994,74 +1124,100 @@ export default function MerchantEstablishmentPage() {
       {/* ══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'hours' && (
         <form onSubmit={handleSave}>
-          <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
-            <div>
-              <h2 className='text-xs font-medium text-slate-700 flex items-center gap-1.5'>
-                <Clock className='h-3.5 w-3.5 text-primary-500' />
-                {t('businessHours')}
-              </h2>
-              <p className='text-[10px] text-slate-400 mt-0.5'>
-                Set the opening hours for each day of the week.
-              </p>
+          <section className='rounded-2xl border bg-white shadow-sm overflow-hidden'>
+            {/* Header */}
+            <div className='flex items-center gap-3 p-4 sm:p-5 border-b border-slate-100'>
+              <div className='h-11 w-11 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0'>
+                <Clock className='h-5 w-5 text-primary' />
+              </div>
+              <div>
+                <h2 className='text-sm font-semibold text-slate-800'>{t('openingHours')}</h2>
+                <p className='text-xs text-slate-400 mt-0.5'>{t('openingHoursHint')}</p>
+              </div>
             </div>
-            <div className='space-y-1'>
+
+            {/* Day rows */}
+            <div className='divide-y divide-slate-100'>
               {DAYS.map(day => {
                 const hours = businessHours[day];
+                const isOpen = !hours.closed;
                 return (
-                  <div
-                    key={day}
-                    className={`grid grid-cols-[70px_1fr] sm:grid-cols-[90px_1fr] items-center gap-2 rounded-lg px-2 sm:px-3 py-2 ${hours.closed ? 'bg-slate-50' : 'bg-white'}`}
-                  >
-                    <span
-                      className={`text-xs font-medium ${hours.closed ? 'text-slate-400' : 'text-slate-700'}`}
+                  <div key={day} className='flex items-center gap-4 px-4 sm:px-6 py-3.5'>
+                    {/* Toggle switch */}
+                    <button
+                      type='button'
+                      role='switch'
+                      aria-checked={isOpen}
+                      aria-label={t(day)}
+                      onClick={() => updateHour(day, 'closed', isOpen)}
+                      style={{
+                        width: '44px',
+                        height: '24px',
+                        minWidth: '44px',
+                        minHeight: '24px',
+                        padding: '2px',
+                        flexShrink: 0,
+                      }}
+                      className={`inline-flex cursor-pointer items-center rounded-full overflow-hidden transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isOpen ? 'bg-primary' : 'bg-slate-200'}`}
                     >
+                      <span
+                        style={{ width: '20px', height: '20px', minWidth: '20px', flexShrink: 0 }}
+                        className={`pointer-events-none rounded-full bg-white shadow-md transition-transform duration-200 ${isOpen ? 'translate-x-[20px]' : 'translate-x-0'}`}
+                      />
+                    </button>
+
+                    {/* Day name */}
+                    <span className='w-24 shrink-0 text-sm font-semibold text-slate-800'>
                       {t(day)}
                     </span>
-                    <div className='flex flex-wrap items-center gap-3'>
-                      <label className='flex items-center gap-1.5 cursor-pointer select-none'>
+
+                    {/* Time controls — always visible, disabled when closed */}
+                    <span className='text-[10px] font-semibold uppercase tracking-wider text-slate-400 shrink-0'>
+                      {t('open')}
+                    </span>
+                    <div
+                      className={`flex items-center gap-3 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-40'}`}
+                    >
+                      <label
+                        htmlFor={`${day}-open`}
+                        className={`flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 ${isOpen ? 'cursor-text' : 'cursor-not-allowed'}`}
+                      >
                         <input
-                          type='checkbox'
-                          checked={hours.closed}
-                          onChange={e => updateHour(day, 'closed', e.target.checked)}
-                          className='h-3.5 w-3.5 rounded border-slate-300 text-primary-500'
+                          id={`${day}-open`}
+                          type='time'
+                          value={hours.open}
+                          disabled={!isOpen}
+                          onChange={e => updateHour(day, 'open', e.target.value)}
+                          className='w-[68px] bg-transparent text-sm font-medium text-slate-700 outline-none disabled:cursor-not-allowed'
                         />
-                        <span className='text-xs text-slate-500'>{t('closed')}</span>
+                        <Clock className='h-3.5 w-3.5 shrink-0 text-slate-400' />
                       </label>
-                      {!hours.closed && (
-                        <>
-                          <div className='flex items-center gap-1.5'>
-                            <label
-                              htmlFor={`${day}-open`}
-                              className='text-[10px] text-slate-400 uppercase tracking-wide'
-                            >
-                              {t('open')}
-                            </label>
-                            <input
-                              id={`${day}-open`}
-                              type='time'
-                              value={hours.open}
-                              onChange={e => updateHour(day, 'open', e.target.value)}
-                              className='rounded border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary-400'
-                            />
-                          </div>
-                          <div className='flex items-center gap-1.5'>
-                            <label
-                              htmlFor={`${day}-close`}
-                              className='text-[10px] text-slate-400 uppercase tracking-wide'
-                            >
-                              {t('close')}
-                            </label>
-                            <input
-                              id={`${day}-close`}
-                              type='time'
-                              value={hours.close}
-                              onChange={e => updateHour(day, 'close', e.target.value)}
-                              className='rounded border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary-400'
-                            />
-                          </div>
-                        </>
-                      )}
+                      <span className='text-slate-400 font-medium select-none'>—</span>
+                      <label
+                        htmlFor={`${day}-close`}
+                        className={`flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 ${isOpen ? 'cursor-text' : 'cursor-not-allowed'}`}
+                      >
+                        <input
+                          id={`${day}-close`}
+                          type='time'
+                          value={hours.close}
+                          disabled={!isOpen}
+                          onChange={e => updateHour(day, 'close', e.target.value)}
+                          className='w-[68px] bg-transparent text-sm font-medium text-slate-700 outline-none disabled:cursor-not-allowed'
+                        />
+                        <Clock className='h-3.5 w-3.5 shrink-0 text-slate-400' />
+                      </label>
                     </div>
+
+                    {/* Apply to all */}
+                    <button
+                      type='button'
+                      onClick={() => applyToAll(day)}
+                      className='ms-auto shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-slate-500 transition-colors hover:bg-primary/5 hover:text-primary'
+                    >
+                      <Copy className='h-3.5 w-3.5' />
+                      {t('applyToAll')}
+                    </button>
                   </div>
                 );
               })}
@@ -1075,103 +1231,62 @@ export default function MerchantEstablishmentPage() {
       {/* TAB: DOCUMENTS                                                    */}
       {/* ══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'documents' && (
-        <div className='space-y-4'>
-          <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+        <section className='rounded-2xl border bg-white shadow-sm overflow-hidden'>
+          {/* Header */}
+          <div className='flex items-center gap-3 p-4 sm:p-5 border-b border-slate-100'>
+            <div className='h-11 w-11 rounded-full bg-slate-100 flex items-center justify-center shrink-0'>
+              <FileText className='h-5 w-5 text-primary' />
+            </div>
             <div>
-              <h2 className='text-xs font-medium text-slate-700 flex items-center gap-1.5'>
-                <FileText className='h-3.5 w-3.5 text-primary-500' />
-                {t('legalDocuments')}
-              </h2>
-              <p className='text-[10px] text-slate-400 mt-0.5'>{t('legalDocumentsHint')}</p>
+              <h2 className='text-sm font-semibold text-slate-800'>Documents</h2>
+              <p className='text-xs text-slate-400 mt-0.5'>
+                Upload required documents to keep your account verified
+              </p>
             </div>
-            {docFeedback && (
-              <div
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs ${docFeedback.type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}
-              >
-                {docFeedback.type === 'success' ? (
-                  <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
-                ) : (
-                  <AlertCircle className='h-3.5 w-3.5 shrink-0' />
-                )}
-                {docFeedback.msg}
-              </div>
-            )}
-            <div className='space-y-2'>
-              {LEGAL_DOCS.map(({ type, urlKey, metaKey, labelKey }) => (
-                <DocRow
-                  key={type}
-                  label={t(labelKey)}
-                  url={establishment.legalDocuments?.[urlKey] as string | undefined}
-                  meta={
-                    establishment.legalDocuments?.[metaKey] as
-                      | import('@/types/dashboard').DocumentMetadata
-                      | undefined
-                  }
-                  uploading={!!docUploading[type]}
-                  deleting={!!docDeleting[type]}
-                  onUpload={file => handleDocUpload(type, file)}
-                  onDelete={() => handleDocDelete(type)}
-                  tPdfOnly={t('docPdfOnly')}
-                  tSizeError={t('docSizeError')}
-                  tUploadDoc={t('uploadDoc')}
-                  tUploadingDoc={t('uploadingDoc')}
-                  tDeleteDoc={t('deleteDoc')}
-                  tDeletingDoc={t('deletingDoc')}
-                  tVerified={t('docVerified')}
-                  tPending={t('docPending')}
-                  tUploaded={t('docUploaded')}
-                  tExpiry={date => t('docExpiry', { date })}
-                />
-              ))}
-            </div>
-          </section>
+          </div>
 
-          {/* Registration numbers */}
-          <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
-            <h2 className='text-xs font-medium text-slate-700'>{t('registrationNumbers')}</h2>
-            <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
-              <div className='space-y-1'>
-                <Label className='text-xs' htmlFor='est-siret'>
-                  {t('siret')}
-                </Label>
-                <Input
-                  id='est-siret'
-                  className='h-8 text-xs bg-slate-50'
-                  defaultValue={establishment.legalDocuments?.siret ?? '—'}
-                  readOnly
-                  tabIndex={-1}
-                />
-              </div>
-              <div className='space-y-1'>
-                <Label className='text-xs' htmlFor='est-license'>
-                  {t('licenseNumber')}
-                </Label>
-                <Input
-                  id='est-license'
-                  className='h-8 text-xs bg-slate-50'
-                  defaultValue={establishment.legalDocuments?.license ?? '—'}
-                  readOnly
-                  tabIndex={-1}
-                />
-              </div>
-              <div className='space-y-1'>
-                <Label className='text-xs' htmlFor='est-vat'>
-                  {t('vatNumber')}
-                </Label>
-                <Input
-                  id='est-vat'
-                  className='h-8 text-xs bg-slate-50'
-                  defaultValue={establishment.legalDocuments?.vatNumber ?? '—'}
-                  readOnly
-                  tabIndex={-1}
-                />
-              </div>
+          {/* Feedback banner */}
+          {docFeedback && (
+            <div
+              className={`flex items-center gap-1.5 mx-5 mt-4 rounded-xl px-3 py-2 text-xs ${
+                docFeedback.type === 'success'
+                  ? 'bg-green-50 text-green-600'
+                  : 'bg-red-50 text-red-600'
+              }`}
+            >
+              {docFeedback.type === 'success' ? (
+                <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
+              ) : (
+                <AlertCircle className='h-3.5 w-3.5 shrink-0' />
+              )}
+              {docFeedback.msg}
             </div>
-            <p className='text-[10px] text-slate-400'>
-              Registration numbers are assigned by admin during verification.
-            </p>
-          </section>
-        </div>
+          )}
+
+          {/* Document rows */}
+          <div className='divide-y divide-slate-100'>
+            {LEGAL_DOCS.map(({ type, urlKey, metaKey, labelKey }) => (
+              <DocRow
+                key={type}
+                label={t(labelKey)}
+                url={establishment.legalDocuments?.[urlKey] as string | undefined}
+                meta={
+                  establishment.legalDocuments?.[metaKey] as
+                    | import('@/types/dashboard').DocumentMetadata
+                    | undefined
+                }
+                uploading={!!docUploading[type]}
+                onUpload={file => handleDocUpload(type, file)}
+                tPdfOnly={t('docPdfOnly')}
+                tSizeError={t('docSizeError')}
+                tUploadDoc={t('uploadDoc')}
+                tUploadingDoc={t('uploadingDoc')}
+                tReplaceDoc={t('replaceDoc')}
+                tAwaitingUpload={t('awaitingUpload')}
+              />
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );

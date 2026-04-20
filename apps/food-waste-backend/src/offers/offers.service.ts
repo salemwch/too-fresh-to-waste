@@ -12,6 +12,7 @@ import { CacheService } from '../common/services/cache.service';
 import { AppLoggerService } from '../common/services/logger.service';
 import { TimezoneUtil } from '../common/utils/timezone.util';
 import { EstablishmentsService } from '../establishments/establishments.service';
+import { StreakService } from '../sustainability/services/streak.service';
 import {
   EstablishmentDocument,
   EstablishmentStatus,
@@ -164,6 +165,7 @@ export class OffersService {
     private readonly logger: AppLoggerService,
     private readonly establishmentsService: EstablishmentsService,
     private readonly cacheService: CacheService,
+    private readonly streakService: StreakService,
   ) {}
 
   // ============================================================================
@@ -930,6 +932,13 @@ export class OffersService {
     // Activating/deactivating an offer changes the featured and urgent lists
     void this.cacheService.delByPrefix('offers:featured:');
     void this.cacheService.delByPrefix('offers:urgent:');
+
+    // Record streak only when a merchant (not admin) publishes an offer
+    if (status === OfferStatus.ACTIVE && merchantId) {
+      this.streakService.recordListing(merchantId).catch((err: unknown) => {
+        this.logger.warn(`Streak record failed for merchant ${merchantId}: ${String(err)}`);
+      });
+    }
 
     return updatedOffer;
   }
@@ -2089,6 +2098,12 @@ export class OffersService {
         `(${availableFrom.toISOString()} → ${availableUntil.toISOString()}, qty: ${totalQuantity})`,
       'OffersService',
     );
+
+    if (userRole !== 'admin') {
+      this.streakService.recordListing(userId).catch((err: unknown) => {
+        this.logger.warn(`Streak record failed for merchant ${userId}: ${String(err)}`);
+      });
+    }
 
     return this.findById(offerId);
   }

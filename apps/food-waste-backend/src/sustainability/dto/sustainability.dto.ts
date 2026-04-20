@@ -65,3 +65,15 @@ export interface SocialImpactResponse {
   estimatedValueTnd: number;
   periodLabel: string;
 }
+
+export interface StreakResponse {
+  currentStreak: number;
+  longestStreak: number;
+  freezesAvailable: number;
+  lastListedDate: string | null;
+  /** True after 18:00 Tunis time if no offer listed today — triggers urgency UI */
+  streakAtRisk: boolean;
+  listedToday: boolean;
+  /** How many more streak days until the next freeze is earned (awarded every 7 days) */
+  nextFreezeAt: number;
+}

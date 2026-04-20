@@ -19,6 +19,9 @@ import type {
   MonthlyGoalResponse,
   CarbonMetricsResponse,
   SocialImpactResponse,
+  LeaderboardEntry,
+  MerchantRankResponse,
+  StreakResponse,
 } from '@/types/dashboard';
 
 const ORDERS_BASE = '/orders';
@@ -28,6 +31,7 @@ const ESTABLISHMENTS_BASE = '/establishments';
 const DONATIONS_BASE = '/donations';
 const COMMUNITY_GOAL_BASE = '/community-goal';
 const SUSTAINABILITY_BASE = '/sustainability';
+const LEADERBOARD_BASE = '/leaderboard';
 
 export const dashboardService = {
   /**
@@ -249,5 +253,27 @@ export const dashboardService = {
     return apiClient.get(`${SUSTAINABILITY_BASE}/reports/carbon-balance`, {
       responseType: 'blob',
     });
+  },
+
+  // ── Leaderboard ────────────────────────────────────────────────────────────
+
+  getLeaderboard(limit = 50) {
+    return apiClient.get<BackendEnvelope<LeaderboardEntry[]>>(LEADERBOARD_BASE, {
+      params: { limit },
+    });
+  },
+
+  getMyRank() {
+    return apiClient.get<BackendEnvelope<MerchantRankResponse>>(`${LEADERBOARD_BASE}/my-rank`);
+  },
+
+  updateLeaderboardPreference(anonymous: boolean) {
+    return apiClient.patch<BackendEnvelope<{ message: string }>>(`${LEADERBOARD_BASE}/preference`, {
+      anonymous,
+    });
+  },
+
+  getStreakData() {
+    return apiClient.get<BackendEnvelope<StreakResponse>>(`${SUSTAINABILITY_BASE}/streak`);
   },
 };

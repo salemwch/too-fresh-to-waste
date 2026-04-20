@@ -43,6 +43,7 @@ import { RedisModule } from './redis/redis.module';
 import { ReviewsModule } from './reviwes/reviwes.module';
 import { SearchModule } from './search/search.module';
 import { SustainabilityModule } from './sustainability/sustainability.module';
+import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { UsersModule } from './users/user.module';
 import { WebSocketModule } from './websocket/websocket.module';
 //import { SocialModule } from './social/social.module';
@@ -143,6 +144,7 @@ import { WebSocketModule } from './websocket/websocket.module';
     DonationsModule,
     CommunityGoalModule,
     SustainabilityModule,
+    LeaderboardModule,
     WebSocketModule,
     SearchModule,
     //SocialModule,

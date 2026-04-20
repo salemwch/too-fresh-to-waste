@@ -39,48 +39,53 @@ export function Sidebar({ items }: SidebarProps) {
     ? resolveProfileImage(user.profileImage ?? undefined, user.avatar ?? undefined)
     : null;
 
-  // Settings item rendered separately at the bottom
   const mainItems = items.filter(i => i.titleKey !== 'settings');
   const settingsItem = items.find(i => i.titleKey === 'settings');
 
   return (
-    <aside className='hidden xl:flex flex-col w-72 shrink-0 bg-primary-500 text-white p-[24px] sticky top-0 h-screen z-30'>
-      {/* Brand logo */}
-      <div className='flex items-center gap-3 mb-10'>
-        <div className='h-10 w-10 rounded-xl bg-brand-coral grid place-items-center text-white font-display text-lg font-bold shrink-0'>
+    <aside className='hidden xl:flex flex-col w-72 shrink-0 bg-primary-500 text-white px-[14px] py-[20px] sticky top-0 h-screen z-30'>
+      {/* Brand — compact inline logo */}
+      <div className='flex items-center gap-[10px] mb-[18px] px-[6px]'>
+        <div className='h-[34px] w-[34px] rounded-full bg-brand-coral grid place-items-center text-white font-bold text-sm shrink-0'>
           T
         </div>
-        <div>
-          <div className='font-display text-lg leading-tight'>Too Fresh</div>
-          <div className='text-xs opacity-70 -mt-0.5'>to Waste · Merchant</div>
+        <div className='leading-tight'>
+          <div className='font-display text-[15px] font-semibold'>Too Fresh</div>
+          <div className='text-[11px] text-white/55 -mt-0.5'>to Waste · Merchant</div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className='flex-1 space-y-1 overflow-y-auto overscroll-contain'>
+      {/* Navigation — no scroll */}
+      <nav className='flex-1 flex flex-col gap-[2px] overflow-hidden'>
         {mainItems.map(item => {
           const isActive = pathname.startsWith(`/${locale}${item.href}`);
           const Icon = item.icon;
           const badge = getBadge(item, unreadOrderCount, draftOfferCount);
+          const isPro = item.titleKey === 'esg';
 
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'relative flex items-center gap-3 px-[16px] py-3 rounded-xl text-sm transition-all',
+                'relative flex items-center gap-[10px] px-[12px] py-[9px] rounded-xl text-[13px] transition-all',
                 isActive
-                  ? 'bg-white/[0.08] shadow-glow-coral text-white'
-                  : 'text-white/70 hover:text-white hover:bg-white/5',
+                  ? 'bg-white/[0.1] text-white'
+                  : 'text-white/60 hover:text-white hover:bg-white/[0.06]',
               )}
             >
               {isActive && (
-                <span className='absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-brand-coral' />
+                <span className='absolute left-0 top-[7px] bottom-[7px] w-[3px] rounded-r-full bg-brand-coral' />
               )}
-              <Icon className='h-[18px] w-[18px] shrink-0' size={18} />
-              <span className='flex-1 text-left'>{tNav(item.titleKey)}</span>
+              <Icon size={16} className='shrink-0' />
+              <span className='flex-1 truncate'>{tNav(item.titleKey)}</span>
+              {isPro && (
+                <span className='text-[9px] font-bold px-[5px] py-[2px] rounded border border-gold/50 text-gold leading-none shrink-0 tracking-wide'>
+                  PRO
+                </span>
+              )}
               {badge !== null && (
-                <span className='min-w-[20px] h-5 rounded-full bg-brand-coral text-white text-[10px] flex items-center justify-center font-medium px-1 shrink-0'>
+                <span className='min-w-[18px] h-[18px] rounded-full bg-brand-coral text-white text-[9px] flex items-center justify-center font-medium px-[3px] shrink-0'>
                   {badge > 99 ? '99+' : badge}
                 </span>
               )}
@@ -89,54 +94,54 @@ export function Sidebar({ items }: SidebarProps) {
         })}
       </nav>
 
-      {/* Bottom section: user info + settings + logout */}
-      <div className='mt-[24px] pt-[24px] border-t border-white/10 space-y-1'>
-        {/* User info */}
+      {/* Bottom: user info + settings + logout */}
+      <div className='pt-[14px] border-t border-white/10 flex flex-col gap-[2px]'>
         {user && (
-          <div className='flex items-center gap-3 px-[16px] py-3 mb-1'>
+          <Link
+            href='/merchant/profile'
+            className='flex items-center gap-[10px] px-[12px] py-[8px] mb-[4px] rounded-xl hover:bg-white/[0.06] transition-colors group'
+          >
             {avatar ? (
               <img
                 src={avatar}
                 alt={user.firstName}
-                className='h-8 w-8 rounded-full object-cover shrink-0'
+                className='h-[30px] w-[30px] rounded-full object-cover shrink-0'
               />
             ) : (
-              <div className='h-8 w-8 rounded-full bg-white/20 grid place-items-center text-xs font-semibold shrink-0'>
+              <div className='h-[30px] w-[30px] rounded-full bg-white/20 grid place-items-center text-[11px] font-semibold shrink-0'>
                 {user.firstName?.[0]}
                 {user.lastName?.[0]}
               </div>
             )}
             <div className='min-w-0 flex-1'>
-              <div className='text-sm font-medium text-white truncate'>
+              <div className='text-[13px] font-medium text-white truncate group-hover:text-white/90'>
                 {user.firstName} {user.lastName}
               </div>
-              <div className='text-[11px] text-white/60 truncate'>{user.email}</div>
+              <div className='text-[11px] text-white/50 truncate'>{user.email}</div>
             </div>
-          </div>
+          </Link>
         )}
 
-        {/* Settings nav item */}
         {settingsItem && (
           <Link
             href={settingsItem.href}
             className={cn(
-              'flex items-center gap-3 px-[16px] py-2.5 rounded-xl text-sm transition-colors',
+              'flex items-center gap-[10px] px-[12px] py-[9px] rounded-xl text-[13px] transition-colors',
               pathname.startsWith(`/${locale}${settingsItem.href}`)
-                ? 'bg-white/[0.08] text-white'
-                : 'text-white/70 hover:text-white hover:bg-white/5',
+                ? 'bg-white/[0.1] text-white'
+                : 'text-white/60 hover:text-white hover:bg-white/[0.06]',
             )}
           >
-            <settingsItem.icon size={18} />
+            <settingsItem.icon size={16} />
             {tNav('settings')}
           </Link>
         )}
 
-        {/* Logout */}
         <button
           onClick={logout}
-          className='w-full flex items-center gap-3 px-[16px] py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors'
+          className='w-full flex items-center gap-[10px] px-[12px] py-[9px] rounded-xl text-[13px] text-white/60 hover:text-white hover:bg-white/[0.06] transition-colors'
         >
-          <LogOut size={18} />
+          <LogOut size={16} />
           {t('logout')}
         </button>
       </div>

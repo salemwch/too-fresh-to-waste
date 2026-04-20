@@ -266,6 +266,7 @@ export function BusinessSearchAutocomplete({
                 setHasError(false);
               }}
               className='flex h-4 w-4 items-center justify-center'
+              aria-label={t('clearSearch')}
             >
               <X className='h-4 w-4 text-muted-foreground hover:text-foreground' />
             </button>

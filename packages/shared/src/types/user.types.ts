@@ -55,6 +55,8 @@ export interface UserResponse {
   isPhoneVerified: boolean;
   avatar?: string;
   profileImage?: string | null;
+  /** null = leaderboard choice not yet made, true = anonymous, false = show real name */
+  leaderboardAnonymous?: boolean | null;
   address?: UserAddress;
   locationPreferences?: UserLocationPreferences;
   privacySettings?: UserPrivacySettings;

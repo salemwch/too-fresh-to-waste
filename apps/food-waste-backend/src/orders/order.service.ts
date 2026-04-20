@@ -117,6 +117,7 @@ export interface RevenueChartResponse {
   day?: number;
   revenue: number;
   orderCount: number;
+  bagCount: number;
 }
 
 /** @deprecated Renamed to RevenueChartResponse. Kept for import compatibility. */
@@ -1309,6 +1310,7 @@ export class OrdersService {
           _id: groupId,
           revenue: { $sum: '$pricing.total' },
           orderCount: { $sum: 1 },
+          bagCount: { $sum: { $sum: '$items.quantity' } },
         },
       },
       { $sort: sortStage },
@@ -1318,6 +1320,7 @@ export class OrdersService {
       _id: Record<string, number>;
       revenue: number;
       orderCount: number;
+      bagCount: number;
     }>(pipeline);
 
     return this.fillChartGaps(granularity, value, now, results);
@@ -1344,7 +1347,12 @@ export class OrdersService {
     granularity: ChartGranularity,
     value: number,
     now: Date,
-    results: Array<{ _id: Record<string, number>; revenue: number; orderCount: number }>,
+    results: Array<{
+      _id: Record<string, number>;
+      revenue: number;
+      orderCount: number;
+      bagCount: number;
+    }>,
   ): RevenueChartResponse[] {
     const output: RevenueChartResponse[] = [];
 
@@ -1366,6 +1374,7 @@ export class OrdersService {
             day,
             revenue: found?.revenue ?? 0,
             orderCount: found?.orderCount ?? 0,
+            bagCount: found?.bagCount ?? 0,
           });
         }
         break;
@@ -1392,6 +1401,7 @@ export class OrdersService {
             week: isoWeek,
             revenue: found?.revenue ?? 0,
             orderCount: found?.orderCount ?? 0,
+            bagCount: found?.bagCount ?? 0,
           });
         }
         break;
@@ -1409,6 +1419,7 @@ export class OrdersService {
             month,
             revenue: found?.revenue ?? 0,
             orderCount: found?.orderCount ?? 0,
+            bagCount: found?.bagCount ?? 0,
           });
         }
         break;
