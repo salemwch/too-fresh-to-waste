@@ -359,15 +359,20 @@ export class DonationsService {
   async updateActivePool(updates: {
     targetAmount?: number | undefined;
     cause?: string | undefined;
+    targetDate?: string | null | undefined;
   }): Promise<DonationStatsResponseDto> {
     const pool = await this.getActivePool();
 
     const setFields: Record<string, unknown> = {};
-    if (updates.targetAmount !== null) {
+    if (updates.targetAmount !== undefined && updates.targetAmount !== null) {
       setFields['targetAmount'] = updates.targetAmount;
     }
-    if (updates.cause !== null) {
+    if (updates.cause !== undefined && updates.cause !== null) {
       setFields['cause'] = updates.cause;
+    }
+    if (updates.targetDate !== undefined) {
+      // null means "clear the date"; a string sets it
+      setFields['targetDate'] = updates.targetDate ? new Date(updates.targetDate) : null;
     }
 
     if (Object.keys(setFields).length === 0) {
@@ -377,6 +382,35 @@ export class DonationsService {
     await this.donationPoolModel.findByIdAndUpdate(pool._id, { $set: setFields }, { new: true });
 
     this.logger.log(`Active donation pool updated: ${JSON.stringify(setFields)}`);
+
+    return this.getCurrentStats();
+  }
+
+  /**
+   * Admin: Archive the current active pool and create a fresh one.
+   * Existing donation records are kept; pool counters reset to zero.
+   */
+  async resetPool(): Promise<DonationStatsResponseDto> {
+    await this.donationPoolModel.updateOne(
+      { status: DonationPoolStatus.ACTIVE, isArchived: false },
+      { $set: { isArchived: true, archivedAt: new Date() } },
+    );
+
+    const newPool = new this.donationPoolModel({
+      currentAmount: 0,
+      targetAmount: DONATION_CONSTANTS.DEFAULT_TARGET_AMOUNT,
+      mealCount: 0,
+      contributorCount: 0,
+      totalDistributed: 0,
+      status: DonationPoolStatus.ACTIVE,
+      cause: 'Community Food Relief',
+      startDate: new Date(),
+      distributionHistory: [],
+      isArchived: false,
+    });
+
+    await newPool.save();
+    this.logger.log('Donation pool reset: old pool archived, new pool created');
 
     return this.getCurrentStats();
   }

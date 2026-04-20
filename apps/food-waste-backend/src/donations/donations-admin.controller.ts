@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Logger,
   Patch,
+  Post,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -70,6 +71,29 @@ export class DonationsAdminController {
     const stats = await this.donationsService.updateActivePool(dto);
     return {
       message: 'Donation pool updated successfully',
+      data: stats,
+    };
+  }
+
+  /**
+   * POST /admin/donations/pool/reset
+   * Archive the current pool and create a fresh one.
+   */
+  @Post('pool/reset')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset (archive) the active pool and create a new one (admin)' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'New donation pool created',
+    type: DonationStatsResponseDto,
+  })
+  async resetPool(
+    @CurrentUser('_id') adminId: string,
+  ): Promise<{ message: string; data: DonationStatsResponseDto }> {
+    this.logger.log(`Admin ${adminId} resetting donation pool`);
+    const stats = await this.donationsService.resetPool();
+    return {
+      message: 'Donation pool reset successfully',
       data: stats,
     };
   }

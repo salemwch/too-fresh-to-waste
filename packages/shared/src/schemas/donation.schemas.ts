@@ -16,6 +16,7 @@ import { DonationPoolStatus } from '../enums';
 export const UpdateDonationPoolSchema = z.object({
   targetAmount: z.number().min(1).max(1_000_000).optional(),
   cause: z.string().min(3).max(200).optional(),
+  targetDate: z.string().datetime().optional().nullable(),
 });
 
 export type UpdateDonationPoolInput = z.infer<typeof UpdateDonationPoolSchema>;

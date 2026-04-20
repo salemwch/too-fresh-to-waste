@@ -90,21 +90,24 @@ export const loginAsync = createAsyncThunk(
         message: errorMessage,
       };
 
-      // Check if error has field/errorCode/lockout metadata (from backend authentication errors)
+      // Check if error has field/errorCode/lockout/validationErrors metadata
       if (error !== null && error !== undefined && typeof error === 'object') {
         const errObj = error as Record<string, unknown>;
         if (typeof errObj['field'] === 'string') {
           errorPayload['field'] = errObj['field'];
         }
         if (typeof errObj['errorCode'] === 'string') {
-          errorPayload['type'] = errObj['errorCode']; // Map errorCode to type for backward compatibility
+          errorPayload['type'] = errObj['errorCode'];
         }
-        // Preserve account lockout metadata
         if (errObj['isAccountLocked'] === true) {
           errorPayload['isAccountLocked'] = true;
         }
         if (errObj['blockedUntil'] !== null && errObj['blockedUntil'] !== undefined) {
           errorPayload['blockedUntil'] = errObj['blockedUntil'];
+        }
+        // Preserve field-level validation errors (class-validator 400 responses)
+        if (errObj['validationErrors'] !== null && typeof errObj['validationErrors'] === 'object') {
+          errorPayload['validationErrors'] = errObj['validationErrors'];
         }
       }
 

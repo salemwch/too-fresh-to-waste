@@ -53,8 +53,8 @@
     "cta": {
       "downloadApp": "TÉLÉCHARGER L'APP",
       "downloadAppShort": "TÉLÉCHARGER L'APP",
-      "businessSignup": "INSCRIPTION ENTREPRISE",
-      "businessSignupShort": "INSCRIPTION",
+      "businessSignup": "S'INSCRIRE COMME ENTREPRISE",
+      "businessSignupShort": "S'INSCRIRE COMME ENTREPRISE",
       "login": "Connexion"
     },
     "dropdown": {
@@ -568,6 +568,8 @@
       "establishments": "Établissements",
       "moderation": "Modération",
       "adminOffers": "Gestion des offres",
+      "donationPool": "Cagnotte",
+      "donations": "Cagnotte",
       "health": "Santé système",
       "settings": "Paramètres",
       "merchant": "Marchand",
@@ -1023,6 +1025,45 @@
       "lowPickupEmpty": "Aucune offre sous le seuil de retrait",
       "violationsEmpty": "Aucune violation de prix détectée",
       "deletedEmpty": "Aucune offre supprimée"
+    },
+    "adminDonationPool": {
+      "title": "Cagnotte de dons",
+      "description": "Surveiller et configurer la cagnotte communautaire",
+      "raised": "Total collecté",
+      "target": "Objectif",
+      "meals": "Repas financés",
+      "contributors": "Contributeurs",
+      "progress": "Progression",
+      "statusLabel": "Statut de la cagnotte",
+      "status": {
+        "active": "Active",
+        "funded": "Financée",
+        "distributed": "Distribuée",
+        "archived": "Archivée"
+      },
+      "settings": {
+        "title": "Paramètres",
+        "description": "Mettre à jour les paramètres de la campagne de dons",
+        "targetAmount": "Objectif (TND)",
+        "targetAmountHint": "Objectif de collecte en dinars tunisiens",
+        "cause": "Nom de la campagne",
+        "causeHint": "Description courte de cette campagne",
+        "targetDate": "Date limite",
+        "targetDateHint": "Date limite facultative pour atteindre l'objectif",
+        "clearDate": "Effacer la date",
+        "save": "Enregistrer",
+        "saving": "Enregistrement...",
+        "saveSuccess": "Paramètres mis à jour avec succès"
+      },
+      "reset": {
+        "title": "Réinitialiser",
+        "description": "Archiver la cagnotte actuelle et démarrer une nouvelle campagne. Les dons existants sont conservés.",
+        "button": "Réinitialiser",
+        "confirmTitle": "Réinitialiser la cagnotte ?",
+        "confirmDescription": "La cagnotte actuelle sera archivée et une nouvelle sera créée. L'historique des dons n'est pas supprimé.",
+        "confirm": "Oui, réinitialiser",
+        "success": "Cagnotte réinitialisée avec succès"
+      }
     },
     "merchantSecurity": {
       "title": "Sécurité",

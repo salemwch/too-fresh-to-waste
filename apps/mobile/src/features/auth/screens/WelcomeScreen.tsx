@@ -13,9 +13,9 @@
 import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, Image, Dimensions, StatusBar, Pressable } from 'react-native';
 
-import BagImage from '@/assets/images/Bag.png';
-import LeafIcon from '@/assets/images/leaf.png';
-import RocketIcon from '@/assets/images/rocket.png';
+import BagImage from '@/assets/images/Bag.webp';
+import LeafIcon from '@/assets/images/leaf.webp';
+import RocketIcon from '@/assets/images/rocket.webp';
 import { Button, Text } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { onboardingStorage } from '@/storage/onboardingStorage';

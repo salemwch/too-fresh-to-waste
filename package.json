@@ -60,11 +60,11 @@
     "tslib": "^2.8.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
     "@foodwaste/eslint-config": "workspace:*",
     "@foodwaste/jest-config": "workspace:*",
     "@foodwaste/tsconfig": "workspace:*",
-    "@commitlint/cli": "^20.5.0",
-    "@commitlint/config-conventional": "^20.5.0",
     "@react-native/eslint-config": "0.82.1",
     "@typescript-eslint/eslint-plugin": "^8.58.1",
     "@typescript-eslint/parser": "^8.58.1",

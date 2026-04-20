@@ -3,21 +3,8 @@
  * Text input with label, helper text, and validation styling
  */
 
-import AntDesignIcon from '@react-native-vector-icons/ant-design';
-import EntypoIcon from '@react-native-vector-icons/entypo';
-import EvilIconsIcon from '@react-native-vector-icons/evil-icons';
-import FeatherIcon from '@react-native-vector-icons/feather';
-import FontAwesomeIcon from '@react-native-vector-icons/fontawesome';
-import FontAwesome5Icon from '@react-native-vector-icons/fontawesome5';
-import FontAwesome6Icon from '@react-native-vector-icons/fontawesome6';
-import FontistoIcon from '@react-native-vector-icons/fontisto';
-import FoundationIcon from '@react-native-vector-icons/foundation';
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
 import MaterialCommunityIconsIcon from '@react-native-vector-icons/material-design-icons';
-import MaterialIconsIcon from '@react-native-vector-icons/material-icons';
-import OcticonsIcon from '@react-native-vector-icons/octicons';
-import SimpleLineIconsIcon from '@react-native-vector-icons/simple-line-icons';
-import ZocialIcon from '@react-native-vector-icons/zocial';
 import React, { forwardRef, useState, useCallback } from 'react';
 import { View, TextInput, Pressable } from 'react-native';
 
@@ -88,34 +75,8 @@ export const Input = forwardRef<TextInput, InputProps>(
      */
     const getIconComponent = (family?: IconFamily): IconComponent => {
       switch (family) {
-        case 'AntDesign':
-          return AntDesignIcon as IconComponent;
-        case 'Entypo':
-          return EntypoIcon as IconComponent;
-        case 'EvilIcons':
-          return EvilIconsIcon as IconComponent;
-        case 'Feather':
-          return FeatherIcon as IconComponent;
-        case 'FontAwesome':
-          return FontAwesomeIcon as IconComponent;
-        case 'FontAwesome5':
-          return FontAwesome5Icon as IconComponent;
-        case 'FontAwesome6':
-          return FontAwesome6Icon as IconComponent;
-        case 'Fontisto':
-          return FontistoIcon as IconComponent;
-        case 'Foundation':
-          return FoundationIcon as IconComponent;
         case 'MaterialCommunityIcons':
           return MaterialCommunityIconsIcon as IconComponent;
-        case 'MaterialIcons':
-          return MaterialIconsIcon as IconComponent;
-        case 'Octicons':
-          return OcticonsIcon as IconComponent;
-        case 'SimpleLineIcons':
-          return SimpleLineIconsIcon as IconComponent;
-        case 'Zocial':
-          return ZocialIcon as IconComponent;
         case 'Ionicons':
         case undefined:
         default:

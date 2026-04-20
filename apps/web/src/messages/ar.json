@@ -53,8 +53,8 @@
     "cta": {
       "downloadApp": "حمّل التطبيق",
       "downloadAppShort": "حمّل",
-      "businessSignup": "تسجيل الشركات",
-      "businessSignupShort": "تسجيل",
+      "businessSignup": "سجّل كشركة",
+      "businessSignupShort": "سجّل كشركة",
       "login": "تسجيل الدخول"
     },
     "dropdown": {
@@ -568,6 +568,8 @@
       "establishments": "المؤسسات",
       "moderation": "الإشراف",
       "adminOffers": "إدارة العروض",
+      "donationPool": "صندوق التبرعات",
+      "donations": "صندوق التبرعات",
       "health": "صحة النظام",
       "settings": "الإعدادات",
       "merchant": "التاجر",
@@ -1023,6 +1025,45 @@
       "lowPickupEmpty": "لا توجد عروض دون حد الاستلام",
       "violationsEmpty": "لا توجد انتهاكات سعرية",
       "deletedEmpty": "لا توجد عروض محذوفة"
+    },
+    "adminDonationPool": {
+      "title": "صندوق التبرعات",
+      "description": "مراقبة وضبط صندوق التبرعات المجتمعي",
+      "raised": "إجمالي المجموع",
+      "target": "الهدف",
+      "meals": "وجبات ممولة",
+      "contributors": "المساهمون",
+      "progress": "التقدم",
+      "statusLabel": "حالة الصندوق",
+      "status": {
+        "active": "نشط",
+        "funded": "ممول",
+        "distributed": "موزع",
+        "archived": "مؤرشف"
+      },
+      "settings": {
+        "title": "إعدادات الصندوق",
+        "description": "تحديث معلمات حملة التبرع",
+        "targetAmount": "المبلغ المستهدف (د.ت)",
+        "targetAmountHint": "هدف جمع التبرعات بالدينار التونسي",
+        "cause": "اسم الحملة",
+        "causeHint": "وصف مختصر لهذه الحملة",
+        "targetDate": "الموعد النهائي",
+        "targetDateHint": "موعد نهائي اختياري للوصول إلى الهدف",
+        "clearDate": "مسح التاريخ",
+        "save": "حفظ التغييرات",
+        "saving": "جارٍ الحفظ...",
+        "saveSuccess": "تم تحديث إعدادات الصندوق بنجاح"
+      },
+      "reset": {
+        "title": "إعادة تعيين الصندوق",
+        "description": "أرشفة الصندوق الحالي وبدء حملة جديدة. سجلات التبرعات الموجودة محفوظة.",
+        "button": "إعادة تعيين",
+        "confirmTitle": "إعادة تعيين صندوق التبرعات؟",
+        "confirmDescription": "سيتم أرشفة الصندوق الحالي وإنشاء صندوق جديد بالإعدادات الافتراضية. لن يتم حذف سجل التبرعات.",
+        "confirm": "نعم، إعادة تعيين",
+        "success": "تمت إعادة تعيين صندوق التبرعات بنجاح"
+      }
     },
     "merchantSecurity": {
       "title": "الأمان",

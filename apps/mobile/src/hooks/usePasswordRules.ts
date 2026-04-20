@@ -28,7 +28,6 @@
  */
 
 import { useMemo } from 'react';
-import zxcvbn from 'zxcvbn';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 
@@ -49,7 +48,7 @@ interface PasswordRule {
   description: string;
   isMet: boolean;
   icon: string;
-  iconFamily: 'MaterialCommunityIcons' | 'MaterialIcons' | 'Ionicons';
+  iconFamily: 'MaterialCommunityIcons' | 'Ionicons';
   color: string;
 }
 
@@ -58,7 +57,6 @@ interface PasswordStrength {
   label: string;
   color: string;
   progress: number; // 0-1 for progress bar
-  crackTime?: string; // From zxcvbn (e.g., "3 days", "6 months")
 }
 
 interface PasswordValidationResult {
@@ -157,50 +155,27 @@ const hasRepeatingChars = (
 };
 
 /**
- * Calculate password strength score (0-4) using zxcvbn library
- * Matches backend PasswordPolicyService implementation exactly
- *
- * @param password - The password to evaluate
- * @param context - Optional context for personal info detection
- * @returns Object with score (0-4) and crack time estimate
+ * Estimate password strength (0-4) from Shannon entropy.
+ * Replaces zxcvbn (~800 KB) with a zero-dependency calculation.
+ * Pattern: count the character-set pool size, compute bits = len × log2(pool).
+ * Thresholds (bits): <40 → 0, <55 → 1, <70 → 2, <90 → 3, ≥90 → 4.
  */
-const calculateStrengthScore = (
-  password: string,
-  _context?: PasswordValidationContext,
-): { score: number; crackTime: string } => {
-  if (!password) {
-    return { score: 0, crackTime: 'instant' };
-  }
+const calculateStrengthScore = (password: string): { score: number } => {
+  if (!password) return { score: 0 };
 
-  // Don't pass any personal info to zxcvbn to allow users flexibility in password choice
-  // This prevents password strength from being penalized for including:
-  // - Email address or email prefix
-  // - First name or last name
-  // - Phone number
-  // Users can create memorable passwords using personal info without penalty
+  let pool = 0;
+  if (/[a-z]/.test(password)) pool += 26;
+  if (/[A-Z]/.test(password)) pool += 26;
+  if (/\d/.test(password)) pool += 10;
+  if (/[^a-zA-Z\d]/.test(password)) pool += 32;
 
-  const userInputs: string[] = [];
+  const entropy = password.length * Math.log2(pool || 1);
 
-  // All personal info checking disabled - empty array
-  // if (context?.email !== undefined && context.email !== '') {
-  //   userInputs.push(context.email);
-  //   const emailParts = context.email.split('@');
-  //   if (emailParts[0] !== undefined && emailParts[0] !== '') {
-  //     userInputs.push(emailParts[0]); // Email prefix
-  //   }
-  // }
-  // if (context?.firstName !== undefined) userInputs.push(context.firstName);
-  // if (context?.lastName !== undefined) userInputs.push(context.lastName);
-  // if (context?.phoneNumber !== undefined) userInputs.push(context.phoneNumber);
-
-  // Use zxcvbn for accurate strength calculation
-  const result = zxcvbn(password, userInputs);
-
-  return {
-    score: result.score, // 0-4
-    crackTime:
-      (result.crack_times_display.offline_slow_hashing_1e4_per_second as string) || 'unknown',
-  };
+  if (entropy < 40) return { score: 0 };
+  if (entropy < 55) return { score: 1 };
+  if (entropy < 70) return { score: 2 };
+  if (entropy < 90) return { score: 3 };
+  return { score: 4 };
 };
 
 // ============================================================================
@@ -311,18 +286,15 @@ export const usePasswordRules = (
       };
     } else {
       // Phase 2: All requirements met - now show entropy-based strength
-      const { score: zxcvbnScore, crackTime } = calculateStrengthScore(password, context);
+      const { score: entropyScore } = calculateStrengthScore(password);
       const strengthConfig =
-        STRENGTH_LEVELS[zxcvbnScore as keyof typeof STRENGTH_LEVELS] !== undefined
-          ? STRENGTH_LEVELS[zxcvbnScore as keyof typeof STRENGTH_LEVELS]
-          : STRENGTH_LEVELS[0];
+        STRENGTH_LEVELS[entropyScore as keyof typeof STRENGTH_LEVELS] ?? STRENGTH_LEVELS[0];
 
       strength = {
-        score: zxcvbnScore,
+        score: entropyScore,
         label: strengthConfig.label,
         color: strengthConfig.color,
         progress: strengthConfig.progress,
-        crackTime,
       };
     }
 

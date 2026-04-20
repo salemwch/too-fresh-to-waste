@@ -793,7 +793,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         maxToRenderPerBatch={3} // Render 3 items per batch
         updateCellsBatchingPeriod={50} // Update batching period in ms
         initialNumToRender={4} // Initial items to render (search, banner, urgent)
-        windowSize={5} // Number of screens to render above/below viewport
+        windowSize={8} // Number of screens to render above/below viewport
         // Accessibility
         accessibilityLabel='Home screen content'
         accessibilityHint='Scroll to view featured offers, nearby deals, and your impact'

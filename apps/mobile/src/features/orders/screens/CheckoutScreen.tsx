@@ -10,7 +10,6 @@ import { updateUser, selectIsPhoneVerified } from '@/features/auth/store/authSli
 import { offersService } from '@/features/offers/services/offersService';
 import { useAppSelector, useAppDispatch } from '@/hooks';
 import { usePressGuard } from '@/hooks/usePressGuard';
-import { useSecureScreen } from '@/hooks/useSecureScreen';
 import { analytics } from '@/utils/analytics';
 import { Logger } from '@/utils/logger';
 import { showErrorToast, showInfoToast } from '@/utils/toast';
@@ -56,9 +55,6 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
   const { offerId, quantity: initialQuantity = 1 } = route.params;
-
-  // Prevent screenshots/recordings of payment details
-  useSecureScreen();
 
   // Named selector returns a primitive boolean — re-renders ONLY when this value flips,
   // not when unrelated user fields (name, avatar, email…) change.

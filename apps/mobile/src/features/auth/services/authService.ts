@@ -109,6 +109,21 @@ class AuthService {
         if (typeof dataObj['message'] === 'string') {
           // Standard case: { message: "error text" }
           message = dataObj['message'];
+        } else if (Array.isArray(dataObj['message'])) {
+          // class-validator array: items are strings OR { property, constraints } objects
+          message = (dataObj['message'] as unknown[])
+            .map(item => {
+              if (typeof item === 'string') return item;
+              if (item !== null && typeof item === 'object') {
+                const obj = item as Record<string, unknown>;
+                if (obj['constraints'] !== null && typeof obj['constraints'] === 'object') {
+                  return Object.values(obj['constraints'] as Record<string, string>)[0] ?? '';
+                }
+              }
+              return '';
+            })
+            .filter(Boolean)
+            .join(', ');
         } else if (
           dataObj['message'] !== null &&
           dataObj['message'] !== undefined &&
@@ -126,9 +141,6 @@ class AuthService {
         } else if (typeof dataObj['error'] === 'string') {
           // Alternative error property
           message = dataObj['error'];
-        } else if (Array.isArray(dataObj['message'])) {
-          // Validation errors array
-          message = dataObj['message'].join(', ');
         }
       }
     }
@@ -251,15 +263,31 @@ class AuthService {
     }
 
     if (status !== undefined && status >= 400) {
-      // For 400 errors (validation/conflict errors), preserve response data for field-level error handling
-      // Create enhanced error with response data attached for validation error parsing
-      const enhancedError = new Error(message) as Error & {
-        response?: { data: unknown } | undefined;
-      };
-      if (error.response?.data !== undefined) {
-        enhancedError.response = { data: error.response.data };
+      // Extract field-level validation errors from class-validator response
+      const validationErrors: Record<string, string> = {};
+      if (responseData !== null && responseData !== undefined && typeof responseData === 'object') {
+        const dataObj = responseData as Record<string, unknown>;
+        if (Array.isArray(dataObj['message'])) {
+          for (const item of dataObj['message'] as unknown[]) {
+            if (item !== null && typeof item === 'object') {
+              const obj = item as Record<string, unknown>;
+              const prop = typeof obj['property'] === 'string' ? obj['property'] : null;
+              if (
+                prop !== null &&
+                obj['constraints'] !== null &&
+                typeof obj['constraints'] === 'object'
+              ) {
+                const first = Object.values(obj['constraints'] as Record<string, string>)[0];
+                if (first !== undefined && first !== '') validationErrors[prop] = first;
+              }
+            }
+          }
+        }
       }
-      throw enhancedError;
+      throw ErrorHandler.createError(ErrorType.CLIENT_ERROR, message, {
+        code: status,
+        ...(Object.keys(validationErrors).length > 0 ? { validationErrors } : {}),
+      });
     }
 
     // Axios error without response (network issue)

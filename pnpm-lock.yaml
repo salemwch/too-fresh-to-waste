@@ -92,7 +92,7 @@ importers:
         version: 4.4.4(eslint-plugin-import@2.32.0)(eslint@8.57.1)
       eslint-plugin-import:
         specifier: ^2.32.0
-        version: 2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@8.57.1)
+        version: 2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
       eslint-plugin-prettier:
         specifier: ^5.5.4
         version: 5.5.5(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@8.57.1))(eslint@8.57.1)(prettier@3.8.2)
@@ -403,6 +403,9 @@ importers:
       "@types/xml2js":
         specifier: 0.4.14
         version: 0.4.14
+      "@types/zxcvbn":
+        specifier: 4.4.4
+        version: 4.4.4
       "@typescript-eslint/eslint-plugin":
         specifier: ^8.58.1
         version: 8.58.1(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)
@@ -426,7 +429,7 @@ importers:
         version: 4.4.4(eslint-plugin-import@2.32.0)(eslint@8.57.1)
       eslint-plugin-import:
         specifier: ^2.32.0
-        version: 2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@8.57.1)
+        version: 2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
       eslint-plugin-prettier:
         specifier: ^5.5.4
         version: 5.5.5(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@8.57.1))(eslint@8.57.1)(prettier@3.8.2)
@@ -484,49 +487,10 @@ importers:
       "@react-native-firebase/messaging":
         specifier: ^21.6.0
         version: 21.14.0(@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0))
-      "@react-native-vector-icons/ant-design":
-        specifier: 12.4.1
-        version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/entypo":
-        specifier: 12.4.1
-        version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/evil-icons":
-        specifier: 12.4.1
-        version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/feather":
-        specifier: 12.4.1
-        version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/fontawesome":
-        specifier: 12.4.1
-        version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/fontawesome5":
-        specifier: 12.3.1
-        version: 12.3.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/fontawesome6":
-        specifier: 12.3.1
-        version: 12.3.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/fontisto":
-        specifier: 12.4.1
-        version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/foundation":
-        specifier: 12.4.1
-        version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
       "@react-native-vector-icons/ionicons":
         specifier: 12.4.1
         version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
       "@react-native-vector-icons/material-design-icons":
-        specifier: 12.4.1
-        version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/material-icons":
-        specifier: 12.4.1
-        version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/octicons":
-        specifier: 20.4.1
-        version: 20.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/simple-line-icons":
-        specifier: 12.4.1
-        version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/zocial":
         specifier: 12.4.1
         version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
       "@react-navigation/bottom-tabs":
@@ -625,9 +589,6 @@ importers:
       react-native-toast-message:
         specifier: ^2.3.3
         version: 2.3.3(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react-native-web:
-        specifier: ^0.21.2
-        version: 0.21.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react-native-worklets:
         specifier: ^0.7.0
         version: 0.7.4(@babel/core@7.29.0)(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
@@ -643,9 +604,6 @@ importers:
       yup:
         specifier: ^1.6.1
         version: 1.7.1
-      zxcvbn:
-        specifier: ^4.4.2
-        version: 4.4.2
     devDependencies:
       "@babel/core":
         specifier: ^7.25.2
@@ -692,9 +650,6 @@ importers:
       "@types/react-test-renderer":
         specifier: ^19.1.0
         version: 19.1.0
-      "@types/zxcvbn":
-        specifier: ^4.4.5
-        version: 4.4.5
       "@typescript-eslint/eslint-plugin":
         specifier: ^8.58.1
         version: 8.58.1(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)
@@ -963,7 +918,7 @@ importers:
         version: 10.1.8(eslint@8.57.1)
       eslint-plugin-import:
         specifier: ">=2"
-        version: 2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@8.57.1)
+        version: 2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
       eslint-plugin-prettier:
         specifier: ">=5"
         version: 5.5.5(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@8.57.1))(eslint@8.57.1)(prettier@3.8.2)
@@ -6639,16 +6594,6 @@ packages:
       expo:
         optional: true
 
-  "@react-native-vector-icons/ant-design@12.4.1":
-    resolution:
-      {
-        integrity: sha512-ROYDvCDrh9Vp0ercDoVFECPLNhpvtjgLhonwJvCtnpF5fseC82ADH81d/U6+TVtdQs5yTx8Cy9fs/xHog0PNsw==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
   "@react-native-vector-icons/common@12.4.0":
     resolution:
       {
@@ -6664,86 +6609,6 @@ packages:
       "@react-native-vector-icons/get-image":
         optional: true
 
-  "@react-native-vector-icons/entypo@12.4.1":
-    resolution:
-      {
-        integrity: sha512-v7WSJDTy+5kC8OM48EtuPtMj1PIoCMp+/szmOtBpEAAGkFgpwY2WhOOwZqOvJkYD50oiENdzKPK9sLXUpR/pRA==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
-  "@react-native-vector-icons/evil-icons@12.4.1":
-    resolution:
-      {
-        integrity: sha512-3iyDqQrs7E7xuOKLhp+pjuEZR33aoGunsSgXMLEXp84sM2A/c/FoNUxxNbLTFn807iM+/GR3aPWxZysiaORuag==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
-  "@react-native-vector-icons/feather@12.4.1":
-    resolution:
-      {
-        integrity: sha512-eHVrOz9SzS3/eUS4wT/jH00atLFhlvl7gTH+VCbxlaIh90j+viE458WJzfdg6pF/S21jXkbkK25E/BzK65XzPg==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
-  "@react-native-vector-icons/fontawesome5@12.3.1":
-    resolution:
-      {
-        integrity: sha512-QCv8tU83VaeGxlrzMu7fFJdhAB8cIgWtVjar3lT4j4N4cbPfu4F4rpCbeq2USE5hP4Cp92Q+PhUgDAmuUJA38g==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
-  "@react-native-vector-icons/fontawesome6@12.3.1":
-    resolution:
-      {
-        integrity: sha512-osce83O1X1fbGD09qHi/N7XI76n4+JDjLtbT7tFDq1+2reY9p1lNwGWdQN1s+X/7eNaq0P599Uu7tMn7juQvOA==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
-  "@react-native-vector-icons/fontawesome@12.4.1":
-    resolution:
-      {
-        integrity: sha512-XYQj7wYhKxYvd9DMAoLmaJbggyH5rumg6WT+ecGZ6Fk/STtTE8sBEd/Uy6/fLLQYusdKme8JTdrSRUxIcdreyw==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
-  "@react-native-vector-icons/fontisto@12.4.1":
-    resolution:
-      {
-        integrity: sha512-IVqtnRxSoV/CSdrvkPLyxnIs6wZ5R9sizGf+Yv4aQgL2lwiQxEOrAM1DMtTSq/SsORyfkk+2BrSQ5BotJ5Bzhw==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
-  "@react-native-vector-icons/foundation@12.4.1":
-    resolution:
-      {
-        integrity: sha512-vuAPKuuaL2/3yNZ0VAqP3M/wL2SnfZr4Ni2WAv4h10jyDvy73YTGC/Dn59UHn368kIGnMirmYrZOcpkSoBlUHg==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
   "@react-native-vector-icons/ionicons@12.4.1":
     resolution:
       {
@@ -6758,46 +6623,6 @@ packages:
     resolution:
       {
         integrity: sha512-ag4Krs1gQBfz0HaVnXUMF66Y6WCxUbrkixXj2TLx7A140bG4QtxCJX8gYnIzq+zowRKBqs6/n4O1I5eOeC8ttg==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
-  "@react-native-vector-icons/material-icons@12.4.1":
-    resolution:
-      {
-        integrity: sha512-xUgYPEptDJ955AJcTvIog68jZTav88wX+/zfyuTHbgZFj3xu907DnKU3L/asGqbZztwM6tiAOpNKeySM5PEoqw==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
-  "@react-native-vector-icons/octicons@20.4.1":
-    resolution:
-      {
-        integrity: sha512-a6mYXJ7/WeOelqqFkN2sHavlWbarKQ++y6A5oOxjZA1K3vr4zOYT2jHg/HcQifuW++3OErhjOtsLNmLyALbf5Q==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
-  "@react-native-vector-icons/simple-line-icons@12.4.1":
-    resolution:
-      {
-        integrity: sha512-vd52nL0Lu45WlYU4PzeDypm31W80+fNyh7q7OadCvBr0vxc5rFZZFYG57TwCQKCngYeS22AqTIcweim4EHc99w==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
-  "@react-native-vector-icons/zocial@12.4.1":
-    resolution:
-      {
-        integrity: sha512-S/+RAPc7ToIQl1U+KJwMfFLUYx7hqj9idotgbe1E8hIgO1ozejgvsa+p5vtoT8uO9eLgO0jtjwKXlvAno2IpMw==,
       }
     engines: { node: ">= 18.0.0" }
     peerDependencies:
@@ -8795,10 +8620,10 @@ packages:
         integrity: sha512-qUHkeCyQFxMXg79wQfTtfndEC+N9ZZg76HJftDJp+qH2tV7Gj4OJi7l+PiWwJ+pWtW8GwSmqsDj/oymhrTWXjg==,
       }
 
-  "@types/zxcvbn@4.4.5":
+  "@types/zxcvbn@4.4.4":
     resolution:
       {
-        integrity: sha512-FZJgC5Bxuqg7Rhsm/bx6gAruHHhDQ55r+s0JhDh8CQ16fD7NsJJ+p8YMMQDhSQoIrSmjpqqYWA96oQVMNkjRyA==,
+        integrity: sha512-Tuk4q7q0DnpzyJDI4aMeghGuFu2iS1QAdKpabn8JfbtfGmVDUgvZv1I7mEjP61Bvnp3ljKCC8BE6YYSTNxmvRQ==,
       }
 
   "@typescript-eslint/eslint-plugin@8.58.1":
@@ -20978,7 +20803,7 @@ snapshots:
   "@jest/console@29.7.0":
     dependencies:
       "@jest/types": 29.6.3
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       chalk: 4.1.2
       jest-message-util: 29.7.0
       jest-util: 29.7.0
@@ -20991,14 +20816,14 @@ snapshots:
       "@jest/test-result": 29.7.0
       "@jest/transform": 29.7.0
       "@jest/types": 29.6.3
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       ci-info: 3.9.0
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@22.19.13)(ts-node@10.9.2(@swc/core@1.15.17)(@types/node@24.11.0)(typescript@5.9.3))
+      jest-config: 29.7.0(@types/node@24.11.0)(ts-node@10.9.2(@swc/core@1.15.17)(@types/node@24.11.0)(typescript@5.9.3))
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -21029,7 +20854,7 @@ snapshots:
     dependencies:
       "@jest/fake-timers": 29.7.0
       "@jest/types": 29.6.3
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       jest-mock: 29.7.0
 
   "@jest/expect-utils@29.7.0":
@@ -21047,7 +20872,7 @@ snapshots:
     dependencies:
       "@jest/types": 29.6.3
       "@sinonjs/fake-timers": 10.3.0
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       jest-message-util: 29.7.0
       jest-mock: 29.7.0
       jest-util: 29.7.0
@@ -21071,7 +20896,7 @@ snapshots:
       "@jest/transform": 29.7.0
       "@jest/types": 29.6.3
       "@jridgewell/trace-mapping": 0.3.31
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       chalk: 4.1.2
       collect-v8-coverage: 1.0.3
       exit: 0.1.2
@@ -21145,7 +20970,7 @@ snapshots:
       "@jest/schemas": 29.6.3
       "@types/istanbul-lib-coverage": 2.0.6
       "@types/istanbul-reports": 3.0.4
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       "@types/yargs": 17.0.35
       chalk: 4.1.2
 
@@ -23004,14 +22829,6 @@ snapshots:
     dependencies:
       "@react-native-firebase/app": 21.14.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
 
-  "@react-native-vector-icons/ant-design@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
   "@react-native-vector-icons/common@12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
     dependencies:
       find-up: 7.0.0
@@ -23019,70 +22836,6 @@ snapshots:
       plist: 3.1.0
       react: 19.1.0
       react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-
-  "@react-native-vector-icons/entypo@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
-  "@react-native-vector-icons/evil-icons@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
-  "@react-native-vector-icons/feather@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
-  "@react-native-vector-icons/fontawesome5@12.3.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
-  "@react-native-vector-icons/fontawesome6@12.3.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
-  "@react-native-vector-icons/fontawesome@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
-  "@react-native-vector-icons/fontisto@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
-  "@react-native-vector-icons/foundation@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
 
   "@react-native-vector-icons/ionicons@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
     dependencies:
@@ -23093,38 +22846,6 @@ snapshots:
       - "@react-native-vector-icons/get-image"
 
   "@react-native-vector-icons/material-design-icons@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
-  "@react-native-vector-icons/material-icons@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
-  "@react-native-vector-icons/octicons@20.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
-  "@react-native-vector-icons/simple-line-icons@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
-  "@react-native-vector-icons/zocial@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
     dependencies:
       "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
       react: 19.1.0
@@ -23309,7 +23030,8 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  "@react-native/normalize-colors@0.74.89": {}
+  "@react-native/normalize-colors@0.74.89":
+    optional: true
 
   "@react-native/normalize-colors@0.81.0": {}
 
@@ -24309,7 +24031,7 @@ snapshots:
 
   "@types/graceful-fs@4.1.9":
     dependencies:
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
 
   "@types/hammerjs@2.0.46": {}
 
@@ -24483,7 +24205,7 @@ snapshots:
     dependencies:
       "@types/yargs-parser": 21.0.3
 
-  "@types/zxcvbn@4.4.5": {}
+  "@types/zxcvbn@4.4.4": {}
 
   "@typescript-eslint/eslint-plugin@8.58.1(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)":
     dependencies:
@@ -25666,7 +25388,7 @@ snapshots:
       chalk: 4.1.2
       exit: 0.1.2
       graceful-fs: 4.2.11
-      jest-config: 29.7.0(@types/node@22.19.13)(ts-node@10.9.2(@swc/core@1.15.17)(@types/node@24.11.0)(typescript@5.9.3))
+      jest-config: 29.7.0(@types/node@22.19.13)
       jest-util: 29.7.0
       prompts: 2.4.2
     transitivePeerDependencies:
@@ -25711,6 +25433,7 @@ snapshots:
       node-fetch: 2.7.0
     transitivePeerDependencies:
       - encoding
+    optional: true
 
   cross-spawn@7.0.6:
     dependencies:
@@ -25723,6 +25446,7 @@ snapshots:
   css-in-js-utils@3.1.0:
     dependencies:
       hyphenate-style-name: 1.1.0
+    optional: true
 
   css-select@5.2.2:
     dependencies:
@@ -26274,7 +25998,7 @@ snapshots:
       "@typescript-eslint/parser": 8.58.1(eslint@8.57.1)(typescript@5.9.3)
       eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@8.57.1))(eslint@8.57.1)
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1)
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@8.57.1)
       eslint-plugin-react: 7.37.5(eslint@8.57.1)
@@ -26309,7 +26033,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@8.57.1))(eslint@8.57.1):
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1):
     dependencies:
       "@nolyfill/is-core-module": 1.0.39
       debug: 4.4.3(supports-color@10.2.2)
@@ -26335,18 +26059,7 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@8.57.1)
-    transitivePeerDependencies:
-      - supports-color
-
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@8.57.1))(eslint@8.57.1))(eslint@8.57.1):
-    dependencies:
-      debug: 3.2.7
-    optionalDependencies:
-      "@typescript-eslint/parser": 8.58.1(eslint@8.57.1)(typescript@5.9.3)
-      eslint: 8.57.1
-      eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@8.57.1))(eslint@8.57.1)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -26375,35 +26088,6 @@ snapshots:
       string-natural-compare: 3.0.1
 
   eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1):
-    dependencies:
-      "@rtsao/scc": 1.1.0
-      array-includes: 3.1.9
-      array.prototype.findlastindex: 1.2.6
-      array.prototype.flat: 1.3.3
-      array.prototype.flatmap: 1.3.3
-      debug: 3.2.7
-      doctrine: 2.1.0
-      eslint: 8.57.1
-      eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@8.57.1))(eslint@8.57.1))(eslint@8.57.1)
-      hasown: 2.0.2
-      is-core-module: 2.16.1
-      is-glob: 4.0.3
-      minimatch: 3.1.5
-      object.fromentries: 2.0.8
-      object.groupby: 1.0.3
-      object.values: 1.2.1
-      semver: 6.3.1
-      string.prototype.trimend: 1.0.9
-      tsconfig-paths: 3.15.0
-    optionalDependencies:
-      "@typescript-eslint/parser": 8.58.1(eslint@8.57.1)(typescript@5.9.3)
-    transitivePeerDependencies:
-      - eslint-import-resolver-typescript
-      - eslint-import-resolver-webpack
-      - supports-color
-
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.58.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@8.57.1):
     dependencies:
       "@rtsao/scc": 1.1.0
       array-includes: 3.1.9
@@ -26802,7 +26486,8 @@ snapshots:
     dependencies:
       bser: 2.1.1
 
-  fbjs-css-vars@1.0.2: {}
+  fbjs-css-vars@1.0.2:
+    optional: true
 
   fbjs@3.0.5:
     dependencies:
@@ -26815,6 +26500,7 @@ snapshots:
       ua-parser-js: 1.0.41
     transitivePeerDependencies:
       - encoding
+    optional: true
 
   fd-package-json@2.0.0:
     dependencies:
@@ -27448,7 +27134,8 @@ snapshots:
 
   husky@9.1.7: {}
 
-  hyphenate-style-name@1.1.0: {}
+  hyphenate-style-name@1.1.0:
+    optional: true
 
   iceberg-js@0.8.1: {}
 
@@ -27524,6 +27211,7 @@ snapshots:
   inline-style-prefixer@7.0.1:
     dependencies:
       css-in-js-utils: 3.1.0
+    optional: true
 
   internal-slot@1.1.0:
     dependencies:
@@ -27821,7 +27509,7 @@ snapshots:
       "@jest/expect": 29.7.0
       "@jest/test-result": 29.7.0
       "@jest/types": 29.6.3
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       chalk: 4.1.2
       co: 4.6.0
       dedent: 1.7.1
@@ -27869,7 +27557,7 @@ snapshots:
       create-jest: 29.7.0(@types/node@22.19.13)
       exit: 0.1.2
       import-local: 3.2.0
-      jest-config: 29.7.0(@types/node@22.19.13)(ts-node@10.9.2(@swc/core@1.15.17)(@types/node@24.11.0)(typescript@5.9.3))
+      jest-config: 29.7.0(@types/node@22.19.13)
       jest-util: 29.7.0
       jest-validate: 29.7.0
       yargs: 17.7.2
@@ -27947,7 +27635,7 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-config@29.7.0(@types/node@22.19.13)(ts-node@10.9.2(@swc/core@1.15.17)(@types/node@24.11.0)(typescript@5.9.3)):
+  jest-config@29.7.0(@types/node@22.19.13):
     dependencies:
       "@babel/core": 7.29.0
       "@jest/test-sequencer": 29.7.0
@@ -27973,7 +27661,6 @@ snapshots:
       strip-json-comments: 3.1.1
     optionalDependencies:
       "@types/node": 22.19.13
-      ts-node: 10.9.2(@swc/core@1.15.17)(@types/node@24.11.0)(typescript@5.9.3)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -28055,7 +27742,7 @@ snapshots:
       "@jest/environment": 29.7.0
       "@jest/fake-timers": 29.7.0
       "@jest/types": 29.6.3
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       jest-mock: 29.7.0
       jest-util: 29.7.0
 
@@ -28065,7 +27752,7 @@ snapshots:
     dependencies:
       "@jest/types": 29.6.3
       "@types/graceful-fs": 4.1.9
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -28111,7 +27798,7 @@ snapshots:
   jest-mock@29.7.0:
     dependencies:
       "@jest/types": 29.6.3
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       jest-util: 29.7.0
 
   jest-pnp-resolver@1.2.3(jest-resolve@29.7.0):
@@ -28146,7 +27833,7 @@ snapshots:
       "@jest/test-result": 29.7.0
       "@jest/transform": 29.7.0
       "@jest/types": 29.6.3
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       chalk: 4.1.2
       emittery: 0.13.1
       graceful-fs: 4.2.11
@@ -28174,7 +27861,7 @@ snapshots:
       "@jest/test-result": 29.7.0
       "@jest/transform": 29.7.0
       "@jest/types": 29.6.3
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       chalk: 4.1.2
       cjs-module-lexer: 1.4.3
       collect-v8-coverage: 1.0.3
@@ -28220,7 +27907,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       "@jest/types": 29.6.3
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -28239,7 +27926,7 @@ snapshots:
     dependencies:
       "@jest/test-result": 29.7.0
       "@jest/types": 29.6.3
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       emittery: 0.13.1
@@ -28254,7 +27941,7 @@ snapshots:
 
   jest-worker@29.7.0:
     dependencies:
-      "@types/node": 22.19.13
+      "@types/node": 24.11.0
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
@@ -28718,7 +28405,8 @@ snapshots:
 
   memoize-one@5.2.1: {}
 
-  memoize-one@6.0.0: {}
+  memoize-one@6.0.0:
+    optional: true
 
   memory-pager@1.5.0: {}
 
@@ -29678,6 +29366,7 @@ snapshots:
   promise@7.3.1:
     dependencies:
       asap: 2.0.6
+    optional: true
 
   promise@8.3.0:
     dependencies:
@@ -29968,7 +29657,7 @@ snapshots:
 
   react-native-web@0.21.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
-      "@babel/runtime": 7.28.6
+      "@babel/runtime": 7.29.2
       "@react-native/normalize-colors": 0.74.89
       fbjs: 3.0.5
       inline-style-prefixer: 7.0.1
@@ -29980,6 +29669,7 @@ snapshots:
       styleq: 0.1.3
     transitivePeerDependencies:
       - encoding
+    optional: true
 
   react-native-worklets@0.7.4(@babel/core@7.29.0)(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0):
     dependencies:
@@ -30518,7 +30208,8 @@ snapshots:
       es-errors: 1.3.0
       es-object-atoms: 1.1.1
 
-  setimmediate@1.0.5: {}
+  setimmediate@1.0.5:
+    optional: true
 
   setprototypeof@1.2.0: {}
 
@@ -30991,7 +30682,8 @@ snapshots:
     optionalDependencies:
       "@babel/core": 7.29.0
 
-  styleq@0.1.3: {}
+  styleq@0.1.3:
+    optional: true
 
   sucrase@3.35.1:
     dependencies:
@@ -31410,7 +31102,8 @@ snapshots:
 
   typescript@5.9.3: {}
 
-  ua-parser-js@1.0.41: {}
+  ua-parser-js@1.0.41:
+    optional: true
 
   uglify-js@3.19.3:
     optional: true

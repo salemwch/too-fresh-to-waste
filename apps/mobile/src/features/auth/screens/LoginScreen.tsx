@@ -17,8 +17,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import LeafLogo from '@/assets/images/leaf.png';
-import WavingHand from '@/assets/images/waving-hand.png';
+import LeafLogo from '@/assets/images/leaf.webp';
+import WavingHand from '@/assets/images/waving-hand.webp';
 import { Input, Text, Card, Icon } from '@/design-system/components/atoms';
 import {
   ResendVerificationModal,
@@ -243,7 +243,27 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           return;
         }
 
-        // Fall back to backend validation errors
+        // Field-level validation errors from class-validator (e.g. invalid email format)
+        const payload = err as Record<string, unknown>;
+        const validationErrors = payload['validationErrors'] as Record<string, string> | undefined;
+        if (validationErrors !== undefined && Object.keys(validationErrors).length > 0) {
+          Object.entries(validationErrors)
+            .filter(([field]) => field === 'email' || field === 'password')
+            .forEach(([field, rawMsg]) => {
+              const friendlyMsg =
+                field === 'email'
+                  ? "Please check your email address — it doesn't look valid"
+                  : 'Please check your password';
+              setError(field as 'email' | 'password', {
+                type: 'manual',
+                message: rawMsg.toLowerCase().includes('email') ? friendlyMsg : rawMsg,
+              });
+            });
+          dispatch(clearError());
+          return;
+        }
+
+        // Legacy fallback: parse raw backend validation response
         const fieldErrors = parseBackendValidationError(err);
         if (fieldErrors) {
           Object.entries(fieldErrors)
@@ -251,6 +271,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             .forEach(([field, message]) => {
               setError(field as 'email' | 'password', { type: 'manual', message });
             });
+          dispatch(clearError());
         }
       }
     },

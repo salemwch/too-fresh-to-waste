@@ -139,7 +139,10 @@ export class OrderEventsListener {
       }
 
       // Update business referral tracking for merchant
-      await this.gamificationService.updateBusinessOrderCount(event.merchantId);
+      await this.gamificationService.updateBusinessOrderCount(
+        event.merchantId,
+        event.metadata?.itemCount ?? 1,
+      );
 
       // Increment community bag goal (non-blocking — must NOT fail loyalty flow)
       try {

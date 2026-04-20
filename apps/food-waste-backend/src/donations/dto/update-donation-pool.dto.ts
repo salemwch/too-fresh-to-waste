@@ -1,6 +1,15 @@
 import type { UpdateDonationPoolInput } from '@foodwaste/shared';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsString, IsOptional, Min, Max, MinLength, MaxLength } from 'class-validator';
+import {
+  IsNumber,
+  IsString,
+  IsOptional,
+  Min,
+  Max,
+  MinLength,
+  MaxLength,
+  IsDateString,
+} from 'class-validator';
 
 /**
  * DTO for admin to update the active donation pool
@@ -30,4 +39,12 @@ export class UpdateDonationPoolDto implements UpdateDonationPoolInput {
   @MinLength(3)
   @MaxLength(200)
   cause?: string | undefined;
+
+  @ApiPropertyOptional({
+    description: 'Target date / deadline for the pool (ISO 8601)',
+    example: '2026-12-31T23:59:59.000Z',
+  })
+  @IsOptional()
+  @IsDateString()
+  targetDate?: string | null | undefined;
 }

@@ -714,7 +714,10 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async getProfile(@Request() req: AuthenticatedRequest) {
     const user = await this.usersService.findOne(req.user.userId);
-    return user;
+    // findOne uses .lean() which skips toJSON virtuals, so _id is a raw ObjectId that
+    // serialises to a string — but the frontend UserResponse type expects `userId`.
+    // Inject it here so the field is always present regardless of the lean shortcut.
+    return { ...user, userId: req.user.userId };
   }
 
   /**

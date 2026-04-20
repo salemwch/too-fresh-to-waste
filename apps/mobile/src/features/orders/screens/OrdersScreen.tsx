@@ -247,7 +247,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
           data={currentOrders}
           renderItem={renderOrderCard}
           keyExtractor={keyExtractor}
-          estimatedItemSize={140}
+          estimatedItemSize={152}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={

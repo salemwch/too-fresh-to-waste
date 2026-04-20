@@ -182,23 +182,23 @@ const typographyStyles = {
   label: {
     large: {
       fontFamily: fontFamily.secondary,
-      fontSize: fontSize.base,
+      fontSize: fontSize.base, // 14
       fontWeight: fontWeight.medium,
-      lineHeight: lineHeight.normal,
+      lineHeight: 21, // 14 × 1.5 — absolute pixels required by React Native
       letterSpacing: letterSpacing.wide,
     },
     medium: {
       fontFamily: fontFamily.secondary,
-      fontSize: fontSize.sm,
+      fontSize: fontSize.sm, // 12
       fontWeight: fontWeight.medium,
-      lineHeight: lineHeight.normal,
+      lineHeight: 18, // 12 × 1.5 — absolute pixels required by React Native
       letterSpacing: letterSpacing.wide,
     },
     small: {
       fontFamily: fontFamily.secondary,
-      fontSize: fontSize.xs,
+      fontSize: fontSize.xs, // 10
       fontWeight: fontWeight.medium,
-      lineHeight: lineHeight.normal,
+      lineHeight: 15, // 10 × 1.5 — absolute pixels required by React Native
       letterSpacing: letterSpacing.wider,
     },
   },
@@ -207,24 +207,24 @@ const typographyStyles = {
   price: {
     original: {
       fontFamily: fontFamily.secondary,
-      fontSize: fontSize.sm,
+      fontSize: fontSize.sm, // 12
       fontWeight: fontWeight.regular,
-      lineHeight: lineHeight.normal,
+      lineHeight: 18, // 12 × 1.5 — absolute pixels required by React Native
       letterSpacing: letterSpacing.normal,
       textDecorationLine: 'line-through' as const,
     },
     discounted: {
       fontFamily: fontFamily.secondary,
-      fontSize: fontSize.lg,
+      fontSize: fontSize.lg, // 18
       fontWeight: fontWeight.bold,
-      lineHeight: lineHeight.normal,
+      lineHeight: 27, // 18 × 1.5 — absolute pixels required by React Native
       letterSpacing: letterSpacing.normal,
     },
     savings: {
       fontFamily: fontFamily.secondary,
-      fontSize: fontSize.sm,
+      fontSize: fontSize.sm, // 12
       fontWeight: fontWeight.semibold,
-      lineHeight: lineHeight.normal,
+      lineHeight: 18, // 12 × 1.5 — absolute pixels required by React Native
       letterSpacing: letterSpacing.normal,
     },
   },
@@ -232,9 +232,9 @@ const typographyStyles = {
   // Status & Badge Typography
   badge: {
     fontFamily: fontFamily.secondary,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.xs, // 10
     fontWeight: fontWeight.semibold,
-    lineHeight: lineHeight.none,
+    lineHeight: 14, // compact but safe — absolute pixels required by React Native
     letterSpacing: letterSpacing.wider,
     textTransform: 'uppercase' as const,
   },
@@ -242,9 +242,9 @@ const typographyStyles = {
   // Code & Monospace
   code: {
     fontFamily: fontFamily.mono,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.sm, // 12
     fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.normal,
+    lineHeight: 18, // 12 × 1.5 — absolute pixels required by React Native
     letterSpacing: letterSpacing.normal,
   },
 } as const;

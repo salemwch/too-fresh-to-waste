@@ -414,14 +414,56 @@ export function useUpdateLeaderboardPreference() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (anonymous: boolean) => dashboardService.updateLeaderboardPreference(anonymous),
+    onMutate: async (anonymous: boolean) => {
+      await queryClient.cancelQueries({ queryKey: dashboardKeys.leaderboard(50) });
+      const prev = queryClient.getQueryData<LeaderboardEntry[]>(dashboardKeys.leaderboard(50));
+      const currentUser = useAuthStore.getState().user;
+      const prevAnonymous = currentUser?.leaderboardAnonymous;
+      if (prev && currentUser) {
+        queryClient.setQueryData<LeaderboardEntry[]>(
+          dashboardKeys.leaderboard(50),
+          prev.map(entry =>
+            entry.userId === currentUser.userId
+              ? {
+                  ...entry,
+                  isAnonymous: anonymous,
+                  displayName: anonymous ? 'Anonymous' : entry.displayName,
+                  profileImage: anonymous ? null : entry.profileImage,
+                }
+              : entry,
+          ),
+        );
+      }
+      // Optimistically close the first-visit dialog
+      if (currentUser) {
+        useAuthStore.getState().setUser({ ...currentUser, leaderboardAnonymous: anonymous });
+      }
+      return { prev, prevAnonymous };
+    },
     onSuccess: (_data, anonymous) => {
-      // Sync auth store with the server-confirmed value (not just optimistic)
+      // Confirm the server-settled value in the auth store
       const current = useAuthStore.getState().user;
       if (current) {
         useAuthStore.getState().setUser({ ...current, leaderboardAnonymous: anonymous });
       }
       void queryClient.invalidateQueries({ queryKey: dashboardKeys.myRank() });
       void queryClient.invalidateQueries({ queryKey: dashboardKeys.leaderboard(50) });
+    },
+    onError: (_err, _anonymous, context) => {
+      // Roll back the optimistic cache update
+      if (context?.prev !== undefined) {
+        queryClient.setQueryData(dashboardKeys.leaderboard(50), context.prev);
+      }
+      // Roll back the auth store optimistic update
+      const current = useAuthStore.getState().user;
+      if (current) {
+        useAuthStore.getState().setUser({
+          ...current,
+          ...(context?.prevAnonymous !== undefined
+            ? { leaderboardAnonymous: context.prevAnonymous }
+            : {}),
+        });
+      }
     },
   });
 }

@@ -302,8 +302,8 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
           index,
         })}
         // Performance optimizations
-        windowSize={5}
-        maxToRenderPerBatch={3}
+        windowSize={2}
+        maxToRenderPerBatch={2}
         initialNumToRender={3}
         removeClippedSubviews
       />

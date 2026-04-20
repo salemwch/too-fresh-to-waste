@@ -107,6 +107,7 @@ export class LeaderboardService {
         lastName: string;
         profileImage?: string;
         avatar?: string;
+        leaderboardAnonymous?: boolean | null;
       }>;
     }
 
@@ -141,6 +142,7 @@ export class LeaderboardService {
                   lastName: 1,
                   profileImage: 1,
                   avatar: 1,
+                  leaderboardAnonymous: 1,
                 },
               },
             ],
@@ -152,17 +154,20 @@ export class LeaderboardService {
 
     return results.map((r, i) => {
       const u = r.user[0];
-      const displayName = u
-        ? `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || 'Merchant'
-        : 'Merchant';
-      const profileImage = u?.profileImage ?? u?.avatar ?? null;
+      const isAnonymous = u?.leaderboardAnonymous === true;
+      const displayName = isAnonymous
+        ? 'Anonymous'
+        : u
+          ? `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || 'Merchant'
+          : 'Merchant';
+      const profileImage = isAnonymous ? null : (u?.profileImage ?? u?.avatar ?? null);
 
       return {
         rank: i + 1,
         userId: r._id.toString(),
         displayName,
         profileImage,
-        isAnonymous: false,
+        isAnonymous,
         mealsSaved: r.mealsSaved,
       };
     });

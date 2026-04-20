@@ -32,8 +32,8 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { useSelector } from 'react-redux';
 
-import ClickToPayImage from '@/assets/images/ClickToPay.png';
-import PayMeImage from '@/assets/images/PayMe.png';
+import ClickToPayImage from '@/assets/images/ClickToPay.webp';
+import PayMeImage from '@/assets/images/PayMe.webp';
 import { Text, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';

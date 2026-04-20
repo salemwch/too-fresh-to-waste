@@ -53,8 +53,8 @@
     "cta": {
       "downloadApp": "DOWNLOAD APP",
       "downloadAppShort": "DOWNLOAD APP",
-      "businessSignup": "BUSINESS SIGN-UP",
-      "businessSignupShort": "SIGN UP",
+      "businessSignup": "SIGN UP AS BUSINESS",
+      "businessSignupShort": "SIGN UP AS BUSINESS",
       "login": "Login"
     },
     "dropdown": {
@@ -568,6 +568,8 @@
       "establishments": "Establishments",
       "moderation": "Moderation",
       "adminOffers": "Offer Management",
+      "donationPool": "Donation Pool",
+      "donations": "Donation Pool",
       "health": "System Health",
       "settings": "Settings",
       "merchant": "Merchant",
@@ -1023,6 +1025,45 @@
       "lowPickupEmpty": "No offers below the pickup threshold",
       "violationsEmpty": "No price violations detected",
       "deletedEmpty": "No deleted offers"
+    },
+    "adminDonationPool": {
+      "title": "Donation Pool",
+      "description": "Monitor and configure the community donation pool",
+      "raised": "Total Raised",
+      "target": "Target",
+      "meals": "Meals Funded",
+      "contributors": "Contributors",
+      "progress": "Progress",
+      "statusLabel": "Pool Status",
+      "status": {
+        "active": "Active",
+        "funded": "Funded",
+        "distributed": "Distributed",
+        "archived": "Archived"
+      },
+      "settings": {
+        "title": "Pool Settings",
+        "description": "Update the active donation campaign parameters",
+        "targetAmount": "Target Amount (TND)",
+        "targetAmountHint": "Fundraising goal in Tunisian Dinar",
+        "cause": "Campaign Name",
+        "causeHint": "Short description of this donation campaign",
+        "targetDate": "Target Date",
+        "targetDateHint": "Optional deadline for reaching the target",
+        "clearDate": "Clear date",
+        "save": "Save Changes",
+        "saving": "Saving...",
+        "saveSuccess": "Pool settings updated successfully"
+      },
+      "reset": {
+        "title": "Reset Pool",
+        "description": "Archive the current pool and start a fresh campaign. All existing donation records are preserved.",
+        "button": "Reset Pool",
+        "confirmTitle": "Reset Donation Pool?",
+        "confirmDescription": "The current pool will be archived and a new one will be created with default settings. Donation history is not deleted.",
+        "confirm": "Yes, Reset Pool",
+        "success": "Donation pool reset successfully"
+      }
     },
     "merchantSecurity": {
       "title": "Security",

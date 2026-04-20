@@ -2,6 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '@/services/admin.service';
+import { dashboardService } from '@/services/dashboard.service';
+import type { DonationStats } from '@/types/dashboard';
 import type {
   AnalyticsPeriod,
   UserSearchParams,
@@ -567,6 +569,42 @@ export function useAssignReport() {
     onSuccess: (_, { id }) => {
       void qc.invalidateQueries({ queryKey: adminKeys.reportDetail(id) });
       void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'reports'] });
+    },
+  });
+}
+
+// ─── Donation Pool ────────────────────────────────────────────────────────────
+
+const DONATION_POOL_KEY = ['admin', 'donation-pool'] as const;
+
+export function useAdminDonationPool() {
+  return useQuery({
+    queryKey: DONATION_POOL_KEY,
+    queryFn: async (): Promise<DonationStats> => {
+      const res = await dashboardService.getAdminDonationPool();
+      return res.data.data;
+    },
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useUpdateDonationPool() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { targetAmount?: number; cause?: string; targetDate?: string | null }) =>
+      dashboardService.updateAdminDonationPool(payload).then(r => r.data.data),
+    onSuccess: data => {
+      qc.setQueryData<DonationStats>(DONATION_POOL_KEY, data);
+    },
+  });
+}
+
+export function useResetDonationPool() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => dashboardService.resetAdminDonationPool().then(r => r.data.data),
+    onSuccess: data => {
+      qc.setQueryData<DonationStats>(DONATION_POOL_KEY, data);
     },
   });
 }

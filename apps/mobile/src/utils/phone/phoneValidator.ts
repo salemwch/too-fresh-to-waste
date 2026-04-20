@@ -10,7 +10,7 @@ import * as yup from 'yup';
 
 import { isPossible, isValid, cleanPhoneNumber, DEFAULT_COUNTRY } from './phoneUtils';
 
-import type { CountryCode } from 'libphonenumber-js';
+import type { CountryCode } from 'libphonenumber-js/mobile';
 
 /**
  * Phone number validation options

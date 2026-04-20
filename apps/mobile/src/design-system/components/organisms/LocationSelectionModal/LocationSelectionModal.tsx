@@ -2,17 +2,9 @@
  * LocationSelectionModal
  *
  * First-time location setup modal shown after email verification.
- * Provides 4 options for setting user location:
- * 1. "Delicious food near me" - Request GPS location
- * 2. "Use my current location" - Request GPS location
- * 3. "Use default location" - Use Sousse city center
- * 4. Search bar - Search by city name
- *
- * Features:
- * - Blurred/dimmed background overlay
- * - Centered modal with options
- * - Location permission handling
- * - Manual city search fallback
+ * Provides 2 options for setting user location:
+ * 1. "Use my current location" - Request GPS location
+ * 2. Search bar - Search by city name
  */
 
 import { memo, useCallback, useState } from 'react';
@@ -26,7 +18,6 @@ import {
   Dimensions,
 } from 'react-native';
 
-import { environment } from '@/config/environment';
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 
@@ -37,13 +28,6 @@ import { ManualLocationModal } from '../ManualLocationModal';
 // ============================================================================
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-// Default location from environment config (not hardcoded)
-const DEFAULT_CENTER = {
-  latitude: environment.geolocation.defaultLatitude,
-  longitude: environment.geolocation.defaultLongitude,
-  name: 'Tunisia',
-};
 
 // ============================================================================
 // Types
@@ -95,24 +79,8 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
     // Handlers
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Handle "Delicious food near me" / "Use my current location"
-     * Both options request GPS location
-     */
     const handleRequestGPSLocation = useCallback(() => {
-      // Parent component (HomeScreen) will handle actual GPS request
-      onLocationSelect({ latitude: 0, longitude: 0 }, 'gps'); // Signal to request GPS
-    }, [onLocationSelect]);
-
-    /**
-     * Handle "Use default location"
-     * Sets location to the environment-configured default center
-     */
-    const handleUseDefaultLocation = useCallback(() => {
-      onLocationSelect(
-        { latitude: DEFAULT_CENTER.latitude, longitude: DEFAULT_CENTER.longitude },
-        DEFAULT_CENTER.name,
-      );
+      onLocationSelect({ latitude: 0, longitude: 0 }, 'gps');
     }, [onLocationSelect]);
 
     /**
@@ -156,7 +124,7 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                 <View style={[styles.modalContent, modalContentStyle]}>
                   {/* Header */}
                   <View style={styles.header}>
-                    <Icon name='map-pin' size={48} color={theme.colors.primary} />
+                    <Icon name='location' size={48} color={theme.colors.primary} />
                     <Text
                       variant='headline'
                       size='lg'
@@ -183,32 +151,9 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
 
                   {/* Options */}
                   <View style={styles.optionsContainer}>
-                    {/* Option 1: Delicious food near me */}
+                    {/* Use my current location */}
                     <Pressable
                       style={[styles.optionButton, styles.outlinedButton, primaryOptionStyle]}
-                      onPress={handleRequestGPSLocation}
-                      disabled={isLoading}
-                      accessibilityRole='button'
-                      accessibilityLabel='Find delicious food near me'
-                      accessibilityHint='Uses your current GPS location'
-                    >
-                      <View style={styles.optionIconContainer}>
-                        <Icon name='search' size={24} color={theme.colors.primary} />
-                      </View>
-                      <View style={styles.optionTextContainer}>
-                        <Text variant='body' size='md' weight='semibold'>
-                          Delicious food near me
-                        </Text>
-                        <Text variant='body' size='sm' color='secondary'>
-                          Find nearby deals using GPS
-                        </Text>
-                      </View>
-                      <Icon name='chevron-right' size={20} color={theme.colors.secondary} />
-                    </Pressable>
-
-                    {/* Option 2: Use my current location */}
-                    <Pressable
-                      style={[styles.optionButton, styles.outlinedButton, secondaryOptionStyle]}
                       onPress={handleRequestGPSLocation}
                       disabled={isLoading}
                       accessibilityRole='button'
@@ -216,40 +161,17 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                       accessibilityHint='Request GPS location permission'
                     >
                       <View style={styles.optionIconContainer}>
-                        <Icon name='navigation' size={24} color={theme.colors.primary} />
+                        <Icon name='navigate' size={24} color={theme.colors.primary} />
                       </View>
                       <View style={styles.optionTextContainer}>
                         <Text variant='body' size='md' weight='semibold'>
                           Use my current location
                         </Text>
                         <Text variant='body' size='sm' color='secondary'>
-                          We&apos;ll request permission
+                          Find the best deals near you
                         </Text>
                       </View>
-                      <Icon name='chevron-right' size={20} color={theme.colors.secondary} />
-                    </Pressable>
-
-                    {/* Option 3: Use default location (Sousse) */}
-                    <Pressable
-                      style={[styles.optionButton, styles.outlinedButton, secondaryOptionStyle]}
-                      onPress={handleUseDefaultLocation}
-                      disabled={isLoading}
-                      accessibilityRole='button'
-                      accessibilityLabel='Use default location in Sousse'
-                      accessibilityHint='Sets location to Sousse city center'
-                    >
-                      <View style={styles.optionIconContainer}>
-                        <Icon name='home' size={24} color={theme.colors.primary} />
-                      </View>
-                      <View style={styles.optionTextContainer}>
-                        <Text variant='body' size='md' weight='semibold'>
-                          Use default location
-                        </Text>
-                        <Text variant='body' size='sm' color='secondary'>
-                          Sousse city center
-                        </Text>
-                      </View>
-                      <Icon name='chevron-right' size={20} color={theme.colors.secondary} />
+                      <Icon name='chevron-forward' size={20} color={theme.colors.secondary} />
                     </Pressable>
 
                     {/* Divider */}

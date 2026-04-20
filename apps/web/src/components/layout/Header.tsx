@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useScrollPosition } from '@/hooks/useScrollPosition';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { LanguageSwitcher, LanguageSwitcherCompact } from '@/components/LanguageSwitcher';
 import { Link, usePathname } from '@/i18n/routing';
 
 // Navigation types
@@ -29,6 +29,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [openMobileAccordion, setOpenMobileAccordion] = useState<string | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pathname = usePathname();
 
@@ -144,7 +145,10 @@ export default function Header() {
   }, [isScrolled]);
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+    setIsMobileMenuOpen(prev => {
+      if (prev) setOpenMobileAccordion(null);
+      return !prev;
+    });
   };
 
   const handleNavEnter = (label: string) => {
@@ -176,14 +180,14 @@ export default function Header() {
     <>
       {/* Fixed Header */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-200 ease-in-out ${headerBgClass}`}
+        className={`fixed top-0 left-0 right-0 z-50 h-14 flex items-center transition-colors duration-200 ease-in-out ${headerBgClass}`}
         style={{
           boxShadow: headerShadow,
           transition: 'background-color 200ms ease-in-out, box-shadow 200ms ease-in-out',
         }}
         role='banner'
       >
-        <div className='w-full px-3 lg:px-6 pb-[5px]'>
+        <div className='w-full px-3 lg:px-6'>
           <nav
             className='grid grid-cols-[1fr_auto_1fr] items-center h-14 gap-2'
             role='navigation'
@@ -191,14 +195,14 @@ export default function Header() {
           >
             {/* LEFT — Nav links (desktop) / Language switcher (mobile) */}
             <div className='flex items-center justify-start'>
-              {/* Mobile: Language Switcher */}
+              {/* Mobile: Language Switcher (compact icon-only) */}
               <div className='lg:hidden'>
-                <LanguageSwitcher
-                  buttonClassName={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${
+                <LanguageSwitcherCompact
+                  className={
                     isScrolledState
-                      ? 'bg-primary-500/10 text-primary-500 hover:bg-primary-500/20'
-                      : 'bg-white/10 text-white hover:bg-white/20'
-                  }`}
+                      ? 'w-6 h-6 text-primary-500 bg-primary-500/10 hover:bg-primary-500/20'
+                      : 'w-6 h-6'
+                  }
                 />
               </div>
 
@@ -242,7 +246,7 @@ export default function Header() {
             {/* CENTER — Logo */}
             <div className='flex items-center justify-center'>
               <Link href='/' aria-label='Too Fresh To Waste Home'>
-                <div className='relative w-20 lg:w-24 xl:w-32 h-10 lg:h-12 xl:h-16'>
+                <div className='relative w-12 lg:w-24 xl:w-32 h-8 lg:h-12 xl:h-16'>
                   <Image
                     src='/images/green-header-center.png'
                     alt='Too Fresh To Waste Logo'
@@ -250,7 +254,7 @@ export default function Header() {
                     className={`object-contain transition-opacity duration-200 ${
                       isScrolledState ? 'opacity-0' : 'opacity-100'
                     }`}
-                    sizes='(max-width: 1024px) 64px, (max-width: 1280px) 80px, 112px'
+                    sizes='(max-width: 1024px) 48px, (max-width: 1280px) 96px, 128px'
                     loading='eager'
                   />
                   <Image
@@ -260,7 +264,7 @@ export default function Header() {
                     className={`object-contain transition-opacity duration-200 ${
                       isScrolledState ? 'opacity-100' : 'opacity-0'
                     }`}
-                    sizes='(max-width: 1024px) 64px, (max-width: 1280px) 80px, 112px'
+                    sizes='(max-width: 1024px) 48px, (max-width: 1280px) 96px, 128px'
                     loading='eager'
                   />
                 </div>
@@ -318,13 +322,13 @@ export default function Header() {
               {/* Mobile: Hamburger */}
               <button
                 onClick={toggleMobileMenu}
-                className={`lg:hidden p-2 rounded-md transition-colors duration-300 ${linkColorClass}`}
+                className={`lg:hidden p-1.5 rounded-md transition-colors duration-300 ${linkColorClass}`}
                 aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={isMobileMenuOpen}
                 aria-controls='mobile-menu'
               >
                 <svg
-                  className='w-5 h-5'
+                  className='w-4 h-4'
                   fill='none'
                   strokeLinecap='round'
                   strokeLinejoin='round'
@@ -405,7 +409,7 @@ export default function Header() {
           <div className='absolute inset-0 bg-black/50 backdrop-blur-sm' />
           <div
             id='mobile-menu'
-            className={`absolute top-16 left-0 right-0 max-h-[calc(100vh-4rem)] overflow-y-auto shadow-xl ${
+            className={`absolute top-14 left-0 right-0 max-h-[calc(100vh-3.5rem)] overflow-y-auto shadow-xl ${
               isScrolledState ? 'bg-[#f9f3f0]' : 'bg-primary-500'
             }`}
             onClick={e => e.stopPropagation()}
@@ -414,17 +418,77 @@ export default function Header() {
             tabIndex={-1}
           >
             <div className='px-4 py-6 space-y-1'>
-              {NAV_ITEMS.map(item => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={`block px-4 py-3 text-base font-semibold tracking-wide transition-colors duration-200 hover:bg-white/10 rounded-lg outline-none ${linkColorClass}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  role='menuitem'
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {NAV_ITEMS.map(item => {
+                const isAccordionOpen = openMobileAccordion === item.label;
+                if (item.dropdown) {
+                  return (
+                    <div key={item.label}>
+                      <button
+                        className={`w-full flex items-center justify-between px-4 py-3 text-base font-semibold tracking-wide transition-colors duration-200 hover:bg-white/10 rounded-lg outline-none ${linkColorClass}`}
+                        onClick={() => setOpenMobileAccordion(isAccordionOpen ? null : item.label)}
+                        aria-expanded={isAccordionOpen}
+                      >
+                        <span className='flex items-center gap-1'>
+                          {item.label}
+                          {item.icon}
+                        </span>
+                        <svg
+                          className={`w-4 h-4 transition-transform duration-200 ${isAccordionOpen ? 'rotate-180' : ''}`}
+                          fill='none'
+                          stroke='currentColor'
+                          viewBox='0 0 24 24'
+                          aria-hidden='true'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M19 9l-7 7-7-7'
+                          />
+                        </svg>
+                      </button>
+                      {isAccordionOpen && (
+                        <div className='mt-1 mb-2 ms-4 ps-4 border-s border-white/20 space-y-0.5'>
+                          {item.dropdown.map(section => (
+                            <div key={section.title}>
+                              <p
+                                className={`px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest ${isScrolledState ? 'text-primary-500/50' : 'text-white/50'}`}
+                              >
+                                {section.title}
+                              </p>
+                              {section.links.map(link => (
+                                <Link
+                                  key={link.label}
+                                  href={link.href}
+                                  className={`block px-3 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-white/10 ${linkColorClass}`}
+                                  onClick={() => {
+                                    setIsMobileMenuOpen(false);
+                                    setOpenMobileAccordion(null);
+                                  }}
+                                >
+                                  {link.label}
+                                </Link>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className={`flex items-center gap-1 px-4 py-3 text-base font-semibold tracking-wide transition-colors duration-200 hover:bg-white/10 rounded-lg outline-none ${linkColorClass}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    role='menuitem'
+                  >
+                    {item.label}
+                    {item.icon}
+                  </Link>
+                );
+              })}
               <div
                 className={`my-4 border-t ${isScrolledState ? 'border-primary-500/20' : 'border-white/20'}`}
               />
@@ -468,7 +532,7 @@ export default function Header() {
       )}
 
       {/* Spacer */}
-      <div className={`h-16 ${!isScrolledState ? 'bg-primary-500' : ''}`} aria-hidden='true' />
+      <div className={`h-14 ${!isScrolledState ? 'bg-primary-500' : ''}`} aria-hidden='true' />
     </>
   );
 }

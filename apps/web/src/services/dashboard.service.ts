@@ -206,6 +206,23 @@ export const dashboardService = {
     return apiClient.get<BackendEnvelope<DonationStats>>(`${DONATIONS_BASE}/stats`);
   },
 
+  // ── Admin donation pool ───────────────────────────────────────────────
+  getAdminDonationPool() {
+    return apiClient.get<BackendEnvelope<DonationStats>>('/admin/donations/pool');
+  },
+
+  updateAdminDonationPool(payload: {
+    targetAmount?: number;
+    cause?: string;
+    targetDate?: string | null;
+  }) {
+    return apiClient.patch<BackendEnvelope<DonationStats>>('/admin/donations/pool', payload);
+  },
+
+  resetAdminDonationPool() {
+    return apiClient.post<BackendEnvelope<DonationStats>>('/admin/donations/pool/reset');
+  },
+
   // ── Community Bag Goal ─────────────────────────────────────────────────
 
   /**

@@ -141,6 +141,7 @@
     "@types/sanitize-html": "^2.16.0",
     "@types/speakeasy": "^2.0.10",
     "@types/xml2js": "0.4.14",
+    "@types/zxcvbn": "4.4.4",
     "@typescript-eslint/eslint-plugin": "^8.58.1",
     "@typescript-eslint/parser": "^8.58.1",
     "dependency-cruiser": "^17.3.6",

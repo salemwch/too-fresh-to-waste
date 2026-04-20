@@ -11,6 +11,7 @@ import {
   Shield,
   Settings,
   Activity,
+  HeartHandshake,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '@foodwaste/shared';
@@ -109,6 +110,12 @@ export const adminNavItems: NavItem[] = [
     titleKey: 'adminOffers',
     href: '/admin/offers',
     icon: Tag,
+    roles: [UserRole.ADMIN],
+  },
+  {
+    titleKey: 'donationPool',
+    href: '/admin/donations',
+    icon: HeartHandshake,
     roles: [UserRole.ADMIN],
   },
   {

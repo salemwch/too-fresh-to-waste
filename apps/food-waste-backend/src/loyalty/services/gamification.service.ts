@@ -421,7 +421,7 @@ export class GamificationService {
    * First-sale timing: The 30-day expiry window starts from the business's
    * first bag sold (firstSaleAt), not from the registration date.
    */
-  async updateBusinessOrderCount(businessUserId: string): Promise<void> {
+  async updateBusinessOrderCount(businessUserId: string, bagsCount = 1): Promise<void> {
     const referrers = await this.loyaltyModel.find({
       'businessReferrals.businessUserId': new Types.ObjectId(businessUserId),
       'businessReferrals.status': BusinessReferralStatus.PENDING,
@@ -444,7 +444,7 @@ export class GamificationService {
       }
 
       const now = new Date();
-      const newOrderCount = referral.businessOrderCount + 1;
+      const newOrderCount = referral.businessOrderCount + bagsCount;
 
       const isFirstSale = !referral.firstSaleAt;
       const firstSaleAt = referral.firstSaleAt ?? now;

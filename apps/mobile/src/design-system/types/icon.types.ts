@@ -10,22 +10,7 @@ import type { StyleProp, TextStyle } from 'react-native';
  * All supported icon families from @react-native-vector-icons/* scoped packages
  * Complete list of available icon libraries
  */
-export type IconFamily =
-  | 'AntDesign'
-  | 'Entypo'
-  | 'EvilIcons'
-  | 'Feather'
-  | 'FontAwesome'
-  | 'FontAwesome5'
-  | 'FontAwesome6'
-  | 'Fontisto'
-  | 'Foundation'
-  | 'Ionicons'
-  | 'MaterialCommunityIcons'
-  | 'MaterialIcons'
-  | 'Octicons'
-  | 'SimpleLineIcons'
-  | 'Zocial';
+export type IconFamily = 'Ionicons' | 'MaterialCommunityIcons';
 
 /**
  * Common props interface that all icon components accept

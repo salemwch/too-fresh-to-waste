@@ -112,7 +112,7 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
   const [tracksViewChanges, setTracksViewChanges] = useState(Platform.OS === 'android');
   useEffect(() => {
     if (!tracksViewChanges) return;
-    const t = setTimeout(() => setTracksViewChanges(false), 500);
+    const t = setTimeout(() => setTracksViewChanges(false), 1000);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -280,6 +280,7 @@ const styles = StyleSheet.create({
     color: WHITE,
     fontSize: 15,
     fontWeight: '700',
+    lineHeight: 20, // label.medium uses lineHeight:1.5 (ratio, not px) — override with absolute pixels
   },
   /** Soft oval shadow — replaces elevation so no snapshot clipping occurs. */
   markerShadow: {

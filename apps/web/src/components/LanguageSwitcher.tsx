@@ -242,7 +242,7 @@ export function LanguageSwitcherCompact({ className = '' }: { className?: string
       )}
       aria-label={`Current language: ${localeConfig[locale].name}. Click to change.`}
     >
-      <span className='text-xs font-bold uppercase'>{locale}</span>
+      <span className='text-[10px] font-bold uppercase'>{locale}</span>
     </button>
   );
 }

@@ -144,6 +144,24 @@ android {
     }
 
     // ============================================================================
+    // ABI SPLITS — RELEASE BUILDS
+    // ============================================================================
+    // Produces one lean APK per architecture instead of one fat universal APK.
+    // Only applies when -PreactNativeArchitectures includes multiple ABIs (release CI).
+    // For Play Store, prefer AAB (bundleProductionRelease) over APK splits — the
+    // store handles per-device delivery automatically without needing this block.
+    // Source: https://developer.android.com/build/configure-apk-splits
+    splits {
+        abi {
+            reset()
+            // Enable only when the Gradle invocation targets a release task
+            enable gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+            universalApk false          // no fat APK — each device gets only its ABI
+            include "arm64-v8a", "armeabi-v7a"
+        }
+    }
+
+    // ============================================================================
     // JAVA COMPATIBILITY
     // ============================================================================
     compileOptions {

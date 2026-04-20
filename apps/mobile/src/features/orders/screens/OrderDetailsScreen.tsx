@@ -22,7 +22,6 @@ import { View, StyleSheet, ScrollView, TextInput } from 'react-native';
 import { Text, Button, Card, Badge, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { ImpactMoment, useDonationStats } from '@/features/donations';
-import { useSecureScreen } from '@/hooks/useSecureScreen';
 import { useQueryWithFocus } from '@/lib/react-query';
 import { analytics } from '@/utils/analytics';
 
@@ -400,9 +399,6 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
   const theme = useTheme();
   const queryClient = useQueryClient();
   const { orderId } = route.params;
-
-  // Prevent screenshots/recordings while the pickup code is visible
-  useSecureScreen();
 
   // ---------------------------------------------------------------------------
   // Data

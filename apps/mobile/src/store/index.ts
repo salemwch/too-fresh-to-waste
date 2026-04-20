@@ -28,7 +28,6 @@ import { setAppStore } from './storeAccessor';
 
 import type { AuthState } from '@/features/auth/types';
 import type { FavoritesState } from '@/store/slices/favoritesSlice';
-import type { LocationState } from '@/store/slices/locationSlice';
 
 interface TransientSliceState<TError> {
   error: TError;
@@ -67,15 +66,14 @@ const createTransientStateTransform = <TState extends TransientSliceState<unknow
   );
 
 const authTransform = createTransientStateTransform<AuthState>('auth', undefined);
-const locationTransform = createTransientStateTransform<LocationState>('location', null);
 const favoritesTransform = createTransientStateTransform<FavoritesState>('favorites', null);
 
 const persistConfig = {
   key: 'root',
   storage: mmkvStorage,
-  whitelist: ['auth', 'location', 'favorites'],
+  whitelist: ['auth', 'favorites'],
   blacklist: [],
-  transforms: [authTransform, locationTransform, favoritesTransform],
+  transforms: [authTransform, favoritesTransform],
   timeout: 1000,
   writeFailHandler: (error: Error) => {
     Logger.error('[Redux Persist] MMKV write failed', {}, error);
