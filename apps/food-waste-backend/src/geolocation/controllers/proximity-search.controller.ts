@@ -13,6 +13,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { Public } from '../../common/decorators/public.decorator';
 import { ProximitySearchDto, ComprehensiveSearchDto } from '../dto/geolocation.dto';
 import {
   ProximitySearchResult,
@@ -33,6 +34,7 @@ export class ProximitySearchController {
 
   constructor(private readonly proximitySearchService: ProximitySearchService) {}
 
+  @Public()
   @Post('establishments')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -130,6 +132,7 @@ export class ProximitySearchController {
     return result;
   }
 
+  @Public()
   @Post('map-establishments')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

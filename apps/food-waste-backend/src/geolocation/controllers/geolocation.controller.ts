@@ -1,4 +1,5 @@
 import { Controller, Post, Get, Body, Query, Logger, HttpCode, HttpStatus } from '@nestjs/common';
+import { Public } from '../../common/decorators/public.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 
 import {
@@ -147,6 +148,7 @@ export class GeolocationController {
     return this.geolocationService.checkGeofence(dto);
   }
 
+  @Public()
   @Post('geocode')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -190,6 +192,7 @@ export class GeolocationController {
     return result;
   }
 
+  @Public()
   @Post('reverse-geocode')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
