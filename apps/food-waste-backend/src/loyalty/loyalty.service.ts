@@ -371,9 +371,6 @@ export class LoyaltyService {
         },
       });
 
-      // Update contributor count
-      await this.donationsService['updateContributorCount'](pool._id);
-
       this.logger.log(
         `User ${userId} donated ${donateDto.amount} points (${donationAmount} TND) to donation pool`,
       );

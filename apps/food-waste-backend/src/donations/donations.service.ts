@@ -4,12 +4,16 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bull';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { Queue } from 'bull';
 import { Model, Types } from 'mongoose';
 
-import { DonationStatsResponseDto, UserDonationStatsResponseDto } from './dto/donation-stats.dto';
 import { DEFAULT_CURRENCY } from '@foodwaste/shared';
+
+import { DonationStatsResponseDto, UserDonationStatsResponseDto } from './dto/donation-stats.dto';
+import type { PostDonationJobData } from './processors/donation.processor';
 
 import { CreateDonationInput, DONATION_CONSTANTS } from './interfaces/donation.interface';
 import {
@@ -17,7 +21,7 @@ import {
   DonationPoolDocument,
   DonationPoolStatus,
 } from './schemas/donation-pool.schema';
-import { UserDonation, UserDonationDocument, DonationBadge } from './schemas/user-donation.schema';
+import { UserDonation, UserDonationDocument } from './schemas/user-donation.schema';
 
 interface AggregateCountResult {
   count: number;
@@ -37,6 +41,8 @@ export class DonationsService {
     private readonly donationPoolModel: Model<DonationPoolDocument>,
     @InjectModel(UserDonation.name)
     private readonly userDonationModel: Model<UserDonationDocument>,
+    @InjectQueue('donations')
+    private readonly donationsQueue: Queue<PostDonationJobData>,
   ) {
     this.initializeDefaultPool().catch(error => {
       this.logger.error('Failed to initialize default donation pool', error);
@@ -129,30 +135,35 @@ export class DonationsService {
   }
 
   /**
-   * Create a donation record for a user's order
-   * This is called automatically when an order is created
+   * Create a donation record for a user's order.
+   *
+   * Synchronous critical path — kept minimal on purpose:
+   *   1. Idempotency check (orderId unique index is the hard guard)
+   *   2. Save UserDonation
+   *   3. Atomic $inc on currentAmount + mealCount
+   *   4. Inline target-reached check (reuses the doc returned by $inc, no extra query)
+   *   5. Enqueue background job for contributor count + badges
+   *
+   * contributor count and badge assignment intentionally run in the background
+   * queue so they cannot add latency to the order completion path.
    */
   async createDonation(input: CreateDonationInput): Promise<UserDonationDocument> {
     try {
-      // Get or create active pool
       const pool = await this.getActivePool();
 
-      // Check if donation already exists for this order (idempotency)
-      // Note: isDeleted filter is handled by schema pre-find middleware
+      // Hard idempotency guard — orderId unique index prevents a second document,
+      // this early-return prevents the queue from being enqueued twice.
       const existingDonation = await this.userDonationModel.findOne({
         orderId: input.orderId,
       });
-
       if (existingDonation) {
         this.logger.warn(`Donation already exists for order ${input.orderId}`);
         return existingDonation;
       }
 
-      // Calculate meals
       const estimatedMeals = this.calculateMealCount(input.amount);
       const normalizedCurrency = input.currency?.trim();
 
-      // Create donation record
       const donation = new this.userDonationModel({
         userId: input.userId,
         orderId: input.orderId,
@@ -172,26 +183,31 @@ export class DonationsService {
 
       await donation.save();
 
-      // Update pool atomically
-      await this.donationPoolModel.findByIdAndUpdate(
+      // Atomic increment — reuse the returned doc to avoid an extra findById.
+      const updatedPool = await this.donationPoolModel.findByIdAndUpdate(
         pool._id,
-        {
-          $inc: {
-            currentAmount: input.amount,
-            mealCount: estimatedMeals,
-          },
-        },
+        { $inc: { currentAmount: input.amount, mealCount: estimatedMeals } },
         { new: true },
       );
 
-      // Update contributor count (unique users)
-      await this.updateContributorCount(pool._id);
+      // Inline target check using the doc we already have.
+      if (
+        updatedPool &&
+        updatedPool.currentAmount >= updatedPool.targetAmount &&
+        updatedPool.status === DonationPoolStatus.ACTIVE
+      ) {
+        await this.donationPoolModel.findByIdAndUpdate(pool._id, {
+          $set: { status: DonationPoolStatus.FUNDED },
+        });
+        this.logger.log(`Donation pool ${pool._id} reached target — status set to FUNDED`);
+      }
 
-      // Calculate and assign badges
-      await this.calculateAndAssignBadges(input.userId, donation._id);
-
-      // Check if pool reached target and should transition
-      await this.checkPoolTargetReached(pool._id);
+      // Off the critical path: contributor count + badge assignment.
+      await this.donationsQueue.add('post-donation', {
+        userId: input.userId.toString(),
+        donationId: donation._id.toString(),
+        poolId: pool._id.toString(),
+      });
 
       this.logger.log(
         `Donation created: ${input.amount} TND by user ${input.userId} for order ${input.orderId}`,
@@ -201,79 +217,6 @@ export class DonationsService {
     } catch (error) {
       this.logger.error('Failed to create donation', error);
       throw new InternalServerErrorException('Failed to create donation record');
-    }
-  }
-
-  /**
-   * Update unique contributor count for a pool
-   */
-  private async updateContributorCount(poolId: Types.ObjectId): Promise<void> {
-    const uniqueContributors = await this.userDonationModel.distinct('userId', {
-      donationPoolId: poolId,
-    });
-
-    await this.donationPoolModel.findByIdAndUpdate(poolId, {
-      contributorCount: uniqueContributors.length,
-    });
-  }
-
-  /**
-   * Calculate and assign badges based on user's donation history
-   */
-  private async calculateAndAssignBadges(
-    userId: Types.ObjectId,
-    donationId: Types.ObjectId,
-  ): Promise<void> {
-    try {
-      // Get user's total stats
-      const stats = await this.getUserStats(userId);
-      const earnedBadges: DonationBadge[] = [];
-
-      // Check badge criteria
-      if (stats.contributionCount >= 1 && stats.contributionCount < 10) {
-        earnedBadges.push(DonationBadge.FIRST_STEP);
-      }
-      if (stats.contributionCount >= 10) {
-        earnedBadges.push(DonationBadge.FIRST_STEP, DonationBadge.COMMUNITY_HELPER);
-      }
-      if (stats.totalDonated >= 50) {
-        earnedBadges.push(DonationBadge.IMPACT_MAKER);
-      }
-      if (stats.totalDonated >= 100) {
-        earnedBadges.push(DonationBadge.FOOD_HERO);
-      }
-      if (stats.totalDonated >= 500) {
-        earnedBadges.push(DonationBadge.CHAMPION);
-      }
-
-      // Update the donation record with badges
-      if (earnedBadges.length > 0) {
-        await this.userDonationModel.findByIdAndUpdate(donationId, {
-          badgesEarned: earnedBadges,
-        });
-      }
-    } catch (error) {
-      this.logger.error('Failed to calculate badges', error);
-      // Non-critical, don't throw
-    }
-  }
-
-  /**
-   * Check if pool reached target and transition status
-   */
-  private async checkPoolTargetReached(poolId: Types.ObjectId): Promise<void> {
-    const pool = await this.donationPoolModel.findById(poolId);
-
-    if (
-      pool &&
-      pool.currentAmount >= pool.targetAmount &&
-      pool.status === DonationPoolStatus.ACTIVE
-    ) {
-      pool.status = DonationPoolStatus.FUNDED;
-      await pool.save();
-
-      this.logger.log(`Donation pool ${poolId} reached target! Status: FUNDED`);
-      // TODO: Trigger notification to admins
     }
   }
 
