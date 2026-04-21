@@ -1,0 +1,29 @@
+# Build outputs
+dist/
+.next/
+build/
+out/
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Generated files
+pnpm-lock.yaml
+*.lock
+
+# Android / iOS native build artifacts
+apps/mobile/android/
+apps/mobile/ios/
+
+# Test fixtures and snapshots
+**/__snapshots__/
+**/__mocks__/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Config files with no app logic
+*.config.js
+*.config.ts

@@ -31,7 +31,10 @@ function LoginFormInner() {
   const router = useRouter();
   const locale = useLocale();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl');
+  const rawCallback = searchParams.get('callbackUrl');
+  // Only allow same-origin relative paths — reject external redirects
+  const callbackUrl =
+    rawCallback && /^\/(?!\/)/.test(decodeURIComponent(rawCallback)) ? rawCallback : null;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

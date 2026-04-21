@@ -1,0 +1,281 @@
+rules:
+  # ─── OPEN REDIRECT ───────────────────────────────────────────────────────────
+
+  - id: tftw-unvalidated-callback-url
+    patterns:
+      - pattern: |
+          const $VAR = $PARAMS.get('callbackUrl');
+          ...
+          router.push($VAR);
+      - pattern-not: |
+          const $RAW = $PARAMS.get('callbackUrl');
+          const $VAR = ... $RAW ...;
+          ...
+          router.push($VAR);
+    message: >
+      Unvalidated `callbackUrl` redirect — an attacker can supply
+      `?callbackUrl=https://evil.com` and redirect post-login.
+      Validate with `/^\/(?!\/)/.test(...)` before pushing.
+    severity: ERROR
+    languages: [typescript]
+    paths:
+      include:
+        - apps/web/src/**
+
+  # ─── TOKEN STORAGE ENFORCEMENT ───────────────────────────────────────────────
+
+  - id: tftw-no-token-in-async-storage
+    patterns:
+      - pattern: AsyncStorage.setItem($KEY, ...)
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: ".*(token|jwt|access|refresh|auth|secret|credential).*"
+    message: >
+      Tokens must be stored in React Native Keychain, not AsyncStorage.
+      AsyncStorage is unencrypted and readable without root on most devices.
+      Use SecureStorage.setAccessToken() or SecureStorage.setRefreshToken().
+    severity: ERROR
+    languages: [typescript, javascript]
+    paths:
+      include:
+        - apps/mobile/src/**
+
+  - id: tftw-no-token-in-mmkv
+    patterns:
+      - pattern: $STORE.set($KEY, ...)
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: ".*(token|jwt|access|refresh|auth|secret|credential).*"
+    message: >
+      Tokens must not be stored in MMKV — use React Native Keychain via
+      SecureStorage.setAccessToken() / setRefreshToken().
+    severity: ERROR
+    languages: [typescript, javascript]
+    paths:
+      include:
+        - apps/mobile/src/**
+
+  - id: tftw-no-token-in-localstorage
+    patterns:
+      - pattern: localStorage.setItem($KEY, ...)
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: ".*(token|jwt|access|refresh|auth|secret|credential).*"
+    message: >
+      Tokens must not be stored in localStorage — the web app uses
+      HttpOnly cookies set by the backend. localStorage is XSS-readable.
+    severity: ERROR
+    languages: [typescript, javascript]
+    paths:
+      include:
+        - apps/web/src/**
+
+  # ─── NESTJS CONTROLLER GUARD COVERAGE ────────────────────────────────────────
+
+  - id: tftw-nestjs-mutation-without-guard
+    patterns:
+      - pattern: |
+          @$METHOD(...)
+          async $FN(...) { ... }
+      - metavariable-regex:
+          metavariable: $METHOD
+          regex: "^(Post|Patch|Put|Delete)$"
+      - pattern-not: |
+          @UseGuards(...)
+          @$METHOD(...)
+          async $FN(...) { ... }
+      - pattern-not-inside: |
+          @UseGuards(...)
+          class $C { ... }
+      - pattern-not-inside: |
+          @Public()
+          @$METHOD(...)
+          async $FN(...) { ... }
+    message: >
+      State-changing endpoint (@$METHOD) has no @UseGuards decorator and is not
+      marked @Public(). Add @UseGuards(JwtAuthGuard) or mark explicitly
+      with @Public() if intentionally unauthenticated.
+    severity: WARNING
+    languages: [typescript]
+    paths:
+      include:
+        - apps/food-waste-backend/src/**
+
+  # ─── SENSITIVE DATA IN LOGS ───────────────────────────────────────────────────
+
+  - id: tftw-no-sensitive-console-log
+    patterns:
+      - pattern: console.log(..., $VAR, ...)
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: ".*(token|password|secret|jwt|credential|apiKey|api_key|accessToken|refreshToken).*"
+    message: >
+      Possible sensitive data in console.log. Tokens and secrets must never
+      be logged. Remove or replace with a safe identifier (e.g., JTI, userId).
+    severity: ERROR
+    languages: [typescript, javascript]
+
+  - id: tftw-no-sensitive-logger
+    patterns:
+      - pattern: $LOGGER.$LEVEL(..., $VAR, ...)
+      - metavariable-regex:
+          metavariable: $LEVEL
+          regex: "^(log|debug|verbose|warn|error)$"
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: ".*(password|secret|jwt|credential|apiKey|api_key|accessToken|refreshToken).*"
+    message: >
+      Possible sensitive data passed to NestJS Logger. Log only safe
+      identifiers (JTI, userId, role) — never raw tokens or secrets.
+    severity: WARNING
+    languages: [typescript]
+    paths:
+      include:
+        - apps/food-waste-backend/src/**
+
+  # ─── HARDCODED SECRETS ────────────────────────────────────────────────────────
+
+  - id: tftw-hardcoded-jwt-secret
+    patterns:
+      - pattern: jwt.sign($P, "$SECRET", ...)
+    message: >
+      Hardcoded JWT secret detected. Use process.env.JWT_SECRET via
+      ConfigService instead of a string literal.
+    severity: ERROR
+    languages: [typescript, javascript]
+
+  - id: tftw-hardcoded-jwt-verify
+    patterns:
+      - pattern: jwt.verify($T, "$SECRET", ...)
+    message: >
+      Hardcoded JWT verify secret detected. Use process.env.JWT_SECRET via
+      ConfigService instead of a string literal.
+    severity: ERROR
+    languages: [typescript, javascript]
+
+  - id: tftw-jwtmodule-hardcoded-secret
+    patterns:
+      - pattern: |
+          JwtModule.register({ secret: "$S", ... })
+      - pattern: |
+          JwtModule.registerAsync({ useFactory: () => ({ secret: "$S", ... }) })
+    message: >
+      Hardcoded secret in JwtModule config. Use
+      `ConfigService.get('JWT_SECRET')` inside `registerAsync`.
+    severity: ERROR
+    languages: [typescript]
+    paths:
+      include:
+        - apps/food-waste-backend/src/**
+
+  # ─── COOKIE SECURITY ─────────────────────────────────────────────────────────
+
+  - id: tftw-cookie-missing-httponly
+    patterns:
+      - pattern: res.cookie($NAME, $VALUE, $OPTS)
+      - pattern-not: |
+          res.cookie($NAME, $VALUE, { ..., httpOnly: true, ... })
+    message: >
+      Cookie set without `httpOnly: true`. Auth cookies must always be
+      HttpOnly to prevent client-side JavaScript from reading them (XSS defense).
+    severity: ERROR
+    languages: [typescript]
+    paths:
+      include:
+        - apps/food-waste-backend/src/**
+
+  - id: tftw-cookie-missing-secure
+    patterns:
+      - pattern: res.cookie($NAME, $VALUE, $OPTS)
+      - pattern-not: |
+          res.cookie($NAME, $VALUE, { ..., secure: ..., ... })
+    message: >
+      Cookie set without `secure` flag. In production, auth cookies must be
+      `secure: true` to prevent transmission over plain HTTP.
+      Use `configService.get('NODE_ENV') === 'production'`.
+    severity: WARNING
+    languages: [typescript]
+    paths:
+      include:
+        - apps/food-waste-backend/src/**
+
+  # ─── MONGODB INJECTION PREVENTION ────────────────────────────────────────────
+
+  - id: tftw-mongodb-where-operator
+    pattern: >
+      { $where: $EXPR }
+    message: >
+      `$where` executes JavaScript on the MongoDB server — high injection risk.
+      Replace with safe query operators ($eq, $gt, $in, etc.).
+    severity: ERROR
+    languages: [typescript, javascript]
+    paths:
+      include:
+        - apps/food-waste-backend/src/**
+
+  - id: tftw-mongodb-string-query-injection
+    patterns:
+      - pattern: |
+          $MODEL.find({ $KEY: $USER_INPUT })
+      - metavariable-regex:
+          metavariable: $USER_INPUT
+          regex: '.*req\.(body|query|params).*'
+    message: >
+      Raw request data used directly in MongoDB query without casting/validation.
+      Validate and cast to typed DTOs (class-validator) or use
+      `new Types.ObjectId(id)` for ID fields to prevent NoSQL injection.
+    severity: WARNING
+    languages: [typescript]
+    paths:
+      include:
+        - apps/food-waste-backend/src/**
+
+  # ─── REACT / NEXT.JS XSS ─────────────────────────────────────────────────────
+
+  - id: tftw-no-dangerous-set-inner-html
+    pattern: |
+      dangerouslySetInnerHTML={...}
+    message: >
+      `dangerouslySetInnerHTML` bypasses React's XSS protection.
+      Use a sanitizer like DOMPurify if HTML rendering is required,
+      or prefer structured React components.
+    severity: ERROR
+    languages: [typescript, javascript]
+    paths:
+      include:
+        - apps/web/src/**
+        - apps/mobile/src/**
+
+  # ─── EVAL / DYNAMIC CODE EXECUTION ───────────────────────────────────────────
+
+  - id: tftw-no-eval
+    patterns:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+    message: >
+      Dynamic code execution via `eval()` or `new Function()` is a critical
+      code injection risk and must not be used.
+    severity: ERROR
+    languages: [typescript, javascript]
+
+  # ─── ENVIRONMENT VARIABLE VALIDATION ─────────────────────────────────────────
+
+  - id: tftw-process-env-direct-access
+    patterns:
+      - pattern: process.env.$VAR
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: ".*(SECRET|KEY|PASSWORD|TOKEN|CREDENTIAL).*"
+      - pattern-not-inside: |
+          Joi.object({ ... })
+      - pattern-not-inside: |
+          class $C implements $I { ... }
+    message: >
+      Direct `process.env` access for secrets in application code.
+      Use NestJS `ConfigService.get(...)` which is validated at startup
+      via Joi schema in `env.validation.ts`.
+    severity: WARNING
+    languages: [typescript]
+    paths:
+      include:
+        - apps/food-waste-backend/src/**
