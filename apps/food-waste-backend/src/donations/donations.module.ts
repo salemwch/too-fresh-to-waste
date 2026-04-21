@@ -8,6 +8,7 @@ import { DonationsService } from './donations.service';
 import { OrderEventsListener } from './listeners/order-events.listener';
 import { DonationProcessor } from './processors/donation.processor';
 import { DonationPool, DonationPoolSchema } from './schemas/donation-pool.schema';
+import { PoolContributor, PoolContributorSchema } from './schemas/pool-contributor.schema';
 import { UserDonation, UserDonationSchema } from './schemas/user-donation.schema';
 
 @Module({
@@ -15,6 +16,7 @@ import { UserDonation, UserDonationSchema } from './schemas/user-donation.schema
     MongooseModule.forFeature([
       { name: DonationPool.name, schema: DonationPoolSchema },
       { name: UserDonation.name, schema: UserDonationSchema },
+      { name: PoolContributor.name, schema: PoolContributorSchema },
     ]),
     BullModule.registerQueue({
       name: 'donations',

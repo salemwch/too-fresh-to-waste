@@ -5,6 +5,7 @@ import { Job } from 'bull';
 import { Model, Types } from 'mongoose';
 
 import { DonationPool, DonationPoolDocument } from '../schemas/donation-pool.schema';
+import { PoolContributor, PoolContributorDocument } from '../schemas/pool-contributor.schema';
 import { DonationBadge, UserDonation, UserDonationDocument } from '../schemas/user-donation.schema';
 
 export interface PostDonationJobData {
@@ -23,70 +24,54 @@ export class DonationProcessor {
     private readonly donationPoolModel: Model<DonationPoolDocument>,
     @InjectModel(UserDonation.name)
     private readonly userDonationModel: Model<UserDonationDocument>,
+    @InjectModel(PoolContributor.name)
+    private readonly poolContributorModel: Model<PoolContributorDocument>,
   ) {}
 
-  /**
-   * Background job: contributor count + badge assignment.
-   *
-   * Runs after createDonation has already committed the donation document
-   * and applied the $inc on currentAmount. Safe to retry — the orderId
-   * unique index guarantees the donation document is never duplicated, so
-   * this job is never enqueued more than once for the same donation.
-   */
   @Process('post-donation')
   async handlePostDonation(job: Job<PostDonationJobData>): Promise<void> {
     const userId = new Types.ObjectId(job.data.userId);
     const donationId = new Types.ObjectId(job.data.donationId);
     const poolId = new Types.ObjectId(job.data.poolId);
 
-    // Run concurrently — contributor count and badges are independent.
     await Promise.all([
-      this.updateContributorCount(userId, donationId, poolId),
+      this.updateContributorCount(userId, poolId),
       this.assignBadges(userId, donationId),
     ]);
   }
 
   /**
-   * First-time contribution guard.
+   * O(1) contributor count via unique-index upsert.
    *
-   * Uses the existing compound index { donationPoolId: 1, userId: 1 }.
-   * Excludes the current donation from the count so that a user's very
-   * first donation (count === 0 excluding self) triggers exactly one $inc.
+   * Attempt to insert { poolId, userId }. If the insert succeeds the user is
+   * new to this pool → $inc contributorCount. If MongoDB rejects with 11000
+   * (duplicate key) the user already contributed → skip silently.
    *
-   * Why this is safe against inflation:
-   * - Replay of the same order: orderId unique index prevents a second
-   *   UserDonation document → createDonation returns before enqueuing →
-   *   this job is never queued for the same donation twice.
-   * - Two concurrent NEW orders from same user: each job sees the other's
-   *   donation (already committed before the job runs) so at most one of
-   *   them sees otherContributions === 0 and increments.
+   * This is race-condition-proof: two concurrent jobs for the same user can
+   * never both increment because only one insert can win the unique index.
    */
   private async updateContributorCount(
     userId: Types.ObjectId,
-    donationId: Types.ObjectId,
     poolId: Types.ObjectId,
   ): Promise<void> {
     try {
-      const otherContributions = await this.userDonationModel.countDocuments({
-        userId,
-        donationPoolId: poolId,
-        _id: { $ne: donationId },
+      await this.poolContributorModel.create({ poolId, userId });
+      // Insert succeeded → new contributor
+      await this.donationPoolModel.findByIdAndUpdate(poolId, {
+        $inc: { contributorCount: 1 },
       });
-
-      if (otherContributions === 0) {
-        await this.donationPoolModel.findByIdAndUpdate(poolId, {
-          $inc: { contributorCount: 1 },
-        });
-      }
     } catch (error) {
+      if ((error as { code?: number }).code === 11000) {
+        return; // returning contributor — nothing to do
+      }
       this.logger.error(`Failed to update contributor count for pool ${poolId}`, error);
-      throw error; // re-throw so Bull retries the job
+      throw error; // non-duplicate error → Bull retries the job
     }
   }
 
   /**
-   * Badge assignment based on user's cumulative donation history.
-   * Non-critical: errors are logged but do not trigger a retry.
+   * Badge assignment based on cumulative donation history.
+   * Non-critical: errors are logged but never propagate to Bull.
    */
   private async assignBadges(userId: Types.ObjectId, donationId: Types.ObjectId): Promise<void> {
     try {
