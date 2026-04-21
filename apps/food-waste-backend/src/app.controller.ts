@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus, VERSION_NEUTRAL } from '@nestjs/common';
+import { Controller, Get, Head, HttpCode, HttpStatus, VERSION_NEUTRAL } from '@nestjs/common';
 // TODO: remove after Sentry verification
 import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -23,6 +23,7 @@ export class AppController {
   })
   @ApiResponse({ status: 200, description: 'API information retrieved successfully' })
   @Get()
+  @Head()
   @Public()
   getAppInfo() {
     return {
