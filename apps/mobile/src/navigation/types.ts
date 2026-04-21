@@ -99,6 +99,7 @@ export interface OrdersStackParamList extends Record<string, object | undefined>
 export interface ProfileStackParamList extends Record<string, object | undefined> {
   ProfileMain: undefined;
   EditProfile: undefined;
+  ContactSupport: undefined;
 }
 
 /**
@@ -258,6 +259,14 @@ export type ProfileScreenNavigationProp = CompositeNavigationProp<
 
 export type EditProfileScreenNavigationProp = CompositeNavigationProp<
   NativeStackNavigationProp<ProfileStackParamList, 'EditProfile'>,
+  CompositeNavigationProp<
+    BottomTabNavigationProp<TabParamList, 'Profile'>,
+    NativeStackNavigationProp<MainStackParamList>
+  >
+>;
+
+export type ContactSupportScreenNavigationProp = CompositeNavigationProp<
+  NativeStackNavigationProp<ProfileStackParamList, 'ContactSupport'>,
   CompositeNavigationProp<
     BottomTabNavigationProp<TabParamList, 'Profile'>,
     NativeStackNavigationProp<MainStackParamList>

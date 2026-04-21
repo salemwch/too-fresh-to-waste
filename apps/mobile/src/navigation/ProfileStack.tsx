@@ -14,6 +14,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 
 import { useTheme } from '@/design-system/providers';
+import { ContactSupportScreen } from '@/features/profile/screens/ContactSupportScreen';
 import { EditProfileScreen } from '@/features/profile/screens/EditProfileScreen';
 import { ProfileScreen } from '@/features/profile/screens/ProfileScreen';
 
@@ -53,6 +54,12 @@ export const ProfileStack: React.FC = () => {
           </ProtectedRoute>
         )}
       </Stack.Screen>
+      {/* Contact Support Screen */}
+      <Stack.Screen
+        name='ContactSupport'
+        component={ContactSupportScreen}
+        options={{ title: 'Contact Support' }}
+      />
     </Stack.Navigator>
   );
 };

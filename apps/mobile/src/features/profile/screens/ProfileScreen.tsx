@@ -507,7 +507,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             <MenuItem
               icon='chatbubble-outline'
               label='Contact Support'
-              onPress={() => {}}
+              onPress={() => navigation.navigate('ContactSupport')}
               accessibilityHint='Get help from our support team'
             />
           </View>
