@@ -12,6 +12,7 @@ import {
   Inject,
   forwardRef,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, ClientSession, FlattenMaps, PipelineStage } from 'mongoose';
 
@@ -183,6 +184,7 @@ export class OrdersService {
     private readonly payoutService: PayoutService,
     private readonly refundService: RefundService,
     private readonly eventBus: EventBusService,
+    private readonly configService: ConfigService,
     @Inject(forwardRef(() => WebSocketService)) private readonly webSocketService: WebSocketService,
     @Inject(forwardRef(() => NotificationService))
     private readonly notificationService: NotificationService,
@@ -208,8 +210,13 @@ export class OrdersService {
           throw new NotFoundException('Establishment not found');
         }
 
-        // Enforce phone verification for order placement
-        if (!customer.phoneNumber || !customer.isPhoneVerified) {
+        // Enforce phone verification for order placement.
+        // Gated by PHONE_VERIFICATION_ENABLED — set to false while Twilio is unpaid.
+        const phoneVerificationEnabled = this.configService.get<boolean>(
+          'PHONE_VERIFICATION_ENABLED',
+          false,
+        );
+        if (phoneVerificationEnabled && (!customer.phoneNumber || !customer.isPhoneVerified)) {
           throw new BadRequestException({
             message: 'Phone verification required to place orders',
             code: 'PHONE_VERIFICATION_REQUIRED',

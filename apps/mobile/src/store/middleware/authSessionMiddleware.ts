@@ -49,7 +49,7 @@ import {
 } from '@/features/auth/store/authSlice';
 import { AuthFlowState } from '@/features/auth/types';
 import { refreshTokenSafe } from '@/services/authRefresh';
-import { SecureStorage } from '@/services/SecureStorage';
+import { KeychainLockedError, SecureStorage } from '@/services/SecureStorage';
 import { Logger } from '@/utils/logger';
 import { offlineManager } from '@/utils/offlineManager';
 import { SafeAnalytics } from '@/utils/safeAnalytics';
@@ -666,7 +666,24 @@ const checkAndRefreshToken = async (
     // reason to log out — that's exactly when we should use the refresh
     // token. Only missing/malformed refresh tokens (`missing`,
     // `invalid_format`, `malformed`) are terminal.
-    const refreshToken = await SecureStorage.getRefreshToken();
+    //
+    // KeychainLockedError means the device screen is off/locked — the token
+    // EXISTS but the OS won't hand it to us right now. We defer to the next
+    // 60-second timer tick (by which time the user will have unlocked) rather
+    // than treating this as TOKEN_MISSING and logging the user out.
+    let refreshToken: string | null;
+    try {
+      refreshToken = await SecureStorage.getRefreshToken();
+    } catch (keychainError) {
+      if (keychainError instanceof KeychainLockedError) {
+        Logger.info(
+          '[AUTH-MIDDLEWARE] Keychain locked (device screen off) — deferring refresh to next tick',
+        );
+        return; // Release recovery gate via finally block; next 60s tick will retry
+      }
+      throw keychainError; // Unexpected error — bubble up so outer catch handles it
+    }
+
     const validationResult = validateTokenLocally(refreshToken, sessionExpiresAt);
 
     const isRefreshTokenBroken =

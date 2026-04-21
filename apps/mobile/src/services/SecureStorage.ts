@@ -37,6 +37,43 @@ const RETRY_CONFIG = {
   MAX_DELAY_MS: 1000,
 } as const;
 
+/**
+ * Thrown when the OS Keychain/Keystore is temporarily inaccessible because the
+ * device screen is locked. This is NOT a "token missing" condition — the token
+ * exists but cannot be read right now. Callers must NOT log the user out; they
+ * should reschedule the check for after the device is unlocked.
+ *
+ * iOS:  errSecInteractionNotAllowed (-25308) — item has WHEN_UNLOCKED_THIS_DEVICE_ONLY
+ *       and the screen is off/locked.
+ * Android: UserNotAuthenticatedException — Keystore requires user auth that
+ *       hasn't been satisfied yet.
+ */
+export class KeychainLockedError extends Error {
+  constructor(message = 'Keychain inaccessible: device is locked') {
+    super(message);
+    this.name = 'KeychainLockedError';
+  }
+}
+
+/**
+ * Error message fragments that indicate the OS denied Keychain access because
+ * the device is locked — as opposed to the item not existing at all.
+ * Patterns are lowercase for case-insensitive matching.
+ */
+const KEYCHAIN_LOCKED_PATTERNS = [
+  'interaction not allowed', // iOS errSecInteractionNotAllowed (-25308)
+  '-25308', // Raw iOS error code sometimes included in message
+  'usernotauthenticatedexception', // Android KeyStore
+  'user not authenticated', // Android KeyStore human-readable form
+  'could not decrypt', // iOS secondary decrypt failure on locked device
+] as const;
+
+function isKeychainLocked(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const msg = error.message.toLowerCase();
+  return KEYCHAIN_LOCKED_PATTERNS.some(pattern => msg.includes(pattern));
+}
+
 type KeychainCredentialResult = Awaited<ReturnType<typeof Keychain.getGenericPassword>>;
 
 interface LegacyTokenPayload {
@@ -179,6 +216,16 @@ export class SecureStorage {
         Logger.debug('[SecureStorage] No refresh token found', { attempt });
         return null;
       } catch (error) {
+        // Device-locked errors are temporary — propagate a typed error so
+        // callers can defer the check rather than treating it as missing token.
+        if (isKeychainLocked(error)) {
+          Logger.warn('[SecureStorage] Keychain locked (device screen off)', {
+            attempt,
+            error: (error as Error).message,
+          });
+          throw new KeychainLockedError();
+        }
+
         const isLastAttempt = attempt === maxRetries;
 
         Logger.warn(
@@ -205,7 +252,8 @@ export class SecureStorage {
   }
 
   /**
-   * Get refresh token (no retry - legacy method)
+   * Get refresh token (no retry - legacy method).
+   * Propagates KeychainLockedError if device is locked.
    */
   static async getRefreshToken(): Promise<string | null> {
     return this.getRefreshTokenWithRetry(1); // Single attempt

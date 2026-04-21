@@ -137,6 +137,11 @@ export const envValidationSchema = Joi.object({
     otherwise: Joi.string().optional(),
   }),
 
+  // ── Phone Verification Feature Flag ─────────────────────────────────
+  // Set to false to bypass SMS OTP while Twilio is unpaid.
+  // Twilio credentials are kept intact — flip back to true to re-enable.
+  PHONE_VERIFICATION_ENABLED: Joi.boolean().default(false),
+
   // ── Twilio SMS ───────────────────────────────────────────────────────
   TWILIO_ACCOUNT_SID: Joi.when('NODE_ENV', {
     is: 'production',
