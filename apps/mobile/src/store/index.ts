@@ -20,6 +20,7 @@ import { environment } from '@/config/environment';
 import authReducer from '@/features/auth/store/authSlice';
 import favoritesReducer from '@/store/slices/favoritesSlice';
 import locationReducer from '@/store/slices/locationSlice';
+import type { LocationState } from '@/store/slices/locationSlice';
 import { Logger } from '@/utils/logger';
 import { isMMKVAvailable, mmkvStorage } from '@/utils/mmkvStorage';
 
@@ -67,13 +68,14 @@ const createTransientStateTransform = <TState extends TransientSliceState<unknow
 
 const authTransform = createTransientStateTransform<AuthState>('auth', undefined);
 const favoritesTransform = createTransientStateTransform<FavoritesState>('favorites', null);
+const locationTransform = createTransientStateTransform<LocationState>('location', null);
 
 const persistConfig = {
   key: 'root',
   storage: mmkvStorage,
-  whitelist: ['auth', 'favorites'],
+  whitelist: ['auth', 'favorites', 'location'],
   blacklist: [],
-  transforms: [authTransform, favoritesTransform],
+  transforms: [authTransform, favoritesTransform, locationTransform],
   timeout: 1000,
   writeFailHandler: (error: Error) => {
     Logger.error('[Redux Persist] MMKV write failed', {}, error);

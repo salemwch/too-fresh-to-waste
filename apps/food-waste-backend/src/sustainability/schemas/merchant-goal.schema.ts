@@ -5,7 +5,7 @@ export type MerchantGoalDocument = MerchantGoal & Document;
 
 @Schema({ timestamps: true })
 export class MerchantGoal {
-  @Prop({ required: true, type: Types.ObjectId, ref: 'User', unique: true })
+  @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
   merchantId!: Types.ObjectId;
 
   /** Monthly bag-saving target set by the merchant (default: 300) */

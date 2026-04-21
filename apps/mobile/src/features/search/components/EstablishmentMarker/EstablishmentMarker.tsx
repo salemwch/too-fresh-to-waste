@@ -117,6 +117,18 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // FastImage fails silently — track load error so we can fall back to initials.
+  // On Android, re-enable tracksViewChanges briefly so the marker re-snapshots
+  // with the initial-letter fallback after the image error is known.
+  const [imageError, setImageError] = useState(false);
+  const handleImageError = () => {
+    setImageError(true);
+    if (Platform.OS === 'android') {
+      setTracksViewChanges(true);
+      setTimeout(() => setTracksViewChanges(false), 500);
+    }
+  };
+
   // Animate scale on selection
   useEffect(() => {
     if (isSelected) {
@@ -150,6 +162,9 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
       ? `${MAX_DISPLAY_COUNT}+`
       : String(item.activeOfferCount);
   const initial = item.name.charAt(0).toUpperCase();
+  // Treat empty string same as null — FastImage with uri="" crashes silently
+  const profileImageUri = item.profileImage?.trim() || null;
+  const showProfileImage = profileImageUri !== null && !imageError;
 
   return (
     <Marker
@@ -178,16 +193,17 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
                 {displayCount}
               </Text>
             </View>
-          ) : item.profileImage != null ? (
+          ) : showProfileImage ? (
             /* ── Merchant logo (FastImage — handles borderRadius on Android) */
             <View style={[styles.circle, styles.imageCircle, markerBorderStyle]}>
               <FastImage
-                source={{ uri: item.profileImage, priority: FastImage.priority.normal }}
+                source={{ uri: profileImageUri!, priority: FastImage.priority.normal }}
                 style={styles.profileImage}
+                onError={handleImageError}
               />
             </View>
           ) : (
-            /* ── Initial letter fallback ──────────────────────────────── */
+            /* ── Initial letter fallback (no image, or image failed to load) */
             <View
               style={[
                 styles.circle,

@@ -1,4 +1,4 @@
-import { Controller, Get, HttpStatus } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, VERSION_NEUTRAL } from '@nestjs/common';
 // TODO: remove after Sentry verification
 import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -6,9 +6,17 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Public } from './common/decorators/public.decorator';
 
 @ApiTags('General')
-@Controller()
+@Controller({ version: VERSION_NEUTRAL })
 export class AppController {
   constructor(private readonly configService: ConfigService) {}
+
+  @Get('favicon.ico')
+  @Public()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  getFavicon() {
+    return;
+  }
+
   @ApiOperation({
     summary: 'Get API information',
     description: 'Public endpoint returning basic API information and status',

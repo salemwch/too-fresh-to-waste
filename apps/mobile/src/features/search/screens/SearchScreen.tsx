@@ -594,6 +594,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                         styles.placeResultItemLast,
                     ]}
                     onPress={() => handleAppEstablishmentSelect(est)}
+                    accessibilityRole='button'
+                    accessibilityLabel={est.item.name}
+                    accessibilityHint={`Select ${est.item.address?.city ?? est.distance.formatted} to view offers`}
                   >
                     <View
                       style={[
@@ -648,6 +651,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                     onPress={() => {
                       void handleGooglePlaceSelect(place);
                     }}
+                    accessibilityRole='button'
+                    accessibilityLabel={place.name}
+                    accessibilityHint={`Select ${place.subtext} to search nearby offers`}
                   >
                     <View
                       style={[
@@ -722,6 +728,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
               <Pressable
                 style={[styles.mapRetryButton, { backgroundColor: theme.colors.primary }]}
                 onPress={() => setMapError(null)}
+                accessibilityRole='button'
+                accessibilityLabel='Retry loading map'
+                accessibilityHint='Attempts to reload the map'
               >
                 <Text
                   variant='label'
@@ -746,6 +755,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 onPress={handleMapPress}
                 onMapReady={handleMapReady}
                 accessibilityLabel='Map showing nearby offers'
+                accessibilityHint='Tap on markers to view establishment details'
               >
                 {/* Search radius circle */}
                 <Circle
@@ -778,6 +788,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                   },
                 ]}
                 onPress={handleRecenter}
+                accessibilityRole='button'
+                accessibilityLabel='Recenter map'
+                accessibilityHint='Centers the map on your current location'
               >
                 <Icon name='locate' family='Ionicons' size={22} color={theme.colors.primary} />
               </Pressable>

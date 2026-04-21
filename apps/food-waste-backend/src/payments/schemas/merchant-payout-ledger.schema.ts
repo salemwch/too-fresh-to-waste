@@ -29,7 +29,7 @@ export class MerchantPayoutLedger {
   // REFERENCES
   // =============================================================================
 
-  @Prop({ required: true, type: Types.ObjectId, ref: 'User', index: true })
+  @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
   merchantId!: Types.ObjectId;
 
   @Prop({ required: true })
@@ -71,7 +71,6 @@ export class MerchantPayoutLedger {
     type: String,
     enum: LedgerStatus,
     default: LedgerStatus.PENDING_SETTLEMENT,
-    index: true,
   })
   status!: LedgerStatus;
 

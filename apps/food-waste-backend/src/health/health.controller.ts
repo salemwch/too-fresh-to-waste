@@ -106,17 +106,35 @@ export class HealthController {
    */
   @Get('liveness')
   @Public()
+  @HealthCheck()
   @ApiOperation({
     summary: 'Liveness probe',
-    description: 'Simple check to verify application is running',
+    description: 'Verifies application is running and memory is within safe limits',
   })
   @ApiResponse({
     status: 200,
     description: 'Application is alive',
   })
-  liveness() {
+  @ApiResponse({
+    status: 503,
+    description: 'Application memory exceeded safe thresholds — pod should restart',
+  })
+  async liveness() {
+    const result = await this.health.check([
+      // Restart pod only when heap is truly exhausted (900 MB)
+      async () => {
+        const r = await this.memory.checkHeap('memory_heap', 900 * 1024 * 1024);
+        return r;
+      },
+      // Restart pod when RSS exceeds 1.2 GB
+      async () => {
+        const r = await this.memory.checkRSS('memory_rss', 1200 * 1024 * 1024);
+        return r;
+      },
+    ]);
+
     return {
-      status: 'ok',
+      ...result,
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: this.configService.get<string>('NODE_ENV', 'development'),
