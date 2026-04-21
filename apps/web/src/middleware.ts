@@ -7,6 +7,11 @@ import { defaultLocale, type Locale, isValidLocale } from './i18n/config';
 // Cookie name for storing user's locale preference
 const LOCALE_COOKIE_NAME = 'NEXT_LOCALE';
 
+// Must match COOKIE_NAMES.ACCESS_TOKEN in cookie-security.util.ts.
+// __Host- prefix is enforced by the browser in production (requires HTTPS + path=/).
+const ACCESS_TOKEN_COOKIE =
+  process.env.NODE_ENV === 'production' ? '__Host-access_token' : 'access_token';
+
 // Routes that require authentication (checked at middleware level via JWT verification)
 const PROTECTED_PATH_PATTERNS = ['/merchant/', '/admin/'];
 
@@ -24,7 +29,7 @@ const intlMiddleware = createMiddleware(routing);
 async function verifySession(
   request: NextRequest,
 ): Promise<{ role: string; userId: string } | null> {
-  const token = request.cookies.get('access_token')?.value;
+  const token = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
   if (!token) return null;
 
   const secret = process.env['JWT_SECRET'];

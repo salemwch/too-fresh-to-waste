@@ -10,6 +10,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Request, Response } from 'express';
+import { COOKIE_NAMES } from '../../common/utils/cookie-security.util';
 
 export const CSRF_EXEMPT_KEY = 'csrf_exempt';
 export const CsrfExempt = () =>
@@ -65,7 +66,8 @@ export class CsrfGuard implements CanActivate {
       // Generate and set CSRF token for GET requests
       if (request.method === 'GET') {
         const csrfToken = this.generateCsrfToken();
-        response.cookie('csrf-token', csrfToken, {
+        response.cookie(COOKIE_NAMES.CSRF_TOKEN, csrfToken, {
+          // nosemgrep: tftw-cookie-missing-httponly
           httpOnly: false, // Frontend needs to read this
           secure: this.configService.get<string>('NODE_ENV') === 'production',
           sameSite: 'lax',
@@ -91,8 +93,8 @@ export class CsrfGuard implements CanActivate {
           ? requestBody['csrfToken']
           : undefined;
       const csrfTokenFromCookie =
-        typeof requestCookies?.['csrf-token'] === 'string'
-          ? requestCookies['csrf-token']
+        typeof requestCookies?.[COOKIE_NAMES.CSRF_TOKEN] === 'string'
+          ? requestCookies[COOKIE_NAMES.CSRF_TOKEN]
           : undefined;
 
       const providedToken = csrfTokenFromHeader ?? csrfTokenFromBody;

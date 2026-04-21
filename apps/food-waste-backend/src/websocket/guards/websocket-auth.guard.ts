@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { parse as parseCookies } from 'cookie';
 
 import { AuthenticatedSocket } from '../interfaces/websocket.interface';
+import { COOKIE_NAMES } from 'src/common/utils/cookie-security.util';
 
 interface WebSocketJwtPayload {
   sub?: string;
@@ -87,7 +88,7 @@ export class WebSocketAuthGuard implements CanActivate {
     // Use the `cookie` package for spec-compliant parsing — handles edge cases
     // (values with `=`, whitespace, URL-encoded chars) that a simple regex misses.
     const cookies = parseCookies(cookieHeader);
-    return cookies['access_token'] ?? null;
+    return cookies[COOKIE_NAMES.ACCESS_TOKEN] ?? null;
   }
 
   private async verifyToken(

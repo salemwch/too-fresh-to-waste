@@ -6,6 +6,7 @@ import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { UsersService } from 'src/users/user.service';
+import { COOKIE_NAMES } from 'src/common/utils/cookie-security.util';
 
 export interface JwtPayload {
   sub: string;
@@ -32,7 +33,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             return null;
           }
 
-          const accessToken = (cookies as Record<string, unknown>)['access_token'];
+          const accessToken = (cookies as Record<string, unknown>)[COOKIE_NAMES.ACCESS_TOKEN];
           return typeof accessToken === 'string' ? accessToken : null;
         }, // Web: Cookie fallback
       ]),
@@ -44,7 +45,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: JwtPayload) {
     const user = await this.usersService.findByEmail(payload.email);
 
-    if (!user || user.status !== UserStatus.ACTIVE) {
+    if (user?.status !== UserStatus.ACTIVE) {
       throw new UnauthorizedException('User not found or inactive');
     }
 

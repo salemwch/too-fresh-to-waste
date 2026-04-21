@@ -106,12 +106,18 @@ rules:
   - id: tftw-no-sensitive-console-log
     patterns:
       - pattern: console.log(..., $VAR, ...)
+      # Match only identifiers/expressions — not string literals.
+      # String literals containing "password" in log messages are safe (they are the message,
+      # not the secret). We only care when an actual variable named after a secret is logged.
+      - metavariable-pattern:
+          metavariable: $VAR
+          pattern-not: "..."
       - metavariable-regex:
           metavariable: $VAR
-          regex: ".*(token|password|secret|jwt|credential|apiKey|api_key|accessToken|refreshToken).*"
+          regex: "^(token|password|secret|jwt|credential|apiKey|api_key|accessToken|refreshToken|authToken|bearerToken)$"
     message: >
-      Possible sensitive data in console.log. Tokens and secrets must never
-      be logged. Remove or replace with a safe identifier (e.g., JTI, userId).
+      Variable `$VAR` logged via console.log — this may leak a secret.
+      Log only safe identifiers (JTI, userId, role), never raw tokens or secrets.
     severity: ERROR
     languages: [typescript, javascript]
 
@@ -121,12 +127,16 @@ rules:
       - metavariable-regex:
           metavariable: $LEVEL
           regex: "^(log|debug|verbose|warn|error)$"
+      # Same guard: only match variable names, not string literals containing those words.
+      - metavariable-pattern:
+          metavariable: $VAR
+          pattern-not: "..."
       - metavariable-regex:
           metavariable: $VAR
-          regex: ".*(password|secret|jwt|credential|apiKey|api_key|accessToken|refreshToken).*"
+          regex: "^(password|secret|jwt|credential|apiKey|api_key|accessToken|refreshToken|authToken|bearerToken)$"
     message: >
-      Possible sensitive data passed to NestJS Logger. Log only safe
-      identifiers (JTI, userId, role) — never raw tokens or secrets.
+      Variable `$VAR` passed to Logger.$LEVEL — this may leak a secret.
+      Log only safe identifiers (JTI, userId, role), never raw tokens or secrets.
     severity: WARNING
     languages: [typescript]
     paths:

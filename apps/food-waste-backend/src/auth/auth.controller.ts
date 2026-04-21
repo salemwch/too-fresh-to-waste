@@ -50,6 +50,7 @@ import { CsrfService } from './services/csrf.service';
 import { MfaService } from './services/mfa.service';
 import { PasswordPolicyService } from './services/password-policy.service';
 import { SessionManagementService } from './services/session-management.service';
+import { COOKIE_NAMES } from '../common/utils/cookie-security.util';
 
 /**
  * AUTHENTICATION CONTROLLER
@@ -466,7 +467,9 @@ export class AuthController {
     // ✅ Support both mobile (body) and web (cookies)
     // Priority: 1. Request body (mobile), 2. Cookies (web), 3. Header
     const cookieRefreshToken =
-      typeof req.cookies?.['refresh_token'] === 'string' ? req.cookies['refresh_token'] : undefined;
+      typeof req.cookies?.[COOKIE_NAMES.REFRESH_TOKEN] === 'string'
+        ? req.cookies[COOKIE_NAMES.REFRESH_TOKEN]
+        : undefined;
     const userRefreshToken = (req.user as Record<string, unknown> | undefined)?.['refreshToken'];
     const refreshToken =
       body?.refreshToken ??
@@ -536,9 +539,13 @@ export class AuthController {
     @Response({ passthrough: true }) res: ExpressResponse,
   ): Promise<{ success: boolean; message: string }> {
     const sessionId =
-      typeof req.cookies?.['session_id'] === 'string' ? req.cookies['session_id'] : undefined;
+      typeof req.cookies?.[COOKIE_NAMES.SESSION_ID] === 'string'
+        ? req.cookies[COOKIE_NAMES.SESSION_ID]
+        : undefined;
     const refreshToken =
-      typeof req.cookies?.['refresh_token'] === 'string' ? req.cookies['refresh_token'] : undefined;
+      typeof req.cookies?.[COOKIE_NAMES.REFRESH_TOKEN] === 'string'
+        ? req.cookies[COOKIE_NAMES.REFRESH_TOKEN]
+        : undefined;
     const userId = this.extractUserIdFromAuthHeader(req.headers.authorization);
 
     // Execute cleanup operations in parallel (fire-and-forget, ~2x faster)
@@ -655,7 +662,7 @@ export class AuthController {
     // Terminate all user sessions and invalidate tokens
     await Promise.allSettled([
       this.sessionManagementService.destroyAllUserSessions(userId),
-      this.authService.logout(userId, req.cookies?.['refresh_token']),
+      this.authService.logout(userId, req.cookies?.[COOKIE_NAMES.REFRESH_TOKEN]),
     ]);
 
     this.clearCookiesSafely(res);
@@ -682,7 +689,7 @@ export class AuthController {
         createdAt: session.createdAt,
         lastActivityAt: session.lastActivityAt,
         expiresAt: session.expiresAt,
-        isCurrentSession: session.sessionId === req.cookies?.['session_id'],
+        isCurrentSession: session.sessionId === req.cookies?.[COOKIE_NAMES.SESSION_ID],
       })),
     };
   }
@@ -794,7 +801,8 @@ export class AuthController {
     const { token, expiresAt } = this.csrfService.generateToken();
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
 
-    res.cookie('csrf-token', token, {
+    res.cookie(COOKIE_NAMES.CSRF_TOKEN, token, {
+      // nosemgrep: tftw-cookie-missing-httponly
       httpOnly: false, // Frontend needs to read this
       secure: isProduction,
       sameSite: isProduction ? 'strict' : 'lax',
@@ -1060,7 +1068,7 @@ export class AuthController {
         maxAge: 0,
         path: '/',
       });
-      res.clearCookie('session_id', sessionOptions);
+      res.clearCookie(COOKIE_NAMES.SESSION_ID, sessionOptions);
 
       this.logger.log('Authentication cookies cleared securely', {
         isProduction,
