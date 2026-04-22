@@ -26,6 +26,7 @@ export interface CreateDonationInput {
   userId: Types.ObjectId;
   orderId: Types.ObjectId;
   amount: number;
+  moneySaved?: number;
   currency?: string;
   isAnonymous?: boolean;
   metadata?: {

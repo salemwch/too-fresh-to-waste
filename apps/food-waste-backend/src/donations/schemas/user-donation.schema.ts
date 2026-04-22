@@ -55,6 +55,10 @@ export class UserDonation {
   @Prop({ type: [String], enum: DonationBadge, default: [] })
   badgesEarned!: DonationBadge[];
 
+  /** originalPrice - userPrice, computed once at order time. Frontend only renders. */
+  @Prop({ required: true, default: 0, min: 0 })
+  moneySaved!: number;
+
   @Prop({ type: Object })
   metadata?: UserDonationMetadata;
 

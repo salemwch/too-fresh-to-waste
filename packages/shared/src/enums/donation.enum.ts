@@ -9,3 +9,12 @@ export enum DonationPoolStatus {
   DISTRIBUTED = 'distributed',
   ARCHIVED = 'archived',
 }
+
+/** Fixed categories for the donation pool goal system. Admin selects from this list only. */
+export enum DonationGoalCategory {
+  TSHIRTS = 'TSHIRTS',
+  PANTS = 'PANTS',
+  SHOES = 'SHOES',
+  CHILDREN_STUDIES = 'CHILDREN_STUDIES',
+  MEDICINE = 'MEDICINE',
+}

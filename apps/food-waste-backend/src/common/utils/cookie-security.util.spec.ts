@@ -369,36 +369,32 @@ describe('CookieSecurityUtil', () => {
 
       expect(config).toHaveProperty('securityAttributes');
       expect(config).toHaveProperty('tokenLifetime');
-      expect(config).toHaveProperty('pathRestrictions');
       expect(config).toHaveProperty('compliance');
-      expect(config).toHaveProperty('auditFindings');
     });
 
-    it('should show all audit findings as RESOLVED', () => {
+    it('should include compliance info', () => {
       const config = CookieSecurityUtil.getSecurityConfig(true, 'example.com');
 
-      expect(config['auditFindings'].httpOnly).toBe('RESOLVED');
-      expect(config['auditFindings'].secure).toBe('RESOLVED');
-      expect(config['auditFindings'].sameSite).toBe('RESOLVED');
-      expect(config['auditFindings'].domain).toBe('RESOLVED');
+      expect(config.compliance.owasp).toContain('OWASP');
+      expect(config.compliance.level).toContain('__Host-');
     });
 
-    it('should include FAANG enterprise-grade compliance level', () => {
-      const config = CookieSecurityUtil.getSecurityConfig(true, 'example.com');
-
-      expect(config['compliance'].level).toBe('FAANG Enterprise-Grade');
-    });
-
-    it('should show domain as current-domain-only when not specified', () => {
+    it('should omit domain in production (__Host- prefix)', () => {
       const config = CookieSecurityUtil.getSecurityConfig(true);
 
-      expect(config['securityAttributes'].domain).toBe('current-domain-only');
+      expect(config.securityAttributes.domain).toBe('omitted (__Host-)');
     });
 
-    it('should show specified domain in configuration', () => {
-      const config = CookieSecurityUtil.getSecurityConfig(true, 'foodwaste.app');
+    it('should show specified domain in dev configuration', () => {
+      const config = CookieSecurityUtil.getSecurityConfig(false, 'foodwaste.app');
 
-      expect(config['securityAttributes'].domain).toBe('foodwaste.app');
+      expect(config.securityAttributes.domain).toBe('foodwaste.app');
+    });
+
+    it('should fall back to current-domain-only in dev without domain', () => {
+      const config = CookieSecurityUtil.getSecurityConfig(false);
+
+      expect(config.securityAttributes.domain).toBe('current-domain-only');
     });
   });
 

@@ -10,7 +10,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { Queue } from 'bull';
 import { Model, Types } from 'mongoose';
 
-import { DEFAULT_CURRENCY } from '@foodwaste/shared';
+import { DEFAULT_CURRENCY, DonationGoalCategory } from '@foodwaste/shared';
 
 import { DonationStatsResponseDto, UserDonationStatsResponseDto } from './dto/donation-stats.dto';
 import type { PostDonationJobData } from './processors/donation.processor';
@@ -21,6 +21,10 @@ import {
   DonationPoolDocument,
   DonationPoolStatus,
 } from './schemas/donation-pool.schema';
+import {
+  DonationPoolSnapshot,
+  DonationPoolSnapshotDocument,
+} from './schemas/donation-pool-snapshot.schema';
 import { UserDonation, UserDonationDocument } from './schemas/user-donation.schema';
 
 interface AggregateCountResult {
@@ -39,6 +43,8 @@ export class DonationsService {
   constructor(
     @InjectModel(DonationPool.name)
     private readonly donationPoolModel: Model<DonationPoolDocument>,
+    @InjectModel(DonationPoolSnapshot.name)
+    private readonly snapshotModel: Model<DonationPoolSnapshotDocument>,
     @InjectModel(UserDonation.name)
     private readonly userDonationModel: Model<UserDonationDocument>,
     @InjectQueue('donations')
@@ -71,6 +77,7 @@ export class DonationsService {
           totalDistributed: 0,
           status: DonationPoolStatus.ACTIVE,
           cause: 'Community Food Relief 2025',
+          activeGoalCategory: DonationGoalCategory.TSHIRTS,
           startDate: new Date(),
           distributionHistory: [],
           isArchived: false,
@@ -79,10 +86,36 @@ export class DonationsService {
         await defaultPool.save();
         this.logger.log('Default donation pool created successfully');
       }
+
+      await this.seedCategorySnapshots();
     } catch (error) {
       this.logger.error('Error initializing default donation pool', error);
       throw error;
     }
+  }
+
+  /**
+   * Seed one DonationPoolSnapshot per DonationGoalCategory if missing.
+   * Idempotent — uses upsert so concurrent startups are safe.
+   */
+  private async seedCategorySnapshots(): Promise<void> {
+    const categories = Object.values(DonationGoalCategory);
+    const ops = categories.map(category =>
+      this.snapshotModel.updateOne(
+        { category },
+        {
+          $setOnInsert: {
+            category,
+            totalAmount: 0,
+            totalItems: 0,
+            percent: 0,
+            targetAmount: DONATION_CONSTANTS.DEFAULT_TARGET_AMOUNT,
+          },
+        },
+        { upsert: true },
+      ),
+    );
+    await Promise.all(ops);
   }
 
   /**
@@ -169,6 +202,7 @@ export class DonationsService {
         orderId: input.orderId,
         donationPoolId: pool._id,
         amount: input.amount,
+        moneySaved: input.moneySaved ?? 0,
         currency:
           normalizedCurrency !== null &&
           normalizedCurrency !== undefined &&
@@ -188,6 +222,12 @@ export class DonationsService {
         pool._id,
         { $inc: { currentAmount: input.amount, mealCount: estimatedMeals } },
         { new: true },
+      );
+
+      // O(1) increment on the active category's pre-aggregated snapshot.
+      await this.snapshotModel.updateOne(
+        { category: pool.activeGoalCategory },
+        { $inc: { totalAmount: input.amount, totalItems: estimatedMeals } },
       );
 
       // Inline target check using the doc we already have.
@@ -235,6 +275,7 @@ export class DonationsService {
         progressPercentage: parseFloat(((pool.currentAmount / pool.targetAmount) * 100).toFixed(2)),
         status: pool.status,
         cause: pool.cause,
+        activeGoalCategory: pool.activeGoalCategory,
         currency: DEFAULT_CURRENCY,
         targetDate: pool.targetDate ? pool.targetDate.toISOString() : undefined,
       };
@@ -302,6 +343,7 @@ export class DonationsService {
   async updateActivePool(updates: {
     targetAmount?: number | undefined;
     cause?: string | undefined;
+    activeGoalCategory?: DonationGoalCategory | undefined;
     targetDate?: string | null | undefined;
   }): Promise<DonationStatsResponseDto> {
     const pool = await this.getActivePool();
@@ -312,6 +354,9 @@ export class DonationsService {
     }
     if (updates.cause !== undefined && updates.cause !== null) {
       setFields['cause'] = updates.cause;
+    }
+    if (updates.activeGoalCategory !== undefined && updates.activeGoalCategory !== null) {
+      setFields['activeGoalCategory'] = updates.activeGoalCategory;
     }
     if (updates.targetDate !== undefined) {
       // null means "clear the date"; a string sets it
@@ -347,6 +392,7 @@ export class DonationsService {
       totalDistributed: 0,
       status: DonationPoolStatus.ACTIVE,
       cause: 'Community Food Relief',
+      activeGoalCategory: DonationGoalCategory.TSHIRTS,
       startDate: new Date(),
       distributionHistory: [],
       isArchived: false,
@@ -356,6 +402,28 @@ export class DonationsService {
     this.logger.log('Donation pool reset: old pool archived, new pool created');
 
     return this.getCurrentStats();
+  }
+
+  /**
+   * Nightly: recalculate percent for every category snapshot.
+   * Runs at 00:00 — no real-time updates needed.
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async refreshCategorySnapshots(): Promise<void> {
+    try {
+      const snapshots = await this.snapshotModel.find().lean();
+      const ops = snapshots.map(snap => {
+        const percent =
+          snap.targetAmount > 0
+            ? Math.min(parseFloat(((snap.totalAmount / snap.targetAmount) * 100).toFixed(2)), 100)
+            : 0;
+        return this.snapshotModel.updateOne({ _id: snap._id }, { $set: { percent } });
+      });
+      await Promise.all(ops);
+      this.logger.log(`Refreshed ${snapshots.length} category snapshots`);
+    } catch (error) {
+      this.logger.error('Failed to refresh category snapshots', error);
+    }
   }
 
   /**

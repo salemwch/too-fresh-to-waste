@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
+import { DonationGoalCategory } from '@foodwaste/shared';
+
 export type DonationPoolDocument = DonationPool & Document;
 
 /**
@@ -66,6 +68,14 @@ export class DonationPool {
 
   @Prop({ required: true, default: 'Community Food Relief' })
   cause!: string;
+
+  @Prop({
+    type: String,
+    enum: DonationGoalCategory,
+    required: true,
+    default: DonationGoalCategory.TSHIRTS,
+  })
+  activeGoalCategory!: DonationGoalCategory;
 
   @Prop({ type: Date, required: true })
   startDate!: Date;

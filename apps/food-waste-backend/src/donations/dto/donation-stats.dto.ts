@@ -1,4 +1,5 @@
 import type { DonationStatsResponse, UserDonationStatsResponse } from '@foodwaste/shared';
+import { DonationGoalCategory } from '@foodwaste/shared';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNumber,
@@ -77,6 +78,14 @@ export class DonationStatsResponseDto implements DonationStatsResponse {
   })
   @IsString()
   cause!: string;
+
+  @ApiProperty({
+    description: 'Active donation goal category',
+    enum: DonationGoalCategory,
+    example: DonationGoalCategory.TSHIRTS,
+  })
+  @IsEnum(DonationGoalCategory)
+  activeGoalCategory!: DonationGoalCategory;
 
   @ApiProperty({
     description: 'Currency code',

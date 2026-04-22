@@ -1,9 +1,11 @@
 import type { UpdateDonationPoolInput } from '@foodwaste/shared';
+import { DonationGoalCategory } from '@foodwaste/shared';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNumber,
   IsString,
   IsOptional,
+  IsEnum,
   Min,
   Max,
   MinLength,
@@ -39,6 +41,15 @@ export class UpdateDonationPoolDto implements UpdateDonationPoolInput {
   @MinLength(3)
   @MaxLength(200)
   cause?: string | undefined;
+
+  @ApiPropertyOptional({
+    description: 'Active donation goal category — admin selects from fixed list',
+    enum: DonationGoalCategory,
+    example: DonationGoalCategory.TSHIRTS,
+  })
+  @IsOptional()
+  @IsEnum(DonationGoalCategory)
+  activeGoalCategory?: DonationGoalCategory | undefined;
 
   @ApiPropertyOptional({
     description: 'Target date / deadline for the pool (ISO 8601)',

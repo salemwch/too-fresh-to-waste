@@ -7,7 +7,7 @@
  */
 import { z } from 'zod';
 
-import { DonationPoolStatus } from '../enums';
+import { DonationGoalCategory, DonationPoolStatus } from '../enums';
 
 // ============================================================================
 // Update Donation Pool (admin)
@@ -16,6 +16,7 @@ import { DonationPoolStatus } from '../enums';
 export const UpdateDonationPoolSchema = z.object({
   targetAmount: z.number().min(1).max(1_000_000).optional(),
   cause: z.string().min(3).max(200).optional(),
+  activeGoalCategory: z.nativeEnum(DonationGoalCategory).optional(),
   targetDate: z.string().datetime().optional().nullable(),
 });
 
@@ -33,6 +34,7 @@ export const DonationStatsResponseSchema = z.object({
   progressPercentage: z.number().min(0),
   status: z.nativeEnum(DonationPoolStatus),
   cause: z.string(),
+  activeGoalCategory: z.nativeEnum(DonationGoalCategory),
   currency: z.string(),
   targetDate: z.string().datetime().optional(),
 });
