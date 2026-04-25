@@ -91,6 +91,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route
           hitSlop={BACK_HIT_SLOP}
           accessibilityRole='button'
           accessibilityLabel='Go back'
+          accessibilityHint='Navigates to the previous screen'
         >
           <Icon
             name={Platform.OS === 'ios' ? 'chevron-back' : 'arrow-back'}

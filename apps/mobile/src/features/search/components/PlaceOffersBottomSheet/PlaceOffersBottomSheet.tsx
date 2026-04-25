@@ -216,6 +216,7 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
             </Text>
           </View>
           <Pressable
+            accessibilityRole='button'
             style={[styles.closeButton, { backgroundColor: theme.colors.surfaceVariant }]}
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}

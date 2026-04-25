@@ -70,6 +70,7 @@ export const SkeletonBase: React.FC<SkeletonBaseProps> = ({
       ]}
       testID={testID}
       accessibilityLabel='Loading'
+      accessibilityHint='Content is loading'
       accessibilityRole='progressbar'
     />
   );

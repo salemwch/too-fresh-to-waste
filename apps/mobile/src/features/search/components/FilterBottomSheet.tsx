@@ -135,18 +135,18 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
   return (
     <View style={styles.overlay}>
-      <Pressable style={styles.backdrop} onPress={onClose} />
+      <Pressable accessibilityRole='button' style={styles.backdrop} onPress={onClose} />
 
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: colors.outline }]}>
-          <Pressable onPress={onClose} style={styles.closeButton}>
+          <Pressable accessibilityRole='button' onPress={onClose} style={styles.closeButton}>
             <Icon name='close' size={24} color={colors.onSurface} />
           </Pressable>
           <Text variant='headline' style={styles.headerTitle}>
             Filters
           </Text>
-          <Pressable onPress={handleClear}>
+          <Pressable accessibilityRole='button' onPress={handleClear}>
             <Text variant='body' style={accentTextStyle}>
               Clear
             </Text>
@@ -169,6 +169,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                 const isSelected = localFilters.offerType === option.value;
                 return (
                   <Pressable
+                    accessibilityRole='button'
                     key={option.label}
                     style={[
                       styles.radioChip,
@@ -205,6 +206,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                 const isSelected = localFilters.establishmentTypes.includes(option.value);
                 return (
                   <Pressable
+                    accessibilityRole='button'
                     key={option.value}
                     style={[
                       styles.iconChip,
@@ -241,6 +243,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                 const isSelected = localFilters.cuisineTypes.includes(option.value);
                 return (
                   <Pressable
+                    accessibilityRole='button'
                     key={option.value}
                     style={[
                       styles.flagChip,
@@ -277,6 +280,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                 const isSelected = localFilters.categories.includes(option.value);
                 return (
                   <Pressable
+                    accessibilityRole='button'
                     key={option.value}
                     style={[
                       styles.categoryPill,
@@ -307,6 +311,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         {/* Apply Button */}
         <View style={[styles.footer, { borderTopColor: colors.outline }]}>
           <Pressable
+            accessibilityRole='button'
             style={[styles.applyButton, { backgroundColor: colors.success }]}
             onPress={handleApply}
           >

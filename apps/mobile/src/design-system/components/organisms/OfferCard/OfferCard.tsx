@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-unused-styles */
 /**
  * OfferCard Organism
  * Production-ready reusable card for displaying food waste offers
@@ -278,6 +277,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
               source={{ uri: offer.establishment.profileImage }}
               style={styles.logoImage}
               resizeMode='cover'
+              accessibilityIgnoresInvertColors
             />
           ) : (
             <View style={styles.logoPlaceholder}>
@@ -325,6 +325,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
           disabled={!onEstablishmentPress}
           accessibilityRole='button'
           accessibilityLabel={`View ${offer.establishment.name}`}
+          accessibilityHint='Opens establishment details'
           style={styles.establishmentNameContainer}
         >
           <Text
@@ -344,6 +345,11 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityRole='button'
             accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            accessibilityHint={
+              isFavorite
+                ? 'Removes this offer from your favorites'
+                : 'Adds this offer to your favorites'
+            }
             style={styles.favoriteButtonContent}
           >
             <HeartIcon filled={isFavorite} size={20} />

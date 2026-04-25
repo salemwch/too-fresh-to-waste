@@ -56,6 +56,7 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({ testID = 'offline-
       testID={testID}
       accessibilityRole='alert'
       accessibilityLabel='No internet connection'
+      accessibilityHint='App features may be limited until connectivity is restored'
       accessibilityLiveRegion='polite'
     >
       <View style={styles.content}>

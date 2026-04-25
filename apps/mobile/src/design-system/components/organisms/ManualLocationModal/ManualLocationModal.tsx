@@ -66,6 +66,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
           onPress={() => handleSelectLocation(item)}
           accessibilityRole='button'
           accessibilityLabel={item.displayName}
+          accessibilityHint='Sets this as your location'
         >
           <Icon
             name='location-outline'
@@ -177,6 +178,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
                 onPress={onClose}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 accessibilityLabel='Close'
+                accessibilityHint='Closes the location picker'
                 accessibilityRole='button'
               >
                 <Icon name='close' family='Ionicons' size={24} color={theme.colors.onSurface} />
@@ -199,7 +201,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
                 }
                 rightIcon={
                   searchQuery.length > 0 ? (
-                    <Pressable onPress={() => setSearchQuery('')}>
+                    <Pressable accessibilityRole='button' onPress={() => setSearchQuery('')}>
                       <Icon
                         name='close-circle'
                         family='Ionicons'
@@ -212,6 +214,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
                 autoFocus
                 returnKeyType='search'
                 accessibilityLabel='Search location'
+                accessibilityHint='Type to search for a city or address'
               />
             </View>
 

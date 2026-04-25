@@ -65,7 +65,7 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.banner} onPress={toggleExpand}>
+      <Pressable accessibilityRole='button' style={styles.banner} onPress={toggleExpand}>
         {/* Collapsed View */}
         <View style={styles.collapsedContent}>
           <View style={styles.iconContainer}>

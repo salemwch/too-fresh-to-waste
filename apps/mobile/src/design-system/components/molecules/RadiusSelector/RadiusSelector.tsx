@@ -58,6 +58,7 @@ export const RadiusSelector = memo<RadiusSelectorProps>(
             accessibilityRole='radio'
             accessibilityState={{ checked: isSelected, disabled }}
             accessibilityLabel={`${radiusKm} kilometers`}
+            accessibilityHint='Sets the search radius'
           >
             <Text
               variant='label'

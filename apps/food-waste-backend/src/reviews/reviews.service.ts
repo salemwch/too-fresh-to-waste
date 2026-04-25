@@ -37,14 +37,14 @@ import {
   ReviewQueryDto,
   ReviewAnalyticsDto,
   BulkReviewModerationDto,
-} from './dto/create-reviwe.dto';
+} from './dto/create-review.dto';
 import {
   Review,
   ReviewDocument,
   ReviewStatus,
   ReviewType,
   SentimentType,
-} from './schemas/reviwe.schema';
+} from './schemas/review.schema';
 
 interface ReviewContentAnalysis {
   sentiment: SentimentType;
@@ -188,7 +188,7 @@ export class ReviewsService {
 
       await session.withTransaction(async () => {
         const reviewer = await this.userModel.findById(reviewerId).session(session);
-        if (!reviewer || reviewer.status !== 'active') {
+        if (reviewer?.status !== 'active') {
           throw new NotFoundException('Reviewer not found or inactive');
         }
         // 2. Validate establishment exists and is active
@@ -622,7 +622,7 @@ export class ReviewsService {
       } else if (userRole === UserRole.MERCHANT) {
         // Check if user owns the establishment
         const establishment = await this.establishmentModel.findById(review.establishmentId);
-        if (!establishment || establishment.ownerId.toString() !== userId) {
+        if (establishment?.ownerId.toString() !== userId) {
           throw new ForbiddenException('Can only respond to reviews of your establishments');
         }
       } else {
@@ -1556,7 +1556,7 @@ export class ReviewsService {
     }
     if (userRole === UserRole.MERCHANT) {
       const establishment = await this.establishmentModel.findById(review.establishmentId);
-      if (establishment && establishment.ownerId.toString() === userId) {
+      if (establishment?.ownerId.toString() === userId) {
         return true;
       }
     }

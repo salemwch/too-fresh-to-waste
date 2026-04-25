@@ -1,6 +1,6 @@
 /**
  * Review enums — single source of truth
- * Source: apps/food-waste-backend/src/reviwes/schemas/reviwe.schema.ts
+ * Source: apps/food-waste-backend/src/reviews/schemas/review.schema.ts
  */
 
 export enum ReviewStatus {

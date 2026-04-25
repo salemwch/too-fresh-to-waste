@@ -40,7 +40,7 @@ import {
   getRedisConnectionConfig,
 } from './redis/redis.config';
 import { RedisModule } from './redis/redis.module';
-import { ReviewsModule } from './reviwes/reviwes.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import { SearchModule } from './search/search.module';
 import { SustainabilityModule } from './sustainability/sustainability.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';

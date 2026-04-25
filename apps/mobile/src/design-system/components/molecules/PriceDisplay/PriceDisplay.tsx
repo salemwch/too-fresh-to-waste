@@ -297,6 +297,7 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
       testID={testID}
       accessible
       accessibilityLabel={getAccessibilityLabel}
+      accessibilityHint='Displays the current and original price with savings'
       accessibilityRole={'text' as const}
       {...rest}
     >

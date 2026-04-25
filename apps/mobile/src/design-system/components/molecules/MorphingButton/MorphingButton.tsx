@@ -180,6 +180,7 @@ export const MorphingButton: React.FC<MorphingButtonProps> = ({
         testID={testID}
         accessibilityRole='button'
         accessibilityLabel={loading ? `${label}, loading` : success ? successLabel : label}
+        accessibilityHint='Submits the form'
         accessibilityState={{
           disabled: disabled || loading || success,
           busy: loading,

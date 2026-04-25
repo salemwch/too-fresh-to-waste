@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/commo
 import { ConfigService } from '@nestjs/config';
 
 import { RedisService } from '../redis/redis.service';
-import { ReviewDocument, ReviewSentimentAnalysis } from '../reviwes/schemas/reviwe.schema';
+import { ReviewDocument, ReviewSentimentAnalysis } from '../reviews/schemas/review.schema';
 
 type RedisClient = Awaited<ReturnType<RedisService['getClient']>>;
 

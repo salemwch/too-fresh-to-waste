@@ -4,7 +4,7 @@ import { OrderSchema } from '../src/orders/schemas/order.schema';
 import { EstablishmentSchema } from '../src/establishments/schemas/establishment.schema';
 import { OfferSchema } from '../src/offers/schemas/offer.schema';
 import { RefreshTokenSchema } from '../src/auth/schemas/refresh-token.schema';
-import { ReviewSchema } from '../src/reviwes/schemas/reviwe.schema';
+import { ReviewSchema } from '../src/reviews/schemas/review.schema';
 import { FavoriteSchema } from '../src/favorites/schemas/favorite.schema';
 
 /**

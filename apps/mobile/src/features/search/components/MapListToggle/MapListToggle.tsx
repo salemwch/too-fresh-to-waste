@@ -87,6 +87,7 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
         onPress={handleMapPress}
         accessibilityRole='button'
         accessibilityLabel='Map view'
+        accessibilityHint='Switches to the map display'
         accessibilityState={{ selected: value === 'map' }}
       >
         <Icon
@@ -113,6 +114,7 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
         onPress={handleListPress}
         accessibilityRole='button'
         accessibilityLabel='List view'
+        accessibilityHint='Switches to the list display'
         accessibilityState={{ selected: value === 'list' }}
       >
         <Icon

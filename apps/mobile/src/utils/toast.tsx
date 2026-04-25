@@ -29,7 +29,13 @@ const TOAST_COLORS = {
  */
 export const toastConfig: ToastConfig = {
   success: (props: ToastRenderProps) => (
-    <Pressable onPress={props.onPress} style={[styles.containerBase, styles.successContainer]}>
+    <Pressable
+      accessibilityRole='button'
+      accessibilityLabel='Success notification'
+      accessibilityHint='Tap to dismiss this notification'
+      onPress={props.onPress}
+      style={[styles.containerBase, styles.successContainer]}
+    >
       <View style={styles.iconContainer}>
         <Icon name='checkmark-circle' size={24} color={TOAST_COLORS.success} />
       </View>
@@ -40,7 +46,13 @@ export const toastConfig: ToastConfig = {
     </Pressable>
   ),
   error: (props: ToastRenderProps) => (
-    <Pressable onPress={props.onPress} style={[styles.containerBase, styles.errorContainer]}>
+    <Pressable
+      accessibilityRole='button'
+      accessibilityLabel='Error notification'
+      accessibilityHint='Tap to dismiss this notification'
+      onPress={props.onPress}
+      style={[styles.containerBase, styles.errorContainer]}
+    >
       <View style={styles.iconContainer}>
         <Icon name='close-circle' size={24} color={TOAST_COLORS.error} />
       </View>
@@ -51,7 +63,13 @@ export const toastConfig: ToastConfig = {
     </Pressable>
   ),
   info: (props: ToastRenderProps) => (
-    <Pressable onPress={props.onPress} style={[styles.containerBase, styles.infoContainer]}>
+    <Pressable
+      accessibilityRole='button'
+      accessibilityLabel='Info notification'
+      accessibilityHint='Tap to dismiss this notification'
+      onPress={props.onPress}
+      style={[styles.containerBase, styles.infoContainer]}
+    >
       <View style={styles.iconContainer}>
         <Icon name='information-circle' size={24} color={TOAST_COLORS.info} />
       </View>
@@ -62,7 +80,13 @@ export const toastConfig: ToastConfig = {
     </Pressable>
   ),
   warning: (props: ToastRenderProps) => (
-    <Pressable onPress={props.onPress} style={[styles.containerBase, styles.warningContainer]}>
+    <Pressable
+      accessibilityRole='button'
+      accessibilityLabel='Warning notification'
+      accessibilityHint='Tap to dismiss this notification'
+      onPress={props.onPress}
+      style={[styles.containerBase, styles.warningContainer]}
+    >
       <View style={styles.iconContainer}>
         <Icon name='warning' size={24} color={TOAST_COLORS.warning} />
       </View>

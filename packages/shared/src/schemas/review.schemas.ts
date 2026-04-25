@@ -1,7 +1,7 @@
 /**
  * Review Domain Zod Schemas
  *
- * Converted from backend class-validator DTOs (create-reviwe.dto.ts).
+ * Converted from backend class-validator DTOs (create-review.dto.ts).
  *
  * @module shared/schemas/review
  */

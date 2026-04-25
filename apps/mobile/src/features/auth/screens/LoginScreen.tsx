@@ -362,6 +362,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             style={styles.leafLogo}
             resizeMode='contain'
             accessibilityLabel='Too Fresh To Waste logo'
+            accessibilityHint='Decorative brand logo'
+            accessibilityIgnoresInvertColors={true}
           />
         </View>
 
@@ -390,6 +392,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 style={styles.wavingHand}
                 resizeMode='contain'
                 accessibilityLabel='Waving hand'
+                accessibilityHint='Decorative welcome emoji'
+                accessibilityIgnoresInvertColors={true}
               />
             </View>
             <Text variant='body.medium' color='secondary' style={styles.welcomeSubtitle}>
@@ -423,6 +427,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     Didn&apos;t receive the email?
                   </Text>
                   <Pressable
+                    accessibilityRole='button'
+                    accessibilityLabel='Resend verification email'
+                    accessibilityHint='Sends a new verification email to your address'
                     onPress={() => {
                       void handleResendVerificationEmail();
                     }}
@@ -533,7 +540,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 onSubmitEditing={() => void handleSubmit(onSubmit)()}
                 leftIcon={<Icon name='lock-closed-outline' family='Ionicons' size='md' />}
                 rightIcon={
-                  <Pressable onPress={() => setShowPassword(!showPassword)}>
+                  <Pressable
+                    accessibilityRole='button'
+                    accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                    accessibilityHint={
+                      showPassword ? 'Hides the password text' : 'Reveals the password text'
+                    }
+                    onPress={() => setShowPassword(!showPassword)}
+                  >
                     <Icon
                       name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                       family='Ionicons'
@@ -558,8 +572,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             render={({ field: { onChange, value } }) => (
               <View style={styles.optionsRow}>
                 <Pressable
+                  accessibilityRole='checkbox'
+                  accessibilityLabel='Remember me'
+                  accessibilityHint='Keeps you signed in on this device'
+                  accessibilityState={{ checked: value === true }}
                   style={styles.rememberMeContainer}
-                  onPress={() => onChange(!Boolean(value))}
+                  onPress={() => onChange(!value)}
                   disabled={isLoading}
                 >
                   <View
@@ -583,7 +601,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   </Text>
                 </Pressable>
 
-                <Pressable onPress={handleNavigateToForgotPassword} disabled={isLoading}>
+                <Pressable
+                  accessibilityRole='button'
+                  onPress={handleNavigateToForgotPassword}
+                  disabled={isLoading}
+                >
                   <Text variant='body.small' color='primary' weight='medium'>
                     Forgot Password?
                   </Text>
@@ -624,7 +646,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <Text variant='body.medium' color={theme.colors.onSurfaceVariant}>
               Don&apos;t have an account?{' '}
             </Text>
-            <Pressable onPress={handleNavigateToRegister} disabled={isLoading}>
+            <Pressable
+              accessibilityRole='button'
+              onPress={handleNavigateToRegister}
+              disabled={isLoading}
+            >
               <Text
                 variant='body.medium'
                 color={theme.colors.primary}
@@ -641,7 +667,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <Text variant='body.small' color={theme.colors.onSurfaceVariant}>
               Need to verify email?{' '}
             </Text>
-            <Pressable onPress={() => setShowResendModal(true)} disabled={isLoading}>
+            <Pressable
+              accessibilityRole='button'
+              onPress={() => setShowResendModal(true)}
+              disabled={isLoading}
+            >
               <Text
                 variant='body.small'
                 color={theme.colors.primary}

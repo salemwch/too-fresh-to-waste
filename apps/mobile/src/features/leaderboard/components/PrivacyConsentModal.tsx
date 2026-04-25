@@ -66,7 +66,11 @@ export const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({
     >
       {/* Backdrop — tap does nothing (non-dismissible) */}
       <View style={styles.overlay}>
-        <Pressable style={styles.overlayFill} onPress={() => undefined} />
+        <Pressable
+          accessibilityRole='button'
+          style={styles.overlayFill}
+          onPress={() => undefined}
+        />
 
         <View style={[styles.sheet, { paddingBottom: sheetBottomPad }]}>
           <View style={styles.handle} />
@@ -92,6 +96,7 @@ export const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({
 
           {/* Primary button — real identity */}
           <Pressable
+            accessibilityRole='button'
             style={[styles.btnPrimary, mutation.isPending && styles.btnDisabled]}
             onPress={() => handleChoice(true)}
             disabled={mutation.isPending}
@@ -105,6 +110,7 @@ export const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({
 
           {/* Secondary button — anonymous */}
           <Pressable
+            accessibilityRole='button'
             style={[styles.btnOutline, mutation.isPending && styles.btnDisabled]}
             onPress={() => handleChoice(false)}
             disabled={mutation.isPending}

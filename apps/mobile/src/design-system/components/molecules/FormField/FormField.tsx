@@ -266,6 +266,7 @@ export const FormField = memo<FormFieldProps>(
             testID={`${testID}-password-toggle`}
             accessibilityRole='button'
             accessibilityLabel={isPasswordVisible ? 'Hide password' : 'Show password'}
+            accessibilityHint='Toggles password visibility'
           >
             {isPasswordVisible ? (
               <EyeOffIcon backgroundColor={theme.colors.outline} />

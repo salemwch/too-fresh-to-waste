@@ -225,6 +225,8 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
           <View style={styles.codeContainer}>
             {code.map((digit, index) => (
               <TextInput
+                accessibilityLabel='Text input field'
+                accessibilityHint='Enter a single digit of the verification code'
                 key={index}
                 ref={ref => {
                   inputRefs.current[index] = ref;
@@ -311,6 +313,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
 
           {/* Back to Login */}
           <Pressable
+            accessibilityRole='button'
             style={styles.backToLoginContainer}
             onPress={handleBackToLogin}
             disabled={isLoading}

@@ -308,8 +308,6 @@ function useRehydrationStatus(timeout: number = 5000): RehydrationStatus {
       // state to MMKV, so this should never fire after one clean boot cycle.
       Logger.warn('[RehydrationOrchestrator] Validation warnings detected', { errors });
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locationState, authState, favoritesState]);
 
   // ────────────────────────────────────────────────────────────────────────

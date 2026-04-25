@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bull';
 
 import { AppLoggerService } from '../common/services/logger.service';
-import { ReviewAnalyticsService } from '../reviwes/review-analitics.service';
+import { ReviewAnalyticsService } from '../reviews/review-analytics.service';
 
 @Injectable()
 @Processor('review-analytics')

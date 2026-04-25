@@ -15,7 +15,7 @@ import {
   ReviewStatus,
   SentimentType,
   ReviewSentimentAnalysis,
-} from '../reviwes/schemas/reviwe.schema';
+} from '../reviews/schemas/review.schema';
 import { ReviewModerationService } from '../services/review-moderation.service';
 import { User, UserDocument } from '../users/schemas/user.schema';
 

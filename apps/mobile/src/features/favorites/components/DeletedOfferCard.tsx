@@ -32,7 +32,7 @@ export const DeletedOfferCard: React.FC<DeletedOfferCardProps> = ({ onRemove, st
     <Text style={styles.title}>Offer No Longer Available</Text>
     <Text style={styles.description}>This offer has been removed by the merchant</Text>
 
-    <Pressable style={styles.removeButton} onPress={onRemove}>
+    <Pressable accessibilityRole='button' style={styles.removeButton} onPress={onRemove}>
       <Icon name='trash-outline' size={18} color={COLORS.danger} />
       <Text style={styles.removeButtonText}>Remove from Favorites</Text>
     </Pressable>

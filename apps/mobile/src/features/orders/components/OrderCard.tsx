@@ -242,7 +242,12 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
       <View style={styles.topRow}>
         {/* Thumbnail — offer image preferred, establishment image fallback */}
         {cardImage ? (
-          <Image source={{ uri: cardImage }} style={styles.thumbnail} resizeMode='cover' />
+          <Image
+            source={{ uri: cardImage }}
+            style={styles.thumbnail}
+            resizeMode='cover'
+            accessibilityIgnoresInvertColors
+          />
         ) : (
           <View style={styles.thumbnailPlaceholder}>
             <Icon name='fast-food' family='Ionicons' size={28} color='#94A3B8' />

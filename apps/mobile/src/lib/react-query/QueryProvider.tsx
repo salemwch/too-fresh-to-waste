@@ -103,7 +103,7 @@ const DefaultErrorFallback: React.FC<{
   <View style={styles.errorContainer}>
     <Text style={styles.errorTitle}>Something went wrong</Text>
     <Text style={styles.errorMessage}>{error.message}</Text>
-    <Pressable style={styles.retryButton} onPress={resetError}>
+    <Pressable accessibilityRole='button' style={styles.retryButton} onPress={resetError}>
       <Text style={styles.retryButtonText}>Try Again</Text>
     </Pressable>
   </View>

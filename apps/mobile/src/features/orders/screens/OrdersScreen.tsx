@@ -158,6 +158,7 @@ const TabPill: React.FC<TabPillProps> = ({ label, count, isActive, onPress }) =>
     accessibilityRole='tab'
     accessibilityState={{ selected: isActive }}
     accessibilityLabel={`${label} tab, ${count} orders`}
+    accessibilityHint='Switches to this order category'
   >
     <Text style={[styles.tabPillText, isActive && styles.tabPillTextActive]}>{label}</Text>
     {count > 0 && (

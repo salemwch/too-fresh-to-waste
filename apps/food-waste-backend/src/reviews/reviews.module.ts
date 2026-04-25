@@ -19,17 +19,17 @@ import { LoyaltyModule } from '../loyalty/loyalty.module';
 import { OffersModule } from '../offers/offers.module';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
-import { ReviewAnalyticsProcessor } from '../proccessors/review-analytics.processor';
-import { ReviewModerationProcessor } from '../proccessors/review-moderation.processor';
-import { ReviewProcessor } from '../proccessors/review.processor';
+import { ReviewAnalyticsProcessor } from '../processors/review-analytics.processor';
+import { ReviewModerationProcessor } from '../processors/review-moderation.processor';
+import { ReviewProcessor } from '../processors/review.processor';
 import { ReviewCacheService } from '../services/review-cache.service';
 import { ReviewModerationService } from '../services/review-moderation.service';
 import { User, UserSchema } from '../users/schemas/user.schema';
 
-import { ReviewAnalyticsService } from './review-analitics.service';
-import { ReviewsController } from './reviwes.controller';
-import { ReviewsService } from './reviwes.service';
-import { Review, ReviewSchema } from './schemas/reviwe.schema';
+import { ReviewAnalyticsService } from './review-analytics.service';
+import { ReviewsController } from './reviews.controller';
+import { ReviewsService } from './reviews.service';
+import { Review, ReviewSchema } from './schemas/review.schema';
 
 @Module({
   imports: [

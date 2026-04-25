@@ -10,7 +10,7 @@ import {
   EstablishmentDocument,
 } from '../establishments/schemas/establishment.schema';
 
-import { Review, ReviewDocument, ReviewStatus, SentimentType } from './schemas/reviwe.schema';
+import { Review, ReviewDocument, ReviewStatus, SentimentType } from './schemas/review.schema';
 
 export interface ReviewInsights {
   overallMetrics: {

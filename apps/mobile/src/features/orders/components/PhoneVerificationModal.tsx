@@ -373,6 +373,8 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
             <Text style={styles.prefixText}>{COUNTRY_PREFIX}</Text>
           </View>
           <TextInput
+            accessibilityLabel='Text input field'
+            accessibilityHint='Enter your phone number'
             style={[styles.input, styles.phoneInput]}
             placeholder='20 123 456'
             placeholderTextColor='#9CA3AF'
@@ -389,6 +391,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
       {error != null && <Text style={styles.errorText}>{error}</Text>}
 
       <Pressable
+        accessibilityRole='button'
         style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleSendOTPPress}
         disabled={isLoading}
@@ -400,7 +403,12 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         )}
       </Pressable>
 
-      <Pressable style={styles.cancelButton} onPress={handleCloseAnimated} disabled={isLoading}>
+      <Pressable
+        accessibilityRole='button'
+        style={styles.cancelButton}
+        onPress={handleCloseAnimated}
+        disabled={isLoading}
+      >
         <Text style={styles.cancelButtonText}>Cancel</Text>
       </Pressable>
     </>
@@ -419,6 +427,8 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Verification Code</Text>
         <TextInput
+          accessibilityLabel='Text input field'
+          accessibilityHint='Enter the verification code'
           ref={otpInputRef}
           style={[styles.input, styles.otpInput]}
           placeholder='123456'
@@ -439,6 +449,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
       )}
 
       <Pressable
+        accessibilityRole='button'
         style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleVerifyOTPPress}
         disabled={isLoading || otp.length !== 6}
@@ -454,13 +465,18 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         {countdown > 0 ? (
           <Text style={styles.resendText}>Resend code in {countdown}s</Text>
         ) : (
-          <Pressable onPress={handleResendOTPPress} disabled={isLoading}>
+          <Pressable accessibilityRole='button' onPress={handleResendOTPPress} disabled={isLoading}>
             <Text style={styles.resendButtonText}>Resend Code</Text>
           </Pressable>
         )}
       </View>
 
-      <Pressable style={styles.cancelButton} onPress={handleCloseAnimated} disabled={isLoading}>
+      <Pressable
+        accessibilityRole='button'
+        style={styles.cancelButton}
+        onPress={handleCloseAnimated}
+        disabled={isLoading}
+      >
         <Text style={styles.cancelButtonText}>Cancel</Text>
       </Pressable>
     </>
@@ -499,7 +515,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         style={styles.overlay}
       >
         {/* Animated Backdrop - Fades in smoothly */}
-        <TouchableWithoutFeedback onPress={handleCloseAnimated}>
+        <TouchableWithoutFeedback accessibilityRole='button' onPress={handleCloseAnimated}>
           <Animated.View
             style={[
               styles.backdrop,

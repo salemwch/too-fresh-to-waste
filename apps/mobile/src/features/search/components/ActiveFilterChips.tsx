@@ -138,6 +138,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
               {chip.label}
             </Text>
             <Pressable
+              accessibilityRole='button'
               onPress={chip.onRemove}
               style={styles.removeButton}
               hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
@@ -149,6 +150,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
 
         {/* Clear All Button */}
         <Pressable
+          accessibilityRole='button'
           style={[styles.clearAllButton, { borderColor: colors.onSurfaceVariant }]}
           onPress={onClearAll}
         >

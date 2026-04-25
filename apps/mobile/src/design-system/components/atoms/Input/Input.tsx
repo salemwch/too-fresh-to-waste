@@ -192,6 +192,7 @@ export const Input = forwardRef<TextInput, InputProps>(
           {hasRenderableNode(leftIcon) &&
             (onLeftIconPress ? (
               <Pressable
+                accessibilityRole='button'
                 style={styles.leftIconContainer}
                 onPress={onLeftIconPress}
                 disabled={disabled}
@@ -224,6 +225,7 @@ export const Input = forwardRef<TextInput, InputProps>(
           {hasRenderableNode(rightIcon) &&
             (onRightIconPress ? (
               <Pressable
+                accessibilityRole='button'
                 style={styles.rightIconContainer}
                 onPress={onRightIconPress}
                 disabled={disabled}

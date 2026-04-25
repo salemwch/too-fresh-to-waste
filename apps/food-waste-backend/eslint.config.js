@@ -98,7 +98,7 @@ module.exports = [
             },
             {
               target: './src/common',
-              from: './src/reviwes',
+              from: './src/reviews',
               message: 'Common must not depend on reviews.',
             },
             {
@@ -217,7 +217,7 @@ module.exports = [
             },
             {
               target: './src/orders',
-              from: './src/reviwes',
+              from: './src/reviews',
               message: 'Orders must not depend on reviews.',
             },
             {

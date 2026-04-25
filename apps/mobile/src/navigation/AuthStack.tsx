@@ -71,7 +71,11 @@ export const AuthStack: React.FC = () => {
         },
       ]}
     >
-      <Pressable onPress={() => navigation.goBack()} style={styles.headerBackButton}>
+      <Pressable
+        accessibilityRole='button'
+        onPress={() => navigation.goBack()}
+        style={styles.headerBackButton}
+      >
         <Icon name='arrow-back' size={24} color={theme.colors.onSurface} />
       </Pressable>
       <Text

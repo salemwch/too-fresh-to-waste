@@ -28,6 +28,7 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
           testID={testID}
           accessibilityRole='alert'
           accessibilityLabel='Enable location to see nearby offers'
+          accessibilityHint='Contains options to enable location or dismiss'
         >
           <Icon
             name='location-sharp'
@@ -51,6 +52,7 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
             onPress={onEnable}
             disabled={isLoading}
             accessibilityLabel='Enable location'
+            accessibilityHint='Requests location permission to find nearby offers'
           >
             {isLoading ? <ActivityIndicator size='small' color={theme.colors.primary} /> : 'Enable'}
           </Button>
@@ -58,6 +60,7 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
             onPress={onDismiss}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             accessibilityLabel='Dismiss location banner'
+            accessibilityHint='Hides the location prompt banner'
             accessibilityRole='button'
           >
             <Icon name='close' family='Ionicons' size={18} color={theme.colors.onSurfaceVariant} />
@@ -74,6 +77,7 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
           onPress={onDismiss}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityLabel='Dismiss location banner'
+          accessibilityHint='Hides the location prompt banner'
           accessibilityRole='button'
         >
           <Icon name='close' family='Ionicons' size={20} color={theme.colors.onSurfaceVariant} />
@@ -105,6 +109,7 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
             onPress={onDismiss}
             style={styles.dismissTextButton}
             accessibilityLabel='Not now'
+            accessibilityHint='Dismisses the location prompt'
           >
             Not now
           </Button>

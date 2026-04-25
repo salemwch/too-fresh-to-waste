@@ -5,7 +5,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { Queue } from 'bull';
 // plainToClass import removed - not currently used
 
-import { ReviewDocument } from '../reviwes/schemas/reviwe.schema';
+import { ReviewDocument } from '../reviews/schemas/review.schema';
 import { ReviewCacheService } from '../services/review-cache.service';
 
 // Event payload interfaces for type safety

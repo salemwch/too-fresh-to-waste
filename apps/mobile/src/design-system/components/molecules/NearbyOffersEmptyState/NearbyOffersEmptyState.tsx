@@ -27,6 +27,7 @@ export const NearbyOffersEmptyState: React.FC<NearbyOffersEmptyStateProps> = ({
       testID={testID}
       accessibilityRole='alert'
       accessibilityLabel={`No offers found within ${radiusKm} kilometers`}
+      accessibilityHint='Provides options to expand search radius or browse all offers'
     >
       <View
         style={[styles.iconContainer, { backgroundColor: theme.colors.surfaceVariant }]}

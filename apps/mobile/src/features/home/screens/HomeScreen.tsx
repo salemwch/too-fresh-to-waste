@@ -342,6 +342,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             onPress={() => setIsCharitySheetVisible(true)}
             style={styles.headerIconButtonRight}
             accessibilityLabel='Learn about our charity donations'
+            accessibilityHint='Opens the donation information sheet'
             accessibilityRole='button'
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
@@ -351,6 +352,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             onPress={() => navigation.navigate('Leaderboard')}
             style={styles.headerIconButtonRight}
             accessibilityLabel='Grand prize leaderboard'
+            accessibilityHint='Opens the leaderboard screen'
             accessibilityRole='button'
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
@@ -786,6 +788,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             onRefresh={handleRefresh}
             tintColor={theme.colors.primary}
             accessibilityLabel={refreshing ? 'Refreshing offers' : 'Pull to refresh'}
+            accessibilityHint='Pull down to refresh the offers list'
           />
         }
         // ✅ Performance optimizations for FlatList

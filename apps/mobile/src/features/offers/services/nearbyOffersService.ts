@@ -182,26 +182,11 @@ class NearbyOffersService {
       ...(params.query ? { query: params.query } : {}),
     };
 
-    try {
-      const response = await apiClient.post(url, body);
-      return unwrapBackendResponse<ProximitySearchResult<NearbyOffer>[]>(
-        response,
-        'nearby offers search',
-      );
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError<{ message?: string }>;
-        const message = axiosError.response?.data?.message ?? axiosError.message;
-        Logger.error(
-          'Nearby offers API error',
-          { url, status: axiosError.response?.status },
-          new Error(message),
-        );
-        throw new Error(message || 'Failed to fetch nearby offers');
-      }
-      Logger.error('Network error in nearby offers service', { url }, error as Error);
-      throw new Error('Network error. Please check your connection.');
-    }
+    const response = await apiClient.post(url, body);
+    return unwrapBackendResponse<ProximitySearchResult<NearbyOffer>[]>(
+      response,
+      'nearby offers search',
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────

@@ -45,9 +45,9 @@ import {
   ReviewQueryDto,
   ReviewAnalyticsDto,
   BulkReviewModerationDto,
-} from './dto/create-reviwe.dto';
-import { ReviewsService } from './reviwes.service';
-import { ReviewImages, ReviewStatus } from './schemas/reviwe.schema';
+} from './dto/create-review.dto';
+import { ReviewsService } from './reviews.service';
+import { ReviewImages, ReviewStatus } from './schemas/review.schema';
 
 @ApiTags('Reviews')
 @Controller('reviews')

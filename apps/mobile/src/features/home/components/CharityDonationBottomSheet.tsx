@@ -194,7 +194,11 @@ export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose }
     <Modal visible transparent animationType='none' onRequestClose={handleClose}>
       {/* Overlay — fades in/out smoothly, no hard edge */}
       <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
+        <Pressable
+          accessibilityRole='button'
+          style={StyleSheet.absoluteFill}
+          onPress={handleClose}
+        />
       </Animated.View>
 
       {/* Sheet — slides up from below */}
@@ -292,6 +296,7 @@ export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose }
             onPress={handleClose}
             accessibilityRole='button'
             accessibilityLabel='Close'
+            accessibilityHint='Closes the donation sheet'
           >
             <Text style={styles.closeButtonText}>Got it</Text>
           </Pressable>

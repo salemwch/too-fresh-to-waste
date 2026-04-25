@@ -33,7 +33,7 @@ import type {
   BulkReviewModerationInput,
 } from '@foodwaste/shared';
 
-import { ReviewStatus, ReviewType, SentimentType } from '../schemas/reviwe.schema';
+import { ReviewStatus, ReviewType, SentimentType } from '../schemas/review.schema';
 
 function trimTransform({ value }: { value: unknown }): unknown {
   return typeof value === 'string' ? value.trim() : value;

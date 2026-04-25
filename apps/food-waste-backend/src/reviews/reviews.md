@@ -2,11 +2,15 @@
 
 ## Overview
 
-The Reviews module provides a comprehensive review and rating system for the Too Fresh To Waste food waste reduction marketplace. It enables customers to review establishments, orders, and offers with AI-powered sentiment analysis, automated moderation, analytics, and gamification integration.
+The Reviews module provides a comprehensive review and rating system for the Too
+Fresh To Waste food waste reduction marketplace. It enables customers to review
+establishments, orders, and offers with AI-powered sentiment analysis, automated
+moderation, analytics, and gamification integration.
 
-**Module Path:** `src/reviwes/` (Note: folder name has typo, should be `reviews`)
+**Module Path:** `src/reviews/`
 
-**Stack:** NestJS 11 | MongoDB (Mongoose) | Bull Queues | Redis | Firebase Storage
+**Stack:** NestJS 11 | MongoDB (Mongoose) | Bull Queues | Redis | Firebase
+Storage
 
 ---
 
@@ -15,17 +19,17 @@ The Reviews module provides a comprehensive review and rating system for the Too
 ### Module Structure
 
 ```
-reviwes/
+reviews/
 ├── dto/
-│   ├── create-reviwe.dto.ts        # DTOs for review operations
-│   └── update-reviwe.dto.ts
+│   ├── create-review.dto.ts        # DTOs for review operations
+│   └── update-review.dto.ts
 ├── schemas/
-│   └── reviwe.schema.ts            # Mongoose schema with indexes
-├── reviwes.controller.ts           # REST API endpoints
-├── reviwes.service.ts              # Core business logic
-├── review-analitics.service.ts    # Analytics and insights generation
-├── reviwes.module.ts              # Module configuration
-└── reviwes.md                     # This documentation
+│   └─��� review.schema.ts            # Mongoose schema with indexes
+├── reviews.controller.ts           # REST API endpoints
+├── reviews.service.ts              # Core business logic
+├── review-analytics.service.ts     # Analytics and insights generation
+├── reviews.module.ts               # Module configuration
+└── reviews.md                      # This documentation
 ```
 
 ### External Dependencies
@@ -148,7 +152,8 @@ responses: [{
 
 #### Metadata
 
-Extensive metadata tracking for analytics and fraud detection (see `IReviewMetadata` interface in schema):
+Extensive metadata tracking for analytics and fraud detection (see
+`IReviewMetadata` interface in schema):
 
 - Processing info (IP, user agent, device fingerprint)
 - Analytics (read time, scroll depth, UTM parameters)
@@ -198,7 +203,8 @@ Get all reviews with filtering and pagination.
 - `type` (ReviewType) - Filter by type
 - `sentiment` (SentimentType) - Filter by sentiment
 - `search` (string) - Full-text search
-- `sortBy` (string) - `createdAt`, `overallRating`, `helpfulCount`, `engagementScore`
+- `sortBy` (string) - `createdAt`, `overallRating`, `helpfulCount`,
+  `engagementScore`
 - `sortOrder` (`asc`|`desc`, default: `desc`)
 - `establishmentId`, `reviewerId` (ObjectId) - Entity filters
 - `verifiedPurchaseOnly`, `recommendedOnly` (boolean) - Feature filters
@@ -427,7 +433,8 @@ Report a review for violations.
 
 **Body:** `ReviewReportDto`
 
-- `reason` (enum: `spam`, `inappropriate`, `fake`, `offensive`, `irrelevant`, `other`)
+- `reason` (enum: `spam`, `inappropriate`, `fake`, `offensive`, `irrelevant`,
+  `other`)
 - `additionalDetails` (optional, max 500 chars)
 
 **Auto-flagging:** Review auto-flagged after 3 reports
@@ -463,7 +470,7 @@ Get trending keywords from reviews.
 
 ### ReviewsService
 
-**File:** `reviwes.service.ts`
+**File:** `reviews.service.ts`
 
 Core business logic for review CRUD operations.
 
@@ -586,7 +593,8 @@ Tracks social shares.
 
 AI-powered sentiment analysis (mock implementation).
 
-**TODO:** Integrate with real AI services (AWS Comprehend, Google NL, Azure Text Analytics, OpenAI)
+**TODO:** Integrate with real AI services (AWS Comprehend, Google NL, Azure Text
+Analytics, OpenAI)
 
 ##### `performAutoModeration(reviewData)`
 
@@ -633,7 +641,7 @@ Checks for reviews requiring manual moderation and emits alert event.
 
 ### ReviewAnalyticsService
 
-**File:** `review-analitics.service.ts`
+**File:** `review-analytics.service.ts`
 
 Advanced analytics and insights generation.
 
@@ -650,7 +658,8 @@ Generates comprehensive insights for establishment.
 
 **Returns:** `ReviewInsights` object with:
 
-- **Overall Metrics**: Total reviews, average rating, growth rate, engagement rate
+- **Overall Metrics**: Total reviews, average rating, growth rate, engagement
+  rate
 - **Sentiment Analysis**: Distribution, trends over time, keyword analysis
 - **Rating Analysis**: Distribution, trends, category breakdown
 - **Competitive Analysis**: Industry average, percentile rank, top performers
@@ -670,7 +679,8 @@ Compares establishment against industry benchmarks.
 
 Aggregates industry-wide statistics.
 
-**Industry types:** `restaurant`, `bakery`, `grocery_store`, `cafe`, `fast_food`, `supermarket`
+**Industry types:** `restaurant`, `bakery`, `grocery_store`, `cafe`,
+`fast_food`, `supermarket`
 
 ##### Private Methods
 
@@ -712,7 +722,8 @@ Computes metrics for benchmarking:
 
 - Response rate and average response time
 - Sentiment score (0-100 scale, 50 = neutral)
-- Engagement score (weighted: helpful votes 25%, shares 30%, responses 35%, views 10%)
+- Engagement score (weighted: helpful votes 25%, shares 30%, responses 35%,
+  views 10%)
 
 ##### `analyzeEstablishmentTrends(establishmentId)`
 
@@ -742,7 +753,7 @@ Updates benchmarks for establishments with 5+ reviews (max 500).
 
 ## Configuration
 
-### Module Configuration (reviwes.module.ts)
+### Module Configuration (reviews.module.ts)
 
 #### Review Config Provider
 
@@ -852,7 +863,7 @@ Test file pattern: `*.spec.ts` alongside source files.
 **Example:**
 
 ```bash
-pnpm test reviwes.service.spec.ts
+pnpm test reviews.service.spec.ts
 ```
 
 ### Integration Tests
@@ -862,7 +873,7 @@ Test controller endpoints with mocked dependencies.
 **Example:**
 
 ```bash
-pnpm test reviwes.controller.spec.ts
+pnpm test reviews.controller.spec.ts
 ```
 
 ### E2E Tests
@@ -950,22 +961,8 @@ Reviews module health checked indirectly via:
 
 ## Known Issues
 
-1. **Folder name typo**: `src/reviwes/` should be `src/reviews/`
-2. **File name typos**:
-   - `reviwe.schema.ts` → should be `review.schema.ts`
-   - `create-reviwe.dto.ts` → should be `create-review.dto.ts`
-3. **Mock AI services**: Sentiment analysis and content moderation use placeholder logic
-4. **Processor references**: References `src/proccessors/` (typo) which may not exist
-
-### Migration Path
-
-When renaming:
-
-1. Update all imports across codebase
-2. Update module registration in `app.module.ts`
-3. Run TypeScript compilation check: `pnpm check:ts`
-4. Update API documentation
-5. Notify frontend team of endpoint changes (if any)
+1. **Mock AI services**: Sentiment analysis and content moderation use
+   placeholder logic
 
 ---
 
@@ -1161,13 +1158,12 @@ Authorization: Bearer <merchant_token>
 
 #### Issue: Reviews not appearing after creation
 
-**Cause:** Auto-moderation flagged review as `PENDING`
-**Solution:** Check `moderationInfo.autoModerationFlags`. Admin must manually approve.
+**Cause:** Auto-moderation flagged review as `PENDING` **Solution:** Check
+`moderationInfo.autoModerationFlags`. Admin must manually approve.
 
 #### Issue: Establishment stats not updating
 
-**Cause:** MongoDB transaction failed or cron job not running
-**Solution:**
+**Cause:** MongoDB transaction failed or cron job not running **Solution:**
 
 1. Check logs for transaction errors
 2. Manually trigger: `pnpm backend seed:verify-reviews`
@@ -1175,8 +1171,7 @@ Authorization: Bearer <merchant_token>
 
 #### Issue: Images not uploading
 
-**Cause:** Firebase Storage credentials missing or invalid
-**Solution:**
+**Cause:** Firebase Storage credentials missing or invalid **Solution:**
 
 1. Verify `FIREBASE_STORAGE_BUCKET` in `.env`
 2. Check Firebase service account key
@@ -1184,8 +1179,7 @@ Authorization: Bearer <merchant_token>
 
 #### Issue: High memory usage from analytics
 
-**Cause:** Large aggregation pipelines without limits
-**Solution:**
+**Cause:** Large aggregation pipelines without limits **Solution:**
 
 1. Add pagination to analytics queries
 2. Implement result caching with Redis
@@ -1193,8 +1187,7 @@ Authorization: Bearer <merchant_token>
 
 #### Issue: Queue jobs failing
 
-**Cause:** Redis connection issues or job timeout
-**Solution:**
+**Cause:** Redis connection issues or job timeout **Solution:**
 
 1. Check Redis connection: `redis-cli ping`
 2. Increase job timeout in queue config
@@ -1245,6 +1238,5 @@ For questions or issues:
 
 ---
 
-**Last Updated:** 2026-01-15
-**Maintained by:** Backend Team
-**Module Status:** Production-ready (with known typos)
+**Last Updated:** 2026-01-15 **Maintained by:** Backend Team **Module Status:**
+Production-ready (with known typos)

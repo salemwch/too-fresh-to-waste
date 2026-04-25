@@ -96,6 +96,7 @@ export const Avatar = forwardRef<
               style={[styles.image, imageStyle] as FastImageProps['style']}
               onError={() => setImageError(true)}
               resizeMode={FastImage.resizeMode.cover}
+              accessibilityIgnoresInvertColors={true}
             />
           );
         }
@@ -111,6 +112,7 @@ export const Avatar = forwardRef<
             style={[styles.image, imageStyle]}
             onError={() => setImageError(true)}
             resizeMode='cover'
+            accessibilityIgnoresInvertColors={true}
           />
         );
       }

@@ -292,6 +292,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                         editable={!confirmMutation.isPending}
                         textAlign='center'
                         accessibilityLabel='Pickup code input'
+                        accessibilityHint='Enter the 6-digit pickup code'
                       />
 
                       {pickupError ? (
@@ -308,6 +309,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                       )}
 
                       <Pressable
+                        accessibilityRole='button'
                         onPress={handleConfirmPickup}
                         disabled={code.length !== 6 || confirmMutation.isPending}
                         style={[
@@ -326,7 +328,11 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
 
                 {/* Footer CTA */}
                 <View style={styles.footer}>
-                  <Pressable onPress={onDismiss} style={styles.ctaButtonWrapper}>
+                  <Pressable
+                    accessibilityRole='button'
+                    onPress={onDismiss}
+                    style={styles.ctaButtonWrapper}
+                  >
                     <LinearGradient
                       colors={[PRIMARY, colorTokens.base.primary[400]]}
                       start={{ x: 0, y: 0 }}

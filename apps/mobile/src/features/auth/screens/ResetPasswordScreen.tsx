@@ -374,6 +374,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
               accessible
               accessibilityRole='alert'
               accessibilityLabel={`Error: ${error}`}
+              accessibilityHint='Displays an error message'
             >
               <Icon
                 name='alert-circle'

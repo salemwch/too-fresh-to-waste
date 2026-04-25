@@ -190,7 +190,11 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
         <Text variant='body' size='sm' color='secondary' align='center' lineHeight={20}>
           Check back later!
         </Text>
-        <Pressable style={[styles.notifyButton, { borderColor: theme.colors.outline }]} disabled>
+        <Pressable
+          accessibilityRole='button'
+          style={[styles.notifyButton, { borderColor: theme.colors.outline }]}
+          disabled
+        >
           <Text variant='label' size='sm' color='secondary' lineHeight={20}>
             Notify Me
           </Text>
@@ -226,7 +230,11 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
         <View style={styles.header}>
           {/* Profile image or initial */}
           {item?.profileImage ? (
-            <Image source={{ uri: item.profileImage }} style={styles.headerImage} />
+            <Image
+              source={{ uri: item.profileImage }}
+              style={styles.headerImage}
+              accessibilityIgnoresInvertColors
+            />
           ) : (
             <View
               style={[
@@ -277,6 +285,7 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
 
           {/* Close button */}
           <Pressable
+            accessibilityRole='button'
             style={[styles.closeButton, { backgroundColor: theme.colors.surfaceVariant }]}
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}

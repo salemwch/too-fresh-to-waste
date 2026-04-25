@@ -138,6 +138,7 @@ const HomeSearchBarComponent = ({
             style={styles.filterButton}
             onPress={onFilterPress}
             accessibilityLabel={`Filters ${hasFilters ? `(${filterCount} active)` : ''}`}
+            accessibilityHint='Opens filter options'
             accessibilityRole='button'
             testID='home-filter-button'
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -172,6 +173,7 @@ const HomeSearchBarComponent = ({
                   onPress={() => onSearchChange('')}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   accessibilityLabel='Clear search'
+                  accessibilityHint='Clears the current search text'
                   accessibilityRole='button'
                 >
                   <Icon name='close' family='Ionicons' size={16} color={COLORS.brand} />

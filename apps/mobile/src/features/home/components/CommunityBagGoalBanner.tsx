@@ -161,6 +161,7 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
                 onPress={onSaveABag}
                 accessibilityRole='button'
                 accessibilityLabel='Save Food'
+                accessibilityHint='Starts the save a bag action'
                 testID='community-goal-save-a-bag'
               >
                 <Text style={styles.saveButtonText}>Save Food</Text>

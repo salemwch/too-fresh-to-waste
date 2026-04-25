@@ -174,6 +174,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
   const renderSearchResult = useCallback(
     ({ item }: { item: GeocodeResult }) => (
       <Pressable
+        accessibilityRole='button'
         style={[styles.searchResultItem, { borderBottomColor: theme.colors.outline }]}
         onPress={() => handleLocationSelect(item)}
       >
@@ -212,7 +213,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
       onRequestClose={onClose}
     >
       {/* Backdrop */}
-      <TouchableWithoutFeedback onPress={onClose}>
+      <TouchableWithoutFeedback accessibilityRole='button' onPress={onClose}>
         <Animated.View
           style={[
             styles.backdrop,
@@ -247,7 +248,11 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
           <Text variant='title' size='lg' weight='bold'>
             Location & Distance
           </Text>
-          <Pressable onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Pressable
+            accessibilityRole='button'
+            onPress={onClose}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
             <Icon name='close' family='Ionicons' size={24} color={theme.colors.onSurface} />
           </Pressable>
         </View>
@@ -377,6 +382,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
         {/* Use My Location Button */}
         <View style={styles.section}>
           <Pressable
+            accessibilityRole='button'
             style={[styles.useLocationButton, { backgroundColor: theme.colors.primaryContainer }]}
             onPress={handleUseMyLocation}
             disabled={isLoadingLocation}

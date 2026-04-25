@@ -185,7 +185,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
   return (
     <View style={styles.modalOverlay} pointerEvents={visible ? 'auto' : 'none'}>
       {/* Backdrop - covers screen content, not navigation header */}
-      <TouchableWithoutFeedback onPress={handleClose}>
+      <TouchableWithoutFeedback accessibilityRole='button' onPress={handleClose}>
         <Animated.View
           style={[
             styles.modalBackdrop,
@@ -229,6 +229,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
           {/* Quantity controls */}
           <View style={styles.quantityControls}>
             <Pressable
+              accessibilityRole='button'
               onPress={() => setQuantity(q => Math.max(1, q - 1))}
               style={[styles.qtyButton, qtyButtonStyle]}
             >
@@ -238,6 +239,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
               {quantity}
             </Text>
             <Pressable
+              accessibilityRole='button'
               onPress={() => setQuantity(q => Math.min(offer.availableQuantity ?? 1, q + 1))}
               style={[styles.qtyButton, qtyButtonStyle]}
             >
@@ -286,8 +288,18 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
               Available Soon
             </Text>
             <View style={styles.paymentLogos}>
-              <Image source={PayMeImage} style={styles.paymentLogo} resizeMode='contain' />
-              <Image source={ClickToPayImage} style={styles.paymentLogo} resizeMode='contain' />
+              <Image
+                source={PayMeImage}
+                style={styles.paymentLogo}
+                resizeMode='contain'
+                accessibilityIgnoresInvertColors
+              />
+              <Image
+                source={ClickToPayImage}
+                style={styles.paymentLogo}
+                resizeMode='contain'
+                accessibilityIgnoresInvertColors
+              />
             </View>
           </View>
         </View>
@@ -428,14 +440,22 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* --- Header Section --- */}
         <View style={styles.headerContainer}>
-          <Image source={{ uri: offer.images?.[0] }} style={styles.headerImage} />
+          <Image
+            source={{ uri: offer.images?.[0] }}
+            style={styles.headerImage}
+            accessibilityIgnoresInvertColors
+          />
           <LinearGradient
             colors={['rgba(0,0,0,0.7)', 'transparent', 'rgba(0,0,0,0.8)']}
             style={styles.gradientOverlay}
           />
 
           <View style={styles.topNav}>
-            <Pressable style={styles.iconButton} onPress={() => navigation.goBack()}>
+            <Pressable
+              accessibilityRole='button'
+              style={styles.iconButton}
+              onPress={() => navigation.goBack()}
+            >
               <ChevronLeft color='#111827' size={24} />
             </Pressable>
             <View style={styles.topRightActions}>
@@ -444,6 +464,11 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                 onPress={handleFavoritePress}
                 disabled={isFavoriteLoading}
                 accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                accessibilityHint={
+                  isFavorite
+                    ? 'Removes this offer from your favorites'
+                    : 'Adds this offer to your favorites'
+                }
                 accessibilityRole='button'
               >
                 <Heart
@@ -464,6 +489,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                   source={{ uri: merchant.profileImage }}
                   style={styles.merchantLogo}
                   resizeMode='cover'
+                  accessibilityIgnoresInvertColors
                 />
               ) : (
                 <View style={styles.merchantLogoPlaceholder}>
@@ -544,7 +570,11 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
 
           {/* --- Location Card --- */}
           {establishment?.address !== undefined && (
-            <Pressable style={styles.locationCard} onPress={handleOpenMapsPress}>
+            <Pressable
+              accessibilityRole='button'
+              style={styles.locationCard}
+              onPress={handleOpenMapsPress}
+            >
               <View style={styles.locationContent}>
                 <View style={styles.locationIconContainer}>
                   <MapPin color={WHITE} size={16} strokeWidth={2} />
@@ -567,6 +597,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           {/* --- Description Accordion --- */}
           <View style={styles.section}>
             <Pressable
+              accessibilityRole='button'
               style={styles.accordionHeader}
               onPress={() => setIsDescriptionOpen(!isDescriptionOpen)}
             >
@@ -594,6 +625,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
               (offer.nutritionalInfo.dietaryInfo?.length ?? 0) > 0) && (
               <View style={styles.section}>
                 <Pressable
+                  accessibilityRole='button'
                   style={styles.accordionHeader}
                   onPress={() => setIsAllergensOpen(!isAllergensOpen)}
                 >
@@ -663,6 +695,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           </Text>
         </View>
         <Pressable
+          accessibilityRole='button'
           style={[styles.reserveButton, reserveButtonStyle]}
           onPress={() => canReserve && setSheetVisible(true)}
           disabled={!canReserve}

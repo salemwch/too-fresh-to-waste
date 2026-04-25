@@ -7,7 +7,7 @@ import { Establishment, EstablishmentSchema } from '../establishments/schemas/es
 import { NotificationsModule } from '../notifications/notifications.module';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
-import { Review, ReviewSchema } from '../reviwes/schemas/reviwe.schema';
+import { Review, ReviewSchema } from '../reviews/schemas/review.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { UsersModule } from '../users/user.module';
 

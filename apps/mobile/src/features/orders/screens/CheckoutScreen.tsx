@@ -374,6 +374,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               ]}
               onPress={() => setSelectedPaymentMethod('cash_on_pickup')}
               accessibilityLabel='Pay on Pickup'
+              accessibilityHint='Selects pay on pickup as payment method'
               accessibilityRole='button'
             >
               {selectedPaymentMethod === 'cash_on_pickup' && (
@@ -405,6 +406,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               ]}
               onPress={() => setSelectedPaymentMethod('pay_on_delivery')}
               accessibilityLabel='Pay on Delivery'
+              accessibilityHint='Selects pay on delivery as payment method'
               accessibilityRole='button'
             >
               {selectedPaymentMethod === 'pay_on_delivery' && (
@@ -498,6 +500,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
         {/* Confirm Button with Gradient — guarded against rapid taps */}
         <Pressable
+          accessibilityRole='button'
           onPress={() => {
             void guardedConfirmOrder();
           }}
@@ -519,6 +522,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
         {/* Cancel Button */}
         <Pressable
+          accessibilityRole='button'
           onPress={() => navigation.goBack()}
           disabled={isCreatingOrder}
           style={styles.cancelButton}

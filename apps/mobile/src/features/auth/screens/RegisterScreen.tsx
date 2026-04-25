@@ -3,7 +3,6 @@
  * New user registration with full validation
  */
 
-/* eslint-disable dot-notation */
 // Note: Using bracket notation due to TypeScript's noPropertyAccessFromIndexSignature rule
 
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -314,6 +313,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
                   {error}
                 </Text>
                 <Pressable
+                  accessibilityRole='button'
                   onPress={() => {
                     setIsGlobalErrorDismissed(true);
                     dispatch(clearError());
@@ -507,7 +507,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
             <Text variant='body.medium' color={theme.colors.onSurfaceVariant}>
               Already have an account?{' '}
             </Text>
-            <Pressable onPress={handleNavigateToLogin} disabled={isLoading}>
+            <Pressable
+              accessibilityRole='button'
+              onPress={handleNavigateToLogin}
+              disabled={isLoading}
+            >
               <Text
                 variant='body.medium'
                 color={theme.colors.primary}

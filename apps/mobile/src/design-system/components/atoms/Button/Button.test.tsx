@@ -239,7 +239,11 @@ describe('Button Component', () => {
     it('uses custom accessibility label', () => {
       render(
         <TestWrapper>
-          <Button accessibilityLabel='Custom Label' testID='custom-label-button'>
+          <Button
+            accessibilityLabel='Custom Label'
+            accessibilityHint='Performs the custom action'
+            testID='custom-label-button'
+          >
             Button Text
           </Button>
         </TestWrapper>,

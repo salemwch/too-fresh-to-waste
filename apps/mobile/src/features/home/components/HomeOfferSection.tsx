@@ -151,6 +151,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
               size='sm'
               onPress={onSeeAllPress}
               accessibilityLabel={`See all ${title.toLowerCase()}`}
+              accessibilityHint='Opens the full list'
             >
               See All
             </Button>
@@ -193,6 +194,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
               size='sm'
               onPress={onSeeAllPress}
               accessibilityLabel={`See all ${title.toLowerCase()}`}
+              accessibilityHint='Opens the full list'
             >
               See All
             </Button>
@@ -210,6 +212,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
             onPress={onRefetch}
             style={styles.retryButton}
             accessibilityLabel={`Retry loading ${title.toLowerCase()}`}
+            accessibilityHint='Attempts to reload the data'
             testID={`${testIDPrefix}-retry-button`}
           >
             Retry
@@ -236,6 +239,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
               size='sm'
               onPress={onSeeAllPress}
               accessibilityLabel={`See all ${title.toLowerCase()}`}
+              accessibilityHint='Opens the full list'
             >
               See All
             </Button>
@@ -277,6 +281,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
             size='sm'
             onPress={onSeeAllPress}
             accessibilityLabel={`See all ${title.toLowerCase()}`}
+            accessibilityHint='Opens the full list'
             testID={`${testIDPrefix}-see-all-button`}
           >
             See All

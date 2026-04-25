@@ -10,7 +10,7 @@ import {
 } from '../establishments/schemas/establishment.schema';
 import { Offer, OfferDocument } from '../offers/schemas/offer.schema';
 import { Order, OrderDocument } from '../orders/schemas/order.schema';
-import { Review, ReviewDocument } from '../reviwes/schemas/reviwe.schema';
+import { Review, ReviewDocument } from '../reviews/schemas/review.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 
 import {

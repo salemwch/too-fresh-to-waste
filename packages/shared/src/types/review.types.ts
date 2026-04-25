@@ -2,8 +2,8 @@
  * Review types — single source of truth for all apps
  *
  * Represents the API response shape for reviews.
- * Source: apps/food-waste-backend/src/reviwes/schemas/reviwe.schema.ts
- *         apps/food-waste-backend/src/reviwes/dto/create-reviwe.dto.ts
+ * Source: apps/food-waste-backend/src/reviews/schemas/review.schema.ts
+ *         apps/food-waste-backend/src/reviews/dto/create-review.dto.ts
  */
 
 import type { ReviewStatus, ReviewType, SentimentType } from '../enums/review.enum';

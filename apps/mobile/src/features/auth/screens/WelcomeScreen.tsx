@@ -72,6 +72,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
           style={styles.bagImage}
           resizeMode='contain'
           accessibilityLabel='Grocery bag full of fresh food'
+          accessibilityHint='Decorative illustration'
+          accessibilityIgnoresInvertColors
         />
       </View>
 
@@ -84,6 +86,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
             style={styles.leafIcon}
             resizeMode='contain'
             accessibilityLabel='Leaf icon'
+            accessibilityHint='Decorative brand icon'
+            accessibilityIgnoresInvertColors
           />
 
           {/* App Name */}
@@ -107,7 +111,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
             onPress={handleGetStarted}
             style={styles.getStartedButton}
             textStyle={styles.getStartedButtonText}
-            rightIcon={<Image source={RocketIcon} style={styles.rocketIcon} resizeMode='contain' />}
+            rightIcon={
+              <Image
+                source={RocketIcon}
+                style={styles.rocketIcon}
+                resizeMode='contain'
+                accessibilityIgnoresInvertColors
+              />
+            }
             disabled={isNavigating}
             testID='welcome-get-started-button'
           >
@@ -116,7 +127,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
           {/* Sign Up Link */}
           <View style={styles.signInContainer}>
-            <Pressable onPress={handleSignUp}>
+            <Pressable accessibilityRole='button' onPress={handleSignUp}>
               <Text
                 variant='body.medium'
                 weight='semibold'

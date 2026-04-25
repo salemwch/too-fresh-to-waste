@@ -2,9 +2,12 @@
 
 ## Overview
 
-The Offers module is the core business domain of the Too Fresh To Waste platform. It manages surplus food listings from merchants, enabling them to reduce food waste by offering discounted items to consumers before expiration.
+The Offers module is the core business domain of the Too Fresh To Waste
+platform. It manages surplus food listings from merchants, enabling them to
+reduce food waste by offering discounted items to consumers before expiration.
 
-**Purpose:** Enable merchants to create, manage, and promote time-sensitive food offers with geolocation, pricing, and availability tracking.
+**Purpose:** Enable merchants to create, manage, and promote time-sensitive food
+offers with geolocation, pricing, and availability tracking.
 
 **Key Features:**
 
@@ -178,14 +181,16 @@ isFeatured: boolean; // isFeaturedManual || isFeaturedAuto
 - `{ categories: 1, status: 1 }` - Category browsing
 - `{ isFeaturedManual: 1, status: 1 }` - Featured offers (manual)
 - `{ isFeaturedAuto: 1, status: 1 }` - Featured offers (auto)
-- `{ status: 1, createdAt: 1, availableUntil: 1, isFeaturedAuto: 1 }` - Auto-featuring cron optimization
+- `{ status: 1, createdAt: 1, availableUntil: 1, isFeaturedAuto: 1 }` -
+  Auto-featuring cron optimization
 - `{ title: 'text', description: 'text' }` - Full-text search
 - `{ 'pricing.discountPercentage': -1, status: 1 }` - Discount range filtering
 - `{ 'pricing.discountedPrice': 1, status: 1 }` - Price range filtering
 
 **Enterprise Indexes (Production Readiness):**
 
-- `{ status: 1, isFeaturedManual: 1, availableFrom: 1, createdAt: -1 }` - Homepage featured section
+- `{ status: 1, isFeaturedManual: 1, availableFrom: 1, createdAt: -1 }` -
+  Homepage featured section
 - `{ type: 1, status: 1, createdAt: -1 }` - Type-based discovery
 - `{ viewCount: -1, favoriteCount: -1, status: 1 }` - Popularity sorting
 - `{ 'nutritionalInfo.dietaryInfo': 1, status: 1 }` - Dietary filtering
@@ -259,11 +264,14 @@ List all active offers with advanced filtering and pagination.
 
 **Business Logic:**
 
-- Public queries: Only returns `ACTIVE` offers within availability window (`availableFrom <= now <= availableUntil`)
-- Admin/merchant queries: Can see all statuses via `status` and `merchantId` filters
+- Public queries: Only returns `ACTIVE` offers within availability window
+  (`availableFrom <= now <= availableUntil`)
+- Admin/merchant queries: Can see all statuses via `status` and `merchantId`
+  filters
 - Geolocation: Uses MongoDB `$geoNear` aggregation on establishments collection
 - Distance calculation: Haversine formula for geodesic distance
-- Security: Time-based filtering enforced by backend (users cannot manipulate "now")
+- Security: Time-based filtering enforced by backend (users cannot manipulate
+  "now")
 
 **Performance:**
 
@@ -316,7 +324,8 @@ Get nearby offers within radius (geolocation-based).
 **Technical Details:**
 
 - Uses MongoDB `$geoNear` aggregation (MUST be first stage in pipeline)
-- Queries `establishments` collection (has 2dsphere index on `address.coordinates`)
+- Queries `establishments` collection (has 2dsphere index on
+  `address.coordinates`)
 - Joins with `offers` collection via `$lookup`
 - Returns distance field in meters
 - Sorted by distance (nearest first)
@@ -716,7 +725,8 @@ Soft delete offer.
 }
 ```
 
-**Rationale:** Soft delete prevents referential integrity issues with active orders
+**Rationale:** Soft delete prevents referential integrity issues with active
+orders
 
 ---
 
@@ -724,7 +734,9 @@ Soft delete offer.
 
 ### Overview
 
-The auto-featuring system automatically promotes urgent offers to featured status when they are expiring soon. This increases visibility and reduces food waste.
+The auto-featuring system automatically promotes urgent offers to featured
+status when they are expiring soon. This increases visibility and reduces food
+waste.
 
 **Configuration File:** `src/offers/config/featuring.config.ts`
 
@@ -749,8 +761,10 @@ The auto-featuring system automatically promotes urgent offers to featured statu
 **Eligible Offers:**
 
 1. **Status:** `ACTIVE`
-2. **Existence:** Offer created at least **30 minutes ago** (configurable via `MIN_EXISTENCE_HOURS`)
-3. **Urgency:** Offer expires in **3 hours or less** (configurable via `URGENCY_THRESHOLD_HOURS`)
+2. **Existence:** Offer created at least **30 minutes ago** (configurable via
+   `MIN_EXISTENCE_HOURS`)
+3. **Urgency:** Offer expires in **3 hours or less** (configurable via
+   `URGENCY_THRESHOLD_HOURS`)
 4. **Availability:** `availableQuantity > 0` (not sold out)
 
 **Formula:**
@@ -771,7 +785,8 @@ createdAt <= now - MIN_EXISTENCE_MS &&
 2. Offer has expired (`availableUntil <= now`)
 3. Offer is no longer urgent (`availableUntil > now + URGENCY_THRESHOLD_MS`)
 
-**Important:** Auto-unfeaturing does NOT touch manually featured offers (`isFeaturedManual = true`)
+**Important:** Auto-unfeaturing does NOT touch manually featured offers
+(`isFeaturedManual = true`)
 
 ### Cron Jobs
 
@@ -830,7 +845,8 @@ OfferSchema.index({
 });
 ```
 
-This compound index covers all fields in the auto-featuring query, enabling fast cron execution.
+This compound index covers all fields in the auto-featuring query, enabling fast
+cron execution.
 
 ---
 
@@ -848,7 +864,8 @@ This compound index covers all fields in the auto-featuring query, enabling fast
    - `transform: true` (type coercion)
 
 3. **Backend-Calculated Fields**
-   - `discountPercentage`: Backend calculates from prices (users cannot manipulate)
+   - `discountPercentage`: Backend calculates from prices (users cannot
+     manipulate)
    - `currency`: System-enforced as TND (users cannot set)
 
 ### Authorization & Access Control
@@ -875,7 +892,8 @@ This compound index covers all fields in the auto-featuring query, enabling fast
 
 **Backend-Enforced Time Filtering:**
 
-- Public queries: Only shows offers within availability window (`availableFrom <= now <= availableUntil`)
+- Public queries: Only shows offers within availability window
+  (`availableFrom <= now <= availableUntil`)
 - Users cannot manipulate "now" to see future or past offers
 - Timezone conversion: User local time → UTC storage
 
@@ -884,7 +902,8 @@ This compound index covers all fields in the auto-featuring query, enabling fast
 **OfferPresenter Sanitization:**
 
 - Removes merchant PII (email, phone)
-- Removes internal metrics (`soldQuantity`, `reservedQuantity` exposed as `availableQuantity`)
+- Removes internal metrics (`soldQuantity`, `reservedQuantity` exposed as
+  `availableQuantity`)
 - Only exposes establishment name (not full address for merchant privacy)
 
 ### Atomic Operations
@@ -910,10 +929,12 @@ This compound index covers all fields in the auto-featuring query, enabling fast
 
 1. **Discount Range:** 50-90% (enforced by backend)
 2. **Currency:** Always TND (system-enforced)
-3. **Calculation:** `discountPercentage = round(((originalPrice - discountedPrice) / originalPrice) * 100)`
+3. **Calculation:**
+   `discountPercentage = round(((originalPrice - discountedPrice) / originalPrice) * 100)`
 4. **Validation:** `discountedPrice < originalPrice`
 
-**Rationale:** 50-90% range ensures legitimacy of food waste reduction (prevents abuse)
+**Rationale:** 50-90% range ensures legitimacy of food waste reduction (prevents
+abuse)
 
 ### Quantity Management
 
@@ -1090,9 +1111,7 @@ node scripts/fix-offer-images.js
 
 ### Known Issues
 
-1. **Typo in Related Modules:**
-   - `src/reviwes/` should be `src/reviews/`
-   - Does not affect offers module functionality
+1. No known issues affecting offers module functionality.
 
 2. **Image Storage:**
    - Currently uses local storage (`LocalStorageService`)
@@ -1148,7 +1167,8 @@ node scripts/fix-offer-images.js
 
 **Current Version:** `/api/v1/offers`
 
-**Swagger Documentation:** `http://localhost:3000/api/v1/api-docs#/🎯%20Offers%20Management`
+**Swagger Documentation:**
+`http://localhost:3000/api/v1/api-docs#/🎯%20Offers%20Management`
 
 ---
 

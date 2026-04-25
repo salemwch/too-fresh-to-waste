@@ -199,6 +199,7 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
           onPress={() => handleOfferPress(item)}
           accessibilityRole='button'
           accessibilityLabel={`${item.item.title}, ${item.distance.formatted} away`}
+          accessibilityHint='Opens offer details'
         >
           <Card
             style={[
@@ -392,6 +393,7 @@ export const NearbyOffersScreen: React.FC<NearbyOffersScreenProps> = ({ navigati
                 showsCompass
                 onMapReady={() => setMapError(null)}
                 accessibilityLabel='Map showing nearby offers'
+                accessibilityHint='Displays offers on an interactive map'
               >
                 {/* Search radius circle */}
                 <Circle

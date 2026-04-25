@@ -215,7 +215,12 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
     >
       <View style={styles.overlay}>
         {/* Animated Backdrop - Fades in smoothly */}
-        <TouchableWithoutFeedback onPress={handleClose}>
+        <TouchableWithoutFeedback
+          accessibilityRole='button'
+          accessibilityLabel='Close location picker'
+          accessibilityHint='Dismisses the location picker sheet'
+          onPress={handleClose}
+        >
           <Animated.View style={[styles.backdrop, backdropStyle]} />
         </TouchableWithoutFeedback>
 
@@ -250,6 +255,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                 color={theme.colors.onSurfaceVariant}
               />
               <TextInput
+                accessibilityLabel='Text input field'
+                accessibilityHint='Type a city or area name to search'
                 value={searchQuery}
                 onChangeText={handleSearchChange}
                 placeholder='Search city or area...'
@@ -261,6 +268,9 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
               />
               {searchQuery.length > 0 && (
                 <Pressable
+                  accessibilityRole='button'
+                  accessibilityLabel='Clear search'
+                  accessibilityHint='Clears the current search text'
                   onPress={() => onSearchChange?.('')}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
@@ -286,6 +296,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
               onPress={handleUseCurrentLocation}
               disabled={isLoadingGPS}
               accessibilityLabel='Use current GPS location'
+              accessibilityHint='Detects your current position via GPS'
               accessibilityRole='button'
             >
               <View
@@ -338,6 +349,9 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                 ) : searchResults !== undefined && searchResults.length > 0 ? (
                   searchResults.map(location => (
                     <Pressable
+                      accessibilityRole='button'
+                      accessibilityLabel={`Select ${getPrimaryLocationLabel(location)}`}
+                      accessibilityHint='Sets this as your current location'
                       key={location.id}
                       style={
                         currentLocation === location.name
@@ -430,6 +444,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                     }
                     onPress={() => handleSelectLocation(location)}
                     accessibilityLabel={`Select ${location.name}`}
+                    accessibilityHint='Sets this as your current location'
                     accessibilityRole='button'
                   >
                     <View

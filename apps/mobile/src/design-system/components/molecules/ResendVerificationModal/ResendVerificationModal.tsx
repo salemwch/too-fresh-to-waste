@@ -115,7 +115,12 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
           style={styles.overlay}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <Pressable style={styles.backdrop} onPress={handleDismiss} disabled={isLoading} />
+          <Pressable
+            accessibilityRole='button'
+            style={styles.backdrop}
+            onPress={handleDismiss}
+            disabled={isLoading}
+          />
 
           <Animated.View entering={FadeIn.duration(200)} style={styles.modalContainer}>
             <ScrollView
@@ -157,6 +162,7 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
 
                   {/* Close Button */}
                   <Pressable
+                    accessibilityRole='button'
                     style={styles.closeButton}
                     onPress={handleDismiss}
                     disabled={isLoading}
@@ -265,7 +271,6 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
 
 ResendVerificationModal.displayName = 'ResendVerificationModal';
 
-/* eslint-disable react-native/no-color-literals */
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,

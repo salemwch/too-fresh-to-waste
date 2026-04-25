@@ -98,6 +98,7 @@ export const LocationStatusBadge: React.FC<LocationStatusBadgeProps> = ({
       testID={testID}
       accessibilityRole='text'
       accessibilityLabel={`Location: ${label}`}
+      accessibilityHint='Displays the current location mode'
     >
       {content}
     </View>

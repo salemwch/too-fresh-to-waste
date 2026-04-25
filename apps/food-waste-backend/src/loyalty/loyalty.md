@@ -2,7 +2,10 @@
 
 ## Overview
 
-The Loyalty module implements a comprehensive points-based reward system with gamification features for the Too Fresh To Waste platform. Users earn points through various activities (purchases, referrals, reviews, streaks) and can donate points to community food relief.
+The Loyalty module implements a comprehensive points-based reward system with
+gamification features for the Too Fresh To Waste platform. Users earn points
+through various activities (purchases, referrals, reviews, streaks) and can
+donate points to community food relief.
 
 **Key Features:**
 
@@ -31,7 +34,8 @@ loyalty/
 
 ### Dependencies
 
-- **DonationsModule** - Points donation integration (forwardRef for circular dependency)
+- **DonationsModule** - Points donation integration (forwardRef for circular
+  dependency)
 - **MongooseModule** - LoyaltyAccount schema registration
 - **@nestjs/schedule** - Cron jobs for expiring stale referrals
 
@@ -72,9 +76,11 @@ reviewTracking: ReviewTracking           // Review history and points
 - `{ currentTier: 1 }` - Tier filtering
 - `{ referralCode: 1 }` - Unique, sparse (only set when generated)
 - `{ 'friendReferrals.friendUserId': 1 }` - Friend lookup
-- `{ 'friendReferrals.status': 1, 'friendReferrals.expiresAt': 1 }` - Expiry queries
+- `{ 'friendReferrals.status': 1, 'friendReferrals.expiresAt': 1 }` - Expiry
+  queries
 - `{ 'businessReferrals.businessUserId': 1 }` - Business lookup
-- `{ 'businessReferrals.status': 1, 'businessReferrals.expiresAt': 1 }` - Expiry queries
+- `{ 'businessReferrals.status': 1, 'businessReferrals.expiresAt': 1 }` - Expiry
+  queries
 
 ### Sub-Schemas
 
@@ -166,7 +172,8 @@ Defined in `loyalty.service.ts:22`
 | Gold     | 1,200      | 1.5×       | 50% bonus on points earned  |
 | Platinum | 2,700      | 2.0×       | 100% bonus on points earned |
 
-**Note:** Tiers apply multipliers to point earnings but **do not provide discounts**.
+**Note:** Tiers apply multipliers to point earnings but **do not provide
+discounts**.
 
 ### Points to TND Conversion
 
@@ -174,7 +181,8 @@ Defined in `loyalty.service.ts:22`
 
 - **Rate:** 100 points = 1 TND
 - **Usage:** Points donation to community food relief only
-- **Meal estimate:** Based on `DONATION_CONSTANTS.MEAL_COST_ESTIMATE_TND` from DonationsModule
+- **Meal estimate:** Based on `DONATION_CONSTANTS.MEAL_COST_ESTIMATE_TND` from
+  DonationsModule
 
 ### Earning Points
 
@@ -203,7 +211,8 @@ Defined in `loyalty.service.ts:22`
 
 1. Validate user has sufficient `availablePoints`
 2. Convert points to TND: `donationAmount = points × 0.01`
-3. Calculate estimated meals: `Math.floor(donationAmount / MEAL_COST_ESTIMATE_TND)`
+3. Calculate estimated meals:
+   `Math.floor(donationAmount / MEAL_COST_ESTIMATE_TND)`
 4. Deduct points from user account
 5. Add to active donation pool via `DonationsService`
 6. Create 'donated' type transaction in `pointsHistory`
@@ -251,11 +260,14 @@ Constants defined in `gamification.service.ts:17`
 **Flow:**
 
 1. Friend signs up with referral code → `registerFriendReferral()`
-2. Each time friend picks up order → `updateFriendBagCount()` (called from OrderService)
+2. Each time friend picks up order → `updateFriendBagCount()` (called from
+   OrderService)
 3. When `friendBagCount >= 10` → Award points, mark COMPLETED
 4. If 30 days pass without completion → Cron job marks EXPIRED
 
-**Integration Point:** OrderService must call `gamificationService.updateFriendBagCount(userId, bagsCount)` on pickup confirmation
+**Integration Point:** OrderService must call
+`gamificationService.updateFriendBagCount(userId, bagsCount)` on pickup
+confirmation
 
 ### 3. Business Referral Program
 
@@ -268,11 +280,14 @@ Constants defined in `gamification.service.ts:17`
 **Flow:**
 
 1. Business signs up with referral code → `registerBusinessReferral()`
-2. Each time business completes order → `updateBusinessOrderCount()` (called from OrderService)
+2. Each time business completes order → `updateBusinessOrderCount()` (called
+   from OrderService)
 3. When `businessOrderCount >= 30` → Award points, mark COMPLETED
 4. If 30 days pass without completion → Cron job marks EXPIRED
 
-**Integration Point:** OrderService must call `gamificationService.updateBusinessOrderCount(merchantUserId)` on pickup confirmation
+**Integration Point:** OrderService must call
+`gamificationService.updateBusinessOrderCount(merchantUserId)` on pickup
+confirmation
 
 ### 4. Login Streak
 
@@ -290,7 +305,8 @@ Constants defined in `gamification.service.ts:17`
 - Awards points if within 10-day window and under monthly cap
 - Tracks `longestStreak` for historical stats
 
-**Integration Point:** AuthService should call `gamificationService.recordDailyLogin(userId)` after successful login
+**Integration Point:** AuthService should call
+`gamificationService.recordDailyLogin(userId)` after successful login
 
 ### 5. Purchase Streak
 
@@ -307,7 +323,9 @@ Constants defined in `gamification.service.ts:17`
 - Awards points when threshold reached and not already completed this month
 - Resets period if 15 days expire
 
-**Integration Point:** OrderService must call `gamificationService.updatePurchaseStreak(userId, bagsCount)` on pickup confirmation
+**Integration Point:** OrderService must call
+`gamificationService.updatePurchaseStreak(userId, bagsCount)` on pickup
+confirmation
 
 ### 6. Review Rewards
 
@@ -320,15 +338,19 @@ Constants defined in `gamification.service.ts:17`
 **Implementation** (`gamification.service.ts:482`)
 
 - Called when review submitted: `awardReviewPoints(userId, orderId, reviewText)`
-- Validates word count: `reviewText.trim().split(/\s+/).filter(w => w.length > 0).length >= 6`
+- Validates word count:
+  `reviewText.trim().split(/\s+/).filter(w => w.length > 0).length >= 6`
 - Checks `reviewTracking.reviewedOrderIds` to prevent duplicates
 - Adds `orderId` to `reviewedOrderIds` after awarding points
 
-**Integration Point:** ReviewService must call `gamificationService.awardReviewPoints(userId, orderId, reviewText)` after review creation
+**Integration Point:** ReviewService must call
+`gamificationService.awardReviewPoints(userId, orderId, reviewText)` after
+review creation
 
 ## Badge System
 
-Badges are awarded automatically by `loyalty.service.ts:254` (checkAndAwardBadges)
+Badges are awarded automatically by `loyalty.service.ts:254`
+(checkAndAwardBadges)
 
 ### Badge Types
 
@@ -386,11 +408,13 @@ enum BadgeType {
 }
 ```
 
-**Note:** Badge checks run after `addPoints()` calls. Other badge types defined in schema but not yet implemented.
+**Note:** Badge checks run after `addPoints()` calls. Other badge types defined
+in schema but not yet implemented.
 
 ## API Endpoints
 
-All endpoints under `/loyalty` require `@UseGuards(JwtAuthGuard)` - Bearer token authentication required.
+All endpoints under `/loyalty` require `@UseGuards(JwtAuthGuard)` - Bearer token
+authentication required.
 
 ### Core Loyalty
 
@@ -426,7 +450,8 @@ All endpoints under `/loyalty` require `@UseGuards(JwtAuthGuard)` - Bearer token
 
 - Summary: Donate points to community food relief
 - Body: `DonatePointsDto` (amount, optional isAnonymous, message)
-- Response: 200 - `DonatePointsResponseDto` (conversion details, estimated meals)
+- Response: 200 - `DonatePointsResponseDto` (conversion details, estimated
+  meals)
 - Error: 400 - Insufficient points | 404 - Account not found
 - Conversion: 100 points = 1 TND
 
@@ -458,7 +483,8 @@ All endpoints under `/loyalty` require `@UseGuards(JwtAuthGuard)` - Bearer token
 
 ## Integration Points
 
-Other modules must integrate with LoyaltyService/GamificationService at specific lifecycle hooks:
+Other modules must integrate with LoyaltyService/GamificationService at specific
+lifecycle hooks:
 
 ### 1. AuthService Integration
 
@@ -515,7 +541,8 @@ async confirmPickup(orderId: string) {
 
 ### 3. ReviewService Integration
 
-**On review creation** → Call `gamificationService.awardReviewPoints(userId, orderId, reviewText)`
+**On review creation** → Call
+`gamificationService.awardReviewPoints(userId, orderId, reviewText)`
 
 ```typescript
 // In review.service.ts createReview() method
@@ -584,10 +611,11 @@ async register(registerDto: RegisterDto) {
 
 ### Expire Stale Referrals
 
-**Schedule:** `@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)`
-**Location:** `gamification.service.ts:595`
+**Schedule:** `@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)` **Location:**
+`gamification.service.ts:595`
 
-**Purpose:** Mark expired referrals (friend/business) that didn't complete within 30 days
+**Purpose:** Mark expired referrals (friend/business) that didn't complete
+within 30 days
 
 **Process:**
 
@@ -609,7 +637,9 @@ loyaltyModel.updateMany(
     $set: { 'friendReferrals.$[elem].status': 'expired' },
   },
   {
-    arrayFilters: [{ 'elem.status': 'pending', 'elem.expiresAt': { $lt: now } }],
+    arrayFilters: [
+      { 'elem.status': 'pending', 'elem.expiresAt': { $lt: now } },
+    ],
   },
 );
 ```
@@ -634,14 +664,16 @@ loyaltyModel.updateMany(
 - Duplicate prevention: Check existing account before creation
 - Point sufficiency: Verify `availablePoints >= donateDto.amount`
 - Duplicate review prevention: Check `reviewedOrderIds` array
-- Word count enforcement: `reviewText.trim().split(/\s+/).filter(w => w.length > 0).length >= 6`
+- Word count enforcement:
+  `reviewText.trim().split(/\s+/).filter(w => w.length > 0).length >= 6`
 
 ### Error Handling
 
 - `NotFoundException` - Account not found (404)
 - `BadRequestException` - Insufficient points, account exists (400)
 - Try-catch blocks with structured logging via Winston
-- Non-blocking gamification: Login/order processing succeeds even if gamification fails
+- Non-blocking gamification: Login/order processing succeeds even if
+  gamification fails
 
 ## Testing Recommendations
 
@@ -649,7 +681,8 @@ loyaltyModel.updateMany(
 
 **LoyaltyService:**
 
-- `createLoyaltyAccount()` - Welcome bonus, duplicate detection, referral handling
+- `createLoyaltyAccount()` - Welcome bonus, duplicate detection, referral
+  handling
 - `addPoints()` - Tier multiplier application, point history tracking
 - `donatePoints()` - Conversion rate, pool integration, insufficient points
 - `getCurrentTier()` - Tier thresholds
@@ -674,7 +707,8 @@ loyaltyModel.updateMany(
 
 ### E2E Tests
 
-- Full user journey: Register with referral → Complete orders → Earn badges → Donate points
+- Full user journey: Register with referral → Complete orders → Earn badges →
+  Donate points
 - Concurrent referral completions
 - Cron job execution
 
@@ -682,10 +716,12 @@ loyaltyModel.updateMany(
 
 ### Current Limitations
 
-1. **Badge System:** Only 3 of 12 badge types implemented (NEWCOMER, FREQUENT_SAVER, ECO_WARRIOR)
+1. **Badge System:** Only 3 of 12 badge types implemented (NEWCOMER,
+   FREQUENT_SAVER, ECO_WARRIOR)
 2. **Points Redemption:** No redemption system implemented yet (only donation)
 3. **Leaderboards:** Schema indexed for leaderboards but no endpoints
-4. **Point Expiration:** `expiresAt` field exists but no cron job to expire points
+4. **Point Expiration:** `expiresAt` field exists but no cron job to expire
+   points
 5. **Referral Code Sharing:** No built-in sharing mechanism (email, SMS)
 
 ### Potential Enhancements
@@ -693,11 +729,14 @@ loyaltyModel.updateMany(
 - **Admin Dashboard:** Monitor total points in circulation, redemption rates
 - **Point Expiration:** Implement cron to mark points as 'expired' after 1 year
 - **Merchant Points:** Separate points pool for businesses
-- **Tiered Benefits:** Add discount percentages or priority pickup for higher tiers
+- **Tiered Benefits:** Add discount percentages or priority pickup for higher
+  tiers
 - **Social Sharing:** Generate referral links with deep links to mobile app
 - **Badge Icons:** Implement CDN-backed badge image storage
-- **Notification Integration:** Alert users on badge unlocks, referral completions
-- **Analytics:** Track points velocity, popular earning methods, donation patterns
+- **Notification Integration:** Alert users on badge unlocks, referral
+  completions
+- **Analytics:** Track points velocity, popular earning methods, donation
+  patterns
 
 ## Monitoring & Observability
 
@@ -707,9 +746,12 @@ loyaltyModel.updateMany(
 
 - Loyalty account creation: `Loyalty account created for user: ${userId}`
 - Points added: `Added ${points} points to user: ${userId}`
-- Referral completion: `Friend/Business referral completed! Awarded ${points} points...`
-- Login streak: `Awarded ${points} login streak points to ${userId} (Day ${day})`
-- Cron job: `Expired referrals: ${friendCount} friend, ${businessCount} business`
+- Referral completion:
+  `Friend/Business referral completed! Awarded ${points} points...`
+- Login streak:
+  `Awarded ${points} login streak points to ${userId} (Day ${day})`
+- Cron job:
+  `Expired referrals: ${friendCount} friend, ${businessCount} business`
 
 **Error Logs:**
 
@@ -735,9 +777,8 @@ No dedicated health checks. Consider adding:
 
 ## Swagger Documentation
 
-Swagger tags: `@ApiTags('Loyalty')`
-Auth: `@ApiBearerAuth()`
-Access: `http://localhost:3000/api/v1/api-docs#/Loyalty`
+Swagger tags: `@ApiTags('Loyalty')` Auth: `@ApiBearerAuth()` Access:
+`http://localhost:3000/api/v1/api-docs#/Loyalty`
 
 All endpoints documented with:
 
@@ -760,7 +801,7 @@ All endpoints documented with:
 - `src/donations/` - Points donation integration
 - `src/auth/` - Login streak integration point
 - `src/orders/` - Order completion, purchase streak integration
-- `src/reviwes/` - Review points integration (note: typo in folder name)
+- `src/reviews/` - Review points integration
 
 **External Dependencies:**
 
@@ -770,6 +811,5 @@ All endpoints documented with:
 
 ---
 
-**Last Updated:** 2026-01-15
-**Module Version:** NestJS 11
-**Maintainer:** Backend Team
+**Last Updated:** 2026-01-15 **Module Version:** NestJS 11 **Maintainer:**
+Backend Team

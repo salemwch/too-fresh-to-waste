@@ -17,6 +17,37 @@ import type { NearbyOffersParams } from '../services/offersService';
 import type { Offer, OfferListItem, OfferSearchParams, OffersResponse } from '../types/offer.types';
 
 // ============================================================================
+// Helpers
+// ============================================================================
+
+type OfferFilters = Pick<
+  OfferSearchParams,
+  'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories'
+>;
+
+function applyClientSideFilters(offers: OfferListItem[], filters?: OfferFilters): OfferListItem[] {
+  let result = Array.isArray(offers) ? offers : [];
+  if (filters === undefined) return result;
+
+  if (filters.type !== undefined) {
+    result = result.filter(offer => offer.type === filters.type);
+  }
+  const categories = filters.categories;
+  if (Array.isArray(categories) && categories.length > 0) {
+    result = result.filter(offer => categories.some(cat => (offer.categories ?? []).includes(cat)));
+  }
+  if (
+    (Array.isArray(filters.establishmentTypes) && filters.establishmentTypes.length > 0) ||
+    (Array.isArray(filters.cuisineTypes) && filters.cuisineTypes.length > 0)
+  ) {
+    Logger.warn(
+      'Establishment/cuisine filtering not fully supported for this endpoint - use general search instead',
+    );
+  }
+  return result;
+}
+
+// ============================================================================
 // Query Keys (for cache management)
 // ============================================================================
 
@@ -195,31 +226,7 @@ export function useUrgentOffers(
         userLocation,
         signal,
       );
-      let validOffers = Array.isArray(offers) ? offers : [];
-
-      // Apply filters client-side
-      if (filters !== undefined) {
-        if (filters.type !== undefined) {
-          validOffers = validOffers.filter(offer => offer.type === filters.type);
-        }
-        const categories = filters.categories;
-        if (Array.isArray(categories) && categories.length > 0) {
-          validOffers = validOffers.filter(offer =>
-            categories.some(cat => (offer.categories ?? []).includes(cat)),
-          );
-        }
-        // Note: establishmentTypes and cuisineTypes filtering requires establishment data
-        // which may not be fully populated. Log warning if attempted.
-        if (
-          (Array.isArray(filters.establishmentTypes) && filters.establishmentTypes.length > 0) ||
-          (Array.isArray(filters.cuisineTypes) && filters.cuisineTypes.length > 0)
-        ) {
-          Logger.warn(
-            'Establishment/cuisine filtering not fully supported for urgent offers - use general search instead',
-          );
-        }
-      }
-
+      const validOffers = applyClientSideFilters(offers, filters);
       Logger.info('Urgent offers fetched and filtered', { count: validOffers.length });
       return validOffers;
     },
@@ -385,31 +392,7 @@ export function usePickupTodayOffers(
     queryFn: async ({ signal }) => {
       Logger.info('Fetching pickup today offers', { limit, userLocation, filters });
       const offers = await offersService.getPickupTodayOffers(limit, userLocation, signal);
-      let validOffers = Array.isArray(offers) ? offers : [];
-
-      // Apply filters client-side
-      if (filters !== undefined) {
-        if (filters.type !== undefined) {
-          validOffers = validOffers.filter(offer => offer.type === filters.type);
-        }
-        const categories = filters.categories;
-        if (Array.isArray(categories) && categories.length > 0) {
-          validOffers = validOffers.filter(offer =>
-            categories.some(cat => (offer.categories ?? []).includes(cat)),
-          );
-        }
-        // Note: establishmentTypes and cuisineTypes filtering requires establishment data
-        // which may not be fully populated in OfferListItem. Log warning if attempted.
-        if (
-          (Array.isArray(filters.establishmentTypes) && filters.establishmentTypes.length > 0) ||
-          (Array.isArray(filters.cuisineTypes) && filters.cuisineTypes.length > 0)
-        ) {
-          Logger.warn(
-            'Establishment/cuisine filtering not fully supported for pickup endpoints - use general search instead',
-          );
-        }
-      }
-
+      const validOffers = applyClientSideFilters(offers, filters);
       Logger.info('Pickup today offers fetched and filtered', { count: validOffers.length });
       return validOffers;
     },
@@ -442,31 +425,7 @@ export function usePickupTomorrowOffers(
     queryFn: async ({ signal }) => {
       Logger.info('Fetching pickup tomorrow offers', { limit, userLocation, filters });
       const offers = await offersService.getPickupTomorrowOffers(limit, userLocation, signal);
-      let validOffers = Array.isArray(offers) ? offers : [];
-
-      // Apply filters client-side
-      if (filters !== undefined) {
-        if (filters.type !== undefined) {
-          validOffers = validOffers.filter(offer => offer.type === filters.type);
-        }
-        const categories = filters.categories;
-        if (Array.isArray(categories) && categories.length > 0) {
-          validOffers = validOffers.filter(offer =>
-            categories.some(cat => (offer.categories ?? []).includes(cat)),
-          );
-        }
-        // Note: establishmentTypes and cuisineTypes filtering requires establishment data
-        // which may not be fully populated in OfferListItem. Log warning if attempted.
-        if (
-          (Array.isArray(filters.establishmentTypes) && filters.establishmentTypes.length > 0) ||
-          (Array.isArray(filters.cuisineTypes) && filters.cuisineTypes.length > 0)
-        ) {
-          Logger.warn(
-            'Establishment/cuisine filtering not fully supported for pickup endpoints - use general search instead',
-          );
-        }
-      }
-
+      const validOffers = applyClientSideFilters(offers, filters);
       Logger.info('Pickup tomorrow offers fetched and filtered', { count: validOffers.length });
       return validOffers;
     },

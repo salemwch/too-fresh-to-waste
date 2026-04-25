@@ -55,6 +55,7 @@ export const DistanceBadge: React.FC<DistanceBadgeProps> = ({
       style={containerStyle}
       testID={testID}
       accessibilityLabel={accessibilityLabel ?? `${formattedDistance} away`}
+      accessibilityHint='Shows the distance to this location'
       accessibilityRole='text'
     >
       {showIcon && (
