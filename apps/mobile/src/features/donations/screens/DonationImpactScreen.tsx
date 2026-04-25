@@ -1,0 +1,393 @@
+import React from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+
+import { Text, Icon } from '@/design-system/components/atoms';
+import { useTheme } from '@/design-system/providers';
+
+import { useDonationStats } from '../hooks/useDonations';
+
+import type { DonationGoalCategory } from '@foodwaste/shared';
+
+const CATEGORY_CONFIG: Record<
+  DonationGoalCategory,
+  { icon: string; label: string; color: string }
+> = {
+  TSHIRTS: { icon: 'shirt-outline', label: 'T-Shirts', color: '#E88D67' },
+  PANTS: { icon: 'accessibility-outline', label: 'Pants', color: '#7B8CDE' },
+  SHOES: { icon: 'footsteps-outline', label: 'Shoes', color: '#6BBF8A' },
+  CHILDREN_STUDIES: { icon: 'book-outline', label: "Children's Studies", color: '#D4A259' },
+  MEDICINE: { icon: 'medkit-outline', label: 'Medicine', color: '#E07B7B' },
+};
+
+const WHITE = '#FFFFFF';
+const WHITE_90 = 'rgba(255,255,255,0.9)';
+const WHITE_60 = 'rgba(255,255,255,0.6)';
+const WHITE_20 = 'rgba(255,255,255,0.20)';
+
+function CategoryRow({
+  icon,
+  label,
+  color,
+  percent,
+  totalItems,
+  targetCount,
+  itemPrice,
+  isActive,
+}: {
+  icon: string;
+  label: string;
+  color: string;
+  percent: number;
+  totalItems: number;
+  targetCount: number;
+  itemPrice: number;
+  isActive: boolean;
+}) {
+  return (
+    <View style={[styles.categoryRow, isActive && styles.categoryRowActive]}>
+      <View style={[styles.categoryIcon, { backgroundColor: color }]}>
+        <Icon name={icon} family='Ionicons' size={18} color={WHITE} />
+      </View>
+      <View style={styles.categoryInfo}>
+        <View style={styles.categoryLabelRow}>
+          <View style={styles.categoryNameRow}>
+            <Text variant='body' size='sm' weight='semibold' style={styles.categoryLabel}>
+              {label}
+            </Text>
+            {isActive && (
+              <View style={styles.activePill}>
+                <Text variant='body' size='xs' weight='bold' style={styles.activePillText}>
+                  ACTIVE
+                </Text>
+              </View>
+            )}
+          </View>
+          <Text variant='body' size='xs' style={styles.categoryCount}>
+            {totalItems} / {targetCount} · {itemPrice} TND each
+          </Text>
+        </View>
+        <View style={styles.progressTrack}>
+          <View
+            style={[
+              styles.progressFill,
+              { width: `${Math.min(percent, 100)}%`, backgroundColor: color },
+            ]}
+          />
+        </View>
+        <Text variant='body' size='xs' style={styles.percentText}>
+          {percent.toFixed(1)}%
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+export const DonationImpactScreen: React.FC = () => {
+  const theme = useTheme();
+  const { data: stats, isLoading } = useDonationStats();
+
+  if (isLoading || !stats) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.loadingContainer}>
+          <Text variant='body' size='sm' color='secondary'>
+            Loading impact data...
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  const progress = stats.categoryProgress ?? [];
+
+  return (
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Hero banner */}
+        <LinearGradient
+          colors={['#E8756A', '#D4547A', '#B8488E']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroBanner}
+        >
+          <Icon name='heart' family='Ionicons' size={32} color={WHITE_90} />
+          <Text style={styles.heroTitle}>Together We Give</Text>
+          <Text style={styles.heroSubtitle}>Every order contributes to those in need</Text>
+
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{stats.totalDonations.toFixed(2)}</Text>
+              <Text style={styles.statLabel}>TND Raised</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{stats.mealCount}</Text>
+              <Text style={styles.statLabel}>Meals Funded</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{stats.contributorCount}</Text>
+              <Text style={styles.statLabel}>Contributors</Text>
+            </View>
+          </View>
+
+          {/* Overall progress */}
+          <View style={styles.overallProgress}>
+            <View style={styles.overallProgressHeader}>
+              <Text style={styles.overallProgressLabel}>Overall Progress</Text>
+              <Text style={styles.overallProgressPercent}>
+                {stats.progressPercentage.toFixed(1)}%
+              </Text>
+            </View>
+            <View style={styles.overallProgressTrack}>
+              <View
+                style={[
+                  styles.overallProgressFill,
+                  { width: `${Math.min(stats.progressPercentage, 100)}%` },
+                ]}
+              />
+            </View>
+            <Text style={styles.overallProgressSub}>
+              {stats.totalDonations.toFixed(2)} / {stats.targetAmount} TND goal
+            </Text>
+          </View>
+        </LinearGradient>
+
+        {/* Categories section */}
+        <View style={styles.categoriesSection}>
+          <Text
+            variant='title'
+            size='md'
+            weight='semibold'
+            style={{ marginBottom: 4, color: theme.colors.onBackground }}
+          >
+            Donation Categories
+          </Text>
+          <Text
+            variant='body'
+            size='xs'
+            style={{ marginBottom: 16, color: theme.colors.onSurfaceVariant }}
+          >
+            Funds are allocated to the active category goal
+          </Text>
+
+          <View style={styles.categoriesList}>
+            {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
+              const snap = progress.find(p => p.category === key);
+              return (
+                <CategoryRow
+                  key={key}
+                  icon={config.icon}
+                  label={config.label}
+                  color={config.color}
+                  percent={snap?.percent ?? 0}
+                  totalItems={snap?.totalItems ?? 0}
+                  targetCount={snap?.targetCount ?? 0}
+                  itemPrice={snap?.itemPrice ?? 0}
+                  isActive={stats.activeGoalCategory === key}
+                />
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Cause card */}
+        <View style={[styles.causeCard, { backgroundColor: theme.colors.surfaceVariant }]}>
+          <Icon
+            name='ribbon-outline'
+            family='Ionicons'
+            size={20}
+            color={theme.colors.onSurfaceVariant}
+          />
+          <View style={styles.causeTextContainer}>
+            <Text variant='body' size='xs' color='secondary'>
+              Current Campaign
+            </Text>
+            <Text variant='body' size='sm' weight='semibold'>
+              {stats.cause}
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 32,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heroBanner: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 24,
+    alignItems: 'center',
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: WHITE,
+    marginTop: 12,
+    lineHeight: 32,
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    color: WHITE_60,
+    marginTop: 4,
+    marginBottom: 20,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: WHITE,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: WHITE_60,
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: WHITE_20,
+  },
+  overallProgress: {
+    width: '100%',
+    backgroundColor: WHITE_20,
+    borderRadius: 12,
+    padding: 14,
+  },
+  overallProgressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  overallProgressLabel: {
+    fontSize: 12,
+    color: WHITE_90,
+    fontWeight: '600',
+  },
+  overallProgressPercent: {
+    fontSize: 12,
+    color: WHITE,
+    fontWeight: '700',
+  },
+  overallProgressTrack: {
+    height: 8,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  overallProgressFill: {
+    height: '100%',
+    backgroundColor: WHITE,
+    borderRadius: 4,
+  },
+  overallProgressSub: {
+    fontSize: 11,
+    color: WHITE_60,
+    marginTop: 6,
+    textAlign: 'right',
+  },
+  categoriesSection: {
+    padding: 16,
+  },
+  categoriesList: {
+    gap: 12,
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  categoryRowActive: {
+    backgroundColor: 'rgba(232,117,106,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(232,117,106,0.2)',
+  },
+  categoryIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  categoryInfo: {
+    flex: 1,
+  },
+  categoryLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  categoryNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  categoryLabel: {
+    color: '#1F2937',
+  },
+  activePill: {
+    backgroundColor: '#E8756A',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  activePillText: {
+    color: WHITE,
+    fontSize: 9,
+  },
+  categoryCount: {
+    color: '#6B7280',
+  },
+  progressTrack: {
+    height: 6,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  percentText: {
+    color: '#6B7280',
+    marginTop: 3,
+    textAlign: 'right',
+  },
+  causeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 16,
+    padding: 14,
+    borderRadius: 12,
+  },
+  causeTextContainer: {
+    flex: 1,
+  },
+});

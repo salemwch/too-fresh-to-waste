@@ -13,11 +13,20 @@ import { DonationGoalCategory, DonationPoolStatus } from '../enums';
 // Update Donation Pool (admin)
 // ============================================================================
 
+export const CategoryPricingInputSchema = z.object({
+  category: z.nativeEnum(DonationGoalCategory),
+  itemPrice: z.number().min(0.1).max(100_000),
+  targetCount: z.number().int().min(1).max(1_000_000),
+});
+
+export type CategoryPricingInput = z.infer<typeof CategoryPricingInputSchema>;
+
 export const UpdateDonationPoolSchema = z.object({
   targetAmount: z.number().min(1).max(1_000_000).optional(),
   cause: z.string().min(3).max(200).optional(),
   activeGoalCategory: z.nativeEnum(DonationGoalCategory).optional(),
   targetDate: z.string().datetime().optional().nullable(),
+  categoryPricing: z.array(CategoryPricingInputSchema).max(5).optional(),
 });
 
 export type UpdateDonationPoolInput = z.infer<typeof UpdateDonationPoolSchema>;
@@ -25,6 +34,16 @@ export type UpdateDonationPoolInput = z.infer<typeof UpdateDonationPoolSchema>;
 // ============================================================================
 // Donation Stats (read-only response)
 // ============================================================================
+
+export const CategoryProgressSchema = z.object({
+  category: z.nativeEnum(DonationGoalCategory),
+  percent: z.number().min(0).max(100),
+  totalItems: z.number().min(0),
+  totalAmount: z.number().min(0),
+  targetAmount: z.number().min(0),
+  itemPrice: z.number().min(0.1),
+  targetCount: z.number().int().min(1),
+});
 
 export const DonationStatsResponseSchema = z.object({
   totalDonations: z.number().min(0),
@@ -37,6 +56,7 @@ export const DonationStatsResponseSchema = z.object({
   activeGoalCategory: z.nativeEnum(DonationGoalCategory),
   currency: z.string(),
   targetDate: z.string().datetime().optional(),
+  categoryProgress: z.array(CategoryProgressSchema),
 });
 
 export type DonationStatsResponse = z.infer<typeof DonationStatsResponseSchema>;

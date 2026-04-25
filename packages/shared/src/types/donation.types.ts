@@ -1,4 +1,18 @@
-import type { DonationPoolStatus } from '../enums';
+import type { DonationGoalCategory, DonationPoolStatus } from '../enums';
+
+/**
+ * Pre-aggregated category progress — one entry per DonationGoalCategory.
+ * Frontend renders this directly, no client-side aggregation.
+ */
+export interface CategoryProgress {
+  category: DonationGoalCategory;
+  percent: number;
+  totalItems: number;
+  totalAmount: number;
+  targetAmount: number;
+  itemPrice: number;
+  targetCount: number;
+}
 
 /**
  * Donation statistics response from backend
@@ -11,8 +25,10 @@ export interface DonationStats {
   progressPercentage: number;
   status: DonationPoolStatus;
   cause: string;
+  activeGoalCategory: DonationGoalCategory;
   currency: string;
   targetDate?: string;
+  categoryProgress: CategoryProgress[];
 }
 
 /**

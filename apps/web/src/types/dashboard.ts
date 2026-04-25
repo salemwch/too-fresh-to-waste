@@ -397,6 +397,24 @@ export interface ReactivateOfferPayload {
 
 export type DonationPoolStatus = 'active' | 'funded' | 'distributed' | 'archived';
 
+export type DonationGoalCategory = 'TSHIRTS' | 'PANTS' | 'SHOES' | 'CHILDREN_STUDIES' | 'MEDICINE';
+
+export interface CategoryProgress {
+  category: DonationGoalCategory;
+  percent: number;
+  totalItems: number;
+  totalAmount: number;
+  targetAmount: number;
+  itemPrice: number;
+  targetCount: number;
+}
+
+export interface CategoryPricingInput {
+  category: DonationGoalCategory;
+  itemPrice: number;
+  targetCount: number;
+}
+
 export interface DonationStats {
   totalDonations: number;
   targetAmount: number;
@@ -405,8 +423,10 @@ export interface DonationStats {
   progressPercentage: number;
   status: DonationPoolStatus;
   cause: string;
+  activeGoalCategory: DonationGoalCategory;
   currency: string;
   targetDate?: string;
+  categoryProgress: CategoryProgress[];
 }
 
 // ─── Community Bag Goal ─────────────────────────────────────────────────────

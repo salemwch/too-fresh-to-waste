@@ -1034,6 +1034,7 @@
       "meals": "Repas financés",
       "contributors": "Contributeurs",
       "progress": "Progression",
+      "currentCategory": "Objectif actuel",
       "statusLabel": "Statut de la cagnotte",
       "status": {
         "active": "Active",
@@ -1048,9 +1049,23 @@
         "targetAmountHint": "Objectif de collecte en dinars tunisiens",
         "cause": "Nom de la campagne",
         "causeHint": "Description courte de cette campagne",
+        "goalCategory": "Catégorie d'objectif",
+        "goalCategoryHint": "Sélectionnez à quoi serviront les dons",
+        "categories": {
+          "TSHIRTS": "T-Shirts",
+          "PANTS": "Pantalons",
+          "SHOES": "Chaussures",
+          "CHILDREN_STUDIES": "Études des enfants",
+          "MEDICINE": "Médicaments"
+        },
         "targetDate": "Date limite",
         "targetDateHint": "Date limite facultative pour atteindre l'objectif",
         "clearDate": "Effacer la date",
+        "categoryPricing": "Tarification par catégorie",
+        "categoryPricingHint": "Définir le prix unitaire et la quantité cible pour chaque catégorie",
+        "itemPrice": "Prix unitaire (TND)",
+        "targetCount": "Qté cible",
+        "computedTarget": "Total cible",
         "save": "Enregistrer",
         "saving": "Enregistrement...",
         "saveSuccess": "Paramètres mis à jour avec succès"

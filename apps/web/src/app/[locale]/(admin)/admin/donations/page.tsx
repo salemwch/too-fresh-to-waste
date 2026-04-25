@@ -26,13 +26,32 @@ import {
   Separator,
 } from '@foodwaste/ui';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ConfirmActionDialog } from '@/components/dashboard/admin/confirm-action-dialog';
 import {
   useAdminDonationPool,
   useUpdateDonationPool,
   useResetDonationPool,
 } from '@/hooks/use-admin';
-import type { DonationPoolStatus } from '@/types/dashboard';
+import type {
+  DonationPoolStatus,
+  DonationGoalCategory,
+  CategoryPricingInput,
+} from '@/types/dashboard';
+
+const GOAL_CATEGORIES: DonationGoalCategory[] = [
+  'TSHIRTS',
+  'PANTS',
+  'SHOES',
+  'CHILDREN_STUDIES',
+  'MEDICINE',
+];
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
@@ -100,7 +119,17 @@ export default function AdminDonationPoolPage() {
 
   const [targetAmount, setTargetAmount] = useState('');
   const [cause, setCause] = useState('');
+  const [activeGoalCategory, setActiveGoalCategory] = useState<DonationGoalCategory>('TSHIRTS');
   const [targetDate, setTargetDate] = useState('');
+  const [categoryPricing, setCategoryPricing] = useState<
+    Record<DonationGoalCategory, { itemPrice: string; targetCount: string }>
+  >({
+    TSHIRTS: { itemPrice: '10', targetCount: '300' },
+    PANTS: { itemPrice: '15', targetCount: '300' },
+    SHOES: { itemPrice: '20', targetCount: '200' },
+    CHILDREN_STUDIES: { itemPrice: '25', targetCount: '150' },
+    MEDICINE: { itemPrice: '5', targetCount: '500' },
+  });
   const [resetDialog, setResetDialog] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -109,22 +138,64 @@ export default function AdminDonationPoolPage() {
     if (pool) {
       setTargetAmount(String(pool.targetAmount));
       setCause(pool.cause);
+      setActiveGoalCategory(pool.activeGoalCategory);
       setTargetDate(pool.targetDate ? pool.targetDate.slice(0, 10) : '');
+      if (pool.categoryProgress?.length) {
+        const pricing = {} as Record<
+          DonationGoalCategory,
+          { itemPrice: string; targetCount: string }
+        >;
+        for (const cp of pool.categoryProgress) {
+          pricing[cp.category] = {
+            itemPrice: String(cp.itemPrice),
+            targetCount: String(cp.targetCount),
+          };
+        }
+        setCategoryPricing(prev => ({ ...prev, ...pricing }));
+      }
     }
   }, [pool]);
+
+  function updateCategoryField(
+    cat: DonationGoalCategory,
+    field: 'itemPrice' | 'targetCount',
+    value: string,
+  ) {
+    setCategoryPricing(prev => ({ ...prev, [cat]: { ...prev[cat], [field]: value } }));
+  }
+
+  const isPricingDirty =
+    pool?.categoryProgress?.some(cp => {
+      const local = categoryPricing[cp.category];
+      return (
+        Number(local?.itemPrice) !== cp.itemPrice || Number(local?.targetCount) !== cp.targetCount
+      );
+    }) ?? false;
 
   const isDirty =
     pool &&
     (Number(targetAmount) !== pool.targetAmount ||
       cause !== pool.cause ||
-      (targetDate ? `${targetDate}T00:00:00.000Z` : undefined) !== pool.targetDate);
+      activeGoalCategory !== pool.activeGoalCategory ||
+      (targetDate ? `${targetDate}T00:00:00.000Z` : undefined) !== pool.targetDate ||
+      isPricingDirty);
 
   function handleSave() {
+    const pricingPayload: CategoryPricingInput[] | undefined = isPricingDirty
+      ? GOAL_CATEGORIES.map(cat => ({
+          category: cat,
+          itemPrice: Number(categoryPricing[cat].itemPrice),
+          targetCount: Number(categoryPricing[cat].targetCount),
+        }))
+      : undefined;
+
     updatePool.mutate(
       {
         targetAmount: Number(targetAmount),
         cause,
+        activeGoalCategory,
         targetDate: targetDate ? new Date(targetDate).toISOString() : null,
+        ...(pricingPayload ? { categoryPricing: pricingPayload } : {}),
       },
       {
         onSuccess: () => {
@@ -212,8 +283,13 @@ export default function AdminDonationPoolPage() {
             <span>{(pool?.totalDonations ?? 0).toFixed(2)} TND raised</span>
             <span>{(pool?.targetAmount ?? 0).toFixed(0)} TND goal</span>
           </div>
-          {pool?.targetDate && (
+          {pool?.activeGoalCategory && (
             <p className='mt-2 text-xs text-muted-foreground'>
+              {t('currentCategory')}: {t(`settings.categories.${pool.activeGoalCategory}`)}
+            </p>
+          )}
+          {pool?.targetDate && (
+            <p className='mt-1 text-xs text-muted-foreground'>
               Deadline: {new Date(pool.targetDate).toLocaleDateString()}
             </p>
           )}
@@ -259,6 +335,29 @@ export default function AdminDonationPoolPage() {
 
           <Separator />
 
+          {/* Goal Category */}
+          <div className='space-y-1.5'>
+            <Label className='text-xs font-medium'>{t('settings.goalCategory')}</Label>
+            <Select
+              value={activeGoalCategory}
+              onValueChange={v => setActiveGoalCategory(v as DonationGoalCategory)}
+            >
+              <SelectTrigger className='h-7 text-xs max-w-xs'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {GOAL_CATEGORIES.map(cat => (
+                  <SelectItem key={cat} value={cat} className='text-xs'>
+                    {t(`settings.categories.${cat}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className='text-xs text-muted-foreground'>{t('settings.goalCategoryHint')}</p>
+          </div>
+
+          <Separator />
+
           {/* Target Date */}
           <div className='space-y-1.5'>
             <Label className='text-xs font-medium'>{t('settings.targetDate')}</Label>
@@ -281,6 +380,79 @@ export default function AdminDonationPoolPage() {
               )}
             </div>
             <p className='text-xs text-muted-foreground'>{t('settings.targetDateHint')}</p>
+          </div>
+
+          <Separator />
+
+          {/* Category Pricing */}
+          <div className='space-y-3'>
+            <div>
+              <Label className='text-xs font-medium'>{t('settings.categoryPricing')}</Label>
+              <p className='text-xs text-muted-foreground mt-0.5'>
+                {t('settings.categoryPricingHint')}
+              </p>
+            </div>
+            <div className='rounded-lg border border-border/60 overflow-hidden'>
+              <table className='w-full text-xs'>
+                <thead>
+                  <tr className='bg-muted/50'>
+                    <th className='text-start px-3 py-2 font-medium text-muted-foreground'>
+                      {t('settings.goalCategory')}
+                    </th>
+                    <th className='text-start px-3 py-2 font-medium text-muted-foreground'>
+                      {t('settings.itemPrice')}
+                    </th>
+                    <th className='text-start px-3 py-2 font-medium text-muted-foreground'>
+                      {t('settings.targetCount')}
+                    </th>
+                    <th className='text-end px-3 py-2 font-medium text-muted-foreground'>
+                      {t('settings.computedTarget')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {GOAL_CATEGORIES.map(cat => {
+                    const p = categoryPricing[cat];
+                    const total = (Number(p.itemPrice) || 0) * (Number(p.targetCount) || 0);
+                    return (
+                      <tr key={cat} className='border-t border-border/40'>
+                        <td className='px-3 py-2 font-medium'>
+                          {t(`settings.categories.${cat}`)}
+                          {cat === activeGoalCategory && (
+                            <span className='ms-1.5 inline-flex items-center rounded-full bg-primary-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary-500'>
+                              ACTIVE
+                            </span>
+                          )}
+                        </td>
+                        <td className='px-3 py-2'>
+                          <Input
+                            type='number'
+                            min={0.1}
+                            step={0.1}
+                            value={p.itemPrice}
+                            onChange={e => updateCategoryField(cat, 'itemPrice', e.target.value)}
+                            className='h-6 text-xs w-24'
+                          />
+                        </td>
+                        <td className='px-3 py-2'>
+                          <Input
+                            type='number'
+                            min={1}
+                            step={1}
+                            value={p.targetCount}
+                            onChange={e => updateCategoryField(cat, 'targetCount', e.target.value)}
+                            className='h-6 text-xs w-24'
+                          />
+                        </td>
+                        <td className='px-3 py-2 text-end tabular-nums font-medium'>
+                          {total.toLocaleString()} TND
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <Separator />

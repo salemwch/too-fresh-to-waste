@@ -65,6 +65,9 @@ export interface MainStackParamList extends Record<string, object | undefined> {
   // Leaderboard
   Leaderboard: undefined;
 
+  // Donation Impact
+  DonationImpact: undefined;
+
   // Profile Modals (EditProfile moved to ProfileStack)
   Settings: undefined;
   Privacy: undefined;

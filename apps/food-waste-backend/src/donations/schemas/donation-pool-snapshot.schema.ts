@@ -26,6 +26,12 @@ export class DonationPoolSnapshot {
 
   @Prop({ required: true, default: 300, min: 0 })
   targetAmount!: number;
+
+  @Prop({ required: true, default: 10, min: 0.1 })
+  itemPrice!: number;
+
+  @Prop({ required: true, default: 30, min: 1 })
+  targetCount!: number;
 }
 
 export const DonationPoolSnapshotSchema = SchemaFactory.createForClass(DonationPoolSnapshot);

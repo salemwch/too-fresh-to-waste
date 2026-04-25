@@ -1,17 +1,39 @@
-import type { UpdateDonationPoolInput } from '@foodwaste/shared';
+import type { UpdateDonationPoolInput, CategoryPricingInput } from '@foodwaste/shared';
 import { DonationGoalCategory } from '@foodwaste/shared';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNumber,
   IsString,
   IsOptional,
   IsEnum,
+  IsArray,
   Min,
   Max,
   MinLength,
   MaxLength,
   IsDateString,
+  ValidateNested,
+  ArrayMaxSize,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class CategoryPricingDto implements CategoryPricingInput {
+  @ApiProperty({ enum: DonationGoalCategory })
+  @IsEnum(DonationGoalCategory)
+  category!: DonationGoalCategory;
+
+  @ApiProperty({ description: 'Price per item in TND', minimum: 0.1 })
+  @IsNumber()
+  @Min(0.1)
+  @Max(100_000)
+  itemPrice!: number;
+
+  @ApiProperty({ description: 'Target number of items', minimum: 1 })
+  @IsNumber()
+  @Min(1)
+  @Max(1_000_000)
+  targetCount!: number;
+}
 
 /**
  * DTO for admin to update the active donation pool
@@ -58,4 +80,15 @@ export class UpdateDonationPoolDto implements UpdateDonationPoolInput {
   @IsOptional()
   @IsDateString()
   targetDate?: string | null | undefined;
+
+  @ApiPropertyOptional({
+    description: 'Per-category item pricing — admin sets price and count per goal category',
+    type: [CategoryPricingDto],
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(5)
+  @ValidateNested({ each: true })
+  @Type(() => CategoryPricingDto)
+  categoryPricing?: CategoryPricingDto[] | undefined;
 }

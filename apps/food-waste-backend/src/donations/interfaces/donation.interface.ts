@@ -1,3 +1,5 @@
+import { DonationGoalCategory } from '@foodwaste/shared';
+
 import type { DonationPoolStatus } from '../schemas/donation-pool.schema';
 import type { Types } from 'mongoose';
 
@@ -81,6 +83,17 @@ export const DONATION_CONSTANTS = {
   MEAL_COST_ESTIMATE_TND: 2.5, // Estimated cost per meal in TND (1 meal per 2.5 TND)
   DEFAULT_TARGET_AMOUNT: 300, // Default pool target (changed from 1000)
 } as const;
+
+export const DEFAULT_CATEGORY_PRICES: Record<
+  DonationGoalCategory,
+  { itemPrice: number; targetCount: number }
+> = {
+  [DonationGoalCategory.TSHIRTS]: { itemPrice: 10, targetCount: 300 },
+  [DonationGoalCategory.PANTS]: { itemPrice: 15, targetCount: 300 },
+  [DonationGoalCategory.SHOES]: { itemPrice: 20, targetCount: 200 },
+  [DonationGoalCategory.CHILDREN_STUDIES]: { itemPrice: 25, targetCount: 150 },
+  [DonationGoalCategory.MEDICINE]: { itemPrice: 5, targetCount: 500 },
+};
 
 /**
  * Badge thresholds for gamification

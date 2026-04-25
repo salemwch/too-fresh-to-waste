@@ -1034,6 +1034,7 @@
       "meals": "Meals Funded",
       "contributors": "Contributors",
       "progress": "Progress",
+      "currentCategory": "Current Goal",
       "statusLabel": "Pool Status",
       "status": {
         "active": "Active",
@@ -1048,9 +1049,23 @@
         "targetAmountHint": "Fundraising goal in Tunisian Dinar",
         "cause": "Campaign Name",
         "causeHint": "Short description of this donation campaign",
+        "goalCategory": "Goal Category",
+        "goalCategoryHint": "Select what donations will be used for",
+        "categories": {
+          "TSHIRTS": "T-Shirts",
+          "PANTS": "Pants",
+          "SHOES": "Shoes",
+          "CHILDREN_STUDIES": "Children's Studies",
+          "MEDICINE": "Medicine"
+        },
         "targetDate": "Target Date",
         "targetDateHint": "Optional deadline for reaching the target",
         "clearDate": "Clear date",
+        "categoryPricing": "Category Pricing",
+        "categoryPricingHint": "Set the unit price and target quantity for each donation category",
+        "itemPrice": "Unit Price (TND)",
+        "targetCount": "Target Qty",
+        "computedTarget": "Target Total",
         "save": "Save Changes",
         "saving": "Saving...",
         "saveSuccess": "Pool settings updated successfully"

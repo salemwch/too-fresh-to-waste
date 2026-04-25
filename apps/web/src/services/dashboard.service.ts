@@ -214,7 +214,9 @@ export const dashboardService = {
   updateAdminDonationPool(payload: {
     targetAmount?: number;
     cause?: string;
+    activeGoalCategory?: string;
     targetDate?: string | null;
+    categoryPricing?: Array<{ category: string; itemPrice: number; targetCount: number }>;
   }) {
     return apiClient.patch<BackendEnvelope<DonationStats>>('/admin/donations/pool', payload);
   },

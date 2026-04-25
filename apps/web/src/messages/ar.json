@@ -1034,6 +1034,7 @@
       "meals": "وجبات ممولة",
       "contributors": "المساهمون",
       "progress": "التقدم",
+      "currentCategory": "الهدف الحالي",
       "statusLabel": "حالة الصندوق",
       "status": {
         "active": "نشط",
@@ -1048,9 +1049,23 @@
         "targetAmountHint": "هدف جمع التبرعات بالدينار التونسي",
         "cause": "اسم الحملة",
         "causeHint": "وصف مختصر لهذه الحملة",
+        "goalCategory": "فئة الهدف",
+        "goalCategoryHint": "اختر الغرض من استخدام التبرعات",
+        "categories": {
+          "TSHIRTS": "قمصان",
+          "PANTS": "سراويل",
+          "SHOES": "أحذية",
+          "CHILDREN_STUDIES": "دراسة الأطفال",
+          "MEDICINE": "أدوية"
+        },
         "targetDate": "الموعد النهائي",
         "targetDateHint": "موعد نهائي اختياري للوصول إلى الهدف",
         "clearDate": "مسح التاريخ",
+        "categoryPricing": "تسعير الفئات",
+        "categoryPricingHint": "تحديد سعر الوحدة والكمية المستهدفة لكل فئة تبرع",
+        "itemPrice": "سعر الوحدة (د.ت)",
+        "targetCount": "الكمية المستهدفة",
+        "computedTarget": "المبلغ الإجمالي",
         "save": "حفظ التغييرات",
         "saving": "جارٍ الحفظ...",
         "saveSuccess": "تم تحديث إعدادات الصندوق بنجاح"

@@ -15,6 +15,7 @@ import React from 'react';
 
 import { useTheme } from '@/design-system/providers';
 import { EstablishmentDetailsScreen } from '@/features/establishments/screens/EstablishmentDetailsScreen';
+import { DonationImpactScreen } from '@/features/donations/screens/DonationImpactScreen';
 import { LeaderboardScreen } from '@/features/leaderboard/screens/LeaderboardScreen';
 import { LoyaltyScreen } from '@/features/loyalty/screens/LoyaltyScreen';
 import { NearbyOffersScreen } from '@/features/map/screens/NearbyOffersScreen';
@@ -96,6 +97,11 @@ export const MainStack: React.FC = () => {
           options={{ title: 'Leaderboard' }}
         />
         <Stack.Screen name='Loyalty' component={LoyaltyScreen} options={{ title: 'My Points' }} />
+        <Stack.Screen
+          name='DonationImpact'
+          component={DonationImpactScreen}
+          options={{ title: 'Community Impact' }}
+        />
       </Stack.Group>
 
       <Stack.Group

@@ -591,8 +591,13 @@ export function useAdminDonationPool() {
 export function useUpdateDonationPool() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { targetAmount?: number; cause?: string; targetDate?: string | null }) =>
-      dashboardService.updateAdminDonationPool(payload).then(r => r.data.data),
+    mutationFn: (payload: {
+      targetAmount?: number;
+      cause?: string;
+      activeGoalCategory?: string;
+      targetDate?: string | null;
+      categoryPricing?: Array<{ category: string; itemPrice: number; targetCount: number }>;
+    }) => dashboardService.updateAdminDonationPool(payload).then(r => r.data.data),
     onSuccess: data => {
       qc.setQueryData<DonationStats>(DONATION_POOL_KEY, data);
     },

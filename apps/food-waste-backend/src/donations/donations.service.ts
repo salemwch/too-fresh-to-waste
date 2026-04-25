@@ -15,7 +15,11 @@ import { DEFAULT_CURRENCY, DonationGoalCategory } from '@foodwaste/shared';
 import { DonationStatsResponseDto, UserDonationStatsResponseDto } from './dto/donation-stats.dto';
 import type { PostDonationJobData } from './processors/donation.processor';
 
-import { CreateDonationInput, DONATION_CONSTANTS } from './interfaces/donation.interface';
+import {
+  CreateDonationInput,
+  DONATION_CONSTANTS,
+  DEFAULT_CATEGORY_PRICES,
+} from './interfaces/donation.interface';
 import {
   DonationPool,
   DonationPoolDocument,
@@ -100,8 +104,9 @@ export class DonationsService {
    */
   private async seedCategorySnapshots(): Promise<void> {
     const categories = Object.values(DonationGoalCategory);
-    const ops = categories.map(category =>
-      this.snapshotModel.updateOne(
+    const ops = categories.map(category => {
+      const defaults = DEFAULT_CATEGORY_PRICES[category];
+      return this.snapshotModel.updateOne(
         { category },
         {
           $setOnInsert: {
@@ -109,12 +114,14 @@ export class DonationsService {
             totalAmount: 0,
             totalItems: 0,
             percent: 0,
-            targetAmount: DONATION_CONSTANTS.DEFAULT_TARGET_AMOUNT,
+            itemPrice: defaults.itemPrice,
+            targetCount: defaults.targetCount,
+            targetAmount: defaults.itemPrice * defaults.targetCount,
           },
         },
         { upsert: true },
-      ),
-    );
+      );
+    });
     await Promise.all(ops);
   }
 
@@ -265,7 +272,10 @@ export class DonationsService {
    */
   async getCurrentStats(): Promise<DonationStatsResponseDto> {
     try {
-      const pool = await this.getActivePool();
+      const [pool, snapshots] = await Promise.all([
+        this.getActivePool(),
+        this.snapshotModel.find().lean(),
+      ]);
 
       const stats: DonationStatsResponseDto = {
         totalDonations: parseFloat(pool.currentAmount.toFixed(2)),
@@ -278,6 +288,21 @@ export class DonationsService {
         activeGoalCategory: pool.activeGoalCategory,
         currency: DEFAULT_CURRENCY,
         targetDate: pool.targetDate ? pool.targetDate.toISOString() : undefined,
+        categoryProgress: snapshots.map(s => {
+          const targetAmount = s.itemPrice * s.targetCount;
+          return {
+            category: s.category,
+            percent:
+              targetAmount > 0
+                ? parseFloat(Math.min((s.totalAmount / targetAmount) * 100, 100).toFixed(2))
+                : 0,
+            totalItems: s.itemPrice > 0 ? Math.floor(s.totalAmount / s.itemPrice) : 0,
+            totalAmount: parseFloat(s.totalAmount.toFixed(2)),
+            targetAmount,
+            itemPrice: s.itemPrice,
+            targetCount: s.targetCount,
+          };
+        }),
       };
 
       return stats;
@@ -345,6 +370,13 @@ export class DonationsService {
     cause?: string | undefined;
     activeGoalCategory?: DonationGoalCategory | undefined;
     targetDate?: string | null | undefined;
+    categoryPricing?:
+      | Array<{
+          category: DonationGoalCategory;
+          itemPrice: number;
+          targetCount: number;
+        }>
+      | undefined;
   }): Promise<DonationStatsResponseDto> {
     const pool = await this.getActivePool();
 
@@ -359,17 +391,30 @@ export class DonationsService {
       setFields['activeGoalCategory'] = updates.activeGoalCategory;
     }
     if (updates.targetDate !== undefined) {
-      // null means "clear the date"; a string sets it
       setFields['targetDate'] = updates.targetDate ? new Date(updates.targetDate) : null;
     }
 
-    if (Object.keys(setFields).length === 0) {
-      return this.getCurrentStats();
+    if (Object.keys(setFields).length > 0) {
+      await this.donationPoolModel.findByIdAndUpdate(pool._id, { $set: setFields }, { new: true });
+      this.logger.log(`Active donation pool updated: ${JSON.stringify(setFields)}`);
     }
 
-    await this.donationPoolModel.findByIdAndUpdate(pool._id, { $set: setFields }, { new: true });
-
-    this.logger.log(`Active donation pool updated: ${JSON.stringify(setFields)}`);
+    if (updates.categoryPricing && updates.categoryPricing.length > 0) {
+      const ops = updates.categoryPricing.map(cp =>
+        this.snapshotModel.updateOne(
+          { category: cp.category },
+          {
+            $set: {
+              itemPrice: cp.itemPrice,
+              targetCount: cp.targetCount,
+              targetAmount: cp.itemPrice * cp.targetCount,
+            },
+          },
+        ),
+      );
+      await Promise.all(ops);
+      this.logger.log(`Category pricing updated for ${updates.categoryPricing.length} categories`);
+    }
 
     return this.getCurrentStats();
   }
@@ -413,11 +458,12 @@ export class DonationsService {
     try {
       const snapshots = await this.snapshotModel.find().lean();
       const ops = snapshots.map(snap => {
+        const targetAmount = snap.itemPrice * snap.targetCount;
         const percent =
-          snap.targetAmount > 0
-            ? Math.min(parseFloat(((snap.totalAmount / snap.targetAmount) * 100).toFixed(2)), 100)
+          targetAmount > 0
+            ? Math.min(parseFloat(((snap.totalAmount / targetAmount) * 100).toFixed(2)), 100)
             : 0;
-        return this.snapshotModel.updateOne({ _id: snap._id }, { $set: { percent } });
+        return this.snapshotModel.updateOne({ _id: snap._id }, { $set: { percent, targetAmount } });
       });
       await Promise.all(ops);
       this.logger.log(`Refreshed ${snapshots.length} category snapshots`);

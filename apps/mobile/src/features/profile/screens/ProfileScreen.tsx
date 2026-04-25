@@ -10,6 +10,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Text, Button, Card, Avatar, Icon, Badge } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { logoutAsync } from '@/features/auth/store/authSlice';
+import { DonationImpactCard } from '@/features/donations';
 import { useLeaderboardConsent } from '@/features/leaderboard/hooks/useLeaderboardConsent';
 import { getTierConfig } from '@/features/loyalty/constants/tiers';
 import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';
@@ -28,9 +29,7 @@ interface ProfileScreenProps {
 
 const CARD_SHADOW = '#000';
 const WHITE = '#FFFFFF';
-const WHITE_80 = 'rgba(255,255,255,0.8)';
 const WHITE_70 = 'rgba(255,255,255,0.7)';
-const WHITE_15 = 'rgba(255,255,255,0.15)';
 const LEADERBOARD_SHADOW = '#5a42e0';
 const LEADERBOARD_SUBTEXT = 'rgba(224,214,255,0.85)';
 
@@ -300,7 +299,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
           <Button
             variant='outline'
-            size='md'
+            size='sm'
             onPress={handleEditProfile}
             leftIcon='create-outline'
             leftIconFamily='Ionicons'
@@ -330,35 +329,30 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 end={{ x: 1, y: 1 }}
                 style={styles.loyaltyCard}
               >
-                <View style={styles.loyaltyCardTop}>
-                  <View>
-                    <Text variant='body' size='sm' style={styles.loyaltyLabel}>
-                      My Points
-                    </Text>
-                    <Text variant='headline' size='lg' weight='bold' style={styles.loyaltyPoints}>
-                      {availablePoints !== null ? availablePoints.toLocaleString() : '--'}
-                    </Text>
-                  </View>
-                  <View
-                    style={[styles.tierBadgePill, { backgroundColor: tierConfig.gradientStart }]}
-                  >
-                    <Icon name={tierConfig.icon} family='Ionicons' size={14} color='#FFFFFF' />
-                    <Text variant='body' size='xs' weight='bold' style={styles.tierBadgeText}>
-                      {currentTier}
-                    </Text>
+                <View style={styles.loyaltyCardLeft}>
+                  <Text style={styles.loyaltyCardLabel}>My Points</Text>
+                  <Text style={styles.loyaltyCardTitle}>
+                    {availablePoints !== null ? availablePoints.toLocaleString() : '--'}
+                  </Text>
+                  <View style={styles.loyaltyCardSubRow}>
+                    <View
+                      style={[styles.tierBadgePill, { backgroundColor: tierConfig.gradientStart }]}
+                    >
+                      <Icon name={tierConfig.icon} family='Ionicons' size={12} color='#FFFFFF' />
+                      <Text variant='body' size='xs' weight='bold' style={styles.tierBadgeText}>
+                        {currentTier}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-
-                {/* Tap hint row */}
-                <View style={styles.tapHintRow}>
-                  <Text variant='body' size='xs' style={styles.tapHintText}>
-                    Tap to view rewards
-                  </Text>
+                <View style={styles.loyaltyCardRight}>
+                  <Icon name='star' family='Ionicons' size={36} color='rgba(255,255,255,0.4)' />
                   <Icon
                     name='chevron-forward'
                     family='Ionicons'
-                    size={16}
+                    size={20}
                     color='rgba(255,255,255,0.7)'
+                    style={styles.loyaltyChevron}
                   />
                 </View>
               </LinearGradient>
@@ -398,6 +392,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             </View>
           </LinearGradient>
         </Pressable>
+
+        {/* Donation Impact Card */}
+        <DonationImpactCard onPress={() => navigation.navigate('DonationImpact')} />
 
         {/* Menu Sections */}
         <Card style={styles.menuCard}>
@@ -556,60 +553,67 @@ const styles = StyleSheet.create({
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   profileInfo: {
     flex: 1,
     marginLeft: 16,
   },
   editButton: {
-    marginTop: 8,
+    marginTop: 4,
+    borderRadius: 9999,
   },
   loyaltyCard: {
     borderRadius: 16,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     shadowColor: CARD_SHADOW,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
     elevation: 4,
   },
-  loyaltyCardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  loyaltyCardLeft: {
+    flex: 1,
   },
-  loyaltyLabel: {
-    color: WHITE_80,
+  loyaltyCardLabel: {
+    fontSize: 11,
+    color: WHITE_70,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  loyaltyCardTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: WHITE,
     marginBottom: 4,
   },
-  loyaltyPoints: {
-    color: WHITE,
+  loyaltyCardSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   tierBadgePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 14,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
   },
   tierBadgeText: {
     color: WHITE,
-    marginLeft: 5,
+    marginLeft: 4,
   },
-  tapHintRow: {
-    flexDirection: 'row',
+  loyaltyCardRight: {
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: WHITE_15,
-    paddingTop: 10,
   },
-  tapHintText: {
-    color: WHITE_70,
-    marginRight: 4,
+  loyaltyChevron: {
+    marginTop: 12,
   },
   leaderboardCard: {
     borderRadius: 16,

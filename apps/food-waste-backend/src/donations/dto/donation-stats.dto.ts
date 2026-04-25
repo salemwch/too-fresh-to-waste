@@ -1,4 +1,8 @@
-import type { DonationStatsResponse, UserDonationStatsResponse } from '@foodwaste/shared';
+import type {
+  DonationStatsResponse,
+  UserDonationStatsResponse,
+  CategoryProgress,
+} from '@foodwaste/shared';
 import { DonationGoalCategory } from '@foodwaste/shared';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
@@ -9,9 +13,47 @@ import {
   IsEnum,
   IsDateString,
   IsArray,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 import { DonationPoolStatus } from '../schemas/donation-pool.schema';
+
+export class CategoryProgressDto implements CategoryProgress {
+  @ApiProperty({ enum: DonationGoalCategory })
+  @IsEnum(DonationGoalCategory)
+  category!: DonationGoalCategory;
+
+  @ApiProperty({ minimum: 0, maximum: 100 })
+  @IsNumber()
+  @Min(0)
+  percent!: number;
+
+  @ApiProperty({ minimum: 0 })
+  @IsNumber()
+  @Min(0)
+  totalItems!: number;
+
+  @ApiProperty({ minimum: 0 })
+  @IsNumber()
+  @Min(0)
+  totalAmount!: number;
+
+  @ApiProperty({ minimum: 0 })
+  @IsNumber()
+  @Min(0)
+  targetAmount!: number;
+
+  @ApiProperty({ description: 'Price per item in TND', minimum: 0.1 })
+  @IsNumber()
+  @Min(0)
+  itemPrice!: number;
+
+  @ApiProperty({ description: 'Target number of items to purchase', minimum: 1 })
+  @IsNumber()
+  @Min(1)
+  targetCount!: number;
+}
 
 /**
  * Response DTO for donation statistics
@@ -101,6 +143,15 @@ export class DonationStatsResponseDto implements DonationStatsResponse {
   @IsOptional()
   @IsDateString()
   targetDate?: string | undefined;
+
+  @ApiProperty({
+    description: 'Pre-aggregated category progress snapshots',
+    type: [CategoryProgressDto],
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CategoryProgressDto)
+  categoryProgress!: CategoryProgressDto[];
 }
 
 /**
