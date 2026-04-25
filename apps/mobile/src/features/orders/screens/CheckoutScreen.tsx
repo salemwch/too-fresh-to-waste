@@ -132,10 +132,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     }
 
     const establishmentId: string = (() => {
-      if (typeof offer.establishmentId === 'string') return offer.establishmentId;
-      if (offer.establishmentId?.id != null) return offer.establishmentId.id;
-      if (offer.establishmentId?._id != null) return offer.establishmentId._id;
-      return '';
+      const eid = offer.establishmentId;
+      if (!eid) return '';
+      if (typeof eid === 'string') return eid;
+      return eid._id ?? eid.id ?? '';
     })();
 
     // ✅ BUSINESS RULE: Calculate valid pickup date

@@ -1,61 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
-
-// ── Animated counter hook ─────────────────────────────────────────────────────
-
-function useCountUp(target: number, duration = 2000, start = false) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    let raf: number;
-    const startTime = performance.now();
-    const tick = (now: number) => {
-      const elapsed = Math.min((now - startTime) / duration, 1);
-      // ease out cubic
-      const eased = 1 - Math.pow(1 - elapsed, 3);
-      setCount(Math.floor(eased * target));
-      if (elapsed < 1) raf = requestAnimationFrame(tick);
-      else setCount(target);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration, start]);
-  return count;
-}
-
-// ── Counter card ─────────────────────────────────────────────────────────────
-
-function ScoreCard({
-  value,
-  suffix = '',
-  prefix = '',
-  label,
-  sublabel,
-  started,
-}: {
-  value: number;
-  suffix?: string;
-  prefix?: string;
-  label: string;
-  sublabel: string;
-  started: boolean;
-}) {
-  const count = useCountUp(value, 2200, started);
-  return (
-    <div className='flex flex-col'>
-      <p className='font-playfair text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-none mb-2'>
-        {prefix}
-        {count.toLocaleString()}
-        {suffix}
-      </p>
-      <p className='text-sm font-black uppercase tracking-widest text-white mb-1'>{label}</p>
-      <p className='text-xs text-white/40 leading-snug'>{sublabel}</p>
-    </div>
-  );
-}
 
 // ── Tension card ─────────────────────────────────────────────────────────────
 
@@ -228,26 +175,6 @@ const tensions: TensionData[] = [
   },
 ];
 
-const scoreMetrics = [
-  { value: 12400, suffix: '+', label: 'Bags Saved', sublabel: 'Food rescued from the bin' },
-  {
-    value: 186000,
-    suffix: '+',
-    prefix: '',
-    label: 'TND Kept in Pockets',
-    sublabel: 'Real savings for real families',
-  },
-  { value: 31000, suffix: ' kg', label: 'CO₂ Not Released', sublabel: 'Methane we never produced' },
-  { value: 8700, suffix: '+', label: 'Families Fed', sublabel: 'Meals that had a second life' },
-  {
-    value: 94,
-    suffix: '%',
-    label: 'Partner Retention',
-    sublabel: 'Restaurants that stayed with us',
-  },
-  { value: 3, suffix: ' cities', label: 'Markets Active', sublabel: 'With a real waiting list' },
-];
-
 const forUs = [
   'The family who wants good food and feels good saving money doing it',
   'The bakery owner who hates watching his craft go in the bin at midnight',
@@ -268,21 +195,6 @@ const notForUs = [
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function MissionDrivenPage() {
-  const scoreRef = useRef<HTMLDivElement>(null);
-  const [scoreStarted, setScoreStarted] = useState(false);
-
-  useEffect(() => {
-    if (!scoreRef.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setScoreStarted(true);
-      },
-      { threshold: 0.3 },
-    );
-    observer.observe(scoreRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <>
       <Header />
@@ -580,56 +492,6 @@ export default function MissionDrivenPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* ── THE SCORECARD ────────────────────────────────────────────────── */}
-        <section className='bg-primary-500 py-16 lg:py-24 relative overflow-hidden' ref={scoreRef}>
-          {/* Top wave */}
-          <div className='absolute top-0 left-0 right-0' aria-hidden='true'>
-            <svg
-              viewBox='0 0 1440 72'
-              xmlns='http://www.w3.org/2000/svg'
-              className='block w-full'
-              preserveAspectRatio='none'
-            >
-              <path d='M0,32 C360,0 1080,64 1440,32 L1440,0 L0,0 Z' fill='#f9f3f0' />
-            </svg>
-          </div>
-          {/* Bottom wave */}
-          <div className='absolute bottom-0 left-0 right-0' aria-hidden='true'>
-            <svg
-              viewBox='0 0 1440 72'
-              xmlns='http://www.w3.org/2000/svg'
-              className='block w-full'
-              preserveAspectRatio='none'
-            >
-              <path d='M0,40 C360,72 1080,8 1440,40 L1440,72 L0,72 Z' fill='white' />
-            </svg>
-          </div>
-
-          <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-10 pb-8'>
-            <div className='text-center mb-12'>
-              <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-coral mb-4'>
-                The real metrics
-              </p>
-              <h2 className='font-playfair text-3xl lg:text-5xl font-bold text-white mb-3'>
-                Judge us by these.
-              </h2>
-              <p className='text-white/40 text-base'>
-                Not by our fundraising round. Not by our valuation. By this.
-              </p>
-            </div>
-
-            <div className='grid grid-cols-2 md:grid-cols-3 gap-8 lg:gap-12 pt-4'>
-              {scoreMetrics.map((m, i) => (
-                <ScoreCard key={i} {...m} started={scoreStarted} />
-              ))}
-            </div>
-
-            <p className='text-center text-white/20 text-xs mt-12 italic'>
-              Numbers updated monthly. Methodology published on request.
-            </p>
           </div>
         </section>
 

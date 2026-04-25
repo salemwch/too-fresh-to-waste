@@ -26,6 +26,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 
 import { Public } from '../common/decorators/public.decorator';
 
+import { DatabasePoolHealthIndicator } from './indicators/database-pool.health';
 import { RedisHealthIndicator } from './indicators/redis.health';
 
 @ApiTags('Health')
@@ -37,6 +38,7 @@ export class HealthController {
     private readonly db: MongooseHealthIndicator,
     private readonly memory: MemoryHealthIndicator,
     private readonly redis: RedisHealthIndicator,
+    private readonly dbPool: DatabasePoolHealthIndicator,
     private readonly configService: ConfigService,
   ) {}
 
@@ -174,6 +176,10 @@ export class HealthController {
       },
       async () => {
         const r = await this.redis.isHealthy('redis');
+        return r;
+      },
+      async () => {
+        const r = await this.dbPool.isHealthy('database_pool');
         return r;
       },
     ]);

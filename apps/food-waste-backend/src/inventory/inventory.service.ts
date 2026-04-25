@@ -462,11 +462,13 @@ export class InventoryService {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const expiringItems = await this.inventoryModel.find({
-        expiryDate: { $lte: tomorrow, $gt: new Date() },
-        status: { $ne: InventoryStatus.EXPIRED },
-        isActive: true,
-      });
+      const expiringItems = await this.inventoryModel
+        .find({
+          expiryDate: { $lte: tomorrow, $gt: new Date() },
+          status: { $ne: InventoryStatus.EXPIRED },
+          isActive: true,
+        })
+        .limit(500);
 
       for (const item of expiringItems) {
         await this.checkAndCreateAlerts(item, 'EXPIRING_SOON');

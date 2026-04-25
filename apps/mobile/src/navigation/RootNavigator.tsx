@@ -103,20 +103,27 @@ export const RootNavigator: React.FC = () => {
   }, []);
 
   // Subscribe to network error events from ErrorHandler
+  // If errors repeat within the dismiss window, extend the timer to avoid flicker
   useEffect(() => {
+    let errorCount = 0;
+    const DISMISS_BASE_MS = 5000;
+    const DISMISS_PERSISTENT_MS = 15000;
+
     const unsubscribe = networkErrorBus.subscribe((message: string) => {
+      errorCount++;
       setNetworkErrorMessage(message);
 
-      // Clear any existing dismiss timer
       if (networkErrorTimerRef.current) {
         clearTimeout(networkErrorTimerRef.current);
       }
 
-      // Auto-dismiss after 5 seconds
+      const dismissDelay = errorCount >= 3 ? DISMISS_PERSISTENT_MS : DISMISS_BASE_MS;
+
       networkErrorTimerRef.current = setTimeout(() => {
         setNetworkErrorMessage(null);
         networkErrorTimerRef.current = null;
-      }, 5000);
+        errorCount = 0;
+      }, dismissDelay);
     });
 
     return () => {

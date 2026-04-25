@@ -27,6 +27,8 @@ import { colorTokens } from '@/design-system/tokens/colors';
 import { ordersService } from '../services/ordersService';
 import { isPickupError } from '../types/order.types';
 
+import { getEstablishmentName } from '../types/order.types';
+
 import type { Order, PickupErrorCode } from '../types/order.types';
 
 type InlinePickupError = PickupErrorCode | 'INVALID_CODE';
@@ -243,9 +245,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                       <View style={styles.pickupRow}>
                         <Icon name='location' family='Ionicons' size={16} color='#64748B' />
                         <Text style={styles.pickupText} numberOfLines={1}>
-                          {typeof order.establishmentId === 'string'
-                            ? 'Restaurant location'
-                            : (order.establishmentId?.name ?? 'Restaurant')}
+                          {getEstablishmentName(order)}
                         </Text>
                       </View>
                     </View>

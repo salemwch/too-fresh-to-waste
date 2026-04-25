@@ -142,6 +142,7 @@ export class NotificationService {
         trigger,
         isActive: true,
       })
+      .limit(50)
       .exec();
 
     if (templates.length === 0) {

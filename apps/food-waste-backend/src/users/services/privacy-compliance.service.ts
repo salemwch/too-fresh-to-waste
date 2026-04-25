@@ -812,6 +812,7 @@ export class PrivacyComplianceService {
           cancelledAt: 1,
         })
         .sort({ createdAt: -1 })
+        .limit(10000)
         .toArray()) as PrivacyOrderRecord[];
 
       return orders.map(order => ({
@@ -873,6 +874,7 @@ export class PrivacyComplianceService {
           notes: 1,
         })
         .sort({ addedAt: -1 })
+        .limit(10000)
         .toArray()) as PrivacyFavoriteRecord[];
 
       return favorites.map(favorite => ({
@@ -932,6 +934,7 @@ export class PrivacyComplianceService {
           lastEditedAt: 1,
         })
         .sort({ createdAt: -1 })
+        .limit(10000)
         .toArray()) as PrivacyReviewRecord[];
 
       return reviews.map(review => ({

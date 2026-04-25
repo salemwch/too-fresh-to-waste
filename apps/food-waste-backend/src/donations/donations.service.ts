@@ -319,20 +319,20 @@ export class DonationsService {
     try {
       // Aggregate user donations — select only fields needed for stats computation
       // Note: isDeleted filter is handled by schema pre-find middleware
-      const userDonations = await this.userDonationModel
-        .find({
-          userId,
-        })
-        .select('amount contributedAt badges')
-        .lean();
+      const [statsResult, latestDonation] = await Promise.all([
+        this.userDonationModel.aggregate<{ totalDonated: number; count: number }>([
+          { $match: { userId, isDeleted: { $ne: true } } },
+          { $group: { _id: null, totalDonated: { $sum: '$amount' }, count: { $sum: 1 } } },
+        ]),
+        this.userDonationModel
+          .findOne({ userId })
+          .select('badgesEarned')
+          .sort({ contributedAt: -1 })
+          .lean(),
+      ]);
 
-      const totalDonated = userDonations.reduce((sum, d) => sum + d.amount, 0);
-      const contributionCount = userDonations.length;
-
-      // Get all badges (take from most recent donation)
-      const latestDonation = userDonations.sort(
-        (a, b) => b.contributedAt.getTime() - a.contributedAt.getTime(),
-      )[0];
+      const totalDonated = statsResult[0]?.totalDonated ?? 0;
+      const contributionCount = statsResult[0]?.count ?? 0;
 
       const badgesEarned = latestDonation?.badgesEarned ?? [];
       const mealsContributed = this.calculateMealCount(totalDonated);
@@ -484,6 +484,7 @@ export class DonationsService {
           status: DonationPoolStatus.FUNDED,
           isArchived: false,
         })
+        .limit(50)
         .lean();
 
       for (const pool of fundedPools) {

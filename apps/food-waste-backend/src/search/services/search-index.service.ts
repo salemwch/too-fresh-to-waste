@@ -147,7 +147,10 @@ export class SearchIndexService {
       }
 
       // Index all active establishments
-      const establishments = await this.establishmentModel.find({ isActive: true }).exec();
+      const establishments = await this.establishmentModel
+        .find({ isActive: true })
+        .limit(5000)
+        .exec();
 
       for (const establishment of establishments) {
         const searchDocument = this.createEstablishmentSearchDocument(establishment);

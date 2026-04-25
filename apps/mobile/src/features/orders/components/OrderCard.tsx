@@ -198,10 +198,7 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
       offerImage,
       establishmentImage,
       offerId: order.items?.[0]?.offerId,
-      establishmentId:
-        typeof order.establishmentId === 'object'
-          ? { name: order.establishmentId.name, images: order.establishmentId.images }
-          : order.establishmentId,
+      establishmentName,
     });
   }
 

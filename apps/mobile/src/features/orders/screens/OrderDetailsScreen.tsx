@@ -406,9 +406,12 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
 
   const queryKey = ['orders', 'detail', orderId];
 
-  const { data: order, isLoading: isLoadingOrder } = useQueryWithFocus<Order>(queryKey, () =>
-    ordersService.getOrderById(orderId),
-  );
+  const {
+    data: order,
+    isLoading: isLoadingOrder,
+    error: orderError,
+    refetch: refetchOrder,
+  } = useQueryWithFocus<Order>(queryKey, () => ordersService.getOrderById(orderId));
 
   // ---------------------------------------------------------------------------
   // Confirm-pickup mutation
@@ -466,6 +469,50 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
 
   const canConfirm = order ? CONFIRMABLE_STATUSES.has(order.status) : false;
   const showImpactMoment = dismissedImpactOrderId !== orderId;
+
+  // ---------------------------------------------------------------------------
+  // Render – error
+  // ---------------------------------------------------------------------------
+
+  if (orderError && !order) {
+    return (
+      <View
+        style={[
+          styles.container,
+          styles.centerContent,
+          { backgroundColor: theme.colors.background },
+        ]}
+      >
+        <Icon name='alert-circle-outline' family='Ionicons' size={48} color={theme.colors.error} />
+        <Text variant='title' size='lg' weight='semibold' style={styles.errorTitle}>
+          Order Not Found
+        </Text>
+        <Text variant='body' size='md' color='secondary' align='center' style={styles.errorSubtext}>
+          This order may have been removed or is temporarily unavailable.
+        </Text>
+        <Button
+          variant='primary'
+          size='md'
+          onPress={() => void refetchOrder()}
+          style={styles.retryButton}
+          accessibilityLabel='Retry loading order'
+          accessibilityHint='Attempts to reload the order details'
+        >
+          Retry
+        </Button>
+        <Button
+          variant='ghost'
+          size='sm'
+          onPress={() => navigation.goBack()}
+          style={styles.goBackButton}
+          accessibilityLabel='Go back'
+          accessibilityHint='Returns to the previous screen'
+        >
+          Go Back
+        </Button>
+      </View>
+    );
+  }
 
   // ---------------------------------------------------------------------------
   // Render – loading
@@ -548,6 +595,24 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  errorTitle: {
+    marginTop: 16,
+  },
+  errorSubtext: {
+    marginTop: 8,
+    maxWidth: 280,
+  },
+  retryButton: {
+    marginTop: 20,
+  },
+  goBackButton: {
+    marginTop: 8,
   },
   scrollContent: {
     padding: 16,
@@ -662,10 +727,5 @@ const styles = StyleSheet.create({
   expiredTextContainer: {
     flex: 1,
     gap: 2,
-  },
-
-  // Go back
-  goBackButton: {
-    marginTop: 8,
   },
 });
