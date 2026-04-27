@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bull';
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
@@ -16,6 +17,7 @@ import { PickupThrottlerGuard } from './guards/pickup-throttler.guard';
 import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
 import { OrdersController } from './order.controller';
 import { OrdersService } from './order.service';
+import { PickupReminderProcessor } from './processors/pickup-reminder.processor';
 import { Order, OrderSchema } from './schemas/order.schema';
 
 @Module({
@@ -24,6 +26,7 @@ import { Order, OrderSchema } from './schemas/order.schema';
     forwardRef(() => PaymentModule),
     forwardRef(() => WebSocketModule),
     forwardRef(() => NotificationsModule),
+    BullModule.registerQueue({ name: 'pickup-reminders' }),
     MongooseModule.forFeature([
       { name: Order.name, schema: OrderSchema },
       { name: Offer.name, schema: OfferSchema },
@@ -39,6 +42,7 @@ import { Order, OrderSchema } from './schemas/order.schema';
     RegexSecurityUtil,
     PickupThrottlerGuard,
     AdminUserEventsListener,
+    PickupReminderProcessor,
   ],
   exports: [OrdersService, MongooseModule],
 })

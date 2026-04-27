@@ -3,7 +3,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.foodwasteapp",
+      "package_name": "com.toofreshtowaste.app",
       "sha256_cert_fingerprints": [
         "95:74:EF:85:FF:2B:3C:BC:0B:3A:1A:B7:B3:A7:6E:ED:8E:95:24:ED:95:50:FA:63:0B:AF:3F:2D:93:23:7A:9F"
       ]

@@ -17,6 +17,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 
 import ClickToPayImage from '@/assets/images/ClickToPay.webp';
@@ -300,6 +301,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
 // ─────────────────────────────────────────────────────────────────────────
 export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const { offerId } = route.params;
   const { data: offer, isLoading, error, refetch } = useOffer(offerId);
   const establishment =
@@ -671,7 +673,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
       </ScrollView>
 
       {/* --- Sticky Footer --- */}
-      <View style={[styles.footer, footerStyle]}>
+      <View style={[styles.footer, footerStyle, { paddingBottom: Math.max(insets.bottom, 20) }]}>
         <View style={styles.footerInfo}>
           <Text size='xs' color='secondary'>
             Remaining
@@ -840,7 +842,6 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: SURFACE,
     padding: 16,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 16,
     flexDirection: 'row',
     alignItems: 'center',
     borderTopWidth: 1,

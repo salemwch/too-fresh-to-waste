@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 
 import { DEFAULT_CURRENCY, ORDER_GRACE_PERIOD_MS, UserRole } from '@foodwaste/shared';
+import { InjectQueue } from '@nestjs/bull';
 import {
   Injectable,
   NotFoundException,
@@ -14,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
+import { Queue } from 'bull';
 import { Model, Types, ClientSession, FlattenMaps, PipelineStage } from 'mongoose';
 
 import { OrderCompletedEvent } from '../common/events';
@@ -188,6 +190,7 @@ export class OrdersService {
     @Inject(forwardRef(() => WebSocketService)) private readonly webSocketService: WebSocketService,
     @Inject(forwardRef(() => NotificationService))
     private readonly notificationService: NotificationService,
+    @InjectQueue('pickup-reminders') private readonly pickupReminderQueue: Queue,
   ) {
     void this.POINTS_PER_BAG;
   }
@@ -354,6 +357,13 @@ export class OrdersService {
         );
       });
 
+      this.schedulePickupReminder(createdOrder).catch((err: Error) => {
+        this.appLogger.error(
+          `Failed to schedule pickup reminder for order ${createdOrder.orderNumber}: ${err.message}`,
+          'OrderService.schedulePickupReminder',
+        );
+      });
+
       return createdOrder;
     } catch (error) {
       this.appLogger.error(`Order creation failed: ${(error as Error).message}`, 'OrderService');
@@ -465,6 +475,48 @@ export class OrdersService {
       },
       priority: 'high',
     });
+  }
+
+  private async schedulePickupReminder(order: OrderDocument): Promise<void> {
+    if (!order.expiresAt) {
+      return;
+    }
+
+    const twoHoursMs = 2 * 60 * 60 * 1000;
+    // Fire 2h before offer expiry (expiresAt already includes the 30min grace, so subtract it back)
+    const reminderAt = new Date(order.expiresAt.getTime() - ORDER_GRACE_PERIOD_MS - twoHoursMs);
+    const delay = reminderAt.getTime() - Date.now();
+
+    if (delay <= 0) {
+      this.appLogger.log(
+        `Skipping pickup reminder for order ${order.orderNumber} — window already passed`,
+        'OrderService',
+      );
+      return;
+    }
+
+    const customerId =
+      (order.customerId as unknown as { _id?: unknown })?._id?.toString() ??
+      order.customerId.toString();
+    const establishment = order.establishmentId as unknown as { name?: string };
+    const firstItem = order.items[0];
+
+    await this.pickupReminderQueue.add(
+      'send-2h-reminder',
+      {
+        orderId: order._id.toString(),
+        customerId,
+        establishmentName: establishment.name ?? 'the establishment',
+        offerTitle: firstItem?.offerTitle ?? 'your order',
+        availableUntil: new Date(order.expiresAt.getTime() - ORDER_GRACE_PERIOD_MS).toISOString(),
+      },
+      { delay, attempts: 3, backoff: { type: 'exponential', delay: 5000 }, removeOnComplete: true },
+    );
+
+    this.appLogger.log(
+      `Pickup reminder scheduled for order ${order.orderNumber} in ${Math.round(delay / 60000)} min`,
+      'OrderService',
+    );
   }
 
   async findById(orderId: string, userId?: string, userRole?: UserRole): Promise<OrderDocument> {

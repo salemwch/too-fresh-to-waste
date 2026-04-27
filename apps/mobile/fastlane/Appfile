@@ -2,7 +2,7 @@
 # Docs: https://docs.fastlane.tools/advanced/Appfile/
 
 # Android package name (must match build.gradle applicationId)
-package_name("com.foodwasteapp")
+package_name("com.toofreshtowaste.app")
 
 # Google Play JSON key — loaded from CI env var at runtime, not stored here.
 # To generate: Google Play Console → Setup → API access → Create service account

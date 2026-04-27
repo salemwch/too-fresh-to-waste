@@ -16,6 +16,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  Linking,
 } from 'react-native';
 
 import { Button, Input, Text, Card } from '@/design-system/components/atoms';
@@ -477,11 +478,25 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
           <View style={styles.termsContainer}>
             <Text variant='body.small' color='secondary' style={styles.termsText}>
               By registering, you agree to the{' '}
-              <Text variant='body.small' weight='bold' style={{ color: theme.colors.primary }}>
+              <Text
+                variant='body.small'
+                weight='bold'
+                style={{ color: theme.colors.primary }}
+                onPress={() =>
+                  void Linking.openURL('https://toofreshtowaste.com/en/terms-and-conditions')
+                }
+              >
                 Terms of Service
               </Text>{' '}
               and{' '}
-              <Text variant='body.small' weight='bold' style={{ color: theme.colors.primary }}>
+              <Text
+                variant='body.small'
+                weight='bold'
+                style={{ color: theme.colors.primary }}
+                onPress={() =>
+                  void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy')
+                }
+              >
                 Privacy Policy
               </Text>
             </Text>

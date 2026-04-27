@@ -264,15 +264,6 @@ export class TemplateService {
         isActive: true,
         version: '1.0',
       },
-      {
-        name: 'urgent_pickup_sms',
-        trigger: 'pickup_reminder_2h',
-        type: 'sms',
-        subject: 'Urgent Pickup Reminder',
-        body: 'URGENT: Your order at {{establishmentName}} expires in {{timeRemaining}}. Order: {{orderId}}',
-        isActive: true,
-        version: '1.0',
-      },
     ];
 
     for (const templateData of defaultTemplates) {

@@ -9,10 +9,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <!-- SMS OTP Autofill - SMS Retriever API (Android 8.0+) -->
-    <!-- Note: Modern SMS Retriever API is permission-less, but these are added for backward compatibility -->
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS" />
+    <!-- Push Notifications - required on Android 13+ (API 33+) -->
+    <!-- Source: https://developer.android.com/develop/ui/views/notifications/notification-permission -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Android 11+ package visibility: required for Linking.canOpenURL('whatsapp://') -->
     <!-- Source: https://developer.android.com/training/package-visibility -->

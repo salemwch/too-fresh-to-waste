@@ -49,8 +49,7 @@ export function navigateFromNotification(data: NotificationNavData): void {
   if (
     (trigger === 'order_confirmed' ||
       trigger === 'pickup_ready' ||
-      trigger === 'pickup_reminder_2h' ||
-      trigger === 'pickup_reminder_24h') &&
+      trigger === 'pickup_reminder_2h') &&
     orderId
   ) {
     resetTo([

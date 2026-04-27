@@ -29,7 +29,7 @@ module.exports = {
   project: {
     android: {
       // Package name for autolinking (must match android/app/build.gradle applicationId)
-      packageName: 'com.foodwasteapp',
+      packageName: 'com.toofreshtowaste.app',
     },
     // iOS configuration removed — bundleIdentifier not supported in RN 0.81 config schema
     // iOS setup requires macOS and will be configured separately

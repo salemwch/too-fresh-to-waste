@@ -4,7 +4,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
 
 import { Text, Button, Card } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -69,6 +69,43 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
           <Text variant='headline' size='lg' weight='bold' style={styles.title}>
             {'Privacy & Data'}
           </Text>
+
+          {/* ── Legal Documents ── */}
+          <View style={styles.section}>
+            <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
+              Legal
+            </Text>
+            <Pressable
+              style={[styles.settingRow, { borderColor: BORDER }]}
+              onPress={() => void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy')}
+              accessibilityRole='link'
+              accessibilityLabel='View Privacy Policy'
+            >
+              <View style={styles.settingLeft}>
+                <Text style={styles.settingIcon}>🔒</Text>
+                <Text variant='body' size='md' weight='medium' color='primary'>
+                  Privacy Policy
+                </Text>
+              </View>
+              <Text style={[styles.editLabel, { color: PRIMARY }]}>View</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.settingRow, styles.settingRowTop, { borderColor: BORDER }]}
+              onPress={() =>
+                void Linking.openURL('https://toofreshtowaste.com/en/terms-and-conditions')
+              }
+              accessibilityRole='link'
+              accessibilityLabel='View Terms and Conditions'
+            >
+              <View style={styles.settingLeft}>
+                <Text style={styles.settingIcon}>📄</Text>
+                <Text variant='body' size='md' weight='medium' color='primary'>
+                  Terms & Conditions
+                </Text>
+              </View>
+              <Text style={[styles.editLabel, { color: PRIMARY }]}>View</Text>
+            </Pressable>
+          </View>
 
           {/* ── Leaderboard Display ── */}
           <View style={styles.section}>
@@ -157,6 +194,7 @@ const styles = StyleSheet.create({
     gap: 12,
     flex: 1,
   },
+  settingRowTop: { marginTop: 8 },
   settingIcon: { fontSize: 22 },
   editLabel: { fontSize: 14, fontWeight: '600' },
 

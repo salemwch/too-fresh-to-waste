@@ -5758,7 +5758,6 @@ export interface components {
       trigger:
         | 'new_offer_nearby'
         | 'order_confirmed'
-        | 'pickup_reminder_24h'
         | 'pickup_reminder_2h'
         | 'pickup_ready'
         | 'order_completed'
@@ -5831,7 +5830,6 @@ export interface components {
       trigger:
         | 'new_offer_nearby'
         | 'order_confirmed'
-        | 'pickup_reminder_24h'
         | 'pickup_reminder_2h'
         | 'pickup_ready'
         | 'order_completed'
@@ -11477,7 +11475,6 @@ export interface operations {
         trigger:
           | 'new_offer_nearby'
           | 'order_confirmed'
-          | 'pickup_reminder_24h'
           | 'pickup_reminder_2h'
           | 'pickup_ready'
           | 'order_completed'

@@ -21,7 +21,7 @@ android {
     ndkVersion rootProject.ext.ndkVersion
 
     defaultConfig {
-        applicationId "com.foodwasteapp"
+        applicationId "com.toofreshtowaste.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Read from CI/CD env vars so each release can set VERSION_CODE/VERSION_NAME
@@ -58,7 +58,7 @@ android {
     // - productionDebug, productionRelease
     //
     // Firebase compatibility:
-    // - Production flavor uses base applicationId "com.foodwasteapp"
+    // - Production flavor uses base applicationId "com.toofreshtowaste.app"
     // - Dev/Staging use suffixes for parallel installation
     // - Each environment can have its own google-services.json in src/<flavor>/
 

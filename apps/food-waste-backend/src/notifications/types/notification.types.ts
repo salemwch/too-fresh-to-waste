@@ -32,7 +32,6 @@ export enum NotificationPriority {
 export enum NotificationTrigger {
   NEW_OFFER_NEARBY = 'new_offer_nearby',
   ORDER_CONFIRMED = 'order_confirmed',
-  PICKUP_REMINDER_24H = 'pickup_reminder_24h',
   PICKUP_REMINDER_2H = 'pickup_reminder_2h',
   PICKUP_READY = 'pickup_ready',
   ORDER_COMPLETED = 'order_completed',

@@ -351,7 +351,6 @@ export class NotificationService {
   private getChannelFromTrigger(trigger: string): NotificationChannel {
     const triggerChannelMap: Record<string, NotificationChannel> = {
       [NotificationTrigger.ORDER_CONFIRMED]: NotificationChannel.ORDER_UPDATES,
-      [NotificationTrigger.PICKUP_REMINDER_24H]: NotificationChannel.PICKUP_REMINDERS,
       [NotificationTrigger.PICKUP_REMINDER_2H]: NotificationChannel.PICKUP_REMINDERS,
       [NotificationTrigger.NEW_OFFER_NEARBY]: NotificationChannel.OFFERS,
       [NotificationTrigger.PERSONALIZED_PROMOTION]: NotificationChannel.MARKETING,
