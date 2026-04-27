@@ -19,7 +19,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import SvgRoot, { Path } from 'react-native-svg';
+import IoniconsIcon from '@react-native-vector-icons/ionicons';
 
 import { useTheme } from '../../../providers';
 
@@ -35,18 +35,7 @@ const CheckIcon = ({ show }: { show: { value: number } }) => {
 
   return (
     <Animated.View style={[styles.iconContainer, style]}>
-      <SvgRoot
-        width={28}
-        height={28}
-        viewBox='0 0 24 24'
-        fill='none'
-        stroke='white'
-        strokeWidth={4}
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      >
-        <Path d='M20 6L9 17l-5-5' />
-      </SvgRoot>
+      <IoniconsIcon name='checkmark' size={28} color='white' />
     </Animated.View>
   );
 };

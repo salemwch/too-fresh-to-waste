@@ -26,6 +26,7 @@ import {
   RefreshControl,
   InteractionManager,
   Pressable,
+  Image,
   type ListRenderItemInfo,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -43,8 +44,8 @@ import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
 import { transformLocationResultsToItems } from '@/utils/location';
 import { Logger } from '@/utils/logger';
 
-import HeartInHandsIcon from '../../../assets/images/RedHeartinHands IconMedicalCareLogo.svg';
-import SurpriseBoxIcon from '../../../assets/images/surprise-box.svg';
+const heartInHandsImg = require('../../../assets/images/heart-in-hands.png');
+const surpriseBoxImg = require('../../../assets/images/surprise-box.png');
 import {
   HomeSearchBar,
   HomeOfferSection,
@@ -346,7 +347,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             accessibilityRole='button'
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <HeartInHandsIcon width={28} height={28} />
+            <Image source={heartInHandsImg} style={{ width: 28, height: 28 }} />
           </Pressable>
           <Pressable
             onPress={() => navigation.navigate('Leaderboard')}
@@ -356,7 +357,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             accessibilityRole='button'
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <SurpriseBoxIcon width={26} height={26} />
+            <Image source={surpriseBoxImg} style={{ width: 26, height: 26 }} />
           </Pressable>
         </View>
       ),

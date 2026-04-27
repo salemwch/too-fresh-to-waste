@@ -67,19 +67,8 @@
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.gms.**
 
-# Firebase Messaging
+# Firebase Messaging (only Firebase module kept)
 -keep class com.google.firebase.messaging.** { *; }
--keep class com.google.firebase.iid.** { *; }
-
-# Firebase Analytics
--keep class com.google.firebase.analytics.** { *; }
-
-# Firebase Crashlytics
--keep class com.google.firebase.crashlytics.** { *; }
--keepattributes SourceFile,LineNumberTable
--keepattributes *Annotation*
-
-# Firebase Installation
 -keep class com.google.firebase.installations.** { *; }
 
 # ============================================================================
@@ -95,12 +84,6 @@
 
 # Firebase Messaging
 -keep class io.invertase.firebase.messaging.** { *; }
-
-# Firebase Analytics
--keep class io.invertase.firebase.analytics.** { *; }
-
-# Firebase Crashlytics
--keep class io.invertase.firebase.crashlytics.** { *; }
 
 # ============================================================================
 # REACT NAVIGATION
@@ -157,13 +140,7 @@
 -keep class com.reactnativecommunity.netinfo.** { *; }
 -dontwarn com.reactnativecommunity.netinfo.**
 
-# ============================================================================
-# REACT NATIVE DEVICE INFO
-# ============================================================================
-# Source: https://github.com/react-native-device-info/react-native-device-info
-
--keep class com.learnium.RNDeviceInfo.** { *; }
--dontwarn com.learnium.RNDeviceInfo.**
+# react-native-device-info: REMOVED — not in dependencies
 
 # ============================================================================
 # REACT NATIVE VECTOR ICONS
@@ -209,13 +186,7 @@
 -keep class com.google.android.gms.maps.** { *; }
 -dontwarn com.google.android.gms.maps.**
 
-# ============================================================================
-# REACT NATIVE SVG
-# ============================================================================
-# Source: https://github.com/software-mansion/react-native-svg
-
--keep class com.horcrux.svg.** { *; }
--dontwarn com.horcrux.svg.**
+# react-native-svg: REMOVED — converted to PNG assets
 
 # ============================================================================
 # REACT NATIVE CONFIG
@@ -233,37 +204,13 @@
 -keep class com.agontuk.RNFusedLocation.** { *; }
 -dontwarn com.agontuk.RNFusedLocation.**
 
-# ============================================================================
-# REACT NATIVE SHARE
-# ============================================================================
-# Source: https://github.com/react-native-share/react-native-share
+# react-native-share: REMOVED — not in dependencies
 
--keep class cl.json.** { *; }
--dontwarn cl.json.**
+# react-native-qrcode-scanner: REMOVED — not in dependencies
 
-# ============================================================================
-# REACT NATIVE QR CODE SCANNER
-# ============================================================================
-# Source: https://github.com/moaazsidat/react-native-qrcode-scanner
+# jail-monkey: REMOVED — not in dependencies
 
--keep class com.google.zxing.** { *; }
--dontwarn com.google.zxing.**
-
-# ============================================================================
-# JAIL MONKEY (Root/Jailbreak Detection)
-# ============================================================================
-# Source: https://github.com/GantMan/jail-monkey
-
--keep class com.gantix.JailMonkey.** { *; }
--dontwarn com.gantix.JailMonkey.**
-
-# ============================================================================
-# NOTIFEE (Notifications)
-# ============================================================================
-# Source: https://notifee.app/
-
--keep class app.notifee.** { *; }
--dontwarn app.notifee.**
+# notifee: REMOVED — not in dependencies
 
 # ============================================================================
 # REDUX / REDUX TOOLKIT
@@ -329,7 +276,6 @@
 # KOTLIN
 # ============================================================================
 
--keep class kotlin.** { *; }
 -keep class kotlin.Metadata { *; }
 -dontwarn kotlin.**
 -keepclassmembers class **$WhenMappings {

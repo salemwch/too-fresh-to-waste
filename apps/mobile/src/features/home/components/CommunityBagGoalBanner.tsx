@@ -4,9 +4,18 @@
  */
 
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, LayoutAnimation, Animated, Easing } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  LayoutAnimation,
+  Animated,
+  Easing,
+  Image,
+} from 'react-native';
 
-import SurpriseBoxIcon from '../../../assets/images/surprise-box.svg';
+const surpriseBoxImg = require('../../../assets/images/surprise-box.png');
 import { useCommunityBagGoal } from '../hooks/useCommunityBagGoal';
 
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -120,7 +129,7 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
       >
         <View style={styles.collapsedContent}>
           <View style={styles.iconContainer}>
-            <SurpriseBoxIcon width={28} height={28} />
+            <Image source={surpriseBoxImg} style={{ width: 28, height: 28 }} />
           </View>
 
           <View style={styles.textContainer}>

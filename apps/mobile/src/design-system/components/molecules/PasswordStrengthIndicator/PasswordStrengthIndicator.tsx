@@ -21,7 +21,7 @@
  * ```
  */
 
-import Icon from '@react-native-vector-icons/material-design-icons';
+import Icon from '@react-native-vector-icons/ionicons';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { View, Animated, type ViewStyle, type TextStyle } from 'react-native';
 import { trigger as triggerHaptic } from 'react-native-haptic-feedback';
@@ -270,7 +270,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
    */
   const renderRuleItem = (rule: (typeof rules)[0]) => {
     const iconColor = rule.isMet ? theme.colors.primary : theme.colors.neutral[500];
-    const iconName = rule.isMet ? 'check-circle' : 'circle-outline';
+    const iconName = rule.isMet ? 'checkmark-circle' : 'ellipse-outline';
     const iconSize = dropdownMode === true ? 14 : 20;
 
     // Extract styles to variables for type safety
@@ -337,7 +337,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
 
     return (
       <View style={styles.successCue as ViewStyle}>
-        <Icon name='check-circle' size={16} color={theme.colors.primary} />
+        <Icon name='checkmark-circle' size={16} color={theme.colors.primary} />
         <Text style={styles.successCueText as TextStyle}>All requirements met!</Text>
       </View>
     );
@@ -388,7 +388,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
 
     return (
       <View style={styles.warningBanner}>
-        <Icon name='alert' size={20} color='#FF9800' />
+        <Icon name='warning' size={20} color='#FF9800' />
         <Text style={styles.warningBannerText}>
           Password is too weak. Backend requires at least &ldquo;Fair&rdquo; strength.
         </Text>

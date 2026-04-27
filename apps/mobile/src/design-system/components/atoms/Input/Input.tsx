@@ -4,7 +4,6 @@
  */
 
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
-import MaterialCommunityIconsIcon from '@react-native-vector-icons/material-design-icons';
 import React, { forwardRef, useState, useCallback } from 'react';
 import { View, TextInput, Pressable } from 'react-native';
 
@@ -14,7 +13,6 @@ import { Text } from '../Text';
 import { createInputStyles } from './Input.styles';
 
 import type { InputProps, InputState } from './Input.types';
-import type { IconFamily, IconComponent } from '../../../types';
 
 const hasStringContent = (value: string | undefined): value is string =>
   value !== undefined && value !== '';
@@ -73,16 +71,7 @@ export const Input = forwardRef<TextInput, InputProps>(
      * Get icon component based on icon family
      * Returns React component that accepts name, size, and color props
      */
-    const getIconComponent = (family?: IconFamily): IconComponent => {
-      switch (family) {
-        case 'MaterialCommunityIcons':
-          return MaterialCommunityIconsIcon as IconComponent;
-        case 'Ionicons':
-        case undefined:
-        default:
-          return IoniconsIcon as IconComponent;
-      }
-    };
+    const getIconComponent = () => IoniconsIcon;
 
     // Determine current state
     const getInputState = (): InputState => {
@@ -166,22 +155,23 @@ export const Input = forwardRef<TextInput, InputProps>(
     /**
      * Render icon - supports both ReactNode and string-based icons
      */
-    const renderIcon = (
-      icon: React.ReactNode | string | undefined,
-      iconFamily?: IconFamily,
-    ): React.ReactNode | null => {
+    const renderIcon = (icon: React.ReactNode | string | undefined): React.ReactNode | null => {
       if (!hasRenderableNode(icon)) return null;
 
-      // If icon is already a React component, render it directly
       if (typeof icon !== 'string') {
         return icon;
       }
 
-      // If icon is a string, render using icon family
-      const IconComponent = getIconComponent(iconFamily);
+      const IconComp = getIconComponent();
       const color = iconColor ?? theme.colors.onSurfaceVariant;
 
-      return <IconComponent name={icon} size={iconSize} color={color} />;
+      return (
+        <IconComp
+          name={icon as React.ComponentProps<typeof IoniconsIcon>['name']}
+          size={iconSize}
+          color={color}
+        />
+      );
     };
 
     return (
@@ -197,10 +187,10 @@ export const Input = forwardRef<TextInput, InputProps>(
                 onPress={onLeftIconPress}
                 disabled={disabled}
               >
-                {renderIcon(leftIcon, leftIconFamily)}
+                {renderIcon(leftIcon)}
               </Pressable>
             ) : (
-              <View style={styles.leftIconContainer}>{renderIcon(leftIcon, leftIconFamily)}</View>
+              <View style={styles.leftIconContainer}>{renderIcon(leftIcon)}</View>
             ))}
 
           <TextInput
@@ -230,12 +220,10 @@ export const Input = forwardRef<TextInput, InputProps>(
                 onPress={onRightIconPress}
                 disabled={disabled}
               >
-                {renderIcon(rightIcon, rightIconFamily)}
+                {renderIcon(rightIcon)}
               </Pressable>
             ) : (
-              <View style={styles.rightIconContainer}>
-                {renderIcon(rightIcon, rightIconFamily)}
-              </View>
+              <View style={styles.rightIconContainer}>{renderIcon(rightIcon)}</View>
             ))}
         </View>
 

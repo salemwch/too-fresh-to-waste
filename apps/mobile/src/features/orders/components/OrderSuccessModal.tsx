@@ -261,12 +261,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                     </View>
                   ) : isOrderExpired ? (
                     <View style={styles.expiredRow}>
-                      <Icon
-                        name='timer-off-outline'
-                        family='MaterialCommunityIcons'
-                        size={24}
-                        color='#EF4444'
-                      />
+                      <Icon name='timer-outline' family='Ionicons' size={24} color='#EF4444' />
                       <View style={styles.expiredTextContainer}>
                         <Text style={styles.expiredTitle}>Order Expired</Text>
                         <Text style={styles.expiredSubtitle}>The pickup window has ended.</Text>

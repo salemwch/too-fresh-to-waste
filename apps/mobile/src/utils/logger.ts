@@ -1,4 +1,4 @@
-import crashlytics from '@react-native-firebase/crashlytics';
+import * as Sentry from '@sentry/react-native';
 
 import { environment } from '@/config/environment';
 
@@ -52,7 +52,6 @@ class LoggerService {
   private addLog(entry: LogEntry): void {
     this.logs.push(entry);
 
-    // Keep only the latest logs
     if (this.logs.length > this.maxLogs) {
       this.logs = this.logs.slice(-this.maxLogs);
     }
@@ -97,34 +96,23 @@ class LoggerService {
     }
   }
 
-  private logToCrashlytics(
-    level: LogLevel,
-    message: string,
-    context?: LogContext,
-    error?: Error,
-  ): void {
+  private logToSentry(level: LogLevel, message: string, context?: LogContext, error?: Error): void {
     if (!environment.monitoring.enableCrashlytics) return;
 
     try {
-      const logMessage = this.formatMessage(level, message, context);
-
-      crashlytics().log(logMessage);
-
-      if (context) {
-        Object.entries(context).forEach(([key, value]) => {
-          void crashlytics().setAttribute(key, String(value));
-        });
-      }
+      Sentry.addBreadcrumb({
+        message,
+        level: level === LogLevel.ERROR ? 'error' : level === LogLevel.WARN ? 'warning' : 'info',
+        data: context as Record<string, string>,
+      });
 
       if (error && level === LogLevel.ERROR) {
-        crashlytics().recordError(error);
+        Sentry.captureException(error, { extra: context as Record<string, string> });
       }
-    } catch (crashlyticsError) {
-      // Fallback to console if Crashlytics fails
+    } catch (sentryError) {
       const fallbackError =
-        crashlyticsError instanceof Error ? crashlyticsError : new Error(String(crashlyticsError));
-
-      this.logToConsole(LogLevel.WARN, 'Failed to log to Crashlytics', undefined, fallbackError);
+        sentryError instanceof Error ? sentryError : new Error(String(sentryError));
+      this.logToConsole(LogLevel.WARN, 'Failed to log to Sentry', undefined, fallbackError);
     }
   }
 
@@ -150,7 +138,7 @@ class LoggerService {
 
     this.addLog(entry);
     this.logToConsole(LogLevel.INFO, message, context);
-    this.logToCrashlytics(LogLevel.INFO, message, context);
+    this.logToSentry(LogLevel.INFO, message, context);
   }
 
   public warn(message: string, context?: LogContext, error?: Error): void {
@@ -164,7 +152,7 @@ class LoggerService {
 
     this.addLog(entry);
     this.logToConsole(LogLevel.WARN, message, context, error);
-    this.logToCrashlytics(LogLevel.WARN, message, context, error);
+    this.logToSentry(LogLevel.WARN, message, context, error);
   }
 
   public error(message: string, context?: LogContext, error?: Error): void {
@@ -178,7 +166,7 @@ class LoggerService {
 
     this.addLog(entry);
     this.logToConsole(LogLevel.ERROR, message, context, error);
-    this.logToCrashlytics(LogLevel.ERROR, message, context, error);
+    this.logToSentry(LogLevel.ERROR, message, context, error);
   }
 
   public getLogs(level?: LogLevel): LogEntry[] {
@@ -215,18 +203,12 @@ class LoggerService {
   }
 
   public setUserId(userId: string): void {
-    if (environment.monitoring.enableCrashlytics) {
-      void crashlytics().setUserId(userId);
-    }
+    Sentry.setUser({ id: userId });
     this.info('User ID set for logging', { userId });
   }
 
   public setUserAttributes(attributes: Record<string, string>): void {
-    if (environment.monitoring.enableCrashlytics) {
-      Object.entries(attributes).forEach(([key, value]) => {
-        void crashlytics().setAttribute(key, value);
-      });
-    }
+    Sentry.setContext('user_attributes', attributes);
     this.info('User attributes set for logging', attributes);
   }
 
@@ -238,9 +220,11 @@ class LoggerService {
       ...data,
     };
 
-    if (environment.monitoring.enableCrashlytics) {
-      crashlytics().log(`Breadcrumb: ${JSON.stringify(breadcrumbData)}`);
-    }
+    Sentry.addBreadcrumb({
+      message,
+      category: category ?? 'general',
+      data: data as Record<string, string>,
+    });
 
     this.debug(`Breadcrumb: ${message}`, breadcrumbData);
   }
@@ -294,7 +278,7 @@ export class NetworkLogger {
     Logger.debug('Network request started', {
       url,
       method,
-      headers: headers ? Object.keys(headers) : undefined, // Don't log actual header values for security
+      headers: headers ? Object.keys(headers) : undefined,
     });
   }
 

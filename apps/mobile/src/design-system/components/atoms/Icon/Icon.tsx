@@ -4,7 +4,6 @@
  */
 
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
-import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
 import React, { forwardRef } from 'react';
 import { View } from 'react-native';
 
@@ -13,7 +12,6 @@ import { useTheme } from '../../../providers';
 import { createIconStyles, getIconSize } from './Icon.styles';
 
 import type { IconProps } from './Icon.types';
-import type { IconComponent } from '../../../types';
 
 export const Icon = forwardRef<View, IconProps>(
   (
@@ -22,7 +20,7 @@ export const Icon = forwardRef<View, IconProps>(
       size = 'md',
       color,
       variant: _variant = 'default',
-      family = 'MaterialIcons',
+      family = 'Ionicons',
       disabled = false,
       backgroundColor,
       borderRadius,
@@ -56,21 +54,7 @@ export const Icon = forwardRef<View, IconProps>(
     // Determine icon color
     const iconColor = color ?? colors.onSurface;
 
-    /**
-     * Get appropriate icon component based on family
-     * Uses shared IconComponent type for type safety
-     */
-    const getIconComponent = (): IconComponent => {
-      switch (family) {
-        case 'MaterialCommunityIcons':
-          return MaterialCommunityIcons as IconComponent;
-        case 'Ionicons':
-        default:
-          return IoniconsIcon as IconComponent;
-      }
-    };
-
-    const IconComponent = getIconComponent();
+    const IconComponent = IoniconsIcon;
 
     return (
       <View
@@ -83,7 +67,7 @@ export const Icon = forwardRef<View, IconProps>(
         {...rest}
       >
         <IconComponent
-          name={name}
+          name={name as React.ComponentProps<typeof IoniconsIcon>['name']}
           size={iconSize}
           color={iconColor}
           style={[styles.icon, style]}

@@ -72,6 +72,7 @@ class NotificationService {
       }
       const token = await getToken(m);
       Logger.debug('[NotificationService] FCM token obtained');
+      console.log('[FCM TOKEN]', token); // TODO: remove after testing
       return token;
     } catch (error) {
       Logger.warn('[NotificationService] Failed to get FCM token', {}, error as Error);

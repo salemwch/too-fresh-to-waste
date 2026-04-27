@@ -76,10 +76,7 @@ buildscript {
         // Google Services plugin for Firebase
         classpath("com.google.gms:google-services:$googleServicesVersion")
 
-        // Firebase Crashlytics Gradle plugin - generates build ID for crash reporting
-        // Source: https://firebase.google.com/docs/crashlytics/get-started?platform=android
-        // Version 3.0.6 requires AGP 8.1+ and Java 17 (both satisfied)
-        classpath("com.google.firebase:firebase-crashlytics-gradle:3.0.6")
+        // Firebase Crashlytics removed — using Sentry for crash reporting
 
         // Kotlin plugin - version from gradle.properties via ext.kotlinVersion
         // Source: https://kotlinlang.org/docs/gradle.html

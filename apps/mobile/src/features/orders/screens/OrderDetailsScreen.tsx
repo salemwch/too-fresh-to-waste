@@ -296,8 +296,8 @@ const ConfirmPickupSection: React.FC<{
       <Card style={styles.card}>
         <View style={styles.expiredRow}>
           <Icon
-            name='timer-off-outline'
-            family='MaterialCommunityIcons'
+            name='timer-outline'
+            family='Ionicons'
             size={28}
             color={theme.colors.base?.error?.[500] ?? '#ef4444'}
           />

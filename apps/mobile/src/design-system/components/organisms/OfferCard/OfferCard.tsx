@@ -10,7 +10,7 @@
  * - Type-safe with backend schema integration
  */
 
-import { Heart } from 'lucide-react-native';
+import IoniconsIcon from '@react-native-vector-icons/ionicons';
 import React, { memo, useMemo, useCallback, useState, useEffect } from 'react';
 import { View, Image, Pressable, StyleSheet, type GestureResponderEvent } from 'react-native';
 
@@ -54,20 +54,15 @@ const COLORS = {
   NOT_STARTED_OVERLAY: 'rgba(0, 82, 80, 0.45)', // Brand teal overlay for not-yet-available
 } as const;
 
-/**
- * Heart icon component for favorite button
- * Uses lucide-react-native Heart icon for consistent styling
- */
 const HeartIcon: React.FC<{ filled: boolean; size?: number; color?: string }> = ({
   filled,
   size = 20,
   color = COLORS.HEART_DEFAULT,
 }) => (
-  <Heart
-    color={filled ? color : COLORS.HEART_UNFILLED}
+  <IoniconsIcon
+    name={filled ? 'heart' : 'heart-outline'}
     size={size}
-    fill={filled ? color : 'transparent'}
-    strokeWidth={filled ? 0 : 2}
+    color={filled ? color : COLORS.HEART_UNFILLED}
   />
 );
 /**

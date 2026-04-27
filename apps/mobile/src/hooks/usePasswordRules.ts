@@ -48,7 +48,7 @@ interface PasswordRule {
   description: string;
   isMet: boolean;
   icon: string;
-  iconFamily: 'MaterialCommunityIcons' | 'Ionicons';
+  iconFamily: 'Ionicons';
   color: string;
 }
 
@@ -203,8 +203,8 @@ export const usePasswordRules = (
         label: 'At least 12 characters',
         description: `Password must be at least ${PASSWORD_MIN_LENGTH} characters long`,
         isMet: meetsMinLength(password),
-        icon: 'format-letter-case',
-        iconFamily: 'MaterialCommunityIcons',
+        icon: 'text',
+        iconFamily: 'Ionicons',
         color: meetsMinLength(password) ? COLORS.met : COLORS.unmet,
       },
       {
@@ -212,8 +212,8 @@ export const usePasswordRules = (
         label: 'Uppercase letter (A-Z)',
         description: 'At least one uppercase letter',
         isMet: hasUppercase(password),
-        icon: 'format-letter-case-upper',
-        iconFamily: 'MaterialCommunityIcons',
+        icon: 'arrow-up',
+        iconFamily: 'Ionicons',
         color: hasUppercase(password) ? COLORS.met : COLORS.unmet,
       },
       {
@@ -221,8 +221,8 @@ export const usePasswordRules = (
         label: 'Lowercase letter (a-z)',
         description: 'At least one lowercase letter',
         isMet: hasLowercase(password),
-        icon: 'format-letter-case-lower',
-        iconFamily: 'MaterialCommunityIcons',
+        icon: 'arrow-down',
+        iconFamily: 'Ionicons',
         color: hasLowercase(password) ? COLORS.met : COLORS.unmet,
       },
       {
@@ -230,8 +230,8 @@ export const usePasswordRules = (
         label: 'Number (0-9)',
         description: 'At least one number',
         isMet: hasNumber(password),
-        icon: 'numeric',
-        iconFamily: 'MaterialCommunityIcons',
+        icon: 'keypad',
+        iconFamily: 'Ionicons',
         color: hasNumber(password) ? COLORS.met : COLORS.unmet,
       },
       {
@@ -240,7 +240,7 @@ export const usePasswordRules = (
         description: 'At least one special character',
         isMet: hasSpecialChar(password),
         icon: 'at',
-        iconFamily: 'MaterialCommunityIcons',
+        iconFamily: 'Ionicons',
         color: hasSpecialChar(password) ? COLORS.met : COLORS.unmet,
       },
       {
@@ -249,7 +249,7 @@ export const usePasswordRules = (
         description: `Max ${MAX_REPEATING_CHARS} consecutive same characters`,
         isMet: !hasRepeatingChars(password) || password.length < 3,
         icon: 'repeat',
-        iconFamily: 'MaterialCommunityIcons',
+        iconFamily: 'Ionicons',
         color: !hasRepeatingChars(password) || password.length < 3 ? COLORS.met : COLORS.warning,
       },
     ];

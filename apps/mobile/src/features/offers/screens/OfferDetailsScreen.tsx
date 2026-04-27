@@ -1,17 +1,4 @@
-import {
-  ChevronLeft,
-  Heart,
-  ShoppingBag,
-  Clock,
-  ChevronUp,
-  ChevronDown,
-  Minus,
-  Plus,
-  Star,
-  MapPin,
-  ChevronRight,
-  Users,
-} from 'lucide-react-native';
+import IoniconsIcon from '@react-native-vector-icons/ionicons';
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -214,7 +201,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
             {offer.type.replace('_', ' ')}
           </Text>
           <View style={styles.modalTimeRow}>
-            <Clock color={WHITE} size={16} />
+            <IoniconsIcon name='time' color={WHITE} size={16} />
             <Text size='sm' style={styles.modalTimeText}>
               Pickup Time: {pickupTime}
             </Text>
@@ -233,7 +220,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
               onPress={() => setQuantity(q => Math.max(1, q - 1))}
               style={[styles.qtyButton, qtyButtonStyle]}
             >
-              <Minus color={WHITE} size={20} />
+              <IoniconsIcon name='remove' color={WHITE} size={20} />
             </Pressable>
             <Text weight='bold' size='xl'>
               {quantity}
@@ -243,7 +230,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
               onPress={() => setQuantity(q => Math.min(offer.availableQuantity ?? 1, q + 1))}
               style={[styles.qtyButton, qtyButtonStyle]}
             >
-              <Plus color={WHITE} size={20} />
+              <IoniconsIcon name='add' color={WHITE} size={20} />
             </Pressable>
           </View>
 
@@ -456,7 +443,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
               style={styles.iconButton}
               onPress={() => navigation.goBack()}
             >
-              <ChevronLeft color='#111827' size={24} />
+              <IoniconsIcon name='chevron-back' color='#111827' size={24} />
             </Pressable>
             <View style={styles.topRightActions}>
               <Pressable
@@ -471,11 +458,10 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                 }
                 accessibilityRole='button'
               >
-                <Heart
+                <IoniconsIcon
+                  name={isFavorite ? 'heart' : 'heart-outline'}
                   color={isFavorite ? PRIMARY_COLOR : '#111827'}
                   size={20}
-                  fill={isFavorite ? PRIMARY_COLOR : 'transparent'}
-                  strokeWidth={isFavorite ? 0 : 2}
                 />
               </Pressable>
             </View>
@@ -515,7 +501,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
         <View style={styles.contentContainer}>
           <View style={styles.itemHeader}>
             <View style={styles.itemTitleRow}>
-              <ShoppingBag color={theme.colors.secondary} size={20} />
+              <IoniconsIcon name='bag' color={theme.colors.secondary} size={20} />
               <Text weight='semibold' size='md' style={styles.offerTypeText}>
                 {offer.type.replace('_', ' ')}
               </Text>
@@ -533,7 +519,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           {/* --- Rating Section --- */}
           {establishment?.averageRating != null && establishment.averageRating > 0 && (
             <View style={styles.ratingRow}>
-              <Star color='#facc15' fill='#facc15' size={16} />
+              <IoniconsIcon name='star' color='#facc15' size={16} />
               <Text weight='semibold' size='md' style={styles.ratingText}>
                 {establishment.averageRating.toFixed(1)}
               </Text>
@@ -546,7 +532,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           )}
 
           <View style={styles.pickupRow}>
-            <Clock color='#9ca3af' size={20} />
+            <IoniconsIcon name='time' color='#9ca3af' size={20} />
             <Text style={styles.pickupText}>
               Pick up: {offer.pickupTimeSlots?.[0]?.startTime} -{' '}
               {offer.pickupTimeSlots?.[0]?.endTime}
@@ -560,7 +546,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
 
           {offer.pickupTimeSlots?.[0]?.maxOrders != null && (
             <View style={styles.slotLimitRow}>
-              <Users color='#9ca3af' size={16} />
+              <IoniconsIcon name='people' color='#9ca3af' size={16} />
               <Text style={styles.slotLimitText}>
                 This restaurant allows up to {offer.pickupTimeSlots[0].maxOrders} bag
                 {offer.pickupTimeSlots[0].maxOrders === 1 ? '' : 's'} per offer
@@ -577,7 +563,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
             >
               <View style={styles.locationContent}>
                 <View style={styles.locationIconContainer}>
-                  <MapPin color={WHITE} size={16} strokeWidth={2} />
+                  <IoniconsIcon name='location' color={WHITE} size={16} />
                 </View>
                 <View style={styles.locationTextContainer}>
                   <Text weight='semibold' style={styles.locationAddress} numberOfLines={1}>
@@ -588,7 +574,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                   </Text>
                 </View>
               </View>
-              <ChevronRight color='#9ca3af' size={20} strokeWidth={1.5} />
+              <IoniconsIcon name='chevron-forward' color='#9ca3af' size={20} />
             </Pressable>
           )}
 
@@ -605,9 +591,9 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                 What you could get
               </Text>
               {isDescriptionOpen ? (
-                <ChevronUp color='#9ca3af' size={20} />
+                <IoniconsIcon name='chevron-up' color='#9ca3af' size={20} />
               ) : (
-                <ChevronDown color='#9ca3af' size={20} />
+                <IoniconsIcon name='chevron-down' color='#9ca3af' size={20} />
               )}
             </Pressable>
             {isDescriptionOpen && (
@@ -633,9 +619,9 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                     Ingredients & Allergens
                   </Text>
                   {isAllergensOpen ? (
-                    <ChevronUp color='#9ca3af' size={20} />
+                    <IoniconsIcon name='chevron-up' color='#9ca3af' size={20} />
                   ) : (
-                    <ChevronDown color='#9ca3af' size={20} />
+                    <IoniconsIcon name='chevron-down' color='#9ca3af' size={20} />
                   )}
                 </Pressable>
                 {isAllergensOpen && (

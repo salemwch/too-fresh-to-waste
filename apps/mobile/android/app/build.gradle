@@ -4,7 +4,7 @@ plugins {
 
 apply plugin: "com.android.application"
 apply plugin: "com.google.gms.google-services"
-apply plugin: "com.google.firebase.crashlytics"
+// Firebase Crashlytics removed — using Sentry for crash reporting
 apply plugin: "kotlin-android"
 
 // React Native Config - MUST be applied AFTER react plugins
@@ -191,6 +191,8 @@ react {
     // the workspace root node_modules/, not apps/mobile/node_modules/.
     reactNativeDir = file("${rootProject.ext.nodeModulesDir}/react-native")
     codegenDir = file("${rootProject.ext.nodeModulesDir}/@react-native/codegen")
+    // Explicit hermesc path — Gradle plugin can't resolve %OS-BIN% in pnpm monorepo
+    hermesCommand = "${rootProject.ext.nodeModulesDir}/react-native/sdks/hermesc/win64-bin/hermesc.exe"
     autolinkLibrariesWithApp()
 }
 
@@ -220,8 +222,6 @@ dependencies {
     // Source: https://firebase.google.com/docs/android/setup
     implementation platform("com.google.firebase:firebase-bom:${rootProject.ext.firebaseBomVersion}")
     implementation "com.google.firebase:firebase-messaging"
-    implementation "com.google.firebase:firebase-analytics"
-    implementation "com.google.firebase:firebase-crashlytics"
 
     // AndroidX Core - version 1.13.1 is compatible with AGP 8.7.3 and compileSdk 35
     // Source: https://developer.android.com/jetpack/androidx/releases/core
@@ -232,6 +232,41 @@ dependencies {
     // Source: https://developers.google.com/android/guides/setup
     implementation 'com.google.android.gms:play-services-location:21.3.0'
 
+}
+
+// ============================================================================
+// FIX: Metro generates both .webp and .png for the same image asset, causing
+// "Duplicate resources" errors during mergeReleaseResources. Remove the .png
+// duplicate whenever a .webp with the same name exists in the same directory.
+// Source: https://github.com/facebook/react-native/issues/35generators
+// ============================================================================
+afterEvaluate {
+    android.applicationVariants.configureEach { variant ->
+        def capitalizedName = variant.name.capitalize()
+        def bundleTask = tasks.findByName("createBundle${capitalizedName}JsAndAssets")
+        def mergeTask = tasks.findByName("merge${capitalizedName}Resources")
+
+        if (bundleTask != null && mergeTask != null) {
+            def dedup = tasks.register("dedup${capitalizedName}WebpAssets") {
+                doLast {
+                    def resDir = file("${buildDir}/generated/res/react/${variant.name}")
+                    if (resDir.exists()) {
+                        resDir.eachFileRecurse { f ->
+                            if (f.name.endsWith('.webp')) {
+                                def png = new File(f.parentFile, f.name.replace('.webp', '.png'))
+                                if (png.exists()) {
+                                    png.delete()
+                                    logger.lifecycle("[Dedup] Removed ${png.name} (keeping ${f.name})")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            dedup.configure { dependsOn bundleTask }
+            mergeTask.dependsOn dedup
+        }
+    }
 }
 
 // ============================================================================

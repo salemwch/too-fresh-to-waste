@@ -63,10 +63,7 @@ describe('Icon', () => {
   });
 
   it('renders with different icon families', () => {
-    const families: Array<'Ionicons' | 'MaterialCommunityIcons'> = [
-      'Ionicons',
-      'MaterialCommunityIcons',
-    ];
+    const families: Array<'Ionicons'> = ['Ionicons'];
 
     families.forEach(family => {
       const { getByLabelText } = renderWithTheme(<Icon name='home' family={family} />);

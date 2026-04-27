@@ -475,22 +475,13 @@ importers:
       "@react-native-community/netinfo":
         specifier: ^11.4.1
         version: 11.5.2(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-firebase/analytics":
-        specifier: ^21.6.0
-        version: 21.14.0(@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0))
       "@react-native-firebase/app":
         specifier: ^21.6.0
         version: 21.14.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-firebase/crashlytics":
-        specifier: ^21.6.0
-        version: 21.14.0(@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0))
       "@react-native-firebase/messaging":
         specifier: ^21.6.0
         version: 21.14.0(@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0))
       "@react-native-vector-icons/ionicons":
-        specifier: 12.4.1
-        version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      "@react-native-vector-icons/material-design-icons":
         specifier: 12.4.1
         version: 12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
       "@react-navigation/bottom-tabs":
@@ -520,9 +511,6 @@ importers:
       libphonenumber-js:
         specifier: ^1.12.24
         version: 1.12.38
-      lucide-react-native:
-        specifier: ^0.562.0
-        version: 0.562.0(react-native-svg@15.12.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
       react:
         specifier: 19.1.0
         version: 19.1.0
@@ -583,9 +571,6 @@ importers:
       react-native-sms-retriever:
         specifier: ^1.1.1
         version: 1.1.1
-      react-native-svg:
-        specifier: 15.12.1
-        version: 15.12.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
       react-native-toast-message:
         specifier: ^2.3.3
         version: 2.3.3(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
@@ -680,9 +665,6 @@ importers:
       prettier:
         specifier: ^3.8.2
         version: 3.8.2
-      react-native-svg-transformer:
-        specifier: ^1.5.2
-        version: 1.5.3(react-native-svg@15.12.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(typescript@5.9.3)
       react-test-renderer:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
@@ -6249,6 +6231,7 @@ packages:
       {
         integrity: sha512-ZSD2SxVSgUjHGrB0Wi+4tu3MEpB4fYSbezsFNEJk2xCWDBkFiOeEsjTmR5dvi+CxTK691hQTQlHv0XWuP7ENTg==,
       }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6258,6 +6241,7 @@ packages:
         integrity: sha512-HYHrhyVGt7rdM/ls6FuuD6XE7fa7bjZTJqB2byn6/oGsfiEZaogY77OtoLL/mrQHjHjZiJadtAMSik9XLcm7+A==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6267,6 +6251,7 @@ packages:
         integrity: sha512-4D43p+LIMjDzm66gTDrZch0Flkip5je91mAT7iGs6+SbPyalHgIA+lFQoQwhz/VzHHLxuD0LV6gwmU/WUQ2WEg==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6276,6 +6261,7 @@ packages:
         integrity: sha512-MmAsOzdJpzsnY2cZoPHFPk6uDO/Ncpb4Kh1hAt9UZc1xOW3fIzpe1Pi9y9p6wwUmpaeeDalJxAxH6/fnTquinA==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6285,6 +6271,7 @@ packages:
         integrity: sha512-Lqq17l7ShzJG/d3b1w/+lVO+gp2FM05ZUo/nW0rjxB8xBICXOVv6PqjDnn3FXKssvhO5qAV20lHM6S+spRhEwQ==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6294,6 +6281,7 @@ packages:
         integrity: sha512-rQsTY9ajobncix9raexhBjC7O6cXUMc87eNez2gnB1FwtkUO8DqWZcktbtwOJi7GKmuAPTx0o/IOFtiBNXziKA==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6303,6 +6291,7 @@ packages:
         integrity: sha512-Qo2IQo0ru2kZq47REmHW3iXjAQaKu4tpeq/M8m1zHIVwKduL2vYOBQWbC2oDnMtWPmkBjej6XxgtZByxM6cCFg==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6311,6 +6300,7 @@ packages:
       {
         integrity: sha512-4zjq23oT9APXkerqeslPH3OZWuh5X4crHK6nx82mVHV2SrLba8+8dPEnWbaACWTNjOCbcLIzaC9unk7Wq2MIXw==,
       }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6320,6 +6310,7 @@ packages:
         integrity: sha512-X2Ii6dDFMF+D4niNwMAHbTkeCjlYYnMsd7edXOsi0JByxt9wNyZ9EnhFiBoQdqkE+SMDcu8TlNNttMrf5sJeMA==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6329,6 +6320,7 @@ packages:
         integrity: sha512-xF2GqsvBrp/HbRHWEfOgSfRFX+Q8I5KBEIG5+Lv3Vb2R/NYr0s8A5JhHHGf2pWBMJdbP4B2WHgj/VUrhy8dkIg==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6338,6 +6330,7 @@ packages:
         integrity: sha512-S1gZHVhwOsd1Iad5IFhpfICwNPMGPJidG/Uysy1AwmspyoAP5a4Iw3OWEpINFdgh9MHladbxcLKO2AJO+cA9Lw==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6347,6 +6340,7 @@ packages:
         integrity: sha512-qJhbOQy5VW5qzU74AimjAR9FRFQfrMa7dn4gkEXKMB/S9xZN8e1yC1uA9C15jkXI/PzmJ0muDIWmFwatm5/+VA==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6356,6 +6350,7 @@ packages:
         integrity: sha512-aGc8Y6U5C3igoMaqAJKsCpkbm1XjguQ09Acd+YcTKwjnC2+0w3yGUJkjWB2vTx4tN8dCqQCXO8FmdJpMfOA9EQ==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6365,6 +6360,7 @@ packages:
         integrity: sha512-vF+xxQk2fGS1CN7UPQDbzvcBGfffr+GjTPNiWM38fhBfsLv6A/YUfaqxWlmL7zLzVmo0K2cvvV9wxlSyNba1aQ==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6374,6 +6370,7 @@ packages:
         integrity: sha512-5IsobCyPkb4XwnQO8uFfGcNOxnsg3311GRXhJ3uKv51P7Jxme4ycC/MITnwIZ10w2zx7HIyTiqVzTj4XbuIHbg==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6383,6 +6380,7 @@ packages:
         integrity: sha512-g/H5fa9PQPDK6WUEG7iTlC19sAktI23qyoiJtMLqQiXFCfWeQMhqjLGKeLSKkfzszqmfJCjZtpSiKtBoOdxp3Q==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6412,6 +6410,7 @@ packages:
         integrity: sha512-HkCdnEjvK3o+n0y0tZKXYhIXUNPDx+2vq1dJTmqappVHXS5tXS6W5JOPZr5j+eoZ8gY3PShI2LWj5rWF7ZEtIQ==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6421,6 +6420,7 @@ packages:
         integrity: sha512-FjqF9xQ8FoeUZYKSdt8sMIKvoT9XF8BrzhT3xiFKdEMwYNbsDflcjfErJe3jb7Wj/es/lKTbV5QR1dnLzGpL3w==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6430,6 +6430,7 @@ packages:
         integrity: sha512-tJdcusncdqgvTUYZIuhNC6LYTfL9vNTSQpwWdTCQhQ1lsrNCEE4OKCSdzSV3S9F32pi0i0xQ+YPJHKIzGjdTSA==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6439,6 +6440,7 @@ packages:
         integrity: sha512-a7nl/2KLpRHOYx75YbYZpWspUbX1DFY7JIZbOv5x0QU8SvwDbJt+Hm01vG34PffFyYvHEXrc6Qnip2RTjljNjg==,
       }
     engines: { node: ">=18.0.0" }
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.1.0
 
@@ -6549,14 +6551,6 @@ packages:
       react: 19.1.0
       react-native: ">=0.59"
 
-  "@react-native-firebase/analytics@21.14.0":
-    resolution:
-      {
-        integrity: sha512-hWzb/mMCw9DHu3y8tYlSFTcG6cpUNTbnOO8CDKxjmkCRlryU/sU+dT3ih3NlJXiuI6W9wSUy4qigA0SEBCiQlQ==,
-      }
-    peerDependencies:
-      "@react-native-firebase/app": 21.14.0
-
   "@react-native-firebase/app@21.14.0":
     resolution:
       {
@@ -6566,18 +6560,6 @@ packages:
       expo: ">=47.0.0"
       react: 19.1.0
       react-native: "*"
-    peerDependenciesMeta:
-      expo:
-        optional: true
-
-  "@react-native-firebase/crashlytics@21.14.0":
-    resolution:
-      {
-        integrity: sha512-w51Huoyg3iWgS0UfiozBqofnIaG2ZY8pdVI8iEMRAD82PKYCxFABH7WqSZOefJHvYuqip02DCmEZ9Q0b3lpBug==,
-      }
-    peerDependencies:
-      "@react-native-firebase/app": 21.14.0
-      expo: ">=47.0.0"
     peerDependenciesMeta:
       expo:
         optional: true
@@ -6613,16 +6595,6 @@ packages:
     resolution:
       {
         integrity: sha512-3xvb8cnwMSssmhL2YAZUfy+H2WR73m00PM6+KXiV3u9KfpIPJ5hl7zeO30jRoFpZQkZ+lqP/KIJgPLpQrJLKzg==,
-      }
-    engines: { node: ">= 18.0.0" }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-
-  "@react-native-vector-icons/material-design-icons@12.4.1":
-    resolution:
-      {
-        integrity: sha512-ag4Krs1gQBfz0HaVnXUMF66Y6WCxUbrkixXj2TLx7A140bG4QtxCJX8gYnIzq+zowRKBqs6/n4O1I5eOeC8ttg==,
       }
     engines: { node: ">= 18.0.0" }
     peerDependencies:
@@ -7711,119 +7683,6 @@ packages:
       {
         integrity: sha512-jUF0uRUmS8BKt37t01qaZ88H9yV1mbGYnqLeuFWLcdV+x1P4fl0yP9DGtaEhFPZcwSom7u16GkLEH9QJZOqOkw==,
       }
-
-  "@svgr/babel-plugin-add-jsx-attribute@8.0.0":
-    resolution:
-      {
-        integrity: sha512-b9MIk7yhdS1pMCZM8VeNfUlSKVRhsHZNMl5O9SfaX0l0t5wjdgu4IDzGB8bpnGBBOjGST3rRFVsaaEtI4W6f7g==,
-      }
-    engines: { node: ">=14" }
-    peerDependencies:
-      "@babel/core": ^7.0.0-0
-
-  "@svgr/babel-plugin-remove-jsx-attribute@8.0.0":
-    resolution:
-      {
-        integrity: sha512-BcCkm/STipKvbCl6b7QFrMh/vx00vIP63k2eM66MfHJzPr6O2U0jYEViXkHJWqXqQYjdeA9cuCl5KWmlwjDvbA==,
-      }
-    engines: { node: ">=14" }
-    peerDependencies:
-      "@babel/core": ^7.0.0-0
-
-  "@svgr/babel-plugin-remove-jsx-empty-expression@8.0.0":
-    resolution:
-      {
-        integrity: sha512-5BcGCBfBxB5+XSDSWnhTThfI9jcO5f0Ai2V24gZpG+wXF14BzwxxdDb4g6trdOux0rhibGs385BeFMSmxtS3uA==,
-      }
-    engines: { node: ">=14" }
-    peerDependencies:
-      "@babel/core": ^7.0.0-0
-
-  "@svgr/babel-plugin-replace-jsx-attribute-value@8.0.0":
-    resolution:
-      {
-        integrity: sha512-KVQ+PtIjb1BuYT3ht8M5KbzWBhdAjjUPdlMtpuw/VjT8coTrItWX6Qafl9+ji831JaJcu6PJNKCV0bp01lBNzQ==,
-      }
-    engines: { node: ">=14" }
-    peerDependencies:
-      "@babel/core": ^7.0.0-0
-
-  "@svgr/babel-plugin-svg-dynamic-title@8.0.0":
-    resolution:
-      {
-        integrity: sha512-omNiKqwjNmOQJ2v6ge4SErBbkooV2aAWwaPFs2vUY7p7GhVkzRkJ00kILXQvRhA6miHnNpXv7MRnnSjdRjK8og==,
-      }
-    engines: { node: ">=14" }
-    peerDependencies:
-      "@babel/core": ^7.0.0-0
-
-  "@svgr/babel-plugin-svg-em-dimensions@8.0.0":
-    resolution:
-      {
-        integrity: sha512-mURHYnu6Iw3UBTbhGwE/vsngtCIbHE43xCRK7kCw4t01xyGqb2Pd+WXekRRoFOBIY29ZoOhUCTEweDMdrjfi9g==,
-      }
-    engines: { node: ">=14" }
-    peerDependencies:
-      "@babel/core": ^7.0.0-0
-
-  "@svgr/babel-plugin-transform-react-native-svg@8.1.0":
-    resolution:
-      {
-        integrity: sha512-Tx8T58CHo+7nwJ+EhUwx3LfdNSG9R2OKfaIXXs5soiy5HtgoAEkDay9LIimLOcG8dJQH1wPZp/cnAv6S9CrR1Q==,
-      }
-    engines: { node: ">=14" }
-    peerDependencies:
-      "@babel/core": ^7.0.0-0
-
-  "@svgr/babel-plugin-transform-svg-component@8.0.0":
-    resolution:
-      {
-        integrity: sha512-DFx8xa3cZXTdb/k3kfPeaixecQLgKh5NVBMwD0AQxOzcZawK4oo1Jh9LbrcACUivsCA7TLG8eeWgrDXjTMhRmw==,
-      }
-    engines: { node: ">=12" }
-    peerDependencies:
-      "@babel/core": ^7.0.0-0
-
-  "@svgr/babel-preset@8.1.0":
-    resolution:
-      {
-        integrity: sha512-7EYDbHE7MxHpv4sxvnVPngw5fuR6pw79SkcrILHJ/iMpuKySNCl5W1qcwPEpU+LgyRXOaAFgH0KhwD18wwg6ug==,
-      }
-    engines: { node: ">=14" }
-    peerDependencies:
-      "@babel/core": ^7.0.0-0
-
-  "@svgr/core@8.1.0":
-    resolution:
-      {
-        integrity: sha512-8QqtOQT5ACVlmsvKOJNEaWmRPmcojMOzCz4Hs2BGG/toAp/K38LcsMRyLp349glq5AzJbCEeimEoxaX6v/fLrA==,
-      }
-    engines: { node: ">=14" }
-
-  "@svgr/hast-util-to-babel-ast@8.0.0":
-    resolution:
-      {
-        integrity: sha512-EbDKwO9GpfWP4jN9sGdYwPBU0kdomaPIL2Eu4YwmgP+sJeXT+L7bMwJUBnhzfH8Q2qMBqZ4fJwpCyYsAN3mt2Q==,
-      }
-    engines: { node: ">=14" }
-
-  "@svgr/plugin-jsx@8.1.0":
-    resolution:
-      {
-        integrity: sha512-0xiIyBsLlr8quN+WyuxooNW9RJ0Dpr8uOnH/xrCVO8GLUcwHISwj1AG0k+LFzteTkAA0GbX0kj9q6Dk70PTiPA==,
-      }
-    engines: { node: ">=14" }
-    peerDependencies:
-      "@svgr/core": "*"
-
-  "@svgr/plugin-svgo@8.1.0":
-    resolution:
-      {
-        integrity: sha512-Ywtl837OGO9pTLIN/onoWLmDQ4zFUycI1g76vuKGEz6evR/ZTJlJuz3G/fIkb6OVBJ2g0o6CGJzaEjfmEo3AHA==,
-      }
-    engines: { node: ">=14" }
-    peerDependencies:
-      "@svgr/core": "*"
 
   "@swc/core-darwin-arm64@1.15.17":
     resolution:
@@ -9022,6 +8881,7 @@ packages:
         integrity: sha512-9k/gHF6n/pAi/9tqr3m3aqkuiNosYTurLLUtc7xQ9sxB/wm7WPygCv8GYa6mS0fLJEHhqMC1ATYhz++U/lRHqg==,
       }
     engines: { node: ">=10.0.0" }
+    deprecated: this version has critical issues, please update to the latest version
 
   "@xtuc/ieee754@1.2.0":
     resolution:
@@ -10269,13 +10129,6 @@ packages:
       }
     engines: { node: ">= 6" }
 
-  commander@7.2.0:
-    resolution:
-      {
-        integrity: sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==,
-      }
-    engines: { node: ">= 10" }
-
   commander@9.5.0:
     resolution:
       {
@@ -10559,20 +10412,6 @@ packages:
       }
     engines: { node: ">=8.0.0" }
 
-  css-tree@2.2.1:
-    resolution:
-      {
-        integrity: sha512-OA0mILzGc1kCOCSJerOeqDxDQ4HOh+G8NbOJFOTgOCzpw7fCBubk0fEyxp8AgOL/jvLgYA/uV0cMbe43ElF1JA==,
-      }
-    engines: { node: ^10 || ^12.20.0 || ^14.13.0 || >=15.0.0, npm: ">=7.0.0" }
-
-  css-tree@2.3.1:
-    resolution:
-      {
-        integrity: sha512-6Fv1DV/TYw//QF5IzQdqsNDjx/wc8TrMBZsqjL9eW01tWb7R7k/mq+/VXfJCl7SoD5emsJop9cOByJZfs8hYIw==,
-      }
-    engines: { node: ^10 || ^12.20.0 || ^14.13.0 || >=15.0.0 }
-
   css-what@6.2.2:
     resolution:
       {
@@ -10593,13 +10432,6 @@ packages:
       }
     engines: { node: ">=4" }
     hasBin: true
-
-  csso@5.0.5:
-    resolution:
-      {
-        integrity: sha512-0LrrStPOdJj+SPCCrGhzryycLjwcgUSHBtxNA8aIDxf0GLsRh1cKYhB00Gd1lDOS4yGH69+SNn13+TWbVHETFQ==,
-      }
-    engines: { node: ^10 || ^12.20.0 || ^14.13.0 || >=15.0.0, npm: ">=7.0.0" }
 
   cssom@0.3.8:
     resolution:
@@ -11051,12 +10883,6 @@ packages:
     resolution:
       {
         integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==,
-      }
-
-  dot-case@3.0.4:
-    resolution:
-      {
-        integrity: sha512-Kv5nKlh6yRrdrGvxeJ2e5y2eRUpkUosIW4A2AS38zwSz27zu7ufDwQPi5Jhs3XAlGNetl3bmnGhQsMtkKJnj3w==,
       }
 
   dot-prop@5.3.0:
@@ -14236,12 +14062,6 @@ packages:
         integrity: sha512-+gfBXl6sxXMPe8tKQm7qzLnUy5DUPJPKIyRHwtpCpyUEYjHYRJC/5gjUvdkuO2c3JllrPtHXH5UJJK8LRYl5yQ==,
       }
 
-  lower-case@2.0.2:
-    resolution:
-      {
-        integrity: sha512-7fm3l3NAF9WfN6W3JOmf5drwpVqX78JtoGJ3A6W0a6ZnldM41w2fV5D490psKFTpMds8TJse/eHLFFsNHHjHgg==,
-      }
-
   lru-cache@10.4.3:
     resolution:
       {
@@ -14273,16 +14093,6 @@ packages:
       {
         integrity: sha512-GXn7gyHAMhO13WSKrIiNfztwxodVsP8IoZ3XfrJV4yH2x0/OeTO/FIaAHTY5YekdGgW94njfuKmyyt1E0mR6Ug==,
       }
-
-  lucide-react-native@0.562.0:
-    resolution:
-      {
-        integrity: sha512-ZF2ok8SzyUaiCIrLGqYh/6SPs+huVzbZOCv0i411L4+oP3tJgQvvKePiVgWCioa7HsT2xaJZSrdd92cuB2/+ew==,
-      }
-    peerDependencies:
-      react: 19.1.0
-      react-native: "*"
-      react-native-svg: ^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0
 
   lucide-react@0.468.0:
     resolution:
@@ -14370,18 +14180,6 @@ packages:
     resolution:
       {
         integrity: sha512-dn6wd0uw5GsdswPFfsgMp5NSB0/aDe6fK94YJV/AJDYXL6HVLWBsxeq7js7Ad+mU2K9LAlwpk6kN2D5mwCPVow==,
-      }
-
-  mdn-data@2.0.28:
-    resolution:
-      {
-        integrity: sha512-aylIc7Z9y4yzHYAJNuESG3hfhC+0Ibp/MAMiaOZgNv4pmEdFyfZhhhny4MNiAfWdBQ1RQ2mfDWmM1x8SvGyp8g==,
-      }
-
-  mdn-data@2.0.30:
-    resolution:
-      {
-        integrity: sha512-GaqWWShW4kv/G9IEucWScBx9G1/vsFZZJUO+tD26M8J8z3Kw5RDQjaoZe03YAClgeS/SWPOcb4nkFBTEi5DUEA==,
       }
 
   media-typer@0.3.0:
@@ -14980,12 +14778,6 @@ packages:
       sass:
         optional: true
 
-  no-case@3.0.4:
-    resolution:
-      {
-        integrity: sha512-fgAN3jGAh+RoxUGZHTSOLJIqUc2wmoBwGR4tbpNAKmmovFoWq0OdRkb0VkldReO2a2iBT/OEulG9XSUc10r3zg==,
-      }
-
   nocache@3.0.4:
     resolution:
       {
@@ -15457,12 +15249,6 @@ packages:
         integrity: sha512-cPLl+qZpSc+ireUvt+IzqbED1cHHkDoVYMo30jbJIdOOjQ1MQYZBPiNvmi8UM6lJuOpTPXJGZQk0DtC4y61MYQ==,
       }
     engines: { node: ">= 0.4.0" }
-
-  path-dirname@1.0.2:
-    resolution:
-      {
-        integrity: sha512-ALzNPpyNq9AqXMBjeymIjFDAkAFH06mHJH/cSBHAgU0s4vfpBn6b2nf8tiRLvagKD8RbTpq2FKTBg7cl9l3c7Q==,
-      }
 
   path-exists@3.0.0:
     resolution:
@@ -16271,15 +16057,6 @@ packages:
         integrity: sha512-WRwiITfssx59+TB1iEMmjB7w4OTkatR34js5+4a4pP2jMXJ4aLdXK0hOtHxl8ciS8aIejdd49Sz8AXonlvtdRw==,
       }
 
-  react-native-svg-transformer@1.5.3:
-    resolution:
-      {
-        integrity: sha512-M4uFg5pUt35OMgjD4rWWbwd6PmxV96W7r/gQTTa+iZA5B+jO6aURhzAZGLHSrg1Kb91cKG0Rildy9q1WJvYstg==,
-      }
-    peerDependencies:
-      react-native: ">=0.59.0"
-      react-native-svg: ">=12.0.0"
-
   react-native-svg@15.12.1:
     resolution:
       {
@@ -16845,13 +16622,6 @@ packages:
       }
     engines: { node: ">=11.0.0" }
 
-  sax@1.6.0:
-    resolution:
-      {
-        integrity: sha512-6R3J5M4AcbtLUdZmRv2SygeVaM7IhrLXu9BmnOGmmACak8fiUtOsYNWUS4uK7upbmHIBbLBeFeI//477BKLBzA==,
-      }
-    engines: { node: ">=11.0.0" }
-
   saxes@6.0.0:
     resolution:
       {
@@ -17137,12 +16907,6 @@ packages:
       }
     engines: { node: ">= 18" }
 
-  snake-case@3.0.4:
-    resolution:
-      {
-        integrity: sha512-LAOh4z89bGQvl9pFfNF8V146i7o7/CqFPbqzYgP+yYzDIDeS9HaNFtXABamRW+AQzEVODcvE79ljJ+8a9YSdMg==,
-      }
-
   snappy@7.3.3:
     resolution:
       {
@@ -17219,13 +16983,6 @@ packages:
         integrity: sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==,
       }
 
-  source-map@0.5.6:
-    resolution:
-      {
-        integrity: sha512-MjZkVp0NHr5+TPihLcadqnlVoGIoWo4IBHptutGh9wI3ttUYvCG26HkSuDi+K6lsZ25syXJXcctwgyVCt//xqA==,
-      }
-    engines: { node: ">=0.10.0" }
-
   source-map@0.5.7:
     resolution:
       {
@@ -17298,12 +17055,6 @@ packages:
         integrity: sha512-+L3ccpzibovGXFK+Ap/f8LOS0ahMrHTf3xu7mMLSpEGU0EO9ucaysSylKo9eRDFNhWve/y275iPmIZ4z39a9iA==,
       }
 
-  stack-generator@2.0.10:
-    resolution:
-      {
-        integrity: sha512-mwnua/hkqM6pF4k8SnmZ2zfETsRUpWXREfA/goT8SLCV4iOFa4bzOX2nDipWAZFPTjLvQB82f5yaodMVhK0yJQ==,
-      }
-
   stack-trace@0.0.10:
     resolution:
       {
@@ -17321,18 +17072,6 @@ packages:
     resolution:
       {
         integrity: sha512-oeVtt7eWQS+Na6F//S4kJ2K2VbRlS9D43mAlMyVpVWovy9o+jfgH8O9agzANzaiLjclA0oYzUXEM4PurhSUChw==,
-      }
-
-  stacktrace-gps@3.1.2:
-    resolution:
-      {
-        integrity: sha512-GcUgbO4Jsqqg6RxfyTHFiPxdPqF+3LFmQhm7MgCuYQOYuWyqxo5pwRPz5d/u6/WYJdEnWfK4r+jGbyD8TSggXQ==,
-      }
-
-  stacktrace-js@2.0.2:
-    resolution:
-      {
-        integrity: sha512-Je5vBeY4S1r/RnLydLl0TBTi3F2qdfWmYsGvtfZgEI+SCprPppaIhQf5nGcal4gI4cGpCV/duLcAzT1np6sQqg==,
       }
 
   stacktrace-parser@0.1.11:
@@ -17615,13 +17354,6 @@ packages:
     engines: { node: ">=16 || 14 >=14.17" }
     hasBin: true
 
-  superstruct@2.0.2:
-    resolution:
-      {
-        integrity: sha512-uV+TFRZdXsqXTL2pRvujROjdZQ4RAlBUS5BTh9IGm+jTqQntYThciG/qu57Gs69yjnVUSqdxF9YLmSnpupBW9A==,
-      }
-    engines: { node: ">=14.0.0" }
-
   supports-color@10.2.2:
     resolution:
       {
@@ -17649,20 +17381,6 @@ packages:
         integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==,
       }
     engines: { node: ">= 0.4" }
-
-  svg-parser@2.0.4:
-    resolution:
-      {
-        integrity: sha512-e4hG1hRwoOdRb37cIMSgzNsxyzKfayW6VOflrwvR+/bzrkyxY/31WkbgnQpgtrNp1SdpJvpUAGTa/ZoiPNDuRQ==,
-      }
-
-  svgo@3.3.3:
-    resolution:
-      {
-        integrity: sha512-+wn7I4p7YgJhHs38k2TNjy1vCfPIfLIJWR5MnCStsN8WuuTcBnRKcMHQLMM2ijxGZmDoZwNv8ipl5aTTen62ng==,
-      }
-    engines: { node: ">=14.0.0" }
-    hasBin: true
 
   swagger-ui-dist@5.31.0:
     resolution:
@@ -22807,11 +22525,6 @@ snapshots:
       react: 19.1.0
       react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
 
-  "@react-native-firebase/analytics@21.14.0(@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0))":
-    dependencies:
-      "@react-native-firebase/app": 21.14.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      superstruct: 2.0.2
-
   "@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
     dependencies:
       firebase: 11.3.1(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))
@@ -22819,11 +22532,6 @@ snapshots:
       react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
     transitivePeerDependencies:
       - "@react-native-async-storage/async-storage"
-
-  "@react-native-firebase/crashlytics@21.14.0(@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0))":
-    dependencies:
-      "@react-native-firebase/app": 21.14.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      stacktrace-js: 2.0.2
 
   "@react-native-firebase/messaging@21.14.0(@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0))":
     dependencies:
@@ -22838,14 +22546,6 @@ snapshots:
       react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
 
   "@react-native-vector-icons/ionicons@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
-    dependencies:
-      "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-    transitivePeerDependencies:
-      - "@react-native-vector-icons/get-image"
-
-  "@react-native-vector-icons/material-design-icons@12.4.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)":
     dependencies:
       "@react-native-vector-icons/common": 12.4.0(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
       react: 19.1.0
@@ -23676,85 +23376,6 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
-
-  "@svgr/babel-plugin-add-jsx-attribute@8.0.0(@babel/core@7.29.0)":
-    dependencies:
-      "@babel/core": 7.29.0
-
-  "@svgr/babel-plugin-remove-jsx-attribute@8.0.0(@babel/core@7.29.0)":
-    dependencies:
-      "@babel/core": 7.29.0
-
-  "@svgr/babel-plugin-remove-jsx-empty-expression@8.0.0(@babel/core@7.29.0)":
-    dependencies:
-      "@babel/core": 7.29.0
-
-  "@svgr/babel-plugin-replace-jsx-attribute-value@8.0.0(@babel/core@7.29.0)":
-    dependencies:
-      "@babel/core": 7.29.0
-
-  "@svgr/babel-plugin-svg-dynamic-title@8.0.0(@babel/core@7.29.0)":
-    dependencies:
-      "@babel/core": 7.29.0
-
-  "@svgr/babel-plugin-svg-em-dimensions@8.0.0(@babel/core@7.29.0)":
-    dependencies:
-      "@babel/core": 7.29.0
-
-  "@svgr/babel-plugin-transform-react-native-svg@8.1.0(@babel/core@7.29.0)":
-    dependencies:
-      "@babel/core": 7.29.0
-
-  "@svgr/babel-plugin-transform-svg-component@8.0.0(@babel/core@7.29.0)":
-    dependencies:
-      "@babel/core": 7.29.0
-
-  "@svgr/babel-preset@8.1.0(@babel/core@7.29.0)":
-    dependencies:
-      "@babel/core": 7.29.0
-      "@svgr/babel-plugin-add-jsx-attribute": 8.0.0(@babel/core@7.29.0)
-      "@svgr/babel-plugin-remove-jsx-attribute": 8.0.0(@babel/core@7.29.0)
-      "@svgr/babel-plugin-remove-jsx-empty-expression": 8.0.0(@babel/core@7.29.0)
-      "@svgr/babel-plugin-replace-jsx-attribute-value": 8.0.0(@babel/core@7.29.0)
-      "@svgr/babel-plugin-svg-dynamic-title": 8.0.0(@babel/core@7.29.0)
-      "@svgr/babel-plugin-svg-em-dimensions": 8.0.0(@babel/core@7.29.0)
-      "@svgr/babel-plugin-transform-react-native-svg": 8.1.0(@babel/core@7.29.0)
-      "@svgr/babel-plugin-transform-svg-component": 8.0.0(@babel/core@7.29.0)
-
-  "@svgr/core@8.1.0(typescript@5.9.3)":
-    dependencies:
-      "@babel/core": 7.29.0
-      "@svgr/babel-preset": 8.1.0(@babel/core@7.29.0)
-      camelcase: 6.3.0
-      cosmiconfig: 8.3.6(typescript@5.9.3)
-      snake-case: 3.0.4
-    transitivePeerDependencies:
-      - supports-color
-      - typescript
-
-  "@svgr/hast-util-to-babel-ast@8.0.0":
-    dependencies:
-      "@babel/types": 7.29.0
-      entities: 4.5.0
-
-  "@svgr/plugin-jsx@8.1.0(@svgr/core@8.1.0(typescript@5.9.3))":
-    dependencies:
-      "@babel/core": 7.29.0
-      "@svgr/babel-preset": 8.1.0(@babel/core@7.29.0)
-      "@svgr/core": 8.1.0(typescript@5.9.3)
-      "@svgr/hast-util-to-babel-ast": 8.0.0
-      svg-parser: 2.0.4
-    transitivePeerDependencies:
-      - supports-color
-
-  "@svgr/plugin-svgo@8.1.0(@svgr/core@8.1.0(typescript@5.9.3))(typescript@5.9.3)":
-    dependencies:
-      "@svgr/core": 8.1.0(typescript@5.9.3)
-      cosmiconfig: 8.3.6(typescript@5.9.3)
-      deepmerge: 4.3.1
-      svgo: 3.3.3
-    transitivePeerDependencies:
-      - typescript
 
   "@swc/core-darwin-arm64@1.15.17":
     optional: true
@@ -25235,8 +24856,6 @@ snapshots:
 
   commander@4.1.1: {}
 
-  commander@7.2.0: {}
-
   commander@9.5.0: {}
 
   comment-json@4.4.1:
@@ -25461,25 +25080,11 @@ snapshots:
       mdn-data: 2.0.14
       source-map: 0.6.1
 
-  css-tree@2.2.1:
-    dependencies:
-      mdn-data: 2.0.28
-      source-map-js: 1.2.1
-
-  css-tree@2.3.1:
-    dependencies:
-      mdn-data: 2.0.30
-      source-map-js: 1.2.1
-
   css-what@6.2.2: {}
 
   css.escape@1.5.1: {}
 
   cssesc@3.0.0: {}
-
-  csso@5.0.5:
-    dependencies:
-      css-tree: 2.2.1
 
   cssom@0.3.8: {}
 
@@ -25701,11 +25306,6 @@ snapshots:
       dom-serializer: 2.0.0
       domelementtype: 2.3.0
       domhandler: 5.0.3
-
-  dot-case@3.0.4:
-    dependencies:
-      no-case: 3.0.4
-      tslib: 2.8.1
 
   dot-prop@5.3.0:
     dependencies:
@@ -28327,10 +27927,6 @@ snapshots:
 
   lottie-web@5.13.0: {}
 
-  lower-case@2.0.2:
-    dependencies:
-      tslib: 2.8.1
-
   lru-cache@10.4.3: {}
 
   lru-cache@11.2.6: {}
@@ -28347,12 +27943,6 @@ snapshots:
     dependencies:
       lodash.clonedeep: 4.5.0
       lru-cache: 6.0.0
-
-  lucide-react-native@0.562.0(react-native-svg@15.12.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0):
-    dependencies:
-      react: 19.1.0
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-      react-native-svg: 15.12.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
 
   lucide-react@0.468.0(react@19.1.0):
     dependencies:
@@ -28390,10 +27980,6 @@ snapshots:
       react: 19.1.0
 
   mdn-data@2.0.14: {}
-
-  mdn-data@2.0.28: {}
-
-  mdn-data@2.0.30: {}
 
   media-typer@0.3.0: {}
 
@@ -28838,11 +28424,6 @@ snapshots:
       - "@babel/core"
       - babel-plugin-macros
 
-  no-case@3.0.4:
-    dependencies:
-      lower-case: 2.0.2
-      tslib: 2.8.1
-
   nocache@3.0.4: {}
 
   node-abi@3.89.0:
@@ -29158,8 +28739,6 @@ snapshots:
       passport-strategy: 1.0.0
       pause: 0.0.1
       utils-merge: 1.0.1
-
-  path-dirname@1.0.2: {}
 
   path-exists@3.0.0: {}
 
@@ -29630,18 +29209,6 @@ snapshots:
 
   react-native-sms-retriever@1.1.1: {}
 
-  react-native-svg-transformer@1.5.3(react-native-svg@15.12.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0))(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(typescript@5.9.3):
-    dependencies:
-      "@svgr/core": 8.1.0(typescript@5.9.3)
-      "@svgr/plugin-jsx": 8.1.0(@svgr/core@8.1.0(typescript@5.9.3))
-      "@svgr/plugin-svgo": 8.1.0(@svgr/core@8.1.0(typescript@5.9.3))(typescript@5.9.3)
-      path-dirname: 1.0.2
-      react-native: 0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
-      react-native-svg: 15.12.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
-    transitivePeerDependencies:
-      - supports-color
-      - typescript
-
   react-native-svg@15.12.1(react-native@0.81.0(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.81.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0):
     dependencies:
       css-select: 5.2.2
@@ -30095,8 +29662,6 @@ snapshots:
 
   sax@1.4.4: {}
 
-  sax@1.6.0: {}
-
   saxes@6.0.0:
     dependencies:
       xmlchars: 2.2.0
@@ -30346,11 +29911,6 @@ snapshots:
 
   smol-toml@1.6.1: {}
 
-  snake-case@3.0.4:
-    dependencies:
-      dot-case: 3.0.4
-      tslib: 2.8.1
-
   snappy@7.3.3(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1):
     optionalDependencies:
       "@napi-rs/snappy-android-arm-eabi": 7.3.3
@@ -30459,8 +30019,6 @@ snapshots:
       buffer-from: 1.1.2
       source-map: 0.6.1
 
-  source-map@0.5.6: {}
-
   source-map@0.5.7: {}
 
   source-map@0.6.1: {}
@@ -30489,10 +30047,6 @@ snapshots:
 
   stable-hash@0.0.5: {}
 
-  stack-generator@2.0.10:
-    dependencies:
-      stackframe: 1.3.4
-
   stack-trace@0.0.10: {}
 
   stack-utils@2.0.6:
@@ -30500,17 +30054,6 @@ snapshots:
       escape-string-regexp: 2.0.0
 
   stackframe@1.3.4: {}
-
-  stacktrace-gps@3.1.2:
-    dependencies:
-      source-map: 0.5.6
-      stackframe: 1.3.4
-
-  stacktrace-js@2.0.2:
-    dependencies:
-      error-stack-parser: 2.1.4
-      stack-generator: 2.0.10
-      stacktrace-gps: 3.1.2
 
   stacktrace-parser@0.1.11:
     dependencies:
@@ -30695,8 +30238,6 @@ snapshots:
       tinyglobby: 0.2.15
       ts-interface-checker: 0.1.13
 
-  superstruct@2.0.2: {}
-
   supports-color@10.2.2: {}
 
   supports-color@7.2.0:
@@ -30708,18 +30249,6 @@ snapshots:
       has-flag: 4.0.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
-
-  svg-parser@2.0.4: {}
-
-  svgo@3.3.3:
-    dependencies:
-      commander: 7.2.0
-      css-select: 5.2.2
-      css-tree: 2.3.1
-      css-what: 6.2.2
-      csso: 5.0.5
-      picocolors: 1.1.1
-      sax: 1.6.0
 
   swagger-ui-dist@5.31.0:
     dependencies:

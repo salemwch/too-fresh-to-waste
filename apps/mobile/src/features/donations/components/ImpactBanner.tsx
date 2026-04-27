@@ -5,9 +5,9 @@
  */
 
 import React, { memo, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, LayoutAnimation } from 'react-native';
+import { View, Text, StyleSheet, Pressable, LayoutAnimation, Image } from 'react-native';
 
-import HeartInHandsIcon from '../../../assets/images/RedHeartinHands IconMedicalCareLogo.svg';
+const heartInHandsImg = require('../../../assets/images/heart-in-hands.png');
 import { useDonationStats } from '../hooks/useDonations';
 
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -69,7 +69,7 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
         {/* Collapsed View */}
         <View style={styles.collapsedContent}>
           <View style={styles.iconContainer}>
-            <HeartInHandsIcon width={36} height={36} />
+            <Image source={heartInHandsImg} style={{ width: 36, height: 36 }} />
           </View>
           <View style={styles.textContainer}>
             <Text style={styles.title}>Your Orders Change Lives</Text>

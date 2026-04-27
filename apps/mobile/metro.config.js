@@ -176,7 +176,7 @@ const config = {
      * Optimization: Platform-specific files first for faster resolution
      * Note: 'svg' added to sourceExts for react-native-svg-transformer support
      */
-    sourceExts: ['ts', 'tsx', 'js', 'jsx', 'json', 'mjs', 'cjs', 'svg'],
+    sourceExts: ['ts', 'tsx', 'js', 'jsx', 'json', 'mjs', 'cjs'],
 
     /**
      * Asset file extensions
@@ -192,7 +192,7 @@ const config = {
       'jpeg',
       'gif',
       'webp',
-      // 'svg' - handled by react-native-svg-transformer as component
+      'svg',
       // Fonts
       'ttf',
       'otf',
@@ -316,13 +316,6 @@ const config = {
      */
     assetPlugins: [],
 
-    /**
-     * Babel transformer path
-     * Uses react-native-svg-transformer for SVG files, default for everything else
-     *
-     * @see https://github.com/kristerkari/react-native-svg-transformer
-     */
-    babelTransformerPath: require.resolve('react-native-svg-transformer'),
   },
 
   serializer: {

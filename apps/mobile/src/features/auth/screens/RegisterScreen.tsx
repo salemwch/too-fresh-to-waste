@@ -6,7 +6,7 @@
 // Note: Using bracket notation due to TypeScript's noPropertyAccessFromIndexSignature rule
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import Icon from '@react-native-vector-icons/material-design-icons';
+import Icon from '@react-native-vector-icons/ionicons';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import {
