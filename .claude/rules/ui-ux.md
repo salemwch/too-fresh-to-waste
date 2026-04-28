@@ -6,7 +6,7 @@
 
 | Token                                 | Hex          | Usage                       |
 | ------------------------------------- | ------------ | --------------------------- |
-| `primary-500` / `hsl(var(--primary))` | #005250      | Brand primary, CTAs, links  |
+| `primary-500` / `hsl(var(--primary))` | #1E4448      | Brand primary, CTAs, links  |
 | `accent-500` / `hsl(var(--accent))`   | #F55449      | Danger, highlights, badges  |
 | `secondary` / `hsl(var(--secondary))` | #FFA000      | Warnings, secondary actions |
 | `hsl(var(--background))`              | white / dark | Page background             |

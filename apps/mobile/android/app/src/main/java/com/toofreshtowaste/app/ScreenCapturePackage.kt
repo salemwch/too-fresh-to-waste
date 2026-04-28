@@ -1,4 +1,4 @@
-package com.foodwasteapp
+package com.toofreshtowaste.app
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule

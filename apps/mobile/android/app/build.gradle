@@ -15,7 +15,7 @@ apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.grad
 // Generates PackageList class for autolinking and BuildConfig constants
 
 android {
-    namespace "com.foodwasteapp"
+    namespace "com.toofreshtowaste.app"
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     ndkVersion rootProject.ext.ndkVersion
