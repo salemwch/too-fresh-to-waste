@@ -189,12 +189,21 @@
 # react-native-svg: REMOVED — converted to PNG assets
 
 # ============================================================================
+# NITRO MODULES (react-native-mmkv, react-native-nitro-modules)
+# ============================================================================
+# Source: https://nitro.margelo.com/
+# R8 obfuscates NitroMmkvOnLoad which breaks reflection-based init in release.
+
+-keep class com.margelo.nitro.** { *; }
+-dontwarn com.margelo.nitro.**
+
+# ============================================================================
 # REACT NATIVE CONFIG
 # ============================================================================
 # Source: https://github.com/luggit/react-native-config
 
--keep class com.lugg.ReactNativeConfig.** { *; }
--dontwarn com.lugg.ReactNativeConfig.**
+-keep class com.lugg.RNCConfig.** { *; }
+-dontwarn com.lugg.RNCConfig.**
 
 # ============================================================================
 # REACT NATIVE GEOLOCATION
