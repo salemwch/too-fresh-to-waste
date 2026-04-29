@@ -10,7 +10,7 @@ const REFRESH_INTERVAL_MS = 13 * 60 * 1000; // 13 minutes — access token TTL i
 
 // Pages that handle their own auth flow — skip rehydration to avoid
 // spurious 401s before HttpOnly cookies are set by the backend.
-const AUTH_FLOW_PAGES = ['/verify-callback'];
+const AUTH_FLOW_PAGES = ['/verify-email'];
 
 // Returns true only when the backend explicitly rejected the token (not a network issue).
 function isHardAuthError(err: unknown): boolean {
@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ── Rehydrate session on mount ─────────────────────────────────────────────
   // No tokens are read from JS — the browser auto-sends HttpOnly cookies.
   // We verify the session by calling GET /auth/me (cookie-authenticated).
-  // Skip on auth-flow pages (e.g. verify-callback) which set cookies themselves.
+  // Skip on auth-flow pages (e.g. verify-email) which set cookies themselves.
   useEffect(() => {
     const isAuthFlowPage = AUTH_FLOW_PAGES.some(p => pathname.includes(p));
     if (isAuthFlowPage) {

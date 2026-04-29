@@ -16,7 +16,7 @@ import { AuthService } from './auth.service';
  * Flow (verify-email):
  *   1. User clicks email link → GET /api/v1/auth/verify-email?token=...
  *   2. Controller verifies token, issues auth cookies
- *   3. 302 redirect → WEB_FRONTEND_URL/email-verified?status=success
+ *   3. 302 redirect → WEB_FRONTEND_URL/verify-email?status=success
  *      (or ?status=error on failure — Next.js page reads this)
  */
 @ApiTags('auth-redirect')
@@ -51,7 +51,7 @@ export class AuthRedirectController {
   @ApiOperation({
     summary: 'Verify email via link and redirect to frontend',
     description:
-      'Verifies the hashed token server-side, sets HttpOnly auth cookies on success, and 302-redirects to the Next.js /email-verified page.',
+      'Verifies the hashed token server-side, sets HttpOnly auth cookies on success, and 302-redirects to the Next.js /verify-email page.',
   })
   @ApiQuery({ name: 'token', required: true, description: 'Email verification token' })
   async verifyEmailRedirect(
@@ -60,7 +60,7 @@ export class AuthRedirectController {
   ): Promise<void> {
     if (!rawToken || typeof rawToken !== 'string') {
       this.logger.warn('verify-email redirect called without token');
-      this.redirectToFrontend(res, '/email-verified', 'error');
+      this.redirectToFrontend(res, '/verify-email', 'error');
       return;
     }
 
@@ -90,12 +90,12 @@ export class AuthRedirectController {
       }
 
       this.logger.log('Email verified via GET redirect', { userId: result.user?.userId });
-      this.redirectToFrontend(res, '/email-verified', 'success');
+      this.redirectToFrontend(res, '/verify-email', 'success');
     } catch (error) {
       this.logger.warn('Email verification via GET redirect failed', {
         error: error instanceof Error ? error.message : String(error),
       });
-      this.redirectToFrontend(res, '/email-verified', 'error');
+      this.redirectToFrontend(res, '/verify-email', 'error');
     }
   }
 

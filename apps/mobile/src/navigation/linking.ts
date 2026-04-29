@@ -11,7 +11,7 @@
  *              + Associated Domains entitlement in Xcode (applinks:toofreshtowaste.com)
  *
  * Path ↔ Screen mapping (consistent with Next.js web URL structure):
- *   /verify-callback   → AuthStack › VerifyEmail   (email magic link)
+ *   /verify-email      → AuthStack › VerifyEmail   (email magic link)
  *   /reset-password    → AuthStack › ResetPassword (password reset)
  *   /login             → AuthStack › Login
  *   /register          → AuthStack › Register
@@ -35,7 +35,7 @@ export const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
     screens: {
       AuthStack: {
         // No path prefix — auth screens live at URL root, matching the web app's structure.
-        // e.g. https://toofreshtowaste.com/verify-callback maps directly to VerifyEmail.
+        // e.g. https://toofreshtowaste.com/verify-email maps directly to VerifyEmail.
         screens: {
           Welcome: 'welcome',
           Login: 'login',
@@ -54,9 +54,9 @@ export const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
             },
           },
           VerifyEmail: {
-            // Email magic links land on /verify-callback?token=...
+            // Email magic links land on /verify-email?token=...
             // Email is intentionally absent from the URL (prevents user enumeration).
-            path: 'verify-callback',
+            path: 'verify-email',
             parse: {
               token: (token: string) => token,
             },

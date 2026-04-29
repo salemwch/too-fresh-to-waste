@@ -54,7 +54,6 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
     mode: 'onBlur', // Validate on blur for better UX
     defaultValues: {
       password: '',
-      confirmPassword: '',
     },
   });
 
@@ -63,7 +62,6 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
 
   // UI state
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
@@ -456,40 +454,6 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
               </Text>
             </View>
           )}
-
-          {/* Confirm Password Input */}
-          <Controller
-            control={control}
-            name='confirmPassword'
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label='Confirm Password'
-                placeholder='Re-enter your new password'
-                value={value}
-                onChangeText={text => {
-                  onChange(text);
-                  setError(null);
-                }}
-                onBlur={onBlur}
-                secureTextEntry={!showConfirmPassword}
-                autoCapitalize='none'
-                autoCorrect={false}
-                autoComplete='password-new'
-                textContentType='newPassword'
-                leftIcon='lock-closed-outline'
-                leftIconFamily='Ionicons'
-                rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
-                rightIconFamily='Ionicons'
-                onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                hasError={!!formErrors.confirmPassword}
-                errorText={formErrors.confirmPassword?.message}
-                editable={!isLoading}
-                testID='reset-password-confirm-input'
-                accessibilityLabel='Confirm password input'
-                accessibilityHint='Re-enter your new password to confirm it matches.'
-              />
-            )}
-          />
 
           {/* Reset Password Button */}
           <Button

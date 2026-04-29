@@ -1,17 +1,12 @@
 {
   "applinks": {
+    "apps": [],
     "details": [
       {
-        "appIDs": ["REPLACE_WITH_TEAM_ID.com.foodwaste.app"],
-        "components": [
-          {
-            "/": "/verify-callback",
-            "comment": "Email verification magic link"
-          },
-          {
-            "/": "/reset-password",
-            "comment": "Password reset link"
-          }
+        "appID": "XXXXXXXXXX.com.toofreshtowaste.app",
+        "paths": [
+          "/verify-email*",
+          "/reset-password*"
         ]
       }
     ]

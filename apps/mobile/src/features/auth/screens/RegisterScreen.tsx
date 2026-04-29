@@ -66,7 +66,6 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
       lastName: '',
       email: '',
       password: '',
-      confirmPassword: '',
     },
   });
 
@@ -78,7 +77,6 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
 
   // Show password toggles
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Password validity state (from PasswordStrengthIndicator)
   const [isPasswordValid, setIsPasswordValid] = useState(false);
@@ -443,35 +441,6 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
             enableHaptic
             enableAnimations
             testID='register-password-strength'
-          />
-
-          {/* Confirm Password Input */}
-          <Controller
-            control={control}
-            name='confirmPassword'
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label={renderRequiredLabel('Confirm password')}
-                placeholder='Re-enter your password'
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                secureTextEntry={!showConfirmPassword}
-                autoCapitalize='none'
-                autoCorrect={false}
-                autoComplete='password-new'
-                leftIcon='lock-closed-outline'
-                leftIconFamily='Ionicons'
-                rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
-                rightIconFamily='Ionicons'
-                onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                hasError={!!formErrors.confirmPassword}
-                errorText={formErrors.confirmPassword?.message}
-                editable={!isLoading}
-                testID='register-confirmPassword-input'
-                style={styles.input}
-              />
-            )}
           />
 
           {/* Terms and Privacy Policy - Automatic Acceptance */}

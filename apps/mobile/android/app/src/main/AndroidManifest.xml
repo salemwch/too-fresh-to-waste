@@ -72,7 +72,7 @@
             <category android:name="android.intent.category.BROWSABLE" />
             <data android:scheme="https"
                   android:host="toofreshtowaste.com"
-                  android:pathPrefix="/verify-callback" />
+                  android:pathPrefix="/verify-email" />
         </intent-filter>
 
         <!-- Password reset link (backend redirects here after validating the token) -->

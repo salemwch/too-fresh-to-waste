@@ -1,7 +1,237 @@
 'use client';
 
-import { VerifyEmailForm } from '@/components/auth/verify-email-form';
+import { useEffect, useState, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import Image from 'next/image';
+import { Loader2, CheckCircle2, XCircle, TrendingUp, Store, Rocket } from 'lucide-react';
+import { Link } from '@/i18n/routing';
+import { authService } from '@/services/auth.service';
+import { UserRole } from '@foodwaste/shared';
+import '../../(merchant-onboarding)/merchant-signup/merchant-signup.css';
+
+type VerifyState = 'loading' | 'success-merchant' | 'success-consumer' | 'error';
+
+function VerifyEmailInner() {
+  const t = useTranslations('auth');
+  const tHero = useTranslations('merchantSignup');
+  const searchParams = useSearchParams();
+
+  const token = searchParams.get('token') ?? '';
+  const statusParam = searchParams.get('status');
+
+  const [state, setState] = useState<VerifyState>('loading');
+  const [errorMessage, setErrorMessage] = useState('');
+  const calledRef = useRef(false);
+
+  useEffect(() => {
+    if (calledRef.current) return;
+
+    // Case 1: Arrived via backend GET redirect with status param (no token needed)
+    if (statusParam === 'success') {
+      setState('success-consumer');
+      calledRef.current = true;
+      return;
+    }
+    if (statusParam === 'error') {
+      setState('error');
+      setErrorMessage(t('verifyEmailFailedMessage'));
+      calledRef.current = true;
+      return;
+    }
+
+    // Case 2: Direct link with token — verify via POST
+    if (!token) {
+      setState('error');
+      setErrorMessage(t('verifyEmailMissingToken'));
+      return;
+    }
+
+    calledRef.current = true;
+
+    async function verify() {
+      try {
+        const response = await authService.verifyEmail({ token });
+        const data = response.data.data;
+
+        const userRole = data.user?.role;
+        const isMerchant = userRole === UserRole.MERCHANT || userRole === UserRole.ADMIN;
+
+        if (isMerchant) {
+          setState('success-merchant');
+        } else {
+          setState('success-consumer');
+        }
+      } catch {
+        setState('error');
+        setErrorMessage(t('verifyEmailFailedMessage'));
+      }
+    }
+
+    verify();
+  }, [token, statusParam, t]);
+
+  const stats = [
+    { value: '34%', label: tHero('statRevenue'), Icon: TrendingUp },
+    { value: '2+', label: tHero('statStores'), Icon: Store },
+    { value: '∞', label: tHero('statGrowth'), Icon: Rocket },
+  ];
+
+  return (
+    <div className='merchant-signup-theme fixed inset-0 z-50 flex flex-col overflow-hidden lg:flex-row'>
+      {/* LEFT HERO SECTION */}
+      <div className='relative flex flex-[1.1] flex-col justify-between px-5 py-3 sm:py-6 sm:px-8 lg:flex-1 lg:p-12 bg-[hsl(174,72%,17%)]'>
+        <Image
+          src='/images/hero-bg.jpg'
+          alt=''
+          fill
+          sizes='(max-width: 1024px) 100vw, 55vw'
+          className='object-cover'
+          priority
+          quality={85}
+        />
+        <div className='absolute inset-0 bg-[hsl(174,72%,17%)] opacity-85' />
+
+        <div className='relative z-10 flex h-full flex-col justify-between gap-2 sm:gap-5 lg:gap-8'>
+          <div className='flex items-center gap-2'>
+            <Image
+              src='/images/image.svg'
+              alt='Too Fresh To Waste'
+              width={32}
+              height={32}
+              className='brightness-0 invert sm:w-6'
+            />
+            <span className='text-sm font-semibold tracking-wide text-white sm:text-base lg:text-lg'>
+              Too Fresh To Waste
+            </span>
+          </div>
+
+          <div className='flex max-w-xl flex-1 flex-col justify-center'>
+            <span className='mb-1 inline-block w-fit rounded-full bg-white/15 px-3 py-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/80 sm:mb-4 sm:px-5 sm:py-1.5 sm:text-[10px] sm:tracking-[0.25em]'>
+              {tHero('heroBadge')}
+            </span>
+            <h1
+              className='mb-1 text-xl font-bold leading-[1.2] text-white sm:mb-2 sm:text-2xl lg:mb-3 lg:text-4xl'
+              style={{ fontFamily: 'var(--font-serif)' }}
+            >
+              {tHero('heroTitle')}
+            </h1>
+            <p className='mb-1 text-xs leading-snug text-white/75 sm:mb-4 sm:text-sm sm:leading-relaxed lg:mb-6 lg:text-lg'>
+              {tHero('heroTitleAccent')}
+            </p>
+            <p className='hidden text-white/60 sm:block sm:text-xs lg:text-base'>
+              {tHero('heroDescription')}
+            </p>
+          </div>
+
+          <div className='space-y-2 sm:space-y-4 lg:space-y-8'>
+            <div className='flex gap-2 sm:gap-3'>
+              {stats.map(stat => (
+                <div
+                  key={stat.label}
+                  className='flex min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-2 py-2 backdrop-blur-md sm:gap-2 sm:rounded-xl sm:px-3 sm:py-3 lg:gap-3 lg:rounded-2xl lg:px-5 lg:py-4'
+                >
+                  <stat.Icon className='h-3.5 w-3.5 shrink-0 text-white/70 sm:h-4 sm:w-4 lg:h-5 lg:w-5' />
+                  <div className='min-w-0'>
+                    <div
+                      className='text-sm font-bold leading-tight text-white sm:text-base lg:text-lg'
+                      style={{ fontFamily: 'var(--font-serif)' }}
+                    >
+                      {stat.value}
+                    </div>
+                    <div className='truncate text-[9px] text-white/60 sm:text-[10px] lg:text-xs'>
+                      {stat.label}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className='border-t border-white/15 pt-2 sm:pt-4'>
+              <p className='text-[10px] italic leading-relaxed text-white/70 sm:text-xs lg:text-sm'>
+                &ldquo;{tHero('testimonialQuote')}&rdquo;
+              </p>
+              <p className='mt-1 text-[9px] font-medium text-white/50 sm:text-[10px] lg:text-xs'>
+                {tHero('testimonialAuthor')}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT CONTENT */}
+      <div className='flex flex-1 flex-col items-center justify-center bg-background px-5 py-6 sm:p-8 lg:p-16'>
+        <div className='w-full max-w-md space-y-6'>
+          {state === 'loading' && (
+            <div className='flex flex-col items-center gap-4 text-center'>
+              <Loader2 className='h-12 w-12 animate-spin text-primary' />
+              <h2 className='text-2xl font-semibold'>{t('verifyEmailTitle')}</h2>
+            </div>
+          )}
+
+          {state === 'success-consumer' && (
+            <div className='flex flex-col items-center gap-4 text-center'>
+              <div className='flex h-20 w-20 items-center justify-center rounded-full bg-green-100'>
+                <CheckCircle2 className='h-10 w-10 text-green-600' />
+              </div>
+              <h2 className='text-2xl font-semibold'>{t('verifyEmailSuccessTitle')}</h2>
+              <p className='text-base leading-relaxed text-muted-foreground'>
+                {t('verifyEmailConsumerMessage')}
+              </p>
+            </div>
+          )}
+
+          {state === 'success-merchant' && (
+            <div className='flex flex-col items-center gap-4 text-center'>
+              <div className='flex h-20 w-20 items-center justify-center rounded-full bg-green-100'>
+                <CheckCircle2 className='h-10 w-10 text-green-600' />
+              </div>
+              <h2 className='text-2xl font-semibold'>{t('verifyEmailSuccessTitle')}</h2>
+              <p className='text-base leading-relaxed text-muted-foreground'>
+                {t('verifyEmailMerchantMessage')}
+              </p>
+              <Link
+                href='/login'
+                className='mt-4 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
+              >
+                {t('verifyEmailBackToLogin')}
+              </Link>
+            </div>
+          )}
+
+          {state === 'error' && (
+            <div className='flex flex-col items-center gap-4 text-center'>
+              <div className='flex h-20 w-20 items-center justify-center rounded-full bg-red-100'>
+                <XCircle className='h-10 w-10 text-red-600' />
+              </div>
+              <h2 className='text-2xl font-semibold'>{t('verifyEmailFailedTitle')}</h2>
+              <p className='text-base leading-relaxed text-muted-foreground'>
+                {errorMessage || t('verifyEmailFailedMessage')}
+              </p>
+              <Link
+                href='/login'
+                className='mt-4 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
+              >
+                {t('verifyEmailFailedBackToLogin')}
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function VerifyEmailPage() {
-  return <VerifyEmailForm />;
+  return (
+    <Suspense
+      fallback={
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-background'>
+          <Loader2 className='h-10 w-10 animate-spin text-primary' />
+        </div>
+      }
+    >
+      <VerifyEmailInner />
+    </Suspense>
+  );
 }

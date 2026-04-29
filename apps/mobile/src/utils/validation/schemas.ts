@@ -124,10 +124,6 @@ export const registerMobileSchema = yup.object({
   lastName: nameValidator('Last name'),
   email: emailValidator,
   password: passwordValidator,
-  confirmPassword: yup
-    .string()
-    .required('Please confirm your password')
-    .oneOf([yup.ref('password')], 'Passwords must match'),
 });
 
 export const forgotPasswordSchema = yup.object({
@@ -136,10 +132,6 @@ export const forgotPasswordSchema = yup.object({
 
 export const resetPasswordSchema = yup.object({
   password: passwordValidator,
-  confirmPassword: yup
-    .string()
-    .required('Please confirm your password')
-    .oneOf([yup.ref('password')], 'Passwords must match'),
 });
 
 /**

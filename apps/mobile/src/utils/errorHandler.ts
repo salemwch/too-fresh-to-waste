@@ -1,7 +1,3 @@
-import { Alert } from 'react-native';
-
-import { environment } from '@/config/environment';
-
 import { Logger } from './logger';
 import { networkErrorBus } from './networkErrorBus';
 import { showErrorToast } from './toast';
@@ -255,19 +251,14 @@ export class ErrorHandler {
       return;
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // ENVIRONMENT-AWARE ERROR DISPLAY
-    // ──────────────────────────────────────────────────────────────────────────
-
-    if (environment.isProduction) {
-      // ✅ PRODUCTION: Show non-intrusive Toast
-      // Never block user with Alert dialogs in production
-      showErrorToast(title, message);
-    } else {
-      // ✅ DEVELOPMENT/STAGING: Show blocking Alert for debugging
-      // Helps developers notice errors immediately
-      Alert.alert(title, message, [{ text: 'OK', style: 'cancel' }]);
+    // AUTH errors are handled by the auth flow (redirect to login).
+    // Showing an alert/toast is redundant and bad UX.
+    if (error.type === ErrorType.AUTHENTICATION) {
+      return;
     }
+
+    // All other errors → non-intrusive Toast (production-safe)
+    showErrorToast(title, message);
   }
 
   private static getErrorTitle(type: ErrorType): string {
