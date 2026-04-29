@@ -94,12 +94,6 @@ function AppContent(): React.JSX.Element {
   const flowState = useSelector((state: RootState) => state.auth.flowState);
   const userId = useSelector((state: RootState) => state.auth.user?.userId ?? null);
 
-  // DEBUG: Log the API URL to verify react-native-config reads .env in release
-  useEffect(() => {
-    console.warn('[APP-STARTUP] API_BASE_URL =', environment.api.baseUrl);
-    console.warn('[APP-STARTUP] Config.API_BASE_URL =', Config['API_BASE_URL']);
-  }, []);
-
   // ✅ Initialize Local Location Service on app startup (runs once)
   // Loads tunisian-cities.json into memory for fast local searches
   useEffect(() => {

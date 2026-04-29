@@ -24,8 +24,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const message =
       exception instanceof HttpException ? exception.getResponse() : 'Internal server error';
 
-    // Enhanced logging for validation errors
-    if (exception instanceof HttpException) {
+    const isBrowserNoise =
+      status === HttpStatus.NOT_FOUND &&
+      request.method === 'GET' &&
+      (request.url === '/favicon.ico' || request.url === '/');
+
+    if (exception instanceof HttpException && !isBrowserNoise) {
       const exceptionResponse = exception.getResponse();
       const requestBody: unknown = request.body;
       this.logger.error(
@@ -41,7 +45,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           2,
         ),
       );
-    } else {
+    } else if (!(exception instanceof HttpException)) {
       this.logger.error(
         'Unhandled exception',
         exception instanceof Error ? exception.stack : JSON.stringify(exception),

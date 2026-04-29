@@ -205,6 +205,10 @@
 -keep class com.lugg.RNCConfig.** { *; }
 -dontwarn com.lugg.RNCConfig.**
 
+# Keep app BuildConfig — react-native-config reads fields via reflection.
+# Source: https://github.com/luggit/react-native-config#problems-with-proguard
+-keep class com.toofreshtowaste.app.BuildConfig { *; }
+
 # ============================================================================
 # REACT NATIVE GEOLOCATION
 # ============================================================================
