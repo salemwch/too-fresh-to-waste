@@ -117,16 +117,19 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // FastImage fails silently — track load error so we can fall back to initials.
-  // On Android, re-enable tracksViewChanges briefly so the marker re-snapshots
-  // with the initial-letter fallback after the image error is known.
   const [imageError, setImageError] = useState(false);
-  const handleImageError = () => {
-    setImageError(true);
+  const reSnapshot = () => {
     if (Platform.OS === 'android') {
       setTracksViewChanges(true);
       setTimeout(() => setTracksViewChanges(false), 500);
     }
+  };
+  const handleImageError = () => {
+    setImageError(true);
+    reSnapshot();
+  };
+  const handleImageLoad = () => {
+    reSnapshot();
   };
 
   // Animate scale on selection
@@ -193,17 +196,8 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
                 {displayCount}
               </Text>
             </View>
-          ) : showProfileImage ? (
-            /* ── Merchant logo (FastImage — handles borderRadius on Android) */
-            <View style={[styles.circle, styles.imageCircle, markerBorderStyle]}>
-              <FastImage
-                source={{ uri: profileImageUri!, priority: FastImage.priority.normal }}
-                style={styles.profileImage}
-                onError={handleImageError}
-              />
-            </View>
           ) : (
-            /* ── Initial letter fallback (no image, or image failed to load) */
+            /* ── No offers: initial letter base, profile image overlaid on top ── */
             <View
               style={[
                 styles.circle,
@@ -219,6 +213,15 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
               >
                 {initial}
               </Text>
+              {showProfileImage && (
+                <FastImage
+                  source={{ uri: profileImageUri!, priority: FastImage.priority.normal }}
+                  style={styles.profileImageOverlay}
+                  onError={handleImageError}
+                  onLoad={handleImageLoad}
+                  accessibilityIgnoresInvertColors
+                />
+              )}
             </View>
           )}
 
@@ -276,21 +279,17 @@ const styles = StyleSheet.create({
     borderColor: SELECTED_OFFER_BORDER, // light green ring when selected
   },
   /**
-   * Image circle: white background visible while FastImage loads.
-   * overflow is intentionally NOT set — `overflow: 'hidden'` does not work
-   * in react-native-maps Android snapshots. FastImage clips via borderRadius.
+   * FastImage overlaid on top of the initial-letter circle.
+   * Fills the circle exactly; Glide clips to borderRadius natively on Android.
+   * overflow:hidden is NOT used — doesn't work in react-native-maps snapshots.
    */
-  imageCircle: {
-    backgroundColor: WHITE,
-  },
-  /**
-   * FastImage clips to borderRadius natively on Android (Glide).
-   * Inset by border width (2.5) + 0.5dp safety = 3dp total breathing room.
-   */
-  profileImage: {
-    width: MARKER_SIZE - 6,
-    height: MARKER_SIZE - 6,
-    borderRadius: (MARKER_SIZE - 6) / 2,
+  profileImageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: MARKER_SIZE / 2,
   },
   countText: {
     color: WHITE,

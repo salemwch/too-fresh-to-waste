@@ -24,7 +24,6 @@ import {
   StyleSheet,
   FlatList,
   RefreshControl,
-  InteractionManager,
   Pressable,
   Image,
   type ListRenderItemInfo,
@@ -44,8 +43,8 @@ import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
 import { transformLocationResultsToItems } from '@/utils/location';
 import { Logger } from '@/utils/logger';
 
-const heartInHandsImg = require('../../../assets/images/heart-in-hands.png');
-const surpriseBoxImg = require('../../../assets/images/surprise-box.png');
+import heartInHandsImg from '../../../assets/images/heart-in-hands.png';
+import surpriseBoxImg from '../../../assets/images/surprise-box.png';
 import {
   HomeSearchBar,
   HomeOfferSection,
@@ -75,6 +74,61 @@ import type { RootState } from '@/types';
 
 const RECENT_LOCATIONS_STORAGE_KEY = '@food_waste_app:recent_locations';
 const MAX_RECENT_LOCATIONS = 5;
+
+// ============================================================================
+// Header sub-components (defined outside HomeScreen to avoid re-mount on render)
+// ============================================================================
+
+interface HeaderRightProps {
+  onCharityPress: () => void;
+  onLeaderboardPress: () => void;
+}
+
+const HomeHeaderRight: React.FC<HeaderRightProps> = ({ onCharityPress, onLeaderboardPress }) => (
+  <View style={headerRightStyles.row}>
+    <Pressable
+      onPress={onCharityPress}
+      style={headerRightStyles.button}
+      accessibilityLabel='Learn about our charity donations'
+      accessibilityHint='Opens the donation information sheet'
+      accessibilityRole='button'
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    >
+      <Image
+        source={heartInHandsImg}
+        style={headerRightStyles.icon}
+        accessibilityIgnoresInvertColors
+      />
+    </Pressable>
+    <Pressable
+      onPress={onLeaderboardPress}
+      style={headerRightStyles.button}
+      accessibilityLabel='Grand prize leaderboard'
+      accessibilityHint='Opens the leaderboard screen'
+      accessibilityRole='button'
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    >
+      <Image
+        source={surpriseBoxImg}
+        style={[headerRightStyles.icon, headerRightStyles.surpriseIcon]}
+        accessibilityIgnoresInvertColors
+      />
+    </Pressable>
+  </View>
+);
+
+const headerRightStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 12,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  button: { padding: 8, marginLeft: 8 },
+  icon: { width: 28, height: 28 },
+  surpriseIcon: { marginTop: 2 },
+});
 
 // ============================================================================
 // Types
@@ -235,18 +289,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [recentLocations, setRecentLocations] = useState<LocationItem[]>([]);
 
   /**
-   * PRODUCTION: Performance optimization - defer heavy operations
-   * Prevents jank during screen transitions by using InteractionManager
-   * Source: https://reactnative.dev/docs/interactionmanager
-   */
-  useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => {
-      // Screen is ready for heavy operations
-    });
-    return () => task.cancel();
-  }, []);
-
-  /**
    * Home tab re-tap: scroll to top + refetch all offers
    * Uses 'tabPress' event — fires even when already focused on this tab
    */
@@ -264,11 +306,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       // Scroll FlatList to top
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
       // Refetch all offer sections
-      void refetch.all();
+      refetch.all().catch(() => undefined);
       // Invalidate donation stats so ImpactBanner re-fetches from the server
-      void queryClient.invalidateQueries({ queryKey: ['donations', 'stats'] });
+      queryClient.invalidateQueries({ queryKey: ['donations', 'stats'] }).catch(() => undefined);
       // Invalidate community goal stats
-      void queryClient.invalidateQueries({ queryKey: COMMUNITY_GOAL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: COMMUNITY_GOAL_QUERY_KEY }).catch(() => undefined);
     });
     return unsubscribe;
   }, [navigation, refetch, queryClient]);
@@ -289,7 +331,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       Logger.debug(
         '[HomeScreen] GPS location exists but name missing, triggering reverse geocoding',
       );
-      void dispatch(reverseGeocodeAsync(coordinates))
+      dispatch(reverseGeocodeAsync(coordinates))
         .unwrap()
         .then(() => {
           Logger.debug('[HomeScreen] ✅ Reverse geocoding completed on mount');
@@ -334,35 +376,24 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
    * Add notification and surprise box icons on the right
    * Uses useLayoutEffect to update synchronously before paint
    */
+  const handleCharityPress = useCallback(() => setIsCharitySheetVisible(true), []);
+  const handleLeaderboardPress = useCallback(
+    () => navigation.navigate('Leaderboard'),
+    [navigation],
+  );
+  const handleLocationPress = useCallback(() => setIsLocationPickerVisible(true), []);
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => <LocationHeader onPress={() => setIsLocationPickerVisible(true)} />,
+      headerTitle: () => <LocationHeader onPress={handleLocationPress} />,
       headerRight: () => (
-        <View style={styles.headerRightRow}>
-          <Pressable
-            onPress={() => setIsCharitySheetVisible(true)}
-            style={styles.headerIconButtonRight}
-            accessibilityLabel='Learn about our charity donations'
-            accessibilityHint='Opens the donation information sheet'
-            accessibilityRole='button'
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Image source={heartInHandsImg} style={{ width: 28, height: 28 }} />
-          </Pressable>
-          <Pressable
-            onPress={() => navigation.navigate('Leaderboard')}
-            style={styles.headerIconButtonRight}
-            accessibilityLabel='Grand prize leaderboard'
-            accessibilityHint='Opens the leaderboard screen'
-            accessibilityRole='button'
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Image source={surpriseBoxImg} style={{ width: 26, height: 26 }} />
-          </Pressable>
-        </View>
+        <HomeHeaderRight
+          onCharityPress={handleCharityPress}
+          onLeaderboardPress={handleLeaderboardPress}
+        />
       ),
     });
-  }, [navigation]);
+  }, [navigation, handleCharityPress, handleLeaderboardPress, handleLocationPress]);
 
   // ============================================================================
   // Callbacks - Event Handlers
@@ -872,17 +903,5 @@ const styles = StyleSheet.create({
   bannerWrapper: {
     paddingHorizontal: 16,
     marginBottom: 12,
-  },
-
-  // Header navigation icons
-  headerRightRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 12,
-    paddingVertical: 4,
-  },
-  headerIconButtonRight: {
-    padding: 8,
-    marginLeft: 8,
   },
 });

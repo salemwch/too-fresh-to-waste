@@ -71,7 +71,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
   const slideAnim = useRef(new Animated.Value(MODAL_HEIGHT)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
 
-  const MAX_RADIUS = 30;
+  const MAX_RADIUS = 15;
 
   // Local state — clamp to new max in case a persisted value exceeds it
   const [localRadius, setLocalRadius] = useState(Math.min(currentRadius, MAX_RADIUS));
@@ -283,7 +283,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
             <Slider
               containerStyle={styles.slider}
               minimumValue={0.5}
-              maximumValue={30}
+              maximumValue={15}
               value={[localRadius]}
               onValueChange={values => setLocalRadius(values[0] ?? localRadius)}
               onSlidingComplete={values => handleSliderComplete(values[0] ?? localRadius)}
@@ -300,10 +300,10 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
                 500m
               </Text>
               <Text variant='label' size='xs' color='secondary' lineHeight={18}>
-                25km
+                10km
               </Text>
               <Text variant='label' size='xs' color='secondary' lineHeight={18}>
-                30km
+                15km
               </Text>
             </View>
           </View>
