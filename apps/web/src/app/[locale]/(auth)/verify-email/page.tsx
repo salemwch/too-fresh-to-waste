@@ -4,7 +4,15 @@ import { useEffect, useState, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import { Loader2, CheckCircle2, XCircle, TrendingUp, Store, Rocket } from 'lucide-react';
+import {
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  ChevronLeft,
+  TrendingUp,
+  Store,
+  Rocket,
+} from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { authService } from '@/services/auth.service';
 import { UserRole } from '@foodwaste/shared';
@@ -162,6 +170,14 @@ function VerifyEmailInner() {
       {/* RIGHT CONTENT */}
       <div className='flex flex-1 flex-col items-center justify-center bg-background px-5 py-6 sm:p-8 lg:p-16'>
         <div className='w-full max-w-md space-y-6'>
+          {/* Back to home */}
+          <Link
+            href='/'
+            className='flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground'
+            aria-label='Go to home page'
+          >
+            <ChevronLeft className='h-5 w-5' />
+          </Link>
           {state === 'loading' && (
             <div className='flex flex-col items-center gap-4 text-center'>
               <Loader2 className='h-12 w-12 animate-spin text-primary' />
