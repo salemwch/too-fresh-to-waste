@@ -19,6 +19,7 @@ import { OrdersController } from './order.controller';
 import { OrdersService } from './order.service';
 import { PickupReminderProcessor } from './processors/pickup-reminder.processor';
 import { Order, OrderSchema } from './schemas/order.schema';
+import { OrderExpiryTask } from './tasks/order-expiry.task';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { Order, OrderSchema } from './schemas/order.schema';
     PickupThrottlerGuard,
     AdminUserEventsListener,
     PickupReminderProcessor,
+    OrderExpiryTask,
   ],
   exports: [OrdersService, MongooseModule],
 })

@@ -24,6 +24,7 @@ import { EventBusService } from '../../common/services/event-bus/event-bus.servi
 import { LeanDocument } from '../../common/types/mongoose.types';
 import { ISendNotificationRequest } from '../../notifications/interfaces/notification.interfaces';
 import { NotificationService } from '../../notifications/services/notification.service';
+import { Order, OrderDocument, OrderStatus } from '../../orders/schemas/order.schema';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 import { UsersService } from '../../users/user.service';
 import { UpdateUserStatusDto, BulkUserActionDto, UserSearchDto } from '../dto/user-management.dto';
@@ -160,6 +161,7 @@ export class UserManagementService {
 
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
     private readonly auditService: AdminAuditService,
     private readonly eventBus: EventBusService,
     private readonly usersService: UsersService,
@@ -318,12 +320,26 @@ export class UserManagementService {
 
       const totalPages = Math.ceil(total / limit);
 
+      // Count EXPIRED orders per user for this page — the "no-show" metric.
+      // Scoped to the current page's IDs so the aggregation touches a small set.
+      const userObjectIds = users.map(u => u._id);
+      const noShowAgg = await this.orderModel.aggregate<{ _id: string; count: number }>([
+        { $match: { customerId: { $in: userObjectIds }, status: OrderStatus.EXPIRED } },
+        { $group: { _id: '$customerId', count: { $sum: 1 } } },
+      ]);
+      const noShowMap = new Map(noShowAgg.map(r => [r._id.toString(), r.count]));
+
+      const usersWithNoShow = users.map(u => ({
+        ...u,
+        noShowCount: noShowMap.get(u._id.toString()) ?? 0,
+      }));
+
       return {
         // Map lean docs so each user has `id` (string) instead of raw `_id` (ObjectId).
         // Without this the frontend receives `_id` only, making setSelectedUserId(user.id)
         // a no-op and preventing the detail sheet from opening.
         users: UserMapper.toInterfaceArray(
-          users as unknown as Parameters<typeof UserMapper.toInterfaceArray>[0],
+          usersWithNoShow as unknown as Parameters<typeof UserMapper.toInterfaceArray>[0],
         ),
         total,
         page,
