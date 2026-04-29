@@ -155,7 +155,7 @@ android {
         abi {
             reset()
             // Enable only when the Gradle invocation targets a release task
-            enable gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+            enable gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') && !it.toLowerCase().contains('bundle') }
             universalApk false          // no fat APK — each device gets only its ABI
             include "arm64-v8a", "armeabi-v7a"
         }
