@@ -116,10 +116,10 @@
       "flatted": "^3.4.2",
       "socket.io-parser": "^4.2.6",
       "node-forge": "^1.4.0",
-      "@xmldom/xmldom": "^0.8.12",
+      "@xmldom/xmldom": "^0.9.10",
       "lodash": "^4.18.0",
       "yaml": "^2.8.3",
-      "fast-xml-parser": "^5.5.7",
+      "fast-xml-parser": "^5.7.2",
       "ajv": "^8.18.0",
       "eslint>ajv": "6.14.0",
       "@eslint/eslintrc>ajv": "6.14.0",
@@ -131,7 +131,8 @@
       "brace-expansion": "^2.0.3",
       "picomatch@^2": "^2.3.2",
       "picomatch@^4": "^4.0.4",
-      "@nestjs/common>file-type": "^22.0.0"
+      "@nestjs/common>file-type": "^22.0.0",
+      "postcss": "^8.5.6"
     },
     "peerDependencyRules": {
       "allowedVersions": {
