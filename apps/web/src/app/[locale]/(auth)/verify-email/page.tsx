@@ -31,6 +31,7 @@ function VerifyEmailInner() {
   const [state, setState] = useState<VerifyState>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const calledRef = useRef(false);
+  const appRedirectAttempted = useRef(false);
 
   useEffect(() => {
     if (calledRef.current) return;
@@ -78,6 +79,17 @@ function VerifyEmailInner() {
 
     verify();
   }, [token, statusParam, t]);
+
+  // On mobile browsers: try to open the app after successful consumer verification.
+  // If the app is installed, the custom scheme redirect opens it; otherwise nothing happens.
+  useEffect(() => {
+    if (state !== 'success-consumer' || appRedirectAttempted.current) return;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (!isMobile) return;
+
+    appRedirectAttempted.current = true;
+    window.location.href = 'foodwaste://verify-email?status=success';
+  }, [state]);
 
   const stats = [
     { value: '34%', label: tHero('statRevenue'), Icon: TrendingUp },
@@ -194,6 +206,12 @@ function VerifyEmailInner() {
               <p className='text-base leading-relaxed text-muted-foreground'>
                 {t('verifyEmailConsumerMessage')}
               </p>
+              <Link
+                href='/login'
+                className='mt-4 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
+              >
+                {t('verifyEmailBackToLogin')}
+              </Link>
             </div>
           )}
 

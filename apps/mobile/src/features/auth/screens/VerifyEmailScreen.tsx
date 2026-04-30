@@ -26,7 +26,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
   const dispatch = useAppDispatch();
 
   // Get email from route params OR Redux state (state-driven approach)
-  const { email: routeEmail, token } = route.params;
+  const { email: routeEmail, token, status: routeStatus } = route.params;
   const { pendingVerificationEmail } = useAppSelector(state => state.auth);
   const email =
     typeof routeEmail === 'string' && routeEmail.trim() !== ''
@@ -92,6 +92,17 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
       void handleAutoVerification();
     }
   }, [handleAutoVerification, token, verificationStatus]);
+
+  // Handle web fallback: user verified in browser and was redirected back
+  // via foodwaste://verify-email?status=success. Email is already verified
+  // but the app has no tokens — navigate to Login with a success message.
+  useEffect(() => {
+    if (routeStatus === 'success' && verificationStatus === 'pending') {
+      setVerificationStatus('success');
+      showSuccessToast('Email Verified', 'Please log in to continue');
+      navigation.navigate('Login');
+    }
+  }, [routeStatus, verificationStatus, navigation]);
 
   /**
    * Cooldown timer for resend button
@@ -245,16 +256,8 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 align='center'
                 style={styles.instructions}
               >
-                You can now login to your account and start reducing food waste.
+                Logging you in...
               </Text>
-              <Button
-                variant='primary'
-                size='lg'
-                onPress={handleBackToLogin}
-                style={[styles.verifiedButton, styles.actionButtonSpacing]}
-              >
-                Go to Login
-              </Button>
             </>
           ) : verificationStatus === 'error' ? (
             <>
@@ -346,7 +349,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Verification Email'}
               </Button>
 
-              {/* Back to Login */}
+              {/* Already verified (user verified on web, came back to app manually) */}
               <Button
                 variant='outline'
                 size='md'
@@ -354,7 +357,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 disabled={isResending}
                 style={[styles.backButton, outlineButtonStyle]}
               >
-                Back to Login
+                Already verified? Go to Login
               </Button>
             </>
           )}

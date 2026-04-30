@@ -1,7 +1,7 @@
-import { Controller, Get, Query, Res, Logger } from '@nestjs/common';
+import { Controller, Get, Query, Req, Res, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 import { CookieSecurityUtil } from '../common/utils/cookie-security.util';
 
@@ -45,6 +45,61 @@ export class AuthRedirectController {
   private redirectToFrontend(res: Response, path: string, status: 'success' | 'error'): void {
     const target = `${this.getWebFrontendUrl()}${path}?status=${status}`;
     res.redirect(302, target);
+  }
+
+  private isMobileUserAgent(req: Request): boolean {
+    const ua = req.headers['user-agent'] ?? '';
+    return /Android|iPhone|iPad|iPod/i.test(ua);
+  }
+
+  /**
+   * Smart email-link redirect (Brevo tracking bypass).
+   *
+   * Brevo rewrites all links through its tracking domain, which breaks Android
+   * App Links. By routing the email link through the backend first, we can
+   * detect mobile clients and redirect to the custom scheme (`foodwaste://`)
+   * which the OS intercepts and opens the app — regardless of Brevo tracking.
+   *
+   * The token is NOT consumed here — the actual verification + auto-login
+   * happens client-side via POST /auth/verify-email.
+   */
+  @Get('email-link')
+  @ApiOperation({
+    summary: 'Smart redirect for email verification links',
+    description:
+      'Detects mobile vs desktop and redirects to the app (custom scheme) or web frontend. Does not verify the token.',
+  })
+  @ApiQuery({ name: 'token', required: true, description: 'Email verification token' })
+  emailLinkRedirect(
+    @Query('token') rawToken: string | undefined,
+    @Req() req: Request,
+    @Res() res: Response,
+  ): void {
+    if (!rawToken || typeof rawToken !== 'string') {
+      this.logger.warn('email-link redirect called without token');
+      this.redirectToFrontend(res, '/verify-email', 'error');
+      return;
+    }
+
+    const safeToken = encodeURIComponent(this.sanitizeToken(rawToken));
+
+    if (this.isMobileUserAgent(req)) {
+      const webFallback = encodeURIComponent(
+        `${this.getWebFrontendUrl()}/verify-email?token=${safeToken}`,
+      );
+      // Android Intent URL with browser fallback for when the app isn't installed
+      const intentUrl =
+        `intent://verify-email?token=${safeToken}` +
+        `#Intent;scheme=foodwaste;package=com.toofreshtowaste.app;` +
+        `S.browser_fallback_url=${webFallback};end`;
+
+      this.logger.log('Email link redirect → mobile app');
+      res.redirect(302, intentUrl);
+    } else {
+      const target = `${this.getWebFrontendUrl()}/verify-email?token=${safeToken}`;
+      this.logger.log('Email link redirect → web frontend');
+      res.redirect(302, target);
+    }
   }
 
   @Get('verify-email')

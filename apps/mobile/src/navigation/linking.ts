@@ -56,9 +56,11 @@ export const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
           VerifyEmail: {
             // Email magic links land on /verify-email?token=...
             // Email is intentionally absent from the URL (prevents user enumeration).
+            // status param is set by the web fallback redirect after browser-side verification.
             path: 'verify-email',
             parse: {
               token: (token: string) => token,
+              status: (status: string) => status,
             },
           },
           VerifyPhone: {

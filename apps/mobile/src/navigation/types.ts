@@ -31,7 +31,8 @@ export interface AuthStackParamList extends Record<string, object | undefined> {
   ForgotPassword: undefined;
   ResetPassword: { email: string; token: string };
   // email is optional: Universal Link magic links carry only the token.
-  VerifyEmail: { email?: string; token?: string };
+  // status is set by web fallback redirect (foodwaste://verify-email?status=success).
+  VerifyEmail: { email?: string; token?: string; status?: string };
   VerifyPhone: {
     phoneNumber?: string;
     fromEmailVerification?: boolean;

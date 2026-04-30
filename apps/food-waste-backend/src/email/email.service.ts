@@ -175,10 +175,10 @@ export class EmailService implements IEmailService {
   // ── Typed send helpers ──────────────────────────────────────────────────────
 
   async sendVerificationEmail(user: User, verificationToken: string): Promise<boolean> {
-    // Link goes to the web frontend (toofreshtowaste.com/verify-email).
-    // On mobile: Android/iOS intercepts via Universal Links → opens app directly.
-    // On web (app not installed): Next.js verify-email page handles the token.
-    const verificationUrl = `${this.getFrontendUrl()}/verify-email?token=${encodeURIComponent(verificationToken)}`;
+    // Link goes through the backend smart redirect (/auth/email-link) which
+    // detects mobile vs desktop and redirects to the app or web accordingly.
+    // This bypasses Brevo's click-tracking URL rewriting that breaks deep links.
+    const verificationUrl = `${this.getBackendUrl()}/api/v1/auth/email-link?token=${encodeURIComponent(verificationToken)}`;
 
     const html = await render(
       React.createElement(VerificationEmail, {
