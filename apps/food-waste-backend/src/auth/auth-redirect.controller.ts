@@ -47,9 +47,19 @@ export class AuthRedirectController {
     res.redirect(302, target);
   }
 
-  private isMobileUserAgent(req: Request): boolean {
-    const ua = req.headers['user-agent'] ?? '';
-    return /Android|iPhone|iPad|iPod/i.test(ua);
+  private getClientPlatform(req: Request): 'android' | 'ios' | 'other' {
+    const userAgentHeader = req.headers['user-agent'];
+    const ua = Array.isArray(userAgentHeader) ? userAgentHeader.join(' ') : (userAgentHeader ?? '');
+
+    if (/Android/i.test(ua)) {
+      return 'android';
+    }
+
+    if (/iPhone|iPad|iPod/i.test(ua)) {
+      return 'ios';
+    }
+
+    return 'other';
   }
 
   /**
@@ -57,8 +67,8 @@ export class AuthRedirectController {
    *
    * Brevo rewrites all links through its tracking domain, which breaks Android
    * App Links. By routing the email link through the backend first, we can
-   * detect mobile clients and redirect to the custom scheme (`foodwaste://`)
-   * which the OS intercepts and opens the app — regardless of Brevo tracking.
+   * send Android users to an intent URI with a web fallback, while iOS and
+   * desktop continue through the web verification page.
    *
    * The token is NOT consumed here — the actual verification + auto-login
    * happens client-side via POST /auth/verify-email.
@@ -67,7 +77,7 @@ export class AuthRedirectController {
   @ApiOperation({
     summary: 'Smart redirect for email verification links',
     description:
-      'Detects mobile vs desktop and redirects to the app (custom scheme) or web frontend. Does not verify the token.',
+      'Sends Android users to an intent URI with browser fallback, and routes iOS/desktop users to the web frontend. Does not verify the token.',
   })
   @ApiQuery({ name: 'token', required: true, description: 'Email verification token' })
   emailLinkRedirect(
@@ -83,23 +93,28 @@ export class AuthRedirectController {
 
     const safeToken = encodeURIComponent(this.sanitizeToken(rawToken));
 
-    if (this.isMobileUserAgent(req)) {
-      const webFallback = encodeURIComponent(
-        `${this.getWebFrontendUrl()}/verify-email?token=${safeToken}`,
-      );
+    const target = `${this.getWebFrontendUrl()}/verify-email?token=${safeToken}`;
+    const platform = this.getClientPlatform(req);
+
+    if (platform === 'android') {
+      const webFallback = encodeURIComponent(target);
       // Android Intent URL with browser fallback for when the app isn't installed
       const intentUrl =
         `intent://verify-email?token=${safeToken}` +
         `#Intent;scheme=foodwaste;package=com.toofreshtowaste.app;` +
         `S.browser_fallback_url=${webFallback};end`;
 
-      this.logger.log('Email link redirect → mobile app');
+      this.logger.log('Email link redirect → Android app intent');
       res.redirect(302, intentUrl);
-    } else {
-      const target = `${this.getWebFrontendUrl()}/verify-email?token=${safeToken}`;
-      this.logger.log('Email link redirect → web frontend');
-      res.redirect(302, target);
+      return;
     }
+
+    this.logger.log(
+      platform === 'ios'
+        ? 'Email link redirect → iOS web verification fallback'
+        : 'Email link redirect → web frontend',
+    );
+    res.redirect(302, target);
   }
 
   @Get('verify-email')
