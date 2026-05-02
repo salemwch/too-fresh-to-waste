@@ -31,7 +31,7 @@ export default async function OGImage({ params }: Props) {
   // Load Arabic font only when needed — satori has no Arabic font by default
   const fonts: ConstructorParameters<typeof ImageResponse>[1]['fonts'] = [];
   if (isRtl) {
-    const fontData = await fetch(new URL('./noto-sans-arabic-700.woff', import.meta.url)).then(r =>
+    const fontData = await fetch(new URL('./noto-sans-arabic-700.ttf', import.meta.url)).then(r =>
       r.arrayBuffer(),
     );
     fonts.push({ name: 'NotoSansArabic', data: fontData, style: 'normal', weight: 700 });
