@@ -171,10 +171,16 @@ export function getLocaleSeoMetadata(locale: Locale) {
   return seoConfig.metadata[locale] || seoConfig.metadata[seoConfig.defaultLocale];
 }
 
-// Helper to get full URL with locale
+// localePrefix: 'always' in routing.ts means every locale including the default
+// requires an explicit prefix in the URL.
 export function getCanonicalUrl(path: string, locale: Locale): string {
   const baseUrl = seoConfig.url;
-  const localePath = locale === seoConfig.defaultLocale ? '' : `/${locale}`;
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  return `${baseUrl}${localePath}${cleanPath === '/' ? '' : cleanPath}`;
+  const normalizedPath = cleanPath === '/' ? '' : cleanPath;
+  return `${baseUrl}/${locale}${normalizedPath}`;
+}
+
+// Returns the canonical URL for schema.org @id fields (always the en version)
+export function getSchemaOrgUrl(path: string): string {
+  return getCanonicalUrl(path, 'en');
 }
