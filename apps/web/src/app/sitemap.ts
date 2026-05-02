@@ -11,6 +11,8 @@ const PRIORITY = {
   country: 0.8,
   marketing: 0.7,
   city: 0.7,
+  support: 0.6,
+  informational: 0.5,
 } as const;
 
 const marketingPages: Array<{
@@ -24,9 +26,9 @@ const marketingPages: Array<{
   { path: '/humanity-mission', changeFrequency: 'monthly', priority: PRIORITY.marketing },
   { path: '/esg', changeFrequency: 'monthly', priority: PRIORITY.marketing },
   { path: '/food-waste-facts', changeFrequency: 'monthly', priority: PRIORITY.marketing },
-  { path: '/contact', changeFrequency: 'monthly', priority: 0.6 },
-  { path: '/careers', changeFrequency: 'monthly', priority: 0.5 },
-  { path: '/companies', changeFrequency: 'monthly', priority: 0.6 },
+  { path: '/contact', changeFrequency: 'monthly', priority: PRIORITY.support },
+  { path: '/careers', changeFrequency: 'monthly', priority: PRIORITY.informational },
+  { path: '/companies', changeFrequency: 'monthly', priority: PRIORITY.support },
   { path: '/business-signup', changeFrequency: 'monthly', priority: 0.7 },
 ];
 
