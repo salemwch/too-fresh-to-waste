@@ -3,6 +3,9 @@ import { setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
 import RevenueCalculator from '@/components/sections/RevenueCalculator';
+import { SoftwareAppSchema, FAQSchema, BreadcrumbSchema } from '@/components/seo/schemas';
+import { getCanonicalUrl } from '@/config/seo.config';
+import type { Locale } from '@/i18n/config';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -15,6 +18,29 @@ export async function generateMetadata(): Promise<Metadata> {
       'List your unsold food as a Surprise Bag. Earn revenue you would have thrown away and reach thousands of eco-conscious customers on Too Fresh To Waste.',
   };
 }
+
+const surpriseBagFaqs = [
+  {
+    question: 'What is a surprise bag?',
+    answer:
+      'A surprise bag is a discounted package of surplus food sold by local restaurants and shops at 35–90% off the original price. The contents are a surprise — you save money while preventing food waste.',
+  },
+  {
+    question: 'How do I pick up my surprise bag?',
+    answer:
+      'After purchasing, you receive a pickup code valid until the offer expiry time. Present the code at the establishment during the pickup window to collect your bag.',
+  },
+  {
+    question: 'What if the food does not meet my expectations?',
+    answer:
+      'Contact our support team. We review all complaints and take quality seriously. Merchants with consistent quality issues are removed from the platform.',
+  },
+  {
+    question: 'How much can I save with a surprise bag?',
+    answer:
+      'Surprise bags are sold at 35–90% below the original price. A bag worth 20 TND in food may be available for as little as 5 TND.',
+  },
+];
 
 const steps = [
   {
@@ -240,6 +266,21 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
 
   return (
     <>
+      <SoftwareAppSchema
+        name='Too Fresh To Waste — Surprise Bag Marketplace'
+        description='Buy surplus food surprise bags from local restaurants and shops at up to 90% off. Available in Tunisia.'
+        locale={locale as Locale}
+      />
+      <FAQSchema items={surpriseBagFaqs} />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: getCanonicalUrl('/', locale as Locale) },
+          {
+            name: 'Surprise Bag',
+            url: getCanonicalUrl('/marketplace-surprise-bag', locale as Locale),
+          },
+        ]}
+      />
       <Header />
 
       <main className='min-h-screen bg-white text-primary-500'>

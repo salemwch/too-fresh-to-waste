@@ -3,6 +3,9 @@ import { setRequestLocale } from 'next-intl/server';
 import Image from 'next/image';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
+import { SoftwareAppSchema, BreadcrumbSchema } from '@/components/seo/schemas';
+import { getCanonicalUrl } from '@/config/seo.config';
+import type { Locale } from '@/i18n/config';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -307,6 +310,17 @@ export default async function ConsumerPage({ params }: PageProps) {
 
   return (
     <>
+      <SoftwareAppSchema
+        name='Too Fresh To Waste'
+        description='Save up to 90% on surplus food from local restaurants and shops. Fight food waste and save money every day.'
+        locale={locale as Locale}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: getCanonicalUrl('/', locale as Locale) },
+          { name: 'For Consumers', url: getCanonicalUrl('/consumer', locale as Locale) },
+        ]}
+      />
       <Header />
 
       <main className='min-h-screen bg-white text-primary-500'>

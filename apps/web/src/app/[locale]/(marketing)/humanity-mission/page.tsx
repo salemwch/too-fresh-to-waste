@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
+import { OrganizationSchema, DonateActionSchema, BreadcrumbSchema } from '@/components/seo/schemas';
+import { getCanonicalUrl } from '@/config/seo.config';
+import type { Locale } from '@/i18n/config';
 
 interface HumanityMissionPageProps {
   params: Promise<{ locale: string }>;
@@ -81,6 +84,14 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
 
   return (
     <>
+      <OrganizationSchema locale={locale as Locale} />
+      <DonateActionSchema />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: getCanonicalUrl('/', locale as Locale) },
+          { name: 'Humanity Mission', url: getCanonicalUrl('/humanity-mission', locale as Locale) },
+        ]}
+      />
       <Header />
 
       <main className='min-h-screen bg-cream'>
