@@ -56,11 +56,12 @@ describe('OrganizationSchema', () => {
 });
 
 describe('WebSiteSchema', () => {
-  it('renders WebSite with SearchAction', () => {
+  it('renders WebSite with name and url', () => {
     const { container } = render(<WebSiteSchema />);
     const data = getJsonLd(container);
     expect(data['@type']).toBe('WebSite');
-    expect(data.potentialAction?.['@type']).toBe('SearchAction');
+    expect(data.name).toBe('Too Fresh To Waste');
+    expect(data.url).toContain('toofreshwaste.tn');
   });
 });
 
@@ -222,11 +223,5 @@ describe('sitemap', () => {
         e.url === 'https://toofreshwaste.tn/ar',
     );
     expect(homepages.length).toBe(3);
-  });
-
-  it('includes pillar pages', () => {
-    const entries = sitemap();
-    const pillar = entries.find(e => e.url.includes('/food-waste-mena'));
-    expect(pillar).toBeTruthy();
   });
 });

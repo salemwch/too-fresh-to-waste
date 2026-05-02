@@ -32,17 +32,6 @@ const marketingPages: Array<{
   { path: '/business-signup', changeFrequency: 'monthly', priority: 0.7 },
 ];
 
-const pillarPages: string[] = [
-  '/food-waste-mena',
-  '/sustainable-eating',
-  '/food-donations-north-africa',
-  '/esg-restaurants',
-  '/surprise-bag-guide',
-  '/zero-hunger',
-  '/food-rewards-apps',
-  '/food-carbon-footprint',
-];
-
 const tunisiaCities = ['tunis', 'sousse', 'sfax', 'monastir', 'hammamet', 'bizerte', 'nabeul'];
 
 function buildAlternates(path: string): Record<string, string> {
@@ -78,12 +67,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   marketingPages.forEach(({ path, changeFrequency, priority }) => {
     locales.forEach((locale: Locale) => {
       entries.push(buildEntry(path, changeFrequency, priority, locale, now));
-    });
-  });
-
-  pillarPages.forEach(path => {
-    locales.forEach((locale: Locale) => {
-      entries.push(buildEntry(path, 'monthly', PRIORITY.pillar, locale, now));
     });
   });
 

@@ -120,7 +120,7 @@ export async function generateMetadata({
       alternateLocale: locales
         .filter(l => l !== locale)
         .map(l => getLocaleSeoMetadata(l as Locale).ogLocale),
-      url: locale === seoConfig.defaultLocale ? seoConfig.url : `${seoConfig.url}/${locale}`,
+      url: getCanonicalUrl('/', locale as Locale),
       siteName: seoConfig.siteName,
       title: localeMetadata.title,
       description: localeMetadata.description,

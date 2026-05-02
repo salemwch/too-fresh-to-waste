@@ -5,21 +5,13 @@ interface WebSiteSchemaProps {
   locale?: Locale;
 }
 
-export function WebSiteSchema({ locale = 'en' }: WebSiteSchemaProps) {
+export function WebSiteSchema({ locale: _locale = 'en' }: WebSiteSchemaProps) {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     '@id': `${seoConfig.url}/#website`,
     name: 'Too Fresh To Waste',
     url: seoConfig.url,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${seoConfig.url}/${locale}/blog?q={search_term_string}`,
-      },
-      'query-input': 'required name=search_term_string',
-    },
   };
 
   return (

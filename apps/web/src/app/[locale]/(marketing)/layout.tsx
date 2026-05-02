@@ -1,12 +1,6 @@
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { type Locale } from '@/i18n/config';
 import { pickMessages } from '@/lib/pick-messages';
-import {
-  OrganizationStructuredData,
-  WebsiteStructuredData,
-  MobileApplicationStructuredData,
-} from '@/components/StructuredData';
 import { Footer } from '@/components/layout';
 import { Newsletter } from '@/components/sections';
 
@@ -51,18 +45,12 @@ interface MarketingLayoutProps {
   params: Promise<{ locale: string }>;
 }
 
-export default async function MarketingLayout({ children, params }: MarketingLayoutProps) {
-  const { locale } = await params;
+export default async function MarketingLayout({ children }: MarketingLayoutProps) {
   const allMessages = await getMessages();
   const messages = pickMessages(allMessages, MARKETING_NAMESPACES);
 
   return (
     <NextIntlClientProvider messages={messages}>
-      {/* Structured Data for SEO */}
-      <OrganizationStructuredData locale={locale as Locale} />
-      <WebsiteStructuredData locale={locale as Locale} />
-      <MobileApplicationStructuredData locale={locale as Locale} />
-
       {/* Main content */}
       <div id='main-content'>{children}</div>
 

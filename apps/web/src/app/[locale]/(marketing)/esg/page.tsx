@@ -4,17 +4,35 @@ import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
 import { ArticleSchema, BreadcrumbSchema } from '@/components/seo/schemas';
 import { getCanonicalUrl } from '@/config/seo.config';
+import { locales, getLocaleConfig } from '@/i18n/config';
 import type { Locale } from '@/i18n/config';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const loc = locale as Locale;
+  const PATH = '/esg';
+  const alternateLanguages: Record<string, string> = {
+    'x-default': getCanonicalUrl(PATH, 'en'),
+  };
+  locales.forEach(l => {
+    alternateLanguages[getLocaleConfig(l).hreflang] = getCanonicalUrl(PATH, l);
+  });
   return {
     title: 'ESG — Why It Matters for Your Business | Too Fresh To Waste',
     description:
       'Understand what ESG is, why EU regulations like CBAM and CSRD make it mandatory, and how Tunisian companies can use food waste reduction to build a credible ESG strategy.',
+    alternates: {
+      canonical: getCanonicalUrl(PATH, loc),
+      languages: alternateLanguages,
+    },
   };
 }
 

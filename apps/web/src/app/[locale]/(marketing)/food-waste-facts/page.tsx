@@ -5,17 +5,35 @@ import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
 import { FAQSchema, BreadcrumbSchema } from '@/components/seo/schemas';
 import { getCanonicalUrl } from '@/config/seo.config';
+import { locales, getLocaleConfig } from '@/i18n/config';
 import type { Locale } from '@/i18n/config';
 
 interface FoodWasteFactsPageProps {
   params: Promise<{ locale: string }>;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const loc = locale as Locale;
+  const PATH = '/food-waste-facts';
+  const alternateLanguages: Record<string, string> = {
+    'x-default': getCanonicalUrl(PATH, 'en'),
+  };
+  locales.forEach(l => {
+    alternateLanguages[getLocaleConfig(l).hreflang] = getCanonicalUrl(PATH, l);
+  });
   return {
     title: 'Food Waste Facts — The Scale of What We Throw Away',
     description:
       'Each year, 2.5 billion tonnes of food never make it to a plate. Explore the data, the journey, and the usual suspects behind global food waste.',
+    alternates: {
+      canonical: getCanonicalUrl(PATH, loc),
+      languages: alternateLanguages,
+    },
   };
 }
 
