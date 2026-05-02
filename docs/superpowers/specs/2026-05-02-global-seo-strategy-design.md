@@ -31,17 +31,18 @@ content.
 Add schema markup to every page type. This is the single highest-leverage
 technical change.
 
-| Page                  | Schema Type                                      |
-| --------------------- | ------------------------------------------------ |
-| Homepage              | `Organization` + `WebSite` + `SearchAction`      |
-| Blog articles         | `Article` + `BreadcrumbList` + `Person` (author) |
-| Pillar pages          | `Article` + `FAQPage`                            |
-| Marketplace page      | `SoftwareApplication` + `AggregateRating`        |
-| Humanity/ESG pages    | `NGO` + `DonateAction`                           |
-| Milestone event pages | `NewsArticle` + `Event`                          |
-| Country landing pages | `LocalBusiness` per country                      |
-| Competition pages     | `ItemList` + `Contest`                           |
-| Impact reports        | `Dataset` + `NewsArticle`                        |
+| Page                  | Schema Type                                      | Notes                                                                                      |
+| --------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| Homepage              | `Organization` + `WebSite` + `SearchAction`      | Safe, well-supported, unlocks sitelinks search box                                         |
+| Blog articles         | `Article` + `BreadcrumbList` + `Person` (author) | Standard; author `Person` is required for E-E-A-T signals                                  |
+| Pillar pages          | `Article` + `FAQPage`                            | FAQPage only if ≥3 real Q&A pairs exist on the page                                        |
+| Marketplace/app page  | `SoftwareApplication` + `WebPage`                | No `AggregateRating` until legitimate review data exists — fake or premature ratings hurt  |
+| Humanity/ESG pages    | `Organization` + `DonateAction`                  | `NGO` is a valid schema.org type but poorly supported by Google; `Organization` is safer   |
+| Milestone event pages | `NewsArticle` + `Event`                          | `Event` only when a milestone has a real date and location (e.g. award ceremony)           |
+| Country landing pages | `WebPage` + `Organization`                       | No `LocalBusiness` unless a real local office/address exists for that country              |
+| Competition pages     | `ItemList` + `Event`                             | `Contest` has minimal Google support; `Event` + `ItemList` for winner lists is safer       |
+| Impact reports        | `Dataset` + `NewsArticle`                        | `Dataset` requires a real data download or API — add only once backend contract is defined |
+| About/contact pages   | `AboutPage` / `ContactPage`                      | Low effort, signals site completeness to crawlers                                          |
 
 Implementation: reusable React components (`<OrganizationSchema />`,
 `<ArticleSchema />`, etc.) that render `<script type="application/ld+json">` in
@@ -144,6 +145,20 @@ featured: false
 Pages are statically generated at build time via `generateStaticParams`. No
 database needed.
 
+**Content model — explicit decision:** One master article per language (EN, FR,
+AR). Content is **not** fully localized per country-market. The same French
+article serves fr-TN, fr-MA, and fr-DZ. The same Arabic article serves ar-TN,
+ar-MA, ar-DZ, ar-SA, and ar-AE. Country-specific adaptation happens only in:
+
+- Meta description (swap city/country name)
+- hreflang alternate links (per-country targets)
+- Internal links (country pages link to market-specific anchors)
+
+A fully per-country content model (e.g. a separate article for Tunisia vs
+Morocco in French) is out of scope until traffic data justifies the investment.
+Canonical URL for translated articles always points to the language-primary URL
+(`/fr/blog/[slug]`), not a country variant.
+
 ### 2.2 The 8 Pillar Pages
 
 Standalone marketing pages — not blog posts. 3,000+ words each. Updated
@@ -168,7 +183,24 @@ Each pillar includes:
 - Real citations (FAO, WHO, World Bank data)
 - CTA to app download / merchant signup
 
-### 2.3 E-E-A-T Infrastructure
+### 2.3 Archive Pages — Thin Content Protection
+
+Blog archive pages (category, tag, author) can become low-value crawl traps if
+indexed before enough content exists. Rules:
+
+| Archive type                        | Default                    | Indexable when                                                                                  |
+| ----------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------- |
+| Tag archives                        | `noindex, nofollow` always | Never indexed — tags are internal navigation only                                               |
+| Category archives                   | `noindex` until threshold  | Index only when ≥8 published articles in that category                                          |
+| Author pages                        | `noindex` until threshold  | Index only when author has ≥3 published articles AND a complete bio (photo, title, credentials) |
+| Blog hub (`/blog`)                  | Always indexed             | From day 1 — even 1 article is enough                                                           |
+| Paginated archives (`/blog?page=2`) | Canonical to page 1        | Never independently indexed; use `rel="next"` / `rel="prev"`                                    |
+
+These rules are enforced via `generateMetadata` per route — not via robots.txt,
+so individual pages can be promoted once they meet threshold without a config
+change.
+
+### 2.4 E-E-A-T Infrastructure
 
 **Author pages** at `/blog/author/[slug]`:
 
@@ -191,14 +223,19 @@ Each pillar includes:
 guest researcher) reviews, edits, and publishes under their real byline. Minimum
 1 real author per pillar.
 
-### 2.4 Content Calendar
+### 2.5 Content Calendar
 
-| Phase         | Duration  | Output                                               | Notes                             |
-| ------------- | --------- | ---------------------------------------------------- | --------------------------------- |
-| Foundation    | Month 1-2 | 8 pillars × 3 locales = 24 pieces                    | Human review mandatory            |
-| Cluster Build | Month 2-4 | 1 cluster/pillar/week = 8/week × 3 locales = 24/week | AI draft, human spot-check        |
-| Scale         | Month 4-6 | 60 articles/month across all locales                 | Full AI pipeline + review queue   |
-| Viral Layer   | Month 3+  | Milestone + impact + competition pages               | Triggered by real platform events |
+| Phase         | Duration  | Output                                                                                      | Notes                                                                                       |
+| ------------- | --------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Foundation    | Month 1-2 | 8 pillars × 3 locales = 24 pieces                                                           | Human review mandatory on every piece                                                       |
+| Cluster Build | Month 2-4 | Target: up to 1 cluster/pillar/week across locales                                          | Actual velocity depends on review queue capacity — do not publish without reviewer sign-off |
+| Scale         | Month 4-6 | Up to 60 articles/month — only once review pipeline, translation process, and QA are proven | This is a ceiling, not a commitment. Quality gates override volume targets.                 |
+| Viral Layer   | Month 3+  | Milestone + impact + competition pages                                                      | Triggered by real platform events only — no speculative publishing                          |
+
+**Editorial quality gate (non-negotiable):** No article ships without a named
+human reviewer sign-off, regardless of pipeline speed. A published article with
+a factual error or keyword-stuffed AI prose causes more SEO damage than a missed
+publish date.
 
 ---
 
@@ -215,7 +252,7 @@ guest researcher) reviews, edits, and publishes under their real byline. Minimum
 - `manger moins cher [city]` — eat cheaper + city
 - `programme fidélité restaurant` — restaurant loyalty program
 - `alimentation durable Maghreb` — sustainable food Maghreb
-- `ESG restauration Tunisie/Maroc` — ESG food business
+- `ESG restoration Tunisie/Maroc` — ESG food business
 
 **Arabic clusters (Maghreb dialect-aware):**
 
@@ -358,6 +395,26 @@ Content:
 Journalists covering sustainability/startups in MENA cite winner stories →
 editorial backlinks.
 
+### 4.5 Backend Data Contract (Hard Requirement)
+
+No milestone, impact report, or competition winner page may be published unless
+the backend provides a verified data payload meeting all of the following:
+
+| Field                | Required for             | Contract rule                                                                            |
+| -------------------- | ------------------------ | ---------------------------------------------------------------------------------------- |
+| `totalBagsSaved`     | Milestone + impact pages | Exact integer from DB aggregate — not estimated                                          |
+| `co2AvoidedKg`       | Milestone + impact pages | Derived from `totalBagsSaved × 2.5` — formula must be documented in backend              |
+| `charityAmountTND`   | Milestone + impact pages | Sum of confirmed `DonationPool.distributed` records — not pending                        |
+| `milestoneTimestamp` | Milestone pages          | UTC timestamp of when threshold was crossed, stored in DB                                |
+| `winners[]`          | Competition pages        | Array of `{ userId, displayName, tier, bagsSaved, prizeType }` from leaderboard snapshot |
+| `winnerConsentAt`    | Competition pages        | Each winner must have a stored consent timestamp before name/photo appears publicly      |
+| `goalFunded[]`       | Impact reports           | Array of `{ goalType, itemCount, distributedAt }` from DonationPool records              |
+
+**Publishing gate:** A backend endpoint
+(`GET /api/v1/milestones/:id/publish-readiness`) must return `{ ready: true }` —
+confirming all required fields are present, consent is recorded, and data is
+final — before the page generation job runs. No editorial override of this gate.
+
 ---
 
 ## Section 5 — International SEO
@@ -491,7 +548,41 @@ explicit locale segment. All internal links must include the locale prefix.
 - Arabic blog URLs use transliterated slugs OR Arabic characters (both work; be
   consistent per locale)
 
-### 6.4 Meta Title & Description Formula
+### 6.4 Canonical URLs & Pagination
+
+**Canonical rules — every page must declare its canonical explicitly via Next.js
+`alternates.canonical` in `generateMetadata`:**
+
+| Page type                                          | Canonical URL                   | Rationale                                                                                      |
+| -------------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Blog article (EN)                                  | `/en/blog/[slug]`               | Language-primary URL is canonical                                                              |
+| Blog article (FR)                                  | `/fr/blog/[slug]`               | Each language version is its own canonical — no cross-language canonical                       |
+| Blog article (AR)                                  | `/ar/blog/[slug]`               | Same                                                                                           |
+| Pillar page                                        | `/[locale]/[pillar-slug]`       | One canonical per locale; no cross-locale pointing                                             |
+| Country page                                       | `/[locale]/countries/[country]` | Canonical to itself — country pages are distinct, not duplicates                               |
+| Filtered blog hub (`/en/blog?category=food-waste`) | `/en/blog/category/food-waste`  | Query-param filters get 301-redirected to clean category URLs — never crawlable query strings  |
+| Paginated archives (`/en/blog?page=2`)             | `/en/blog` (page 1)             | All paginated pages canonicalize to page 1; use `rel="next"` / `rel="prev"` for crawl chaining |
+
+**Pagination rules:**
+
+- Blog hub, category archives, and tag archives (when indexed) use cursor or
+  page-number pagination
+- Paginated pages beyond page 1:
+  `<meta name="robots" content="noindex, follow">` — Google crawls the chain but
+  only indexes page 1
+- Sitemap includes only page 1 of any paginated series
+- No infinite scroll on SEO-critical archive pages — crawlers cannot execute
+  JS-triggered pagination
+
+**Duplicate content guard:**
+
+- `www` vs non-`www`: enforce one via 301 at CDN/Vercel level; canonical
+  reflects the chosen form
+- Trailing slash: `trailingSlash: false` already set in `next.config` —
+  canonical URLs must match
+- HTTP vs HTTPS: enforce HTTPS via HSTS (already configured via Helmet headers)
+
+### 6.5 Meta Title & Description Formula
 
 **Title:** `[Primary Keyword] — [Unique Value Prop] | Too Fresh To Waste`
 
@@ -510,7 +601,7 @@ FR: Application Anti-Gaspillage Tunis — Économisez 90% sur vos repas | Too Fr
 AR: تطبيق الحد من هدر الطعام تونس — وفّر حتى 90% على وجباتك | Too Fresh To Waste
 ```
 
-### 6.5 Page Speed Improvements
+### 6.6 Page Speed Improvements
 
 | Optimization               | Metric     | Implementation                                                       |
 | -------------------------- | ---------- | -------------------------------------------------------------------- |
@@ -560,3 +651,6 @@ AR: تطبيق الحد من هدر الطعام تونس — وفّر حتى 90
 6. **Dialect consistency** — Maghreb Arabic content uses MSA body + darija meta
    keywords; Gulf content uses MSA body + Gulf dialect meta keywords. Never mix
    in body text.
+7. **Milestone data contract** — milestone, impact, and winner pages require
+   backend `publish-readiness` confirmation (Section 4.5) before any page
+   generation runs. No exceptions.
