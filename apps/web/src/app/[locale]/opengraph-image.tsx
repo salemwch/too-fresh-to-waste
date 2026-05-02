@@ -11,24 +11,35 @@ interface Props {
 
 export default async function OGImage({ params }: Props) {
   const { locale } = await params;
-
-  // satori (ImageResponse renderer) has no Arabic font bundled — fall back to
-  // English text for the ar locale to avoid an empty/broken image response.
-  // Arabic page metadata (title, description) remains in Arabic in <head>.
-  const displayLocale = locale === 'ar' ? 'en' : locale;
+  const isRtl = locale === 'ar';
 
   const titles: Record<string, string> = {
     en: 'Reduce Food Waste. Save Money.',
     fr: 'Réduisez le gaspillage. Économisez.',
+    ar: 'قلّل هدر الطعام. وفّر المال.',
   };
 
   const subtitles: Record<string, string> = {
     en: 'Save up to 90% on surplus food from local restaurants',
     fr: "Économisez jusqu'à 90% sur la nourriture en surplus",
+    ar: 'وفّر حتى 90% على الطعام الفائض من المطاعم المحلية',
   };
 
-  const title = titles[displayLocale] ?? titles['en'];
-  const subtitle = subtitles[displayLocale] ?? subtitles['en'];
+  const title = titles[locale] ?? titles['en'];
+  const subtitle = subtitles[locale] ?? subtitles['en'];
+
+  // Load Arabic font only when needed — satori has no Arabic font by default
+  const fonts: ConstructorParameters<typeof ImageResponse>[1]['fonts'] = [];
+  if (isRtl) {
+    const fontData = await fetch(new URL('./noto-sans-arabic-700.woff', import.meta.url)).then(r =>
+      r.arrayBuffer(),
+    );
+    fonts.push({ name: 'NotoSansArabic', data: fontData, style: 'normal', weight: 700 });
+  }
+
+  const fontFamily = isRtl ? 'NotoSansArabic' : 'sans-serif';
+  const direction = isRtl ? 'rtl' : 'ltr';
+  const alignItems = isRtl ? 'flex-end' : 'flex-start';
 
   return new ImageResponse(
     <div
@@ -37,10 +48,12 @@ export default async function OGImage({ params }: Props) {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'flex-start',
+        alignItems,
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #1E4448 0%, #2d6a70 100%)',
         padding: '60px 80px',
+        direction,
+        fontFamily,
       }}
     >
       <div
@@ -48,6 +61,7 @@ export default async function OGImage({ params }: Props) {
           display: 'flex',
           alignItems: 'center',
           marginBottom: 32,
+          flexDirection: isRtl ? 'row-reverse' : 'row',
         }}
       >
         <div
@@ -59,10 +73,12 @@ export default async function OGImage({ params }: Props) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginRight: 16,
+            ...(isRtl ? { marginLeft: 16 } : { marginRight: 16 }),
           }}
         />
-        <span style={{ color: '#ffffff', fontSize: 24, fontWeight: 600 }}>Too Fresh To Waste</span>
+        <span style={{ color: '#ffffff', fontSize: 24, fontWeight: 600, fontFamily }}>
+          Too Fresh To Waste
+        </span>
       </div>
       <div
         style={{
@@ -72,6 +88,8 @@ export default async function OGImage({ params }: Props) {
           lineHeight: 1.2,
           marginBottom: 20,
           maxWidth: 800,
+          fontFamily,
+          textAlign: isRtl ? 'right' : 'left',
         }}
       >
         {title}
@@ -81,11 +99,13 @@ export default async function OGImage({ params }: Props) {
           color: 'rgba(255,255,255,0.8)',
           fontSize: 26,
           maxWidth: 700,
+          fontFamily,
+          textAlign: isRtl ? 'right' : 'left',
         }}
       >
         {subtitle}
       </div>
     </div>,
-    { ...size },
+    { ...size, fonts },
   );
 }
