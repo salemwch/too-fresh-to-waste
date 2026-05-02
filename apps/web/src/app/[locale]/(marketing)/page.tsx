@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import { Header } from '@/components/layout';
 import {
   Section2,
@@ -12,9 +13,37 @@ import {
 import { HashScrollHandler } from '@/components/HashScrollHandler';
 import { Link } from '@/i18n/routing';
 import type { Locale } from '@/i18n/config';
+import { locales, getLocaleConfig } from '@/i18n/config';
+import { OrganizationSchema, WebSiteSchema } from '@/components/seo/schemas';
+import { getCanonicalUrl, getLocaleSeoMetadata } from '@/config/seo.config';
 
 interface HomePageProps {
   params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const loc = locale as Locale;
+  const localeMetadata = getLocaleSeoMetadata(loc);
+
+  const alternateLanguages: Record<string, string> = {};
+  locales.forEach(l => {
+    alternateLanguages[getLocaleConfig(l).hreflang] = getCanonicalUrl('/', l);
+  });
+  alternateLanguages['x-default'] = getCanonicalUrl('/', 'en');
+
+  return {
+    title: localeMetadata.title,
+    description: localeMetadata.description,
+    alternates: {
+      canonical: getCanonicalUrl('/', loc),
+      languages: alternateLanguages,
+    },
+  };
 }
 
 export default async function HomePage({ params }: HomePageProps) {
@@ -25,6 +54,8 @@ export default async function HomePage({ params }: HomePageProps) {
 
   return (
     <>
+      <OrganizationSchema locale={locale as Locale} />
+      <WebSiteSchema locale={locale as Locale} />
       <HashScrollHandler />
       <Header />
 
