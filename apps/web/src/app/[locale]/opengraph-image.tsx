@@ -12,21 +12,23 @@ interface Props {
 export default async function OGImage({ params }: Props) {
   const { locale } = await params;
 
+  // satori (ImageResponse renderer) has no Arabic font bundled — fall back to
+  // English text for the ar locale to avoid an empty/broken image response.
+  // Arabic page metadata (title, description) remains in Arabic in <head>.
+  const displayLocale = locale === 'ar' ? 'en' : locale;
+
   const titles: Record<string, string> = {
     en: 'Reduce Food Waste. Save Money.',
     fr: 'Réduisez le gaspillage. Économisez.',
-    ar: 'قلّل هدر الطعام. وفّر المال.',
   };
 
   const subtitles: Record<string, string> = {
     en: 'Save up to 90% on surplus food from local restaurants',
     fr: "Économisez jusqu'à 90% sur la nourriture en surplus",
-    ar: 'وفّر حتى 90% على الطعام الفائض من المطاعم المحلية',
   };
 
-  const title = titles[locale] ?? titles['en'];
-  const subtitle = subtitles[locale] ?? subtitles['en'];
-  const isRtl = locale === 'ar';
+  const title = titles[displayLocale] ?? titles['en'];
+  const subtitle = subtitles[displayLocale] ?? subtitles['en'];
 
   return new ImageResponse(
     <div
@@ -35,11 +37,10 @@ export default async function OGImage({ params }: Props) {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: isRtl ? 'flex-end' : 'flex-start',
+        alignItems: 'flex-start',
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #1E4448 0%, #2d6a70 100%)',
         padding: '60px 80px',
-        direction: isRtl ? 'rtl' : 'ltr',
       }}
     >
       <div
@@ -58,8 +59,7 @@ export default async function OGImage({ params }: Props) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginRight: isRtl ? 0 : 16,
-            marginLeft: isRtl ? 16 : 0,
+            marginRight: 16,
           }}
         />
         <span style={{ color: '#ffffff', fontSize: 24, fontWeight: 600 }}>Too Fresh To Waste</span>
