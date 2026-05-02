@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { locales, type Locale, getLocaleConfig } from '@/i18n/config';
-import { seoConfig, getLocaleSeoMetadata } from '@/config/seo.config';
+import { seoConfig, getLocaleSeoMetadata, getCanonicalUrl } from '@/config/seo.config';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { AppProviders } from '@/components/providers/app-providers';
@@ -89,9 +89,9 @@ export async function generateMetadata({
   const alternateLanguages: Record<string, string> = {};
   locales.forEach(loc => {
     const hreflang = getLocaleConfig(loc).hreflang;
-    alternateLanguages[hreflang] =
-      loc === seoConfig.defaultLocale ? seoConfig.url : `${seoConfig.url}/${loc}`;
+    alternateLanguages[hreflang] = getCanonicalUrl('/', loc);
   });
+  alternateLanguages['x-default'] = getCanonicalUrl('/', 'en');
 
   return {
     metadataBase: new URL(seoConfig.url),
@@ -109,7 +109,7 @@ export async function generateMetadata({
 
     // Alternate languages for SEO (hreflang)
     alternates: {
-      canonical: locale === seoConfig.defaultLocale ? seoConfig.url : `${seoConfig.url}/${locale}`,
+      canonical: getCanonicalUrl('/', locale as Locale),
       languages: alternateLanguages,
     },
 
@@ -211,9 +211,10 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   const isRTL = currentLocaleConfig.direction === 'rtl';
 
   // Select font based on locale
+  // Arabic font is only needed on ar locale; include it via isRTL conditional
   const fontClass = isRTL
     ? `${notoSansArabic.variable} ${inter.variable} ${playfairDisplay.variable} ${fraunces.variable}`
-    : `${inter.variable} ${notoSansArabic.variable} ${playfairDisplay.variable} ${fraunces.variable}`;
+    : `${inter.variable} ${playfairDisplay.variable} ${fraunces.variable}`;
 
   return (
     <html
