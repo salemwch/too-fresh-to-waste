@@ -138,6 +138,9 @@ uploads/
 /leaderboard.md
 /Plan.md
 
+# Git worktrees (local development isolation)
+.worktrees/
+
 # Local Claude project settings (machine-specific)
 .claude/settings.local.json
 **/.claude/settings.local.json
