@@ -9,6 +9,7 @@ import { SoftwareAppSchema } from '@/components/seo/schemas/software-app-schema'
 import { WebPageSchema } from '@/components/seo/schemas/webpage-schema';
 import { EventSchema } from '@/components/seo/schemas/event-schema';
 import { DonateActionSchema } from '@/components/seo/schemas/donate-action-schema';
+import sitemap from '@/app/sitemap';
 
 describe('getCanonicalUrl', () => {
   it('includes locale prefix for default locale (en)', () => {
@@ -202,5 +203,30 @@ describe('BreadcrumbSchema empty guard', () => {
   it('returns null for empty items', () => {
     const { container } = render(<BreadcrumbSchema items={[]} />);
     expect(container.querySelector('script')).toBeNull();
+  });
+});
+
+describe('sitemap', () => {
+  it('includes locale prefix for default locale (en)', () => {
+    const entries = sitemap();
+    const homepageEn = entries.find(e => e.url === 'https://toofreshwaste.tn/en');
+    expect(homepageEn).toBeTruthy();
+  });
+
+  it('includes all three locales for each page', () => {
+    const entries = sitemap();
+    const homepages = entries.filter(
+      e =>
+        e.url === 'https://toofreshwaste.tn/en' ||
+        e.url === 'https://toofreshwaste.tn/fr' ||
+        e.url === 'https://toofreshwaste.tn/ar',
+    );
+    expect(homepages.length).toBe(3);
+  });
+
+  it('includes pillar pages', () => {
+    const entries = sitemap();
+    const pillar = entries.find(e => e.url.includes('/food-waste-mena'));
+    expect(pillar).toBeTruthy();
   });
 });
