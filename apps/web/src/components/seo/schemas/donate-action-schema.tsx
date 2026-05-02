@@ -1,12 +1,17 @@
 import { seoConfig } from '@/config/seo.config';
 
-export function DonateActionSchema() {
+interface DonateActionSchemaProps {
+  description?: string;
+}
+
+export function DonateActionSchema({
+  description = '5% of every order value is automatically donated to active community charity goals.',
+}: DonateActionSchemaProps) {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'DonateAction',
     agent: { '@type': 'Organization', '@id': `${seoConfig.url}/#organization` },
-    description:
-      '5% of every order value is automatically donated to active community charity goals.',
+    description,
     recipient: { '@type': 'Organization', name: 'Too Fresh To Waste Community Fund' },
   };
 

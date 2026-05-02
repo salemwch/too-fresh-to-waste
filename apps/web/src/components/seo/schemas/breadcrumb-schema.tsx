@@ -4,6 +4,8 @@ interface BreadcrumbItem {
 }
 
 export function BreadcrumbSchema({ items }: { items: BreadcrumbItem[] }) {
+  if (items.length === 0) return null;
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',

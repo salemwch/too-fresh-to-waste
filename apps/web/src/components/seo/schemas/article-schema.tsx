@@ -45,6 +45,8 @@ export function ArticleSchema({
       logo: {
         '@type': 'ImageObject',
         url: `${seoConfig.url}/images/logo.png`,
+        width: 512,
+        height: 512,
       },
     },
     ...(imageUrl

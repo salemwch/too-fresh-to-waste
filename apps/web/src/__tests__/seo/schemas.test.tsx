@@ -5,6 +5,10 @@ import { WebSiteSchema } from '@/components/seo/schemas/website-schema';
 import { ArticleSchema } from '@/components/seo/schemas/article-schema';
 import { FAQSchema } from '@/components/seo/schemas/faq-schema';
 import { BreadcrumbSchema } from '@/components/seo/schemas/breadcrumb-schema';
+import { SoftwareAppSchema } from '@/components/seo/schemas/software-app-schema';
+import { WebPageSchema } from '@/components/seo/schemas/webpage-schema';
+import { EventSchema } from '@/components/seo/schemas/event-schema';
+import { DonateActionSchema } from '@/components/seo/schemas/donate-action-schema';
 
 describe('getCanonicalUrl', () => {
   it('includes locale prefix for default locale (en)', () => {
@@ -99,5 +103,104 @@ describe('BreadcrumbSchema', () => {
     const data = getJsonLd(container);
     expect(data['@type']).toBe('BreadcrumbList');
     expect(data.itemListElement).toHaveLength(2);
+  });
+});
+
+describe('SoftwareAppSchema', () => {
+  it('renders SoftwareApplication with offers', () => {
+    const { container } = render(
+      <SoftwareAppSchema name='Too Fresh To Waste' description='Save food.' locale='en' />,
+    );
+    const data = getJsonLd(container);
+    expect(data['@type']).toBe('SoftwareApplication');
+    expect(data.offers?.['@type']).toBe('Offer');
+  });
+});
+
+describe('WebPageSchema', () => {
+  it('renders WebPage with default type', () => {
+    const { container } = render(
+      <WebPageSchema
+        name='Contact'
+        description='Get in touch.'
+        url='https://toofreshwaste.tn/en/contact'
+      />,
+    );
+    const data = getJsonLd(container);
+    expect(data['@type']).toBe('WebPage');
+    expect(data.url).toContain('contact');
+  });
+
+  it('renders ContactPage type when specified', () => {
+    const { container } = render(
+      <WebPageSchema
+        type='ContactPage'
+        name='Contact'
+        description='Get in touch.'
+        url='https://toofreshwaste.tn/en/contact'
+      />,
+    );
+    const data = getJsonLd(container);
+    expect(data['@type']).toBe('ContactPage');
+  });
+});
+
+describe('EventSchema', () => {
+  it('renders Event with physical location', () => {
+    const { container } = render(
+      <EventSchema
+        name='Food Waste Hackathon'
+        description='Join us to fight food waste.'
+        startDate='2026-06-01'
+        url='https://toofreshwaste.tn/en/events/hackathon'
+        location='Tunis, Tunisia'
+      />,
+    );
+    const data = getJsonLd(container);
+    expect(data['@type']).toBe('Event');
+    expect(data.location?.['@type']).toBe('Place');
+  });
+
+  it('renders Event with virtual location when no location provided', () => {
+    const { container } = render(
+      <EventSchema
+        name='Virtual Workshop'
+        description='Online event.'
+        startDate='2026-06-15'
+        url='https://toofreshwaste.tn/en/events/workshop'
+      />,
+    );
+    const data = getJsonLd(container);
+    expect(data.location?.['@type']).toBe('VirtualLocation');
+    expect(data.eventAttendanceMode).toContain('OnlineEventAttendanceMode');
+  });
+});
+
+describe('DonateActionSchema', () => {
+  it('renders DonateAction with default description', () => {
+    const { container } = render(<DonateActionSchema />);
+    const data = getJsonLd(container);
+    expect(data['@type']).toBe('DonateAction');
+    expect(data.description).toContain('5%');
+  });
+
+  it('renders DonateAction with custom description', () => {
+    const { container } = render(<DonateActionSchema description='Custom donation message.' />);
+    const data = getJsonLd(container);
+    expect(data.description).toBe('Custom donation message.');
+  });
+});
+
+describe('FAQSchema empty guard', () => {
+  it('returns null for empty items', () => {
+    const { container } = render(<FAQSchema items={[]} />);
+    expect(container.querySelector('script')).toBeNull();
+  });
+});
+
+describe('BreadcrumbSchema empty guard', () => {
+  it('returns null for empty items', () => {
+    const { container } = render(<BreadcrumbSchema items={[]} />);
+    expect(container.querySelector('script')).toBeNull();
   });
 });

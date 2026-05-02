@@ -1,6 +1,11 @@
 import { seoConfig } from '@/config/seo.config';
+import type { Locale } from '@/i18n/config';
 
-export function WebSiteSchema() {
+interface WebSiteSchemaProps {
+  locale?: Locale;
+}
+
+export function WebSiteSchema({ locale = 'en' }: WebSiteSchemaProps) {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -11,7 +16,7 @@ export function WebSiteSchema() {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: `${seoConfig.url}/en/blog?q={search_term_string}`,
+        urlTemplate: `${seoConfig.url}/${locale}/blog?q={search_term_string}`,
       },
       'query-input': 'required name=search_term_string',
     },

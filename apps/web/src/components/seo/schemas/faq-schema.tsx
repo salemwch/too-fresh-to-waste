@@ -4,6 +4,8 @@ interface FAQItem {
 }
 
 export function FAQSchema({ items }: { items: FAQItem[] }) {
+  if (items.length === 0) return null;
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',

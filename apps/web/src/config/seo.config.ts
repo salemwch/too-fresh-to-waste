@@ -9,7 +9,7 @@ export const seoConfig = {
   siteName: 'Too Fresh To Waste Tunisia',
 
   // Localization
-  defaultLocale: 'fr' as Locale,
+  defaultLocale: 'en' as Locale,
   locales: ['fr', 'ar', 'en'] as Locale[],
 
   // Locale-specific metadata
