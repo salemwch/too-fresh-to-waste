@@ -1,4 +1,10 @@
 import { getCanonicalUrl, getSchemaOrgUrl } from '@/config/seo.config';
+import { render } from '@testing-library/react';
+import { OrganizationSchema } from '@/components/seo/schemas/organization-schema';
+import { WebSiteSchema } from '@/components/seo/schemas/website-schema';
+import { ArticleSchema } from '@/components/seo/schemas/article-schema';
+import { FAQSchema } from '@/components/seo/schemas/faq-schema';
+import { BreadcrumbSchema } from '@/components/seo/schemas/breadcrumb-schema';
 
 describe('getCanonicalUrl', () => {
   it('includes locale prefix for default locale (en)', () => {
@@ -27,13 +33,6 @@ describe('getSchemaOrgUrl', () => {
     expect(getSchemaOrgUrl('/')).toBe('https://toofreshwaste.tn/en');
   });
 });
-
-import { render } from '@testing-library/react';
-import { OrganizationSchema } from '@/components/seo/schemas/organization-schema';
-import { WebSiteSchema } from '@/components/seo/schemas/website-schema';
-import { ArticleSchema } from '@/components/seo/schemas/article-schema';
-import { FAQSchema } from '@/components/seo/schemas/faq-schema';
-import { BreadcrumbSchema } from '@/components/seo/schemas/breadcrumb-schema';
 
 function getJsonLd(container: HTMLElement) {
   const script = container.querySelector('script[type="application/ld+json"]');
