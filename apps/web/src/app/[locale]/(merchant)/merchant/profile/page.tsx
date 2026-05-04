@@ -15,6 +15,9 @@ import {
   AlertCircle,
   CheckCircle2,
   Trophy,
+  Lock,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useUpdateLeaderboardPreference } from '@/hooks/use-merchant-dashboard';
 
@@ -32,6 +35,44 @@ export default function MerchantProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  // ── Password state ────────────────────────────────────────────────────────
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState(false);
+
+  const PW_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
+
+  async function handlePasswordSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setPwError('');
+    setPwSuccess(false);
+
+    if (!PW_REGEX.test(newPassword)) {
+      setPwError(t('passwordRequirements'));
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwError(t('passwordMismatch'));
+      return;
+    }
+
+    setPwLoading(true);
+    try {
+      await userService.changePassword(newPassword);
+      setPwSuccess(true);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch {
+      setPwError(t('passwordError'));
+    } finally {
+      setPwLoading(false);
+    }
+  }
 
   const updateLeaderboardPref = useUpdateLeaderboardPreference();
   const isPublicOnLeaderboard = user?.leaderboardAnonymous === false;
@@ -286,6 +327,93 @@ export default function MerchantProfilePage() {
           {isLoading ? t('saving') : t('saveChanges')}
         </Button>
       </form>
+
+      {/* ── Change password ───────────────────────────────────────────────── */}
+      <div className='mt-6 pt-5 border-t border-slate-100'>
+        <div className='flex items-center gap-2 mb-3'>
+          <Lock className='h-3.5 w-3.5 text-slate-400' />
+          <span className='text-xs font-medium text-slate-700'>{t('changePassword')}</span>
+        </div>
+
+        <form onSubmit={handlePasswordSubmit} className='space-y-3'>
+          {/* New password */}
+          <div className='space-y-1'>
+            <Label htmlFor='newPassword' className='text-xs font-medium text-slate-700'>
+              {t('newPassword')}
+            </Label>
+            <div className='relative'>
+              <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+              <Input
+                id='newPassword'
+                type={showNew ? 'text' : 'password'}
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                required
+                disabled={pwLoading}
+                className='h-[36px] pl-8 pr-9 text-sm'
+                autoComplete='new-password'
+              />
+              <button
+                type='button'
+                onClick={() => setShowNew(v => !v)}
+                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
+                aria-label={showNew ? t('hidePassword') : t('showPassword')}
+              >
+                {showNew ? <EyeOff className='h-3.5 w-3.5' /> : <Eye className='h-3.5 w-3.5' />}
+              </button>
+            </div>
+          </div>
+
+          {/* Confirm password */}
+          <div className='space-y-1'>
+            <Label htmlFor='confirmPassword' className='text-xs font-medium text-slate-700'>
+              {t('confirmPassword')}
+            </Label>
+            <div className='relative'>
+              <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+              <Input
+                id='confirmPassword'
+                type={showConfirm ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                required
+                disabled={pwLoading}
+                className='h-[36px] pl-8 pr-9 text-sm'
+                autoComplete='new-password'
+              />
+              <button
+                type='button'
+                onClick={() => setShowConfirm(v => !v)}
+                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
+                aria-label={showConfirm ? t('hidePassword') : t('showPassword')}
+              >
+                {showConfirm ? <EyeOff className='h-3.5 w-3.5' /> : <Eye className='h-3.5 w-3.5' />}
+              </button>
+            </div>
+          </div>
+
+          <p className='text-[11px] text-slate-400'>{t('passwordRequirementsHint')}</p>
+
+          {/* Feedback */}
+          {pwError && (
+            <div className='flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive'>
+              <AlertCircle className='h-3.5 w-3.5 shrink-0' />
+              <span>{pwError}</span>
+            </div>
+          )}
+          {pwSuccess && (
+            <div className='flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700'>
+              <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
+              <span>{t('passwordSuccess')}</span>
+            </div>
+          )}
+
+          <Button type='submit' disabled={pwLoading} className='h-[36px] px-4 text-sm'>
+            {pwLoading && <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />}
+            {pwLoading ? t('updatingPassword') : t('updatePassword')}
+          </Button>
+        </form>
+      </div>
 
       {/* ── Leaderboard preference ─────────────────────────────────────────── */}
       <div className='mt-6 pt-5 border-t border-slate-100'>

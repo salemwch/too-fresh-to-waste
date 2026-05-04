@@ -650,7 +650,19 @@
       "saveChanges": "حفظ التغييرات",
       "saving": "جاري الحفظ...",
       "success": "تم تحديث الملف الشخصي بنجاح",
-      "error": "فشل تحديث الملف الشخصي"
+      "error": "فشل تحديث الملف الشخصي",
+      "changePassword": "تغيير كلمة المرور",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "showPassword": "إظهار كلمة المرور",
+      "hidePassword": "إخفاء كلمة المرور",
+      "passwordRequirementsHint": "8 أحرف على الأقل · حرف كبير · حرف صغير · رقم · رمز خاص (@$!%*?&.)",
+      "passwordRequirements": "يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل مع حرف كبير وصغير ورقم ورمز خاص",
+      "passwordMismatch": "كلمتا المرور غير متطابقتين",
+      "updatePassword": "تحديث كلمة المرور",
+      "updatingPassword": "جاري التحديث...",
+      "passwordSuccess": "تم تحديث كلمة المرور بنجاح",
+      "passwordError": "فشل تحديث كلمة المرور"
     },
     "admin": {
       "title": "لوحة تحكم المسؤول",

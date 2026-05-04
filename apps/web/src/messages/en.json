@@ -650,7 +650,19 @@
       "saveChanges": "Save Changes",
       "saving": "Saving...",
       "success": "Profile updated successfully",
-      "error": "Failed to update profile"
+      "error": "Failed to update profile",
+      "changePassword": "Change Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "passwordRequirementsHint": "Min 8 characters · uppercase · lowercase · number · special character (@$!%*?&.)",
+      "passwordRequirements": "Password must be at least 8 characters and include uppercase, lowercase, number and special character",
+      "passwordMismatch": "Passwords do not match",
+      "updatePassword": "Update Password",
+      "updatingPassword": "Updating...",
+      "passwordSuccess": "Password updated successfully",
+      "passwordError": "Failed to update password"
     },
     "admin": {
       "title": "Admin Dashboard",
