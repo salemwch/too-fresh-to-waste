@@ -1552,7 +1552,14 @@ export class OrdersService {
       const expiredOrders = await this.orderModel
         .find({
           expiresAt: { $lte: now },
-          status: { $ne: OrderStatus.EXPIRED },
+          status: {
+            $nin: [
+              OrderStatus.EXPIRED,
+              OrderStatus.PICKED_UP,
+              OrderStatus.CANCELLED,
+              OrderStatus.REFUNDED,
+            ],
+          },
         })
         .select('_id items') // ✅ Only fetch required fields
         .lean() // ✅ 50% memory reduction
