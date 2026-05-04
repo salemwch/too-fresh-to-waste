@@ -716,13 +716,13 @@ export function MerchantOffersView() {
               type='button'
               onClick={() => handleTabChange(key)}
               className={cn(
-                'shrink-0 flex items-center gap-1.5 h-8 px-3.5 rounded-full text-xs font-semibold border transition-all',
+                'shrink-0 flex items-center gap-1 h-6 px-2.5 rounded-full text-[11px] font-semibold border transition-all',
                 activeTab === key
                   ? 'bg-primary-500 text-white border-primary-500 shadow-sm'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-primary-500/40 hover:text-primary-500',
               )}
             >
-              {key === 'all' && <LayoutGrid className='h-3 w-3' />}
+              {key === 'all' && <LayoutGrid className='h-2.5 w-2.5' />}
               {t(`merchantOffers.${TAB_I18N_MAP[key]}`)}
               <span
                 className={cn(
