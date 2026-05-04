@@ -54,6 +54,8 @@ const TYPE_FILTER_KEYS = [
   { value: 'meal_deal', i18nKey: 'mealDeal' },
 ] as const;
 
+const REACTIVATE_DISCOUNT_OPTIONS = [50, 55, 60, 65, 70, 80, 90] as const;
+
 const SORT_KEYS = [
   { value: 'newest', i18nKey: 'newest' },
   { value: 'oldest', i18nKey: 'oldest' },
@@ -164,7 +166,7 @@ interface ReactivateModalProps {
   isPending: boolean;
   onClose: () => void;
   onConfirm: (payload: ReactivateOfferPayload) => void;
-  t: (key: string) => string;
+  t: (key: string, values?: Record<string, string | number | Date>) => string;
 }
 
 function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: ReactivateModalProps) {
@@ -172,14 +174,19 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
   const [pickupFrom, setFrom] = useState('12:00');
   const [pickupUntil, setUntil] = useState('14:00');
   const [quantity, setQty] = useState(offer.totalQuantity ?? 5);
-  const [originalPrice, setOriginalPrice] = useState(offer.pricing.originalPrice);
-  const [discountedPrice, setDiscountedPrice] = useState(offer.pricing.discountedPrice);
+  const [rawOriginalPrice, setRawOriginalPrice] = useState(offer.pricing.originalPrice.toFixed(3));
+  const [discount, setDiscount] = useState<number>(() => {
+    const { originalPrice: op, discountedPrice: dp } = offer.pricing;
+    if (op <= 0) return 50;
+    const pct = Math.round(((op - dp) / op) * 100);
+    return REACTIVATE_DISCOUNT_OPTIONS.reduce((prev, curr) =>
+      Math.abs(curr - pct) < Math.abs(prev - pct) ? curr : prev,
+    );
+  });
 
-  const discountPct =
-    originalPrice > 0 && discountedPrice > 0 && discountedPrice < originalPrice
-      ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
-      : null;
-  const pricingValid = discountPct !== null && discountPct >= 50 && discountPct <= 90;
+  const parsedOriginalPrice = parseFloat(rawOriginalPrice) || 0;
+  const discountedPrice = parsedOriginalPrice > 0 ? parsedOriginalPrice * (1 - discount / 100) : 0;
+  const saving = parsedOriginalPrice - discountedPrice;
 
   const fromOptions = useMemo(() => getAvailableFromTimes(day), [day]);
 
@@ -217,12 +224,16 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       isPickupToday: day === 'today',
       isPickupTomorrow: day === 'tomorrow',
-      pricing: { originalPrice, discountedPrice },
+      pricing: {
+        originalPrice: parseFloat(parsedOriginalPrice.toFixed(3)),
+        discountedPrice: parseFloat(discountedPrice.toFixed(3)),
+      },
     });
   }
 
   const canConfirm =
-    pricingValid && (day === 'tomorrow' || fromOptions.length > 0 || pickupFrom === 'now');
+    parsedOriginalPrice > 0 &&
+    (day === 'tomorrow' || fromOptions.length > 0 || pickupFrom === 'now');
 
   return (
     <div
@@ -369,59 +380,82 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
             <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-2'>
               {t('merchantOffers.pricing')}
             </p>
-            <div className='flex gap-2 items-start'>
-              <div className='flex-1'>
-                <label className='text-[10px] font-semibold text-slate-500 block mb-1'>
-                  {t('merchantOffers.originalPrice')}
-                </label>
-                <div className='relative'>
+            <div className='space-y-2'>
+              {/* Original price */}
+              <div className='space-y-1'>
+                <p className='text-[10px] text-slate-400'>{t('merchantOffers.originalPrice')}</p>
+                <div className='flex gap-1'>
+                  <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2 text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
+                    TND
+                  </span>
                   <input
-                    type='number'
-                    min={0.01}
-                    step={0.1}
-                    value={originalPrice}
-                    onChange={e => setOriginalPrice(parseFloat(e.target.value) || 0)}
-                    className='w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 pe-10 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30'
+                    type='text'
+                    inputMode='decimal'
+                    value={rawOriginalPrice}
+                    onChange={e => setRawOriginalPrice(e.target.value)}
+                    className='h-7 flex-1 rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
+                    placeholder='10.000'
                   />
-                  <span className='absolute end-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium'>
+                </div>
+              </div>
+
+              {/* Discount pills */}
+              <div className='space-y-1'>
+                <p className='text-[10px] text-slate-400'>{t('merchantOffers.discountLabel')}</p>
+                <div className='grid grid-cols-7 gap-1'>
+                  {REACTIVATE_DISCOUNT_OPTIONS.map(pct => (
+                    <button
+                      key={pct}
+                      type='button'
+                      onClick={() => setDiscount(pct)}
+                      className={cn(
+                        'h-7 rounded-md border text-[11px] font-semibold transition-all',
+                        discount === pct
+                          ? 'border-primary bg-primary text-white shadow-sm'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:bg-primary/5',
+                      )}
+                    >
+                      {pct}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sale price (read-only) */}
+              <div className='space-y-1'>
+                <p className='text-[10px] text-slate-400'>{t('merchantOffers.salePrice')}</p>
+                <div className='flex gap-1'>
+                  <div
+                    className={cn(
+                      'flex-1 h-7 rounded-md border flex items-center px-2',
+                      discountedPrice > 0
+                        ? 'border-emerald-200 bg-emerald-50'
+                        : 'border-slate-200 bg-slate-50',
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'text-[11px] font-bold tabular-nums',
+                        discountedPrice > 0 ? 'text-emerald-700' : 'text-slate-400',
+                      )}
+                    >
+                      {discountedPrice > 0 ? discountedPrice.toFixed(3) : '—'}
+                    </span>
+                  </div>
+                  <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2 text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
                     TND
                   </span>
                 </div>
-              </div>
-              <div className='flex-1'>
-                <label className='text-[10px] font-semibold text-slate-500 block mb-1'>
-                  {t('merchantOffers.salePrice')}
-                </label>
-                <div className='relative'>
-                  <input
-                    type='number'
-                    min={0.01}
-                    step={0.1}
-                    value={discountedPrice}
-                    onChange={e => setDiscountedPrice(parseFloat(e.target.value) || 0)}
-                    className='w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 pe-10 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30'
-                  />
-                  <span className='absolute end-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium'>
-                    TND
-                  </span>
-                </div>
-              </div>
-              <div className='pt-4'>
-                <span
-                  className={cn(
-                    'inline-flex items-center rounded-lg px-2 py-1.5 text-[11px] font-bold tabular-nums',
-                    pricingValid ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-400',
-                  )}
-                >
-                  {discountPct !== null ? `-${discountPct}%` : '--'}
-                </span>
+                {parsedOriginalPrice > 0 && discountedPrice > 0 && (
+                  <p className='text-[11px] font-medium text-emerald-600'>
+                    {t('merchantOffers.customerSaves', {
+                      saving: saving.toFixed(3),
+                      discount,
+                    })}
+                  </p>
+                )}
               </div>
             </div>
-            {discountPct !== null && !pricingValid && (
-              <p className='text-[10px] text-red-500 mt-1'>
-                {t('merchantOffers.discountRangeError')}
-              </p>
-            )}
           </div>
 
           {/* Quantity */}
