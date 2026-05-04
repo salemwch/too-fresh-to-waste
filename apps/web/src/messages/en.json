@@ -1292,6 +1292,10 @@
       "midnight": "00:00 (midnight)",
       "quantity": "Quantity",
       "bagsMax": "bags (max 100)",
+      "pricing": "Pricing",
+      "originalPrice": "Original Price",
+      "salePrice": "Sale Price",
+      "discountRangeError": "Discount must be between 50% and 90%",
       "cancel": "Cancel",
       "reactivating": "Reactivating…",
       "reactivate": "Reactivate"

@@ -391,6 +391,7 @@ export interface ReactivateOfferPayload {
   timezone?: string;
   isPickupToday?: boolean;
   isPickupTomorrow?: boolean;
+  pricing?: { originalPrice: number; discountedPrice: number };
 }
 
 // ─── Donation Pool ──────────────────────────────────────────────────────────

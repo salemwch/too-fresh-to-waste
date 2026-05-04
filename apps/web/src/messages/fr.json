@@ -1292,6 +1292,10 @@
       "midnight": "00:00 (minuit)",
       "quantity": "Quantité",
       "bagsMax": "paniers (max 100)",
+      "pricing": "Prix",
+      "originalPrice": "Prix Original",
+      "salePrice": "Prix Soldé",
+      "discountRangeError": "La remise doit être comprise entre 50% et 90%",
       "cancel": "Annuler",
       "reactivating": "Réactivation…",
       "reactivate": "Réactiver"

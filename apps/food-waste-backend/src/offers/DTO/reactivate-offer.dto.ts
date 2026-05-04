@@ -10,6 +10,7 @@ import {
   Min,
   Max,
   IsString,
+  IsObject,
 } from 'class-validator';
 
 import type { ReactivateOfferInput } from '@foodwaste/shared';
@@ -43,6 +44,18 @@ class ReactivatePickupTimeSlotDto {
   @Max(100)
   @Transform(({ value }) => parseIntegerTransformValue(value))
   maxOrders?: number | undefined;
+}
+
+class ReactivatePricingDto {
+  @IsNumber()
+  @Min(0.01)
+  @Transform(({ value }) => (typeof value === 'string' ? parseFloat(value) : value))
+  originalPrice!: number;
+
+  @IsNumber()
+  @Min(0.01)
+  @Transform(({ value }) => (typeof value === 'string' ? parseFloat(value) : value))
+  discountedPrice!: number;
 }
 
 export class ReactivateOfferDto implements ReactivateOfferInput {
@@ -108,4 +121,15 @@ export class ReactivateOfferDto implements ReactivateOfferInput {
     default: false,
   })
   isPickupTomorrow: boolean = false;
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => ReactivatePricingDto)
+  @ApiProperty({
+    description: 'Updated pricing (optional — keeps original pricing if not provided)',
+    required: false,
+    example: { originalPrice: 25, discountedPrice: 9 },
+  })
+  pricing?: ReactivatePricingDto | undefined;
 }

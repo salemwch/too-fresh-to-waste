@@ -1292,6 +1292,10 @@
       "midnight": "00:00 (منتصف الليل)",
       "quantity": "الكمية",
       "bagsMax": "أكياس (الحد الأقصى 100)",
+      "pricing": "التسعير",
+      "originalPrice": "السعر الأصلي",
+      "salePrice": "سعر البيع",
+      "discountRangeError": "يجب أن يكون الخصم بين 50% و 90%",
       "cancel": "إلغاء",
       "reactivating": "جارٍ إعادة التفعيل…",
       "reactivate": "إعادة تفعيل"

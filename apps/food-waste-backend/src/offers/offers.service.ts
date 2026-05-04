@@ -2061,6 +2061,8 @@ export class OffersService {
       currentOrders: 0,
     }));
 
+    const pricing = dto.pricing ? this.calculateAndValidatePricing(dto.pricing) : undefined;
+
     // Atomic update — reset quantities and set new window
     const updated = await this.offerModel
       .findByIdAndUpdate(
@@ -2083,6 +2085,7 @@ export class OffersService {
             expiredAt: null,
             // Clear auto-featuring (will be re-evaluated by cron)
             isFeaturedAuto: false,
+            ...(pricing && { pricing }),
           },
         },
         { new: true },

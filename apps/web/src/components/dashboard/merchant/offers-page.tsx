@@ -172,6 +172,14 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
   const [pickupFrom, setFrom] = useState('12:00');
   const [pickupUntil, setUntil] = useState('14:00');
   const [quantity, setQty] = useState(offer.totalQuantity ?? 5);
+  const [originalPrice, setOriginalPrice] = useState(offer.pricing.originalPrice);
+  const [discountedPrice, setDiscountedPrice] = useState(offer.pricing.discountedPrice);
+
+  const discountPct =
+    originalPrice > 0 && discountedPrice > 0 && discountedPrice < originalPrice
+      ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
+      : null;
+  const pricingValid = discountPct !== null && discountPct >= 50 && discountPct <= 90;
 
   const fromOptions = useMemo(() => getAvailableFromTimes(day), [day]);
 
@@ -209,10 +217,12 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       isPickupToday: day === 'today',
       isPickupTomorrow: day === 'tomorrow',
+      pricing: { originalPrice, discountedPrice },
     });
   }
 
-  const canConfirm = day === 'tomorrow' || fromOptions.length > 0 || pickupFrom === 'now';
+  const canConfirm =
+    pricingValid && (day === 'tomorrow' || fromOptions.length > 0 || pickupFrom === 'now');
 
   return (
     <div
@@ -354,26 +364,91 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
             {pickupUntil === '00:00' ? t('merchantOffers.midnight') : pickupUntil}
           </p>
 
+          {/* Pricing */}
+          <div>
+            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-2'>
+              {t('merchantOffers.pricing')}
+            </p>
+            <div className='flex gap-2 items-start'>
+              <div className='flex-1'>
+                <label className='text-[10px] font-semibold text-slate-500 block mb-1'>
+                  {t('merchantOffers.originalPrice')}
+                </label>
+                <div className='relative'>
+                  <input
+                    type='number'
+                    min={0.01}
+                    step={0.1}
+                    value={originalPrice}
+                    onChange={e => setOriginalPrice(parseFloat(e.target.value) || 0)}
+                    className='w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 pe-10 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30'
+                  />
+                  <span className='absolute end-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium'>
+                    TND
+                  </span>
+                </div>
+              </div>
+              <div className='flex-1'>
+                <label className='text-[10px] font-semibold text-slate-500 block mb-1'>
+                  {t('merchantOffers.salePrice')}
+                </label>
+                <div className='relative'>
+                  <input
+                    type='number'
+                    min={0.01}
+                    step={0.1}
+                    value={discountedPrice}
+                    onChange={e => setDiscountedPrice(parseFloat(e.target.value) || 0)}
+                    className='w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 pe-10 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30'
+                  />
+                  <span className='absolute end-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium'>
+                    TND
+                  </span>
+                </div>
+              </div>
+              <div className='pt-4'>
+                <span
+                  className={cn(
+                    'inline-flex items-center rounded-lg px-2 py-1.5 text-[11px] font-bold tabular-nums',
+                    pricingValid ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-400',
+                  )}
+                >
+                  {discountPct !== null ? `-${discountPct}%` : '--'}
+                </span>
+              </div>
+            </div>
+            {discountPct !== null && !pricingValid && (
+              <p className='text-[10px] text-red-500 mt-1'>
+                {t('merchantOffers.discountRangeError')}
+              </p>
+            )}
+          </div>
+
           {/* Quantity */}
           <div>
             <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-2'>
               {t('merchantOffers.quantity')}
             </p>
-            <div className='flex items-center gap-3'>
+            <div className='flex items-center gap-2'>
               <button
                 type='button'
                 onClick={() => setQty(q => Math.max(1, q - 1))}
-                className='h-8 w-8 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 text-base font-bold flex items-center justify-center transition-colors'
+                className='h-7 w-7 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 text-sm font-bold flex items-center justify-center transition-colors flex-shrink-0'
               >
                 −
               </button>
-              <span className='min-w-[2.5rem] text-center text-sm font-bold text-slate-900 tabular-nums'>
-                {quantity}
-              </span>
+              <input
+                type='number'
+                min={1}
+                max={100}
+                value={quantity}
+                onChange={e => setQty(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
+                className='w-16 text-center rounded-lg border border-slate-200 bg-white px-1 py-1 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30 tabular-nums'
+              />
               <button
                 type='button'
                 onClick={() => setQty(q => Math.min(100, q + 1))}
-                className='h-8 w-8 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 text-base font-bold flex items-center justify-center transition-colors'
+                className='h-7 w-7 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 text-sm font-bold flex items-center justify-center transition-colors flex-shrink-0'
               >
                 +
               </button>
@@ -383,11 +458,11 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
         </div>
 
         {/* Footer */}
-        <div className='flex gap-2 px-5 pb-5'>
+        <div className='flex gap-2 px-5 pb-4'>
           <button
             type='button'
             onClick={onClose}
-            className='flex-1 h-9 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors'
+            className='flex-1 h-8 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors'
           >
             {t('merchantOffers.cancel')}
           </button>
@@ -396,7 +471,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
             disabled={!canConfirm || isPending}
             onClick={handleConfirm}
             className={cn(
-              'flex-1 h-9 rounded-xl bg-primary text-white text-sm font-bold transition-all',
+              'flex-1 h-8 rounded-lg bg-primary text-white text-xs font-bold transition-all',
               'hover:opacity-90 active:scale-[0.97]',
               'disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100',
               isPending && 'animate-pulse',
