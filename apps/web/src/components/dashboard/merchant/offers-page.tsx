@@ -241,11 +241,11 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
       onClick={onClose}
     >
       <div
-        className='bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden'
+        className='bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col max-h-[90vh]'
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className='flex items-center justify-between px-5 py-4 border-b border-slate-100'>
+        <div className='flex items-center justify-between px-5 py-3 border-b border-slate-100 shrink-0'>
           <div>
             <p className='text-sm font-bold text-slate-900'>
               {t('merchantOffers.reactivateTitle')}
@@ -261,10 +261,10 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
           </button>
         </div>
 
-        <div className='px-5 py-4 space-y-4'>
+        <div className='px-5 py-3 space-y-2.5 overflow-y-auto flex-1'>
           {/* Day toggle */}
           <div>
-            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-2'>
+            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-1'>
               {t('merchantOffers.pickupDay')}
             </p>
             <div className='flex gap-2'>
@@ -274,7 +274,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
                   type='button'
                   onClick={() => setDay(d)}
                   className={cn(
-                    'flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all',
+                    'flex-1 py-1 rounded-lg text-xs font-semibold border transition-all',
                     day === d
                       ? 'bg-primary text-white border-primary'
                       : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40',
@@ -293,7 +293,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
 
           {/* Quick presets */}
           <div>
-            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-2'>
+            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-1'>
               {t('merchantOffers.quickPresets')}
             </p>
             <div className='flex gap-2'>
@@ -308,7 +308,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
                     type='button'
                     onClick={() => applyPreset(p)}
                     className={cn(
-                      'flex-1 flex flex-col items-center rounded-lg border py-1.5 px-1 transition-all',
+                      'flex-1 flex flex-col items-center rounded-lg border py-1 px-1 transition-all',
                       isActive
                         ? 'border-primary bg-primary/8 text-primary'
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/30',
@@ -377,10 +377,10 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
 
           {/* Pricing */}
           <div>
-            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-2'>
+            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-1'>
               {t('merchantOffers.pricing')}
             </p>
-            <div className='space-y-2'>
+            <div className='space-y-1.5'>
               {/* Original price */}
               <div className='space-y-1'>
                 <p className='text-[10px] text-slate-400'>{t('merchantOffers.originalPrice')}</p>
@@ -460,7 +460,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
 
           {/* Quantity */}
           <div>
-            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-2'>
+            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-1'>
               {t('merchantOffers.quantity')}
             </p>
             <div className='flex items-center gap-2'>
@@ -492,11 +492,11 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
         </div>
 
         {/* Footer */}
-        <div className='flex gap-2 px-5 pb-4'>
+        <div className='flex gap-2 px-5 pt-2 pb-3 border-t border-slate-100 shrink-0'>
           <button
             type='button'
             onClick={onClose}
-            className='flex-1 h-8 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors'
+            className='flex-1 h-7 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors'
           >
             {t('merchantOffers.cancel')}
           </button>
@@ -505,7 +505,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
             disabled={!canConfirm || isPending}
             onClick={handleConfirm}
             className={cn(
-              'flex-1 h-8 rounded-lg bg-primary text-white text-xs font-bold transition-all',
+              'flex-1 h-7 rounded-lg bg-primary text-white text-[11px] font-bold transition-all',
               'hover:opacity-90 active:scale-[0.97]',
               'disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100',
               isPending && 'animate-pulse',
