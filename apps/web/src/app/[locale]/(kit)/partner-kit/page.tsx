@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { setRequestLocale } from 'next-intl/server';
 import { PrintTrigger } from './PrintTrigger';
 import { PrintButton } from './PrintButton';
@@ -94,19 +95,13 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  background: '#ff7973',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <span style={{ color: '#1E4448', fontWeight: 700, fontSize: 14 }}>T</span>
-              </div>
+              <Image
+                src='/images/white-leaf-logo.png'
+                alt='Too Fresh To Waste'
+                width={32}
+                height={32}
+                style={{ objectFit: 'contain' }}
+              />
               <span
                 style={{
                   color: 'rgba(249,243,240,0.85)',
@@ -126,7 +121,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                 textTransform: 'uppercase',
               }}
             >
-              Partner Kit · 2025
+              Partner Kit · 2026
             </span>
           </div>
 
@@ -240,7 +235,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
             }}
           >
             <span style={{ color: 'rgba(249,243,240,0.35)', fontSize: 11 }}>
-              toofresh2waste.com
+              toofreshtowaste.com
             </span>
             <span style={{ color: 'rgba(249,243,240,0.35)', fontSize: 11 }}>1 / 4</span>
           </div>
@@ -710,7 +705,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                   Let&rsquo;s start with a conversation.
                 </p>
                 <p style={{ color: 'rgba(249,243,240,0.60)', fontSize: 13, marginTop: 6 }}>
-                  toofresh2waste.com · hello@toofresh2waste.com
+                  toofreshtowaste.com · contact@toofreshtowaste.com
                 </p>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -725,7 +720,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                   Tunisia
                 </p>
                 <p style={{ color: 'rgba(249,243,240,0.50)', fontSize: 11, marginTop: 4 }}>
-                  Tunis · 2025
+                  Tunis · 2026
                 </p>
               </div>
             </div>
@@ -752,20 +747,13 @@ function KitPageHeader({ title }: { title: string; page: number }) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: '50%',
-            background: '#ff7973',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <span style={{ color: '#1E4448', fontWeight: 700, fontSize: 11 }}>T</span>
-        </div>
+        <Image
+          src='/images/green-leaf-logo.png'
+          alt='Too Fresh To Waste'
+          width={22}
+          height={22}
+          style={{ objectFit: 'contain', flexShrink: 0 }}
+        />
         <span style={{ fontSize: 11, color: '#1E4448AA', letterSpacing: '0.05em' }}>
           Too Fresh To Waste — Partner Kit
         </span>
@@ -791,7 +779,7 @@ function KitPageFooter({ page, last }: { page: number; last?: boolean }) {
       }}
     >
       <span style={{ fontSize: 10, color: '#1E4448AA' }}>
-        Confidential — Too Fresh To Waste Partner Programme · 2025
+        Confidential — Too Fresh To Waste Partner Programme · 2026
       </span>
       <span style={{ fontSize: 10, color: '#1E4448AA' }}>
         {page} / 4{last ? ' — End of Document' : ''}

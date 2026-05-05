@@ -167,12 +167,10 @@ export default async function middleware(request: NextRequest) {
 export const config = {
   // Match all pathnames except for:
   // - API routes
-  // - Static files
+  // - Static files (anything with a file extension, including favicon.svg)
   // - Internal Next.js paths
   matcher: [
-    // Match all pathnames except for static files
-    '/((?!api|_next|_vercel|.*\\..*).*)',
-    // Match root
+    '/((?!api|_next|_vercel|monitoring|favicon\\.ico|favicon\\.svg|favicon\\.png|apple-touch-icon\\.png|site\\.webmanifest|robots\\.txt|.*\\..*).*)',
     '/',
   ],
 };
