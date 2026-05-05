@@ -23,10 +23,10 @@ const impactStats = [
     href: 'https://wwf.panda.org/wwf_news/?5131564/',
   },
   {
-    value: '91 kg',
+    value: '172 kg',
     label: 'of food wasted per person per year in Tunisia',
-    source: 'UNEP Food Waste Index 2021',
-    href: 'https://www.unep.org/resources/report/unep-food-waste-index-report-2021',
+    source: 'UNEP Food Waste Index 2024',
+    href: 'https://www.unep.org/resources/publication/food-waste-index-report-2024',
   },
   {
     value: '10%',
@@ -95,10 +95,10 @@ const benefits = [
 
 const whyNow = [
   {
-    stat: '91 kg',
-    label: 'per capita wasted in Tunisia per year — higher than the global average',
-    source: 'UNEP Food Waste Index 2021',
-    href: 'https://www.unep.org/resources/report/unep-food-waste-index-report-2021',
+    stat: '172 kg',
+    label: 'per capita wasted in Tunisia per year — highest in the Maghreb (UNEP 2024)',
+    source: 'UNEP Food Waste Index 2024',
+    href: 'https://www.unep.org/resources/publication/food-waste-index-report-2024',
   },
   {
     stat: '$1 trillion',
@@ -200,7 +200,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
                 <div key={i} className='flex items-center gap-12 font-display text-2xl italic'>
                   <span>40% of food produced is wasted</span>
                   <span className='text-brand-coral'>●</span>
-                  <span>91 kg per person per year in Tunisia</span>
+                  <span>172 kg per person per year in Tunisia</span>
                   <span className='text-brand-coral'>●</span>
                   <span>Turn surplus into revenue — today</span>
                   <span className='text-brand-coral'>●</span>
@@ -261,16 +261,16 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
               <p>
                 Tunisia alone generates{' '}
                 <a
-                  href='https://www.unep.org/resources/report/unep-food-waste-index-report-2021'
+                  href='https://www.unep.org/resources/publication/food-waste-index-report-2024'
                   target='_blank'
                   rel='noopener noreferrer'
                   className='text-brand-coral hover:underline font-semibold'
                 >
-                  91 kg of food waste per person per year
+                  172 kg of food waste per person per year
                 </a>{' '}
-                (UNEP, 2021) — above the global household average. The food sector accounts for a
-                significant share of that figure, and the opportunity to recover it is entirely
-                untapped.
+                (UNEP, 2024) — the highest in the Maghreb, second in the Arab world. The food sector
+                accounts for a significant share of that figure, and the opportunity to recover it
+                is entirely untapped.
               </p>
             </div>
           </div>

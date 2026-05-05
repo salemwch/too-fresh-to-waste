@@ -197,7 +197,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
             >
               {[
                 { v: '40%', l: 'of food produced globally is wasted', src: 'WWF 2021' },
-                { v: '91 kg', l: 'wasted per person / year in Tunisia', src: 'UNEP 2021' },
+                { v: '172 kg', l: 'wasted per person / year in Tunisia', src: 'UNEP 2024' },
                 { v: '49%', l: 'pay more for sustainable brands', src: 'IBM IBV 2022' },
               ].map((s, i) => (
                 <div
@@ -301,11 +301,11 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
               >
                 Tunisia generates{' '}
                 <strong style={{ opacity: 1, color: '#1E4448' }}>
-                  91 kg of food waste per person per year
+                  172 kg of food waste per person per year
                 </strong>{' '}
                 <SourceRef
-                  href='https://www.unep.org/resources/report/unep-food-waste-index-report-2021'
-                  label='UNEP 2021'
+                  href='https://www.unep.org/resources/publication/food-waste-index-report-2024'
+                  label='UNEP 2024'
                 />{' '}
                 — above the global average. Food waste costs{' '}
                 <strong style={{ opacity: 1, color: '#1E4448' }}>$1 trillion per year</strong>{' '}
@@ -333,7 +333,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                 {[
                   { v: '10–20%', l: 'bakery output discarded daily', src: 'WRAP' },
                   { v: '$1T', l: 'annual cost of food waste', src: 'FAO 2014' },
-                  { v: '91 kg', l: 'wasted per Tunisian / year', src: 'UNEP 2021' },
+                  { v: '172 kg', l: 'wasted per Tunisian / year', src: 'UNEP 2024' },
                   { v: '80×', l: 'methane vs CO₂ warming power', src: 'US EPA' },
                 ].map((s, i) => (
                   <div key={i} style={{ borderTop: '2px solid #1E4448', paddingTop: 12 }}>
