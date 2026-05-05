@@ -28,11 +28,13 @@ export default function Footer() {
         { label: t('sections.services.consumer'), href: '/#app' },
         { label: t('sections.services.business'), href: '/business-signup' },
         { label: t('sections.services.companies'), href: '/companies' },
+        { label: t('sections.services.partners'), href: '/partners' },
       ],
     },
     {
       title: t('sections.support.title'),
       links: [
+        { label: t('sections.support.blog'), href: '/blog' },
         { label: t('sections.support.faq'), href: '/#faq' },
         { label: t('sections.support.contact'), href: '/contact' },
       ],

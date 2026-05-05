@@ -227,10 +227,12 @@
         "title": "Services",
         "consumer": "Consumer",
         "business": "Business",
-        "companies": "Companies"
+        "companies": "Companies",
+        "partners": "Partner With Us"
       },
       "support": {
         "title": "Support",
+        "blog": "Blog",
         "faq": "FAQ",
         "contact": "Contact Us"
       },

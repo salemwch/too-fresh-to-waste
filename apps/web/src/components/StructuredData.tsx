@@ -1,6 +1,59 @@
 import { seoConfig, getLocaleSeoMetadata } from '@/config/seo.config';
 import type { Locale } from '@/i18n/config';
 
+interface ArticleStructuredDataProps {
+  title: string;
+  description: string;
+  date: string;
+  url: string;
+  coverImage?: string;
+}
+
+export function ArticleStructuredData({
+  title,
+  description,
+  date,
+  url,
+  coverImage,
+}: ArticleStructuredDataProps) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: title,
+    description,
+    datePublished: date,
+    dateModified: date,
+    url,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    author: {
+      '@type': 'Organization',
+      name: seoConfig.business.name,
+      url: seoConfig.url,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: seoConfig.business.name,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${seoConfig.url}/images/green-leaf-logo.png`,
+      },
+    },
+    ...(coverImage && {
+      image: {
+        '@type': 'ImageObject',
+        url: coverImage.startsWith('http') ? coverImage : `${seoConfig.url}${coverImage}`,
+      },
+    }),
+  };
+
+  return (
+    <script
+      type='application/ld+json'
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}
+
 interface StructuredDataProps {
   locale?: Locale;
 }

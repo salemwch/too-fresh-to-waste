@@ -227,10 +227,12 @@
         "title": "الخدمات",
         "consumer": "المستهلك",
         "business": "الأعمال",
-        "companies": "الشركات"
+        "companies": "الشركات",
+        "partners": "انضم كشريك"
       },
       "support": {
         "title": "الدعم",
+        "blog": "المدونة",
         "faq": "الأسئلة الشائعة",
         "contact": "اتصل بنا"
       },
