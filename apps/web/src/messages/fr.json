@@ -79,6 +79,7 @@
             "title": "Sur le Gaspillage Alimentaire",
             "links": {
               "facts": "Faits sur le Gaspillage",
+              "blog": "Blog",
               "resources": "Ressources"
             }
           }
@@ -91,7 +92,8 @@
             "links": {
               "marketplaceBag": "Sac Surprise Marketplace",
               "parclessBag": "Sac Parcless",
-              "specificItems": "Articles Spécifiques"
+              "specificItems": "Articles Spécifiques",
+              "partnerWithUs": "Devenir partenaire"
             }
           }
         }

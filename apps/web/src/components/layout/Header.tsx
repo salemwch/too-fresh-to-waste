@@ -62,6 +62,7 @@ export default function Header() {
               label: t('dropdown.about.sections.aboutFoodWaste.links.facts'),
               href: '/food-waste-facts',
             },
+            { label: t('dropdown.about.sections.aboutFoodWaste.links.blog'), href: '/blog' },
             { label: t('dropdown.about.sections.aboutFoodWaste.links.resources'), href: '#' },
           ],
         },
@@ -89,6 +90,10 @@ export default function Header() {
             {
               label: t('dropdown.business.sections.businessSolution.links.specificItems'),
               href: '#',
+            },
+            {
+              label: t('dropdown.business.sections.businessSolution.links.partnerWithUs'),
+              href: '/partners',
             },
           ],
         },

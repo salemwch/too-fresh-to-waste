@@ -79,6 +79,7 @@
             "title": "About Food Waste",
             "links": {
               "facts": "Food Waste Facts",
+              "blog": "Blog",
               "resources": "Resources"
             }
           }
@@ -91,7 +92,8 @@
             "links": {
               "marketplaceBag": "Marketplace Surprise Bag",
               "parclessBag": "Parcless Bag",
-              "specificItems": "Specific Items"
+              "specificItems": "Specific Items",
+              "partnerWithUs": "Partner With Us"
             }
           }
         }

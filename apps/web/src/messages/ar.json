@@ -79,6 +79,7 @@
             "title": "حول هدر الطعام",
             "links": {
               "facts": "حقائق عن هدر الطعام",
+              "blog": "المدونة",
               "resources": "الموارد"
             }
           }
@@ -91,7 +92,8 @@
             "links": {
               "marketplaceBag": "حقيبة المفاجآت في السوق",
               "parclessBag": "حقيبة Parcless",
-              "specificItems": "عناصر محددة"
+              "specificItems": "عناصر محددة",
+              "partnerWithUs": "انضم كشريك"
             }
           }
         }
