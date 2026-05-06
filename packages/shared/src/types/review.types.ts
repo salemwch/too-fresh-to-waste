@@ -249,6 +249,8 @@ export interface ReviewSummary {
     5: number;
   };
   recentReviews: Review[];
+  /** Per-category average scores — keys match DetailedRatings field names */
+  averageDetailedRatings?: Record<string, number>;
 }
 
 /** User review stats (GET /reviews/user/:userId/stats) */

@@ -32,6 +32,7 @@ import { selectIsFavorite } from '@/store/slices/favoritesSlice';
 import { analytics } from '@/utils/analytics';
 import { Logger } from '@/utils/logger';
 
+import { ReviewSummarySection } from '../components/ReviewSummarySection';
 import { SkeletonOfferDetails } from '../components/SkeletonOfferDetails';
 import { useOffer } from '../hooks/useOffers';
 import { isOfferActive } from '../types/offer.types';
@@ -309,6 +310,11 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
     typeof offer?.establishmentId === 'object' && offer.establishmentId !== null
       ? offer.establishmentId
       : undefined;
+
+  const reviewEstablishmentId: string =
+    (establishment as { _id?: string; id?: string } | undefined)?._id ??
+    (establishment as { _id?: string; id?: string } | undefined)?.id ??
+    (typeof offer?.establishmentId === 'string' ? offer.establishmentId : '');
   const merchant =
     typeof offer?.merchantId === 'object' && offer.merchantId !== null
       ? offer.merchantId
@@ -365,7 +371,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
   }
 
   const canReserve = isOfferActive(offer) && (offer.availableQuantity ?? 0) > 0;
-  const todayBadgeStyle = { backgroundColor: theme.colors.success };
+  const todayBadgeStyle = { backgroundColor: theme.colors.primary };
   const footerStyle = { borderTopColor: theme.colors.outline };
   const reserveButtonStyle = {
     backgroundColor: theme.colors.primary,
@@ -600,7 +606,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
               onPress={() => setIsDescriptionOpen(!isDescriptionOpen)}
             >
               <Text weight='semibold' size='md'>
-                What you could get
+                What you need to know
               </Text>
               {isDescriptionOpen ? (
                 <IoniconsIcon name='chevron-up' color='#9ca3af' size={20} />
@@ -610,12 +616,33 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
             </Pressable>
             {isDescriptionOpen && (
               <View style={styles.accordionContent}>
-                <Text color='secondary' style={styles.descriptionText}>
-                  {offer.description}
-                </Text>
+                {offer.description ? (
+                  <Text color='secondary' style={styles.descriptionText}>
+                    {offer.description}
+                  </Text>
+                ) : (
+                  <>
+                    <Text weight='bold' style={styles.descriptionText}>
+                      Your surprise bag is a surprise
+                    </Text>
+                    <Text color='secondary' style={styles.descriptionText}>
+                      {
+                        "We wish we could tell you what exactly will be in your surprise bag — but it's always a surprise! The store will fill it with a selection of their delicious unsold items. If you have questions about allergens or specific ingredients, please ask the store."
+                      }
+                    </Text>
+                  </>
+                )}
               </View>
             )}
           </View>
+
+          {/* --- Reviews summary --- */}
+          {reviewEstablishmentId.length > 0 && (
+            <>
+              <View style={styles.divider} />
+              <ReviewSummarySection establishmentId={reviewEstablishmentId} />
+            </>
+          )}
 
           {/* --- Allergens & Dietary Accordion --- */}
           {offer.nutritionalInfo &&

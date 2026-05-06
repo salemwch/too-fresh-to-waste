@@ -19,6 +19,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, ScrollView, TextInput } from 'react-native';
 
+import { ReviewModal } from '../components/ReviewModal';
+
 import { Text, Button, Card, Badge, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { ImpactMoment, useDonationStats } from '@/features/donations';
@@ -453,6 +455,8 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
   // ---------------------------------------------------------------------------
 
   const [dismissedImpactOrderId, setDismissedImpactOrderId] = useState<string | null>(null);
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false);
   const { data: donationStats } = useDonationStats();
 
   // ---------------------------------------------------------------------------
@@ -473,6 +477,13 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
 
   const canConfirm = order ? CONFIRMABLE_STATUSES.has(order.status) : false;
   const showImpactMoment = dismissedImpactOrderId !== orderId;
+
+  const reviewEstablishmentId: string = useMemo(() => {
+    if (!order) return '';
+    const est = order.establishmentId as { _id?: string; id?: string } | string | null;
+    if (typeof est === 'string') return est;
+    return est?._id ?? est?.id ?? '';
+  }, [order]);
 
   // ---------------------------------------------------------------------------
   // Render – error
@@ -566,6 +577,18 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
           </Card>
         )}
 
+        {/* Rate your bag — shown for picked-up orders that haven't been reviewed */}
+        {order.status === OrderStatus.PICKED_UP && !hasReviewed && (
+          <Button
+            variant='outline'
+            size='md'
+            onPress={() => setReviewModalVisible(true)}
+            style={styles.goBackButton}
+          >
+            ⭐ Rate your bag
+          </Button>
+        )}
+
         {/* Go back button */}
         <Button
           variant='outline'
@@ -588,6 +611,19 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
           currency={order.pricing.currency}
         />
       )}
+
+      {/* Review bottom sheet */}
+      <ReviewModal
+        visible={reviewModalVisible}
+        orderId={orderId}
+        establishmentId={reviewEstablishmentId}
+        {...(order.items[0]?.offerId ? { offerId: order.items[0].offerId.toString() } : {})}
+        onClose={() => setReviewModalVisible(false)}
+        onSuccess={() => {
+          setReviewModalVisible(false);
+          setHasReviewed(true);
+        }}
+      />
     </View>
   );
 };
