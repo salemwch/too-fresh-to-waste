@@ -1,7 +1,7 @@
 import { CommonActions } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Pressable, Platform } from 'react-native';
+import { View, StyleSheet, Pressable, Platform, StatusBar } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { Text, Button, Icon } from '@/design-system/components/atoms';
@@ -278,11 +278,11 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
   /**
    * Calculate pricing
-   * ✅ No service fee - customer pays exact bag price (matches backend)
+   * 3 TND delivery fee applies when customer selects pay_on_delivery
    */
   const subtotal = offer ? offer.pricing.discountedPrice * quantity : 0;
-  const serviceFee = 0;
-  const total = subtotal;
+  const deliveryFee = selectedPaymentMethod === 'pay_on_delivery' ? 3 : 0;
+  const total = subtotal + deliveryFee;
   const currency = offer?.pricing.currency ?? 'TND';
   const originalPrice = offer ? offer.pricing.originalPrice * quantity : 0;
   const savings = originalPrice - subtotal;
@@ -355,6 +355,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle='dark-content' backgroundColor='transparent' translucent />
       {/* Main Content Card */}
       <View style={styles.mainCard}>
         {/* Payment Method Section */}
@@ -462,13 +463,15 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               </Text>
             </View>
 
-            {/* Service Fee */}
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Service Fee</Text>
-              <Text style={styles.priceValue}>
-                {serviceFee.toFixed(2)} {currency}
-              </Text>
-            </View>
+            {/* Delivery Fee — shown only when pay on delivery is selected */}
+            {deliveryFee > 0 && (
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Delivery Fee</Text>
+                <Text style={styles.priceValue}>
+                  {deliveryFee.toFixed(2)} {currency}
+                </Text>
+              </View>
+            )}
 
             {/* Savings Badge */}
             {savings > 0 && (

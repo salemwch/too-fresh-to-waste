@@ -183,8 +183,12 @@ const PricingSummary: React.FC<{ order: Order }> = ({ order }) => {
         />
       )}
       <PricingRow label='Final Price' value={pricing.subtotal} currency={pricing.currency} />
-      <View style={styles.divider} />
-      <PricingRow label='Service Fee' value={pricing.serviceFee} currency={pricing.currency} />
+      {pricing.serviceFee > 0 && (
+        <>
+          <View style={styles.divider} />
+          <PricingRow label='Delivery Fee' value={pricing.serviceFee} currency={pricing.currency} />
+        </>
+      )}
       <View style={styles.divider} />
       <PricingRow label='Total' value={pricing.total} currency={pricing.currency} isBold />
     </Card>

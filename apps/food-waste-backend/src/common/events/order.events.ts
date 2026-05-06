@@ -22,6 +22,8 @@ export class OrderCompletedEvent {
       isFirstOrder?: boolean;
       paymentMethod?: string;
     },
+    /** Bag price before delivery fee — used for charity calculation (5% of platform cut) */
+    public readonly subtotalAmount: number = totalAmount,
   ) {}
 }
 

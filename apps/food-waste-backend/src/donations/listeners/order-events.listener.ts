@@ -69,8 +69,8 @@ export class OrderEventsListener {
     try {
       this.logger.log(`Processing order.completed event for donations: ${event.orderId}`);
 
-      // Calculate donation amount (1% of total)
-      const donationAmount = parseFloat((event.totalAmount * 0.01).toFixed(3));
+      // Charity is 5% of platform's cut — calculated from bag price only, not delivery fee
+      const donationAmount = parseFloat((event.subtotalAmount * 0.01).toFixed(3));
 
       if (donationAmount > 0) {
         await this.donationsService.createDonation({

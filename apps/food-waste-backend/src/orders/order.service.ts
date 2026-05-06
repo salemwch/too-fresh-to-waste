@@ -264,14 +264,15 @@ export class OrdersService {
         );
 
         // 5. Calculate pricing
-        // No service fee - customer pays exact bag price
-        const serviceFee = 0;
+        // 3 TND delivery fee applies only when customer chooses pay_on_delivery
+        const DELIVERY_FEE = 3;
+        const serviceFee = createOrderDto.paymentMethod === 'pay_on_delivery' ? DELIVERY_FEE : 0;
         const taxAmount = 0;
         const total = subtotal + serviceFee + taxAmount;
 
-        // 5.1. Calculate donation amount (1% of total order)
-        // Formula: (total * 0.20 platform fee) * 0.05 donation percentage = 1% of total
-        const donationAmount = parseFloat((total * 0.01).toFixed(3));
+        // 5.1. Charity donation: 5% of platform's cut, based on bag price only (not delivery fee)
+        // Formula: (subtotal * 0.20 platform fee) * 0.05 donation percentage = 1% of subtotal
+        const donationAmount = parseFloat((subtotal * 0.01).toFixed(3));
 
         // 6. Generate metadata
         const orderNumber = this.generateOrderNumber();
@@ -1022,13 +1023,14 @@ export class OrdersService {
             orderId,
             order.customerId._id.toString(),
             order.merchantId._id.toString(),
-            order.items[0]?.offerId.toString() ?? '', // Get first offer ID
+            order.items[0]?.offerId.toString() ?? '',
             order.pricing?.total || 0,
             new Date(),
             {
               itemCount: totalBags,
-              isFirstOrder: false, // TODO: Determine if this is first order
+              isFirstOrder: false,
             },
+            order.pricing?.subtotal || 0,
           ),
         );
         this.appLogger.log(

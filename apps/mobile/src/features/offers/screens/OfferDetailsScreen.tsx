@@ -1,5 +1,5 @@
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -39,6 +39,7 @@ import { isOfferActive } from '../types/offer.types';
 import type { Offer } from '../types/offer.types';
 import type { MainStackParamList } from '@/navigation/types';
 import type { RootState } from '@/store';
+import { useFocusEffect } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -335,6 +336,17 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offer?._id, offer?.id, offerId]);
 
+  // Must be before any early returns — hooks must always be called unconditionally.
+  // Applies light-content after transition completes (no flicker), restores on leave.
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle('light-content', true);
+      return () => {
+        StatusBar.setBarStyle('dark-content', true);
+      };
+    }, []),
+  );
+
   if (isLoading) {
     return <SkeletonOfferDetails />;
   }
@@ -424,8 +436,6 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar barStyle='light-content' translucent backgroundColor='transparent' />
-
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* --- Header Section --- */}
         <View style={styles.headerContainer}>

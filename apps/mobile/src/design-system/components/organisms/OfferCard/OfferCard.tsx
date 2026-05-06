@@ -430,7 +430,12 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
               {offer.pricing.originalPrice.toFixed(2)}
             </Text>
           )}
-          <Text variant='body.medium' weight='bold' style={styles.currentPrice}>
+          <Text
+            variant='body.medium'
+            weight='bold'
+            color={theme.colors.primary}
+            style={styles.currentPrice}
+          >
             {offer.pricing.currency}
             {offer.pricing.discountedPrice.toFixed(2)}
           </Text>
