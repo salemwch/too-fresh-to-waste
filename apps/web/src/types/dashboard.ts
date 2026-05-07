@@ -70,8 +70,8 @@ export interface PaginationMeta {
   limit: number;
   total: number;
   totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 // ─── Order Stats ────────────────────────────────────────────────────────────

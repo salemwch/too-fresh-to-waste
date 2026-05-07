@@ -859,7 +859,7 @@ export function MerchantOffersView() {
             <div className='flex gap-1'>
               <button
                 type='button'
-                disabled={!meta.hasPreviousPage}
+                disabled={!meta.hasPrev}
                 onClick={() => setPage(p => p - 1)}
                 className='h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
               >
@@ -867,7 +867,7 @@ export function MerchantOffersView() {
               </button>
               <button
                 type='button'
-                disabled={!meta.hasNextPage}
+                disabled={!meta.hasNext}
                 onClick={() => setPage(p => p + 1)}
                 className='h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
               >
