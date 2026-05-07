@@ -807,7 +807,7 @@ export class OffersController {
   @Roles(UserRole.ADMIN, UserRole.MERCHANT)
   @ApiOperation({
     summary: 'Update offer status',
-    description: 'Merchants: active/draft/cancelled only. Admins: all statuses.',
+    description: 'Merchants: active/draft/cancelled/sold_out. Admins: all statuses.',
   })
   @ApiResponse({
     status: 200,
@@ -830,9 +830,16 @@ export class OffersController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (req.user.role === UserRole.MERCHANT) {
-      if (![OfferStatus.ACTIVE, OfferStatus.DRAFT, OfferStatus.CANCELLED].includes(status)) {
+      if (
+        ![
+          OfferStatus.ACTIVE,
+          OfferStatus.DRAFT,
+          OfferStatus.CANCELLED,
+          OfferStatus.SOLD_OUT,
+        ].includes(status)
+      ) {
         return {
-          message: 'Merchants can only set offers to active, draft, or cancelled',
+          message: 'Merchants can only set offers to active, draft, cancelled, or sold_out',
           data: null,
         };
       }
