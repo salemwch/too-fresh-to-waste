@@ -651,7 +651,15 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
         visible={reviewModalVisible}
         orderId={orderId}
         establishmentId={reviewEstablishmentId}
-        {...(order.items[0]?.offerId ? { offerId: order.items[0].offerId.toString() } : {})}
+        {...(() => {
+          const raw = order.items[0]?.offerId;
+          const id =
+            typeof raw === 'string'
+              ? raw
+              : ((raw as { _id?: string; id?: string } | null)?._id ??
+                (raw as { _id?: string; id?: string } | null)?.id);
+          return id ? { offerId: id } : {};
+        })()}
         onClose={() => setReviewModalVisible(false)}
         onSuccess={() => {
           setReviewModalVisible(false);
