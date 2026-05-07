@@ -16,7 +16,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, TextInput } from 'react-native';
 
 import { ReviewModal } from '../components/ReviewModal';
@@ -26,6 +26,7 @@ import { useTheme } from '@/design-system/providers';
 import { ImpactMoment, useDonationStats } from '@/features/donations';
 import { useQueryWithFocus } from '@/lib/react-query';
 import { analytics } from '@/utils/analytics';
+import { mmkv } from '@/utils/mmkvStorage';
 
 import { SkeletonOrderDetailsScreen } from '../components/SkeletonOrderDetailsScreen';
 import { ordersService } from '../services/ordersService';
@@ -456,7 +457,31 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
 
   const [dismissedImpactOrderId, setDismissedImpactOrderId] = useState<string | null>(null);
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
-  const [hasReviewed, setHasReviewed] = useState(false);
+
+  // Persist reviewed state across sessions via MMKV
+  const [hasReviewed, setHasReviewed] = useState(() => {
+    try {
+      const stored = mmkv.getString?.('reviewed_orders');
+      if (!stored) return false;
+      return (JSON.parse(stored) as string[]).includes(orderId);
+    } catch {
+      return false;
+    }
+  });
+
+  const markOrderReviewed = useCallback(() => {
+    try {
+      const stored = mmkv.getString?.('reviewed_orders');
+      const ids: string[] = stored ? (JSON.parse(stored) as string[]) : [];
+      if (!ids.includes(orderId)) {
+        mmkv.set?.('reviewed_orders', JSON.stringify([...ids, orderId]));
+      }
+    } catch {
+      // storage errors are non-fatal
+    }
+    setHasReviewed(true);
+  }, [orderId]);
+
   const { data: donationStats } = useDonationStats();
 
   // ---------------------------------------------------------------------------
@@ -477,6 +502,15 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
 
   const canConfirm = order ? CONFIRMABLE_STATUSES.has(order.status) : false;
   const showImpactMoment = dismissedImpactOrderId !== orderId;
+
+  // Auto-show review modal after pickup confirmation.
+  // If there's a donation overlay, wait for it to dismiss first.
+  useEffect(() => {
+    if (!isConfirmedPickup || hasReviewed || reviewModalVisible) return;
+    if ((order?.donationAmount ?? 0) > 0 && showImpactMoment) return;
+    const timer = setTimeout(() => setReviewModalVisible(true), 800);
+    return () => clearTimeout(timer);
+  }, [isConfirmedPickup, showImpactMoment, hasReviewed, reviewModalVisible, order?.donationAmount]);
 
   const reviewEstablishmentId: string = useMemo(() => {
     if (!order) return '';
@@ -621,7 +655,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
         onClose={() => setReviewModalVisible(false)}
         onSuccess={() => {
           setReviewModalVisible(false);
-          setHasReviewed(true);
+          markOrderReviewed();
         }}
       />
     </View>
