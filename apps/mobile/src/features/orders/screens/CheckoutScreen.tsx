@@ -138,66 +138,24 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       return eid._id ?? eid.id ?? '';
     })();
 
-    // ✅ BUSINESS RULE: Calculate valid pickup date
-    // Backend uses strict ">" against its own clock, so we add a 2-minute buffer
-    // to cover network latency, request processing time, and clock skew between device and server.
     const now = new Date();
     const offerStartTime = new Date(offer.availableFrom);
     const offerEndTime = new Date(offer.availableUntil);
 
-    Logger.debug('[CheckoutScreen] Calculating pickup date', {
-      nowIso: now.toISOString(),
-      nowTimestamp: now.getTime(),
-      offerAvailableFrom: offer.availableFrom,
-      offerAvailableUntil: offer.availableUntil,
-      offerStartTimeIso: offerStartTime.toISOString(),
-      offerStartTimeTimestamp: offerStartTime.getTime(),
-      offerEndTimeIso: offerEndTime.toISOString(),
-      offerEndTimeTimestamp: offerEndTime.getTime(),
-    });
-
-    // ✅ Add safety buffer to ensure pickup time is in the future
-    // INCREASED FROM 30s TO 120s to account for:
-    // - Network latency (typically 1-5 seconds)
-    // - Request processing time
-    // - Clock skew between device and server
-    // - Validation delay on backend
-    const nowWithBuffer = new Date(now.getTime() + 120 * 1000); // 120 seconds (2 minutes) buffer
-
-    // ✅ Calculate the earliest valid pickup time
-    // Use the later of: (now + buffer) or offer start time
-    const earliestPickupTime = Math.max(nowWithBuffer.getTime(), offerStartTime.getTime());
-
-    // ✅ CRITICAL: Check if offer has enough time remaining
-    // We need at least 1 minute buffer before offer expires
-    const minimumTimeBeforeExpiry = 60 * 1000; // 1 minute
-    const latestAllowedPickup = offerEndTime.getTime() - minimumTimeBeforeExpiry;
-    Logger.debug('[CheckoutScreen] Pickup timing evaluated', {
-      nowWithBufferIso: nowWithBuffer.toISOString(),
-      nowWithBufferTimestamp: nowWithBuffer.getTime(),
-      earliestPickupTimeIso: new Date(earliestPickupTime).toISOString(),
-      earliestPickupTimeTimestamp: earliestPickupTime,
-      latestAllowedPickupIso: new Date(latestAllowedPickup).toISOString(),
-      latestAllowedPickupTimestamp: latestAllowedPickup,
-      minutesUntilOfferExpiry: Math.floor((offerEndTime.getTime() - now.getTime()) / 1000 / 60),
-    });
-
-    if (earliestPickupTime >= latestAllowedPickup) {
-      Logger.warn('[CheckoutScreen] Offer rejected because pickup window is no longer valid', {
-        earliestPickupTimeIso: new Date(earliestPickupTime).toISOString(),
-        latestAllowedPickupIso: new Date(latestAllowedPickup).toISOString(),
-      });
+    // Block if fewer than 30 seconds remain — not enough time to complete a pickup
+    const msUntilExpiry = offerEndTime.getTime() - now.getTime();
+    if (msUntilExpiry < 30 * 1000) {
       showInfoToast(
         'Offer Expired',
         "This offer has expired or doesn't have enough time remaining for pickup. Please choose another offer.",
       );
-      // Stale data in cache — force a refresh so the UI reflects reality.
       await queryClient.invalidateQueries({ queryKey: ['offer', offerId] });
       return;
     }
 
-    // ✅ Set pickup date to earliest valid time (guaranteed to be in the future)
-    const pickupDate = new Date(earliestPickupTime);
+    // pickupDate must be strictly in the future for @IsFutureDate(0) on the backend.
+    // 5-second buffer covers typical network latency without blocking late reservations.
+    const pickupDate = new Date(Math.max(now.getTime() + 5 * 1000, offerStartTime.getTime()));
     Logger.debug('[CheckoutScreen] Final pickup date selected', {
       pickupDateIso: pickupDate.toISOString(),
       pickupDateTimestamp: pickupDate.getTime(),
