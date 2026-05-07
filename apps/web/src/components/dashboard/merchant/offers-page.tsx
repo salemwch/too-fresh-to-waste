@@ -190,6 +190,16 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
 
   const fromOptions = useMemo(() => getAvailableFromTimes(day), [day]);
 
+  const untilInPast = useMemo(() => {
+    if (day !== 'today') return false;
+    if (pickupUntil === '00:00') return false; // midnight overflows to tomorrow
+    const [h, m] = pickupUntil.split(':').map(Number);
+    const now = new Date();
+    const untilMinutes = (h ?? 0) * 60 + (m ?? 0);
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    return untilMinutes <= nowMinutes;
+  }, [day, pickupUntil]);
+
   // Correct stale "from" value when day changes
   useEffect(() => {
     if (day === 'today') {
@@ -233,6 +243,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
 
   const canConfirm =
     parsedOriginalPrice > 0 &&
+    !untilInPast &&
     (day === 'tomorrow' || fromOptions.length > 0 || pickupFrom === 'now');
 
   return (
@@ -357,7 +368,12 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
               <select
                 value={pickupUntil}
                 onChange={e => setUntil(e.target.value)}
-                className='w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30'
+                className={cn(
+                  'w-full rounded-lg border bg-white px-2.5 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2',
+                  untilInPast
+                    ? 'border-red-400 focus:ring-red-300'
+                    : 'border-slate-200 focus:ring-primary/30',
+                )}
               >
                 {UNTIL_OPTIONS.map(tm => (
                   <option key={tm} value={tm}>
@@ -365,6 +381,9 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
                   </option>
                 ))}
               </select>
+              {untilInPast && (
+                <p className='text-[10px] text-red-500 mt-1'>{t('merchantOffers.untilInPast')}</p>
+              )}
             </div>
           </div>
 

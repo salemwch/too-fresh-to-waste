@@ -1298,6 +1298,7 @@
       "today": "Today",
       "tomorrow": "Tomorrow",
       "noSlotsToday": "No time slots available today — switch to Tomorrow.",
+      "untilInPast": "This time has already passed. Choose a future time or switch to Tomorrow.",
       "quickPresets": "Quick presets",
       "presetLunch": "Lunch",
       "presetDinner": "Dinner",

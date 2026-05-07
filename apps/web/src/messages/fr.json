@@ -1298,6 +1298,7 @@
       "today": "Aujourd'hui",
       "tomorrow": "Demain",
       "noSlotsToday": "Aucun créneau disponible aujourd'hui — passez à Demain.",
+      "untilInPast": "Cette heure est déjà passée. Choisissez une heure future ou passez à Demain.",
       "quickPresets": "Raccourcis",
       "presetLunch": "Déjeuner",
       "presetDinner": "Dîner",
