@@ -527,6 +527,8 @@ This API provides comprehensive endpoints for:
   const SHUTDOWN_TIMEOUT_MS = 10_000;
 
   const gracefulShutdown = async (signal: string) => {
+    isShuttingDown = true;
+
     const forceExitTimer = setTimeout(() => {
       logger.warn(`Shutdown timed out after ${SHUTDOWN_TIMEOUT_MS}ms — forcing exit`);
       process.exit(1);
@@ -557,12 +559,15 @@ This API provides comprehensive endpoints for:
   process.on('SIGINT', () => void gracefulShutdown('SIGINT'));
 }
 
-// Register before bootstrap() so startup-phase rejections (Bull/ioredis init,
-// Redis connection probes) are caught immediately — not only after the app is up.
-// Bull/ioredis rejects in-flight operations with `undefined` during init/shutdown;
-// suppress those to avoid noisy log spam.
+// Tracks whether a graceful shutdown is in progress.
+// node-redis v4 rejects all queued commands with undefined/null when
+// client.quit() fires — that is expected and must not pollute logs or
+// crash the process.  We suppress every unhandled rejection that arrives
+// after shutdown starts, in addition to the always-benign undefined/null ones.
+let isShuttingDown = false;
+
 process.on('unhandledRejection', reason => {
-  if (reason === undefined || reason === null) {
+  if (isShuttingDown || reason === undefined || reason === null) {
     return;
   }
   console.error(
