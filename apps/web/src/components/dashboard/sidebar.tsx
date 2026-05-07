@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { LogOut } from 'lucide-react';
@@ -46,8 +47,14 @@ export function Sidebar({ items }: SidebarProps) {
     <aside className='hidden xl:flex flex-col w-72 shrink-0 bg-primary-500 text-white px-[14px] py-[20px] sticky top-0 h-screen z-30'>
       {/* Brand — compact inline logo */}
       <div className='flex items-center gap-[10px] mb-[18px] px-[6px]'>
-        <div className='h-[34px] w-[34px] rounded-full bg-brand-coral grid place-items-center text-white font-bold text-sm shrink-0'>
-          T
+        <div className='h-[34px] w-[34px] shrink-0 grid place-items-center'>
+          <Image
+            src='/images/white-leaf-logo.png'
+            alt='Too Fresh to Waste'
+            width={34}
+            height={34}
+            className='object-contain'
+          />
         </div>
         <div className='leading-tight'>
           <div className='font-display text-[15px] font-semibold'>Too Fresh</div>
