@@ -455,7 +455,6 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
   // Donation impact moment
   // ---------------------------------------------------------------------------
 
-  const [dismissedImpactOrderId, setDismissedImpactOrderId] = useState<string | null>(null);
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
 
   // Persist reviewed state across sessions via MMKV
@@ -482,13 +481,37 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
     setHasReviewed(true);
   }, [orderId]);
 
+  // Persist "impact shown" state across sessions so ImpactMoment shows exactly once per order
+  const [impactMomentShown, setImpactMomentShown] = useState(() => {
+    try {
+      const stored = mmkv.getString?.('impact_shown_orders');
+      if (!stored) return false;
+      return (JSON.parse(stored) as string[]).includes(orderId);
+    } catch {
+      return false;
+    }
+  });
+
+  const markImpactMomentShown = useCallback(() => {
+    try {
+      const stored = mmkv.getString?.('impact_shown_orders');
+      const ids: string[] = stored ? (JSON.parse(stored) as string[]) : [];
+      if (!ids.includes(orderId)) {
+        mmkv.set?.('impact_shown_orders', JSON.stringify([...ids, orderId]));
+      }
+    } catch {
+      // storage errors are non-fatal
+    }
+    setImpactMomentShown(true);
+  }, [orderId]);
+
   const { data: donationStats } = useDonationStats();
 
   // ---------------------------------------------------------------------------
   // Derived state
   // ---------------------------------------------------------------------------
 
-  const isConfirmedPickup = order?.status === OrderStatus.PICKED_UP && confirmMutation.isSuccess;
+  const isPickedUp = order?.status === OrderStatus.PICKED_UP;
 
   // Time-based expiry check: if expiresAt has passed, the pickup code is no longer valid
   const isOrderExpired = useMemo(() => {
@@ -501,16 +524,17 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
   }, [order]);
 
   const canConfirm = order ? CONFIRMABLE_STATUSES.has(order.status) : false;
-  const showImpactMoment = dismissedImpactOrderId !== orderId;
+  // Show ImpactMoment once per order (MMKV-persisted so it survives navigation/remount)
+  const showImpactMoment = isPickedUp && !impactMomentShown;
 
-  // Auto-show review modal after pickup confirmation.
+  // Auto-show review modal for picked-up orders that haven't been reviewed.
   // If there's a donation overlay, wait for it to dismiss first.
   useEffect(() => {
-    if (!isConfirmedPickup || hasReviewed || reviewModalVisible) return;
+    if (!isPickedUp || hasReviewed || reviewModalVisible) return;
     if ((order?.donationAmount ?? 0) > 0 && showImpactMoment) return;
     const timer = setTimeout(() => setReviewModalVisible(true), 800);
     return () => clearTimeout(timer);
-  }, [isConfirmedPickup, showImpactMoment, hasReviewed, reviewModalVisible, order?.donationAmount]);
+  }, [isPickedUp, showImpactMoment, hasReviewed, reviewModalVisible, order?.donationAmount]);
 
   const reviewEstablishmentId: string = useMemo(() => {
     if (!order) return '';
@@ -589,13 +613,13 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
             onClearError={() => setPickupError(null)}
             isLoading={confirmMutation.isPending}
             errorCode={pickupError}
-            isConfirmed={isConfirmedPickup}
+            isConfirmed={confirmMutation.isSuccess}
             isExpired={isOrderExpired}
           />
         )}
 
-        {/* Already picked up – show static success if mutation did not trigger it */}
-        {order.status === OrderStatus.PICKED_UP && !confirmMutation.isSuccess && (
+        {/* Already picked up – show static success when arriving at screen after pickup */}
+        {isPickedUp && !confirmMutation.isSuccess && (
           <Card style={styles.card}>
             <View style={styles.successRow}>
               <Icon
@@ -641,7 +665,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
           donationAmount={order.donationAmount}
           totalDonations={donationStats.totalDonations}
           mealCount={donationStats.mealCount}
-          onDismiss={() => setDismissedImpactOrderId(orderId)}
+          onDismiss={markImpactMomentShown}
           currency={order.pricing.currency}
         />
       )}
