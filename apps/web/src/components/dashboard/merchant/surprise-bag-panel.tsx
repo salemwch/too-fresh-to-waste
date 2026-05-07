@@ -18,7 +18,7 @@ import type { CreateSurpriseBagPayload, OfferBagType } from '@/types/dashboard';
 const MIN_DISCOUNT_PCT = 35;
 const MAX_QUANTITY = 100;
 const MAX_PRICE = 100;
-const DISCOUNT_OPTIONS = [35, 40, 50, 60, 70, 80, 90] as const;
+const DISCOUNT_OPTIONS = [40, 50, 60, 70, 80, 90] as const;
 const DEFAULT_TITLE = 'Delicious Surprise Bag';
 const DEFAULT_PRICE = 10;
 const DEFAULT_DISCOUNT = 50;

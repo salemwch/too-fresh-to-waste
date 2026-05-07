@@ -75,7 +75,7 @@ export class SearchOffersDto implements SearchOffersInput {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(50)
+  @Min(40)
   @Max(90)
   minDiscount?: number | undefined;
 

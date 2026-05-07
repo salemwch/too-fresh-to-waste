@@ -1311,10 +1311,10 @@
       "bagsMax": "bags (max 100)",
       "pricing": "Pricing",
       "originalPrice": "Original value",
-      "discountLabel": "Discount (min. 50%)",
+      "discountLabel": "Discount (min. 40%)",
       "salePrice": "Price after discount",
       "customerSaves": "Customer saves {saving} TND ({discount}% off)",
-      "discountRangeError": "Discount must be between 50% and 90%",
+      "discountRangeError": "Discount must be between 40% and 90%",
       "cancel": "Cancel",
       "reactivating": "Reactivating…",
       "reactivate": "Reactivate"

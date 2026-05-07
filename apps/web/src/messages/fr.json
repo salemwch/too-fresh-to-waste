@@ -1311,10 +1311,10 @@
       "bagsMax": "paniers (max 100)",
       "pricing": "Prix",
       "originalPrice": "Valeur originale",
-      "discountLabel": "Remise (min. 50%)",
+      "discountLabel": "Remise (min. 40%)",
       "salePrice": "Prix après remise",
       "customerSaves": "Le client économise {saving} TND ({discount}% de remise)",
-      "discountRangeError": "La remise doit être comprise entre 50% et 90%",
+      "discountRangeError": "La remise doit être comprise entre 40% et 90%",
       "cancel": "Annuler",
       "reactivating": "Réactivation…",
       "reactivate": "Réactiver"

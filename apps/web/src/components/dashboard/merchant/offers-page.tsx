@@ -54,7 +54,7 @@ const TYPE_FILTER_KEYS = [
   { value: 'meal_deal', i18nKey: 'mealDeal' },
 ] as const;
 
-const REACTIVATE_DISCOUNT_OPTIONS = [50, 55, 60, 65, 70, 80, 90] as const;
+const REACTIVATE_DISCOUNT_OPTIONS = [40, 50, 55, 60, 65, 70, 80, 90] as const;
 
 const SORT_KEYS = [
   { value: 'newest', i18nKey: 'newest' },

@@ -1311,10 +1311,10 @@
       "bagsMax": "أكياس (الحد الأقصى 100)",
       "pricing": "التسعير",
       "originalPrice": "القيمة الأصلية",
-      "discountLabel": "الخصم (50% على الأقل)",
+      "discountLabel": "الخصم (40% على الأقل)",
       "salePrice": "السعر بعد الخصم",
       "customerSaves": "يوفر العميل {saving} دينار ({discount}% خصم)",
-      "discountRangeError": "يجب أن يكون الخصم بين 50% و 90%",
+      "discountRangeError": "يجب أن يكون الخصم بين 40% و 90%",
       "cancel": "إلغاء",
       "reactivating": "جارٍ إعادة التفعيل…",
       "reactivate": "إعادة تفعيل"
