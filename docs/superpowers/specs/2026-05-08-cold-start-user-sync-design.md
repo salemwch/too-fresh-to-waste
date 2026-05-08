@@ -29,19 +29,19 @@ Add `isUserSynced: boolean` to `AuthState` interface
 
 **Lifecycle:**
 
-| Event                                           | `isUserSynced` value                   |
-| ----------------------------------------------- | -------------------------------------- |
-| `initialState`                                  | `false`                                |
-| `loadStoredAuthAsync.pending`                   | `false` (reset on every cold start)    |
-| `loginAsync.fulfilled`                          | `true` (login returns fresh user)      |
-| `registerAsync.fulfilled`                       | `true` (register returns fresh user)   |
-| `verifyEmailAsync.fulfilled`                    | `true` (verify returns fresh user)     |
-| `syncCurrentUserAsync.fulfilled`                | `true`                                 |
-| `syncCurrentUserAsync.rejected` (network error) | `true` (offline-first: trust cache)    |
-| `syncCurrentUserAsync.rejected` (auth error)    | unchanged (interceptor handles logout) |
-| `logoutAsync.fulfilled`                         | `false` (via `initialState` spread)    |
-| `logoutAsync.rejected`                          | `false` (via `initialState` spread)    |
-| `forceLocalLogout`                              | `false` (via `initialState` spread)    |
+| Event                                         | `isUserSynced` value                   |
+| --------------------------------------------- | -------------------------------------- |
+| `initialState`                                | `false`                                |
+| `loadStoredAuthAsync.pending`                 | `false` (reset on every cold start)    |
+| `loginAsync.fulfilled`                        | `true` (login returns fresh user)      |
+| `registerAsync.fulfilled`                     | `true` (register returns fresh user)   |
+| `verifyEmailAsync.fulfilled`                  | `true` (verify returns fresh user)     |
+| `syncCurrentUserAsync.fulfilled`              | `true`                                 |
+| `syncCurrentUserAsync.rejected` (network/5xx) | `true` (offline-first: trust cache)    |
+| `syncCurrentUserAsync.rejected` (401/403)     | unchanged (interceptor handles logout) |
+| `logoutAsync.fulfilled`                       | `false` (via `initialState` spread)    |
+| `logoutAsync.rejected`                        | `false` (via `initialState` spread)    |
+| `forceLocalLogout`                            | `false` (via `initialState` spread)    |
 
 ### New Thunk: `syncCurrentUserAsync`
 
@@ -73,12 +73,21 @@ export const syncCurrentUserAsync = createAsyncThunk(
 
 - `syncCurrentUserAsync.fulfilled`: set `state.user = action.payload`, set
   `state.isUserSynced = true`
-- `syncCurrentUserAsync.rejected`: if network error, set
-  `state.isUserSynced = true` (trust cache). If auth error, do nothing
-  (interceptor/middleware handles logout).
+- `syncCurrentUserAsync.rejected`: if network error OR 5xx server error, set
+  `state.isUserSynced = true` (trust cache — server is broken, let user proceed
+  with cached data). If 401/403 auth error, do nothing (interceptor/middleware
+  handles logout).
 
-**Network error detection**: Same pattern used in `refreshTokenAsync.rejected` —
-check for `'network'`, `'timeout'`, `'econnrefused'` in the error message.
+**Error classification** (same pattern as `refreshTokenAsync.rejected`):
+
+- **Network errors** (`'network'`, `'timeout'`, `'econnrefused'`): set
+  `isUserSynced = true`
+- **5xx server errors** (500, 502, 503, 504): set `isUserSynced = true` (server
+  is up but broken — database down, deploy in progress, etc. Treat same as
+  offline.)
+- **401/403 auth errors**: do nothing (interceptor handles logout)
+- **Other errors** (4xx client errors): set `isUserSynced = true` (defensive —
+  don't leave the flag stuck at false)
 
 ### ProtectedRoute Change
 
@@ -239,6 +248,7 @@ t=7    When connectivity returns, next cold start will sync fresh data
 | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `/auth/me` returns 401                          | Axios interceptor triggers refresh + retry. If refresh also fails, `forceLocalLogout` fires.                                            |
 | `/auth/me` times out (10s)                      | `syncCurrentUserAsync.rejected` with network error → `isUserSynced=true`, trust cache                                                   |
+| `/auth/me` returns 500/502/503                  | `syncCurrentUserAsync.rejected` with 5xx → `isUserSynced=true`, trust cache (server broken, don't block user)                           |
 | User verifies email on web, opens mobile        | Cold start syncs fresh `isEmailVerified=true` → no block                                                                                |
 | Admin changes user role                         | Cold start syncs fresh role → `hasRequiredRole()` in ProtectedRoute evaluates correctly                                                 |
 | User updates profile on second device           | Cold start syncs fresh `profileImage` → photo appears                                                                                   |
