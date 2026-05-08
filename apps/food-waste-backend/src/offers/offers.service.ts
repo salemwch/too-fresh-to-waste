@@ -1881,7 +1881,7 @@ export class OffersService {
   /**
    * Calculates discount percentage from prices and enforces business rules
    * ✅ SECURITY: Backend-calculated, user has no control over discount percentage
-   * ✅ BUSINESS: Enforces 50-90% discount range for food waste reduction legitimacy
+   * ✅ BUSINESS: Enforces 40-90% discount range for food waste reduction legitimacy
    * ✅ SECURITY: System-enforces TND currency
    */
   private calculateAndValidatePricing(pricing: Partial<OfferPricing>): OfferPricing {
@@ -1898,10 +1898,10 @@ export class OffersService {
       ((pricing.originalPrice - pricing.discountedPrice) / pricing.originalPrice) * 100,
     );
 
-    // ✅ BUSINESS: Enforce minimum 50% discount
-    if (discountPercentage < 50 || discountPercentage > 90) {
+    // ✅ BUSINESS: Enforce minimum 40% discount
+    if (discountPercentage < 40 || discountPercentage > 90) {
       throw new BadRequestException(
-        `Discount must be between 50% and 90%. Your prices result in ${discountPercentage}% discount.`,
+        `Discount must be between 40% and 90%. Your prices result in ${discountPercentage}% discount.`,
       );
     }
 

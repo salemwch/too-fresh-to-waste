@@ -61,7 +61,7 @@ export class Offer {
     type: {
       originalPrice: { type: Number, required: true, min: 0 },
       discountedPrice: { type: Number, required: true, min: 0 },
-      discountPercentage: { type: Number, required: true, min: 50, max: 90 },
+      discountPercentage: { type: Number, required: true, min: 40, max: 90 },
       currency: { type: String, enum: Currency, required: true, default: Currency.TND },
     },
     validate: {
