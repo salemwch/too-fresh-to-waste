@@ -49,7 +49,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const dispatch = useAppDispatch();
   const [isSessionLogoutPending, setIsSessionLogoutPending] = useState(false);
 
-  const { isAuthenticated, isLoading, user, sessionExpiresAt } = useAppSelector(
+  const { isAuthenticated, isLoading, user, sessionExpiresAt, isUserSynced } = useAppSelector(
     state => state.auth,
   );
 
@@ -175,7 +175,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return renderUnauthorized();
   }
 
-  if (user?.isEmailVerified !== true) {
+  if (user?.isEmailVerified !== true && isUserSynced) {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.content}>
