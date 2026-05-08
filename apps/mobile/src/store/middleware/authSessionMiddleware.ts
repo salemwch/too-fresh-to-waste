@@ -46,6 +46,7 @@ import {
   forceLocalLogout,
   sessionRecoveryStarted,
   sessionRecoveryFinished,
+  syncCurrentUserAsync,
 } from '@/features/auth/store/authSlice';
 import { AuthFlowState } from '@/features/auth/types';
 import { refreshTokenSafe } from '@/services/authRefresh';
@@ -149,6 +150,13 @@ const sessionManagerState: SessionManagerState = {
   refreshRetryCount: 0,
   hasRehydrated: false,
 };
+
+/**
+ * Module-scoped flag: has the initial user sync fired for this session?
+ * NOT in SessionManagerState — no component needs this. Reset in stopSessionManager
+ * so re-login in the same JS engine session triggers a fresh sync.
+ */
+let hasPerformedInitialSync = false;
 
 /**
  * Extract HTTP status code from error object
@@ -373,8 +381,16 @@ const startSessionManager = (dispatch: AppDispatch, getState: () => RootState): 
 
   Logger.info('[AUTH-MIDDLEWARE] Session manager started');
 
-  // LAYER 1: Check immediately on start
-  void checkAndRefreshToken(dispatch, getState);
+  // LAYER 1: Check immediately on start + sync user data on first cold start
+  void (async () => {
+    await checkAndRefreshToken(dispatch, getState);
+
+    if (!hasPerformedInitialSync && getState().auth.flowState === AuthFlowState.AUTHENTICATED) {
+      hasPerformedInitialSync = true;
+      Logger.info('[AUTH-MIDDLEWARE] Dispatching initial user sync from /auth/me');
+      dispatch(syncCurrentUserAsync());
+    }
+  })();
 
   // LAYER 2: Schedule periodic checks (every 60 seconds)
   sessionManagerState.intervalId = setInterval(() => {
@@ -425,6 +441,7 @@ const stopSessionManager = (): void => {
   sessionManagerState.lastAppState = AppState.currentState;
   sessionManagerState.isManagerRunning = false;
   sessionManagerState.refreshRetryCount = 0;
+  hasPerformedInitialSync = false;
 
   Logger.info(
     '[AUTH-MIDDLEWARE] Session manager stopped (interval + AppState listener + jitter timeout cleared)',
