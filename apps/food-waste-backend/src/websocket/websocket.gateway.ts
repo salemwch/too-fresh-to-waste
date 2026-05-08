@@ -1,4 +1,6 @@
 import { UseGuards, Logger, UseFilters } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import {
   WebSocketGateway as WSGateway,
   WebSocketServer,
@@ -10,6 +12,8 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { parse as parseCookies } from 'cookie';
+import { UserRole } from '@foodwaste/shared';
 
 import { WebSocketExceptionFilter } from './filters/websocket-exception.filter';
 import { WebSocketAuthGuard } from './guards/websocket-auth.guard';
@@ -38,11 +42,73 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
   @WebSocketServer() server!: Server;
   private readonly logger = new Logger(WebSocketGateway.name);
 
-  constructor(private readonly webSocketService: WebSocketService) {}
+  constructor(
+    private readonly webSocketService: WebSocketService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
 
   afterInit(server: Server): void {
     this.webSocketService.setServer(server);
+
+    // Authenticate every socket at connect-time using the handshake credentials.
+    // This registers the socket in userSockets immediately so sendToUser() works
+    // even before the client emits join_room (or if join_room never fires).
+    server.use(async (socket: Socket, next) => {
+      const client = socket as AuthenticatedSocket;
+      const token = this.extractTokenFromHandshake(client);
+      if (token) {
+        try {
+          const secret = this.configService.get<string>('JWT_SECRET');
+          if (secret) {
+            const payload = await this.jwtService.verifyAsync<{
+              sub?: string;
+              userId?: string;
+              email?: string;
+              role?: string;
+            }>(token, { secret });
+            const userId = payload.sub ?? payload.userId;
+            if (userId && payload.email && payload.role) {
+              client.userId = userId;
+              client.email = payload.email;
+              client.role = payload.role as UserRole;
+              client.isAuthenticated = true;
+              this.webSocketService.registerUserSocket(client);
+              this.logger.log(
+                `[WS middleware] auto-registered userId=${userId} role=${payload.role}`,
+              );
+            }
+          }
+        } catch {
+          // Expired or invalid token — socket proceeds as unauthenticated.
+          // The join_room guard will reject it if auth is required.
+        }
+      }
+      next();
+    });
+
     this.logger.log('🚀 WebSocket Gateway initialized');
+  }
+
+  private extractTokenFromHandshake(client: AuthenticatedSocket): string | null {
+    const queryToken = client.handshake?.query?.['token'];
+    const cookieHeader = client.handshake?.headers?.cookie;
+    const IS_PROD = process.env['NODE_ENV'] === 'production';
+
+    let cookieToken: string | null = null;
+    if (cookieHeader) {
+      const cookies = parseCookies(cookieHeader);
+      const cookieName = IS_PROD ? '__Host-access_token' : 'access_token';
+      cookieToken = cookies[cookieName] ?? null;
+    }
+
+    return (
+      (client.handshake?.auth?.['token'] as string | undefined) ??
+      (Array.isArray(queryToken) ? queryToken[0] : queryToken) ??
+      client.handshake?.headers?.authorization?.replace('Bearer ', '') ??
+      cookieToken ??
+      null
+    );
   }
 
   handleConnection(client: Socket): void {

@@ -235,46 +235,23 @@ export class WebSocketService {
   // Utility methods for sending events
 
   /**
-   * Send event to a specific user (all their connected sockets)
+   * Send event to a specific user via their personal Socket.IO room (`user-{userId}`).
+   *
+   * Room membership is set in registerUserSocket() which is called both at
+   * connect-time (gateway middleware) and on join_room success. Using the room
+   * adapter is more reliable than iterating the userSockets map because it
+   * survives reconnects and works correctly with the Redis IO adapter in
+   * multi-instance deployments.
    */
   sendToUser(userId: string, event: string, data: unknown): void {
-    const userSocketIds = this.userSockets.get(userId);
+    const userRoom = `user-${userId}`;
+    const wrappedPayload = this.wrapEventPayload(event, data, userId);
 
-    // ── diagnostic snapshot ───────────────────────────────────────────────────
-    this.logger.log(
-      `[sendToUser] event="${event}" targetUserId="${userId}" ` +
-        `totalConnected=${this.connectedClients.size} ` +
-        `registeredUsers=${this.userSockets.size} ` +
-        `userFound=${!!userSocketIds} ` +
-        `userSockets=[${[...this.userSockets.keys()].join(', ')}]`,
-    );
-    // ─────────────────────────────────────────────────────────────────────────
-
-    if (!userSocketIds || userSocketIds.size === 0) {
-      this.logger.warn(
-        `[sendToUser] MISS — user "${userId}" is not in userSockets. ` +
-          `Event "${event}" was NOT delivered. ` +
-          `Is the merchant dashboard open and connected?`,
-      );
-      return;
-    }
-
-    let delivered = 0;
-    for (const socketId of userSocketIds) {
-      const socket = this.connectedClients.get(socketId);
-      if (socket) {
-        socket.emit(event, this.wrapEventPayload(event, data, userId));
-        delivered++;
-        this.logger.log(`[sendToUser] Emitted "${event}" to socketId=${socketId}`);
-      } else {
-        this.logger.warn(
-          `[sendToUser] socketId=${socketId} in userSockets but NOT in connectedClients — stale entry`,
-        );
-      }
-    }
+    this.server.to(userRoom).emit(event, wrappedPayload);
 
     this.logger.log(
-      `[sendToUser] "${event}" delivered to ${delivered}/${userSocketIds.size} sockets of user "${userId}"`,
+      `[sendToUser] event="${event}" → room="${userRoom}" ` +
+        `mapRegistered=${this.userSockets.has(userId)}`,
     );
   }
 

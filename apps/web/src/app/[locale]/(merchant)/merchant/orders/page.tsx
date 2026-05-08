@@ -17,6 +17,7 @@ import {
   Loader2,
   Ban,
   ChevronRight,
+  ChevronLeft,
   Wifi,
 } from 'lucide-react';
 import {
@@ -495,11 +496,14 @@ function OrderDetailPanel({ orderId }: OrderDetailPanelProps) {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
+const HISTORY_PAGE_SIZE = 10;
+
 export default function MerchantOrdersPage() {
   const t = useTranslations('dashboard.merchantOrders');
   const [tab, setTab] = useState<'active' | 'history'>('active');
   const [search, setSearch] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [historyPage, setHistoryPage] = useState(1);
 
   const { data, isLoading } = useMerchantOrders();
   const allOrders = useMemo(() => data?.orders ?? [], [data]);
@@ -514,16 +518,39 @@ export default function MerchantOrdersPage() {
     return { activeOrders: active, historyOrders: history };
   }, [allOrders]);
 
-  const filteredOrders = useMemo(() => {
-    const base = tab === 'active' ? activeOrders : historyOrders;
-    if (!search.trim()) return base;
+  const filteredActiveOrders = useMemo(() => {
+    if (!search.trim()) return activeOrders;
     const q = search.toLowerCase();
-    return base.filter(
+    return activeOrders.filter(
       o =>
         o.orderNumber.toLowerCase().includes(q) ||
         getCustomerName(o.customerId).toLowerCase().includes(q),
     );
-  }, [tab, activeOrders, historyOrders, search]);
+  }, [activeOrders, search]);
+
+  const filteredHistoryOrders = useMemo(() => {
+    if (!search.trim()) return historyOrders;
+    const q = search.toLowerCase();
+    return historyOrders.filter(
+      o =>
+        o.orderNumber.toLowerCase().includes(q) ||
+        getCustomerName(o.customerId).toLowerCase().includes(q),
+    );
+  }, [historyOrders, search]);
+
+  const historyPageCount = Math.max(1, Math.ceil(filteredHistoryOrders.length / HISTORY_PAGE_SIZE));
+
+  const paginatedHistoryOrders = useMemo(() => {
+    const start = (historyPage - 1) * HISTORY_PAGE_SIZE;
+    return filteredHistoryOrders.slice(start, start + HISTORY_PAGE_SIZE);
+  }, [filteredHistoryOrders, historyPage]);
+
+  const filteredOrders = tab === 'active' ? filteredActiveOrders : paginatedHistoryOrders;
+
+  // Reset history page when search changes
+  useEffect(() => {
+    setHistoryPage(1);
+  }, [search]);
 
   // When tab changes, auto-select first visible order (or clear selection)
   useEffect(() => {
@@ -581,7 +608,7 @@ export default function MerchantOrdersPage() {
                       : 'bg-muted text-muted-foreground',
                   ].join(' ')}
                 >
-                  {t_ === 'active' ? activeOrders.length : historyOrders.length}
+                  {t_ === 'active' ? filteredActiveOrders.length : filteredHistoryOrders.length}
                 </span>
               </button>
             ))}
@@ -628,6 +655,31 @@ export default function MerchantOrdersPage() {
               ))
             )}
           </div>
+
+          {/* History tab pagination */}
+          {tab === 'history' && filteredHistoryOrders.length > HISTORY_PAGE_SIZE && (
+            <div className='shrink-0 flex items-center justify-between px-3 py-2 border-t border-border bg-muted/30'>
+              <button
+                onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                disabled={historyPage <= 1}
+                className='h-7 px-2 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-40 disabled:pointer-events-none transition-colors flex items-center gap-1'
+              >
+                <ChevronLeft className='h-3.5 w-3.5' />
+                Prev
+              </button>
+              <span className='text-[10px] text-muted-foreground'>
+                Page {historyPage} / {historyPageCount}
+              </span>
+              <button
+                onClick={() => setHistoryPage(p => Math.min(historyPageCount, p + 1))}
+                disabled={historyPage >= historyPageCount}
+                className='h-7 px-2 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-40 disabled:pointer-events-none transition-colors flex items-center gap-1'
+              >
+                Next
+                <ChevronRight className='h-3.5 w-3.5' />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ── Right: order detail ── */}

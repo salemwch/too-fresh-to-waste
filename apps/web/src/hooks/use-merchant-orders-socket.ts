@@ -101,9 +101,13 @@ export function useMerchantOrdersSocket() {
 
     socketRef.current = socket;
 
-    socket.on('connect', () => {
+    const joinRoom = () => {
       socket.emit(WebSocketEvents.JOIN_ROOM, { room: 'merchant_dashboard' });
-    });
+    };
+
+    socket.on('connect', joinRoom);
+    // Re-register after automatic reconnect so the server re-maps the new socket ID.
+    socket.on('reconnect', joinRoom);
 
     socket.on(WebSocketEvents.ORDER_STATUS_UPDATED, (raw: unknown) => {
       const parsed = orderStatusPayloadSchema.safeParse(raw);
