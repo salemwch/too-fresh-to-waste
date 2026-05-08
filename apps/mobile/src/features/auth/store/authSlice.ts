@@ -37,6 +37,8 @@ const initialState: AuthState = {
   offlineSince: undefined,
   // Post-resume token-recovery gate (see authSessionMiddleware)
   isRecoveringSession: false,
+  // Cold-start user sync (fresh data from /auth/me)
+  isUserSynced: false,
 };
 
 // ✅ PROMISE-BASED LOCK: Prevent concurrent logout calls
@@ -526,6 +528,70 @@ export const loadStoredAuthAsync = createAsyncThunk(
   },
 );
 
+export const syncCurrentUserAsync = createAsyncThunk(
+  'auth/syncCurrentUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      const accessToken = await SecureStorage.getAccessToken();
+
+      if (accessToken == null || accessToken === '') {
+        throw new Error('No access token available');
+      }
+
+      Logger.info('[AUTH] Syncing user data from server');
+      const user = await authService.getCurrentUser(accessToken);
+
+      backgroundStorage.execute('sync-user-data', async () => {
+        await SecureStorage.setUserData(JSON.stringify(user));
+      });
+
+      Logger.info('[AUTH] User data synced successfully', { userId: user.userId });
+      return user;
+    } catch (error) {
+      Logger.warn('[AUTH] User sync failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      let errorMessage = 'User sync failed';
+      let statusCode: number | undefined;
+
+      if (error !== null && error !== undefined && typeof error === 'object') {
+        const errObj = error as Record<string, unknown>;
+        if (typeof errObj['message'] === 'string') {
+          errorMessage = errObj['message'];
+        }
+        if (typeof errObj['statusCode'] === 'number') {
+          statusCode = errObj['statusCode'];
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      const isNetworkError =
+        errorMessage === 'Network request failed' ||
+        errorMessage.toLowerCase().includes('network') ||
+        errorMessage.toLowerCase().includes('timeout') ||
+        errorMessage.toLowerCase().includes('econnrefused') ||
+        errorMessage.toLowerCase().includes('econnaborted') ||
+        (error !== null &&
+          typeof error === 'object' &&
+          'type' in error &&
+          (error as { type: string }).type === 'NETWORK');
+
+      const isServerError = statusCode !== undefined && statusCode >= 500 && statusCode < 600;
+
+      const isAuthError = statusCode === 401 || statusCode === 403;
+
+      return rejectWithValue({
+        message: errorMessage,
+        isNetworkError,
+        isServerError,
+        isAuthError,
+      });
+    }
+  },
+);
+
 export const updateProfileAsync = createAsyncThunk(
   'auth/updateProfile',
   async (
@@ -714,6 +780,7 @@ const authSlice = createSlice({
       state.pendingVerificationEmail = undefined;
       state.pendingVerificationPhone = undefined;
       state.mfaToken = undefined;
+      state.isUserSynced = true;
     });
 
     builder.addCase(loginAsync.rejected, (state, action) => {
@@ -799,6 +866,7 @@ const authSlice = createSlice({
       // User goes directly to Home screen (not Login)
       state.flowState = AuthFlowState.AUTHENTICATED;
       state.pendingVerificationEmail = undefined;
+      state.isUserSynced = true;
     });
 
     builder.addCase(verifyEmailAsync.rejected, (state, action) => {
@@ -830,6 +898,7 @@ const authSlice = createSlice({
       // STATE-DRIVEN NAVIGATION: MFA verified, user is authenticated
       state.flowState = AuthFlowState.AUTHENTICATED;
       state.mfaToken = undefined;
+      state.isUserSynced = true;
     });
 
     builder.addCase(verifyMFAAsync.rejected, (state, action) => {
@@ -941,6 +1010,7 @@ const authSlice = createSlice({
     // Load Stored Auth
     builder.addCase(loadStoredAuthAsync.pending, state => {
       state.isLoading = true;
+      state.isUserSynced = false;
     });
 
     builder.addCase(loadStoredAuthAsync.fulfilled, (state, action) => {
@@ -988,6 +1058,28 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.flowState = AuthFlowState.UNAUTHENTICATED;
       // Keep initial state
+    });
+
+    // Sync Current User (cold-start /auth/me)
+    builder.addCase(syncCurrentUserAsync.fulfilled, (state, action) => {
+      state.user = action.payload;
+      state.isUserSynced = true;
+      Logger.info('[AUTH] User data synced from server', { userId: action.payload.userId });
+    });
+
+    builder.addCase(syncCurrentUserAsync.rejected, (state, action) => {
+      const payload = action.payload as
+        | { isNetworkError?: boolean; isServerError?: boolean; isAuthError?: boolean }
+        | undefined;
+
+      if (payload?.isAuthError === true) {
+        // 401/403: interceptor will handle logout — don't touch isUserSynced
+        return;
+      }
+
+      // Network errors, 5xx server errors, or any other failure:
+      // trust cached data, don't leave the flag stuck at false
+      state.isUserSynced = true;
     });
 
     // Update Profile
@@ -1044,3 +1136,4 @@ export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenti
 export const selectAuthFlowState = (state: RootState) => state.auth.flowState;
 export const selectIsRecoveringSession = (state: RootState): boolean =>
   state.auth.isRecoveringSession;
+export const selectIsUserSynced = (state: RootState): boolean => state.auth.isUserSynced;

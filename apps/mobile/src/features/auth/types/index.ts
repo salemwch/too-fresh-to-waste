@@ -92,6 +92,12 @@ export interface AuthState {
   // Protected queries should wait on this flag before firing so they don't
   // race the refresh and trigger a 401 flood.
   readonly isRecoveringSession: boolean;
+
+  // True once the app has fetched fresh user data from GET /auth/me on
+  // cold start (or received fresh data via login/register/verifyEmail).
+  // ProtectedRoute defers the email-verification gate until this is true
+  // so stale Keychain data doesn't falsely block the user.
+  readonly isUserSynced: boolean;
 }
 
 export interface BiometricAuthState {
