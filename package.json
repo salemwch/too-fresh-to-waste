@@ -132,7 +132,16 @@
       "picomatch@^2": "^2.3.2",
       "picomatch@^4": "^4.0.4",
       "@nestjs/common>file-type": "^22.0.0",
-      "postcss": "^8.5.10"
+      "postcss": "^8.5.10",
+      "react-email>next": ">=15.5.15",
+      "react-email>glob": ">=10.5.0",
+      "react-email>esbuild": ">=0.25.0",
+      "protobufjs": ">=7.5.5",
+      "prismjs": ">=1.30.0",
+      "fast-xml-builder": ">=1.1.7",
+      "fast-uri": ">=3.1.2",
+      "firebase-admin>uuid": ">=11.1.1",
+      "geoip-lite>ip-address": ">=10.1.1"
     },
     "peerDependencyRules": {
       "allowedVersions": {
