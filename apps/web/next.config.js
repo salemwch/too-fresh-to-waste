@@ -93,6 +93,14 @@ const nextConfig = {
     const isProd = process.env.NODE_ENV === 'production';
     return [
       {
+        // Android App Links verification — must be plain JSON, no restrictive headers
+        source: '/.well-known/assetlinks.json',
+        headers: [
+          { key: 'Content-Type', value: 'application/json' },
+          { key: 'Cache-Control', value: 'public, max-age=3600' },
+        ],
+      },
+      {
         source: '/:path*',
         headers: [
           {

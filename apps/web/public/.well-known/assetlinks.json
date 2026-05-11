@@ -1,11 +1,15 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.toofreshtowaste.app",
       "sha256_cert_fingerprints": [
-        "C2:E7:CB:C8:1C:A0:3E:B7:BC:9E:2E:8E:89:29:7C:97:20:F9:0C:A8:9D:F9:7B:91:B9:DB:40:40:A2:73:DE:30"
+        "C2:E7:CB:C8:1C:A0:3E:B7:BC:9E:2E:8E:89:29:7C:97:20:F9:0C:A8:9D:F9:7B:91:B9:DB:40:40:A2:73:DE:30",
+        "04:8C:2B:DA:A7:C9:EB:1C:C3:94:65:6E:B4:AE:61:49:38:AE:16:C9:A7:BE:2B:D7:56:0B:61:52:67:EE:CE:57"
       ]
     }
   }
