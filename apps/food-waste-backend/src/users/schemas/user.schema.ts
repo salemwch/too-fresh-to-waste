@@ -175,6 +175,9 @@ export class User {
   @Prop({ type: Number, default: 0 })
   streakFreezeCount!: number;
 
+  @Prop({ type: Boolean, default: false })
+  requiresPasswordChange!: boolean;
+
   // Mongoose timestamps automatically adds these fields
   createdAt?: Date;
   updatedAt?: Date;
