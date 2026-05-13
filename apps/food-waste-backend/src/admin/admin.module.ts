@@ -12,6 +12,7 @@ import { User, UserSchema } from '../users/schemas/user.schema';
 import { UsersModule } from '../users/user.module';
 
 // Schemas
+import { DriverProfile, DriverProfileSchema } from '../drivers/schemas/driver-profile.schema';
 import {
   AdminAnalyticsController,
   UserManagementController,
@@ -55,6 +56,7 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
       { name: Order.name, schema: OrderSchema },
       { name: Offer.name, schema: OfferSchema },
       { name: Review.name, schema: ReviewSchema },
+      { name: DriverProfile.name, schema: DriverProfileSchema },
     ]),
   ],
 

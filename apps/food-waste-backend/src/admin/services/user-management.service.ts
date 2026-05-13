@@ -1,4 +1,6 @@
-import { UserStatus } from '@foodwaste/shared';
+import { UserRole, UserStatus } from '@foodwaste/shared';
+import * as argon2 from 'argon2';
+import * as crypto from 'crypto';
 import {
   Injectable,
   Logger,
@@ -7,8 +9,8 @@ import {
   Optional,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { Connection, Model } from 'mongoose';
 
 import {
   AdminUserStatusChangedEvent,
@@ -27,8 +29,10 @@ import { NotificationService } from '../../notifications/services/notification.s
 import { Order, OrderDocument, OrderStatus } from '../../orders/schemas/order.schema';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 import { UsersService } from '../../users/user.service';
+import { CreateDriverDto } from '../dto/create-driver.dto';
 import { UpdateUserStatusDto, BulkUserActionDto, UserSearchDto } from '../dto/user-management.dto';
 import { AdminAction } from '../interfaces/admin-analytics.interface';
+import { DriverProfile, DriverProfileDocument } from '../../drivers/schemas/driver-profile.schema';
 
 import { AdminAuditService, AuditableObject } from './admin-audit.service';
 
@@ -162,12 +166,152 @@ export class UserManagementService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
+    @InjectModel(DriverProfile.name)
+    private readonly driverProfileModel: Model<DriverProfileDocument>,
+    @InjectConnection() private readonly connection: Connection,
     private readonly auditService: AdminAuditService,
     private readonly eventBus: EventBusService,
     private readonly usersService: UsersService,
     private readonly configService: ConfigService,
     @Optional() private readonly notificationService?: NotificationService,
   ) {}
+
+  async createDriver(dto: CreateDriverDto): Promise<{
+    driver: {
+      _id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      role: string;
+      requiresPasswordChange: boolean;
+    };
+    driverProfile: { idCardNumber: string; address: string };
+    temporaryPassword: string;
+  }> {
+    const temporaryPassword = `Drv-${crypto.randomBytes(3).toString('hex')}-${crypto.randomBytes(3).toString('hex')}`;
+    const hashedPassword = await argon2.hash(temporaryPassword, {
+      type: argon2.argon2id,
+      memoryCost: 2 ** 16,
+      timeCost: 3,
+      parallelism: 1,
+    });
+
+    const session = await this.connection.startSession();
+    session.startTransaction();
+
+    try {
+      const createdUsers = await this.userModel.create(
+        [
+          {
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            email: dto.email,
+            phoneNumber: dto.phoneNumber,
+            password: hashedPassword,
+            role: UserRole.DRIVER,
+            status: UserStatus.ACTIVE,
+            isEmailVerified: true,
+            requiresPasswordChange: true,
+          },
+        ],
+        { session },
+      );
+      const user = createdUsers[0];
+      if (!user) {
+        throw new Error('Failed to create driver user');
+      }
+
+      const createdProfiles = await this.driverProfileModel.create(
+        [
+          {
+            userId: user._id,
+            idCardNumber: dto.idCardNumber,
+            address: dto.address,
+          },
+        ],
+        { session },
+      );
+      const driverProfile = createdProfiles[0];
+      if (!driverProfile) {
+        throw new Error('Failed to create driver profile');
+      }
+
+      await session.commitTransaction();
+
+      return {
+        driver: {
+          _id: (user._id as { toString(): string }).toString(),
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          requiresPasswordChange: user.requiresPasswordChange,
+        },
+        driverProfile: {
+          idCardNumber: driverProfile.idCardNumber,
+          address: driverProfile.address,
+        },
+        temporaryPassword,
+      };
+    } catch (err) {
+      await session.abortTransaction();
+      throw err;
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  async getDrivers(): Promise<
+    Array<{
+      _id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      phoneNumber?: string;
+      requiresPasswordChange: boolean;
+      createdAt: Date;
+      driverProfile: { idCardNumber: string; address: string } | null;
+    }>
+  > {
+    const drivers = await this.userModel
+      .find({ role: UserRole.DRIVER, deletedAt: null })
+      .select('firstName lastName email phoneNumber requiresPasswordChange createdAt')
+      .lean<
+        Array<{
+          _id: { toString(): string };
+          firstName: string;
+          lastName: string;
+          email: string;
+          phoneNumber?: string;
+          requiresPasswordChange?: boolean;
+          createdAt: Date;
+        }>
+      >()
+      .exec();
+
+    const profiles = await this.driverProfileModel
+      .find({ userId: { $in: drivers.map(d => d._id) } })
+      .lean<Array<{ userId: { toString(): string }; idCardNumber: string; address: string }>>()
+      .exec();
+
+    const profileMap = new Map(
+      profiles.map(p => [
+        p.userId.toString(),
+        { idCardNumber: p.idCardNumber, address: p.address },
+      ]),
+    );
+
+    return drivers.map(d => ({
+      _id: d._id.toString(),
+      firstName: d.firstName,
+      lastName: d.lastName,
+      email: d.email,
+      ...(d.phoneNumber !== undefined ? { phoneNumber: d.phoneNumber } : {}),
+      requiresPasswordChange: d.requiresPasswordChange ?? false,
+      createdAt: d.createdAt,
+      driverProfile: profileMap.get(d._id.toString()) ?? null,
+    }));
+  }
 
   async getUserOverview(): Promise<UserOverview> {
     try {
