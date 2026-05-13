@@ -23,6 +23,7 @@ export interface TokenPayload {
   exp: number; // Expiration (Unix timestamp)
   familyId?: string; // Token family for rotation tracking
   ver?: number; // Token revocation version
+  requiresPasswordChange?: boolean; // Set for admin-created accounts that must change password on first login
 }
 
 /**
@@ -99,6 +100,8 @@ export class TokenService {
    * @param parentJti - Optional parent token JTI for rotation
    * @param existingFamilyId - Optional existing family ID for rotation
    * @param tokenRevocationVersion - User's current token revocation version
+   * @param rememberMe - Whether to issue long-lived refresh token
+   * @param requiresPasswordChange - Embed into access token for admin-created accounts
    * @returns Token pair with metadata
    */
   async generateTokenPair(
@@ -110,6 +113,7 @@ export class TokenService {
     existingFamilyId?: string,
     tokenRevocationVersion: number = 0,
     rememberMe: boolean = false,
+    requiresPasswordChange: boolean = false,
   ): Promise<TokenPair> {
     const now = Math.floor(Date.now() / 1000);
 
@@ -135,6 +139,7 @@ export class TokenService {
       role,
       jti: uuidv4(), // Access token gets its own JTI
       ver: tokenRevocationVersion,
+      requiresPasswordChange,
     };
 
     const refreshPayload = {
