@@ -1,5 +1,5 @@
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -12,9 +12,12 @@ const AUTH_NAMESPACES = ['auth', 'merchantSignup', 'common'] as const;
 
 interface AuthLayoutProps {
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }
 
-export default async function AuthLayout({ children }: AuthLayoutProps) {
+export default async function AuthLayout({ children, params }: AuthLayoutProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const allMessages = await getMessages();
   const messages = pickMessages(allMessages, AUTH_NAMESPACES);
 

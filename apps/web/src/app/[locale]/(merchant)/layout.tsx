@@ -1,5 +1,5 @@
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import { pickMessages } from '@/lib/pick-messages';
 import { MerchantLayoutShell } from './merchant-layout-shell';
 
@@ -9,9 +9,12 @@ const MERCHANT_NAMESPACES = ['dashboard', 'common', 'accessibility'] as const;
 
 interface MerchantLayoutProps {
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }
 
-export default async function MerchantLayout({ children }: MerchantLayoutProps) {
+export default async function MerchantLayout({ children, params }: MerchantLayoutProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const allMessages = await getMessages();
   const messages = pickMessages(allMessages, MERCHANT_NAMESPACES);
 

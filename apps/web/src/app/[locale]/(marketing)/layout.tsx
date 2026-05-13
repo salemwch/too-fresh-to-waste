@@ -1,5 +1,5 @@
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import { type Locale } from '@/i18n/config';
 import { pickMessages } from '@/lib/pick-messages';
 import {
@@ -54,6 +54,7 @@ interface MarketingLayoutProps {
 
 export default async function MarketingLayout({ children, params }: MarketingLayoutProps) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const allMessages = await getMessages();
   const messages = pickMessages(allMessages, MARKETING_NAMESPACES);
 

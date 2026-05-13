@@ -1,5 +1,5 @@
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import { pickMessages } from '@/lib/pick-messages';
 import { Header, Footer } from '@/components/layout';
 
@@ -15,7 +15,8 @@ interface LegalLayoutProps {
 }
 
 export default async function LegalLayout({ children, params }: LegalLayoutProps) {
-  await params; // consume params to satisfy Next.js dynamic-layout contract
+  const { locale } = await params;
+  setRequestLocale(locale);
   const allMessages = await getMessages();
   const messages = pickMessages(allMessages, LEGAL_NAMESPACES);
 

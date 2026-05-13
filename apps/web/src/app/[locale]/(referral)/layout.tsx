@@ -1,11 +1,14 @@
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 
 interface ReferralLayoutProps {
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }
 
-export default async function ReferralLayout({ children }: ReferralLayoutProps) {
+export default async function ReferralLayout({ children, params }: ReferralLayoutProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const messages = await getMessages();
 
   return (
