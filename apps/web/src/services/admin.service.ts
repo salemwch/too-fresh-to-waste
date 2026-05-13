@@ -48,6 +48,34 @@ import type {
 const ADMIN = '/admin';
 const MOD = '/moderation';
 
+// ── Driver types ───────────────────────────────────────────────────────────────
+
+export interface CreateDriverPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  idCardNumber: string;
+  address: string;
+}
+
+export interface DriverRow {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  requiresPasswordChange: boolean;
+  createdAt: string;
+  driverProfile: { idCardNumber: string; address: string } | null;
+}
+
+export interface CreateDriverResponse {
+  driver: { _id: string; firstName: string; lastName: string; email: string };
+  driverProfile: { idCardNumber: string; address: string };
+  temporaryPassword: string;
+}
+
 // Health controller uses VERSION_NEUTRAL — it's at /health, NOT /api/v1/health.
 // Use NEXT_PUBLIC_WS_URL (always the real backend origin) so this works in both
 // direct mode and proxy mode (where NEXT_PUBLIC_API_URL is a relative path /api/v1).
@@ -518,5 +546,23 @@ export const adminService = {
       params: { format },
       responseType: 'blob',
     });
+  },
+
+  // ── Driver Management ──────────────────────────────────────────────────────
+
+  /**
+   * POST /admin/drivers
+   * Create a driver account. Returns driver, driverProfile, and a one-time temporaryPassword.
+   */
+  createDriver(payload: CreateDriverPayload) {
+    return apiClient.post<BackendEnvelope<CreateDriverResponse>>(`${ADMIN}/drivers`, payload);
+  },
+
+  /**
+   * GET /admin/drivers
+   * List all driver accounts with their driverProfile joined.
+   */
+  getDrivers() {
+    return apiClient.get<BackendEnvelope<DriverRow[]>>(`${ADMIN}/drivers`);
   },
 };
