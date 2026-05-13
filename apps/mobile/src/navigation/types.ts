@@ -18,6 +18,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 export interface RootNavigatorParamList extends Record<string, object | undefined> {
   AuthStack: NavigatorScreenParams<AuthStackParamList> | undefined;
   MainStack: undefined;
+  DriverStack: undefined;
 }
 
 /**
@@ -104,6 +105,16 @@ export interface ProfileStackParamList extends Record<string, object | undefined
   ProfileMain: undefined;
   EditProfile: undefined;
   ContactSupport: undefined;
+}
+
+/**
+ * Driver Stack Param List
+ * Driver role navigation (order list → order details → active order)
+ */
+export interface DriverStackParamList extends Record<string, object | undefined> {
+  DriverOrdersList: undefined;
+  DriverOrderDetail: { orderId: string };
+  DriverActiveOrder: { orderId: string };
 }
 
 /**
@@ -278,6 +289,24 @@ export type ContactSupportScreenNavigationProp = CompositeNavigationProp<
 >;
 
 /**
+ * Navigation Props for Driver Stack Screens
+ */
+export type DriverOrdersListNavigationProp = NativeStackNavigationProp<
+  DriverStackParamList,
+  'DriverOrdersList'
+>;
+
+export type DriverOrderDetailNavigationProp = NativeStackNavigationProp<
+  DriverStackParamList,
+  'DriverOrderDetail'
+>;
+
+export type DriverActiveOrderNavigationProp = NativeStackNavigationProp<
+  DriverStackParamList,
+  'DriverActiveOrder'
+>;
+
+/**
  * Route Props for Screens with Parameters
  */
 export type ResetPasswordRouteProp = RouteProp<AuthStackParamList, 'ResetPassword'>;
@@ -289,6 +318,8 @@ type OrderDetailsRouteProp = RouteProp<OrdersStackParamList, 'OrderDetails'>;
 type CheckoutRouteProp = RouteProp<MainStackParamList, 'Checkout'>;
 export type EstablishmentDetailsRouteProp = RouteProp<MainStackParamList, 'EstablishmentDetails'>;
 export type NearbyOffersRouteProp = RouteProp<MainStackParamList, 'NearbyOffers'>;
+export type DriverOrderDetailRouteProp = RouteProp<DriverStackParamList, 'DriverOrderDetail'>;
+export type DriverActiveOrderRouteProp = RouteProp<DriverStackParamList, 'DriverActiveOrder'>;
 
 /**
  * Combined Navigation & Route Props
