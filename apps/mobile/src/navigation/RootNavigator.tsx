@@ -308,6 +308,14 @@ export const RootNavigator: React.FC = () => {
       case AuthFlowState.INITIALIZING:
         return null; // Will show LoadingScreen below
 
+      // Admin-created account: must set a new password before using the app
+      case AuthFlowState.PASSWORD_CHANGE_REQUIRED:
+        return (
+          <Stack.Screen name='AuthStack' options={{ headerShown: false }}>
+            {() => <AuthStack initialRouteName='ForceChangePassword' />}
+          </Stack.Screen>
+        );
+
       // ✅ User is authenticated - route by role
       // BYPASS onboarding check - authenticated users don't need it
       // DRIVER role gets the driver-specific stack; all other roles use MainStack

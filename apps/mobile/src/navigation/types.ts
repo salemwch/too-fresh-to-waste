@@ -44,6 +44,7 @@ export interface AuthStackParamList extends Record<string, object | undefined> {
     mfaToken: string;
     userId: string;
   };
+  ForceChangePassword: undefined;
 }
 
 /**

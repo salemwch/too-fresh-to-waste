@@ -17,6 +17,7 @@ import { Text } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 // Auth Screens
 import { ForgotPasswordScreen } from '@/features/auth/screens/ForgotPasswordScreen';
+import ForceChangePasswordScreen from '@/features/auth/screens/ForceChangePasswordScreen';
 import { LoginScreen } from '@/features/auth/screens/LoginScreen';
 import { MFAVerificationScreen } from '@/features/auth/screens/MFAVerificationScreen';
 import { RegisterScreen } from '@/features/auth/screens/RegisterScreen';
@@ -32,6 +33,11 @@ import { getAuthScreenOptions } from './headerConfig';
 import type { AuthStackParamList } from './types';
 import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
 
+interface AuthStackProps {
+  /** Override the initial route. Used by RootNavigator for hard-wall screens. */
+  initialRouteName?: Extract<keyof AuthStackParamList, string>;
+}
+
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 /**
@@ -46,7 +52,7 @@ const Stack = createNativeStackNavigator<AuthStackParamList>();
  *
  * @see https://reactnavigation.org/docs/navigating#navigate-to-a-route-multiple-times
  */
-export const AuthStack: React.FC = () => {
+export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -109,7 +115,7 @@ export const AuthStack: React.FC = () => {
 
   return (
     <Stack.Navigator
-      initialRouteName={hasSeenWelcome ? 'Login' : 'Welcome'}
+      initialRouteName={initialRouteName ?? (hasSeenWelcome ? 'Login' : 'Welcome')}
       screenOptions={getAuthScreenOptions(theme)}
     >
       {/* Welcome Screen - ONLY for first-time users (device-level onboarding) */}
@@ -211,6 +217,17 @@ export const AuthStack: React.FC = () => {
           // Prevent going back during MFA flow
           gestureEnabled: false,
           headerBackVisible: false,
+        }}
+      />
+
+      {/* Force Change Password Screen — hard wall for admin-created accounts */}
+      <Stack.Screen
+        name='ForceChangePassword'
+        component={ForceChangePasswordScreen}
+        options={{
+          headerShown: false,
+          // Hard wall: no swipe-back gesture allowed
+          gestureEnabled: false,
         }}
       />
     </Stack.Navigator>

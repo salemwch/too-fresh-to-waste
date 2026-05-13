@@ -1124,6 +1124,8 @@ export const {
 
   forceLocalLogout,
 
+  setFlowState,
+
   sessionRecoveryStarted,
   sessionRecoveryFinished,
 } = authSlice.actions;
