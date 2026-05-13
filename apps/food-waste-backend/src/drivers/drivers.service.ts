@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { Model, Types } from 'mongoose';
@@ -8,6 +8,8 @@ import { AvailableOrdersQueryDto } from './dto/available-orders-query.dto';
 
 @Injectable()
 export class DriversService {
+  private readonly logger = new Logger(DriversService.name);
+
   constructor(
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
     private readonly configService: ConfigService,
@@ -20,24 +22,32 @@ export class DriversService {
     const maxRadius = this.configService.get<number>('DRIVER_MAX_RADIUS_METERS') ?? 5000;
     const now = new Date();
 
-    const orders = await this.orderModel
-      .find({
-        deliveryMode: 'delivery',
-        status: OrderStatus.CONFIRMED,
-        driverId: null,
-        collectionStartTime: { $lte: new Date(now.getTime() + bufferMs) },
-        collectionEndTime: { $gte: now },
-        'establishmentAddress.coordinates': {
-          $near: {
-            $geometry: { type: 'Point', coordinates: [lng, lat] },
-            $maxDistance: maxRadius,
+    try {
+      const orders = await this.orderModel
+        .find({
+          deliveryMode: 'delivery',
+          status: OrderStatus.CONFIRMED,
+          driverId: null,
+          collectionStartTime: { $lte: new Date(now.getTime() + bufferMs) },
+          collectionEndTime: { $gte: now },
+          'establishmentAddress.coordinates': {
+            $near: {
+              $geometry: { type: 'Point', coordinates: [lng, lat] },
+              $maxDistance: maxRadius,
+            },
           },
-        },
-      })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .exec();
-    return orders;
+        })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec();
+      return orders;
+    } catch (err) {
+      // $near requires a 2dsphere index. If the index is missing (e.g. fresh
+      // database without syncIndexes), log the error and return empty rather
+      // than surfacing a 500 to the driver app.
+      this.logger.error('getAvailableOrders geo query failed — returning empty', err);
+      return [];
+    }
   }
 
   async acceptOrder(orderId: string, driverId: string): Promise<OrderDocument> {

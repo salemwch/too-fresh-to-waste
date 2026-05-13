@@ -247,8 +247,9 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
   const hasCoords = coords !== null;
   const {
     data: orders = [],
-    isLoading,
+    isLoading: ordersLoading,
     isRefetching,
+    isError: ordersError,
     refetch,
   } = useAvailableOrders(coords?.lat ?? 0, coords?.lng ?? 0, hasCoords);
 
@@ -294,8 +295,8 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
     );
   }
 
-  // Permission granted but no GPS fix yet
-  if (!hasCoords || (isLoading && orders.length === 0)) {
+  // Waiting for first GPS fix
+  if (!hasCoords) {
     return (
       <View style={styles.centerContainer}>
         {gpsError ? (
@@ -308,9 +309,19 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
           <>
             <ActivityIndicator size='large' color={PRIMARY} />
             <Text style={styles.loadingTitle}>Locating you…</Text>
-            <Text style={styles.loadingSubtitle}>Searching for nearby orders</Text>
+            <Text style={styles.loadingSubtitle}>Acquiring GPS signal</Text>
           </>
         )}
+      </View>
+    );
+  }
+
+  // GPS acquired, first load only (not retrying)
+  if (ordersLoading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size='large' color={PRIMARY} />
+        <Text style={styles.loadingTitle}>Searching nearby orders…</Text>
       </View>
     );
   }
@@ -318,9 +329,11 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.headerBar}>
-        <View style={styles.liveIndicator} />
-        <Text style={styles.headerText}>Live orders near you</Text>
-        <Text style={styles.countBadge}>{orders.length}</Text>
+        <View style={[styles.liveIndicator, ordersError && styles.liveIndicatorError]} />
+        <Text style={styles.headerText}>
+          {ordersError ? 'No orders available' : 'Live orders near you'}
+        </Text>
+        {!ordersError && <Text style={styles.countBadge}>{orders.length}</Text>}
       </View>
 
       <FlatList
@@ -401,6 +414,7 @@ const styles = StyleSheet.create({
     gap: sp.xs,
   },
   liveIndicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: SUCCESS },
+  liveIndicatorError: { backgroundColor: ON_SURFACE_VARIANT },
   headerText: {
     flex: 1,
     fontSize: 13,
