@@ -40,6 +40,7 @@ import { CookieSecurityUtil } from '../common/utils/cookie-security.util';
 
 import { AuthService, RegisterResponse, LoginResponse } from './auth.service';
 import { ForgotPasswordDto } from './DTO/forget-password.dto';
+import { ForcePasswordChangeDto } from './DTO/force-password-change.dto';
 import { LoginDto } from './DTO/login.dto';
 import { RegisterDto } from './DTO/register.dto';
 import { ResetPasswordDto } from './DTO/reset-password.dto';
@@ -870,6 +871,21 @@ export class AuthController {
       success: true,
       password,
       strength: this.passwordPolicyService.validatePassword(password),
+    };
+  }
+
+  @Post('force-password-change')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async forcePasswordChange(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: ForcePasswordChangeDto,
+  ) {
+    const result = await this.authService.forcePasswordChange(req.user.userId, dto.newPassword);
+    return {
+      status: 'success',
+      message: 'Password changed successfully',
+      data: result,
     };
   }
 

@@ -496,6 +496,7 @@ export class AuthService {
         undefined, // No existing family (new login)
         user.tokenRevocationVersion || 0,
         loginDto.rememberMe ?? false,
+        user.requiresPasswordChange ?? false,
       ),
       // Side effects — independent, no return value needed
       this.authSecurityService.clearLoginAttempts(ipAddress, loginDto.email),
@@ -810,6 +811,48 @@ export class AuthService {
       refreshToken,
       expiresIn: this.getAccessTokenExpiresInSeconds(),
       tokenType: 'Bearer' as const,
+    };
+  }
+
+  async forcePasswordChange(
+    userId: string,
+    newPassword: string,
+  ): Promise<{ accessToken: string; refreshToken: string; user: object }> {
+    const user = await this.usersService.findById(userId);
+    if (!user?.requiresPasswordChange) {
+      throw new ForbiddenException('Password change is not required for this account');
+    }
+
+    const hashedPassword = await argon2.hash(newPassword, {
+      type: argon2.argon2id,
+      memoryCost: 2 ** 16,
+      timeCost: 3,
+      parallelism: 1,
+    });
+
+    await this.usersService.completePasswordChange(userId, hashedPassword);
+
+    const tokens = await this.tokenService.generateTokenPair(
+      userId,
+      user.email,
+      user.role,
+      undefined,
+      undefined,
+      undefined,
+      user.tokenRevocationVersion ?? 0,
+      false,
+      false, // requiresPasswordChange is now false
+    );
+
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: {
+        _id: userId,
+        email: user.email,
+        role: user.role,
+        requiresPasswordChange: false,
+      },
     };
   }
 

@@ -86,6 +86,12 @@ export interface IUsersService {
   ): Promise<void>;
 
   /**
+   * Atomically set a new hashed password and clear requiresPasswordChange.
+   * Used by the force-password-change flow for admin-created accounts.
+   */
+  completePasswordChange(userId: string, hashedPassword: string): Promise<void>;
+
+  /**
    * Update user profile
    */
   update(id: string, updateUserDto: UpdateUserDto): Promise<User>;

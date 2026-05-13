@@ -1827,4 +1827,18 @@ export class UsersService implements IUsersService {
       throw error;
     }
   }
+
+  /**
+   * Atomically sets a new hashed password and clears requiresPasswordChange.
+   * Used by the force-password-change flow for admin-created accounts.
+   */
+  async completePasswordChange(userId: string, hashedPassword: string): Promise<void> {
+    const result = await this.userModel.findByIdAndUpdate(userId, {
+      $set: { password: hashedPassword, requiresPasswordChange: false },
+    });
+    if (!result) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+    this.logger.log(`Force password change completed for user ${userId}`);
+  }
 }
