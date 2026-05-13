@@ -20,6 +20,7 @@ import { GlobalSanitizationMiddleware } from './common/middleware/global-sanitiz
 import { CommunityGoalModule } from './community-goal/community-goal.module';
 import { envValidationSchema } from './config/env.validation';
 import { DonationsModule } from './donations/donations.module';
+import { DriversModule } from './drivers/drivers.module';
 import { EmailModule } from './email/email.module';
 import { EstablishmentsModule } from './establishments/establishments.module';
 import { FavoritesModule } from './favorites/favorites.module';
@@ -142,6 +143,7 @@ import { WebSocketModule } from './websocket/websocket.module';
     InventoryModule,
     FavoritesModule,
     DonationsModule,
+    DriversModule,
     CommunityGoalModule,
     SustainabilityModule,
     LeaderboardModule,
