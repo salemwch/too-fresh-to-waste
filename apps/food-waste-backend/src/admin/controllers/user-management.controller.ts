@@ -8,6 +8,7 @@ import {
   Param,
   Query,
   UseGuards,
+  HttpCode,
   HttpStatus,
   Logger,
   Req,
@@ -25,6 +26,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { IUser } from '../../common/interfaces/user.interface';
 import { IpAddress, UserAgent } from '../decorators';
 import { UpdateUserStatusDto, BulkUserActionDto, UserSearchDto } from '../dto/user-management.dto';
+import { CreateDriverDto } from '../dto/create-driver.dto';
 import { AdminOnlyGuard } from '../guards/admin-only.guard';
 import {
   UserManagementService,
@@ -230,5 +232,42 @@ export class UserManagementController {
   ): Promise<UserActivityData> {
     const result = await this.userManagementService.getUserActivity(userId, days);
     return result;
+  }
+
+  @Post('drivers')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Create driver account',
+    description: 'Create a new driver user account with associated driver profile',
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Driver account created successfully',
+  })
+  async createDriver(@Body() dto: CreateDriverDto) {
+    const result = await this.userManagementService.createDriver(dto);
+    return {
+      status: 'success',
+      message: 'Driver account created',
+      data: result,
+    };
+  }
+
+  @Get('drivers')
+  @ApiOperation({
+    summary: 'Get all drivers',
+    description: 'Retrieve a list of all driver accounts',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Drivers retrieved successfully',
+  })
+  async getDrivers() {
+    const drivers = await this.userManagementService.getDrivers();
+    return {
+      status: 'success',
+      message: 'Drivers retrieved',
+      data: drivers,
+    };
   }
 }
