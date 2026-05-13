@@ -33,7 +33,10 @@ import { analytics } from '@/utils/analytics';
 import { Logger } from '@/utils/logger';
 import { networkErrorBus } from '@/utils/networkErrorBus';
 
+import { UserRole } from '@foodwaste/shared';
+
 import { AuthStack } from './AuthStack';
+import DriverStack from './DriverStack';
 import { linkingConfig } from './linking';
 import { MainStack } from './MainStack';
 import { navigationRef } from './navigationRef';
@@ -83,7 +86,7 @@ export const RootNavigator: React.FC = () => {
   // NOTE: We intentionally do NOT use isLoading here.
   // isLoading should NOT trigger global LoadingScreen - each screen handles its own loading state.
   // Using isLoading here causes premature unmounting during async operations (login, register, etc.)
-  const { flowState } = useAppSelector(state => state.auth);
+  const { flowState, user } = useAppSelector(state => state.auth);
 
   // ============================================================================
   // DEVICE CONNECTIVITY: Use NetInfo (real network state), NOT auth/API errors
@@ -305,10 +308,17 @@ export const RootNavigator: React.FC = () => {
       case AuthFlowState.INITIALIZING:
         return null; // Will show LoadingScreen below
 
-      // ✅ User is authenticated - show main app immediately
+      // ✅ User is authenticated - route by role
       // BYPASS onboarding check - authenticated users don't need it
+      // DRIVER role gets the driver-specific stack; all other roles use MainStack
       case AuthFlowState.AUTHENTICATED:
-        return (
+        return user?.role === UserRole.DRIVER ? (
+          <Stack.Screen
+            name='DriverStack'
+            component={DriverStack}
+            options={{ headerShown: false }}
+          />
+        ) : (
           <Stack.Screen name='MainStack' component={MainStack} options={{ headerShown: false }} />
         );
 
