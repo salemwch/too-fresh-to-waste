@@ -767,6 +767,14 @@ const authSlice = createSlice({
         return;
       }
 
+      if (action.payload.user?.requiresPasswordChange === true) {
+        // Admin-created account: route driver to force-change-password screen
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.flowState = AuthFlowState.PASSWORD_CHANGE_REQUIRED;
+        return;
+      }
+
       state.user = action.payload.user;
       state.isAuthenticated = true;
       state.lastLoginTime = new Date().toISOString();

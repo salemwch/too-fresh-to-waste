@@ -63,6 +63,8 @@ export interface UserResponse {
   createdAt: string;
   updatedAt: string;
   lastLoginAt?: string;
+  /** True when an admin created the account and the user must change their password on first login. */
+  requiresPasswordChange?: boolean;
 }
 
 export interface UserPreferences {

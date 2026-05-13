@@ -54,6 +54,7 @@ export enum AuthFlowState {
 
   // Login flow states
   MFA_REQUIRED = 'mfa_required', // User logged in, needs MFA verification
+  PASSWORD_CHANGE_REQUIRED = 'PASSWORD_CHANGE_REQUIRED', // Admin-created account: must set new password on first login
 
   // Password reset flow states
   PASSWORD_RESET_REQUESTED = 'password_reset_requested', // User requested password reset
