@@ -70,14 +70,17 @@ class PickupTimeSlotDto {
 }
 
 class DeliveryCoordinatesDto {
+  @IsNotEmpty()
   @IsNumber()
   lat!: number;
 
+  @IsNotEmpty()
   @IsNumber()
   lng!: number;
 }
 
 class DeliveryAddressDto {
+  @IsNotEmpty()
   @IsString()
   city!: string;
 
@@ -95,7 +98,7 @@ class DeliveryAddressDto {
  * - Input sanitization for all text fields
  * - Profanity filtering for user-generated content
  */
-export class CreateOrderDto implements CreateOrderInput {
+export class CreateOrderDto implements Omit<CreateOrderInput, 'deliveryMode'> {
   @IsArray()
   @ArrayMinSize(1, { message: 'Order must contain at least one item' })
   @ValidateNested({ each: true })
@@ -169,7 +172,7 @@ export class CreateOrderDto implements CreateOrderInput {
   @IsEnum(['pickup', 'delivery'], {
     message: 'deliveryMode must be pickup or delivery',
   })
-  deliveryMode!: 'pickup' | 'delivery';
+  deliveryMode?: 'pickup' | 'delivery';
 
   /**
    * Required when deliveryMode is 'delivery'.

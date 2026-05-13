@@ -300,8 +300,9 @@ export class Order {
   // Customer delivery address — written once at order creation, never updated
   @Prop({
     type: {
+      _id: false,
       city: String,
-      coordinates: { lat: Number, lng: Number },
+      coordinates: { _id: false, lat: Number, lng: Number },
     },
   })
   deliveryAddress?: {
