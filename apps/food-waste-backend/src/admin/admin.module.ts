@@ -15,6 +15,7 @@ import { UsersModule } from '../users/user.module';
 import { DriverProfile, DriverProfileSchema } from '../drivers/schemas/driver-profile.schema';
 import {
   AdminAnalyticsController,
+  AdminDriversController,
   UserManagementController,
   EstablishmentManagementController,
   SystemConfigController,
@@ -62,6 +63,7 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
 
   controllers: [
     AdminAnalyticsController,
+    AdminDriversController,
     UserManagementController,
     EstablishmentManagementController,
     SystemConfigController,
