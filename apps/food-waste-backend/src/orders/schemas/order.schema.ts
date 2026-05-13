@@ -288,6 +288,54 @@ export class Order {
 
   @Prop()
   pickupLockedReason?: string;
+
+  // =============================================================================
+  // DELIVERY FIELDS — Driver Role MVP (Task 4)
+  // =============================================================================
+
+  // Delivery mode — customer selects at order creation
+  @Prop({ type: String, enum: ['pickup', 'delivery'], default: 'pickup' })
+  deliveryMode!: 'pickup' | 'delivery';
+
+  // Customer delivery address — written once at order creation, never updated
+  @Prop({
+    type: {
+      city: String,
+      coordinates: { lat: Number, lng: Number },
+    },
+  })
+  deliveryAddress?: {
+    city: string;
+    coordinates: { lat: number; lng: number };
+  };
+
+  // Pre-computed pickup window boundaries — indexed for driver pool query
+  @Prop({ type: Date })
+  collectionStartTime?: Date;
+
+  @Prop({ type: Date })
+  collectionEndTime?: Date;
+
+  // Driver assignment
+  @Prop({ type: Types.ObjectId, ref: 'User', default: null })
+  driverId?: Types.ObjectId | null;
+
+  // Financials — all computed at order creation, immutable
+  @Prop({ type: Number, min: 0 })
+  estimatedDistanceKm?: number;
+
+  @Prop({ type: Number, min: 0 })
+  deliveryFee?: number;
+
+  @Prop({ type: Number, min: 0 })
+  driverEarnings?: number;
+
+  @Prop({ type: Number, min: 0 })
+  platformDeliveryCommission?: number;
+
+  // Driver reliability — incremented on each unassign
+  @Prop({ type: Number, default: 0, min: 0 })
+  driverCancellationCount!: number;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
@@ -447,6 +495,34 @@ OrderSchema.index({ donationPoolId: 1, createdAt: -1 }, { sparse: true });
  * - Query pattern: find({ 'pickupExtensionRequest.approved': null })
  */
 OrderSchema.index({ 'pickupExtensionRequest.approved': 1 }, { sparse: true });
+
+// =============================================================================
+// DELIVERY INDEXES — Driver Role MVP (Task 4)
+// =============================================================================
+
+/**
+ * 2dsphere index for $near queries against establishment location.
+ * Standalone — cannot be combined into a compound index (MongoDB limitation for $near).
+ */
+OrderSchema.index({ 'establishmentAddress.coordinates': '2dsphere' }, { sparse: true });
+
+/**
+ * Compound index covering all driver-pool filter fields.
+ * Supports: find({ deliveryMode, status, driverId, collectionEndTime, collectionStartTime })
+ */
+OrderSchema.index({
+  deliveryMode: 1,
+  status: 1,
+  driverId: 1,
+  collectionEndTime: 1,
+  collectionStartTime: 1,
+});
+
+/**
+ * Driver own active/history order queries.
+ * Supports: find({ driverId }).sort({ createdAt: -1 }) with optional status filter
+ */
+OrderSchema.index({ driverId: 1, status: 1, createdAt: -1 });
 
 // Virtual for checking if order is expired
 OrderSchema.virtual('isExpired').get(function () {

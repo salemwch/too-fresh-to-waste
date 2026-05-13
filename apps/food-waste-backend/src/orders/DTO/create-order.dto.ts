@@ -14,6 +14,7 @@ import {
   IsEnum,
   Length,
   IsInt,
+  IsNumber,
 } from 'class-validator';
 
 import {
@@ -66,6 +67,23 @@ class PickupTimeSlotDto {
     message: 'End time must be in HH:MM format',
   })
   endTime!: string;
+}
+
+class DeliveryCoordinatesDto {
+  @IsNumber()
+  lat!: number;
+
+  @IsNumber()
+  lng!: number;
+}
+
+class DeliveryAddressDto {
+  @IsString()
+  city!: string;
+
+  @ValidateNested()
+  @Type(() => DeliveryCoordinatesDto)
+  coordinates!: DeliveryCoordinatesDto;
 }
 
 /**
@@ -142,6 +160,25 @@ export class CreateOrderDto implements CreateOrderInput {
   @IsString()
   @Length(0, 1000)
   pickupInstructions?: string | undefined;
+
+  /**
+   * Delivery mode: 'pickup' (default) or 'delivery' (driver-fulfilled).
+   * Determines order routing and fee computation at order creation.
+   */
+  @IsOptional()
+  @IsEnum(['pickup', 'delivery'], {
+    message: 'deliveryMode must be pickup or delivery',
+  })
+  deliveryMode!: 'pickup' | 'delivery';
+
+  /**
+   * Required when deliveryMode is 'delivery'.
+   * Written once at creation — never mutated after.
+   */
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => DeliveryAddressDto)
+  deliveryAddress?: CreateOrderInput['deliveryAddress'];
 }
 
 /**
