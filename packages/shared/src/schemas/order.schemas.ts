@@ -56,33 +56,48 @@ export const PickupTimeSlotSchema = z.object({
     .regex(TIME_FORMAT_REGEX, 'End time must be in HH:MM format'),
 });
 
+export const DeliveryAddressSchema = z.object({
+  city: z.string(),
+  coordinates: z.object({
+    lat: z.number(),
+    lng: z.number(),
+  }),
+});
+
 // ============================================================================
 // Create Order
 // ============================================================================
 
-export const CreateOrderSchema = z.object({
-  items: z.array(OrderItemSchema).min(1, 'Order must contain at least one item'),
-  establishmentId: z.string().min(1, 'Establishment ID is required'),
-  pickupTimeSlot: PickupTimeSlotSchema,
-  pickupDate: z
-    .string()
-    .datetime({ message: 'pickupDate must be a valid ISO 8601 date string' })
-    .refine(val => new Date(val) > new Date(), { message: 'Pickup time must be in the future' })
-    .refine(
-      val => {
-        const maxDate = new Date();
-        maxDate.setDate(maxDate.getDate() + 30);
-        return new Date(val) <= maxDate;
-      },
-      { message: 'Cannot book pickup more than 30 days in advance' },
-    ),
-  customerNotes: z.string().max(500).optional(),
-  paymentMethod: z.enum(PAYMENT_METHODS, {
-    message:
-      'Payment method must be one of: cash_on_pickup, pay_on_delivery, stripe, paypal, apple_pay, google_pay',
-  }),
-  pickupInstructions: z.string().max(1000).optional(),
-});
+export const CreateOrderSchema = z
+  .object({
+    items: z.array(OrderItemSchema).min(1, 'Order must contain at least one item'),
+    establishmentId: z.string().min(1, 'Establishment ID is required'),
+    pickupTimeSlot: PickupTimeSlotSchema,
+    pickupDate: z
+      .string()
+      .datetime({ message: 'pickupDate must be a valid ISO 8601 date string' })
+      .refine(val => new Date(val) > new Date(), { message: 'Pickup time must be in the future' })
+      .refine(
+        val => {
+          const maxDate = new Date();
+          maxDate.setDate(maxDate.getDate() + 30);
+          return new Date(val) <= maxDate;
+        },
+        { message: 'Cannot book pickup more than 30 days in advance' },
+      ),
+    customerNotes: z.string().max(500).optional(),
+    paymentMethod: z.enum(PAYMENT_METHODS, {
+      message:
+        'Payment method must be one of: cash_on_pickup, pay_on_delivery, stripe, paypal, apple_pay, google_pay',
+    }),
+    pickupInstructions: z.string().max(1000).optional(),
+    deliveryMode: z.enum(['pickup', 'delivery']).default('pickup'),
+    deliveryAddress: DeliveryAddressSchema.optional(),
+  })
+  .refine(data => data.deliveryMode !== 'delivery' || data.deliveryAddress !== undefined, {
+    message: 'deliveryAddress is required when deliveryMode is delivery',
+    path: ['deliveryAddress'],
+  });
 
 export type CreateOrderInput = z.infer<typeof CreateOrderSchema>;
 
