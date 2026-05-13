@@ -21,6 +21,7 @@ import { Model, Types, ClientSession, FlattenMaps, PipelineStage } from 'mongoos
 import { OrderCompletedEvent } from '../common/events';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { AppLoggerService } from '../common/services/logger.service';
+import { haversineKm } from '../common/utils/geo.util';
 import { ORDER_LIST_FIELDS, ORDER_DETAIL_FIELDS } from '../common/utils/query-optimization.util';
 import { RegexSecurityUtil } from '../common/utils/regex-security.util';
 import {
@@ -274,6 +275,50 @@ export class OrdersService {
         // Formula: (subtotal * 0.20 platform fee) * 0.05 donation percentage = 1% of subtotal
         const donationAmount = parseFloat((subtotal * 0.01).toFixed(3));
 
+        // --- Delivery fields (computed once, never recalculated) ---
+        const isDelivery = createOrderDto.deliveryMode === 'delivery';
+        let deliveryFields: {
+          collectionStartTime?: Date;
+          collectionEndTime?: Date;
+          estimatedDistanceKm?: number;
+          deliveryFee?: number;
+          driverEarnings?: number;
+          platformDeliveryCommission?: number;
+        } = {};
+
+        if (isDelivery) {
+          const pickupDate = createOrderDto.pickupDate; // YYYY-MM-DD string
+          const collectionStartTime = this.buildPickupDate(
+            pickupDate,
+            createOrderDto.pickupTimeSlot.startTime,
+          );
+          const collectionEndTime = this.buildPickupDate(
+            pickupDate,
+            createOrderDto.pickupTimeSlot.endTime,
+          );
+
+          // Establishment coordinates — GeoJSON stores [lng, lat]; haversineKm expects { lat, lng }
+          const geoCoords = establishment.address.coordinates.coordinates;
+          const estCoords = { lat: geoCoords[1] ?? 0, lng: geoCoords[0] ?? 0 };
+          const custCoords = createOrderDto.deliveryAddress!.coordinates;
+          const distKm = haversineKm(estCoords, custCoords);
+
+          // Fee calculation from env vars (no hardcoded business constants)
+          const baseFee = this.configService.get<number>('BASE_DELIVERY_FEE') ?? 2.0;
+          const ratePerKm = this.configService.get<number>('RATE_PER_KM') ?? 0.5;
+          const driverCut = this.configService.get<number>('DRIVER_CUT_RATIO') ?? 0.8;
+          const fee = baseFee + distKm * ratePerKm;
+
+          deliveryFields = {
+            collectionStartTime,
+            collectionEndTime,
+            estimatedDistanceKm: distKm,
+            deliveryFee: fee,
+            driverEarnings: fee * driverCut,
+            platformDeliveryCommission: fee * (1 - driverCut),
+          };
+        }
+
         // 6. Generate metadata
         const orderNumber = this.generateOrderNumber();
         const qrCode = this.generateQRCode();
@@ -317,6 +362,13 @@ export class OrdersService {
           donationAmount, // Add donation tracking
           // Order expires when offer expires + 30min grace period
           expiresAt: new Date(earliestOfferExpiry.getTime() + ORDER_GRACE_PERIOD_MS),
+          // Delivery fields — set at creation, never mutated
+          deliveryMode: createOrderDto.deliveryMode ?? 'pickup',
+          ...(createOrderDto.deliveryAddress && {
+            deliveryAddress: createOrderDto.deliveryAddress,
+          }),
+          driverCancellationCount: 0,
+          ...deliveryFields,
         });
 
         const savedOrder = await order.save({ session });
