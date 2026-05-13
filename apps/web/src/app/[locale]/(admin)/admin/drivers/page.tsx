@@ -2,44 +2,36 @@
 
 import { useState } from 'react';
 import { z } from 'zod';
+import { Truck, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useDrivers, useCreateDriver } from '@/hooks/use-drivers';
 import type { CreateDriverResponse } from '@/services/admin.service';
 
-// ── Validation schema ────────────────────────────────────────────────────────
+// ── Validation ───────────────────────────────────────────────────────────────
 
-const createDriverSchema = z.object({
+const schema = z.object({
   firstName: z.string().min(1, 'Required'),
   lastName: z.string().min(1, 'Required'),
   email: z.string().email('Invalid email'),
   phoneNumber: z
     .string()
     .transform(v => v.replace(/\s+/g, ''))
-    .pipe(z.string().min(8, 'Invalid phone number')),
+    .pipe(z.string().min(8, 'Invalid phone')),
   idCardNumber: z
     .string()
-    .length(8, 'CIN must be exactly 8 digits')
-    .regex(/^\d{8}$/, 'CIN must contain only digits'),
+    .length(8, '8 digits required')
+    .regex(/^\d{8}$/, 'Digits only'),
   address: z.string().min(1, 'Required'),
 });
 
-type CreateDriverForm = z.infer<typeof createDriverSchema>;
-type FormFields = keyof CreateDriverForm;
+type FormFields = keyof z.infer<typeof schema>;
 
-const FIELDS: { name: FormFields; label: string }[] = [
-  { name: 'firstName', label: 'First Name' },
-  { name: 'lastName', label: 'Last Name' },
-  { name: 'email', label: 'Email' },
-  { name: 'phoneNumber', label: 'Phone Number' },
-  { name: 'idCardNumber', label: 'CIN (8 digits)' },
-  { name: 'address', label: 'Address' },
-];
-
-const EMPTY_FORM: Record<FormFields, string> = {
+const EMPTY: Record<FormFields, string> = {
   firstName: '',
   lastName: '',
   email: '',
@@ -48,144 +40,191 @@ const EMPTY_FORM: Record<FormFields, string> = {
   address: '',
 };
 
+// ── Field config — 3-col rows ─────────────────────────────────────────────────
+
+const ROWS: { name: FormFields; label: string; placeholder?: string }[][] = [
+  [
+    { name: 'firstName', label: 'First Name', placeholder: 'Ali' },
+    { name: 'lastName', label: 'Last Name', placeholder: 'Ben Salem' },
+    { name: 'email', label: 'Email', placeholder: 'driver@example.com' },
+  ],
+  [
+    { name: 'phoneNumber', label: 'Phone', placeholder: '+216 XX XXX XXX' },
+    { name: 'idCardNumber', label: 'CIN', placeholder: '12345678' },
+    { name: 'address', label: 'Address', placeholder: 'Tunis, Tunisia' },
+  ],
+];
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DriversPage() {
   const { data: drivers = [], isLoading } = useDrivers();
   const { mutateAsync: createDriver, isPending } = useCreateDriver();
 
-  const [formValues, setFormValues] = useState<Record<FormFields, string>>(EMPTY_FORM);
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<FormFields, string>>>({});
+  const [values, setValues] = useState<Record<FormFields, string>>(EMPTY);
+  const [errors, setErrors] = useState<Partial<Record<FormFields, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-
-  const [createdResult, setCreatedResult] = useState<CreateDriverResponse | null>(null);
+  const [created, setCreated] = useState<CreateDriverResponse | null>(null);
   const [copied, setCopied] = useState(false);
 
   const handleChange = (name: FormFields, value: string) => {
-    setFormValues(prev => ({ ...prev, [name]: value }));
-    // Clear field error on change
-    setFieldErrors(prev => ({ ...prev, [name]: undefined }));
+    setValues(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: undefined }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
-
-    const parsed = createDriverSchema.safeParse(formValues);
+    const parsed = schema.safeParse(values);
     if (!parsed.success) {
       const errs: Partial<Record<FormFields, string>> = {};
       for (const issue of parsed.error.issues) {
-        const field = issue.path[0] as FormFields;
-        if (field && !errs[field]) errs[field] = issue.message;
+        const f = issue.path[0] as FormFields;
+        if (f && !errs[f]) errs[f] = issue.message;
       }
-      setFieldErrors(errs);
+      setErrors(errs);
       return;
     }
-
     try {
-      const result = await createDriver(parsed.data);
-      setCreatedResult(result);
-      setFormValues(EMPTY_FORM);
-      setFieldErrors({});
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to create driver. Please try again.';
-      setSubmitError(msg);
+      setCreated(await createDriver(parsed.data));
+      setValues(EMPTY);
+      setErrors({});
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to create driver.');
     }
   };
 
   const handleCopy = async () => {
-    if (!createdResult) return;
-    await navigator.clipboard.writeText(createdResult.temporaryPassword);
+    if (!created) return;
+    await navigator.clipboard.writeText(created.temporaryPassword);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className='p-6 space-y-8'>
-      <h1 className='text-2xl font-bold text-primary'>Driver Accounts</h1>
+    <div className='space-y-6'>
+      {/* Header */}
+      <div className='flex items-center gap-2'>
+        <Truck className='size-5 text-primary' />
+        <h1 className='text-xl font-semibold text-primary'>Driver Accounts</h1>
+      </div>
 
-      {/* Create Driver Form */}
-      <section className='bg-card rounded-xl border p-6 space-y-4'>
-        <h2 className='text-lg font-semibold'>Create Driver Account</h2>
-        <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-4'>
-          {FIELDS.map(({ name, label }) => (
-            <div key={name} className='space-y-1'>
-              <Label htmlFor={name}>{label}</Label>
-              <Input
-                id={name}
-                value={formValues[name]}
-                onChange={e => handleChange(name, e.target.value)}
-              />
-              {fieldErrors[name] && <p className='text-destructive text-xs'>{fieldErrors[name]}</p>}
+      {/* Create form — compact card */}
+      <section className='bg-card rounded-lg border p-4'>
+        <h2 className='text-sm font-semibold mb-3 text-foreground'>Create Driver Account</h2>
+        <form onSubmit={handleSubmit} className='space-y-3'>
+          {ROWS.map((row, ri) => (
+            <div key={ri} className='grid grid-cols-3 gap-3'>
+              {row.map(({ name, label, placeholder }) => (
+                <div key={name} className='space-y-1'>
+                  <Label htmlFor={name} className='text-xs text-muted-foreground'>
+                    {label}
+                  </Label>
+                  <Input
+                    id={name}
+                    placeholder={placeholder}
+                    value={values[name]}
+                    onChange={e => handleChange(name, e.target.value)}
+                    className='h-8 text-sm'
+                  />
+                  {errors[name] && (
+                    <p className='text-destructive text-[11px] leading-tight'>{errors[name]}</p>
+                  )}
+                </div>
+              ))}
             </div>
           ))}
-          {submitError && <p className='col-span-2 text-destructive text-sm'>{submitError}</p>}
-          <div className='col-span-2'>
-            <Button type='submit' disabled={isPending} className='w-full'>
-              {isPending ? 'Creating…' : 'Create Driver Account'}
+
+          {submitError && <p className='text-destructive text-xs'>{submitError}</p>}
+
+          <div className='flex justify-end pt-1'>
+            <Button type='submit' size='sm' disabled={isPending} className='min-w-[140px]'>
+              {isPending ? 'Creating…' : 'Create Driver'}
             </Button>
           </div>
         </form>
       </section>
 
-      {/* Drivers Table */}
-      <section className='bg-card rounded-xl border'>
+      {/* Drivers table */}
+      <section className='bg-card rounded-lg border overflow-hidden'>
+        <div className='px-4 py-3 border-b bg-muted/30'>
+          <h2 className='text-sm font-semibold'>
+            All Drivers
+            {!isLoading && (
+              <span className='ms-2 text-xs font-normal text-muted-foreground'>
+                ({drivers.length})
+              </span>
+            )}
+          </h2>
+        </div>
         <table className='w-full text-sm'>
-          <thead className='border-b bg-muted/50'>
+          <thead className='border-b bg-muted/20'>
             <tr>
-              {['Name', 'Email', 'Phone', 'CIN', 'Address', 'Status', 'Created'].map(h => (
-                <th key={h} className='text-left px-4 py-3 font-medium text-muted-foreground'>
+              {['Name', 'Email', 'Phone', 'CIN', 'Address', 'Status', 'Joined'].map(h => (
+                <th
+                  key={h}
+                  className='text-left px-3 py-2 text-xs font-medium text-muted-foreground'
+                >
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {isLoading && (
-              <tr>
-                <td colSpan={7} className='text-center py-8 text-muted-foreground'>
-                  Loading…
-                </td>
-              </tr>
-            )}
+            {isLoading &&
+              Array.from({ length: 3 }).map((_, i) => (
+                <tr key={i} className='border-b last:border-0'>
+                  {Array.from({ length: 7 }).map((_, j) => (
+                    <td key={j} className='px-3 py-2'>
+                      <Skeleton className='h-4 w-full' />
+                    </td>
+                  ))}
+                </tr>
+              ))}
             {!isLoading && drivers.length === 0 && (
               <tr>
-                <td colSpan={7} className='text-center py-8 text-muted-foreground'>
-                  No drivers yet.
+                <td colSpan={7}>
+                  <div className='flex flex-col items-center justify-center py-10 gap-2 text-center'>
+                    <Truck className='size-8 text-muted-foreground/40' />
+                    <p className='text-sm text-muted-foreground'>No drivers yet</p>
+                  </div>
                 </td>
               </tr>
             )}
             {drivers.map(d => (
-              <tr key={d._id} className='border-b last:border-0 hover:bg-muted/30'>
-                <td className='px-4 py-3 font-medium'>
+              <tr
+                key={d._id}
+                className='border-b last:border-0 hover:bg-muted/20 transition-colors'
+              >
+                <td className='px-3 py-2 font-medium text-sm'>
                   {d.firstName} {d.lastName}
                 </td>
-                <td className='px-4 py-3 text-muted-foreground'>{d.email}</td>
-                <td className='px-4 py-3 text-muted-foreground'>{d.phoneNumber ?? '—'}</td>
-                <td className='px-4 py-3 font-mono text-xs'>
+                <td className='px-3 py-2 text-xs text-muted-foreground'>{d.email}</td>
+                <td className='px-3 py-2 text-xs text-muted-foreground'>{d.phoneNumber ?? '—'}</td>
+                <td className='px-3 py-2 font-mono text-xs'>
                   {d.driverProfile?.idCardNumber ?? '—'}
                 </td>
-                <td className='px-4 py-3 text-muted-foreground max-w-[160px] truncate'>
+                <td className='px-3 py-2 text-xs text-muted-foreground max-w-[140px] truncate'>
                   {d.driverProfile?.address ?? '—'}
                 </td>
-                <td className='px-4 py-3'>
+                <td className='px-3 py-2'>
                   {d.requiresPasswordChange ? (
                     <Badge
                       variant='outline'
-                      className='border-yellow-400 text-yellow-600 bg-yellow-50'
+                      className='text-[10px] border-warning text-warning bg-warning/10 py-0'
                     >
                       Pending Setup
                     </Badge>
                   ) : (
                     <Badge
                       variant='outline'
-                      className='border-green-500 text-green-700 bg-green-50'
+                      className='text-[10px] border-success text-success bg-success/10 py-0'
                     >
                       Active
                     </Badge>
                   )}
                 </td>
-                <td className='px-4 py-3 text-muted-foreground'>
+                <td className='px-3 py-2 text-xs text-muted-foreground'>
                   {new Date(d.createdAt).toLocaleDateString()}
                 </td>
               </tr>
@@ -194,30 +233,37 @@ export default function DriversPage() {
         </table>
       </section>
 
-      {/* Temporary Password Modal — never auto-dismisses */}
-      <Dialog open={!!createdResult} onOpenChange={(_open: boolean) => {}}>
+      {/* Temp password modal — non-dismissible */}
+      <Dialog open={!!created} onOpenChange={() => {}}>
         <DialogContent
           onInteractOutside={e => e.preventDefault()}
           onEscapeKeyDown={e => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>Driver Account Created</DialogTitle>
+            <DialogTitle className='flex items-center gap-2'>
+              <Truck className='size-4' />
+              Driver Account Created
+            </DialogTitle>
           </DialogHeader>
           <div className='space-y-4'>
             <p className='text-sm text-muted-foreground'>
               Share this temporary password with the driver. It will{' '}
               <span className='font-semibold text-destructive'>never be shown again</span>.
             </p>
-            <div className='flex items-center gap-3 bg-muted rounded-lg p-4'>
-              <code className='flex-1 text-sm font-mono font-bold tracking-wider'>
-                {createdResult?.temporaryPassword}
+            <div className='flex items-center gap-2 bg-muted rounded-md px-3 py-2'>
+              <code className='flex-1 text-sm font-mono font-bold tracking-widest'>
+                {created?.temporaryPassword}
               </code>
-              <Button size='sm' variant='outline' onClick={handleCopy}>
-                {copied ? 'Copied!' : 'Copy'}
+              <Button size='icon' variant='ghost' className='h-7 w-7 shrink-0' onClick={handleCopy}>
+                {copied ? (
+                  <Check className='size-3.5 text-success' />
+                ) : (
+                  <Copy className='size-3.5' />
+                )}
               </Button>
             </div>
-            <Button className='w-full' onClick={() => setCreatedResult(null)}>
-              Close
+            <Button className='w-full' size='sm' onClick={() => setCreated(null)}>
+              Done
             </Button>
           </div>
         </DialogContent>

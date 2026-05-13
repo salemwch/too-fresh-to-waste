@@ -589,7 +589,8 @@
       "admin": "Admin",
       "profile": "Profil",
       "security": "Sécurité",
-      "leaderboard": "Classement"
+      "leaderboard": "Classement",
+      "drivers": "Chauffeurs"
     },
     "stats": {
       "activeOffers": "Offres actives",

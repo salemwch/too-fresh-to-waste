@@ -589,7 +589,8 @@
       "admin": "Admin",
       "profile": "Profile",
       "security": "Security",
-      "leaderboard": "Leaderboard"
+      "leaderboard": "Leaderboard",
+      "drivers": "Drivers"
     },
     "stats": {
       "activeOffers": "Active Offers",

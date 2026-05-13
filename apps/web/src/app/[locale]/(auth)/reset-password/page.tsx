@@ -5,9 +5,16 @@ import { ResetPasswordForm } from '@/components/auth/reset-password-form';
 
 function ResetPasswordFallback() {
   return (
-    <div className='merchant-signup-theme fixed inset-0 z-50 flex flex-col overflow-hidden lg:flex-row'>
-      <div className='relative flex flex-[1.1] lg:flex-1 bg-[hsl(174,72%,17%)]' />
-      <div className='flex flex-1 bg-background' />
+    <div className='w-full max-w-md space-y-4'>
+      <div className='space-y-1.5'>
+        <div className='h-7 w-48 bg-muted rounded animate-pulse' />
+        <div className='h-4 w-64 bg-muted rounded animate-pulse' />
+      </div>
+      <div className='bg-card rounded-xl border p-6 space-y-4'>
+        <div className='h-9 w-full bg-muted rounded-md animate-pulse' />
+        <div className='h-9 w-full bg-muted rounded-md animate-pulse' />
+        <div className='h-10 w-full bg-primary/20 rounded-md animate-pulse' />
+      </div>
     </div>
   );
 }
