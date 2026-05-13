@@ -6,8 +6,8 @@ import {
   StyleSheet,
   Pressable,
   Platform,
+  ScrollView,
   StatusBar,
-  TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
@@ -76,8 +76,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     useState<CreateOrderDto['paymentMethod']>('cash_on_pickup');
   const [customerNotes] = useState('');
 
-  // ✅ State for delivery mode selection
-  const [deliveryMode, setDeliveryMode] = useState<'pickup' | 'delivery'>('pickup');
+  // Derived from payment method — "Pay on Delivery" implies delivery mode
+  const deliveryMode = selectedPaymentMethod === 'pay_on_delivery' ? 'delivery' : 'pickup';
   const [deliveryPin, setDeliveryPin] = useState<{ lat: number; lng: number } | null>(null);
 
   // ✅ State for success modal
@@ -204,8 +204,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     }
 
     // pickupDate must be strictly in the future for @IsFutureDate(0) on the backend.
-    // 5-second buffer covers typical network latency without blocking late reservations.
-    const pickupDate = new Date(Math.max(now.getTime() + 5 * 1000, offerStartTime.getTime()));
+    // 2-minute buffer absorbs network latency and server clock skew safely.
+    const pickupDate = new Date(Math.max(now.getTime() + 2 * 60 * 1000, offerStartTime.getTime()));
     Logger.debug('[CheckoutScreen] Final pickup date selected', {
       pickupDateIso: pickupDate.toISOString(),
       pickupDateTimestamp: pickupDate.getTime(),
@@ -250,21 +250,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
       Logger.error('[CheckoutScreen] Order creation failed', {}, capturedError);
 
-      // ✅ Extract readable error message
-      let errorMessage = 'Failed to create order. Please try again.';
-
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (error != null && typeof error === 'object' && 'message' in error) {
-        errorMessage = String(error.message);
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      }
-
-      // Slot-full errors are already shown inline via the error banner — skip the toast
-      if (!errorMessage.includes('pickup slot is full')) {
-        showErrorToast('Order Failed', errorMessage);
-      }
+      // Error already shown inline via the errorBanner — no toast needed
     }
   }, [
     offer,
@@ -383,247 +369,223 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   return (
     <View style={styles.container}>
       <StatusBar barStyle='dark-content' backgroundColor='transparent' translucent />
-      {/* Main Content Card */}
-      <View style={styles.mainCard}>
-        {/* Payment Method Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Icon name='wallet' family='Ionicons' size={20} color={BRAND_PRIMARY} />
-            <Text style={styles.sectionTitle}>Payment Method</Text>
-          </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps='handled'
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Main Content Card */}
+        <View style={styles.mainCard}>
+          {/* Payment Method Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Icon name='wallet' family='Ionicons' size={20} color={BRAND_PRIMARY} />
+              <Text style={styles.sectionTitle}>Payment Method</Text>
+            </View>
 
-          {/* Payment options — three equal tiles in a single row */}
-          <View style={styles.paymentMethodsRow}>
-            {/* Pay on Pickup */}
-            <Pressable
-              style={[
-                styles.paymentMethodCard,
-                selectedPaymentMethod === 'cash_on_pickup' && styles.paymentMethodCardActive,
-              ]}
-              onPress={() => setSelectedPaymentMethod('cash_on_pickup')}
-              accessibilityLabel='Pay on Pickup'
-              accessibilityHint='Selects pay on pickup as payment method'
-              accessibilityRole='button'
-            >
-              {selectedPaymentMethod === 'cash_on_pickup' && (
-                <View style={styles.paymentCardCheck}>
-                  <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
-                </View>
-              )}
-              <Icon
-                name='cash'
-                family='Ionicons'
-                size={28}
-                color={selectedPaymentMethod === 'cash_on_pickup' ? BRAND_PRIMARY : '#64748B'}
-              />
-              <Text
+            {/* Payment options — three equal tiles in a single row */}
+            <View style={styles.paymentMethodsRow}>
+              {/* Pay on Pickup */}
+              <Pressable
                 style={[
-                  styles.paymentCardLabel,
-                  selectedPaymentMethod === 'cash_on_pickup' && styles.paymentCardLabelActive,
+                  styles.paymentMethodCard,
+                  selectedPaymentMethod === 'cash_on_pickup' && styles.paymentMethodCardActive,
                 ]}
+                onPress={() => setSelectedPaymentMethod('cash_on_pickup')}
+                accessibilityLabel='Pay on Pickup'
+                accessibilityHint='Selects pay on pickup as payment method'
+                accessibilityRole='button'
               >
-                {'Pay on\nPickup'}
-              </Text>
-            </Pressable>
-
-            {/* Pay on Delivery */}
-            <Pressable
-              style={[
-                styles.paymentMethodCard,
-                selectedPaymentMethod === 'pay_on_delivery' && styles.paymentMethodCardActive,
-              ]}
-              onPress={() => setSelectedPaymentMethod('pay_on_delivery')}
-              accessibilityLabel='Pay on Delivery'
-              accessibilityHint='Selects pay on delivery as payment method'
-              accessibilityRole='button'
-            >
-              {selectedPaymentMethod === 'pay_on_delivery' && (
-                <View style={styles.paymentCardCheck}>
-                  <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
-                </View>
-              )}
-              <Icon
-                name='bicycle'
-                family='Ionicons'
-                size={28}
-                color={selectedPaymentMethod === 'pay_on_delivery' ? BRAND_PRIMARY : '#64748B'}
-              />
-              <Text
-                style={[
-                  styles.paymentCardLabel,
-                  selectedPaymentMethod === 'pay_on_delivery' && styles.paymentCardLabelActive,
-                ]}
-              >
-                {'Pay on\nDelivery'}
-              </Text>
-            </Pressable>
-
-            {/* Online Payment — Coming Soon */}
-            <View style={[styles.paymentMethodCard, styles.paymentMethodCardDisabled]}>
-              <Icon name='card' family='Ionicons' size={28} color='#CBD5E1' />
-              <Text style={[styles.paymentCardLabel, styles.paymentCardLabelDisabled]}>
-                {'Online\nPayment'}
-              </Text>
-              <View style={styles.comingSoonBadge}>
-                <Text style={styles.comingSoonText}>Soon</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Divider */}
-        <View style={styles.divider} />
-
-        {/* Price Summary Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Icon name='receipt' family='Ionicons' size={20} color={BRAND_PRIMARY} />
-            <Text style={styles.sectionTitle}>Order Summary</Text>
-          </View>
-
-          <View style={styles.priceBreakdown}>
-            {/* Subtotal */}
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Subtotal</Text>
-              <Text style={styles.priceValue}>
-                {subtotal.toFixed(2)} {currency}
-              </Text>
-            </View>
-
-            {/* Delivery Fee — shown only when pay on delivery is selected */}
-            {deliveryFee > 0 && (
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Delivery Fee</Text>
-                <Text style={styles.priceValue}>
-                  {deliveryFee.toFixed(2)} {currency}
-                </Text>
-              </View>
-            )}
-
-            {/* Savings Badge */}
-            {savings > 0 && (
-              <View style={styles.savingsBadge}>
-                <Icon name='trending-down' family='Ionicons' size={16} color='#10B981' />
-                <Text style={styles.savingsText}>
-                  You save {savings.toFixed(2)} {currency}
-                </Text>
-              </View>
-            )}
-
-            {/* Total */}
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Total Amount</Text>
-              <Text style={styles.totalValue}>
-                {total.toFixed(2)} {currency}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Delivery Mode Toggle */}
-        <View style={styles.modeToggle}>
-          <TouchableOpacity
-            style={[styles.modeBtn, deliveryMode === 'pickup' && styles.modeBtnActive]}
-            onPress={() => setDeliveryMode('pickup')}
-            accessibilityRole='button'
-            accessibilityLabel='Pickup mode'
-            accessibilityState={{ selected: deliveryMode === 'pickup' }}
-          >
-            <Text
-              style={[styles.modeBtnText, deliveryMode === 'pickup' && styles.modeBtnTextActive]}
-            >
-              Pickup
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.modeBtn, deliveryMode === 'delivery' && styles.modeBtnActive]}
-            onPress={() => setDeliveryMode('delivery')}
-            accessibilityRole='button'
-            accessibilityLabel='Delivery mode'
-            accessibilityState={{ selected: deliveryMode === 'delivery' }}
-          >
-            <Text
-              style={[styles.modeBtnText, deliveryMode === 'delivery' && styles.modeBtnTextActive]}
-            >
-              Delivery
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Map pin — only shown when delivery mode is selected */}
-        {deliveryMode === 'delivery' && (
-          <View style={styles.mapContainer}>
-            <Text style={styles.mapLabel}>Drag the pin to your exact doorstep</Text>
-            {deliveryPin ? (
-              <MapView
-                style={styles.map}
-                initialRegion={{
-                  latitude: deliveryPin.lat,
-                  longitude: deliveryPin.lng,
-                  latitudeDelta: 0.005,
-                  longitudeDelta: 0.005,
-                }}
-              >
-                <Marker
-                  coordinate={{ latitude: deliveryPin.lat, longitude: deliveryPin.lng }}
-                  draggable
-                  onDragEnd={e =>
-                    setDeliveryPin({
-                      lat: e.nativeEvent.coordinate.latitude,
-                      lng: e.nativeEvent.coordinate.longitude,
-                    })
-                  }
+                {selectedPaymentMethod === 'cash_on_pickup' && (
+                  <View style={styles.paymentCardCheck}>
+                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
+                  </View>
+                )}
+                <Icon
+                  name='cash'
+                  family='Ionicons'
+                  size={28}
+                  color={selectedPaymentMethod === 'cash_on_pickup' ? BRAND_PRIMARY : '#64748B'}
                 />
-              </MapView>
-            ) : (
-              <View style={styles.mapPlaceholder}>
-                <ActivityIndicator color={BRAND_PRIMARY} />
-                <Text style={styles.mapPlaceholderText}>Getting your location…</Text>
+                <Text
+                  style={[
+                    styles.paymentCardLabel,
+                    selectedPaymentMethod === 'cash_on_pickup' && styles.paymentCardLabelActive,
+                  ]}
+                >
+                  {'Pay on\nPickup'}
+                </Text>
+              </Pressable>
+
+              {/* Pay on Delivery */}
+              <Pressable
+                style={[
+                  styles.paymentMethodCard,
+                  selectedPaymentMethod === 'pay_on_delivery' && styles.paymentMethodCardActive,
+                ]}
+                onPress={() => setSelectedPaymentMethod('pay_on_delivery')}
+                accessibilityLabel='Pay on Delivery'
+                accessibilityHint='Selects pay on delivery as payment method'
+                accessibilityRole='button'
+              >
+                {selectedPaymentMethod === 'pay_on_delivery' && (
+                  <View style={styles.paymentCardCheck}>
+                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
+                  </View>
+                )}
+                <Icon
+                  name='bicycle'
+                  family='Ionicons'
+                  size={28}
+                  color={selectedPaymentMethod === 'pay_on_delivery' ? BRAND_PRIMARY : '#64748B'}
+                />
+                <Text
+                  style={[
+                    styles.paymentCardLabel,
+                    selectedPaymentMethod === 'pay_on_delivery' && styles.paymentCardLabelActive,
+                  ]}
+                >
+                  {'Pay on\nDelivery'}
+                </Text>
+              </Pressable>
+
+              {/* Online Payment — Coming Soon */}
+              <View style={[styles.paymentMethodCard, styles.paymentMethodCardDisabled]}>
+                <Icon name='card' family='Ionicons' size={28} color='#CBD5E1' />
+                <Text style={[styles.paymentCardLabel, styles.paymentCardLabelDisabled]}>
+                  {'Online\nPayment'}
+                </Text>
+                <View style={styles.comingSoonBadge}>
+                  <Text style={styles.comingSoonText}>Soon</Text>
+                </View>
               </View>
-            )}
+            </View>
           </View>
-        )}
 
-        {/* Error Message */}
-        {orderError != null && (
-          <View style={styles.errorBanner}>
-            <Icon name='warning' family='Ionicons' size={20} color='#EF4444' />
-            <Text style={styles.errorText}>{orderError}</Text>
+          {/* Divider */}
+          <View style={styles.divider} />
+
+          {/* Price Summary Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Icon name='receipt' family='Ionicons' size={20} color={BRAND_PRIMARY} />
+              <Text style={styles.sectionTitle}>Order Summary</Text>
+            </View>
+
+            <View style={styles.priceBreakdown}>
+              {/* Subtotal */}
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Subtotal</Text>
+                <Text style={styles.priceValue}>
+                  {subtotal.toFixed(2)} {currency}
+                </Text>
+              </View>
+
+              {/* Delivery Fee — shown only when pay on delivery is selected */}
+              {deliveryFee > 0 && (
+                <View style={styles.priceRow}>
+                  <Text style={styles.priceLabel}>Delivery Fee</Text>
+                  <Text style={styles.priceValue}>
+                    {deliveryFee.toFixed(2)} {currency}
+                  </Text>
+                </View>
+              )}
+
+              {/* Savings Badge */}
+              {savings > 0 && (
+                <View style={styles.savingsBadge}>
+                  <Icon name='trending-down' family='Ionicons' size={16} color='#10B981' />
+                  <Text style={styles.savingsText}>
+                    You save {savings.toFixed(2)} {currency}
+                  </Text>
+                </View>
+              )}
+
+              {/* Total */}
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Total Amount</Text>
+                <Text style={styles.totalValue}>
+                  {total.toFixed(2)} {currency}
+                </Text>
+              </View>
+            </View>
           </View>
-        )}
 
-        {/* Confirm Button with Gradient — guarded against rapid taps */}
-        <Pressable
-          accessibilityRole='button'
-          onPress={() => {
-            void guardedConfirmOrder();
-          }}
-          disabled={isCreatingOrder}
-          style={styles.confirmButtonWrapper}
-        >
-          <LinearGradient
-            colors={[BRAND_PRIMARY, colorTokens.base.primary[400]]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.confirmButton, isCreatingOrder && styles.confirmButtonDisabled]}
+          {/* Map pin — only shown when Pay on Delivery is selected */}
+          {deliveryMode === 'delivery' && (
+            <View style={styles.mapContainer}>
+              <Text style={styles.mapLabel}>Drag the pin to your exact doorstep</Text>
+              {deliveryPin ? (
+                <MapView
+                  style={styles.map}
+                  initialRegion={{
+                    latitude: deliveryPin.lat,
+                    longitude: deliveryPin.lng,
+                    latitudeDelta: 0.005,
+                    longitudeDelta: 0.005,
+                  }}
+                >
+                  <Marker
+                    coordinate={{ latitude: deliveryPin.lat, longitude: deliveryPin.lng }}
+                    draggable
+                    onDragEnd={e =>
+                      setDeliveryPin({
+                        lat: e.nativeEvent.coordinate.latitude,
+                        lng: e.nativeEvent.coordinate.longitude,
+                      })
+                    }
+                  />
+                </MapView>
+              ) : (
+                <View style={styles.mapPlaceholder}>
+                  <ActivityIndicator color={BRAND_PRIMARY} />
+                  <Text style={styles.mapPlaceholderText}>Getting your location…</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Error Message */}
+          {orderError != null && (
+            <View style={styles.errorBanner}>
+              <Icon name='warning' family='Ionicons' size={20} color='#EF4444' />
+              <Text style={styles.errorText}>{orderError}</Text>
+            </View>
+          )}
+
+          {/* Confirm Button with Gradient — guarded against rapid taps */}
+          <Pressable
+            accessibilityRole='button'
+            onPress={() => {
+              void guardedConfirmOrder();
+            }}
+            disabled={isCreatingOrder}
+            style={styles.confirmButtonWrapper}
           >
-            <Icon name='checkmark-circle' family='Ionicons' size={24} color='#FFFFFF' />
-            <Text style={styles.confirmButtonText}>
-              Confirm Order • {total.toFixed(2)} {currency}
-            </Text>
-          </LinearGradient>
-        </Pressable>
+            <LinearGradient
+              colors={[BRAND_PRIMARY, colorTokens.base.primary[400]]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.confirmButton, isCreatingOrder && styles.confirmButtonDisabled]}
+            >
+              <Icon name='checkmark-circle' family='Ionicons' size={24} color='#FFFFFF' />
+              <Text style={styles.confirmButtonText}>
+                Confirm Order • {total.toFixed(2)} {currency}
+              </Text>
+            </LinearGradient>
+          </Pressable>
 
-        {/* Cancel Button */}
-        <Pressable
-          accessibilityRole='button'
-          onPress={() => navigation.goBack()}
-          disabled={isCreatingOrder}
-          style={styles.cancelButton}
-        >
-          <Text style={styles.cancelButtonText}>Cancel Order</Text>
-        </Pressable>
-      </View>
+          {/* Cancel Button */}
+          <Pressable
+            accessibilityRole='button'
+            onPress={() => navigation.goBack()}
+            disabled={isCreatingOrder}
+            style={styles.cancelButton}
+          >
+            <Text style={styles.cancelButtonText}>Cancel Order</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
 
       {/* Phone Verification Modal */}
       <PhoneVerificationModal
@@ -649,6 +611,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: SCREEN_BACKGROUND,
+  },
+  scrollContent: {
+    paddingBottom: 32,
   },
   errorContainer: {
     flex: 1,
@@ -885,33 +850,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: TEXT_SECONDARY,
-  },
-
-  // Delivery Mode Toggle
-  modeToggle: {
-    flexDirection: 'row',
-    backgroundColor: SCREEN_BACKGROUND,
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 16,
-    gap: 4,
-  },
-  modeBtn: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  modeBtnActive: {
-    backgroundColor: BRAND_PRIMARY,
-  },
-  modeBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: TEXT_SECONDARY,
-  },
-  modeBtnTextActive: {
-    color: WHITE,
   },
 
   // Map Container
