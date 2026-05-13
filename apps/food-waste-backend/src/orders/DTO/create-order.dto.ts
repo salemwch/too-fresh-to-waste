@@ -15,6 +15,8 @@ import {
   Length,
   IsInt,
   IsNumber,
+  ValidateIf,
+  IsIn,
 } from 'class-validator';
 
 import {
@@ -70,12 +72,14 @@ class PickupTimeSlotDto {
 }
 
 class DeliveryCoordinatesDto {
-  @IsNotEmpty()
   @IsNumber()
+  @Min(-90)
+  @Max(90)
   lat!: number;
 
-  @IsNotEmpty()
   @IsNumber()
+  @Min(-180)
+  @Max(180)
   lng!: number;
 }
 
@@ -169,16 +173,15 @@ export class CreateOrderDto implements Omit<CreateOrderInput, 'deliveryMode'> {
    * Determines order routing and fee computation at order creation.
    */
   @IsOptional()
-  @IsEnum(['pickup', 'delivery'], {
-    message: 'deliveryMode must be pickup or delivery',
-  })
+  @IsIn(['pickup', 'delivery'])
   deliveryMode?: 'pickup' | 'delivery';
 
   /**
    * Required when deliveryMode is 'delivery'.
    * Written once at creation — never mutated after.
    */
-  @IsOptional()
+  @ValidateIf(o => (o as CreateOrderDto).deliveryMode === 'delivery')
+  @IsNotEmpty({ message: 'deliveryAddress is required when deliveryMode is delivery' })
   @ValidateNested()
   @Type(() => DeliveryAddressDto)
   deliveryAddress?: CreateOrderInput['deliveryAddress'];
