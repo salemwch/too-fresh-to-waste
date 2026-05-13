@@ -1,8 +1,18 @@
 import { CommonActions } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Pressable, Platform, StatusBar } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  Platform,
+  StatusBar,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
+import Geolocation from 'react-native-geolocation-service';
 import LinearGradient from 'react-native-linear-gradient';
+import MapView, { Marker } from 'react-native-maps';
 
 import { Text, Button, Icon } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -66,6 +76,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     useState<CreateOrderDto['paymentMethod']>('cash_on_pickup');
   const [customerNotes] = useState('');
 
+  // ✅ State for delivery mode selection
+  const [deliveryMode, setDeliveryMode] = useState<'pickup' | 'delivery'>('pickup');
+  const [deliveryPin, setDeliveryPin] = useState<{ lat: number; lng: number } | null>(null);
+
   // ✅ State for success modal
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
@@ -89,6 +103,34 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offer?.id, offer?._id]);
+
+  // ── GPS permission + initial pin when delivery mode selected ─────────────
+  useEffect(() => {
+    if (deliveryMode !== 'delivery') return;
+
+    void (async () => {
+      try {
+        const { request } = await import('react-native-permissions');
+        const { PERMISSIONS } = await import('react-native-permissions');
+        const result = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
+
+        if (result === 'granted') {
+          Geolocation.getCurrentPosition(
+            pos => setDeliveryPin({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            () => {},
+            { enableHighAccuracy: true, timeout: 15000 },
+          );
+        }
+      } catch {
+        // react-native-permissions unavailable — fall back to OS-native prompt
+        Geolocation.getCurrentPosition(
+          pos => setDeliveryPin({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          () => {},
+          { enableHighAccuracy: true, timeout: 15000 },
+        );
+      }
+    })();
+  }, [deliveryMode]);
 
   // ✅ Use smart order creation hook with callbacks
   const {
@@ -131,6 +173,14 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       return;
     }
 
+    if (deliveryMode === 'delivery' && !deliveryPin) {
+      showErrorToast(
+        'Location Not Ready',
+        'Please wait for your location to be detected, or switch to Pickup.',
+      );
+      return;
+    }
+
     const establishmentId: string = (() => {
       const eid = offer.establishmentId;
       if (!eid) return '';
@@ -170,7 +220,16 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       },
       pickupDate: pickupDate.toISOString(),
       paymentMethod: selectedPaymentMethod,
+      deliveryMode,
       ...(customerNotes ? { customerNotes } : {}),
+      ...(deliveryMode === 'delivery' && deliveryPin
+        ? {
+            deliveryAddress: {
+              city: 'Customer Location',
+              coordinates: deliveryPin,
+            },
+          }
+        : {}),
     };
 
     Logger.debug('[CheckoutScreen] Submitting order payload', {
@@ -207,7 +266,17 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
         showErrorToast('Order Failed', errorMessage);
       }
     }
-  }, [offer, offerId, quantity, selectedPaymentMethod, customerNotes, queryClient, createOrder]);
+  }, [
+    offer,
+    offerId,
+    quantity,
+    selectedPaymentMethod,
+    customerNotes,
+    deliveryMode,
+    deliveryPin,
+    queryClient,
+    createOrder,
+  ]);
 
   // Guard confirm button — 2s cooldown prevents duplicate orders from rapid taps
   const { guardedPress: guardedConfirmOrder } = usePressGuard(handleConfirmOrder, 2000);
@@ -450,6 +519,70 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
             </View>
           </View>
         </View>
+
+        {/* Delivery Mode Toggle */}
+        <View style={styles.modeToggle}>
+          <TouchableOpacity
+            style={[styles.modeBtn, deliveryMode === 'pickup' && styles.modeBtnActive]}
+            onPress={() => setDeliveryMode('pickup')}
+            accessibilityRole='button'
+            accessibilityLabel='Pickup mode'
+            accessibilityState={{ selected: deliveryMode === 'pickup' }}
+          >
+            <Text
+              style={[styles.modeBtnText, deliveryMode === 'pickup' && styles.modeBtnTextActive]}
+            >
+              Pickup
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.modeBtn, deliveryMode === 'delivery' && styles.modeBtnActive]}
+            onPress={() => setDeliveryMode('delivery')}
+            accessibilityRole='button'
+            accessibilityLabel='Delivery mode'
+            accessibilityState={{ selected: deliveryMode === 'delivery' }}
+          >
+            <Text
+              style={[styles.modeBtnText, deliveryMode === 'delivery' && styles.modeBtnTextActive]}
+            >
+              Delivery
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Map pin — only shown when delivery mode is selected */}
+        {deliveryMode === 'delivery' && (
+          <View style={styles.mapContainer}>
+            <Text style={styles.mapLabel}>Drag the pin to your exact doorstep</Text>
+            {deliveryPin ? (
+              <MapView
+                style={styles.map}
+                initialRegion={{
+                  latitude: deliveryPin.lat,
+                  longitude: deliveryPin.lng,
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005,
+                }}
+              >
+                <Marker
+                  coordinate={{ latitude: deliveryPin.lat, longitude: deliveryPin.lng }}
+                  draggable
+                  onDragEnd={e =>
+                    setDeliveryPin({
+                      lat: e.nativeEvent.coordinate.latitude,
+                      lng: e.nativeEvent.coordinate.longitude,
+                    })
+                  }
+                />
+              </MapView>
+            ) : (
+              <View style={styles.mapPlaceholder}>
+                <ActivityIndicator color={BRAND_PRIMARY} />
+                <Text style={styles.mapPlaceholderText}>Getting your location…</Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Error Message */}
         {orderError != null && (
@@ -751,6 +884,65 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 15,
     fontWeight: '600',
+    color: TEXT_SECONDARY,
+  },
+
+  // Delivery Mode Toggle
+  modeToggle: {
+    flexDirection: 'row',
+    backgroundColor: SCREEN_BACKGROUND,
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 16,
+    gap: 4,
+  },
+  modeBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  modeBtnActive: {
+    backgroundColor: BRAND_PRIMARY,
+  },
+  modeBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: TEXT_SECONDARY,
+  },
+  modeBtnTextActive: {
+    color: WHITE,
+  },
+
+  // Map Container
+  mapContainer: {
+    marginBottom: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: BORDER_SUBTLE,
+  },
+  mapLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: TEXT_SECONDARY,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: SURFACE,
+  },
+  map: {
+    height: 200,
+    width: '100%',
+  },
+  mapPlaceholder: {
+    height: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: SCREEN_BACKGROUND,
+  },
+  mapPlaceholderText: {
+    fontSize: 14,
     color: TEXT_SECONDARY,
   },
 });

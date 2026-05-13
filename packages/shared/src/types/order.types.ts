@@ -30,6 +30,17 @@ export type OrderPaymentMethod =
   | 'google_pay';
 
 /**
+ * Delivery address shape used when deliveryMode is 'delivery'
+ */
+export interface DeliveryAddressDto {
+  city: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+}
+
+/**
  * DTO for creating a new order
  * Matches backend CreateOrderDto structure
  */
@@ -41,6 +52,8 @@ export interface CreateOrderDto {
   paymentMethod: OrderPaymentMethod;
   customerNotes?: string;
   pickupInstructions?: string;
+  deliveryMode?: 'pickup' | 'delivery';
+  deliveryAddress?: DeliveryAddressDto;
 }
 
 /**
