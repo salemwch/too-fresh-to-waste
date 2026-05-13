@@ -22,6 +22,8 @@ export interface DriverAvailableOrder {
   customerId: string;
   establishmentId: string | Record<string, any>;
   driverId: string | null;
+  deliveryFee?: number;
+  driverEarnings?: number;
   deliveryMode: string;
   status: string;
   items: Array<{
