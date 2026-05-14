@@ -19,7 +19,7 @@ export class DriversService {
     const { lat, lng, page = 1, limit = 20 } = query;
     const bufferMs =
       (this.configService.get<number>('DRIVER_PRE_DISPATCH_BUFFER_MINUTES') ?? 20) * 60_000;
-    const maxRadius = this.configService.get<number>('DRIVER_MAX_RADIUS_METERS') ?? 5000;
+    const maxRadius = this.configService.get<number>('DRIVER_MAX_RADIUS_METERS') ?? 7000;
     const now = new Date();
 
     try {

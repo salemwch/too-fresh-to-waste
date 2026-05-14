@@ -42,6 +42,20 @@ interface CheckoutScreenProps {
   route: CheckoutScreenRouteProp;
 }
 
+const MAX_DELIVERY_KM = 7;
+
+function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const R = 6371;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  const a2 =
+    sinLat * sinLat +
+    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * sinLng * sinLng;
+  return R * 2 * Math.atan2(Math.sqrt(a2), Math.sqrt(1 - a2));
+}
+
 const SCREEN_BACKGROUND = '#F8FAFC';
 const SURFACE = '#FFFFFF';
 const TEXT_PRIMARY = '#1F2937';
@@ -89,6 +103,19 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     queryKey: ['offer', offerId],
     queryFn: ({ signal }) => offersService.getOfferById(offerId, signal),
   });
+
+  // Establishment coordinates from the populated offer (GeoJSON [lng, lat])
+  const estCoords = (() => {
+    const eid = offer?.establishmentId;
+    if (typeof eid === 'object' && eid?.address?.coordinates?.coordinates) {
+      const [lng, lat] = eid.address.coordinates.coordinates;
+      return { lat: lat ?? 0, lng: lng ?? 0 };
+    }
+    return null;
+  })();
+
+  const distanceKm = deliveryPin && estCoords ? haversineKm(estCoords, deliveryPin) : null;
+  const tooFar = distanceKm !== null && distanceKm > MAX_DELIVERY_KM;
 
   // ── Analytics: checkout_started (fires once when offer data is ready) ──────
   const offerId_stable = offerId; // avoid stale closure warning
@@ -181,6 +208,14 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       return;
     }
 
+    if (tooFar) {
+      showErrorToast(
+        'Too Far',
+        `Your delivery location is ${distanceKm!.toFixed(1)} km away. Maximum allowed is ${MAX_DELIVERY_KM} km from the merchant.`,
+      );
+      return;
+    }
+
     const establishmentId: string = (() => {
       const eid = offer.establishmentId;
       if (!eid) return '';
@@ -260,6 +295,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     customerNotes,
     deliveryMode,
     deliveryPin,
+    distanceKm,
+    tooFar,
     queryClient,
     createOrder,
   ]);
@@ -540,6 +577,21 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                   <Text style={styles.mapPlaceholderText}>Getting your location…</Text>
                 </View>
               )}
+              {/* Distance feedback — shown once pin is set and establishment coords known */}
+              {distanceKm !== null && (
+                <View style={[styles.distanceRow, tooFar && styles.distanceRowError]}>
+                  <Icon
+                    name={tooFar ? 'warning' : 'navigate'}
+                    family='Ionicons'
+                    size={14}
+                    color={tooFar ? ERROR_TEXT : SUCCESS_TEXT}
+                  />
+                  <Text style={[styles.distanceText, tooFar && styles.distanceTextError]}>
+                    {distanceKm.toFixed(1)} km from merchant
+                    {tooFar ? ` — max ${MAX_DELIVERY_KM} km` : ''}
+                  </Text>
+                </View>
+              )}
             </View>
           )}
 
@@ -557,7 +609,9 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
             onPress={() => {
               void guardedConfirmOrder();
             }}
-            disabled={isCreatingOrder || (deliveryMode === 'delivery' && deliveryPin === null)}
+            disabled={
+              isCreatingOrder || (deliveryMode === 'delivery' && (deliveryPin === null || tooFar))
+            }
             style={styles.confirmButtonWrapper}
           >
             <LinearGradient
@@ -566,7 +620,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               end={{ x: 1, y: 0 }}
               style={[
                 styles.confirmButton,
-                (isCreatingOrder || (deliveryMode === 'delivery' && deliveryPin === null)) &&
+                (isCreatingOrder ||
+                  (deliveryMode === 'delivery' && (deliveryPin === null || tooFar))) &&
                   styles.confirmButtonDisabled,
               ]}
             >
@@ -891,5 +946,24 @@ const styles = StyleSheet.create({
   mapPlaceholderText: {
     fontSize: 14,
     color: TEXT_SECONDARY,
+  },
+  distanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: SUCCESS_SURFACE,
+  },
+  distanceRowError: {
+    backgroundColor: ERROR_SURFACE,
+  },
+  distanceText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: SUCCESS_TEXT,
+  },
+  distanceTextError: {
+    color: ERROR_TEXT,
   },
 });
