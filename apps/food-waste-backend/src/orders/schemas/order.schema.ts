@@ -476,14 +476,6 @@ OrderSchema.index({ isRated: 1, status: 1, pickedUpAt: 1 });
 OrderSchema.index({ establishmentId: 1, status: 1, createdAt: -1 });
 
 /**
- * Geospatial Index - Establishment Address
- * - Enables location-based order analytics
- * - Query pattern: find({ 'establishmentAddress.coordinates': { $near: point } })
- * - Strategy: GeoJSON Point format [longitude, latitude]
- */
-OrderSchema.index({ 'establishmentAddress.coordinates.coordinates': '2dsphere' });
-
-/**
  * Donation Tracking Index
  * - Optimizes donation pool reconciliation
  * - Query pattern: find({ donationPoolId, createdAt: { $gte: monthStart } })
