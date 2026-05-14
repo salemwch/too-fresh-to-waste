@@ -287,15 +287,12 @@ export class OrdersService {
         } = {};
 
         if (isDelivery) {
-          const pickupDate = createOrderDto.pickupDate; // YYYY-MM-DD string
-          const collectionStartTime = this.buildPickupDate(
-            pickupDate,
-            createOrderDto.pickupTimeSlot.startTime,
-          );
-          const collectionEndTime = this.buildPickupDate(
-            pickupDate,
-            createOrderDto.pickupTimeSlot.endTime,
-          );
+          // Food waste orders: food is already prepared — driver can collect
+          // immediately after the consumer confirms. Use now as collection start
+          // so the driver geo-query ($lte now+buffer) matches right away.
+          // Collection must complete before the offer expires.
+          const collectionStartTime = new Date();
+          const collectionEndTime = earliestOfferExpiry;
 
           // Establishment coordinates — GeoJSON stores [lng, lat]; haversineKm expects { lat, lng }
           const geoCoords = establishment.address.coordinates.coordinates;
@@ -335,7 +332,10 @@ export class OrdersService {
           establishmentId: new Types.ObjectId(createOrderDto.establishmentId),
           merchantId: establishment.ownerId,
           items: orderItems,
-          status: OrderStatus.RESERVED,
+          // Delivery orders skip merchant confirmation — the merchant committed
+          // to the time window when publishing the offer, and food waste is
+          // already prepared. Auto-confirm so drivers see it immediately.
+          status: isDelivery ? OrderStatus.CONFIRMED : OrderStatus.RESERVED,
           paymentStatus: PaymentStatus.PENDING,
           pickupDetails: {
             timeSlot: createOrderDto.pickupTimeSlot,
@@ -439,7 +439,11 @@ export class OrdersService {
     const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
       [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
       [OrderStatus.RESERVED]: [OrderStatus.PICKED_UP, OrderStatus.CANCELLED],
-      [OrderStatus.CONFIRMED]: [OrderStatus.READY_FOR_PICKUP, OrderStatus.CANCELLED],
+      [OrderStatus.CONFIRMED]: [
+        OrderStatus.READY_FOR_PICKUP,
+        OrderStatus.OUT_FOR_DELIVERY,
+        OrderStatus.CANCELLED,
+      ],
       [OrderStatus.READY_FOR_PICKUP]: [
         OrderStatus.PICKED_UP,
         OrderStatus.OUT_FOR_DELIVERY,
