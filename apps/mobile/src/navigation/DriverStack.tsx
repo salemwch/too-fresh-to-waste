@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Alert, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { createElement, useCallback } from 'react';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { logoutAsync } from '@/features/auth/store/authSlice';
@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
+import { AppHeader } from './components/AppHeader';
 import DriverActiveOrderScreen from '@/features/driver/screens/DriverActiveOrderScreen';
 import DriverOrderDetailScreen from '@/features/driver/screens/DriverOrderDetailScreen';
 import DriverOrdersListScreen from '@/features/driver/screens/DriverOrdersListScreen';
@@ -56,38 +57,35 @@ function LogoutButton() {
 
 export default function DriverStack() {
   return (
-    <>
-      {/* App.tsx sets translucent globally; tell the native stack so it insets
-          header content below the status bar instead of colliding with it */}
-      <StatusBar barStyle='light-content' backgroundColor={PRIMARY} translucent />
-      <Stack.Navigator
-        initialRouteName='DriverOrdersList'
-        screenOptions={{
-          headerStyle: { backgroundColor: PRIMARY },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: '600', fontSize: 16 },
-          headerRight: () => <LogoutButton />,
-          statusBarTranslucent: true,
-          statusBarStyle: 'light',
-        }}
-      >
-        <Stack.Screen
-          name='DriverOrdersList'
-          component={DriverOrdersListScreen}
-          options={{ title: 'Available Orders' }}
-        />
-        <Stack.Screen
-          name='DriverOrderDetail'
-          component={DriverOrderDetailScreen}
-          options={{ title: 'Order Details' }}
-        />
-        <Stack.Screen
-          name='DriverActiveOrder'
-          component={DriverActiveOrderScreen}
-          options={{ title: 'Active Delivery' }}
-        />
-      </Stack.Navigator>
-    </>
+    <Stack.Navigator
+      initialRouteName='DriverOrdersList'
+      screenOptions={{
+        headerStyle: { backgroundColor: PRIMARY },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: '600', fontSize: 16 },
+        headerRight: () => <LogoutButton />,
+        // AppHeader uses useSafeAreaInsets().top (reads via getRootWindowInsets)
+        // which always returns the real status-bar height even on OEM builds
+        // where WindowInsets are consumed before reaching the native toolbar.
+        header: props => createElement(AppHeader, props),
+      }}
+    >
+      <Stack.Screen
+        name='DriverOrdersList'
+        component={DriverOrdersListScreen}
+        options={{ title: 'Available Orders' }}
+      />
+      <Stack.Screen
+        name='DriverOrderDetail'
+        component={DriverOrderDetailScreen}
+        options={{ title: 'Order Details' }}
+      />
+      <Stack.Screen
+        name='DriverActiveOrder'
+        component={DriverActiveOrderScreen}
+        options={{ title: 'Active Delivery' }}
+      />
+    </Stack.Navigator>
   );
 }
 
