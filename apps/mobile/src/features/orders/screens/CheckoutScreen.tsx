@@ -557,14 +557,18 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
             onPress={() => {
               void guardedConfirmOrder();
             }}
-            disabled={isCreatingOrder}
+            disabled={isCreatingOrder || (deliveryMode === 'delivery' && deliveryPin === null)}
             style={styles.confirmButtonWrapper}
           >
             <LinearGradient
               colors={[BRAND_PRIMARY, colorTokens.base.primary[400]]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={[styles.confirmButton, isCreatingOrder && styles.confirmButtonDisabled]}
+              style={[
+                styles.confirmButton,
+                (isCreatingOrder || (deliveryMode === 'delivery' && deliveryPin === null)) &&
+                  styles.confirmButtonDisabled,
+              ]}
             >
               <Icon name='checkmark-circle' family='Ionicons' size={24} color='#FFFFFF' />
               <Text style={styles.confirmButtonText}>
