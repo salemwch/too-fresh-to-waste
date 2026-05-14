@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import LinearGradient from 'react-native-linear-gradient';
-import MapView, { Marker } from 'react-native-maps';
+import MapView from 'react-native-maps';
 
 import { Text, Button, Icon } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -514,28 +514,26 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
           {/* Map pin — only shown when Pay on Delivery is selected */}
           {deliveryMode === 'delivery' && (
             <View style={styles.mapContainer}>
-              <Text style={styles.mapLabel}>Drag the pin to your exact doorstep</Text>
+              <Text style={styles.mapLabel}>Pan the map to set your delivery location</Text>
               {deliveryPin ? (
-                <MapView
-                  style={styles.map}
-                  initialRegion={{
-                    latitude: deliveryPin.lat,
-                    longitude: deliveryPin.lng,
-                    latitudeDelta: 0.005,
-                    longitudeDelta: 0.005,
-                  }}
-                >
-                  <Marker
-                    coordinate={{ latitude: deliveryPin.lat, longitude: deliveryPin.lng }}
-                    draggable
-                    onDragEnd={e =>
-                      setDeliveryPin({
-                        lat: e.nativeEvent.coordinate.latitude,
-                        lng: e.nativeEvent.coordinate.longitude,
-                      })
+                <View style={styles.mapWrapper}>
+                  <MapView
+                    style={StyleSheet.absoluteFill}
+                    initialRegion={{
+                      latitude: deliveryPin.lat,
+                      longitude: deliveryPin.lng,
+                      latitudeDelta: 0.005,
+                      longitudeDelta: 0.005,
+                    }}
+                    onRegionChangeComplete={region =>
+                      setDeliveryPin({ lat: region.latitude, lng: region.longitude })
                     }
                   />
-                </MapView>
+                  {/* Static crosshair pin — map scrolls beneath it */}
+                  <View style={styles.mapPinOverlay} pointerEvents='none'>
+                    <Icon name='location-sharp' family='Ionicons' size={40} color={BRAND_PRIMARY} />
+                  </View>
+                </View>
               ) : (
                 <View style={styles.mapPlaceholder}>
                   <ActivityIndicator color={BRAND_PRIMARY} />
@@ -868,9 +866,16 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: SURFACE,
   },
-  map: {
+  mapWrapper: {
     height: 200,
-    width: '100%',
+    position: 'relative',
+  },
+  mapPinOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // paddingBottom = icon size so the pin TIP (bottom of icon) sits at map center
+    paddingBottom: 40,
   },
   mapPlaceholder: {
     height: 120,
