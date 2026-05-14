@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { logoutAsync } from '@/features/auth/store/authSlice';
@@ -56,31 +56,38 @@ function LogoutButton() {
 
 export default function DriverStack() {
   return (
-    <Stack.Navigator
-      initialRouteName='DriverOrdersList'
-      screenOptions={{
-        headerStyle: { backgroundColor: PRIMARY },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '600', fontSize: 16 },
-        headerRight: () => <LogoutButton />,
-      }}
-    >
-      <Stack.Screen
-        name='DriverOrdersList'
-        component={DriverOrdersListScreen}
-        options={{ title: 'Available Orders' }}
-      />
-      <Stack.Screen
-        name='DriverOrderDetail'
-        component={DriverOrderDetailScreen}
-        options={{ title: 'Order Details' }}
-      />
-      <Stack.Screen
-        name='DriverActiveOrder'
-        component={DriverActiveOrderScreen}
-        options={{ title: 'Active Delivery' }}
-      />
-    </Stack.Navigator>
+    <>
+      {/* App.tsx sets translucent globally; tell the native stack so it insets
+          header content below the status bar instead of colliding with it */}
+      <StatusBar barStyle='light-content' backgroundColor={PRIMARY} translucent />
+      <Stack.Navigator
+        initialRouteName='DriverOrdersList'
+        screenOptions={{
+          headerStyle: { backgroundColor: PRIMARY },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: '600', fontSize: 16 },
+          headerRight: () => <LogoutButton />,
+          statusBarTranslucent: true,
+          statusBarStyle: 'light',
+        }}
+      >
+        <Stack.Screen
+          name='DriverOrdersList'
+          component={DriverOrdersListScreen}
+          options={{ title: 'Available Orders' }}
+        />
+        <Stack.Screen
+          name='DriverOrderDetail'
+          component={DriverOrderDetailScreen}
+          options={{ title: 'Order Details' }}
+        />
+        <Stack.Screen
+          name='DriverActiveOrder'
+          component={DriverActiveOrderScreen}
+          options={{ title: 'Active Delivery' }}
+        />
+      </Stack.Navigator>
+    </>
   );
 }
 
