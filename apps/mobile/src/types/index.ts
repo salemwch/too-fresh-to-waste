@@ -38,10 +38,6 @@ export interface RootStackParamList extends Record<string, object | undefined> {
 
   // Establishment Stack (Consumer-only: view details)
   EstablishmentDetails: { establishmentId: string };
-
-  // Map Stack
-  Map: undefined;
-  NearbyOffers: { latitude: number; longitude: number };
 }
 
 export interface TabParamList {

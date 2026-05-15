@@ -18,7 +18,6 @@ import { EstablishmentDetailsScreen } from '@/features/establishments/screens/Es
 import { DonationImpactScreen } from '@/features/donations/screens/DonationImpactScreen';
 import { LeaderboardScreen } from '@/features/leaderboard/screens/LeaderboardScreen';
 import { LoyaltyScreen } from '@/features/loyalty/screens/LoyaltyScreen';
-import { NearbyOffersScreen } from '@/features/map/screens/NearbyOffersScreen';
 import { OfferDetailsScreen } from '@/features/offers/screens/OfferDetailsScreen';
 import { CheckoutScreen } from '@/features/orders/screens/CheckoutScreen';
 import { OrderHistoryScreen } from '@/features/orders/screens/OrderHistoryScreen';
@@ -125,17 +124,6 @@ export const MainStack: React.FC = () => {
           name='EstablishmentDetails'
           component={EstablishmentDetailsScreen}
           options={{ title: 'Establishment Details' }}
-        />
-      </Stack.Group>
-
-      <Stack.Group
-        screenLayout={protectedScreenLayout}
-        screenOptions={({ navigation }) => ({ ...modalOptions(navigation), headerShown: true })}
-      >
-        <Stack.Screen
-          name='NearbyOffers'
-          component={NearbyOffersScreen}
-          options={{ title: 'Nearby Offers' }}
         />
       </Stack.Group>
     </Stack.Navigator>

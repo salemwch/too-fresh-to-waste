@@ -78,15 +78,6 @@ export interface MainStackParamList extends Record<string, object | undefined> {
 
   // Establishment Modals
   EstablishmentDetails: { establishmentId: string };
-
-  // Map Modals
-  NearbyOffers:
-    | {
-        latitude?: number;
-        longitude?: number;
-        initialRadius?: number;
-      }
-    | undefined;
 }
 
 /**
@@ -318,7 +309,6 @@ type OfferDetailsRouteProp = RouteProp<MainStackParamList, 'OfferDetails'>;
 type OrderDetailsRouteProp = RouteProp<OrdersStackParamList, 'OrderDetails'>;
 type CheckoutRouteProp = RouteProp<MainStackParamList, 'Checkout'>;
 export type EstablishmentDetailsRouteProp = RouteProp<MainStackParamList, 'EstablishmentDetails'>;
-export type NearbyOffersRouteProp = RouteProp<MainStackParamList, 'NearbyOffers'>;
 export type DriverOrderDetailRouteProp = RouteProp<DriverStackParamList, 'DriverOrderDetail'>;
 export type DriverActiveOrderRouteProp = RouteProp<DriverStackParamList, 'DriverActiveOrder'>;
 

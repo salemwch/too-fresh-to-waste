@@ -10,7 +10,6 @@ export { PasswordStrengthIndicator } from './PasswordStrengthIndicator';
 export { OTPInput } from './OTPInput';
 export { LocationPromptBanner } from './LocationPromptBanner';
 export { RadiusSelector } from './RadiusSelector';
-export { NearbyOffersEmptyState } from './NearbyOffersEmptyState';
 export { ResendVerificationModal } from './ResendVerificationModal';
 export { AccountLockedModal } from './AccountLockedModal';
 export { SkeletonOfferCard } from './SkeletonOfferCard';
