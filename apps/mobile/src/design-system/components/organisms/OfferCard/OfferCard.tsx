@@ -304,6 +304,15 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
           <Badge variant='warning' size='md' label='EXPIRED' />
         </View>
       )}
+
+      {/* Pick-Up Only banner — shop is outside 5 km delivery zone */}
+      {offer.distance !== undefined && offer.distance > 5000 && (
+        <View style={styles.pickupOnlyBanner}>
+          <Text variant='label.small' style={styles.pickupOnlyText}>
+            🚶 Pick-Up Only
+          </Text>
+        </View>
+      )}
     </View>
   );
 
@@ -623,6 +632,20 @@ const createStyles = (
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 10,
+    },
+    pickupOnlyBanner: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: 'rgba(0,0,0,0.65)',
+      paddingVertical: 4,
+      alignItems: 'center',
+      zIndex: 5,
+    },
+    pickupOnlyText: {
+      color: '#FFFFFF',
+      fontWeight: '600',
     },
     content: {
       flex: 1,
