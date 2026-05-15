@@ -161,7 +161,23 @@ export function BusinessSearchAutocomplete({
         );
         const rawDetails = res.data?.data ?? res.data;
 
-        // 2. Check if this place is already owned by an active establishment.
+        // 2. Validate this is a real business, not a city or geographic entity.
+        //    When autocomplete returns types, the backend already filtered geographic-only results.
+        //    When types are undefined, we verify here using place-details data:
+        //    cities/regions never have a street in their addressComponents; businesses do.
+        const hasValidCoords = !!(rawDetails?.coords?.lat && rawDetails?.coords?.lng);
+        const hasAddress = !!rawDetails?.formattedAddress?.trim();
+        if (!hasValidCoords || !hasAddress) {
+          setPlaceConflict(t('notABusiness'));
+          return;
+        }
+        const typesUnknown = !suggestion.types || suggestion.types.length === 0;
+        if (typesUnknown && !rawDetails?.addressComponents?.street) {
+          setPlaceConflict(t('notABusiness'));
+          return;
+        }
+
+        // 3. Check if this place is already owned by an active establishment.
         // The global interceptor wraps every response: { status, data: { available, message? }, timestamp }
         // so we must read .data.data — same pattern as getPlaceDetails above.
         const availabilityRes = await geolocationService.checkPlaceAvailability(

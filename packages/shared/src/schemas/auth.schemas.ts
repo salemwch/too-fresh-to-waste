@@ -8,7 +8,7 @@
  */
 import { z } from 'zod';
 
-import { UserRole } from '../enums';
+import { UserRole, EstablishmentType } from '../enums';
 import {
   PASSWORD_MIN_LENGTH,
   PASSWORD_MAX_LENGTH,
@@ -85,6 +85,7 @@ const BusinessInfoSchema = z.object({
     .max(500, 'Formatted address cannot exceed 500 characters'),
   addressComponents: AddressComponentsSchema.optional(),
   types: z.array(z.string()).optional(),
+  establishmentType: z.nativeEnum(EstablishmentType).optional(),
 });
 
 export const RegisterSchema = z.object({

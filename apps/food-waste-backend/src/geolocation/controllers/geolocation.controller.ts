@@ -345,6 +345,7 @@ export class GeolocationController {
     return { isValid, coordinate };
   }
 
+  @Public()
   @Get('location/autocomplete')
   @ApiOperation({
     summary: 'Autocomplete locations using Google Places API with session token (Tunisia only)',
@@ -408,10 +409,16 @@ export class GeolocationController {
       return [];
     }
 
+    if (query.length > 100) {
+      this.logger.warn('Invalid autocomplete query - too long');
+      return [];
+    }
+
     const result = await this.geoCacheService.autocomplete(query, sessionToken, limit);
     return result;
   }
 
+  @Public()
   @Get('location/details')
   @ApiOperation({
     summary: 'Get place details by Google Place ID (concludes session)',

@@ -16,6 +16,22 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
+  Utensils,
+  UtensilsCrossed,
+  Coffee,
+  ShoppingBasket,
+  ShoppingBag,
+  Building2,
+  Package,
+  Zap,
+  Cookie,
+  Wheat,
+  GlassWater,
+  Scissors,
+  Apple,
+  PawPrint,
+  Flower2,
+  Fish,
 } from 'lucide-react';
 import { Button, Input, Label } from '@foodwaste/ui';
 import { Link } from '@/i18n/routing';
@@ -26,13 +42,79 @@ import { BusinessSearchAutocomplete } from '@/components/merchant-signup/busines
 import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator';
 import type { PlaceDetails } from '@/types/geolocation';
 import type { RegisterRequest } from '@foodwaste/shared';
-import { PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH, UserRole } from '@foodwaste/shared';
+import {
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MAX_LENGTH,
+  UserRole,
+  EstablishmentType,
+} from '@foodwaste/shared';
 import { authService } from '@/services/auth.service';
 import './merchant-signup.css';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
+
+/** Strip HTML tag delimiters from user text input (defense-in-depth; backend also sanitizes) */
+function sanitizeInput(value: string): string {
+  return value.replace(/[<>]/g, '');
+}
+
+/** Pre-select the most likely EstablishmentType from Google Place types */
+function guessTypeFromGoogleTypes(googleTypes?: string[]): EstablishmentType {
+  if (!googleTypes?.length) return EstablishmentType.OTHER;
+  const map: Record<string, EstablishmentType> = {
+    restaurant: EstablishmentType.RESTAURANT,
+    bakery: EstablishmentType.BAKERY,
+    pastry_shop: EstablishmentType.PASTRY_SHOP,
+    cafe: EstablishmentType.CAFE,
+    coffee_shop: EstablishmentType.CAFE,
+    meal_takeaway: EstablishmentType.TAKEAWAY,
+    takeout_restaurant: EstablishmentType.TAKEAWAY,
+    meal_delivery: EstablishmentType.FAST_FOOD,
+    fast_food_restaurant: EstablishmentType.FAST_FOOD,
+    sushi_restaurant: EstablishmentType.SUSHI_RESTAURANT,
+    grocery_or_supermarket: EstablishmentType.GROCERY_STORE,
+    grocery_store: EstablishmentType.GROCERY_STORE,
+    supermarket: EstablishmentType.SUPERMARKET,
+    butcher_shop: EstablishmentType.BUTCHER_SHOP,
+    liquor_store: EstablishmentType.BEVERAGE_SHOP,
+    pet_store: EstablishmentType.PET_STORE,
+    florist: EstablishmentType.FLOWER_PLANT,
+    flower_shop: EstablishmentType.FLOWER_PLANT,
+    lodging: EstablishmentType.HOTEL,
+    hotel: EstablishmentType.HOTEL,
+  };
+  for (const t of googleTypes) {
+    const mapped = map[t];
+    if (mapped) return mapped;
+  }
+  return EstablishmentType.OTHER;
+}
+
+const ESTABLISHMENT_TYPE_OPTIONS: {
+  value: EstablishmentType;
+  labelKey: string;
+  Icon: React.FC<{ className?: string }>;
+}[] = [
+  { value: EstablishmentType.RESTAURANT, labelKey: 'typeRestaurant', Icon: Utensils },
+  { value: EstablishmentType.BAKERY, labelKey: 'typeBakery', Icon: Wheat },
+  { value: EstablishmentType.PASTRY_SHOP, labelKey: 'typePastryShop', Icon: Cookie },
+  { value: EstablishmentType.CAFE, labelKey: 'typeCafe', Icon: Coffee },
+  { value: EstablishmentType.FAST_FOOD, labelKey: 'typeFastFood', Icon: Zap },
+  { value: EstablishmentType.BUFFET_RESTAURANT, labelKey: 'typeBuffet', Icon: UtensilsCrossed },
+  { value: EstablishmentType.SUSHI_RESTAURANT, labelKey: 'typeSushi', Icon: Fish },
+  { value: EstablishmentType.TAKEAWAY, labelKey: 'typeTakeaway', Icon: ShoppingBag },
+  { value: EstablishmentType.GROCERY_STORE, labelKey: 'typeGrocery', Icon: ShoppingBasket },
+  { value: EstablishmentType.SUPERMARKET, labelKey: 'typeSupermarket', Icon: Store },
+  { value: EstablishmentType.FRUIT_VEGETABLES, labelKey: 'typeFruitVeg', Icon: Apple },
+  { value: EstablishmentType.BUTCHER_SHOP, labelKey: 'typeButcher', Icon: Scissors },
+  { value: EstablishmentType.BEVERAGE_SHOP, labelKey: 'typeBeverage', Icon: GlassWater },
+  { value: EstablishmentType.PET_STORE, labelKey: 'typePetStore', Icon: PawPrint },
+  { value: EstablishmentType.FLOWER_PLANT, labelKey: 'typeFlowerPlant', Icon: Flower2 },
+  { value: EstablishmentType.HOTEL, labelKey: 'typeHotel', Icon: Building2 },
+  { value: EstablishmentType.OTHER, labelKey: 'typeOther', Icon: Package },
+];
 
 /** Field constraints — mirrored from backend RegisterDto */
 const FIELD_LIMITS = {
@@ -52,9 +134,11 @@ interface FormData {
   formattedAddress: string;
   addressComponents: PlaceDetails['addressComponents'] | null;
   types: string[];
-  // Step 2 - Email
+  // Step 2 - Type
+  establishmentType: EstablishmentType | null;
+  // Step 3 - Email
   email: string;
-  // Step 3 - Credentials
+  // Step 4 - Credentials
   firstName: string;
   lastName: string;
   password: string;
@@ -69,6 +153,7 @@ const INITIAL_FORM_DATA: FormData = {
   formattedAddress: '',
   addressComponents: null,
   types: [],
+  establishmentType: null,
   email: '',
   firstName: '',
   lastName: '',
@@ -90,6 +175,7 @@ export default function MerchantSignupPage() {
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [submitError, setSubmitError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [resendFeedback, setResendFeedback] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -103,6 +189,7 @@ export default function MerchantSignupPage() {
   // ── Step 1: Business selection ──
   const handleBusinessSelect = useCallback((details: PlaceDetails) => {
     setSelectedBusiness(details);
+    const googleTypes = details.types ?? [];
     setFormData(prev => ({
       ...prev,
       businessName: details.name,
@@ -111,7 +198,9 @@ export default function MerchantSignupPage() {
       longitude: details.coords.lng,
       formattedAddress: details.formattedAddress,
       addressComponents: details.addressComponents ?? null,
-      types: details.types ?? [],
+      types: googleTypes,
+      // Pre-select likely type from Google's data so user just confirms or adjusts
+      establishmentType: guessTypeFromGoogleTypes(googleTypes),
     }));
   }, []);
 
@@ -126,6 +215,7 @@ export default function MerchantSignupPage() {
       formattedAddress: '',
       addressComponents: null,
       types: [],
+      establishmentType: null,
     }));
   }, []);
 
@@ -135,8 +225,9 @@ export default function MerchantSignupPage() {
     formData.email.length <= FIELD_LIMITS.EMAIL_MAX &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
   const isStep1Valid = !!formData.googlePlaceId;
-  const isStep2Valid = isEmailValid;
-  const isStep3Valid =
+  const isStep2Valid = !!formData.establishmentType;
+  const isStep3Valid = isEmailValid;
+  const isStep4Valid =
     formData.firstName.trim().length >= FIELD_LIMITS.NAME_MIN &&
     formData.firstName.trim().length <= FIELD_LIMITS.NAME_MAX &&
     formData.lastName.trim().length >= FIELD_LIMITS.NAME_MIN &&
@@ -146,6 +237,7 @@ export default function MerchantSignupPage() {
 
   // ── Navigation ──
   const handleNext = useCallback(() => {
+    setEmailError('');
     setStep(s => Math.min(s + 1, TOTAL_STEPS));
   }, []);
 
@@ -175,12 +267,14 @@ export default function MerchantSignupPage() {
           formattedAddress: formData.formattedAddress,
           ...(formData.addressComponents ? { addressComponents: formData.addressComponents } : {}),
           ...(formData.types.length > 0 ? { types: formData.types } : {}),
+          ...(formData.establishmentType ? { establishmentType: formData.establishmentType } : {}),
         },
       };
 
       await register(payload);
       setRegisteredEmail(payload.email);
     } catch (error: unknown) {
+      const httpStatus = (error as { response?: { status?: number } })?.response?.status;
       const responseData = (error as { response?: { data?: { message?: unknown } } })?.response
         ?.data?.message;
       let errorMessage = t('errorGeneric');
@@ -204,7 +298,13 @@ export default function MerchantSignupPage() {
           }
         }
       }
-      setSubmitError(errorMessage);
+      // 409 = email already in use → route user back to the email step with inline error
+      if (httpStatus === 409) {
+        setEmailError(t('emailAlreadyInUse'));
+        setStep(3);
+      } else {
+        setSubmitError(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -365,28 +465,32 @@ export default function MerchantSignupPage() {
                 className='text-xl font-bold text-black sm:text-2xl lg:text-3xl'
                 style={{ fontFamily: 'var(--font-serif)' }}
               >
-                {t('step2Title')}
+                {t('step2TypeTitle')}
               </h2>
               <p className='mt-1 text-sm text-muted-foreground sm:text-base'>
-                {t('step2Description')}
+                {t('step2TypeDescription')}
               </p>
             </div>
 
-            <div className='space-y-2'>
-              <Label htmlFor='email'>{t('emailLabel')}</Label>
-              <div className='relative'>
-                <Mail className='absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
-                <Input
-                  id='email'
-                  type='email'
-                  placeholder={t('emailPlaceholder')}
-                  className='h-11 rounded-xl border-input bg-secondary/50 pl-10 text-sm sm:h-12'
-                  value={formData.email}
-                  onChange={e => updateField('email', e.target.value)}
-                  maxLength={FIELD_LIMITS.EMAIL_MAX}
-                  autoComplete='email'
-                />
-              </div>
+            <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+              {ESTABLISHMENT_TYPE_OPTIONS.map(({ value, labelKey, Icon }) => {
+                const isSelected = formData.establishmentType === value;
+                return (
+                  <button
+                    key={value}
+                    type='button'
+                    onClick={() => updateField('establishmentType', value)}
+                    className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-colors sm:p-4 ${
+                      isSelected
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-secondary/30 text-muted-foreground hover:border-primary/40 hover:bg-primary/5 hover:text-foreground'
+                    }`}
+                  >
+                    <Icon className='h-5 w-5 shrink-0 sm:h-6 sm:w-6' />
+                    <span className='text-xs font-medium leading-tight'>{t(labelKey)}</span>
+                  </button>
+                );
+              })}
             </div>
 
             <div className='flex gap-3'>
@@ -417,6 +521,67 @@ export default function MerchantSignupPage() {
                 className='text-xl font-bold text-black sm:text-2xl lg:text-3xl'
                 style={{ fontFamily: 'var(--font-serif)' }}
               >
+                {t('step2Title')}
+              </h2>
+              <p className='mt-1 text-sm text-muted-foreground sm:text-base'>
+                {t('step2Description')}
+              </p>
+            </div>
+
+            <div className='space-y-2'>
+              <Label htmlFor='email'>{t('emailLabel')}</Label>
+              <div className='relative'>
+                <Mail className='absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                <Input
+                  id='email'
+                  type='email'
+                  placeholder={t('emailPlaceholder')}
+                  className={`h-11 rounded-xl border-input bg-secondary/50 pl-10 text-sm sm:h-12 ${emailError ? 'border-destructive' : ''}`}
+                  value={formData.email}
+                  onChange={e => {
+                    setEmailError('');
+                    updateField('email', sanitizeInput(e.target.value));
+                  }}
+                  maxLength={FIELD_LIMITS.EMAIL_MAX}
+                  autoComplete='email'
+                />
+              </div>
+              {emailError && (
+                <div className='flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive'>
+                  <AlertCircle className='h-4 w-4 shrink-0' />
+                  <span>{emailError}</span>
+                </div>
+              )}
+            </div>
+
+            <div className='flex gap-3'>
+              <Button
+                variant='outline'
+                className='h-11 flex-1 rounded-xl text-sm font-semibold sm:h-12'
+                onClick={handleBack}
+              >
+                <ArrowLeft className='mr-2 h-4 w-4' />
+                {t('back')}
+              </Button>
+              <Button
+                className='h-11 flex-[2] rounded-xl text-sm font-semibold sm:h-12'
+                disabled={!isStep3Valid}
+                onClick={handleNext}
+              >
+                {t('next')}
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className='space-y-4 sm:space-y-5'>
+            <div>
+              <h2
+                className='text-xl font-bold text-black sm:text-2xl lg:text-3xl'
+                style={{ fontFamily: 'var(--font-serif)' }}
+              >
                 {t('step3Title')}
               </h2>
               <p className='mt-1 text-sm text-muted-foreground sm:text-base'>
@@ -432,7 +597,7 @@ export default function MerchantSignupPage() {
                   placeholder={t('firstNamePlaceholder')}
                   className='h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12'
                   value={formData.firstName}
-                  onChange={e => updateField('firstName', e.target.value)}
+                  onChange={e => updateField('firstName', sanitizeInput(e.target.value))}
                   maxLength={FIELD_LIMITS.NAME_MAX}
                   autoComplete='given-name'
                 />
@@ -444,7 +609,7 @@ export default function MerchantSignupPage() {
                   placeholder={t('lastNamePlaceholder')}
                   className='h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12'
                   value={formData.lastName}
-                  onChange={e => updateField('lastName', e.target.value)}
+                  onChange={e => updateField('lastName', sanitizeInput(e.target.value))}
                   maxLength={FIELD_LIMITS.NAME_MAX}
                   autoComplete='family-name'
                 />
@@ -461,7 +626,6 @@ export default function MerchantSignupPage() {
                 className='h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12'
                 value={formData.phone}
                 onChange={e => {
-                  // Allow only digits and leading +
                   const cleaned = e.target.value.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
                   updateField('phone', cleaned);
                 }}
@@ -513,7 +677,7 @@ export default function MerchantSignupPage() {
               </Button>
               <Button
                 className='h-11 flex-[2] rounded-xl text-sm font-semibold sm:h-12'
-                disabled={!isStep3Valid || isSubmitting}
+                disabled={!isStep4Valid || isSubmitting}
                 onClick={handleSubmit}
               >
                 {isSubmitting ? t('submitting') : t('createAccount')}

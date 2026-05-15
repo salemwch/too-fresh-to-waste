@@ -1,5 +1,6 @@
 import type { UserResponse } from './user.types';
 import type { UserRole } from '../enums/user.enum';
+import type { EstablishmentType } from '../enums/establishment.enum';
 
 export interface LoginRequest {
   email: string;
@@ -23,6 +24,7 @@ export interface BusinessInfo {
       }
     | undefined;
   types?: string[] | undefined;
+  establishmentType?: EstablishmentType | undefined;
 }
 
 export interface RegisterRequest {

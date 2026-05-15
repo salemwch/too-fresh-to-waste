@@ -184,7 +184,8 @@ export class EstablishmentsService {
     const postalCode = businessInfo.addressComponents?.postalCode ?? '0000';
     const country = businessInfo.addressComponents?.country ?? 'Tunisia';
 
-    const establishmentType = this.mapGoogleTypesToEstablishmentType(businessInfo.types);
+    const establishmentType =
+      businessInfo.establishmentType ?? this.mapGoogleTypesToEstablishmentType(businessInfo.types);
 
     const establishment = new this.establishmentModel({
       name: businessInfo.name,
@@ -253,12 +254,24 @@ export class EstablishmentsService {
     const typeMap: Record<string, EstablishmentType> = {
       restaurant: EstablishmentType.RESTAURANT,
       bakery: EstablishmentType.BAKERY,
-      grocery_or_supermarket: EstablishmentType.GROCERY_STORE,
-      supermarket: EstablishmentType.SUPERMARKET,
+      pastry_shop: EstablishmentType.PASTRY_SHOP,
       cafe: EstablishmentType.CAFE,
-      meal_takeaway: EstablishmentType.FAST_FOOD,
+      coffee_shop: EstablishmentType.CAFE,
+      meal_takeaway: EstablishmentType.TAKEAWAY,
+      takeout_restaurant: EstablishmentType.TAKEAWAY,
       meal_delivery: EstablishmentType.FAST_FOOD,
+      fast_food_restaurant: EstablishmentType.FAST_FOOD,
+      sushi_restaurant: EstablishmentType.SUSHI_RESTAURANT,
+      grocery_or_supermarket: EstablishmentType.GROCERY_STORE,
+      grocery_store: EstablishmentType.GROCERY_STORE,
+      supermarket: EstablishmentType.SUPERMARKET,
+      butcher_shop: EstablishmentType.BUTCHER_SHOP,
+      liquor_store: EstablishmentType.BEVERAGE_SHOP,
+      pet_store: EstablishmentType.PET_STORE,
+      florist: EstablishmentType.FLOWER_PLANT,
+      flower_shop: EstablishmentType.FLOWER_PLANT,
       lodging: EstablishmentType.HOTEL,
+      hotel: EstablishmentType.HOTEL,
     };
 
     for (const gType of googleTypes) {

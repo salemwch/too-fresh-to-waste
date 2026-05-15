@@ -5,6 +5,7 @@ import {
   PASSWORD_ERROR_MESSAGES,
   buildPasswordRegex,
   UserRole,
+  EstablishmentType,
 } from '@foodwaste/shared';
 import type { RegisterInput } from '@foodwaste/shared';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -122,6 +123,14 @@ class BusinessInfoDto {
   @IsArray()
   @IsString({ each: true })
   types?: string[] | undefined;
+
+  @ApiPropertyOptional({
+    description: 'Merchant-selected establishment type, overrides Google Places inference',
+    enum: EstablishmentType,
+  })
+  @IsOptional()
+  @IsEnum(EstablishmentType)
+  establishmentType?: EstablishmentType | undefined;
 }
 
 /**

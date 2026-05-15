@@ -133,6 +133,41 @@ export interface GoogleAutocompleteSuggestion {
  */
 const PLACE_DETAILS_FIELD_MASK = 'id,formattedAddress,location,addressComponents';
 
+/**
+ * Place types that represent geographic/administrative entities, not businesses.
+ * A suggestion whose types are ENTIRELY within this set is a city, region, street,
+ * or natural feature — not a food establishment — and must be filtered out.
+ * Suggestions with undefined types are passed through and validated on the frontend
+ * using the richer place-details response (street-level address check).
+ */
+const GEOGRAPHIC_TYPES = new Set([
+  'locality',
+  'political',
+  'country',
+  'administrative_area_level_1',
+  'administrative_area_level_2',
+  'administrative_area_level_3',
+  'administrative_area_level_4',
+  'administrative_area_level_5',
+  'route',
+  'street_address',
+  'postal_code',
+  'sublocality',
+  'sublocality_level_1',
+  'neighborhood',
+  'colloquial_area',
+  'natural_feature',
+  'park',
+]);
+
+function isGeographicOnly(types?: string[]): boolean {
+  // No types returned → cannot determine here; frontend validates via place details
+  if (!types || types.length === 0) {
+    return false;
+  }
+  return types.every(t => GEOGRAPHIC_TYPES.has(t));
+}
+
 @Injectable()
 export class GooglePlacesService {
   private readonly logger = new Logger(GooglePlacesService.name);
@@ -270,7 +305,8 @@ export class GooglePlacesService {
             placePrediction: NonNullable<(typeof s)['placePrediction']>;
           } => s.placePrediction !== null && s.placePrediction !== undefined,
         )
-        .map(s => s.placePrediction);
+        .map(s => s.placePrediction)
+        .filter(p => !isGeographicOnly(p.types));
 
       return predictions.slice(0, limit ?? this.maxResults);
     } catch (error) {
