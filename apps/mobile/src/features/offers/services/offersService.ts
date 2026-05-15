@@ -349,12 +349,14 @@ class OffersService {
     limit: number = 20,
     userLocation?: GeoCoordinates,
     signal?: AbortSignal,
+    maxDistance: number = 15000,
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/pickup-today`;
     try {
       const response = await apiClient.get<BackendApiResponse<OfferListItem[]>>(url, {
         params: {
           limit,
+          maxDistance,
           ...this.buildLocationParams(userLocation),
         },
         ...(signal && { signal }),
@@ -373,12 +375,14 @@ class OffersService {
     limit: number = 20,
     userLocation?: GeoCoordinates,
     signal?: AbortSignal,
+    maxDistance: number = 15000,
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/pickup-tomorrow`;
     try {
       const response = await apiClient.get<BackendApiResponse<OfferListItem[]>>(url, {
         params: {
           limit,
+          maxDistance,
           ...this.buildLocationParams(userLocation),
         },
         ...(signal && { signal }),

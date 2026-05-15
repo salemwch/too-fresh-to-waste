@@ -1122,6 +1122,7 @@ export class OffersService {
     limit: number = 20,
     userId?: string,
     userLocation?: { latitude: number; longitude: number },
+    maxDistanceMeters?: number,
   ): Promise<{ data: OfferCardDto[]; total: number }> {
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
@@ -1147,7 +1148,7 @@ export class OffersService {
       this.offerModel.countDocuments(offerQuery),
     ]);
 
-    // Enrich with distance before DTO mapping
+    // Enrich with distance before DTO mapping; filter by maxDistanceMeters if provided
     if (userLocation) {
       for (const offer of offers) {
         const est = (offer as OfferLean).establishmentId as PopulatedEstRef | undefined;
@@ -1169,7 +1170,16 @@ export class OffersService {
       }
     }
 
-    const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
+    const filteredOffers =
+      userLocation && maxDistanceMeters !== undefined
+        ? offers.filter(
+            o =>
+              (o as OfferLean).distance === undefined ||
+              (o as OfferLean).distance! <= maxDistanceMeters,
+          )
+        : offers;
+
+    const data = await this.mapOffersToDto(filteredOffers as OfferDocument[], userId);
     return { data, total };
   }
 
@@ -1189,6 +1199,7 @@ export class OffersService {
     limit: number = 20,
     userId?: string,
     userLocation?: { latitude: number; longitude: number },
+    maxDistanceMeters?: number,
   ): Promise<{ data: OfferCardDto[]; total: number }> {
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
@@ -1214,7 +1225,7 @@ export class OffersService {
       this.offerModel.countDocuments(offerQuery),
     ]);
 
-    // Enrich with distance before DTO mapping
+    // Enrich with distance before DTO mapping; filter by maxDistanceMeters if provided
     if (userLocation) {
       for (const offer of offers) {
         const est = (offer as OfferLean).establishmentId as PopulatedEstRef | undefined;
@@ -1236,7 +1247,16 @@ export class OffersService {
       }
     }
 
-    const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
+    const filteredOffers =
+      userLocation && maxDistanceMeters !== undefined
+        ? offers.filter(
+            o =>
+              (o as OfferLean).distance === undefined ||
+              (o as OfferLean).distance! <= maxDistanceMeters,
+          )
+        : offers;
+
+    const data = await this.mapOffersToDto(filteredOffers as OfferDocument[], userId);
     return { data, total };
   }
 

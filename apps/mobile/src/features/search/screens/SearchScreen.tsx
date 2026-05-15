@@ -13,7 +13,7 @@
 
 import { Currency } from '@foodwaste/shared';
 import { FlashList } from '@shopify/flash-list';
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -177,6 +177,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     latitude: number;
     longitude: number;
   } | null>(null);
+  const dragDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Use user location or default to Sousse
   const centerCoordinates = useMemo(() => {
@@ -492,7 +493,16 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   }, []);
 
   const handleRegionChangeComplete = useCallback((region: Region) => {
-    setMapDragCenter({ latitude: region.latitude, longitude: region.longitude });
+    if (dragDebounceRef.current) clearTimeout(dragDebounceRef.current);
+    dragDebounceRef.current = setTimeout(() => {
+      setMapDragCenter({ latitude: region.latitude, longitude: region.longitude });
+    }, 600);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (dragDebounceRef.current) clearTimeout(dragDebounceRef.current);
+    };
   }, []);
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -811,9 +821,15 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
               </View>
 
               {/* Loading overlay */}
-              {isLoadingOffers && !displayOffers.length && (
+              {/* Full overlay only on first load; a small indicator handles re-fetches */}
+              {isLoadingOffers && displayOffers.length === 0 && !mapDragCenter && (
                 <View style={styles.mapLoadingOverlay}>
                   <ActivityIndicator size='large' color={theme.colors.primary} />
+                </View>
+              )}
+              {(isLoadingOffers || isRefetching) && displayOffers.length > 0 && (
+                <View style={styles.mapRefetchIndicator} pointerEvents='none'>
+                  <ActivityIndicator size='small' color={theme.colors.primary} />
                 </View>
               )}
 
@@ -969,6 +985,15 @@ const styles = StyleSheet.create({
     backgroundColor: MAP_LOADING_OVERLAY,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  mapRefetchIndicator: {
+    position: 'absolute',
+    top: 12,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderRadius: 20,
+    padding: 6,
+    zIndex: 20,
   },
   mapErrorContainer: {
     ...StyleSheet.absoluteFillObject,

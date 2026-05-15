@@ -186,8 +186,8 @@ export class OffersController {
     @GetUser() user: SafeUserResponse,
     @Query('latitude', new ParseFloatPipe({ optional: true })) latitude?: number,
     @Query('longitude', new ParseFloatPipe({ optional: true })) longitude?: number,
+    @Query('maxDistance', new ParseFloatPipe({ optional: true })) maxDistance?: number,
   ) {
-    // Pass coordinates for distance calculation (only if both provided)
     const userLocation =
       latitude !== undefined && longitude !== undefined ? { latitude, longitude } : undefined;
 
@@ -196,6 +196,7 @@ export class OffersController {
       limit,
       user.userId,
       userLocation,
+      maxDistance,
     );
 
     return {
@@ -245,8 +246,8 @@ export class OffersController {
     @GetUser() user: SafeUserResponse,
     @Query('latitude', new ParseFloatPipe({ optional: true })) latitude?: number,
     @Query('longitude', new ParseFloatPipe({ optional: true })) longitude?: number,
+    @Query('maxDistance', new ParseFloatPipe({ optional: true })) maxDistance?: number,
   ) {
-    // Pass coordinates for distance calculation (only if both provided)
     const userLocation =
       latitude !== undefined && longitude !== undefined ? { latitude, longitude } : undefined;
 
@@ -255,6 +256,7 @@ export class OffersController {
       limit,
       user.userId,
       userLocation,
+      maxDistance,
     );
 
     return {
