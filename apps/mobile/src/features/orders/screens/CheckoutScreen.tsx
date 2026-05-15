@@ -1,6 +1,6 @@
 import { CommonActions } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -19,6 +19,7 @@ import { colorTokens } from '@/design-system/tokens/colors';
 import { updateUser, selectIsPhoneVerified } from '@/features/auth/store/authSlice';
 import { offersService } from '@/features/offers/services/offersService';
 import { useAppSelector, useAppDispatch } from '@/hooks';
+import { useLocation } from '@/hooks/useLocation';
 import { usePressGuard } from '@/hooks/usePressGuard';
 import { analytics } from '@/utils/analytics';
 import { Logger } from '@/utils/logger';
@@ -42,7 +43,7 @@ interface CheckoutScreenProps {
   route: CheckoutScreenRouteProp;
 }
 
-const MAX_DELIVERY_KM = 7;
+const MAX_DELIVERY_KM = 5;
 
 function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const R = 6371;
@@ -83,6 +84,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   // Named selector returns a primitive boolean — re-renders ONLY when this value flips,
   // not when unrelated user fields (name, avatar, email…) change.
   const isPhoneVerified = useAppSelector(selectIsPhoneVerified);
+  const { coordinates: userCoords } = useLocation();
 
   // ✅ State for order configuration
   const [quantity] = useState(initialQuantity);
@@ -116,6 +118,18 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
   const distanceKm = deliveryPin && estCoords ? haversineKm(estCoords, deliveryPin) : null;
   const tooFar = distanceKm !== null && distanceKm > MAX_DELIVERY_KM;
+
+  // True when the establishment is outside the delivery zone based on the user's
+  // stored location (not the delivery pin) — used to disable the delivery option proactively.
+  const isOutsideDeliveryZone = useMemo(() => {
+    if (!estCoords || !userCoords) return false;
+    return (
+      haversineKm(estCoords, {
+        lat: userCoords.latitude,
+        lng: userCoords.longitude,
+      }) > MAX_DELIVERY_KM
+    );
+  }, [estCoords, userCoords]);
 
   // ── Analytics: checkout_started (fires once when offer data is ready) ──────
   const offerId_stable = offerId; // avoid stale closure warning
@@ -459,13 +473,23 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                 style={[
                   styles.paymentMethodCard,
                   selectedPaymentMethod === 'pay_on_delivery' && styles.paymentMethodCardActive,
+                  isOutsideDeliveryZone && styles.paymentMethodCardDisabled,
                 ]}
-                onPress={() => setSelectedPaymentMethod('pay_on_delivery')}
-                accessibilityLabel='Pay on Delivery'
-                accessibilityHint='Selects pay on delivery as payment method'
+                onPress={() =>
+                  !isOutsideDeliveryZone && setSelectedPaymentMethod('pay_on_delivery')
+                }
+                accessibilityLabel={
+                  isOutsideDeliveryZone ? 'Delivery unavailable — Pick-Up Only' : 'Pay on Delivery'
+                }
+                accessibilityHint={
+                  isOutsideDeliveryZone
+                    ? 'This shop is outside the 5 km delivery zone'
+                    : 'Selects pay on delivery as payment method'
+                }
                 accessibilityRole='button'
+                accessibilityState={{ disabled: isOutsideDeliveryZone }}
               >
-                {selectedPaymentMethod === 'pay_on_delivery' && (
+                {selectedPaymentMethod === 'pay_on_delivery' && !isOutsideDeliveryZone && (
                   <View style={styles.paymentCardCheck}>
                     <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
                   </View>
@@ -474,16 +498,30 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                   name='bicycle'
                   family='Ionicons'
                   size={28}
-                  color={selectedPaymentMethod === 'pay_on_delivery' ? BRAND_PRIMARY : '#64748B'}
+                  color={
+                    isOutsideDeliveryZone
+                      ? '#CBD5E1'
+                      : selectedPaymentMethod === 'pay_on_delivery'
+                        ? BRAND_PRIMARY
+                        : '#64748B'
+                  }
                 />
                 <Text
                   style={[
                     styles.paymentCardLabel,
-                    selectedPaymentMethod === 'pay_on_delivery' && styles.paymentCardLabelActive,
+                    selectedPaymentMethod === 'pay_on_delivery' &&
+                      !isOutsideDeliveryZone &&
+                      styles.paymentCardLabelActive,
+                    isOutsideDeliveryZone && styles.paymentCardLabelDisabled,
                   ]}
                 >
                   {'Pay on\nDelivery'}
                 </Text>
+                {isOutsideDeliveryZone && (
+                  <View style={styles.comingSoonBadge}>
+                    <Text style={styles.comingSoonText}>5km+</Text>
+                  </View>
+                )}
               </Pressable>
 
               {/* Online Payment — Coming Soon */}
@@ -498,6 +536,17 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               </View>
             </View>
           </View>
+
+          {/* Pick-Up Only warning — shown when establishment is outside 5 km zone */}
+          {isOutsideDeliveryZone && (
+            <View style={styles.pickupOnlyWarning}>
+              <Icon name='location-outline' family='Ionicons' size={16} color={WARNING_TEXT} />
+              <Text style={styles.pickupOnlyWarningText}>
+                Pick-Up Only — This shop is outside the 5 km delivery zone. You can still order for
+                pick-up!
+              </Text>
+            </View>
+          )}
 
           {/* Divider */}
           <View style={styles.divider} />
@@ -781,6 +830,23 @@ const styles = StyleSheet.create({
     color: WARNING_TEXT,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  pickupOnlyWarning: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: WARNING_SURFACE,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginHorizontal: 20,
+    marginTop: 8,
+  },
+  pickupOnlyWarningText: {
+    flex: 1,
+    fontSize: 13,
+    color: WARNING_TEXT,
+    lineHeight: 18,
   },
 
   // Price Breakdown

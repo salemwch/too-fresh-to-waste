@@ -300,11 +300,15 @@ export class OrdersService {
           const custCoords = createOrderDto.deliveryAddress!.coordinates;
           const distKm = haversineKm(estCoords, custCoords);
 
-          // Fee calculation from env vars (no hardcoded business constants)
-          const baseFee = this.configService.get<number>('BASE_DELIVERY_FEE') ?? 2.0;
-          const ratePerKm = this.configService.get<number>('RATE_PER_KM') ?? 0.5;
+          const maxDeliveryKm = this.configService.get<number>('MAX_DELIVERY_KM') ?? 5;
+          if (distKm > maxDeliveryKm) {
+            throw new BadRequestException(
+              `Delivery is only available within ${maxDeliveryKm} km. This establishment is ${distKm.toFixed(1)} km away.`,
+            );
+          }
+
+          const fee = this.configService.get<number>('FLAT_DELIVERY_FEE') ?? 3.0;
           const driverCut = this.configService.get<number>('DRIVER_CUT_RATIO') ?? 0.8;
-          const fee = baseFee + distKm * ratePerKm;
 
           deliveryFields = {
             collectionStartTime,
