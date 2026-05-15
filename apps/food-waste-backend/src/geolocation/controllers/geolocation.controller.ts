@@ -17,8 +17,8 @@ import {
   GeoCoordinate,
   DistanceUnit,
 } from '../interfaces/geolocation.interface';
+import { GeoCacheService } from '../services/geo-cache.service';
 import { GeolocationService } from '../services/geolocation.service';
-import { GooglePlacesService } from '../services/google-places.service';
 import { ProximitySearchService } from '../services/proximity-search.service';
 
 import type {
@@ -34,7 +34,7 @@ export class GeolocationController {
   constructor(
     private readonly geolocationService: GeolocationService,
     private readonly _proximitySearchService: ProximitySearchService,
-    private readonly googlePlacesService: GooglePlacesService,
+    private readonly geoCacheService: GeoCacheService,
   ) {
     void this._proximitySearchService;
   }
@@ -408,7 +408,7 @@ export class GeolocationController {
       return [];
     }
 
-    const result = await this.googlePlacesService.autocomplete(query, sessionToken, limit);
+    const result = await this.geoCacheService.autocomplete(query, sessionToken, limit);
     return result;
   }
 
@@ -470,7 +470,7 @@ export class GeolocationController {
       return null;
     }
 
-    const result = await this.googlePlacesService.getPlaceDetailsById(placeId, sessionToken);
+    const result = await this.geoCacheService.getPlaceDetailsById(placeId, sessionToken);
     return result;
   }
 }
