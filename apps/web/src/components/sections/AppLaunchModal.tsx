@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Smartphone, MapPin, Leaf, CheckCircle2, Loader2 } from 'lucide-react';
+import { Smartphone, MapPin, Leaf, CheckCircle2, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useAppLaunchModal } from '@/lib/app-launch-modal.store';
 
@@ -62,7 +62,7 @@ export function AppLaunchModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={v => !v && close()}>
-      <DialogContent className='sm:max-w-[420px] p-0 gap-0 overflow-hidden rounded-3xl border-0 shadow-2xl'>
+      <DialogContent className='sm:max-w-[420px] p-0 gap-0 overflow-hidden rounded-3xl border-0 shadow-2xl [&>button]:top-4 [&>button]:right-4 [&>button]:text-white/50 [&>button]:hover:text-white [&>button]:opacity-100'>
         <DialogTitle className='sr-only'>App launch notification signup</DialogTitle>
 
         {/* ── Hero / Countdown ──────────────────────────────── */}
@@ -70,14 +70,6 @@ export function AppLaunchModal() {
           className='relative px-6 pt-7 pb-8 text-center'
           style={{ background: 'hsl(174,72%,17%)' }}
         >
-          <button
-            onClick={close}
-            className='absolute right-4 top-4 rounded-full p-1 text-white/40 transition-colors hover:text-white'
-            aria-label='Close'
-          >
-            <X className='h-4 w-4' />
-          </button>
-
           <span className='mb-3 inline-block rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60'>
             Coming Soon
           </span>
