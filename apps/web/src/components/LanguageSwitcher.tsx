@@ -82,8 +82,6 @@ export function LanguageSwitcher({
     setIsOpen(false);
   };
 
-  const currentLocale = localeConfig[locale];
-
   if (variant === 'inline') {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
