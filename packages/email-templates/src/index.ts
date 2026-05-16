@@ -6,3 +6,6 @@ export type { ResetPasswordEmailProps } from './templates/ResetPasswordEmail';
 
 export { WelcomeEmail } from './templates/WelcomeEmail';
 export type { WelcomeEmailProps } from './templates/WelcomeEmail';
+
+export { WaitlistEmail } from './templates/WaitlistEmail';
+export type { WaitlistEmailProps } from './templates/WaitlistEmail';

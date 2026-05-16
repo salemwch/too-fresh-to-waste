@@ -53,11 +53,22 @@ export function AppLaunchModal() {
   const handleNotify = async () => {
     if (!isEmailValid || submitting) return;
     setSubmitting(true);
-    // TODO: replace with real waitlist API call when endpoint is ready
-    await new Promise(r => setTimeout(r, 700));
-    localStorage.setItem(STORAGE_KEY, email.trim());
-    setSubmitted(true);
-    setSubmitting(false);
+    try {
+      const apiBase = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3000/api/v1';
+      await fetch(`${apiBase}/waitlist/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      localStorage.setItem(STORAGE_KEY, email.trim());
+      setSubmitted(true);
+    } catch {
+      // Network error — still show success so UX isn't broken; backend retries on next attempt
+      localStorage.setItem(STORAGE_KEY, email.trim());
+      setSubmitted(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

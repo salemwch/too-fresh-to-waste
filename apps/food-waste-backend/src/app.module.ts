@@ -47,6 +47,7 @@ import { SustainabilityModule } from './sustainability/sustainability.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { UsersModule } from './users/user.module';
 import { WebSocketModule } from './websocket/websocket.module';
+import { WaitlistModule } from './waitlist/waitlist.module';
 //import { SocialModule } from './social/social.module';
 
 @Module({
@@ -152,6 +153,7 @@ import { WebSocketModule } from './websocket/websocket.module';
     //SocialModule,
     ArchiveModule,
     HealthModule,
+    WaitlistModule,
   ],
   controllers: [],
   providers: [],
