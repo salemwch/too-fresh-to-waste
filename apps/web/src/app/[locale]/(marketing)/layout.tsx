@@ -9,6 +9,7 @@ import {
 } from '@/components/StructuredData';
 import { Footer } from '@/components/layout';
 import { Newsletter } from '@/components/sections';
+import { AppLaunchModal } from '@/components/sections/AppLaunchModal';
 
 // Marketing pages are static content — revalidate every 24h (ISR).
 // Vercel serves cached HTML instantly; regenerates in background when stale.
@@ -73,6 +74,9 @@ export default async function MarketingLayout({ children, params }: MarketingLay
 
       {/* Footer */}
       <Footer />
+
+      {/* App launch modal — triggered by all download buttons */}
+      <AppLaunchModal />
     </NextIntlClientProvider>
   );
 }

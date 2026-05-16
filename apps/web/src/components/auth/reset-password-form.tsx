@@ -89,7 +89,7 @@ export function ResetPasswordForm() {
 
         <div className='relative z-10 flex h-full flex-col justify-between gap-2 sm:gap-5 lg:gap-8'>
           {/* Logo */}
-          <div className='flex items-center gap-2'>
+          <Link href='/' className='flex items-center gap-2 transition-opacity hover:opacity-80'>
             <Image
               src='/images/image.svg'
               alt='Too Fresh To Waste'
@@ -100,7 +100,7 @@ export function ResetPasswordForm() {
             <span className='text-sm font-semibold tracking-wide text-white sm:text-base lg:text-lg'>
               Too Fresh To Waste
             </span>
-          </div>
+          </Link>
 
           {/* Hero content */}
           <div className='flex max-w-xl flex-1 flex-col justify-center'>

@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { seoConfig } from '@/config/seo.config';
+import { useAppLaunchModal } from '@/lib/app-launch-modal.store';
 
 // Footer link type
 interface FooterLink {
@@ -19,6 +20,7 @@ interface FooterSection {
 export default function Footer() {
   const t = useTranslations('footer');
   const currentYear = new Date().getFullYear();
+  const { open: openLaunchModal } = useAppLaunchModal();
 
   // Footer sections configuration
   const footerSections: FooterSection[] = [
@@ -208,8 +210,9 @@ export default function Footer() {
             </h3>
             <div className='flex flex-col gap-2'>
               {/* App Store */}
-              <Link
-                href='#'
+              <button
+                type='button'
+                onClick={openLaunchModal}
                 className='flex items-center gap-2 bg-black text-white px-3 py-2 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-fit'
                 aria-label='Download on the App Store'
               >
@@ -224,11 +227,12 @@ export default function Footer() {
                     {t('beWithUs.appStore.name')}
                   </div>
                 </div>
-              </Link>
+              </button>
 
               {/* Google Play */}
-              <Link
-                href='#'
+              <button
+                type='button'
+                onClick={openLaunchModal}
                 className='flex items-center gap-2 bg-black text-white px-3 py-2 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-fit'
                 aria-label='Get it on Google Play'
               >
@@ -243,7 +247,7 @@ export default function Footer() {
                     {t('beWithUs.playStore.name')}
                   </div>
                 </div>
-              </Link>
+              </button>
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { useAppLaunchModal } from '@/lib/app-launch-modal.store';
 
 /**
  * Section 2: App Introduction
@@ -14,6 +14,7 @@ import { useTranslations } from 'next-intl';
  */
 export default function Section2() {
   const t = useTranslations('section2');
+  const { open: openLaunchModal } = useAppLaunchModal();
 
   return (
     <section
@@ -52,8 +53,9 @@ export default function Section2() {
         {/* Download Buttons */}
         <div className='flex flex-col sm:flex-row gap-3 justify-center items-center'>
           {/* App Store Button */}
-          <Link
-            href='#'
+          <button
+            type='button'
+            onClick={openLaunchModal}
             className='group flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto'
             aria-label='Download on the App Store'
           >
@@ -66,11 +68,12 @@ export default function Section2() {
                 {t('downloadButtons.appStore.name')}
               </div>
             </div>
-          </Link>
+          </button>
 
           {/* Google Play Button */}
-          <Link
-            href='#'
+          <button
+            type='button'
+            onClick={openLaunchModal}
             className='group flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto'
             aria-label='Get it on Google Play'
           >
@@ -85,7 +88,7 @@ export default function Section2() {
                 {t('downloadButtons.playStore.name')}
               </div>
             </div>
-          </Link>
+          </button>
         </div>
       </div>
     </section>

@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useScrollPosition } from '@/hooks/useScrollPosition';
 import { LanguageSwitcher, LanguageSwitcherCompact } from '@/components/LanguageSwitcher';
 import { Link, usePathname } from '@/i18n/routing';
+import { useAppLaunchModal } from '@/lib/app-launch-modal.store';
 
 // Navigation types
 interface DropdownLink {
@@ -27,6 +28,7 @@ export default function Header() {
   const t = useTranslations('header');
   const { isScrolled } = useScrollPosition(50);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { open: openLaunchModal } = useAppLaunchModal();
   const [hasMounted, setHasMounted] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [openMobileAccordion, setOpenMobileAccordion] = useState<string | null>(null);
@@ -280,15 +282,16 @@ export default function Header() {
             <div className='flex items-center justify-end gap-2'>
               {/* Desktop: CTA Buttons */}
               <div className='hidden lg:flex items-center gap-2 xl:gap-3'>
-                <Link
-                  href='#'
+                <button
+                  type='button'
+                  onClick={openLaunchModal}
                   className={`px-2.5 xl:px-3 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-90 whitespace-nowrap outline-none ${
                     isScrolledState ? 'bg-primary-500 text-white' : 'bg-white text-primary-500'
                   }`}
                   aria-label={t('cta.downloadApp')}
                 >
                   {t('cta.downloadApp')}
-                </Link>
+                </button>
                 <span
                   className={`text-base font-light select-none ${isScrolledState ? 'text-primary-500/40' : 'text-white/40'}`}
                 >
@@ -498,14 +501,17 @@ export default function Header() {
                 className={`my-4 border-t ${isScrolledState ? 'border-primary-500/20' : 'border-white/20'}`}
               />
               <div className='space-y-3 px-4'>
-                <Link
-                  href='#'
-                  className={`block text-center px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                <button
+                  type='button'
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    openLaunchModal();
+                  }}
+                  className={`block w-full text-center px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
                   role='menuitem'
                 >
                   {t('cta.downloadApp')}
-                </Link>
+                </button>
                 <Link
                   href='/merchant-signup'
                   className={`block text-center px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}

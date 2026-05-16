@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   TrendingUp,
@@ -8,6 +8,7 @@ import {
   Rocket,
   ArrowLeft,
   ChevronLeft,
+  ChevronDown,
   Mail,
   Lock,
   Eye,
@@ -180,6 +181,19 @@ export default function MerchantSignupPage() {
     type: 'success' | 'error';
     text: string;
   } | null>(null);
+  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!typeDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(e.target as Node)) {
+        setTypeDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [typeDropdownOpen]);
 
   // ── Field updater ──
   const updateField = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
@@ -457,9 +471,12 @@ export default function MerchantSignupPage() {
           </div>
         );
 
-      case 2:
+      case 2: {
+        const selectedTypeOption = ESTABLISHMENT_TYPE_OPTIONS.find(
+          o => o.value === formData.establishmentType,
+        );
         return (
-          <div className='space-y-4 sm:space-y-5'>
+          <div className='space-y-5 sm:space-y-6'>
             <div>
               <h2
                 className='text-xl font-bold text-black sm:text-2xl lg:text-3xl'
@@ -472,38 +489,77 @@ export default function MerchantSignupPage() {
               </p>
             </div>
 
-            <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
-              {ESTABLISHMENT_TYPE_OPTIONS.map(({ value, labelKey, Icon }) => {
-                const isSelected = formData.establishmentType === value;
-                return (
+            <div className='space-y-4'>
+              <p className='text-sm font-semibold text-foreground'>{t('businessDetailsLabel')}</p>
+
+              <div className='space-y-1.5'>
+                <Label htmlFor='businessType'>{t('storeTypeLabel')}</Label>
+
+                <div className='relative' ref={typeDropdownRef}>
+                  {/* Select trigger */}
                   <button
-                    key={value}
+                    id='businessType'
                     type='button'
-                    onClick={() => updateField('establishmentType', value)}
-                    className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-colors sm:p-4 ${
-                      isSelected
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-secondary/30 text-muted-foreground hover:border-primary/40 hover:bg-primary/5 hover:text-foreground'
+                    onClick={() => setTypeDropdownOpen(v => !v)}
+                    className={`flex h-12 w-full items-center justify-between rounded-xl border bg-background px-4 text-sm transition-colors hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                      typeDropdownOpen ? 'border-primary ring-2 ring-primary/20' : 'border-input'
                     }`}
                   >
-                    <Icon className='h-5 w-5 shrink-0 sm:h-6 sm:w-6' />
-                    <span className='text-xs font-medium leading-tight'>{t(labelKey)}</span>
+                    {selectedTypeOption ? (
+                      <span className='flex items-center gap-2.5 text-foreground'>
+                        <selectedTypeOption.Icon className='h-4 w-4 shrink-0 text-muted-foreground' />
+                        {t(selectedTypeOption.labelKey)}
+                      </span>
+                    ) : (
+                      <span className='text-muted-foreground'>{t('selectTypePlaceholder')}</span>
+                    )}
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${
+                        typeDropdownOpen ? 'rotate-180' : ''
+                      }`}
+                    />
                   </button>
-                );
-              })}
+
+                  {/* Dropdown list */}
+                  {typeDropdownOpen && (
+                    <div className='absolute z-50 mt-1.5 max-h-60 w-full overflow-y-auto rounded-xl border border-border bg-background shadow-lg'>
+                      {ESTABLISHMENT_TYPE_OPTIONS.map(({ value, labelKey, Icon }) => {
+                        const isSelected = formData.establishmentType === value;
+                        return (
+                          <button
+                            key={value}
+                            type='button'
+                            onClick={() => {
+                              updateField('establishmentType', value);
+                              setTypeDropdownOpen(false);
+                            }}
+                            className={`flex w-full items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted/50 ${
+                              isSelected
+                                ? 'bg-primary/5 font-medium text-primary'
+                                : 'text-foreground'
+                            }`}
+                          >
+                            <Icon className='h-4 w-4 shrink-0 text-muted-foreground' />
+                            <span>{t(labelKey)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div className='flex gap-3'>
+            <div className='flex gap-3 pt-1'>
               <Button
                 variant='outline'
-                className='h-11 flex-1 rounded-xl text-sm font-semibold sm:h-12'
+                className='h-12 rounded-xl px-4 text-sm font-semibold'
                 onClick={handleBack}
               >
-                <ArrowLeft className='mr-2 h-4 w-4' />
-                {t('back')}
+                <ArrowLeft className='h-4 w-4' />
               </Button>
               <Button
-                className='h-11 flex-[2] rounded-xl text-sm font-semibold sm:h-12'
+                className='h-12 flex-1 rounded-xl text-sm font-semibold'
                 disabled={!isStep2Valid}
                 onClick={handleNext}
               >
@@ -512,6 +568,7 @@ export default function MerchantSignupPage() {
             </div>
           </div>
         );
+      }
 
       case 3:
         return (
@@ -710,7 +767,7 @@ export default function MerchantSignupPage() {
 
         <div className='relative z-10 flex h-full flex-col justify-between gap-2 sm:gap-5 lg:gap-8'>
           {/* Logo */}
-          <div className='flex items-center gap-2'>
+          <Link href='/' className='flex items-center gap-2 transition-opacity hover:opacity-80'>
             <Image
               src='/images/image.svg'
               alt='Too Fresh To Waste'
@@ -721,7 +778,7 @@ export default function MerchantSignupPage() {
             <span className='text-sm font-semibold tracking-wide text-white sm:text-base lg:text-lg'>
               Too Fresh To Waste
             </span>
-          </div>
+          </Link>
 
           {/* Main hero content */}
           <div className='flex max-w-xl flex-1 flex-col justify-center'>

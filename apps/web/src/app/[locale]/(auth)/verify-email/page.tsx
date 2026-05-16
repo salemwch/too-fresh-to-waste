@@ -113,7 +113,7 @@ function VerifyEmailInner() {
         <div className='absolute inset-0 bg-[hsl(174,72%,17%)] opacity-85' />
 
         <div className='relative z-10 flex h-full flex-col justify-between gap-2 sm:gap-5 lg:gap-8'>
-          <div className='flex items-center gap-2'>
+          <Link href='/' className='flex items-center gap-2 transition-opacity hover:opacity-80'>
             <Image
               src='/images/image.svg'
               alt='Too Fresh To Waste'
@@ -124,7 +124,7 @@ function VerifyEmailInner() {
             <span className='text-sm font-semibold tracking-wide text-white sm:text-base lg:text-lg'>
               Too Fresh To Waste
             </span>
-          </div>
+          </Link>
 
           <div className='flex max-w-xl flex-1 flex-col justify-center'>
             <span className='mb-1 inline-block w-fit rounded-full bg-white/15 px-3 py-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/80 sm:mb-4 sm:px-5 sm:py-1.5 sm:text-[10px] sm:tracking-[0.25em]'>
