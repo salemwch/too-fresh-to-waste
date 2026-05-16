@@ -81,12 +81,6 @@ export default function Section4() {
             </article>
           ))}
         </div>
-
-        {/* Browser Support Warning */}
-        <div className='no-support'>
-          <h2>Your browser doesn&apos;t support the `shape()` function yet.</h2>
-          To see the live examples, please switch to a supporting browser.
-        </div>
       </div>
 
       {/* Styles */}
@@ -122,27 +116,16 @@ export default function Section4() {
           flex-direction: column;
         }
 
-        /* Card with CSS shape() function - EXACT from carrousel.md */
+        /* Card */
         .card {
-          --r: 30px; /* radius */
-          --s: 40px; /* inner curve size */
           background-color: #fff;
           padding: 24px;
           width: 100%;
-          height: 100%; /* Grid controls height for equal cards */
+          height: 100%;
           display: flex;
           flex-direction: column;
           text-align: left;
           border-radius: 30px;
-          clip-path: shape(
-            from 0 0,
-            hline to calc(100% - var(--s) - 2 * var(--r)),
-            arc by var(--r) var(--r) of var(--r) cw,
-            arc by var(--s) var(--s) of var(--s),
-            arc by var(--r) var(--r) of var(--r) cw,
-            vline to 100%,
-            hline to 0
-          );
         }
 
         /* Circle Badge */
@@ -151,14 +134,15 @@ export default function Section4() {
           height: 60px;
           background-color: #fff;
           position: absolute;
-          top: 0;
-          right: 0;
+          top: -10px;
+          right: -10px;
           border-radius: 50%;
           display: flex;
           justify-content: center;
           align-items: center;
           z-index: 1;
           padding: 14px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
         }
 
         /* Circle Icon */
@@ -185,28 +169,6 @@ export default function Section4() {
           margin-bottom: 0;
           padding-right: 65px;
           flex-grow: 1; /* Allows description to expand and fill remaining space */
-        }
-
-        /* Browser Support Warning */
-        .no-support {
-          position: fixed;
-          inset: 0;
-          background-color: rgba(0, 0, 0, 0.87);
-          display: grid;
-          place-items: center;
-          align-content: center;
-          gap: 1em;
-          z-index: 10;
-          color: #fff;
-          text-align: center;
-          padding: 1rem;
-        }
-
-        /* Hide warning if shape() is supported */
-        @supports (clip-path: shape(from 0 0, move to 0 0)) {
-          .no-support {
-            display: none;
-          }
         }
       `}</style>
     </section>

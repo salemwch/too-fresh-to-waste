@@ -30,7 +30,7 @@ const STEPS = [
       'Listings refresh daily — new bags appear as businesses confirm their surplus',
     ],
     tip: 'Popular bakery listings sell out fast — check early afternoon for the best selection.',
-    image: '/images/buy-screen-onoarding/home-screen.png',
+    image: '/images/buy-screen-onoarding/home-screen.webp',
     alt: 'Browse offers screen',
   },
   {
@@ -44,7 +44,7 @@ const STEPS = [
       "Tap Reserve when you're ready — it only takes a few seconds",
     ],
     tip: null,
-    image: '/images/buy-screen-onoarding/offer-details.png',
+    image: '/images/buy-screen-onoarding/offer-details.webp',
     alt: 'Offer details screen',
   },
   {
@@ -57,7 +57,7 @@ const STEPS = [
       'Your slot is locked the moment you confirm — no one else can take it',
     ],
     tip: null,
-    image: '/images/buy-screen-onoarding/reserve.png',
+    image: '/images/buy-screen-onoarding/reserve.webp',
     alt: 'Reserve quantity screen',
   },
   {
@@ -71,7 +71,7 @@ const STEPS = [
       'Tap Confirm Order — your reservation is immediately locked in',
     ],
     tip: null,
-    image: '/images/buy-screen-onoarding/checkout.png',
+    image: '/images/buy-screen-onoarding/checkout.webp',
     alt: 'Checkout screen',
   },
   {
@@ -85,7 +85,7 @@ const STEPS = [
       "Save the screen or keep the app open — you'll need it at pickup",
     ],
     tip: null,
-    image: '/images/buy-screen-onoarding/order-summary.png',
+    image: '/images/buy-screen-onoarding/order-summary.webp',
     alt: 'Order summary screen',
   },
   {
@@ -99,7 +99,7 @@ const STEPS = [
       'Both you and the business receive a confirmation that the handover is complete',
     ],
     tip: null,
-    image: '/images/buy-screen-onoarding/code-order-summary.png',
+    image: '/images/buy-screen-onoarding/code-order-summary.webp',
     alt: 'Pickup code confirmation screen',
   },
   {
@@ -113,7 +113,7 @@ const STEPS = [
       'Every other user on the list receives a 10–15% discount voucher',
     ],
     tip: 'The more bags you rescue, the higher you climb. Every pickup counts.',
-    image: '/images/buy-screen-onoarding/MY-Points.png',
+    image: '/images/buy-screen-onoarding/MY-Points.webp',
     alt: 'My Points screen',
   },
 ];
