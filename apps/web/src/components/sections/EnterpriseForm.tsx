@@ -23,9 +23,25 @@ export function EnterpriseForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('submitting');
-    // Simulate submission — wire to real API when available
-    await new Promise(r => setTimeout(r, 1200));
-    setStatus('success');
+    try {
+      const apiBase = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3000/api/v1';
+      const res = await fetch(`${apiBase}/enterprise/inquiry`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyName: form.businessName,
+          email: form.email,
+          firstName: form.firstName,
+          lastName: form.lastName,
+          phone: form.phone,
+          message: form.message || undefined,
+        }),
+      });
+      if (!res.ok) throw new Error('Request failed');
+      setStatus('success');
+    } catch {
+      setStatus('error');
+    }
   };
 
   return (

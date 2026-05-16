@@ -99,6 +99,20 @@ const mdxComponents = {
     />
   ),
   hr: () => <hr className='border-brand-deep/10 my-10' />,
+  img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
+    <span className='block my-8 text-center'>
+      <img
+        {...props}
+        alt={props.alt ?? ''}
+        className='inline-block max-h-[520px] w-auto rounded-2xl shadow-xl'
+      />
+      {props.alt && (
+        <span className='block mt-2 text-[11px] uppercase tracking-wider text-brand-deep/35'>
+          {props.alt}
+        </span>
+      )}
+    </span>
+  ),
   table: (props: React.HTMLAttributes<HTMLTableElement>) => (
     <div className='overflow-x-auto my-6'>
       <table className='w-full text-sm border-collapse' {...props} />

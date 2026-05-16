@@ -142,20 +142,7 @@ export function LanguageSwitcher({
               <span
                 className={`flex items-center gap-2 ${config.direction === 'rtl' ? 'font-arabic' : ''}`}
               >
-                {isSelected && (
-                  <svg
-                    className='w-3.5 h-3.5 text-primary-600 flex-shrink-0'
-                    fill='currentColor'
-                    viewBox='0 0 20 20'
-                  >
-                    <path
-                      fillRule='evenodd'
-                      d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-                      clipRule='evenodd'
-                    />
-                  </svg>
-                )}
-                <span className='text-sm font-medium'>{config.nativeName}</span>
+                <span className='text-sm font-medium uppercase'>{loc}</span>
               </span>
             </button>
           );
@@ -193,16 +180,7 @@ export function LanguageSwitcher({
               />
             </svg>
           )}
-          <span className='text-sm font-medium'>{currentLocale.nativeName}</span>
-          <svg
-            className={`w-[17px] transition-transform ${isOpen ? 'rotate-180' : ''}`}
-            fill='none'
-            stroke='currentColor'
-            viewBox='0 0 24 24'
-            aria-hidden='true'
-          >
-            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-          </svg>
+          <span className='text-sm font-medium uppercase'>{locale}</span>
         </button>
       </div>
 

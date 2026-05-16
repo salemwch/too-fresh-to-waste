@@ -143,107 +143,6 @@ function CheckIcon({ className }: { className?: string }) {
   );
 }
 
-// Decorative floating food SVGs for the hero
-function FloatingBread({ className }: { className?: string }) {
-  return (
-    <div className={className} aria-hidden='true'>
-      <svg viewBox='0 0 56 40' fill='none' className='w-full h-full'>
-        <ellipse cx='28' cy='25' rx='22' ry='13' fill='#FFA000' />
-        <ellipse cx='28' cy='21' rx='18' ry='10' fill='#FFB300' />
-        <path d='M14 20 Q28 12 42 20' stroke='#FF8F00' strokeWidth='2' strokeLinecap='round' />
-        <path
-          d='M16 24 Q28 17 40 24'
-          stroke='#FF8F00'
-          strokeWidth='1.5'
-          strokeLinecap='round'
-          opacity='0.5'
-        />
-        <ellipse cx='20' cy='18' rx='5' ry='2.5' fill='white' opacity='0.12' />
-      </svg>
-    </div>
-  );
-}
-
-function FloatingTomato({ className }: { className?: string }) {
-  return (
-    <div className={className} aria-hidden='true'>
-      <svg viewBox='0 0 44 52' fill='none' className='w-full h-full'>
-        <circle cx='22' cy='34' r='17' fill='#F44336' />
-        <circle cx='16' cy='34' r='15' fill='#EF5350' opacity='0.3' />
-        <path
-          d='M22 19C22 19 18 12 13 9'
-          stroke='#4CAF50'
-          strokeWidth='2.5'
-          strokeLinecap='round'
-        />
-        <path
-          d='M22 19C22 19 26 12 31 9'
-          stroke='#4CAF50'
-          strokeWidth='2.5'
-          strokeLinecap='round'
-        />
-        <path d='M22 17C22 17 24 11 22 8' stroke='#4CAF50' strokeWidth='2' strokeLinecap='round' />
-        <ellipse cx='16' cy='29' rx='4' ry='5' fill='white' opacity='0.13' />
-      </svg>
-    </div>
-  );
-}
-
-function FloatingLeaf({ className }: { className?: string }) {
-  return (
-    <div className={className} aria-hidden='true'>
-      <svg viewBox='0 0 40 50' fill='none' className='w-full h-full'>
-        <path
-          d='M20 4C20 4 5 14 5 30C5 40 11 46 20 46C29 46 35 40 35 30C35 14 20 4 20 4Z'
-          fill='#4CAF50'
-        />
-        <path d='M20 4L20 46' stroke='#2E7D32' strokeWidth='2' strokeLinecap='round' />
-        <path
-          d='M20 20C16 15 9 14 5 16'
-          stroke='#2E7D32'
-          strokeWidth='1.5'
-          strokeLinecap='round'
-          opacity='0.5'
-        />
-        <path
-          d='M20 33C24 28 31 27 35 29'
-          stroke='#2E7D32'
-          strokeWidth='1.5'
-          strokeLinecap='round'
-          opacity='0.5'
-        />
-      </svg>
-    </div>
-  );
-}
-
-function FloatingCup({ className }: { className?: string }) {
-  return (
-    <div className={className} aria-hidden='true'>
-      <svg viewBox='0 0 46 54' fill='none' className='w-full h-full'>
-        <rect x='7' y='18' width='26' height='24' rx='5' fill='#795548' />
-        <rect x='9' y='20' width='22' height='20' rx='4' fill='#8D6E63' />
-        <path
-          d='M33 22H39C42 22 45 25 45 29C45 33 42 36 39 36H33'
-          stroke='#795548'
-          strokeWidth='2.5'
-          fill='none'
-        />
-        <rect x='5' y='42' width='30' height='5' rx='2.5' fill='#5D4037' />
-        <path
-          d='M14 18C14 18 15 9 20 9C25 9 26 18 26 18'
-          stroke='#5D4037'
-          strokeWidth='1.5'
-          strokeLinecap='round'
-          fill='none'
-          opacity='0.55'
-        />
-        <ellipse cx='20' cy='29' rx='5' ry='3.5' fill='white' opacity='0.1' />
-      </svg>
-    </div>
-  );
-}
-
 // ── Static data ───────────────────────────────────────────────────────────────
 
 const quickWins = [
@@ -328,12 +227,6 @@ export default async function ConsumerPage({ params }: PageProps) {
             }}
             aria-hidden='true'
           />
-
-          {/* Floating food icons */}
-          <FloatingBread className='absolute top-24 left-[6%] w-14 h-10 animate-float opacity-85' />
-          <FloatingLeaf className='absolute top-16 right-[8%] w-10 h-12 animate-float-slow opacity-80' />
-          <FloatingTomato className='absolute bottom-28 left-[14%] w-10 h-12 animate-float-slower opacity-75' />
-          <FloatingCup className='absolute bottom-20 right-[12%] w-10 h-12 animate-float opacity-80' />
 
           <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-12 pb-0 lg:pt-16'>
             <div className='grid lg:grid-cols-2 gap-10 lg:gap-16 items-center'>
@@ -587,7 +480,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                   Save More
                 </p>
                 <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-white leading-tight mb-5'>
-                  Why pay full price for food that&apos;s going to waste?
+                  Why pay full price for unsold food that&apos;s still delicious?
                 </h2>
                 <p className='text-white/65 text-base lg:text-lg leading-relaxed mb-7'>
                   Surprise Bags are packed with the day&apos;s best unsold food — worth 2–3× more

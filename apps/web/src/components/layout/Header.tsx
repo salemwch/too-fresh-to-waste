@@ -44,7 +44,12 @@ export default function Header() {
       dropdown: [
         {
           title: t('dropdown.about.sections.theApp.title'),
-          links: [{ label: t('dropdown.about.sections.theApp.links.howToCollect'), href: '#' }],
+          links: [
+            {
+              label: t('dropdown.about.sections.theApp.links.howToCollect'),
+              href: '/how-to-collect',
+            },
+          ],
         },
         {
           title: t('dropdown.about.sections.aboutUs.title'),
@@ -65,7 +70,6 @@ export default function Header() {
               href: '/food-waste-facts',
             },
             { label: t('dropdown.about.sections.aboutFoodWaste.links.blog'), href: '/blog' },
-            { label: t('dropdown.about.sections.aboutFoodWaste.links.resources'), href: '#' },
           ],
         },
       ],

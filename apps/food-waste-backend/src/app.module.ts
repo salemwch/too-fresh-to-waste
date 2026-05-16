@@ -48,6 +48,7 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { UsersModule } from './users/user.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
+import { EnterpriseModule } from './enterprise/enterprise.module';
 //import { SocialModule } from './social/social.module';
 
 @Module({
@@ -154,6 +155,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
     ArchiveModule,
     HealthModule,
     WaitlistModule,
+    EnterpriseModule,
   ],
   controllers: [],
   providers: [],
