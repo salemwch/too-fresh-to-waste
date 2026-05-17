@@ -5,14 +5,19 @@ import { getAllPosts } from '@/lib/blog';
 
 // Pages to include in sitemap
 const pages = [
-  { path: '/blog', changeFrequency: 'weekly' as const, priority: 0.8 },
   { path: '/', changeFrequency: 'weekly' as const, priority: 1.0 },
-  { path: '/about', changeFrequency: 'monthly' as const, priority: 0.8 },
-  { path: '/how-it-works', changeFrequency: 'monthly' as const, priority: 0.8 },
-  { path: '/business', changeFrequency: 'monthly' as const, priority: 0.8 },
+  { path: '/consumer', changeFrequency: 'monthly' as const, priority: 0.9 },
+  { path: '/companies', changeFrequency: 'monthly' as const, priority: 0.9 },
+  { path: '/marketplace-surprise-bag', changeFrequency: 'monthly' as const, priority: 0.8 },
+  { path: '/humanity-mission', changeFrequency: 'monthly' as const, priority: 0.8 },
+  { path: '/how-to-collect', changeFrequency: 'monthly' as const, priority: 0.8 },
+  { path: '/mission-driven', changeFrequency: 'monthly' as const, priority: 0.7 },
+  { path: '/esg', changeFrequency: 'monthly' as const, priority: 0.7 },
+  { path: '/food-waste-facts', changeFrequency: 'monthly' as const, priority: 0.7 },
+  { path: '/partners', changeFrequency: 'monthly' as const, priority: 0.7 },
+  { path: '/careers', changeFrequency: 'monthly' as const, priority: 0.6 },
+  { path: '/blog', changeFrequency: 'weekly' as const, priority: 0.8 },
   { path: '/contact', changeFrequency: 'monthly' as const, priority: 0.6 },
-  { path: '/faq', changeFrequency: 'monthly' as const, priority: 0.6 },
-  // Add more pages as they're created
 ];
 
 // Generate alternate language links for each page
@@ -44,24 +49,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: page.priority,
         alternates: {
           languages: generateAlternateLinks(page.path),
-        },
-      });
-    });
-  });
-
-  // Add service area landing pages for Tunisia cities
-  // These are important for local SEO
-  const tunisiaCities = ['tunis', 'sousse', 'sfax', 'monastir', 'hammamet', 'bizerte', 'nabeul'];
-
-  tunisiaCities.forEach(city => {
-    locales.forEach(locale => {
-      sitemapEntries.push({
-        url: getCanonicalUrl(`/locations/${city}`, locale),
-        lastModified: currentDate,
-        changeFrequency: 'weekly',
-        priority: 0.7,
-        alternates: {
-          languages: generateAlternateLinks(`/locations/${city}`),
         },
       });
     });
