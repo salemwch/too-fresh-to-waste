@@ -70,7 +70,7 @@
             "title": "من نحن",
             "links": {
               "aboutTFTW": "عن Too Fresh To Waste",
-              "careers": "الوظائف",
+              "careers": "Too Fresh To Waste الوظائف",
               "missionDriven": "مشروع ذو رسالة",
               "esg": "ESG"
             }
@@ -79,7 +79,7 @@
             "title": "حول هدر الطعام",
             "links": {
               "facts": "حقائق عن هدر الطعام",
-              "blog": "المدونة",
+              "blog": "Too Fresh To Waste Blog",
               "resources": "الموارد"
             }
           }
@@ -92,7 +92,6 @@
             "links": {
               "marketplaceBag": "حقيبة المفاجآت في السوق",
               "parclessBag": "حقيبة Parcless",
-              "specificItems": "عناصر محددة",
               "partnerWithUs": "انضم كشريك"
             }
           }

@@ -70,7 +70,7 @@
             "title": "About Us",
             "links": {
               "aboutTFTW": "About Too Fresh To Waste",
-              "careers": "Careers",
+              "careers": "Too Fresh To Waste Careers",
               "missionDriven": "Mission-driven business",
               "esg": "ESG"
             }
@@ -79,7 +79,7 @@
             "title": "About Food Waste",
             "links": {
               "facts": "Food Waste Facts",
-              "blog": "Blog",
+              "blog": "Too Fresh To Waste Blog",
               "resources": "Resources"
             }
           }
@@ -92,7 +92,6 @@
             "links": {
               "marketplaceBag": "Marketplace Surprise Bag",
               "parclessBag": "Parcless Bag",
-              "specificItems": "Specific Items",
               "partnerWithUs": "Partner With Us"
             }
           }

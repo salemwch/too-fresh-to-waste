@@ -94,10 +94,6 @@ export default function Header() {
               href: '#',
             },
             {
-              label: t('dropdown.business.sections.businessSolution.links.specificItems'),
-              href: '#',
-            },
-            {
               label: t('dropdown.business.sections.businessSolution.links.partnerWithUs'),
               href: '/partners',
             },
