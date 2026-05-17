@@ -47,8 +47,8 @@ export const seoConfig = {
     },
   } as const,
 
-  // Social sharing images (replace hero-bg.jpg with a branded 1200×630 OG image when ready)
-  ogImage: '/images/hero-bg.jpg',
+  // Social sharing images — 1200×630px branded OG image
+  ogImage: '/images/og-image.jpg',
   ogImageAlt: {
     fr: 'Too Fresh To Waste - R\u00e9duisez le gaspillage alimentaire en Tunisie',
     ar: 'Too Fresh To Waste - \u0642\u0644\u0644 \u0647\u062f\u0631 \u0627\u0644\u0637\u0639\u0627\u0645 \u0641\u064a \u062a\u0648\u0646\u0633',
