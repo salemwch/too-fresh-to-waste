@@ -113,7 +113,7 @@ export async function generateMetadata({
       languages: alternateLanguages,
     },
 
-    // Open Graph (Facebook, LinkedIn)
+    // Open Graph (Facebook, LinkedIn, Messenger, WhatsApp)
     openGraph: {
       type: 'website',
       locale: localeMetadata.ogLocale,
@@ -124,15 +124,24 @@ export async function generateMetadata({
       siteName: seoConfig.siteName,
       title: localeMetadata.title,
       description: localeMetadata.description,
+      images: [
+        {
+          url: seoConfig.ogImage,
+          width: 1200,
+          height: 630,
+          alt: seoConfig.ogImageAlt[locale as Locale] ?? seoConfig.ogImageAlt.en,
+        },
+      ],
     },
 
-    // Twitter
+    // Twitter / X
     twitter: {
       card: seoConfig.twitterCard,
       title: localeMetadata.title,
       description: localeMetadata.description,
       creator: seoConfig.twitterHandle,
       site: seoConfig.twitterHandle,
+      images: [seoConfig.ogImage],
     },
 
     // Robots
