@@ -83,7 +83,7 @@ function HeroSection({ locale }: { locale: Locale }) {
         >
           <div className='relative'>
             <Image
-              src='/images/profile.png'
+              src='/images/profile.webp'
               alt='Profile Screen'
               width={390}
               height={844}
@@ -116,7 +116,7 @@ function HeroSection({ locale }: { locale: Locale }) {
         >
           <div className='relative'>
             <Image
-              src='/images/getstarted.png'
+              src='/images/getstarted.webp'
               alt='Get Started Screen'
               width={390}
               height={844}
@@ -151,7 +151,7 @@ function HeroSection({ locale }: { locale: Locale }) {
         >
           <div className='relative'>
             <Image
-              src='/images/login.png'
+              src='/images/login.webp'
               alt='Login Screen'
               width={390}
               height={844}

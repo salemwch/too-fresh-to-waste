@@ -59,7 +59,7 @@ export default function Section3Animated() {
           {/* Row 1-2, Col 2: Center - Bag Image (spans 2 rows) */}
           <div className='relative w-[500px] h-[500px] lg:w-[600px] lg:h-[600px] row-span-2'>
             <Image
-              src='/images/bag.png'
+              src='/images/bag.webp'
               alt='Too Fresh To Waste bag'
               fill
               className='object-contain drop-shadow-2xl'
@@ -204,7 +204,7 @@ export default function Section3Animated() {
           {/* Bag Image */}
           <div className='w-full max-w-sm md:max-w-md lg:max-w-lg mx-auto'>
             <Image
-              src='/images/bag.png'
+              src='/images/bag.webp'
               alt='Too Fresh To Waste bag'
               width={500}
               height={500}
