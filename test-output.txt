@@ -1,0 +1,31 @@
+
+> @foodwaste/backend@1.0.0 test C:\WFA\apps\food-waste-backend
+> jest "--" "--no-coverage"
+
+● Validation Warning:
+
+  Unknown option "setupFilesAfterFramework" with value [] was found.
+  This is probably a typing mistake. Fixing it will remove this message.
+
+  Configuration Documentation:
+  https://jestjs.io/docs/configuration
+
+● Validation Warning:
+
+  Unknown option "setupFilesAfterFramework" with value [] was found.
+  This is probably a typing mistake. Fixing it will remove this message.
+
+  Configuration Documentation:
+  https://jestjs.io/docs/configuration
+
+No tests found, exiting with code 1
+Run with `--passWithNoTests` to exit with code 0
+In C:\WFA\apps\food-waste-backend
+  418 files checked.
+  testMatch: **/__tests__/**/*.[jt]s?(x), **/?(*.)+(spec|test).[tj]s?(x) - 18 matches
+  testPathIgnorePatterns: \\node_modules\\ - 418 matches
+  testRegex:  - 0 matches
+Pattern: --no-coverage - 0 matches
+C:\WFA\apps\food-waste-backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @foodwaste/backend@1.0.0 test: `jest "--" "--no-coverage"`
+Exit status 1
