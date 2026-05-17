@@ -27,8 +27,8 @@ export default function Footer() {
     {
       title: t('sections.services.title'),
       links: [
-        { label: t('sections.services.consumer'), href: '/#app' },
-        { label: t('sections.services.business'), href: '/business-signup' },
+        { label: t('sections.services.consumer'), href: '/consumer' },
+        { label: t('sections.services.business'), href: '/merchant-signup' },
         { label: t('sections.services.companies'), href: '/companies' },
         { label: t('sections.services.partners'), href: '/partners' },
       ],
