@@ -432,6 +432,13 @@ export class AuthService {
       throw new UnauthorizedException('Account is not active');
     }
 
+    if (!user.password) {
+      throw new UnauthorizedException({
+        message: 'This account uses Google Sign-In. Please sign in with Google.',
+        type: 'SOCIAL_AUTH_ONLY',
+      });
+    }
+
     const isPasswordValid = await argon2.verify(user.password, loginDto.password);
 
     if (!isPasswordValid) {
@@ -859,7 +866,7 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<UserResponse | null> {
     const user = await this.usersService.findByEmail(email);
 
-    if (user && (await argon2.verify(user.password, password))) {
+    if (user?.password && (await argon2.verify(user.password, password))) {
       // SECURITY: Reject login for non-active accounts
       if (user.status !== UserStatus.ACTIVE) {
         throw new UnauthorizedException('Account is no longer active');
