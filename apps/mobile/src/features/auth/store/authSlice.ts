@@ -118,6 +118,37 @@ export const loginAsync = createAsyncThunk(
   },
 );
 
+export const googleSignInAsync = createAsyncThunk(
+  'auth/googleSignIn',
+  async (idToken: string, { rejectWithValue }) => {
+    try {
+      const response = await authService.googleSignIn(idToken);
+
+      backgroundStorage.execute('google-signin-persist', async () => {
+        const expiresAt = new Date(Date.now() + response.tokens.expiresIn * 1000);
+        await Promise.all([
+          SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken),
+          SecureStorage.setUserData(JSON.stringify(response.user)),
+          SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString()),
+        ]);
+      });
+      return response;
+    } catch (error) {
+      Logger.error('Google Sign-In failed', {}, error as Error);
+      let errorMessage = 'Google Sign-In failed';
+      if (error !== null && error !== undefined && typeof error === 'object') {
+        const errObj = error as Record<string, unknown>;
+        if (typeof errObj['message'] === 'string') {
+          errorMessage = errObj['message'];
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      return rejectWithValue({ message: errorMessage });
+    }
+  },
+);
+
 export const registerAsync = createAsyncThunk(
   'auth/register',
   async (request: RegisterRequest, { rejectWithValue }) => {
@@ -796,6 +827,39 @@ const authSlice = createSlice({
       const payload = action.payload as { message?: string } | undefined;
       state.error =
         payload?.message != null && payload.message !== '' ? payload.message : 'Login failed';
+      state.isAuthenticated = false;
+      state.user = null;
+      state.flowState = AuthFlowState.UNAUTHENTICATED;
+    });
+
+    // Google Sign-In
+    builder.addCase(googleSignInAsync.pending, state => {
+      state.isLoading = true;
+      state.error = undefined;
+    });
+
+    builder.addCase(googleSignInAsync.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.error = undefined;
+      state.user = action.payload.user;
+      state.isAuthenticated = true;
+      state.lastLoginTime = new Date().toISOString();
+      const expiresAt = new Date(Date.now() + action.payload.tokens.expiresIn * 1000);
+      state.sessionExpiresAt = expiresAt.toISOString();
+      state.flowState = AuthFlowState.AUTHENTICATED;
+      state.pendingVerificationEmail = undefined;
+      state.pendingVerificationPhone = undefined;
+      state.mfaToken = undefined;
+      state.isUserSynced = true;
+    });
+
+    builder.addCase(googleSignInAsync.rejected, (state, action) => {
+      state.isLoading = false;
+      const payload = action.payload as { message?: string } | undefined;
+      state.error =
+        payload?.message != null && payload.message !== ''
+          ? payload.message
+          : 'Google Sign-In failed';
       state.isAuthenticated = false;
       state.user = null;
       state.flowState = AuthFlowState.UNAUTHENTICATED;
