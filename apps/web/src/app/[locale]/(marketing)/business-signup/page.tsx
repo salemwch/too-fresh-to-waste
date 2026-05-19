@@ -100,7 +100,7 @@ export default function BusinessSignUpPage() {
           />
           <motion.div
             className='absolute bottom-20 right-10 w-96 h-96 rounded-full opacity-10'
-            style={{ background: '#fffb9b' }}
+            style={{ background: 'hsl(var(--secondary))' }}
             animate={{
               scale: [1.2, 1, 1.2],
               opacity: [0.1, 0.15, 0.1],
@@ -181,7 +181,7 @@ export default function BusinessSignUpPage() {
 
             {/* CTA Section */}
             <div className='pt-8'>
-              <p className='text-[#fffb9b] text-lg font-semibold mb-4'>{t('notifyQuestion')}</p>
+              <p className='text-secondary text-lg font-semibold mb-4'>{t('notifyQuestion')}</p>
               <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
                 <a
                   href='mailto:contact@toofreshwaste.tn?subject=Business Sign-Up Interest'

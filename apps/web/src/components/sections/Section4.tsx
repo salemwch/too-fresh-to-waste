@@ -46,7 +46,7 @@ export default function Section4() {
         {/* Title */}
         <h2
           id='how-to-use-heading'
-          className='text-[#fffb9b] text-xl md:text-3xl leading-tight font-bold mb-2'
+          className='text-secondary text-xl md:text-3xl leading-tight font-bold mb-2'
         >
           {t('title')}
         </h2>

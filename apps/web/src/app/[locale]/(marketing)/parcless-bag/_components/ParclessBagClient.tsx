@@ -79,7 +79,7 @@ function BagSVG() {
         />
 
         {/* Zellige accent pattern */}
-        <g opacity='0.12' stroke='#C4A35A' strokeWidth='0.8'>
+        <g opacity='0.12' style={{ stroke: 'hsl(var(--secondary))' }} strokeWidth='0.8'>
           <path d='M90 168 L110 190 L90 212 L70 190 Z' />
           <path d='M130 168 L150 190 L130 212 L110 190 Z' />
           <path d='M170 168 L190 190 L170 212 L150 190 Z' />
@@ -102,7 +102,7 @@ function BagSVG() {
           y1='268'
           x2='180'
           y2='288'
-          stroke='#C4A35A'
+          style={{ stroke: 'hsl(var(--secondary))' }}
           strokeWidth='0.9'
           opacity='0.55'
         />
@@ -114,7 +114,7 @@ function BagSVG() {
           fontFamily='serif'
           fontSize='16'
           fontWeight='400'
-          fill='#C4A35A'
+          style={{ fill: 'hsl(var(--secondary))' }}
           textAnchor='middle'
           opacity='0.92'
           letterSpacing='2'
@@ -125,7 +125,7 @@ function BagSVG() {
         {/* Handles */}
         <path
           d='M110 110 C110 54 148 42 180 42 C212 42 250 54 250 110'
-          stroke='#C4A35A'
+          style={{ stroke: 'hsl(var(--secondary))' }}
           strokeWidth='7'
           fill='none'
           strokeLinecap='round'
@@ -170,7 +170,7 @@ function HeroSection() {
       {/* Left — headline */}
       <div className='flex flex-col justify-end px-9 py-20 lg:px-16 lg:py-24 relative z-10'>
         <p
-          className='text-[#C4A35A] text-[0.68rem] font-semibold tracking-[0.22em] uppercase mb-7'
+          className='text-secondary text-[0.68rem] font-semibold tracking-[0.22em] uppercase mb-7'
           style={{ opacity: 0, animation: 'fadeUp 0.8s ease forwards 0.2s' }}
         >
           {t('eyebrow')}
@@ -189,11 +189,11 @@ function HeroSection() {
         >
           <span className='block'>{t('headline.line1')}</span>
           <span className='block'>
-            {t('headline.line2')} <em className='text-[#C4A35A]'>{t('headline.line2Em')}</em>
+            {t('headline.line2')} <em className='text-secondary'>{t('headline.line2Em')}</em>
           </span>
           {t('headline.line3Em') && (
             <span className='block'>
-              <em className='text-[#C4A35A]'>{t('headline.line3Em')}</em>
+              <em className='text-secondary'>{t('headline.line3Em')}</em>
             </span>
           )}
         </h1>
@@ -211,7 +211,7 @@ function HeroSection() {
         >
           <a
             href='#cta'
-            className='bg-[#C4A35A] text-primary font-semibold text-[0.82rem] tracking-[0.09em] uppercase px-9 py-4 rounded-full flex items-center gap-2 transition-all hover:-translate-y-0.5 hover:bg-[#F2EBD9] hover:shadow-[0_14px_42px_rgba(196,163,90,0.38)]'
+            className='bg-secondary text-primary font-semibold text-[0.82rem] tracking-[0.09em] uppercase px-9 py-4 rounded-full flex items-center gap-2 transition-all hover:-translate-y-0.5 hover:bg-[#F2EBD9] hover:shadow-[0_14px_42px_rgba(196,163,90,0.38)]'
           >
             {t('ctaPartner')}
             <svg
@@ -226,7 +226,7 @@ function HeroSection() {
             </svg>
           </a>
           <button
-            className='text-[rgba(242,235,217,0.65)] text-[0.84rem] underline underline-offset-4 bg-transparent border-0 px-2 py-4 cursor-pointer transition-colors hover:text-[#C4A35A]'
+            className='text-[rgba(242,235,217,0.65)] text-[0.84rem] underline underline-offset-4 bg-transparent border-0 px-2 py-4 cursor-pointer transition-colors hover:text-secondary'
             onClick={() => scrollTo('concept')}
           >
             {t('ctaLearnMore')}
@@ -246,7 +246,7 @@ function HeroSection() {
       >
         <div className='w-10 h-px bg-[rgba(127,168,150,0.4)] relative overflow-hidden'>
           <span
-            className='absolute inset-y-0 left-0 w-full bg-[#C4A35A]'
+            className='absolute inset-y-0 left-0 w-full bg-secondary'
             style={{ animation: 'slideLight 2.2s ease-in-out infinite' }}
           />
         </div>
@@ -264,7 +264,7 @@ function MarqueeStrip() {
   const items = t.raw('items') as string[];
 
   return (
-    <div className='bg-[#C4A35A] py-[22px] overflow-hidden'>
+    <div className='bg-secondary py-[22px] overflow-hidden'>
       <div
         className='flex whitespace-nowrap'
         style={{ animation: 'marqueeScroll 22s linear infinite' }}
@@ -353,14 +353,14 @@ function ConceptSection() {
               background: 'radial-gradient(circle, rgba(196,163,90,0.25) 0%, transparent 70%)',
             }}
           />
-          <p className='text-[#C4A35A] text-[0.62rem] tracking-[0.2em] uppercase mb-[18px]'>
+          <p className='text-secondary text-[0.62rem] tracking-[0.2em] uppercase mb-[18px]'>
             {t('statLabel')}
           </p>
           <p
             className='text-[#F2EBD9] leading-none mb-[6px]'
             style={{ ...SERIF, fontSize: '5.5rem', fontWeight: 300 }}
           >
-            <span className='text-[#C4A35A]'>73</span>%
+            <span className='text-secondary'>73</span>%
           </p>
           <p className='text-[#7FA896] text-[0.87rem] font-light leading-[1.65] mb-9'>
             {t('statDesc')}
@@ -368,7 +368,7 @@ function ConceptSection() {
           <div className='grid grid-cols-2 gap-4'>
             {miniStats.map(({ n, l }) => (
               <div key={n} className='bg-[rgba(255,255,255,0.055)] rounded-xl p-[18px]'>
-                <p className='text-[#C4A35A] text-[1.75rem] font-light' style={SERIF}>
+                <p className='text-secondary text-[1.75rem] font-light' style={SERIF}>
                   {n}
                 </p>
                 <p className='text-[#7FA896] text-[0.68rem] font-light mt-1'>{l}</p>
@@ -392,14 +392,14 @@ function HowItWorksSection() {
       style={{ backgroundImage: ZELLIGE_DARK }}
     >
       <div className='text-center mb-[72px] rv'>
-        <p className='text-[#C4A35A] text-[0.63rem] font-semibold tracking-[0.26em] uppercase mb-[14px]'>
+        <p className='text-secondary text-[0.63rem] font-semibold tracking-[0.26em] uppercase mb-[14px]'>
           {t('label')}
         </p>
         <h2
           className='text-[#F2EBD9] mb-[14px]'
           style={{ ...SERIF, fontSize: 'clamp(2.4rem, 3.8vw, 3.6rem)', fontWeight: 400 }}
         >
-          {t('headlineBefore')} <em className='text-[#C4A35A]'>{t('headlineEm')}</em>
+          {t('headlineBefore')} <em className='text-secondary'>{t('headlineEm')}</em>
         </h2>
         <p className='text-[#7FA896] text-[0.96rem] font-light max-w-[460px] mx-auto leading-[1.72]'>
           {t('subtitle')}
@@ -418,7 +418,7 @@ function HowItWorksSection() {
             >
               {n}
             </p>
-            <div className='w-[46px] h-[46px] bg-[#C4A35A] rounded-[11px] flex items-center justify-center mb-[22px] text-[1.3rem]'>
+            <div className='w-[46px] h-[46px] bg-secondary rounded-[11px] flex items-center justify-center mb-[22px] text-[1.3rem]'>
               {icon}
             </div>
             <h3
@@ -439,9 +439,9 @@ function HowItWorksSection() {
 type BenefitType = 'dark' | 'green' | 'gold' | 'light' | 'terra';
 
 const BENEFIT_STYLES: Record<BenefitType, { bg: string; title: string; body: string }> = {
-  dark: { bg: 'bg-primary', title: 'text-[#C4A35A]', body: 'text-[#7FA896]' },
+  dark: { bg: 'bg-primary', title: 'text-secondary', body: 'text-[#7FA896]' },
   green: { bg: 'bg-[#3D6B5C]', title: 'text-[#F2EBD9]', body: 'text-[#F2EBD9]' },
-  gold: { bg: 'bg-[#C4A35A]', title: 'text-primary', body: 'text-primary' },
+  gold: { bg: 'bg-secondary', title: 'text-primary', body: 'text-primary' },
   light: {
     bg: 'bg-[#E8DFC8] border border-[rgba(30,68,72,0.1)]',
     title: 'text-primary',
@@ -501,7 +501,7 @@ function BenefitsSection() {
               </p>
               {text.big && (
                 <span
-                  className='block mt-6 leading-none text-[#C4A35A]'
+                  className='block mt-6 leading-none text-secondary'
                   style={{ ...SERIF, fontSize: '3.8rem', fontWeight: 300 }}
                 >
                   {text.big}
@@ -522,7 +522,7 @@ function QuoteSection() {
   return (
     <section className='bg-[#F2EBD9] px-9 py-24 lg:px-20 flex flex-col items-center text-center'>
       <div
-        className='rv text-[#C4A35A] leading-[0.4] mb-8'
+        className='rv text-secondary leading-[0.4] mb-8'
         style={{ ...SERIF, fontSize: '7rem', opacity: 0.38 }}
       >
         &ldquo;
@@ -573,7 +573,7 @@ function CTASection() {
       />
 
       <div className='max-w-[680px] relative z-10'>
-        <p className='rv text-[#C4A35A] text-[0.62rem] tracking-[0.26em] uppercase mb-[18px]'>
+        <p className='rv text-secondary text-[0.62rem] tracking-[0.26em] uppercase mb-[18px]'>
           {t('label')}
         </p>
         <h2
@@ -587,7 +587,7 @@ function CTASection() {
         >
           {t('headline')}
           <br />
-          <em className='text-[#C4A35A]'>{t('headlineEm')}</em>
+          <em className='text-secondary'>{t('headlineEm')}</em>
         </h2>
         <p className='rv text-[#7FA896] text-[0.96rem] font-light leading-[1.75] mb-9'>
           {t('body')}
@@ -603,12 +603,12 @@ function CTASection() {
             onChange={e => setEmail(e.target.value)}
             placeholder={t('placeholder')}
             required
-            className='flex-1 bg-[rgba(255,255,255,0.07)] border border-[rgba(196,163,90,0.28)] rounded-full px-[22px] py-[15px] text-[#F2EBD9] text-[0.88rem] outline-none focus:border-[#C4A35A] transition-colors placeholder:text-[rgba(242,235,217,0.28)]'
+            className='flex-1 bg-[rgba(255,255,255,0.07)] border border-[rgba(196,163,90,0.28)] rounded-full px-[22px] py-[15px] text-[#F2EBD9] text-[0.88rem] outline-none focus:border-secondary transition-colors placeholder:text-[rgba(242,235,217,0.28)]'
           />
           <button
             type='submit'
             className={`flex items-center justify-center gap-2 font-semibold text-[0.82rem] tracking-[0.09em] uppercase px-9 py-4 rounded-full flex-shrink-0 transition-all hover:-translate-y-0.5 ${
-              submitted ? 'bg-[#3D6B5C] text-white' : 'bg-[#C4A35A] text-primary hover:bg-[#F2EBD9]'
+              submitted ? 'bg-[#3D6B5C] text-white' : 'bg-secondary text-primary hover:bg-[#F2EBD9]'
             }`}
           >
             {submitted ? (

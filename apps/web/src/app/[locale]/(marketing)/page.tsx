@@ -197,7 +197,7 @@ function HeroSection({ locale }: { locale: Locale }) {
                 return (
                   <>
                     {firstParts}
-                    <span style={{ color: '#fffb9b' }}>{lastPart}</span>
+                    <span className='text-secondary'>{lastPart}</span>
                   </>
                 );
               }

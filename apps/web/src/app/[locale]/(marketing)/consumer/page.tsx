@@ -823,7 +823,7 @@ export default async function ConsumerPage({ params }: PageProps) {
               Your next great meal is waiting
             </p>
             <h2 className='font-playfair text-4xl lg:text-6xl font-bold text-white leading-tight mb-5'>
-              Eat well. Spend less. <span style={{ color: '#fffb9b' }}>Win something.</span>
+              Eat well. Spend less. <span className='text-secondary'>Win something.</span>
             </h2>
             <p className='text-white/75 text-base lg:text-lg leading-relaxed mb-10 max-w-xl mx-auto'>
               Download Too Fresh To Waste. Find surprise bags near you. Earn points with every

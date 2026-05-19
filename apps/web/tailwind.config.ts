@@ -56,8 +56,8 @@ const config: Config = {
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
-          light: '#FFECB3',
-          dark: '#FFA000',
+          light: '#E2C48A',
+          dark: '#9A7B35',
         },
         // shadcn CSS variable colors
         border: 'hsl(var(--border))',
