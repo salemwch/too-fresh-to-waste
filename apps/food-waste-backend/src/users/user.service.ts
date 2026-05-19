@@ -27,7 +27,7 @@ import { SmsNotificationService } from '../notifications/services/sms-notificati
 import { CreateUserDto } from './DTO/create-user.dto';
 import { UpdateUserDto } from './DTO/update-user.dto';
 import { IUsersService } from './interfaces/users-service.interface';
-import { User, UserDocument, UserStatus, IAuditLogDetails } from './schemas/user.schema';
+import { User, UserDocument, UserRole, UserStatus, IAuditLogDetails } from './schemas/user.schema';
 
 interface IPaginationMeta {
   page: number;
@@ -1840,5 +1840,55 @@ export class UsersService implements IUsersService {
       throw new NotFoundException(`User ${userId} not found`);
     }
     this.logger.log(`Force password change completed for user ${userId}`);
+  }
+
+  // ─── Google Sign-In Methods ────────────────────────────────────────────────
+
+  async findByGoogleId(googleId: string): Promise<UserDocument | null> {
+    const user = await this.userModel.findOne({ googleId, deletedAt: null }).exec();
+    return user;
+  }
+
+  async linkGoogleId(userId: string, googleId: string): Promise<void> {
+    await this.userModel.findByIdAndUpdate(userId, {
+      $set: { googleId, authProvider: 'google' },
+    });
+  }
+
+  async linkGoogleToSquattedAccount(userId: string, googleId: string): Promise<void> {
+    await this.userModel.findByIdAndUpdate(userId, {
+      $set: {
+        googleId,
+        authProvider: 'google',
+        isEmailVerified: true,
+        password: undefined,
+        status: UserStatus.ACTIVE,
+      },
+      $inc: { tokenRevocationVersion: 1 },
+      $unset: { password: '' },
+    });
+  }
+
+  async createGoogleUser(data: {
+    googleId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    picture?: string;
+  }): Promise<UserDocument> {
+    const doc = new this.userModel({
+      googleId: data.googleId,
+      email: data.email.trim().toLowerCase(),
+      firstName: data.firstName,
+      lastName: data.lastName,
+      ...(data.picture ? { profileImage: data.picture } : {}),
+      authProvider: 'google',
+      role: UserRole.CONSUMER,
+      status: UserStatus.ACTIVE,
+      isEmailVerified: true,
+      isPhoneVerified: false,
+    });
+    const saved = await doc.save();
+    return saved;
   }
 }
