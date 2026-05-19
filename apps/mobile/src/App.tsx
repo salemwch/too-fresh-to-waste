@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/react-native';
 import React, { useEffect } from 'react';
 import { Config } from 'react-native-config';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { StatusBar, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -99,6 +100,12 @@ function AppContent(): React.JSX.Element {
   useEffect(() => {
     localLocationService.initialize().catch(error => {
       Logger.error('Failed to initialize LocalLocationService', {}, error);
+    });
+  }, []);
+
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: Config['GOOGLE_WEB_CLIENT_ID'] ?? '',
     });
   }, []);
 
