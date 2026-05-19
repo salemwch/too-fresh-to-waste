@@ -348,6 +348,19 @@ class AuthService {
     }
   }
 
+  public async googleSignIn(idToken: string): Promise<LoginResponse> {
+    Logger.info('Attempting Google Sign-In');
+
+    try {
+      const response = await this.makeRequest<LoginResponse>('POST', '/google', { idToken });
+      Logger.info('Google Sign-In successful', { userId: response.user.userId });
+      return response;
+    } catch (error) {
+      Logger.error('Google Sign-In failed', {}, error as Error);
+      throw error;
+    }
+  }
+
   public async register(request: RegisterRequest): Promise<RegisterResponse> {
     Logger.info('Attempting user registration', { email: request.email });
 
