@@ -1662,5 +1662,122 @@
       "body": "This impact is entirely made possible by the restaurants, bakeries, hotels, patisseries, grocery stores, supermarkets, and enterprise companies using our app. Every time your company uses Too Fresh To Waste, you receive a monthly impact report showing exactly how many lives your daily operations helped transform.",
       "cta": "Become a Partner"
     }
+  },
+  "parclessBag": {
+    "hero": {
+      "eyebrow": "Manufacturer Program · Tunisia · 2025",
+      "headline": {
+        "line1": "Your surplus.",
+        "line2": "Their",
+        "line2Em": "second",
+        "line3Em": "chance."
+      },
+      "subtitle": "The Parcless Bag transforms your unsold stock and production surplus into real revenue — while reducing your environmental footprint and feeding Tunisian families.",
+      "ctaPartner": "Become a partner",
+      "ctaLearnMore": "Learn more",
+      "scrollHint": "Discover"
+    },
+    "marquee": {
+      "items": [
+        "Zero waste",
+        "Additional revenue",
+        "Positive impact",
+        "First in Tunisia",
+        "Simple & fast",
+        "ESG certified"
+      ]
+    },
+    "concept": {
+      "label": "The concept",
+      "headlineBefore": "A bag of",
+      "headlineEm": "surprises",
+      "headlineAfter": "that makes a difference.",
+      "body1": "The Parcless Bag is an anti-waste solution designed for Tunisian manufacturers. You package your unsold items, surplus or products near their expiry date in a discounted mystery bag. Consumers buy it through our app — and everyone wins.",
+      "body2": "Inspired by the global success of Too Good To Go, the Parcless Bag is adapted to Tunisian market realities: local logistics, consumption habits and strong social impact.",
+      "tags": ["Food manufacturers", "Industrial bakeries", "Dairy producers", "Canneries"],
+      "badge": "New in Tunisia",
+      "statLabel": "Average monthly impact · active partners",
+      "statDesc": "of partner manufacturers reduce their food waste rate by 70 to 80% in under 3 months.",
+      "miniStats": [
+        { "n": "+42%", "l": "revenue from unsold stock" },
+        { "n": "2.4k", "l": "active users at launch" },
+        { "n": "48h", "l": "integration lead time" },
+        { "n": "0 TND", "l": "setup fees" }
+      ]
+    },
+    "howItWorks": {
+      "label": "How it works",
+      "headlineBefore": "Simple as",
+      "headlineEm": "a bag.",
+      "subtitle": "Three steps to turn your surplus into revenue and your commitment into real impact.",
+      "steps": [
+        {
+          "n": "01",
+          "icon": "📦",
+          "title": "You prepare the bag",
+          "body": "Each evening — or at your chosen frequency — your teams package the day's surplus in a standardised Parcless Bag. Real value: 2 to 3× the selling price on the app."
+        },
+        {
+          "n": "02",
+          "icon": "📱",
+          "title": "Customers reserve",
+          "body": "Your offer appears on Too Fresh To Waste. Local consumers reserve and pay through the app. Zero additional sales management on your side."
+        },
+        {
+          "n": "03",
+          "icon": "💳",
+          "title": "You get paid",
+          "body": "Payment is sent directly. Access your real-time data: bags sold, revenue generated, CO₂ avoided — a full ESG dashboard included."
+        }
+      ]
+    },
+    "benefits": {
+      "label": "Why join",
+      "headlineBefore": "The concrete",
+      "headlineEm": "advantages",
+      "headlineAfter": "for your business.",
+      "subtitle": "Designed for the realities of Tunisian manufacturers.",
+      "items": [
+        {
+          "title": "Revenue from the unsellable",
+          "body": "Turn every unsold unit into cash. The items you used to throw away represent a dead loss — the Parcless Bag converts them into an additional revenue stream with no extra sales effort.",
+          "big": "+42%"
+        },
+        {
+          "title": "Zero Waste Label",
+          "body": "Earn a recognised ESG certification. Display your commitment on your packaging, marketing materials and public tenders."
+        },
+        {
+          "title": "Real-time dashboard",
+          "body": "Visualise your anti-waste performance, your revenue by period, and your saved carbon footprint — month by month."
+        },
+        {
+          "title": "48h integration",
+          "body": "Our team handles everything. Onboarding, training, dedicated support. You are operational in two working days."
+        },
+        {
+          "title": "Tax advantage",
+          "body": "Food donations benefit from tax advantages in Tunisia. Our documentation simplifies your annual declarations."
+        },
+        {
+          "title": "Local visibility",
+          "body": "Be visible to thousands of engaged consumers — a premium audience sensitive to quality and sustainability."
+        }
+      ]
+    },
+    "quote": {
+      "text": "In Tunisia, 30% of food production ends up in the bin before even reaching the consumer. Together, let's change that statistic.",
+      "cite": "The Too Fresh To Waste Team · Tunis, 2025"
+    },
+    "cta": {
+      "label": "Join the programme",
+      "headline": "Your first",
+      "headlineEm": "anti-waste step.",
+      "body": "Leave your professional email. Our team will contact you within 24 hours for a free, no-obligation discovery call. We will assess the potential of your surplus together.",
+      "placeholder": "your@company.tn",
+      "submit": "Get started",
+      "submitted": "✓ Received — talk soon!",
+      "note": "No commitment. Reply within 24 h. 100% free."
+    }
   }
 }

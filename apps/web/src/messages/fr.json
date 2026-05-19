@@ -1662,5 +1662,127 @@
       "body": "Cet impact est entièrement rendu possible par les restaurants, boulangeries, hôtels, pâtisseries, épiceries, supermarchés et entreprises utilisant notre application. Chaque fois que votre entreprise utilise Too Fresh To Waste, vous recevez un rapport d'impact mensuel montrant exactement combien de vies vos opérations quotidiennes ont contribué à transformer.",
       "cta": "Devenir Partenaire"
     }
+  },
+  "parclessBag": {
+    "hero": {
+      "eyebrow": "Programme Fabricants · Tunisie · 2025",
+      "headline": {
+        "line1": "Vos surplus.",
+        "line2": "Leur",
+        "line2Em": "seconde",
+        "line3Em": "chance."
+      },
+      "subtitle": "Le Parcless Bag transforme vos invendus et surplus de production en revenus réels — tout en réduisant votre empreinte environnementale et en nourrissant des familles tunisiennes.",
+      "ctaPartner": "Devenir partenaire",
+      "ctaLearnMore": "En savoir plus",
+      "scrollHint": "Découvrir"
+    },
+    "marquee": {
+      "items": [
+        "Zéro gaspillage",
+        "Revenu supplémentaire",
+        "Impact positif",
+        "Première en Tunisie",
+        "Simple & rapide",
+        "Certifié RSE"
+      ]
+    },
+    "concept": {
+      "label": "Le concept",
+      "headlineBefore": "Un sac de",
+      "headlineEm": "surprises",
+      "headlineAfter": "qui fait la différence.",
+      "body1": "Le Parcless Bag est une solution anti-gaspi pensée pour les fabricants tunisiens. Vous conditionnez vos invendus, surplus ou produits proches de la date limite dans un sac mystère à prix réduit. Les consommateurs l'achètent via notre application — et tout le monde gagne.",
+      "body2": "Inspiré du succès mondial de Too Good To Go, le Parcless Bag est adapté aux réalités du marché tunisien : logistique locale, habitudes de consommation et impact social fort.",
+      "tags": [
+        "Fabricants alimentaires",
+        "Boulangeries industrielles",
+        "Producteurs laitiers",
+        "Conserveries"
+      ],
+      "badge": "Nouveau en Tunisie",
+      "statLabel": "Impact mensuel moyen · partenaires actifs",
+      "statDesc": "des fabricants partenaires réduisent leur taux de déchets alimentaires de 70 à 80 % en moins de 3 mois.",
+      "miniStats": [
+        { "n": "+42%", "l": "revenus issus des invendus" },
+        { "n": "2.4k", "l": "utilisateurs actifs au lancement" },
+        { "n": "48h", "l": "délai d'intégration" },
+        { "n": "0 DT", "l": "frais d'installation" }
+      ]
+    },
+    "howItWorks": {
+      "label": "Comment ça marche",
+      "headlineBefore": "Simple comme",
+      "headlineEm": "un sac.",
+      "subtitle": "Trois étapes pour transformer vos surplus en revenus et votre engagement en impact réel.",
+      "steps": [
+        {
+          "n": "01",
+          "icon": "📦",
+          "title": "Vous préparez le sac",
+          "body": "Chaque soir — ou selon votre fréquence — vos équipes conditionnent les surplus du jour dans un Parcless Bag standardisé. Valeur réelle : 2 à 3× le prix de vente sur l'application."
+        },
+        {
+          "n": "02",
+          "icon": "📱",
+          "title": "Les clients réservent",
+          "body": "Votre offre apparaît sur Too Fresh To Waste. Les consommateurs locaux réservent et paient depuis l'application. Zéro gestion commerciale supplémentaire de votre côté."
+        },
+        {
+          "n": "03",
+          "icon": "💳",
+          "title": "Vous êtes payé",
+          "body": "Le paiement est versé directement. Accédez à vos données en temps réel : sacs vendus, revenus générés, CO₂ évité — un dashboard RSE complet inclus."
+        }
+      ]
+    },
+    "benefits": {
+      "label": "Pourquoi rejoindre",
+      "headlineBefore": "Les avantages",
+      "headlineEm": "concrets",
+      "headlineAfter": "pour votre entreprise.",
+      "subtitle": "Pensé pour les réalités des fabricants tunisiens.",
+      "items": [
+        {
+          "title": "Revenus sur l'invendable",
+          "body": "Transformez chaque unité non vendue en cash. Les invendus que vous jetiez représentent une perte sèche — le Parcless Bag les convertit en source de revenus complémentaire, sans effort commercial supplémentaire.",
+          "big": "+42%"
+        },
+        {
+          "title": "Label Zéro Gaspillage",
+          "body": "Obtenez une certification RSE reconnue. Affichez votre engagement sur vos emballages, supports de communication et appels d'offres publics."
+        },
+        {
+          "title": "Dashboard temps réel",
+          "body": "Visualisez vos performances anti-gaspi, vos revenus par période, et votre bilan carbone économisé — mois par mois."
+        },
+        {
+          "title": "Intégration en 48 h",
+          "body": "Notre équipe se charge de tout. Onboarding, formation, support dédié. Vous êtes opérationnel en deux jours ouvrés."
+        },
+        {
+          "title": "Avantage fiscal",
+          "body": "Les dons alimentaires bénéficient d'avantages fiscaux en Tunisie. Notre documentation facilite vos déclarations annuelles."
+        },
+        {
+          "title": "Visibilité locale",
+          "body": "Soyez visible auprès de milliers de consommateurs engagés — une audience premium, sensible à la qualité et à la durabilité."
+        }
+      ]
+    },
+    "quote": {
+      "text": "En Tunisie, 30 % de la production alimentaire finit à la poubelle avant même d'atteindre le consommateur. Ensemble, changeons cette statistique.",
+      "cite": "L'équipe Too Fresh To Waste · Tunis, 2025"
+    },
+    "cta": {
+      "label": "Rejoindre le programme",
+      "headline": "Votre première",
+      "headlineEm": "démarche anti-gaspi.",
+      "body": "Laissez votre email professionnel. Notre équipe vous contacte sous 24 h pour un appel de découverte gratuit et sans engagement. Nous évaluerons ensemble le potentiel de vos surplus.",
+      "placeholder": "votre@entreprise.tn",
+      "submit": "Démarrer",
+      "submitted": "✓ Reçu — à bientôt !",
+      "note": "Aucun engagement. Réponse sous 24 h. 100 % gratuit."
+    }
   }
 }

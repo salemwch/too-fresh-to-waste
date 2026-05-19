@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
+import { useTranslations } from 'next-intl';
 
 // ── Constants ────────────────────────────────────────────────
 const SERIF: CSSProperties = { fontFamily: 'var(--font-cormorant)' };
@@ -157,6 +158,7 @@ function BagSVG() {
 
 // ── Hero ─────────────────────────────────────────────────────
 function HeroSection() {
+  const t = useTranslations('parclessBag.hero');
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
@@ -171,7 +173,7 @@ function HeroSection() {
           className='text-[#C4A35A] text-[0.68rem] font-semibold tracking-[0.22em] uppercase mb-7'
           style={{ opacity: 0, animation: 'fadeUp 0.8s ease forwards 0.2s' }}
         >
-          Programme Fabricants · Tunisie · 2025
+          {t('eyebrow')}
         </p>
 
         <h1
@@ -185,21 +187,22 @@ function HeroSection() {
             animation: 'fadeUp 0.9s ease forwards 0.4s',
           }}
         >
-          <span className='block'>Vos surplus.</span>
+          <span className='block'>{t('headline.line1')}</span>
           <span className='block'>
-            Leur <em className='text-[#C4A35A]'>seconde</em>
+            {t('headline.line2')} <em className='text-[#C4A35A]'>{t('headline.line2Em')}</em>
           </span>
-          <span className='block'>
-            <em className='text-[#C4A35A]'>chance.</em>
-          </span>
+          {t('headline.line3Em') && (
+            <span className='block'>
+              <em className='text-[#C4A35A]'>{t('headline.line3Em')}</em>
+            </span>
+          )}
         </h1>
 
         <p
           className='text-[#7FA896] text-[0.98rem] font-light leading-[1.75] max-w-[370px] mb-11'
           style={{ opacity: 0, animation: 'fadeUp 0.9s ease forwards 0.6s' }}
         >
-          Le Parcless Bag transforme vos invendus et surplus de production en revenus réels — tout
-          en réduisant votre empreinte environnementale et en nourrissant des familles tunisiennes.
+          {t('subtitle')}
         </p>
 
         <div
@@ -210,7 +213,7 @@ function HeroSection() {
             href='#cta'
             className='bg-[#C4A35A] text-primary font-semibold text-[0.82rem] tracking-[0.09em] uppercase px-9 py-4 rounded-full flex items-center gap-2 transition-all hover:-translate-y-0.5 hover:bg-[#F2EBD9] hover:shadow-[0_14px_42px_rgba(196,163,90,0.38)]'
           >
-            Devenir partenaire
+            {t('ctaPartner')}
             <svg
               width='15'
               height='15'
@@ -226,7 +229,7 @@ function HeroSection() {
             className='text-[rgba(242,235,217,0.65)] text-[0.84rem] underline underline-offset-4 bg-transparent border-0 px-2 py-4 cursor-pointer transition-colors hover:text-[#C4A35A]'
             onClick={() => scrollTo('concept')}
           >
-            En savoir plus
+            {t('ctaLearnMore')}
           </button>
         </div>
       </div>
@@ -247,7 +250,9 @@ function HeroSection() {
             style={{ animation: 'slideLight 2.2s ease-in-out infinite' }}
           />
         </div>
-        <span className='text-[0.62rem] tracking-[0.22em] uppercase text-[#7FA896]'>Découvrir</span>
+        <span className='text-[0.62rem] tracking-[0.22em] uppercase text-[#7FA896]'>
+          {t('scrollHint')}
+        </span>
       </div>
     </section>
   );
@@ -255,14 +260,8 @@ function HeroSection() {
 
 // ── Marquee ──────────────────────────────────────────────────
 function MarqueeStrip() {
-  const items = [
-    'Zéro gaspillage',
-    'Revenu supplémentaire',
-    'Impact positif',
-    'Première en Tunisie',
-    'Simple & rapide',
-    'Certifié RSE',
-  ];
+  const t = useTranslations('parclessBag.marquee');
+  const items = t.raw('items') as string[];
 
   return (
     <div className='bg-[#C4A35A] py-[22px] overflow-hidden'>
@@ -290,19 +289,9 @@ function MarqueeStrip() {
 
 // ── Concept ──────────────────────────────────────────────────
 function ConceptSection() {
-  const miniStats = [
-    { n: '+42%', l: 'revenus issus des invendus' },
-    { n: '2.4k', l: 'utilisateurs actifs au lancement' },
-    { n: '48h', l: "délai d'intégration" },
-    { n: '0 DT', l: "frais d'installation" },
-  ];
-
-  const tags = [
-    'Fabricants alimentaires',
-    'Boulangeries industrielles',
-    'Producteurs laitiers',
-    'Conserveries',
-  ];
+  const t = useTranslations('parclessBag.concept');
+  const miniStats = t.raw('miniStats') as Array<{ n: string; l: string }>;
+  const tags = t.raw('tags') as string[];
 
   return (
     <section
@@ -312,7 +301,7 @@ function ConceptSection() {
       {/* Left */}
       <div>
         <p className='rv text-[#C05F4A] text-[0.63rem] font-semibold tracking-[0.26em] uppercase mb-[18px]'>
-          Le concept
+          {t('label')}
         </p>
         <h2
           className='rv d1 text-primary mb-6'
@@ -323,19 +312,15 @@ function ConceptSection() {
             lineHeight: 1.1,
           }}
         >
-          Un sac de <em className='text-[#3D6B5C]'>surprises</em>
+          {t('headlineBefore')} <em className='text-[#3D6B5C]'>{t('headlineEm')}</em>
           <br />
-          qui fait la différence.
+          {t('headlineAfter')}
         </h2>
         <p className='rv d2 text-[#3A4F48] text-[0.96rem] font-light leading-[1.82] mb-5'>
-          Le Parcless Bag est une solution anti-gaspi pensée pour les fabricants tunisiens. Vous
-          conditionnez vos invendus, surplus ou produits proches de la date limite dans un sac
-          mystère à prix réduit. Les consommateurs l&apos;achètent via notre application — et tout
-          le monde gagne.
+          {t('body1')}
         </p>
         <p className='rv d2 text-[#3A4F48] text-[0.96rem] font-light leading-[1.82]'>
-          Inspiré du succès mondial de Too Good To Go, le Parcless Bag est adapté aux réalités du
-          marché tunisien : logistique locale, habitudes de consommation et impact social fort.
+          {t('body2')}
         </p>
         <div className='rv d3 flex flex-wrap gap-[10px] mt-7'>
           {tags.map((tag, i) => (
@@ -359,7 +344,7 @@ function ConceptSection() {
           className='absolute -top-[18px] right-8 z-10 bg-[#C05F4A] text-white rounded-full px-[22px] py-[10px] text-[0.72rem] font-semibold tracking-[0.08em] uppercase shadow-[0_8px_28px_rgba(192,95,74,0.45)]'
           style={{ animation: 'floatItem 3s ease-in-out infinite' }}
         >
-          Nouveau en Tunisie
+          {t('badge')}
         </span>
         <div className='bg-primary rounded-[22px] p-11 relative overflow-hidden'>
           <div
@@ -369,7 +354,7 @@ function ConceptSection() {
             }}
           />
           <p className='text-[#C4A35A] text-[0.62rem] tracking-[0.2em] uppercase mb-[18px]'>
-            Impact mensuel moyen · partenaires actifs
+            {t('statLabel')}
           </p>
           <p
             className='text-[#F2EBD9] leading-none mb-[6px]'
@@ -378,8 +363,7 @@ function ConceptSection() {
             <span className='text-[#C4A35A]'>73</span>%
           </p>
           <p className='text-[#7FA896] text-[0.87rem] font-light leading-[1.65] mb-9'>
-            des fabricants partenaires réduisent leur taux de déchets alimentaires de 70 à 80 % en
-            moins de 3 mois.
+            {t('statDesc')}
           </p>
           <div className='grid grid-cols-2 gap-4'>
             {miniStats.map(({ n, l }) => (
@@ -399,26 +383,8 @@ function ConceptSection() {
 
 // ── How It Works ─────────────────────────────────────────────
 function HowItWorksSection() {
-  const steps = [
-    {
-      n: '01',
-      icon: '📦',
-      title: 'Vous préparez le sac',
-      body: "Chaque soir — ou selon votre fréquence — vos équipes conditionnent les surplus du jour dans un Parcless Bag standardisé. Valeur réelle : 2 à 3× le prix de vente sur l'application.",
-    },
-    {
-      n: '02',
-      icon: '📱',
-      title: 'Les clients réservent',
-      body: "Votre offre apparaît sur Too Fresh To Waste. Les consommateurs locaux réservent et paient depuis l'application. Zéro gestion commerciale supplémentaire de votre côté.",
-    },
-    {
-      n: '03',
-      icon: '💳',
-      title: 'Vous êtes payé',
-      body: 'Le paiement est versé directement. Accédez à vos données en temps réel : sacs vendus, revenus générés, CO₂ évité — un dashboard RSE complet inclus.',
-    },
-  ];
+  const t = useTranslations('parclessBag.howItWorks');
+  const steps = t.raw('steps') as Array<{ n: string; icon: string; title: string; body: string }>;
 
   return (
     <section
@@ -427,16 +393,16 @@ function HowItWorksSection() {
     >
       <div className='text-center mb-[72px] rv'>
         <p className='text-[#C4A35A] text-[0.63rem] font-semibold tracking-[0.26em] uppercase mb-[14px]'>
-          Comment ça marche
+          {t('label')}
         </p>
         <h2
           className='text-[#F2EBD9] mb-[14px]'
           style={{ ...SERIF, fontSize: 'clamp(2.4rem, 3.8vw, 3.6rem)', fontWeight: 400 }}
         >
-          Simple comme <em className='text-[#C4A35A]'>un sac.</em>
+          {t('headlineBefore')} <em className='text-[#C4A35A]'>{t('headlineEm')}</em>
         </h2>
         <p className='text-[#7FA896] text-[0.96rem] font-light max-w-[460px] mx-auto leading-[1.72]'>
-          Trois étapes pour transformer vos surplus en revenus et votre engagement en impact réel.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -472,15 +438,6 @@ function HowItWorksSection() {
 // ── Benefits ─────────────────────────────────────────────────
 type BenefitType = 'dark' | 'green' | 'gold' | 'light' | 'terra';
 
-interface Benefit {
-  type: BenefitType;
-  wide?: boolean;
-  icon: string;
-  title: string;
-  body: string;
-  big?: string;
-}
-
 const BENEFIT_STYLES: Record<BenefitType, { bg: string; title: string; body: string }> = {
   dark: { bg: 'bg-primary', title: 'text-[#C4A35A]', body: 'text-[#7FA896]' },
   green: { bg: 'bg-[#3D6B5C]', title: 'text-[#F2EBD9]', body: 'text-[#F2EBD9]' },
@@ -493,91 +450,61 @@ const BENEFIT_STYLES: Record<BenefitType, { bg: string; title: string; body: str
   terra: { bg: 'bg-[#C05F4A]', title: 'text-white', body: 'text-white' },
 };
 
-const BENEFITS: Benefit[] = [
-  {
-    type: 'dark',
-    wide: true,
-    icon: '💰',
-    title: "Revenus sur l'invendable",
-    body: 'Transformez chaque unité non vendue en cash. Les invendus que vous jetiez représentent une perte sèche — le Parcless Bag les convertit en source de revenus complémentaire, sans effort commercial supplémentaire.',
-    big: '+42%',
-  },
-  {
-    type: 'green',
-    icon: '🌿',
-    title: 'Label Zéro Gaspillage',
-    body: "Obtenez une certification RSE reconnue. Affichez votre engagement sur vos emballages, supports de communication et appels d'offres publics.",
-  },
-  {
-    type: 'light',
-    icon: '📊',
-    title: 'Dashboard temps réel',
-    body: 'Visualisez vos performances anti-gaspi, vos revenus par période, et votre bilan carbone économisé — mois par mois.',
-  },
-  {
-    type: 'gold',
-    icon: '🤝',
-    title: 'Intégration en 48 h',
-    body: 'Notre équipe se charge de tout. Onboarding, formation, support dédié. Vous êtes opérationnel en deux jours ouvrés.',
-  },
-  {
-    type: 'terra',
-    icon: '🏛️',
-    title: 'Avantage fiscal',
-    body: "Les dons alimentaires bénéficient d'avantages fiscaux en Tunisie. Notre documentation facilite vos déclarations annuelles.",
-  },
-  {
-    type: 'dark',
-    icon: '🎯',
-    title: 'Visibilité locale',
-    body: 'Soyez visible auprès de milliers de consommateurs engagés — une audience premium, sensible à la qualité et à la durabilité.',
-  },
+const BENEFIT_LAYOUT: Array<{ type: BenefitType; wide?: boolean; icon: string }> = [
+  { type: 'dark', wide: true, icon: '💰' },
+  { type: 'green', icon: '🌿' },
+  { type: 'light', icon: '📊' },
+  { type: 'gold', icon: '🤝' },
+  { type: 'terra', icon: '🏛️' },
+  { type: 'dark', icon: '🎯' },
 ];
 
 function BenefitsSection() {
+  const t = useTranslations('parclessBag.benefits');
+  const benefitTexts = t.raw('items') as Array<{ title: string; body: string; big?: string }>;
+
   return (
     <section className='bg-[#F2EBD9] px-9 py-20 lg:px-20 lg:py-28'>
       <div className='mb-[52px] rv'>
         <p className='text-[#C05F4A] text-[0.63rem] font-semibold tracking-[0.26em] uppercase mb-[10px]'>
-          Pourquoi rejoindre
+          {t('label')}
         </p>
         <h2
           className='text-primary mb-[10px]'
           style={{ ...SERIF, fontSize: 'clamp(2.4rem, 3.8vw, 3.6rem)', fontWeight: 400 }}
         >
-          Les avantages <em className='text-[#3D6B5C]'>concrets</em>
+          {t('headlineBefore')} <em className='text-[#3D6B5C]'>{t('headlineEm')}</em>
           <br />
-          pour votre entreprise.
+          {t('headlineAfter')}
         </h2>
-        <p className='text-[#5A7A72] text-[0.96rem] font-light'>
-          Pensé pour les réalités des fabricants tunisiens.
-        </p>
+        <p className='text-[#5A7A72] text-[0.96rem] font-light'>{t('subtitle')}</p>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[18px]'>
-        {BENEFITS.map((b, i) => {
-          const s = BENEFIT_STYLES[b.type];
+        {BENEFIT_LAYOUT.map((layout, i) => {
+          const text = benefitTexts[i];
+          const s = BENEFIT_STYLES[layout.type];
           return (
             <div
               key={i}
-              className={`rv d${(i % 3) + 1} ${s.bg} ${b.wide ? 'lg:col-span-2' : ''} rounded-[20px] p-[38px] transition-transform duration-300 hover:-translate-y-1.5`}
+              className={`rv d${(i % 3) + 1} ${s.bg} ${layout.wide ? 'lg:col-span-2' : ''} rounded-[20px] p-[38px] transition-transform duration-300 hover:-translate-y-1.5`}
             >
-              <span className='block text-[1.9rem] mb-[22px]'>{b.icon}</span>
+              <span className='block text-[1.9rem] mb-[22px]'>{layout.icon}</span>
               <h3
                 className={`${s.title} mb-[10px]`}
                 style={{ ...SERIF, fontSize: '1.45rem', fontWeight: 400, lineHeight: 1.2 }}
               >
-                {b.title}
+                {text.title}
               </h3>
               <p className={`${s.body} text-[0.84rem] font-light leading-[1.72] opacity-[0.82]`}>
-                {b.body}
+                {text.body}
               </p>
-              {b.big && (
+              {text.big && (
                 <span
                   className='block mt-6 leading-none text-[#C4A35A]'
                   style={{ ...SERIF, fontSize: '3.8rem', fontWeight: 300 }}
                 >
-                  {b.big}
+                  {text.big}
                 </span>
               )}
             </div>
@@ -590,6 +517,8 @@ function BenefitsSection() {
 
 // ── Quote ────────────────────────────────────────────────────
 function QuoteSection() {
+  const t = useTranslations('parclessBag.quote');
+
   return (
     <section className='bg-[#F2EBD9] px-9 py-24 lg:px-20 flex flex-col items-center text-center'>
       <div
@@ -608,11 +537,10 @@ function QuoteSection() {
           lineHeight: 1.42,
         }}
       >
-        En Tunisie, 30 % de la production alimentaire finit à la poubelle avant même
-        d&apos;atteindre le consommateur. Ensemble, changeons cette statistique.
+        {t('text')}
       </blockquote>
       <cite className='rv text-[#C05F4A] text-[0.74rem] font-semibold tracking-[0.16em] uppercase not-italic'>
-        L&apos;équipe Too Fresh To Waste · Tunis, 2025
+        {t('cite')}
       </cite>
     </section>
   );
@@ -620,6 +548,7 @@ function QuoteSection() {
 
 // ── CTA ──────────────────────────────────────────────────────
 function CTASection() {
+  const t = useTranslations('parclessBag.cta');
   const [submitted, setSubmitted] = useState(false);
   const [email, setEmail] = useState('');
 
@@ -645,7 +574,7 @@ function CTASection() {
 
       <div className='max-w-[680px] relative z-10'>
         <p className='rv text-[#C4A35A] text-[0.62rem] tracking-[0.26em] uppercase mb-[18px]'>
-          Rejoindre le programme
+          {t('label')}
         </p>
         <h2
           className='rv text-[#F2EBD9] mb-[18px]'
@@ -656,14 +585,12 @@ function CTASection() {
             lineHeight: 1.08,
           }}
         >
-          Votre première
+          {t('headline')}
           <br />
-          <em className='text-[#C4A35A]'>démarche anti-gaspi.</em>
+          <em className='text-[#C4A35A]'>{t('headlineEm')}</em>
         </h2>
         <p className='rv text-[#7FA896] text-[0.96rem] font-light leading-[1.75] mb-9'>
-          Laissez votre email professionnel. Notre équipe vous contacte sous 24 h pour un appel de
-          découverte gratuit et sans engagement. Nous évaluerons ensemble le potentiel de vos
-          surplus.
+          {t('body')}
         </p>
 
         <form
@@ -674,7 +601,7 @@ function CTASection() {
             type='email'
             value={email}
             onChange={e => setEmail(e.target.value)}
-            placeholder='votre@entreprise.tn'
+            placeholder={t('placeholder')}
             required
             className='flex-1 bg-[rgba(255,255,255,0.07)] border border-[rgba(196,163,90,0.28)] rounded-full px-[22px] py-[15px] text-[#F2EBD9] text-[0.88rem] outline-none focus:border-[#C4A35A] transition-colors placeholder:text-[rgba(242,235,217,0.28)]'
           />
@@ -685,10 +612,10 @@ function CTASection() {
             }`}
           >
             {submitted ? (
-              '✓ Reçu — à bientôt !'
+              t('submitted')
             ) : (
               <>
-                Démarrer
+                {t('submit')}
                 <svg
                   width='14'
                   height='14'
@@ -704,9 +631,7 @@ function CTASection() {
           </button>
         </form>
 
-        <p className='rv mt-[13px] text-[0.72rem] text-[rgba(242,235,217,0.35)]'>
-          Aucun engagement. Réponse sous 24 h. 100 % gratuit.
-        </p>
+        <p className='rv mt-[13px] text-[0.72rem] text-[rgba(242,235,217,0.35)]'>{t('note')}</p>
       </div>
     </section>
   );
