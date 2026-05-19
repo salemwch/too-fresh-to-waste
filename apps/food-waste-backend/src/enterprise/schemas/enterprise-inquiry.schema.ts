@@ -6,22 +6,22 @@ export type EnterpriseInquiryDocument = EnterpriseInquiry & Document;
 @Schema({ timestamps: true, collection: 'enterprise_inquiries' })
 export class EnterpriseInquiry {
   @Prop({ required: true, trim: true })
-  companyName: string;
+  companyName!: string;
 
   @Prop({ required: true, trim: true, lowercase: true })
-  email: string;
+  email!: string;
 
   @Prop({ required: true, trim: true })
-  firstName: string;
+  firstName!: string;
 
   @Prop({ required: true, trim: true })
-  lastName: string;
+  lastName!: string;
 
   @Prop({ required: true, trim: true })
-  phone: string;
+  phone!: string;
 
   @Prop({ trim: true, default: '' })
-  message: string;
+  message!: string;
 }
 
 export const EnterpriseInquirySchema = SchemaFactory.createForClass(EnterpriseInquiry);

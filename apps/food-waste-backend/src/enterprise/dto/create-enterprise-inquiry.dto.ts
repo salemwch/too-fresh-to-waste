@@ -4,27 +4,27 @@ export class CreateEnterpriseInquiryDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(200)
-  companyName: string;
+  companyName!: string;
 
   @IsEmail()
   @IsNotEmpty()
   @MaxLength(255)
-  email: string;
+  email!: string;
 
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  firstName: string;
+  firstName!: string;
 
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  lastName: string;
+  lastName!: string;
 
   @IsString()
   @IsNotEmpty()
   @MaxLength(30)
-  phone: string;
+  phone!: string;
 
   @IsString()
   @IsOptional()
