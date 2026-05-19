@@ -894,6 +894,10 @@ export class UsersService implements IUsersService {
       throw new NotFoundException('User not found');
     }
 
+    if (!user.password) {
+      throw new BadRequestException('Cannot set password for a Google-only account');
+    }
+
     // 2. Check password history to prevent reuse
     const currentHistory = user.securitySettings?.passwordHistory ?? [];
     await this.passwordHistoryService.validatePasswordHistory(newPassword, currentHistory);
@@ -1849,24 +1853,37 @@ export class UsersService implements IUsersService {
     return user;
   }
 
-  async linkGoogleId(userId: string, googleId: string): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, {
-      $set: { googleId, authProvider: 'google' },
-    });
+  async linkGoogleId(userId: string, googleId: string): Promise<UserDocument> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(userId, { $set: { googleId, authProvider: 'google' } }, { new: true })
+      .exec();
+    if (!updated) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+    return updated;
   }
 
-  async linkGoogleToSquattedAccount(userId: string, googleId: string): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, {
-      $set: {
-        googleId,
-        authProvider: 'google',
-        isEmailVerified: true,
-        password: undefined,
-        status: UserStatus.ACTIVE,
-      },
-      $inc: { tokenRevocationVersion: 1 },
-      $unset: { password: '' },
-    });
+  async linkGoogleToSquattedAccount(userId: string, googleId: string): Promise<UserDocument> {
+    const updated = await this.userModel
+      .findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            googleId,
+            authProvider: 'google',
+            isEmailVerified: true,
+            status: UserStatus.ACTIVE,
+          },
+          $inc: { tokenRevocationVersion: 1 },
+          $unset: { password: '' },
+        },
+        { new: true },
+      )
+      .exec();
+    if (!updated) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+    return updated;
   }
 
   async createGoogleUser(data: {
