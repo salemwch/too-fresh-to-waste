@@ -29,32 +29,11 @@ function useScrollReveal() {
 
 // ── Bag SVG ──────────────────────────────────────────────────
 function BagSVG() {
-  const floaters = [
-    { emoji: '🫐', pos: 'top-[6%] left-[-8%]', delay: '0s' },
-    { emoji: '🥐', pos: 'top-[4%] right-[2%]', delay: '0.6s' },
-    { emoji: '🍊', pos: 'top-[44%] left-[-14%]', delay: '1.1s' },
-    { emoji: '🧀', pos: 'bottom-[18%] right-[-4%]', delay: '0.3s' },
-    { emoji: '🍞', pos: 'bottom-[8%] left-[-6%]', delay: '0.9s' },
-  ];
-
   return (
     <div
-      className='relative w-[360px] h-[420px]'
+      className='relative w-[460px] h-[540px]'
       style={{ opacity: 0, animation: 'fadeIn 1.2s ease forwards 0.3s' }}
     >
-      {floaters.map(({ emoji, pos, delay }) => (
-        <span
-          key={emoji}
-          className={`absolute text-[1.9rem] select-none ${pos}`}
-          style={{
-            animation: `floatItem 3.2s ease-in-out ${delay} infinite`,
-            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.4))',
-          }}
-        >
-          {emoji}
-        </span>
-      ))}
-
       <svg
         viewBox='0 0 360 420'
         fill='none'
@@ -130,7 +109,7 @@ function BagSVG() {
         {/* Label */}
         <text
           x='180'
-          y='295'
+          y='342'
           fontFamily='serif'
           fontSize='16'
           fontWeight='400'
@@ -253,7 +232,7 @@ function HeroSection() {
       </div>
 
       {/* Right — bag (hidden on mobile) */}
-      <div className='hidden lg:flex items-center justify-center relative z-10 overflow-hidden'>
+      <div className='hidden lg:flex items-center justify-center relative z-10'>
         <BagSVG />
       </div>
 
