@@ -25,6 +25,7 @@ import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { registerMobileSchema, type RegisterMobileFormData } from '@/utils/validation/schemas';
 
+import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { registerAsync, clearError } from '../store/authSlice';
 import { UserRole } from '../types';
 
@@ -486,8 +487,20 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
             Sign Up
           </Button>
 
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
+            <Text variant='body.small' color='secondary' style={styles.dividerText}>
+              OR
+            </Text>
+            <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
+          </View>
+
+          {/* Google Sign-In */}
+          <GoogleSignInButton />
+
           {/* Login Link */}
-          <View style={styles.loginContainer}>
+          <View style={[styles.loginContainer, { marginTop: 16 }]}>
             <Text variant='body.medium' color={theme.colors.onSurfaceVariant}>
               Already have an account?{' '}
             </Text>
@@ -565,6 +578,18 @@ const styles = StyleSheet.create({
   },
   registerButton: {
     marginBottom: 16,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    marginHorizontal: 16,
   },
   loginContainer: {
     flexDirection: 'row',

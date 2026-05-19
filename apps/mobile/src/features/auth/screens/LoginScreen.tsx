@@ -32,6 +32,7 @@ import { Logger } from '@/utils/logger';
 import { showSuccessToast } from '@/utils/toast';
 import { loginSchema, type LoginFormData } from '@/utils/validation/schemas';
 
+import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { authService } from '../services/authService';
 import { loginAsync, clearError, selectAuthIsLoading, selectAuthError } from '../store/authSlice';
 
@@ -640,6 +641,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             </Text>
             <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
           </View>
+
+          {/* Google Sign-In */}
+          <GoogleSignInButton />
 
           {/* Register Link */}
           <View style={styles.registerContainer}>
