@@ -52,8 +52,14 @@ export class User {
   @Prop({ required: true })
   email!: string;
 
-  @Prop({ required: true })
-  password!: string;
+  @Prop({ type: String })
+  password?: string;
+
+  @Prop({ type: String, enum: ['local', 'google', 'facebook', 'apple'], default: 'local' })
+  authProvider!: string;
+
+  @Prop({ type: String })
+  googleId?: string;
 
   @Prop({ required: true })
   firstName!: string;
@@ -889,3 +895,10 @@ UserSchema.index(
   },
   { sparse: true },
 );
+
+/**
+ * Google Sign-In Identity Index
+ * - Prevents duplicate Google accounts (one googleId = one user)
+ * - Sparse: only indexes documents where googleId is set
+ */
+UserSchema.index({ googleId: 1 }, { unique: true, sparse: true });
