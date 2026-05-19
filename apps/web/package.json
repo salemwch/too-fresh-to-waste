@@ -28,6 +28,7 @@
     "@radix-ui/react-slot": "1.1.1",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "1.1.6",
+    "@react-oauth/google": "^0.13.5",
     "@sentry/nextjs": "^10.48.0",
     "@tanstack/react-query": "5.62.16",
     "@tanstack/react-query-devtools": "5.62.16",

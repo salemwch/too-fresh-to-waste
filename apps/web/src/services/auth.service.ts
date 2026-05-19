@@ -73,4 +73,8 @@ export const authService = {
       { password },
     );
   },
+
+  googleSignIn(idToken: string) {
+    return apiClient.post<ApiResponse<LoginResponse>>(`${AUTH_BASE}/google`, { idToken });
+  },
 };
