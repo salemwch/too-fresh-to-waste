@@ -30,6 +30,7 @@ import { MfaService } from './services/mfa.service';
 import { PasswordHistoryService } from './services/password-history.service';
 import { PasswordPolicyService } from './services/password-policy.service';
 import { SessionManagementService } from './services/session-management.service';
+import { GoogleAuthService } from './services/google-auth.service';
 import { TokenService } from './services/token.service';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategie';
 import { JwtStrategy } from './strategies/jwt.strategie';
@@ -100,6 +101,9 @@ import type { StringValue } from 'ms';
 
     // Middleware
     TenantContextMiddleware,
+
+    // Google Sign-In
+    GoogleAuthService,
 
     // Scheduled Tasks
     AuthCleanupTask,

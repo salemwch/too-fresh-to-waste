@@ -47,7 +47,9 @@ import { ResetPasswordDto } from './DTO/reset-password.dto';
 import { VerifyEmailDto } from './DTO/verify-email.dto';
 import { AuthThrottlerGuard } from './guards/auth-throttler.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { GoogleAuthDto } from './DTO/google-auth.dto';
 import { CsrfService } from './services/csrf.service';
+import { GoogleAuthService } from './services/google-auth.service';
 import { MfaService } from './services/mfa.service';
 import { PasswordPolicyService } from './services/password-policy.service';
 import { SessionManagementService } from './services/session-management.service';
@@ -82,6 +84,7 @@ export class AuthController {
     private readonly passwordPolicyService: PasswordPolicyService,
     private readonly mfaService: MfaService,
     private readonly usersService: UsersService,
+    private readonly googleAuthService: GoogleAuthService,
   ) {}
   @Post('register')
   @Public()
@@ -336,6 +339,42 @@ export class AuthController {
         platform: sessionInfo.deviceInfo.platform,
         browser: sessionInfo.deviceInfo.browser,
       },
+    };
+  }
+
+  @Post('google')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'Sign in or register with Google ID token' })
+  async googleSignIn(
+    @Body() dto: GoogleAuthDto,
+    @Request() req: ExpressRequest,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ): Promise<LoginResponse> {
+    const requestInfo = {
+      ipAddress: req.ip ?? req.socket?.remoteAddress ?? 'unknown',
+      userAgent: req.get('User-Agent') ?? 'unknown',
+    };
+
+    const result = await this.googleAuthService.signIn(dto.idToken, requestInfo);
+
+    const sessionInfo = await this.sessionManagementService.createSession({
+      userId: result.user.userId,
+      userAgent: requestInfo.userAgent,
+      ipAddress: requestInfo.ipAddress,
+      rememberMe: false,
+    });
+
+    this.setAuthCookies(res, result.tokens, sessionInfo.sessionId);
+
+    return {
+      success: true,
+      message: 'Google Sign-In successful',
+      user: result.user,
+      tokens: result.tokens,
+      sessionId: sessionInfo.sessionId,
     };
   }
 
