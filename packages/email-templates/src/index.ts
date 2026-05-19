@@ -9,3 +9,6 @@ export type { WelcomeEmailProps } from './templates/WelcomeEmail';
 
 export { WaitlistEmail } from './templates/WaitlistEmail';
 export type { WaitlistEmailProps } from './templates/WaitlistEmail';
+
+export { GoogleLinkedEmail } from './templates/GoogleLinkedEmail';
+export type { GoogleLinkedEmailProps } from './templates/GoogleLinkedEmail';

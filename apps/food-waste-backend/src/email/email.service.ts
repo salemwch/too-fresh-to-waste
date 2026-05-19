@@ -1,7 +1,12 @@
 // src/email/email.service.ts
 import { randomUUID } from 'node:crypto';
 
-import { VerificationEmail, ResetPasswordEmail, WelcomeEmail } from '@foodwaste/email-templates';
+import {
+  VerificationEmail,
+  ResetPasswordEmail,
+  WelcomeEmail,
+  GoogleLinkedEmail,
+} from '@foodwaste/email-templates';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { render } from '@react-email/render';
@@ -272,6 +277,29 @@ export class EmailService implements IEmailService {
     return this.sendEmail({
       to: user.email,
       subject: 'Reset your Too Fresh To Waste password',
+      html,
+      text,
+    });
+  }
+
+  async sendGoogleLinkedEmail(email: string, firstName: string): Promise<boolean> {
+    const html = await render(React.createElement(GoogleLinkedEmail, { firstName }));
+
+    const text = [
+      `Hi ${firstName},`,
+      '',
+      'Your Too Fresh To Waste account has been linked to Google Sign-In.',
+      'You can now sign in quickly using your Google account.',
+      '',
+      'If you did not initiate this, please contact support immediately.',
+      '',
+      'Best regards,',
+      'The Too Fresh To Waste Team',
+    ].join('\n');
+
+    return this.sendEmail({
+      to: email,
+      subject: 'Google Sign-In linked to your Too Fresh To Waste account',
       html,
       text,
     });
