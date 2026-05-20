@@ -286,10 +286,6 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
         nestedScrollEnabled
       >
         <Card style={styles.formCard}>
-          <Text variant='headline.large' weight='semibold' style={styles.formTitle}>
-            Create your account
-          </Text>
-
           {/* Global error message from Redux - dismissable banner */}
           {error !== undefined &&
             error !== '' &&
@@ -446,22 +442,22 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
 
           {/* Terms and Privacy Policy - Automatic Acceptance */}
           <View style={styles.termsContainer}>
-            <Text variant='body.small' color='secondary' style={styles.termsText}>
-              By registering, you agree to the{' '}
+            <Text variant='label.small' color='secondary' style={styles.termsText}>
+              By registering, you agree to our{' '}
               <Text
-                variant='body.small'
-                weight='bold'
+                variant='label.small'
+                weight='semibold'
                 style={{ color: theme.colors.primary }}
                 onPress={() =>
                   void Linking.openURL('https://toofreshtowaste.com/en/terms-and-conditions')
                 }
               >
-                Terms of Service
-              </Text>{' '}
-              and{' '}
+                Terms
+              </Text>
+              {' & '}
               <Text
-                variant='body.small'
-                weight='bold'
+                variant='label.small'
+                weight='semibold'
                 style={{ color: theme.colors.primary }}
                 onPress={() =>
                   void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy')
@@ -537,9 +533,6 @@ const styles = StyleSheet.create({
   },
   formCard: {
     padding: 24,
-  },
-  formTitle: {
-    marginBottom: 24,
   },
   errorBanner: {
     flexDirection: 'row',

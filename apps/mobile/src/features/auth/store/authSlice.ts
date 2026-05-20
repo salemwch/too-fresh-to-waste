@@ -52,18 +52,19 @@ export const loginAsync = createAsyncThunk(
     try {
       const response = await authService.login(request);
 
-      // Fire-and-forget ALL persistence on login.
-      // Tokens are placed in Redux state synchronously when loginAsync.fulfilled runs,
-      // so the active session reads from memory — not from Keychain.
-      // Keychain is only needed for cold-start re-hydration; the write window is
-      // milliseconds, so the risk of losing tokens before the write completes is
-      // negligible and the user can simply log in again. (Contrast with token
-      // REFRESH where the old token is immediately revoked — that write must be awaited.)
+      // CRITICAL: await token write before returning.
+      // The session middleware starts immediately when AUTHENTICATED fires and reads
+      // the refresh token from Keychain. On New Architecture (JSI/TurboModules) native
+      // calls are no longer serialised through the old bridge queue, so a fire-and-forget
+      // write races the middleware's read — if the read wins, validateTokenLocally sees
+      // null → performLocalLogout → SESSION_EXPIRED, and the user never reaches MainStack.
+      await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
+
+      // Non-critical writes: fire-and-forget is fine (user data + metadata are
+      // not read by the session manager on startup).
       backgroundStorage.execute('login-persist', async () => {
         const expiresAt = new Date(Date.now() + response.tokens.expiresIn * 1000);
-        // All three writes are independent — run in parallel instead of sequential
         await Promise.all([
-          SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken),
           SecureStorage.setUserData(JSON.stringify(response.user)),
           SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString()),
         ]);
@@ -124,14 +125,25 @@ export const googleSignInAsync = createAsyncThunk(
     try {
       const response = await authService.googleSignIn(idToken);
 
+      // CRITICAL: await token write before returning.
+      // The session middleware starts immediately when AUTHENTICATED fires and
+      // reads the refresh token from Keychain. On New Architecture (JSI/TurboModules)
+      // native calls are no longer serialised through the old bridge queue, so a
+      // fire-and-forget write races the middleware's read — if the read wins,
+      // validateTokenLocally sees null → performLocalLogout → SESSION_EXPIRED,
+      // and the user never reaches MainStack.
+      await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
+
+      // Non-critical writes: fire-and-forget is fine (user data + metadata are
+      // not read by the session manager on startup).
       backgroundStorage.execute('google-signin-persist', async () => {
         const expiresAt = new Date(Date.now() + response.tokens.expiresIn * 1000);
         await Promise.all([
-          SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken),
           SecureStorage.setUserData(JSON.stringify(response.user)),
           SecureStorage.setSessionMetadata(expiresAt.toISOString(), new Date().toISOString()),
         ]);
       });
+
       return response;
     } catch (error) {
       Logger.error('Google Sign-In failed', {}, error as Error);

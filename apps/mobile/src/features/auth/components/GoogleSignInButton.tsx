@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Toast from 'react-native-toast-message';
 
-import { Text } from '@/design-system/components/atoms';
+import GoogleButtonSvg from '@/assets/images/android_light_rd_ctn.svg';
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch } from '@/hooks/redux';
 import { Logger } from '@/utils/logger';
@@ -25,10 +25,24 @@ export function GoogleSignInButton() {
       const idToken = userInfo.data?.idToken;
 
       if (!idToken) {
-        throw new Error('missing_id_token');
+        // signIn() resolved but returned no token (user cancelled or
+        // One-Tap returned no credential). Show feedback so the user
+        // knows something went wrong rather than seeing a frozen screen.
+        Toast.show({
+          type: 'error',
+          text1: 'Google Sign-In failed',
+          text2: 'Could not retrieve credentials. Please try again.',
+        });
+        return;
       }
 
       await dispatch(googleSignInAsync(idToken)).unwrap();
+
+      Toast.show({
+        type: 'success',
+        text1: 'Welcome!',
+        text2: 'You have signed in with Google.',
+      });
     } catch (error: unknown) {
       const err = error as { code?: string; message?: string };
 
@@ -59,27 +73,16 @@ export function GoogleSignInButton() {
     <Pressable
       onPress={() => void handlePress()}
       disabled={isLoading}
-      style={({ pressed }) => [
-        styles.button,
-        { borderColor: theme.colors.outline, backgroundColor: theme.colors.surface },
-        pressed && styles.buttonPressed,
-      ]}
+      style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
       accessibilityRole='button'
       accessibilityLabel='Continue with Google'
     >
       {isLoading ? (
-        <ActivityIndicator size='small' color={theme.colors.primary} />
-      ) : (
-        <View style={styles.inner}>
-          <View style={styles.gBadge}>
-            <Text variant='body.medium' weight='bold' style={styles.gLetter}>
-              G
-            </Text>
-          </View>
-          <Text variant='body.medium' weight='semibold' color={theme.colors.onSurface}>
-            Continue with Google
-          </Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size='small' color={theme.colors.primary} />
         </View>
+      ) : (
+        <GoogleButtonSvg width='100%' height={52} />
       )}
     </Pressable>
   );
@@ -87,33 +90,17 @@ export function GoogleSignInButton() {
 
 const styles = StyleSheet.create({
   button: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 52,
+    width: '100%',
   },
   buttonPressed: {
-    opacity: 0.8,
+    opacity: 0.85,
   },
-  inner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  gBadge: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#4285F4',
+  loadingContainer: {
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  gLetter: {
-    color: '#fff',
-    fontSize: 13,
-    lineHeight: 16,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#dadce0',
   },
 });
