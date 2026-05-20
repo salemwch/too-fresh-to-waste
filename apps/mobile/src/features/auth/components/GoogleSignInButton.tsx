@@ -11,7 +11,7 @@ import { Logger } from '@/utils/logger';
 import { googleSignInAsync } from '../store/authSlice';
 
 export function GoogleSignInButton() {
-  const { theme } = useTheme();
+  const theme = useTheme();
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
 
