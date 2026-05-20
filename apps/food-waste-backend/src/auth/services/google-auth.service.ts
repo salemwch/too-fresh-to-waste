@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { OAuth2Client, TokenPayload } from 'google-auth-library';
 
 import { UserRole, UserStatus } from '@foodwaste/shared';
+import { UserRegisteredEvent } from 'src/common/events';
+import { EventBusService } from 'src/common/services/event-bus/event-bus.service';
 import { EmailService } from 'src/email/email.service';
 import { UserDocument } from 'src/users/schemas/user.schema';
 import { UsersService } from 'src/users/user.service';
@@ -26,6 +28,7 @@ export class GoogleAuthService {
     private readonly usersService: UsersService,
     private readonly tokenService: TokenService,
     private readonly emailService: EmailService,
+    private readonly eventBus: EventBusService,
   ) {
     this.oauth2Client = new OAuth2Client(this.configService.get<string>('GOOGLE_CLIENT_ID'));
   }
@@ -94,6 +97,24 @@ export class GoogleAuthService {
           lastName,
           ...(picture ? { picture } : {}),
         });
+
+        try {
+          await this.eventBus.emit(
+            'user.registered',
+            new UserRegisteredEvent(
+              user._id.toString(),
+              user.email,
+              user.role as string,
+              new Date(),
+            ),
+          );
+          this.logger.log(`User registered event emitted for Google user: ${user._id}`);
+        } catch (eventError) {
+          this.logger.error(
+            `Failed to emit user registered event for Google user: ${(eventError as Error).message}`,
+            (eventError as Error).stack,
+          );
+        }
       }
     }
     // Case 1: found by googleId — fall through

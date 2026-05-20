@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Toast from 'react-native-toast-message';
@@ -35,8 +35,7 @@ export function GoogleSignInButton() {
 
       Toast.show({
         type: 'success',
-        text1: 'Welcome!',
-        text2: 'You are now signed in with Google.',
+        text1: 'Welcome! \u{1F44B}',
       });
     } catch (error: unknown) {
       const err = error as { code?: string; message?: string };
@@ -66,7 +65,7 @@ export function GoogleSignInButton() {
 
   return (
     <Pressable
-      onPress={() => void handlePress()}
+      onPress={handlePress}
       disabled={isLoading}
       style={({ pressed }) => [
         styles.button,
@@ -75,6 +74,7 @@ export function GoogleSignInButton() {
       ]}
       accessibilityRole='button'
       accessibilityLabel='Continue with Google'
+      accessibilityHint='Sign in with your Google account'
       accessibilityState={{ busy: isLoading }}
     >
       <GoogleButtonSvg width='100%' height={52} />
