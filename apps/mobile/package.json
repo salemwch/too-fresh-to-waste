@@ -100,6 +100,8 @@
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.5.1",
     "react-native-sms-retriever": "^1.1.1",
+    "react-native-svg": "^15.15.5",
+    "react-native-svg-transformer": "^1.5.3",
     "react-native-toast-message": "^2.3.3",
     "react-native-worklets": "^0.7.0",
     "react-redux": "^9.2.0",

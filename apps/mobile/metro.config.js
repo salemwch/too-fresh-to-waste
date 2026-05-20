@@ -65,6 +65,10 @@ const isProd = process.env.NODE_ENV === 'production';
 // METRO CONFIGURATION
 // ============================================================================
 
+// Pull default resolver lists so we can move SVG out of assets and into sources
+const defaultConfig = getDefaultConfig(__dirname);
+const { assetExts: defaultAssetExts, sourceExts: defaultSourceExts } = defaultConfig.resolver;
+
 const config = {
   /**
    * Project root directory
@@ -176,7 +180,7 @@ const config = {
      * Optimization: Platform-specific files first for faster resolution
      * Note: 'svg' added to sourceExts for react-native-svg-transformer support
      */
-    sourceExts: ['ts', 'tsx', 'js', 'jsx', 'json', 'mjs', 'cjs'],
+    sourceExts: [...defaultSourceExts, 'ts', 'tsx', 'js', 'jsx', 'json', 'mjs', 'cjs', 'svg'],
 
     /**
      * Asset file extensions
@@ -192,7 +196,7 @@ const config = {
       'jpeg',
       'gif',
       'webp',
-      'svg',
+      // svg intentionally excluded — handled as source via react-native-svg-transformer
       // Fonts
       'ttf',
       'otf',
@@ -216,6 +220,8 @@ const config = {
      * Performance Impact: ~5-10% faster module resolution
      */
     blockList: [
+      // Ignore git worktrees — they duplicate root package.json causing Haste collisions
+      /[/\\]\.worktrees[/\\]/,
       // Ignore build artifacts (scoped to project — not node_modules which use dist/)
       /\/build\//,
       /\.expo\//,
@@ -247,6 +253,8 @@ const config = {
      *   - Improves app startup time by ~200-400ms
      *   - Modules loaded only when needed
      */
+    babelTransformerPath: require.resolve('react-native-svg-transformer'),
+
     getTransformOptions: async () => ({
       transform: {
         experimentalImportSupport: false,
