@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { CommunityGoalCauseType } from '@foodwaste/shared';
+import type { CommunityGoalCauseType } from '@foodwaste/shared';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 
@@ -41,7 +41,7 @@ interface CauseConfig {
 }
 
 const CAUSE_CONFIG: Record<CommunityGoalCauseType, CauseConfig> = {
-  [CommunityGoalCauseType.FOOD]: {
+  FOOD: {
     emoji: '🍞',
     accentColor: '#E65100',
     bgColor: '#FFF3E0',
@@ -49,7 +49,7 @@ const CAUSE_CONFIG: Record<CommunityGoalCauseType, CauseConfig> = {
     defaultStory:
       'Every day, families across Tunisia struggle to put a meal on the table — not because food does not exist, but because it never reached them. Our donations go directly to food banks and local organisations that distribute meals to those who need them most.',
   },
-  [CommunityGoalCauseType.CLOTHING]: {
+  CLOTHING: {
     emoji: '👕',
     accentColor: '#1565C0',
     bgColor: '#E3F2FD',
@@ -57,7 +57,7 @@ const CAUSE_CONFIG: Record<CommunityGoalCauseType, CauseConfig> = {
     defaultStory:
       'Thousands of children in Tunisia head to school wearing clothes that are worn out or too thin for the cold. Our donations fund the purchase and distribution of clothing to children whose families cannot afford them.',
   },
-  [CommunityGoalCauseType.EDUCATION]: {
+  EDUCATION: {
     emoji: '📚',
     accentColor: '#6A1B9A',
     bgColor: '#F3E5F5',
@@ -65,7 +65,7 @@ const CAUSE_CONFIG: Record<CommunityGoalCauseType, CauseConfig> = {
     defaultStory:
       "Some families in Tunisia cannot afford school supplies, uniforms, or registration fees — and so their children stay home. Our donations cover those costs so that a child's future is never decided by their family's income.",
   },
-  [CommunityGoalCauseType.MEDICINE]: {
+  MEDICINE: {
     emoji: '💊',
     accentColor: '#B71C1C',
     bgColor: '#FFEBEE',

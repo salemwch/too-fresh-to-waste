@@ -99,7 +99,7 @@ export const RootNavigator: React.FC = () => {
 
   useEffect(() => {
     const unsubscribe = addNetInfoEventListener(state => {
-      const offline = state.isConnected !== true || state.isInternetReachable === false;
+      const offline = state.isConnected === false;
       setIsDeviceOffline(offline);
     });
     return () => unsubscribe();
@@ -139,9 +139,7 @@ export const RootNavigator: React.FC = () => {
 
   // Determine banner visibility and message
   const showBanner = isDeviceOffline || networkErrorMessage !== null;
-  const bannerMessage = isDeviceOffline
-    ? 'No internet connection. Check your WiFi or mobile data.'
-    : (networkErrorMessage ?? '');
+  const bannerMessage = isDeviceOffline ? 'No internet connection' : (networkErrorMessage ?? '');
 
   /**
    * PRODUCTION: Restore Navigation State on App Launch

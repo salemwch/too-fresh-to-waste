@@ -845,13 +845,14 @@ const authSlice = createSlice({
     });
 
     // Google Sign-In
+    // NOTE: isLoading is NOT set here. GoogleSignInButton manages its own
+    // local loading state — setting Redux isLoading would leak the spinner
+    // into the Register/Login form buttons that share the same selector.
     builder.addCase(googleSignInAsync.pending, state => {
-      state.isLoading = true;
       state.error = undefined;
     });
 
     builder.addCase(googleSignInAsync.fulfilled, (state, action) => {
-      state.isLoading = false;
       state.error = undefined;
       state.user = action.payload.user;
       state.isAuthenticated = true;
@@ -866,7 +867,6 @@ const authSlice = createSlice({
     });
 
     builder.addCase(googleSignInAsync.rejected, (state, action) => {
-      state.isLoading = false;
       const payload = action.payload as { message?: string } | undefined;
       state.error =
         payload?.message != null && payload.message !== ''

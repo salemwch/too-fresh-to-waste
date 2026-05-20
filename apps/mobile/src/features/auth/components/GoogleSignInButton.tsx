@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, View, ActivityIndicator } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Toast from 'react-native-toast-message';
 
 import GoogleButtonSvg from '@/assets/images/android_light_rd_ctn.svg';
-import { useTheme } from '@/design-system/providers';
 import { useAppDispatch } from '@/hooks/redux';
 import { Logger } from '@/utils/logger';
 
 import { googleSignInAsync } from '../store/authSlice';
 
 export function GoogleSignInButton() {
-  const theme = useTheme();
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,12 +23,9 @@ export function GoogleSignInButton() {
       const idToken = userInfo.data?.idToken;
 
       if (!idToken) {
-        // signIn() resolved but returned no token (user cancelled or
-        // One-Tap returned no credential). Show feedback so the user
-        // knows something went wrong rather than seeing a frozen screen.
         Toast.show({
           type: 'error',
-          text1: 'Google Sign-In failed',
+          text1: 'Something went wrong',
           text2: 'Could not retrieve credentials. Please try again.',
         });
         return;
@@ -41,7 +36,7 @@ export function GoogleSignInButton() {
       Toast.show({
         type: 'success',
         text1: 'Welcome!',
-        text2: 'You have signed in with Google.',
+        text2: 'You are now signed in with Google.',
       });
     } catch (error: unknown) {
       const err = error as { code?: string; message?: string };
@@ -57,10 +52,10 @@ export function GoogleSignInButton() {
           text2: 'Please update Google Play Services and try again.',
         });
       } else {
-        Logger.error('Google Sign-In error', {}, error as Error);
+        Logger.error('Google authentication error', {}, error as Error);
         Toast.show({
           type: 'error',
-          text1: 'Google Sign-In failed',
+          text1: 'Something went wrong',
           text2: err.message ?? 'Please try again.',
         });
       }
@@ -73,17 +68,16 @@ export function GoogleSignInButton() {
     <Pressable
       onPress={() => void handlePress()}
       disabled={isLoading}
-      style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+      style={({ pressed }) => [
+        styles.button,
+        pressed && styles.buttonPressed,
+        isLoading && styles.buttonLoading,
+      ]}
       accessibilityRole='button'
       accessibilityLabel='Continue with Google'
+      accessibilityState={{ busy: isLoading }}
     >
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size='small' color={theme.colors.primary} />
-        </View>
-      ) : (
-        <GoogleButtonSvg width='100%' height={52} />
-      )}
+      <GoogleButtonSvg width='100%' height={52} />
     </Pressable>
   );
 }
@@ -95,12 +89,7 @@ const styles = StyleSheet.create({
   buttonPressed: {
     opacity: 0.85,
   },
-  loadingContainer: {
-    height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#dadce0',
+  buttonLoading: {
+    opacity: 0.5,
   },
 });
