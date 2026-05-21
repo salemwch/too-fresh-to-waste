@@ -20,5 +20,7 @@
     <string>applinks:toofreshtowaste.com</string>
     <string>applinks:www.toofreshtowaste.com</string>
   </array>
+  <key>aps-environment</key>
+  <string>development</string>
 </dict>
 </plist>
