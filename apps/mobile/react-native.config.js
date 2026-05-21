@@ -31,8 +31,7 @@ module.exports = {
       // Package name for autolinking (must match android/app/build.gradle applicationId)
       packageName: 'com.toofreshtowaste.app',
     },
-    // iOS configuration removed — bundleIdentifier not supported in RN 0.81 config schema
-    // iOS setup requires macOS and will be configured separately
+    ios: {},
   },
   dependencies: {
     // Nitro modules use their own Nitrogen tooling instead of RN's codegen
@@ -42,6 +41,10 @@ module.exports = {
     },
     'react-native-mmkv': {
       platforms: { android: null },
+    },
+    // Android-only: no iOS native module exists
+    'react-native-sms-retriever': {
+      platforms: { ios: null },
     },
     // Dynamically excluded — see vectorIconsExclusions above
     ...vectorIconsExclusions,

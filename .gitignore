@@ -73,6 +73,8 @@ deps.txt
 # iOS
 **/ios/Pods
 **/ios/build
+**/ios/.xcode.env.local
+**/ios/FoodWasteApp.xcworkspace
 *.ipa
 *.dSYM.zip
 
