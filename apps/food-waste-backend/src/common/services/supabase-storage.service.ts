@@ -582,6 +582,50 @@ export class SupabaseStorageService implements OnModuleInit {
     }
   }
 
+  /**
+   * Returns a Supabase Image Transform URL for on-the-fly resizing.
+   * Requires Image Transformations enabled on the Supabase project (Pro plan).
+   * If the URL is not a Supabase storage URL, returns it unmodified.
+   */
+  static getTransformedUrl(
+    url: string,
+    options: {
+      width?: number;
+      height?: number;
+      quality?: number;
+      format?: string;
+      resize?: string;
+    },
+  ): string {
+    if (!url?.includes('/storage/v1/object/public/')) {
+      return url;
+    }
+
+    const transformed = url.replace(
+      '/storage/v1/object/public/',
+      '/storage/v1/render/image/public/',
+    );
+    const params = new URLSearchParams();
+    if (options.width) {
+      params.set('width', String(options.width));
+    }
+    if (options.height) {
+      params.set('height', String(options.height));
+    }
+    if (options.quality) {
+      params.set('quality', String(options.quality));
+    }
+    if (options.format) {
+      params.set('format', options.format);
+    }
+    if (options.resize) {
+      params.set('resize', options.resize);
+    }
+
+    const qs = params.toString();
+    return qs ? `${transformed}?${qs}` : transformed;
+  }
+
   private generateFileName(originalName: string, extension: string, folder?: string): string {
     const timestamp = Date.now();
     const randomId = uuidv4().split('-')[0];

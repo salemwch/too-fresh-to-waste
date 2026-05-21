@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { CommunityGoalModule } from '../community-goal/community-goal.module';
 import { DonationsModule } from '../donations/donations.module';
+import { LeaderboardModule } from '../leaderboard/leaderboard.module';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 
@@ -24,14 +25,10 @@ import { GamificationService } from './services/gamification.service';
     ]),
     forwardRef(() => DonationsModule),
     CommunityGoalModule,
+    LeaderboardModule,
   ],
   controllers: [LoyaltyController],
-  providers: [
-    LoyaltyService,
-    GamificationService,
-    UserEventsListener, // Event listener for user-related events
-    OrderEventsListener, // Event listener for order-related events
-  ],
+  providers: [LoyaltyService, GamificationService, UserEventsListener, OrderEventsListener],
   exports: [LoyaltyService, GamificationService, MongooseModule],
 })
 export class LoyaltyModule {}

@@ -32,6 +32,7 @@ import { useTheme } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { useCommunityBagGoal } from '@/features/home/hooks/useCommunityBagGoal';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { getOptimizedImageUrl, IMAGE_PRESETS } from '@/utils/imageTransform';
 
 import { PrivacyConsentModal } from '../components/PrivacyConsentModal';
 import { useLeaderboard } from '../hooks/useLeaderboard';
@@ -97,9 +98,10 @@ const UserAvatar: React.FC<AvatarProps> = ({ uri, firstName, lastName, size, bor
   const avatarInitialsStyle = { fontSize: size * 0.35 };
 
   if (uri != null) {
+    const optimizedUri = getOptimizedImageUrl(uri, IMAGE_PRESETS.avatar) ?? uri;
     return (
       <FastImage
-        source={{ uri, priority: FastImage.priority.normal }}
+        source={{ uri: optimizedUri, priority: FastImage.priority.normal }}
         style={[avatarFrameStyle, ringStyle]}
       />
     );

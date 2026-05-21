@@ -15,6 +15,7 @@ import React, { memo, useMemo, useCallback, useState, useEffect } from 'react';
 import { View, Image, Pressable, StyleSheet, type GestureResponderEvent } from 'react-native';
 
 import { CtaState } from '@/features/offers/types';
+import { getOptimizedImageUrl, IMAGE_PRESETS } from '@/utils/imageTransform';
 import { Logger } from '@/utils/logger';
 
 import { useTheme } from '../../../providers';
@@ -122,15 +123,15 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
 
   // Image source with fallback
   const imageSource = useMemo(() => {
-    const uri = offer.image ?? PLACEHOLDER_IMAGE;
+    const rawUri = offer.image ?? PLACEHOLDER_IMAGE;
+    const uri = getOptimizedImageUrl(rawUri, IMAGE_PRESETS.listCard) ?? rawUri;
 
-    // ✅ DIAGNOSTIC: Log image data to debug rendering issues
     if (__DEV__) {
       Logger.debug('[OfferCard] image', {
         offerId: offer.id,
         hasImage: !!offer.image,
         imageValue: offer.image,
-        usingPlaceholder: uri === PLACEHOLDER_IMAGE,
+        usingPlaceholder: rawUri === PLACEHOLDER_IMAGE,
         hasEstablishment: offer.establishment !== undefined,
         hasProfileImage:
           offer.establishment?.profileImage !== undefined &&
@@ -269,7 +270,12 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
           offer.establishment.profileImage !== undefined &&
           offer.establishment.profileImage.length > 0 ? (
             <Image
-              source={{ uri: offer.establishment.profileImage }}
+              source={{
+                uri: getOptimizedImageUrl(
+                  offer.establishment.profileImage,
+                  IMAGE_PRESETS.thumbnail,
+                ),
+              }}
               style={styles.logoImage}
               resizeMode='cover'
               accessibilityIgnoresInvertColors

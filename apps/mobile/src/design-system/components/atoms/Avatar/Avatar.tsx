@@ -7,6 +7,8 @@ import React, { forwardRef, useState } from 'react';
 import { View, Image, Pressable, ActivityIndicator } from 'react-native';
 import FastImage, { type FastImageProps } from 'react-native-fast-image';
 
+import { getOptimizedImageUrl, IMAGE_PRESETS } from '@/utils/imageTransform';
+
 import { useTheme } from '../../../providers';
 import { Icon } from '../Icon';
 import { Text } from '../Text';
@@ -83,13 +85,14 @@ export const Avatar = forwardRef<
       const hasUri = hasNonEmptyString(uri);
 
       if ((hasImageSource || hasUri) && !imageError) {
-        // Use FastImage for network URIs (disk + memory caching)
         const resolvedUri = hasUri ? uri : getUriFromImageSource(source);
         if (resolvedUri !== undefined) {
+          const preset = avatarSize <= 48 ? IMAGE_PRESETS.avatar : IMAGE_PRESETS.avatarLarge;
+          const optimizedUri = getOptimizedImageUrl(resolvedUri, preset) ?? resolvedUri;
           return (
             <FastImage
               source={{
-                uri: resolvedUri,
+                uri: optimizedUri,
                 priority: FastImage.priority.normal,
                 cache: FastImage.cacheControl.immutable,
               }}

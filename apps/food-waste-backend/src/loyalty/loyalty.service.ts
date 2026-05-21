@@ -13,6 +13,7 @@ import { DonationsService } from '../donations/donations.service';
 import { DEFAULT_CURRENCY } from '@foodwaste/shared';
 
 import { DONATION_CONSTANTS } from '../donations/interfaces/donation.interface';
+import { LeaderboardCacheService } from '../leaderboard/leaderboard-cache.service';
 import { Order, OrderDocument, OrderStatus } from '../orders/schemas/order.schema';
 
 import {
@@ -95,6 +96,7 @@ export class LoyaltyService {
     @InjectModel(LoyaltyAccount.name) private readonly loyaltyModel: Model<LoyaltyAccountDocument>,
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
     @Inject(forwardRef(() => DonationsService)) private readonly donationsService: DonationsService,
+    private readonly leaderboardCache: LeaderboardCacheService,
   ) {}
 
   /**
@@ -303,6 +305,10 @@ export class LoyaltyService {
 
       await this.checkAndAwardBadges(updatedAccount);
 
+      if (updatedAccount.leaderboardConsent?.given) {
+        await this.leaderboardCache.setLoyaltyScore(userId, updatedAccount.totalPoints);
+      }
+
       this.logger.log(
         `Added ${multipliedPoints} points to user: ${userId} for order: ${orderIdForLog}`,
       );
@@ -507,12 +513,159 @@ export class LoyaltyService {
   }> {
     const currentUserObjectId = new Types.ObjectId(currentUserId);
 
+    const callerAccount = await this.loyaltyModel
+      .findOne({ userId: currentUserObjectId }, { 'leaderboardConsent.given': 1, totalPoints: 1 })
+      .lean();
+    const hasSetConsent = callerAccount?.leaderboardConsent?.given ?? false;
+
+    // ── Try Redis-backed read path first ─────────────────────────────────────
+    const cached = await this.leaderboardCache.getTopLoyalty(limit, offset);
+    if (cached && cached.length > 0) {
+      const cachedTotal = await this.leaderboardCache.getLoyaltyTotal();
+      const entries = await this.hydrateLoyaltyEntries(cached, offset, currentUserObjectId);
+      const total = cachedTotal ?? cached.length;
+
+      let currentUserEntry: LeaderboardEntry | null = null;
+      const isCurrentUserInTop = entries.some(e => e.isCurrentUser);
+      if (!isCurrentUserInTop && hasSetConsent) {
+        currentUserEntry = await this.resolveCurrentUserEntry(currentUserId, currentUserObjectId);
+      }
+
+      return { entries, currentUserEntry, total, hasSetConsent };
+    }
+
+    // ── Fallback: MongoDB aggregation ────────────────────────────────────────
+    this.logger.warn('Loyalty leaderboard cache miss — falling back to aggregation');
+    return this.getLeaderboardFromDb(
+      currentUserId,
+      currentUserObjectId,
+      hasSetConsent,
+      limit,
+      offset,
+    );
+  }
+
+  private async hydrateLoyaltyEntries(
+    scores: { userId: string; totalPoints: number }[],
+    offset: number,
+    currentUserObjectId: Types.ObjectId,
+  ): Promise<LeaderboardEntry[]> {
+    const ids = scores.map(s => new Types.ObjectId(s.userId));
+
+    const [accounts, users] = await Promise.all([
+      this.loyaltyModel
+        .find(
+          { userId: { $in: ids } },
+          { userId: 1, currentTier: 1, badges: 1, leaderboardConsent: 1 },
+        )
+        .lean()
+        .exec(),
+      this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
+        { $match: { userId: { $in: ids } } },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            pipeline: [{ $project: { firstName: 1, lastName: 1, profileImage: 1, avatar: 1 } }],
+            as: 'userInfo',
+          },
+        },
+        { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
+      ]),
+    ]);
+
+    const accountMap = new Map(accounts.map(a => [a.userId.toString(), a]));
+    const userInfoMap = new Map(users.map(u => [u.userId.toString(), u]));
+
+    return scores.map((s, i) => {
+      const account = accountMap.get(s.userId);
+      const aggDoc = userInfoMap.get(s.userId);
+
+      const doc: LeaderboardAggregateDoc = {
+        userId: new Types.ObjectId(s.userId),
+        ...(s.totalPoints !== undefined ? { totalPoints: s.totalPoints } : {}),
+        ...(account?.currentTier ? { currentTier: account.currentTier } : {}),
+        ...(account?.badges
+          ? { badges: account.badges.map(b => ({ type: b.type, name: b.name })) }
+          : {}),
+        ...(aggDoc?.userInfo ? { userInfo: aggDoc.userInfo } : {}),
+        ...(account?.leaderboardConsent
+          ? {
+              leaderboardConsent: account.leaderboardConsent as {
+                given: boolean;
+                showRealName: boolean;
+              },
+            }
+          : {}),
+      };
+
+      return this.mapToLeaderboardEntry(doc, offset + i + 1, currentUserObjectId);
+    });
+  }
+
+  private async resolveCurrentUserEntry(
+    userId: string,
+    currentUserObjectId: Types.ObjectId,
+  ): Promise<LeaderboardEntry | null> {
+    const cachedRank = await this.leaderboardCache.getLoyaltyRankData(userId);
+    if (cachedRank) {
+      const entries = await this.hydrateLoyaltyEntries(
+        [{ userId, totalPoints: cachedRank.totalPoints }],
+        0,
+        currentUserObjectId,
+      );
+      if (entries[0]) {
+        entries[0].rank = cachedRank.rank;
+        return entries[0];
+      }
+    }
+
     const userProjection = { firstName: 1, lastName: 1, profileImage: 1, avatar: 1 };
-    // Only users who have explicitly responded to the consent prompt are shown
     const consentFilter = { isActive: true, 'leaderboardConsent.given': true };
 
-    // ── Top-N entries, total count, and caller consent status run in parallel ─
-    const [raw, total, callerAccount] = await Promise.all([
+    const ownRaw = await this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
+      { $match: { userId: currentUserObjectId } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          pipeline: [{ $project: userProjection }],
+          as: 'userInfo',
+        },
+      },
+      { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
+    ]);
+
+    const ownEntry = ownRaw[0];
+    if (!ownEntry) {
+      return null;
+    }
+
+    const aboveCount = await this.loyaltyModel.countDocuments({
+      ...consentFilter,
+      totalPoints: { $gt: ownEntry.totalPoints },
+    });
+    return this.mapToLeaderboardEntry(ownEntry, aboveCount + 1, currentUserObjectId);
+  }
+
+  private async getLeaderboardFromDb(
+    currentUserId: string,
+    currentUserObjectId: Types.ObjectId,
+    hasSetConsent: boolean,
+    limit: number,
+    offset: number,
+  ): Promise<{
+    entries: LeaderboardEntry[];
+    currentUserEntry: LeaderboardEntry | null;
+    total: number;
+    hasSetConsent: boolean;
+  }> {
+    const userProjection = { firstName: 1, lastName: 1, profileImage: 1, avatar: 1 };
+    const consentFilter = { isActive: true, 'leaderboardConsent.given': true };
+
+    const [raw, total] = await Promise.all([
       this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
         { $match: consentFilter },
         { $sort: { totalPoints: -1, _id: 1 } },
@@ -530,49 +683,17 @@ export class LoyaltyService {
         { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
       ]),
       this.loyaltyModel.countDocuments(consentFilter),
-      this.loyaltyModel
-        .findOne({ userId: currentUserObjectId }, { 'leaderboardConsent.given': 1 })
-        .lean(),
     ]);
-
-    const hasSetConsent = callerAccount?.leaderboardConsent?.given ?? false;
 
     const entries: LeaderboardEntry[] = raw.map((doc, index) =>
       this.mapToLeaderboardEntry(doc, offset + index + 1, currentUserObjectId),
     );
 
-    // ── Current user's own entry (only when outside top N and consent given) ─
     const isCurrentUserInTop = entries.some(e => e.isCurrentUser);
     let currentUserEntry: LeaderboardEntry | null = null;
 
     if (!isCurrentUserInTop && hasSetConsent) {
-      const ownRaw = await this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
-        { $match: { userId: currentUserObjectId } },
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'userId',
-            foreignField: '_id',
-            pipeline: [{ $project: userProjection }],
-            as: 'userInfo',
-          },
-        },
-        { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
-      ]);
-
-      const ownEntry = ownRaw[0];
-      if (ownEntry) {
-        // aboveCount depends on ownEntry.totalPoints — must run after ownRaw
-        const aboveCount = await this.loyaltyModel.countDocuments({
-          ...consentFilter,
-          totalPoints: { $gt: ownEntry.totalPoints },
-        });
-        currentUserEntry = this.mapToLeaderboardEntry(
-          ownEntry,
-          aboveCount + 1,
-          currentUserObjectId,
-        );
-      }
+      currentUserEntry = await this.resolveCurrentUserEntry(currentUserId, currentUserObjectId);
     }
 
     return { entries, currentUserEntry, total, hasSetConsent };
@@ -583,7 +704,7 @@ export class LoyaltyService {
    * Sets leaderboardConsent.given = true so the user appears in the leaderboard.
    */
   async updateLeaderboardConsent(userId: string, showRealName: boolean): Promise<void> {
-    await this.loyaltyModel.findOneAndUpdate(
+    const updated = await this.loyaltyModel.findOneAndUpdate(
       { userId: new Types.ObjectId(userId) },
       {
         $set: {
@@ -592,7 +713,12 @@ export class LoyaltyService {
           'leaderboardConsent.setAt': new Date(),
         },
       },
+      { new: true },
     );
+
+    if (updated) {
+      await this.leaderboardCache.setLoyaltyScore(userId, updated.totalPoints);
+    }
   }
 
   /** Maps a raw aggregation document to a typed LeaderboardEntry */

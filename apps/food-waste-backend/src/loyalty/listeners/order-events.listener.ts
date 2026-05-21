@@ -16,6 +16,7 @@ import { plainToClass } from 'class-transformer';
 
 import { OrderCompletedEvent } from '../../common/events';
 import { CommunityGoalService } from '../../community-goal/community-goal.service';
+import { LeaderboardCacheService } from '../../leaderboard/leaderboard-cache.service';
 import { LoyaltyService } from '../loyalty.service';
 import { GamificationService } from '../services/gamification.service';
 
@@ -28,6 +29,7 @@ export class OrderEventsListener {
     private readonly loyaltyService: LoyaltyService,
     private readonly gamificationService: GamificationService,
     private readonly communityGoalService: CommunityGoalService,
+    private readonly leaderboardCache: LeaderboardCacheService,
   ) {}
 
   // ============================================
@@ -150,6 +152,15 @@ export class OrderEventsListener {
       } catch (goalError) {
         this.logger.warn(
           `Community goal increment failed for order ${event.orderId}: ${(goalError as Error).message}`,
+        );
+      }
+
+      // Update merchant leaderboard cache (non-blocking)
+      try {
+        await this.leaderboardCache.incrementMerchantScore(event.merchantId, totalBags);
+      } catch (cacheError) {
+        this.logger.warn(
+          `Merchant leaderboard cache update failed for order ${event.orderId}: ${(cacheError as Error).message}`,
         );
       }
 
