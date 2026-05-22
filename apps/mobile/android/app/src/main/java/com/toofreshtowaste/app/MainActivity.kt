@@ -1,7 +1,7 @@
 package com.toofreshtowaste.app
 
 import android.os.Bundle
-import androidx.core.view.WindowCompat
+import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowInsetsControllerCompat
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -16,7 +16,7 @@ class MainActivity : ReactActivity() {
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 
   override fun onCreate(savedInstanceState: Bundle?) {
-    WindowCompat.setDecorFitsSystemWindows(window, false)
+    enableEdgeToEdge()
     WindowInsetsControllerCompat(window, window.decorView).apply {
       isAppearanceLightStatusBars = true
       isAppearanceLightNavigationBars = true
