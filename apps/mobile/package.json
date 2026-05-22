@@ -16,6 +16,7 @@
     "build": "pnpm build:android:release",
     "build:android:debug": "cd android && gradlew assembleDebug",
     "build:android:release": "cd android && gradlew assembleRelease",
+    "build:android:bundle": "cd android && gradlew bundleRelease",
     "build:ios:debug": "cd ios && xcodebuild -workspace FoodWasteApp.xcworkspace -scheme FoodWasteApp -configuration Debug -sdk iphonesimulator",
     "build:ios:release": "cd ios && xcodebuild -workspace FoodWasteApp.xcworkspace -scheme FoodWasteApp -configuration Release -sdk iphoneos -archivePath build/FoodWasteApp.xcarchive archive",
     "// RUN COMMANDS": "",

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import * as Sentry from '@sentry/react-native';
 import Toast from 'react-native-toast-message';
 
 import GoogleButtonSvg from '@/assets/images/android_light_rd_ctn.svg';
@@ -51,11 +52,14 @@ export function GoogleSignInButton() {
           text2: 'Please update Google Play Services and try again.',
         });
       } else {
-        Logger.error('Google authentication error', {}, error as Error);
+        // Internal/config errors (DEVELOPER_ERROR, network, unknown) must never
+        // surface raw SDK messages to the user — log to Sentry instead.
+        Logger.error('Google Sign-In failed', { code: err.code }, error as Error);
+        Sentry.captureException(error, { tags: { flow: 'google_signin', code: err.code } });
         Toast.show({
           type: 'error',
-          text1: 'Something went wrong',
-          text2: err.message ?? 'Please try again.',
+          text1: 'Sign-in failed',
+          text2: 'Could not sign in with Google. Please try again.',
         });
       }
     } finally {
