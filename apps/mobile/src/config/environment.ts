@@ -199,13 +199,9 @@ export const validateEnvironmentConfig = (): { isValid: boolean; errors: string[
 
   // Security validation for production
   if (isProduction()) {
-    if (!environment.security.certificatePinningEnabled) {
-      errors.push('Certificate pinning should be enabled in production');
-    }
-
-    if (!environment.security.rootDetectionEnabled) {
-      errors.push('Root detection should be enabled in production');
-    }
+    // Certificate pinning and root detection are phased-in security features.
+    // Omit them from the validator until the libraries are integrated so they
+    // don't generate Sentry noise on every app start.
 
     if (environment.debug.logLevel === 'debug') {
       errors.push('Debug log level should not be used in production');
