@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
@@ -39,6 +40,7 @@ export function Sidebar({ items }: SidebarProps) {
   const avatar = user
     ? resolveProfileImage(user.profileImage ?? undefined, user.avatar ?? undefined)
     : null;
+  const [avatarError, setAvatarError] = useState(false);
 
   const mainItems = items.filter(i => i.titleKey !== 'settings');
   const settingsItem = items.find(i => i.titleKey === 'settings');
@@ -108,11 +110,12 @@ export function Sidebar({ items }: SidebarProps) {
             href='/merchant/profile'
             className='flex items-center gap-[10px] px-[12px] py-[8px] mb-[4px] rounded-xl hover:bg-white/[0.06] transition-colors group'
           >
-            {avatar ? (
+            {avatar && !avatarError ? (
               <img
                 src={avatar}
                 alt={user.firstName}
                 className='h-[30px] w-[30px] rounded-full object-cover shrink-0'
+                onError={() => setAvatarError(true)}
               />
             ) : (
               <div className='h-[30px] w-[30px] rounded-full bg-white/20 grid place-items-center text-[11px] font-semibold shrink-0'>

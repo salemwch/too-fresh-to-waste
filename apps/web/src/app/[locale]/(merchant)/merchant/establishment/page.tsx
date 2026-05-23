@@ -298,6 +298,7 @@ export default function MerchantEstablishmentPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   // ── Photo state ──────────────────────────────────────────────────────────────
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
   const [photoError, setPhotoError] = useState('');
   const [photoSuccess, setPhotoSuccess] = useState(false);
@@ -878,7 +879,22 @@ export default function MerchantEstablishmentPage() {
                     key={idx}
                     className='relative aspect-square rounded-lg overflow-hidden border bg-slate-50'
                   >
-                    <Image src={url} alt='' fill sizes='20vw' className='object-cover' />
+                    {failedImages.has(idx) ? (
+                      <div className='w-full h-full flex items-center justify-center bg-primary/10'>
+                        <span className='text-lg font-bold text-primary'>
+                          {establishment.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    ) : (
+                      <Image
+                        src={url}
+                        alt=''
+                        fill
+                        sizes='20vw'
+                        className='object-cover'
+                        onError={() => setFailedImages(prev => new Set(prev).add(idx))}
+                      />
+                    )}
                   </div>
                 ))}
               </div>

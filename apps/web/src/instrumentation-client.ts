@@ -36,7 +36,26 @@ Sentry.init({
     /Loading CSS chunk \d+ failed/,
     // Safari private browsing storage errors
     'SecurityError: The operation is insecure',
+    // Browser extension errors (MetaMask, Web3 wallets)
+    'func sseError not found',
   ],
+
+  // Drop errors from browser extensions and in-app browser bridges
+  beforeSend(event) {
+    const frames = event.exception?.values?.[0]?.stacktrace?.frames;
+    if (frames?.length) {
+      const hasAppCode = frames.some(
+        f =>
+          f.filename &&
+          !f.filename.startsWith('<') &&
+          !f.filename.includes('inpage.js') &&
+          !f.filename.includes('content-script') &&
+          !f.filename.includes('extensions/'),
+      );
+      if (!hasAppCode) return null;
+    }
+    return event;
+  },
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

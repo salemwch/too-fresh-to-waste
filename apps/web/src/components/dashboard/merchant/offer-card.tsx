@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Package, Edit3, Trash2, RotateCcw, Zap, Lock, AlertCircle } from 'lucide-react';
+import { Edit3, Trash2, RotateCcw, Zap, Lock, AlertCircle } from 'lucide-react';
 import { cn } from '@foodwaste/ui';
 import type { MerchantOffer } from '@/types/dashboard';
 
@@ -69,6 +69,7 @@ export function OfferCard({
 }: OfferCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const cfg = (STATUS_CONFIG[offer.status] ?? STATUS_CONFIG['draft'])!;
@@ -237,16 +238,19 @@ export function OfferCard({
       <div className='flex gap-4 p-4'>
         {/* Image */}
         <div className='w-[72px] h-[72px] shrink-0 rounded-lg overflow-hidden border border-slate-200 bg-slate-100'>
-          {offer.image ? (
+          {offer.image && !imgError ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={offer.image}
               alt={offer.title}
               className={cn('w-full h-full object-cover', isInactive && 'grayscale-[30%]')}
+              onError={() => setImgError(true)}
             />
           ) : (
-            <div className='w-full h-full flex items-center justify-center'>
-              <Package className='h-6 w-6 text-slate-300' />
+            <div className='w-full h-full flex items-center justify-center bg-primary/10'>
+              <span className='text-lg font-bold text-primary'>
+                {offer.title.charAt(0).toUpperCase()}
+              </span>
             </div>
           )}
         </div>

@@ -93,6 +93,7 @@ export default function MerchantProfilePage() {
 
   // ── Avatar state ──────────────────────────────────────────────────────────
   const [isUploading, setIsUploading] = useState(false);
+  const [avatarImgFailed, setAvatarImgFailed] = useState(false);
   const [avatarError, setAvatarError] = useState('');
   const [avatarSuccess, setAvatarSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -171,13 +172,14 @@ export default function MerchantProfilePage() {
           aria-label={t('changePhoto')}
           className='group relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-slate-200 bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed'
         >
-          {avatarSrc ? (
+          {avatarSrc && !avatarImgFailed ? (
             <Image
               src={avatarSrc}
               alt={displayName || t('profilePhoto')}
               fill
               sizes='64px'
               className='object-cover'
+              onError={() => setAvatarImgFailed(true)}
             />
           ) : (
             <span className='flex h-full w-full items-center justify-center text-lg font-semibold text-slate-400'>

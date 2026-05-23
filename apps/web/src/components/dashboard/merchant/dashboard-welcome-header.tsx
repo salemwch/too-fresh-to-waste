@@ -38,6 +38,7 @@ export function DashboardWelcomeHeader({ establishment }: DashboardWelcomeHeader
 
   const t = useTranslations('dashboard');
   const [langOpen, setLangOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -154,12 +155,13 @@ export function DashboardWelcomeHeader({ establishment }: DashboardWelcomeHeader
           {/* ESG badge pill */}
           <div className='flex items-center gap-[12px] pl-[12px] pr-[18px] py-[6px] rounded-full glass shadow-soft'>
             {/* Avatar */}
-            {avatar ? (
+            {avatar && !avatarError ? (
               <img
                 src={avatar}
                 alt={user?.firstName ?? ''}
                 className='shrink-0 rounded-full object-cover'
                 style={{ width: 36, height: 36 }}
+                onError={() => setAvatarError(true)}
               />
             ) : (
               <div
