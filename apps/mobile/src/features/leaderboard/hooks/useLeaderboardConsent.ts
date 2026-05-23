@@ -11,7 +11,30 @@ export function useLeaderboardConsent() {
   return useMutation({
     mutationFn: (showRealName: boolean) =>
       leaderboardService.updateLeaderboardConsent(showRealName),
-    onSuccess: () => {
+    onMutate: async (showRealName: boolean) => {
+      await queryClient.cancelQueries({ queryKey: LOYALTY_ACCOUNT_KEY });
+      const previous = queryClient.getQueryData(LOYALTY_ACCOUNT_KEY);
+
+      queryClient.setQueryData(LOYALTY_ACCOUNT_KEY, (old: Record<string, unknown> | undefined) => {
+        if (!old) return old;
+        return {
+          ...old,
+          leaderboardConsent: {
+            ...(old['leaderboardConsent'] as Record<string, unknown> | undefined),
+            given: true,
+            showRealName,
+          },
+        };
+      });
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(LOYALTY_ACCOUNT_KEY, context.previous);
+      }
+    },
+    onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: LEADERBOARD_QUERY_KEY });
       void queryClient.invalidateQueries({ queryKey: LOYALTY_ACCOUNT_KEY });
     },

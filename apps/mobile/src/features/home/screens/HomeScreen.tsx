@@ -127,7 +127,7 @@ const headerRightStyles = StyleSheet.create({
   },
   button: { padding: 8, marginLeft: 8 },
   icon: { width: 28, height: 28 },
-  surpriseIcon: { marginTop: 2 },
+  surpriseIcon: { width: 24, height: 24 },
 });
 
 // ============================================================================
