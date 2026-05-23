@@ -97,11 +97,13 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
 
   // ==================== Image shimmer placeholder ====================
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [useRawUrl, setUseRawUrl] = useState(false);
   const shimmerAnim = useShimmerAnimation('gradient', !isImageLoaded);
 
   // Reset shimmer when FlashList recycles this cell for a different offer
   useEffect(() => {
     setIsImageLoaded(false);
+    setUseRawUrl(false);
   }, [offer.image]);
 
   // ✅ PERFORMANCE: Debug logs removed (use React DevTools Profiler instead)
@@ -121,28 +123,14 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
     [isNotStarted, offer.availableFrom],
   );
 
-  // Image source with fallback
+  // Image source with fallback: optimized URL → raw URL → placeholder
   const imageSource = useMemo(() => {
     const rawUri = offer.image ?? PLACEHOLDER_IMAGE;
-    const uri = getOptimizedImageUrl(rawUri, IMAGE_PRESETS.listCard) ?? rawUri;
-
-    if (__DEV__) {
-      Logger.debug('[OfferCard] image', {
-        offerId: offer.id,
-        hasImage: !!offer.image,
-        imageValue: offer.image,
-        usingPlaceholder: rawUri === PLACEHOLDER_IMAGE,
-        hasEstablishment: offer.establishment !== undefined,
-        hasProfileImage:
-          offer.establishment?.profileImage !== undefined &&
-          offer.establishment.profileImage !== null &&
-          offer.establishment.profileImage !== '',
-        profileImageValue: offer.establishment?.profileImage,
-      });
-    }
-
+    const uri = useRawUrl
+      ? rawUri
+      : (getOptimizedImageUrl(rawUri, IMAGE_PRESETS.listCard) ?? rawUri);
     return { uri };
-  }, [offer.establishment, offer.id, offer.image]);
+  }, [offer.image, useRawUrl]);
 
   // Get establishment rating for display
   const hasRating = useMemo(
@@ -227,6 +215,13 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
         resizeMode='cover'
         accessibilityIgnoresInvertColors
         onLoad={() => setIsImageLoaded(true)}
+        onError={() => {
+          if (!useRawUrl && offer.image) {
+            setUseRawUrl(true);
+          } else {
+            setIsImageLoaded(true);
+          }
+        }}
       />
       {!isImageLoaded && (
         <ShimmerBlock

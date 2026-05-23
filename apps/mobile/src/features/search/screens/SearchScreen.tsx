@@ -13,7 +13,7 @@
 
 import { Currency } from '@foodwaste/shared';
 import { FlashList } from '@shopify/flash-list';
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -173,11 +173,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const [showPlaceResults, setShowPlaceResults] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
-  const [mapDragCenter, setMapDragCenter] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
-  const dragDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Use user location or default to Sousse
   const centerCoordinates = useMemo(() => {
@@ -214,7 +209,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   // Offer fetching: loads around current center OR selected place
   // ─────────────────────────────────────────────────────────────────────────
 
-  const offerCenter = mapDragCenter ?? selectedPlace?.coordinates ?? centerCoordinates;
+  const offerCenter = selectedPlace?.coordinates ?? centerCoordinates;
 
   const searchParams = useMemo(
     () => ({
@@ -492,19 +487,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     setMapError(null);
   }, []);
 
-  const handleRegionChangeComplete = useCallback((region: Region) => {
-    if (dragDebounceRef.current) clearTimeout(dragDebounceRef.current);
-    dragDebounceRef.current = setTimeout(() => {
-      setMapDragCenter({ latitude: region.latitude, longitude: region.longitude });
-    }, 600);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (dragDebounceRef.current) clearTimeout(dragDebounceRef.current);
-    };
-  }, []);
-
   // ─────────────────────────────────────────────────────────────────────────
   // Render Functions
   // ─────────────────────────────────────────────────────────────────────────
@@ -772,9 +754,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 showsCompass={false}
                 onPress={handleMapPress}
                 onMapReady={handleMapReady}
-                onRegionChangeComplete={handleRegionChangeComplete}
                 accessibilityLabel='Map showing nearby offers'
-                accessibilityHint='Tap on markers to view establishment details, or pan to discover offers in other areas'
+                accessibilityHint='Tap on markers to view establishment details'
               >
                 {/* Search radius circle */}
                 <Circle
@@ -814,15 +795,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 <Icon name='locate' family='Ionicons' size={22} color={theme.colors.primary} />
               </Pressable>
 
-              {/* Crosshair — shows center of draggable search area */}
-              <View style={styles.mapCenterPin} pointerEvents='none'>
-                <View style={styles.mapCenterPinDot} />
-                <View style={styles.mapCenterPinShadow} />
-              </View>
-
               {/* Loading overlay */}
               {/* Full overlay only on first load; a small indicator handles re-fetches */}
-              {isLoadingOffers && displayOffers.length === 0 && !mapDragCenter && (
+              {isLoadingOffers && displayOffers.length === 0 && (
                 <View style={styles.mapLoadingOverlay}>
                   <ActivityIndicator size='large' color={theme.colors.primary} />
                 </View>
@@ -956,29 +931,6 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
-  },
-  mapCenterPin: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -12 }, { translateY: -12 }],
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  mapCenterPinDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#1E4448',
-    borderWidth: 2.5,
-    borderColor: '#FFFFFF',
-  },
-  mapCenterPinShadow: {
-    width: 2,
-    height: 8,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    marginTop: 2,
-    borderRadius: 1,
   },
   mapLoadingOverlay: {
     ...StyleSheet.absoluteFillObject,
