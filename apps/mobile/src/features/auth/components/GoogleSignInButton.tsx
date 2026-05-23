@@ -55,7 +55,11 @@ export function GoogleSignInButton() {
         // Internal/config errors (DEVELOPER_ERROR, network, unknown) must never
         // surface raw SDK messages to the user — log to Sentry instead.
         Logger.error('Google Sign-In failed', { code: err.code }, error as Error);
-        Sentry.captureException(error, { tags: { flow: 'google_signin', code: err.code } });
+        const sentryError =
+          error instanceof Error ? error : new Error(err.message ?? 'Google Sign-In failed');
+        Sentry.captureException(sentryError, {
+          tags: { flow: 'google_signin', code: err.code },
+        });
         Toast.show({
           type: 'error',
           text1: 'Sign-in failed',

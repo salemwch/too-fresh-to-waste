@@ -30,7 +30,11 @@ export class GoogleAuthService {
     private readonly emailService: EmailService,
     private readonly eventBus: EventBusService,
   ) {
-    this.oauth2Client = new OAuth2Client(this.configService.get<string>('GOOGLE_CLIENT_ID'));
+    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    if (!clientId) {
+      this.logger.error('GOOGLE_CLIENT_ID is not set — Google Sign-In will reject all tokens');
+    }
+    this.oauth2Client = new OAuth2Client(clientId);
   }
 
   async signIn(
