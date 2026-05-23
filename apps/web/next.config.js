@@ -3,24 +3,32 @@ const createNextIntlPlugin = require('next-intl/plugin');
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
-// Extract origin from NEXT_PUBLIC_API_URL for CSP connect-src.
-// CSP path matching requires a trailing slash for prefix match;
-// using only the origin avoids the issue entirely.
-function getApiOrigin() {
-  const raw = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// Extract origin from API URL for CSP connect-src.
+// In proxy mode NEXT_PUBLIC_API_URL is relative ("/api/v1"), so we
+// fall back to NEXT_PUBLIC_WS_URL (always the real backend origin).
+function getBackendUrl() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
   try {
-    return new URL(raw).origin;
+    return new URL(apiUrl).origin;
   } catch {
-    return 'http://localhost:3000';
+    // Relative API URL (proxy mode) — use WS URL as the backend origin
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3000';
+    try {
+      return new URL(wsUrl).origin;
+    } catch {
+      return 'http://localhost:3000';
+    }
   }
 }
 
-// WebSocket origin (ws: / wss:) must be listed separately in connect-src
-// because some browsers do not automatically match ws: against http: origins.
+function getApiOrigin() {
+  return getBackendUrl();
+}
+
 function getApiWsOrigin() {
-  const raw = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  const origin = getBackendUrl();
   try {
-    const url = new URL(raw);
+    const url = new URL(origin);
     const proto = url.protocol === 'https:' ? 'wss:' : 'ws:';
     return `${proto}//${url.host}`;
   } catch {
