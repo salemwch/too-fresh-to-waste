@@ -1312,7 +1312,7 @@
       "pricing": "Pricing",
       "originalPrice": "Original value",
       "discountLabel": "Discount (min. 40%)",
-      "salePrice": "Price after discount",
+      "salePrice": "Customer pays",
       "customerSaves": "Customer saves {saving} TND ({discount}% off)",
       "discountRangeError": "Discount must be between 40% and 90%",
       "cancel": "Cancel",

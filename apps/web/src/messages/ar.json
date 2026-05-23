@@ -1312,7 +1312,7 @@
       "pricing": "التسعير",
       "originalPrice": "القيمة الأصلية",
       "discountLabel": "الخصم (40% على الأقل)",
-      "salePrice": "السعر بعد الخصم",
+      "salePrice": "يدفع العميل",
       "customerSaves": "يوفر العميل {saving} دينار ({discount}% خصم)",
       "discountRangeError": "يجب أن يكون الخصم بين 40% و 90%",
       "cancel": "إلغاء",

@@ -3,7 +3,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { X, Minus, Plus, ChevronDown, AlertCircle, CheckCircle2, ImagePlus } from 'lucide-react';
+import {
+  X,
+  Minus,
+  Plus,
+  ChevronDown,
+  AlertCircle,
+  CheckCircle2,
+  ImagePlus,
+  Flame,
+} from 'lucide-react';
 import { cn } from '@foodwaste/ui';
 import {
   useMyEstablishment,
@@ -15,7 +24,7 @@ import type { CreateSurpriseBagPayload, OfferBagType } from '@/types/dashboard';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const MIN_DISCOUNT_PCT = 35;
+const MIN_DISCOUNT_PCT = 40;
 const MAX_QUANTITY = 100;
 const MAX_PRICE = 100;
 const DISCOUNT_OPTIONS = [40, 50, 60, 70, 80, 90] as const;
@@ -597,21 +606,24 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                     type='button'
                     onClick={() => setDiscount(pct)}
                     className={cn(
-                      'h-7 rounded-md border text-[11px] font-semibold transition-all',
+                      'relative h-7 rounded-md border text-[11px] font-semibold transition-all',
                       discount === pct
                         ? 'border-primary bg-primary text-white shadow-sm'
                         : 'border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:bg-primary/5',
                     )}
                   >
+                    {pct >= 70 && (
+                      <Flame className='absolute -top-2 left-1/2 -translate-x-1/2 h-3.5 w-3.5 text-orange-500' />
+                    )}
                     {pct}%
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Price after discount */}
+            {/* Customer pays */}
             <div className='space-y-1'>
-              <p className='text-[11px] text-slate-400'>Price after discount</p>
+              <p className='text-[11px] text-slate-400'>Customer pays</p>
               <div className='flex gap-1'>
                 <div
                   className={cn(
