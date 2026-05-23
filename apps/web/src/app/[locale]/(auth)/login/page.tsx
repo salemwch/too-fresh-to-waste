@@ -4,7 +4,6 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
-import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '@/hooks/use-auth';
 import { Button, Input } from '@foodwaste/ui';
 import { Link } from '@/i18n/routing';
@@ -28,7 +27,7 @@ import '../../(merchant-onboarding)/merchant-signup/merchant-signup.css';
 function LoginFormInner() {
   const t = useTranslations('auth');
   const tHero = useTranslations('merchantSignup');
-  const { login, googleSignIn } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
   const locale = useLocale();
   const searchParams = useSearchParams();
@@ -44,29 +43,6 @@ function LoginFormInner() {
   // Track only this form's own submission — not the global auth store's isLoading
   // (which starts true so AuthGuard skeletons work, but should not freeze the login form).
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  async function handleGoogleSuccess(credentialResponse: CredentialResponse) {
-    const idToken = credentialResponse.credential;
-    if (!idToken) return;
-    setLoginError('');
-    setIsSubmitting(true);
-    try {
-      const result = await googleSignIn(idToken);
-      if (callbackUrl) {
-        router.push(callbackUrl);
-      } else if (result.user.role === UserRole.ADMIN || result.user.role === UserRole.MODERATOR) {
-        router.push(`/${locale}/admin/dashboard`);
-      } else if (result.user.role === UserRole.MERCHANT) {
-        router.push(`/${locale}/merchant/dashboard`);
-      } else {
-        router.push(`/${locale}`);
-      }
-    } catch {
-      setLoginError(t('loginError'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -302,23 +278,6 @@ function LoginFormInner() {
               {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
               {t('loginButton')}
             </Button>
-
-            {/* Divider */}
-            <div className='flex items-center gap-3'>
-              <div className='h-px flex-1 bg-border' />
-              <span className='text-xs text-muted-foreground'>OR</span>
-              <div className='h-px flex-1 bg-border' />
-            </div>
-
-            {/* Google Sign-In */}
-            <div className='flex justify-center'>
-              <GoogleLogin
-                onSuccess={credentialResponse => void handleGoogleSuccess(credentialResponse)}
-                onError={() => setLoginError(t('loginError'))}
-                useOneTap={false}
-                width='100%'
-              />
-            </div>
 
             {/* Sign up food business */}
             <Button

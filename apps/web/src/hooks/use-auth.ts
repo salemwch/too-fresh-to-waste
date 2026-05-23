@@ -47,24 +47,6 @@ export function useAuth() {
     [store],
   );
 
-  const googleSignIn = useCallback(
-    async (idToken: string) => {
-      store.setLoading(true);
-      try {
-        const response = await authService.googleSignIn(idToken);
-        const { user } = response.data.data;
-        // Backend sets HttpOnly cookies (access_token, refresh_token) via
-        // Set-Cookie header. No tokens are stored in JavaScript memory.
-        store.setAuthenticated(true);
-        store.setUser(user);
-        return response.data.data;
-      } finally {
-        store.setLoading(false);
-      }
-    },
-    [store],
-  );
-
   const logout = useCallback(async () => {
     try {
       await authService.logout();
@@ -84,7 +66,6 @@ export function useAuth() {
     isLoading: store.isLoading,
     login,
     register,
-    googleSignIn,
     logout,
   };
 }
