@@ -359,11 +359,11 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
                 </View>
               ) : searchResults && searchResults.length > 0 ? (
                 <FlatList
-                  data={searchResults.slice(0, 4)}
+                  data={searchResults}
                   keyExtractor={(item, index) => `${item.coordinates.latitude}-${index}`}
                   renderItem={renderSearchResult}
-                  scrollEnabled={false}
                   keyboardShouldPersistTaps='handled'
+                  nestedScrollEnabled
                 />
               ) : (
                 <View style={styles.noResults}>
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderRadius: 12,
     overflow: 'hidden',
-    maxHeight: 200,
+    maxHeight: 240,
   },
   searchResultItem: {
     flexDirection: 'row',
