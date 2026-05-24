@@ -185,9 +185,13 @@ export class ProximitySearchService {
         }
       }
 
-      // Text search on establishment name (reuses RegexSecurityUtil for ReDoS protection)
+      // Text search on establishment name, city, and street
       if (searchDto.query) {
-        const searchFields = this.regexUtil.buildMultiFieldSearch(searchDto.query, ['name']);
+        const searchFields = this.regexUtil.buildMultiFieldSearch(searchDto.query, [
+          'name',
+          'address.city',
+          'address.street',
+        ]);
         if (searchFields.length > 0) {
           matchConditions.$or = searchFields;
         }
@@ -713,7 +717,11 @@ export class ProximitySearchService {
         }
       }
       if (searchDto.query) {
-        const fields = this.regexUtil.buildMultiFieldSearch(searchDto.query, ['name']);
+        const fields = this.regexUtil.buildMultiFieldSearch(searchDto.query, [
+          'name',
+          'address.city',
+          'address.street',
+        ]);
         if (fields.length) {
           matchConditions.$or = fields;
         }
