@@ -214,18 +214,14 @@ export class OrdersService {
           throw new NotFoundException('Establishment not found');
         }
 
-        // Enforce phone verification for order placement.
-        // Gated by PHONE_VERIFICATION_ENABLED — set to false while Twilio is unpaid.
-        const phoneVerificationEnabled = this.configService.get<boolean>(
-          'PHONE_VERIFICATION_ENABLED',
-          false,
-        );
-        if (phoneVerificationEnabled && (!customer.phoneNumber || !customer.isPhoneVerified)) {
+        // Require a phone number for order placement.
+        // OTP verification is optional (enabled separately via Twilio).
+        if (!customer.phoneNumber) {
           throw new BadRequestException({
-            message: 'Phone verification required to place orders',
+            message: 'Phone number required to place orders',
             code: 'PHONE_VERIFICATION_REQUIRED',
-            requiresPhoneSetup: !customer.phoneNumber,
-            requiresPhoneVerification: !!customer.phoneNumber && !customer.isPhoneVerified,
+            requiresPhoneSetup: true,
+            requiresPhoneVerification: false,
           });
         }
         const { orderItems, subtotal, totalDiscountAmount, updates, earliestOfferExpiry } =
