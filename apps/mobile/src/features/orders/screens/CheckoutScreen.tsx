@@ -16,9 +16,9 @@ import MapView from 'react-native-maps';
 
 import { Text, Button, Icon } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
-import { updateUser, selectIsPhoneVerified } from '@/features/auth/store/authSlice';
+import { selectIsPhoneVerified } from '@/features/auth/store/authSlice';
 import { offersService } from '@/features/offers/services/offersService';
-import { useAppSelector, useAppDispatch } from '@/hooks';
+import { useAppSelector } from '@/hooks';
 import { useLocation } from '@/hooks/useLocation';
 import { usePressGuard } from '@/hooks/usePressGuard';
 import { analytics } from '@/utils/analytics';
@@ -78,7 +78,6 @@ const WHITE = '#FFFFFF';
 
 export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) => {
   const queryClient = useQueryClient();
-  const dispatch = useAppDispatch();
   const { offerId, quantity: initialQuantity = 1 } = route.params;
 
   // Named selector returns a primitive boolean — re-renders ONLY when this value flips,
@@ -327,18 +326,14 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   const handleVerificationComplete = useCallback(async () => {
     try {
       closePhoneVerificationModal();
-      // Mark user as verified so the retry shows the order-success skeleton
-      dispatch(updateUser({ isPhoneVerified: true }));
       await handleConfirmOrder();
     } catch (error) {
       showErrorToast(
         'Order Failed',
-        error instanceof Error
-          ? error.message
-          : 'Phone verified, but order creation failed. Please try again.',
+        error instanceof Error ? error.message : 'Could not create order. Please try again.',
       );
     }
-  }, [closePhoneVerificationModal, handleConfirmOrder, dispatch]);
+  }, [closePhoneVerificationModal, handleConfirmOrder]);
 
   /**
    * Calculate pricing
