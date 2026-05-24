@@ -39,6 +39,14 @@ export function GoogleSignInButton() {
         text1: 'Welcome! \u{1F44B}',
       });
     } catch (error: unknown) {
+      // Reset Google SDK state so the next attempt gets a fresh token
+      // instead of reusing the cached one that just failed.
+      try {
+        await GoogleSignin.signOut();
+      } catch {
+        // signOut can fail if not signed in — safe to ignore
+      }
+
       const err = error as { code?: string; message?: string };
 
       if (err.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -51,21 +59,19 @@ export function GoogleSignInButton() {
           text1: 'Google Play Services unavailable',
           text2: 'Please update Google Play Services and try again.',
         });
-      } else {
-        // Internal/config errors (DEVELOPER_ERROR, network, unknown) must never
-        // surface raw SDK messages to the user — log to Sentry instead.
+      } else if (err.code) {
         Logger.error('Google Sign-In failed', { code: err.code }, error as Error);
-        const sentryError =
-          error instanceof Error ? error : new Error(err.message ?? 'Google Sign-In failed');
-        Sentry.captureException(sentryError, {
-          tags: { flow: 'google_signin', code: err.code },
-        });
+        Sentry.captureException(
+          error instanceof Error ? error : new Error(err.message ?? 'Google Sign-In failed'),
+          { tags: { flow: 'google_signin', code: err.code } },
+        );
         Toast.show({
           type: 'error',
           text1: 'Sign-in failed',
           text2: 'Could not sign in with Google. Please try again.',
         });
       }
+      // Backend rejections (no SDK code) are handled by authSlice inline error banner — no toast.
     } finally {
       setIsLoading(false);
     }
