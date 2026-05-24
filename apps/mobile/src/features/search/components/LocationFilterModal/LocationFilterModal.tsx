@@ -363,6 +363,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
                   keyExtractor={(item, index) => `${item.coordinates.latitude}-${index}`}
                   renderItem={renderSearchResult}
                   keyboardShouldPersistTaps='handled'
+                  showsVerticalScrollIndicator={false}
                   nestedScrollEnabled
                 />
               ) : (
