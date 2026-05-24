@@ -555,7 +555,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   // ─────────────────────────────────────────────────────────────────────────
 
   const renderDropdown = () => {
-    if (!showPlaceResults || viewMode !== 'map') return null;
+    if (!showPlaceResults) return null;
 
     const showLoading = isSearchingPlaces && appResults.length === 0 && googleResults.length === 0;
     const showEmpty = !isSearchingPlaces && debouncedQuery.length >= 2 && !hasPlaceResults;
