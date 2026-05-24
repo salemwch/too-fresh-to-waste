@@ -147,15 +147,24 @@ export const googleSignInAsync = createAsyncThunk(
       return response;
     } catch (error) {
       Logger.error('Google Sign-In failed', {}, error as Error);
-      let errorMessage = 'Google Sign-In failed';
+      let rawMessage = '';
       if (error !== null && error !== undefined && typeof error === 'object') {
         const errObj = error as Record<string, unknown>;
         if (typeof errObj['message'] === 'string') {
-          errorMessage = errObj['message'];
+          rawMessage = errObj['message'];
         }
       } else if (error instanceof Error) {
-        errorMessage = error.message;
+        rawMessage = error.message;
       }
+
+      let errorMessage = 'Could not sign in with Google. Please try again.';
+      const lower = rawMessage.toLowerCase();
+      if (lower.includes('invalid') && lower.includes('token')) {
+        errorMessage = 'Google sign-in failed. Please try again or use email instead.';
+      } else if (lower.includes('network') || lower.includes('timeout')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
+
       return rejectWithValue({ message: errorMessage });
     }
   },
