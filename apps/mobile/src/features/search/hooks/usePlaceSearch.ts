@@ -82,7 +82,12 @@ interface UsePlaceSearchOptions {
 const placeSearchKeys = {
   all: ['placeSearch'] as const,
   search: (query: string, center: GeoCoordinates) =>
-    [...placeSearchKeys.all, query, center.latitude, center.longitude] as const,
+    [
+      ...placeSearchKeys.all,
+      query,
+      Math.round(center.latitude * 1000) / 1000,
+      Math.round(center.longitude * 1000) / 1000,
+    ] as const,
 };
 
 // ============================================================================
