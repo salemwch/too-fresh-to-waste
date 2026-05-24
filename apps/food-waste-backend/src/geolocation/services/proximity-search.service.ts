@@ -185,7 +185,7 @@ export class ProximitySearchService {
         }
       }
 
-      // Text search on establishment name, city, and street
+      // Text search on name, city, and street; address.street has no index — set is already narrowed by $geoWithin
       if (searchDto.query) {
         const searchFields = this.regexUtil.buildMultiFieldSearch(searchDto.query, [
           'name',
@@ -427,7 +427,7 @@ export class ProximitySearchService {
 
         { $unwind: '$establishment' },
 
-        // Text query filter: match offer title OR establishment name
+        // Offer text search — establishment address fields not applicable here
         ...(searchDto.query
           ? (() => {
               const searchFields = this.regexUtil.buildMultiFieldSearch(searchDto.query, [

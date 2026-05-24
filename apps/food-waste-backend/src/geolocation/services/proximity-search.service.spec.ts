@@ -1,6 +1,6 @@
 import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
 
-describe('ProximitySearchService — search field coverage', () => {
+describe('RegexSecurityUtil — buildMultiFieldSearch field coverage for proximity search', () => {
   let regexUtil: RegexSecurityUtil;
 
   beforeEach(() => {
@@ -34,5 +34,16 @@ describe('ProximitySearchService — search field coverage', () => {
   it('returns empty array for empty query', () => {
     const fields = regexUtil.buildMultiFieldSearch('', ['name', 'address.city']);
     expect(fields).toHaveLength(0);
+  });
+
+  it('escapes special regex characters in the query before placing in $regex', () => {
+    const fields = regexUtil.buildMultiFieldSearch('Café+', ['name', 'address.city']);
+
+    for (const fieldQuery of fields) {
+      const regexObj = Object.values(fieldQuery)[0]!;
+      // '+' is a regex special char — must be escaped to '\+'
+      expect(regexObj.$regex).toBe('Café\\+');
+      expect(regexObj.$options).toBe('i');
+    }
   });
 });
