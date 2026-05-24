@@ -15,6 +15,7 @@ import { Currency } from '@foodwaste/shared';
 import { FlashList } from '@shopify/flash-list';
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
+  FlatList,
   View,
   StyleSheet,
   Dimensions,
@@ -77,6 +78,7 @@ const INITIAL_RADIUS_KM = 5;
 const TRANSPARENT = 'transparent';
 const MAP_LOADING_OVERLAY = 'rgba(255, 255, 255, 0.7)';
 const SURFACE_SHADOW = '#000';
+const SEARCH_CAROUSEL_CARD_WIDTH = 260;
 
 // ============================================================================
 // Helper Functions
@@ -140,6 +142,118 @@ interface SelectedPlace {
   address: string;
   coordinates: { latitude: number; longitude: number };
 }
+
+interface EstablishmentGroup {
+  establishmentId: string;
+  establishmentName: string;
+  establishmentLogo: string | null;
+  offers: ProximitySearchResult<NearbyOffer>[];
+}
+
+// ============================================================================
+// Helper Functions (grouping)
+// ============================================================================
+
+const groupOffersByEstablishment = (
+  offers: ProximitySearchResult<NearbyOffer>[],
+): EstablishmentGroup[] => {
+  const map = new Map<string, EstablishmentGroup>();
+  for (const result of offers) {
+    const { establishmentId, establishmentName, establishmentLogo } = result.item;
+    const existing = map.get(establishmentId);
+    if (existing) {
+      existing.offers.push(result);
+    } else {
+      map.set(establishmentId, {
+        establishmentId,
+        establishmentName,
+        establishmentLogo,
+        offers: [result],
+      });
+    }
+  }
+  return Array.from(map.values());
+};
+
+// ============================================================================
+// EstablishmentOfferRow — one section per business in list view
+// ============================================================================
+
+const rowStyles = StyleSheet.create({
+  section: {
+    marginBottom: 8,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e0e0e0',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  name: {
+    flex: 1,
+    marginRight: 8,
+  },
+  carousel: {
+    paddingRight: 8,
+    paddingVertical: 4,
+  },
+  offerCard: {
+    width: SEARCH_CAROUSEL_CARD_WIDTH,
+    marginRight: 12,
+  },
+});
+
+interface EstablishmentOfferRowProps {
+  group: EstablishmentGroup;
+  onOfferPress: (offer: ProximitySearchResult<NearbyOffer>) => void;
+}
+
+const EstablishmentOfferRow = React.memo(({ group, onOfferPress }: EstablishmentOfferRowProps) => {
+  const renderOffer = useCallback(
+    ({ item }: { item: ProximitySearchResult<NearbyOffer> }) => (
+      <FavoriteOfferCard
+        offer={mapSearchResultToOfferListItem(item)}
+        variant='default'
+        imageAspectRatio={1.8}
+        onPress={() => onOfferPress(item)}
+        testID={`search-offer-${item.item._id}`}
+        style={rowStyles.offerCard}
+      />
+    ),
+    [onOfferPress],
+  );
+
+  return (
+    <View style={rowStyles.section}>
+      <View style={rowStyles.header}>
+        <Text variant='title' size='md' weight='semibold' numberOfLines={1} style={rowStyles.name}>
+          {group.establishmentName}
+        </Text>
+        <Text variant='body' size='sm' color='secondary'>
+          {group.offers.length} {group.offers.length === 1 ? 'offer' : 'offers'}
+        </Text>
+      </View>
+      <FlatList
+        data={group.offers}
+        renderItem={renderOffer}
+        keyExtractor={item => item.item._id}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={rowStyles.carousel}
+        snapToInterval={SEARCH_CAROUSEL_CARD_WIDTH}
+        decelerationRate='fast'
+        windowSize={2}
+        maxToRenderPerBatch={2}
+        initialNumToRender={2}
+        removeClippedSubviews
+      />
+    </View>
+  );
+});
+EstablishmentOfferRow.displayName = 'EstablishmentOfferRow';
 
 // ============================================================================
 // Component
@@ -235,6 +349,11 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   // Offers to display (no client-side text filter — offers load for selected place)
   const displayOffers = offers ?? [];
+
+  const groupedEstablishments = useMemo(
+    () => groupOffersByEstablishment(displayOffers),
+    [displayOffers],
+  );
 
   // Map region based on center and radius
   const mapRegion: Region = useMemo(() => {
@@ -492,21 +611,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   // Render Functions
   // ─────────────────────────────────────────────────────────────────────────
 
-  const renderListItem = useCallback(
-    ({ item }: { item: ProximitySearchResult<NearbyOffer> }) => {
-      const offerData = mapSearchResultToOfferListItem(item);
-
-      return (
-        <FavoriteOfferCard
-          offer={offerData}
-          variant='default'
-          imageAspectRatio={1.4}
-          onPress={() => handleOfferPress(item)}
-          testID={`search-offer-${item.item._id}`}
-          style={styles.offerCardItem}
-        />
-      );
-    },
+  const renderEstablishmentRow = useCallback(
+    ({ item }: { item: EstablishmentGroup }) => (
+      <EstablishmentOfferRow group={item} onOfferPress={handleOfferPress} />
+    ),
     [handleOfferPress],
   );
 
@@ -540,7 +648,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     () => (
       <View style={styles.listHeader}>
         <Text variant='title' size='md' weight='semibold'>
-          {displayOffers.length} {displayOffers.length === 1 ? 'offer' : 'offers'} nearby
+          {groupedEstablishments.length}{' '}
+          {groupedEstablishments.length === 1 ? 'business' : 'businesses'} nearby
         </Text>
         <Text variant='body' size='sm' color='secondary'>
           Within {searchRadius} km
@@ -548,7 +657,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
         </Text>
       </View>
     ),
-    [displayOffers.length, searchRadius, selectedPlace],
+    [groupedEstablishments.length, searchRadius, selectedPlace],
   );
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -838,10 +947,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       {/* List View */}
       {viewMode === 'list' && (
         <FlashList
-          data={displayOffers}
-          keyExtractor={item => item.item._id}
-          renderItem={renderListItem}
-          estimatedItemSize={280}
+          data={groupedEstablishments}
+          keyExtractor={item => item.establishmentId}
+          renderItem={renderEstablishmentRow}
+          estimatedItemSize={320}
           ListHeaderComponent={renderListHeader}
           ListEmptyComponent={renderListEmpty}
           contentContainerStyle={{
@@ -1089,9 +1198,6 @@ const styles = StyleSheet.create({
   },
   listHeader: {
     paddingBottom: 16,
-  },
-  offerCardItem: {
-    marginVertical: 8,
   },
   emptyContainer: {
     flex: 1,
