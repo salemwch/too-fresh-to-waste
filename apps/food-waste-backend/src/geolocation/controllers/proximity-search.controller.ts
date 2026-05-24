@@ -8,6 +8,7 @@ import {
   Logger,
   HttpCode,
   HttpStatus,
+  ParseFloatPipe,
   ParseIntPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
@@ -447,8 +448,8 @@ export class ProximitySearchController {
     },
   })
   async quickSearch(
-    @Query('latitude', ParseIntPipe) latitude: number,
-    @Query('longitude', ParseIntPipe) longitude: number,
+    @Query('latitude', ParseFloatPipe) latitude: number,
+    @Query('longitude', ParseFloatPipe) longitude: number,
     @Query('radius', ParseIntPipe) radius: number,
     @Query('limit') limit?: number,
     @Query('categories') categories?: string,
