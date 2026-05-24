@@ -199,7 +199,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
   const handleDeliver = useCallback(() => {
     deliver(orderId, {
       onSuccess: resetToList,
-      onError: (error: Error) => {
+      onError: () => {
         Alert.alert('Delivery Failed', 'Could not mark order as delivered. Please try again.');
       },
     });
@@ -219,7 +219,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
               { orderId },
               {
                 onSuccess: resetToList,
-                onError: (err: Error) => {
+                onError: () => {
                   Alert.alert(
                     'Unassign Failed',
                     'Could not unassign from this order. Please try again.',

@@ -167,7 +167,7 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
       onSuccess: () => {
         navigation.navigate('DriverActiveOrder', { orderId });
       },
-      onError: (error: Error) => {
+      onError: () => {
         Alert.alert('Order Unavailable', 'This order has already been taken by another driver.', [
           { text: 'Go Back', onPress: () => navigation.goBack() },
         ]);
