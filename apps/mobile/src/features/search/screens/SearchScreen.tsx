@@ -217,8 +217,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       radius: searchRadiusMeters,
       limit: 50,
       sortByDistance: true,
+      ...(viewMode === 'list' && debouncedQuery.length >= 2 ? { query: debouncedQuery } : {}),
     }),
-    [offerCenter, searchRadiusMeters],
+    [offerCenter, searchRadiusMeters, viewMode, debouncedQuery],
   );
 
   const {
