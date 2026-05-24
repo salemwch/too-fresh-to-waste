@@ -389,7 +389,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
               Failed to Load Favorites
             </Text>
             <Text variant='body' size='sm' style={styles.errorSubtext}>
-              {error instanceof Error ? error.message : 'An error occurred'}
+              {'Something went wrong. Please try again.'}
             </Text>
             <Button variant='primary' size='md' onPress={handleRetry}>
               Try Again

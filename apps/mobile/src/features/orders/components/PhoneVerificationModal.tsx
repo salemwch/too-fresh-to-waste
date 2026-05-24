@@ -131,7 +131,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
       await onVerificationComplete();
     } catch (err) {
       Logger.error('[PhoneModal] Failed to save phone', {}, err instanceof Error ? err : undefined);
-      const message = err instanceof Error ? err.message : 'Failed to save phone number';
+      const message = 'Failed to save your phone number. Please try again.';
       setError(message);
     } finally {
       setIsLoading(false);

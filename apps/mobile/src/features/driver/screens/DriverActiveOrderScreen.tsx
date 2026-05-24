@@ -200,7 +200,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
     deliver(orderId, {
       onSuccess: resetToList,
       onError: (error: Error) => {
-        Alert.alert('Delivery Failed', error.message || 'Could not mark order as delivered.');
+        Alert.alert('Delivery Failed', 'Could not mark order as delivered. Please try again.');
       },
     });
   }, [deliver, orderId, resetToList]);
@@ -220,7 +220,10 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
               {
                 onSuccess: resetToList,
                 onError: (err: Error) => {
-                  Alert.alert('Unassign Failed', err.message || 'Could not unassign from order.');
+                  Alert.alert(
+                    'Unassign Failed',
+                    'Could not unassign from this order. Please try again.',
+                  );
                 },
               },
             );

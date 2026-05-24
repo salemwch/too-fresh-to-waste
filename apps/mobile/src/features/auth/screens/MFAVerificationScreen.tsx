@@ -81,10 +81,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
         // Success! RootNavigator will automatically navigate to MainStack
         showSuccessAlert('Success', 'Authentication successful!');
       } catch (err: unknown) {
-        const errorMessage =
-          err instanceof Error && err.message.length > 0
-            ? err.message
-            : 'Invalid verification code. Please try again.';
+        const errorMessage = 'Invalid verification code. Please try again.';
 
         showErrorAlert('Verification Failed', errorMessage);
 

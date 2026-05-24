@@ -67,17 +67,10 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
     } catch (err) {
       setVerificationStatus('error');
 
-      let errorMessage = 'Verification failed. The link may be invalid or expired.';
-      if (
-        err !== null &&
-        typeof err === 'object' &&
-        'message' in err &&
-        typeof (err as { message?: unknown }).message === 'string'
-      ) {
-        errorMessage = (err as { message: string }).message;
-      }
-
-      showErrorToast('Verification Failed', errorMessage);
+      showErrorToast(
+        'Verification Failed',
+        'Verification failed. The link may be invalid or expired.',
+      );
     } finally {
       setIsVerifying(false);
     }
@@ -135,17 +128,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
       // Set 60 second cooldown
       setResendCooldown(60);
     } catch (err: unknown) {
-      let errorMessage = 'Failed to resend email. Please try again.';
-      if (
-        err !== null &&
-        typeof err === 'object' &&
-        'message' in err &&
-        typeof (err as { message?: unknown }).message === 'string'
-      ) {
-        errorMessage = (err as { message: string }).message;
-      }
-
-      showErrorToast('Resend Failed', errorMessage);
+      showErrorToast('Resend Failed', 'Failed to resend email. Please try again.');
 
       setCanResend(true);
     } finally {

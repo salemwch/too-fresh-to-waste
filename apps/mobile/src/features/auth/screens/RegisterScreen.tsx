@@ -172,8 +172,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
           email: result.user.email ?? registerData.email,
         });
       } catch (err: unknown) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Registration failed. Please try again.';
+        const rawErrorMessage = err instanceof Error ? err.message : '';
+        const errorMessage = rawErrorMessage || 'Registration failed. Please try again.';
 
         // Only update state if component is still mounted
         if (!isMountedRef.current) {
@@ -241,7 +241,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
           } else if (lowerErrorMsg.includes('password')) {
             setError('password', {
               type: 'manual',
-              message: errorMessage,
+              message: 'Password does not meet the requirements. Please try again.',
             });
           }
         }

@@ -328,10 +328,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       closePhoneVerificationModal();
       await handleConfirmOrder();
     } catch (error) {
-      showErrorToast(
-        'Order Failed',
-        error instanceof Error ? error.message : 'Could not create order. Please try again.',
-      );
+      showErrorToast('Order Failed', 'Could not create order. Please try again.');
     }
   }, [closePhoneVerificationModal, handleConfirmOrder]);
 

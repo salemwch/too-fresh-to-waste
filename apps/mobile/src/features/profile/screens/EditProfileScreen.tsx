@@ -271,10 +271,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
         Logger.info('Profile updated successfully', { userId: user?.userId });
       } catch (error) {
         Logger.error('Failed to update profile', {}, error as Error);
-        showErrorToast(
-          'Update failed',
-          error instanceof Error ? error.message : 'Failed to update profile. Please try again.',
-        );
+        showErrorToast('Update failed', 'Failed to update profile. Please try again.');
       } finally {
         setIsSaving(false);
       }
