@@ -263,7 +263,7 @@ export default function MerchantSignupPage() {
       const payload: RegisterRequest = {
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
-        ...(formData.phone.trim() ? { phoneNumber: formData.phone.trim() } : {}),
+        ...(formData.phone.trim() ? { phoneNumber: `+216${formData.phone.trim()}` } : {}),
         role: UserRole.MERCHANT,
         businessInfo: {
           name: formData.businessName,
@@ -644,21 +644,28 @@ export default function MerchantSignupPage() {
 
             <div className='space-y-2'>
               <Label htmlFor='phone'>{t('phoneLabel')}</Label>
-              <Input
-                id='phone'
-                type='tel'
-                inputMode='numeric'
-                placeholder={t('phonePlaceholder')}
-                className={`h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12 ${phoneError ? 'border-destructive' : ''}`}
-                value={formData.phone}
-                onChange={e => {
-                  const cleaned = e.target.value.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
-                  setPhoneError('');
-                  updateField('phone', cleaned);
-                }}
-                maxLength={FIELD_LIMITS.PHONE_MAX}
-                autoComplete='tel'
-              />
+              <div
+                className={`flex h-11 overflow-hidden rounded-xl border bg-secondary/50 sm:h-12 ${phoneError ? 'border-destructive' : 'border-input'}`}
+              >
+                <span className='flex items-center border-e border-input bg-muted px-3 text-sm font-medium text-muted-foreground select-none'>
+                  +216
+                </span>
+                <input
+                  id='phone'
+                  type='tel'
+                  inputMode='numeric'
+                  placeholder='XX XXX XXX'
+                  className='flex-1 bg-transparent px-3 text-sm outline-none'
+                  value={formData.phone}
+                  onChange={e => {
+                    const digits = e.target.value.replace(/\D/g, '');
+                    setPhoneError('');
+                    updateField('phone', digits);
+                  }}
+                  maxLength={8}
+                  autoComplete='tel-national'
+                />
+              </div>
               {phoneError && (
                 <div className='flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive'>
                   <AlertCircle className='h-4 w-4 shrink-0' />
