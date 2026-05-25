@@ -177,6 +177,7 @@ export default function MerchantSignupPage() {
   const [cooldown, setCooldown] = useState(0);
   const [submitError, setSubmitError] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [resendFeedback, setResendFeedback] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -252,6 +253,7 @@ export default function MerchantSignupPage() {
   // ── Navigation ──
   const handleNext = useCallback(() => {
     setEmailError('');
+    setPhoneError('');
     setStep(s => Math.min(s + 1, TOTAL_STEPS));
   }, []);
 
@@ -312,10 +314,14 @@ export default function MerchantSignupPage() {
           }
         }
       }
-      // 409 = email already in use → route user back to the email step with inline error
+      // 409 = conflict — distinguish email vs phone so the right field gets the error
       if (httpStatus === 409) {
-        setEmailError(t('emailAlreadyInUse'));
-        setStep(3);
+        if (errorMessage.toLowerCase().includes('phone')) {
+          setPhoneError('This phone number is already registered. Please use a different number.');
+        } else {
+          setEmailError(t('emailAlreadyInUse'));
+          setStep(3);
+        }
       } else {
         setSubmitError(errorMessage);
       }
@@ -680,15 +686,22 @@ export default function MerchantSignupPage() {
                 type='tel'
                 inputMode='numeric'
                 placeholder={t('phonePlaceholder')}
-                className='h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12'
+                className={`h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12 ${phoneError ? 'border-destructive' : ''}`}
                 value={formData.phone}
                 onChange={e => {
                   const cleaned = e.target.value.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
+                  setPhoneError('');
                   updateField('phone', cleaned);
                 }}
                 maxLength={FIELD_LIMITS.PHONE_MAX}
                 autoComplete='tel'
               />
+              {phoneError && (
+                <div className='flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive'>
+                  <AlertCircle className='h-4 w-4 shrink-0' />
+                  <span>{phoneError}</span>
+                </div>
+              )}
             </div>
 
             <div className='space-y-2'>
