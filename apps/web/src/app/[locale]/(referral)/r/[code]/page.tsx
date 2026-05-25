@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -21,12 +22,15 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
       <div className='w-full max-w-md space-y-8 text-center'>
         {/* Logo / Brand */}
         <div className='space-y-2'>
-          <div className='mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary'>
-            <span className='text-2xl font-bold text-white'>TF</span>
+          <div className='flex justify-center'>
+            <Image
+              src='/images/green-header-center.png'
+              alt='Too Fresh To Waste'
+              width={180}
+              height={45}
+              priority
+            />
           </div>
-          <h1 className='font-heading text-3xl font-bold tracking-tight text-foreground'>
-            Too Fresh To Waste
-          </h1>
           <p className='text-muted-foreground'>
             You&apos;ve been invited to join the food waste reduction movement!
           </p>
