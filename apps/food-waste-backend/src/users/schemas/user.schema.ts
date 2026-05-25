@@ -62,10 +62,10 @@ export class User {
   googleId?: string;
 
   @Prop({ required: false, default: '' })
-  firstName: string;
+  firstName: string = '';
 
   @Prop({ required: false, default: '' })
-  lastName: string;
+  lastName: string = '';
 
   @Prop()
   phoneNumber?: string;

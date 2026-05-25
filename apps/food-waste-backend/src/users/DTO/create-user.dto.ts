@@ -23,13 +23,15 @@ export class CreateUserDto implements CreateUserInput {
   @MinLength(8)
   password!: string;
 
+  @IsOptional()
   @IsString()
   @Transform(trimTransform)
-  firstName!: string;
+  firstName?: string;
 
+  @IsOptional()
   @IsString()
   @Transform(trimTransform)
-  lastName!: string;
+  lastName?: string;
 
   /**
    * Phone number validation using libphonenumber-js
