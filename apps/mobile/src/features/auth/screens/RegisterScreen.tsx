@@ -238,11 +238,6 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
               type: 'manual',
               message: 'This email is already registered. Please use a different email.',
             });
-          } else if (lowerErrorMsg.includes('phone') && lowerErrorMsg.includes('already')) {
-            setError('phoneNumber', {
-              type: 'manual',
-              message: 'This phone number is already registered. Please use a different number.',
-            });
           } else if (lowerErrorMsg.includes('password')) {
             setError('password', {
               type: 'manual',
