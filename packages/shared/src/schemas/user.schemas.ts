@@ -53,8 +53,8 @@ export enum LegalBasis {
 export const CreateUserSchema = z.object({
   email: z.string().trim().toLowerCase().email('Please provide a valid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  firstName: z.string().trim().min(1, 'First name is required'),
-  lastName: z.string().trim().min(1, 'Last name is required'),
+  firstName: z.string().trim().min(1, 'First name is required').optional(),
+  lastName: z.string().trim().min(1, 'Last name is required').optional(),
   phoneNumber: z.string().trim().optional(),
   role: z.nativeEnum(UserRole).optional(),
   isEmailVerified: z.boolean().optional(),
