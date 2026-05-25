@@ -183,11 +183,13 @@ export class UsersService implements IUsersService {
     if (!createUserDto?.password || createUserDto.password.trim() === '') {
       throw new BadRequestException('Password is required and cannot be empty');
     }
-    if (!createUserDto?.firstName || createUserDto.firstName.trim() === '') {
-      throw new BadRequestException('First name is required and cannot be empty');
-    }
-    if (!createUserDto?.lastName || createUserDto.lastName.trim() === '') {
-      throw new BadRequestException('Last name is required and cannot be empty');
+    if (createUserDto?.role !== UserRole.MERCHANT) {
+      if (!createUserDto?.firstName || createUserDto.firstName.trim() === '') {
+        throw new BadRequestException('First name is required and cannot be empty');
+      }
+      if (!createUserDto?.lastName || createUserDto.lastName.trim() === '') {
+        throw new BadRequestException('Last name is required and cannot be empty');
+      }
     }
 
     try {
