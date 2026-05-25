@@ -140,8 +140,6 @@ interface FormData {
   // Step 3 - Email
   email: string;
   // Step 4 - Credentials
-  firstName: string;
-  lastName: string;
   password: string;
   phone: string;
 }
@@ -156,8 +154,6 @@ const INITIAL_FORM_DATA: FormData = {
   types: [],
   establishmentType: null,
   email: '',
-  firstName: '',
-  lastName: '',
   password: '',
   phone: '',
 };
@@ -243,10 +239,6 @@ export default function MerchantSignupPage() {
   const isStep2Valid = !!formData.establishmentType;
   const isStep3Valid = isEmailValid;
   const isStep4Valid =
-    formData.firstName.trim().length >= FIELD_LIMITS.NAME_MIN &&
-    formData.firstName.trim().length <= FIELD_LIMITS.NAME_MAX &&
-    formData.lastName.trim().length >= FIELD_LIMITS.NAME_MIN &&
-    formData.lastName.trim().length <= FIELD_LIMITS.NAME_MAX &&
     formData.password.length >= PASSWORD_MIN_LENGTH &&
     formData.password.length <= PASSWORD_MAX_LENGTH;
 
@@ -269,8 +261,6 @@ export default function MerchantSignupPage() {
 
     try {
       const payload: RegisterRequest = {
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
         ...(formData.phone.trim() ? { phoneNumber: formData.phone.trim() } : {}),
@@ -650,33 +640,6 @@ export default function MerchantSignupPage() {
               <p className='mt-1 text-sm text-muted-foreground sm:text-base'>
                 {t('step3Description')}
               </p>
-            </div>
-
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='space-y-2'>
-                <Label htmlFor='firstName'>{t('firstNameLabel')}</Label>
-                <Input
-                  id='firstName'
-                  placeholder={t('firstNamePlaceholder')}
-                  className='h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12'
-                  value={formData.firstName}
-                  onChange={e => updateField('firstName', sanitizeInput(e.target.value))}
-                  maxLength={FIELD_LIMITS.NAME_MAX}
-                  autoComplete='given-name'
-                />
-              </div>
-              <div className='space-y-2'>
-                <Label htmlFor='lastName'>{t('lastNameLabel')}</Label>
-                <Input
-                  id='lastName'
-                  placeholder={t('lastNamePlaceholder')}
-                  className='h-11 rounded-xl border-input bg-secondary/50 text-sm sm:h-12'
-                  value={formData.lastName}
-                  onChange={e => updateField('lastName', sanitizeInput(e.target.value))}
-                  maxLength={FIELD_LIMITS.NAME_MAX}
-                  autoComplete='family-name'
-                />
-              </div>
             </div>
 
             <div className='space-y-2'>

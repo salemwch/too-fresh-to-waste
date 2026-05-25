@@ -61,11 +61,11 @@ export class User {
   @Prop({ type: String })
   googleId?: string;
 
-  @Prop({ required: true })
-  firstName!: string;
+  @Prop({ required: false, default: '' })
+  firstName: string;
 
-  @Prop({ required: true })
-  lastName!: string;
+  @Prop({ required: false, default: '' })
+  lastName: string;
 
   @Prop()
   phoneNumber?: string;

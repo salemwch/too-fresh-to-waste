@@ -187,13 +187,13 @@ export class EmailService implements IEmailService {
 
     const html = await render(
       React.createElement(VerificationEmail, {
-        firstName: user.firstName,
+        firstName: user.firstName || 'there',
         verificationUrl,
       }),
     );
 
     const text = [
-      `Hello ${user.firstName},`,
+      `Hello ${user.firstName || 'there'},`,
       '',
       'Welcome to Too Fresh To Waste! Please verify your email address by visiting:',
       verificationUrl,
@@ -219,13 +219,13 @@ export class EmailService implements IEmailService {
 
     const html = await render(
       React.createElement(WelcomeEmail, {
-        firstName: user.firstName,
+        firstName: user.firstName || 'there',
         appUrl,
       }),
     );
 
     const text = [
-      `Hello ${user.firstName},`,
+      `Hello ${user.firstName || 'there'},`,
       '',
       'Welcome to Too Fresh To Waste! Your account has been successfully verified.',
       '',
@@ -254,13 +254,13 @@ export class EmailService implements IEmailService {
 
     const html = await render(
       React.createElement(ResetPasswordEmail, {
-        firstName: user.firstName,
+        firstName: user.firstName || 'there',
         resetUrl,
       }),
     );
 
     const text = [
-      `Hello ${user.firstName},`,
+      `Hello ${user.firstName || 'there'},`,
       '',
       'You requested a password reset for your Too Fresh To Waste account.',
       'Click the link below (or paste it into your browser) to create a new password:',

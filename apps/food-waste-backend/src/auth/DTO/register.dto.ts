@@ -23,6 +23,7 @@ import {
   Max,
   ValidateNested,
   IsArray,
+  ValidateIf,
 } from 'class-validator';
 
 import {
@@ -181,29 +182,31 @@ export class RegisterDto implements RegisterInput {
   /**
    * Name fields: sanitize to prevent HTML injection in error messages or logs
    */
-  @ApiProperty({
-    description: 'User first name',
+  @ApiPropertyOptional({
+    description: 'User first name (required for consumers, optional for merchants)',
     example: 'John',
     minLength: 2,
     maxLength: 50,
   })
-  @SanitizeText() // STEP 1: Encode HTML entities, trim
+  @ValidateIf(o => (o as { role?: string }).role !== UserRole.MERCHANT)
+  @SanitizeText()
   @IsString({ message: 'First name must be a string' })
   @MinLength(2, { message: 'First name must be at least 2 characters long' })
   @MaxLength(50, { message: 'First name cannot exceed 50 characters' })
-  firstName!: string;
+  firstName?: string;
 
-  @ApiProperty({
-    description: 'User last name',
+  @ApiPropertyOptional({
+    description: 'User last name (required for consumers, optional for merchants)',
     example: 'Doe',
     minLength: 2,
     maxLength: 50,
   })
-  @SanitizeText() // STEP 1: Encode HTML entities, trim
+  @ValidateIf(o => (o as { role?: string }).role !== UserRole.MERCHANT)
+  @SanitizeText()
   @IsString({ message: 'Last name must be a string' })
   @MinLength(2, { message: 'Last name must be at least 2 characters long' })
   @MaxLength(50, { message: 'Last name cannot exceed 50 characters' })
-  lastName!: string;
+  lastName?: string;
 
   /**
    * Phone number validation using libphonenumber-js
