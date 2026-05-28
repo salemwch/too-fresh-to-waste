@@ -90,4 +90,27 @@ export const organizationService = {
       data,
     );
   },
+
+  /**
+   * POST /establishments
+   * Create a new establishment for an organization owner.
+   * Called before addEstablishment() to get the new establishment's _id.
+   */
+  createEstablishment(data: {
+    name: string;
+    description: string;
+    type: string;
+    address: {
+      street: string;
+      city: string;
+      postalCode: string;
+      country: string;
+      coordinates: { type: string; coordinates: [number, number] };
+    };
+    phoneNumber: string;
+    email: string;
+    googlePlaceId?: string;
+  }) {
+    return apiClient.post<BackendEnvelope<{ _id: string }>>('/establishments', data);
+  },
 };

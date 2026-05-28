@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMyOrganization } from '@/hooks/use-organization';
 import { useMyEstablishments } from '@/hooks/use-merchant-dashboard';
+import { AddLocationDialog } from './add-location-dialog';
 
 const statusColors: Record<string, string> = {
   active: 'bg-green-100 text-green-700 border-green-200',
@@ -56,10 +57,15 @@ export function OrgLocationsPage() {
           <Badge className={statusColors[org.status] ?? statusColors['pending']}>
             {org.status}
           </Badge>
-          <Button size='sm'>
-            <Plus className='size-4 me-2' />
-            Add Location
-          </Button>
+          <AddLocationDialog
+            orgId={org._id}
+            trigger={
+              <Button size='sm'>
+                <Plus className='size-4 me-2' />
+                Add Location
+              </Button>
+            }
+          />
         </div>
       </div>
 
