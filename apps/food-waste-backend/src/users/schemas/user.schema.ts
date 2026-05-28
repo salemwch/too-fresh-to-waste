@@ -1,7 +1,7 @@
 import { UserRole, UserStatus } from '@foodwaste/shared';
 import { Logger } from '@nestjs/common';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 import { applyStandardSchemaConfig } from 'src/common/utils/schema-config.util';
 
@@ -72,6 +72,12 @@ export class User {
 
   @Prop({ type: String, enum: UserRole, default: UserRole.CONSUMER })
   role!: UserRole;
+
+  @Prop({ type: Types.ObjectId, ref: 'Organization' })
+  organizationId?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Establishment' })
+  assignedEstablishmentId?: Types.ObjectId;
 
   @Prop({ type: String, enum: UserStatus, default: UserStatus.PENDING })
   status!: UserStatus;
@@ -902,3 +908,11 @@ UserSchema.index(
  * - Sparse: only indexes documents where googleId is set
  */
 UserSchema.index({ googleId: 1 }, { unique: true, sparse: true });
+
+/**
+ * Organization Membership Index
+ * - Enables fast lookup of all users belonging to an organization
+ * - Sparse: only indexes location managers and org owners
+ * - Query pattern: find({ organizationId: new Types.ObjectId(orgId) })
+ */
+UserSchema.index({ organizationId: 1 }, { sparse: true });

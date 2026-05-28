@@ -95,6 +95,9 @@ export class Establishment {
   @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
   ownerId!: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'Organization' })
+  organizationId?: Types.ObjectId;
+
   @Prop({ type: String, enum: EstablishmentType, required: true })
   type!: EstablishmentType;
 
@@ -548,6 +551,14 @@ EstablishmentSchema.index({ subscriptionStatus: 1, trialEndsAt: 1 }, { sparse: t
  * - Query pattern: find({ isDeleted: true, deletedAt: { $gte: startDate } })
  */
 EstablishmentSchema.index({ isDeleted: 1, deletedAt: 1 }, { sparse: true });
+
+/**
+ * Organization Lookup Index
+ * - Enables multi-location queries scoped to an organization
+ * - Sparse: only indexes establishments that belong to an organization
+ * - Query pattern: find({ organizationId: new Types.ObjectId(orgId) })
+ */
+EstablishmentSchema.index({ organizationId: 1 }, { sparse: true });
 
 // =============================================================================
 // PRE-QUERY MIDDLEWARE - Auto-filter soft-deleted records

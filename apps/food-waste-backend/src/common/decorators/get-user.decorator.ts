@@ -8,6 +8,8 @@ export interface AuthUser {
   userId: string;
   email: string;
   role: UserRole;
+  organizationId?: string;
+  assignedEstablishmentId?: string;
 }
 
 /**
@@ -38,8 +40,10 @@ export const GetUser = createParamDecorator(
     }
 
     // If specific property is requested, return that property
+    // Optional fields (organizationId, assignedEstablishmentId) may be undefined;
+    // coerce to null to stay within the declared return type.
     if (data && typeof data === 'string' && data in user) {
-      return user[data];
+      return user[data] ?? null;
     }
 
     // Return the entire user object

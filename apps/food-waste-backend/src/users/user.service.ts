@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as argon2 from 'argon2';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import { PasswordHistoryService } from '../auth/services/password-history.service';
 import { PasswordPolicyService } from '../auth/services/password-policy.service';
@@ -1906,6 +1906,41 @@ export class UsersService implements IUsersService {
       status: UserStatus.ACTIVE,
       isEmailVerified: true,
       isPhoneVerified: false,
+    });
+    const saved = await doc.save();
+    return saved;
+  }
+
+  // ─── Organization / Location Manager Methods ──────────────────────────────
+
+  /**
+   * Create a location manager user for multi-location org support.
+   * The password MUST be pre-hashed by the caller (invitation service).
+   * This method does NOT hash the password again.
+   */
+  async createLocationManager(data: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    role: UserRole;
+    status: UserStatus;
+    isEmailVerified: boolean;
+    organizationId: string;
+    assignedEstablishmentId: string;
+    phoneNumber?: string;
+  }): Promise<UserDocument> {
+    const doc = new this.userModel({
+      email: data.email,
+      password: data.password,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      role: data.role,
+      status: data.status,
+      isEmailVerified: data.isEmailVerified,
+      organizationId: new Types.ObjectId(data.organizationId),
+      assignedEstablishmentId: new Types.ObjectId(data.assignedEstablishmentId),
+      ...(data.phoneNumber ? { phoneNumber: data.phoneNumber } : {}),
     });
     const saved = await doc.save();
     return saved;

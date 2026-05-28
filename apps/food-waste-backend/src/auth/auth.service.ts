@@ -242,6 +242,10 @@ export class AuthService {
       undefined,
       undefined,
       user.tokenRevocationVersion || 0,
+      false,
+      false,
+      user.organizationId?.toString(),
+      user.assignedEstablishmentId?.toString(),
     );
 
     // Update last login timestamp
@@ -504,6 +508,8 @@ export class AuthService {
         user.tokenRevocationVersion || 0,
         loginDto.rememberMe ?? false,
         user.requiresPasswordChange ?? false,
+        user.organizationId?.toString(),
+        user.assignedEstablishmentId?.toString(),
       ),
       // Side effects — independent, no return value needed
       this.authSecurityService.clearLoginAttempts(ipAddress, loginDto.email),
@@ -738,6 +744,9 @@ export class AuthService {
       validationResult.familyId, // Existing family ID
       user.tokenRevocationVersion || 0,
       validationResult.rememberMe ?? false, // Preserve session duration across rotation
+      false,
+      user.organizationId?.toString(),
+      user.assignedEstablishmentId?.toString(),
     );
 
     this.logger.log('Tokens refreshed successfully', {
@@ -849,6 +858,8 @@ export class AuthService {
       user.tokenRevocationVersion ?? 0,
       false,
       false, // requiresPasswordChange is now false
+      user.organizationId?.toString(),
+      user.assignedEstablishmentId?.toString(),
     );
 
     return {

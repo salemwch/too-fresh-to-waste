@@ -114,6 +114,8 @@ export class TokenService {
     tokenRevocationVersion: number = 0,
     rememberMe: boolean = false,
     requiresPasswordChange: boolean = false,
+    organizationId?: string,
+    assignedEstablishmentId?: string,
   ): Promise<TokenPair> {
     const now = Math.floor(Date.now() / 1000);
 
@@ -140,6 +142,8 @@ export class TokenService {
       jti: uuidv4(), // Access token gets its own JTI
       ver: tokenRevocationVersion,
       requiresPasswordChange,
+      ...(organizationId ? { organizationId } : {}),
+      ...(assignedEstablishmentId ? { assignedEstablishmentId } : {}),
     };
 
     const refreshPayload = {

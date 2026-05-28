@@ -74,14 +74,25 @@ export class EstablishmentsService {
     createEstablishmentDto: CreateEstablishmentDto,
     ownerId: string,
   ): Promise<EstablishmentDocument> {
-    const existingEstablishment = await this.establishmentModel.findOne({ ownerId });
-    if (existingEstablishment) {
-      throw new ConflictException('User already has an establishment');
+    // Solo merchants (no org) still limited to 1 establishment.
+    // Org owners can create multiple — the org service manages the list.
+    const org = await this.establishmentModel.db
+      .collection('organizations')
+      .findOne({ ownerId: new Types.ObjectId(ownerId), isDeleted: { $ne: true } });
+
+    if (!org) {
+      const existingEstablishment = await this.establishmentModel.findOne({ ownerId });
+      if (existingEstablishment) {
+        throw new ConflictException(
+          'User already has an establishment. Create an organization to add more locations.',
+        );
+      }
     }
 
     const establishment = new this.establishmentModel({
       ...createEstablishmentDto,
       ownerId: new Types.ObjectId(ownerId),
+      ...(org ? { organizationId: org._id } : {}),
     });
 
     const savedEstablishment = await establishment.save();
@@ -1086,5 +1097,32 @@ export class EstablishmentsService {
       EstablishmentsService.TTL_ESTABLISHMENT,
     );
     return result;
+  }
+
+  /**
+   * Retrieve all establishments belonging to a given organization.
+   * Used by the Organizations controller to list locations under one org.
+   */
+  async findByOrganizationId(
+    organizationId: string,
+    page: number = 1,
+    limit: number = 50,
+  ): Promise<FindAllResult> {
+    const safeLimit = Math.min(limit, 100);
+    const skip = (page - 1) * safeLimit;
+
+    const query = { organizationId: new Types.ObjectId(organizationId) };
+
+    const [establishments, total] = await Promise.all([
+      this.establishmentModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(safeLimit)
+        .lean(),
+      this.establishmentModel.countDocuments(query),
+    ]);
+
+    return { establishments, total };
   }
 }
