@@ -50,7 +50,7 @@ export class OffersController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.MERCHANT)
+  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
   @UseInterceptors(FilesInterceptor('images', 5))
   @ApiOperation({
     summary: '📝 Create New Food Offer',
@@ -417,25 +417,40 @@ export class OffersController {
 
   @Get('my-offers')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.MERCHANT)
+  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
   @ApiQuery({
     name: 'status',
     required: false,
     enum: OfferStatus,
     description: 'Filter by offer status',
   })
+  @ApiQuery({
+    name: 'establishmentId',
+    required: false,
+    type: String,
+    description:
+      'Filter by establishment ID (enterprise owners only; ignored for location managers)',
+  })
   async getMyOffers(
     @GetUser() user: SafeUserResponse, // Required: merchant must be authenticated
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('status') status?: OfferStatus,
+    @Query('establishmentId') establishmentId?: string,
   ) {
+    // Location managers can only see their assigned establishment
+    const effectiveEstablishmentId =
+      (user as { role?: string; assignedEstablishmentId?: string }).role === 'location_manager'
+        ? (user as { assignedEstablishmentId?: string }).assignedEstablishmentId
+        : establishmentId;
+
     const result = await this.offersService.findByMerchant(
       user.userId,
       page,
       limit,
       user.userId,
       status,
+      effectiveEstablishmentId,
     );
 
     return {

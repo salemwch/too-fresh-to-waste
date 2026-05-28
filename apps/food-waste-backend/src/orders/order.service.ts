@@ -782,8 +782,13 @@ export class OrdersService {
     merchantId: string,
     page: number = 1,
     limit: number = 10,
+    establishmentId?: string,
   ): Promise<{ orders: OrderLean[]; total: number }> {
-    const result = await this.findAll(page, limit, {}, merchantId, UserRole.MERCHANT);
+    const filters: OrderQueryDto = {};
+    if (establishmentId !== null && establishmentId !== undefined) {
+      filters.establishmentId = establishmentId;
+    }
+    const result = await this.findAll(page, limit, filters, merchantId, UserRole.MERCHANT);
     return result;
   }
 

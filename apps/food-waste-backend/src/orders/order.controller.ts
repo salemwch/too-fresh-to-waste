@@ -287,21 +287,40 @@ export class OrdersController {
     type: Number,
     description: 'Results per page (default: 10, max: 50)',
   })
+  @ApiQuery({
+    name: 'establishmentId',
+    required: false,
+    type: String,
+    description:
+      'Filter by establishment ID (enterprise owners only; ignored for location managers)',
+  })
   @ApiResponse({ status: 200, description: 'Merchant orders retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized - Merchant access required' })
   @Get('merchant-orders')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.MERCHANT)
+  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
   async getMerchantOrders(
     @Request() req: AuthenticatedRequest,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('establishmentId') establishmentId?: string,
   ) {
     if (limit > 50) {
       throw new BadRequestException('Limit cannot exceed 50');
     }
 
-    const result = await this.ordersService.findByMerchant(req.user.userId, page, limit);
+    // Location managers can only see their assigned establishment
+    const effectiveEstablishmentId =
+      (req.user as { role?: string; assignedEstablishmentId?: string }).role === 'location_manager'
+        ? (req.user as { assignedEstablishmentId?: string }).assignedEstablishmentId
+        : establishmentId;
+
+    const result = await this.ordersService.findByMerchant(
+      req.user.userId,
+      page,
+      limit,
+      effectiveEstablishmentId,
+    );
 
     return {
       statusCode: HttpStatus.OK,

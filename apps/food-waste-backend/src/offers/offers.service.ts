@@ -815,10 +815,14 @@ export class OffersService {
     limit: number = 10,
     userId?: string, // NEW: For isFavorite computation
     status?: OfferStatus,
+    establishmentId?: string,
   ): Promise<{ data: OfferCardDto[]; total: number }> {
     const filters: SearchOffersDto = { merchantId, page, limit };
     if (status !== null && status !== undefined) {
       filters.status = status;
+    }
+    if (establishmentId !== null && establishmentId !== undefined) {
+      filters.establishmentId = establishmentId;
     }
     const result = await this.findAll(page, limit, filters, userId);
     return result;
