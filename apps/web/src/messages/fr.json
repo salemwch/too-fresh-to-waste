@@ -571,6 +571,7 @@
     "nav": {
       "dashboard": "Tableau de bord",
       "establishment": "Mon établissement",
+      "organization": "Organisation",
       "offers": "Offres",
       "orders": "Commandes",
       "analytics": "Analytique",

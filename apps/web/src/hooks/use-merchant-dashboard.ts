@@ -91,10 +91,15 @@ export function useOrderStats(startDate?: Date) {
  * Backend: GET /orders/merchant-orders
  */
 export function useMerchantRecentOrders(page = 1, limit = 6) {
+  const activeEstablishmentId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.recentOrders(page, limit),
+    queryKey: [...dashboardKeys.recentOrders(page, limit), activeEstablishmentId ?? 'all'] as const,
     queryFn: async (): Promise<MerchantOrdersResult> => {
-      const response = await dashboardService.getMerchantOrders(page, limit);
+      const response = await dashboardService.getMerchantOrders(
+        page,
+        limit,
+        activeEstablishmentId ?? undefined,
+      );
       return {
         orders: response.data.data,
         meta: response.data.meta,
@@ -190,10 +195,19 @@ export function useDonationStats() {
  * Backend: GET /offers/my-offers?page=&limit=&status=
  */
 export function useMerchantOffersFiltered(page = 1, limit = 10, status?: string) {
+  const activeEstablishmentId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.offers(page, limit, status),
+    queryKey: [
+      ...dashboardKeys.offers(page, limit, status),
+      activeEstablishmentId ?? 'all',
+    ] as const,
     queryFn: async (): Promise<MerchantOffersResult> => {
-      const response = await dashboardService.getMerchantOffers(page, limit, status);
+      const response = await dashboardService.getMerchantOffers(
+        page,
+        limit,
+        status,
+        activeEstablishmentId ?? undefined,
+      );
       return {
         offers: response.data.data,
         meta: response.data.meta,
@@ -289,10 +303,15 @@ export const HISTORY_STATUSES: OrderStatus[] = ['picked_up', 'cancelled', 'expir
  * Backend: GET /orders/merchant-orders?page=1&limit=50
  */
 export function useMerchantOrders() {
+  const activeEstablishmentId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.merchantOrders(),
+    queryKey: [...dashboardKeys.merchantOrders(), activeEstablishmentId ?? 'all'] as const,
     queryFn: async (): Promise<MerchantOrdersResult> => {
-      const response = await dashboardService.getMerchantOrders(1, 50);
+      const response = await dashboardService.getMerchantOrders(
+        1,
+        50,
+        activeEstablishmentId ?? undefined,
+      );
       return {
         orders: response.data.data,
         meta: response.data.meta,

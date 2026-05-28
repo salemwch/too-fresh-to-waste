@@ -571,6 +571,7 @@
     "nav": {
       "dashboard": "لوحة التحكم",
       "establishment": "مؤسستي",
+      "organization": "المؤسسة",
       "offers": "العروض",
       "orders": "الطلبات",
       "analytics": "التحليلات",

@@ -49,9 +49,13 @@ export const dashboardService = {
    * GET /orders/merchant-orders?page=&limit=
    * Paginated list of orders for the authenticated merchant
    */
-  getMerchantOrders(page = 1, limit = 10) {
+  getMerchantOrders(page = 1, limit = 10, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<MerchantOrder[]>>(`${ORDERS_BASE}/merchant-orders`, {
-      params: { page, limit },
+      params: {
+        page,
+        limit,
+        ...(establishmentId && establishmentId !== 'all' ? { establishmentId } : {}),
+      },
     });
   },
 
@@ -77,9 +81,14 @@ export const dashboardService = {
    * GET /offers/my-offers?page=&limit=
    * Paginated list of offers owned by the authenticated merchant
    */
-  getMerchantOffers(page = 1, limit = 10, status?: string) {
+  getMerchantOffers(page = 1, limit = 10, status?: string, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<MerchantOffer[]>>(`${OFFERS_BASE}/my-offers`, {
-      params: { page, limit, ...(status && { status }) },
+      params: {
+        page,
+        limit,
+        ...(status ? { status } : {}),
+        ...(establishmentId && establishmentId !== 'all' ? { establishmentId } : {}),
+      },
     });
   },
 
