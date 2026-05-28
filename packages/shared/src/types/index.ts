@@ -12,5 +12,11 @@ export * from './donation.types';
 export * from './leaderboard.types';
 export * from './geo.types';
 
+export type {
+  OrganizationType,
+  OrganizationMember,
+  OrganizationInvitation,
+} from './organization.types';
+
 // Auto-generated types from backend OpenAPI spec
 export * from './generated';

@@ -8,6 +8,7 @@ export enum UserRole {
   ADMIN = 'admin',
   MODERATOR = 'moderator',
   DRIVER = 'driver',
+  LOCATION_MANAGER = 'location_manager',
 }
 
 /**
