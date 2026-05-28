@@ -7,6 +7,7 @@ import { TrialStatusBanner } from '@/components/dashboard/merchant';
 import { MobileNav } from '@/components/dashboard/mobile-nav';
 import { NotificationBell } from '@/components/dashboard/notification-panel';
 import { UserNav } from '@/components/dashboard/user-nav';
+import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
 import { merchantNavItems } from '@/config/navigation.config';
 import { useMerchantOrdersSocket } from '@/hooks/use-merchant-orders-socket';
 import { UserRole } from '@foodwaste/shared';
@@ -16,7 +17,7 @@ export function MerchantLayoutShell({ children }: { children: React.ReactNode })
 
   return (
     <AuthGuard>
-      <RoleGuard allowedRoles={[UserRole.MERCHANT]}>
+      <RoleGuard allowedRoles={[UserRole.MERCHANT, UserRole.LOCATION_MANAGER]}>
         <div className='flex h-screen bg-dashboard'>
           {/* Desktop teal sidebar — hidden on mobile */}
           <Sidebar items={merchantNavItems} />
@@ -40,6 +41,7 @@ export function MerchantLayoutShell({ children }: { children: React.ReactNode })
                 <div className='mb-[16px]'>
                   <TrialStatusBanner />
                 </div>
+                <LocationSwitcher />
                 {children}
               </div>
             </main>

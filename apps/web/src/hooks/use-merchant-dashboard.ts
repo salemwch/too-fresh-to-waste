@@ -154,6 +154,23 @@ export function useMyEstablishment() {
 }
 
 /**
+ * All establishments owned by the authenticated merchant.
+ * Backend: GET /establishments/my-establishment
+ * Used by LocationSwitcher for multi-location orgs.
+ */
+export function useMyEstablishments() {
+  return useQuery({
+    queryKey: [...dashboardKeys.myEstablishment(), 'all'] as const,
+    queryFn: async (): Promise<MyEstablishment[]> => {
+      const response = await dashboardService.getMyEstablishment();
+      const list = response.data.data;
+      return Array.isArray(list) ? list : [];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+/**
  * Community donation pool statistics (public endpoint).
  * Backend: GET /donations/stats
  */

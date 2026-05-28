@@ -39,6 +39,12 @@ export const merchantNavItems: NavItem[] = [
     roles: [UserRole.MERCHANT],
   },
   {
+    titleKey: 'organization',
+    href: '/merchant/organization',
+    icon: Building2,
+    roles: [UserRole.MERCHANT],
+  },
+  {
     titleKey: 'offers',
     href: '/merchant/offers',
     icon: Tag,

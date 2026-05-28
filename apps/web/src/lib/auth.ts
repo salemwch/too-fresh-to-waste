@@ -19,6 +19,8 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   isLoggingOut: boolean;
+  /** Active establishment for org owners with multiple locations. null = "All Locations". */
+  activeEstablishmentId: string | null;
 }
 
 interface AuthActions {
@@ -26,6 +28,7 @@ interface AuthActions {
   setAuthenticated: (isAuthenticated: boolean) => void;
   setLoading: (isLoading: boolean) => void;
   logout: () => void;
+  setActiveEstablishmentId: (id: string | null) => void;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -51,6 +54,7 @@ export const useAuthStore = create<AuthStore>(set => ({
   isAuthenticated: false,
   isLoading: true,
   isLoggingOut: false,
+  activeEstablishmentId: null,
 
   // Actions
   setUser: user => {
@@ -69,8 +73,11 @@ export const useAuthStore = create<AuthStore>(set => ({
       isAuthenticated: false,
       isLoading: false,
       isLoggingOut: true,
+      activeEstablishmentId: null,
     });
   },
+
+  setActiveEstablishmentId: (id: string | null) => set({ activeEstablishmentId: id }),
 }));
 
 // Run legacy cleanup once when this module loads (client-side only).
