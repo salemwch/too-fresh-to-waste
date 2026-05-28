@@ -260,3 +260,124 @@ Redux-only.
   file).
 - Delivery system: NOT IMPLEMENTED — pickup-only. See
   `DELIVERY_SYSTEM_ANALYSIS.md`.
+
+---
+
+## Verification Gates
+
+Run these after **every change** before reporting complete. Never claim a fix is
+done without running the relevant check.
+
+| Scope of change          | Command to run                                         |
+| ------------------------ | ------------------------------------------------------ |
+| Backend only             | `pnpm --filter @foodwaste/backend type-check`          |
+| Web only                 | `pnpm --filter @foodwaste/web type-check`              |
+| Mobile only              | `pnpm --filter @foodwaste/mobile type-check`           |
+| `packages/shared` change | `pnpm build:deps` → then `pnpm metro:reset` for mobile |
+| Before any PR (backend)  | `pnpm --filter @foodwaste/backend check:all`           |
+| Cross-app change         | `pnpm type-check` (full monorepo)                      |
+
+---
+
+## Hard Rules — Never Do These
+
+1. **Never enable `@nestjs/swagger` CLI plugin** in `nest-cli.json` — it
+   resolves `@foodwaste/shared` imports to broken relative paths at runtime.
+2. **Never use `AbortController`** for fire-and-forget POST hooks — cleanup will
+   abort the in-flight request mid-execution.
+3. **Never store tokens** outside of HttpOnly cookies (web) or Keychain
+   (mobile). localStorage, Redux, MMKV, and sessionStorage are forbidden for
+   auth tokens.
+4. **Never use raw hex values** in components — use Tailwind tokens or CSS
+   variables only.
+5. **Never use relative imports** to workspace packages in the backend — always
+   `@foodwaste/shared`, never `../../../packages/shared/...`.
+6. **Never pass `val | undefined`** to optional object props. Config has
+   `exactOptionalPropertyTypes: true`. Use conditional spread instead:
+   ```typescript
+   // BAD
+   updateUser({ firstName: undefined });
+   // GOOD
+   updateUser({ ...(firstName ? { firstName } : {}) });
+   ```
+
+---
+
+## TypeScript Gotchas
+
+### Mongoose `@Prop()` with union types
+
+`reflect-metadata` emits `Object` for union types — Mongoose cannot infer the
+right type. Always add explicit `type:` when the TS type is a union:
+
+```typescript
+// BAD — crashes at runtime (CannotDetermineTypeError)
+@Prop()
+expiresAt?: Date | undefined;
+
+// GOOD
+@Prop({ type: Date })
+expiresAt?: Date | undefined;
+
+@Prop({ type: String })
+notes?: string | undefined;
+```
+
+### Backend response envelope access
+
+All endpoints return `{ status, message, data: T, meta? }`.
+
+- **Mobile**: always use `unwrapBackendResponse(response)` — never `.data.data`
+  directly
+- **Web**: access as `response.data.data` for the payload, `response.data.meta`
+  for pagination
+- `meta` lives on `response.data.meta`, NOT inside `response.data.data`
+
+---
+
+## Web Layout Rules
+
+### Dashboard scroll containment (admin + merchant layouts)
+
+Use `fixed inset-0` on the outermost wrapper — **not** `h-screen`. `h-screen`
+causes a double-scrollbar bug when content is tall (body scrolls AND main
+scrolls, header disappears).
+
+```tsx
+<div className='fixed inset-0 flex flex-col bg-background'>
+  <Header /> {/* shrink-0 */}
+  <div className='flex flex-1 min-h-0 overflow-hidden'>
+    <Sidebar />
+    <main className='flex-1 overflow-y-auto overscroll-contain min-h-0'>
+      {children}
+    </main>
+  </div>
+</div>
+```
+
+Diagnostic: if a Radix dropdown causes an outer scrollbar to disappear, the body
+is scrolling — you have a containment bug.
+
+---
+
+## OpenAPI Type Generation
+
+When backend API shapes change, regenerate types (requires backend running on
+`localhost:3000`):
+
+```bash
+cd packages/shared
+pnpm generate          # fetch spec + generate in one step
+# or separately:
+pnpm spec:fetch        # saves openapi.json
+pnpm spec:generate     # generates api.generated.ts (17k+ lines)
+```
+
+Always use generated types — never write manual types for API request/response
+shapes:
+
+```typescript
+import type { ApiSchemas } from '@foodwaste/shared';
+type LoginDto = ApiSchemas['LoginDto'];
+type CreateOfferDto = ApiSchemas['CreateOfferDto'];
+```

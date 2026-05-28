@@ -28,6 +28,8 @@ import { Logger } from '@/utils/logger';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const COUNTRY_PREFIX = '+216';
+const PHONE_LOCAL_DIGITS = 8;
+const PHONE_FULL_LENGTH = COUNTRY_PREFIX.length + PHONE_LOCAL_DIGITS;
 const OVERLAY = 'rgba(0, 0, 0, 0.6)';
 const SURFACE = '#FFFFFF';
 const TEXT_PRIMARY = '#111827';
@@ -117,8 +119,8 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   }, []);
 
   const handleSavePhone = useCallback(async () => {
-    if (!phoneNumber || phoneNumber.length < 12) {
-      setError('Please enter a valid 8-digit phone number');
+    if (!phoneNumber || phoneNumber.length < PHONE_FULL_LENGTH) {
+      setError(`Please enter a valid ${PHONE_LOCAL_DIGITS}-digit phone number`);
       return;
     }
 
@@ -169,11 +171,8 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         </TouchableWithoutFeedback>
 
         <Animated.View style={[styles.modalContent, { transform: [{ translateY: slideAnim }] }]}>
-          <Text style={styles.title}>Add Your Phone Number</Text>
-          <Text style={styles.subtitle}>
-            A phone number is required to place orders so the merchant can contact you about your
-            pickup.
-          </Text>
+          <Text style={styles.title}>Enter Your Phone Number</Text>
+          <Text style={styles.subtitle}>Required to complete your order.</Text>
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Phone Number</Text>
@@ -183,14 +182,14 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
               </View>
               <TextInput
                 accessibilityLabel='Phone number input'
-                accessibilityHint='Enter your 8-digit phone number'
+                accessibilityHint={`Enter your ${PHONE_LOCAL_DIGITS}-digit phone number`}
                 style={[styles.input, styles.phoneInput]}
                 placeholder='20 123 456'
                 placeholderTextColor='#9CA3AF'
                 value={phoneNumber.replace(COUNTRY_PREFIX, '')}
                 onChangeText={handlePhoneChange}
                 keyboardType='phone-pad'
-                maxLength={8}
+                maxLength={PHONE_LOCAL_DIGITS}
                 autoFocus
                 editable={!isLoading}
               />
@@ -201,14 +200,17 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 
           <Pressable
             accessibilityRole='button'
-            style={[styles.button, (isLoading || phoneNumber.length < 12) && styles.buttonDisabled]}
+            style={[
+              styles.button,
+              (isLoading || phoneNumber.length < PHONE_FULL_LENGTH) && styles.buttonDisabled,
+            ]}
             onPress={() => void handleSavePhone()}
-            disabled={isLoading || phoneNumber.length < 12}
+            disabled={isLoading || phoneNumber.length < PHONE_FULL_LENGTH}
           >
             {isLoading ? (
               <ActivityIndicator color='#FFFFFF' />
             ) : (
-              <Text style={styles.buttonText}>Save & Continue</Text>
+              <Text style={styles.buttonText}>Confirm</Text>
             )}
           </Pressable>
 
