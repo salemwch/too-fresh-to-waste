@@ -274,7 +274,7 @@ export class OrganizationsInvitationService {
     const frontendUrl =
       process.env['FRONTEND_URL'] ?? process.env['WEB_FRONTEND_URL'] ?? 'http://localhost:3001';
 
-    const invitationUrl = `${frontendUrl}/invitations/accept?token=${encodeURIComponent(token)}`;
+    const invitationUrl = `${frontendUrl}/accept-invitation?token=${encodeURIComponent(token)}`;
 
     const html = `
 <!DOCTYPE html>
