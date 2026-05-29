@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, IsString, MinLength, IsOptional, IsEnum } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsEnum } from 'class-validator';
 
 import type { CreateUserInput } from '@foodwaste/shared';
 
@@ -16,20 +16,24 @@ function normalizedEmailTransform({ value }: { value: unknown }): unknown {
 
 export class CreateUserDto implements CreateUserInput {
   @IsEmail()
+  @MaxLength(255)
   @Transform(normalizedEmailTransform)
   email!: string;
 
   @IsString()
   @MinLength(8)
+  @MaxLength(128)
   password!: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   @Transform(trimTransform)
   firstName?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   @Transform(trimTransform)
   lastName?: string;
 

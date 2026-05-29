@@ -2016,10 +2016,13 @@ export class OrdersService {
 
     return result;
   }
-  async handlePickupExtensionApproval(orderId: string, approved: boolean) {
+  async handlePickupExtensionApproval(orderId: string, approved: boolean, merchantId: string) {
     const order = await this.orderModel.findById(orderId);
     if (!order) {
       throw new NotFoundException('Order not found');
+    }
+    if (order.merchantId.toString() !== merchantId) {
+      throw new ForbiddenException('You are not authorized to manage this order');
     }
     if (order.pickupExtensionRequest === null || order.pickupExtensionRequest === undefined) {
       throw new BadRequestException('No extension request found');
@@ -2091,6 +2094,10 @@ export class OrdersService {
 
     if (!order) {
       throw new NotFoundException('Order not found');
+    }
+
+    if (order.merchantId.toString() !== unlockedBy) {
+      throw new ForbiddenException('You are not authorized to unlock this order');
     }
 
     if (!order.pickupLocked) {

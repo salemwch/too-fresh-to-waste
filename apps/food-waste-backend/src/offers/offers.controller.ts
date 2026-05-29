@@ -878,6 +878,8 @@ export class OffersController {
   }
 
   @Patch(':id/reserve')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
   async reserveQuantity(@Param('id') id: string, @Body('quantity', ParseIntPipe) quantity: number) {
     const offer = await this.offersService.reserveQuantity(id, quantity);
 
@@ -900,6 +902,8 @@ export class OffersController {
   }
 
   @Patch(':id/cancel-reservation')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
   async cancelReservation(
     @Param('id') id: string,
     @Body('quantity', ParseIntPipe) quantity: number,

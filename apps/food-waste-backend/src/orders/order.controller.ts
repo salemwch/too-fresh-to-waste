@@ -773,8 +773,16 @@ export class OrdersController {
   @Patch(':id/approve-pickup-extension')
   @UseGuards(RolesGuard)
   @Roles(UserRole.MERCHANT)
-  async approvePickupExtension(@Param('id') orderId: string, @Body('approved') approved: boolean) {
-    const result = await this.ordersService.handlePickupExtensionApproval(orderId, approved);
+  async approvePickupExtension(
+    @Param('id') orderId: string,
+    @Body('approved') approved: boolean,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const result = await this.ordersService.handlePickupExtensionApproval(
+      orderId,
+      approved,
+      req.user.userId,
+    );
     return result;
   }
 
