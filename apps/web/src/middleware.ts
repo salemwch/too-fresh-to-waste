@@ -7,10 +7,17 @@ import { defaultLocale, type Locale, isValidLocale } from './i18n/config';
 // Cookie name for storing user's locale preference
 const LOCALE_COOKIE_NAME = 'NEXT_LOCALE';
 
-// Must match COOKIE_NAMES.ACCESS_TOKEN in cookie-security.util.ts.
+// Must match COOKIE_NAMES in cookie-security.util.ts.
 // __Host- prefix is enforced by the browser in production (requires HTTPS + path=/).
 const ACCESS_TOKEN_COOKIE =
   process.env.NODE_ENV === 'production' ? '__Host-access_token' : 'access_token';
+
+// In production the __Host- prefix forces path=/ — the refresh token is visible
+// to every route, including /api/auth/silent-refresh. In dev the cookie is scoped
+// to /api/v1/auth/refresh, so the silent-refresh route won't receive it and the
+// fallback login redirect is used instead (acceptable for local dev).
+const REFRESH_TOKEN_COOKIE =
+  process.env.NODE_ENV === 'production' ? '__Host-refresh_token' : 'refresh_token';
 
 // Routes that require authentication (checked at middleware level via JWT verification)
 const PROTECTED_PATH_PATTERNS = ['/merchant/', '/admin/'];
@@ -123,7 +130,6 @@ export default async function middleware(request: NextRequest) {
   }
 
   if (isProtectedRoute && !isAuthenticated) {
-    // Extract current locale from pathname
     let currentLocale: Locale = defaultLocale;
     if (pathnameHasLocale) {
       const localePrefix = pathname.split('/')[1];
@@ -132,10 +138,22 @@ export default async function middleware(request: NextRequest) {
       }
     }
 
-    // Redirect to login with callbackUrl
+    // If a refresh token cookie exists, attempt a transparent token refresh before
+    // forcing the user to re-enter credentials. The Route Handler at
+    // /api/auth/silent-refresh forwards the cookie to the backend, gets new tokens,
+    // and redirects back to the original destination — the user never sees /login.
+    // Falls back to the login redirect if the refresh token is absent or rejected.
+    const hasRefreshToken = !!request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
+    if (hasRefreshToken) {
+      return NextResponse.redirect(
+        new URL(`/api/auth/silent-refresh?redirect=${encodeURIComponent(pathname)}`, request.url),
+      );
+    }
+
     const callbackUrl = encodeURIComponent(pathname);
-    const loginUrl = new URL(`/${currentLocale}/login?callbackUrl=${callbackUrl}`, request.url);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(
+      new URL(`/${currentLocale}/login?callbackUrl=${callbackUrl}`, request.url),
+    );
   }
 
   // Run the next-intl middleware

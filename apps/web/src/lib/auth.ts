@@ -62,7 +62,9 @@ export const useAuthStore = create<AuthStore>(set => ({
   },
 
   setAuthenticated: isAuthenticated => {
-    set({ isAuthenticated });
+    // Clear the isLoggingOut flag on re-authentication so guards behave correctly
+    // if the user logs back in after a logout in the same browser session.
+    set(isAuthenticated ? { isAuthenticated, isLoggingOut: false } : { isAuthenticated });
   },
 
   setLoading: isLoading => set({ isLoading }),
