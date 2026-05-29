@@ -1217,7 +1217,9 @@
       "docDeleteSuccess": "تم حذف المستند",
       "docDeleteError": "فشل حذف المستند",
       "docPdfOnly": "يُقبل ملفات PDF فقط",
-      "docSizeError": "يجب أن يكون حجم الملف أقل من 10 ميجابايت"
+      "docSizeError": "يجب أن يكون حجم الملف أقل من 10 ميجابايت",
+      "documentsPending": "{count} مستندات معلقة",
+      "profileComplete": "الملف الشخصي مكتمل"
     },
     "merchantOrders": {
       "title": "الطلبات",
@@ -1385,6 +1387,34 @@
       "nextTier": "المستوى التالي",
       "nextTierText": "{remaining} كيس إضافي قبل مرتبة أسطورة.",
       "nextTierReward": "ستفتح تقرير ESG سنوي معتمد وأولوية العرض."
+    },
+    "merchantCommunity": {
+      "breadcrumb": "المجتمع · Too Fresh to Waste",
+      "title": "أثرك المجتمعي",
+      "subtitle": "معًا، ينقذ تجار شبكتنا آلاف الوجبات كل يوم. إليك مساهمتك في المهمة الجماعية.",
+      "yourContribution": "مساهمتك",
+      "mealsDistributed": "وجبات موزعة",
+      "mealsAllTime": "وجبات تم إنقاذها على الإطلاق",
+      "peopleFed": "أشخاص تم إطعامهم",
+      "estimatedBeneficiaries": "مستفيدون تقديريون",
+      "foodValue": "قيمة الغذاء",
+      "foodSaved": "من الطعام المُنقَذ",
+      "weightRescued": "الوزن المُنقَذ",
+      "wasteAvoided": "من الهدر المتجنَّب",
+      "communityGoal": "الهدف المجتمعي",
+      "active": "نشط",
+      "bags": "أكياس",
+      "remainingGoal": "بقي {count} كيس فقط لإتمام هذا الهدف المجتمعي!",
+      "solidarityFund": "صندوق التضامن",
+      "collected": "تم جمعه",
+      "target": "الهدف",
+      "mealsFunded": "وجبات ممولة",
+      "contributors": "المساهمون",
+      "collectionProgress": "تقدم الجمع"
+    },
+    "merchantEsg": {
+      "pdfDownloaded": "تم تحميل تقرير PDF بنجاح.",
+      "pdfError": "خطأ في إنشاء التقرير."
     }
   },
   "merchantSignup": {

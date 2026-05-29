@@ -1217,7 +1217,9 @@
       "docDeleteSuccess": "Document deleted",
       "docDeleteError": "Failed to delete document",
       "docPdfOnly": "Only PDF files are accepted",
-      "docSizeError": "File must be under 10 MB"
+      "docSizeError": "File must be under 10 MB",
+      "documentsPending": "{count} documents pending",
+      "profileComplete": "Profile complete"
     },
     "merchantOrders": {
       "title": "Orders",
@@ -1385,6 +1387,34 @@
       "nextTier": "Next milestone",
       "nextTierText": "{remaining} more bags to reach Legendary status.",
       "nextTierReward": "You will unlock a certified annual ESG report and priority listing."
+    },
+    "merchantCommunity": {
+      "breadcrumb": "Community · Too Fresh to Waste",
+      "title": "Your Community Impact",
+      "subtitle": "Together, the merchants in our network save thousands of meals every day. Here is your contribution to the collective mission.",
+      "yourContribution": "Your contribution",
+      "mealsDistributed": "Meals distributed",
+      "mealsAllTime": "meals saved all time",
+      "peopleFed": "People fed",
+      "estimatedBeneficiaries": "estimated beneficiaries",
+      "foodValue": "Food value",
+      "foodSaved": "of food saved",
+      "weightRescued": "Weight rescued",
+      "wasteAvoided": "of waste avoided",
+      "communityGoal": "Community Goal",
+      "active": "active",
+      "bags": "bags",
+      "remainingGoal": "Only {count} bags left to complete this community goal!",
+      "solidarityFund": "Solidarity Fund",
+      "collected": "Collected",
+      "target": "Target",
+      "mealsFunded": "Meals funded",
+      "contributors": "Contributors",
+      "collectionProgress": "Collection progress"
+    },
+    "merchantEsg": {
+      "pdfDownloaded": "PDF report downloaded successfully.",
+      "pdfError": "Error generating the report."
     }
   },
   "merchantSignup": {

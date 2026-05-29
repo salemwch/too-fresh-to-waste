@@ -1217,7 +1217,9 @@
       "docDeleteSuccess": "Document supprimé",
       "docDeleteError": "Échec de la suppression du document",
       "docPdfOnly": "Seuls les fichiers PDF sont acceptés",
-      "docSizeError": "Le fichier doit faire moins de 10 Mo"
+      "docSizeError": "Le fichier doit faire moins de 10 Mo",
+      "documentsPending": "{count} documents en attente",
+      "profileComplete": "Profil complet"
     },
     "merchantOrders": {
       "title": "Commandes",
@@ -1385,6 +1387,34 @@
       "nextTier": "Prochain palier",
       "nextTierText": "Plus que {remaining} paniers avant le statut Légende.",
       "nextTierReward": "Vous débloquerez un rapport ESG annuel certifié et la mise en avant prioritaire."
+    },
+    "merchantCommunity": {
+      "breadcrumb": "Communauté · Too Fresh to Waste",
+      "title": "Votre Impact Communautaire",
+      "subtitle": "Ensemble, les marchands de notre réseau sauvent des milliers de repas chaque jour. Voici votre contribution à la mission collective.",
+      "yourContribution": "Votre contribution",
+      "mealsDistributed": "Repas distribués",
+      "mealsAllTime": "repas sauvés depuis toujours",
+      "peopleFed": "Personnes nourries",
+      "estimatedBeneficiaries": "bénéficiaires estimés",
+      "foodValue": "Valeur alimentaire",
+      "foodSaved": "de nourriture sauvée",
+      "weightRescued": "Poids rescapé",
+      "wasteAvoided": "de gaspillage évité",
+      "communityGoal": "Objectif Communautaire",
+      "active": "actif",
+      "bags": "paniers",
+      "remainingGoal": "Plus que {count} paniers pour compléter cet objectif communautaire !",
+      "solidarityFund": "Cagnotte Solidaire",
+      "collected": "Collecté",
+      "target": "Objectif",
+      "mealsFunded": "Repas financés",
+      "contributors": "Contributeurs",
+      "collectionProgress": "Progression de la collecte"
+    },
+    "merchantEsg": {
+      "pdfDownloaded": "Rapport PDF téléchargé avec succès.",
+      "pdfError": "Erreur lors de la génération du rapport."
     }
   },
   "merchantSignup": {

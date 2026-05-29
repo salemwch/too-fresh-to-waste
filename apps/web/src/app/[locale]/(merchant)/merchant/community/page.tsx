@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Users, Target, Heart, TrendingUp, Award } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { dashboardService } from '@/services/dashboard.service';
 import { dashboardKeys, useSocialImpact } from '@/hooks/use-merchant-dashboard';
 import type { CommunityBagGoalStats, DonationStats } from '@/types/dashboard';
@@ -12,7 +13,7 @@ import type { CommunityBagGoalStats, DonationStats } from '@/types/dashboard';
 function fmt(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return n.toLocaleString('fr-FR');
+  return n.toLocaleString();
 }
 
 function StatCard({
@@ -49,6 +50,8 @@ function StatCard({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CommunityPage() {
+  const t = useTranslations('dashboard.merchantCommunity');
+
   const communityQuery = useQuery({
     queryKey: dashboardKeys.communityGoal(),
     queryFn: async (): Promise<CommunityBagGoalStats> => {
@@ -78,48 +81,45 @@ export default function CommunityPage() {
       {/* Page header */}
       <div>
         <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-2'>
-          Communauté · Too Fresh to Waste
+          {t('breadcrumb')}
         </div>
         <h1 className='font-display text-3xl md:text-4xl text-primary-500 leading-[1.05]'>
-          Votre Impact Communautaire
+          {t('title')}
         </h1>
-        <p className='mt-2 text-primary-500/65 text-sm max-w-xl'>
-          Ensemble, les marchands de notre réseau sauvent des milliers de repas chaque jour. Voici
-          votre contribution à la mission collective.
-        </p>
+        <p className='mt-2 text-primary-500/65 text-sm max-w-xl'>{t('subtitle')}</p>
       </div>
 
       {/* Your social impact stats */}
       <div>
         <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-4'>
-          Votre contribution
+          {t('yourContribution')}
         </div>
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]'>
           <StatCard
-            title='Repas distribués'
+            title={t('mealsDistributed')}
             value={fmt(social?.mealsDistributed ?? 0)}
-            sub='repas sauvés depuis toujours'
+            sub={t('mealsAllTime')}
             icon={Heart}
             delay={0}
           />
           <StatCard
-            title='Personnes nourries'
+            title={t('peopleFed')}
             value={`~${fmt(social?.peopleServedEstimate ?? 0)}`}
-            sub='bénéficiaires estimés'
+            sub={t('estimatedBeneficiaries')}
             icon={Users}
             delay={0.07}
           />
           <StatCard
-            title='Valeur alimentaire'
+            title={t('foodValue')}
             value={`${fmt(social?.estimatedValueTnd ?? 0)} TND`}
-            sub='de nourriture sauvée'
+            sub={t('foodSaved')}
             icon={Award}
             delay={0.14}
           />
           <StatCard
-            title='Poids rescapé'
+            title={t('weightRescued')}
             value={`${fmt(social?.foodWeightKg ?? 0)} kg`}
-            sub='de gaspillage évité'
+            sub={t('wasteAvoided')}
             icon={TrendingUp}
             delay={0.21}
           />
@@ -139,7 +139,7 @@ export default function CommunityPage() {
           </div>
           <div>
             <div className='text-xs uppercase tracking-wider text-primary-500/60'>
-              Objectif Communautaire
+              {t('communityGoal')}
             </div>
             <div className='font-semibold text-primary-500'>
               Cycle #{community?.cycleNumber ?? '—'}
@@ -153,7 +153,7 @@ export default function CommunityPage() {
                 color: community?.status === 'completed' ? '#fff' : '#1e4448',
               }}
             >
-              {community?.status ?? 'actif'}
+              {community?.status ?? t('active')}
             </span>
           </div>
         </div>
@@ -163,7 +163,7 @@ export default function CommunityPage() {
             <span className='font-semibold text-primary-500'>
               {fmt(community?.currentCount ?? 0)}
             </span>{' '}
-            / {fmt(community?.targetCount ?? 10000)} paniers
+            / {fmt(community?.targetCount ?? 10000)} {t('bags')}
           </span>
           <span className='font-semibold text-primary-500'>
             {community?.progressPercentage ?? 0}%
@@ -179,11 +179,7 @@ export default function CommunityPage() {
         </div>
         {community && community.remaining > 0 && (
           <p className='mt-3 text-xs text-primary-500/55'>
-            Plus que{' '}
-            <span className='font-semibold text-primary-500'>
-              {fmt(community.remaining)} paniers
-            </span>{' '}
-            pour compléter cet objectif communautaire !
+            {t('remainingGoal', { count: fmt(community.remaining) })}
           </p>
         )}
       </motion.div>
@@ -202,7 +198,7 @@ export default function CommunityPage() {
             </div>
             <div>
               <div className='text-xs uppercase tracking-wider text-primary-500/60'>
-                Cagnotte Solidaire
+                {t('solidarityFund')}
               </div>
               <div className='font-semibold text-primary-500'>{donations.cause}</div>
             </div>
@@ -211,12 +207,12 @@ export default function CommunityPage() {
           <div className='grid grid-cols-2 sm:grid-cols-4 gap-4 mb-[20px]'>
             {[
               {
-                label: 'Collecté',
+                label: t('collected'),
                 value: `${fmt(donations.totalDonations)} ${donations.currency}`,
               },
-              { label: 'Objectif', value: `${fmt(donations.targetAmount)} ${donations.currency}` },
-              { label: 'Repas financés', value: `${fmt(donations.mealCount)}` },
-              { label: 'Contributeurs', value: `${fmt(donations.contributorCount)}` },
+              { label: t('target'), value: `${fmt(donations.targetAmount)} ${donations.currency}` },
+              { label: t('mealsFunded'), value: `${fmt(donations.mealCount)}` },
+              { label: t('contributors'), value: `${fmt(donations.contributorCount)}` },
             ].map(item => (
               <div key={item.label} className='text-center p-3 rounded-xl bg-primary-500/[0.04]'>
                 <div className='text-xs text-primary-500/55 mb-1'>{item.label}</div>
@@ -226,7 +222,7 @@ export default function CommunityPage() {
           </div>
 
           <div className='flex items-end justify-between mb-2'>
-            <span className='text-xs text-primary-500/60'>Progression de la collecte</span>
+            <span className='text-xs text-primary-500/60'>{t('collectionProgress')}</span>
             <span className='font-semibold text-brand-coral'>{donations.progressPercentage}%</span>
           </div>
           <div className='h-2 w-full rounded-full bg-primary-500/[0.08] overflow-hidden'>

@@ -16,6 +16,7 @@ import {
   Circle,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import {
   useEsgTier,
   useCarbonMetrics,
@@ -27,7 +28,7 @@ import { dashboardService } from '@/services/dashboard.service';
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmt(n: number, decimals = 0) {
-  return n.toLocaleString('fr-FR', { maximumFractionDigits: decimals });
+  return n.toLocaleString(undefined, { maximumFractionDigits: decimals });
 }
 
 function MetricRow({
@@ -53,6 +54,7 @@ function MetricRow({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function EsgPage() {
+  const t = useTranslations('dashboard.merchantEsg');
   const [downloading, setDownloading] = useState(false);
   const tierQuery = useEsgTier();
   const carbonQuery = useCarbonMetrics();
@@ -76,9 +78,9 @@ export default function EsgPage() {
       a.download = `bilan-carbone-${new Date().toISOString().split('T')[0]}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success('Rapport PDF téléchargé avec succès.');
+      toast.success(t('pdfDownloaded'));
     } catch {
-      toast.error('Erreur lors de la génération du rapport.');
+      toast.error(t('pdfError'));
     } finally {
       setDownloading(false);
     }

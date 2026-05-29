@@ -774,7 +774,7 @@ export default function MerchantEstablishmentPage() {
           </div>
           <p className='text-2xl font-bold text-slate-800 leading-tight'>{profileCompletion}%</p>
           <p className='text-xs text-primary mt-1'>
-            {pendingDocs > 0 ? `${pendingDocs} documents pending` : 'Profile complete'}
+            {pendingDocs > 0 ? t('documentsPending', { count: pendingDocs }) : t('profileComplete')}
           </p>
         </div>
       </div>
