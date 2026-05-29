@@ -32,6 +32,13 @@ const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
 const CACHE_MAX_ENTRIES = 50;
 
+function decodeHtmlEntities(text: string): string {
+  if (typeof document === 'undefined') return text.replace(/&amp;/g, '&');
+  const el = document.createElement('textarea');
+  el.innerHTML = text;
+  return el.value;
+}
+
 export function BusinessSearchAutocomplete({
   onSelect,
   onClear,
@@ -192,8 +199,8 @@ export function BusinessSearchAutocomplete({
         // 3. Merge: name + types from autocomplete (free), coords + address from details (Essentials SKU)
         const merged: PlaceDetails = {
           ...rawDetails,
-          name: suggestion.name,
-          nameAr: suggestion.nameAr,
+          name: decodeHtmlEntities(suggestion.name),
+          nameAr: decodeHtmlEntities(suggestion.nameAr),
           ...(suggestion.types ? { types: suggestion.types } : {}),
         };
 
