@@ -1,8 +1,8 @@
 import * as Sentry from '@sentry/react-native';
-import React, { useEffect } from 'react';
+import React, { Component, useEffect } from 'react';
 import { Config } from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { StatusBar, StyleSheet } from 'react-native';
+import { StatusBar, StyleSheet, View, Text, Pressable } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -27,8 +27,65 @@ import { analytics } from '@/utils/analytics';
 import { offlineManager } from '@/utils/offlineManager';
 import { toastConfig } from '@/utils/toast';
 
+import type { ErrorInfo, ReactNode } from 'react';
 import type { FavoriteType } from '@/features/favorites/types';
 import type { RootState, AppDispatch } from '@/store';
+
+// ─── Global Error Boundary ──────────────────────────────────────────────────
+interface GlobalErrorBoundaryState {
+  hasError: boolean;
+}
+
+class GlobalErrorBoundary extends Component<{ children: ReactNode }, GlobalErrorBoundaryState> {
+  override state: GlobalErrorBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(): GlobalErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  override componentDidCatch(error: Error, info: ErrorInfo): void {
+    Logger.error(
+      '[GlobalErrorBoundary] Unrecoverable crash',
+      { componentStack: info.componentStack },
+      error,
+    );
+  }
+
+  override render() {
+    if (this.state.hasError) {
+      return (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 32,
+            backgroundColor: '#fff',
+          }}
+        >
+          <Text style={{ fontSize: 20, fontWeight: '700', color: '#1E4448', marginBottom: 8 }}>
+            Something went wrong
+          </Text>
+          <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 24 }}>
+            The app encountered an unexpected error. Please restart.
+          </Text>
+          <Pressable
+            onPress={() => this.setState({ hasError: false })}
+            style={{
+              backgroundColor: '#1E4448',
+              paddingHorizontal: 24,
+              paddingVertical: 12,
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Try Again</Text>
+          </Pressable>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ─── Global error handler ────────────────────────────────────────────────────
 // Must be installed BEFORE Sentry.init so that we can chain handlers correctly.
@@ -325,19 +382,21 @@ function App(): React.JSX.Element {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <SafeAreaProvider>
-        <ReduxProvider store={store}>
-          <PersistGate loading={null} persistor={persistor}>
-            <RehydrationGate>
-              <QueryProvider>
-                <ThemeProvider defaultTheme='light'>
-                  <AppContent />
-                </ThemeProvider>
-              </QueryProvider>
-            </RehydrationGate>
-          </PersistGate>
-        </ReduxProvider>
-      </SafeAreaProvider>
+      <GlobalErrorBoundary>
+        <SafeAreaProvider>
+          <ReduxProvider store={store}>
+            <PersistGate loading={null} persistor={persistor}>
+              <RehydrationGate>
+                <QueryProvider>
+                  <ThemeProvider defaultTheme='light'>
+                    <AppContent />
+                  </ThemeProvider>
+                </QueryProvider>
+              </RehydrationGate>
+            </PersistGate>
+          </ReduxProvider>
+        </SafeAreaProvider>
+      </GlobalErrorBoundary>
     </GestureHandlerRootView>
   );
 }

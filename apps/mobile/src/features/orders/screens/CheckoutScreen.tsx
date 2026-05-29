@@ -162,12 +162,15 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
           );
         }
       } catch {
-        // react-native-permissions unavailable — fall back to OS-native prompt
-        Geolocation.getCurrentPosition(
-          pos => setDeliveryPin({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-          () => {},
-          { enableHighAccuracy: true, timeout: 15000 },
-        );
+        try {
+          Geolocation.getCurrentPosition(
+            pos => setDeliveryPin({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            () => {},
+            { enableHighAccuracy: true, timeout: 15000 },
+          );
+        } catch {
+          // Native geolocation module unavailable
+        }
       }
     })();
   }, [deliveryMode]);

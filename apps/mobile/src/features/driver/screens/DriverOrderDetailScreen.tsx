@@ -135,14 +135,17 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
   // Acquire a one-time GPS fix to feed into the available-orders query.
   // We only need coords to re-use the cached query; we don't watch continuously here.
   useEffect(() => {
-    Geolocation.getCurrentPosition(
-      pos => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      _err => {
-        // Fall back to 0,0 — the cache may already contain the order
-        setCoords({ lat: 0, lng: 0 });
-      },
-      { enableHighAccuracy: true, timeout: 15_000 },
-    );
+    try {
+      Geolocation.getCurrentPosition(
+        pos => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        _err => {
+          setCoords({ lat: 0, lng: 0 });
+        },
+        { enableHighAccuracy: true, timeout: 15_000 },
+      );
+    } catch {
+      setCoords({ lat: 0, lng: 0 });
+    }
   }, []);
 
   const hasCoords = coords !== null;
