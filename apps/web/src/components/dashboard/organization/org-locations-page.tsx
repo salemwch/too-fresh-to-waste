@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useMyOrganization } from '@/hooks/use-organization';
 import { useMyEstablishments } from '@/hooks/use-merchant-dashboard';
 import { AddLocationDialog } from './add-location-dialog';
+import { CreateOrgDialog } from './create-org-dialog';
 
 const statusColors: Record<string, string> = {
   active: 'bg-green-100 text-green-700 border-green-200',
@@ -38,7 +39,7 @@ export function OrgLocationsPage() {
           <p className='text-sm text-muted-foreground max-w-xs'>
             Upgrade to an enterprise account to manage multiple locations from one dashboard.
           </p>
-          <Button>Create Organization</Button>
+          <CreateOrgDialog trigger={<Button>Create Organization</Button>} />
         </CardContent>
       </Card>
     );
