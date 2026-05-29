@@ -139,6 +139,10 @@ export class CreateEstablishmentDto implements CreateEstablishmentInput {
 
   @IsOptional()
   @IsString()
+  googlePlaceId?: string | undefined;
+
+  @IsOptional()
+  @IsString()
   website?: string | undefined;
 
   @ApiProperty({

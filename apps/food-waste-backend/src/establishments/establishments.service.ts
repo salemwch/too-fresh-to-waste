@@ -89,6 +89,13 @@ export class EstablishmentsService {
       }
     }
 
+    if (createEstablishmentDto.googlePlaceId) {
+      const taken = await this.isGooglePlaceRegistered(createEstablishmentDto.googlePlaceId);
+      if (taken) {
+        throw new ConflictException('This location is already registered on the platform.');
+      }
+    }
+
     const establishment = new this.establishmentModel({
       ...createEstablishmentDto,
       ownerId: new Types.ObjectId(ownerId),

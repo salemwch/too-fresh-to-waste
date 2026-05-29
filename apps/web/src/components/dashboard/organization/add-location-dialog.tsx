@@ -199,6 +199,9 @@ export function AddLocationDialog({ orgId, trigger }: Props) {
         },
         phoneNumber: user?.phoneNumber ?? '+21620000000',
         email: user?.email ?? 'pending@example.com',
+        ...(selectedBusiness.googlePlaceId
+          ? { googlePlaceId: selectedBusiness.googlePlaceId }
+          : {}),
       };
 
       // 1. Create the establishment
