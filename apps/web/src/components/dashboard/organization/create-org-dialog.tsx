@@ -46,9 +46,15 @@ export function CreateOrgDialog({ trigger }: CreateOrgDialogProps) {
       await createOrg.mutateAsync({ name: name.trim(), establishmentId });
       setSuccess(true);
     } catch (err: unknown) {
+      const raw = (err as { response?: { data?: { message?: unknown } } }).response?.data?.message;
       const message =
-        (err as { response?: { data?: { message?: string } } }).response?.data?.message ??
-        'Failed to create organization';
+        typeof raw === 'string'
+          ? raw
+          : Array.isArray(raw)
+            ? (raw as unknown[])
+                .map(item => (typeof item === 'string' ? item : 'Validation error'))
+                .join(' ')
+            : 'Failed to create organization. Please try again.';
       setError(message);
     }
   };
@@ -121,7 +127,7 @@ export function CreateOrgDialog({ trigger }: CreateOrgDialogProps) {
               )}
 
               {error && (
-                <div className='rounded-md bg-destructive/10 p-3 text-sm text-destructive'>
+                <div className='rounded-md bg-destructive/10 p-3 text-sm text-destructive break-words overflow-hidden'>
                   {error}
                 </div>
               )}

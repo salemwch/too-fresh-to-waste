@@ -347,7 +347,10 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      exceptionFactory: errors => new BadRequestException(errors),
+      exceptionFactory: errors => {
+        const messages = errors.map(err => Object.values(err.constraints ?? {}).join(', '));
+        return new BadRequestException(messages.join('; '));
+      },
       disableErrorMessages: appConfigService.get('NODE_ENV') === 'production',
     }),
   );

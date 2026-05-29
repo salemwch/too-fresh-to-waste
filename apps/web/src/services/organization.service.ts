@@ -38,7 +38,11 @@ export const organizationService = {
   },
 
   create(data: { name: string; establishmentId: string }) {
-    return apiClient.post<BackendEnvelope<OrganizationResponse>>(BASE, data);
+    return apiClient.post<BackendEnvelope<OrganizationResponse>>(
+      BASE,
+      { name: data.name },
+      { params: { establishmentId: data.establishmentId } },
+    );
   },
 
   update(id: string, data: { name?: string }) {

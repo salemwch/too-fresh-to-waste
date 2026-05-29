@@ -17,6 +17,9 @@ build
 *.tsbuildinfo
 .turbo
 
+# AI agent skills (installed per-machine, not shared)
+.agents
+
 # IDE
 .vscode
 .idea
