@@ -22,17 +22,25 @@ import { WebSocketService } from './websocket.service';
 
 @WSGateway({
   cors: {
-    origin: [
-      // Backend self (health checks / same-origin WS)
-      'http://localhost:3000',
-      // Web merchant dashboard (Next.js dev server)
-      'http://localhost:3001',
-      // Mobile app (React Native / Expo)
-      'http://localhost:8081',
-      'http://10.0.2.2:8081',
-      'capacitor://localhost',
-      'ionic://localhost',
-    ],
+    origin:
+      (process.env['CORS_ORIGINS'] ?? '')
+        .split(',')
+        .map(o => o.trim())
+        .filter(Boolean).length > 0
+        ? (process.env['CORS_ORIGINS'] ?? '').split(',').map(o => {
+            const trimmed = o.trim();
+            return trimmed.startsWith('regex:')
+              ? new RegExp(trimmed.slice('regex:'.length))
+              : trimmed;
+          })
+        : [
+            'http://localhost:3000',
+            'http://localhost:3001',
+            'http://localhost:8081',
+            'http://10.0.2.2:8081',
+            'capacitor://localhost',
+            'ionic://localhost',
+          ],
     credentials: true,
   },
   namespace: '/',
