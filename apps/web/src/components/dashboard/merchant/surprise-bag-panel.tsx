@@ -418,7 +418,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       setSuccessMsg(`${quantity} ${quantity === 1 ? 'bag' : 'bags'} published successfully!`);
       setTimeout(onClose, 1600);
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Failed to publish. Please try again.');
+      setErrorMsg('Failed to publish. Please try again.');
     }
   }, [
     establishment,

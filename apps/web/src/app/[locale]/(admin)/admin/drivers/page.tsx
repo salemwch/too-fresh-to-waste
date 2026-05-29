@@ -90,7 +90,7 @@ export default function DriversPage() {
       setValues(EMPTY);
       setErrors({});
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to create driver.');
+      setSubmitError('Failed to create driver. Please try again.');
     }
   };
 

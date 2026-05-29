@@ -14,7 +14,6 @@ import helmet from 'helmet';
 
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { MetricsInterceptor } from './common/interceptors/metrics.interceptor';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { TransformInterceptor } from './common/interceptors/transFormInterceptor';
@@ -136,7 +135,6 @@ async function bootstrap() {
   const metricsService = app.get(PrometheusMetricsService);
 
   app.useGlobalFilters(new AllExceptionsFilter());
-  app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalInterceptors(new RequestLoggingInterceptor());
   app.useGlobalInterceptors(new MetricsInterceptor(metricsService));
