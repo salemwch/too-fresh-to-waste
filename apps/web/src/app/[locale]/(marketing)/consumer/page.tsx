@@ -299,7 +299,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                   alt='Pick up today — fresh food bags available near you'
                   width={520}
                   height={480}
-                  className='w-full max-w-[360px] lg:max-w-[480px] h-auto object-contain drop-shadow-2xl'
+                  className='w-full max-w-[260px] lg:max-w-[360px] h-auto object-contain drop-shadow-2xl'
                   priority
                 />
               </div>
@@ -791,7 +791,7 @@ export default async function ConsumerPage({ params }: PageProps) {
         </section>
 
         {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
-        <section className='bg-brand-coral relative overflow-hidden py-20 lg:py-28'>
+        <section className='bg-primary-500 relative overflow-hidden py-20 lg:py-28'>
           {/* Top wave from white */}
           <div className='absolute top-0 left-0 right-0' aria-hidden='true'>
             <svg
