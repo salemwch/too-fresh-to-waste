@@ -65,7 +65,7 @@ export const OrderHistoryScreen: React.FC<OrderHistoryScreenProps> = ({
               color='secondary'
               style={styles.emptyStateNote}
             >
-              (API integration pending)
+              Once you place an order, it will show up in your history.
             </Text>
           </View>
         </Card>

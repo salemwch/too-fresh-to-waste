@@ -343,9 +343,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      behavior='padding'
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-      enabled={false}
     >
       <ScrollView
         contentContainerStyle={[
