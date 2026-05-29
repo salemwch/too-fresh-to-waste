@@ -250,6 +250,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
           </Text>
           <Pressable
             accessibilityRole='button'
+            accessibilityLabel='Close'
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >

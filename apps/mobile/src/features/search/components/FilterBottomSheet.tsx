@@ -140,7 +140,12 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: colors.outline }]}>
-          <Pressable accessibilityRole='button' onPress={onClose} style={styles.closeButton}>
+          <Pressable
+            accessibilityRole='button'
+            accessibilityLabel='Close filters'
+            onPress={onClose}
+            style={styles.closeButton}
+          >
             <Icon name='close' size={24} color={colors.onSurface} />
           </Pressable>
           <Text variant='headline' style={styles.headerTitle}>

@@ -139,6 +139,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
             </Text>
             <Pressable
               accessibilityRole='button'
+              accessibilityLabel={`Remove ${chip.label} filter`}
               onPress={chip.onRemove}
               style={styles.removeButton}
               hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
