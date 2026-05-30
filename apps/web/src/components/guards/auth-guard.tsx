@@ -51,7 +51,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
+  // During logout, keep rendering children until navigation completes.
+  // Returning null here causes a blank page because store.logout() fires
+  // before window.location.replace() unloads the page.
+  if (!isAuthenticated && !isLoggingOut) {
     return null;
   }
 

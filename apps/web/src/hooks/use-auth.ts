@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/lib/auth';
@@ -10,7 +9,6 @@ import type { LoginRequest, RegisterRequest } from '@foodwaste/shared';
 
 export function useAuth() {
   const store = useAuthStore();
-  const router = useRouter();
   const locale = useLocale();
   const queryClient = useQueryClient();
 
@@ -53,12 +51,14 @@ export function useAuth() {
     } catch {
       // Logout should always clear local state even if API fails
     } finally {
-      // Clear all TanStack Query caches (user profile, orders, etc.)
       queryClient.clear();
       store.logout();
-      router.replace(`/${locale}/login`);
+      // Hard navigation — guarantees cookies are fully settled before the
+      // next page request hits middleware. router.replace() is an RSC fetch
+      // that can race with Set-Cookie processing and get redirected back.
+      window.location.replace(`/${locale}/login`);
     }
-  }, [store, router, locale, queryClient]);
+  }, [store, locale, queryClient]);
 
   return {
     user: store.user,
