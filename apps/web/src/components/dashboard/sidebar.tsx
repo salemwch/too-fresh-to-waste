@@ -34,8 +34,10 @@ export function Sidebar({ items }: SidebarProps) {
   const locale = useLocale();
   const user = useAuthStore(s => s.user);
   const unreadOrderCount = useNotificationStore(s => s.unreadCount);
-  const isMerchant = useAuthStore(s => s.user?.role === UserRole.MERCHANT);
-  const { data: draftOfferCount = 0 } = useOfferStatusCount('draft', isMerchant);
+  const isMerchantOrLM = useAuthStore(
+    s => s.user?.role === UserRole.MERCHANT || s.user?.role === UserRole.LOCATION_MANAGER,
+  );
+  const { data: draftOfferCount = 0 } = useOfferStatusCount('draft', isMerchantOrLM);
 
   const avatar = user
     ? resolveProfileImage(user.profileImage ?? undefined, user.avatar ?? undefined)

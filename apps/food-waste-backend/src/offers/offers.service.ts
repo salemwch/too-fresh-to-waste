@@ -844,6 +844,7 @@ export class OffersService {
     updateOfferDto: UpdateOfferDto,
     userId: string,
     userRole: string,
+    assignedEstablishmentId?: string,
   ): Promise<OfferDocument> {
     const offer = await this.findById(id);
 
@@ -858,7 +859,12 @@ export class OffersService {
         ? offer.merchantId._id.toString()
         : offer.merchantId.toString();
 
-    if (userRole !== 'admin' && merchantIdString !== userId) {
+    if (userRole === UserRole.LOCATION_MANAGER) {
+      const offerEstId = offer.establishmentId?.toString();
+      if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
+        throw new ForbiddenException('You can only update offers for your assigned establishment');
+      }
+    } else if (userRole !== 'admin' && merchantIdString !== userId) {
       throw new ForbiddenException('You can only update your own offers');
     }
 
@@ -912,21 +918,40 @@ export class OffersService {
     return this.findById(id);
   }
 
-  async updateStatus(id: string, status: OfferStatus, merchantId?: string): Promise<OfferDocument> {
-    // When a merchant tries to activate an offer, verify their establishment is approved.
+  async updateStatus(
+    id: string,
+    status: OfferStatus,
+    merchantId?: string,
+    userRole?: string,
+    assignedEstablishmentId?: string,
+  ): Promise<OfferDocument> {
+    // When a merchant/LM activates an offer, verify establishment ownership and approval.
     // Admin users pass no merchantId and bypass this check intentionally.
-    if (status === OfferStatus.ACTIVE && merchantId) {
+    const isLM = userRole === UserRole.LOCATION_MANAGER;
+    if (status === OfferStatus.ACTIVE && (merchantId || isLM)) {
       const offer = await this.offerModel.findById(id).select('establishmentId merchantId').exec();
 
       if (!offer) {
         throw new NotFoundException('Offer not found');
       }
 
-      if (offer.merchantId.toString() !== merchantId) {
+      if (isLM) {
+        const offerEstId = offer.establishmentId?.toString();
+        if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
+          throw new ForbiddenException(
+            'You can only manage offers for your assigned establishment',
+          );
+        }
+      } else if (offer.merchantId.toString() !== merchantId) {
         throw new ForbiddenException('You can only manage your own offers');
       }
 
-      await this.validateEstablishmentOwnership(offer.establishmentId.toString(), merchantId);
+      await this.validateEstablishmentOwnership(
+        offer.establishmentId.toString(),
+        merchantId ?? '',
+        userRole,
+        assignedEstablishmentId,
+      );
     }
 
     const updateData: StatusUpdateData = { status };
@@ -1075,6 +1100,7 @@ export class OffersService {
     userId: string,
     userRole: string,
     deletionReason?: string,
+    assignedEstablishmentId?: string,
   ): Promise<void> {
     const offer = await this.findById(id);
 
@@ -1089,7 +1115,12 @@ export class OffersService {
         ? offer.merchantId._id.toString()
         : offer.merchantId.toString();
 
-    if (userRole !== 'admin' && merchantIdString !== userId) {
+    if (userRole === UserRole.LOCATION_MANAGER) {
+      const offerEstId = offer.establishmentId?.toString();
+      if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
+        throw new ForbiddenException('You can only delete offers for your assigned establishment');
+      }
+    } else if (userRole !== 'admin' && merchantIdString !== userId) {
       throw new ForbiddenException('You can only delete your own offers');
     }
     if (offer.reservedQuantity > 0) {
@@ -1866,10 +1897,16 @@ export class OffersService {
   private async validateEstablishmentOwnership(
     establishmentId: string,
     merchantId: string,
+    userRole?: string,
+    assignedEstablishmentId?: string,
   ): Promise<EstablishmentDocument> {
     const establishment = await this.establishmentsService.findById(establishmentId);
 
-    if (establishment.ownerId.toString() !== merchantId) {
+    if (userRole === UserRole.LOCATION_MANAGER) {
+      if (!assignedEstablishmentId || establishment._id.toString() !== assignedEstablishmentId) {
+        throw new ForbiddenException('You can only manage offers for your assigned establishment');
+      }
+    } else if (establishment.ownerId.toString() !== merchantId) {
       throw new ForbiddenException('You can only create offers for your own establishment');
     }
 
@@ -2030,6 +2067,7 @@ export class OffersService {
     dto: ReactivateOfferDto,
     userId: string,
     userRole: string,
+    assignedEstablishmentId?: string,
   ): Promise<OfferDocument> {
     const offer = await this.findById(offerId);
 
@@ -2043,11 +2081,18 @@ export class OffersService {
         ? offer.merchantId._id.toString()
         : offer.merchantId.toString();
 
-    if (userRole !== 'admin' && merchantIdString !== userId) {
+    if (userRole === UserRole.LOCATION_MANAGER) {
+      const offerEstId = offer.establishmentId?.toString();
+      if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
+        throw new ForbiddenException(
+          'You can only reactivate offers for your assigned establishment',
+        );
+      }
+    } else if (userRole !== 'admin' && merchantIdString !== userId) {
       throw new ForbiddenException('You can only reactivate your own offers');
     }
 
-    // Establishment approval guard — merchants cannot reactivate offers
+    // Establishment approval guard — merchants/LMs cannot reactivate offers
     // for establishments that have not yet been approved by an admin.
     if (userRole !== 'admin') {
       const populatedEstablishmentId =
@@ -2058,7 +2103,12 @@ export class OffersService {
         ? populatedEstablishmentId.toString()
         : offer.establishmentId.toString();
 
-      await this.validateEstablishmentOwnership(establishmentId, userId);
+      await this.validateEstablishmentOwnership(
+        establishmentId,
+        userId,
+        userRole,
+        assignedEstablishmentId,
+      );
     }
 
     // Status guard — only allow reactivation from terminal states

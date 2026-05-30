@@ -20,8 +20,10 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
   const locale = useLocale();
   const t = useTranslations('dashboard.nav');
   const unreadOrderCount = useNotificationStore(s => s.unreadCount);
-  const isMerchant = useAuthStore(s => s.user?.role === UserRole.MERCHANT);
-  const { data: draftOfferCount = 0 } = useOfferStatusCount('draft', isMerchant);
+  const isMerchantOrLM = useAuthStore(
+    s => s.user?.role === UserRole.MERCHANT || s.user?.role === UserRole.LOCATION_MANAGER,
+  );
+  const { data: draftOfferCount = 0 } = useOfferStatusCount('draft', isMerchantOrLM);
 
   return (
     <nav className='flex flex-col gap-0.5 px-3'>

@@ -600,7 +600,13 @@ export class OffersController {
     @Body(new ValidationPipe({ transform: true })) dto: ReactivateOfferDto,
     @Request() req: AuthenticatedRequest,
   ) {
-    const offer = await this.offersService.reactivateOffer(id, dto, req.user.userId, req.user.role);
+    const offer = await this.offersService.reactivateOffer(
+      id,
+      dto,
+      req.user.userId,
+      req.user.role,
+      req.user.assignedEstablishmentId,
+    );
 
     return {
       message: 'Offer reactivated successfully',
@@ -741,6 +747,7 @@ export class OffersController {
         updateData,
         req.user.userId,
         req.user.role,
+        req.user.assignedEstablishmentId,
       );
 
       return {
@@ -809,6 +816,7 @@ export class OffersController {
         { images: newImageUrls },
         req.user.userId,
         req.user.role,
+        req.user.assignedEstablishmentId,
       );
 
       // ✅ Return minimal response - just ID and images
@@ -826,7 +834,7 @@ export class OffersController {
 
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.MERCHANT)
+  @Roles(UserRole.ADMIN, UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
   @ApiOperation({
     summary: 'Update offer status',
     description: 'Merchants: active/draft/cancelled/sold_out. Admins: all statuses.',
@@ -867,9 +875,18 @@ export class OffersController {
       }
     }
 
-    const merchantId = req.user.role === UserRole.MERCHANT ? req.user.userId : undefined;
+    const merchantId =
+      req.user.role === UserRole.MERCHANT || req.user.role === UserRole.LOCATION_MANAGER
+        ? req.user.userId
+        : undefined;
 
-    const updatedOffer = await this.offersService.updateStatus(id, status, merchantId);
+    const updatedOffer = await this.offersService.updateStatus(
+      id,
+      status,
+      merchantId,
+      req.user.role,
+      req.user.assignedEstablishmentId,
+    );
 
     return {
       message: 'Offer status updated successfully',
@@ -923,7 +940,13 @@ export class OffersController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
-    await this.offersService.remove(id, req.user.userId, req.user.role);
+    await this.offersService.remove(
+      id,
+      req.user.userId,
+      req.user.role,
+      undefined,
+      req.user.assignedEstablishmentId,
+    );
 
     return {
       status: 'success',
