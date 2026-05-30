@@ -12,7 +12,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as argon2 from 'argon2';
 import { Model, Types } from 'mongoose';
 
-import { InvitationStatus, OrganizationRole } from '@foodwaste/shared';
+import { InvitationStatus, OrganizationRole, UserRole, UserStatus } from '@foodwaste/shared';
 
 import { EmailService } from '../email/email.service';
 import { UsersService } from '../users/user.service';
@@ -148,28 +148,19 @@ export class OrganizationsInvitationService {
     // Hash the password the same way auth.service does
     const hashedPassword = await argon2.hash(dto.password);
 
-    // Create the location manager user account
-    // createLocationManager is added in Task 6; calling it here for future wiring
-    await (
-      this.usersService as unknown as {
-        createLocationManager: (data: {
-          email: string;
-          password: string;
-          firstName: string;
-          lastName: string;
-          phoneNumber?: string | undefined;
-          assignedEstablishmentId: string;
-          organizationId: string;
-        }) => Promise<unknown>;
-      }
-    ).createLocationManager({
+    // Clicking the invitation link from their inbox proves email ownership —
+    // no separate verification step needed (same pattern as Slack / GitHub Teams).
+    await this.usersService.createLocationManager({
       email: invitation.email,
       password: hashedPassword,
       firstName: dto.firstName,
       lastName: dto.lastName,
-      ...(dto.phoneNumber ? { phoneNumber: dto.phoneNumber } : {}),
+      role: UserRole.LOCATION_MANAGER,
+      status: UserStatus.ACTIVE,
+      isEmailVerified: true,
       assignedEstablishmentId: invitation.assignedEstablishmentId.toString(),
       organizationId: invitation.organizationId.toString(),
+      ...(dto.phoneNumber ? { phoneNumber: dto.phoneNumber } : {}),
     });
 
     // Mark invitation as accepted

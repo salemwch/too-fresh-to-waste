@@ -2,9 +2,7 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
-import { useLocale } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import {
   ChevronLeft,
@@ -29,7 +27,6 @@ import '../../app/[locale]/(merchant-onboarding)/merchant-signup/merchant-signup
 export function ResetPasswordForm() {
   const t = useTranslations('auth');
   const tHero = useTranslations('merchantSignup');
-  const router = useRouter();
   const locale = useLocale();
   const searchParams = useSearchParams();
   const token = searchParams.get('token') ?? '';
@@ -164,7 +161,7 @@ export function ResetPasswordForm() {
           {/* Back chevron */}
           <button
             type='button'
-            onClick={() => router.push(`/${locale}/login`)}
+            onClick={() => window.location.replace(`/${locale}/login`)}
             className='flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground'
             aria-label='Back to login'
           >
@@ -186,13 +183,14 @@ export function ResetPasswordForm() {
                 </h2>
                 <p className='mt-2 text-sm text-muted-foreground'>{t('resetPasswordSuccess')}</p>
               </div>
-              <Link
-                href='/login'
+              <button
+                type='button'
+                onClick={() => window.location.replace(`/${locale}/login`)}
                 className='mt-2 flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80'
               >
                 <ArrowLeft className='h-3.5 w-3.5' />
                 {t('backToLogin')}
-              </Link>
+              </button>
             </div>
           ) : (
             /* ── Form state ── */
@@ -293,13 +291,14 @@ export function ResetPasswordForm() {
                 </Button>
 
                 {/* Back to login */}
-                <Link
-                  href='/login'
+                <button
+                  type='button'
+                  onClick={() => window.location.replace(`/${locale}/login`)}
                   className='flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground'
                 >
                   <ArrowLeft className='h-3.5 w-3.5' />
                   {t('backToLogin')}
-                </Link>
+                </button>
               </form>
             </>
           )}
