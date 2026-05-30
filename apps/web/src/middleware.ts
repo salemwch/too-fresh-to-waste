@@ -110,7 +110,7 @@ export default async function middleware(request: NextRequest) {
   // Auto-redirect authenticated users from public root to their dashboard.
   if (isRootPath && isAuthenticated && role) {
     const locale = pathnameHasLocale ? (pathname.split('/')[1] ?? defaultLocale) : defaultLocale;
-    if (role === 'merchant') {
+    if (role === 'merchant' || role === 'location_manager') {
       return NextResponse.redirect(new URL(`/${locale}/merchant/dashboard`, request.url));
     }
     if (role === 'admin' || role === 'moderator') {
@@ -121,7 +121,7 @@ export default async function middleware(request: NextRequest) {
   // Redirect authenticated users away from login/register pages
   if (isAuthPage && isAuthenticated && role) {
     const locale = pathnameHasLocale ? (pathname.split('/')[1] ?? defaultLocale) : defaultLocale;
-    if (role === 'merchant') {
+    if (role === 'merchant' || role === 'location_manager') {
       return NextResponse.redirect(new URL(`/${locale}/merchant/dashboard`, request.url));
     }
     if (role === 'admin' || role === 'moderator') {

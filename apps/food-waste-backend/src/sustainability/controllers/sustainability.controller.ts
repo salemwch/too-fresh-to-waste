@@ -36,7 +36,7 @@ import { SustainabilityService } from '../services/sustainability.service';
 @ApiBearerAuth()
 @Controller('sustainability')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.MERCHANT)
+@Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
 export class SustainabilityController {
   private readonly logger = new Logger(SustainabilityController.name);
 

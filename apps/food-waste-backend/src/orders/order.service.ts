@@ -1296,11 +1296,14 @@ export class OrdersService {
     userId: string,
     userRole: UserRole,
     startDate?: Date,
+    assignedEstablishmentId?: string,
   ): Promise<OrderStatsResponse> {
     const matchCondition: Record<string, unknown> =
       userRole === UserRole.MERCHANT
         ? { merchantId: new Types.ObjectId(userId) }
-        : { customerId: new Types.ObjectId(userId) };
+        : userRole === UserRole.LOCATION_MANAGER && assignedEstablishmentId
+          ? { establishmentId: new Types.ObjectId(assignedEstablishmentId) }
+          : { customerId: new Types.ObjectId(userId) };
 
     if (startDate) {
       matchCondition['createdAt'] = { $gte: startDate };
@@ -1371,9 +1374,14 @@ export class OrdersService {
     userRole: UserRole,
     granularity: ChartGranularity,
     value: number,
+    assignedEstablishmentId?: string,
   ): Promise<RevenueChartResponse[]> {
     const matchCondition =
-      userRole === UserRole.MERCHANT ? { merchantId: new Types.ObjectId(userId) } : {};
+      userRole === UserRole.MERCHANT
+        ? { merchantId: new Types.ObjectId(userId) }
+        : userRole === UserRole.LOCATION_MANAGER && assignedEstablishmentId
+          ? { establishmentId: new Types.ObjectId(assignedEstablishmentId) }
+          : {};
 
     const now = new Date();
     let startDate: Date;
@@ -1566,9 +1574,14 @@ export class OrdersService {
     userRole: UserRole,
     limit: number = 5,
     startDate?: Date,
+    assignedEstablishmentId?: string,
   ): Promise<CustomerLocationResponse[]> {
     const matchCondition: Record<string, unknown> =
-      userRole === UserRole.MERCHANT ? { merchantId: new Types.ObjectId(userId) } : {};
+      userRole === UserRole.MERCHANT
+        ? { merchantId: new Types.ObjectId(userId) }
+        : userRole === UserRole.LOCATION_MANAGER && assignedEstablishmentId
+          ? { establishmentId: new Types.ObjectId(assignedEstablishmentId) }
+          : {};
 
     if (startDate) {
       matchCondition['createdAt'] = { $gte: startDate };

@@ -10,22 +10,27 @@ import { UserNav } from '@/components/dashboard/user-nav';
 import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
 import { merchantNavItems } from '@/config/navigation.config';
 import { useMerchantOrdersSocket } from '@/hooks/use-merchant-orders-socket';
+import { useAuthStore } from '@/lib/auth';
 import { UserRole } from '@foodwaste/shared';
 
 export function MerchantLayoutShell({ children }: { children: React.ReactNode }) {
   useMerchantOrdersSocket();
+  const userRole = useAuthStore(s => s.user?.role as UserRole | undefined);
+  const visibleNavItems = merchantNavItems.filter(item =>
+    userRole ? item.roles.includes(userRole) : false,
+  );
 
   return (
     <AuthGuard>
       <RoleGuard allowedRoles={[UserRole.MERCHANT, UserRole.LOCATION_MANAGER]}>
         <div className='flex h-screen bg-dashboard'>
           {/* Desktop teal sidebar — hidden on mobile */}
-          <Sidebar items={merchantNavItems} />
+          <Sidebar items={visibleNavItems} />
 
           <div className='flex flex-col flex-1 min-w-0'>
             {/* Mobile header — only visible below xl breakpoint */}
             <header className='xl:hidden shrink-0 z-40 bg-primary-500 text-white px-[16px] py-3 flex items-center justify-between gap-3'>
-              <MobileNav items={merchantNavItems} />
+              <MobileNav items={visibleNavItems} />
               <span className='font-display font-semibold text-base tracking-tight'>
                 Too Fresh to Waste
               </span>

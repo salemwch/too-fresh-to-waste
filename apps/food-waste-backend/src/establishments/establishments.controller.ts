@@ -209,10 +209,19 @@ export class EstablishmentsController {
 
   @Get('my-establishment')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.MERCHANT)
+  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
   async getMyEstablishment(@Request() req: AuthenticatedRequest) {
-    const result = await this.establishmentsService.findByOwnerId(req.user.userId);
+    if (req.user.role === UserRole.LOCATION_MANAGER) {
+      if (!req.user.assignedEstablishmentId) {
+        return { message: 'Your establishments retrieved successfully', data: [] };
+      }
+      const establishment = await this.establishmentsService.findById(
+        req.user.assignedEstablishmentId,
+      );
+      return { message: 'Your establishments retrieved successfully', data: [establishment] };
+    }
 
+    const result = await this.establishmentsService.findByOwnerId(req.user.userId);
     return {
       message: 'Your establishments retrieved successfully',
       data: result.establishments,

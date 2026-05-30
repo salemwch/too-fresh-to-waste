@@ -346,7 +346,7 @@ export class OrdersController {
   @ApiResponse({ status: 401, description: 'Unauthorized - Admin or Merchant access required' })
   @Get('stats')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.MERCHANT)
+  @Roles(UserRole.ADMIN, UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
   async getOrderStats(
     @Request() req: AuthenticatedRequest,
     @Query('startDate') startDateStr?: string,
@@ -356,7 +356,12 @@ export class OrdersController {
     data: OrderStatsResponse;
   }> {
     const startDate = startDateStr ? new Date(startDateStr) : undefined;
-    const stats = await this.ordersService.getOrderStats(req.user.userId, req.user.role, startDate);
+    const stats = await this.ordersService.getOrderStats(
+      req.user.userId,
+      req.user.role,
+      startDate,
+      req.user.assignedEstablishmentId,
+    );
 
     return {
       statusCode: HttpStatus.OK,
@@ -388,7 +393,7 @@ export class OrdersController {
   @ApiResponse({ status: 401, description: 'Unauthorized — merchant or admin access required' })
   @Get('merchant-revenue-chart')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.MERCHANT, UserRole.ADMIN)
+  @Roles(UserRole.MERCHANT, UserRole.ADMIN, UserRole.LOCATION_MANAGER)
   async getMerchantRevenueChart(
     @Request() req: AuthenticatedRequest,
     @Query('granularity') rawGranularity = 'month',
@@ -417,6 +422,7 @@ export class OrdersController {
       req.user.role,
       granularity,
       value,
+      req.user.assignedEstablishmentId,
     );
 
     return {
@@ -446,7 +452,7 @@ export class OrdersController {
   @ApiResponse({ status: 401, description: 'Unauthorized - Merchant access required' })
   @Get('merchant-customer-locations')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.MERCHANT, UserRole.ADMIN)
+  @Roles(UserRole.MERCHANT, UserRole.ADMIN, UserRole.LOCATION_MANAGER)
   async getMerchantCustomerLocations(
     @Request() req: AuthenticatedRequest,
     @Query('limit', new DefaultValuePipe(5), ParseIntPipe) limit: number,
@@ -462,6 +468,7 @@ export class OrdersController {
       req.user.role,
       limit,
       startDate,
+      req.user.assignedEstablishmentId,
     );
 
     return {
@@ -507,7 +514,9 @@ export class OrdersController {
     const order = await this.ordersService.findById(id, req.user.userId, req.user.role);
 
     const DtoClass =
-      req.user.role === UserRole.MERCHANT || req.user.role === UserRole.ADMIN
+      req.user.role === UserRole.MERCHANT ||
+      req.user.role === UserRole.ADMIN ||
+      req.user.role === UserRole.LOCATION_MANAGER
         ? MerchantOrderResponseDto
         : ConsumerOrderResponseDto;
 
@@ -758,7 +767,7 @@ export class OrdersController {
 
   @Patch('approve-expiration')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.MERCHANT)
+  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
   async approveExpiration(
     @Body('orderIds') orderIds: string[],
     @Request() req: AuthenticatedRequest,
@@ -772,7 +781,7 @@ export class OrdersController {
   }
   @Patch(':id/approve-pickup-extension')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.MERCHANT)
+  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
   async approvePickupExtension(
     @Param('id') orderId: string,
     @Body('approved') approved: boolean,
@@ -794,7 +803,7 @@ export class OrdersController {
    */
   @Patch(':id/unlock-pickup')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.MERCHANT, UserRole.ADMIN)
+  @Roles(UserRole.MERCHANT, UserRole.ADMIN, UserRole.LOCATION_MANAGER)
   async unlockPickup(@Param('id') orderId: string, @Request() req: AuthenticatedRequest) {
     const order = await this.ordersService.unlockPickup(orderId, req.user.userId);
 

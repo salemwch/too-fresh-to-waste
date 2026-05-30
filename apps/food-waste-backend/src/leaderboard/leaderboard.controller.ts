@@ -30,7 +30,7 @@ class UpdateLeaderboardPreferenceDto {
 @ApiBearerAuth()
 @Controller('leaderboard')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.MERCHANT)
+@Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
 export class LeaderboardController {
   constructor(private readonly leaderboardService: LeaderboardService) {}
 
