@@ -155,8 +155,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       },
     );
 
-    // Send error to Sentry (if configured)
-    if (process.env['SENTRY_DSN']) {
+    // Send error to Sentry — 5xx only; 4xx are expected client errors (wrong password,
+    // missing cookies, bad request) and produce noise without indicating real backend bugs.
+    if (process.env['SENTRY_DSN'] && status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       Sentry.withScope(scope => {
         scope.setTag('errorId', errorId);
         scope.setTag('correlationId', correlationId);

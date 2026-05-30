@@ -104,6 +104,13 @@ export class EstablishmentsService {
 
     const savedEstablishment = await establishment.save();
 
+    // Keep org.establishmentIds in sync when a new location is added
+    if (org) {
+      await this.establishmentModel.db
+        .collection('organizations')
+        .updateOne({ _id: org._id }, { $addToSet: { establishmentIds: savedEstablishment._id } });
+    }
+
     // ✅ EVENT: Emit establishment created event
     try {
       const event = new EstablishmentCreatedEvent(
