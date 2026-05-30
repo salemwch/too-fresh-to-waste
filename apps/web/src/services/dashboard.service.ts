@@ -151,7 +151,7 @@ export const dashboardService = {
   uploadOfferImage(offerId: string, imageFile: File) {
     const formData = new FormData();
     formData.append('images', imageFile, imageFile.name);
-    return apiClient.patch<BackendEnvelope<unknown>>(`${OFFERS_BASE}/${offerId}`, formData, {
+    return apiClient.patch<BackendEnvelope<unknown>>(`${OFFERS_BASE}/${offerId}/images`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
