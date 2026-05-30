@@ -152,11 +152,12 @@ export class LeaderboardService {
           ? `${(u as { firstName?: string }).firstName ?? ''} ${(u as { lastName?: string }).lastName ?? ''}`.trim() ||
             'Merchant'
           : 'Merchant';
-      const profileImage = isAnonymous
-        ? null
-        : ((u as { profileImage?: string }).profileImage ??
-          (u as { avatar?: string }).avatar ??
-          null);
+      const profileImage =
+        isAnonymous || !u
+          ? null
+          : ((u as { profileImage?: string }).profileImage ??
+            (u as { avatar?: string }).avatar ??
+            null);
 
       return {
         rank: i + 1,

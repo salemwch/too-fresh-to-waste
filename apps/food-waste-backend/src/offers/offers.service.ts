@@ -8,6 +8,7 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Connection, Model, Types, isValidObjectId, PipelineStage, FlattenMaps } from 'mongoose';
 
+import { UserRole } from '@foodwaste/shared';
 import { CacheService } from '../common/services/cache.service';
 import { AppLoggerService } from '../common/services/logger.service';
 import { TimezoneUtil } from '../common/utils/timezone.util';
@@ -286,8 +287,18 @@ export class OffersService {
     });
   }
 
-  async create(createOfferDto: CreateOfferDto, merchantId: string): Promise<OfferDocument> {
-    await this.validateEstablishmentOwnerOnly(createOfferDto.establishmentId, merchantId);
+  async create(
+    createOfferDto: CreateOfferDto,
+    merchantId: string,
+    userRole?: string,
+    assignedEstablishmentId?: string,
+  ): Promise<OfferDocument> {
+    await this.validateEstablishmentOwnerOnly(
+      createOfferDto.establishmentId,
+      merchantId,
+      userRole,
+      assignedEstablishmentId,
+    );
     // ✅ TIMEZONE: Convert local time (Tunisia) to UTC using proper timezone library
     // User inputs local time (e.g., 23:20 Tunisia) → Backend stores UTC (22:20)
     const timezone = createOfferDto.timezone ?? 'Africa/Tunis';
@@ -1882,10 +1893,16 @@ export class OffersService {
   private async validateEstablishmentOwnerOnly(
     establishmentId: string,
     merchantId: string,
+    userRole?: string,
+    assignedEstablishmentId?: string,
   ): Promise<EstablishmentDocument> {
     const establishment = await this.establishmentsService.findById(establishmentId);
 
-    if (establishment.ownerId.toString() !== merchantId) {
+    if (userRole === UserRole.LOCATION_MANAGER) {
+      if (!assignedEstablishmentId || establishment._id.toString() !== assignedEstablishmentId) {
+        throw new ForbiddenException('You can only create offers for your assigned establishment');
+      }
+    } else if (establishment.ownerId.toString() !== merchantId) {
       throw new ForbiddenException('You can only create offers for your own establishment');
     }
 

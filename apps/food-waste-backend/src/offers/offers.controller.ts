@@ -117,7 +117,12 @@ export class OffersController {
         images: imageUrls,
       };
 
-      const offer = await this.offersService.create(offerData, req.user.userId);
+      const offer = await this.offersService.create(
+        offerData,
+        req.user.userId,
+        req.user.role,
+        req.user.assignedEstablishmentId,
+      );
 
       return {
         message: 'Offer created successfully',

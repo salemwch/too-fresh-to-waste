@@ -94,6 +94,17 @@ export class OrganizationsInvitationService {
       throw new ConflictException('A user with this email already exists on the platform');
     }
 
+    // Clean up orphaned accepted/expired invitations for the same email in this org.
+    // This happens when a user is removed directly from the database and then re-invited
+    // with the same email — the old accepted record would otherwise show as a ghost entry.
+    await this.invitationModel
+      .deleteMany({
+        organizationId: new Types.ObjectId(orgId),
+        email: dto.email.toLowerCase(),
+        status: { $in: [InvitationStatus.ACCEPTED, InvitationStatus.EXPIRED] },
+      })
+      .exec();
+
     const token = randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + INVITATION_EXPIRY_MS);
 

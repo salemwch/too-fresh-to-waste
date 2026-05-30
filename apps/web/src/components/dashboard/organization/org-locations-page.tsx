@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useMyOrganization } from '@/hooks/use-organization';
+import { useMyOrganization, useOrganizationInvitations } from '@/hooks/use-organization';
 import { useMyEstablishments } from '@/hooks/use-merchant-dashboard';
 import { AddLocationDialog } from './add-location-dialog';
 import { CreateOrgDialog } from './create-org-dialog';
@@ -19,6 +19,7 @@ const statusColors: Record<string, string> = {
 export function OrgLocationsPage() {
   const { data: org, isLoading: orgLoading } = useMyOrganization();
   const { data: establishments, isLoading: estLoading } = useMyEstablishments();
+  const { data: invitations } = useOrganizationInvitations(org?._id ?? '');
 
   if (orgLoading || estLoading) {
     return (
@@ -91,7 +92,11 @@ export function OrgLocationsPage() {
               </div>
               <div className='flex items-center gap-2 text-muted-foreground'>
                 <Users className='size-4 shrink-0' />
-                <span>No manager assigned</span>
+                <span>
+                  {invitations?.find(
+                    inv => inv.assignedEstablishmentId === est._id && inv.status === 'accepted',
+                  )?.email ?? 'No manager assigned'}
+                </span>
               </div>
             </CardContent>
           </Card>
