@@ -206,7 +206,7 @@ export function AddLocationDialog({ orgId, trigger }: Props) {
 
       // 1. Create the establishment
       const createRes = await organizationService.createEstablishment(payload);
-      const newEstablishmentId = createRes.data.data._id;
+      const newEstablishmentId = createRes.data.data.id;
 
       // 2. Link it to the organization
       await organizationService.addEstablishment(orgId, newEstablishmentId);

@@ -115,6 +115,6 @@ export const organizationService = {
     email: string;
     googlePlaceId?: string;
   }) {
-    return apiClient.post<BackendEnvelope<{ _id: string }>>('/establishments', data);
+    return apiClient.post<BackendEnvelope<{ id: string }>>('/establishments', data);
   },
 };
