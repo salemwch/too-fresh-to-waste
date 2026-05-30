@@ -356,8 +356,11 @@ export class OffersService {
     const query: MongoQuery = {};
     const sort: MongoSort = {};
 
+    // Only apply the public "active offers only" filter when there is no
+    // merchant/establishment context (i.e. this is a consumer-facing query).
     if (
       (filters.merchantId === null || filters.merchantId === undefined) &&
+      (filters.establishmentId === null || filters.establishmentId === undefined) &&
       (filters.status === null || filters.status === undefined)
     ) {
       query.status = OfferStatus.ACTIVE;
@@ -420,11 +423,11 @@ export class OffersService {
       query['pricing.discountPercentage'] = { $gte: filters.minDiscount };
     }
 
-    // ✅ SECURITY: Backend enforces time-based filtering for public queries
-    // Users should only see currently available offers (not future or expired)
-    // Merchants/admins can see all statuses via status filter
+    // Time-window filter applies only to public (consumer-facing) queries.
+    // Skip when any merchant/establishment context is present.
     if (
       (filters.merchantId === null || filters.merchantId === undefined) &&
+      (filters.establishmentId === null || filters.establishmentId === undefined) &&
       (filters.status === null || filters.status === undefined)
     ) {
       const now = new Date();
@@ -821,14 +824,17 @@ export class OffersService {
   }
 
   async findByMerchant(
-    merchantId: string,
+    merchantId: string | undefined,
     page: number = 1,
     limit: number = 10,
-    userId?: string, // NEW: For isFavorite computation
+    userId?: string,
     status?: OfferStatus,
     establishmentId?: string,
   ): Promise<{ data: OfferCardDto[]; total: number }> {
-    const filters: SearchOffersDto = { merchantId, page, limit };
+    const filters: SearchOffersDto = { page, limit };
+    if (merchantId) {
+      filters.merchantId = merchantId;
+    }
     if (status !== null && status !== undefined) {
       filters.status = status;
     }

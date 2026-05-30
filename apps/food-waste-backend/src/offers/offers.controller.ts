@@ -443,14 +443,18 @@ export class OffersController {
     @Query('status') status?: OfferStatus,
     @Query('establishmentId') establishmentId?: string,
   ) {
-    // Location managers can only see their assigned establishment
-    const effectiveEstablishmentId =
-      (user as { role?: string; assignedEstablishmentId?: string }).role === 'location_manager'
-        ? (user as { assignedEstablishmentId?: string }).assignedEstablishmentId
-        : establishmentId;
+    const isLM = (user as { role?: string }).role === UserRole.LOCATION_MANAGER;
+
+    // LM: scope to their assigned establishment only — ignore merchantId so
+    // offers created by the merchant owner are also visible.
+    // MERCHANT: scope to their own offers, optionally filtered by establishment.
+    const effectiveMerchantId = isLM ? undefined : user.userId;
+    const effectiveEstablishmentId = isLM
+      ? (user as { assignedEstablishmentId?: string }).assignedEstablishmentId
+      : establishmentId;
 
     const result = await this.offersService.findByMerchant(
-      user.userId,
+      effectiveMerchantId,
       page,
       limit,
       user.userId,
