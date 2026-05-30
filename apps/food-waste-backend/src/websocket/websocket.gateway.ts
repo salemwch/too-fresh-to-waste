@@ -81,7 +81,7 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
               client.email = payload.email;
               client.role = payload.role as UserRole;
               client.isAuthenticated = true;
-              this.webSocketService.registerUserSocket(client);
+              await this.webSocketService.registerUserSocket(client);
               this.logger.log(
                 `[WS middleware] auto-registered userId=${userId} role=${payload.role}`,
               );
@@ -153,15 +153,14 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
 
   @SubscribeMessage(WebSocketEvents.JOIN_ROOM)
   @UseGuards(WebSocketAuthGuard)
-  handleJoinRoom(
+  async handleJoinRoom(
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { room: string },
-  ): void {
+  ): Promise<void> {
     // Guard has already verified the JWT and set client.isAuthenticated / userId / role.
-    // Register in userSockets NOW so sendToUser() can reach this socket immediately.
-    // This avoids the race condition where the separate 'authenticate' event fires
-    // before verifyAsync() resolves and isAuthenticated is still false.
-    this.webSocketService.registerUserSocket(client);
+    // Await registerUserSocket so the user-{id} room join completes before we
+    // process any events — eliminates the race condition with Redis adapter.
+    await this.webSocketService.registerUserSocket(client);
     this.webSocketService.joinRoom(client, data.room);
     client.emit('room_joined', {
       room: data.room,

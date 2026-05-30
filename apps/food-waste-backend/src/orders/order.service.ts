@@ -516,12 +516,42 @@ export class OrdersService {
       pricing: { total: order.pricing.total },
     };
 
-    // 1. WebSocket — real-time dashboard update
-    this.appLogger.log(
-      `[notifyMerchantNewOrder] calling sendToUser(merchantId="${merchantId}", event="order:new")`,
-      'OrderService',
-    );
-    this.webSocketService.sendToUser(merchantId, 'order:new', payload);
+    // Build the full set of user IDs that should receive this notification.
+    // Always includes the offer creator (merchantId on the order).
+    // Also includes the assigned location manager for this establishment (if any)
+    // and the establishment's merchant owner (if different from the creator).
+    const recipientIds = new Set<string>([merchantId]);
+
+    if (order.establishmentId) {
+      const estId = order.establishmentId.toString();
+
+      // Find any LM assigned to this establishment
+      const lm = await this.userModel
+        .findOne(
+          { assignedEstablishmentId: order.establishmentId, role: UserRole.LOCATION_MANAGER },
+          { _id: 1 },
+        )
+        .lean()
+        .exec();
+      if (lm) {
+        recipientIds.add((lm._id as Types.ObjectId).toString());
+      }
+
+      // Find the establishment's merchant owner to cover LM-created offers
+      const est = await this.establishmentModel.findById(estId, { ownerId: 1 }).lean().exec();
+      if (est?.ownerId) {
+        recipientIds.add(est.ownerId.toString());
+      }
+    }
+
+    // 1. WebSocket — real-time dashboard update for all recipients
+    for (const uid of recipientIds) {
+      this.appLogger.log(
+        `[notifyMerchantNewOrder] sendToUser(userId="${uid}", event="order:new")`,
+        'OrderService',
+      );
+      this.webSocketService.sendToUser(uid, 'order:new', payload);
+    }
 
     // 2. Push notification — visible even when app is in background
     await this.notificationService.sendNotification({

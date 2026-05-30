@@ -112,10 +112,11 @@ export class WebSocketService {
       // Role-based room joining
       const merchantDashboardRoom = WEBSOCKET_ROOMS['MERCHANT_DASHBOARD'];
       const adminAlertsRoom = WEBSOCKET_ROOMS['ADMIN_ALERTS'];
-      if (socket.role === UserRole.MERCHANT) {
-        if (merchantDashboardRoom) {
-          this.joinRoom(socket, merchantDashboardRoom.name);
-        }
+      if (
+        (socket.role === UserRole.MERCHANT || socket.role === UserRole.LOCATION_MANAGER) &&
+        merchantDashboardRoom
+      ) {
+        this.joinRoom(socket, merchantDashboardRoom.name);
       } else if (socket.role === UserRole.ADMIN && adminAlertsRoom) {
         this.joinRoom(socket, adminAlertsRoom.name);
       }
@@ -134,7 +135,7 @@ export class WebSocketService {
    * Call this from handleJoinRoom (post-guard) to avoid the race condition
    * where the separate 'authenticate' event fires before the guard resolves.
    */
-  registerUserSocket(socket: AuthenticatedSocket): void {
+  async registerUserSocket(socket: AuthenticatedSocket): Promise<void> {
     this.logger.log(
       `[registerUserSocket] called — socketId=${socket.id} ` +
         `isAuthenticated=${socket.isAuthenticated} userId=${socket.userId} role=${socket.role}`,
@@ -160,8 +161,10 @@ export class WebSocketService {
     }
     userSocketSet.add(socket.id);
 
-    // Join user-specific room for direct targeting
-    void socket.join(`user-${socket.userId}`);
+    // Await the join so sendToUser() reliably finds the socket in its room.
+    // With the Redis adapter in production this is truly async — not awaiting
+    // was a race condition where notifications fired before the join completed.
+    await socket.join(`user-${socket.userId}`);
 
     this.logger.log(
       `[registerUserSocket] SUCCESS — userId=${socket.userId} socketId=${socket.id} role=${socket.role} ` +
