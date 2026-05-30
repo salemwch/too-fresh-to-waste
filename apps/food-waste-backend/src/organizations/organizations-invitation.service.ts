@@ -55,11 +55,18 @@ export class OrganizationsInvitationService {
       throw new ForbiddenException('Only the organization owner can send invitations');
     }
 
-    // Check the assigned establishment belongs to this org
-    const establishmentBelongs = org.establishmentIds.some(
-      id => id.toString() === dto.assignedEstablishmentId,
-    );
-    if (!establishmentBelongs) {
+    // Check the assigned establishment belongs to this org.
+    // Query the establishment directly by its own organizationId field — this is always
+    // correct even for establishments created before org.establishmentIds was being synced.
+    if (!Types.ObjectId.isValid(dto.assignedEstablishmentId)) {
+      throw new BadRequestException('Invalid establishment ID');
+    }
+    const establishment = await this.invitationModel.db.collection('establishments').findOne({
+      _id: new Types.ObjectId(dto.assignedEstablishmentId),
+      organizationId: org._id,
+      isDeleted: { $ne: true },
+    });
+    if (!establishment) {
       throw new BadRequestException(
         'The assigned establishment does not belong to this organization',
       );

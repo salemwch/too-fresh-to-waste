@@ -254,6 +254,22 @@ async function bootstrap() {
 
   app.use(compression());
 
+  // Render health-check probe sends HEAD / — respond before NestJS routing
+  // (NestJS URI versioning does not reliably register HEAD on VERSION_NEUTRAL controllers)
+  app.use(
+    (
+      req: import('express').Request,
+      res: import('express').Response,
+      next: import('express').NextFunction,
+    ) => {
+      if (req.method === 'HEAD' && req.path === '/') {
+        res.status(200).end();
+        return;
+      }
+      next();
+    },
+  );
+
   /**
    * SECURE COOKIE PARSER
    * Configures cookie security attributes globally
