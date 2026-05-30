@@ -17,13 +17,20 @@ export class AppController {
     return;
   }
 
+  /** Render health-check probe: HEAD / must return 200 */
+  @Head()
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  headRoot() {
+    return;
+  }
+
   @ApiOperation({
     summary: 'Get API information',
     description: 'Public endpoint returning basic API information and status',
   })
   @ApiResponse({ status: 200, description: 'API information retrieved successfully' })
   @Get()
-  @Head()
   @Public()
   getAppInfo() {
     return {
