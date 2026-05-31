@@ -405,17 +405,21 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       const offerId = result.data.data?.id;
 
       // Step 2: upload image if one was selected
+      let imageUploaded = true;
       if (imageFile && offerId) {
         try {
           await dashboardService.uploadOfferImage(offerId, imageFile);
-          // Invalidate again so the list reflects the newly-uploaded image URL
           void queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
         } catch {
-          // Image upload failure is non-critical — offer was already created
+          imageUploaded = false;
         }
       }
 
-      setSuccessMsg(`${quantity} ${quantity === 1 ? 'bag' : 'bags'} published successfully!`);
+      setSuccessMsg(
+        imageUploaded
+          ? `${quantity} ${quantity === 1 ? 'bag' : 'bags'} published successfully!`
+          : `Offer created but image upload failed. You can add an image later.`,
+      );
       setTimeout(onClose, 1600);
     } catch (err) {
       setErrorMsg('Failed to publish. Please try again.');

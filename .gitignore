@@ -158,6 +158,13 @@ knip_*.txt
 knip_output.json
 mobile_unused_locals.txt
 
+# Local scratch files
+PRODUCT.md
+marketing-preview.html
+skills-lock.json
+.claude/skills/
+docs/superpowers/
+
 # Generated Swagger spec (auto-generated from running backend)
 /swagger-spec.json
 

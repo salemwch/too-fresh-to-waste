@@ -85,6 +85,7 @@ export type OfferLean = (FlattenMaps<OfferDocument> | OfferBase) & {
 
 // Core business interfaces for type safety
 interface MongoQuery {
+  isDeleted?: { $ne: boolean };
   status?: OfferStatus;
   isActive?: boolean;
   $text?: { $search: string };
@@ -353,7 +354,7 @@ export class OffersService {
     // ✅ ENTERPRISE: DOS protection - limit max page size
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
-    const query: MongoQuery = {};
+    const query: MongoQuery = { isDeleted: { $ne: true } };
     const sort: MongoSort = {};
 
     // Only apply the public "active offers only" filter when there is no
