@@ -442,7 +442,7 @@ export class EstablishmentsService {
     const [establishments, total] = await Promise.all([
       this.establishmentModel.aggregate<EstablishmentLean>([
         { $match: query },
-        { $sort: { createdAt: -1 as const } },
+        { $sort: { createdAt: 1 as const } },
         { $skip: skip },
         { $limit: safeLimit },
         ...this.getOwnerLookupStages(['firstName', 'lastName', 'email', 'phoneNumber']),

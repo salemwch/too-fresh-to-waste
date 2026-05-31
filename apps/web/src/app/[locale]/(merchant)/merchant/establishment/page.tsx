@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { establishmentService, type LegalDocumentType } from '@/services/establishment.service';
 import type { MyEstablishment, DocumentMetadata } from '@/types/dashboard';
+import { useAuthStore } from '@/lib/auth';
 import { Input, Button } from '@foodwaste/ui';
 import {
   Store,
@@ -269,6 +270,7 @@ function DocRow({
 
 export default function MerchantEstablishmentPage() {
   const t = useTranslations('dashboard.merchantEstablishment');
+  const activeEstablishmentId = useAuthStore(s => s.activeEstablishmentId);
 
   // ── Tab state ────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<'profile' | 'hours' | 'documents'>('profile');
@@ -310,7 +312,7 @@ export default function MerchantEstablishmentPage() {
     null,
   );
 
-  // ── Load establishment ────────────────────────────────────────────────────────
+  // ── Load establishment (re-fetches when dropdown selection changes) ──────────
   useEffect(() => {
     let cancelled = false;
 
@@ -321,7 +323,13 @@ export default function MerchantEstablishmentPage() {
         const res = await establishmentService.getMyEstablishment();
         if (cancelled) return;
         const list = res.data.data;
-        const est = Array.isArray(list) ? (list[0] ?? null) : null;
+        if (!Array.isArray(list) || list.length === 0) {
+          setLoadError('notFound');
+          return;
+        }
+        const est = activeEstablishmentId
+          ? (list.find(e => e._id === activeEstablishmentId) ?? list[0] ?? null)
+          : (list[0] ?? null);
         if (!est) {
           setLoadError('notFound');
           return;
@@ -339,7 +347,7 @@ export default function MerchantEstablishmentPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activeEstablishmentId]);
 
   function populateForm(est: MyEstablishment) {
     setName(est.name ?? '');
