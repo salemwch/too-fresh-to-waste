@@ -123,7 +123,7 @@ export class PdfReportService {
     const carbonRows = [
       ['Paniers sauvés', `${data.carbon.bagsSaved} paniers`],
       ['Poids alimentaire rescapé', `${data.carbon.foodWeightKg} kg`],
-      ['CO₂ évité', `${data.carbon.carbonKgAvoided} kg CO₂`],
+      ['CO2 évité', `${data.carbon.carbonKgAvoided} kg CO2`],
       ['Eau économisée', `${data.carbon.waterLitersAvoided.toLocaleString('fr-FR')} litres`],
       ['Emballages évités', `${data.carbon.packagingKgSaved} kg plastique`],
       ['Énergie économisée', `${data.carbon.energyKwhSaved} kWh`],
@@ -213,7 +213,7 @@ export class PdfReportService {
     page.drawText('MÉTHODOLOGIE', { x: margin, y, size: 8, font: boldFont, color: MID_GRAY });
     y -= 12;
     const note =
-      'Calculs basés sur les coefficients ADEME 2023 (Guide BILAN CARBONE®). Facteur moyen: 3.5 kg CO₂/kg aliment rescapé.';
+      'Calculs basés sur les coefficients ADEME 2023 (Guide BILAN CARBONE®). Facteur moyen: 3.5 kg CO2/kg aliment rescapé.';
     page.drawText(note, {
       x: margin,
       y,

@@ -867,7 +867,11 @@ export class OffersService {
         : offer.merchantId.toString();
 
     if (userRole === UserRole.LOCATION_MANAGER) {
-      const offerEstId = offer.establishmentId?.toString();
+      const estId: unknown = offer.establishmentId;
+      const offerEstId =
+        typeof estId === 'object' && estId !== null && '_id' in estId
+          ? (estId as { _id: Types.ObjectId })._id.toString()
+          : String(estId ?? '');
       if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
         throw new ForbiddenException('You can only update offers for your assigned establishment');
       }
@@ -943,7 +947,11 @@ export class OffersService {
       }
 
       if (isLM) {
-        const offerEstId = offer.establishmentId?.toString();
+        const estId: unknown = offer.establishmentId;
+        const offerEstId =
+          typeof estId === 'object' && estId !== null && '_id' in estId
+            ? (estId as { _id: Types.ObjectId })._id.toString()
+            : String(estId ?? '');
         if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
           throw new ForbiddenException(
             'You can only manage offers for your assigned establishment',
@@ -1123,7 +1131,11 @@ export class OffersService {
         : offer.merchantId.toString();
 
     if (userRole === UserRole.LOCATION_MANAGER) {
-      const offerEstId = offer.establishmentId?.toString();
+      const estId: unknown = offer.establishmentId;
+      const offerEstId =
+        typeof estId === 'object' && estId !== null && '_id' in estId
+          ? (estId as { _id: Types.ObjectId })._id.toString()
+          : String(estId ?? '');
       if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
         throw new ForbiddenException('You can only delete offers for your assigned establishment');
       }
