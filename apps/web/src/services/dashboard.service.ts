@@ -135,12 +135,36 @@ export const dashboardService = {
   },
 
   /**
-   * POST /offers
-   * Create a new surprise bag offer (JSON — no images).
-   * FilesInterceptor on the backend skips multer for non-multipart requests.
+   * POST /offers (multipart/form-data when image provided, JSON otherwise)
+   * Sends offer data + image in a single request so the offer is created
+   * with its image atomically — no second upload step needed.
    */
-  createSurpriseBag(payload: CreateSurpriseBagPayload) {
-    return apiClient.post<BackendEnvelope<CreatedOfferResponse>>(`${OFFERS_BASE}`, payload);
+  createSurpriseBag(payload: CreateSurpriseBagPayload, imageFile?: File | null) {
+    if (!imageFile) {
+      return apiClient.post<BackendEnvelope<CreatedOfferResponse>>(`${OFFERS_BASE}`, payload);
+    }
+
+    const formData = new FormData();
+    formData.append('images', imageFile, imageFile.name);
+    for (const [key, value] of Object.entries(payload)) {
+      if (key === 'pricing' && typeof value === 'object' && value !== null) {
+        const pricing = value as Record<string, unknown>;
+        for (const [pk, pv] of Object.entries(pricing)) {
+          formData.append(`pricing[${pk}]`, String(pv));
+        }
+      } else if (key === 'pickupTimeSlots' && Array.isArray(value)) {
+        value.forEach((slot: Record<string, string>, i: number) => {
+          formData.append(`pickupTimeSlots[${i}][startTime]`, slot.startTime);
+          formData.append(`pickupTimeSlots[${i}][endTime]`, slot.endTime);
+        });
+      } else if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    }
+
+    return apiClient.post<BackendEnvelope<CreatedOfferResponse>>(`${OFFERS_BASE}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   },
 
   /**

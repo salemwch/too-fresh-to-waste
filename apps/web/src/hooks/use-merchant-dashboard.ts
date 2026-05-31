@@ -242,7 +242,13 @@ export function useOfferStatusCount(status: string, enabled = true) {
 export function useCreateSurpriseBag() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: CreateSurpriseBagPayload) => dashboardService.createSurpriseBag(payload),
+    mutationFn: ({
+      payload,
+      imageFile,
+    }: {
+      payload: CreateSurpriseBagPayload;
+      imageFile?: File | null;
+    }) => dashboardService.createSurpriseBag(payload, imageFile),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
     },

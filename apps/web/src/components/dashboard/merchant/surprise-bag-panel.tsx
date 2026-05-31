@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   X,
   Minus,
@@ -14,12 +13,7 @@ import {
   Flame,
 } from 'lucide-react';
 import { cn } from '@foodwaste/ui';
-import {
-  useMyEstablishment,
-  useCreateSurpriseBag,
-  dashboardKeys,
-} from '@/hooks/use-merchant-dashboard';
-import { dashboardService } from '@/services/dashboard.service';
+import { useMyEstablishment, useCreateSurpriseBag } from '@/hooks/use-merchant-dashboard';
 import type { CreateSurpriseBagPayload, OfferBagType } from '@/types/dashboard';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -178,7 +172,6 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
   // ── Data ────────────────────────────────────────────────────────────────
   const { data: establishment, isLoading: estLoading } = useMyEstablishment();
   const mutation = useCreateSurpriseBag();
-  const queryClient = useQueryClient();
 
   // ── Computed ─────────────────────────────────────────────────────────────
   const parsedPrice = Math.max(0, Number.parseFloat(rawPrice) || 0);
@@ -400,28 +393,10 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     };
 
     try {
-      // Step 1: create offer (JSON)
-      const result = await mutation.mutateAsync(payload);
-      const offerId = result.data.data?.id;
-
-      // Step 2: upload image if one was selected
-      let imageUploaded = true;
-      if (imageFile && offerId) {
-        try {
-          await dashboardService.uploadOfferImage(offerId, imageFile);
-          void queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
-        } catch {
-          imageUploaded = false;
-        }
-      }
-
-      setSuccessMsg(
-        imageUploaded
-          ? `${quantity} ${quantity === 1 ? 'bag' : 'bags'} published successfully!`
-          : `Offer created but image upload failed. You can add an image later.`,
-      );
-      setTimeout(onClose, 1600);
-    } catch (err) {
+      await mutation.mutateAsync({ payload, imageFile });
+      setSuccessMsg(`${quantity} ${quantity === 1 ? 'bag' : 'bags'} published successfully!`);
+      setTimeout(onClose, 1200);
+    } catch {
       setErrorMsg('Failed to publish. Please try again.');
     }
   }, [
@@ -437,7 +412,6 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     pickupDay,
     imageFile,
     mutation,
-    queryClient,
     onClose,
   ]);
 
@@ -880,10 +854,16 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
               'hover:opacity-90 active:scale-[0.98]',
               'transition-all duration-150',
               'disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100',
-              mutation.isPending && 'animate-pulse',
             )}
           >
-            {mutation.isPending ? 'Creating…' : publishLabel}
+            {mutation.isPending ? (
+              <span className='flex items-center justify-center gap-2'>
+                <Flame className='h-4 w-4 animate-spin' />
+                Creating…
+              </span>
+            ) : (
+              publishLabel
+            )}
           </button>
         </div>
       </div>
