@@ -12,7 +12,9 @@ const rawApiUrl =
   process.env['NEXT_PUBLIC_API_URL'] ??
   'http://localhost:3000/api/v1';
 
-const BACKEND_API_URL = rawApiUrl.startsWith('http') ? rawApiUrl : 'http://localhost:3000/api/v1';
+const BACKEND_API_URL = rawApiUrl.startsWith('http')
+  ? rawApiUrl
+  : `${process.env['NEXT_PUBLIC_WS_URL'] ?? 'http://localhost:3000'}/api/v1`;
 
 /**
  * GET /api/auth/silent-refresh?redirect=<encoded-path>
