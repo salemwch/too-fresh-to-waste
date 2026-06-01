@@ -210,7 +210,7 @@ describe('CookieSecurityUtil', () => {
       expect(cookieOptions.path).toBe('/api/v1/auth/refresh');
     });
 
-    it('should set refresh token with 7 days maxAge', () => {
+    it('should set refresh token with 365 days maxAge', () => {
       CookieSecurityUtil.setRefreshTokenCookie(
         mockResponse as Response,
         'test-refresh-token',
@@ -219,7 +219,7 @@ describe('CookieSecurityUtil', () => {
       );
 
       const cookieOptions = (mockResponse.cookie as jest.Mock).mock.calls[0][2];
-      expect(cookieOptions.maxAge).toBe(7 * 24 * 60 * 60 * 1000);
+      expect(cookieOptions.maxAge).toBe(365 * 24 * 60 * 60 * 1000);
     });
 
     it('should throw error for invalid token format', () => {

@@ -16,8 +16,7 @@ jest.mock('uuid', () => ({
   v4: jest.fn(() => `uuid-${++uuidCounter}`),
 }));
 
-const SEVEN_DAYS_SECONDS = 7 * 24 * 60 * 60; // 604800
-const THIRTY_DAYS_SECONDS = 30 * 24 * 60 * 60; // 2592000
+const ONE_YEAR_SECONDS = 365 * 24 * 60 * 60; // 31536000
 const FIFTEEN_MIN_SECONDS = 15 * 60; // 900
 
 /**
@@ -28,8 +27,8 @@ const DEFAULT_CONFIG: Record<string, string> = {
   JWT_SECRET: 'test-access-secret',
   JWT_REFRESH_SECRET: 'test-refresh-secret',
   JWT_EXPIRES_IN: '15m',
-  JWT_REFRESH_EXPIRES_IN: '7d',
-  JWT_REFRESH_REMEMBER_ME_EXPIRES_IN: '30d',
+  JWT_REFRESH_EXPIRES_IN: '365d',
+  JWT_REFRESH_REMEMBER_ME_EXPIRES_IN: '365d',
 };
 
 describe('TokenService', () => {
@@ -98,12 +97,12 @@ describe('TokenService', () => {
   // generateTokenPair — standard session (rememberMe = false)
   // =================================================================
   describe('generateTokenPair — rememberMe = false (default)', () => {
-    it('should sign refresh token with JWT_REFRESH_EXPIRES_IN (7d = 604800s)', async () => {
+    it('should sign refresh token with JWT_REFRESH_EXPIRES_IN (365d = 31536000s)', async () => {
       await service.generateTokenPair('user-1', 'a@b.com', UserRole.CONSUMER);
 
       // Promise.all preserves call order: [0] = access, [1] = refresh
       const refreshOptions = mockSignAsync.mock.calls[1][1];
-      expect(refreshOptions.expiresIn).toBe(SEVEN_DAYS_SECONDS);
+      expect(refreshOptions.expiresIn).toBe(ONE_YEAR_SECONDS);
     });
 
     it('should sign access token with JWT_EXPIRES_IN (15m = 900s)', async () => {
@@ -136,11 +135,9 @@ describe('TokenService', () => {
       const storedExpiresAt: Date = mockCreate.mock.calls[0][0].expiresAt;
 
       expect(storedExpiresAt.getTime()).toBeGreaterThanOrEqual(
-        before + SEVEN_DAYS_SECONDS * 1000 - 1000,
+        before + ONE_YEAR_SECONDS * 1000 - 1000,
       );
-      expect(storedExpiresAt.getTime()).toBeLessThanOrEqual(
-        after + SEVEN_DAYS_SECONDS * 1000 + 1000,
-      );
+      expect(storedExpiresAt.getTime()).toBeLessThanOrEqual(after + ONE_YEAR_SECONDS * 1000 + 1000);
     });
   });
 
@@ -148,7 +145,7 @@ describe('TokenService', () => {
   // generateTokenPair — persistent session (rememberMe = true)
   // =================================================================
   describe('generateTokenPair — rememberMe = true (persistent)', () => {
-    it('should sign refresh token with JWT_REFRESH_REMEMBER_ME_EXPIRES_IN (30d = 2592000s)', async () => {
+    it('should sign refresh token with JWT_REFRESH_REMEMBER_ME_EXPIRES_IN (365d = 31536000s)', async () => {
       await service.generateTokenPair(
         'user-1',
         'a@b.com',
@@ -161,7 +158,7 @@ describe('TokenService', () => {
       );
 
       const refreshOptions = mockSignAsync.mock.calls[1][1];
-      expect(refreshOptions.expiresIn).toBe(THIRTY_DAYS_SECONDS);
+      expect(refreshOptions.expiresIn).toBe(ONE_YEAR_SECONDS);
     });
 
     it('should NOT change access token expiry — still 15m regardless of rememberMe', async () => {
@@ -212,14 +209,12 @@ describe('TokenService', () => {
       const storedExpiresAt: Date = mockCreate.mock.calls[0][0].expiresAt;
 
       expect(storedExpiresAt.getTime()).toBeGreaterThanOrEqual(
-        before + THIRTY_DAYS_SECONDS * 1000 - 1000,
+        before + ONE_YEAR_SECONDS * 1000 - 1000,
       );
-      expect(storedExpiresAt.getTime()).toBeLessThanOrEqual(
-        after + THIRTY_DAYS_SECONDS * 1000 + 1000,
-      );
+      expect(storedExpiresAt.getTime()).toBeLessThanOrEqual(after + ONE_YEAR_SECONDS * 1000 + 1000);
     });
 
-    it('should default to 30d when JWT_REFRESH_REMEMBER_ME_EXPIRES_IN env var is missing', async () => {
+    it('should default to 365d when JWT_REFRESH_REMEMBER_ME_EXPIRES_IN env var is missing', async () => {
       // Remove the env var to simulate it not being set
       delete configMap['JWT_REFRESH_REMEMBER_ME_EXPIRES_IN'];
 
@@ -235,7 +230,7 @@ describe('TokenService', () => {
       );
 
       const refreshOptions = mockSignAsync.mock.calls[1][1];
-      expect(refreshOptions.expiresIn).toBe(THIRTY_DAYS_SECONDS);
+      expect(refreshOptions.expiresIn).toBe(ONE_YEAR_SECONDS);
     });
   });
 
@@ -435,9 +430,9 @@ describe('TokenService', () => {
         validation.rememberMe, // propagated flag
       );
 
-      // Refresh token must be signed with 30d expiry
+      // Refresh token must be signed with 365d expiry
       const refreshOptions = mockSignAsync.mock.calls[1][1];
-      expect(refreshOptions.expiresIn).toBe(THIRTY_DAYS_SECONDS);
+      expect(refreshOptions.expiresIn).toBe(ONE_YEAR_SECONDS);
 
       // Stored record must persist the flag and link to parent
       expect(mockCreate).toHaveBeenCalledWith(
@@ -489,9 +484,9 @@ describe('TokenService', () => {
         validation.rememberMe,
       );
 
-      // Refresh token must be signed with 7d expiry
+      // Refresh token must be signed with 365d expiry
       const refreshOptions = mockSignAsync.mock.calls[1][1];
-      expect(refreshOptions.expiresIn).toBe(SEVEN_DAYS_SECONDS);
+      expect(refreshOptions.expiresIn).toBe(ONE_YEAR_SECONDS);
 
       expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ rememberMe: false }));
     });

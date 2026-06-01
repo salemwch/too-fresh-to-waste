@@ -39,7 +39,7 @@ export const envValidationSchema = Joi.object({
     'string.min': 'JWT_REFRESH_SECRET must be at least 32 characters',
   }),
   JWT_EXPIRES_IN: Joi.string().default('15m'),
-  JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
+  JWT_REFRESH_EXPIRES_IN: Joi.string().default('365d'),
 
   // ── CORS ─────────────────────────────────────────────────────────────
   CORS_ORIGINS: Joi.when('NODE_ENV', {

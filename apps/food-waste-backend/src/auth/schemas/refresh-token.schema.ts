@@ -164,4 +164,7 @@ RefreshTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 // Safety net independent of the cron job — only affects documents where revokedAt is set
 RefreshTokenSchema.index({ revokedAt: 1 }, { expireAfterSeconds: 172800 });
 
+// Rotation-recovery: look up child token by parentJti within a family
+RefreshTokenSchema.index({ parentJti: 1, familyId: 1 }, { sparse: true });
+
 // Family compromise queries are served by {userId:1, familyId:1} — userId is always known

@@ -155,7 +155,7 @@ export class AuthRedirectController {
           result.tokens.refreshToken,
           isProduction,
           domain,
-          7 * 24 * 60 * 60 * 1000,
+          365 * 24 * 60 * 60 * 1000,
         );
       }
 

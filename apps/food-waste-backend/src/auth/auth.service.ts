@@ -809,7 +809,7 @@ export class AuthService {
     const accessExpiresIn = (this.configService.get<string>('JWT_EXPIRES_IN') ??
       '15m') as NonNullable<JwtSignOptions['expiresIn']>;
     const refreshExpiresIn = (this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') ??
-      '7d') as NonNullable<JwtSignOptions['expiresIn']>;
+      '365d') as NonNullable<JwtSignOptions['expiresIn']>;
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {

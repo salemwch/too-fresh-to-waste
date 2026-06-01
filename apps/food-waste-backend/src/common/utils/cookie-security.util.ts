@@ -115,7 +115,7 @@ export class CookieSecurityUtil {
     token: string,
     isProduction: boolean,
     domain?: string,
-    expiresInMs: number = 7 * 24 * 60 * 60 * 1000,
+    expiresInMs: number = 365 * 24 * 60 * 60 * 1000,
   ): void {
     if (!this.isValidCookieValue(token)) {
       throw new Error('Invalid refresh token format for cookie');
@@ -197,7 +197,7 @@ export class CookieSecurityUtil {
       },
       tokenLifetime: {
         accessToken: '15 minutes',
-        refreshToken: '7 days',
+        refreshToken: '365 days',
         session: '24 hours',
       },
       compliance: {

@@ -1060,12 +1060,14 @@ export class AuthController {
       );
 
       // ✓ CRITICAL: Set refresh token with maximum security
+      // Cookie maxAge must be >= JWT lifetime so the browser doesn't discard
+      // a still-valid token. Token is revocable server-side on logout/password-change.
       CookieSecurityUtil.setRefreshTokenCookie(
         res,
         tokens.refreshToken,
         isProduction,
         domain,
-        7 * 24 * 60 * 60 * 1000, // 7 days (long-lived but revocable)
+        365 * 24 * 60 * 60 * 1000, // 365 days — matches JWT_REFRESH_EXPIRES_IN
       );
 
       // ✓ Set session cookie if provided
@@ -1075,7 +1077,7 @@ export class AuthController {
           sessionId,
           isProduction,
           domain,
-          7 * 24 * 60 * 60 * 1000, // 7 days
+          365 * 24 * 60 * 60 * 1000, // 365 days — matches refresh token lifetime
         );
       }
 

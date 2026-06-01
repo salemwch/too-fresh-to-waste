@@ -130,7 +130,7 @@ export class TokenService {
     const refreshExpiresInSec = this.parseExpiration(
       this.configService.get<string>(
         rememberMe ? 'JWT_REFRESH_REMEMBER_ME_EXPIRES_IN' : 'JWT_REFRESH_EXPIRES_IN',
-      ) ?? (rememberMe ? '30d' : '7d'),
+      ) ?? (rememberMe ? '365d' : '365d'),
     );
 
     // Create token payloads WITHOUT exp/iat - let JWT library handle them
@@ -261,16 +261,82 @@ export class TokenService {
 
       // 4. Check if token is revoked
       if (tokenRecord.isRevoked) {
-        this.logger.warn(`Revoked token used`, {
-          jti: payload.jti,
-          userId: payload.sub,
-          revokedAt: tokenRecord.revokedAt,
-          reason: tokenRecord.revokedReason,
-        });
-        return {
-          isValid: false,
-          error: 'Token has been revoked',
-        };
+        // ── Rotation-recovery grace period ──
+        // When a token was revoked via normal rotation (not a security event)
+        // and the replacement child token was NEVER actually used, the client
+        // clearly never received the new tokens (app suspended, Keychain
+        // locked, network dropped mid-response). Allow re-issue by revoking
+        // the orphaned child and falling through to the remaining checks.
+        // This is the "automatic reuse detection" pattern (Auth0, Okta, RFC).
+        if (tokenRecord.revokedReason === 'Token rotated during refresh') {
+          const childToken = await this.refreshTokenModel.findOne({
+            parentJti: payload.jti,
+            familyId: tokenRecord.familyId,
+          });
+
+          if (childToken && !childToken.lastUsedAt && !childToken.isRevoked) {
+            // Child was never used → client never received it → allow retry
+            await this.refreshTokenModel.updateOne(
+              { _id: childToken._id },
+              {
+                $set: {
+                  isRevoked: true,
+                  revokedAt: new Date(),
+                  revokedReason: 'Orphaned by rotation recovery',
+                },
+              },
+            );
+
+            this.logger.log(`Rotation recovery: orphaned child revoked, allowing re-issue`, {
+              oldJti: payload.jti,
+              childJti: childToken.jti,
+              familyId: tokenRecord.familyId,
+              userId: payload.sub,
+            });
+
+            // Fall through to steps 5-8 (expiry, fixation, compromise checks)
+          } else if (childToken?.lastUsedAt) {
+            // Child WAS used → both old and new tokens are in play → theft
+            this.logger.error(`Token reuse detected: parent and child both used`, {
+              parentJti: payload.jti,
+              childJti: childToken.jti,
+              familyId: tokenRecord.familyId,
+              userId: payload.sub,
+              childLastUsedAt: childToken.lastUsedAt,
+            });
+
+            return {
+              isValid: false,
+              error: 'Token reuse detected',
+              shouldRevokeFamily: true,
+              familyId: tokenRecord.familyId,
+            };
+          } else {
+            // No child found or child already revoked → normal rejection
+            this.logger.warn(`Revoked token used`, {
+              jti: payload.jti,
+              userId: payload.sub,
+              revokedAt: tokenRecord.revokedAt,
+              reason: tokenRecord.revokedReason,
+            });
+            return {
+              isValid: false,
+              error: 'Token has been revoked',
+            };
+          }
+        } else {
+          // Non-rotation revocation (logout, security event) → always reject
+          this.logger.warn(`Revoked token used`, {
+            jti: payload.jti,
+            userId: payload.sub,
+            revokedAt: tokenRecord.revokedAt,
+            reason: tokenRecord.revokedReason,
+          });
+          return {
+            isValid: false,
+            error: 'Token has been revoked',
+          };
+        }
       }
 
       // 5. Check if token is expired
