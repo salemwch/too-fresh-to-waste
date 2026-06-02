@@ -1846,13 +1846,13 @@ export class OffersService {
    * @returns PipelineStage[] to spread into an aggregation pipeline
    */
   private buildEstablishmentLookup(includeContact = false): PipelineStage[] {
-    const fields: Record<string, 1 | object> = {
+    const fields: Record<string, 1> = {
       _id: 1,
       name: 1,
       address: 1,
       type: 1,
       averageRating: 1,
-      profileImage: { $arrayElemAt: ['$images', 0] },
+      profileImage: 1,
     };
     if (includeContact) {
       fields['phoneNumber'] = 1;
@@ -1866,7 +1866,8 @@ export class OffersService {
           let: { refId: '$establishmentId' },
           pipeline: [
             { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
-            { $project: fields as Record<string, unknown> },
+            { $addFields: { profileImage: { $arrayElemAt: ['$images', 0] } } },
+            { $project: fields },
           ],
           as: '_establishmentDoc',
         },
