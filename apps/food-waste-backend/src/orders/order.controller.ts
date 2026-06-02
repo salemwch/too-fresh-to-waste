@@ -320,6 +320,7 @@ export class OrdersController {
       page,
       limit,
       effectiveEstablishmentId,
+      req.user.role as UserRole,
     );
 
     return {

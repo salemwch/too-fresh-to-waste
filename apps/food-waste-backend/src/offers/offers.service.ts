@@ -508,6 +508,7 @@ export class OffersService {
               address: '$establishment.address',
               type: '$establishment.type',
               averageRating: '$establishment.averageRating',
+              profileImage: { $arrayElemAt: ['$establishment.images', 0] },
             },
             isFeaturedManual: 1,
             isFeaturedAuto: 1,
@@ -1482,6 +1483,7 @@ export class OffersService {
                   address: '$address',
                   type: '$type',
                   averageRating: '$averageRating',
+                  profileImage: { $arrayElemAt: ['$images', 0] },
                 },
                 distance: '$distance',
                 merchant: { $arrayElemAt: ['$merchant', 0] },
@@ -1808,7 +1810,7 @@ export class OffersService {
           'establishment.address': 1,
           'establishment.type': 1,
           'establishment.averageRating': 1,
-          'establishment.profileImage': 1,
+          'establishment.profileImage': { $arrayElemAt: ['$establishment.images', 0] },
           // Merchant details
           'merchant.profileImage': 1,
           // Internal fields for debugging (optional)
@@ -1844,12 +1846,13 @@ export class OffersService {
    * @returns PipelineStage[] to spread into an aggregation pipeline
    */
   private buildEstablishmentLookup(includeContact = false): PipelineStage[] {
-    const fields: Record<string, 1> = {
+    const fields: Record<string, 1 | object> = {
       _id: 1,
       name: 1,
       address: 1,
       type: 1,
       averageRating: 1,
+      profileImage: { $arrayElemAt: ['$images', 0] },
     };
     if (includeContact) {
       fields['phoneNumber'] = 1;
@@ -1861,7 +1864,10 @@ export class OffersService {
         $lookup: {
           from: 'establishments',
           let: { refId: '$establishmentId' },
-          pipeline: [{ $match: { $expr: { $eq: ['$_id', '$$refId'] } } }, { $project: fields }],
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
+            { $project: fields as Record<string, unknown> },
+          ],
           as: '_establishmentDoc',
         },
       },

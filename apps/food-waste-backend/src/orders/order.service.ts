@@ -523,12 +523,17 @@ export class OrdersService {
     const recipientIds = new Set<string>([merchantId]);
 
     if (order.establishmentId) {
-      const estId = order.establishmentId.toString();
+      // order.establishmentId may be a hydrated object after creation (lines 388-394).
+      const estRaw: unknown = order.establishmentId;
+      const estId =
+        estRaw && typeof estRaw === 'object' && '_id' in estRaw
+          ? String((estRaw as { _id: unknown })._id)
+          : String(order.establishmentId);
 
       // Find any LM assigned to this establishment
       const lm = await this.userModel
         .findOne(
-          { assignedEstablishmentId: order.establishmentId, role: UserRole.LOCATION_MANAGER },
+          { assignedEstablishmentId: new Types.ObjectId(estId), role: UserRole.LOCATION_MANAGER },
           { _id: 1 },
         )
         .lean()
@@ -707,6 +712,8 @@ export class OrdersService {
         throw new Error('User ID is required for merchant');
       }
       query.merchantId = new Types.ObjectId(userId);
+    } else if (userRole === UserRole.LOCATION_MANAGER) {
+      // Location managers see orders by establishmentId, not merchantId
     } else if (userRole !== null && userRole !== undefined && userRole !== UserRole.ADMIN) {
       throw new Error(`Invalid user role: ${userRole}`);
     }
@@ -813,12 +820,13 @@ export class OrdersService {
     page: number = 1,
     limit: number = 10,
     establishmentId?: string,
+    userRole: UserRole = UserRole.MERCHANT,
   ): Promise<{ orders: OrderLean[]; total: number }> {
     const filters: OrderQueryDto = {};
     if (establishmentId !== null && establishmentId !== undefined) {
       filters.establishmentId = establishmentId;
     }
-    const result = await this.findAll(page, limit, filters, merchantId, UserRole.MERCHANT);
+    const result = await this.findAll(page, limit, filters, merchantId, userRole);
     return result;
   }
 
