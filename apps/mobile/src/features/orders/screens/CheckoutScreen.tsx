@@ -146,7 +146,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
   // ── GPS permission + initial pin when delivery mode selected ─────────────
   useEffect(() => {
-    if (deliveryMode !== 'delivery') return;
+    if (deliveryMode !== 'delivery') {
+      setDeliveryPin(null);
+      return;
+    }
 
     void (async () => {
       try {
@@ -224,7 +227,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       return;
     }
 
-    if (tooFar) {
+    if (deliveryMode === 'delivery' && tooFar) {
       showErrorToast(
         'Too Far',
         `Your delivery location is ${distanceKm!.toFixed(1)} km away. Maximum allowed is ${MAX_DELIVERY_KM} km from the merchant.`,
