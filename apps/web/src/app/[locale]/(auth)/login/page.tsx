@@ -51,15 +51,24 @@ function LoginFormInner() {
     try {
       const result = await login({ email, password, rememberMe: false });
 
+      // Hard navigation (not router.push) — guarantees cookies from
+      // Set-Cookie are fully committed before the next page request
+      // hits middleware. router.push() is an RSC fetch that races
+      // with cookie processing → 401 on /auth/me.
+      let destination: string;
       if (callbackUrl) {
-        router.push(callbackUrl);
+        destination = callbackUrl;
       } else if (result.user.role === UserRole.ADMIN || result.user.role === UserRole.MODERATOR) {
-        router.push(`/${locale}/admin/dashboard`);
-      } else if (result.user.role === UserRole.MERCHANT) {
-        router.push(`/${locale}/merchant/dashboard`);
+        destination = `/${locale}/admin/dashboard`;
+      } else if (
+        result.user.role === UserRole.MERCHANT ||
+        result.user.role === UserRole.LOCATION_MANAGER
+      ) {
+        destination = `/${locale}/merchant/dashboard`;
       } else {
-        router.push(`/${locale}`);
+        destination = `/${locale}`;
       }
+      window.location.href = destination;
     } catch {
       setLoginError(t('loginError'));
     } finally {

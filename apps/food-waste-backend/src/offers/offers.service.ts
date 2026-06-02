@@ -2244,6 +2244,7 @@ export class OffersService {
     enable: boolean,
     userId: string,
     userRole: string,
+    assignedEstablishmentId?: string,
   ): Promise<OfferDocument> {
     const offer = await this.findById(offerId);
 
@@ -2257,7 +2258,14 @@ export class OffersService {
         ? offer.merchantId._id.toString()
         : offer.merchantId.toString();
 
-    if (userRole !== 'admin' && merchantIdString !== userId) {
+    if (userRole === UserRole.LOCATION_MANAGER) {
+      const offerEstId = offer.establishmentId?.toString();
+      if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
+        throw new ForbiddenException(
+          'You can only enable/disable offers for your assigned establishment',
+        );
+      }
+    } else if (userRole !== 'admin' && merchantIdString !== userId) {
       throw new ForbiddenException('You can only enable/disable your own offers');
     }
 

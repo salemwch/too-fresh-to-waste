@@ -589,7 +589,7 @@ export class OffersController {
 
   @Patch(':id/reactivate')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.MERCHANT, UserRole.ADMIN)
+  @Roles(UserRole.MERCHANT, UserRole.ADMIN, UserRole.LOCATION_MANAGER)
   @ApiOperation({
     summary: 'Reactivate an expired/cancelled/sold-out offer with new dates',
     description:
@@ -620,7 +620,7 @@ export class OffersController {
 
   @Patch(':id/enable')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.MERCHANT, UserRole.ADMIN)
+  @Roles(UserRole.MERCHANT, UserRole.ADMIN, UserRole.LOCATION_MANAGER)
   @ApiOperation({
     summary: 'Enable an offer (make visible)',
     description:
@@ -636,6 +636,7 @@ export class OffersController {
       true,
       req.user.userId,
       req.user.role,
+      req.user.assignedEstablishmentId,
     );
 
     return {
@@ -646,7 +647,7 @@ export class OffersController {
 
   @Patch(':id/disable')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.MERCHANT, UserRole.ADMIN)
+  @Roles(UserRole.MERCHANT, UserRole.ADMIN, UserRole.LOCATION_MANAGER)
   @ApiOperation({
     summary: 'Disable an offer (hide from public)',
     description:
@@ -665,6 +666,7 @@ export class OffersController {
       false,
       req.user.userId,
       req.user.role,
+      req.user.assignedEstablishmentId,
     );
 
     return {
