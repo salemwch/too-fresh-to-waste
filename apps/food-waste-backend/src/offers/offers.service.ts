@@ -1908,7 +1908,12 @@ export class OffersService {
         },
       },
       { $unwind: { path: '$_merchantDoc', preserveNullAndEmptyArrays: true } },
-      { $addFields: { merchantId: '$_merchantDoc' } },
+      {
+        $addFields: {
+          merchantId: '$_merchantDoc',
+          _merchantProfileImage: '$_merchantDoc.profileImage',
+        },
+      },
       { $project: { _merchantDoc: 0 } },
     ];
   }

@@ -158,13 +158,20 @@ export class OfferPresenter {
     totalReviews?: number | undefined;
     profileImage?: string | undefined;
   } {
-    // Extract merchant profileImage — some pipelines replace offer.merchantId
-    // with the populated object (buildMerchantLookup), others put it at
-    // offer.merchant (getNearbyOffers). Check both locations.
+    // buildMerchantLookup sets _merchantProfileImage as a top-level string
+    // for reliable access. Fall back to checking offer.merchantId (populated
+    // object) and offer.merchant (getNearbyOffers custom pipeline).
     let profileImage: string | undefined;
-    const merchantId: unknown = offer.merchantId;
-    if (isRecord(merchantId)) {
-      profileImage = (merchantId as PopulatedMerchant).profileImage;
+    const directImage = (offer as unknown as { _merchantProfileImage?: string })
+      ._merchantProfileImage;
+    if (directImage) {
+      profileImage = directImage;
+    }
+    if (!profileImage) {
+      const merchantId: unknown = offer.merchantId;
+      if (isRecord(merchantId)) {
+        profileImage = (merchantId as PopulatedMerchant).profileImage;
+      }
     }
     if (!profileImage) {
       const merchantField = (offer as unknown as { merchant?: PopulatedMerchant }).merchant;
@@ -182,7 +189,7 @@ export class OfferPresenter {
         name: establishment.name || 'Establishment',
         averageRating: establishment.averageRating,
         totalReviews: establishment.totalReviews,
-        profileImage: profileImage ?? establishment.profileImage,
+        profileImage,
       };
     }
 
@@ -194,7 +201,7 @@ export class OfferPresenter {
         name: establishment.name || 'Establishment',
         averageRating: establishment.averageRating,
         totalReviews: establishment.totalReviews,
-        profileImage: profileImage ?? establishment.profileImage,
+        profileImage,
       };
     }
 
