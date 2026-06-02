@@ -2100,8 +2100,15 @@ export class OffersService {
         ? offer.merchantId._id.toString()
         : offer.merchantId.toString();
 
+    // findById() replaces the ObjectId with a populated object via $lookup,
+    // so bare .toString() gives "[object Object]". Extract the hex ID safely.
+    const estRaw: unknown = offer.establishmentId;
+    const offerEstId =
+      estRaw && typeof estRaw === 'object' && '_id' in estRaw
+        ? String((estRaw as PopulatedEstRef)._id)
+        : String(offer.establishmentId);
+
     if (userRole === UserRole.LOCATION_MANAGER) {
-      const offerEstId = offer.establishmentId?.toString();
       if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
         throw new ForbiddenException(
           'You can only reactivate offers for your assigned establishment',
@@ -2114,13 +2121,7 @@ export class OffersService {
     // Establishment approval guard — merchants/LMs cannot reactivate offers
     // for establishments that have not yet been approved by an admin.
     if (userRole !== 'admin') {
-      const populatedEstablishmentId =
-        typeof offer.establishmentId === 'object'
-          ? (offer.establishmentId as PopulatedEstRef)._id
-          : undefined;
-      const establishmentId = populatedEstablishmentId
-        ? populatedEstablishmentId.toString()
-        : offer.establishmentId.toString();
+      const establishmentId = offerEstId;
 
       await this.validateEstablishmentOwnership(
         establishmentId,
@@ -2258,8 +2259,13 @@ export class OffersService {
         ? offer.merchantId._id.toString()
         : offer.merchantId.toString();
 
+    const estRawToggle: unknown = offer.establishmentId;
+    const offerEstId =
+      estRawToggle && typeof estRawToggle === 'object' && '_id' in estRawToggle
+        ? String((estRawToggle as PopulatedEstRef)._id)
+        : String(offer.establishmentId);
+
     if (userRole === UserRole.LOCATION_MANAGER) {
-      const offerEstId = offer.establishmentId?.toString();
       if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
         throw new ForbiddenException(
           'You can only enable/disable offers for your assigned establishment',
