@@ -158,12 +158,19 @@ export class OfferPresenter {
     totalReviews?: number | undefined;
     profileImage?: string | undefined;
   } {
-    // ✅ TYPE SAFETY: Get merchant profileImage if populated
+    // Extract merchant profileImage — some pipelines replace offer.merchantId
+    // with the populated object (buildMerchantLookup), others put it at
+    // offer.merchant (getNearbyOffers). Check both locations.
     let profileImage: string | undefined;
     const merchantId: unknown = offer.merchantId;
     if (isRecord(merchantId)) {
-      const merchant = merchantId as PopulatedMerchant;
-      profileImage = merchant.profileImage;
+      profileImage = (merchantId as PopulatedMerchant).profileImage;
+    }
+    if (!profileImage) {
+      const merchantField = (offer as unknown as { merchant?: PopulatedMerchant }).merchant;
+      if (isRecord(merchantField)) {
+        profileImage = (merchantField as PopulatedMerchant).profileImage;
+      }
     }
 
     // ✅ TYPE SAFETY: Handle aggregation pipeline result (has 'establishment' field)
