@@ -227,9 +227,9 @@ function getErrorMessage(error: GeoError): string {
     case PositionError.PERMISSION_DENIED:
       return 'Location permission denied. Please enable location access in your device settings.';
     case PositionError.POSITION_UNAVAILABLE:
-      return 'Unable to determine location. Please check your device settings or try "Use default location".';
+      return 'Unable to determine location. Please check your device settings or search for your city.';
     case PositionError.TIMEOUT:
-      return 'GPS signal not found. For faster setup, try "Use default location" or search for your city.';
+      return 'GPS signal not found. Please try again or search for your city.';
     case PositionError.PLAY_SERVICE_NOT_AVAILABLE:
       return 'Google Play services are unavailable. Please update your device services or use a manual location.';
     case PositionError.SETTINGS_NOT_SATISFIED:

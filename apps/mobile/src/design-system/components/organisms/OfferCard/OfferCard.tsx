@@ -98,12 +98,14 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
   // ==================== Image shimmer placeholder ====================
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [useRawUrl, setUseRawUrl] = useState(false);
+  const [logoLoadFailed, setLogoLoadFailed] = useState(false);
   const shimmerAnim = useShimmerAnimation('gradient', !isImageLoaded);
 
   // Reset shimmer when FlashList recycles this cell for a different offer
   useEffect(() => {
     setIsImageLoaded(false);
     setUseRawUrl(false);
+    setLogoLoadFailed(false);
   }, [offer.image]);
 
   // ✅ PERFORMANCE: Debug logs removed (use React DevTools Profiler instead)
@@ -261,19 +263,16 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       {/* Bottom left establishment logo */}
       {showEstablishment && !!offer.establishment?.name && (
         <View style={styles.establishmentLogo}>
-          {offer.establishment.profileImage !== null &&
+          {!logoLoadFailed &&
+          offer.establishment.profileImage !== null &&
           offer.establishment.profileImage !== undefined &&
           offer.establishment.profileImage.length > 0 ? (
             <Image
-              source={{
-                uri: getOptimizedImageUrl(
-                  offer.establishment.profileImage,
-                  IMAGE_PRESETS.thumbnail,
-                ),
-              }}
+              source={{ uri: offer.establishment.profileImage }}
               style={styles.logoImage}
               resizeMode='cover'
               accessibilityIgnoresInvertColors
+              onError={() => setLogoLoadFailed(true)}
             />
           ) : (
             <View style={styles.logoPlaceholder}>
