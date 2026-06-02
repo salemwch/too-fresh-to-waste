@@ -179,7 +179,7 @@ export class OfferPresenter {
       };
     }
 
-    // ✅ TYPE SAFETY: Handle populated establishment (from .populate())
+    // ✅ TYPE SAFETY: Handle populated establishment (from buildEstablishmentLookup)
     const establishmentId: unknown = offer.establishmentId;
     if (isRecord(establishmentId)) {
       const establishment = establishmentId as PopulatedEstablishment;
@@ -187,7 +187,7 @@ export class OfferPresenter {
         name: establishment.name || 'Establishment',
         averageRating: establishment.averageRating,
         totalReviews: establishment.totalReviews,
-        profileImage,
+        profileImage: profileImage ?? establishment.profileImage,
       };
     }
 

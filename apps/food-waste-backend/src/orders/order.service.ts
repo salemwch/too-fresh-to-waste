@@ -1353,7 +1353,11 @@ export class OrdersService {
         $group: {
           _id: null,
           totalOrders: { $sum: 1 },
-          totalRevenue: { $sum: '$pricing.total' },
+          totalRevenue: {
+            $sum: {
+              $cond: [{ $eq: ['$status', OrderStatus.PICKED_UP] }, '$pricing.total', 0],
+            },
+          },
           pendingOrders: {
             $sum: { $cond: [{ $eq: ['$status', OrderStatus.PENDING] }, 1, 0] },
           },
@@ -1473,9 +1477,7 @@ export class OrdersService {
       {
         $match: {
           ...matchCondition,
-          status: {
-            $in: [OrderStatus.PICKED_UP, OrderStatus.CONFIRMED, OrderStatus.READY_FOR_PICKUP],
-          },
+          status: OrderStatus.PICKED_UP,
           createdAt: { $gte: startDate },
         },
       },
