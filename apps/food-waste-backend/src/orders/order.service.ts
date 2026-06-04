@@ -1334,14 +1334,20 @@ export class OrdersService {
     userId: string,
     userRole: UserRole,
     startDate?: Date,
-    assignedEstablishmentId?: string,
+    establishmentId?: string,
   ): Promise<OrderStatsResponse> {
-    const matchCondition: Record<string, unknown> =
-      userRole === UserRole.MERCHANT
-        ? { merchantId: new Types.ObjectId(userId) }
-        : userRole === UserRole.LOCATION_MANAGER && assignedEstablishmentId
-          ? { establishmentId: new Types.ObjectId(assignedEstablishmentId) }
-          : { customerId: new Types.ObjectId(userId) };
+    let matchCondition: Record<string, unknown>;
+
+    if (userRole === UserRole.MERCHANT) {
+      matchCondition = { merchantId: new Types.ObjectId(userId) };
+      if (establishmentId) {
+        matchCondition['establishmentId'] = new Types.ObjectId(establishmentId);
+      }
+    } else if (userRole === UserRole.LOCATION_MANAGER && establishmentId) {
+      matchCondition = { establishmentId: new Types.ObjectId(establishmentId) };
+    } else {
+      matchCondition = { customerId: new Types.ObjectId(userId) };
+    }
 
     if (startDate) {
       matchCondition['createdAt'] = { $gte: startDate };
@@ -1416,14 +1422,20 @@ export class OrdersService {
     userRole: UserRole,
     granularity: ChartGranularity,
     value: number,
-    assignedEstablishmentId?: string,
+    establishmentId?: string,
   ): Promise<RevenueChartResponse[]> {
-    const matchCondition =
-      userRole === UserRole.MERCHANT
-        ? { merchantId: new Types.ObjectId(userId) }
-        : userRole === UserRole.LOCATION_MANAGER && assignedEstablishmentId
-          ? { establishmentId: new Types.ObjectId(assignedEstablishmentId) }
-          : {};
+    let matchCondition: Record<string, unknown>;
+
+    if (userRole === UserRole.MERCHANT) {
+      matchCondition = { merchantId: new Types.ObjectId(userId) };
+      if (establishmentId) {
+        matchCondition['establishmentId'] = new Types.ObjectId(establishmentId);
+      }
+    } else if (userRole === UserRole.LOCATION_MANAGER && establishmentId) {
+      matchCondition = { establishmentId: new Types.ObjectId(establishmentId) };
+    } else {
+      matchCondition = {};
+    }
 
     const now = new Date();
     let startDate: Date;

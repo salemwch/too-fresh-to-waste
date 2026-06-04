@@ -49,16 +49,19 @@ export class SustainabilityService {
 
   // ── All-time bags saved ───────────────────────────────────────────────────
 
-  async getAllTimeBagsSaved(merchantId: string): Promise<number> {
+  async getAllTimeBagsSaved(merchantId: string, establishmentId?: string): Promise<number> {
+    const matchStage: Record<string, unknown> = {
+      merchantId: new Types.ObjectId(merchantId),
+      status: OrderStatus.PICKED_UP,
+      isDeleted: { $ne: true },
+    };
+    if (establishmentId) {
+      matchStage['establishmentId'] = new Types.ObjectId(establishmentId);
+    }
+
     const result = await this.orderModel
       .aggregate([
-        {
-          $match: {
-            merchantId: new Types.ObjectId(merchantId),
-            status: OrderStatus.PICKED_UP,
-            isDeleted: { $ne: true },
-          },
-        },
+        { $match: matchStage },
         {
           $project: {
             bagCount: { $sum: '$items.quantity' },
@@ -78,8 +81,8 @@ export class SustainabilityService {
 
   // ── ESG Tier ─────────────────────────────────────────────────────────────
 
-  async getEsgTier(merchantId: string): Promise<EsgTierResponse> {
-    const bagsSaved = await this.getAllTimeBagsSaved(merchantId);
+  async getEsgTier(merchantId: string, establishmentId?: string): Promise<EsgTierResponse> {
+    const bagsSaved = await this.getAllTimeBagsSaved(merchantId, establishmentId);
 
     // Find current tier (highest threshold not exceeding bagsSaved)
     let currentIndex = 0;
@@ -139,23 +142,26 @@ export class SustainabilityService {
     });
   }
 
-  async getMonthlyGoal(merchantId: string): Promise<MonthlyGoalResponse> {
+  async getMonthlyGoal(merchantId: string, establishmentId?: string): Promise<MonthlyGoalResponse> {
     const goal = await this.getOrCreateGoal(merchantId);
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthLabel = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
+    const matchStage: Record<string, unknown> = {
+      merchantId: new Types.ObjectId(merchantId),
+      status: OrderStatus.PICKED_UP,
+      isDeleted: { $ne: true },
+      createdAt: { $gte: startOfMonth },
+    };
+    if (establishmentId) {
+      matchStage['establishmentId'] = new Types.ObjectId(establishmentId);
+    }
+
     const result = await this.orderModel
       .aggregate([
-        {
-          $match: {
-            merchantId: new Types.ObjectId(merchantId),
-            status: OrderStatus.PICKED_UP,
-            isDeleted: { $ne: true },
-            createdAt: { $gte: startOfMonth },
-          },
-        },
+        { $match: matchStage },
         {
           $project: { bagCount: { $sum: '$items.quantity' } },
         },
@@ -183,6 +189,7 @@ export class SustainabilityService {
   async updateMonthlyGoal(
     merchantId: string,
     targetBagsPerMonth: number,
+    establishmentId?: string,
   ): Promise<MonthlyGoalResponse> {
     await this.goalModel
       .findOneAndUpdate(
@@ -192,12 +199,16 @@ export class SustainabilityService {
       )
       .exec();
 
-    return this.getMonthlyGoal(merchantId);
+    return this.getMonthlyGoal(merchantId, establishmentId);
   }
 
   // ── Carbon metrics ────────────────────────────────────────────────────────
 
-  async getCarbonMetrics(merchantId: string, startDate?: Date): Promise<CarbonMetricsResponse> {
+  async getCarbonMetrics(
+    merchantId: string,
+    startDate?: Date,
+    establishmentId?: string,
+  ): Promise<CarbonMetricsResponse> {
     const matchStage: Record<string, unknown> = {
       merchantId: new Types.ObjectId(merchantId),
       status: OrderStatus.PICKED_UP,
@@ -205,6 +216,9 @@ export class SustainabilityService {
     };
     if (startDate) {
       matchStage['createdAt'] = { $gte: startDate };
+    }
+    if (establishmentId) {
+      matchStage['establishmentId'] = new Types.ObjectId(establishmentId);
     }
 
     const result = await this.orderModel
@@ -243,7 +257,11 @@ export class SustainabilityService {
 
   // ── Social impact ─────────────────────────────────────────────────────────
 
-  async getSocialImpact(merchantId: string, startDate?: Date): Promise<SocialImpactResponse> {
+  async getSocialImpact(
+    merchantId: string,
+    startDate?: Date,
+    establishmentId?: string,
+  ): Promise<SocialImpactResponse> {
     const matchStage: Record<string, unknown> = {
       merchantId: new Types.ObjectId(merchantId),
       status: OrderStatus.PICKED_UP,
@@ -251,6 +269,9 @@ export class SustainabilityService {
     };
     if (startDate) {
       matchStage['createdAt'] = { $gte: startDate };
+    }
+    if (establishmentId) {
+      matchStage['establishmentId'] = new Types.ObjectId(establishmentId);
     }
 
     const result = await this.orderModel

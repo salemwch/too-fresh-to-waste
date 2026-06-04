@@ -205,7 +205,7 @@ export default function LeaderboardPage() {
 
   const myRank = rankQuery.data?.rank ?? 0;
   const myMeals = rankQuery.data?.mealsSaved ?? 0;
-  const totalMerchants = rankQuery.data?.totalMerchants ?? 0;
+  const totalParticipants = rankQuery.data?.totalParticipants ?? 0;
   const myPercentile = rankQuery.data?.percentile ?? 0;
 
   return (
@@ -234,7 +234,9 @@ export default function LeaderboardPage() {
                 Your Rank
               </div>
               <div className='font-display text-5xl text-brand-coral tabular-nums'>#{myRank}</div>
-              <div className='text-xs text-primary-500/50 mt-1'>of {totalMerchants} merchants</div>
+              <div className='text-xs text-primary-500/50 mt-1'>
+                of {totalParticipants} establishments
+              </div>
             </div>
 
             <div className='flex-1 min-w-[120px]'>

@@ -48,11 +48,19 @@ export class LeaderboardController {
 
   @Get('my-rank')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get current merchant rank and score' })
+  @ApiOperation({ summary: 'Get current merchant/establishment rank and score' })
   async getMyRank(
     @Request() req: AuthenticatedRequest,
+    @Query('establishmentId') establishmentId?: string,
   ): Promise<{ message: string; data: MerchantRankResponse }> {
-    const data = await this.leaderboardService.getMerchantRank(req.user.userId);
+    const effectiveEstablishmentId =
+      req.user.role === UserRole.LOCATION_MANAGER
+        ? req.user.assignedEstablishmentId
+        : establishmentId;
+    const data = await this.leaderboardService.getMerchantRank(
+      req.user.userId,
+      effectiveEstablishmentId,
+    );
     return { message: 'Rank retrieved successfully', data };
   }
 

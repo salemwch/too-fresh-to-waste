@@ -49,34 +49,59 @@ export class SustainabilityController {
   @Get('tier')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get merchant ESG tier and milestone progress' })
+  @ApiQuery({ name: 'establishmentId', required: false, description: 'Filter by establishment' })
   @ApiResponse({ status: HttpStatus.OK, description: 'ESG tier data retrieved' })
   async getEsgTier(
     @Request() req: AuthenticatedRequest,
+    @Query('establishmentId') establishmentId?: string,
   ): Promise<{ message: string; data: EsgTierResponse }> {
-    const data = await this.sustainabilityService.getEsgTier(req.user.userId);
+    const effectiveEstablishmentId =
+      req.user.role === UserRole.LOCATION_MANAGER
+        ? req.user.assignedEstablishmentId
+        : establishmentId;
+    const data = await this.sustainabilityService.getEsgTier(
+      req.user.userId,
+      effectiveEstablishmentId,
+    );
     return { message: 'ESG tier retrieved successfully', data };
   }
 
   @Get('monthly-goal')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get merchant monthly bag-saving goal progress' })
+  @ApiQuery({ name: 'establishmentId', required: false, description: 'Filter by establishment' })
   async getMonthlyGoal(
     @Request() req: AuthenticatedRequest,
+    @Query('establishmentId') establishmentId?: string,
   ): Promise<{ message: string; data: MonthlyGoalResponse }> {
-    const data = await this.sustainabilityService.getMonthlyGoal(req.user.userId);
+    const effectiveEstablishmentId =
+      req.user.role === UserRole.LOCATION_MANAGER
+        ? req.user.assignedEstablishmentId
+        : establishmentId;
+    const data = await this.sustainabilityService.getMonthlyGoal(
+      req.user.userId,
+      effectiveEstablishmentId,
+    );
     return { message: 'Monthly goal retrieved successfully', data };
   }
 
   @Patch('monthly-goal')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update merchant monthly bag-saving goal' })
+  @ApiQuery({ name: 'establishmentId', required: false, description: 'Filter by establishment' })
   async updateMonthlyGoal(
     @Request() req: AuthenticatedRequest,
     @Body(new ValidationPipe({ whitelist: true, transform: true })) dto: UpdateMonthlyGoalDto,
+    @Query('establishmentId') establishmentId?: string,
   ): Promise<{ message: string; data: MonthlyGoalResponse }> {
+    const effectiveEstablishmentId =
+      req.user.role === UserRole.LOCATION_MANAGER
+        ? req.user.assignedEstablishmentId
+        : establishmentId;
     const data = await this.sustainabilityService.updateMonthlyGoal(
       req.user.userId,
       dto.targetBagsPerMonth,
+      effectiveEstablishmentId,
     );
     return { message: 'Monthly goal updated successfully', data };
   }
@@ -89,12 +114,22 @@ export class SustainabilityController {
     required: false,
     description: 'ISO date string filter (e.g. 2025-01-01)',
   })
+  @ApiQuery({ name: 'establishmentId', required: false, description: 'Filter by establishment' })
   async getCarbonMetrics(
     @Request() req: AuthenticatedRequest,
     @Query('since') since?: string,
+    @Query('establishmentId') establishmentId?: string,
   ): Promise<{ message: string; data: CarbonMetricsResponse }> {
     const startDate = since ? new Date(since) : undefined;
-    const data = await this.sustainabilityService.getCarbonMetrics(req.user.userId, startDate);
+    const effectiveEstablishmentId =
+      req.user.role === UserRole.LOCATION_MANAGER
+        ? req.user.assignedEstablishmentId
+        : establishmentId;
+    const data = await this.sustainabilityService.getCarbonMetrics(
+      req.user.userId,
+      startDate,
+      effectiveEstablishmentId,
+    );
     return { message: 'Carbon metrics retrieved successfully', data };
   }
 
@@ -102,12 +137,22 @@ export class SustainabilityController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get social impact (meals distributed, people served)' })
   @ApiQuery({ name: 'since', required: false, description: 'ISO date string filter' })
+  @ApiQuery({ name: 'establishmentId', required: false, description: 'Filter by establishment' })
   async getSocialImpact(
     @Request() req: AuthenticatedRequest,
     @Query('since') since?: string,
+    @Query('establishmentId') establishmentId?: string,
   ): Promise<{ message: string; data: SocialImpactResponse }> {
     const startDate = since ? new Date(since) : undefined;
-    const data = await this.sustainabilityService.getSocialImpact(req.user.userId, startDate);
+    const effectiveEstablishmentId =
+      req.user.role === UserRole.LOCATION_MANAGER
+        ? req.user.assignedEstablishmentId
+        : establishmentId;
+    const data = await this.sustainabilityService.getSocialImpact(
+      req.user.userId,
+      startDate,
+      effectiveEstablishmentId,
+    );
     return { message: 'Social impact retrieved successfully', data };
   }
 
@@ -124,18 +169,33 @@ export class SustainabilityController {
   @Get('reports/carbon-balance')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Download ESG Carbon Balance PDF report (ISO 14001 format)' })
+  @ApiQuery({ name: 'establishmentId', required: false, description: 'Filter by establishment' })
   @ApiResponse({ status: HttpStatus.OK, description: 'PDF binary stream' })
   async downloadCarbonBalanceReport(
     @Request() req: AuthenticatedRequest,
+    @Query('establishmentId') establishmentId: string | undefined,
     @Res() res: Response,
   ): Promise<void> {
+    const effectiveEstablishmentId =
+      req.user.role === UserRole.LOCATION_MANAGER
+        ? req.user.assignedEstablishmentId
+        : establishmentId;
+
     this.logger.log(`Carbon balance PDF requested by merchant ${req.user.userId}`);
 
     const [tier, goal, carbon, social] = await Promise.all([
-      this.sustainabilityService.getEsgTier(req.user.userId),
-      this.sustainabilityService.getMonthlyGoal(req.user.userId),
-      this.sustainabilityService.getCarbonMetrics(req.user.userId),
-      this.sustainabilityService.getSocialImpact(req.user.userId),
+      this.sustainabilityService.getEsgTier(req.user.userId, effectiveEstablishmentId),
+      this.sustainabilityService.getMonthlyGoal(req.user.userId, effectiveEstablishmentId),
+      this.sustainabilityService.getCarbonMetrics(
+        req.user.userId,
+        undefined,
+        effectiveEstablishmentId,
+      ),
+      this.sustainabilityService.getSocialImpact(
+        req.user.userId,
+        undefined,
+        effectiveEstablishmentId,
+      ),
     ]);
 
     const pdfBuffer = await this.pdfReportService.generateCarbonBalanceReport({

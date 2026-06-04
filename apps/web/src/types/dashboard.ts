@@ -500,6 +500,7 @@ export interface SocialImpactResponse {
 export interface LeaderboardEntry {
   rank: number;
   userId: string;
+  establishmentId: string;
   displayName: string;
   profileImage: string | null;
   isAnonymous: boolean;
@@ -509,7 +510,7 @@ export interface LeaderboardEntry {
 export interface MerchantRankResponse {
   rank: number;
   mealsSaved: number;
-  totalMerchants: number;
+  totalParticipants: number;
   percentile: number;
 }
 

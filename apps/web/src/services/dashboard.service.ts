@@ -39,9 +39,12 @@ export const dashboardService = {
    * Merchant/Admin order statistics (totals, breakdown by status, revenue)
    * Pass startDate to restrict results to a specific time window.
    */
-  getOrderStats(startDate?: Date) {
+  getOrderStats(startDate?: Date, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<OrderStatsResponse>>(`${ORDERS_BASE}/stats`, {
-      params: startDate ? { startDate: startDate.toISOString() } : undefined,
+      params: {
+        ...(startDate ? { startDate: startDate.toISOString() } : {}),
+        ...(establishmentId ? { establishmentId } : {}),
+      },
     });
   },
 
@@ -117,10 +120,16 @@ export const dashboardService = {
    * GET /orders/merchant-revenue-chart?granularity=&value=
    * Revenue breakdown per day / week / month for the merchant chart.
    */
-  getRevenueChart(granularity: ChartGranularity, value: number) {
+  getRevenueChart(granularity: ChartGranularity, value: number, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<RevenueChartItem[]>>(
       `${ORDERS_BASE}/merchant-revenue-chart`,
-      { params: { granularity, value } },
+      {
+        params: {
+          granularity,
+          value,
+          ...(establishmentId ? { establishmentId } : {}),
+        },
+      },
     );
   },
 
@@ -270,34 +279,48 @@ export const dashboardService = {
 
   // ── Sustainability ─────────────────────────────────────────────────────
 
-  getEsgTier() {
-    return apiClient.get<BackendEnvelope<EsgTierResponse>>(`${SUSTAINABILITY_BASE}/tier`);
+  getEsgTier(establishmentId?: string) {
+    return apiClient.get<BackendEnvelope<EsgTierResponse>>(`${SUSTAINABILITY_BASE}/tier`, {
+      params: { ...(establishmentId ? { establishmentId } : {}) },
+    });
   },
 
-  getMonthlyGoal() {
+  getMonthlyGoal(establishmentId?: string) {
     return apiClient.get<BackendEnvelope<MonthlyGoalResponse>>(
       `${SUSTAINABILITY_BASE}/monthly-goal`,
+      { params: { ...(establishmentId ? { establishmentId } : {}) } },
     );
   },
 
-  updateMonthlyGoal(targetBagsPerMonth: number) {
+  updateMonthlyGoal(targetBagsPerMonth: number, establishmentId?: string) {
     return apiClient.patch<BackendEnvelope<MonthlyGoalResponse>>(
       `${SUSTAINABILITY_BASE}/monthly-goal`,
       { targetBagsPerMonth },
+      { params: { ...(establishmentId ? { establishmentId } : {}) } },
     );
   },
 
-  getCarbonMetrics(since?: string) {
+  getCarbonMetrics(since?: string, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<CarbonMetricsResponse>>(
       `${SUSTAINABILITY_BASE}/carbon-metrics`,
-      { params: since ? { since } : undefined },
+      {
+        params: {
+          ...(since ? { since } : {}),
+          ...(establishmentId ? { establishmentId } : {}),
+        },
+      },
     );
   },
 
-  getSocialImpact(since?: string) {
+  getSocialImpact(since?: string, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<SocialImpactResponse>>(
       `${SUSTAINABILITY_BASE}/social-impact`,
-      { params: since ? { since } : undefined },
+      {
+        params: {
+          ...(since ? { since } : {}),
+          ...(establishmentId ? { establishmentId } : {}),
+        },
+      },
     );
   },
 
@@ -315,8 +338,10 @@ export const dashboardService = {
     });
   },
 
-  getMyRank() {
-    return apiClient.get<BackendEnvelope<MerchantRankResponse>>(`${LEADERBOARD_BASE}/my-rank`);
+  getMyRank(establishmentId?: string) {
+    return apiClient.get<BackendEnvelope<MerchantRankResponse>>(`${LEADERBOARD_BASE}/my-rank`, {
+      params: { ...(establishmentId ? { establishmentId } : {}) },
+    });
   },
 
   updateLeaderboardPreference(anonymous: boolean) {

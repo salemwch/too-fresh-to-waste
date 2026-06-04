@@ -29,8 +29,8 @@ import type {
 
 export const dashboardKeys = {
   all: ['merchant-dashboard'] as const,
-  orderStats: (startDate?: string) =>
-    [...dashboardKeys.all, 'order-stats', startDate ?? 'all-time'] as const,
+  orderStats: (startDate?: string, estId?: string) =>
+    [...dashboardKeys.all, 'order-stats', startDate ?? 'all-time', estId ?? 'all'] as const,
   recentOrders: (page: number, limit: number) =>
     [...dashboardKeys.all, 'recent-orders', page, limit] as const,
   merchantOrders: (page = 1, limit = 50) =>
@@ -38,21 +38,23 @@ export const dashboardKeys = {
   orderDetail: (id: string) => [...dashboardKeys.all, 'order', id] as const,
   offers: (page: number, limit: number, status?: string) =>
     [...dashboardKeys.all, 'offers', page, limit, status] as const,
-  offersStatusCount: (status: string) => [...dashboardKeys.all, 'offers-count', status] as const,
-  activeOfferCount: () => [...dashboardKeys.all, 'active-offer-count'] as const,
+  offersStatusCount: (status: string, estId?: string) =>
+    [...dashboardKeys.all, 'offers-count', status, estId ?? 'all'] as const,
+  activeOfferCount: (estId?: string) =>
+    [...dashboardKeys.all, 'active-offer-count', estId ?? 'all'] as const,
   donationStats: () => [...dashboardKeys.all, 'donation-stats'] as const,
   communityGoal: () => [...dashboardKeys.all, 'community-goal'] as const,
-  revenueChart: (granularity: ChartGranularity, value: number) =>
-    [...dashboardKeys.all, 'revenue-chart', granularity, value] as const,
+  revenueChart: (granularity: ChartGranularity, value: number, estId?: string) =>
+    [...dashboardKeys.all, 'revenue-chart', granularity, value, estId ?? 'all'] as const,
   myEstablishment: () => [...dashboardKeys.all, 'my-establishment'] as const,
-  esgTier: () => [...dashboardKeys.all, 'esg-tier'] as const,
-  monthlyGoal: () => [...dashboardKeys.all, 'monthly-goal'] as const,
-  carbonMetrics: (since?: string) =>
-    [...dashboardKeys.all, 'carbon-metrics', since ?? 'all'] as const,
-  socialImpact: (since?: string) =>
-    [...dashboardKeys.all, 'social-impact', since ?? 'all'] as const,
+  esgTier: (estId?: string) => [...dashboardKeys.all, 'esg-tier', estId ?? 'all'] as const,
+  monthlyGoal: (estId?: string) => [...dashboardKeys.all, 'monthly-goal', estId ?? 'all'] as const,
+  carbonMetrics: (since?: string, estId?: string) =>
+    [...dashboardKeys.all, 'carbon-metrics', since ?? 'all', estId ?? 'all'] as const,
+  socialImpact: (since?: string, estId?: string) =>
+    [...dashboardKeys.all, 'social-impact', since ?? 'all', estId ?? 'all'] as const,
   leaderboard: (limit: number) => [...dashboardKeys.all, 'leaderboard', limit] as const,
-  myRank: () => [...dashboardKeys.all, 'my-rank'] as const,
+  myRank: (estId?: string) => [...dashboardKeys.all, 'my-rank', estId ?? 'all'] as const,
   streak: () => [...dashboardKeys.all, 'streak'] as const,
 };
 
@@ -76,10 +78,11 @@ interface MerchantOffersResult {
  * Backend: GET /orders/stats?startDate=
  */
 export function useOrderStats(startDate?: Date) {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.orderStats(startDate?.toISOString()),
+    queryKey: dashboardKeys.orderStats(startDate?.toISOString(), estId ?? undefined),
     queryFn: async (): Promise<OrderStatsResponse> => {
-      const response = await dashboardService.getOrderStats(startDate);
+      const response = await dashboardService.getOrderStats(startDate, estId ?? undefined);
       return response.data.data;
     },
     staleTime: 2 * 60 * 1000,
@@ -114,10 +117,11 @@ export function useMerchantRecentOrders(page = 1, limit = 6) {
  * Backend: GET /offers/my-offers?status=active&limit=1
  */
 export function useActiveOfferCount() {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.activeOfferCount(),
+    queryKey: dashboardKeys.activeOfferCount(estId ?? undefined),
     queryFn: async (): Promise<number> => {
-      const response = await dashboardService.getMerchantOffers(1, 1, 'active');
+      const response = await dashboardService.getMerchantOffers(1, 1, 'active', estId ?? undefined);
       return response.data.meta?.total ?? 0;
     },
     staleTime: 2 * 60 * 1000,
@@ -130,14 +134,19 @@ export function useActiveOfferCount() {
  * Backend: GET /orders/merchant-revenue-chart?granularity=&value=
  */
 export function useRevenueChart(granularity: ChartGranularity, value: number) {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.revenueChart(granularity, value),
+    queryKey: dashboardKeys.revenueChart(granularity, value, estId ?? undefined),
     queryFn: async (): Promise<RevenueChartItem[]> => {
-      const response = await dashboardService.getRevenueChart(granularity, value);
+      const response = await dashboardService.getRevenueChart(
+        granularity,
+        value,
+        estId ?? undefined,
+      );
       return response.data.data;
     },
     staleTime: 30 * 1000,
-    refetchInterval: 30 * 1000, // live chart — re-fetch every 30 s
+    refetchInterval: 30 * 1000,
   });
 }
 
@@ -223,10 +232,11 @@ export function useMerchantOffersFiltered(page = 1, limit = 10, status?: string)
  * Used by the stats bar on the Offers page.
  */
 export function useOfferStatusCount(status: string, enabled = true) {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.offersStatusCount(status),
+    queryKey: dashboardKeys.offersStatusCount(status, estId ?? undefined),
     queryFn: async (): Promise<number> => {
-      const response = await dashboardService.getMerchantOffers(1, 1, status);
+      const response = await dashboardService.getMerchantOffers(1, 1, status, estId ?? undefined);
       return response.data.meta?.total ?? 0;
     },
     staleTime: 2 * 60 * 1000,
@@ -347,10 +357,11 @@ export function useOrderDetail(orderId: string | null) {
 // ─── Sustainability hooks ────────────────────────────────────────────────────
 
 export function useEsgTier() {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.esgTier(),
+    queryKey: dashboardKeys.esgTier(estId ?? undefined),
     queryFn: async (): Promise<EsgTierResponse> => {
-      const response = await dashboardService.getEsgTier();
+      const response = await dashboardService.getEsgTier(estId ?? undefined);
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -358,10 +369,11 @@ export function useEsgTier() {
 }
 
 export function useMonthlyGoal() {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.monthlyGoal(),
+    queryKey: dashboardKeys.monthlyGoal(estId ?? undefined),
     queryFn: async (): Promise<MonthlyGoalResponse> => {
-      const response = await dashboardService.getMonthlyGoal();
+      const response = await dashboardService.getMonthlyGoal(estId ?? undefined);
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -370,20 +382,24 @@ export function useMonthlyGoal() {
 
 export function useUpdateMonthlyGoal() {
   const queryClient = useQueryClient();
+  const estId = useAuthStore(s => s.activeEstablishmentId);
   return useMutation({
     mutationFn: (targetBagsPerMonth: number) =>
-      dashboardService.updateMonthlyGoal(targetBagsPerMonth),
+      dashboardService.updateMonthlyGoal(targetBagsPerMonth, estId ?? undefined),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: dashboardKeys.monthlyGoal() });
+      void queryClient.invalidateQueries({
+        queryKey: dashboardKeys.monthlyGoal(estId ?? undefined),
+      });
     },
   });
 }
 
 export function useCarbonMetrics(since?: string) {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.carbonMetrics(since),
+    queryKey: dashboardKeys.carbonMetrics(since, estId ?? undefined),
     queryFn: async (): Promise<CarbonMetricsResponse> => {
-      const response = await dashboardService.getCarbonMetrics(since);
+      const response = await dashboardService.getCarbonMetrics(since, estId ?? undefined);
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -391,10 +407,11 @@ export function useCarbonMetrics(since?: string) {
 }
 
 export function useSocialImpact(since?: string) {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.socialImpact(since),
+    queryKey: dashboardKeys.socialImpact(since, estId ?? undefined),
     queryFn: async (): Promise<SocialImpactResponse> => {
-      const response = await dashboardService.getSocialImpact(since);
+      const response = await dashboardService.getSocialImpact(since, estId ?? undefined);
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -429,10 +446,11 @@ export function useLeaderboard(limit = 50) {
 }
 
 export function useMerchantRank() {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.myRank(),
+    queryKey: dashboardKeys.myRank(estId ?? undefined),
     queryFn: async (): Promise<MerchantRankResponse> => {
-      const response = await dashboardService.getMyRank();
+      const response = await dashboardService.getMyRank(estId ?? undefined);
       return response.data.data;
     },
     staleTime: 0,

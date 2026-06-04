@@ -343,6 +343,12 @@ export class OrdersController {
     type: String,
     description: 'ISO 8601 date — filter orders from this date (e.g. 2025-06-01T00:00:00.000Z)',
   })
+  @ApiQuery({
+    name: 'establishmentId',
+    required: false,
+    type: String,
+    description: 'Filter stats to a specific establishment (merchants only)',
+  })
   @ApiResponse({ status: 200, description: 'Order statistics retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized - Admin or Merchant access required' })
   @Get('stats')
@@ -351,17 +357,23 @@ export class OrdersController {
   async getOrderStats(
     @Request() req: AuthenticatedRequest,
     @Query('startDate') startDateStr?: string,
+    @Query('establishmentId') establishmentId?: string,
   ): Promise<{
     statusCode: number;
     message: string;
     data: OrderStatsResponse;
   }> {
     const startDate = startDateStr ? new Date(startDateStr) : undefined;
+    const effectiveEstablishmentId =
+      req.user.role === UserRole.LOCATION_MANAGER
+        ? req.user.assignedEstablishmentId
+        : establishmentId;
+
     const stats = await this.ordersService.getOrderStats(
       req.user.userId,
       req.user.role,
       startDate,
-      req.user.assignedEstablishmentId,
+      effectiveEstablishmentId,
     );
 
     return {
@@ -389,6 +401,12 @@ export class OrdersController {
     type: Number,
     description: 'Number of slots to return (default: 9)',
   })
+  @ApiQuery({
+    name: 'establishmentId',
+    required: false,
+    type: String,
+    description: 'Filter revenue chart to a specific establishment (merchants only)',
+  })
   @ApiResponse({ status: 200, description: 'Revenue chart data retrieved successfully' })
   @ApiResponse({ status: 400, description: 'Invalid granularity or value out of range' })
   @ApiResponse({ status: 401, description: 'Unauthorized — merchant or admin access required' })
@@ -399,6 +417,7 @@ export class OrdersController {
     @Request() req: AuthenticatedRequest,
     @Query('granularity') rawGranularity = 'month',
     @Query('value', new DefaultValuePipe(9), ParseIntPipe) value: number,
+    @Query('establishmentId') establishmentId?: string,
   ): Promise<{
     statusCode: number;
     message: string;
@@ -418,12 +437,17 @@ export class OrdersController {
       );
     }
 
+    const effectiveEstablishmentId =
+      req.user.role === UserRole.LOCATION_MANAGER
+        ? req.user.assignedEstablishmentId
+        : establishmentId;
+
     const data = await this.ordersService.getRevenueChart(
       req.user.userId,
       req.user.role,
       granularity,
       value,
-      req.user.assignedEstablishmentId,
+      effectiveEstablishmentId,
     );
 
     return {
