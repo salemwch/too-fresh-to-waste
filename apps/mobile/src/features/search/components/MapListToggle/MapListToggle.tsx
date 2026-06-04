@@ -162,6 +162,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+    zIndex: 0,
   },
   button: {
     flex: 1,
@@ -170,7 +171,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 9,
     paddingHorizontal: 10,
-    zIndex: 1,
+    zIndex: 2,
+    elevation: 3,
   },
   buttonText: {
     marginLeft: 4,

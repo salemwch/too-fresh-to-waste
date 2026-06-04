@@ -415,8 +415,10 @@ export class ProximitySearchService {
                   averageRating: 1,
                   profileImage: {
                     $ifNull: [
+                      { $arrayElemAt: ['$images', 0] },
                       { $arrayElemAt: ['$ownerData.profileImage', 0] },
-                      { $ifNull: [{ $arrayElemAt: ['$ownerData.avatar', 0] }, null] },
+                      { $arrayElemAt: ['$ownerData.avatar', 0] },
+                      null,
                     ],
                   },
                 },
@@ -836,11 +838,12 @@ export class ProximitySearchService {
             averageRating: 1,
             totalReviews: 1,
             isVerified: 1,
-            // Merchant profile image: profileImage → avatar → null
             profileImage: {
               $ifNull: [
+                { $arrayElemAt: ['$images', 0] },
                 { $arrayElemAt: ['$ownerData.profileImage', 0] },
-                { $ifNull: [{ $arrayElemAt: ['$ownerData.avatar', 0] }, null] },
+                { $arrayElemAt: ['$ownerData.avatar', 0] },
+                null,
               ],
             },
             activeOfferCount: 1,
