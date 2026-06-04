@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { dashboardService } from '@/services/dashboard.service';
 import { dashboardKeys, useSocialImpact } from '@/hooks/use-merchant-dashboard';
+import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
 import type { CommunityBagGoalStats, DonationStats } from '@/types/dashboard';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -79,14 +80,17 @@ export default function CommunityPage() {
   return (
     <div className='space-y-[32px]'>
       {/* Page header */}
-      <div>
-        <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-2'>
-          {t('breadcrumb')}
+      <div className='flex items-start justify-between gap-4 flex-wrap'>
+        <div>
+          <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-2'>
+            {t('breadcrumb')}
+          </div>
+          <h1 className='font-display text-3xl md:text-4xl text-primary-500 leading-[1.05]'>
+            {t('title')}
+          </h1>
+          <p className='mt-2 text-primary-500/65 text-sm max-w-xl'>{t('subtitle')}</p>
         </div>
-        <h1 className='font-display text-3xl md:text-4xl text-primary-500 leading-[1.05]'>
-          {t('title')}
-        </h1>
-        <p className='mt-2 text-primary-500/65 text-sm max-w-xl'>{t('subtitle')}</p>
+        <LocationSwitcher />
       </div>
 
       {/* Your social impact stats */}

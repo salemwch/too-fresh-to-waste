@@ -7,7 +7,6 @@ import { TrialStatusBanner } from '@/components/dashboard/merchant';
 import { MobileNav } from '@/components/dashboard/mobile-nav';
 import { NotificationBell } from '@/components/dashboard/notification-panel';
 import { UserNav } from '@/components/dashboard/user-nav';
-import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
 import { merchantNavItems } from '@/config/navigation.config';
 import { useMerchantOrdersSocket } from '@/hooks/use-merchant-orders-socket';
 import { useAuthStore } from '@/lib/auth';
@@ -46,7 +45,6 @@ export function MerchantLayoutShell({ children }: { children: React.ReactNode })
                 <div className='mb-[16px]'>
                   <TrialStatusBanner />
                 </div>
-                <LocationSwitcher />
                 {children}
               </div>
             </main>

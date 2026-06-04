@@ -9,6 +9,7 @@ import {
   useMerchantRank,
   useUpdateLeaderboardPreference,
 } from '@/hooks/use-merchant-dashboard';
+import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
 import type { LeaderboardEntry } from '@/types/dashboard';
 import {
   Dialog,
@@ -219,11 +220,14 @@ export default function LeaderboardPage() {
 
       <div className='space-y-[28px]'>
         {/* Header */}
-        <div>
-          <h1 className='font-display text-3xl text-primary-500'>Leaderboard</h1>
-          <p className='text-primary-500/60 text-sm mt-1'>
-            Merchants ranked by meals saved (confirmed paid orders).
-          </p>
+        <div className='flex items-start justify-between gap-4 flex-wrap'>
+          <div>
+            <h1 className='font-display text-3xl text-primary-500'>Leaderboard</h1>
+            <p className='text-primary-500/60 text-sm mt-1'>
+              Merchants ranked by meals saved (confirmed paid orders).
+            </p>
+          </div>
+          <LocationSwitcher />
         </div>
 
         {/* My rank summary card */}

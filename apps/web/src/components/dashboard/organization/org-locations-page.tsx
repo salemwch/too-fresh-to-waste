@@ -9,6 +9,7 @@ import { useMyOrganization, useOrganizationInvitations } from '@/hooks/use-organ
 import { useMyEstablishments } from '@/hooks/use-merchant-dashboard';
 import { AddLocationDialog } from './add-location-dialog';
 import { CreateOrgDialog } from './create-org-dialog';
+import { LocationSwitcher } from './location-switcher';
 
 const statusColors: Record<string, string> = {
   active: 'bg-green-100 text-green-700 border-green-200',
@@ -56,6 +57,7 @@ export function OrgLocationsPage() {
           </p>
         </div>
         <div className='flex items-center gap-3'>
+          <LocationSwitcher />
           <Badge className={statusColors[org.status] ?? statusColors['pending']}>
             {org.status}
           </Badge>

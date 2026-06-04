@@ -11,6 +11,7 @@ import { useAuthStore } from '@/lib/auth';
 import { useNotificationStore } from '@/lib/notification-store';
 import { resolveProfileImage } from '@/lib/media';
 import { useMerchantRank, useMonthlyGoal } from '@/hooks/use-merchant-dashboard';
+import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
 import type { MyEstablishment } from '@/types/dashboard';
 
 interface DashboardWelcomeHeaderProps {
@@ -95,6 +96,8 @@ export function DashboardWelcomeHeader({ establishment }: DashboardWelcomeHeader
 
         {/* Action circles + ESG badge */}
         <div className='flex items-center gap-[10px]'>
+          <LocationSwitcher />
+
           {/* Search */}
           <button
             className='h-[44px] w-[44px] grid place-items-center rounded-full glass shadow-soft'

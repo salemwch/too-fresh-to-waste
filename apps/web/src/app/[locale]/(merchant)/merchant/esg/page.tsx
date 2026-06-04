@@ -23,6 +23,7 @@ import {
   useSocialImpact,
   useMonthlyGoal,
 } from '@/hooks/use-merchant-dashboard';
+import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
 import { dashboardService } from '@/services/dashboard.service';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -75,7 +76,7 @@ export default function EsgPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `bilan-carbone-${new Date().toISOString().split('T')[0]}.pdf`;
+      a.download = `carbon-balance-${new Date().toISOString().split('T')[0]}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success(t('pdfDownloaded'));
@@ -92,24 +93,24 @@ export default function EsgPage() {
       <div className='flex items-start justify-between gap-4 flex-wrap'>
         <div>
           <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-2'>
-            Rapport ESG · ISO 14001
+            {t('breadcrumb')}
           </div>
           <h1 className='font-display text-3xl md:text-4xl text-primary-500 leading-[1.05]'>
-            Bilan Carbone
+            {t('title')}
           </h1>
-          <p className='mt-2 text-primary-500/65 text-sm max-w-xl'>
-            Toutes vos données d&apos;impact environnemental et social, calculées selon les
-            coefficients ADEME 2023.
-          </p>
+          <p className='mt-2 text-primary-500/65 text-sm max-w-xl'>{t('subtitle')}</p>
         </div>
-        <button
-          onClick={handleDownload}
-          disabled={downloading}
-          className='inline-flex items-center gap-2 px-5 py-3 rounded-full bg-primary-500 text-white text-sm font-medium hover:opacity-90 transition shadow-soft disabled:opacity-60 shrink-0'
-        >
-          {downloading ? <Loader2 size={16} className='animate-spin' /> : <Download size={16} />}
-          {downloading ? 'Génération…' : 'Télécharger le rapport PDF'}
-        </button>
+        <div className='flex items-center gap-3'>
+          <LocationSwitcher />
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className='inline-flex items-center gap-2 px-5 py-3 rounded-full bg-primary-500 text-white text-sm font-medium hover:opacity-90 transition shadow-soft disabled:opacity-60 shrink-0'
+          >
+            {downloading ? <Loader2 size={16} className='animate-spin' /> : <Download size={16} />}
+            {downloading ? t('downloading') : t('downloadPdf')}
+          </button>
+        </div>
       </div>
 
       {/* ESG Tier progression */}
@@ -125,7 +126,7 @@ export default function EsgPage() {
           </div>
           <div>
             <div className='text-xs uppercase tracking-wider text-primary-500/60'>
-              Progression ESG
+              {t('esgProgression')}
             </div>
             <div className='font-semibold text-primary-500'>
               {tier
@@ -136,7 +137,7 @@ export default function EsgPage() {
             </div>
           </div>
           <div className='ml-auto text-right'>
-            <div className='text-xs text-primary-500/60'>Paniers sauvés (total)</div>
+            <div className='text-xs text-primary-500/60'>{t('bagsSavedTotal')}</div>
             <div className='font-display text-2xl text-primary-500'>
               {fmt(tier?.bagsSaved ?? 0)}
             </div>
@@ -144,24 +145,26 @@ export default function EsgPage() {
         </div>
 
         <div className='space-y-3'>
-          {(tier?.allTiers ?? []).map(t => (
-            <div key={t.name} className='flex items-center gap-3'>
-              {t.reached ? (
+          {(tier?.allTiers ?? []).map(tierItem => (
+            <div key={tierItem.name} className='flex items-center gap-3'>
+              {tierItem.reached ? (
                 <CheckCircle2 size={18} className='text-brand-coral shrink-0' />
               ) : (
                 <Circle size={18} className='text-primary-500/25 shrink-0' />
               )}
               <div className='flex-1 min-w-0'>
                 <div
-                  className={`text-sm font-medium ${t.reached ? 'text-primary-500' : 'text-primary-500/40'}`}
+                  className={`text-sm font-medium ${tierItem.reached ? 'text-primary-500' : 'text-primary-500/40'}`}
                 >
-                  {t.label}
+                  {tierItem.label}
                 </div>
-                <div className='text-xs text-primary-500/50'>{fmt(t.threshold)}+ paniers</div>
+                <div className='text-xs text-primary-500/50'>
+                  {fmt(tierItem.threshold)}+ {t('bags')}
+                </div>
               </div>
-              {t.reached && (
+              {tierItem.reached && (
                 <span className='text-[10px] px-2 py-0.5 rounded-full bg-brand-coral/10 text-brand-coral font-medium'>
-                  Atteint
+                  {t('reached')}
                 </span>
               )}
             </div>
@@ -171,9 +174,10 @@ export default function EsgPage() {
         {tier?.remaining != null && tier.remaining > 0 && (
           <div className='mt-[24px] p-3 rounded-xl bg-primary-500/[0.04]'>
             <p className='text-xs text-primary-500/70'>
-              Il vous reste{' '}
-              <span className='font-semibold text-primary-500'>{fmt(tier.remaining)} paniers</span>{' '}
-              pour atteindre le prochain palier{tier.nextTier ? ` (${tier.nextTier})` : ''}.
+              {t('remaining', {
+                count: fmt(tier.remaining),
+                tier: tier.nextTier ? ` (${tier.nextTier})` : '',
+              })}
             </p>
             <div className='mt-2 h-1.5 w-full rounded-full bg-primary-500/[0.08] overflow-hidden'>
               <motion.div
@@ -197,52 +201,52 @@ export default function EsgPage() {
           className='glass rounded-2xl p-[24px] shadow-soft'
         >
           <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-[16px]'>
-            Impact Carbone · Scope 3 (ADEME 2023)
+            {t('carbonTitle')}
           </div>
           {carbon ? (
             <div>
               <MetricRow
-                label='Paniers sauvés'
-                value={`${fmt(carbon.bagsSaved)} paniers`}
+                label={t('bagsSaved')}
+                value={`${fmt(carbon.bagsSaved)} ${t('bags')}`}
                 icon={Package}
               />
               <MetricRow
-                label='Poids alimentaire rescapé'
+                label={t('foodWeight')}
                 value={`${fmt(carbon.foodWeightKg, 1)} kg`}
                 icon={Package}
               />
               <MetricRow
-                label='CO₂ évité'
+                label={t('co2Avoided')}
                 value={`${fmt(carbon.carbonKgAvoided, 1)} kg CO₂`}
                 icon={Leaf}
               />
               <MetricRow
-                label='Eau économisée'
-                value={`${fmt(carbon.waterLitersAvoided)} litres`}
+                label={t('waterSaved')}
+                value={`${fmt(carbon.waterLitersAvoided)} ${t('liters')}`}
                 icon={Droplets}
               />
               <MetricRow
-                label='Emballages évités'
-                value={`${fmt(carbon.packagingKgSaved, 1)} kg plastique`}
+                label={t('packagingSaved')}
+                value={`${fmt(carbon.packagingKgSaved, 1)} ${t('plastic')}`}
                 icon={Package}
               />
               <MetricRow
-                label='Énergie économisée'
+                label={t('energySaved')}
                 value={`${fmt(carbon.energyKwhSaved, 1)} kWh`}
                 icon={Zap}
               />
               <MetricRow
-                label='Équivalent voiture'
-                value={`${fmt(carbon.carKmEquivalent)} km non parcourus`}
+                label={t('carEquivalent')}
+                value={`${fmt(carbon.carKmEquivalent)} ${t('kmNotDriven')}`}
                 icon={Car}
               />
               <MetricRow
-                label='Équivalent arbres'
-                value={`${fmt(carbon.treesEquivalent)} arbres plantés`}
+                label={t('treesEquivalent')}
+                value={`${fmt(carbon.treesEquivalent)} ${t('treesPlanted')}`}
                 icon={TreePine}
               />
               <div className='mt-4 text-[10px] text-primary-500/45 italic'>
-                Période : {carbon.periodLabel}
+                {t('period')} : {carbon.periodLabel}
               </div>
             </div>
           ) : (
@@ -258,32 +262,32 @@ export default function EsgPage() {
           className='glass rounded-2xl p-[24px] shadow-soft'
         >
           <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-[16px]'>
-            Impact Social
+            {t('socialTitle')}
           </div>
           {social ? (
             <div>
               <MetricRow
-                label='Repas distribués'
-                value={`${fmt(social.mealsDistributed)} repas`}
+                label={t('mealsDistributed')}
+                value={`${fmt(social.mealsDistributed)} ${t('meals')}`}
                 icon={Users}
               />
               <MetricRow
-                label='Personnes servies (estimé)'
-                value={`~${fmt(social.peopleServedEstimate)} bénéficiaires`}
+                label={t('peopleServed')}
+                value={`~${fmt(social.peopleServedEstimate)} ${t('beneficiaries')}`}
                 icon={Users}
               />
               <MetricRow
-                label='Valeur alimentaire sauvée'
+                label={t('foodValueSaved')}
                 value={`~${fmt(social.estimatedValueTnd, 2)} TND`}
                 icon={Leaf}
               />
               <MetricRow
-                label='Poids rescapé'
+                label={t('weightRescued')}
                 value={`${fmt(social.foodWeightKg, 1)} kg`}
                 icon={Package}
               />
               <div className='mt-4 text-[10px] text-primary-500/45 italic'>
-                Période : {social.periodLabel}
+                {t('period')} : {social.periodLabel}
               </div>
             </div>
           ) : (
@@ -302,17 +306,19 @@ export default function EsgPage() {
         >
           <div className='flex items-center justify-between mb-3'>
             <div className='text-xs uppercase tracking-wider text-primary-500/60'>
-              Objectif mensuel · {goal.month}
+              {t('monthlyGoal')} · {goal.month}
             </div>
             <span className='font-semibold text-primary-500'>{goal.progressPercentage}%</span>
           </div>
           <div className='flex items-end justify-between mb-2'>
             <span className='text-sm text-primary-500/70'>
-              <span className='font-semibold text-primary-500'>{fmt(goal.currentMonthBags)}</span> /{' '}
-              {fmt(goal.targetBagsPerMonth)} paniers ce mois
+              {t('bagsThisMonth', {
+                current: fmt(goal.currentMonthBags),
+                target: fmt(goal.targetBagsPerMonth),
+              })}
             </span>
             <span className='text-xs text-primary-500/60'>
-              {fmt(goal.treesEquivalent)} arbres ≡
+              {t('treesEq', { count: fmt(goal.treesEquivalent) })}
             </span>
           </div>
           <div className='h-2 w-full rounded-full bg-primary-500/[0.08] overflow-hidden'>
@@ -328,9 +334,7 @@ export default function EsgPage() {
 
       {/* Methodology note */}
       <div className='text-[11px] text-primary-500/40 italic leading-relaxed'>
-        Calculs basés sur les coefficients ADEME 2023 (Guide BILAN CARBONE®). Facteur moyen : 3.5 kg
-        CO₂/kg aliment rescapé. Ce rapport est formaté pour un audit ISO 14001. Données certifiées
-        par Too Fresh to Waste.
+        {t('methodology')}
       </div>
     </div>
   );

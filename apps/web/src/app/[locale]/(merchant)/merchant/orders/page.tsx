@@ -26,6 +26,7 @@ import {
   useCancelOrder,
   HISTORY_STATUSES,
 } from '@/hooks/use-merchant-dashboard';
+import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
 import type { MerchantOrder, OrderStatus, PopulatedUser } from '@/types/dashboard';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -580,6 +581,7 @@ export default function MerchantOrdersPage() {
           </h1>
           <p className='text-xs text-muted-foreground mt-0.5'>{t('description')}</p>
         </div>
+        <LocationSwitcher />
       </div>
 
       {/* Split panel */}
