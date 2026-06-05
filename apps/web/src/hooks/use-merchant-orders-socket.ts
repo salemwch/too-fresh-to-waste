@@ -56,14 +56,18 @@ const newOrderPayloadSchema = z.object({
 });
 
 /**
- * Socket.IO URL must be the server ORIGIN only — no path, no /api/v1.
- * Socket.IO interprets any path as a namespace, causing "Invalid namespace".
+ * In proxy mode (NEXT_PUBLIC_API_URL = /api/v1), cookies are bound to the
+ * Vercel domain. Socket.IO must connect to the SAME origin so cookies are
+ * sent. Vercel rewrites /socket.io/* to the backend.
  *
- * NEXT_PUBLIC_WS_URL = https://api.toofreshtowaste.com  (always the actual backend)
- * This is separate from NEXT_PUBLIC_API_URL which may be a relative path (/api/v1)
- * when the Vercel rewrite proxy is active.
+ * In direct mode or local dev, connect to the backend directly.
  */
-const BACKEND_WS_URL = process.env['NEXT_PUBLIC_WS_URL'] ?? 'http://localhost:3000';
+const isProxyMode =
+  typeof window !== 'undefined' && (process.env['NEXT_PUBLIC_API_URL'] ?? '').startsWith('/');
+
+const BACKEND_WS_URL = isProxyMode
+  ? undefined // same origin — browser connects to Vercel, which proxies /socket.io/* to backend
+  : (process.env['NEXT_PUBLIC_WS_URL'] ?? 'http://localhost:3000');
 
 /**
  * Connects to the NestJS WebSocket gateway and listens for order events.
@@ -89,15 +93,21 @@ export function useMerchantOrdersSocket() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const socket = io(BACKEND_WS_URL, {
-      // The access_token HttpOnly cookie (path: /) is sent automatically by
-      // the browser on every same-site request. The WebSocketAuthGuard
-      // extracts it from handshake.headers.cookie. No tokens in JS memory.
-      withCredentials: true,
-      transports: ['polling', 'websocket'],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 2000,
-    });
+    // In proxy mode, connect to same origin so cookies flow naturally.
+    // Vercel rewrites handle /socket.io/* → backend for HTTP polling.
+    // Vercel does NOT support WebSocket upgrade, so force polling-only in proxy mode.
+    const socket = BACKEND_WS_URL
+      ? io(BACKEND_WS_URL, {
+          withCredentials: true,
+          transports: ['polling', 'websocket'],
+          reconnectionAttempts: 5,
+          reconnectionDelay: 2000,
+        })
+      : io({
+          transports: ['polling'],
+          reconnectionAttempts: 5,
+          reconnectionDelay: 2000,
+        });
 
     socketRef.current = socket;
 
