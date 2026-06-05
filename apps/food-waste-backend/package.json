@@ -27,6 +27,8 @@
     "seed:admin": "ts-node -r tsconfig-paths/register src/seeds/seed-admin.ts",
     "migration:normalize-phones": "ts-node -r tsconfig-paths/register scripts/migrations/normalize-phone-numbers.ts",
     "migration:normalize-phones:execute": "ts-node -r tsconfig-paths/register scripts/migrations/normalize-phone-numbers.ts --execute",
+    "migration:decode-entities": "ts-node -r tsconfig-paths/register scripts/migrations/decode-html-entities.ts",
+    "migration:decode-entities:execute": "ts-node -r tsconfig-paths/register scripts/migrations/decode-html-entities.ts --execute",
     "diagnose:featured": "node scripts/diagnose-featured-offers.js",
     "test:e2e:watch": "jest --config ./test/jest-e2e.json --watch",
     "test:load": "jest --config ./test/jest-load.json",

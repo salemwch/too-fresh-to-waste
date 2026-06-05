@@ -1,3 +1,4 @@
+import { decodeHtmlEntities } from '../../common/utils/decode-html-entities.util';
 import { CtaState } from '../DTO/offer-list.dto';
 
 import type { OfferCardDto } from '../DTO/offer-list.dto';
@@ -192,7 +193,7 @@ export class OfferPresenter {
     if (isRecord(aggregatedEstablishment)) {
       const establishment = aggregatedEstablishment as PopulatedEstablishment;
       return {
-        name: establishment.name || 'Establishment',
+        name: decodeHtmlEntities(establishment.name || 'Establishment'),
         averageRating: establishment.averageRating,
         totalReviews: establishment.totalReviews,
         profileImage,
@@ -204,7 +205,7 @@ export class OfferPresenter {
     if (isRecord(establishmentId)) {
       const establishment = establishmentId as PopulatedEstablishment;
       return {
-        name: establishment.name || 'Establishment',
+        name: decodeHtmlEntities(establishment.name || 'Establishment'),
         averageRating: establishment.averageRating,
         totalReviews: establishment.totalReviews,
         profileImage,

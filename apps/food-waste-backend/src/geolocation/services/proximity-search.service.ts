@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, PipelineStage, FilterQuery } from 'mongoose';
 
+import { decodeHtmlEntities } from '../../common/utils/decode-html-entities.util';
 import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
 import {
   Establishment,
@@ -286,7 +287,7 @@ export class ProximitySearchService {
 
         const establishmentData: EstablishmentGeoData = {
           _id: est._id.toString(),
-          name: est.name,
+          name: decodeHtmlEntities(est.name),
           type: est.type,
           address: {
             street: est.address.street,
@@ -518,7 +519,7 @@ export class ProximitySearchService {
           _id: offer._id.toString(),
           title: offer.title,
           establishmentId: offer.establishmentId.toString(),
-          establishmentName: offer.establishment.name,
+          establishmentName: decodeHtmlEntities(offer.establishment.name),
           establishmentLogo: offer.establishment.profileImage ?? null,
           coordinates: establishmentGeoData.coordinates,
           address: establishmentGeoData.address,
@@ -872,7 +873,7 @@ export class ProximitySearchService {
 
         const itemData: MapEstablishmentGeoData = {
           _id: est._id.toString(),
-          name: est.name,
+          name: decodeHtmlEntities(est.name),
           type: est.type,
           profileImage: est.profileImage ?? null,
           coordinates,
