@@ -158,14 +158,20 @@ export class OfferPresenter {
     totalReviews?: number | undefined;
     profileImage?: string | undefined;
   } {
-    // buildMerchantLookup sets _merchantProfileImage as a top-level string
-    // for reliable access. Fall back to checking offer.merchantId (populated
-    // object) and offer.merchant (getNearbyOffers custom pipeline).
+    // Prefer the establishment owner's profileImage (the actual merchant who
+    // owns the establishment) over offer.merchantId (which may be a location_manager).
+    // buildEstablishmentLookup sets _ownerProfileImage via ownerId → users lookup.
     let profileImage: string | undefined;
-    const directImage = (offer as unknown as { _merchantProfileImage?: string })
-      ._merchantProfileImage;
-    if (directImage) {
-      profileImage = directImage;
+    const ownerImage = (offer as unknown as { _ownerProfileImage?: string })._ownerProfileImage;
+    if (ownerImage) {
+      profileImage = ownerImage;
+    }
+    if (!profileImage) {
+      const directImage = (offer as unknown as { _merchantProfileImage?: string })
+        ._merchantProfileImage;
+      if (directImage) {
+        profileImage = directImage;
+      }
     }
     if (!profileImage) {
       const merchantId: unknown = offer.merchantId;

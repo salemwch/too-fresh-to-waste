@@ -469,7 +469,7 @@ export class OffersService {
               }),
           },
         },
-        // Lookup merchant data
+        // Lookup merchant data (offer creator — may be location_manager)
         {
           $lookup: {
             from: 'users',
@@ -479,6 +479,16 @@ export class OffersService {
           },
         },
         { $unwind: { path: '$merchantData', preserveNullAndEmptyArrays: true } },
+        // Lookup establishment owner (the actual merchant)
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'establishment.ownerId',
+            foreignField: '_id',
+            pipeline: [{ $project: { profileImage: 1 } }],
+            as: '_ownerData',
+          },
+        },
         // Project required fields
         {
           $project: {
@@ -499,6 +509,7 @@ export class OffersService {
               lastName: '$merchantData.lastName',
               profileImage: '$merchantData.profileImage',
             },
+            _ownerProfileImage: { $arrayElemAt: ['$_ownerData.profileImage', 0] },
             pickupTimeSlots: 1,
             status: 1,
             createdAt: 1,
@@ -619,7 +630,7 @@ export class OffersService {
           },
         },
         { $unwind: '$offers' },
-        // ✅ Lookup merchant data for profileImage
+        // ✅ Lookup merchant data (offer creator — may be location_manager)
         {
           $lookup: {
             from: 'users',
@@ -629,6 +640,16 @@ export class OffersService {
           },
         },
         { $unwind: { path: '$merchantData', preserveNullAndEmptyArrays: true } },
+        // ✅ Lookup establishment owner (the actual merchant)
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'ownerId',
+            foreignField: '_id',
+            pipeline: [{ $project: { profileImage: 1 } }],
+            as: '_ownerData',
+          },
+        },
         // ✅ Restructure to have offer as root document
         {
           $replaceRoot: {
@@ -650,6 +671,7 @@ export class OffersService {
                     profileImage: '$merchantData.profileImage',
                   },
                   distance: '$distance',
+                  _ownerProfileImage: { $arrayElemAt: ['$_ownerData.profileImage', 0] },
                 },
               ],
             },
@@ -668,17 +690,18 @@ export class OffersService {
             availableFrom: 1,
             availableUntil: 1,
             establishmentId: 1,
-            merchantId: 1, // ✅ Required for merchant profileImage
-            pickupTimeSlots: 1, // ✅ Required for time range display
+            merchantId: 1,
+            pickupTimeSlots: 1,
             status: 1,
             createdAt: 1,
             distance: 1,
             establishment: 1,
-            isFeaturedManual: 1, // ✅ Required for featuring logic
-            isFeaturedAuto: 1, // ✅ Required for featuring logic
-            featuredAt: 1, // ✅ Required for featuring logic
-            isPickupToday: 1, // ✅ Pickup categorization
-            isPickupTomorrow: 1, // ✅ Pickup categorization
+            _ownerProfileImage: 1,
+            isFeaturedManual: 1,
+            isFeaturedAuto: 1,
+            featuredAt: 1,
+            isPickupToday: 1,
+            isPickupTomorrow: 1,
           },
         },
         { $sort: { distance: 1 } }, // Sort by distance (nearest first)
@@ -1461,13 +1484,23 @@ export class OffersService {
       },
       // ✅ Unwind offers array (one document per offer)
       { $unwind: '$offers' },
-      // ✅ Lookup merchant details
+      // ✅ Lookup merchant details (offer creator — may be location_manager)
       {
         $lookup: {
           from: 'users',
           localField: 'offers.merchantId',
           foreignField: '_id',
           as: 'merchant',
+        },
+      },
+      // ✅ Lookup establishment owner (the actual merchant)
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'ownerId',
+          foreignField: '_id',
+          pipeline: [{ $project: { profileImage: 1 } }],
+          as: '_ownerData',
         },
       },
       // ✅ Restructure to have offer as root document (with establishment and distance)
@@ -1487,6 +1520,7 @@ export class OffersService {
                 },
                 distance: '$distance',
                 merchant: { $arrayElemAt: ['$merchant', 0] },
+                _ownerProfileImage: { $arrayElemAt: ['$_ownerData.profileImage', 0] },
               },
             ],
           },
@@ -1513,7 +1547,8 @@ export class OffersService {
           'establishment.averageRating': 1,
           'merchant.firstName': 1,
           'merchant.lastName': 1,
-          'merchant.profileImage': 1, // ✅ Merchant profile image for OfferCard logo
+          'merchant.profileImage': 1,
+          _ownerProfileImage: 1,
           createdAt: 1,
         },
       },
@@ -1770,7 +1805,7 @@ export class OffersService {
         },
       },
       { $unwind: { path: '$establishment', preserveNullAndEmptyArrays: true } },
-      // ✅ Populate merchant details
+      // ✅ Populate merchant details (offer creator — may be location_manager)
       {
         $lookup: {
           from: 'users',
@@ -1780,6 +1815,16 @@ export class OffersService {
         },
       },
       { $unwind: { path: '$merchant', preserveNullAndEmptyArrays: true } },
+      // ✅ Lookup establishment owner (the actual merchant)
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'establishment.ownerId',
+          foreignField: '_id',
+          pipeline: [{ $project: { profileImage: 1 } }],
+          as: '_ownerData',
+        },
+      },
       // ✅ ENTERPRISE: Project only required fields for performance
       {
         $project: {
@@ -1811,7 +1856,9 @@ export class OffersService {
           'establishment.type': 1,
           'establishment.averageRating': 1,
           'establishment.profileImage': { $arrayElemAt: ['$establishment.images', 0] },
-          // Merchant details
+          // Owner (actual merchant) profile image
+          _ownerProfileImage: { $arrayElemAt: ['$_ownerData.profileImage', 0] },
+          // Merchant details (offer creator)
           'merchant.profileImage': 1,
           // Internal fields for debugging (optional)
           priority: 1,
@@ -1866,14 +1913,33 @@ export class OffersService {
           let: { refId: '$establishmentId' },
           pipeline: [
             { $match: { $expr: { $eq: ['$_id', '$$refId'] } } },
-            { $addFields: { profileImage: { $arrayElemAt: ['$images', 0] } } },
-            { $project: fields },
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'ownerId',
+                foreignField: '_id',
+                pipeline: [{ $project: { profileImage: 1 } }],
+                as: '_ownerData',
+              },
+            },
+            {
+              $addFields: {
+                profileImage: { $arrayElemAt: ['$images', 0] },
+                _ownerProfileImage: { $arrayElemAt: ['$_ownerData.profileImage', 0] },
+              },
+            },
+            { $project: { ...fields, _ownerProfileImage: 1 } },
           ],
           as: '_establishmentDoc',
         },
       },
       { $unwind: { path: '$_establishmentDoc', preserveNullAndEmptyArrays: true } },
-      { $addFields: { establishmentId: '$_establishmentDoc' } },
+      {
+        $addFields: {
+          establishmentId: '$_establishmentDoc',
+          _ownerProfileImage: '$_establishmentDoc._ownerProfileImage',
+        },
+      },
       { $project: { _establishmentDoc: 0 } },
     ];
   }
