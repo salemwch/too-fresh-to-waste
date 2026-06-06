@@ -403,6 +403,10 @@ export const logoutAsync = createAsyncThunk(
         const { cancelInflightRequests } = await import('@/services/requestCancellation');
         cancelInflightRequests();
 
+        // ✅ CRITICAL: Clear TanStack Query cache to prevent stale data on account switch
+        const { queryClient } = await import('@/lib/react-query/queryClient');
+        queryClient.clear();
+
         // ✅ BEST PRACTICE: Only call logout API for explicit user action with valid token
         // Don't call API if:
         // - Session expired (token already invalid → would get 401)
@@ -484,6 +488,10 @@ export const deleteAccountAsync = createAsyncThunk(
       // Cancel all inflight requests before deletion
       const { cancelInflightRequests } = await import('@/services/requestCancellation');
       cancelInflightRequests();
+
+      // Clear TanStack Query cache
+      const { queryClient } = await import('@/lib/react-query/queryClient');
+      queryClient.clear();
 
       // Call backend DELETE /auth/me
       await authService.deleteAccount(accessToken);

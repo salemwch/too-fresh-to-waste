@@ -366,6 +366,8 @@ const createApiClient = (): AxiosInstance => {
         );
 
         const { forceLocalLogout } = await import('@/features/auth/store/authSlice');
+        const { queryClient } = await import('@/lib/react-query/queryClient');
+        queryClient.clear();
         dispatch(forceLocalLogout());
 
         void import('@/services/SecureStorage').then(({ SecureStorage }) => {

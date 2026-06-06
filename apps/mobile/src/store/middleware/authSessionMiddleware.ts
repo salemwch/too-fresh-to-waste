@@ -510,6 +510,10 @@ const performLocalLogout = async (
       const { SecureStorage } = await import('@/services/SecureStorage');
       await SecureStorage.clearAll();
 
+      // Clear TanStack Query cache to prevent stale data on account switch
+      const { queryClient } = await import('@/lib/react-query/queryClient');
+      queryClient.clear();
+
       // Dispatch force local logout (clears Redux state, triggers navigation)
       dispatch(forceLocalLogout());
 

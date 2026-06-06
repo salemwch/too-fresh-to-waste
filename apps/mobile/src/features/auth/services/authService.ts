@@ -372,6 +372,7 @@ class AuthService {
       lastName: request.lastName,
       phoneNumber: request.phoneNumber,
       role: 'consumer',
+      ...(request.referralCode ? { referralCode: request.referralCode } : {}),
     });
 
     Logger.info('Registration successful', { userId: response.user.userId });

@@ -62,26 +62,34 @@ export class UserEventsListener {
   }
 
   private async processUserRegistration(event: UserRegisteredEvent): Promise<void> {
-    try {
-      this.logger.log(
-        `Processing user.registered event for user: ${event.userId} (role: ${event.role})`,
-      );
+    this.logger.log(
+      `Processing user.registered event for user: ${event.userId} (role: ${event.role})`,
+    );
 
-      // Create loyalty account for consumers only
-      if (event.role !== 'merchant' && event.role !== 'admin') {
+    // Create loyalty account for consumers only
+    if (event.role !== 'merchant' && event.role !== 'admin') {
+      try {
         await this.gamificationService.createLoyaltyAccountForNewUser(event.userId);
         this.logger.log(`Successfully created loyalty account for user: ${event.userId}`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to create loyalty account for ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          error instanceof Error ? error.stack : undefined,
+        );
       }
+    }
 
-      // Process referral code (applies to BOTH consumers and merchants)
-      if (event.referralCode) {
+    // Process referral code (applies to BOTH consumers and merchants)
+    // Separate try/catch so referral processing is not skipped if loyalty creation fails
+    if (event.referralCode) {
+      try {
         await this.processReferralCode(event);
+      } catch (error) {
+        this.logger.error(
+          `Failed to process referral for ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          error instanceof Error ? error.stack : undefined,
+        );
       }
-    } catch (error) {
-      this.logger.error(
-        `Failed to process user registration for ${event.userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error instanceof Error ? error.stack : undefined,
-      );
     }
   }
 
