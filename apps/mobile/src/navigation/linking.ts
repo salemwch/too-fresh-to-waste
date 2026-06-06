@@ -21,12 +21,16 @@
  *   /app               → MainStack
  */
 
-import { Linking } from 'react-native';
+import { AppState, Linking } from 'react-native';
 
 import { Logger } from '@/utils/logger';
 
 import type { RootNavigatorParamList } from './types';
 import type { LinkingOptions } from '@react-navigation/native';
+
+// Tracks the last deep link URL we processed, so the AppState recovery
+// mechanism doesn't re-dispatch a URL that was already handled normally.
+let lastProcessedDeepLink: string | null = null;
 
 export const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
   prefixes: ['foodwaste://', 'https://toofreshtowaste.com', 'https://www.toofreshtowaste.com'],
@@ -84,6 +88,7 @@ export const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
     const url = await Linking.getInitialURL();
     if (typeof url === 'string' && url !== '') {
       Logger.debug('[DeepLink] Cold-start URL', { url });
+      lastProcessedDeepLink = url;
     }
     return url;
   },
@@ -91,13 +96,35 @@ export const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
   /**
    * Warm-start: incoming link while the app is already running.
    * Returns the unsubscribe function — React Navigation calls it on cleanup.
+   *
+   * Also recovers deep links that were dropped by RN 0.81 Bridgeless mode:
+   * when onNewIntent fires before the React context is ready, the URL event
+   * is silently lost. MainActivity.setIntent() caches the intent, and the
+   * AppState listener picks it up when the app returns to foreground.
    */
   subscribe(listener) {
-    const subscription = Linking.addEventListener('url', ({ url }) => {
+    const linkSubscription = Linking.addEventListener('url', ({ url }) => {
       Logger.debug('[DeepLink] Incoming URL', { url });
+      lastProcessedDeepLink = url;
       listener(url);
     });
-    return () => subscription.remove();
+
+    const appStateSubscription = AppState.addEventListener('change', nextState => {
+      if (nextState === 'active') {
+        void Linking.getInitialURL().then(url => {
+          if (typeof url === 'string' && url !== '' && url !== lastProcessedDeepLink) {
+            Logger.info('[DeepLink] Recovered dropped URL on app resume', { url });
+            lastProcessedDeepLink = url;
+            listener(url);
+          }
+        });
+      }
+    });
+
+    return () => {
+      linkSubscription.remove();
+      appStateSubscription.remove();
+    };
   },
 };
 

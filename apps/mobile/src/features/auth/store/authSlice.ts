@@ -121,9 +121,12 @@ export const loginAsync = createAsyncThunk(
 
 export const googleSignInAsync = createAsyncThunk(
   'auth/googleSignIn',
-  async (idToken: string, { rejectWithValue }) => {
+  async (
+    { idToken, referralCode }: { idToken: string; referralCode?: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const response = await authService.googleSignIn(idToken);
+      const response = await authService.googleSignIn(idToken, referralCode);
 
       // CRITICAL: await token write before returning.
       // The session middleware starts immediately when AUTHENTICATED fires and

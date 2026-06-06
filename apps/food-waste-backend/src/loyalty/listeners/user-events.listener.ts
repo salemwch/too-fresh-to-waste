@@ -63,7 +63,7 @@ export class UserEventsListener {
 
   private async processUserRegistration(event: UserRegisteredEvent): Promise<void> {
     this.logger.log(
-      `Processing user.registered event for user: ${event.userId} (role: ${event.role})`,
+      `Processing user.registered event for user: ${event.userId} (role: ${event.role}, referralCode: ${event.referralCode ?? 'NONE'})`,
     );
 
     // Create loyalty account for consumers only

@@ -100,6 +100,9 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto): Promise<RegisterResponse> {
+    this.logger.log(
+      `[REGISTER DEBUG] referralCode=${registerDto.referralCode ?? 'UNDEFINED'}, email=${registerDto.email}`,
+    );
     // Check if email already exists
     const existingUser = await this.usersService.findByEmail(registerDto.email);
     if (existingUser) {

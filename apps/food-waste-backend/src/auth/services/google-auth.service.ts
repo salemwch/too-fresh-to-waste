@@ -40,6 +40,7 @@ export class GoogleAuthService {
   async signIn(
     idToken: string,
     requestInfo: { ipAddress: string; userAgent: string },
+    referralCode?: string,
   ): Promise<GoogleSignInResult> {
     // 1. Verify token with Google
     let googlePayload: TokenPayload | undefined;
@@ -110,9 +111,14 @@ export class GoogleAuthService {
               user.email,
               user.role as string,
               new Date(),
+              undefined,
+              undefined,
+              referralCode,
             ),
           );
-          this.logger.log(`User registered event emitted for Google user: ${user._id}`);
+          this.logger.log(
+            `User registered event emitted for Google user: ${user._id} (referralCode: ${referralCode ?? 'NONE'})`,
+          );
         } catch (eventError) {
           this.logger.error(
             `Failed to emit user registered event for Google user: ${(eventError as Error).message}`,

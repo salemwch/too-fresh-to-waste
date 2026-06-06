@@ -10,7 +10,11 @@ import { Logger } from '@/utils/logger';
 
 import { googleSignInAsync } from '../store/authSlice';
 
-export function GoogleSignInButton() {
+interface GoogleSignInButtonProps {
+  referralCode?: string | undefined;
+}
+
+export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -32,7 +36,9 @@ export function GoogleSignInButton() {
         return;
       }
 
-      await dispatch(googleSignInAsync(idToken)).unwrap();
+      await dispatch(
+        googleSignInAsync({ idToken, ...(referralCode ? { referralCode } : {}) }),
+      ).unwrap();
 
       Toast.show({
         type: 'success',

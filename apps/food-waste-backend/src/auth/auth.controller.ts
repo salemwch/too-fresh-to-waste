@@ -358,7 +358,7 @@ export class AuthController {
       userAgent: req.get('User-Agent') ?? 'unknown',
     };
 
-    const result = await this.googleAuthService.signIn(dto.idToken, requestInfo);
+    const result = await this.googleAuthService.signIn(dto.idToken, requestInfo, dto.referralCode);
 
     const sessionInfo = await this.sessionManagementService.createSession({
       userId: result.user.userId,

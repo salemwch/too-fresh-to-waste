@@ -2,6 +2,7 @@ package com.toofreshtowaste.app
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -17,6 +18,15 @@ class MainActivity : ReactActivity() {
 
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    // Cache the intent so Linking.getInitialURL() can retrieve it later.
+    // In RN 0.81 Bridgeless mode, onNewIntent may fire before the React
+    // context is ready — the URL event is dropped. setIntent() preserves
+    // the deep link data so the JS-side recovery mechanism can pick it up.
+    setIntent(intent)
+  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge()

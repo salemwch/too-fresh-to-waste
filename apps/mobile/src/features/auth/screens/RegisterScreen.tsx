@@ -23,6 +23,7 @@ import { Button, Input, Text, Card } from '@/design-system/components/atoms';
 import { PasswordStrengthIndicator } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { Logger } from '@/utils/logger';
 import { registerMobileSchema, type RegisterMobileFormData } from '@/utils/validation/schemas';
 
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
@@ -43,6 +44,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
   const referralCode = route.params?.referralCode;
   const theme = useTheme();
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    Logger.info('[RegisterScreen] Mounted', {
+      referralCode: referralCode ?? 'NONE',
+      allParams: JSON.stringify(route.params ?? {}),
+    });
+  }, []);
 
   // Memoized selector to prevent unnecessary re-renders
   // Only re-render when isLoading or error actually changes
@@ -140,6 +148,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
           role: UserRole.CONSUMER,
           ...(referralCode ? { referralCode } : {}),
         };
+
+        Logger.info('[RegisterScreen] Submitting registration', {
+          referralCode: registerData.referralCode ?? 'NOT_INCLUDED',
+          email: registerData.email,
+        });
 
         const dispatchResult = await dispatch(registerAsync(registerData));
 
@@ -495,7 +508,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
           </View>
 
           {/* Google Sign-In */}
-          <GoogleSignInButton />
+          <GoogleSignInButton referralCode={referralCode} />
 
           {/* Login Link */}
           <View style={[styles.loginContainer, { marginTop: 16 }]}>

@@ -348,11 +348,16 @@ class AuthService {
     }
   }
 
-  public async googleSignIn(idToken: string): Promise<LoginResponse> {
-    Logger.info('Attempting Google Sign-In');
+  public async googleSignIn(idToken: string, referralCode?: string): Promise<LoginResponse> {
+    Logger.info('Attempting Google Sign-In', {
+      ...(referralCode ? { referralCode } : {}),
+    });
 
     try {
-      const response = await this.makeRequest<LoginResponse>('POST', '/google', { idToken });
+      const response = await this.makeRequest<LoginResponse>('POST', '/google', {
+        idToken,
+        ...(referralCode ? { referralCode } : {}),
+      });
       Logger.info('Google Sign-In successful', { userId: response.user.userId });
       return response;
     } catch (error) {
