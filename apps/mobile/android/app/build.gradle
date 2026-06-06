@@ -227,6 +227,12 @@ dependencies {
     // Source: https://developer.android.com/jetpack/androidx/releases/core
     implementation 'androidx.core:core-ktx:1.13.1'
 
+    // AndroidX Activity 1.10.1 — fixes deprecated edge-to-edge APIs on Android 15 (API 35)
+    // Older versions (1.8.x) call setStatusBarColor/setNavigationBarColor which are deprecated.
+    // 1.10.0+ uses the non-deprecated WindowInsetsController path.
+    // Source: https://developer.android.com/jetpack/androidx/releases/activity
+    implementation 'androidx.activity:activity-ktx:1.10.1'
+
     // Google Play Services Location - Required by react-native-geolocation-service
     // Version forced in root build.gradle to 21.3.0 for Firebase BOM 33.7.0 compatibility
     // Source: https://developers.google.com/android/guides/setup

@@ -4,11 +4,13 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
-        <!-- Edge-to-edge is handled by WindowCompat in MainActivity.
+        <!-- Edge-to-edge is handled by enableEdgeToEdge() in MainActivity.
              Do NOT set navigationBarColor here — it creates a color mismatch
              against screens with different backgrounds (e.g. white login screen). -->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:navigationBarDividerColor">@android:color/transparent</item>
+        <!-- Android 15 (API 35): use ALWAYS to avoid deprecated SHORT_EDGES/DEFAULT -->
+        <item name="android:windowLayoutInDisplayCutoutMode">3</item>
     </style>
 
 </resources>

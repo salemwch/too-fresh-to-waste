@@ -53,7 +53,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.primary }]}>
-      <StatusBar barStyle='light-content' backgroundColor={theme.colors.primary} />
+      <StatusBar barStyle='light-content' translucent />
 
       {/* Title Text - at the top */}
       <View style={styles.titleContainer}>

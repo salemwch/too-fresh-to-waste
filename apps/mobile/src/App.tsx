@@ -252,7 +252,7 @@ function AppContent(): React.JSX.Element {
   return (
     <>
       <OfflineBanner />
-      <StatusBar barStyle='dark-content' backgroundColor='transparent' translucent />
+      <StatusBar barStyle='dark-content' translucent />
       <RootNavigator />
       {/* Toast must be last in the component tree to render on top */}
       <Toast config={toastConfig} />
