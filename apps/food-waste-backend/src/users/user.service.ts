@@ -1894,6 +1894,7 @@ export class UsersService implements IUsersService {
     firstName: string;
     lastName: string;
     picture?: string;
+    referredByCode?: string;
   }): Promise<UserDocument> {
     const doc = new this.userModel({
       googleId: data.googleId,
@@ -1901,6 +1902,7 @@ export class UsersService implements IUsersService {
       firstName: data.firstName,
       lastName: data.lastName,
       ...(data.picture ? { profileImage: data.picture } : {}),
+      ...(data.referredByCode ? { referredByCode: data.referredByCode } : {}),
       authProvider: 'google',
       role: UserRole.CONSUMER,
       status: UserStatus.ACTIVE,

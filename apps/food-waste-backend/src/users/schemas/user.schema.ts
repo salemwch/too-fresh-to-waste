@@ -402,6 +402,9 @@ export class User {
     privacyOfficerNotified: boolean;
   };
 
+  @Prop({ type: String, default: null })
+  referredByCode?: string | null;
+
   // Soft Delete Fields
   @Prop({ default: null })
   deletedAt?: Date;

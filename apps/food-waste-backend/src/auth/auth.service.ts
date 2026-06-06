@@ -20,6 +20,8 @@ import { EventBusService } from 'src/common/services/event-bus/event-bus.service
 import { PhoneNumberService } from 'src/common/services/phone-number.service';
 import { CryptoUtil } from 'src/common/utils/crypto.util';
 import { EmailService } from 'src/email/email.service';
+// eslint-disable-next-line import/no-restricted-paths -- intentional: referral processing moved inline for reliability
+import { GamificationService } from 'src/loyalty/services/gamification.service';
 import { UsersService } from 'src/users/user.service';
 
 import { UserRegisteredEvent } from '../common/events';
@@ -94,15 +96,13 @@ export class AuthService {
     private readonly authSecurityService: AuthSecurityService,
     private readonly captchaService: CaptchaService,
     private readonly eventBus: EventBusService,
+    private readonly gamificationService: GamificationService,
   ) {
     void this.captchaService;
     void this._generateTokens;
   }
 
   async register(registerDto: RegisterDto): Promise<RegisterResponse> {
-    this.logger.log(
-      `[REGISTER DEBUG] referralCode=${registerDto.referralCode ?? 'UNDEFINED'}, email=${registerDto.email}`,
-    );
     // Check if email already exists
     const existingUser = await this.usersService.findByEmail(registerDto.email);
     if (existingUser) {
@@ -149,10 +149,11 @@ export class AuthService {
       role = registerDto.role;
     }
 
-    // Create user with normalized phone number
+    // Create user with normalized phone number + persist referral code on the document
     const user = await this.usersService.create({
       ...registerDto,
-      ...(normalizedPhone !== undefined ? { phoneNumber: normalizedPhone } : {}), // Use normalized E.164 format
+      ...(normalizedPhone !== undefined ? { phoneNumber: normalizedPhone } : {}),
+      ...(registerDto.referralCode ? { referredByCode: registerDto.referralCode } : {}),
       role,
       emailVerificationToken,
       emailVerificationExpires,
@@ -167,23 +168,37 @@ export class AuthService {
       });
     }
 
-    // Emit user registered event for cross-module reactions (loyalty, notifications, analytics)
+    // Synchronous referral + loyalty processing (no async events for critical path)
+    const userId = user._id.toString();
+
+    if (role !== UserRole.MERCHANT) {
+      try {
+        await this.gamificationService.createLoyaltyAccountForNewUser(userId);
+        this.logger.log(`Loyalty account created for user: ${userId}`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to create loyalty account for ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
+      }
+    }
+
+    if (registerDto.referralCode) {
+      await this.processReferralInline(
+        registerDto.referralCode,
+        userId,
+        user.email,
+        normalizedPhone,
+        role,
+      );
+    }
+
+    // Emit event for non-critical listeners (notifications, analytics) — referral already handled
     try {
       await this.eventBus.emit(
         'user.registered',
-        new UserRegisteredEvent(
-          user._id.toString(),
-          user.email,
-          role,
-          new Date(),
-          registerDto.businessInfo,
-          normalizedPhone,
-          registerDto.referralCode,
-        ),
+        new UserRegisteredEvent(user._id.toString(), user.email, role, new Date()),
       );
-      this.logger.log(`User registered event emitted for user: ${user._id}`);
     } catch (eventError) {
-      // Log error but don't fail registration
       this.logger.error(
         `Failed to emit user registered event: ${(eventError as Error).message}`,
         (eventError as Error).stack,
@@ -199,6 +214,62 @@ export class AuthService {
         'Registration successful. Please check your email to verify your account before logging in.',
       user: safeUser,
     };
+  }
+
+  private async processReferralInline(
+    referralCode: string,
+    userId: string,
+    email: string,
+    phone: string | undefined,
+    role: string,
+  ): Promise<void> {
+    try {
+      const referrerAccount = await this.gamificationService.findReferrerByCode(referralCode);
+      if (!referrerAccount) {
+        this.logger.warn(`Referral code "${referralCode}" not found — ignoring`);
+        return;
+      }
+
+      if (referrerAccount.userId.toString() === userId) {
+        this.logger.warn(`Self-referral blocked for user ${userId}`);
+        return;
+      }
+
+      const referredAs = role === 'merchant' ? 'merchant' : 'consumer';
+      const isNewIdentity = await this.gamificationService.checkAndRecordReferredIdentity(
+        email,
+        phone,
+        userId,
+        referrerAccount.userId.toString(),
+        referredAs,
+      );
+
+      if (!isNewIdentity) {
+        this.logger.warn(`Anti-fraud blocked referral: email=${email} already referred`);
+        return;
+      }
+
+      if (role === 'merchant') {
+        await this.gamificationService.registerBusinessReferral(
+          referrerAccount.userId.toString(),
+          userId,
+        );
+      } else {
+        await this.gamificationService.registerFriendReferral(
+          referrerAccount.userId.toString(),
+          userId,
+        );
+      }
+
+      this.logger.log(
+        `Referral processed: ${userId} referred by ${referrerAccount.userId} (code: ${referralCode})`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to process referral "${referralCode}" for ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+    }
   }
 
   async verifyEmail(
