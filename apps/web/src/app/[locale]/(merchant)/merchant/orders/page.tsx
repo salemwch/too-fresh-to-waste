@@ -27,6 +27,7 @@ import {
   HISTORY_STATUSES,
 } from '@/hooks/use-merchant-dashboard';
 import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
+import { useNotificationStore } from '@/lib/notification-store';
 import type { MerchantOrder, OrderStatus, PopulatedUser } from '@/types/dashboard';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -508,6 +509,13 @@ export default function MerchantOrdersPage() {
 
   const { data, isLoading } = useMerchantOrders();
   const allOrders = useMemo(() => data?.orders ?? [], [data]);
+  const markRead = useNotificationStore(s => s.markRead);
+  const markAllRead = useNotificationStore(s => s.markAllRead);
+
+  // Clear badge when the merchant opens the orders page
+  useEffect(() => {
+    markAllRead();
+  }, [markAllRead]);
 
   const { activeOrders, historyOrders } = useMemo(() => {
     const active: MerchantOrder[] = [];
@@ -652,7 +660,10 @@ export default function MerchantOrdersPage() {
                   key={order._id}
                   order={order}
                   isSelected={selectedOrderId === order._id}
-                  onClick={() => setSelectedOrderId(order._id)}
+                  onClick={() => {
+                    setSelectedOrderId(order._id);
+                    markRead(order._id);
+                  }}
                 />
               ))
             )}
