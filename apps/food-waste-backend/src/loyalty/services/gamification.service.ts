@@ -303,6 +303,7 @@ export class GamificationService {
           pointsAwarded: 0,
         },
       },
+      $inc: { referralCount: 1 },
     });
 
     this.logger.log(`Registered friend referral: ${friendUserId} referred by ${referrerUserId}`);
@@ -413,6 +414,7 @@ export class GamificationService {
           pointsAwarded: 0,
         },
       },
+      $inc: { referralCount: 1 },
     });
 
     this.logger.log(
