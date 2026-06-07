@@ -242,8 +242,9 @@ export class ErrorHandler {
   }
 
   private static showErrorToUser(error: AppError): void {
-    const message = error.userMessage ?? error.message;
     const title = this.getErrorTitle(error.type);
+    // Always prefer the user-friendly message; never expose raw backend messages
+    const message = error.userMessage ?? this.getUserFriendlyMessage(error.type);
 
     // NETWORK errors → non-intrusive top banner (not Alert or Toast)
     if (error.type === ErrorType.NETWORK) {
@@ -254,6 +255,12 @@ export class ErrorHandler {
     // AUTH errors are handled by the auth flow (redirect to login).
     // Showing an alert/toast is redundant and bad UX.
     if (error.type === ErrorType.AUTHENTICATION) {
+      return;
+    }
+
+    // NOT_FOUND on background queries (profile, etc.) — suppress toast,
+    // the auth flow handles logout/redirect.
+    if (error.type === ErrorType.NOT_FOUND) {
       return;
     }
 

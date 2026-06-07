@@ -17,6 +17,31 @@ import { isPhoneVerificationRequired } from '../types/order.types';
 
 import type { CreateOrderDto, Order } from '../types/order.types';
 
+const FRIENDLY_ORDER_ERRORS: Record<string, string> = {
+  'user not found': 'Unable to process your order. Please log in again.',
+  'offer not found': 'This offer is no longer available.',
+  'establishment not found': 'This store is temporarily unavailable.',
+  'insufficient stock': 'Sorry, this item is no longer available in the requested quantity.',
+};
+
+function sanitizeOrderError(raw: string): string {
+  const lower = raw.toLowerCase().trim();
+  for (const [pattern, friendly] of Object.entries(FRIENDLY_ORDER_ERRORS)) {
+    if (lower.includes(pattern)) return friendly;
+  }
+  if (
+    lower.includes('not found') ||
+    lower.includes('internal') ||
+    lower.includes('exception') ||
+    lower.includes('cannot') ||
+    lower.includes('null') ||
+    lower.includes('undefined')
+  ) {
+    return 'Something went wrong. Please try again.';
+  }
+  return raw;
+}
+
 /**
  * Hook state
  */
@@ -188,8 +213,10 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
           return null; // Return null to indicate verification needed
         }
 
-        // ✅ Handle other errors normally
-        const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
+        // ✅ Handle other errors — show user-friendly message, not raw backend text
+        const errorMessage = sanitizeOrderError(
+          error instanceof Error ? error.message : 'Failed to create order',
+        );
 
         setState({
           isLoading: false,

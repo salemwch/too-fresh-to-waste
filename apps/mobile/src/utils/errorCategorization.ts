@@ -224,19 +224,56 @@ function isAuthEndpoint(url?: string): boolean {
 }
 
 /**
- * Extract user-friendly error message from axios error
+ * Extract user-friendly error message from axios error.
+ * Maps technical backend messages to safe, user-facing copy.
  */
 function extractErrorMessage(error: AxiosError): string {
   const data = error.response?.data;
 
-  // Try different message formats
-  if (typeof data === 'string') return data;
-  if (data !== null && typeof data === 'object') {
-    if ('message' in data && typeof data.message === 'string') return data.message;
-    if ('error' in data && typeof data.error === 'string') return data.error;
+  let raw: string | undefined;
+  if (typeof data === 'string') {
+    raw = data;
+  } else if (data !== null && typeof data === 'object') {
+    if ('message' in data && typeof data.message === 'string') raw = data.message;
+    else if ('error' in data && typeof data.error === 'string') raw = data.error;
   }
 
-  return 'Request failed. Please try again.';
+  if (!raw) return 'Something went wrong. Please try again.';
+
+  return sanitizeErrorMessage(raw);
+}
+
+const ERROR_MESSAGE_MAP: Record<string, string> = {
+  'user not found': 'Your session has expired. Please log in again.',
+  'user not found or inactive': 'Your session has expired. Please log in again.',
+  unauthorized: 'Please log in to continue.',
+  forbidden: "You don't have permission for this action.",
+  'internal server error': 'Something went wrong on our end. Please try again later.',
+  'too many requests': 'Too many attempts. Please wait a moment and try again.',
+};
+
+function sanitizeErrorMessage(raw: string): string {
+  const lower = raw.toLowerCase().trim();
+  const mapped = ERROR_MESSAGE_MAP[lower];
+  if (mapped) return mapped;
+
+  // Block any message that looks like an internal/technical error
+  if (
+    lower.includes('not found') ||
+    lower.includes('cannot') ||
+    lower.includes('failed to') ||
+    lower.includes('internal') ||
+    lower.includes('exception') ||
+    lower.includes('error:') ||
+    lower.includes('null') ||
+    lower.includes('undefined') ||
+    lower.includes('econnrefused') ||
+    lower.includes('timeout')
+  ) {
+    return 'Something went wrong. Please try again.';
+  }
+
+  return raw;
 }
 
 /**
