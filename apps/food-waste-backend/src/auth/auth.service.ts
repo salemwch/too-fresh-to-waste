@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import { UserRole, UserStatus } from '@foodwaste/shared';
 import {
   Injectable,
@@ -183,6 +184,10 @@ export class AuthService {
     }
 
     if (registerDto.referralCode) {
+      Sentry.captureMessage(
+        `[REFERRAL] Entry: code="${registerDto.referralCode}" userId=${userId} email=${user.email} role=${role}`,
+        'info',
+      );
       await this.processReferralInline(
         registerDto.referralCode,
         userId,
@@ -224,16 +229,31 @@ export class AuthService {
     role: string,
   ): Promise<void> {
     try {
+      Sentry.captureMessage(
+        `[REFERRAL] Step 1: Looking up code="${referralCode}" for user=${userId}`,
+        'info',
+      );
+
       const referrerAccount = await this.gamificationService.findReferrerByCode(referralCode);
       if (!referrerAccount) {
-        this.logger.warn(`Referral code "${referralCode}" not found — ignoring`);
+        Sentry.captureMessage(
+          `[REFERRAL] FAILED Step 1: code="${referralCode}" NOT FOUND`,
+          'error',
+        );
         return;
       }
 
+      Sentry.captureMessage(
+        `[REFERRAL] Step 2: Found referrer=${referrerAccount.userId}, self-referral check`,
+        'info',
+      );
+
       if (referrerAccount.userId.toString() === userId) {
-        this.logger.warn(`Self-referral blocked for user ${userId}`);
+        Sentry.captureMessage(`[REFERRAL] FAILED Step 2: self-referral blocked`, 'error');
         return;
       }
+
+      Sentry.captureMessage(`[REFERRAL] Step 3: Anti-fraud check email=${email}`, 'info');
 
       const referredAs = role === 'merchant' ? 'merchant' : 'consumer';
       const isNewIdentity = await this.gamificationService.checkAndRecordReferredIdentity(
@@ -245,9 +265,17 @@ export class AuthService {
       );
 
       if (!isNewIdentity) {
-        this.logger.warn(`Anti-fraud blocked referral: email=${email} already referred`);
+        Sentry.captureMessage(
+          `[REFERRAL] FAILED Step 3: anti-fraud blocked email=${email}`,
+          'error',
+        );
         return;
       }
+
+      Sentry.captureMessage(
+        `[REFERRAL] Step 4: registerFriendReferral referrer=${referrerAccount.userId} friend=${userId}`,
+        'info',
+      );
 
       if (role === 'merchant') {
         await this.gamificationService.registerBusinessReferral(
@@ -261,13 +289,17 @@ export class AuthService {
         );
       }
 
-      this.logger.log(
-        `Referral processed: ${userId} referred by ${referrerAccount.userId} (code: ${referralCode})`,
+      Sentry.captureMessage(
+        `[REFERRAL] SUCCESS: ${userId} referred by ${referrerAccount.userId} (code: ${referralCode})`,
+        'info',
       );
     } catch (error) {
+      Sentry.captureException(error, {
+        tags: { flow: 'referral_inline' },
+        extra: { referralCode, userId, email, role },
+      });
       this.logger.error(
         `Failed to process referral "${referralCode}" for ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error instanceof Error ? error.stack : undefined,
       );
     }
   }
