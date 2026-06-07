@@ -226,9 +226,15 @@ export class GamificationService {
     });
 
     if (existing) {
+      if (existing.referrerUserId.toString() === referrerUserId) {
+        this.logger.log(
+          `Anti-fraud: Allowing retry for email=${normalizedEmail} — same referrer ${referrerUserId}`,
+        );
+        return true;
+      }
       this.logger.warn(
         `Anti-fraud: Blocked duplicate referral for email=${normalizedEmail} phone=${phone ?? 'none'} ` +
-          `(previously referred as userId=${existing.referredUserId})`,
+          `(previously referred by different user=${existing.referrerUserId})`,
       );
       return false;
     }
