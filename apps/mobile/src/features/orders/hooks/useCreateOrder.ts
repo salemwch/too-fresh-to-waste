@@ -50,6 +50,7 @@ interface UseCreateOrderReturn extends UseCreateOrderState {
   createOrder: (orderData: CreateOrderDto) => Promise<Order | null>;
   resetError: () => void;
   phoneVerificationModal: PhoneVerificationModalState;
+  openPhoneSetupModal: () => void;
   closePhoneVerificationModal: () => void;
   retryOrderCreation: () => Promise<Order | null>;
 }
@@ -111,6 +112,17 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
    */
   const resetError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));
+  }, []);
+
+  /**
+   * Open phone setup modal proactively (e.g. at checkout entry when phone is missing)
+   */
+  const openPhoneSetupModal = useCallback(() => {
+    setPhoneVerificationModal({
+      isVisible: true,
+      requiresPhoneSetup: true,
+      requiresPhoneVerification: false,
+    });
   }, []);
 
   /**
@@ -229,6 +241,7 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
     createOrder,
     resetError,
     phoneVerificationModal,
+    openPhoneSetupModal,
     closePhoneVerificationModal,
     retryOrderCreation,
   };

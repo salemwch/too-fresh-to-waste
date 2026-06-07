@@ -16,7 +16,7 @@ import MapView from 'react-native-maps';
 
 import { Text, Button, Icon } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
-import { selectIsPhoneVerified } from '@/features/auth/store/authSlice';
+import { selectAuthUser, selectIsPhoneVerified } from '@/features/auth/store/authSlice';
 import { offersService } from '@/features/offers/services/offersService';
 import { useAppSelector } from '@/hooks';
 import { useLocation } from '@/hooks/useLocation';
@@ -83,6 +83,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   // Named selector returns a primitive boolean — re-renders ONLY when this value flips,
   // not when unrelated user fields (name, avatar, email…) change.
   const isPhoneVerified = useAppSelector(selectIsPhoneVerified);
+  const authUser = useAppSelector(selectAuthUser);
   const { coordinates: userCoords } = useLocation();
 
   // ✅ State for order configuration
@@ -184,6 +185,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     isLoading: isCreatingOrder,
     error: orderError,
     phoneVerificationModal,
+    openPhoneSetupModal,
     closePhoneVerificationModal,
   } = useCreateOrder({
     onSuccess: order => {
@@ -208,6 +210,13 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       Logger.error('[CheckoutScreen] Order creation failed', {}, error);
     },
   });
+
+  // Prompt for phone number immediately when the user enters checkout without one
+  useEffect(() => {
+    if (!authUser?.phoneNumber) {
+      openPhoneSetupModal();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- mount-only check
 
   /**
    * Handle order confirmation
