@@ -119,6 +119,8 @@ export class SentryService implements OnModuleInit {
           'ECONNRESET',
           'ECONNREFUSED',
           'ETIMEDOUT',
+          'UnauthorizedException',
+          'ThrottlerException',
         ],
 
         ignoreTransactions: [

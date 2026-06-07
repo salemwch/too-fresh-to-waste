@@ -472,10 +472,14 @@ export const reverseGeocodeAsync = createAsyncThunk<
       country,
     };
   } catch (error) {
-    // Check if error is due to cancellation
     if (signal.aborted || (error instanceof Error && error.message === 'Cancelled')) {
       Logger.debug('Reverse geocoding cancelled');
       return rejectWithValue('Cancelled');
+    }
+
+    if (error instanceof Error && error.message === 'Reverse geocoding timeout') {
+      Logger.warn('Reverse geocoding timed out, using coordinates as fallback');
+      return { city: '', country: 'Tunisia' };
     }
 
     const errorMessage = error instanceof Error ? error.message : 'Failed to resolve location name';

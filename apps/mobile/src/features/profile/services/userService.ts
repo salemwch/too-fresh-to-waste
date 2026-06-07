@@ -132,8 +132,12 @@ class UserService {
 
       return user as User;
     } catch (error) {
-      // Error already logged by unwrapBackendResponse if structure is invalid
-      Logger.error('Failed to fetch user profile', {}, error as Error);
+      const msg = error instanceof Error ? error.message : '';
+      if (msg.startsWith('Invalid user data')) {
+        Logger.warn('Profile validation failed (stale auth state)', { error: msg });
+      } else {
+        Logger.error('Failed to fetch user profile', {}, error as Error);
+      }
       throw error;
     }
   }
