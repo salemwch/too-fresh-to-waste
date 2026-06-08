@@ -207,10 +207,10 @@ function VerifyEmailInner() {
                 {t('verifyEmailConsumerMessage')}
               </p>
               <Link
-                href='/login'
+                href='/'
                 className='mt-4 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
               >
-                {t('verifyEmailBackToLogin')}
+                {t('verifyEmailGoToHome')}
               </Link>
             </div>
           )}
@@ -225,10 +225,10 @@ function VerifyEmailInner() {
                 {t('verifyEmailMerchantMessage')}
               </p>
               <Link
-                href='/login'
+                href='/merchant/dashboard'
                 className='mt-4 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
               >
-                {t('verifyEmailBackToLogin')}
+                {t('verifyEmailGoToDashboard')}
               </Link>
             </div>
           )}
