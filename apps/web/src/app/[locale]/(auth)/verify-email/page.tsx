@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import {
   Loader2,
@@ -23,6 +23,7 @@ type VerifyState = 'loading' | 'success-merchant' | 'success-consumer' | 'error'
 function VerifyEmailInner() {
   const t = useTranslations('auth');
   const tHero = useTranslations('merchantSignup');
+  const locale = useLocale();
   const searchParams = useSearchParams();
 
   const token = searchParams.get('token') ?? '';
@@ -206,12 +207,12 @@ function VerifyEmailInner() {
               <p className='text-base leading-relaxed text-muted-foreground'>
                 {t('verifyEmailConsumerMessage')}
               </p>
-              <Link
-                href='/'
+              <a
+                href={`/${locale}`}
                 className='mt-4 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
               >
                 {t('verifyEmailGoToHome')}
-              </Link>
+              </a>
             </div>
           )}
 
@@ -224,12 +225,12 @@ function VerifyEmailInner() {
               <p className='text-base leading-relaxed text-muted-foreground'>
                 {t('verifyEmailMerchantMessage')}
               </p>
-              <Link
-                href='/merchant/dashboard'
+              <a
+                href={`/${locale}/merchant/dashboard`}
                 className='mt-4 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
               >
                 {t('verifyEmailGoToDashboard')}
-              </Link>
+              </a>
             </div>
           )}
 
