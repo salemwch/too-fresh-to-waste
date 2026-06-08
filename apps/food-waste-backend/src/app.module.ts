@@ -14,7 +14,6 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { ArchiveModule } from './archive/archive.module';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
-import { AppVersionMiddleware } from './common/middleware/app-version.middleware';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { GlobalSanitizationMiddleware } from './common/middleware/global-sanitization.middleware';
 import { CommunityGoalModule } from './community-goal/community-goal.module';
@@ -50,6 +49,7 @@ import { UsersModule } from './users/user.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { EnterpriseModule } from './enterprise/enterprise.module';
+import { AppConfigModule } from './app-config/app-config.module';
 //import { SocialModule } from './social/social.module';
 
 @Module({
@@ -158,6 +158,7 @@ import { EnterpriseModule } from './enterprise/enterprise.module';
     HealthModule,
     WaitlistModule,
     EnterpriseModule,
+    AppConfigModule,
   ],
   controllers: [],
   providers: [],
@@ -168,8 +169,6 @@ export class AppModule implements NestModule {
    * Order matters: CorrelationIdMiddleware -> Sanitization -> ValidationPipe (in main.ts)
    */
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(CorrelationIdMiddleware, GlobalSanitizationMiddleware, AppVersionMiddleware)
-      .forRoutes('*');
+    consumer.apply(CorrelationIdMiddleware, GlobalSanitizationMiddleware).forRoutes('*');
   }
 }

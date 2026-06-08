@@ -54,6 +54,7 @@ class AuthService {
         headers: {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
+          'X-Platform': 'mobile',
           'X-App-Version': environment.app.version,
           'ngrok-skip-browser-warning': 'true',
           'User-Agent': 'FoodWasteApp/1.0',

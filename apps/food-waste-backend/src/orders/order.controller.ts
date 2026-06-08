@@ -40,6 +40,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthenticatedRequest } from '../common/decorators/get-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
+import { AppVersionGuard } from '../common/guards/app-version.guard';
 import { QueryComplexityGuard, QueryComplexity } from '../common/guards/query-complexity.guard';
 import { AppLoggerService } from '../common/services/logger.service';
 import { QueryOptimizer } from '../common/utils/query-optimization.util';
@@ -157,7 +158,7 @@ export class OrdersController {
   @ApiResponse({ status: 401, description: 'Unauthorized - Consumer access required' })
   @Post()
   @UseFilters(OrderExceptionFilter)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(AppVersionGuard, JwtAuthGuard, RolesGuard)
   @Roles(UserRole.CONSUMER)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createOrderDto: CreateOrderDto, @Request() req: AuthenticatedRequest) {

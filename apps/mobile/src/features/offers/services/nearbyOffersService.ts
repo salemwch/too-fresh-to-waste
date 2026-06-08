@@ -116,6 +116,7 @@ class NearbyOffersService {
         headers: {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
+          'X-Platform': 'mobile',
           'X-App-Version': environment.app.version,
           ...headers,
         },

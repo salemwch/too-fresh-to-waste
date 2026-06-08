@@ -10,6 +10,8 @@ import { Provider as ReduxProvider, useSelector, useDispatch } from 'react-redux
 import { PersistGate } from 'redux-persist/integration/react';
 
 import { OfflineBanner } from '@/components/Errors';
+import { ForceUpdateModal } from '@/components/ForceUpdateModal';
+import { SoftUpdateBanner } from '@/components/SoftUpdateBanner';
 import { environment, validateEnvironmentConfig } from '@/config/environment';
 import { ThemeProvider } from '@/design-system/providers';
 import { AuthFlowState } from '@/features/auth/types';
@@ -22,6 +24,7 @@ import { socketService } from '@/services/socketService';
 import { store, persistor } from '@/store';
 import { RehydrationGate } from '@/store/rehydrationOrchestrator';
 import { syncAllFavorites, clearFavorites } from '@/store/slices/favoritesSlice';
+import { useAppVersionCheck } from '@/hooks/useAppVersionCheck';
 import { Logger, NativeModuleLogger } from '@/utils';
 import { analytics } from '@/utils/analytics';
 import { offlineManager } from '@/utils/offlineManager';
@@ -151,6 +154,7 @@ function AppContent(): React.JSX.Element {
   const dispatch = useDispatch<AppDispatch>();
   const flowState = useSelector((state: RootState) => state.auth.flowState);
   const userId = useSelector((state: RootState) => state.auth.user?.userId ?? null);
+  const versionCheck = useAppVersionCheck();
 
   // ✅ Initialize Local Location Service on app startup (runs once)
   // Loads tunisian-cities.json into memory for fast local searches
@@ -252,9 +256,18 @@ function AppContent(): React.JSX.Element {
   return (
     <>
       <OfflineBanner />
+      <SoftUpdateBanner
+        visible={versionCheck.updateType === 'soft' && !versionCheck.dismissed}
+        updateUrl={versionCheck.updateUrl}
+        onDismiss={versionCheck.dismiss}
+      />
       <StatusBar barStyle='dark-content' translucent />
       <RootNavigator />
-      {/* Toast must be last in the component tree to render on top */}
+      <ForceUpdateModal
+        visible={versionCheck.updateType === 'force'}
+        updateUrl={versionCheck.updateUrl}
+        latestVersion={versionCheck.latestVersion}
+      />
       <Toast config={toastConfig} />
     </>
   );

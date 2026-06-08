@@ -36,6 +36,7 @@ import { UsersService } from 'src/users/user.service';
 
 import { AuthenticatedRequest } from '../common/decorators/get-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
+import { AppVersionGuard } from '../common/guards/app-version.guard';
 import { CookieSecurityUtil } from '../common/utils/cookie-security.util';
 
 import { AuthService, RegisterResponse, LoginResponse } from './auth.service';
@@ -249,7 +250,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(AppVersionGuard, ThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: 900000 } }) // 10 attempts per 15 minutes
   @ApiOperation({
     summary: 'Authenticate user and obtain JWT tokens',
@@ -345,7 +346,7 @@ export class AuthController {
   @Post('google')
   @Public()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(AppVersionGuard, ThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Sign in or register with Google ID token' })
   async googleSignIn(
@@ -459,8 +460,8 @@ export class AuthController {
   }
 
   @Post('refresh')
-  @Public() // ✅ Remove guard to accept refresh token from request body
-  @UseGuards(AuthThrottlerGuard)
+  @Public()
+  @UseGuards(AppVersionGuard, AuthThrottlerGuard)
   @Throttle({ default: { limit: 30, ttl: 3600000 } }) // 30 attempts per hour per IP+userId
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -758,7 +759,7 @@ export class AuthController {
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AppVersionGuard, JwtAuthGuard)
   async getProfile(@Request() req: AuthenticatedRequest) {
     const user = await this.usersService.findOne(req.user.userId);
     // findOne uses .lean() which skips toJSON virtuals, so _id is a raw ObjectId that
@@ -778,7 +779,7 @@ export class AuthController {
    * @security Requires valid JWT. User can only delete their own account.
    */
   @Delete('me')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AppVersionGuard, JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Delete own account (self-service)',

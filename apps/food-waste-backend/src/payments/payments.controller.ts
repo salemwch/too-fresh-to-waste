@@ -33,6 +33,7 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AuthenticatedRequest } from 'src/common/decorators/get-user.decorator';
 import { Public } from 'src/common/decorators/public.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { AppVersionGuard } from 'src/common/guards/app-version.guard';
 
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { PaymentQueryDto } from './dto/payment-query.dto';
@@ -63,7 +64,7 @@ export class PaymentController {
   @ApiResponse({ status: 400, description: 'Invalid payment data or order not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized - Consumer access required' })
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(AppVersionGuard, JwtAuthGuard, RolesGuard)
   @Roles(UserRole.CONSUMER)
   @HttpCode(HttpStatus.CREATED)
   async create(
@@ -280,7 +281,7 @@ export class PaymentController {
   @ApiResponse({ status: 400, description: 'Invalid refund request' })
   @ApiResponse({ status: 401, description: 'Unauthorized - Admin access required' })
   @Post('refund')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(AppVersionGuard, JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   async processRefund(

@@ -456,6 +456,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
   // ---------------------------------------------------------------------------
 
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const reviewDismissedRef = React.useRef(false);
 
   // Persist reviewed state across sessions via MMKV
   const [hasReviewed, setHasReviewed] = useState(() => {
@@ -530,7 +531,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
   // Auto-show review modal for picked-up orders that haven't been reviewed.
   // If there's a donation overlay, wait for it to dismiss first.
   useEffect(() => {
-    if (!isPickedUp || hasReviewed || reviewModalVisible) return;
+    if (!isPickedUp || hasReviewed || reviewModalVisible || reviewDismissedRef.current) return;
     if ((order?.donationAmount ?? 0) > 0 && showImpactMoment) return;
     const timer = setTimeout(() => setReviewModalVisible(true), 800);
     return () => clearTimeout(timer);
@@ -684,7 +685,10 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
                 (raw as { _id?: string; id?: string } | null)?.id);
           return id ? { offerId: id } : {};
         })()}
-        onClose={() => setReviewModalVisible(false)}
+        onClose={() => {
+          reviewDismissedRef.current = true;
+          setReviewModalVisible(false);
+        }}
         onSuccess={() => {
           setReviewModalVisible(false);
           markOrderReviewed();
