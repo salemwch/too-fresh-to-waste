@@ -79,6 +79,28 @@ async function bootstrap() {
         Sentry.mongooseIntegration(),
       ],
 
+      ignoreErrors: [
+        'Non-Error exception captured',
+        'Non-Error promise rejection captured',
+        'ValidationError',
+        'BadRequestException',
+        'NetworkError',
+        'AbortError',
+        'ECONNRESET',
+        'ECONNREFUSED',
+        'ETIMEDOUT',
+        'UnauthorizedException',
+        'ThrottlerException',
+      ],
+
+      ignoreTransactions: [
+        '/health',
+        '/health/liveness',
+        '/health/readiness',
+        '/metrics',
+        '/favicon.ico',
+      ],
+
       // Filter sensitive data
       beforeSend: event => {
         // Remove sensitive environment variables
@@ -133,6 +155,11 @@ async function bootstrap() {
 
   const appConfigService = app.get(ConfigService);
   const metricsService = app.get(PrometheusMetricsService);
+
+  // Trust the first proxy (Render/Cloudflare) so Express resolves req.ip from
+  // X-Forwarded-For instead of always seeing 127.0.0.1. Critical for rate limiting.
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', 1);
 
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new TransformInterceptor());

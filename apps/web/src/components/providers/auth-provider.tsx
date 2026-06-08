@@ -18,6 +18,15 @@ function isHardAuthError(err: unknown): boolean {
   return status === 401 || status === 403;
 }
 
+function isRateLimited(err: unknown): boolean {
+  const status = (err as { response?: { status?: number } })?.response?.status;
+  return status === 429;
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setUser, setLoading } = useAuthStore();
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
@@ -37,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     let cancelled = false;
 
-    async function rehydrate() {
+    async function rehydrate(retries = 2) {
       // Verify session validity with the backend (browser sends HttpOnly cookie).
       // No localStorage cache — TanStack Query + Zustand store are the only
       // in-memory sources for user data. The loading skeleton stays visible
@@ -50,14 +59,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           useAuthStore.getState().setAuthenticated(true);
         }
       } catch (err) {
-        if (!cancelled) {
-          if (isHardAuthError(err)) {
-            // Backend explicitly rejected the session — clear everything.
-            useAuthStore.getState().logout();
-          } else {
-            // Network error — not authenticated (no offline fallback)
-            setUser(null);
-          }
+        if (cancelled) return;
+
+        // Rate limited (429) — wait and retry instead of logging the user out.
+        // This prevents transient rate-limit hits from killing valid sessions.
+        if (isRateLimited(err) && retries > 0) {
+          await wait(3000);
+          if (!cancelled) return rehydrate(retries - 1);
+          return;
+        }
+
+        if (isHardAuthError(err)) {
+          // Backend explicitly rejected the session — clear everything.
+          useAuthStore.getState().logout();
+        } else {
+          // Network error — not authenticated (no offline fallback)
+          setUser(null);
         }
       } finally {
         if (!cancelled) {

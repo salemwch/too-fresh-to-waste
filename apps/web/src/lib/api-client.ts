@@ -55,6 +55,7 @@ function processQueue(error: unknown, result: string | null) {
  *   (browser attaches it because withCredentials=true and path matches).
  * - On success: backend sets new HttpOnly cookies via Set-Cookie header.
  * - On hard failure (401/403): calls logout() to clear the session.
+ * - On 429 (rate limited): retries once after Retry-After delay.
  * - On network/server errors: throws without touching the session.
  */
 export async function performRefreshOnce(): Promise<string> {
@@ -72,24 +73,7 @@ export async function performRefreshOnce(): Promise<string> {
       console.info('[API] performRefreshOnce — starting token refresh');
     }
 
-    // Empty body — the backend reads the refresh token from the HttpOnly cookie.
-    // See auth.controller.ts: req.cookies?.['refresh_token'] fallback.
-    await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
-
-    // Backend already set new HttpOnly cookies via Set-Cookie header.
-    // No tokens are captured in JavaScript memory.
-    // Broadcast to other tabs so they know tokens were refreshed.
-    try {
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem('wfa_tokens_ts', String(Date.now()));
-      }
-    } catch {
-      /* ignore — private browsing may restrict localStorage writes */
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.info('[API] performRefreshOnce — token refresh succeeded');
-    }
+    await doRefreshRequest();
 
     processQueue(null, 'refreshed');
     return 'refreshed';
@@ -116,6 +100,43 @@ export async function performRefreshOnce(): Promise<string> {
     throw err;
   } finally {
     isRefreshing = false;
+  }
+}
+
+async function doRefreshRequest(retryCount = 1): Promise<void> {
+  try {
+    // Empty body — the backend reads the refresh token from the HttpOnly cookie.
+    await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
+
+    // Backend already set new HttpOnly cookies via Set-Cookie header.
+    // Broadcast to other tabs so they know tokens were refreshed.
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('wfa_tokens_ts', String(Date.now()));
+      }
+    } catch {
+      /* ignore — private browsing may restrict localStorage writes */
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.info('[API] performRefreshOnce — token refresh succeeded');
+    }
+  } catch (err) {
+    const status = (err as { response?: { status?: number } })?.response?.status;
+
+    // 429 — rate limited. Wait and retry once so a transient spike doesn't kill the session.
+    if (status === 429 && retryCount > 0) {
+      const retryAfter =
+        Number(
+          (err as { response?: { headers?: Record<string, string> } })?.response?.headers?.[
+            'retry-after'
+          ],
+        ) || 5;
+      await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+      return doRefreshRequest(retryCount - 1);
+    }
+
+    throw err;
   }
 }
 

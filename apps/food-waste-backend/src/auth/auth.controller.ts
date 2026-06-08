@@ -461,7 +461,7 @@ export class AuthController {
   @Post('refresh')
   @Public() // ✅ Remove guard to accept refresh token from request body
   @UseGuards(AuthThrottlerGuard)
-  @Throttle({ default: { limit: 10, ttl: 3600000 } }) // 10 attempts per hour per IP+userId
+  @Throttle({ default: { limit: 30, ttl: 3600000 } }) // 30 attempts per hour per IP+userId
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Refresh access token using refresh token',

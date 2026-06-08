@@ -23,6 +23,17 @@ const CORAL = rgb(1, 0.475, 0.451); // #FF7973
 const LIGHT_GRAY = rgb(0.96, 0.96, 0.96);
 const MID_GRAY = rgb(0.5, 0.5, 0.5);
 
+/** Replace characters that WinAnsi (StandardFonts) cannot encode with ASCII equivalents. */
+function sanitizeForPdf(text: string): string {
+  return text
+    .replace(/[  ]/g, ' ') // narrow no-break space & no-break space → regular space
+    .replace(/[–]/g, '-') // en-dash
+    .replace(/[—]/g, '--') // em-dash
+    .replace(/[‘’]/g, "'") // smart single quotes
+    .replace(/[“”]/g, '"') // smart double quotes
+    .replace(/[…]/g, '...'); // ellipsis
+}
+
 @Injectable()
 export class PdfReportService {
   private readonly logger = new Logger(PdfReportService.name);
@@ -62,7 +73,7 @@ export class PdfReportService {
       color: rgb(1, 1, 1),
     });
 
-    page.drawText(`Généré le ${data.generatedAt.toLocaleDateString('fr-FR')}`, {
+    page.drawText(sanitizeForPdf(`Généré le ${data.generatedAt.toLocaleDateString('fr-FR')}`), {
       x: width - margin - 130,
       y: height - 58,
       size: 10,
@@ -83,10 +94,16 @@ export class PdfReportService {
     });
     y -= 16;
 
-    page.drawText(data.merchantName, { x: margin, y, size: 14, font: boldFont, color: TEAL });
+    page.drawText(sanitizeForPdf(data.merchantName), {
+      x: margin,
+      y,
+      size: 14,
+      font: boldFont,
+      color: TEAL,
+    });
     y -= 14;
     if (data.establishmentName) {
-      page.drawText(data.establishmentName + (data.city ? ` · ${data.city}` : ''), {
+      page.drawText(sanitizeForPdf(data.establishmentName + (data.city ? ` · ${data.city}` : '')), {
         x: margin,
         y,
         size: 10,
@@ -96,7 +113,9 @@ export class PdfReportService {
       y -= 12;
     }
     page.drawText(
-      `Statut ESG: ${data.tier.currentLabel}${data.tier.currentBadge ? ` ${data.tier.currentBadge}` : ''}`,
+      sanitizeForPdf(
+        `Statut ESG: ${data.tier.currentLabel}${data.tier.currentBadge ? ` ${data.tier.currentBadge}` : ''}`,
+      ),
       {
         x: margin,
         y,
@@ -129,7 +148,7 @@ export class PdfReportService {
       ['Énergie économisée', `${data.carbon.energyKwhSaved} kWh`],
       ['Équivalent voiture', `${data.carbon.carKmEquivalent} km non parcourus`],
       ['Équivalent arbres', `${data.carbon.treesEquivalent} arbres plantés`],
-    ];
+    ].map(([label, value]) => [sanitizeForPdf(label!), sanitizeForPdf(value!)]);
 
     for (const [label, value] of carbonRows) {
       page.drawRectangle({
@@ -160,7 +179,7 @@ export class PdfReportService {
       ['Repas distribués', `${data.social.mealsDistributed} repas`],
       ['Personnes servies (estimé)', `~${data.social.peopleServedEstimate} bénéficiaires`],
       ['Valeur alimentaire sauvée', `~${data.social.estimatedValueTnd.toFixed(2)} TND`],
-    ];
+    ].map(([label, value]) => [sanitizeForPdf(label!), sanitizeForPdf(value!)]);
 
     for (const [label, value] of socialRows) {
       page.drawRectangle({
@@ -189,9 +208,9 @@ export class PdfReportService {
 
     for (const tier of data.tier.allTiers) {
       const reached = tier.reached;
-      const marker = reached ? '✓' : '○';
+      const marker = reached ? '[x]' : '[ ]';
       const color = reached ? CORAL : MID_GRAY;
-      page.drawText(`${marker}  ${tier.label} (${tier.threshold}+ paniers)`, {
+      page.drawText(sanitizeForPdf(`${marker}  ${tier.label} (${tier.threshold}+ paniers)`), {
         x: margin + 8,
         y,
         size: 10,
