@@ -213,6 +213,7 @@ const createApiClient = (): AxiosInstance => {
     headers: {
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
+      'X-App-Version': environment.app.version,
     },
   });
 

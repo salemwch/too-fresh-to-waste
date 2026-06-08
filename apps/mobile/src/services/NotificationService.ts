@@ -99,6 +99,7 @@ class NotificationService {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
+            'X-App-Version': environment.app.version,
           },
           timeout: 10_000,
         },
@@ -125,7 +126,10 @@ class NotificationService {
       if (!accessToken) return;
 
       await axios.delete(`${environment.api.baseUrl}/notifications/device-token`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'X-App-Version': environment.app.version,
+        },
         data: { deviceToken: token },
         timeout: 10_000,
       });

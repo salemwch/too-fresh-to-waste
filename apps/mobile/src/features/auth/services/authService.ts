@@ -54,8 +54,9 @@ class AuthService {
         headers: {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
-          'ngrok-skip-browser-warning': 'true', // ✅ Skip ngrok browser warning
-          'User-Agent': 'FoodWasteApp/1.0', // ✅ Identify as mobile app
+          'X-App-Version': environment.app.version,
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'FoodWasteApp/1.0',
           ...headers,
         },
         timeout: this.timeout,
