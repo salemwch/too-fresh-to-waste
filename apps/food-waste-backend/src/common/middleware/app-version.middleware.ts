@@ -38,16 +38,8 @@ export class AppVersionMiddleware implements NestMiddleware {
     const clientVersion = req.headers['x-app-version'] as string | undefined;
 
     if (!clientVersion) {
-      // No header — allow in development, reject in production
-      if (this.configService.get<string>('NODE_ENV') === 'production') {
-        this.logger.warn(`Missing X-App-Version header from ${req.ip}`);
-        res.status(426).json({
-          status: 'error',
-          message: 'X-App-Version header is required. Please update your app.',
-          data: null,
-        });
-        return;
-      }
+      // No header — this is a web browser or non-mobile client.
+      // Version gating only applies to mobile apps that explicitly send the header.
       return next();
     }
 
