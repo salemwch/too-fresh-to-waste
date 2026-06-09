@@ -201,7 +201,15 @@ export class AuthService {
     try {
       await this.eventBus.emit(
         'user.registered',
-        new UserRegisteredEvent(user._id.toString(), user.email, role, new Date()),
+        new UserRegisteredEvent(
+          user._id.toString(),
+          user.email,
+          role,
+          new Date(),
+          registerDto.businessInfo,
+          normalizedPhone,
+          registerDto.referralCode,
+        ),
       );
     } catch (eventError) {
       this.logger.error(

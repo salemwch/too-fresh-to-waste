@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   TrendingUp,
   Store,
@@ -158,10 +158,12 @@ const INITIAL_FORM_DATA: FormData = {
   phone: '',
 };
 
-export default function MerchantSignupPage() {
+function MerchantSignupInner() {
   const t = useTranslations('merchantSignup');
   const { register } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get('ref');
 
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
@@ -264,6 +266,7 @@ export default function MerchantSignupPage() {
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
         ...(formData.phone.trim() ? { phoneNumber: `+216${formData.phone.trim()}` } : {}),
+        ...(referralCode ? { referralCode } : {}),
         role: UserRole.MERCHANT,
         businessInfo: {
           name: formData.businessName,
@@ -860,5 +863,19 @@ export default function MerchantSignupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MerchantSignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className='flex h-[100dvh] items-center justify-center bg-background'>
+          <Loader2 className='h-10 w-10 animate-spin text-primary' />
+        </div>
+      }
+    >
+      <MerchantSignupInner />
+    </Suspense>
   );
 }
