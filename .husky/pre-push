@@ -1,2 +1,2 @@
-echo "Running type-check before push..."
-pnpm type-check
+echo "Running type-check + unit tests for changed packages..."
+pnpm turbo run type-check test:unit --filter=...[origin/master]

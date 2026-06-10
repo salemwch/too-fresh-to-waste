@@ -4,29 +4,181 @@ on:
   push:
     branches: [main, master, develop, staging]
     paths:
-      - 'apps/food-waste-backend/**'
-      - 'packages/shared/**'
-      - '.github/workflows/backend-ci-cd.yml'
-      - 'pnpm-lock.yaml'
+      - "apps/food-waste-backend/**"
+      - "packages/shared/**"
+      - ".github/workflows/backend-ci-cd.yml"
+      - "pnpm-lock.yaml"
   pull_request:
     branches: [main, master, develop]
     paths:
-      - 'apps/food-waste-backend/**'
-      - 'packages/shared/**'
+      - "apps/food-waste-backend/**"
+      - "packages/shared/**"
+
+concurrency:
+  group: backend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
-  NODE_VERSION: '24.11.1'
-  PNPM_VERSION: '10.17.0'
+  NODE_VERSION: "24.11.1"
+  PNPM_VERSION: "10.17.0"
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/backend
 
 jobs:
   # ============================================
-  # Code Quality & Security Checks
+  # Job 1 — FAST: lint + type-check + unit tests
+  # Catches 90% of issues in ~2 min
   # ============================================
-  quality-checks:
-    name: Code Quality & Security
+  fast-checks:
+    name: Lint + Types + Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Setup Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-backend-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-backend-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript type check
+        run: pnpm --filter @foodwaste/backend check:ts
+
+      - name: ESLint
+        run: pnpm --filter @foodwaste/backend check:lint
+
+      - name: Prettier
+        run: pnpm --filter @foodwaste/backend check:format
+
+      - name: Unit tests
+        run: pnpm --filter @foodwaste/backend test:unit
+        env:
+          NODE_ENV: test
+
+  # ============================================
+  # Job 2 — SLOW: integration tests (needs DB + cache)
+  # Runs after fast-checks pass
+  # ============================================
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: fast-checks
+    timeout-minutes: 20
+
+    services:
+      mongodb:
+        image: mongo:7.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: test
+          MONGO_INITDB_ROOT_PASSWORD: test
+          MONGO_INITDB_DATABASE: test
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run integration tests with coverage
+        run: pnpm --filter @foodwaste/backend test:ci
+        env:
+          NODE_ENV: test
+          DATABASE_URL: mongodb://test:test@localhost:27017/test?authSource=admin
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ""
+          JWT_SECRET: test-jwt-secret-for-ci-only
+          JWT_REFRESH_SECRET: test-jwt-refresh-secret-for-ci-only
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./apps/food-waste-backend/coverage/coverage-final.json
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+
+  # ============================================
+  # Job 3 — PARALLEL: security audit
+  # Runs alongside integration tests
+  # ============================================
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: fast-checks
     timeout-minutes: 15
 
     steps:
@@ -60,16 +212,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: TypeScript type check
-        run: pnpm --filter @foodwaste/backend check:ts
-
-      - name: ESLint
-        run: pnpm --filter @foodwaste/backend check:lint
-
-      - name: Prettier
-        run: pnpm --filter @foodwaste/backend check:format
-
-      - name: Security audit (npm)
+      - name: Dependency audit
         run: pnpm audit --audit-level=high --recursive
 
       - name: Check for hardcoded secrets
@@ -81,101 +224,23 @@ jobs:
           extra_args: --only-verified
 
   # ============================================
-  # Unit & Integration Tests
-  # ============================================
-  tests:
-    name: Tests & Coverage
-    runs-on: ubuntu-latest
-    needs: quality-checks
-    timeout-minutes: 20
-
-    services:
-      # MongoDB for testing
-      mongodb:
-        image: mongo:7.0
-        env:
-          MONGO_INITDB_ROOT_USERNAME: test
-          MONGO_INITDB_ROOT_PASSWORD: test
-          MONGO_INITDB_DATABASE: test
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      # Redis for testing
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run unit tests
-        run: pnpm --filter @foodwaste/backend test:ci
-        env:
-          NODE_ENV: test
-          DATABASE_URL: mongodb://test:test@localhost:27017/test?authSource=admin
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          REDIS_PASSWORD: ''
-          JWT_SECRET: test-jwt-secret-for-ci-only
-          JWT_REFRESH_SECRET: test-jwt-refresh-secret-for-ci-only
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./apps/food-waste-backend/coverage/coverage-final.json
-          flags: backend
-          name: backend-coverage
-          fail_ci_if_error: false
-
-      - name: Generate coverage report
-        run: |
-          cd apps/food-waste-backend
-          pnpm test:cov || true
-
-  # ============================================
   # Build, Sign & Push Docker Image
+  # Only after all checks pass
   # ============================================
   build:
     name: Build & Sign Docker Image
     runs-on: ubuntu-latest
-    needs: tests
+    needs: [integration-tests, security]
     if: github.event_name == 'push'
     timeout-minutes: 30
 
-    # Expose digest for downstream jobs (SBOM attestation, Trivy, etc.)
     outputs:
       image-digest: ${{ steps.build.outputs.digest }}
 
     permissions:
       contents: read
       packages: write
-      id-token: write # Required for keyless cosign signing via GitHub OIDC
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -224,17 +289,6 @@ jobs:
       - name: Log image digest
         run: echo "Image digest ${{ steps.build.outputs.digest }}"
 
-      # ── Keyless signing via Sigstore (no key management required) ────────
-      # Uses GitHub Actions OIDC token as the signing identity.
-      # The certificate + signature are stored in the Sigstore Rekor public
-      # transparency log — cryptographically auditable, tamper-evident.
-      #
-      # Verify any image later with:
-      #   cosign verify \
-      #     --certificate-identity-regexp \
-      #       "https://github.com/${{ github.repository }}/.github/workflows/backend-ci-cd.yml@.*" \
-      #     --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-      #     ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:<tag>
       - name: Install cosign
         uses: sigstore/cosign-installer@v3.7.0
 
@@ -247,17 +301,19 @@ jobs:
           echo "✓ Signed: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}"
 
   # ============================================
-  # Security Scanning (Trivy)
+  # Container Security (Trivy + SBOM)
   # ============================================
-  security-scan:
-    name: Security Scan
+  container-security:
+    name: Container Security + SBOM
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'push'
     timeout-minutes: 15
 
     permissions:
-      contents: read
+      contents: write
+      packages: read
+      id-token: write
       security-events: write
 
     steps:
@@ -268,42 +324,19 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "CRITICAL,HIGH"
 
       - name: Upload Trivy results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: 'trivy-results.sarif'
-
-  # ============================================
-  # SBOM Generation & Attestation
-  # ============================================
-  sbom:
-    name: Generate SBOM
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name == 'push'
-    timeout-minutes: 15
-
-    permissions:
-      contents: write # GitHub Dependency Graph submission
-      packages: read # Pull image from GHCR to scan
-      id-token: write # cosign SBOM attestation via OIDC
-      security-events: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+          sarif_file: "trivy-results.sarif"
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v3.7.0
 
-      # ── Docker image SBOM — CycloneDX (security tooling standard) ────────
-      # Scans every layer: Alpine OS packages + Node.js runtime + npm deps.
-      # CycloneDX is the OWASP standard; consumed by Grype, Dependency-Track, etc.
       - name: Generate Docker image SBOM (CycloneDX)
         uses: anchore/sbom-action@v0.17.2
         with:
@@ -313,7 +346,6 @@ jobs:
           upload-artifact: true
           upload-artifact-retention: 90
 
-      # ── Docker image SBOM — SPDX (legal / license tooling standard) ──────
       - name: Generate Docker image SBOM (SPDX)
         uses: anchore/sbom-action@v0.17.2
         with:
@@ -323,7 +355,6 @@ jobs:
           upload-artifact: true
           upload-artifact-retention: 90
 
-      # ── Source SBOM — covers web + mobile (not containerised) ─────────────
       - name: Generate source SBOM (CycloneDX)
         uses: anchore/sbom-action@v0.17.2
         with:
@@ -333,9 +364,6 @@ jobs:
           upload-artifact: true
           upload-artifact-retention: 90
 
-      # ── Attach SBOM as a cosign attestation on the image ──────────────────
-      # Binds the SBOM to the immutable digest in the OCI registry.
-      # Any consumer can verify: cosign verify-attestation --type cyclonedx <image>
       - name: Attest SBOM to image
         env:
           DIGEST: ${{ needs.build.outputs.image-digest }}
@@ -346,23 +374,17 @@ jobs:
             "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}"
           echo "✓ SBOM attestation attached to image"
 
-      # ── Submit to GitHub Dependency Graph ─────────────────────────────────
-      # Makes transitive deps visible under Insights → Dependency graph
-      # and enables Dependabot security alerts for the full dependency tree.
       - name: Submit SBOM to GitHub Dependency Graph
         uses: anchore/sbom-action/publish-sbom@v0.17.2
         with:
-          sbom-artifact-match: '.*cyclonedx.*'
+          sbom-artifact-match: ".*cyclonedx.*"
 
-      # ── Vulnerability scan using the generated SBOM (Grype) ───────────────
-      # Grype uses the SBOM as input — no re-scan needed, results are exact.
-      # Trivy already gates CRITICAL/HIGH above; Grype adds a second opinion.
       - name: Scan SBOM for vulnerabilities (Grype)
         id: grype
         uses: anchore/scan-action@v4.1.2
         with:
           sbom: sbom-docker-cyclonedx.json
-          fail-build: false # Report-only — Trivy is the hard gate
+          fail-build: false
           severity-cutoff: high
           output-format: sarif
 
@@ -372,7 +394,7 @@ jobs:
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}
           category: grype
-        continue-on-error: true # SARIF absent when Grype finds nothing
+        continue-on-error: true
 
   # ============================================
   # Deploy to Staging
@@ -380,7 +402,7 @@ jobs:
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [build, security-scan]
+    needs: [build, container-security]
     if: github.ref == 'refs/heads/develop'
     timeout-minutes: 15
 
@@ -388,19 +410,10 @@ jobs:
       name: staging
       url: https://api-staging.foodwaste.com
 
-    # Required GitHub Secrets (Settings → Secrets → Actions):
-    #   STAGING_SSH_HOST  — VPS IP or hostname
-    #   STAGING_SSH_USER  — SSH user (e.g. ubuntu, deploy)
-    #   STAGING_SSH_KEY   — Private SSH key (PEM or OpenSSH format)
-    #   STAGING_SSH_PORT  — SSH port (optional, defaults to 22)
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Pull + blue/green swap on the remote VPS via SSH.
-      # Strategy: stop old container only AFTER new one is running and healthy,
-      # so downtime is zero if the pull succeeds.
       - name: Deploy to staging via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -408,7 +421,6 @@ jobs:
           username: ${{ secrets.STAGING_SSH_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ secrets.STAGING_SSH_PORT || 22 }}
-          # fail the step (and trigger rollback) if any command exits non-zero
           script_stop: true
           script: |
             set -euo pipefail
@@ -453,32 +465,26 @@ jobs:
 
             echo "✓ Staging deployment complete"
 
-      # Smoke tests run from the GitHub Actions runner (external network),
-      # validating the public endpoint — not just the container-internal health.
-      - name: Smoke tests — staging
+      - name: Smoke tests
         run: |
           BASE="https://api-staging.foodwaste.com"
-          TIMEOUT=10
-          RETRIES=5
-          DELAY=5
 
           echo "→ [1/3] Liveness probe..."
           curl -sf "${BASE}/health/liveness" \
             -H "Accept: application/json" \
-            --max-time $TIMEOUT --retry $RETRIES \
-            --retry-delay $DELAY --retry-connrefused
+            --max-time 10 --retry 5 --retry-delay 5 --retry-connrefused
 
-          echo "→ [2/3] Readiness probe (db + redis)..."
+          echo "→ [2/3] Readiness probe..."
           curl -sf "${BASE}/health/readiness" \
             -H "Accept: application/json" \
-            --max-time 15 --retry $RETRIES --retry-delay $DELAY
+            --max-time 15 --retry 5 --retry-delay 5
 
-          echo "→ [3/3] API gateway responds (auth endpoint returns 4xx, not 5xx)..."
+          echo "→ [3/3] API gateway responds..."
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${BASE}/api/v1/auth/me" --max-time $TIMEOUT)
+            "${BASE}/api/v1/auth/me" --max-time 10)
           echo "   /api/v1/auth/me → HTTP $STATUS"
           [[ "$STATUS" =~ ^(200|400|401|403|404)$ ]] || \
-            (echo "ERROR: unexpected HTTP $STATUS — API gateway down?" && exit 1)
+            (echo "ERROR: unexpected HTTP $STATUS" && exit 1)
 
           echo "✓ All smoke tests passed"
 
@@ -492,10 +498,10 @@ jobs:
           port: ${{ secrets.STAGING_SSH_PORT || 22 }}
           script: |
             set -euo pipefail
-            echo "→ Rolling back — stopping failed new container..."
+            echo "→ Rolling back..."
             docker stop foodwaste-backend-staging-new 2>/dev/null || true
             docker rm  foodwaste-backend-staging-new 2>/dev/null || true
-            echo "✓ Rollback complete (previous container still running)"
+            echo "✓ Rollback complete"
 
   # ============================================
   # Deploy to Production
@@ -503,20 +509,13 @@ jobs:
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [build, security-scan]
+    needs: [build, container-security]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     timeout-minutes: 15
 
     environment:
       name: production
       url: https://api.foodwaste.com
-
-    # Required GitHub Secrets:
-    #   PRODUCTION_SSH_HOST  — VPS IP or hostname
-    #   PRODUCTION_SSH_USER  — SSH user
-    #   PRODUCTION_SSH_KEY   — Private SSH key
-    #   PRODUCTION_SSH_PORT  — SSH port (optional, defaults to 22)
-    #   SLACK_WEBHOOK_URL    — Slack incoming webhook (optional but recommended)
 
     steps:
       - name: Checkout code
@@ -571,41 +570,32 @@ jobs:
 
             echo "✓ Production deployment complete"
 
-      - name: Smoke tests — production
+      - name: Smoke tests
         run: |
           BASE="https://api.foodwaste.com"
-          TIMEOUT=10
-          RETRIES=5
-          DELAY=5
 
           echo "→ [1/3] Liveness probe..."
           curl -sf "${BASE}/health/liveness" \
             -H "Accept: application/json" \
-            --max-time $TIMEOUT --retry $RETRIES \
-            --retry-delay $DELAY --retry-connrefused
+            --max-time 10 --retry 5 --retry-delay 5 --retry-connrefused
 
-          echo "→ [2/3] Readiness probe (db + redis)..."
+          echo "→ [2/3] Readiness probe..."
           curl -sf "${BASE}/health/readiness" \
             -H "Accept: application/json" \
-            --max-time 15 --retry $RETRIES --retry-delay $DELAY
+            --max-time 15 --retry 5 --retry-delay 5
 
           echo "→ [3/3] API gateway responds..."
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${BASE}/api/v1/auth/me" --max-time $TIMEOUT)
+            "${BASE}/api/v1/auth/me" --max-time 10)
           echo "   /api/v1/auth/me → HTTP $STATUS"
           [[ "$STATUS" =~ ^(200|400|401|403|404)$ ]] || \
-            (echo "ERROR: unexpected HTTP $STATUS — API gateway down?" && exit 1)
+            (echo "ERROR: unexpected HTTP $STATUS" && exit 1)
 
           echo "✓ All smoke tests passed"
 
       - name: Notify deployment success
         if: success()
-        run: |
-          echo "✓ Production deployment successful — ${{ github.sha }}"
-          # Uncomment when SLACK_WEBHOOK_URL secret is configured:
-          # curl -sf -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
-          #   -H 'Content-Type: application/json' \
-          #   -d "{\"text\":\"✅ Backend deployed to production — \`${{ github.sha }}\`\"}"
+        run: echo "✓ Production deployment successful — ${{ github.sha }}"
 
       - name: Rollback production on failure
         if: failure()
@@ -617,17 +607,10 @@ jobs:
           port: ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
           script: |
             set -euo pipefail
-            echo "→ Rolling back — stopping failed new container..."
+            echo "→ Rolling back..."
             docker stop foodwaste-backend-prod-new 2>/dev/null || true
             docker rm  foodwaste-backend-prod-new 2>/dev/null || true
-            echo "✓ Rollback complete (previous container still running)"
-          # Uncomment when SLACK_WEBHOOK_URL is configured:
-          # - name: Notify rollback
-          #   if: failure()
-          #   run: |
-          #     curl -sf -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
-          #       -H 'Content-Type: application/json' \
-          #       -d "{\"text\":\"🚨 Production deploy FAILED + rolled back — ${{ github.sha }}\"}"
+            echo "✓ Rollback complete"
 
   # ============================================
   # Performance Testing (Optional)

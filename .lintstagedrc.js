@@ -1,12 +1,12 @@
 module.exports = {
-  // Backend TypeScript — run via pnpm filter so CWD = apps/food-waste-backend
-  // and ESLint picks up the project's own flat config (eslint.config.js)
+  // Backend TypeScript — lint, format, and run related unit tests
   'apps/food-waste-backend/src/**/*.{ts,js}': filenames => [
     `pnpm --filter @foodwaste/backend exec eslint --fix --cache ${filenames.join(' ')}`,
     `prettier --write ${filenames.join(' ')}`,
+    `pnpm --filter @foodwaste/backend exec jest --bail --passWithNoTests --findRelatedTests ${filenames.join(' ')}`,
   ],
 
-  // Web TypeScript — next lint doesn't accept file lists; just format
+  // Web TypeScript — format only; next lint doesn't accept file lists
   'apps/web/src/**/*.{ts,tsx,js,jsx}': ['prettier --write'],
 
   // Mobile TypeScript — format only; full lint runs in CI

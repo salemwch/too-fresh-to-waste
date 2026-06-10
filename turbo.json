@@ -65,6 +65,11 @@
       "outputs": ["coverage/**"],
       "env": ["NODE_ENV"]
     },
+    "test:unit": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "env": ["NODE_ENV"]
+    },
     "test:ci": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"],

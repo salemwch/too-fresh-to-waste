@@ -15,11 +15,10 @@ module.exports = {
   testEnvironment: 'node',
   preset: 'ts-jest',
   transform: {
-    '^.+\\.ts$': [
+    '^.+\\.[tj]s$': [
       'ts-jest',
       {
         tsconfig: {
-          // Inline tsconfig overrides for ts-jest — decorators are required
           experimentalDecorators: true,
           emitDecoratorMetadata: true,
           resolveJsonModule: true,
@@ -30,6 +29,7 @@ module.exports = {
       },
     ],
   },
+  transformIgnorePatterns: ['node_modules/(?!(uuid)/)'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
