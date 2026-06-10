@@ -152,13 +152,16 @@ export function categorizeError(error: AxiosError | Error): CategorizedError {
       };
     }
 
-    // 403 Forbidden - Account suspended/deleted (logout)
+    // 403 Forbidden - Permission denied (NOT a session failure).
+    // 403 means "you're authenticated but not allowed" — wrong role,
+    // rate-limited, or account suspended. None of these mean the session
+    // is invalid. Show an error message; never destroy the session.
     if (status === 403) {
       return {
-        category: ErrorCategory.AUTH_FAILURE,
+        category: ErrorCategory.BUSINESS_ERROR,
         originalError: error,
-        message: 'Access denied',
-        shouldLogout: true,
+        message: extractErrorMessage(axiosError),
+        shouldLogout: false,
         shouldShowOfflineBanner: false,
         shouldRetry: false,
       };

@@ -689,9 +689,16 @@ export class AuthService {
       throw new UnauthorizedException('Session expired. Please log in again.');
     }
 
-    // SECURITY: Block deleted/suspended/blocked users from refreshing tokens
+    // SECURITY: Block deleted/suspended/blocked users from refreshing tokens.
+    // Use 403 (not 401) so clients can distinguish "account suspended" from
+    // "token expired" and show the appropriate screen instead of login.
     if (user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException('Account is no longer active');
+      throw new ForbiddenException({
+        statusCode: 403,
+        message: 'Account is no longer active',
+        error: 'ACCOUNT_SUSPENDED',
+        accountStatus: user.status,
+      });
     }
 
     // Validate refresh token with token fixation attack prevention

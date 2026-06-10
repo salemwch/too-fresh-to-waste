@@ -344,21 +344,44 @@ export const refreshTokenAsync = createAsyncThunk(
         errorMessage = error.message;
       }
 
-      // Determine if this is a network error (offline/timeout) vs auth error (401/403)
+      // Extract HTTP status code from the error
+      let statusCode: number | undefined;
+      let errorCode: string | undefined;
+      if (error !== null && typeof error === 'object') {
+        const errObj = error as Record<string, unknown>;
+        if (typeof errObj['code'] === 'number') {
+          statusCode = errObj['code'];
+        }
+        if (typeof errObj['errorCode'] === 'string') {
+          errorCode = errObj['errorCode'];
+        }
+      }
+
+      // Determine if this is a network/server error vs a fatal auth error.
+      // Network errors + 5xx = keep session alive (server problem, not user problem).
+      // Only 401 = session truly dead. 403 with ACCOUNT_SUSPENDED = special case.
       const isNetworkError =
         errorMessage === 'Network request failed' ||
         errorMessage.toLowerCase().includes('network') ||
         errorMessage.toLowerCase().includes('timeout') ||
         errorMessage.toLowerCase().includes('econnrefused') ||
         errorMessage.toLowerCase().includes('econnaborted') ||
+        (statusCode !== undefined && statusCode >= 500 && statusCode < 600) ||
         (error !== null &&
           typeof error === 'object' &&
           'type' in error &&
-          (error as { type: string }).type === 'NETWORK');
+          ((error as { type: string }).type === 'NETWORK' ||
+            (error as { type: string }).type === 'SERVER_ERROR'));
+
+      const isAccountSuspended =
+        statusCode === 403 ||
+        errorCode === 'ACCOUNT_SUSPENDED' ||
+        errorMessage.toLowerCase().includes('no longer active');
 
       return rejectWithValue({
         message: errorMessage,
         isNetworkError,
+        isAccountSuspended,
       });
     }
   },
@@ -522,85 +545,84 @@ export const deleteAccountAsync = createAsyncThunk(
   },
 );
 
-export const loadStoredAuthAsync = createAsyncThunk(
-  'auth/loadStoredAuth',
-  async (_, { rejectWithValue }) => {
-    try {
-      Logger.debug('Loading stored authentication data');
+export const loadStoredAuthAsync = createAsyncThunk('auth/loadStoredAuth', async () => {
+  try {
+    Logger.debug('Loading stored authentication data');
 
-      // Migrate from AsyncStorage to Keychain if needed (one-time migration)
-      await SecureStorage.migrateFromAsyncStorage();
+    // Migrate from AsyncStorage to Keychain if needed (one-time migration)
+    await SecureStorage.migrateFromAsyncStorage();
 
-      // Parallel reads: tokens, user data, and session metadata are independent
-      const [{ accessToken, refreshToken }, userJson, { expiresAt, lastLoginTime }] =
-        await Promise.all([
-          SecureStorage.getTokensWithRetry(3),
-          SecureStorage.getUserData(),
-          SecureStorage.getSessionMetadata(),
-        ]);
+    // Parallel reads: tokens, user data, and session metadata are independent
+    const [{ accessToken, refreshToken }, userJson, { expiresAt, lastLoginTime }] =
+      await Promise.all([
+        SecureStorage.getTokensWithRetry(3),
+        SecureStorage.getUserData(),
+        SecureStorage.getSessionMetadata(),
+      ]);
 
-      Logger.info('[Auth] Loaded from Keychain', { hasTokens: !!(accessToken && refreshToken) });
+    Logger.info('[Auth] Loaded from Keychain', { hasTokens: !!(accessToken && refreshToken) });
 
-      // Explicitly check for null/undefined or empty strings to avoid nullable conditional usage
-      const isAccessTokenMissing = accessToken == null || accessToken === '';
-      const isRefreshTokenMissing = refreshToken == null || refreshToken === '';
-      const isUserJsonMissing = userJson == null || userJson === '';
+    // Explicitly check for null/undefined or empty strings to avoid nullable conditional usage
+    const isAccessTokenMissing = accessToken == null || accessToken === '';
+    const isRefreshTokenMissing = refreshToken == null || refreshToken === '';
+    const isUserJsonMissing = userJson == null || userJson === '';
 
-      if (isAccessTokenMissing || isRefreshTokenMissing || isUserJsonMissing) {
-        Logger.debug('No stored authentication data found');
-        return null;
-      }
-
-      const parsedUser = JSON.parse(userJson) as unknown;
-      const user = parsedUser as User;
-
-      // Check if the access token has expired on disk.
-      // NOTE: We intentionally do NOT clear storage or return null here.
-      // The refresh token may still be valid (it has a much longer TTL).
-      // flowState=AUTHENTICATED is set in the reducer; the reactive 401 handler in
-      // apiClient silently exchanges the stale access token for a new one on
-      // the first API call — completely transparent to the user.
-      // If the refresh token is also expired, apiClient dispatches forceLocalLogout
-      // which clears storage and sets flowState=SESSION_EXPIRED.
-      if (typeof expiresAt === 'string' && expiresAt !== '') {
-        const expiresAtDate = new Date(expiresAt);
-        if (expiresAtDate <= new Date()) {
-          Logger.info('[Auth] Access token expired on cold start — will refresh transparently', {
-            expiresAt,
-          });
-          // Fall through: tokens stay in Keychain; reactive refresh handles renewal.
-        }
-      }
-
-      Logger.info('Stored authentication data loaded successfully', { userId: user.userId });
-      return {
-        user,
-        lastLoginTime,
-        sessionExpiresAt: expiresAt,
-      };
-    } catch (error) {
-      // KeychainLockedError means the device is locked (screen off) — tokens
-      // exist but the OS won't hand them over right now. Do NOT wipe storage.
-      // Return null so flowState stays UNAUTHENTICATED; the session middleware
-      // will retry once the device is unlocked and the user taps the app.
-      if (error instanceof KeychainLockedError) {
-        Logger.warn('[Auth] Keychain locked during rehydration — tokens preserved, will retry', {
-          error: (error as Error).message,
-        });
-        return null;
-      }
-
-      Logger.error('Failed to load stored authentication data', {}, error as Error);
-
-      // Clear corrupted data (only for genuine corruption, not keychain-locked)
-      await SecureStorage.clearAll();
-
-      return rejectWithValue({
-        message: 'Failed to load stored authentication data',
-      });
+    if (isAccessTokenMissing || isRefreshTokenMissing || isUserJsonMissing) {
+      Logger.debug('No stored authentication data found');
+      return null;
     }
-  },
-);
+
+    const parsedUser = JSON.parse(userJson) as unknown;
+    const user = parsedUser as User;
+
+    // Check if the access token has expired on disk.
+    // NOTE: We intentionally do NOT clear storage or return null here.
+    // The refresh token may still be valid (it has a much longer TTL).
+    // flowState=AUTHENTICATED is set in the reducer; the reactive 401 handler in
+    // apiClient silently exchanges the stale access token for a new one on
+    // the first API call — completely transparent to the user.
+    // If the refresh token is also expired, apiClient dispatches forceLocalLogout
+    // which clears storage and sets flowState=SESSION_EXPIRED.
+    if (typeof expiresAt === 'string' && expiresAt !== '') {
+      const expiresAtDate = new Date(expiresAt);
+      if (expiresAtDate <= new Date()) {
+        Logger.info('[Auth] Access token expired on cold start — will refresh transparently', {
+          expiresAt,
+        });
+        // Fall through: tokens stay in Keychain; reactive refresh handles renewal.
+      }
+    }
+
+    Logger.info('Stored authentication data loaded successfully', { userId: user.userId });
+    return {
+      user,
+      lastLoginTime,
+      sessionExpiresAt: expiresAt,
+    };
+  } catch (error) {
+    // KeychainLockedError means the device is locked (screen off) — tokens
+    // exist but the OS won't hand them over right now. Do NOT wipe storage.
+    // Return null so flowState stays UNAUTHENTICATED; the session middleware
+    // will retry once the device is unlocked and the user taps the app.
+    if (error instanceof KeychainLockedError) {
+      Logger.warn('[Auth] Keychain locked during rehydration — tokens preserved, will retry', {
+        error: (error as Error).message,
+      });
+      return null;
+    }
+
+    Logger.error('Failed to load stored authentication data', {}, error as Error);
+
+    // Do NOT clear Keychain here. The error could be a transient OS issue
+    // (biometric prompt cancelled, Keychain busy, permission reset after
+    // iOS update). Clearing destroys a potentially valid session. Return
+    // null so flowState → UNAUTHENTICATED; the session middleware will
+    // retry on the next app foreground, and if Keychain genuinely has
+    // corrupt data the next read will fail identically and the user can
+    // log in fresh.
+    return null;
+  }
+});
 
 export const syncCurrentUserAsync = createAsyncThunk(
   'auth/syncCurrentUser',
@@ -650,7 +672,8 @@ export const syncCurrentUserAsync = createAsyncThunk(
         (error !== null &&
           typeof error === 'object' &&
           'type' in error &&
-          (error as { type: string }).type === 'NETWORK');
+          ((error as { type: string }).type === 'NETWORK' ||
+            (error as { type: string }).type === 'SERVER_ERROR'));
 
       const isServerError = statusCode !== undefined && statusCode >= 500 && statusCode < 600;
 
@@ -1044,18 +1067,30 @@ const authSlice = createSlice({
     });
 
     builder.addCase(refreshTokenAsync.rejected, (state, action) => {
-      const payload = action.payload as { message?: string; isNetworkError?: boolean } | undefined;
+      const payload = action.payload as
+        | { message?: string; isNetworkError?: boolean; isAccountSuspended?: boolean }
+        | undefined;
 
       if (payload?.isNetworkError === true) {
-        // NETWORK ERROR: Device offline or server unreachable.
+        // NETWORK/SERVER ERROR: Device offline, server unreachable, or 5xx.
         // Keep the session alive — the user is still authenticated.
         // The offline banner (driven by NetInfo) handles the UX.
         state.isOffline = true;
         state.offlineMessage =
           "No connection. Your session is safe — we'll retry when you're back online.";
         state.error = undefined;
+      } else if (payload?.isAccountSuspended === true) {
+        // ACCOUNT SUSPENDED: Admin action — show specific screen, not login.
+        state.user = null;
+        state.isAuthenticated = false;
+        state.error = 'Your account has been suspended. Please contact support.';
+        state.flowState = AuthFlowState.ACCOUNT_SUSPENDED;
+
+        Logger.info('[STATE-DRIVEN NAV] Account suspended', {
+          flowState: AuthFlowState.ACCOUNT_SUSPENDED,
+        });
       } else {
-        // AUTH ERROR (401/403/invalid token): Session truly expired.
+        // AUTH ERROR (401/invalid token): Session truly expired.
         state.user = null;
         state.isAuthenticated = false;
         state.error = 'Session expired. Please login again.';

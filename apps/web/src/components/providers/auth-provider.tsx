@@ -73,8 +73,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Backend explicitly rejected the session — clear everything.
           useAuthStore.getState().logout();
         } else {
-          // Network error — not authenticated (no offline fallback)
-          setUser(null);
+          // Network/server error — backend unreachable but cookies may still be
+          // valid. Do NOT clear auth state. Leave isAuthenticated as-is so the
+          // user keeps seeing their current page. The proactive 13-min refresh
+          // interval and the reactive 401 interceptor will recover the session
+          // once the backend is reachable again.
         }
       } finally {
         if (!cancelled) {
@@ -126,20 +129,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const onStorage = (e: StorageEvent) => {
       if (e.key !== 'wfa_tokens_ts') return;
-      // Another tab refreshed — HttpOnly cookies already updated by backend.
-      // Re-verify our session to update user state if needed.
-      authService
-        .getProfile()
-        .then(res => {
-          useAuthStore.getState().setUser(res.data.data);
-        })
-        .catch(err => {
-          // Hard auth error (401/403) means the session is no longer valid — log out.
-          // Network errors are ignored; the next proactive refresh will handle them.
-          if (isHardAuthError(err)) {
-            useAuthStore.getState().logout();
-          }
-        });
+      // Another tab just refreshed tokens. The backend has already set new
+      // HttpOnly cookies via Set-Cookie. We re-verify user state, but with
+      // a small delay — the new cookies need time to propagate and the
+      // backend may still be finishing the rotation.
+      //
+      // CRITICAL: Do NOT logout on errors here. The other tab's refresh
+      // already succeeded (that's why we got the storage event). A 401
+      // here is almost always a timing issue — the old access token cookie
+      // hasn't been replaced yet. The next proactive refresh (13-min
+      // interval) or the 401 interceptor will handle it properly.
+      setTimeout(() => {
+        authService
+          .getProfile()
+          .then(res => {
+            useAuthStore.getState().setUser(res.data.data);
+          })
+          .catch(() => {
+            // Swallow all errors — the proactive refresh interval and
+            // the 401 interceptor are the proper recovery paths.
+          });
+      }, 1000);
     };
 
     window.addEventListener('storage', onStorage);

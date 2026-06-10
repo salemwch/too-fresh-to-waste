@@ -63,6 +63,7 @@ export enum AuthFlowState {
   // Authenticated states
   AUTHENTICATED = 'authenticated', // Fully authenticated and verified, show main app
   SESSION_EXPIRED = 'session_expired', // Session expired, needs re-authentication
+  ACCOUNT_SUSPENDED = 'account_suspended', // Admin suspended/blocked the account
 }
 
 // Auth State Types

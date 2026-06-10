@@ -80,15 +80,33 @@ export async function performRefreshOnce(): Promise<string> {
   } catch (err) {
     processQueue(err, null);
 
-    // Only log out on hard auth rejections (401/403).
-    // Network errors, timeouts, and 5xx keep the session alive so the next
-    // request or interval tick can retry.
+    // Only log out on hard auth rejections (401).
+    // 403 from refresh = account suspended — clear session but let the UI
+    // show a specific "account suspended" message (not the generic login page).
+    // Network errors, timeouts, and 5xx keep the session alive.
     const status = (err as { response?: { status?: number } })?.response?.status;
-    if (status === 401 || status === 403) {
+    const errorBody = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
+    const isAccountSuspended = status === 403 && errorBody?.['error'] === 'ACCOUNT_SUSPENDED';
+
+    if (status === 401) {
       if (process.env.NODE_ENV === 'development') {
         console.error('[API] performRefreshOnce — refresh token rejected, logging out', { status });
       }
       useAuthStore.getState().logout();
+      // Hard navigation clears all JS state and lets middleware handle the
+      // redirect properly. Without this, stale HttpOnly cookies persist and
+      // the next AuthProvider rehydration retries with dead tokens.
+      if (typeof window !== 'undefined') {
+        window.location.replace('/login');
+      }
+    } else if (isAccountSuspended) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[API] performRefreshOnce — account suspended', { status, errorBody });
+      }
+      useAuthStore.getState().logout();
+      if (typeof window !== 'undefined') {
+        window.location.replace('/login?reason=suspended');
+      }
     } else {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[API] performRefreshOnce — network/server error, keeping session', {

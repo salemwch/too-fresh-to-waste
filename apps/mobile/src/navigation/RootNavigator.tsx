@@ -337,6 +337,7 @@ export const RootNavigator: React.FC = () => {
       case AuthFlowState.PASSWORD_RESET_REQUESTED:
       case AuthFlowState.PASSWORD_RESET_VERIFIED:
       case AuthFlowState.SESSION_EXPIRED:
+      case AuthFlowState.ACCOUNT_SUSPENDED:
       default:
         // GATE 2: Onboarding (device-level, only for unauthenticated users)
         if (!hasSeenWelcome) {

@@ -462,7 +462,7 @@ export class AuthController {
   @Post('refresh')
   @Public()
   @UseGuards(AppVersionGuard, AuthThrottlerGuard)
-  @Throttle({ default: { limit: 30, ttl: 3600000 } }) // 30 attempts per hour per IP+userId
+  @Throttle({ default: { limit: 120, ttl: 3600000 } }) // 120/hour — accounts for multi-tab (each tab refreshes every ~13min) + reactive 401 retries
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Refresh access token using refresh token',
@@ -473,9 +473,9 @@ export class AuthController {
 - New token pair is issued with fresh expiry times
 - Prevents token replay attacks
 
-**Rate Limiting:** 10 attempts per hour per IP
+**Rate Limiting:** 120 attempts per hour per IP+userId
 - Prevents refresh token abuse
-- Legitimate apps refresh ~4x/hour max (15-min access token)
+- Allows multi-tab usage (~8 tabs × 4 refreshes/hour + reactive retries)
 
 **Mobile Support:**
 - Send refresh token in request body: \`{ "refreshToken": "..." }\`

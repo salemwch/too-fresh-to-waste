@@ -80,11 +80,28 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch {
-    // Network or server error — do not show an error page; fall back to login
-    // so the user can always reach their destination after authentication.
-    const callbackUrl = encodeURIComponent(redirectPath);
-    return NextResponse.redirect(
-      new URL(`/${locale}/login?callbackUrl=${callbackUrl}`, request.url),
+    // Network or server error — backend unreachable but the refresh token
+    // cookie is still valid. Instead of sending the user to /login (which
+    // implies their session is dead), serve a minimal retry page that
+    // auto-reloads after 3 seconds. Once the backend recovers, the redirect
+    // will succeed transparently — the user never sees a login form.
+    return new NextResponse(
+      `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reconnecting…</title>
+<style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f8f9fa;color:#333}
+.c{text-align:center}.sp{width:28px;height:28px;border:3px solid #e0e0e0;border-top-color:#1E4448;border-radius:50%;animation:s .8s linear infinite;margin:0 auto 16px}
+@keyframes s{to{transform:rotate(360deg)}}</style>
+<meta http-equiv="refresh" content="3;url=${encodeURI(request.url)}">
+</head><body><div class="c"><div class="sp"></div><p>Reconnecting to server…</p></div></body></html>`,
+      {
+        status: 503,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Retry-After': '3',
+          'Cache-Control': 'no-store',
+        },
+      },
     );
   }
 }
