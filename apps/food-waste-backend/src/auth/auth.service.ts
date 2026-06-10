@@ -36,6 +36,7 @@ export interface AuthTokens {
   refreshToken: string;
   expiresIn: number; // Seconds until access token expires
   tokenType: 'Bearer';
+  rememberMe?: boolean;
 }
 
 export interface UserResponse {
@@ -770,6 +771,7 @@ export class AuthService {
       refreshToken: tokenPair.refreshToken,
       expiresIn: this.getAccessTokenExpiresInSeconds(),
       tokenType: 'Bearer' as const,
+      rememberMe: validationResult.rememberMe ?? false,
     };
   }
 

@@ -158,12 +158,19 @@ class AuthService {
       if (responseData !== null && responseData !== undefined && typeof responseData === 'object') {
         const dataObj = responseData as Record<string, unknown>;
 
-        // Check for field/type at top level first (for direct error objects)
+        // Check for field/type/blockedUntil at top level first (for direct error objects)
         if (typeof dataObj['field'] === 'string') {
           errorMetadata['field'] = dataObj['field'];
         }
         if (typeof dataObj['type'] === 'string') {
-          errorMetadata['errorCode'] = dataObj['type']; // Rename to errorCode to avoid conflict with ErrorType
+          errorMetadata['errorCode'] = dataObj['type'];
+        }
+        if (
+          typeof dataObj['blockedUntil'] === 'string' ||
+          dataObj['blockedUntil'] instanceof Date
+        ) {
+          errorMetadata['blockedUntil'] = dataObj['blockedUntil'];
+          errorMetadata['isAccountLocked'] = true;
         }
 
         // Also check nested message object (for wrapped error responses)
@@ -177,7 +184,14 @@ class AuthService {
             errorMetadata['field'] = nestedMsg['field'];
           }
           if (typeof nestedMsg['type'] === 'string') {
-            errorMetadata['errorCode'] = nestedMsg['type']; // Rename to errorCode to avoid conflict with ErrorType
+            errorMetadata['errorCode'] = nestedMsg['type'];
+          }
+          if (
+            typeof nestedMsg['blockedUntil'] === 'string' ||
+            nestedMsg['blockedUntil'] instanceof Date
+          ) {
+            errorMetadata['blockedUntil'] = nestedMsg['blockedUntil'];
+            errorMetadata['isAccountLocked'] = true;
           }
         }
       }
@@ -232,6 +246,14 @@ class AuthService {
         ErrorType.PERMISSION,
         message ?? 'Permission denied',
         errorMetadata,
+      );
+    }
+
+    if (status === 429) {
+      throw ErrorHandler.createError(
+        ErrorType.CLIENT_ERROR,
+        'Too many attempts. Please wait a moment and try again.',
+        { code: status },
       );
     }
 

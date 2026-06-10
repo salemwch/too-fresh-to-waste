@@ -330,7 +330,7 @@ export class AuthController {
       rememberMe: loginDto.rememberMe ?? false,
     });
 
-    this.setAuthCookies(res, loginResponse.tokens, sessionInfo.sessionId);
+    this.setAuthCookies(res, loginResponse.tokens, sessionInfo.sessionId, loginDto.rememberMe);
 
     return {
       ...loginResponse,
@@ -541,8 +541,8 @@ export class AuthController {
       ip,
     });
 
-    // Set cookies for web compatibility
-    this.setAuthCookies(res, tokens);
+    // Set cookies for web compatibility — preserve rememberMe across rotation
+    this.setAuthCookies(res, tokens, undefined, tokens.rememberMe);
 
     // ✅ Return tokens in response body for mobile app
     return {
@@ -1046,6 +1046,7 @@ export class AuthController {
     res: ExpressResponse,
     tokens: { accessToken: string; refreshToken: string },
     sessionId?: string,
+    rememberMe?: boolean,
   ) {
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     const domain = this.configService.get<string>('COOKIE_DOMAIN');
@@ -1063,12 +1064,16 @@ export class AuthController {
       // ✓ CRITICAL: Set refresh token with maximum security
       // Cookie maxAge must be >= JWT lifetime so the browser doesn't discard
       // a still-valid token. Token is revocable server-side on logout/password-change.
+      const refreshMaxAge =
+        rememberMe === true
+          ? 365 * 24 * 60 * 60 * 1000 // 365 days — matches JWT_REFRESH_REMEMBER_ME_EXPIRES_IN
+          : 30 * 24 * 60 * 60 * 1000; // 30 days — matches default JWT_REFRESH_EXPIRES_IN
       CookieSecurityUtil.setRefreshTokenCookie(
         res,
         tokens.refreshToken,
         isProduction,
         domain,
-        30 * 24 * 60 * 60 * 1000, // 30 days — matches max refresh token lifetime
+        refreshMaxAge,
       );
 
       // ✓ Set session cookie if provided

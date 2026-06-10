@@ -150,22 +150,39 @@ export const googleSignInAsync = createAsyncThunk(
       return response;
     } catch (error) {
       Logger.error('Google Sign-In failed', {}, error as Error);
+
       let rawMessage = '';
+      let errorType = '';
       if (error !== null && error !== undefined && typeof error === 'object') {
         const errObj = error as Record<string, unknown>;
-        if (typeof errObj['message'] === 'string') {
-          rawMessage = errObj['message'];
-        }
+        if (typeof errObj['message'] === 'string') rawMessage = errObj['message'];
+        if (typeof errObj['type'] === 'string') errorType = errObj['type'];
       } else if (error instanceof Error) {
         rawMessage = error.message;
       }
 
-      let errorMessage = 'Could not sign in with Google. Please try again.';
       const lower = rawMessage.toLowerCase();
-      if (lower.includes('invalid') && lower.includes('token')) {
-        errorMessage = 'Google sign-in failed. Please try again or use email instead.';
-      } else if (lower.includes('network') || lower.includes('timeout')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
+      let errorMessage: string;
+
+      if (lower.includes('suspended') || lower.includes('no longer active')) {
+        errorMessage = 'Your account has been suspended. Please contact support for assistance.';
+      } else if (lower.includes('locked') || lower.includes('too many')) {
+        errorMessage = 'Too many attempts. Please try again later.';
+      } else if (lower.includes('already exists') || lower.includes('conflict')) {
+        errorMessage =
+          'An account with this email already exists. Try signing in with email instead.';
+      } else if (
+        lower.includes('network') ||
+        lower.includes('timeout') ||
+        errorType === 'NETWORK'
+      ) {
+        errorMessage = 'Unable to connect. Please check your internet and try again.';
+      } else if (lower.includes('invalid') && lower.includes('token')) {
+        errorMessage = 'Google sign-in could not be verified. Please try again.';
+      } else if (errorType === 'SERVER_ERROR') {
+        errorMessage = 'Our servers are temporarily unavailable. Please try again later.';
+      } else {
+        errorMessage = 'Could not sign in with Google. Please try again.';
       }
 
       return rejectWithValue({ message: errorMessage });
