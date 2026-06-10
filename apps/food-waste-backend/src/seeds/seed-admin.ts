@@ -16,8 +16,12 @@ async function bootstrap() {
   const userModel = app.get<Model<User>>(getModelToken(User.name));
   const logger = new AppLoggerService();
 
-  const adminEmail = process.env['ADMIN_EMAIL'] ?? 'admin@example.com';
-  const adminPassword = process.env['ADMIN_PASSWORD'] ?? 'ChangeMe123!';
+  const adminEmail = process.env['ADMIN_EMAIL'];
+  const adminPassword = process.env['ADMIN_PASSWORD'];
+  if (!adminEmail || !adminPassword) {
+    logger.error('ADMIN_EMAIL and ADMIN_PASSWORD environment variables are required', 'SeedAdmin');
+    process.exit(1);
+  }
   logger.log(`🔍 Checking for admin with email: ${adminEmail}`, 'SeedAdmin');
 
   const existingAdmin = await usersService.findByEmail(adminEmail);

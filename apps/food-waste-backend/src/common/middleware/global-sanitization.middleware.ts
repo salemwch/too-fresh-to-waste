@@ -236,6 +236,14 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
           }
           return item;
         });
+      } else if (typeof value === 'object' && value !== null) {
+        const flattened = this.flattenQueryObject(value as Record<string, unknown>);
+        if (flattened !== undefined) {
+          sanitized[sanitizedKey] = flattened;
+        } else {
+          suspiciousDetected = true;
+          fieldsModified++;
+        }
       } else {
         sanitized[sanitizedKey] = value;
       }
@@ -246,6 +254,27 @@ export class GlobalSanitizationMiddleware implements NestMiddleware {
       fieldsModified,
       suspiciousDetected,
     };
+  }
+
+  /**
+   * Flatten nested query objects that may contain MongoDB operators.
+   * Express's qs parser converts ?field[$ne]=val into {field: {$ne: "val"}}.
+   * Returns undefined if the object contains only operator keys (malicious).
+   * Returns the first string value if mixed (best-effort recovery).
+   */
+  private flattenQueryObject(obj: Record<string, unknown>): string | undefined {
+    const keys = Object.keys(obj);
+    const hasOperatorKeys = keys.some(k => k.startsWith('$'));
+
+    if (hasOperatorKeys) {
+      this.logger.warn(
+        `Blocked NoSQL operator injection in query parameter: ${JSON.stringify(obj)}`,
+      );
+      return undefined;
+    }
+
+    const firstStringValue = Object.values(obj).find(v => typeof v === 'string');
+    return typeof firstStringValue === 'string' ? firstStringValue : undefined;
   }
 
   /**

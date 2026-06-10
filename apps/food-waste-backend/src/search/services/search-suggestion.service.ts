@@ -16,6 +16,7 @@ import {
   SuggestionSource,
 } from '../schemas/search-suggestion.schema';
 
+import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
 import { SearchCacheService } from './search-cache.service';
 
 export interface SuggestionResult {
@@ -57,6 +58,7 @@ export class SearchSuggestionService {
     @InjectModel(SearchQuery.name)
     private readonly searchQueryModel: Model<SearchQueryDocument>,
     private readonly cacheService: SearchCacheService,
+    private readonly regexSecurityUtil: RegexSecurityUtil,
   ) {}
 
   /**
@@ -186,7 +188,7 @@ export class SearchSuggestionService {
       {
         $match: {
           isActive: true,
-          aliases: { $regex: query, $options: 'i' },
+          aliases: { $regex: this.regexSecurityUtil.escapeRegexPattern(query), $options: 'i' },
           ...(types && { type: { $in: types } }),
         },
       },
@@ -230,7 +232,7 @@ export class SearchSuggestionService {
         $match: {
           isActive: true,
           period: PopularityPeriod.WEEKLY,
-          query: { $regex: query, $options: 'i' },
+          query: { $regex: this.regexSecurityUtil.escapeRegexPattern(query), $options: 'i' },
           trendScore: { $gt: 0 },
         },
       },
@@ -286,7 +288,7 @@ export class SearchSuggestionService {
               $maxDistance: radius,
             },
           },
-          text: { $regex: query, $options: 'i' },
+          text: { $regex: this.regexSecurityUtil.escapeRegexPattern(query), $options: 'i' },
         },
       },
       {
@@ -328,8 +330,8 @@ export class SearchSuggestionService {
       {
         $match: {
           userId,
-          query: { $regex: query, $options: 'i' },
-          createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, // Last 30 days
+          query: { $regex: this.regexSecurityUtil.escapeRegexPattern(query), $options: 'i' },
+          createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
         },
       },
       {

@@ -14,6 +14,7 @@ import { Model, Types, PipelineStage, FilterQuery } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 
 import { toObjectId } from 'src/common/utils/mongo.utils';
+import { RegexSecurityUtil } from 'src/common/utils/regex-security.util';
 import { Order, OrderDocument, OrderStatus } from 'src/orders/schemas/order.schema';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 
@@ -63,6 +64,7 @@ export class PaymentService {
     private readonly smtPaymentService: SMTPaymentService,
     private readonly appLogger: AppLoggerService,
     private readonly configService: ConfigService,
+    private readonly regexSecurityUtil: RegexSecurityUtil,
   ) {
     void this.logger;
   }
@@ -349,10 +351,11 @@ export class PaymentService {
 
     // Free-text search
     if (filters.search) {
+      const escaped = this.regexSecurityUtil.escapeRegexPattern(filters.search);
       query.$or = [
-        { transactionId: { $regex: filters.search, $options: 'i' } },
-        { merchantTransactionId: { $regex: filters.search, $options: 'i' } },
-        { 'smtResponse.rrn': { $regex: filters.search, $options: 'i' } },
+        { transactionId: { $regex: escaped, $options: 'i' } },
+        { merchantTransactionId: { $regex: escaped, $options: 'i' } },
+        { 'smtResponse.rrn': { $regex: escaped, $options: 'i' } },
       ];
     }
 
@@ -491,12 +494,20 @@ export class PaymentService {
         };
         payment.webhookDeliveredAt = new Date();
 
-        // Update order status if needed
+        // Update order status if needed — only if order is not in a terminal state
+        // (delayed webhook after cancellation/expiry must not revive the order)
         if (newStatus === PaymentStatus.COMPLETED && previousStatus !== PaymentStatus.COMPLETED) {
-          await this.orderModel.findByIdAndUpdate(payment.orderId, {
-            status: OrderStatus.CONFIRMED,
-            paymentStatus: 'paid',
-          });
+          const terminalStatuses = [
+            OrderStatus.CANCELLED,
+            OrderStatus.EXPIRED,
+            OrderStatus.REFUNDED,
+            OrderStatus.PICKED_UP,
+            OrderStatus.DELIVERED,
+          ];
+          await this.orderModel.findOneAndUpdate(
+            { _id: payment.orderId, status: { $nin: terminalStatuses } },
+            { status: OrderStatus.CONFIRMED, paymentStatus: 'paid' },
+          );
         } else if (
           newStatus === PaymentStatus.FAILED &&
           previousStatus === PaymentStatus.PROCESSING

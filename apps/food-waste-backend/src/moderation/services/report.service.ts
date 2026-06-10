@@ -8,6 +8,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, PipelineStage, FlattenMaps } from 'mongoose';
 
+import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
 import { CreateReportDto } from '../dtos/create-report.dto';
 import { ReportQueryDto, ReportUpdateDto } from '../dtos/report-query.dto';
 import { LogLevel, LogCategory } from '../schemas/moderation-log.schema';
@@ -29,6 +30,7 @@ export class ReportService {
     @InjectModel(Report.name)
     private readonly reportModel: Model<ReportDocument>,
     private readonly moderationLogService: ModerationLogService,
+    private readonly regexSecurityUtil: RegexSecurityUtil,
   ) {}
 
   async createReport(
@@ -147,9 +149,10 @@ export class ReportService {
 
     // Search functionality
     if (queryDto.search) {
+      const escaped = this.regexSecurityUtil.escapeRegexPattern(queryDto.search);
       matchConditions['$or'] = [
-        { description: { $regex: queryDto.search, $options: 'i' } },
-        { resolutionNotes: { $regex: queryDto.search, $options: 'i' } },
+        { description: { $regex: escaped, $options: 'i' } },
+        { resolutionNotes: { $regex: escaped, $options: 'i' } },
       ];
     }
 

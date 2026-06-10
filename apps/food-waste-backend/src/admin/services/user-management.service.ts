@@ -24,6 +24,7 @@ import { IUser } from '../../common/interfaces/user.interface';
 import { UserMapper } from '../../common/mappers/user.mapper';
 import { EventBusService } from '../../common/services/event-bus/event-bus.service';
 import { LeanDocument } from '../../common/types/mongoose.types';
+import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
 import { ISendNotificationRequest } from '../../notifications/interfaces/notification.interfaces';
 import { NotificationService } from '../../notifications/services/notification.service';
 import { Order, OrderDocument, OrderStatus } from '../../orders/schemas/order.schema';
@@ -173,6 +174,7 @@ export class UserManagementService {
     private readonly eventBus: EventBusService,
     private readonly usersService: UsersService,
     private readonly configService: ConfigService,
+    private readonly regexSecurityUtil: RegexSecurityUtil,
     @Optional() private readonly notificationService?: NotificationService,
   ) {}
 
@@ -394,10 +396,11 @@ export class UserManagementService {
       const filter: Record<string, unknown> = {};
 
       if (search) {
+        const escaped = this.regexSecurityUtil.escapeRegexPattern(search);
         filter['$or'] = [
-          { firstName: { $regex: search, $options: 'i' } },
-          { lastName: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
+          { firstName: { $regex: escaped, $options: 'i' } },
+          { lastName: { $regex: escaped, $options: 'i' } },
+          { email: { $regex: escaped, $options: 'i' } },
         ];
       }
 

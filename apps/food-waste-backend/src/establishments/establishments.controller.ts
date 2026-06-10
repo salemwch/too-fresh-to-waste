@@ -16,6 +16,7 @@ import {
   DefaultValuePipe,
   ValidationPipe,
   BadRequestException,
+  ForbiddenException,
   Logger,
   UseInterceptors,
   UploadedFiles,
@@ -278,12 +279,8 @@ export class EstablishmentsController {
   async getStats(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     const establishment = await this.establishmentsService.findById(id);
 
-    // Check if user can access stats (owner or admin)
     if (req.user.role !== UserRole.ADMIN && establishment.ownerId.toString() !== req.user.userId) {
-      return {
-        message: 'Access denied',
-        data: null,
-      };
+      throw new ForbiddenException('You can only access stats for your own establishment');
     }
 
     const stats = await this.establishmentsService.getStats(id);

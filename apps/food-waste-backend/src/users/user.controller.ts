@@ -300,7 +300,10 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Password updated successfully' })
   @ApiResponse({ status: 400, description: 'Password does not meet policy requirements' })
   async updatePassword(@Request() req: AuthenticatedRequest, @Body() dto: UpdatePasswordDto) {
-    await this.usersService.updatePassword(req.user.userId, dto.newPassword);
+    await this.usersService.updatePassword(req.user.userId, dto.newPassword, dto.currentPassword);
+    await this.usersService.markTokenInvalidation(req.user.userId);
+    await this.usersService.incrementTokenRevocationVersion(req.user.userId);
+    await this.usersService.clearAllRefreshTokens(req.user.userId);
     return { message: 'Password updated successfully' };
   }
 

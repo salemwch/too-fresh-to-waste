@@ -353,9 +353,13 @@ export class LoyaltyService {
         createdAt: new Date(),
       };
 
-      // Deduct points from user account
+      // Atomic deduction: filter ensures availablePoints >= amount at write time,
+      // preventing double-spend via concurrent requests.
       const updatedAccount = await this.loyaltyModel.findOneAndUpdate(
-        { userId: new Types.ObjectId(userId) },
+        {
+          userId: new Types.ObjectId(userId),
+          availablePoints: { $gte: donateDto.amount },
+        },
         {
           $inc: { availablePoints: -donateDto.amount },
           $push: { pointsHistory: pointTransaction },
@@ -365,7 +369,7 @@ export class LoyaltyService {
       );
 
       if (!updatedAccount) {
-        throw new NotFoundException('Loyalty account not found');
+        throw new BadRequestException('Insufficient points or loyalty account not found');
       }
 
       // Add to donation pool

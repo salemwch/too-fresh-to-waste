@@ -59,13 +59,6 @@ export class AppController {
     };
   }
 
-  // TODO: remove after Sentry verification
-  @Get('debug-sentry')
-  @Public()
-  getDebugSentry() {
-    throw new Error('Sentry test error — delete this endpoint after verification');
-  }
-
   @ApiOperation({
     summary: 'Get available endpoints',
     description: 'Public endpoint listing all available API endpoints and documentation URL',

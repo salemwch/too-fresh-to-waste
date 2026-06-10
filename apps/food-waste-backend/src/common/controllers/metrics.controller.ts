@@ -7,20 +7,33 @@
  * Endpoint: GET /metrics
  *
  * Security:
- * - Public endpoint (no authentication required)
- * - Should be restricted at infrastructure level (firewall/VPC)
+ * - Protected by global JwtAuthGuard (requires authentication)
+ * - Should also be restricted at infrastructure level (firewall/VPC)
  * - Does not expose sensitive data (only aggregated metrics)
  *
  * @see https://prometheus.io/docs/instrumenting/exposition_formats/
  */
 
-import { Controller, Get, Header } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiExcludeEndpoint } from '@nestjs/swagger';
+import { Controller, Get, Header, UseGuards } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiExcludeEndpoint,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
-import { Public } from '../decorators/public.decorator';
+import { UserRole } from '@foodwaste/shared';
+
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
 import { PrometheusMetricsService } from '../services/prometheus-metrics.service';
 
 @ApiTags('Monitoring')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.ADMIN)
 @Controller('metrics')
 export class MetricsController {
   constructor(private readonly metricsService: PrometheusMetricsService) {}
@@ -34,7 +47,6 @@ export class MetricsController {
    * @returns Metrics in Prometheus format
    */
   @Get()
-  @Public()
   @Header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8')
   @ApiOperation({
     summary: 'Get Prometheus metrics',
@@ -51,8 +63,8 @@ Returns application metrics in Prometheus exposition format.
 - \`nodejs_*\` - Node.js runtime metrics (CPU, memory, GC, etc.)
 
 **Security Note:**
-This endpoint is public but should be restricted at the infrastructure level.
-Configure your firewall/VPC to only allow access from Prometheus servers.
+This endpoint requires authentication (JWT). Configure Prometheus with a service
+account token, or restrict at the infrastructure level (firewall/VPC).
         `,
   })
   @ApiResponse({

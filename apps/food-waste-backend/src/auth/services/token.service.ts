@@ -130,7 +130,7 @@ export class TokenService {
     const refreshExpiresInSec = this.parseExpiration(
       this.configService.get<string>(
         rememberMe ? 'JWT_REFRESH_REMEMBER_ME_EXPIRES_IN' : 'JWT_REFRESH_EXPIRES_IN',
-      ) ?? (rememberMe ? '365d' : '365d'),
+      ) ?? (rememberMe ? '365d' : '7d'),
     );
 
     // Create token payloads WITHOUT exp/iat - let JWT library handle them

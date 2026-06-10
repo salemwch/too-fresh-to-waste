@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CommonModule } from '../common/common.module';
 
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
@@ -21,6 +22,7 @@ import { SearchSuggestionService } from './services/search-suggestion.service';
 @Module({
   imports: [
     ConfigModule,
+    CommonModule,
     MongooseModule.forFeature([
       { name: Offer.name, schema: OfferSchema },
       { name: Establishment.name, schema: EstablishmentSchema },

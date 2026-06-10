@@ -15,6 +15,7 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
@@ -151,8 +152,11 @@ export class OrganizationsController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.MERCHANT, UserRole.ADMIN)
   @ApiOperation({ summary: 'Get organization by ID' })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     const org = await this.organizationsService.findById(id);
+    if (req.user.role !== UserRole.ADMIN && org.ownerId.toString() !== req.user.userId) {
+      throw new ForbiddenException('You can only view your own organization');
+    }
     return {
       message: 'Organization retrieved successfully',
       data: org,

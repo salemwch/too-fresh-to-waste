@@ -2,12 +2,15 @@ import type { LoginInput } from '@foodwaste/shared';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsString, IsOptional, IsBoolean } from 'class-validator';
 
+import { SanitizeEmail } from '../../common/decorators/sanitize.decorator';
+
 export class LoginDto implements LoginInput {
   @ApiProperty({
     description: 'User email address',
     example: 'john.doe@example.com',
     format: 'email',
   })
+  @SanitizeEmail()
   @IsEmail()
   email!: string;
 

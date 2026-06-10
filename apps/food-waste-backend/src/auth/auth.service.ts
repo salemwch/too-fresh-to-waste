@@ -962,6 +962,11 @@ export class AuthService {
 
     await this.usersService.completePasswordChange(userId, hashedPassword);
 
+    await this.tokenService.revokeAllUserTokens(userId, 'Forced password change');
+    await this.usersService.markTokenInvalidation(userId);
+    await this.usersService.incrementTokenRevocationVersion(userId);
+    await this.usersService.clearAllRefreshTokens(userId);
+
     const tokens = await this.tokenService.generateTokenPair(
       userId,
       user.email,

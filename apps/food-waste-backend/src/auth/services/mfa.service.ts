@@ -95,7 +95,7 @@ export class MfaService {
   async verifyTotpSetup(userId: string, token: string): Promise<boolean> {
     try {
       const user = await this.usersService.findById(userId);
-      if (!user || !user.mfaSettings?.pendingTotpSecret) {
+      if (!user?.mfaSettings?.pendingTotpSecret) {
         throw new BadRequestException('No pending TOTP setup found');
       }
 
@@ -172,9 +172,13 @@ export class MfaService {
       }
 
       const hashedCode = this.hashBackupCode(code);
-      const codeIndex = user.mfaSettings.backupCodes.findIndex(
-        storedCode => storedCode === hashedCode,
-      );
+      const hashedBuf = Buffer.from(hashedCode);
+      const codeIndex = user.mfaSettings.backupCodes.findIndex(storedCode => {
+        const storedBuf = Buffer.from(storedCode);
+        return (
+          hashedBuf.length === storedBuf.length && crypto.timingSafeEqual(hashedBuf, storedBuf)
+        );
+      });
 
       if (codeIndex === -1) {
         this.logger.warn(`Invalid backup code used for user ${userId}`);
@@ -309,7 +313,7 @@ export class MfaService {
     for (let i = 0; i < this.BACKUP_CODES_COUNT; i++) {
       let code = '';
       for (let j = 0; j < 8; j++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+        code += chars.charAt(crypto.randomInt(chars.length));
       }
       codes.push(code);
     }

@@ -5,6 +5,14 @@ import type { UpdatePasswordInput } from '@foodwaste/shared';
 
 export class UpdatePasswordDto implements UpdatePasswordInput {
   @ApiProperty({
+    description: 'Current password for verification',
+    example: 'OldSecure@123',
+  })
+  @IsString()
+  @IsNotEmpty({ message: 'Current password is required' })
+  currentPassword!: string;
+
+  @ApiProperty({
     description:
       'New password (min 8 chars, must contain uppercase, lowercase, number, special char)',
     example: 'NewSecure@123',

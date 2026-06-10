@@ -22,6 +22,7 @@ import { AdminUserDeletedEvent } from '../common/events/admin-user.events';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { PhoneNumberService } from '../common/services/phone-number.service';
 import { CryptoUtil } from '../common/utils/crypto.util';
+import { RegexSecurityUtil } from '../common/utils/regex-security.util';
 import { SmsNotificationService } from '../notifications/services/sms-notification.service';
 
 import { CreateUserDto } from './DTO/create-user.dto';
@@ -108,6 +109,7 @@ export class UsersService implements IUsersService {
     private readonly smsNotificationService: SmsNotificationService,
     private readonly passwordHistoryService: PasswordHistoryService,
     private readonly eventBus: EventBusService,
+    private readonly regexSecurityUtil: RegexSecurityUtil,
   ) {}
 
   // ========================================================================
@@ -493,6 +495,7 @@ export class UsersService implements IUsersService {
 
     const query: Record<string, unknown> = {
       passwordResetToken: tokenHash,
+      passwordResetExpires: { $gt: new Date() },
       deletedAt: null,
     };
 
@@ -888,9 +891,9 @@ export class UsersService implements IUsersService {
   async updatePassword(
     userId: string,
     newPassword: string,
+    currentPassword?: string,
     auditData?: { ipAddress: string; userAgent: string },
   ): Promise<void> {
-    // 1. Get current user to access password history
     const user = await this.userModel.findById(userId).select('+password +securitySettings');
     if (!user) {
       throw new NotFoundException('User not found');
@@ -898,6 +901,13 @@ export class UsersService implements IUsersService {
 
     if (!user.password) {
       throw new BadRequestException('Cannot set password for a Google-only account');
+    }
+
+    if (currentPassword) {
+      const isValid = await argon2.verify(user.password, currentPassword);
+      if (!isValid) {
+        throw new BadRequestException('Current password is incorrect');
+      }
     }
 
     // 2. Check password history to prevent reuse
@@ -1496,8 +1506,7 @@ export class UsersService implements IUsersService {
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
 
-    // Create search regex (case-insensitive)
-    const searchRegex = new RegExp(query, 'i');
+    const searchRegex = new RegExp(this.regexSecurityUtil.escapeRegexPattern(query), 'i');
 
     const [users, total] = await Promise.all([
       this.userModel
@@ -1826,6 +1835,10 @@ export class UsersService implements IUsersService {
       await this.userModel.findByIdAndUpdate(userId, {
         'mfaSettings.isEnabled': false,
         'mfaSettings.methods': [],
+        'mfaSettings.totpSecret': null,
+        'mfaSettings.pendingTotpSecret': null,
+        'mfaSettings.backupCodes': [],
+        'mfaSettings.emergencyTokens': [],
       });
       this.logger.log(`MFA disabled for user ${userId}`);
     } catch (error) {

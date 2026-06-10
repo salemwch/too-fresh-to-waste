@@ -82,6 +82,7 @@ export interface IUsersService {
   updatePassword(
     userId: string,
     newPassword: string,
+    currentPassword?: string,
     auditData?: { ipAddress: string; userAgent: string },
   ): Promise<void>;
 

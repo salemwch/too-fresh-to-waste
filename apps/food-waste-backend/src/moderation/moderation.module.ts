@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { CommonModule } from '../common/common.module';
 
 // Note: ScheduleModule.forRoot() is already called in AppModule
 
@@ -39,6 +40,8 @@ import { ReportService } from './services/report.service';
       { name: ModerationAction.name, schema: ModerationActionSchema },
       { name: ModerationLog.name, schema: ModerationLogSchema },
     ]),
+
+    CommonModule,
 
     // Throttler for rate limiting (optional - if you want module-specific config)
     ThrottlerModule.forRoot([

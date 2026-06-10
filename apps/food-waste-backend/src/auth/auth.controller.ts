@@ -1068,7 +1068,7 @@ export class AuthController {
         tokens.refreshToken,
         isProduction,
         domain,
-        365 * 24 * 60 * 60 * 1000, // 365 days — matches JWT_REFRESH_EXPIRES_IN
+        30 * 24 * 60 * 60 * 1000, // 30 days — matches max refresh token lifetime
       );
 
       // ✓ Set session cookie if provided

@@ -31,6 +31,7 @@ import {
 import { EstablishmentMapper } from '../../common/mappers/establishment.mapper';
 import { EventBusService } from '../../common/services/event-bus/event-bus.service';
 import { LeanDocument } from '../../common/types/mongoose.types';
+import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
 import {
   Establishment,
   EstablishmentDocument,
@@ -339,6 +340,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
     private readonly auditService: AdminAuditService,
     private readonly eventBus: EventBusService,
     private readonly configService: ConfigService,
+    private readonly regexSecurityUtil: RegexSecurityUtil,
     @Optional() private readonly notificationService?: NotificationService,
     @Optional()
     @InjectQueue('establishment-management')
@@ -426,10 +428,11 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const filter: EstablishmentSearchFilter = {};
 
       if (search) {
+        const escaped = this.regexSecurityUtil.escapeRegexPattern(search);
         filter.$or = [
-          { name: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
+          { name: { $regex: escaped, $options: 'i' } },
+          { description: { $regex: escaped, $options: 'i' } },
+          { email: { $regex: escaped, $options: 'i' } },
         ];
       }
 
@@ -442,7 +445,10 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       }
 
       if (city) {
-        filter['address.city'] = { $regex: city, $options: 'i' };
+        filter['address.city'] = {
+          $regex: this.regexSecurityUtil.escapeRegexPattern(city),
+          $options: 'i',
+        };
       }
 
       if (isVerified !== undefined) {
