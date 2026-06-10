@@ -723,7 +723,7 @@ describe('AuthService', () => {
 
         // Act & Assert
         await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
-          new UnauthorizedException('Account is not active'),
+          'Your account is not currently active. Please contact support for assistance.',
         );
       });
 

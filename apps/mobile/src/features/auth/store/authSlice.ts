@@ -153,10 +153,12 @@ export const googleSignInAsync = createAsyncThunk(
 
       let rawMessage = '';
       let errorType = '';
+      let errorCode = '';
       if (error !== null && error !== undefined && typeof error === 'object') {
         const errObj = error as Record<string, unknown>;
         if (typeof errObj['message'] === 'string') rawMessage = errObj['message'];
         if (typeof errObj['type'] === 'string') errorType = errObj['type'];
+        if (typeof errObj['errorCode'] === 'string') errorCode = errObj['errorCode'];
       } else if (error instanceof Error) {
         rawMessage = error.message;
       }
@@ -164,8 +166,19 @@ export const googleSignInAsync = createAsyncThunk(
       const lower = rawMessage.toLowerCase();
       let errorMessage: string;
 
-      if (lower.includes('suspended') || lower.includes('no longer active')) {
+      if (
+        lower.includes('suspended') ||
+        lower.includes('no longer active') ||
+        errorCode === 'ACCOUNT_SUSPENDED'
+      ) {
         errorMessage = 'Your account has been suspended. Please contact support for assistance.';
+      } else if (
+        lower.includes('not currently active') ||
+        lower.includes('not active') ||
+        errorCode === 'ACCOUNT_INACTIVE'
+      ) {
+        errorMessage =
+          'Your account is not currently active. Please contact support for assistance.';
       } else if (lower.includes('locked') || lower.includes('too many')) {
         errorMessage = 'Too many attempts. Please try again later.';
       } else if (lower.includes('already exists') || lower.includes('conflict')) {

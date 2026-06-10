@@ -132,6 +132,28 @@ export class GoogleAuthService {
     }
     // Case 1: found by googleId — fall through
 
+    // 3b. Account status and lockout checks (same as email/password login)
+    if (user.status !== UserStatus.ACTIVE) {
+      if (user.status === UserStatus.SUSPENDED) {
+        throw new UnauthorizedException({
+          message: 'Your account has been suspended. Please contact support for assistance.',
+          type: 'ACCOUNT_SUSPENDED',
+        });
+      }
+      throw new UnauthorizedException({
+        message: 'Your account is not currently active. Please contact support for assistance.',
+        type: 'ACCOUNT_INACTIVE',
+      });
+    }
+
+    if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
+      throw new UnauthorizedException({
+        message: 'Too many failed login attempts. Please try again later.',
+        blockedUntil: user.accountLockedUntil,
+        type: 'ACCOUNT_LOCKED',
+      });
+    }
+
     // 4. Generate JWT tokens using existing TokenService pipeline
     const tokenPair = await this.tokenService.generateTokenPair(
       user._id.toString(),

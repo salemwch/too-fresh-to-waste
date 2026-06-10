@@ -56,6 +56,9 @@ function parseLoginError(error: unknown): string {
   if (type === 'ACCOUNT_SUSPENDED') {
     return 'Your account has been suspended. Please contact support for assistance.';
   }
+  if (type === 'ACCOUNT_INACTIVE') {
+    return 'Your account is not currently active. Please contact support for assistance.';
+  }
   if (type === 'SOCIAL_AUTH_ONLY') {
     return 'This account uses Google Sign-In. Please sign in with Google instead.';
   }

@@ -316,6 +316,10 @@ export class AuthController {
     // and credential verification live in AuthService — controller is routing only.
     const loginResponse = await this.authService.login(loginDto, requestInfo);
 
+    if (loginResponse.requiresMFA === true) {
+      return loginResponse;
+    }
+
     if (!loginResponse.user || !loginResponse.tokens) {
       throw new InternalServerErrorException(
         'Login failed to return the required user session data.',
@@ -966,14 +970,57 @@ export class AuthController {
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: 300000 } })
   @HttpCode(HttpStatus.OK)
-  async verifyMfa(@Body() body: { userId: string; token: string }) {
-    const result = await this.mfaService.verifyTotp(body.userId, body.token);
+  async verifyMfa(
+    @Body() body: { mfaToken: string; code: string },
+    @Request() req: ExpressRequest,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ): Promise<LoginResponse> {
+    let payload: { sub?: string; purpose?: string };
+    try {
+      payload = this.jwtService.verify<{ sub?: string; purpose?: string }>(body.mfaToken);
+    } catch {
+      throw new BadRequestException('Your verification session has expired. Please sign in again.');
+    }
+
+    if (payload.purpose !== 'mfa' || !payload.sub) {
+      throw new BadRequestException('Your verification session has expired. Please sign in again.');
+    }
+
+    const userId = payload.sub;
+    const result = await this.mfaService.verifyTotp(userId, body.code);
+
+    if (!result.isValid) {
+      throw new BadRequestException('The verification code is incorrect. Please try again.');
+    }
+
+    const requestInfo = {
+      ipAddress: req.ip ?? req.socket?.remoteAddress ?? 'unknown',
+      userAgent: req.get('User-Agent') ?? 'unknown',
+    };
+
+    const loginResponse = await this.authService.completeMfaLogin(userId, requestInfo);
+
+    if (!loginResponse.tokens) {
+      throw new InternalServerErrorException('Something went wrong. Please try again.');
+    }
+
+    const sessionInfo = await this.sessionManagementService.createSession({
+      userId,
+      userAgent: requestInfo.userAgent,
+      ipAddress: requestInfo.ipAddress,
+      rememberMe: false,
+    });
+
+    this.setAuthCookies(res, loginResponse.tokens, sessionInfo.sessionId);
 
     return {
-      success: result.isValid,
-      message: result.isValid ? 'MFA verification successful' : 'Invalid MFA code',
-      backupCodeUsed: result.backupCodeUsed,
-      remainingBackupCodes: result.remainingAttempts,
+      ...loginResponse,
+      sessionId: sessionInfo.sessionId,
+      deviceInfo: {
+        deviceName: sessionInfo.deviceInfo.deviceName,
+        platform: sessionInfo.deviceInfo.platform,
+        browser: sessionInfo.deviceInfo.browser,
+      },
     };
   }
 

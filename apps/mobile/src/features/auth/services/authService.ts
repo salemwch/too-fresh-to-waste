@@ -249,6 +249,14 @@ class AuthService {
       );
     }
 
+    if (status === 426) {
+      throw ErrorHandler.createError(
+        ErrorType.CLIENT_ERROR,
+        'This version of the app is no longer supported. Please update to continue.',
+        { code: status },
+      );
+    }
+
     if (status === 429) {
       throw ErrorHandler.createError(
         ErrorType.CLIENT_ERROR,

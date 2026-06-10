@@ -74,6 +74,8 @@ export interface LoginResponse {
   };
   captchaRequired?: boolean; // PRODUCTION-READY IMPROVEMENT
   remainingAttempts?: number; // PRODUCTION-READY IMPROVEMENT
+  requiresMFA?: boolean;
+  mfaToken?: string;
 }
 
 interface RefreshTokenPayload {
@@ -418,7 +420,7 @@ export class AuthService {
       });
       throw new UnauthorizedException({
         message: 'Account is temporarily locked due to multiple failed login attempts',
-        lockedUntil: user.accountLockedUntil,
+        blockedUntil: user.accountLockedUntil,
         type: 'ACCOUNT_LOCKED',
       });
     }
@@ -436,7 +438,10 @@ export class AuthService {
         });
       }
 
-      throw new UnauthorizedException('Account is not active');
+      throw new UnauthorizedException({
+        message: 'Your account is not currently active. Please contact support for assistance.',
+        type: 'ACCOUNT_INACTIVE',
+      });
     }
 
     if (!user.password) {
@@ -489,6 +494,41 @@ export class AuthService {
 
     this.logger.log('User login successful', { userId: user._id, email: user.email });
 
+    // MFA gate: if user has TOTP enabled, return a short-lived mfaToken
+    // instead of full auth tokens. The client must call /mfa/verify next.
+    if (user.mfaSettings?.isEnabled === true) {
+      await Promise.all([
+        this.authSecurityService.clearLoginAttempts(ipAddress, loginDto.email),
+        this.usersService.resetFailedLoginAttempts(user._id.toString()),
+      ]);
+
+      const mfaToken = this.jwtService.sign(
+        { sub: user._id.toString(), purpose: 'mfa' },
+        { expiresIn: '5m' },
+      );
+
+      return {
+        success: true,
+        message: 'MFA verification required',
+        requiresMFA: true,
+        mfaToken,
+        user: {
+          userId: user._id.toString(),
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          status: user.status,
+          isEmailVerified: user.isEmailVerified,
+          isPhoneVerified: user.isPhoneVerified,
+          profileImage: user.profileImage,
+          phoneNumber: user.phoneNumber,
+          createdAt: user.createdAt ?? new Date(),
+          updatedAt: user.updatedAt ?? new Date(),
+        },
+      };
+    }
+
     // Generate tokens (on critical path — needed for response)
     const deviceInfo: DeviceInfo = {
       ipAddress: requestInfo?.ipAddress ?? 'unknown',
@@ -532,6 +572,65 @@ export class AuthService {
       message: 'Login successful',
       user: {
         userId: user._id.toString(),
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        status: user.status,
+        isEmailVerified: user.isEmailVerified,
+        isPhoneVerified: user.isPhoneVerified,
+        profileImage: user.profileImage,
+        phoneNumber: user.phoneNumber,
+        createdAt: user.createdAt ?? new Date(),
+        updatedAt: user.updatedAt ?? new Date(),
+      },
+      tokens: {
+        accessToken: tokenPair.accessToken,
+        refreshToken: tokenPair.refreshToken,
+        expiresIn: this.getAccessTokenExpiresInSeconds(),
+        tokenType: 'Bearer' as const,
+      },
+    };
+  }
+
+  async completeMfaLogin(
+    userId: string,
+    requestInfo: { ipAddress: string; userAgent: string },
+  ): Promise<LoginResponse> {
+    const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const deviceInfo: DeviceInfo = {
+      ipAddress: requestInfo.ipAddress,
+      userAgent: requestInfo.userAgent,
+      platform: this.extractPlatform(requestInfo.userAgent),
+      browser: this.extractBrowser(requestInfo.userAgent),
+    };
+
+    const [tokenPair] = await Promise.all([
+      this.tokenService.generateTokenPair(
+        userId,
+        user.email,
+        user.role,
+        deviceInfo,
+        undefined,
+        undefined,
+        user.tokenRevocationVersion || 0,
+        false,
+        user.requiresPasswordChange ?? false,
+        user.organizationId?.toString(),
+        user.assignedEstablishmentId?.toString(),
+      ),
+      this.usersService.updateLastLogin(userId, requestInfo.ipAddress, requestInfo.userAgent),
+    ]);
+
+    return {
+      success: true,
+      message: 'MFA verification successful',
+      user: {
+        userId,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
