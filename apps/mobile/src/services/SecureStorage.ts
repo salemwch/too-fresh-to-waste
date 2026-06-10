@@ -144,6 +144,14 @@ export class SecureStorage {
         Logger.debug('[SecureStorage] No access token found', { attempt });
         return null;
       } catch (error) {
+        if (isKeychainLocked(error)) {
+          Logger.warn('[SecureStorage] Keychain locked (device screen off)', {
+            attempt,
+            error: (error as Error).message,
+          });
+          throw new KeychainLockedError();
+        }
+
         const isLastAttempt = attempt === maxRetries;
 
         Logger.warn(

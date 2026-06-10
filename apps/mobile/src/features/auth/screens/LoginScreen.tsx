@@ -132,7 +132,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     defaultValues: {
       email: '',
       password: '',
-      rememberMe: false,
+      rememberMe: true,
     },
   });
 

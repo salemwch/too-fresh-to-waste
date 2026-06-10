@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 
-import { SecureStorage } from '@/services/SecureStorage';
+import { KeychainLockedError, SecureStorage } from '@/services/SecureStorage';
 import { backgroundStorage } from '@/utils/backgroundStorage';
 import { ErrorHandler } from '@/utils/errorHandler';
 import { Logger } from '@/utils/logger';
@@ -579,9 +579,20 @@ export const loadStoredAuthAsync = createAsyncThunk(
         sessionExpiresAt: expiresAt,
       };
     } catch (error) {
+      // KeychainLockedError means the device is locked (screen off) — tokens
+      // exist but the OS won't hand them over right now. Do NOT wipe storage.
+      // Return null so flowState stays UNAUTHENTICATED; the session middleware
+      // will retry once the device is unlocked and the user taps the app.
+      if (error instanceof KeychainLockedError) {
+        Logger.warn('[Auth] Keychain locked during rehydration — tokens preserved, will retry', {
+          error: (error as Error).message,
+        });
+        return null;
+      }
+
       Logger.error('Failed to load stored authentication data', {}, error as Error);
 
-      // Clear corrupted data
+      // Clear corrupted data (only for genuine corruption, not keychain-locked)
       await SecureStorage.clearAll();
 
       return rejectWithValue({
