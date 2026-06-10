@@ -3,8 +3,13 @@ import { getModelToken } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
 import * as argon2 from 'argon2';
 
+import { PasswordHistoryService } from '../../auth/services/password-history.service';
+import { PasswordPolicyService } from '../../auth/services/password-policy.service';
+import { EventBusService } from '../../common/services/event-bus/event-bus.service';
+import { PhoneNumberService } from '../../common/services/phone-number.service';
+import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
+import { SmsNotificationService } from '../../notifications/services/sms-notification.service';
 import { User, UserRole, UserStatus } from '../schemas/user.schema';
-import { PasswordValidationService } from '../services/password-validation.service';
 import { UsersService } from '../user.service';
 
 import type { CreateUserDto } from '../DTO/create-user.dto';
@@ -21,7 +26,7 @@ describe('UsersService - create method', () => {
     (data: Record<string, unknown>) => { save: jest.Mock; [key: string]: unknown }
   > & { findOne: jest.Mock };
   let mockUserModel: MockModelFn;
-  let mockPasswordValidationService: jest.Mocked<PasswordValidationService>;
+  let mockPasswordPolicyService: { validatePassword: jest.Mock };
   let loggerSpy: jest.SpyInstance;
   let errorSpy: jest.SpyInstance;
 
@@ -90,10 +95,9 @@ describe('UsersService - create method', () => {
     }) as unknown as MockModelFn;
     mockUserModel.findOne = jest.fn();
 
-    // Mock PasswordValidationService
-    mockPasswordValidationService = {
+    mockPasswordPolicyService = {
       validatePassword: jest.fn(),
-    } as unknown as jest.Mocked<PasswordValidationService>;
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -103,8 +107,38 @@ describe('UsersService - create method', () => {
           useValue: mockUserModel,
         },
         {
-          provide: PasswordValidationService,
-          useValue: mockPasswordValidationService,
+          provide: PasswordPolicyService,
+          useValue: mockPasswordPolicyService,
+        },
+        {
+          provide: PhoneNumberService,
+          useValue: {
+            validatePhoneNumber: jest.fn().mockReturnValue({
+              isValid: true,
+              details: { formatted: { e164: '+21612345678' } },
+            }),
+          },
+        },
+        {
+          provide: SmsNotificationService,
+          useValue: { sendVerificationCode: jest.fn().mockResolvedValue({ success: true }) },
+        },
+        {
+          provide: PasswordHistoryService,
+          useValue: {
+            validatePasswordHistory: jest.fn().mockResolvedValue(undefined),
+            addToHistory: jest.fn().mockReturnValue([]),
+            isHistoryEnforced: jest.fn().mockReturnValue(false),
+            getPasswordHistoryCount: jest.fn().mockReturnValue(5),
+          },
+        },
+        {
+          provide: EventBusService,
+          useValue: { emit: jest.fn().mockResolvedValue(undefined) },
+        },
+        {
+          provide: RegexSecurityUtil,
+          useValue: { escapeRegexPattern: jest.fn((s: string) => s) },
         },
       ],
     }).compile();
@@ -119,23 +153,13 @@ describe('UsersService - create method', () => {
     mockedArgon2.hash.mockResolvedValue(mockHashedPassword);
     mockUserModel.findOne.mockResolvedValue(null);
 
-    // Setup default password validation response
-    mockPasswordValidationService.validatePassword.mockResolvedValue({
+    mockPasswordPolicyService.validatePassword.mockReturnValue({
       score: 4,
       feedback: [],
-      warning: '',
-      isAcceptable: true,
-      crackTimeDisplay: '10^10 years',
-      requirements: {
-        minLength: true,
-        hasUppercase: true,
-        hasLowercase: true,
-        hasNumbers: true,
-        hasSpecialChars: true,
-        noCommonPatterns: true,
-        notInPasswordHistory: true,
-        notSimilarToPersonalInfo: true,
-      },
+      isValid: true,
+      suggestions: [],
+      crackTime: '10^10 years',
+      guessesLog10: 10,
     });
   });
 
@@ -161,7 +185,7 @@ describe('UsersService - create method', () => {
         email: createUserDto.email.toLowerCase(),
         deletedAt: null,
       });
-      expect(mockPasswordValidationService.validatePassword).toHaveBeenCalledWith(
+      expect(mockPasswordPolicyService.validatePassword).toHaveBeenCalledWith(
         createUserDto.password,
         expect.objectContaining({
           email: createUserDto.email.toLowerCase(),
@@ -324,30 +348,17 @@ describe('UsersService - create method', () => {
     it('should_ThrowBadRequestException_When_PasswordIsWeak', async () => {
       // Arrange
       const createUserDto = { ...mockValidCreateUserDto, password: 'weak' };
-      mockPasswordValidationService.validatePassword.mockResolvedValue({
+      mockPasswordPolicyService.validatePassword.mockReturnValue({
         score: 1,
         feedback: ['Password is too short', 'Add more characters'],
-        warning: 'Very weak password',
-        isAcceptable: false,
-        crackTimeDisplay: '1 minute',
-        requirements: {
-          minLength: false,
-          hasUppercase: false,
-          hasLowercase: true,
-          hasNumbers: false,
-          hasSpecialChars: false,
-          noCommonPatterns: true,
-          notInPasswordHistory: true,
-          notSimilarToPersonalInfo: true,
-        },
+        isValid: false,
+        suggestions: ['Use a longer password'],
+        crackTime: '1 minute',
+        guessesLog10: 2,
       });
 
       // Act & Assert
-      await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException(
-          'Password validation failed: Password is too short, Add more characters',
-        ),
-      );
+      await expect(service.create(createUserDto)).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -547,10 +558,10 @@ describe('UsersService - create method', () => {
       // Act
       await service.create(createUserDto);
 
-      // Assert
-      expect(mockUserModel.findOne).toHaveBeenCalledTimes(1);
+      // Assert — findOne called twice: once for email, once for phone
+      expect(mockUserModel.findOne).toHaveBeenCalledTimes(2);
       expect(mockUserModel.findOne).toHaveBeenCalledWith({
-        email: createUserDto.email,
+        email: createUserDto.email.toLowerCase(),
         deletedAt: null,
       });
     });

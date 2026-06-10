@@ -43,33 +43,57 @@ describe('CookieSecurityUtil', () => {
       expect(options.secure).toBe(false);
     });
 
-    it('should set SameSite to strict by default', () => {
+    it('should set SameSite to lax by default', () => {
       const options = CookieSecurityUtil.getSecureOptions(true, 'example.com');
 
-      expect(options.sameSite).toBe('strict');
+      expect(options.sameSite).toBe('lax');
     });
 
-    it('should set domain when provided', () => {
+    it('should omit domain in production (__Host- prefix requires no domain)', () => {
       const options = CookieSecurityUtil.getSecureOptions(true, 'example.com');
+
+      expect(options.domain).toBeUndefined();
+    });
+
+    it('should set domain in development when provided', () => {
+      const options = CookieSecurityUtil.getSecureOptions(false, 'example.com');
 
       expect(options.domain).toBe('example.com');
     });
 
     it('should set domain to undefined when not provided', () => {
-      const options = CookieSecurityUtil.getSecureOptions(true);
+      const options = CookieSecurityUtil.getSecureOptions(false);
 
       expect(options.domain).toBeUndefined();
     });
 
-    it('should allow custom options to override defaults', () => {
+    it('should allow non-restricted custom options to override defaults', () => {
       const options = CookieSecurityUtil.getSecureOptions(true, 'example.com', {
-        sameSite: 'lax',
+        sameSite: 'none',
+        maxAge: 5000,
+      });
+
+      expect(options.sameSite).toBe('none');
+      expect(options.maxAge).toBe(5000);
+      expect(options.httpOnly).toBe(true);
+    });
+
+    it('should ignore custom path and domain in production (__Host- prefix)', () => {
+      const options = CookieSecurityUtil.getSecureOptions(true, 'example.com', {
         path: '/custom',
       });
 
-      expect(options.sameSite).toBe('lax');
+      expect(options.path).toBe('/');
+      expect(options.domain).toBeUndefined();
+    });
+
+    it('should allow custom path in development', () => {
+      const options = CookieSecurityUtil.getSecureOptions(false, 'example.com', {
+        path: '/custom',
+      });
+
       expect(options.path).toBe('/custom');
-      expect(options.httpOnly).toBe(true); // Should preserve defaults
+      expect(options.domain).toBe('example.com');
     });
   });
 
@@ -99,7 +123,7 @@ describe('CookieSecurityUtil', () => {
       expect(cookieOptions.secure).toBe(true);
     });
 
-    it('should set access token cookie with SameSite=Strict', () => {
+    it('should set access token cookie with SameSite=lax', () => {
       CookieSecurityUtil.setAccessTokenCookie(
         mockResponse as Response,
         'test-access-token',
@@ -108,10 +132,10 @@ describe('CookieSecurityUtil', () => {
       );
 
       const cookieOptions = (mockResponse.cookie as jest.Mock).mock.calls[0][2];
-      expect(cookieOptions.sameSite).toBe('strict');
+      expect(cookieOptions.sameSite).toBe('lax');
     });
 
-    it('should set access token cookie with domain restriction', () => {
+    it('should omit domain in production (__Host- prefix)', () => {
       CookieSecurityUtil.setAccessTokenCookie(
         mockResponse as Response,
         'test-access-token',
@@ -120,7 +144,7 @@ describe('CookieSecurityUtil', () => {
       );
 
       const cookieOptions = (mockResponse.cookie as jest.Mock).mock.calls[0][2];
-      expect(cookieOptions.domain).toBe('example.com');
+      expect(cookieOptions.domain).toBeUndefined();
     });
 
     it('should set access token cookie with path=/', () => {
@@ -186,7 +210,7 @@ describe('CookieSecurityUtil', () => {
       expect(cookieOptions.secure).toBe(true);
     });
 
-    it('should set refresh token cookie with SameSite=Strict', () => {
+    it('should set refresh token cookie with SameSite=lax', () => {
       CookieSecurityUtil.setRefreshTokenCookie(
         mockResponse as Response,
         'test-refresh-token',
@@ -195,15 +219,26 @@ describe('CookieSecurityUtil', () => {
       );
 
       const cookieOptions = (mockResponse.cookie as jest.Mock).mock.calls[0][2];
-      expect(cookieOptions.sameSite).toBe('strict');
+      expect(cookieOptions.sameSite).toBe('lax');
     });
 
-    it('should set refresh token cookie with path=/api/v1/auth/refresh', () => {
+    it('should force path=/ in production (__Host- prefix)', () => {
       CookieSecurityUtil.setRefreshTokenCookie(
         mockResponse as Response,
         'test-refresh-token',
         true,
         'example.com',
+      );
+
+      const cookieOptions = (mockResponse.cookie as jest.Mock).mock.calls[0][2];
+      expect(cookieOptions.path).toBe('/');
+    });
+
+    it('should use restricted path in development', () => {
+      CookieSecurityUtil.setRefreshTokenCookie(
+        mockResponse as Response,
+        'test-refresh-token',
+        false,
       );
 
       const cookieOptions = (mockResponse.cookie as jest.Mock).mock.calls[0][2];
@@ -297,8 +332,17 @@ describe('CookieSecurityUtil', () => {
       );
     });
 
-    it('should clear refresh_token cookie with correct path', () => {
+    it('should clear refresh_token cookie with path=/ in production', () => {
       CookieSecurityUtil.clearAuthCookies(mockResponse as Response, true, 'example.com');
+
+      expect(mockResponse.clearCookie).toHaveBeenCalledWith(
+        'refresh_token',
+        expect.objectContaining({ path: '/' }),
+      );
+    });
+
+    it('should clear refresh_token cookie with restricted path in dev', () => {
+      CookieSecurityUtil.clearAuthCookies(mockResponse as Response, false, 'example.com');
 
       expect(mockResponse.clearCookie).toHaveBeenCalledWith(
         'refresh_token',
@@ -306,8 +350,17 @@ describe('CookieSecurityUtil', () => {
       );
     });
 
-    it('should clear cookies with domain restriction', () => {
+    it('should omit domain in production (__Host- prefix)', () => {
       CookieSecurityUtil.clearAuthCookies(mockResponse as Response, true, 'example.com');
+
+      const calls = (mockResponse.clearCookie as jest.Mock).mock.calls;
+      calls.forEach(call => {
+        expect(call[1].domain).toBeUndefined();
+      });
+    });
+
+    it('should set domain in dev when provided', () => {
+      CookieSecurityUtil.clearAuthCookies(mockResponse as Response, false, 'example.com');
 
       const calls = (mockResponse.clearCookie as jest.Mock).mock.calls;
       calls.forEach(call => {
@@ -399,8 +452,7 @@ describe('CookieSecurityUtil', () => {
   });
 
   describe('Integration: Full Cookie Lifecycle', () => {
-    it('should set and clear cookies maintaining security attributes', () => {
-      // Set cookies
+    it('should set and clear cookies maintaining security attributes in production', () => {
       CookieSecurityUtil.setAccessTokenCookie(
         mockResponse as Response,
         'access-token',
@@ -414,13 +466,37 @@ describe('CookieSecurityUtil', () => {
         'example.com',
       );
 
-      // Verify cookies were set
       expect(mockResponse.cookie).toHaveBeenCalledTimes(2);
 
-      // Clear cookies
       CookieSecurityUtil.clearAuthCookies(mockResponse as Response, true, 'example.com');
 
-      // Verify cookies were cleared with same domain
+      expect(mockResponse.clearCookie).toHaveBeenCalledTimes(2);
+      const clearCalls = (mockResponse.clearCookie as jest.Mock).mock.calls;
+      clearCalls.forEach(call => {
+        expect(call[1].domain).toBeUndefined();
+        expect(call[1].secure).toBe(true);
+        expect(call[1].httpOnly).toBe(true);
+      });
+    });
+
+    it('should set and clear cookies with domain in development', () => {
+      CookieSecurityUtil.setAccessTokenCookie(
+        mockResponse as Response,
+        'access-token',
+        false,
+        'example.com',
+      );
+      CookieSecurityUtil.setRefreshTokenCookie(
+        mockResponse as Response,
+        'refresh-token',
+        false,
+        'example.com',
+      );
+
+      expect(mockResponse.cookie).toHaveBeenCalledTimes(2);
+
+      CookieSecurityUtil.clearAuthCookies(mockResponse as Response, false, 'example.com');
+
       expect(mockResponse.clearCookie).toHaveBeenCalledTimes(2);
       const clearCalls = (mockResponse.clearCookie as jest.Mock).mock.calls;
       clearCalls.forEach(call => {

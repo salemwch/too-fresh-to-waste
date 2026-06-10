@@ -20,49 +20,48 @@ describe('CaptchaService', () => {
     post: jest.fn(),
   };
 
-  beforeEach(async () => {
-    jest.clearAllMocks();
+  async function createService(config: Record<string, unknown> = {}): Promise<void> {
+    const defaults: Record<string, unknown> = {
+      CAPTCHA_ENABLED: false,
+      RECAPTCHA_SECRET_KEY: '',
+      RECAPTCHA_MIN_SCORE: 0.5,
+    };
+    const merged = { ...defaults, ...config };
+
+    mockConfigService.get.mockImplementation(
+      (key: string, defaultValue?: unknown) => merged[key] ?? defaultValue,
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CaptchaService,
-        {
-          provide: ConfigService,
-          useValue: mockConfigService,
-        },
-        {
-          provide: HttpService,
-          useValue: mockHttpService,
-        },
+        { provide: ConfigService, useValue: mockConfigService },
+        { provide: HttpService, useValue: mockHttpService },
       ],
     }).compile();
 
     service = module.get<CaptchaService>(CaptchaService);
     httpService = module.get<HttpService>(HttpService);
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    service.clearCache();
+    if (service) {
+      service.clearCache();
+    }
   });
 
-  it('should be defined', () => {
+  it('should be defined', async () => {
+    await createService();
     expect(service).toBeDefined();
   });
 
   describe('CAPTCHA Disabled', () => {
-    beforeEach(() => {
-      mockConfigService.get.mockImplementation((key: string, defaultValue?: unknown) => {
-        if (key === 'CAPTCHA_ENABLED') {
-          return false;
-        }
-        if (key === 'RECAPTCHA_SECRET_KEY') {
-          return '';
-        }
-        if (key === 'RECAPTCHA_MIN_SCORE') {
-          return 0.5;
-        }
-        return defaultValue;
-      });
+    beforeEach(async () => {
+      await createService({ CAPTCHA_ENABLED: false, RECAPTCHA_SECRET_KEY: '' });
     });
 
     it('should allow all requests when CAPTCHA is disabled', async () => {
@@ -77,19 +76,8 @@ describe('CaptchaService', () => {
   });
 
   describe('CAPTCHA Enabled - No Secret Key', () => {
-    beforeEach(() => {
-      mockConfigService.get.mockImplementation((key: string, defaultValue?: unknown) => {
-        if (key === 'CAPTCHA_ENABLED') {
-          return true;
-        }
-        if (key === 'RECAPTCHA_SECRET_KEY') {
-          return '';
-        }
-        if (key === 'RECAPTCHA_MIN_SCORE') {
-          return 0.5;
-        }
-        return defaultValue;
-      });
+    beforeEach(async () => {
+      await createService({ CAPTCHA_ENABLED: true, RECAPTCHA_SECRET_KEY: '' });
     });
 
     it('should allow requests when secret key is not configured', async () => {
@@ -104,18 +92,11 @@ describe('CaptchaService', () => {
   });
 
   describe('CAPTCHA Enabled - With Secret Key', () => {
-    beforeEach(() => {
-      mockConfigService.get.mockImplementation((key: string, defaultValue?: unknown) => {
-        if (key === 'CAPTCHA_ENABLED') {
-          return true;
-        }
-        if (key === 'RECAPTCHA_SECRET_KEY') {
-          return 'test-secret-key';
-        }
-        if (key === 'RECAPTCHA_MIN_SCORE') {
-          return 0.5;
-        }
-        return defaultValue;
+    beforeEach(async () => {
+      await createService({
+        CAPTCHA_ENABLED: true,
+        RECAPTCHA_SECRET_KEY: 'test-secret-key',
+        RECAPTCHA_MIN_SCORE: 0.5,
       });
     });
 

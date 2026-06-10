@@ -1,3 +1,4 @@
+/* eslint-disable require-await */
 import { BadRequestException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
@@ -54,7 +55,7 @@ describe('QueryComplexityGuard', () => {
     }) as unknown as ExecutionContext;
 
   describe('Basic Query Validation', () => {
-    it('should allow simple queries', async () => {
+    it('should allow simple queries', () => {
       jest.spyOn(reflector, 'get').mockReturnValue(undefined);
 
       const context = createMockExecutionContext({
@@ -64,7 +65,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
 
     it('should allow requests without queries', async () => {
@@ -72,7 +73,7 @@ describe('QueryComplexityGuard', () => {
 
       const context = createMockExecutionContext();
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
 
     it('should allow non-MongoDB queries', async () => {
@@ -84,7 +85,7 @@ describe('QueryComplexityGuard', () => {
         active: true,
       });
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
   });
 
@@ -98,7 +99,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
 
     it('should block $or exceeding limits', async () => {
@@ -116,7 +117,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).rejects.toThrow(BadRequestException);
+      expect(() => guard.canActivate(context)).toThrow(BadRequestException);
     });
 
     it('should count nested $or operators', async () => {
@@ -134,7 +135,7 @@ describe('QueryComplexityGuard', () => {
       });
 
       // Total $or conditions: 2 + 2 = 4 (within limit)
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
   });
 
@@ -152,7 +153,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
 
     it('should block excessive nesting depth', async () => {
@@ -177,7 +178,7 @@ describe('QueryComplexityGuard', () => {
       });
 
       // Nesting depth > 2
-      await expect(guard.canActivate(context)).rejects.toThrow(BadRequestException);
+      expect(() => guard.canActivate(context)).toThrow(BadRequestException);
     });
 
     it('should calculate nesting depth correctly', async () => {
@@ -196,7 +197,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
   });
 
@@ -210,7 +211,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
 
     it('should block $in exceeding limits', async () => {
@@ -224,7 +225,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).rejects.toThrow(BadRequestException);
+      expect(() => guard.canActivate(context)).toThrow(BadRequestException);
     });
 
     it('should track multiple $in arrays', async () => {
@@ -239,7 +240,7 @@ describe('QueryComplexityGuard', () => {
       });
 
       // Largest array is 10 (exactly at limit)
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
   });
 
@@ -256,7 +257,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
 
     it('should block $regex when disabled', async () => {
@@ -270,7 +271,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).rejects.toThrow(BadRequestException);
+      expect(() => guard.canActivate(context)).toThrow(BadRequestException);
     });
 
     it('should count multiple $regex conditions', async () => {
@@ -290,7 +291,7 @@ describe('QueryComplexityGuard', () => {
       });
 
       // 3 regex conditions exceeds limit of 2
-      await expect(guard.canActivate(context)).rejects.toThrow(BadRequestException);
+      expect(() => guard.canActivate(context)).toThrow(BadRequestException);
     });
   });
 
@@ -307,7 +308,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
 
     it('should block queries exceeding condition limit', async () => {
@@ -325,7 +326,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).rejects.toThrow(BadRequestException);
+      expect(() => guard.canActivate(context)).toThrow(BadRequestException);
     });
   });
 
@@ -362,11 +363,11 @@ describe('QueryComplexityGuard', () => {
 
       // If stats show it should pass, verify guard allows it
       if (stats.passed) {
-        await expect(guard.canActivate(context)).resolves.toBe(true);
+        expect(guard.canActivate(context)).toBe(true);
       } else {
         // If it's genuinely too complex, that's acceptable.
         expect(stats.violations.length).toBeGreaterThan(0);
-        await expect(guard.canActivate(context)).rejects.toThrow(BadRequestException);
+        expect(() => guard.canActivate(context)).toThrow(BadRequestException);
       }
     });
 
@@ -396,7 +397,7 @@ describe('QueryComplexityGuard', () => {
       });
 
       // Nesting depth > 3
-      await expect(guard.canActivate(context)).rejects.toThrow(BadRequestException);
+      expect(() => guard.canActivate(context)).toThrow(BadRequestException);
     });
 
     it('should handle query from GET params', async () => {
@@ -411,7 +412,7 @@ describe('QueryComplexityGuard', () => {
         },
       );
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
   });
 
@@ -487,7 +488,7 @@ describe('QueryComplexityGuard', () => {
       });
 
       // 3 conditions exceed maxOrConditions: 2
-      await expect(guard.canActivate(context)).rejects.toThrow(BadRequestException);
+      expect(() => guard.canActivate(context)).toThrow(BadRequestException);
     });
 
     it('should use default config when no decorator', async () => {
@@ -500,7 +501,7 @@ describe('QueryComplexityGuard', () => {
       });
 
       // Within default maxOrConditions (10)
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
   });
 
@@ -510,7 +511,7 @@ describe('QueryComplexityGuard', () => {
 
       const context = createMockExecutionContext({ filter: {} });
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
 
     it('should handle null values', async () => {
@@ -522,7 +523,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
 
     it('should handle arrays with nested objects', async () => {
@@ -534,7 +535,7 @@ describe('QueryComplexityGuard', () => {
         },
       });
 
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(guard.canActivate(context)).toBe(true);
     });
 
     it('should attach stats to request', () => {

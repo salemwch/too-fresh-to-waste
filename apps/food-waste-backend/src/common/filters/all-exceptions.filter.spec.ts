@@ -246,7 +246,7 @@ describe('AllExceptionsFilter', () => {
 
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          statusCode: expect.any(Number),
+          status: expect.any(Number),
           message: expect.any(String),
           errorId: expect.any(String),
           correlationId: expect.any(String),

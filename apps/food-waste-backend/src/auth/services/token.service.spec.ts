@@ -215,7 +215,6 @@ describe('TokenService', () => {
     });
 
     it('should default to 365d when JWT_REFRESH_REMEMBER_ME_EXPIRES_IN env var is missing', async () => {
-      // Remove the env var to simulate it not being set
       delete configMap['JWT_REFRESH_REMEMBER_ME_EXPIRES_IN'];
 
       await service.generateTokenPair(
@@ -230,7 +229,8 @@ describe('TokenService', () => {
       );
 
       const refreshOptions = mockSignAsync.mock.calls[1][1];
-      expect(refreshOptions.expiresIn).toBe(ONE_YEAR_SECONDS);
+      const THREE_SIXTY_FIVE_DAYS_SECONDS = 365 * 24 * 60 * 60;
+      expect(refreshOptions.expiresIn).toBe(THREE_SIXTY_FIVE_DAYS_SECONDS);
     });
   });
 
@@ -489,6 +489,562 @@ describe('TokenService', () => {
       expect(refreshOptions.expiresIn).toBe(ONE_YEAR_SECONDS);
 
       expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ rememberMe: false }));
+    });
+  });
+
+  // =================================================================
+  // validateRefreshToken — core security flow
+  // Tests the exact sequence that runs on every POST /auth/refresh
+  // =================================================================
+  describe('validateRefreshToken — core security checks', () => {
+    const mockPayload = {
+      sub: 'user-123',
+      email: 'user@test.com',
+      role: UserRole.CONSUMER,
+      jti: 'jti-abc',
+      familyId: 'fam-xyz',
+      ver: 0,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 86400,
+    };
+
+    const buildTokenRecord = (overrides: Record<string, unknown> = {}) => ({
+      _id: 'record-id',
+      jti: 'jti-abc',
+      userId: 'user-123',
+      familyId: 'fam-xyz',
+      isRevoked: false,
+      issuedAt: new Date(Date.now() - 60_000),
+      expiresAt: new Date(Date.now() + 86_400_000),
+      rememberMe: false,
+      securityMetadata: { rotationCount: 0, isCompromised: false },
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      mockVerifyAsync.mockResolvedValue(mockPayload);
+    });
+
+    it('should validate a valid, non-revoked, non-expired token', async () => {
+      mockFindOne.mockResolvedValue(buildTokenRecord());
+
+      const result = await service.validateRefreshToken('valid.token');
+
+      expect(result.isValid).toBe(true);
+      expect(result.userId).toBe('user-123');
+      expect(result.jti).toBe('jti-abc');
+      expect(result.familyId).toBe('fam-xyz');
+    });
+
+    it('should update lastUsedAt on successful validation', async () => {
+      mockFindOne.mockResolvedValue(buildTokenRecord());
+
+      await service.validateRefreshToken('valid.token');
+
+      expect(mockUpdateOne).toHaveBeenCalledWith(
+        { _id: 'record-id' },
+        { $set: { lastUsedAt: expect.any(Date) } },
+      );
+    });
+
+    it('should reject when JWT signature verification fails', async () => {
+      mockVerifyAsync.mockRejectedValue(new Error('invalid signature'));
+
+      const result = await service.validateRefreshToken('bad.signature');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('invalid signature');
+    });
+
+    it('should reject when JWT is expired at the JWT level', async () => {
+      mockVerifyAsync.mockRejectedValue(new Error('jwt expired'));
+
+      const result = await service.validateRefreshToken('expired.jwt');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('jwt expired');
+    });
+
+    it('should reject when jti claim is missing from JWT', async () => {
+      mockVerifyAsync.mockResolvedValue({ sub: 'user-123' });
+
+      const result = await service.validateRefreshToken('no.jti');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('Missing required claims');
+    });
+
+    it('should reject when sub claim is missing from JWT', async () => {
+      mockVerifyAsync.mockResolvedValue({ jti: 'jti-abc' });
+
+      const result = await service.validateRefreshToken('no.sub');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('Missing required claims');
+    });
+
+    it('should reject when token not found in database', async () => {
+      mockFindOne.mockResolvedValue(null);
+
+      const result = await service.validateRefreshToken('ghost.token');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Token not found');
+    });
+
+    it('should reject an expired token (DB expiresAt in the past)', async () => {
+      mockFindOne.mockResolvedValue(buildTokenRecord({ expiresAt: new Date(Date.now() - 1000) }));
+
+      const result = await service.validateRefreshToken('db.expired');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Token has expired');
+    });
+
+    it('should reject a revoked token (non-rotation revocation)', async () => {
+      mockFindOne.mockResolvedValue(
+        buildTokenRecord({
+          isRevoked: true,
+          revokedReason: 'User logged out',
+          revokedAt: new Date(),
+        }),
+      );
+
+      const result = await service.validateRefreshToken('revoked.token');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Token has been revoked');
+    });
+
+    it('should reject when token revocation version is behind user version', async () => {
+      mockVerifyAsync.mockResolvedValue({ ...mockPayload, ver: 1 });
+
+      const result = await service.validateRefreshToken(
+        'old.ver.token',
+        undefined,
+        5, // user's current version is 5, token has ver=1
+      );
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Token revocation version mismatch');
+    });
+
+    it('should accept when token version equals user version', async () => {
+      mockVerifyAsync.mockResolvedValue({ ...mockPayload, ver: 3 });
+      mockFindOne.mockResolvedValue(buildTokenRecord());
+
+      const result = await service.validateRefreshToken('same.ver.token', undefined, 3);
+
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should reject token from a compromised family', async () => {
+      mockFindOne.mockResolvedValue(
+        buildTokenRecord({
+          securityMetadata: {
+            rotationCount: 5,
+            isCompromised: true,
+            compromisedReason: 'Token reuse detected',
+          },
+        }),
+      );
+
+      const result = await service.validateRefreshToken('compromised.token');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Token family compromised');
+      expect(result.shouldRevokeFamily).toBe(true);
+    });
+
+    it('should reject token issued before user lastTokenInvalidation (fixation attack)', async () => {
+      const lastInvalidation = new Date();
+      mockFindOne.mockResolvedValue(
+        buildTokenRecord({
+          issuedAt: new Date(Date.now() - 3_600_000), // issued 1 hour ago
+        }),
+      );
+
+      const result = await service.validateRefreshToken(
+        'fixation.token',
+        lastInvalidation, // invalidated just now
+        0,
+      );
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Token issued before security event');
+      expect(result.shouldRevokeFamily).toBe(true);
+    });
+
+    it('should accept token issued after lastTokenInvalidation', async () => {
+      const lastInvalidation = new Date(Date.now() - 3_600_000); // 1 hour ago
+      mockFindOne.mockResolvedValue(
+        buildTokenRecord({
+          issuedAt: new Date(Date.now() - 60_000), // issued 1 min ago (after invalidation)
+        }),
+      );
+
+      const result = await service.validateRefreshToken('fresh.token', lastInvalidation, 0);
+
+      expect(result.isValid).toBe(true);
+    });
+  });
+
+  // =================================================================
+  // validateRefreshToken — rotation recovery (crash-mid-rotation)
+  // This is the key mechanism that prevents logout when app crashes
+  // between receiving new tokens and persisting them
+  // =================================================================
+  describe('validateRefreshToken — rotation recovery grace period', () => {
+    const mockPayload = {
+      sub: 'user-123',
+      email: 'user@test.com',
+      role: UserRole.CONSUMER,
+      jti: 'parent-jti',
+      familyId: 'fam-xyz',
+      ver: 0,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 86400,
+    };
+
+    beforeEach(() => {
+      mockVerifyAsync.mockResolvedValue(mockPayload);
+    });
+
+    it('should allow re-use of rotated token when child was NEVER used (app crash recovery)', async () => {
+      // Parent token: revoked via rotation
+      mockFindOne
+        .mockResolvedValueOnce({
+          _id: 'parent-record',
+          jti: 'parent-jti',
+          userId: 'user-123',
+          familyId: 'fam-xyz',
+          isRevoked: true,
+          revokedReason: 'Token rotated during refresh',
+          revokedAt: new Date(),
+          issuedAt: new Date(Date.now() - 60_000),
+          expiresAt: new Date(Date.now() + 86_400_000),
+          rememberMe: false,
+          securityMetadata: { rotationCount: 1, isCompromised: false },
+        })
+        // Child token: never used (app crashed before storing it)
+        .mockResolvedValueOnce({
+          _id: 'child-record',
+          jti: 'child-jti',
+          parentJti: 'parent-jti',
+          familyId: 'fam-xyz',
+          isRevoked: false,
+          lastUsedAt: null, // never used
+        });
+
+      const result = await service.validateRefreshToken('old.parent.token');
+
+      expect(result.isValid).toBe(true);
+      expect(result.userId).toBe('user-123');
+      // The orphaned child should be revoked
+      expect(mockUpdateOne).toHaveBeenCalledWith(
+        { _id: 'child-record' },
+        {
+          $set: {
+            isRevoked: true,
+            revokedAt: expect.any(Date),
+            revokedReason: 'Orphaned by rotation recovery',
+          },
+        },
+      );
+    });
+
+    it('should detect token theft when child token WAS used (both old + new in play)', async () => {
+      // Parent: revoked via rotation
+      mockFindOne
+        .mockResolvedValueOnce({
+          _id: 'parent-record',
+          jti: 'parent-jti',
+          userId: 'user-123',
+          familyId: 'fam-xyz',
+          isRevoked: true,
+          revokedReason: 'Token rotated during refresh',
+          revokedAt: new Date(),
+          issuedAt: new Date(Date.now() - 60_000),
+          expiresAt: new Date(Date.now() + 86_400_000),
+          rememberMe: false,
+          securityMetadata: { rotationCount: 1, isCompromised: false },
+        })
+        // Child: was already used by attacker or legitimate client
+        .mockResolvedValueOnce({
+          _id: 'child-record',
+          jti: 'child-jti',
+          parentJti: 'parent-jti',
+          familyId: 'fam-xyz',
+          isRevoked: false,
+          lastUsedAt: new Date(), // was used!
+        });
+
+      const result = await service.validateRefreshToken('stolen.parent.token');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Token reuse detected');
+      expect(result.shouldRevokeFamily).toBe(true);
+      expect(result.familyId).toBe('fam-xyz');
+    });
+
+    it('should reject rotated token when child is already revoked (no recovery)', async () => {
+      mockFindOne
+        .mockResolvedValueOnce({
+          _id: 'parent-record',
+          jti: 'parent-jti',
+          userId: 'user-123',
+          familyId: 'fam-xyz',
+          isRevoked: true,
+          revokedReason: 'Token rotated during refresh',
+          revokedAt: new Date(),
+          issuedAt: new Date(Date.now() - 60_000),
+          expiresAt: new Date(Date.now() + 86_400_000),
+          rememberMe: false,
+          securityMetadata: { rotationCount: 1, isCompromised: false },
+        })
+        // Child already revoked
+        .mockResolvedValueOnce({
+          _id: 'child-record',
+          jti: 'child-jti',
+          parentJti: 'parent-jti',
+          familyId: 'fam-xyz',
+          isRevoked: true,
+          lastUsedAt: null,
+        });
+
+      const result = await service.validateRefreshToken('double.revoked.token');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Token has been revoked');
+    });
+
+    it('should reject rotated token when no child exists', async () => {
+      mockFindOne
+        .mockResolvedValueOnce({
+          _id: 'parent-record',
+          jti: 'parent-jti',
+          userId: 'user-123',
+          familyId: 'fam-xyz',
+          isRevoked: true,
+          revokedReason: 'Token rotated during refresh',
+          revokedAt: new Date(),
+          issuedAt: new Date(Date.now() - 60_000),
+          expiresAt: new Date(Date.now() + 86_400_000),
+          rememberMe: false,
+          securityMetadata: { rotationCount: 1, isCompromised: false },
+        })
+        .mockResolvedValueOnce(null); // no child found
+
+      const result = await service.validateRefreshToken('orphan.parent.token');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Token has been revoked');
+    });
+  });
+
+  // =================================================================
+  // rotateToken — marks old token as revoked
+  // =================================================================
+  describe('rotateToken', () => {
+    it('should revoke old token and set rotation reason', async () => {
+      mockFindOne.mockResolvedValue({
+        _id: 'old-record',
+        jti: 'old-jti',
+        familyId: 'fam-1',
+        securityMetadata: { rotationCount: 2 },
+      });
+
+      const result = await service.rotateToken('old-jti');
+
+      expect(result).toBe(true);
+      expect(mockUpdateOne).toHaveBeenCalledWith(
+        { _id: 'old-record' },
+        {
+          $set: {
+            isRevoked: true,
+            revokedAt: expect.any(Date),
+            revokedReason: 'Token rotated during refresh',
+          },
+          $inc: {
+            'securityMetadata.rotationCount': 1,
+          },
+        },
+      );
+    });
+
+    it('should return false when token not found', async () => {
+      mockFindOne.mockResolvedValue(null);
+
+      const result = await service.rotateToken('nonexistent-jti');
+
+      expect(result).toBe(false);
+      expect(mockUpdateOne).not.toHaveBeenCalled();
+    });
+
+    it('should return false and not throw on database error', async () => {
+      mockFindOne.mockRejectedValue(new Error('DB connection lost'));
+
+      const result = await service.rotateToken('error-jti');
+
+      expect(result).toBe(false);
+    });
+  });
+
+  // =================================================================
+  // revokeAllUserTokens — logout-all / password change
+  // =================================================================
+  describe('revokeAllUserTokens', () => {
+    it('should revoke all non-revoked tokens for user', async () => {
+      mockUpdateMany.mockResolvedValue({ modifiedCount: 5 });
+
+      const count = await service.revokeAllUserTokens('user-1', 'Password changed');
+
+      expect(count).toBe(5);
+      expect(mockUpdateMany).toHaveBeenCalledWith(
+        { userId: 'user-1', isRevoked: false },
+        {
+          $set: {
+            isRevoked: true,
+            revokedAt: expect.any(Date),
+            revokedReason: 'Password changed',
+          },
+        },
+      );
+    });
+
+    it('should return 0 when no tokens exist', async () => {
+      mockUpdateMany.mockResolvedValue({ modifiedCount: 0 });
+
+      const count = await service.revokeAllUserTokens('user-no-tokens', 'Test');
+
+      expect(count).toBe(0);
+    });
+  });
+
+  // =================================================================
+  // revokeFamilyTokens — token theft response
+  // =================================================================
+  describe('revokeFamilyTokens', () => {
+    it('should revoke all non-revoked tokens in a family', async () => {
+      mockUpdateMany.mockResolvedValue({ modifiedCount: 3 });
+
+      const count = await service.revokeFamilyTokens('fam-xyz', 'Token reuse detected');
+
+      expect(count).toBe(3);
+      expect(mockUpdateMany).toHaveBeenCalledWith(
+        { familyId: 'fam-xyz', isRevoked: false },
+        {
+          $set: {
+            isRevoked: true,
+            revokedAt: expect.any(Date),
+            revokedReason: 'Token reuse detected',
+          },
+        },
+      );
+    });
+  });
+
+  // =================================================================
+  // Full refresh flow simulation
+  // Mirrors the exact sequence in auth.service.refreshTokens:
+  // validate → rotate old → generate new in same family
+  // =================================================================
+  describe('full refresh flow (validate → rotate → generate)', () => {
+    it('should complete a full refresh cycle with correct token lineage', async () => {
+      // 1. Validate: verify JWT and find DB record
+      mockVerifyAsync.mockResolvedValue({
+        sub: 'user-1',
+        email: 'a@b.com',
+        role: UserRole.CONSUMER,
+        jti: 'old-jti',
+        familyId: 'fam-1',
+        ver: 0,
+      });
+      mockFindOne.mockResolvedValue({
+        _id: 'old-record',
+        jti: 'old-jti',
+        userId: 'user-1',
+        familyId: 'fam-1',
+        isRevoked: false,
+        issuedAt: new Date(Date.now() - 60_000),
+        expiresAt: new Date(Date.now() + 86_400_000),
+        rememberMe: false,
+        securityMetadata: { rotationCount: 3, isCompromised: false },
+      });
+
+      const validation = await service.validateRefreshToken('old.token');
+      expect(validation.isValid).toBe(true);
+
+      // 2. Rotate: mark old token as revoked
+      // Reset findOne for rotateToken's lookup
+      mockFindOne.mockResolvedValue({
+        _id: 'old-record',
+        jti: 'old-jti',
+        familyId: 'fam-1',
+        securityMetadata: { rotationCount: 3 },
+      });
+      const rotated = await service.rotateToken(validation.jti!);
+      expect(rotated).toBe(true);
+
+      // 3. Generate: new pair in same family with parent link
+      await service.generateTokenPair(
+        validation.userId!,
+        'a@b.com',
+        UserRole.CONSUMER,
+        undefined,
+        validation.jti, // parent JTI
+        validation.familyId, // same family
+        0,
+        validation.rememberMe,
+      );
+
+      // Verify new token stored with correct lineage
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          familyId: 'fam-1', // same family
+          parentJti: 'old-jti', // linked to parent
+          rememberMe: false,
+        }),
+      );
+
+      // Verify old token was revoked with rotation reason
+      expect(mockUpdateOne).toHaveBeenCalledWith(
+        { _id: 'old-record' },
+        expect.objectContaining({
+          $set: expect.objectContaining({
+            isRevoked: true,
+            revokedReason: 'Token rotated during refresh',
+          }),
+        }),
+      );
+    });
+
+    it('should handle refresh when access token expired but refresh token valid', async () => {
+      // Access token expired (JWT level), but refresh token is fine
+      mockVerifyAsync.mockResolvedValue({
+        sub: 'user-1',
+        email: 'a@b.com',
+        role: UserRole.CONSUMER,
+        jti: 'valid-refresh-jti',
+        familyId: 'fam-2',
+        ver: 0,
+      });
+      mockFindOne.mockResolvedValue({
+        _id: 'refresh-record',
+        jti: 'valid-refresh-jti',
+        userId: 'user-1',
+        familyId: 'fam-2',
+        isRevoked: false,
+        issuedAt: new Date(Date.now() - 86_400_000), // 1 day old
+        expiresAt: new Date(Date.now() + 6 * 86_400_000), // 6 days left
+        rememberMe: false,
+        securityMetadata: { rotationCount: 10, isCompromised: false },
+      });
+
+      const validation = await service.validateRefreshToken('refresh.token');
+
+      expect(validation.isValid).toBe(true);
+      expect(validation.userId).toBe('user-1');
     });
   });
 });

@@ -3,13 +3,20 @@ import { ConflictException, UnauthorizedException, BadRequestException } from '@
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 
+// eslint-disable-next-line import/no-restricted-paths
+import { EventBusService } from '../common/services/event-bus/event-bus.service';
+import { PhoneNumberService } from '../common/services/phone-number.service';
 import { EmailService } from '../email/email.service';
+import { GamificationService } from '../loyalty/services/gamification.service';
 import { UsersService } from '../users/user.service';
 
 import { AuthService } from './auth.service';
+import { AuthSecurityService } from './services/auth-security.service';
+import { CaptchaService } from './services/captcha.service';
 import { PasswordPolicyService } from './services/password-policy.service';
+import { TokenService } from './services/token.service';
 
 import type { LoginDto } from './DTO/login.dto';
 import type { RegisterDto } from './DTO/register.dto';
@@ -17,18 +24,17 @@ import type { VerifyEmailDto } from './DTO/verify-email.dto';
 import type { UserDocument } from '../users/schemas/user.schema';
 import type { TestingModule } from '@nestjs/testing';
 
-// Mock bcrypt module
-jest.mock('bcrypt', () => ({
-  compare: jest.fn(),
+jest.mock('argon2', () => ({
+  verify: jest.fn(),
 }));
 
 describe('AuthService', () => {
   let service: AuthService;
   let usersService: UsersService;
-  let jwtService: JwtService;
   let configService: ConfigService;
   let emailService: EmailService;
   let passwordPolicyService: PasswordPolicyService;
+  let tokenService: TokenService;
 
   // Mock data for consistent testing
   const mockUserId = '507f1f77bcf86c0012345678';
@@ -42,6 +48,7 @@ describe('AuthService', () => {
   // Helper function to create mock users with proper toObject implementation
   const createMockUser = (overrides: Record<string, unknown> = {}) => {
     const baseUserObject = {
+      _id: mockUserId,
       id: mockUserId,
       email: mockUserEmail,
       password: mockHashedPassword,
@@ -51,11 +58,13 @@ describe('AuthService', () => {
       status: UserStatus.ACTIVE,
       isEmailVerified: true,
       isPhoneVerified: false,
+      phoneNumber: '+21620123456',
       refreshTokens: [],
       emailVerificationToken: mockVerificationToken,
       passwordResetToken: 'reset_token',
       failedLoginAttempts: 0,
       accountLockedUntil: null,
+      tokenRevocationVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
       ...overrides,
@@ -132,19 +141,80 @@ describe('AuthService', () => {
             validatePasswordStrength: jest.fn(),
           },
         },
+        {
+          provide: PhoneNumberService,
+          useValue: {
+            validatePhoneNumber: jest.fn().mockImplementation((phone: string) => ({
+              isValid: true,
+              details: { formatted: { e164: phone } },
+            })),
+          },
+        },
+        {
+          provide: TokenService,
+          useValue: {
+            generateTokenPair: jest.fn().mockResolvedValue({
+              accessToken: mockAccessToken,
+              refreshToken: mockRefreshToken,
+              jti: 'mock-jti',
+              familyId: 'mock-family',
+            }),
+            revokeAllUserTokens: jest.fn().mockResolvedValue(undefined),
+            validateRefreshToken: jest.fn(),
+            rotateToken: jest.fn(),
+            revokeFamilyTokens: jest.fn(),
+          },
+        },
+        {
+          provide: AuthSecurityService,
+          useValue: {
+            isIpBlocked: jest.fn().mockResolvedValue(false),
+            detectSuspiciousActivity: jest.fn().mockResolvedValue(false),
+            checkLoginAttempts: jest.fn().mockResolvedValue({ allowed: true }),
+            recordFailedLoginAttempt: jest.fn().mockResolvedValue({
+              currentAttempts: 1,
+              maxAttempts: 5,
+              attemptsRemaining: 4,
+              isLocked: false,
+            }),
+            clearLoginAttempts: jest.fn().mockResolvedValue(undefined),
+            blockIp: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: CaptchaService,
+          useValue: {
+            verifyCaptcha: jest.fn().mockResolvedValue({ isValid: true }),
+          },
+        },
+        {
+          provide: EventBusService,
+          useValue: {
+            emit: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: GamificationService,
+          useValue: {
+            createLoyaltyAccountForNewUser: jest.fn().mockResolvedValue(undefined),
+            findReferrerByCode: jest.fn().mockResolvedValue(null),
+            checkAndRecordReferredIdentity: jest.fn().mockResolvedValue(true),
+            registerFriendReferral: jest.fn().mockResolvedValue(undefined),
+            registerBusinessReferral: jest.fn().mockResolvedValue(undefined),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
     usersService = module.get<UsersService>(UsersService);
-    jwtService = module.get<JwtService>(JwtService);
     configService = module.get<ConfigService>(ConfigService);
     emailService = module.get<EmailService>(EmailService);
     passwordPolicyService = module.get<PasswordPolicyService>(PasswordPolicyService);
+    tokenService = module.get<TokenService>(TokenService);
 
     // Default mock implementations
     jest.spyOn(configService, 'get').mockReturnValue('mock-secret');
-    jest.spyOn(jwtService, 'signAsync').mockResolvedValue(mockAccessToken);
   });
 
   afterEach(() => {
@@ -358,37 +428,38 @@ describe('AuthService', () => {
           .spyOn(usersService, 'findByEmailVerificationToken')
           .mockResolvedValue(mockUser as unknown as UserDocument);
         jest.spyOn(usersService, 'verifyEmail').mockResolvedValue(undefined);
-        jest.spyOn(emailService, 'sendWelcomeEmail').mockResolvedValue(true);
+        jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
         // Act
         const result = await service.verifyEmail(mockVerifyEmailDto);
 
         // Assert
-        expect(result.message).toBe('Email verified successfully. You can now log in.');
+        expect(result.message).toBe('Email verified successfully');
         expect(usersService.findByEmailVerificationToken).toHaveBeenCalledWith(
-          mockUserEmail,
           mockVerificationToken,
+          mockUserEmail,
         );
         expect(usersService.verifyEmail).toHaveBeenCalledWith(mockUserId);
-        expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(mockUser);
+        expect(result.tokens).toBeDefined();
       });
 
-      it('should_VerifyEmailSuccessfully_When_WelcomeEmailFails', async () => {
-        // Arrange - Welcome email failure should not prevent verification
+      it('should_VerifyEmailAndAutoLogin_When_ValidTokenProvided', async () => {
+        // Arrange - verifyEmail now auto-logins the user with tokens
         jest
           .spyOn(usersService, 'findByEmailVerificationToken')
           .mockResolvedValue(mockUser as unknown as UserDocument);
         jest.spyOn(usersService, 'verifyEmail').mockResolvedValue(undefined);
-        jest
-          .spyOn(emailService, 'sendWelcomeEmail')
-          .mockRejectedValue(new Error('Email service unavailable'));
+        jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
         // Act
         const result = await service.verifyEmail(mockVerifyEmailDto);
 
         // Assert
-        expect(result.message).toBe('Email verified successfully. You can now log in.');
-        expect(usersService.verifyEmail).toHaveBeenCalledWith(mockUserId);
+        expect(result.success).toBe(true);
+        expect(result.message).toBe('Email verified successfully');
+        expect(result.tokens).toBeDefined();
+        expect(result.tokens?.accessToken).toBe(mockAccessToken);
+        expect(tokenService.generateTokenPair).toHaveBeenCalled();
       });
     });
 
@@ -404,7 +475,6 @@ describe('AuthService', () => {
           new BadRequestException('Invalid or expired verification token'),
         );
         expect(usersService.verifyEmail).not.toHaveBeenCalled();
-        expect(emailService.sendWelcomeEmail).not.toHaveBeenCalled();
       });
 
       it('should_ThrowBadRequestException_When_ExpiredTokenProvided', async () => {
@@ -491,26 +561,15 @@ describe('AuthService', () => {
       location: 'Test Location',
     };
 
-    beforeEach(() => {
-      // Setup default successful token generation
-      jest.spyOn(jwtService, 'signAsync').mockResolvedValue(mockAccessToken);
-    });
-
     describe('Positive Tests - Valid Login', () => {
       it('should_LoginSuccessfully_When_ValidCredentialsProvided', async () => {
         // Arrange
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(createMockUser() as unknown as UserDocument);
-        (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+        (argon2.verify as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
-        jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
-        // Setup specific tokens for this test
-        jest
-          .spyOn(jwtService, 'signAsync')
-          .mockResolvedValueOnce(mockAccessToken)
-          .mockResolvedValueOnce(mockRefreshToken);
 
         // Act
         const result = await service.login(mockLoginDto, mockRequestInfo);
@@ -530,8 +589,8 @@ describe('AuthService', () => {
         expect(resultUser.userId).toBe(mockUserId);
         expect(resultTokens.accessToken).toBe(mockAccessToken);
         expect(resultTokens.refreshToken).toBe(mockRefreshToken);
+        expect(tokenService.generateTokenPair).toHaveBeenCalled();
         expect(usersService.resetFailedLoginAttempts).toHaveBeenCalledWith(mockUserId);
-        expect(usersService.addRefreshToken).toHaveBeenCalledWith(mockUserId, mockRefreshToken);
         expect(usersService.updateLastLogin).toHaveBeenCalledWith(
           mockUserId,
           '192.168.1.1',
@@ -545,9 +604,8 @@ describe('AuthService', () => {
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(createMockUser() as unknown as UserDocument);
-        (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+        (argon2.verify as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
-        jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
         // Act
@@ -569,9 +627,8 @@ describe('AuthService', () => {
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(createMockUser() as unknown as UserDocument);
-        (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+        (argon2.verify as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
-        jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
         // Act
@@ -621,7 +678,7 @@ describe('AuthService', () => {
 
         // Act & Assert
         await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
-          new UnauthorizedException('Invalid credentials'),
+          UnauthorizedException,
         );
       });
 
@@ -686,7 +743,7 @@ describe('AuthService', () => {
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(createMockUser() as unknown as UserDocument);
-        (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+        (argon2.verify as jest.Mock).mockResolvedValue(false);
         jest.spyOn(usersService, 'incrementFailedLoginAttempts').mockResolvedValue(undefined);
 
         // Act & Assert
@@ -709,7 +766,7 @@ describe('AuthService', () => {
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(createMockUser() as unknown as UserDocument);
-        (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+        (argon2.verify as jest.Mock).mockResolvedValue(false);
         jest.spyOn(usersService, 'incrementFailedLoginAttempts').mockResolvedValue(undefined);
 
         // Act & Assert
@@ -732,9 +789,9 @@ describe('AuthService', () => {
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(expiredLockUser as unknown as UserDocument);
-        (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+        (argon2.verify as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
-        jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
+
         jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
         // Act
@@ -750,9 +807,9 @@ describe('AuthService', () => {
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(createMockUser() as unknown as UserDocument);
-        (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+        (argon2.verify as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
-        jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
+
         jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
         // Act
@@ -782,7 +839,7 @@ describe('AuthService', () => {
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(createMockUser() as unknown as UserDocument);
-        (bcrypt.compare as jest.Mock).mockRejectedValue(new Error('bcrypt error'));
+        (argon2.verify as jest.Mock).mockRejectedValue(new Error('bcrypt error'));
 
         // Act & Assert
         await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow('bcrypt error');
@@ -791,20 +848,20 @@ describe('AuthService', () => {
       // Note: Token generation failure test removed due to complex mock interaction
       // The system properly handles token generation in practice
 
-      it('should_ThrowError_When_AddRefreshTokenFails', async () => {
+      it('should_ThrowError_When_TokenGenerationFails', async () => {
         // Arrange
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(createMockUser() as unknown as UserDocument);
-        (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+        (argon2.verify as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
         jest
-          .spyOn(usersService, 'addRefreshToken')
-          .mockRejectedValue(new Error('Failed to save refresh token'));
+          .spyOn(tokenService, 'generateTokenPair')
+          .mockRejectedValue(new Error('Token generation failed'));
 
         // Act & Assert
         await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
-          'Failed to save refresh token',
+          'Token generation failed',
         );
       });
     });
@@ -826,30 +883,39 @@ describe('AuthService', () => {
         );
       }, 5000);
 
-      it('should_HandleConcurrentTokenGeneration_When_MultipleSignAsyncCalls', async () => {
+      it('should_HandleConcurrentTokenGeneration_When_TokenServiceCalled', async () => {
         // Arrange
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(createMockUser() as unknown as UserDocument);
-        (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+        (argon2.verify as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
-        jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
         jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
-        // Mock JWT service to have realistic delays
-        jest.spyOn(jwtService, 'signAsync').mockImplementation(async () => {
-          const token = await new Promise<string>(resolve =>
-            setTimeout(() => resolve(mockAccessToken), 50),
-          );
-          return token;
-        });
+        // Mock token service with realistic delay
+        jest.spyOn(tokenService, 'generateTokenPair').mockImplementation(
+          // eslint-disable-next-line @typescript-eslint/promise-function-async
+          () =>
+            new Promise(resolve =>
+              setTimeout(
+                () =>
+                  resolve({
+                    accessToken: mockAccessToken,
+                    refreshToken: mockRefreshToken,
+                    jti: 'mock-jti',
+                    familyId: 'mock-family',
+                  }),
+                50,
+              ),
+            ),
+        );
 
         // Act
         const result = await service.login(mockLoginDto, mockRequestInfo);
 
         // Assert
         expect(result.success).toBe(true);
-        expect(jwtService.signAsync).toHaveBeenCalledTimes(2); // Access and refresh tokens
+        expect(tokenService.generateTokenPair).toHaveBeenCalledTimes(1);
       }, 10000);
     });
 
@@ -859,9 +925,9 @@ describe('AuthService', () => {
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(createMockUser() as unknown as UserDocument);
-        (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+        (argon2.verify as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
-        jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
+
         jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
         // Act
@@ -892,9 +958,9 @@ describe('AuthService', () => {
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(userNeverLocked as unknown as UserDocument);
-        (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+        (argon2.verify as jest.Mock).mockResolvedValue(true);
         jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
-        jest.spyOn(usersService, 'addRefreshToken').mockResolvedValue(undefined);
+
         jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
         // Act
@@ -903,6 +969,443 @@ describe('AuthService', () => {
         // Assert
         expect(result.success).toBe(true);
       });
+    });
+  });
+
+  // =================================================================
+  // refreshTokens — THE critical flow for session continuity
+  // This is the exact code path that runs on every POST /auth/refresh
+  // =================================================================
+  describe('refreshTokens', () => {
+    const mockRefreshTokenStr = 'valid.refresh.token';
+    const mockRequestInfo = { ipAddress: '127.0.0.1', userAgent: 'TestAgent/1.0' };
+
+    describe('Positive Tests — successful refresh', () => {
+      it('should return new token pair on valid refresh', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: true,
+          userId: mockUserId,
+          jti: 'old-jti',
+          familyId: 'fam-1',
+          rememberMe: false,
+        });
+        jest.spyOn(tokenService, 'rotateToken').mockResolvedValue(true);
+
+        const result = await service.refreshTokens(
+          mockUserId,
+          mockRefreshTokenStr,
+          mockRequestInfo,
+        );
+
+        expect(result.accessToken).toBe(mockAccessToken);
+        expect(result.refreshToken).toBe(mockRefreshToken);
+        expect(result.expiresIn).toBe(900);
+        expect(result.tokenType).toBe('Bearer');
+      });
+
+      it('should rotate old token before generating new pair', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: true,
+          userId: mockUserId,
+          jti: 'old-jti',
+          familyId: 'fam-1',
+          rememberMe: false,
+        });
+        jest.spyOn(tokenService, 'rotateToken').mockResolvedValue(true);
+
+        await service.refreshTokens(mockUserId, mockRefreshTokenStr, mockRequestInfo);
+
+        expect(tokenService.rotateToken).toHaveBeenCalledWith('old-jti');
+        expect(tokenService.generateTokenPair).toHaveBeenCalled();
+
+        // rotateToken must be called before generateTokenPair
+        const rotateOrder = (tokenService.rotateToken as jest.Mock).mock.invocationCallOrder[0]!;
+        const generateOrder = (tokenService.generateTokenPair as jest.Mock).mock
+          .invocationCallOrder[0]!;
+        expect(rotateOrder).toBeLessThan(generateOrder);
+      });
+
+      it('should generate new tokens in the same family with parent JTI link', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: true,
+          userId: mockUserId,
+          jti: 'old-jti-123',
+          familyId: 'family-abc',
+          rememberMe: true,
+        });
+        jest.spyOn(tokenService, 'rotateToken').mockResolvedValue(true);
+
+        await service.refreshTokens(mockUserId, mockRefreshTokenStr, mockRequestInfo);
+
+        expect(tokenService.generateTokenPair).toHaveBeenCalledWith(
+          mockUserId,
+          mockUserEmail,
+          UserRole.CONSUMER,
+          expect.objectContaining({
+            ipAddress: '127.0.0.1',
+            userAgent: 'TestAgent/1.0',
+          }),
+          'old-jti-123', // parent JTI
+          'family-abc', // same family
+          0, // tokenRevocationVersion
+          true, // rememberMe preserved
+          false, // requiresPasswordChange
+          undefined, // organizationId
+          undefined, // assignedEstablishmentId
+        );
+      });
+
+      it('should preserve rememberMe=false across rotation', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: true,
+          userId: mockUserId,
+          jti: 'jti-1',
+          familyId: 'fam-1',
+          rememberMe: false,
+        });
+        jest.spyOn(tokenService, 'rotateToken').mockResolvedValue(true);
+
+        await service.refreshTokens(mockUserId, mockRefreshTokenStr);
+
+        const generateCall = (tokenService.generateTokenPair as jest.Mock).mock.calls[0];
+        expect(generateCall[7]).toBe(false); // rememberMe=false preserved (8th arg)
+      });
+
+      it('should pass user tokenRevocationVersion to generateTokenPair', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(
+            createMockUser({ tokenRevocationVersion: 5 }) as unknown as UserDocument,
+          );
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: true,
+          userId: mockUserId,
+          jti: 'jti-1',
+          familyId: 'fam-1',
+          rememberMe: false,
+        });
+        jest.spyOn(tokenService, 'rotateToken').mockResolvedValue(true);
+
+        await service.refreshTokens(mockUserId, mockRefreshTokenStr);
+
+        const generateCall = (tokenService.generateTokenPair as jest.Mock).mock.calls[0];
+        expect(generateCall[6]).toBe(5); // tokenRevocationVersion (7th arg)
+      });
+    });
+
+    describe('Negative Tests — refresh must fail', () => {
+      it('should throw UnauthorizedException when userId is empty', async () => {
+        await expect(service.refreshTokens('', mockRefreshTokenStr)).rejects.toThrow(
+          UnauthorizedException,
+        );
+      });
+
+      it('should throw UnauthorizedException when refreshToken is empty', async () => {
+        await expect(service.refreshTokens(mockUserId, '')).rejects.toThrow(UnauthorizedException);
+      });
+
+      it('should throw UnauthorizedException when user not found', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(null as unknown as UserDocument);
+
+        await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
+          UnauthorizedException,
+        );
+
+        // Must NOT reveal that user doesn't exist
+        await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
+          'Session expired. Please log in again.',
+        );
+      });
+
+      it('should throw UnauthorizedException when user status is SUSPENDED', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(
+            createMockUser({ status: UserStatus.SUSPENDED }) as unknown as UserDocument,
+          );
+
+        await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
+          'Account is no longer active',
+        );
+      });
+
+      it('should throw UnauthorizedException when user status is BLOCKED', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(
+            createMockUser({ status: UserStatus.BLOCKED }) as unknown as UserDocument,
+          );
+
+        await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
+          'Account is no longer active',
+        );
+      });
+
+      it('should throw UnauthorizedException when user status is DELETED', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(
+            createMockUser({ status: UserStatus.DELETED }) as unknown as UserDocument,
+          );
+
+        await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
+          'Account is no longer active',
+        );
+      });
+
+      it('should throw UnauthorizedException when token validation fails', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: false,
+          error: 'Token has expired',
+        });
+
+        await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
+          UnauthorizedException,
+        );
+
+        // Should NOT generate new tokens
+        expect(tokenService.generateTokenPair).not.toHaveBeenCalled();
+      });
+
+      it('should throw when token validation returns missing JTI', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: true,
+          userId: mockUserId,
+          // jti is undefined
+          familyId: 'fam-1',
+          rememberMe: false,
+        });
+
+        await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
+          'Invalid refresh token: missing JTI',
+        );
+      });
+    });
+
+    describe('Security — token theft detection', () => {
+      it('should revoke entire family when token reuse is detected', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: false,
+          error: 'Token reuse detected',
+          shouldRevokeFamily: true,
+          familyId: 'compromised-family',
+        });
+        jest.spyOn(tokenService, 'revokeFamilyTokens').mockResolvedValue(3);
+
+        await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
+          UnauthorizedException,
+        );
+
+        expect(tokenService.revokeFamilyTokens).toHaveBeenCalledWith(
+          'compromised-family',
+          'Token reuse detected - possible theft',
+        );
+      });
+
+      it('should NOT revoke family when validation fails without theft flag', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: false,
+          error: 'Token has expired',
+          // shouldRevokeFamily is NOT set
+        });
+
+        await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
+          UnauthorizedException,
+        );
+
+        expect(tokenService.revokeFamilyTokens).not.toHaveBeenCalled();
+      });
+
+      it('should pass user lastTokenInvalidation to validateRefreshToken', async () => {
+        const lastInvalidation = new Date('2026-01-15T00:00:00Z');
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(
+            createMockUser({ lastTokenInvalidation: lastInvalidation }) as unknown as UserDocument,
+          );
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: true,
+          userId: mockUserId,
+          jti: 'jti-1',
+          familyId: 'fam-1',
+          rememberMe: false,
+        });
+        jest.spyOn(tokenService, 'rotateToken').mockResolvedValue(true);
+
+        await service.refreshTokens(mockUserId, mockRefreshTokenStr);
+
+        expect(tokenService.validateRefreshToken).toHaveBeenCalledWith(
+          mockRefreshTokenStr,
+          lastInvalidation,
+          0,
+        );
+      });
+    });
+
+    describe('Edge cases', () => {
+      it('should handle null tokenRevocationVersion gracefully (default to 0)', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(
+            createMockUser({ tokenRevocationVersion: null }) as unknown as UserDocument,
+          );
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: true,
+          userId: mockUserId,
+          jti: 'jti-1',
+          familyId: 'fam-1',
+          rememberMe: false,
+        });
+        jest.spyOn(tokenService, 'rotateToken').mockResolvedValue(true);
+
+        await service.refreshTokens(mockUserId, mockRefreshTokenStr);
+
+        // Should pass 0 as version, not null
+        const validateCall = (tokenService.validateRefreshToken as jest.Mock).mock.calls[0];
+        expect(validateCall[0]).toBe(mockRefreshTokenStr);
+        expect(validateCall[2]).toBe(0); // version defaults to 0
+      });
+
+      it('should handle undefined rememberMe from validation (default to false)', async () => {
+        jest
+          .spyOn(usersService, 'findOneWithTokens')
+          .mockResolvedValue(createMockUser() as unknown as UserDocument);
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: true,
+          userId: mockUserId,
+          jti: 'jti-1',
+          familyId: 'fam-1',
+          // rememberMe is undefined (legacy token)
+        });
+        jest.spyOn(tokenService, 'rotateToken').mockResolvedValue(true);
+
+        await service.refreshTokens(mockUserId, mockRefreshTokenStr);
+
+        const generateCall = (tokenService.generateTokenPair as jest.Mock).mock.calls[0];
+        expect(generateCall[7]).toBe(false); // should default to false, not undefined (8th arg)
+      });
+
+      it('should include organizationId and assignedEstablishmentId for merchant users', async () => {
+        jest.spyOn(usersService, 'findOneWithTokens').mockResolvedValue(
+          createMockUser({
+            role: UserRole.MERCHANT,
+            organizationId: 'org-123',
+            assignedEstablishmentId: 'est-456',
+          }) as unknown as UserDocument,
+        );
+        jest.spyOn(tokenService, 'validateRefreshToken').mockResolvedValue({
+          isValid: true,
+          userId: mockUserId,
+          jti: 'jti-1',
+          familyId: 'fam-1',
+          rememberMe: false,
+        });
+        jest.spyOn(tokenService, 'rotateToken').mockResolvedValue(true);
+
+        await service.refreshTokens(mockUserId, mockRefreshTokenStr);
+
+        expect(tokenService.generateTokenPair).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          UserRole.MERCHANT,
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+          'org-123',
+          'est-456',
+        );
+      });
+    });
+  });
+
+  // =================================================================
+  // validateRefreshToken (auth.service wrapper) — lightweight JWT decode
+  // This is the pre-check called by the controller before refreshTokens
+  // =================================================================
+  describe('validateRefreshToken (controller pre-check)', () => {
+    it('should return userId when JWT is valid', async () => {
+      jest.spyOn(configService, 'get').mockReturnValue('jwt-refresh-secret');
+
+      const mockJwtService = service['jwtService'] as unknown as { verifyAsync: jest.Mock };
+      mockJwtService.verifyAsync = jest.fn().mockResolvedValue({ sub: 'user-123' });
+
+      const result = await service.validateRefreshToken('valid.jwt.token');
+
+      expect(result).toEqual({ userId: 'user-123' });
+    });
+
+    it('should return null when JWT verification fails', async () => {
+      jest.spyOn(configService, 'get').mockReturnValue('jwt-refresh-secret');
+
+      const mockJwtService = service['jwtService'] as unknown as { verifyAsync: jest.Mock };
+      mockJwtService.verifyAsync = jest.fn().mockRejectedValue(new Error('jwt expired'));
+
+      const result = await service.validateRefreshToken('expired.jwt.token');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when sub claim is missing', async () => {
+      jest.spyOn(configService, 'get').mockReturnValue('jwt-refresh-secret');
+
+      const mockJwtService = service['jwtService'] as unknown as { verifyAsync: jest.Mock };
+      mockJwtService.verifyAsync = jest.fn().mockResolvedValue({ jti: 'some-jti' });
+
+      const result = await service.validateRefreshToken('no-sub.jwt.token');
+
+      expect(result).toBeNull();
+    });
+
+    it('should use JWT_REFRESH_SECRET (not JWT_SECRET) for verification', async () => {
+      const getSpy = jest.spyOn(configService, 'get');
+      getSpy.mockImplementation((key: string) => {
+        if (key === 'JWT_REFRESH_SECRET') {
+          return 'refresh-secret-value';
+        }
+        if (key === 'JWT_SECRET') {
+          return 'access-secret-value';
+        }
+        return undefined;
+      });
+
+      const mockJwtService = service['jwtService'] as unknown as { verifyAsync: jest.Mock };
+      mockJwtService.verifyAsync = jest.fn().mockResolvedValue({ sub: 'user-1' });
+
+      await service.validateRefreshToken('any.token');
+
+      expect(mockJwtService.verifyAsync).toHaveBeenCalledWith(
+        'any.token',
+        expect.objectContaining({ secret: 'refresh-secret-value' }),
+      );
     });
   });
 });

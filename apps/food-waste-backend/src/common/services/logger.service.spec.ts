@@ -2,16 +2,25 @@ import { AppLoggerService } from './logger.service';
 
 describe('AppLoggerService', () => {
   let logger: AppLoggerService;
-  let logSpy: jest.SpiedFunction<typeof console.log>;
-  let warnSpy: jest.SpiedFunction<typeof console.warn>;
+  let winstonInfoSpy: jest.SpyInstance;
+  let winstonWarnSpy: jest.SpyInstance;
+  let winstonErrorSpy: jest.SpyInstance;
+  let winstonDebugSpy: jest.SpyInstance;
+  let winstonVerboseSpy: jest.SpyInstance;
+  let winstonHttpSpy: jest.SpyInstance;
 
   beforeEach(() => {
     logger = new AppLoggerService();
     logger.setContext('TestContext');
-    // Suppress console output during tests
-    logSpy = jest.spyOn(console, 'log').mockImplementation();
-    jest.spyOn(console, 'error').mockImplementation();
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+    // Spy on the Winston logger's methods (accessed via the private `logger` property)
+    const winstonLogger = (logger as unknown as { logger: Record<string, unknown> }).logger;
+    winstonInfoSpy = jest.spyOn(winstonLogger, 'info' as never).mockImplementation();
+    winstonWarnSpy = jest.spyOn(winstonLogger, 'warn' as never).mockImplementation();
+    winstonErrorSpy = jest.spyOn(winstonLogger, 'error' as never).mockImplementation();
+    winstonDebugSpy = jest.spyOn(winstonLogger, 'debug' as never).mockImplementation();
+    winstonVerboseSpy = jest.spyOn(winstonLogger, 'verbose' as never).mockImplementation();
+    winstonHttpSpy = jest.spyOn(winstonLogger, 'http' as never).mockImplementation();
   });
 
   afterEach(() => {
@@ -42,6 +51,7 @@ describe('AppLoggerService', () => {
 
       expect(errorId).toBeDefined();
       expect(errorId).toMatch(/^ERR-/);
+      expect(winstonErrorSpy).toHaveBeenCalled();
     });
 
     it('should handle string stack traces', () => {
@@ -66,6 +76,7 @@ describe('AppLoggerService', () => {
       });
 
       expect(securityId).toBeDefined();
+      expect(winstonWarnSpy).toHaveBeenCalled();
     });
   });
 
@@ -75,8 +86,7 @@ describe('AppLoggerService', () => {
         correlationId: 'test-correlation-id',
       });
 
-      // Log should be called (implementation verified via console.log mock)
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonInfoSpy).toHaveBeenCalled();
     });
   });
 
@@ -85,31 +95,31 @@ describe('AppLoggerService', () => {
       logger.setContext('NewContext');
       logger.log('Test message');
 
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonInfoSpy).toHaveBeenCalled();
     });
   });
 
   describe('Application-Specific Methods', () => {
     it('should log startup messages', () => {
       logger.startup('Application started');
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonInfoSpy).toHaveBeenCalled();
     });
 
     it('should log shutdown messages', () => {
       logger.shutdown('Application stopping');
-      expect(warnSpy).toHaveBeenCalled();
+      expect(winstonWarnSpy).toHaveBeenCalled();
     });
 
     it('should log performance metrics', () => {
       logger.performance('Query executed', 150, {
         query: 'SELECT * FROM users',
       });
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonInfoSpy).toHaveBeenCalled();
     });
 
     it('should log database operations', () => {
       logger.database('User created', { userId: '123' });
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonDebugSpy).toHaveBeenCalled();
     });
 
     it('should log external API calls', () => {
@@ -117,7 +127,7 @@ describe('AppLoggerService', () => {
         provider: 'Stripe',
         duration: 200,
       });
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonDebugSpy).toHaveBeenCalled();
     });
 
     it('should log business events', () => {
@@ -125,29 +135,29 @@ describe('AppLoggerService', () => {
         orderId: 'order123',
         amount: 50.0,
       });
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonInfoSpy).toHaveBeenCalled();
     });
   });
 
   describe('Log Levels', () => {
     it('should log info messages', () => {
       logger.log('Info message');
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonInfoSpy).toHaveBeenCalled();
     });
 
     it('should log warning messages', () => {
       logger.warn('Warning message');
-      expect(warnSpy).toHaveBeenCalled();
+      expect(winstonWarnSpy).toHaveBeenCalled();
     });
 
     it('should log debug messages', () => {
       logger.debug('Debug message');
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonDebugSpy).toHaveBeenCalled();
     });
 
     it('should log verbose messages', () => {
       logger.verbose('Verbose message');
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonVerboseSpy).toHaveBeenCalled();
     });
 
     it('should log HTTP messages', () => {
@@ -156,7 +166,7 @@ describe('AppLoggerService', () => {
         path: '/api/users',
         statusCode: 200,
       });
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonHttpSpy).toHaveBeenCalled();
     });
   });
 
@@ -168,12 +178,12 @@ describe('AppLoggerService', () => {
         custom: 'value',
       });
 
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonInfoSpy).toHaveBeenCalled();
     });
 
     it('should handle empty metadata', () => {
       logger.log('Test without metadata', 'TestContext');
-      expect(logSpy).toHaveBeenCalled();
+      expect(winstonInfoSpy).toHaveBeenCalled();
     });
   });
 });

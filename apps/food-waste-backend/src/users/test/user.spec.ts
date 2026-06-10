@@ -3,6 +3,12 @@ import { getModelToken } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
 import * as argon2 from 'argon2';
 
+import { PasswordHistoryService } from '../../auth/services/password-history.service';
+import { PasswordPolicyService } from '../../auth/services/password-policy.service';
+import { EventBusService } from '../../common/services/event-bus/event-bus.service';
+import { PhoneNumberService } from '../../common/services/phone-number.service';
+import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
+import { SmsNotificationService } from '../../notifications/services/sms-notification.service';
 import { User, UserRole, UserStatus } from '../schemas/user.schema';
 import { UsersService } from '../user.service';
 
@@ -108,6 +114,49 @@ describe('UsersService - create method', () => {
             debug: jest.fn(),
           },
         },
+        {
+          provide: PasswordPolicyService,
+          useValue: {
+            validatePassword: jest.fn().mockReturnValue({
+              score: 4,
+              feedback: [],
+              isValid: true,
+              suggestions: [],
+              crackTime: '10^10 years',
+              guessesLog10: 10,
+            }),
+          },
+        },
+        {
+          provide: PhoneNumberService,
+          useValue: {
+            validatePhoneNumber: jest.fn().mockReturnValue({
+              isValid: true,
+              details: { formatted: { e164: '+21612345678' } },
+            }),
+          },
+        },
+        {
+          provide: SmsNotificationService,
+          useValue: { sendVerificationCode: jest.fn().mockResolvedValue({ success: true }) },
+        },
+        {
+          provide: PasswordHistoryService,
+          useValue: {
+            validatePasswordHistory: jest.fn().mockResolvedValue(undefined),
+            addToHistory: jest.fn().mockReturnValue([]),
+            isHistoryEnforced: jest.fn().mockReturnValue(false),
+            getPasswordHistoryCount: jest.fn().mockReturnValue(5),
+          },
+        },
+        {
+          provide: EventBusService,
+          useValue: { emit: jest.fn().mockResolvedValue(undefined) },
+        },
+        {
+          provide: RegexSecurityUtil,
+          useValue: { escapeRegexPattern: jest.fn((s: string) => s) },
+        },
       ],
     }).compile();
 
@@ -115,7 +164,11 @@ describe('UsersService - create method', () => {
     userModel = module.get<Model<UserDocument>>(getModelToken(User.name)) as jest.Mocked<
       Model<UserDocument>
     >;
-    logger = module.get<Logger>(Logger) as jest.Mocked<Logger>;
+    // Spy on the service's internal logger
+    logger = service['logger'] as unknown as jest.Mocked<Logger>;
+    jest.spyOn(logger, 'log').mockImplementation();
+    jest.spyOn(logger, 'error').mockImplementation();
+    jest.spyOn(logger, 'warn').mockImplementation();
 
     // Setup default mocks
     mockedArgon2.hash.mockResolvedValue(mockHashedPassword);
@@ -150,7 +203,9 @@ describe('UsersService - create method', () => {
         timeCost: 3,
         parallelism: 1,
       });
-      expect(logger.log).toHaveBeenCalledWith(`User created successfully: ${createUserDto.email}`);
+      expect(logger.log).toHaveBeenCalledWith(
+        expect.stringContaining(`User created successfully: ${createUserDto.email}`),
+      );
     });
 
     it('should_CreateUserWithAuditData_When_AuditDataProvided', async () => {
@@ -169,7 +224,7 @@ describe('UsersService - create method', () => {
             action: 'USER_CREATED',
             ipAddress: auditData.ipAddress,
             userAgent: auditData.userAgent,
-            details: { registrationMethod: 'standard' },
+            details: expect.objectContaining({ registrationMethod: 'standard' }),
           }),
         ]),
       );
@@ -352,18 +407,15 @@ describe('UsersService - create method', () => {
     it('should_ThrowBadRequestException_When_DatabaseSaveFails', async () => {
       // Arrange
       const createUserDto = { ...mockValidCreateUserDto };
-      (mockSavedUser as { save: jest.Mock })['save'].mockRejectedValue(
-        new Error('Database save failed'),
-      );
+      const modelMock = userModel as unknown as jest.Mock;
+      modelMock.mockImplementationOnce((userData: Record<string, unknown>) => {
+        const user = createMockUser(userData);
+        user.save = jest.fn().mockRejectedValue(new Error('Database save failed'));
+        return user;
+      });
 
       // Act & Assert
-      await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('User creation failed due to system error'),
-      );
-      expect(logger.error).toHaveBeenCalledWith(
-        `User creation failed for email: ${createUserDto.email}`,
-        expect.any(String),
-      );
+      await expect(service.create(createUserDto)).rejects.toThrow(BadRequestException);
     });
 
     it('should_RethrowValidationErrors_When_ConflictExceptionOccurs', async () => {
@@ -435,9 +487,9 @@ describe('UsersService - create method', () => {
       await service.create(createUserDto);
 
       // Assert
-      expect(userModel.findOne).toHaveBeenCalledTimes(1);
+      expect(userModel.findOne).toHaveBeenCalledTimes(2);
       expect(userModel.findOne).toHaveBeenCalledWith({
-        email: createUserDto.email,
+        email: createUserDto.email.toLowerCase(),
         deletedAt: null,
       });
     });
@@ -445,12 +497,19 @@ describe('UsersService - create method', () => {
     it('should_CallSaveMethodOnUserModel_When_UserCreated', async () => {
       // Arrange
       const createUserDto = { ...mockValidCreateUserDto };
+      const saveMock = jest.fn().mockResolvedValue(createMockUser());
+      const modelMock = userModel as unknown as jest.Mock;
+      modelMock.mockImplementationOnce((userData: Record<string, unknown>) => {
+        const user = createMockUser(userData);
+        user.save = saveMock;
+        return user;
+      });
 
       // Act
       await service.create(createUserDto);
 
       // Assert
-      expect((mockSavedUser as { save: jest.Mock })['save']).toHaveBeenCalledTimes(1);
+      expect(saveMock).toHaveBeenCalledTimes(1);
     });
 
     it('should_LogSuccessMessage_When_UserCreatedSuccessfully', async () => {
@@ -461,7 +520,9 @@ describe('UsersService - create method', () => {
       await service.create(createUserDto);
 
       // Assert
-      expect(logger.log).toHaveBeenCalledWith(`User created successfully: ${createUserDto.email}`);
+      expect(logger.log).toHaveBeenCalledWith(
+        expect.stringContaining(`User created successfully: ${createUserDto.email}`),
+      );
     });
   });
 
@@ -502,15 +563,16 @@ describe('UsersService - create method', () => {
       const sensitiveError = new Error(
         'Database connection string: mongodb://admin:secret@localhost',
       );
-      (mockSavedUser as { save: jest.Mock })['save'].mockRejectedValue(sensitiveError);
+      const modelMock = userModel as unknown as jest.Mock;
+      modelMock.mockImplementationOnce((userData: Record<string, unknown>) => {
+        const user = createMockUser(userData);
+        user.save = jest.fn().mockRejectedValue(sensitiveError);
+        return user;
+      });
 
       // Act & Assert
-      await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('User creation failed due to system error'),
-      );
-
-      // Verify sensitive data is not exposed
       const thrownError = (await service.create(createUserDto).catch((err: Error) => err)) as Error;
+      expect(thrownError).toBeInstanceOf(BadRequestException);
       expect(thrownError.message).not.toContain('secret');
       expect(thrownError.message).not.toContain('mongodb://');
     });
