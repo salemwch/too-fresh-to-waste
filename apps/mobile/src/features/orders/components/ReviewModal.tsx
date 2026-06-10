@@ -8,7 +8,7 @@ import { View, StyleSheet, Modal, Pressable, ScrollView, ActivityIndicator } fro
 import { Text, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { reviewsService } from '@/features/offers/services/reviewsService';
-import { showErrorToast, showSuccessToast } from '@/utils/toast';
+import { showSuccessToast } from '@/utils/toast';
 
 import { ReviewType } from '@foodwaste/shared';
 
@@ -74,6 +74,7 @@ export const ReviewModal: React.FC<Props> = ({
 
   const [rating, setRating] = useState(0);
   const [selected, setSelected] = useState<HighlightOption[]>([]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const { mutate: submitReview, isPending } = useMutation({
     mutationFn: () => {
@@ -95,6 +96,7 @@ export const ReviewModal: React.FC<Props> = ({
       });
     },
     onSuccess: () => {
+      setSubmitError(null);
       void queryClient.invalidateQueries({
         queryKey: ['establishment-review-summary', establishmentId],
       });
@@ -102,7 +104,7 @@ export const ReviewModal: React.FC<Props> = ({
       onSuccess();
     },
     onError: () => {
-      showErrorToast('Could not submit review. Please try again.');
+      setSubmitError('Could not submit review. Please try again.');
     },
   });
 
@@ -201,6 +203,21 @@ export const ReviewModal: React.FC<Props> = ({
             )}
           </ScrollView>
 
+          {/* Inline error */}
+          {submitError !== null && (
+            <View
+              style={[
+                styles.errorRow,
+                { backgroundColor: theme.colors.errorContainer ?? '#FEE2E2' },
+              ]}
+            >
+              <IoniconsIcon name='alert-circle-outline' size={16} color={theme.colors.error} />
+              <Text size='sm' style={{ color: theme.colors.error, flex: 1 }}>
+                {submitError}
+              </Text>
+            </View>
+          )}
+
           {/* Submit */}
           <Button
             variant='primary'
@@ -265,6 +282,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
+  },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 8,
+    gap: 6,
   },
   submitBtn: {
     marginTop: 8,

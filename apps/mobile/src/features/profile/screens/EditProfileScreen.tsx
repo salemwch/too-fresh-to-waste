@@ -41,7 +41,7 @@ import { useAppDispatch } from '@/hooks/redux';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { SecureStorage } from '@/services/SecureStorage';
 import { Logger } from '@/utils/logger';
-import { showSuccessToast, showErrorToast, showInfoToast } from '@/utils/toast';
+import { showSuccessToast } from '@/utils/toast';
 
 import type { EditProfileScreenNavigationProp } from '@/navigation/types';
 import type { InferType } from 'yup';
@@ -109,6 +109,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Initialize form with current user data
   // Extract address with type suppression for optional nested property
@@ -216,7 +217,6 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
         // If no changes, restore form
         if (Object.keys(updates).length === 0 && imageUri == null) {
           setIsSaving(false);
-          showInfoToast('No changes', 'No changes were made to your profile.');
           return;
         }
 
@@ -267,11 +267,12 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
           country: data.country,
         });
 
+        setSaveError(null);
         showSuccessToast('Profile updated', 'Your changes have been saved');
         Logger.info('Profile updated successfully', { userId: user?.userId });
       } catch (error) {
         Logger.error('Failed to update profile', {}, error as Error);
-        showErrorToast('Update failed', 'Failed to update profile. Please try again.');
+        setSaveError('Failed to update profile. Please try again.');
       } finally {
         setIsSaving(false);
       }
@@ -568,6 +569,29 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
           </View>
         </Card>
 
+        {/* Inline save error */}
+        {saveError !== null && (
+          <View
+            style={[
+              styles.inlineError,
+              {
+                backgroundColor: theme.colors.errorContainer ?? '#FEE2E2',
+                borderColor: theme.colors.error,
+              },
+            ]}
+          >
+            <Icon
+              name='alert-circle-outline'
+              family='Ionicons'
+              size={16}
+              color={theme.colors.error}
+            />
+            <Text variant='body' size='sm' style={{ color: theme.colors.error, flex: 1 }}>
+              {saveError}
+            </Text>
+          </View>
+        )}
+
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
           <Button
@@ -663,6 +687,15 @@ const styles = StyleSheet.create({
   },
   halfWidth: {
     flex: 1,
+  },
+  inlineError: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 12,
+    marginTop: 8,
+    gap: 8,
   },
   buttonContainer: {
     marginTop: 8,

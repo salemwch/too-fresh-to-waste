@@ -187,43 +187,44 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
        */}
       <View style={styles.container}>
         <Animated.View style={[styles.animatedContent, { transform: [{ scale: scaleAnim }] }]}>
-          {hasOffers ? (
-            /* ── Green circle with offer count ─────────────────────────── */
-            <View
-              style={[styles.circle, styles.offerCircle, isSelected && styles.selectedOfferBorder]}
-            >
-              <Text variant='label' size='sm' weight='bold' style={styles.countText}>
-                {displayCount}
-              </Text>
-            </View>
-          ) : (
-            /* ── No offers: initial letter base, profile image overlaid on top ── */
-            <View
-              style={[
-                styles.circle,
-                { backgroundColor: theme.colors.primaryContainer },
-                markerBorderStyle,
-              ]}
-            >
+          {/* ── Base circle: profile image with initial letter fallback ── */}
+          <View
+            style={[
+              styles.circle,
+              hasOffers
+                ? showProfileImage
+                  ? [styles.offerImageBorder, isSelected && styles.selectedOfferBorder]
+                  : [styles.offerCircle, isSelected && styles.selectedOfferBorder]
+                : [{ backgroundColor: theme.colors.primaryContainer }, markerBorderStyle],
+            ]}
+          >
+            {(!showProfileImage || !hasOffers) && (
               <Text
                 variant='label'
-                size='md'
+                size={hasOffers ? 'sm' : 'md'}
                 weight='bold'
-                style={{ color: theme.colors.onPrimaryContainer }}
+                style={hasOffers ? styles.countText : { color: theme.colors.onPrimaryContainer }}
               >
-                {initial}
+                {hasOffers ? displayCount : initial}
               </Text>
-              {showProfileImage && (
-                <FastImage
-                  source={{ uri: profileImageUri!, priority: FastImage.priority.normal }}
-                  style={styles.profileImageOverlay}
-                  onError={handleImageError}
-                  onLoad={handleImageLoad}
-                  accessibilityIgnoresInvertColors
-                />
-              )}
-            </View>
-          )}
+            )}
+            {showProfileImage && (
+              <FastImage
+                source={{ uri: profileImageUri!, priority: FastImage.priority.normal }}
+                style={styles.profileImageOverlay}
+                onError={handleImageError}
+                onLoad={handleImageLoad}
+                accessibilityIgnoresInvertColors
+              />
+            )}
+            {hasOffers && showProfileImage && (
+              <View style={styles.offerBadge}>
+                <Text variant='label' size='xs' weight='bold' style={styles.badgeText}>
+                  {displayCount}
+                </Text>
+              </View>
+            )}
+          </View>
 
           {/* Small oval shadow below — visual depth without elevation */}
           <View style={styles.markerShadow} />
@@ -273,10 +274,13 @@ const styles = StyleSheet.create({
   },
   offerCircle: {
     backgroundColor: OFFER_CIRCLE_COLOR,
-    borderColor: WHITE, // white ring separates green from any map tile colour
+    borderColor: WHITE,
+  },
+  offerImageBorder: {
+    borderColor: OFFER_CIRCLE_COLOR,
   },
   selectedOfferBorder: {
-    borderColor: SELECTED_OFFER_BORDER, // light green ring when selected
+    borderColor: SELECTED_OFFER_BORDER,
   },
   /**
    * FastImage overlaid on top of the initial-letter circle.
@@ -295,7 +299,27 @@ const styles = StyleSheet.create({
     color: WHITE,
     fontSize: 15,
     fontWeight: '700',
-    lineHeight: 20, // label.medium uses lineHeight:1.5 (ratio, not px) — override with absolute pixels
+    lineHeight: 20,
+  },
+  offerBadge: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    backgroundColor: OFFER_CIRCLE_COLOR,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: WHITE,
+  },
+  badgeText: {
+    color: WHITE,
+    fontSize: 11,
+    fontWeight: '700',
+    lineHeight: 14,
   },
   /** Soft oval shadow — replaces elevation so no snapshot clipping occurs. */
   markerShadow: {

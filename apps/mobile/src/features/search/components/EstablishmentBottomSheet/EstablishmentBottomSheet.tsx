@@ -156,7 +156,8 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
         <FavoriteOfferCard
           offer={offerData}
           variant='default'
-          imageAspectRatio={1.4}
+          layout='compact'
+          imageAspectRatio={2.2}
           onPress={() => onOfferPress(offer._id)}
           testID={`est-offer-${offer._id}`}
           style={styles.offerCard}
@@ -408,7 +409,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   offerCard: {
-    marginVertical: 6,
+    marginVertical: 4,
   },
   /* ── Empty state ───────────────────────────────────────────── */
   centerContent: {

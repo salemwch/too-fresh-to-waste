@@ -23,7 +23,6 @@ import { useLocation } from '@/hooks/useLocation';
 import { usePressGuard } from '@/hooks/usePressGuard';
 import { analytics } from '@/utils/analytics';
 import { Logger } from '@/utils/logger';
-import { showErrorToast, showInfoToast } from '@/utils/toast';
 
 import { OrderSuccessModal } from '../components/OrderSuccessModal';
 import { PhoneVerificationModal } from '../components/PhoneVerificationModal';
@@ -99,6 +98,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   // ✅ State for success modal
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // ✅ Fetch offer details
   const { data: offer, isLoading: isLoadingOffer } = useQuery({
@@ -223,22 +223,20 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
    * ✅ BEST PRACTICE: Optimistic order creation with phone verification fallback
    */
   const handleConfirmOrder = useCallback(async () => {
+    setValidationError(null);
+
     if (!offer) {
-      showErrorToast('Error', 'Offer details not loaded. Please try again.');
+      setValidationError('Offer details not loaded. Please try again.');
       return;
     }
 
     if (deliveryMode === 'delivery' && !deliveryPin) {
-      showErrorToast(
-        'Location Not Ready',
-        'Please wait for your location to be detected, or switch to Pickup.',
-      );
+      setValidationError('Please wait for your location to be detected, or switch to Pickup.');
       return;
     }
 
     if (deliveryMode === 'delivery' && tooFar) {
-      showErrorToast(
-        'Too Far',
+      setValidationError(
         `Your delivery location is ${distanceKm!.toFixed(1)} km away. Maximum allowed is ${MAX_DELIVERY_KM} km from the merchant.`,
       );
       return;
@@ -258,8 +256,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     // Block if fewer than 30 seconds remain — not enough time to complete a pickup
     const msUntilExpiry = offerEndTime.getTime() - now.getTime();
     if (msUntilExpiry < 30 * 1000) {
-      showInfoToast(
-        'Offer Expired',
+      setValidationError(
         "This offer has expired or doesn't have enough time remaining for pickup. Please choose another offer.",
       );
       await queryClient.invalidateQueries({ queryKey: ['offer', offerId] });
@@ -343,7 +340,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       closePhoneVerificationModal();
       await handleConfirmOrder();
     } catch (error) {
-      showErrorToast('Order Failed', 'Could not create order. Please try again.');
+      setValidationError('Could not create order. Please try again.');
     }
   }, [closePhoneVerificationModal, handleConfirmOrder]);
 
@@ -652,10 +649,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
           )}
 
           {/* Error Message */}
-          {orderError != null && (
+          {(orderError ?? validationError) != null && (
             <View style={styles.errorBanner}>
               <Icon name='warning' family='Ionicons' size={20} color='#EF4444' />
-              <Text style={styles.errorText}>{orderError}</Text>
+              <Text style={styles.errorText}>{orderError ?? validationError}</Text>
             </View>
           )}
 

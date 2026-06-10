@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import * as Sentry from '@sentry/react-native';
-import Toast from 'react-native-toast-message';
 
 import GoogleButtonSvg from '@/assets/images/android_light_rd_ctn.svg';
+import { Text, Icon } from '@/design-system/components/atoms';
+import { useTheme } from '@/design-system/providers';
 import { useAppDispatch } from '@/hooks/redux';
 import { Logger } from '@/utils/logger';
+import { showSuccessToast } from '@/utils/toast';
 
 import { googleSignInAsync } from '../store/authSlice';
 
@@ -16,11 +18,14 @@ interface GoogleSignInButtonProps {
 
 export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
   const dispatch = useAppDispatch();
+  const theme = useTheme();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handlePress = async () => {
     if (isLoading) return;
     setIsLoading(true);
+    setError(null);
 
     try {
       await GoogleSignin.hasPlayServices();
@@ -28,11 +33,7 @@ export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
       const idToken = userInfo.data?.idToken;
 
       if (!idToken) {
-        Toast.show({
-          type: 'error',
-          text1: 'Something went wrong',
-          text2: 'Could not retrieve credentials. Please try again.',
-        });
+        setError('Could not retrieve credentials. Please try again.');
         return;
       }
 
@@ -40,65 +41,68 @@ export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
         googleSignInAsync({ idToken, ...(referralCode ? { referralCode } : {}) }),
       ).unwrap();
 
-      Toast.show({
-        type: 'success',
-        text1: 'Welcome! \u{1F44B}',
-      });
-    } catch (error: unknown) {
-      // Reset Google SDK state so the next attempt gets a fresh token
-      // instead of reusing the cached one that just failed.
+      showSuccessToast('Welcome!');
+    } catch (err: unknown) {
       try {
         await GoogleSignin.signOut();
       } catch {
         // signOut can fail if not signed in — safe to ignore
       }
 
-      const err = error as { code?: string; message?: string };
+      const typed = err as { code?: string; message?: string };
 
-      if (err.code === statusCodes.SIGN_IN_CANCELLED) {
-        // User dismissed — silent
-      } else if (err.code === statusCodes.IN_PROGRESS) {
+      if (typed.code === statusCodes.SIGN_IN_CANCELLED) {
+        // User dismissed — silent, no error
+      } else if (typed.code === statusCodes.IN_PROGRESS) {
         // Already in progress — ignore
-      } else if (err.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        Toast.show({
-          type: 'error',
-          text1: 'Google Play Services unavailable',
-          text2: 'Please update Google Play Services and try again.',
-        });
-      } else if (err.code) {
-        Logger.error('Google Sign-In failed', { code: err.code }, error as Error);
+      } else if (typed.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        setError('Google Play Services unavailable. Please update and try again.');
+      } else if (typed.code) {
+        Logger.error('Google Sign-In failed', { code: typed.code }, err as Error);
         Sentry.captureException(
-          error instanceof Error ? error : new Error(err.message ?? 'Google Sign-In failed'),
-          { tags: { flow: 'google_signin', code: err.code } },
+          err instanceof Error ? err : new Error(typed.message ?? 'Google Sign-In failed'),
+          { tags: { flow: 'google_signin', code: typed.code } },
         );
-        Toast.show({
-          type: 'error',
-          text1: 'Sign-in failed',
-          text2: 'Could not sign in with Google. Please try again.',
-        });
+        setError('Could not sign in with Google. Please try again.');
       }
-      // Backend rejections (no SDK code) are handled by authSlice inline error banner — no toast.
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Pressable
-      onPress={handlePress}
-      disabled={isLoading}
-      style={({ pressed }) => [
-        styles.button,
-        pressed && styles.buttonPressed,
-        isLoading && styles.buttonLoading,
-      ]}
-      accessibilityRole='button'
-      accessibilityLabel='Continue with Google'
-      accessibilityHint='Sign in with your Google account'
-      accessibilityState={{ busy: isLoading }}
-    >
-      <GoogleButtonSvg width='100%' height={52} />
-    </Pressable>
+    <View>
+      <Pressable
+        onPress={handlePress}
+        disabled={isLoading}
+        style={({ pressed }) => [
+          styles.button,
+          pressed && styles.buttonPressed,
+          isLoading && styles.buttonLoading,
+        ]}
+        accessibilityRole='button'
+        accessibilityLabel='Continue with Google'
+        accessibilityHint='Sign in with your Google account'
+        accessibilityState={{ busy: isLoading }}
+      >
+        <GoogleButtonSvg width='100%' height={52} />
+      </Pressable>
+      {error !== null && (
+        <View
+          style={[styles.errorRow, { backgroundColor: theme.colors.errorContainer ?? '#FEE2E2' }]}
+        >
+          <Icon
+            name='alert-circle-outline'
+            family='Ionicons'
+            size={14}
+            color={theme.colors.error}
+          />
+          <Text variant='body' size='xs' style={{ color: theme.colors.error, flex: 1 }}>
+            {error}
+          </Text>
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -111,5 +115,13 @@ const styles = StyleSheet.create({
   },
   buttonLoading: {
     opacity: 0.5,
+  },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 8,
+    gap: 6,
   },
 });

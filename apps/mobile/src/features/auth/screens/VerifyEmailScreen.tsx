@@ -9,7 +9,7 @@ import { View, StyleSheet, ScrollView, Linking } from 'react-native';
 import { Button, Text, Card, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { showSuccessToast, showErrorToast } from '@/utils/toast';
+import { showSuccessToast } from '@/utils/toast';
 
 import { authService } from '../services/authService';
 import { verifyEmailAsync } from '../store/authSlice';
@@ -43,6 +43,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'error'>(
     'pending',
   );
+  const [inlineError, setInlineError] = useState<string | null>(null);
   const outlineButtonStyle = { backgroundColor: theme.colors.surface };
 
   /**
@@ -58,19 +59,9 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
       await dispatch(verifyEmailAsync({ email, token: token! })).unwrap();
 
       setVerificationStatus('success');
-
-      // Show success toast
-      showSuccessToast('Email Verified', 'You can now access your account');
-
-      // Note: Navigation to Home happens automatically via RootNavigator
-      // when flowState changes to AUTHENTICATED
     } catch (err) {
       setVerificationStatus('error');
-
-      showErrorToast(
-        'Verification Failed',
-        'Verification failed. The link may be invalid or expired.',
-      );
+      setInlineError('The verification link may be invalid or expired. Please request a new one.');
     } finally {
       setIsVerifying(false);
     }
@@ -123,13 +114,13 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
     try {
       await authService.resendVerificationEmail(email);
 
+      setInlineError(null);
       showSuccessToast('Verification Email Sent', 'Please check your inbox');
 
       // Set 60 second cooldown
       setResendCooldown(60);
     } catch (err: unknown) {
-      showErrorToast('Resend Failed', 'Failed to resend email. Please try again.');
-
+      setInlineError('Failed to resend verification email. Please try again.');
       setCanResend(true);
     } finally {
       setIsResending(false);
@@ -151,8 +142,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
     try {
       await Linking.openURL('mailto:');
     } catch {
-      // If mailto: fails, show a helpful message
-      showErrorToast('Unable to Open Email', 'Please open your email app manually');
+      setInlineError('Unable to open email app. Please open your email app manually.');
     }
   }, []);
 
@@ -345,6 +335,29 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
             </>
           )}
 
+          {/* Inline error */}
+          {inlineError !== null && (
+            <View
+              style={[
+                styles.inlineErrorBox,
+                {
+                  backgroundColor: theme.colors.errorContainer ?? '#FEE2E2',
+                  borderColor: theme.colors.error,
+                },
+              ]}
+            >
+              <Icon
+                name='alert-circle-outline'
+                family='Ionicons'
+                size={16}
+                color={theme.colors.error}
+              />
+              <Text variant='body' size='sm' style={{ color: theme.colors.error, flex: 1 }}>
+                {inlineError}
+              </Text>
+            </View>
+          )}
+
           {/* Help Info - Only show when not verified */}
           {verificationStatus !== 'success' && (
             <View style={[styles.helpContainer, { borderTopColor: theme.colors.outlineVariant }]}>
@@ -460,5 +473,14 @@ const styles = StyleSheet.create({
   },
   supportLink: {
     textDecorationLine: 'underline',
+  },
+  inlineErrorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 16,
+    gap: 8,
   },
 });
