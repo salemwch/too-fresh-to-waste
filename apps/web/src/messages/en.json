@@ -659,6 +659,7 @@
       "success": "Profile updated successfully",
       "error": "Failed to update profile",
       "changePassword": "Change Password",
+      "currentPassword": "Current Password",
       "newPassword": "New Password",
       "confirmPassword": "Confirm Password",
       "showPassword": "Show password",
@@ -1111,6 +1112,7 @@
     "merchantSecurity": {
       "title": "Security",
       "description": "Change your account password",
+      "currentPassword": "Current Password",
       "newPassword": "New Password",
       "confirmPassword": "Confirm Password",
       "updatePassword": "Update Password",

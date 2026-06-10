@@ -52,7 +52,7 @@ async function verifySession(
 
   try {
     const encodedSecret = new TextEncoder().encode(secret);
-    const { payload } = await jwtVerify(token, encodedSecret);
+    const { payload } = await jwtVerify(token, encodedSecret, { algorithms: ['HS256'] });
     // NestJS JWT uses `sub` for userId, `role` for role
     const userId = (payload.sub ?? payload['userId']) as string | undefined;
     const role = payload['role'] as string | undefined;

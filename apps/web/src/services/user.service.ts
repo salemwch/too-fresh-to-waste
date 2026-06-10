@@ -37,7 +37,10 @@ export const userService = {
     return apiClient.patch<ApiResponse<UserPreferences>>(`${USERS_BASE}/preferences`, data);
   },
 
-  changePassword(newPassword: string) {
-    return apiClient.patch<ApiResponse<void>>(`${USERS_BASE}/me/password`, { newPassword });
+  changePassword(currentPassword: string, newPassword: string) {
+    return apiClient.patch<ApiResponse<void>>(`${USERS_BASE}/me/password`, {
+      currentPassword,
+      newPassword,
+    });
   },
 };

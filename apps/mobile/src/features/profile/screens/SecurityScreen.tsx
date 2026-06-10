@@ -28,6 +28,7 @@ interface SecurityScreenProps {
 }
 
 interface PasswordFormValues {
+  currentPassword: string;
   newPassword: string;
   confirmPassword: string;
 }
@@ -37,6 +38,7 @@ interface PasswordFormValues {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const schema = yup.object({
+  currentPassword: yup.string().required('Current password is required'),
   newPassword: yup
     .string()
     .required('New password is required')
@@ -80,6 +82,7 @@ function parseServerError(error: unknown): string {
 
 export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) => {
   const theme = useTheme();
+  const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -91,11 +94,12 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
     formState: { errors, isDirty },
   } = useForm<PasswordFormValues>({
     resolver: yupResolver(schema),
-    defaultValues: { newPassword: '', confirmPassword: '' },
+    defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
   });
 
   const { mutate: updatePassword, isPending } = useMutation({
-    mutationFn: (values: PasswordFormValues) => userService.updatePassword(values.newPassword),
+    mutationFn: (values: PasswordFormValues) =>
+      userService.updatePassword(values.currentPassword, values.newPassword),
     onSuccess: () => {
       reset();
       navigation.goBack();
@@ -135,6 +139,33 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
           <Text variant='body' size='sm' color='secondary' style={styles.subtitle}>
             Set a new password for your account.
           </Text>
+
+          {/* Current Password */}
+          <Controller
+            control={control}
+            name='currentPassword'
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label='Current Password'
+                value={value}
+                onChangeText={text => {
+                  onChange(text);
+                  setServerError(null);
+                }}
+                onBlur={onBlur}
+                error={errors.currentPassword?.message}
+                placeholder='Enter current password'
+                secureTextEntry={!showCurrent}
+                autoCapitalize='none'
+                autoCorrect={false}
+                returnKeyType='next'
+                rightIcon={showCurrent ? 'eye-off-outline' : 'eye-outline'}
+                rightIconFamily='Ionicons'
+                onRightIconPress={() => setShowCurrent(v => !v)}
+                style={styles.input}
+              />
+            )}
+          />
 
           {/* New Password */}
           <Controller

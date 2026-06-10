@@ -260,15 +260,10 @@ class UserService {
     }
   }
 
-  /**
-   * Update the authenticated user's password (no current password required)
-   *
-   * @param newPassword - The new password
-   */
-  async updatePassword(newPassword: string): Promise<void> {
+  async updatePassword(currentPassword: string, newPassword: string): Promise<void> {
     try {
       Logger.info('Updating password');
-      await apiClient.patch('/users/me/password', { newPassword });
+      await apiClient.patch('/users/me/password', { currentPassword, newPassword });
       Logger.info('Password updated successfully');
     } catch (error) {
       Logger.error('Failed to update password', {}, error as Error);

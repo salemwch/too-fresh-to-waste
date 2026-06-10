@@ -37,8 +37,10 @@ export default function MerchantProfilePage() {
   const [success, setSuccess] = useState(false);
 
   // ── Password state ────────────────────────────────────────────────────────
+  const [currentPw, setCurrentPw] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [pwLoading, setPwLoading] = useState(false);
@@ -63,8 +65,9 @@ export default function MerchantProfilePage() {
 
     setPwLoading(true);
     try {
-      await userService.changePassword(newPassword);
+      await userService.changePassword(currentPw, newPassword);
       setPwSuccess(true);
+      setCurrentPw('');
       setNewPassword('');
       setConfirmPassword('');
     } catch {
@@ -338,6 +341,34 @@ export default function MerchantProfilePage() {
         </div>
 
         <form onSubmit={handlePasswordSubmit} className='space-y-3'>
+          {/* Current password */}
+          <div className='space-y-1'>
+            <Label htmlFor='currentPw' className='text-xs font-medium text-slate-700'>
+              {t('currentPassword')}
+            </Label>
+            <div className='relative'>
+              <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+              <Input
+                id='currentPw'
+                type={showCurrent ? 'text' : 'password'}
+                value={currentPw}
+                onChange={e => setCurrentPw(e.target.value)}
+                required
+                disabled={pwLoading}
+                className='h-[36px] pl-8 pr-9 text-sm'
+                autoComplete='current-password'
+              />
+              <button
+                type='button'
+                onClick={() => setShowCurrent(v => !v)}
+                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
+                aria-label={showCurrent ? t('hidePassword') : t('showPassword')}
+              >
+                {showCurrent ? <EyeOff className='h-3.5 w-3.5' /> : <Eye className='h-3.5 w-3.5' />}
+              </button>
+            </div>
+          </div>
+
           {/* New password */}
           <div className='space-y-1'>
             <Label htmlFor='newPassword' className='text-xs font-medium text-slate-700'>

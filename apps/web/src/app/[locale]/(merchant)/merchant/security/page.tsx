@@ -10,8 +10,10 @@ import { PasswordStrengthIndicator } from '@/components/auth/password-strength-i
 export default function MerchantSecurityPage() {
   const t = useTranslations('dashboard.merchantSecurity');
 
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,8 +32,9 @@ export default function MerchantSecurityPage() {
 
     setIsLoading(true);
     try {
-      await userService.changePassword(newPassword);
+      await userService.changePassword(currentPassword, newPassword);
       setSuccess(true);
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch {
@@ -49,6 +52,35 @@ export default function MerchantSecurityPage() {
       </div>
 
       <form onSubmit={handleSubmit} className='space-y-3'>
+        {/* Current Password */}
+        <div className='space-y-1'>
+          <Label htmlFor='currentPassword' className='text-xs font-medium text-slate-700'>
+            {t('currentPassword')}
+          </Label>
+          <div className='relative'>
+            <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+            <Input
+              id='currentPassword'
+              type={showCurrent ? 'text' : 'password'}
+              value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
+              required
+              disabled={isLoading}
+              autoComplete='current-password'
+              className='h-[36px] pl-8 pr-9 text-sm'
+            />
+            <button
+              type='button'
+              onClick={() => setShowCurrent(v => !v)}
+              className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
+              tabIndex={-1}
+              aria-label={showCurrent ? 'Hide password' : 'Show password'}
+            >
+              {showCurrent ? <EyeOff className='h-3.5 w-3.5' /> : <Eye className='h-3.5 w-3.5' />}
+            </button>
+          </div>
+        </div>
+
         {/* New Password */}
         <div className='space-y-1'>
           <Label htmlFor='newPassword' className='text-xs font-medium text-slate-700'>

@@ -33,10 +33,13 @@ const MIN_QUERY_LENGTH = 2;
 const CACHE_MAX_ENTRIES = 50;
 
 function decodeHtmlEntities(text: string): string {
-  if (typeof document === 'undefined') return text.replace(/&amp;/g, '&');
-  const el = document.createElement('textarea');
-  el.innerHTML = text;
-  return el.value;
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0*39;/g, "'")
+    .replace(/&#x0*27;/g, "'");
 }
 
 export function BusinessSearchAutocomplete({
