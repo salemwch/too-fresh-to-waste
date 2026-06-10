@@ -9,6 +9,7 @@ import * as argon2 from 'argon2';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { PhoneNumberService } from '../common/services/phone-number.service';
 import { EmailService } from '../email/email.service';
+// eslint-disable-next-line import/no-restricted-paths
 import { GamificationService } from '../loyalty/services/gamification.service';
 import { UsersService } from '../users/user.service';
 
@@ -1025,9 +1026,10 @@ describe('AuthService', () => {
         expect(tokenService.generateTokenPair).toHaveBeenCalled();
 
         // rotateToken must be called before generateTokenPair
-        const rotateOrder = (tokenService.rotateToken as jest.Mock).mock.invocationCallOrder[0]!;
-        const generateOrder = (tokenService.generateTokenPair as jest.Mock).mock
-          .invocationCallOrder[0]!;
+        const rotateOrder =
+          (tokenService.rotateToken as jest.Mock).mock.invocationCallOrder[0] ?? 0;
+        const generateOrder =
+          (tokenService.generateTokenPair as jest.Mock).mock.invocationCallOrder[0] ?? 0;
         expect(rotateOrder).toBeLessThan(generateOrder);
       });
 

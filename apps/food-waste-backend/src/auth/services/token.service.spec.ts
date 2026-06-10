@@ -983,12 +983,12 @@ describe('TokenService', () => {
         familyId: 'fam-1',
         securityMetadata: { rotationCount: 3 },
       });
-      const rotated = await service.rotateToken(validation.jti!);
+      const rotated = await service.rotateToken(validation.jti as string);
       expect(rotated).toBe(true);
 
       // 3. Generate: new pair in same family with parent link
       await service.generateTokenPair(
-        validation.userId!,
+        validation.userId as string,
         'a@b.com',
         UserRole.CONSUMER,
         undefined,
