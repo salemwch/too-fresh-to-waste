@@ -1849,5 +1849,11 @@
       "submitted": "✓ Received — talk soon!",
       "note": "No commitment. Reply within 24 h. 100% free."
     }
+  },
+  "cookieConsent": {
+    "message": "We use cookies to keep things fresh — your experience, not your data.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "learnMore": "Cookie Policy"
   }
 }

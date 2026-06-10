@@ -33,7 +33,6 @@ export function GoogleAnalytics({
   const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
-    // Check if analytics should be loaded
     const isDNTEnabled =
       respectDNT &&
       (navigator.doNotTrack === '1' ||
@@ -41,19 +40,17 @@ export function GoogleAnalytics({
         // @ts-expect-error - IE/Edge legacy property
         navigator.msDoNotTrack === '1');
 
-    const shouldEnable = Boolean(enabled && !isDNTEnabled && measurementId);
+    const cookieConsent = localStorage.getItem('cookie-consent');
+    const isConsentDeclined = cookieConsent === 'declined';
 
+    const shouldEnable = Boolean(enabled && !isDNTEnabled && !isConsentDeclined && measurementId);
     setShouldLoad(shouldEnable);
 
-    // Log status in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[GoogleAnalytics] Configuration:', {
-        measurementId,
-        enabled,
-        isDNTEnabled,
-        willLoad: shouldEnable,
-      });
+    function handleDeclined() {
+      setShouldLoad(false);
     }
+    window.addEventListener('cookie-consent-declined', handleDeclined);
+    return () => window.removeEventListener('cookie-consent-declined', handleDeclined);
   }, [measurementId, enabled, respectDNT]);
 
   // Don't render if not enabled

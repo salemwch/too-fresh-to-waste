@@ -1854,5 +1854,11 @@
       "submitted": "✓ Reçu — à bientôt !",
       "note": "Aucun engagement. Réponse sous 24 h. 100 % gratuit."
     }
+  },
+  "cookieConsent": {
+    "message": "Nous utilisons des cookies pour garder les choses fraîches — votre expérience, pas vos données.",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "learnMore": "Politique de cookies"
   }
 }

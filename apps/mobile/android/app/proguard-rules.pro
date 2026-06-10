@@ -1,7 +1,20 @@
 # ProGuard Rules for Food Waste Mobile App
 # React Native 0.81.0 + Firebase + Navigation + Native Modules
 # Source: https://developer.android.com/studio/build/shrink-code
-# Date: October 17, 2025
+
+# ============================================================================
+# R8 OPTIMIZATION SETTINGS
+# ============================================================================
+-optimizationpasses 5
+-repackageclasses ''
+-allowaccessmodification
+
+# Strip debug/verbose/info logs from release builds
+-assumenosideeffects class android.util.Log {
+    public static int d(...);
+    public static int v(...);
+    public static int i(...);
+}
 
 # ============================================================================
 # REACT NATIVE CORE
@@ -56,34 +69,41 @@
 -keep class com.facebook.jni.HybridData { *; }
 
 # ============================================================================
-# FIREBASE SDK
+# FIREBASE SDK (only firebase-messaging is used)
 # ============================================================================
 # Source: https://firebase.google.com/docs/android/setup
-# Source: https://github.com/firebase/firebase-android-sdk
+# Targeted keeps — R8 strips unused Firebase modules (analytics, auth, etc.)
 
-# Firebase Core
--keep class com.google.firebase.** { *; }
--keep class com.google.android.gms.** { *; }
--dontwarn com.google.firebase.**
--dontwarn com.google.android.gms.**
-
-# Firebase Messaging (only Firebase module kept)
+-keep class com.google.firebase.FirebaseApp { *; }
+-keep class com.google.firebase.FirebaseOptions { *; }
+-keep class com.google.firebase.provider.** { *; }
+-keep class com.google.firebase.components.** { *; }
 -keep class com.google.firebase.messaging.** { *; }
 -keep class com.google.firebase.installations.** { *; }
+-keep class com.google.firebase.iid.** { *; }
+-dontwarn com.google.firebase.**
 
 # ============================================================================
-# REACT NATIVE FIREBASE
+# GOOGLE PLAY SERVICES (only location + maps used)
+# ============================================================================
+# Source: https://developers.google.com/android/guides/setup
+
+-keep class com.google.android.gms.common.** { *; }
+-keep class com.google.android.gms.tasks.** { *; }
+-keep class com.google.android.gms.location.** { *; }
+-keep class com.google.android.gms.maps.** { *; }
+-keep class com.google.android.gms.base.** { *; }
+-dontwarn com.google.android.gms.**
+
+# ============================================================================
+# REACT NATIVE FIREBASE (only app + messaging modules used)
 # ============================================================================
 # Source: https://rnfirebase.io/
 
--keep class io.invertase.firebase.** { *; }
--dontwarn io.invertase.firebase.**
-
-# Firebase App
 -keep class io.invertase.firebase.app.** { *; }
-
-# Firebase Messaging
 -keep class io.invertase.firebase.messaging.** { *; }
+-keep class io.invertase.firebase.common.** { *; }
+-dontwarn io.invertase.firebase.**
 
 # ============================================================================
 # REACT NAVIGATION
@@ -185,8 +205,6 @@
 # Google Maps
 -keep class com.google.android.gms.maps.** { *; }
 -dontwarn com.google.android.gms.maps.**
-
-# react-native-svg: REMOVED — converted to PNG assets
 
 # ============================================================================
 # NITRO MODULES (react-native-mmkv, react-native-nitro-modules)

@@ -36,6 +36,10 @@ android {
         // Enable MultiDex for large app
         multiDexEnabled true
 
+        // Only bundle language resources for supported locales (en, fr, ar).
+        // Strips 80+ unused language string tables from Firebase, GMS, AndroidX.
+        resConfigs "en", "fr", "ar"
+
         // Default manifest placeholders (overridden by flavors/buildTypes)
         manifestPlaceholders = [
             usesCleartextTraffic: "false"
@@ -134,6 +138,7 @@ android {
             // Source: https://developer.android.com/studio/build/shrink-code
             minifyEnabled = (findProperty('enableProguardInReleaseBuilds') ?: 'true').toBoolean()
             shrinkResources = true
+            crunchPngs = true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 
             // Release builds enforce secure connections (no cleartext)
