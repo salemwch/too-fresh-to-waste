@@ -65,6 +65,7 @@ export interface UserResponse {
   lastLoginAt?: string;
   /** True when an admin created the account and the user must change their password on first login. */
   requiresPasswordChange?: boolean;
+  authProvider?: 'local' | 'google' | 'facebook' | 'apple';
 }
 
 export interface UserPreferences {

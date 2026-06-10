@@ -12,7 +12,9 @@ import * as yup from 'yup';
 
 import { Text, Button, Card, Input, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { selectAuthUser } from '@/features/auth/store/authSlice';
 import { userService } from '@/features/profile/services/userService';
+import { useAppSelector } from '@/hooks';
 
 import type { MainStackParamList } from '@/navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -82,6 +84,8 @@ function parseServerError(error: unknown): string {
 
 export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) => {
   const theme = useTheme();
+  const user = useAppSelector(selectAuthUser);
+  const isOAuthAccount = user?.authProvider !== undefined && user.authProvider !== 'local';
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -137,8 +141,43 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
             Change Password
           </Text>
           <Text variant='body' size='sm' color='secondary' style={styles.subtitle}>
-            Set a new password for your account.
+            {isOAuthAccount
+              ? 'Your account is managed by Google. Password changes are not available.'
+              : 'Set a new password for your account.'}
           </Text>
+
+          {isOAuthAccount && (
+            <View
+              style={[
+                styles.oauthInfoBox,
+                {
+                  backgroundColor: theme.colors.surfaceVariant,
+                  borderColor: theme.colors.outline,
+                },
+              ]}
+            >
+              <Icon
+                name='logo-google'
+                family='Ionicons'
+                size={20}
+                color={theme.colors.onSurfaceVariant}
+              />
+              <View style={styles.oauthInfoContent}>
+                <Text variant='body' size='sm' weight='medium'>
+                  Signed in with Google
+                </Text>
+                <Text
+                  variant='body'
+                  size='xs'
+                  color='secondary'
+                  style={styles.oauthInfoDescription}
+                >
+                  Password is managed by your Google account. To change your password, visit your
+                  Google Account settings.
+                </Text>
+              </View>
+            </View>
+          )}
 
           {/* Current Password */}
           <Controller
@@ -154,7 +193,9 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                 }}
                 onBlur={onBlur}
                 error={errors.currentPassword?.message}
-                placeholder='Enter current password'
+                placeholder={
+                  isOAuthAccount ? 'Not available for Google accounts' : 'Enter current password'
+                }
                 secureTextEntry={!showCurrent}
                 autoCapitalize='none'
                 autoCorrect={false}
@@ -162,6 +203,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                 rightIcon={showCurrent ? 'eye-off-outline' : 'eye-outline'}
                 rightIconFamily='Ionicons'
                 onRightIconPress={() => setShowCurrent(v => !v)}
+                disabled={isOAuthAccount}
                 style={styles.input}
               />
             )}
@@ -181,7 +223,9 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                 }}
                 onBlur={onBlur}
                 error={errors.newPassword?.message}
-                placeholder='Enter new password'
+                placeholder={
+                  isOAuthAccount ? 'Not available for Google accounts' : 'Enter new password'
+                }
                 secureTextEntry={!showNew}
                 autoCapitalize='none'
                 autoCorrect={false}
@@ -189,6 +233,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                 rightIcon={showNew ? 'eye-off-outline' : 'eye-outline'}
                 rightIconFamily='Ionicons'
                 onRightIconPress={() => setShowNew(v => !v)}
+                disabled={isOAuthAccount}
                 style={styles.input}
               />
             )}
@@ -208,7 +253,9 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                 }}
                 onBlur={onBlur}
                 error={errors.confirmPassword?.message}
-                placeholder='Re-enter new password'
+                placeholder={
+                  isOAuthAccount ? 'Not available for Google accounts' : 'Re-enter new password'
+                }
                 secureTextEntry={!showConfirm}
                 autoCapitalize='none'
                 autoCorrect={false}
@@ -217,26 +264,29 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                 rightIconFamily='Ionicons'
                 onRightIconPress={() => setShowConfirm(v => !v)}
                 onSubmitEditing={handleSubmitEditing}
+                disabled={isOAuthAccount}
                 style={styles.input}
               />
             )}
           />
 
-          {/* Password requirements hint */}
-          <View style={[styles.hintBox, { backgroundColor: theme.colors.surfaceVariant }]}>
-            <Icon
-              name='information-circle-outline'
-              family='Ionicons'
-              size={16}
-              color={theme.colors.onSurfaceVariant}
-            />
-            <Text variant='body' size='xs' color='secondary' style={styles.hintText}>
-              Min. 8 chars · uppercase · lowercase · number · special char (@$!%*?&.)
-            </Text>
-          </View>
+          {/* Password requirements hint — only for local accounts */}
+          {!isOAuthAccount && (
+            <View style={[styles.hintBox, { backgroundColor: theme.colors.surfaceVariant }]}>
+              <Icon
+                name='information-circle-outline'
+                family='Ionicons'
+                size={16}
+                color={theme.colors.onSurfaceVariant}
+              />
+              <Text variant='body' size='xs' color='secondary' style={styles.hintText}>
+                Min. 8 chars · uppercase · lowercase · number · special char (@$!%*?&.)
+              </Text>
+            </View>
+          )}
 
-          {/* Inline server error */}
-          {serverError !== null && (
+          {/* Inline server error — only for local accounts */}
+          {!isOAuthAccount && serverError !== null && (
             <View
               style={[
                 styles.errorBox,
@@ -263,16 +313,18 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
           )}
 
           {/* Actions */}
-          <Button
-            variant='primary'
-            size='lg'
-            onPress={handleSavePress}
-            loading={isPending}
-            disabled={!isDirty || isPending}
-            style={styles.saveButton}
-          >
-            Save Changes
-          </Button>
+          {!isOAuthAccount && (
+            <Button
+              variant='primary'
+              size='lg'
+              onPress={handleSavePress}
+              loading={isPending}
+              disabled={!isDirty || isPending}
+              style={styles.saveButton}
+            >
+              Save Changes
+            </Button>
+          )}
 
           <Button
             variant='outline'
@@ -280,7 +332,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
             onPress={() => navigation.goBack()}
             disabled={isPending}
           >
-            Cancel
+            {isOAuthAccount ? 'Go Back' : 'Cancel'}
           </Button>
         </Card>
       </ScrollView>
@@ -308,6 +360,22 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     marginBottom: 24,
+  },
+  oauthInfoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 24,
+    gap: 12,
+  },
+  oauthInfoContent: {
+    flex: 1,
+  },
+  oauthInfoDescription: {
+    marginTop: 4,
+    lineHeight: 18,
   },
   input: {
     marginBottom: 16,
