@@ -7,8 +7,6 @@ import { PassportModule } from '@nestjs/passport';
 
 import { CommonModule } from 'src/common/common.module';
 import { EmailModule } from 'src/email/email.module';
-// eslint-disable-next-line import/no-restricted-paths -- intentional: referral processing moved inline for reliability
-import { LoyaltyModule } from 'src/loyalty/loyalty.module';
 import { UsersModule } from 'src/users/user.module';
 
 import { AdminAuthController } from './admin-auth.controller';
@@ -46,7 +44,6 @@ import type { StringValue } from 'ms';
     PassportModule,
     EmailModule,
     CommonModule,
-    LoyaltyModule,
     HttpModule, // PRODUCTION-READY IMPROVEMENT: For CAPTCHA verification
     MongooseModule.forFeature([{ name: RefreshToken.name, schema: RefreshTokenSchema }]),
     JwtModule.registerAsync({

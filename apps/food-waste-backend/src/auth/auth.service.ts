@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/node';
 import { UserRole, UserStatus } from '@foodwaste/shared';
 import {
   Injectable,
@@ -22,7 +21,6 @@ import { PhoneNumberService } from 'src/common/services/phone-number.service';
 import { CryptoUtil } from 'src/common/utils/crypto.util';
 import { EmailService } from 'src/email/email.service';
 // eslint-disable-next-line import/no-restricted-paths -- intentional: referral processing moved inline for reliability
-import { GamificationService } from 'src/loyalty/services/gamification.service';
 import { UsersService } from 'src/users/user.service';
 
 import { UserRegisteredEvent } from '../common/events';
@@ -97,7 +95,6 @@ export class AuthService {
     private readonly authSecurityService: AuthSecurityService,
     private readonly captchaService: CaptchaService,
     private readonly eventBus: EventBusService,
-    private readonly gamificationService: GamificationService,
   ) {
     void this.captchaService;
     void this._generateTokens;
@@ -169,40 +166,14 @@ export class AuthService {
       });
     }
 
-    // Synchronous referral + loyalty processing (no async events for critical path)
     const userId = user._id.toString();
 
-    if (role !== UserRole.MERCHANT) {
-      try {
-        await this.gamificationService.createLoyaltyAccountForNewUser(userId);
-        this.logger.log(`Loyalty account created for user: ${userId}`);
-      } catch (error) {
-        this.logger.error(
-          `Failed to create loyalty account for ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        );
-      }
-    }
-
-    if (registerDto.referralCode) {
-      Sentry.captureMessage(
-        `[REFERRAL] Entry: code="${registerDto.referralCode}" userId=${userId} email=${user.email} role=${role}`,
-        'info',
-      );
-      await this.processReferralInline(
-        registerDto.referralCode,
-        userId,
-        user.email,
-        normalizedPhone,
-        role,
-      );
-    }
-
-    // Emit event for non-critical listeners (notifications, analytics) — referral already handled
+    // Emit event — loyalty account creation and referral processing handled by loyalty listener
     try {
       await this.eventBus.emit(
         'user.registered',
         new UserRegisteredEvent(
-          user._id.toString(),
+          userId,
           user.email,
           role,
           new Date(),
@@ -227,89 +198,6 @@ export class AuthService {
         'Registration successful. Please check your email to verify your account before logging in.',
       user: safeUser,
     };
-  }
-
-  private async processReferralInline(
-    referralCode: string,
-    userId: string,
-    email: string,
-    phone: string | undefined,
-    role: string,
-  ): Promise<void> {
-    try {
-      Sentry.captureMessage(
-        `[REFERRAL] Step 1: Looking up code="${referralCode}" for user=${userId}`,
-        'info',
-      );
-
-      const referrerAccount = await this.gamificationService.findReferrerByCode(referralCode);
-      if (!referrerAccount) {
-        Sentry.captureMessage(
-          `[REFERRAL] FAILED Step 1: code="${referralCode}" NOT FOUND`,
-          'error',
-        );
-        return;
-      }
-
-      Sentry.captureMessage(
-        `[REFERRAL] Step 2: Found referrer=${referrerAccount.userId}, self-referral check`,
-        'info',
-      );
-
-      if (referrerAccount.userId.toString() === userId) {
-        Sentry.captureMessage(`[REFERRAL] FAILED Step 2: self-referral blocked`, 'error');
-        return;
-      }
-
-      Sentry.captureMessage(`[REFERRAL] Step 3: Anti-fraud check email=${email}`, 'info');
-
-      const referredAs = role === 'merchant' ? 'merchant' : 'consumer';
-      const isNewIdentity = await this.gamificationService.checkAndRecordReferredIdentity(
-        email,
-        phone,
-        userId,
-        referrerAccount.userId.toString(),
-        referredAs,
-      );
-
-      if (!isNewIdentity) {
-        Sentry.captureMessage(
-          `[REFERRAL] FAILED Step 3: anti-fraud blocked email=${email}`,
-          'error',
-        );
-        return;
-      }
-
-      Sentry.captureMessage(
-        `[REFERRAL] Step 4: registerFriendReferral referrer=${referrerAccount.userId} friend=${userId}`,
-        'info',
-      );
-
-      if (role === 'merchant') {
-        await this.gamificationService.registerBusinessReferral(
-          referrerAccount.userId.toString(),
-          userId,
-        );
-      } else {
-        await this.gamificationService.registerFriendReferral(
-          referrerAccount.userId.toString(),
-          userId,
-        );
-      }
-
-      Sentry.captureMessage(
-        `[REFERRAL] SUCCESS: ${userId} referred by ${referrerAccount.userId} (code: ${referralCode})`,
-        'info',
-      );
-    } catch (error) {
-      Sentry.captureException(error, {
-        tags: { flow: 'referral_inline' },
-        extra: { referralCode, userId, email, role },
-      });
-      this.logger.error(
-        `Failed to process referral "${referralCode}" for ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
   }
 
   async verifyEmail(

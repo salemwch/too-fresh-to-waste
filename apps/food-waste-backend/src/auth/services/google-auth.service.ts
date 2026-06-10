@@ -6,8 +6,6 @@ import { UserRole, UserStatus } from '@foodwaste/shared';
 import { UserRegisteredEvent } from 'src/common/events';
 import { EventBusService } from 'src/common/services/event-bus/event-bus.service';
 import { EmailService } from 'src/email/email.service';
-// eslint-disable-next-line import/no-restricted-paths -- intentional: referral processing moved inline for reliability
-import { GamificationService } from 'src/loyalty/services/gamification.service';
 import { UserDocument } from 'src/users/schemas/user.schema';
 import { UsersService } from 'src/users/user.service';
 
@@ -31,7 +29,6 @@ export class GoogleAuthService {
     private readonly tokenService: TokenService,
     private readonly emailService: EmailService,
     private readonly eventBus: EventBusService,
-    private readonly gamificationService: GamificationService,
   ) {
     const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
     if (!clientId) {
@@ -69,7 +66,10 @@ export class GoogleAuthService {
     }
 
     const googleId = googlePayload.sub;
-    const email = googlePayload.email!;
+    if (!googlePayload.email) {
+      throw new UnauthorizedException('Google account has no email');
+    }
+    const email = googlePayload.email;
     const firstName = googlePayload.given_name ?? '';
     const lastName = googlePayload.family_name ?? '';
     const picture = googlePayload.picture;
@@ -109,48 +109,19 @@ export class GoogleAuthService {
 
         const userId = user._id.toString();
 
-        // Synchronous loyalty + referral processing
-        try {
-          await this.gamificationService.createLoyaltyAccountForNewUser(userId);
-        } catch (error) {
-          this.logger.error(
-            `Failed to create loyalty account for Google user ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          );
-        }
-
-        if (referralCode) {
-          try {
-            const referrerAccount = await this.gamificationService.findReferrerByCode(referralCode);
-            if (referrerAccount && referrerAccount.userId.toString() !== userId) {
-              const isNew = await this.gamificationService.checkAndRecordReferredIdentity(
-                email,
-                undefined,
-                userId,
-                referrerAccount.userId.toString(),
-                'consumer',
-              );
-              if (isNew) {
-                await this.gamificationService.registerFriendReferral(
-                  referrerAccount.userId.toString(),
-                  userId,
-                );
-                this.logger.log(
-                  `Referral processed for Google user: ${userId} referred by ${referrerAccount.userId}`,
-                );
-              }
-            }
-          } catch (error) {
-            this.logger.error(
-              `Failed to process referral for Google user ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            );
-          }
-        }
-
-        // Emit event for non-critical listeners (notifications, analytics)
+        // Emit event — loyalty account creation and referral handled by loyalty listener
         try {
           await this.eventBus.emit(
             'user.registered',
-            new UserRegisteredEvent(userId, user.email, user.role as string, new Date()),
+            new UserRegisteredEvent(
+              userId,
+              user.email,
+              user.role as string,
+              new Date(),
+              undefined,
+              undefined,
+              referralCode,
+            ),
           );
         } catch (eventError) {
           this.logger.error(

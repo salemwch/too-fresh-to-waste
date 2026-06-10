@@ -9,8 +9,6 @@ import * as argon2 from 'argon2';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { PhoneNumberService } from '../common/services/phone-number.service';
 import { EmailService } from '../email/email.service';
-// eslint-disable-next-line import/no-restricted-paths
-import { GamificationService } from '../loyalty/services/gamification.service';
 import { UsersService } from '../users/user.service';
 
 import { AuthService } from './auth.service';
@@ -192,16 +190,6 @@ describe('AuthService', () => {
           provide: EventBusService,
           useValue: {
             emit: jest.fn().mockResolvedValue(undefined),
-          },
-        },
-        {
-          provide: GamificationService,
-          useValue: {
-            createLoyaltyAccountForNewUser: jest.fn().mockResolvedValue(undefined),
-            findReferrerByCode: jest.fn().mockResolvedValue(null),
-            checkAndRecordReferredIdentity: jest.fn().mockResolvedValue(true),
-            registerFriendReferral: jest.fn().mockResolvedValue(undefined),
-            registerBusinessReferral: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
