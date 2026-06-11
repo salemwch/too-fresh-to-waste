@@ -277,6 +277,26 @@ export const dashboardService = {
     return apiClient.get<BackendEnvelope<CommunityBagGoalStats>>(`${COMMUNITY_GOAL_BASE}/stats`);
   },
 
+  getAdminCommunityGoal() {
+    return apiClient.get<BackendEnvelope<CommunityBagGoalStats>>(`${COMMUNITY_GOAL_BASE}/stats`);
+  },
+
+  updateAdminCommunityGoal(payload: {
+    targetCount: number;
+    rewardPoints?: number;
+    seasonName?: string;
+    endDate?: string;
+  }) {
+    return apiClient.post<BackendEnvelope<CommunityBagGoalStats>>(
+      '/admin/community-goal/target',
+      payload,
+    );
+  },
+
+  resetAdminCommunityGoal() {
+    return apiClient.post<BackendEnvelope<CommunityBagGoalStats>>('/admin/community-goal/reset');
+  },
+
   // ── Sustainability ─────────────────────────────────────────────────────
 
   getEsgTier(establishmentId?: string) {

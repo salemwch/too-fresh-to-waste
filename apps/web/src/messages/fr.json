@@ -592,7 +592,8 @@
       "profile": "Profil",
       "security": "Sécurité",
       "leaderboard": "Classement",
-      "drivers": "Chauffeurs"
+      "drivers": "Chauffeurs",
+      "communityGoal": "Défi Communautaire"
     },
     "stats": {
       "activeOffers": "Offres actives",
@@ -1107,6 +1108,49 @@
         "confirmDescription": "La cagnotte actuelle sera archivée et une nouvelle sera créée. L'historique des dons n'est pas supprimé.",
         "confirm": "Oui, réinitialiser",
         "success": "Cagnotte réinitialisée avec succès"
+      }
+    },
+    "adminCommunityGoal": {
+      "title": "Défi Communautaire",
+      "description": "Configurez le défi communautaire de sauvegarde de sacs et les récompenses",
+      "currentBags": "Sacs Sauvés",
+      "targetBags": "Objectif",
+      "cycle": "Cycle",
+      "rewardPts": "Points de Récompense",
+      "participants": "Participants",
+      "progress": "Progression",
+      "statusLabel": "Statut du Défi",
+      "status": {
+        "active": "Actif",
+        "completed": "Terminé",
+        "archived": "Archivé"
+      },
+      "daysLeft": "{count} jours restants",
+      "noDeadline": "Aucune date limite définie",
+      "settings": {
+        "title": "Paramètres du Défi",
+        "description": "Configurez les paramètres du défi communautaire actuel",
+        "targetCount": "Objectif de Sacs",
+        "targetCountHint": "Nombre de sacs que la communauté doit sauver",
+        "seasonName": "Nom du Défi",
+        "seasonNameHint": "ex. Défi de Juin, Défi d'Été",
+        "rewardPoints": "Points de Récompense",
+        "rewardPointsHint": "Points bonus de fidélité attribués à chaque participant lorsque l'objectif est atteint",
+        "endDate": "Date Limite du Tirage",
+        "endDateHint": "Date limite optionnelle — affichée comme compte à rebours sur l'application mobile",
+        "clearDate": "Effacer la date",
+        "save": "Enregistrer",
+        "saving": "Enregistrement...",
+        "saveSuccess": "Paramètres du défi mis à jour avec succès"
+      },
+      "reset": {
+        "title": "Réinitialiser le Défi",
+        "description": "Terminer le cycle actuel et en commencer un nouveau. Si l'objectif est atteint, les récompenses sont distribuées automatiquement à tous les participants.",
+        "button": "Réinitialiser le Défi",
+        "confirmTitle": "Réinitialiser le Défi Communautaire ?",
+        "confirmDescription": "Le défi actuel sera archivé et un nouveau cycle commencera. La progression des participants sera remise à zéro. Les points de récompense et le nom du défi sont conservés.",
+        "confirm": "Oui, Réinitialiser",
+        "success": "Défi communautaire réinitialisé avec succès"
       }
     },
     "merchantSecurity": {

@@ -442,6 +442,10 @@ export interface CommunityBagGoalStats {
   cycleNumber: number;
   status: CommunityGoalStatus;
   lastUpdatedAt: string;
+  rewardPoints?: number;
+  seasonName?: string;
+  endDate?: string;
+  participantCount?: number;
 }
 
 // ─── Sustainability ──────────────────────────────────────────────────────────

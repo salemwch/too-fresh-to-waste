@@ -592,7 +592,8 @@
       "profile": "Profile",
       "security": "Security",
       "leaderboard": "Leaderboard",
-      "drivers": "Drivers"
+      "drivers": "Drivers",
+      "communityGoal": "Community Goal"
     },
     "stats": {
       "activeOffers": "Active Offers",
@@ -1107,6 +1108,49 @@
         "confirmDescription": "The current pool will be archived and a new one will be created with default settings. Donation history is not deleted.",
         "confirm": "Yes, Reset Pool",
         "success": "Donation pool reset successfully"
+      }
+    },
+    "adminCommunityGoal": {
+      "title": "Community Challenge",
+      "description": "Configure the community bag-saving challenge and rewards",
+      "currentBags": "Bags Saved",
+      "targetBags": "Target",
+      "cycle": "Cycle",
+      "rewardPts": "Reward Points",
+      "participants": "Participants",
+      "progress": "Progress",
+      "statusLabel": "Challenge Status",
+      "status": {
+        "active": "Active",
+        "completed": "Completed",
+        "archived": "Archived"
+      },
+      "daysLeft": "{count} days left",
+      "noDeadline": "No deadline set",
+      "settings": {
+        "title": "Challenge Settings",
+        "description": "Configure the current community challenge parameters",
+        "targetCount": "Target Bags",
+        "targetCountHint": "Number of bags the community must save",
+        "seasonName": "Challenge Name",
+        "seasonNameHint": "e.g. June Challenge, Summer Challenge",
+        "rewardPoints": "Reward Points",
+        "rewardPointsHint": "Bonus loyalty points awarded to every participant when the target is reached",
+        "endDate": "Prize Drop Deadline",
+        "endDateHint": "Optional deadline — shown as a countdown on the mobile app",
+        "clearDate": "Clear date",
+        "save": "Save Changes",
+        "saving": "Saving...",
+        "saveSuccess": "Challenge settings updated successfully"
+      },
+      "reset": {
+        "title": "Reset Challenge",
+        "description": "Complete the current cycle and start a new one. If the target was reached, rewards are distributed to all participants automatically.",
+        "button": "Reset Challenge",
+        "confirmTitle": "Reset Community Challenge?",
+        "confirmDescription": "The current challenge will be archived and a new cycle will begin. Participant progress resets to zero. Reward points and challenge name carry over.",
+        "confirm": "Yes, Reset Challenge",
+        "success": "Community challenge reset successfully"
       }
     },
     "merchantSecurity": {

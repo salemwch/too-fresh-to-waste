@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '@/services/admin.service';
 import { dashboardService } from '@/services/dashboard.service';
-import type { DonationStats } from '@/types/dashboard';
+import type { DonationStats, CommunityBagGoalStats } from '@/types/dashboard';
 import type {
   AnalyticsPeriod,
   UserSearchParams,
@@ -610,6 +610,46 @@ export function useResetDonationPool() {
     mutationFn: () => dashboardService.resetAdminDonationPool().then(r => r.data.data),
     onSuccess: data => {
       qc.setQueryData<DonationStats>(DONATION_POOL_KEY, data);
+    },
+  });
+}
+
+// ─── Community Goal ──────────────────────────────────────────────────────────
+
+const COMMUNITY_GOAL_KEY = ['admin', 'community-goal'] as const;
+
+export function useAdminCommunityGoal() {
+  return useQuery({
+    queryKey: COMMUNITY_GOAL_KEY,
+    queryFn: async (): Promise<CommunityBagGoalStats> => {
+      const res = await dashboardService.getAdminCommunityGoal();
+      return res.data.data;
+    },
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useUpdateCommunityGoal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: {
+      targetCount: number;
+      rewardPoints?: number;
+      seasonName?: string;
+      endDate?: string;
+    }) => dashboardService.updateAdminCommunityGoal(payload).then(r => r.data.data),
+    onSuccess: data => {
+      qc.setQueryData<CommunityBagGoalStats>(COMMUNITY_GOAL_KEY, data);
+    },
+  });
+}
+
+export function useResetCommunityGoal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => dashboardService.resetAdminCommunityGoal().then(r => r.data.data),
+    onSuccess: data => {
+      qc.setQueryData<CommunityBagGoalStats>(COMMUNITY_GOAL_KEY, data);
     },
   });
 }

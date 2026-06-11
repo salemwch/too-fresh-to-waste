@@ -126,6 +126,12 @@ export const adminNavItems: NavItem[] = [
     roles: [UserRole.ADMIN],
   },
   {
+    titleKey: 'communityGoal',
+    href: '/admin/community-goal',
+    icon: Trophy,
+    roles: [UserRole.ADMIN],
+  },
+  {
     titleKey: 'drivers',
     href: '/admin/drivers',
     icon: Truck,
