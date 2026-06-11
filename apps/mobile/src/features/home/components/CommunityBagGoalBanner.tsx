@@ -1,8 +1,3 @@
-/**
- * CommunityBagGoalBanner Component
- * Collapsible card showing community progress toward a bag-saving goal.
- */
-
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -23,23 +18,22 @@ import { colorTokens } from '@/design-system/tokens/colors';
 
 import { SkeletonCommunityBagGoal } from './SkeletonCommunityBagGoal';
 
-interface CommunityBagGoalBannerProps {
-  onSaveABag?: () => void;
-}
-
 const COLORS = {
   brand: colorTokens.base.primary[500],
-  brandLight: colorTokens.base.primary[400],
   brandDark: colorTokens.base.primary[700],
+  amber: colorTokens.base.secondary[500],
+  green: '#4ADE80',
+  white: '#FFFFFF',
+  textOnBrand: '#FFFFFF',
+  textOnBrandMuted: 'rgba(255,255,255,0.4)',
+  textOnBrandSoft: 'rgba(255,255,255,0.8)',
+  textOnBrandDim: 'rgba(255,255,255,0.35)',
   brandSurface: 'rgba(255,255,255,0.15)',
   brandSurfaceSolid: 'rgba(255,255,255,0.20)',
-  surface: '#FFFFFF',
-  shadow: '#000',
-  textOnBrand: '#FFFFFF',
-  textOnBrandMuted: 'rgba(255,255,255,0.75)',
-  progressTrack: 'rgba(255,255,255,0.25)',
-  progressFill: '#4ADE80',
-  chipBg: 'rgba(255,255,255,0.18)',
+  progressTrackPrize: 'rgba(255,255,255,0.10)',
+  progressTrackChallenge: 'rgba(255,255,255,0.08)',
+  challengeSurface: 'rgba(255,255,255,0.06)',
+  challengeBorder: 'rgba(255,255,255,0.06)',
 } as const;
 
 const PulsingDot = () => {
@@ -62,9 +56,7 @@ const PulsingDot = () => {
         }),
       ]),
     );
-
     animation.start();
-
     return () => {
       animation.stop();
     };
@@ -73,7 +65,17 @@ const PulsingDot = () => {
   return <Animated.View style={[styles.liveDot, { opacity }]} />;
 };
 
-const ProgressBar = ({ percentage }: { percentage: number }) => {
+const AnimatedProgressBar = ({
+  percentage,
+  color,
+  trackColor,
+  height = 4,
+}: {
+  percentage: number;
+  color: string;
+  trackColor: string;
+  height?: number;
+}) => {
   const [widthAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
@@ -96,20 +98,22 @@ const ProgressBar = ({ percentage }: { percentage: number }) => {
   );
 
   return (
-    <View style={styles.progressBar}>
-      <Animated.View style={[styles.progressFill, { width: animatedWidth }]} />
+    <View style={[styles.progressTrack, { backgroundColor: trackColor, height }]}>
+      <Animated.View
+        style={[styles.progressFill, { width: animatedWidth, backgroundColor: color }]}
+      />
     </View>
   );
 };
 
-const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerProps) => {
+const CommunityBagGoalBannerComponent = () => {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: stats, isLoading, isError } = useCommunityBagGoal();
 
   const toggleExpand = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsExpanded(previousValue => !previousValue);
+    setIsExpanded(prev => !prev);
   }, []);
 
   if (isLoading || (stats === undefined && !isError)) {
@@ -120,20 +124,13 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
     return null;
   }
 
-  const { currentCount, targetCount, progressPercentage, remaining } = stats;
+  const { currentCount, targetCount, progressPercentage } = stats;
   const seasonName = stats.seasonName ?? t('home.challengeDefault');
   const rewardPoints = stats.rewardPoints ?? 0;
 
   const daysLeft = stats.endDate
     ? Math.max(0, Math.ceil((new Date(stats.endDate).getTime() - Date.now()) / 86_400_000))
     : null;
-
-  const prizeDropText =
-    daysLeft !== null
-      ? daysLeft === 0
-        ? t('home.prizeDropSoon')
-        : t('home.prizeDropIn', { count: daysLeft })
-      : null;
 
   const daysLeftPercentage = stats.endDate
     ? Math.max(0, Math.min(100, 100 - ((daysLeft ?? 0) / 180) * 100))
@@ -142,91 +139,93 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
   return (
     <View style={styles.container}>
       <Pressable
-        style={styles.banner}
+        style={styles.card}
         onPress={toggleExpand}
         accessibilityRole='button'
-        accessibilityLabel={`${seasonName}: ${currentCount} of ${targetCount} bags`}
+        accessibilityLabel={`${seasonName}: ${t('home.challengeProgress', { current: currentCount.toLocaleString(), target: targetCount.toLocaleString() })}`}
         accessibilityHint={t('home.expandDetails')}
         testID='community-bag-goal-banner'
       >
-        {/* \u2500\u2500 Section 1: Prize Drop Countdown \u2500\u2500 */}
-        {prizeDropText != null && (
-          <View style={styles.prizeDropSection}>
-            <Text style={styles.prizeDropText}>{prizeDropText}</Text>
-            <View style={styles.prizeDropBar}>
-              <Animated.View style={[styles.prizeDropFill, { width: `${daysLeftPercentage}%` }]} />
-            </View>
-          </View>
-        )}
-
-        {/* \u2500\u2500 Section 2: Challenge \u2500\u2500 */}
-        <View style={styles.collapsedContent}>
+        {/* ── Collapsed: compact summary row ── */}
+        <View style={styles.collapsedRow}>
           <View style={styles.iconContainer}>
-            <Image source={surpriseBoxImg} style={{ width: 28, height: 28 }} />
+            <Image source={surpriseBoxImg} style={styles.icon} />
           </View>
-
           <View style={styles.textContainer}>
             <View style={styles.titleRow}>
-              <Text style={styles.title}>{seasonName}</Text>
-              <View style={styles.liveBadge}>
+              <Text style={styles.collapsedTitle}>{seasonName}</Text>
+              <View style={styles.collapsedLiveBadge}>
                 <PulsingDot />
-                <Text style={styles.liveText}>{t('home.live')}</Text>
+                <Text style={styles.collapsedLiveText}>{t('home.live')}</Text>
               </View>
             </View>
-            <Text style={styles.subtitle}>
+            <Text style={styles.collapsedSubtitle}>
               {t('home.challengeProgress', {
                 current: currentCount.toLocaleString(),
                 target: targetCount.toLocaleString(),
               })}
             </Text>
           </View>
-
-          <Text style={styles.expandIcon}>{isExpanded ? '\u25BC' : '\u25B6'}</Text>
+          <Text style={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</Text>
         </View>
 
+        {/* ── Expanded: full Design B layout ── */}
         {isExpanded && (
           <View style={styles.expandedContent}>
             <View style={styles.divider} />
 
-            {/* Big counter */}
-            <View style={styles.counterRow}>
-              <Text style={styles.counterCurrent}>{currentCount.toLocaleString()}</Text>
-              <Text style={styles.counterSeparator}> / </Text>
-              <Text style={styles.counterTarget}>{targetCount.toLocaleString()}</Text>
-            </View>
-            <Text style={styles.counterLabel}>{t('home.bagsSavedLabel')}</Text>
+            {/* Prize Drop Hero */}
+            {daysLeft !== null && (
+              <View style={styles.prizeSection}>
+                <View style={styles.eyebrow}>
+                  <View style={styles.eyebrowDot} />
+                  <Text style={styles.eyebrowText}>{t('home.prizeDropLabel')}</Text>
+                </View>
 
-            {/* Progress bar */}
-            <View style={styles.progressContainer}>
-              <ProgressBar percentage={progressPercentage} />
-              <Text style={styles.remainingText}>
-                {t('home.remainingCount', { count: remaining })}
-              </Text>
-            </View>
+                <View style={styles.heroRow}>
+                  <Text style={styles.heroNumber}>{daysLeft}</Text>
+                  <Text style={styles.heroUnit}>{t('home.daysRemaining')}</Text>
+                </View>
 
-            {/* Reward callout \u2014 clear message so user understands the deal */}
-            <View style={styles.rewardCallout}>
-              <Text style={styles.rewardCalloutText}>
-                {rewardPoints > 0
-                  ? t('home.rewardCallout', {
-                      target: targetCount.toLocaleString(),
-                      points: rewardPoints,
-                    })
-                  : t('home.rewardCalloutNoPrize')}
-              </Text>
-            </View>
+                <Text style={styles.heroSubtitle}>{t('home.prizeDropSubtitle')}</Text>
 
-            {onSaveABag != null && (
-              <Pressable
-                style={styles.saveButton}
-                onPress={onSaveABag}
-                accessibilityRole='button'
-                accessibilityLabel={t('home.saveFood')}
-                testID='community-goal-save-a-bag'
-              >
-                <Text style={styles.saveButtonText}>{t('home.saveFood')}</Text>
-              </Pressable>
+                <AnimatedProgressBar
+                  percentage={daysLeftPercentage}
+                  color={COLORS.amber}
+                  trackColor={COLORS.progressTrackPrize}
+                />
+              </View>
             )}
+
+            {/* Monthly Challenge Panel */}
+            <View style={styles.challengePanel}>
+              <View style={styles.challengeTop}>
+                <View style={styles.challengeLeft}>
+                  <Text style={styles.challengeName}>{seasonName}</Text>
+                  <View style={styles.liveBadge}>
+                    <PulsingDot />
+                    <Text style={styles.liveText}>{t('home.live')}</Text>
+                  </View>
+                </View>
+                <Text style={styles.challengeCount}>
+                  {currentCount.toLocaleString()}
+                  <Text style={styles.challengeCountMuted}> / {targetCount.toLocaleString()}</Text>
+                </Text>
+              </View>
+
+              <AnimatedProgressBar
+                percentage={progressPercentage}
+                color={COLORS.green}
+                trackColor={COLORS.progressTrackChallenge}
+                height={6}
+              />
+
+              <Text style={styles.rewardText}>
+                {rewardPoints > 0
+                  ? t('home.rewardEarnPoints', { points: rewardPoints })
+                  : t('home.rewardCalloutNoPrize').replace('⚡ ', '')}
+              </Text>
+            </View>
           </View>
         )}
       </Pressable>
@@ -241,9 +240,9 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: 8,
   },
-  banner: {
+  card: {
     backgroundColor: COLORS.brand,
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 16,
     shadowColor: COLORS.brandDark,
     shadowOffset: { width: 0, height: 4 },
@@ -251,27 +250,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-  prizeDropSection: {
-    marginBottom: 14,
-  },
-  prizeDropText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.textOnBrand,
-    marginBottom: 6,
-  },
-  prizeDropBar: {
-    height: 4,
-    backgroundColor: COLORS.progressTrack,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  prizeDropFill: {
-    height: '100%',
-    backgroundColor: COLORS.textOnBrandMuted,
-    borderRadius: 2,
-  },
-  collapsedContent: {
+
+  // ── Collapsed row ──
+  collapsedRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -284,6 +265,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
+  icon: {
+    width: 28,
+    height: 28,
+  },
   textContainer: {
     flex: 1,
   },
@@ -292,12 +277,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 2,
   },
-  title: {
+  collapsedTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.textOnBrand,
   },
-  liveBadge: {
+  collapsedLiveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.brandSurfaceSolid,
@@ -306,20 +291,14 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     marginLeft: 8,
   },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.progressFill,
-    marginRight: 4,
-  },
-  liveText: {
+  collapsedLiveText: {
     fontSize: 10,
     fontWeight: '700',
     color: COLORS.textOnBrand,
     letterSpacing: 0.5,
+    marginLeft: 4,
   },
-  subtitle: {
+  collapsedSubtitle: {
     fontSize: 13,
     color: COLORS.textOnBrandMuted,
   },
@@ -328,6 +307,8 @@ const styles = StyleSheet.create({
     color: COLORS.textOnBrandMuted,
     marginLeft: 8,
   },
+
+  // ── Expanded content ──
   expandedContent: {
     marginTop: 12,
   },
@@ -336,77 +317,119 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.brandSurface,
     marginBottom: 16,
   },
-  counterRow: {
+
+  // ── Prize Drop ──
+  prizeSection: {
+    marginBottom: 24,
+  },
+  eyebrow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
   },
-  counterCurrent: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: COLORS.textOnBrand,
+  eyebrowDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.amber,
   },
-  counterSeparator: {
-    fontSize: 20,
-    color: COLORS.textOnBrandMuted,
+  eyebrowText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.amber,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
-  counterTarget: {
-    fontSize: 20,
+  heroRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  heroNumber: {
+    fontSize: 52,
+    fontWeight: '800',
+    color: COLORS.white,
+    letterSpacing: -3,
+    lineHeight: 52,
+  },
+  heroUnit: {
+    fontSize: 14,
     fontWeight: '500',
     color: COLORS.textOnBrandMuted,
+    paddingBottom: 8,
   },
-  counterLabel: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: COLORS.textOnBrandMuted,
-    marginBottom: 16,
+  heroSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.textOnBrandDim,
+    marginBottom: 14,
   },
-  progressContainer: {
-    marginBottom: 16,
-  },
-  progressBar: {
-    height: 10,
-    backgroundColor: COLORS.progressTrack,
-    borderRadius: 5,
+
+  // ── Progress bars ──
+  progressTrack: {
+    borderRadius: 2,
     overflow: 'hidden',
-    marginBottom: 6,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: COLORS.progressFill,
-    borderRadius: 5,
+    borderRadius: 2,
   },
-  remainingText: {
-    fontSize: 12,
-    color: COLORS.textOnBrandMuted,
-    textAlign: 'right',
-  },
-  rewardCallout: {
-    backgroundColor: COLORS.chipBg,
+
+  // ── Challenge Panel ──
+  challengePanel: {
+    padding: 16,
+    backgroundColor: COLORS.challengeSurface,
+    borderWidth: 1,
+    borderColor: COLORS.challengeBorder,
     borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 16,
   },
-  rewardCalloutText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textOnBrand,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  saveButton: {
+  challengeTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    paddingVertical: 14,
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  challengeLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
-  saveButtonText: {
-    fontSize: 16,
+  challengeName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textOnBrandSoft,
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  liveDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: COLORS.green,
+  },
+  liveText: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: COLORS.green,
+  },
+  challengeCount: {
+    fontSize: 13,
     fontWeight: '700',
-    color: COLORS.brand,
+    color: COLORS.white,
+  },
+  challengeCountMuted: {
+    fontWeight: '500',
+    color: COLORS.textOnBrandDim,
+  },
+  rewardText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.textOnBrandDim,
+    marginTop: 8,
   },
 });

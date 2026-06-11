@@ -620,16 +620,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     [shouldShowPrompt],
   );
 
-  /**
-   * Scroll to urgent offers section (used by "Save A Bag" button in CommunityBagGoalBanner)
-   */
-  const scrollToOffers = useCallback(() => {
-    const urgentIndex = sections.findIndex(s => s.type === 'urgentOffers');
-    if (urgentIndex >= 0 && flatListRef.current) {
-      flatListRef.current.scrollToIndex({ index: urgentIndex, animated: true });
-    }
-  }, [sections]);
-
   // ============================================================================
   // FlatList Render Functions
   // ============================================================================
@@ -694,7 +684,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         case 'communityBagGoal':
           return (
             <View style={styles.bannerWrapper}>
-              <CommunityBagGoalBanner onSaveABag={scrollToOffers} />
+              <CommunityBagGoalBanner />
             </View>
           );
 
@@ -791,7 +781,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       refetch,
       handleOfferPress,
       handleSeeAll,
-      scrollToOffers,
       hottestDeals,
       pickupTodayOffers,
       pickupTomorrowOffers,

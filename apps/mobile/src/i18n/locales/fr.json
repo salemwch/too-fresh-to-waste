@@ -260,7 +260,11 @@
     "prizeDropIn": "🎁 Tirage dans {{count}} jours",
     "prizeDropSoon": "🎁 Tirage aujourd'hui !",
     "rewardCallout": "⚡ Atteignez {{target}} sacs → Tout le monde gagne {{points}} points bonus !",
-    "rewardCalloutNoPrize": "⚡ Sauvons des sacs ensemble avec la communauté !"
+    "rewardCalloutNoPrize": "⚡ Sauvons des sacs ensemble avec la communauté !",
+    "prizeDropLabel": "TIRAGE AU SORT",
+    "daysRemaining": "jours restants",
+    "prizeDropSubtitle": "Grand tirage au sort à la fin de la saison",
+    "rewardEarnPoints": "Objectif atteint — chacun gagne {{points}} pts"
   },
   "offers": {
     "reserve": "Réserver",

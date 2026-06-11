@@ -260,7 +260,11 @@
     "prizeDropIn": "🎁 Prize drop in {{count}} days",
     "prizeDropSoon": "🎁 Prize drop today!",
     "rewardCallout": "⚡ Reach {{target}} bags → Everyone earns {{points}} bonus points!",
-    "rewardCalloutNoPrize": "⚡ Save bags together with the community!"
+    "rewardCalloutNoPrize": "⚡ Save bags together with the community!",
+    "prizeDropLabel": "PRIZE DROP",
+    "daysRemaining": "days remaining",
+    "prizeDropSubtitle": "Grand prize draw at the end of the season",
+    "rewardEarnPoints": "Reach target — everyone earns {{points}} pts"
   },
   "offers": {
     "reserve": "Reserve",

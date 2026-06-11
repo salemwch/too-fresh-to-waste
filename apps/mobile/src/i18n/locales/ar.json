@@ -260,7 +260,11 @@
     "prizeDropIn": "🎁 السحب خلال {{count}} يوم",
     "prizeDropSoon": "🎁 السحب اليوم!",
     "rewardCallout": "⚡ اوصلوا لـ {{target}} كيس ← الجميع يحصل على {{points}} نقطة مكافأة!",
-    "rewardCalloutNoPrize": "⚡ لنوفّر الأكياس معاً مع المجتمع!"
+    "rewardCalloutNoPrize": "⚡ لنوفّر الأكياس معاً مع المجتمع!",
+    "prizeDropLabel": "السحب الكبير",
+    "daysRemaining": "يوم متبقي",
+    "prizeDropSubtitle": "سحب الجائزة الكبرى في نهاية الموسم",
+    "rewardEarnPoints": "حقّقوا الهدف — الجميع يحصل على {{points}} نقطة"
   },
   "offers": {
     "reserve": "حجز",
