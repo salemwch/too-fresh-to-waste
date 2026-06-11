@@ -148,7 +148,7 @@ export class OrderEventsListener {
 
       // Increment community bag goal (non-blocking — must NOT fail loyalty flow)
       try {
-        await this.communityGoalService.incrementBagCount(totalBags);
+        await this.communityGoalService.incrementBagCount(totalBags, event.userId);
       } catch (goalError) {
         this.logger.warn(
           `Community goal increment failed for order ${event.orderId}: ${(goalError as Error).message}`,
