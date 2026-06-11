@@ -256,7 +256,11 @@
     "challengeParticipants": "{{count}} مشارك",
     "challengeDaysLeft": "{{count}} يوم متبقي",
     "challengeCompleted": "اكتمل التحدي! 🎉",
-    "challengeNoDeadline": "مفتوح"
+    "challengeNoDeadline": "مفتوح",
+    "prizeDropIn": "🎁 السحب خلال {{count}} يوم",
+    "prizeDropSoon": "🎁 السحب اليوم!",
+    "rewardCallout": "⚡ اوصلوا لـ {{target}} كيس ← الجميع يحصل على {{points}} نقطة مكافأة!",
+    "rewardCalloutNoPrize": "⚡ لنوفّر الأكياس معاً مع المجتمع!"
   },
   "offers": {
     "reserve": "حجز",

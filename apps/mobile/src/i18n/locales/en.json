@@ -256,7 +256,11 @@
     "challengeParticipants": "{{count}} participants",
     "challengeDaysLeft": "{{count}} days left",
     "challengeCompleted": "Challenge Complete! 🎉",
-    "challengeNoDeadline": "Open-ended"
+    "challengeNoDeadline": "Open-ended",
+    "prizeDropIn": "🎁 Prize drop in {{count}} days",
+    "prizeDropSoon": "🎁 Prize drop today!",
+    "rewardCallout": "⚡ Reach {{target}} bags → Everyone earns {{points}} bonus points!",
+    "rewardCalloutNoPrize": "⚡ Save bags together with the community!"
   },
   "offers": {
     "reserve": "Reserve",
