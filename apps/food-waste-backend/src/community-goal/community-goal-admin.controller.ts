@@ -48,6 +48,9 @@ export class CommunityGoalAdminController {
       ...(dto.causeType !== undefined && { causeType: dto.causeType }),
       ...(dto.causeTitle !== undefined && { causeTitle: dto.causeTitle }),
       ...(dto.causeDescription !== undefined && { causeDescription: dto.causeDescription }),
+      ...(dto.rewardPoints !== undefined && { rewardPoints: dto.rewardPoints }),
+      ...(dto.seasonName !== undefined && { seasonName: dto.seasonName }),
+      ...(dto.endDate !== undefined && { endDate: dto.endDate }),
     });
     return {
       message: `Community goal target updated to ${dto.targetCount}`,

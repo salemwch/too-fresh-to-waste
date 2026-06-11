@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
+import { LoyaltyService } from '../loyalty/loyalty.service';
 import { WebSocketEvents, WEBSOCKET_ROOMS } from '../websocket/interfaces/websocket.interface';
 import { WebSocketService } from '../websocket/websocket.service';
 
@@ -26,6 +27,10 @@ interface GoalLean {
   causeType?: CommunityGoalCauseType;
   causeTitle?: string;
   causeDescription?: string;
+  rewardPoints?: number;
+  seasonName?: string;
+  endDate?: Date;
+  participantIds?: { toString(): string }[];
   createdBy?: unknown;
   completedAt?: Date;
   resetAt?: Date;
@@ -41,6 +46,8 @@ export class CommunityGoalService {
     @InjectModel(CommunityBagGoal.name)
     private readonly goalModel: Model<CommunityBagGoalDocument>,
     private readonly webSocketService: WebSocketService,
+    @Inject(forwardRef(() => LoyaltyService))
+    private readonly loyaltyService: LoyaltyService,
   ) {}
 
   /**
@@ -63,25 +70,30 @@ export class CommunityGoalService {
    * If the goal is reached, completes current cycle and starts a new one.
    * Broadcasts updated stats via WebSocket after every increment.
    */
-  async incrementBagCount(count: number): Promise<CommunityBagGoalStats> {
+  async incrementBagCount(count: number, userId?: string): Promise<CommunityBagGoalStats> {
     if (count <= 0) {
       this.logger.warn(`Invalid bag count increment: ${count}`);
       return this.getStats();
     }
 
-    // Atomic $inc — safe under concurrent writes
+    // Build update ops — track participant if userId provided
+    const updateOps: Record<string, unknown> = { $inc: { currentCount: count } };
+    if (userId) {
+      (updateOps as Record<string, unknown>)['$addToSet'] = { participantIds: userId };
+    }
+
+    // Atomic update — safe under concurrent writes
     const updatedGoal = (await this.goalModel
-      .findOneAndUpdate(
-        { status: CommunityGoalStatus.ACTIVE },
-        { $inc: { currentCount: count } },
-        { new: true, lean: true },
-      )
+      .findOneAndUpdate({ status: CommunityGoalStatus.ACTIVE }, updateOps, {
+        new: true,
+        lean: true,
+      })
       .exec()) as GoalLean | null;
 
     if (!updatedGoal) {
       this.logger.warn('No active goal found during increment, creating default');
       await this.createDefaultGoal();
-      return this.incrementBagCount(count);
+      return this.incrementBagCount(count, userId);
     }
 
     // Check if goal was reached
@@ -100,18 +112,28 @@ export class CommunityGoalService {
   async setGoalTarget(
     targetCount: number,
     adminId: string,
-    cause?: { causeType?: CommunityGoalCauseType; causeTitle?: string; causeDescription?: string },
+    cause?: {
+      causeType?: CommunityGoalCauseType;
+      causeTitle?: string;
+      causeDescription?: string;
+      rewardPoints?: number;
+      seasonName?: string;
+      endDate?: string;
+    },
   ): Promise<CommunityBagGoalStats> {
-    const causeFields = {
+    const updateFields = {
       ...(cause?.causeType !== undefined && { causeType: cause.causeType }),
       ...(cause?.causeTitle !== undefined && { causeTitle: cause.causeTitle }),
       ...(cause?.causeDescription !== undefined && { causeDescription: cause.causeDescription }),
+      ...(cause?.rewardPoints !== undefined && { rewardPoints: cause.rewardPoints }),
+      ...(cause?.seasonName !== undefined && { seasonName: cause.seasonName }),
+      ...(cause?.endDate !== undefined && { endDate: new Date(cause.endDate) }),
     };
 
     const goal = (await this.goalModel
       .findOneAndUpdate(
         { status: CommunityGoalStatus.ACTIVE },
-        { $set: { targetCount, ...causeFields } },
+        { $set: { targetCount, ...updateFields } },
         { new: true, lean: true },
       )
       .exec()) as GoalLean | null;
@@ -123,7 +145,7 @@ export class CommunityGoalService {
         cycleNumber: 1,
         status: CommunityGoalStatus.ACTIVE,
         createdBy: adminId,
-        ...causeFields,
+        ...updateFields,
       });
       return this.toStats(newGoal.toObject() as GoalLean);
     }
@@ -216,11 +238,38 @@ export class CommunityGoalService {
     // Carry over overflow bags
     const overflow = Math.max(0, transitioned.currentCount - transitioned.targetCount);
 
+    // ── Distribute reward points to all participants ──
+    const rewardPoints = transitioned.rewardPoints ?? 0;
+    const participantIds = transitioned.participantIds ?? [];
+
+    if (rewardPoints > 0 && participantIds.length > 0) {
+      this.logger.log(
+        `Distributing ${rewardPoints} points to ${participantIds.length} participants for cycle ${transitioned.cycleNumber}`,
+      );
+
+      const results = await Promise.allSettled(
+        participantIds.map(async id => {
+          const account = await this.loyaltyService.addPoints(id.toString(), {
+            amount: rewardPoints,
+            reason: `Community challenge cycle ${transitioned.cycleNumber} completed`,
+          });
+          return account;
+        }),
+      );
+
+      const succeeded = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.filter(r => r.status === 'rejected').length;
+
+      this.logger.log(`Reward distribution complete: ${succeeded} succeeded, ${failed} failed`);
+    }
+
     const newGoal = await this.goalModel.create({
       currentCount: overflow,
       targetCount: transitioned.targetCount,
       cycleNumber: transitioned.cycleNumber + 1,
       status: CommunityGoalStatus.ACTIVE,
+      rewardPoints: transitioned.rewardPoints,
+      seasonName: transitioned.seasonName,
     });
 
     this.logger.log(
@@ -273,6 +322,10 @@ export class CommunityGoalService {
       ...(goal.causeType !== undefined && { causeType: goal.causeType }),
       ...(goal.causeTitle !== undefined && { causeTitle: goal.causeTitle }),
       ...(goal.causeDescription !== undefined && { causeDescription: goal.causeDescription }),
+      ...(goal.rewardPoints !== undefined && { rewardPoints: goal.rewardPoints }),
+      ...(goal.seasonName !== undefined && { seasonName: goal.seasonName }),
+      ...(goal.endDate !== undefined && { endDate: goal.endDate.toISOString() }),
+      participantCount: goal.participantIds?.length ?? 0,
     };
   }
 

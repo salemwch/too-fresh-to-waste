@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { LoyaltyModule } from '../loyalty/loyalty.module';
 import { WebSocketModule } from '../websocket/websocket.module';
 
 import { CommunityGoalAdminController } from './community-goal-admin.controller';
@@ -12,6 +13,7 @@ import { CommunityBagGoal, CommunityBagGoalSchema } from './schemas/community-ba
   imports: [
     MongooseModule.forFeature([{ name: CommunityBagGoal.name, schema: CommunityBagGoalSchema }]),
     WebSocketModule,
+    forwardRef(() => LoyaltyModule),
   ],
   controllers: [CommunityGoalController, CommunityGoalAdminController],
   providers: [CommunityGoalService],
