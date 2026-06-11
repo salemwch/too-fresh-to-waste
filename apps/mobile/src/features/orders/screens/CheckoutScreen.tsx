@@ -1,6 +1,7 @@
 import { CommonActions } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -76,6 +77,7 @@ const ERROR_TEXT = '#991B1B';
 const WHITE = '#FFFFFF';
 
 export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { offerId, quantity: initialQuantity = 1 } = route.params;
 
@@ -226,18 +228,18 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     setValidationError(null);
 
     if (!offer) {
-      setValidationError('Offer details not loaded. Please try again.');
+      setValidationError(t('checkout.offerNotLoaded'));
       return;
     }
 
     if (deliveryMode === 'delivery' && !deliveryPin) {
-      setValidationError('Please wait for your location to be detected, or switch to Pickup.');
+      setValidationError(t('checkout.waitForLocation'));
       return;
     }
 
     if (deliveryMode === 'delivery' && tooFar) {
       setValidationError(
-        `Your delivery location is ${distanceKm!.toFixed(1)} km away. Maximum allowed is ${MAX_DELIVERY_KM} km from the merchant.`,
+        t('checkout.tooFarError', { distance: distanceKm!.toFixed(1), max: MAX_DELIVERY_KM }),
       );
       return;
     }
@@ -256,9 +258,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     // Block if fewer than 30 seconds remain — not enough time to complete a pickup
     const msUntilExpiry = offerEndTime.getTime() - now.getTime();
     if (msUntilExpiry < 30 * 1000) {
-      setValidationError(
-        "This offer has expired or doesn't have enough time remaining for pickup. Please choose another offer.",
-      );
+      setValidationError(t('checkout.offerExpired'));
       await queryClient.invalidateQueries({ queryKey: ['offer', offerId] });
       return;
     }
@@ -340,7 +340,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       closePhoneVerificationModal();
       await handleConfirmOrder();
     } catch (error) {
-      setValidationError('Could not create order. Please try again.');
+      setValidationError(t('checkout.orderFailed'));
     }
   }, [closePhoneVerificationModal, handleConfirmOrder]);
 
@@ -406,7 +406,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
         <View style={styles.errorContainer}>
           <Icon name='alert-circle' family='Ionicons' size={64} color='#EF4444' />
           <Text variant='title' size='lg' weight='bold' style={styles.errorTitle}>
-            Offer Not Found
+            {t('offers.offerNotFound')}
           </Text>
           <Button
             variant='primary'
@@ -414,7 +414,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
             onPress={() => navigation.goBack()}
             style={styles.errorGoBackButton}
           >
-            Go Back
+            {t('common.goBack')}
           </Button>
         </View>
       </View>
@@ -435,7 +435,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Icon name='wallet' family='Ionicons' size={20} color={BRAND_PRIMARY} />
-              <Text style={styles.sectionTitle}>Payment Method</Text>
+              <Text style={styles.sectionTitle}>{t('checkout.paymentMethod')}</Text>
             </View>
 
             {/* Payment options — three equal tiles in a single row */}
@@ -468,7 +468,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                     selectedPaymentMethod === 'cash_on_pickup' && styles.paymentCardLabelActive,
                   ]}
                 >
-                  {'Pay on\nPickup'}
+                  {t('checkout.payOnPickup')}
                 </Text>
               </Pressable>
 
@@ -483,12 +483,14 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                   !isOutsideDeliveryZone && setSelectedPaymentMethod('pay_on_delivery')
                 }
                 accessibilityLabel={
-                  isOutsideDeliveryZone ? 'Delivery unavailable — Pick-Up Only' : 'Pay on Delivery'
+                  isOutsideDeliveryZone
+                    ? t('checkout.deliveryUnavailable')
+                    : t('checkout.payOnDelivery')
                 }
                 accessibilityHint={
                   isOutsideDeliveryZone
-                    ? 'This shop is outside the 5 km delivery zone'
-                    : 'Selects pay on delivery as payment method'
+                    ? t('checkout.pickupOnlyWarning')
+                    : t('checkout.payOnDelivery')
                 }
                 accessibilityRole='button'
                 accessibilityState={{ disabled: isOutsideDeliveryZone }}
@@ -519,7 +521,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                     isOutsideDeliveryZone && styles.paymentCardLabelDisabled,
                   ]}
                 >
-                  {'Pay on\nDelivery'}
+                  {t('checkout.payOnDelivery')}
                 </Text>
                 {isOutsideDeliveryZone && (
                   <View style={styles.comingSoonBadge}>
@@ -532,10 +534,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               <View style={[styles.paymentMethodCard, styles.paymentMethodCardDisabled]}>
                 <Icon name='card' family='Ionicons' size={28} color='#CBD5E1' />
                 <Text style={[styles.paymentCardLabel, styles.paymentCardLabelDisabled]}>
-                  {'Online\nPayment'}
+                  {t('checkout.onlinePayment')}
                 </Text>
                 <View style={styles.comingSoonBadge}>
-                  <Text style={styles.comingSoonText}>Soon</Text>
+                  <Text style={styles.comingSoonText}>{t('checkout.soon')}</Text>
                 </View>
               </View>
             </View>
@@ -545,10 +547,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
           {isOutsideDeliveryZone && (
             <View style={styles.pickupOnlyWarning}>
               <Icon name='location-outline' family='Ionicons' size={16} color={WARNING_TEXT} />
-              <Text style={styles.pickupOnlyWarningText}>
-                Pick-Up Only — This shop is outside the 5 km delivery zone. You can still order for
-                pick-up!
-              </Text>
+              <Text style={styles.pickupOnlyWarningText}>{t('checkout.pickupOnlyWarning')}</Text>
             </View>
           )}
 
@@ -559,13 +558,13 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Icon name='receipt' family='Ionicons' size={20} color={BRAND_PRIMARY} />
-              <Text style={styles.sectionTitle}>Order Summary</Text>
+              <Text style={styles.sectionTitle}>{t('checkout.orderSummary')}</Text>
             </View>
 
             <View style={styles.priceBreakdown}>
               {/* Subtotal */}
               <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Subtotal</Text>
+                <Text style={styles.priceLabel}>{t('common.subtotal')}</Text>
                 <Text style={styles.priceValue}>
                   {subtotal.toFixed(2)} {currency}
                 </Text>
@@ -574,7 +573,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               {/* Delivery Fee — shown only when pay on delivery is selected */}
               {deliveryFee > 0 && (
                 <View style={styles.priceRow}>
-                  <Text style={styles.priceLabel}>Delivery Fee</Text>
+                  <Text style={styles.priceLabel}>{t('checkout.deliveryFee')}</Text>
                   <Text style={styles.priceValue}>
                     {deliveryFee.toFixed(2)} {currency}
                   </Text>
@@ -586,14 +585,14 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                 <View style={styles.savingsBadge}>
                   <Icon name='trending-down' family='Ionicons' size={16} color='#10B981' />
                   <Text style={styles.savingsText}>
-                    You save {savings.toFixed(2)} {currency}
+                    {t('checkout.youSave', { amount: savings.toFixed(2), currency })}
                   </Text>
                 </View>
               )}
 
               {/* Total */}
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total Amount</Text>
+                <Text style={styles.totalLabel}>{t('checkout.totalAmount')}</Text>
                 <Text style={styles.totalValue}>
                   {total.toFixed(2)} {currency}
                 </Text>
@@ -604,7 +603,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
           {/* Map pin — only shown when Pay on Delivery is selected */}
           {deliveryMode === 'delivery' && (
             <View style={styles.mapContainer}>
-              <Text style={styles.mapLabel}>Pan the map to set your delivery location</Text>
+              <Text style={styles.mapLabel}>{t('checkout.mapLabel')}</Text>
               {deliveryPin ? (
                 <View style={styles.mapWrapper}>
                   <MapView
@@ -627,7 +626,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               ) : (
                 <View style={styles.mapPlaceholder}>
                   <ActivityIndicator color={BRAND_PRIMARY} />
-                  <Text style={styles.mapPlaceholderText}>Getting your location…</Text>
+                  <Text style={styles.mapPlaceholderText}>{t('checkout.gettingLocation')}</Text>
                 </View>
               )}
               {/* Distance feedback — shown once pin is set and establishment coords known */}
@@ -640,8 +639,12 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                     color={tooFar ? ERROR_TEXT : SUCCESS_TEXT}
                   />
                   <Text style={[styles.distanceText, tooFar && styles.distanceTextError]}>
-                    {distanceKm.toFixed(1)} km from merchant
-                    {tooFar ? ` — max ${MAX_DELIVERY_KM} km` : ''}
+                    {tooFar
+                      ? t('checkout.distanceTooFar', {
+                          distance: distanceKm.toFixed(1),
+                          max: MAX_DELIVERY_KM,
+                        })
+                      : t('checkout.distanceFromMerchant', { distance: distanceKm.toFixed(1) })}
                   </Text>
                 </View>
               )}
@@ -680,7 +683,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
             >
               <Icon name='checkmark-circle' family='Ionicons' size={24} color='#FFFFFF' />
               <Text style={styles.confirmButtonText}>
-                Confirm Order • {total.toFixed(2)} {currency}
+                {t('checkout.confirmOrder')} • {total.toFixed(2)} {currency}
               </Text>
             </LinearGradient>
           </Pressable>
@@ -692,7 +695,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
             disabled={isCreatingOrder}
             style={styles.cancelButton}
           >
-            <Text style={styles.cancelButtonText}>Cancel Order</Text>
+            <Text style={styles.cancelButtonText}>{t('checkout.cancelOrder')}</Text>
           </Pressable>
         </View>
       </ScrollView>

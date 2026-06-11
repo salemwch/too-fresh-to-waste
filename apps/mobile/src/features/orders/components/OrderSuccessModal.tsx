@@ -9,6 +9,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -68,12 +69,12 @@ const createPickupState = (orderId: string | null): PickupState => ({
   pickupConfirmed: false,
 });
 
-const PICKUP_ERROR_MESSAGES: Record<InlinePickupError, string> = {
-  CODE_EXPIRED: 'Pickup code has expired',
-  INVALID_CODE: 'Invalid pickup code',
-  PICKUP_ALREADY_DONE: 'This order has already been picked up.',
-  PICKUP_LOCKED: 'Too many incorrect attempts. Contact support.',
-  ORDER_NOT_READY: 'Order not ready yet. Try again shortly.',
+const PICKUP_ERROR_KEYS: Record<InlinePickupError, string> = {
+  CODE_EXPIRED: 'orders.codeExpired',
+  INVALID_CODE: 'orders.invalidCode',
+  PICKUP_ALREADY_DONE: 'orders.alreadyPickedUp',
+  PICKUP_LOCKED: 'orders.pickupLocked',
+  ORDER_NOT_READY: 'orders.orderNotReady',
 };
 
 interface OrderSuccessModalProps {
@@ -90,6 +91,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   order,
   onDismiss,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const queryClient = useQueryClient();
   const activeOrderId = order?._id ?? null;
@@ -176,7 +178,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
               /* ── Loading state: same card frame, spinner inside ── */
               <View style={styles.loadingContent}>
                 <ActivityIndicator size='large' color={PRIMARY} />
-                <Text style={styles.loadingText}>Placing your order...</Text>
+                <Text style={styles.loadingText}>{t('checkout.placingOrder')}</Text>
               </View>
             ) : (
               /* ── Order content: morphs in once data arrives ── */
@@ -185,7 +187,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                   {/* Order Number */}
                   <View style={styles.orderNumberRow}>
                     <Icon name='receipt-outline' family='Ionicons' size={18} color={PRIMARY} />
-                    <Text style={styles.orderNumberLabel}>Order</Text>
+                    <Text style={styles.orderNumberLabel}>{t('orders.order')}</Text>
                     <Text style={styles.orderNumberText}>{order.orderNumber}</Text>
                   </View>
 
@@ -195,7 +197,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                       <Icon name='bag-check' family='Ionicons' size={18} color={PRIMARY} />
-                      <Text style={styles.sectionTitle}>Order Summary</Text>
+                      <Text style={styles.sectionTitle}>{t('checkout.orderSummary')}</Text>
                     </View>
 
                     {order.items.map((item, index) => (
@@ -213,7 +215,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                     ))}
 
                     <View style={styles.totalRow}>
-                      <Text style={styles.totalLabel}>Total</Text>
+                      <Text style={styles.totalLabel}>{t('common.total')}</Text>
                       <Text style={styles.totalValue}>
                         {order.pricing.total.toFixed(2)} {currency}
                       </Text>
@@ -257,22 +259,27 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                   {pickupConfirmed ? (
                     <View style={styles.pickupSuccessRow}>
                       <Icon name='checkmark-circle' family='Ionicons' size={24} color={SUCCESS} />
-                      <Text style={styles.pickupSuccessText}>Pickup confirmed!</Text>
+                      <Text style={styles.pickupSuccessText}>{t('orders.pickupConfirmed')}</Text>
                     </View>
                   ) : isOrderExpired ? (
                     <View style={styles.expiredRow}>
                       <Icon name='timer-outline' family='Ionicons' size={24} color='#EF4444' />
                       <View style={styles.expiredTextContainer}>
-                        <Text style={styles.expiredTitle}>Order Expired</Text>
-                        <Text style={styles.expiredSubtitle}>The pickup window has ended.</Text>
+                        <Text style={styles.expiredTitle}>{t('orders.orderExpired')}</Text>
+                        <Text style={styles.expiredSubtitle}>{t('orders.pickupWindowEnded')}</Text>
                       </View>
                     </View>
                   ) : (
                     <View style={styles.section}>
                       <Text style={styles.pickupCodeHint}>
-                        Enter the 6-digit pickup code from the merchant to earn{' '}
-                        <Text style={[styles.pickupCodeAccent, pickupCodeAccentStyle]}>points</Text>
-                        .
+                        <Trans
+                          i18nKey='orders.pickupCodeHintModal'
+                          components={{
+                            accent: (
+                              <Text style={[styles.pickupCodeAccent, pickupCodeAccentStyle]} />
+                            ),
+                          }}
+                        />
                       </Text>
 
                       <TextInput
@@ -286,21 +293,19 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                         autoFocus={false}
                         editable={!confirmMutation.isPending}
                         textAlign='center'
-                        accessibilityLabel='Pickup code input'
-                        accessibilityHint='Enter the 6-digit pickup code'
+                        accessibilityLabel={t('orders.confirmPickupButton')}
+                        accessibilityHint={t('orders.confirmPickupHint')}
                       />
 
                       {pickupError ? (
                         <View style={styles.inlineError}>
                           <Icon name='alert-circle' family='Ionicons' size={14} color='#EF4444' />
                           <Text style={styles.inlineErrorText}>
-                            {PICKUP_ERROR_MESSAGES[pickupError]}
+                            {t(PICKUP_ERROR_KEYS[pickupError])}
                           </Text>
                         </View>
                       ) : (
-                        <Text style={styles.codeInputFootnote}>
-                          You can also enter this later from your orders tab.
-                        </Text>
+                        <Text style={styles.codeInputFootnote}>{t('orders.enterLater')}</Text>
                       )}
 
                       <Pressable
@@ -314,7 +319,9 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                         ]}
                       >
                         <Text style={styles.confirmPickupButtonText}>
-                          {confirmMutation.isPending ? 'Confirming...' : 'Confirm Pickup'}
+                          {confirmMutation.isPending
+                            ? t('orders.confirming')
+                            : t('orders.confirmPickupButton')}
                         </Text>
                       </Pressable>
                     </View>
@@ -335,7 +342,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                       style={styles.ctaButton}
                     >
                       <Text style={styles.ctaButtonText}>
-                        {pickupConfirmed ? 'Close' : 'View My Order'}
+                        {pickupConfirmed ? t('common.close') : t('orders.viewMyOrder')}
                       </Text>
                     </LinearGradient>
                   </Pressable>

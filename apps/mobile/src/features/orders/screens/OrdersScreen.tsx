@@ -14,6 +14,7 @@
 
 import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, RefreshControl, Platform, Pressable } from 'react-native';
 
 import { Text, Icon, Button } from '@/design-system/components/atoms';
@@ -73,6 +74,7 @@ interface EmptyStateProps {
 
 const EmptyState: React.FC<EmptyStateProps> = ({ tab, onBrowse }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.emptyState}>
@@ -86,13 +88,11 @@ const EmptyState: React.FC<EmptyStateProps> = ({ tab, onBrowse }) => {
       </View>
 
       <Text style={styles.emptyTitle}>
-        {tab === 'active' ? 'No Active Orders' : 'No Order History'}
+        {tab === 'active' ? t('orders.noActiveOrders') : t('orders.noOrderHistory')}
       </Text>
 
       <Text style={styles.emptySubtitle}>
-        {tab === 'active'
-          ? 'Start saving food and money by placing your first order'
-          : 'Your completed orders will appear here'}
+        {tab === 'active' ? t('orders.activeEmptyMessage') : t('orders.historyEmptyMessage')}
       </Text>
 
       {tab === 'active' && (
@@ -103,35 +103,35 @@ const EmptyState: React.FC<EmptyStateProps> = ({ tab, onBrowse }) => {
           leftIcon='restaurant-outline'
           leftIconFamily='Ionicons'
           style={styles.browseButton}
-          accessibilityLabel='Browse offers'
+          accessibilityLabel={t('orders.browseOffers')}
           accessibilityHint='Navigate to home screen to discover food offers'
         >
-          Browse Offers
+          {t('orders.browseOffers')}
         </Button>
       )}
 
       {/* How It Works card (only on active tab) */}
       {tab === 'active' && (
         <View style={styles.howItWorksCard}>
-          <Text style={styles.howItWorksTitle}>How It Works</Text>
+          <Text style={styles.howItWorksTitle}>{t('orders.howItWorks')}</Text>
 
           <View style={styles.stepRow}>
             <View style={styles.stepDot}>
               <Text style={styles.stepNum}>1</Text>
             </View>
-            <Text style={styles.stepText}>Browse and select an offer</Text>
+            <Text style={styles.stepText}>{t('orders.step1')}</Text>
           </View>
           <View style={styles.stepRow}>
             <View style={styles.stepDot}>
               <Text style={styles.stepNum}>2</Text>
             </View>
-            <Text style={styles.stepText}>Confirm and pay for your order</Text>
+            <Text style={styles.stepText}>{t('orders.step2')}</Text>
           </View>
           <View style={styles.stepRow}>
             <View style={styles.stepDot}>
               <Text style={styles.stepNum}>3</Text>
             </View>
-            <Text style={styles.stepText}>Pick up during the specified time</Text>
+            <Text style={styles.stepText}>{t('orders.step3')}</Text>
           </View>
         </View>
       )}
@@ -175,6 +175,7 @@ const TabPill: React.FC<TabPillProps> = ({ label, count, isActive, onPress }) =>
 
 export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState<TabKey>('active');
 
   const { activeOrders, historyOrders, isLoading, isRefetching, refetch } = useOrders();
@@ -225,13 +226,13 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
       {/* ── Tab Bar ── */}
       <View style={styles.tabBar}>
         <TabPill
-          label='Active'
+          label={t('orders.active')}
           count={activeOrders.length}
           isActive={selectedTab === 'active'}
           onPress={() => setSelectedTab('active')}
         />
         <TabPill
-          label='History'
+          label={t('orders.history')}
           count={historyOrders.length}
           isActive={selectedTab === 'history'}
           onPress={() => setSelectedTab('history')}

@@ -17,6 +17,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView, TextInput } from 'react-native';
 
 import { ReviewModal } from '../components/ReviewModal';
@@ -61,28 +62,28 @@ interface OrderDetailsScreenProps {
 
 const STATUS_BADGE_MAP: Record<
   string,
-  { variant: 'warning' | 'info' | 'success' | 'error' | 'neutral'; label: string }
+  { variant: 'warning' | 'info' | 'success' | 'error' | 'neutral'; labelKey: string }
 > = {
-  [OrderStatus.PENDING]: { variant: 'warning', label: 'Pending' },
-  [OrderStatus.RESERVED]: { variant: 'info', label: 'Reserved' },
-  [OrderStatus.CONFIRMED]: { variant: 'info', label: 'Confirmed' },
-  [OrderStatus.READY_FOR_PICKUP]: { variant: 'success', label: 'Ready' },
-  [OrderStatus.PICKED_UP]: { variant: 'success', label: 'Picked Up' },
-  [OrderStatus.CANCELLED]: { variant: 'error', label: 'Cancelled' },
-  [OrderStatus.EXPIRED]: { variant: 'error', label: 'Expired' },
-  [OrderStatus.REFUNDED]: { variant: 'neutral', label: 'Refunded' },
+  [OrderStatus.PENDING]: { variant: 'warning', labelKey: 'orders.statusPending' },
+  [OrderStatus.RESERVED]: { variant: 'info', labelKey: 'orders.statusReserved' },
+  [OrderStatus.CONFIRMED]: { variant: 'info', labelKey: 'orders.statusConfirmed' },
+  [OrderStatus.READY_FOR_PICKUP]: { variant: 'success', labelKey: 'orders.statusReady' },
+  [OrderStatus.PICKED_UP]: { variant: 'success', labelKey: 'orders.statusPickedUp' },
+  [OrderStatus.CANCELLED]: { variant: 'error', labelKey: 'orders.statusCancelled' },
+  [OrderStatus.EXPIRED]: { variant: 'error', labelKey: 'orders.statusExpired' },
+  [OrderStatus.REFUNDED]: { variant: 'neutral', labelKey: 'orders.statusRefunded' },
 };
 
 // ---------------------------------------------------------------------------
 // Pickup-error → user-facing message (single source of truth)
 // ---------------------------------------------------------------------------
 
-const PICKUP_ERROR_MESSAGES: Record<InlinePickupError, string> = {
-  CODE_EXPIRED: 'Pickup code has expired',
-  INVALID_CODE: 'Invalid pickup code',
-  PICKUP_ALREADY_DONE: 'This order has already been picked up.',
-  PICKUP_LOCKED: 'Too many incorrect attempts. Contact support.',
-  ORDER_NOT_READY: 'Order not ready yet. Try again shortly.',
+const PICKUP_ERROR_KEYS: Record<InlinePickupError, string> = {
+  CODE_EXPIRED: 'orders.codeExpired',
+  INVALID_CODE: 'orders.invalidCode',
+  PICKUP_ALREADY_DONE: 'orders.alreadyPickedUp',
+  PICKUP_LOCKED: 'orders.pickupLocked',
+  ORDER_NOT_READY: 'orders.orderNotReady',
 };
 
 // ---------------------------------------------------------------------------
@@ -105,67 +106,75 @@ const SUCCESS_COLOR = '#22c55e';
 
 /** Order number row + status badge */
 const OrderHeader: React.FC<{ order: Order }> = ({ order }) => {
+  const { t } = useTranslation();
   const badge = STATUS_BADGE_MAP[order.status] ?? {
     variant: 'neutral' as const,
-    label: order.status,
+    labelKey: order.status,
   };
 
   return (
     <View style={styles.header}>
       <View>
         <Text variant='headline' size='lg' weight='bold'>
-          Order Details
+          {t('orders.orderDetails')}
         </Text>
         <Text variant='body' size='sm' color='secondary' style={styles.orderNumber}>
           #{order.orderNumber}
         </Text>
       </View>
-      <Badge label={badge.label} variant={badge.variant} size='md' />
+      <Badge label={t(badge.labelKey)} variant={badge.variant} size='md' />
     </View>
   );
 };
 
 /** Single item row */
-const ItemRow: React.FC<{ item: Order['items'][0]; currency: string }> = ({ item, currency }) => (
-  <View style={styles.itemRow}>
-    <View style={styles.itemLeft}>
-      <Text variant='body' size='md' weight='semibold'>
-        {item.offerTitle}
-      </Text>
-      <Text variant='body' size='sm' color='secondary'>
-        Qty: {item.quantity}
-      </Text>
-    </View>
-    <View style={styles.itemRight}>
-      {item.discountAmount > 0 && (
-        <Text variant='body' size='xs' color='secondary' style={styles.originalPrice}>
-          {item.originalPrice.toFixed(2)} {currency}
+const ItemRow: React.FC<{ item: Order['items'][0]; currency: string }> = ({ item, currency }) => {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.itemRow}>
+      <View style={styles.itemLeft}>
+        <Text variant='body' size='md' weight='semibold'>
+          {item.offerTitle}
         </Text>
-      )}
-      <Text variant='body' size='md' weight='semibold'>
-        {item.totalPrice.toFixed(2)} {currency}
-      </Text>
+        <Text variant='body' size='sm' color='secondary'>
+          {t('common.quantity')}: {item.quantity}
+        </Text>
+      </View>
+      <View style={styles.itemRight}>
+        {item.discountAmount > 0 && (
+          <Text variant='body' size='xs' color='secondary' style={styles.originalPrice}>
+            {item.originalPrice.toFixed(2)} {currency}
+          </Text>
+        )}
+        <Text variant='body' size='md' weight='semibold'>
+          {item.totalPrice.toFixed(2)} {currency}
+        </Text>
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 /** Items list card */
-const ItemsList: React.FC<{ order: Order }> = ({ order }) => (
-  <Card style={styles.card}>
-    <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
-      ITEMS
-    </Text>
-    {order.items.map((item, index) => (
-      <React.Fragment key={typeof item.offerId === 'string' ? item.offerId : item.offerId._id}>
-        <ItemRow item={item} currency={order.pricing.currency} />
-        {index < order.items.length - 1 && <View style={styles.divider} />}
-      </React.Fragment>
-    ))}
-  </Card>
-);
+const ItemsList: React.FC<{ order: Order }> = ({ order }) => {
+  const { t } = useTranslation();
+  return (
+    <Card style={styles.card}>
+      <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
+        {t('orders.items')}
+      </Text>
+      {order.items.map((item, index) => (
+        <React.Fragment key={typeof item.offerId === 'string' ? item.offerId : item.offerId._id}>
+          <ItemRow item={item} currency={order.pricing.currency} />
+          {index < order.items.length - 1 && <View style={styles.divider} />}
+        </React.Fragment>
+      ))}
+    </Card>
+  );
+};
 
 /** Pricing summary card */
 const PricingSummary: React.FC<{ order: Order }> = ({ order }) => {
+  const { t } = useTranslation();
   const { pricing } = order;
 
   // Calculate original price before discount
@@ -174,26 +183,39 @@ const PricingSummary: React.FC<{ order: Order }> = ({ order }) => {
   return (
     <Card style={styles.card}>
       <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
-        PRICING
+        {t('orders.pricing')}
       </Text>
-      <PricingRow label='Price' value={originalPrice} currency={pricing.currency} />
+      <PricingRow label={t('orders.price')} value={originalPrice} currency={pricing.currency} />
       {pricing.discountAmount > 0 && (
         <PricingRow
-          label='Discount'
+          label={t('orders.discount')}
           value={-pricing.discountAmount}
           currency={pricing.currency}
           isDiscount
         />
       )}
-      <PricingRow label='Final Price' value={pricing.subtotal} currency={pricing.currency} />
+      <PricingRow
+        label={t('orders.finalPrice')}
+        value={pricing.subtotal}
+        currency={pricing.currency}
+      />
       {pricing.serviceFee > 0 && (
         <>
           <View style={styles.divider} />
-          <PricingRow label='Delivery Fee' value={pricing.serviceFee} currency={pricing.currency} />
+          <PricingRow
+            label={t('orders.deliveryFee')}
+            value={pricing.serviceFee}
+            currency={pricing.currency}
+          />
         </>
       )}
       <View style={styles.divider} />
-      <PricingRow label='Total' value={pricing.total} currency={pricing.currency} isBold />
+      <PricingRow
+        label={t('common.total')}
+        value={pricing.total}
+        currency={pricing.currency}
+        isBold
+      />
     </Card>
   );
 };
@@ -224,6 +246,7 @@ const PricingRow: React.FC<{
 
 /** Pickup details card */
 const PickupDetailsCard: React.FC<{ order: Order }> = ({ order }) => {
+  const { t } = useTranslation();
   const { pickupDetails } = order;
 
   const formattedDate = useMemo(() => {
@@ -242,7 +265,7 @@ const PickupDetailsCard: React.FC<{ order: Order }> = ({ order }) => {
   return (
     <Card style={styles.card}>
       <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
-        PICKUP DETAILS
+        {t('orders.pickupDetails')}
       </Text>
       <View style={styles.pickupRow}>
         <Icon name='calendar' family='Ionicons' size={18} color='#888' />
@@ -278,6 +301,7 @@ const ConfirmPickupSection: React.FC<{
   isExpired: boolean;
 }> = ({ onConfirm, onClearError, isLoading, errorCode, isConfirmed, isExpired }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [code, setCode] = useState('');
 
   if (isConfirmed) {
@@ -291,7 +315,7 @@ const ConfirmPickupSection: React.FC<{
             color={theme.colors.base?.success?.[500] ?? '#22c55e'}
           />
           <Text variant='body' size='md' weight='semibold' style={styles.successText}>
-            Pickup confirmed!
+            {t('orders.pickupConfirmed')}
           </Text>
         </View>
       </Card>
@@ -315,10 +339,10 @@ const ConfirmPickupSection: React.FC<{
               weight='semibold'
               style={{ color: theme.colors.base?.error?.[500] ?? '#ef4444' }}
             >
-              Order Expired
+              {t('orders.orderExpired')}
             </Text>
             <Text variant='body' size='sm' color='secondary'>
-              The pickup window has ended. The pickup code is no longer valid.
+              {t('orders.orderExpiredMessage')}
             </Text>
           </View>
         </View>
@@ -329,10 +353,10 @@ const ConfirmPickupSection: React.FC<{
   return (
     <Card style={styles.card}>
       <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
-        CONFIRM PICKUP
+        {t('orders.confirmPickup')}
       </Text>
       <Text variant='body' size='sm' color='secondary' style={styles.confirmHint}>
-        Ask the merchant for the 6-digit pickup code and enter it below.
+        {t('orders.confirmPickupHint')}
       </Text>
 
       {/* 6-digit numeric input */}
@@ -379,7 +403,7 @@ const ConfirmPickupSection: React.FC<{
               { color: theme.colors.base?.error?.[500] ?? '#ef4444' },
             ]}
           >
-            {PICKUP_ERROR_MESSAGES[errorCode]}
+            {t(PICKUP_ERROR_KEYS[errorCode])}
           </Text>
         </View>
       )}
@@ -392,7 +416,7 @@ const ConfirmPickupSection: React.FC<{
         onPress={() => onConfirm(code)}
         style={styles.confirmButton}
       >
-        Confirm Pickup
+        {t('orders.confirmPickupButton')}
       </Button>
     </Card>
   );
@@ -404,6 +428,7 @@ const ConfirmPickupSection: React.FC<{
 
 export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { orderId } = route.params;
 
@@ -559,30 +584,30 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
       >
         <Icon name='alert-circle-outline' family='Ionicons' size={48} color={theme.colors.error} />
         <Text variant='title' size='lg' weight='semibold' style={styles.errorTitle}>
-          Order Not Found
+          {t('orders.orderNotFound')}
         </Text>
         <Text variant='body' size='md' color='secondary' align='center' style={styles.errorSubtext}>
-          This order may have been removed or is temporarily unavailable.
+          {t('orders.orderNotFoundMessage')}
         </Text>
         <Button
           variant='primary'
           size='md'
           onPress={() => void refetchOrder()}
           style={styles.retryButton}
-          accessibilityLabel='Retry loading order'
+          accessibilityLabel={t('common.retry')}
           accessibilityHint='Attempts to reload the order details'
         >
-          Retry
+          {t('common.retry')}
         </Button>
         <Button
           variant='ghost'
           size='sm'
           onPress={() => navigation.goBack()}
           style={styles.goBackButton}
-          accessibilityLabel='Go back'
+          accessibilityLabel={t('common.goBack')}
           accessibilityHint='Returns to the previous screen'
         >
-          Go Back
+          {t('common.goBack')}
         </Button>
       </View>
     );
@@ -630,7 +655,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
                 color={theme.colors.base?.success?.[500] ?? '#22c55e'}
               />
               <Text variant='body' size='md' weight='semibold' style={styles.successText}>
-                Pickup confirmed!
+                {t('orders.pickupConfirmed')}
               </Text>
             </View>
           </Card>
@@ -644,7 +669,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
             onPress={() => setReviewModalVisible(true)}
             style={styles.goBackButton}
           >
-            ⭐ Rate your bag
+            ⭐ {t('orders.rateBag')}
           </Button>
         )}
 
@@ -655,7 +680,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
           onPress={() => navigation.goBack()}
           style={styles.goBackButton}
         >
-          Go Back
+          {t('common.goBack')}
         </Button>
       </ScrollView>
 

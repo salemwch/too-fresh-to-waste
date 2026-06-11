@@ -1,5 +1,6 @@
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -92,6 +93,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
   offer,
   theme,
 }) => {
+  const { t } = useTranslation();
   const [quantity, setQuantity] = useState(1);
   const [slideAnim] = useState(() => new Animated.Value(SCREEN_HEIGHT));
   const [fadeAnim] = useState(() => new Animated.Value(0));
@@ -165,11 +167,9 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
 
   // Get pickup time slot
   const pickupSlot = offer.pickupTimeSlots?.[0];
-  const pickupTime = pickupSlot
-    ? `${pickupSlot.startTime} - ${pickupSlot.endTime}`
-    : 'Time not specified';
+  const pickupTime = pickupSlot ? `${pickupSlot.startTime} - ${pickupSlot.endTime}` : '';
   const handleTermsPress = () => {
-    Alert.alert('Terms & Conditions', 'Terms & conditions will be available soon.');
+    Alert.alert(t('offers.termsConditions'), t('offers.termsAlert'));
   };
 
   return (
@@ -206,14 +206,14 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
           <View style={styles.modalTimeRow}>
             <IoniconsIcon name='time' color={WHITE} size={16} />
             <Text size='sm' style={styles.modalTimeText}>
-              Pickup Time: {pickupTime}
+              {t('offers.pickupTime')}: {pickupTime}
             </Text>
           </View>
         </View>
 
         <View style={styles.modalBody}>
           <Text align='center' color='secondary' size='sm' style={styles.quantityLabel}>
-            Select quantity
+            {t('offers.selectQuantity')}
           </Text>
 
           {/* Quantity controls */}
@@ -240,14 +240,14 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
           {/* Terms & Conditions */}
           <View style={styles.termsContainer}>
             <Text size='xs' color='secondary' align='center' style={styles.termsText}>
-              By reserving this meal you agree to Too Fresh To Waste’s{' '}
+              {t('offers.termsPrefix')}{' '}
               <Text
                 size='xs'
                 weight='semibold'
                 style={[styles.termsLink, termsLinkColorStyle]}
                 onPress={handleTermsPress}
               >
-                terms & conditions
+                {t('offers.termsConditions')}
               </Text>
             </Text>
           </View>
@@ -256,7 +256,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
 
           {/* Total */}
           <View style={styles.totalRow}>
-            <Text size='md'>Total</Text>
+            <Text size='md'>{t('common.total')}</Text>
             <Text weight='bold' size='lg'>
               {total} {offer.pricing.currency}
             </Text>
@@ -269,13 +269,13 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
             style={styles.reserveButtonSpacing}
             onPress={() => onConfirm(quantity)}
           >
-            RESERVE NOW
+            {t('offers.reserveNow')}
           </Button>
 
           {/* Payment methods - Below button */}
           <View style={styles.paymentMethodsContainer}>
             <Text size='xs' color='secondary' align='center' style={styles.paymentSoonLabel}>
-              Available Soon
+              {t('offers.availableSoon')}
             </Text>
             <View style={styles.paymentLogos}>
               <Image
@@ -303,6 +303,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
 // ─────────────────────────────────────────────────────────────────────────
 export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { offerId } = route.params;
   const { data: offer, isLoading, error, refetch } = useOffer(offerId);
@@ -361,10 +362,10 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
     return (
       <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
         <Text weight='bold' color='error'>
-          ⚠️ Error Loading Offer
+          ⚠️ {t('offers.errorLoading')}
         </Text>
         <Button variant='primary' style={styles.retryButton} onPress={() => void refetch()}>
-          Retry
+          {t('common.retry')}
         </Button>
       </View>
     );
@@ -392,10 +393,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
   const handleOpenMaps = async () => {
     try {
       if (typeof offer.establishmentId !== 'object' || !offer.establishmentId?.address) {
-        Alert.alert(
-          'Location Unavailable',
-          'Location information is not available for this establishment.',
-        );
+        Alert.alert(t('offers.locationUnavailable'), t('offers.locationNotAvailable'));
         return;
       }
 
@@ -403,7 +401,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
 
       // Verify coordinates exist and are valid
       if (address.coordinates?.coordinates?.length !== 2) {
-        Alert.alert('Location Unavailable', 'Location coordinates are not available.');
+        Alert.alert(t('offers.locationUnavailable'), t('offers.locationCoordsNotAvailable'));
         return;
       }
 
@@ -412,7 +410,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
 
       // Validate coordinates
       if (typeof latitude !== 'number' || typeof longitude !== 'number') {
-        Alert.alert('Location Error', 'Invalid location coordinates.');
+        Alert.alert(t('offers.locationUnavailable'), t('offers.locationError'));
         return;
       }
 
@@ -426,11 +424,11 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
       if (canOpen) {
         await Linking.openURL(googleMapsUrl);
       } else {
-        Alert.alert('Error', 'Unable to open maps. Please check your device settings.');
+        Alert.alert(t('errors.generic'), t('offers.mapsError'));
       }
     } catch (error) {
       Logger.error('Error opening maps', {}, error instanceof Error ? error : undefined);
-      Alert.alert('Error', 'Failed to open maps. Please try again.');
+      Alert.alert(t('errors.generic'), t('offers.mapsOpenFailed'));
     }
   };
   const handleOpenMapsPress = () => {
@@ -468,11 +466,11 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                 style={styles.iconButton}
                 onPress={handleFavoritePress}
                 disabled={isFavoriteLoading}
-                accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                accessibilityLabel={
+                  isFavorite ? t('offers.removeFromFavorites') : t('offers.addToFavorites')
+                }
                 accessibilityHint={
-                  isFavorite
-                    ? 'Removes this offer from your favorites'
-                    : 'Adds this offer to your favorites'
+                  isFavorite ? t('offers.removeFromFavorites') : t('offers.addToFavorites')
                 }
                 accessibilityRole='button'
               >
@@ -552,12 +550,12 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           <View style={styles.pickupRow}>
             <IoniconsIcon name='time' color='#9ca3af' size={20} />
             <Text style={styles.pickupText}>
-              Pick up: {offer.pickupTimeSlots?.[0]?.startTime} -{' '}
+              {t('offers.pickUp')}: {offer.pickupTimeSlots?.[0]?.startTime} -{' '}
               {offer.pickupTimeSlots?.[0]?.endTime}
             </Text>
             <View style={[styles.todayBadge, todayBadgeStyle]}>
               <Text weight='bold' style={styles.todayBadgeText}>
-                TODAY
+                {t('common.today')}
               </Text>
             </View>
           </View>
@@ -566,8 +564,9 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
             <View style={styles.slotLimitRow}>
               <IoniconsIcon name='people' color='#9ca3af' size={16} />
               <Text style={styles.slotLimitText}>
-                This restaurant allows up to {offer.pickupTimeSlots[0].maxOrders} bag
-                {offer.pickupTimeSlots[0].maxOrders === 1 ? '' : 's'} per offer
+                {offer.pickupTimeSlots[0].maxOrders === 1
+                  ? t('offers.slotLimit', { count: offer.pickupTimeSlots[0].maxOrders })
+                  : t('offers.slotLimitPlural', { count: offer.pickupTimeSlots[0].maxOrders })}
               </Text>
             </View>
           )}
@@ -588,7 +587,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                     {establishment.address.street}, {establishment.address.city}
                   </Text>
                   <Text size='sm' color='secondary' style={styles.locationSubtext}>
-                    Tap to view location on map
+                    {t('offers.tapToViewMap')}
                   </Text>
                 </View>
               </View>
@@ -606,7 +605,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
               onPress={() => setIsDescriptionOpen(!isDescriptionOpen)}
             >
               <Text weight='semibold' size='md'>
-                What you need to know
+                {t('offers.whatToKnow')}
               </Text>
               {isDescriptionOpen ? (
                 <IoniconsIcon name='chevron-up' color='#9ca3af' size={20} />
@@ -623,12 +622,10 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                 ) : (
                   <>
                     <Text weight='bold' style={styles.descriptionText}>
-                      Your surprise bag is a surprise
+                      {t('offers.surpriseBagTitle')}
                     </Text>
                     <Text color='secondary' style={styles.descriptionText}>
-                      {
-                        "We wish we could tell you what exactly will be in your surprise bag — but it's always a surprise! The store will fill it with a selection of their delicious unsold items. If you have questions about allergens or specific ingredients, please ask the store."
-                      }
+                      {t('offers.surpriseBagDescription')}
                     </Text>
                   </>
                 )}
@@ -655,7 +652,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                   onPress={() => setIsAllergensOpen(!isAllergensOpen)}
                 >
                   <Text weight='semibold' size='md'>
-                    Ingredients & Allergens
+                    {t('offers.ingredientsAllergens')}
                   </Text>
                   {isAllergensOpen ? (
                     <IoniconsIcon name='chevron-up' color='#9ca3af' size={20} />
@@ -669,7 +666,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                     {(offer.nutritionalInfo.allergens?.length ?? 0) > 0 && (
                       <View style={styles.nutritionSection}>
                         <Text weight='semibold' size='sm' style={styles.nutritionHeading}>
-                          Allergens
+                          {t('offers.allergens')}
                         </Text>
                         <Text color='secondary' style={styles.nutritionBody}>
                           {offer.nutritionalInfo.allergens?.join(', ')}
@@ -687,7 +684,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                         ]}
                       >
                         <Text weight='semibold' size='sm' style={styles.nutritionHeading}>
-                          Dietary Information
+                          {t('offers.dietaryInfo')}
                         </Text>
                         <View style={styles.dietaryTags}>
                           {offer.nutritionalInfo.dietaryInfo?.map((item, index) => (
@@ -713,10 +710,10 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
       <View style={[styles.footer, footerStyle, { paddingBottom: Math.max(insets.bottom, 20) }]}>
         <View style={styles.footerInfo}>
           <Text size='xs' color='secondary'>
-            Remaining
+            {t('common.remaining')}
           </Text>
           <Text weight='bold' color={(offer.availableQuantity ?? 0) < 3 ? 'error' : 'primary'}>
-            {offer.availableQuantity ?? 0} bags left
+            {t('offers.bagsLeft', { count: offer.availableQuantity ?? 0 })}
           </Text>
         </View>
         <Pressable
@@ -726,7 +723,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           disabled={!canReserve}
         >
           <Text weight='bold' style={styles.reserveButtonText}>
-            {canReserve ? 'Reserve' : 'Sold Out'}
+            {canReserve ? t('offers.reserve') : t('offers.soldOut')}
           </Text>
         </Pressable>
       </View>
