@@ -18,6 +18,9 @@ export const SetGoalTargetSchema = z.object({
   causeType: CommunityGoalCauseTypeSchema.optional(),
   causeTitle: z.string().max(80).optional(),
   causeDescription: z.string().max(600).optional(),
+  rewardPoints: z.number().min(1).max(10_000).optional(),
+  seasonName: z.string().max(80).optional(),
+  endDate: z.string().datetime().optional(),
 });
 
 export type SetGoalTargetInput = z.infer<typeof SetGoalTargetSchema>;
@@ -37,6 +40,10 @@ export const CommunityGoalStatsSchema = z.object({
   causeType: CommunityGoalCauseTypeSchema.optional(),
   causeTitle: z.string().optional(),
   causeDescription: z.string().optional(),
+  rewardPoints: z.number().optional(),
+  seasonName: z.string().optional(),
+  endDate: z.string().optional(),
+  participantCount: z.number().optional(),
 });
 
 export type CommunityGoalStats = z.infer<typeof CommunityGoalStatsSchema>;
