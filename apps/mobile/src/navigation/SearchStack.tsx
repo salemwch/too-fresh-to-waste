@@ -8,6 +8,7 @@
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/design-system/providers';
 import { SearchScreen } from '@/features/search/screens/SearchScreen';
@@ -20,6 +21,7 @@ const Stack = createNativeStackNavigator<SearchStackParamList>();
 
 export const SearchStack: React.FC = () => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Stack.Navigator
@@ -31,7 +33,7 @@ export const SearchStack: React.FC = () => {
       <Stack.Screen
         name='SearchMain'
         component={SearchScreen}
-        options={{ title: 'Search Offers' }}
+        options={{ title: t('navigation.searchOffers') }}
       />
     </Stack.Navigator>
   );

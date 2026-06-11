@@ -19,6 +19,7 @@
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
 import { environment } from '@/config/environment';
+import { getCurrentLanguage } from '@/i18n';
 import { refreshTokenSafe } from '@/services/authRefresh';
 import {
   cancelInflightRequests as cancelTrackedRequests,
@@ -238,6 +239,8 @@ const createApiClient = (): AxiosInstance => {
       if (accessToken != null) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
+
+      config.headers['Accept-Language'] = getCurrentLanguage();
 
       NetworkLogger.logRequest(
         config.url ?? '',

@@ -12,6 +12,7 @@
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/design-system/providers';
 import { ContactSupportScreen } from '@/features/profile/screens/ContactSupportScreen';
@@ -31,6 +32,7 @@ const Stack = createNativeStackNavigator<ProfileStackParamList>();
  */
 export const ProfileStack: React.FC = () => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Stack.Navigator
@@ -43,11 +45,11 @@ export const ProfileStack: React.FC = () => {
       <Stack.Screen
         name='ProfileMain'
         component={ProfileScreen}
-        options={{ title: 'My Profile' }}
+        options={{ title: t('navigation.myProfile') }}
       />
 
       {/* Edit Profile Screen */}
-      <Stack.Screen name='EditProfile' options={{ title: 'Edit Profile' }}>
+      <Stack.Screen name='EditProfile' options={{ title: t('navigation.editProfile') }}>
         {props => (
           <ProtectedRoute>
             <EditProfileScreen {...props} />
@@ -58,7 +60,7 @@ export const ProfileStack: React.FC = () => {
       <Stack.Screen
         name='ContactSupport'
         component={ContactSupportScreen}
-        options={{ title: 'Contact Support' }}
+        options={{ title: t('navigation.contactSupport') }}
       />
     </Stack.Navigator>
   );

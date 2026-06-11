@@ -12,6 +12,7 @@
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/design-system/providers';
 import { EstablishmentDetailsScreen } from '@/features/establishments/screens/EstablishmentDetailsScreen';
@@ -43,6 +44,7 @@ const Stack = createNativeStackNavigator<MainStackParamList>();
  */
 export const MainStack: React.FC = () => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   const defaultOptions = (navigation: { goBack: () => void }) => ({
     ...getDefaultScreenOptions(theme),
@@ -66,7 +68,7 @@ export const MainStack: React.FC = () => {
         <Stack.Screen
           name='OfferDetails'
           component={OfferDetailsScreen}
-          options={{ title: 'Offer Details' }}
+          options={{ title: t('navigation.offerDetails') }}
         />
       </Stack.Group>
 
@@ -77,12 +79,12 @@ export const MainStack: React.FC = () => {
         <Stack.Screen
           name='OrderHistory'
           component={OrderHistoryScreen}
-          options={{ title: 'Order History' }}
+          options={{ title: t('navigation.orderHistory') }}
         />
         <Stack.Screen
           name='Checkout'
           component={CheckoutScreen}
-          options={{ title: 'Checkout', presentation: 'modal' }}
+          options={{ title: t('navigation.checkout'), presentation: 'modal' }}
         />
       </Stack.Group>
 
@@ -93,13 +95,17 @@ export const MainStack: React.FC = () => {
         <Stack.Screen
           name='Leaderboard'
           component={LeaderboardScreen}
-          options={{ title: 'Leaderboard' }}
+          options={{ title: t('navigation.leaderboard') }}
         />
-        <Stack.Screen name='Loyalty' component={LoyaltyScreen} options={{ title: 'My Points' }} />
+        <Stack.Screen
+          name='Loyalty'
+          component={LoyaltyScreen}
+          options={{ title: t('navigation.myPoints') }}
+        />
         <Stack.Screen
           name='DonationImpact'
           component={DonationImpactScreen}
-          options={{ title: 'Community Impact' }}
+          options={{ title: t('navigation.communityImpact') }}
         />
       </Stack.Group>
 
@@ -107,13 +113,21 @@ export const MainStack: React.FC = () => {
         screenLayout={protectedScreenLayout}
         screenOptions={({ navigation }) => ({ ...defaultOptions(navigation), headerShown: true })}
       >
-        <Stack.Screen name='Settings' component={SettingsScreen} options={{ title: 'Settings' }} />
+        <Stack.Screen
+          name='Settings'
+          component={SettingsScreen}
+          options={{ title: t('navigation.settings') }}
+        />
         <Stack.Screen
           name='Privacy'
           component={PrivacyScreen}
-          options={{ title: 'Privacy & Data' }}
+          options={{ title: t('navigation.privacyData') }}
         />
-        <Stack.Screen name='Security' component={SecurityScreen} options={{ title: 'Security' }} />
+        <Stack.Screen
+          name='Security'
+          component={SecurityScreen}
+          options={{ title: t('navigation.security') }}
+        />
       </Stack.Group>
 
       <Stack.Group
@@ -123,7 +137,7 @@ export const MainStack: React.FC = () => {
         <Stack.Screen
           name='EstablishmentDetails'
           component={EstablishmentDetailsScreen}
-          options={{ title: 'Establishment Details' }}
+          options={{ title: t('navigation.establishmentDetails') }}
         />
       </Stack.Group>
     </Stack.Navigator>

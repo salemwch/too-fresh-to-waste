@@ -8,6 +8,7 @@
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/design-system/providers';
 import { FavoritesScreen } from '@/features/favorites/screens/FavoritesScreen';
@@ -20,6 +21,7 @@ const Stack = createNativeStackNavigator<FavoritesStackParamList>();
 
 export const FavoritesStack: React.FC = () => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Stack.Navigator
@@ -31,7 +33,7 @@ export const FavoritesStack: React.FC = () => {
       <Stack.Screen
         name='FavoritesMain'
         component={FavoritesScreen}
-        options={{ title: 'My Favorites' }}
+        options={{ title: t('navigation.myFavorites') }}
       />
     </Stack.Navigator>
   );

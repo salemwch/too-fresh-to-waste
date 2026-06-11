@@ -16,6 +16,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StackActions } from '@react-navigation/native';
 import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -43,6 +44,7 @@ const Tab = createBottomTabNavigator<TabParamList>();
  */
 const TabNavigatorComponent: React.FC = () => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const tabBarBackgroundStyle = {
     flex: 1,
@@ -102,16 +104,20 @@ const TabNavigatorComponent: React.FC = () => {
         tabBarHideOnKeyboard: true,
       })}
     >
-      <Tab.Screen name='Home' component={HomeStack} options={{ title: 'Home' }} />
-      <Tab.Screen name='Search' component={SearchStack} options={{ title: 'Search' }} />
-      <Tab.Screen name='Favorites' component={FavoritesStack} options={{ title: 'Favorites' }} />
-      <Tab.Screen name='Orders' component={OrdersStack} options={{ title: 'Orders' }} />
+      <Tab.Screen name='Home' component={HomeStack} options={{ title: t('tabs.home') }} />
+      <Tab.Screen name='Search' component={SearchStack} options={{ title: t('tabs.search') }} />
+      <Tab.Screen
+        name='Favorites'
+        component={FavoritesStack}
+        options={{ title: t('tabs.favorites') }}
+      />
+      <Tab.Screen name='Orders' component={OrdersStack} options={{ title: t('tabs.orders') }} />
 
       {/* Reset ProfileStack to ProfileMain whenever the Profile tab is pressed. */}
       <Tab.Screen
         name='Profile'
         component={ProfileStack}
-        options={{ title: 'Profile' }}
+        options={{ title: t('tabs.profile') }}
         listeners={({ navigation }) => ({
           tabPress: event => {
             const state = navigation.getState();

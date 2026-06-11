@@ -12,6 +12,7 @@
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/design-system/providers';
 import { OrderDetailsScreen } from '@/features/orders/screens/OrderDetailsScreen';
@@ -30,6 +31,7 @@ const Stack = createNativeStackNavigator<OrdersStackParamList>();
  */
 export const OrdersStack: React.FC = () => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Stack.Navigator
@@ -39,10 +41,14 @@ export const OrdersStack: React.FC = () => {
       })}
     >
       {/* Orders List Screen — NativeStack provides the header */}
-      <Stack.Screen name='OrdersList' component={OrdersScreen} options={{ title: 'My Orders' }} />
+      <Stack.Screen
+        name='OrdersList'
+        component={OrdersScreen}
+        options={{ title: t('navigation.myOrders') }}
+      />
 
       {/* Order Details Screen */}
-      <Stack.Screen name='OrderDetails' options={{ title: 'Order Details' }}>
+      <Stack.Screen name='OrderDetails' options={{ title: t('navigation.orderDetails') }}>
         {props => (
           <ProtectedRoute>
             <OrderDetailsScreen {...props} />
