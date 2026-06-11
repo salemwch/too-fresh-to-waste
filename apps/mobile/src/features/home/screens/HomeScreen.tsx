@@ -19,6 +19,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useState, useMemo, useLayoutEffect, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -178,6 +179,7 @@ interface Section {
  */
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
   const prefetchOffer = usePrefetchOffer();
@@ -699,15 +701,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         case 'urgentOffers':
           return (
             <HomeOfferSection
-              title={OFFER_SECTIONS.urgent.title}
+              title={t('home.urgentDeals') + ' ⚡'}
               offers={urgentOffers}
               isLoading={isLoading.urgent}
               error={errors.urgent}
               onRefetch={refetch.urgent}
               onOfferPress={handleOfferPress}
               onSeeAllPress={handleSeeAll}
-              emptyMessage={OFFER_SECTIONS.urgent.emptyMessage}
-              emptySubtext={OFFER_SECTIONS.urgent.emptySubtext}
+              emptyMessage={t('home.noUrgentDeals')}
+              emptySubtext={t('home.urgentSubtext')}
               variant={OFFER_SECTIONS.urgent.variant}
               testIDPrefix={OFFER_SECTIONS.urgent.testIDPrefix}
             />
@@ -716,15 +718,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         case 'hottestDeals':
           return (
             <HomeOfferSection
-              title={OFFER_SECTIONS.hottest.title}
+              title={t('home.hottestDeals') + ' 🔥'}
               offers={hottestDeals?.data}
               isLoading={isLoading.hottest}
               error={errors.hottest}
               onRefetch={refetch.hottest}
               onOfferPress={handleOfferPress}
               onSeeAllPress={handleSeeAll}
-              emptyMessage={OFFER_SECTIONS.hottest.emptyMessage}
-              emptySubtext={OFFER_SECTIONS.hottest.emptySubtext}
+              emptyMessage={t('home.noHottestDeals')}
+              emptySubtext={t('home.hottestSubtext')}
               variant={OFFER_SECTIONS.hottest.variant}
               testIDPrefix={OFFER_SECTIONS.hottest.testIDPrefix}
             />
@@ -733,15 +735,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         case 'pickupToday':
           return (
             <HomeOfferSection
-              title={OFFER_SECTIONS.pickupToday.title}
+              title={t('home.pickupToday')}
               offers={pickupTodayOffers}
               isLoading={isLoading.pickupToday}
               error={errors.pickupToday}
               onRefetch={refetch.pickupToday}
               onOfferPress={handleOfferPress}
               onSeeAllPress={handleSeeAll}
-              emptyMessage={OFFER_SECTIONS.pickupToday.emptyMessage}
-              emptySubtext={OFFER_SECTIONS.pickupToday.emptySubtext}
+              emptyMessage={t('home.noPickupToday')}
+              emptySubtext={t('home.pickupSubtext')}
               variant={OFFER_SECTIONS.pickupToday.variant}
               testIDPrefix={OFFER_SECTIONS.pickupToday.testIDPrefix}
             />
@@ -750,15 +752,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         case 'pickupTomorrow':
           return (
             <HomeOfferSection
-              title={OFFER_SECTIONS.pickupTomorrow.title}
+              title={t('home.pickupTomorrow')}
               offers={pickupTomorrowOffers}
               isLoading={isLoading.pickupTomorrow}
               error={errors.pickupTomorrow}
               onRefetch={refetch.pickupTomorrow}
               onOfferPress={handleOfferPress}
               onSeeAllPress={handleSeeAll}
-              emptyMessage={OFFER_SECTIONS.pickupTomorrow.emptyMessage}
-              emptySubtext={OFFER_SECTIONS.pickupTomorrow.emptySubtext}
+              emptyMessage={t('home.noPickupTomorrow')}
+              emptySubtext={t('home.pickupSubtext')}
               variant={OFFER_SECTIONS.pickupTomorrow.variant}
               testIDPrefix={OFFER_SECTIONS.pickupTomorrow.testIDPrefix}
             />
@@ -793,6 +795,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       hottestDeals,
       pickupTodayOffers,
       pickupTomorrowOffers,
+      t,
     ],
   );
 

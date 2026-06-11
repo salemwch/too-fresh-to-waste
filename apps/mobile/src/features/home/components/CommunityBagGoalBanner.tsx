@@ -123,11 +123,21 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
   const { currentCount, targetCount, progressPercentage, remaining } = stats;
   const seasonName = stats.seasonName ?? t('home.challengeDefault');
   const rewardPoints = stats.rewardPoints ?? 0;
-  const participantCount = stats.participantCount ?? 0;
 
   const daysLeft = stats.endDate
     ? Math.max(0, Math.ceil((new Date(stats.endDate).getTime() - Date.now()) / 86_400_000))
     : null;
+
+  const prizeDropText =
+    daysLeft !== null
+      ? daysLeft === 0
+        ? t('home.prizeDropSoon')
+        : t('home.prizeDropIn', { count: daysLeft })
+      : null;
+
+  const daysLeftPercentage = stats.endDate
+    ? Math.max(0, Math.min(100, 100 - ((daysLeft ?? 0) / 180) * 100))
+    : 0;
 
   return (
     <View style={styles.container}>
@@ -139,6 +149,17 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
         accessibilityHint={t('home.expandDetails')}
         testID='community-bag-goal-banner'
       >
+        {/* \u2500\u2500 Section 1: Prize Drop Countdown \u2500\u2500 */}
+        {prizeDropText != null && (
+          <View style={styles.prizeDropSection}>
+            <Text style={styles.prizeDropText}>{prizeDropText}</Text>
+            <View style={styles.prizeDropBar}>
+              <Animated.View style={[styles.prizeDropFill, { width: `${daysLeftPercentage}%` }]} />
+            </View>
+          </View>
+        )}
+
+        {/* \u2500\u2500 Section 2: Challenge \u2500\u2500 */}
         <View style={styles.collapsedContent}>
           <View style={styles.iconContainer}>
             <Image source={surpriseBoxImg} style={{ width: 28, height: 28 }} />
@@ -167,6 +188,7 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
           <View style={styles.expandedContent}>
             <View style={styles.divider} />
 
+            {/* Big counter */}
             <View style={styles.counterRow}>
               <Text style={styles.counterCurrent}>{currentCount.toLocaleString()}</Text>
               <Text style={styles.counterSeparator}> / </Text>
@@ -174,6 +196,7 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
             </View>
             <Text style={styles.counterLabel}>{t('home.bagsSavedLabel')}</Text>
 
+            {/* Progress bar */}
             <View style={styles.progressContainer}>
               <ProgressBar percentage={progressPercentage} />
               <Text style={styles.remainingText}>
@@ -181,28 +204,16 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
               </Text>
             </View>
 
-            <View style={styles.chipRow}>
-              {rewardPoints > 0 && (
-                <View style={styles.chip}>
-                  <Text style={styles.chipText}>
-                    {t('home.challengeReward', { points: rewardPoints })}
-                  </Text>
-                </View>
-              )}
-              {participantCount > 0 && (
-                <View style={styles.chip}>
-                  <Text style={styles.chipText}>
-                    {t('home.challengeParticipants', { count: participantCount })}
-                  </Text>
-                </View>
-              )}
-              <View style={styles.chip}>
-                <Text style={styles.chipText}>
-                  {daysLeft !== null
-                    ? t('home.challengeDaysLeft', { count: daysLeft })
-                    : t('home.challengeNoDeadline')}
-                </Text>
-              </View>
+            {/* Reward callout \u2014 clear message so user understands the deal */}
+            <View style={styles.rewardCallout}>
+              <Text style={styles.rewardCalloutText}>
+                {rewardPoints > 0
+                  ? t('home.rewardCallout', {
+                      target: targetCount.toLocaleString(),
+                      points: rewardPoints,
+                    })
+                  : t('home.rewardCalloutNoPrize')}
+              </Text>
             </View>
 
             {onSaveABag != null && (
@@ -239,6 +250,26 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+  },
+  prizeDropSection: {
+    marginBottom: 14,
+  },
+  prizeDropText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textOnBrand,
+    marginBottom: 6,
+  },
+  prizeDropBar: {
+    height: 4,
+    backgroundColor: COLORS.progressTrack,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  prizeDropFill: {
+    height: '100%',
+    backgroundColor: COLORS.textOnBrandMuted,
+    borderRadius: 2,
   },
   collapsedContent: {
     flexDirection: 'row',
@@ -350,22 +381,19 @@ const styles = StyleSheet.create({
     color: COLORS.textOnBrandMuted,
     textAlign: 'right',
   },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+  rewardCallout: {
+    backgroundColor: COLORS.chipBg,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     marginBottom: 16,
   },
-  chip: {
-    backgroundColor: COLORS.chipBg,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  chipText: {
-    fontSize: 12,
+  rewardCalloutText: {
+    fontSize: 13,
     fontWeight: '600',
     color: COLORS.textOnBrand,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   saveButton: {
     flexDirection: 'row',

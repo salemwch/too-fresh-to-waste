@@ -5,6 +5,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Modal,
   View,
@@ -138,6 +139,7 @@ interface Props {
 }
 
 export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose }) => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { data: stats } = useCommunityBagGoal();
 
@@ -223,53 +225,51 @@ export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose }
           </View>
 
           {/* Main headline */}
-          <Text style={styles.headline}>We give back — at no cost to you</Text>
-          <Text style={styles.subline}>
-            5% of our app's revenue goes to people who need it most. You always pay the same price.
-          </Text>
+          <Text style={styles.headline}>{t('home.charityHeadline')}</Text>
+          <Text style={styles.subline}>{t('home.charitySubline')}</Text>
 
           {/* Divider */}
           <View style={styles.divider} />
 
           {/* How it works */}
-          <Text style={styles.sectionLabel}>How it works</Text>
+          <Text style={styles.sectionLabel}>{t('home.charityHowItWorks')}</Text>
           <View style={styles.stepsContainer}>
-            <Step emoji='🛍' label={'You buy a\nsurprise bag'} isLast={false} />
-            <Step emoji='💚' label={'We donate\n5% of our cut'} isLast={false} />
-            <Step emoji='🤲' label={'It reaches\npeople in need'} isLast />
+            <Step emoji='🛍' label={t('home.charityStep1')} isLast={false} />
+            <Step emoji='💚' label={t('home.charityStep2')} isLast={false} />
+            <Step emoji='🤲' label={t('home.charityStep3')} isLast />
           </View>
 
           {/* What the money funds */}
           <View style={styles.divider} />
-          <Text style={styles.sectionLabel}>Where your impact goes</Text>
+          <Text style={styles.sectionLabel}>{t('home.charityImpactTitle')}</Text>
 
           <View style={styles.destinationsList}>
             <View style={styles.destinationRow}>
               <Text style={styles.destinationEmoji}>🍞</Text>
               <Text style={styles.destinationText}>
-                <Text style={styles.destinationBold}>Meals for families</Text>
-                {' — food for households that cannot afford to eat every day'}
+                <Text style={styles.destinationBold}>{t('home.charityMealsTitle')}</Text>
+                {t('home.charityMealsDesc')}
               </Text>
             </View>
             <View style={styles.destinationRow}>
               <Text style={styles.destinationEmoji}>👕</Text>
               <Text style={styles.destinationText}>
-                <Text style={styles.destinationBold}>Clothes for children</Text>
-                {' — uniforms and warm clothing for kids whose parents cannot cover the cost'}
+                <Text style={styles.destinationBold}>{t('home.charityClothesTitle')}</Text>
+                {t('home.charityClothesDesc')}
               </Text>
             </View>
             <View style={styles.destinationRow}>
               <Text style={styles.destinationEmoji}>📚</Text>
               <Text style={styles.destinationText}>
-                <Text style={styles.destinationBold}>School for every child</Text>
-                {' — supplies, fees, and uniforms so no child misses school because of money'}
+                <Text style={styles.destinationBold}>{t('home.charitySchoolTitle')}</Text>
+                {t('home.charitySchoolDesc')}
               </Text>
             </View>
             <View style={styles.destinationRow}>
               <Text style={styles.destinationEmoji}>💊</Text>
               <Text style={styles.destinationText}>
-                <Text style={styles.destinationBold}>Medicine for elders</Text>
-                {' — covering pharmacy costs for elderly men and women who cannot afford treatment'}
+                <Text style={styles.destinationBold}>{t('home.charityMedicineTitle')}</Text>
+                {t('home.charityMedicineDesc')}
               </Text>
             </View>
           </View>
@@ -278,14 +278,15 @@ export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose }
           {stats != null && (
             <View style={styles.progressSection}>
               <View style={styles.progressHeader}>
-                <Text style={styles.progressLabel}>Community progress</Text>
+                <Text style={styles.progressLabel}>{t('home.communityProgress')}</Text>
                 <Text style={styles.progressFraction}>
-                  {stats.currentCount.toLocaleString()} / {stats.targetCount.toLocaleString()} bags
+                  {stats.currentCount.toLocaleString()} / {stats.targetCount.toLocaleString()}{' '}
+                  {t('common.bags')}
                 </Text>
               </View>
               <ProgressBar percentage={stats.progressPercentage} />
               <Text style={styles.progressCaption}>
-                {stats.remaining.toLocaleString()} more bags until the next cause is fully funded
+                {t('home.charityMoreBags', { count: stats.remaining })}
               </Text>
             </View>
           )}
@@ -295,10 +296,10 @@ export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose }
             style={[styles.closeButton, { backgroundColor: colorTokens.base.primary[500] }]}
             onPress={handleClose}
             accessibilityRole='button'
-            accessibilityLabel='Close'
-            accessibilityHint='Closes the donation sheet'
+            accessibilityLabel={t('common.close')}
+            accessibilityHint={t('common.close')}
           >
-            <Text style={styles.closeButtonText}>Got it</Text>
+            <Text style={styles.closeButtonText}>{t('home.gotIt')}</Text>
           </Pressable>
         </ScrollView>
       </Animated.View>

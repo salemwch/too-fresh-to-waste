@@ -17,6 +17,7 @@
  */
 
 import { memo, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -77,6 +78,7 @@ interface ImpactStats {
  * ```
  */
 const HomeImpactStatsComponent = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
@@ -131,7 +133,7 @@ const HomeImpactStatsComponent = () => {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size='large' color={theme.colors.primary} />
           <Text variant='body' size='sm' color='secondary' style={styles.loadingText}>
-            Loading your impact...
+            {t('donations.loadingImpact')}
           </Text>
         </View>
       </Card>
@@ -156,7 +158,7 @@ const HomeImpactStatsComponent = () => {
     <Card style={styles.impactCard} testID='impact-stats-card'>
       {/* Section Title */}
       <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
-        Your Impact
+        {t('donations.yourImpact')}
       </Text>
 
       {/* Stats Grid */}
@@ -164,42 +166,39 @@ const HomeImpactStatsComponent = () => {
         {/* Meals Saved */}
         <View
           style={styles.statItem}
-          accessibilityLabel={`Meals saved: ${stats.mealsSaved}`}
-          accessibilityHint='Total number of meals you have contributed through donations'
+          accessibilityLabel={`${t('donations.mealsSavedLabel')}: ${stats.mealsSaved}`}
         >
           <Text variant='headline' size='lg' weight='bold' color='primary'>
             {stats.mealsSaved.toLocaleString()}
           </Text>
           <Text variant='body' size='sm' color='secondary'>
-            Meals Saved
+            {t('donations.mealsSavedLabel')}
           </Text>
         </View>
 
         {/* Money Donated */}
         <View
           style={styles.statItem}
-          accessibilityLabel={`Money donated: ${stats.moneySaved} ${stats.currency}`}
-          accessibilityHint='Total amount you have donated to support meals'
+          accessibilityLabel={`${t('donations.donated')}: ${stats.moneySaved} ${stats.currency}`}
         >
           <Text variant='headline' size='lg' weight='bold' color='success'>
             {stats.moneySaved.toLocaleString()} {stats.currency}
           </Text>
           <Text variant='body' size='sm' color='secondary'>
-            Donated
+            {t('donations.donated')}
           </Text>
         </View>
 
         {/* CO2 Reduced */}
         <View
           style={styles.statItem}
-          accessibilityLabel={`CO2 reduced: ${stats.co2Reduced} kilograms`}
-          accessibilityHint='Carbon dioxide emissions prevented by your contributions'
+          accessibilityLabel={`${t('donations.co2Reduced')}: ${stats.co2Reduced}kg`}
         >
           <Text variant='headline' size='lg' weight='bold' style={{ color: theme.colors.warning }}>
             {stats.co2Reduced.toLocaleString()}kg
           </Text>
           <Text variant='body' size='sm' color='secondary'>
-            CO₂ Reduced
+            {t('donations.co2Reduced')}
           </Text>
         </View>
       </View>

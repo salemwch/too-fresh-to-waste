@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Pressable, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -14,6 +15,7 @@ interface DonationImpactCardProps {
 }
 
 const DonationImpactCardComponent: React.FC<DonationImpactCardProps> = ({ onPress }) => {
+  const { t } = useTranslation();
   const { data: stats } = useDonationStats();
 
   return (
@@ -22,8 +24,8 @@ const DonationImpactCardComponent: React.FC<DonationImpactCardProps> = ({ onPres
       android_ripple={{ color: 'rgba(232, 117, 106, 0.08)', borderless: false }}
       style={({ pressed }) => [Platform.OS === 'ios' && pressed && { opacity: 0.85 }]}
       accessibilityRole='button'
-      accessibilityLabel='Community Impact'
-      accessibilityHint='Tap to view donation categories and progress'
+      accessibilityLabel={t('navigation.communityImpact')}
+      accessibilityHint={t('donations.seeHowWeHelp')}
     >
       <LinearGradient
         colors={['#E8756A', '#D4547A', '#B8488E']}
@@ -32,10 +34,12 @@ const DonationImpactCardComponent: React.FC<DonationImpactCardProps> = ({ onPres
         style={styles.card}
       >
         <View style={styles.cardLeft}>
-          <Text style={styles.label}>Community</Text>
-          <Text style={styles.title}>Mercy & Impact</Text>
+          <Text style={styles.label}>{t('profile.community')}</Text>
+          <Text style={styles.title}>{t('donations.mercyImpact')}</Text>
           <Text style={styles.sub}>
-            {stats ? `${stats.contributorCount} hearts joined` : 'See how we help'}
+            {stats
+              ? t('donations.heartsJoined', { count: stats.contributorCount })
+              : t('donations.seeHowWeHelp')}
           </Text>
         </View>
         <View style={styles.cardRight}>

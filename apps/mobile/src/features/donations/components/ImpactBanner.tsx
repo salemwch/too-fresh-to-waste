@@ -5,6 +5,7 @@
  */
 
 import React, { memo, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Pressable, LayoutAnimation, Image } from 'react-native';
 
 const heartInHandsImg = require('../../../assets/images/heart-in-hands.png');
@@ -32,6 +33,7 @@ const COLORS = {
  * Extracted to enable React.memo() wrapping
  */
 const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: stats, isLoading, isError } = useDonationStats();
 
@@ -61,7 +63,7 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
   const progressPercentage = stats.progressPercentage ?? 0;
   const targetAmount = stats.targetAmount ?? 0;
   const currency = stats.currency ?? 'TND';
-  const cause = stats.cause ?? 'Ensuring No One Goes Hungry';
+  const cause = stats.cause ?? t('home.defaultCause');
 
   return (
     <View style={styles.container}>
@@ -72,9 +74,13 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
             <Image source={heartInHandsImg} style={{ width: 36, height: 36 }} />
           </View>
           <View style={styles.textContainer}>
-            <Text style={styles.title}>Your Orders Change Lives</Text>
+            <Text style={styles.title}>{t('home.impactTitle')}</Text>
             <Text style={styles.subtitle}>
-              {contributorCount} contributors • {totalDonations.toFixed(2)} {currency} raised
+              {t('home.impactSubtitle', {
+                contributors: contributorCount,
+                amount: totalDonations.toFixed(2),
+                currency,
+              })}
             </Text>
           </View>
           <Text style={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</Text>
@@ -89,7 +95,7 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
             <View style={styles.statsGrid}>
               {/* Total Raised */}
               <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Total Raised:</Text>
+                <Text style={styles.statLabel}>{t('home.totalRaised')}</Text>
                 <Text style={styles.statValue}>
                   {totalDonations.toFixed(2)} {currency}
                 </Text>
@@ -97,21 +103,23 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
 
               {/* Contributors */}
               <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Contributors:</Text>
-                <Text style={styles.statValue}>{contributorCount.toLocaleString()} people</Text>
+                <Text style={styles.statLabel}>{t('home.contributors')}</Text>
+                <Text style={styles.statValue}>
+                  {t('home.peopleCount', { count: contributorCount })}
+                </Text>
               </View>
 
               {/* Meals Funded */}
               <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Meals Funded:</Text>
-                <Text style={styles.statValue}>{mealCount.toLocaleString()} meals</Text>
+                <Text style={styles.statLabel}>{t('home.mealsFunded')}</Text>
+                <Text style={styles.statValue}>{t('home.mealsCount', { count: mealCount })}</Text>
               </View>
             </View>
 
             {/* Progress Bar */}
             <View style={styles.progressContainer}>
               <Text style={styles.progressLabel}>
-                Next Milestone: {targetAmount} {currency}
+                {t('home.nextMilestone', { amount: targetAmount, currency })}
               </Text>
               <View style={styles.progressBar}>
                 <View
@@ -123,7 +131,7 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
 
             {/* Cause */}
             <View style={styles.causeContainer}>
-              <Text style={styles.causeLabel}>Current Cause:</Text>
+              <Text style={styles.causeLabel}>{t('home.currentCause')}</Text>
               <Text style={styles.causeText}>{cause}</Text>
             </View>
           </View>
