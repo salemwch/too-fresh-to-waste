@@ -44,6 +44,18 @@ export class CommunityBagGoal {
   @Prop({ type: String, maxlength: 600 })
   causeDescription?: string;
 
+  @Prop({ type: Number, default: 50, min: 1 })
+  rewardPoints?: number;
+
+  @Prop({ type: String, maxlength: 80 })
+  seasonName?: string;
+
+  @Prop({ type: Date })
+  endDate?: Date;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
+  participantIds!: Types.ObjectId[];
+
   @Prop({ type: Types.ObjectId, ref: 'User' })
   createdBy?: Types.ObjectId;
 
@@ -60,3 +72,4 @@ export const CommunityBagGoalSchema = SchemaFactory.createForClass(CommunityBagG
 CommunityBagGoalSchema.index({ status: 1 });
 // Compound index for history queries (admin)
 CommunityBagGoalSchema.index({ cycleNumber: -1 });
+CommunityBagGoalSchema.index({ status: 1, participantIds: 1 });
