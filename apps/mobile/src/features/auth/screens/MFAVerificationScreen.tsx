@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -38,6 +39,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
   route,
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(selectAuthIsLoading);
   const error = useAppSelector(selectAuthError);
@@ -66,7 +68,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
       const fullCode = verificationCode ?? code.join('');
 
       if (fullCode.length !== CODE_LENGTH) {
-        showErrorAlert('Invalid Code', 'Please enter all 6 digits.');
+        showErrorAlert('Invalid Code', t('mfa.invalidCode'));
         return;
       }
 
@@ -78,10 +80,9 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
           }),
         ).unwrap();
 
-        // Success! RootNavigator will automatically navigate to MainStack
-        showSuccessAlert('Success', 'Authentication successful!');
+        showSuccessAlert('Success', t('mfa.successMessage'));
       } catch (err: unknown) {
-        const errorMessage = 'Invalid verification code. Please try again.';
+        const errorMessage = t('mfa.invalidVerification');
 
         showErrorAlert('Verification Failed', errorMessage);
 
@@ -155,12 +156,12 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
    */
   const handleBackToLogin = useCallback(() => {
     showAlert(
-      'Cancel Verification',
-      'Are you sure you want to cancel? You will need to log in again.',
+      t('mfa.cancelTitle'),
+      t('mfa.cancelMessage'),
       [
-        { text: 'No', style: 'cancel' },
+        { text: t('common.no'), style: 'cancel' },
         {
-          text: 'Yes',
+          text: t('common.yes'),
           style: 'destructive',
           onPress: () => navigation.navigate('Login'),
         },
@@ -195,7 +196,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
 
           {/* Title */}
           <Text variant='headline' size='lg' weight='semibold' align='center' style={styles.title}>
-            Two-Factor Authentication
+            {t('mfa.title')}
           </Text>
 
           {/* Description */}
@@ -206,7 +207,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
             align='center'
             style={styles.description}
           >
-            Enter the 6-digit code from your authenticator app to complete sign in.
+            {t('mfa.description')}
           </Text>
 
           {/* Error Banner */}
@@ -263,7 +264,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
               style={styles.submitButton}
               testID='mfa-submit-button'
             >
-              Verify Code
+              {t('mfa.verifyCode')}
             </Button>
 
             {/* Clear Button */}
@@ -274,7 +275,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
               disabled={isLoading || code.every(d => d === '')}
               style={styles.clearButton}
             >
-              Clear Code
+              {t('mfa.clearCode')}
             </Button>
           </View>
 
@@ -294,11 +295,10 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
                 color='secondary'
                 style={styles.helpTitle}
               >
-                Can&apos;t access your authenticator app?
+                {t('mfa.helpTitle')}
               </Text>
               <Text variant='body' size='xs' color='secondary' style={styles.helpText}>
-                • Make sure your device&apos;s time is set correctly{'\n'}• Use a backup code if you
-                have one{'\n'}• Contact support for assistance
+                {t('mfa.helpTips')}
               </Text>
             </View>
           </View>
@@ -323,7 +323,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
               weight='medium'
               style={styles.backToLoginText}
             >
-              Back to Login
+              {t('mfa.backToLogin')}
             </Text>
           </Pressable>
         </Card>
@@ -337,8 +337,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
             color={theme.colors.onSurfaceVariant}
           />
           <Text variant='body' size='xs' color='secondary' style={styles.securityText}>
-            Two-factor authentication adds an extra layer of security to your account by requiring a
-            second form of verification.
+            {t('mfa.securityNote')}
           </Text>
         </View>
       </ScrollView>

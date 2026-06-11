@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView, Linking } from 'react-native';
 
 import { Button, Text, Card, Icon } from '@/design-system/components/atoms';
@@ -23,6 +24,7 @@ interface VerifyEmailScreenProps {
 
 export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
 
   // Get email from route params OR Redux state (state-driven approach)
@@ -61,7 +63,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
       setVerificationStatus('success');
     } catch (err) {
       setVerificationStatus('error');
-      setInlineError('The verification link may be invalid or expired. Please request a new one.');
+      setInlineError(t('verifyEmail.invalidOrExpired'));
     } finally {
       setIsVerifying(false);
     }
@@ -115,12 +117,12 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
       await authService.resendVerificationEmail(email);
 
       setInlineError(null);
-      showSuccessToast('Verification Email Sent', 'Please check your inbox');
+      showSuccessToast(t('auth.verificationEmailSent'));
 
       // Set 60 second cooldown
       setResendCooldown(60);
     } catch (err: unknown) {
-      setInlineError('Failed to resend verification email. Please try again.');
+      setInlineError(t('verifyEmail.failedToResend'));
       setCanResend(true);
     } finally {
       setIsResending(false);
@@ -142,7 +144,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
     try {
       await Linking.openURL('mailto:');
     } catch {
-      setInlineError('Unable to open email app. Please open your email app manually.');
+      setInlineError(t('verifyEmail.unableToOpenEmail'));
     }
   }, []);
 
@@ -189,12 +191,12 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
           {/* Title */}
           <Text variant='headline' size='lg' weight='semibold' align='center' style={styles.title}>
             {isVerifying
-              ? 'Verifying Email...'
+              ? t('verifyEmail.verifying')
               : verificationStatus === 'success'
-                ? 'Email Verified!'
+                ? t('verifyEmail.verifiedTitle')
                 : verificationStatus === 'error'
-                  ? 'Verification Failed'
-                  : 'Verify Your Email'}
+                  ? t('verifyEmail.failedTitle')
+                  : t('verifyEmail.title')}
           </Text>
 
           {/* Content based on verification status */}
@@ -207,7 +209,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 align='center'
                 style={styles.description}
               >
-                Please wait while we verify your email...
+                {t('verifyEmail.waitMessage')}
               </Text>
               <View style={styles.loadingContainer} />
             </>
@@ -220,7 +222,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 align='center'
                 style={styles.description}
               >
-                Your email has been verified successfully!
+                {t('verifyEmail.successMessage')}
               </Text>
               <Text
                 variant='body'
@@ -229,7 +231,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 align='center'
                 style={styles.instructions}
               >
-                Logging you in...
+                {t('verifyEmail.loggingIn')}
               </Text>
             </>
           ) : verificationStatus === 'error' ? (
@@ -241,7 +243,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 align='center'
                 style={styles.description}
               >
-                The verification link may be invalid or expired.
+                {t('verifyEmail.failedMessage')}
               </Text>
               <Text
                 variant='body'
@@ -250,7 +252,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 align='center'
                 style={styles.instructions}
               >
-                Please request a new verification email and try again.
+                {t('verifyEmail.failedInstruction')}
               </Text>
               <Button
                 variant='primary'
@@ -262,7 +264,9 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 disabled={isResending || !canResend || resendCooldown > 0}
                 style={[styles.verifiedButton, styles.actionButtonSpacing]}
               >
-                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Verification Email'}
+                {resendCooldown > 0
+                  ? t('verifyEmail.resendCooldown', { seconds: resendCooldown })
+                  : t('verifyEmail.resendButton')}
               </Button>
               <Button
                 variant='outline'
@@ -271,7 +275,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 disabled={isResending}
                 style={[styles.backButton, outlineButtonStyle]}
               >
-                Back to Login
+                {t('verifyEmail.backToLogin')}
               </Button>
             </>
           ) : (
@@ -284,7 +288,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 align='center'
                 style={styles.description}
               >
-                We&apos;ve sent a verification link to:
+                {t('verifyEmail.sentTo')}
               </Text>
 
               {/* Email Display */}
@@ -305,7 +309,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 }}
                 style={[styles.verifiedButton, styles.actionButtonSpacing]}
               >
-                Open Email App
+                {t('verifyEmail.openEmailApp')}
               </Button>
 
               {/* Resend Button */}
@@ -319,7 +323,9 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 disabled={isResending || !canResend || resendCooldown > 0}
                 style={[styles.resendButton, outlineButtonStyle]}
               >
-                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Verification Email'}
+                {resendCooldown > 0
+                  ? t('verifyEmail.resendCooldown', { seconds: resendCooldown })
+                  : t('verifyEmail.resendButton')}
               </Button>
 
               {/* Already verified (user verified on web, came back to app manually) */}
@@ -330,7 +336,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 disabled={isResending}
                 style={[styles.backButton, outlineButtonStyle]}
               >
-                Already verified? Go to Login
+                {t('verifyEmail.alreadyVerified')}
               </Button>
             </>
           )}
@@ -375,23 +381,12 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                   color='secondary'
                   style={styles.helpTitle}
                 >
-                  Didn&lsquo;t receive the email?
+                  {t('verifyEmail.helpTitle')}
                 </Text>
                 <Text variant='body' size='xs' color='secondary' style={styles.helpText}>
-                  • Check your spam or junk folder{'\n'}• Make sure you entered the correct email
-                  address{'\n'}• Wait a few minutes and try resending{'\n'}• Contact{' '}
-                  <Text
-                    variant='body'
-                    size='xs'
-                    weight='semibold'
-                    onPress={() => {
-                      void Linking.openURL('mailto:support@toofreshtowaste.com');
-                    }}
-                    style={[styles.supportLink, { color: theme.colors.primary }]}
-                  >
-                    support
-                  </Text>{' '}
-                  if the problem persists
+                  {t('verifyEmail.helpTips')}
+                  {'\n'}
+                  {t('verifyEmail.helpSupport')}
                 </Text>
               </View>
             </View>

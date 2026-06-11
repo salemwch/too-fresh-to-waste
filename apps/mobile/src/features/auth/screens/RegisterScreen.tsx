@@ -8,6 +8,7 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import Icon from '@react-native-vector-icons/ionicons';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
 import {
   View,
@@ -43,6 +44,7 @@ interface RegisterScreenProps {
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, route }) => {
   const referralCode = route.params?.referralCode;
   const theme = useTheme();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -131,8 +133,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
       if (!isPasswordValid) {
         setError('password', {
           type: 'manual',
-          message:
-            'Password does not meet security requirements. Please check the requirements below.',
+          message: t('register.passwordSecurityRequirements'),
         });
         return;
       }
@@ -162,7 +163,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
           throw new Error(
             typeof result === 'object' && result !== null && 'message' in result
               ? (result as { message: string }).message
-              : 'Registration failed',
+              : t('register.registrationFailed'),
           );
         }
 
@@ -186,7 +187,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
         });
       } catch (err: unknown) {
         const rawErrorMessage = err instanceof Error ? err.message : '';
-        const errorMessage = rawErrorMessage || 'Registration failed. Please try again.';
+        const errorMessage = rawErrorMessage || t('register.registrationFailed');
 
         // Only update state if component is still mounted
         if (!isMountedRef.current) {
@@ -249,12 +250,12 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
           if (lowerErrorMsg.includes('email') && lowerErrorMsg.includes('already')) {
             setError('email', {
               type: 'manual',
-              message: 'This email is already registered. Please use a different email.',
+              message: t('register.emailAlreadyRegistered'),
             });
           } else if (lowerErrorMsg.includes('password')) {
             setError('password', {
               type: 'manual',
-              message: 'Password does not meet the requirements. Please try again.',
+              message: t('register.passwordRequirements'),
             });
           }
         }
@@ -323,7 +324,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
                 </Text>
                 <Pressable
                   accessibilityRole='button'
-                  accessibilityLabel='Dismiss error'
+                  accessibilityLabel={t('register.dismissError')}
                   accessibilityHint='Closes this error message'
                   onPress={() => {
                     setIsGlobalErrorDismissed(true);
@@ -344,8 +345,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
                 name='firstName'
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
-                    label={renderRequiredLabel('First name')}
-                    placeholder='John'
+                    label={renderRequiredLabel(t('register.firstNameLabel'))}
+                    placeholder={t('register.firstNamePlaceholder')}
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -365,8 +366,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
                 name='lastName'
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
-                    label={renderRequiredLabel('Last name')}
-                    placeholder='Doe'
+                    label={renderRequiredLabel(t('register.lastNameLabel'))}
+                    placeholder={t('register.lastNamePlaceholder')}
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -388,8 +389,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
             name='email'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label={renderRequiredLabel('Email address')}
-                placeholder='john.doe@example.com'
+                label={renderRequiredLabel(t('register.emailLabel'))}
+                placeholder={t('register.emailPlaceholder')}
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -414,8 +415,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
             name='password'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label={renderRequiredLabel('Password')}
-                placeholder='Create a strong password'
+                label={renderRequiredLabel(t('register.passwordLabel'))}
+                placeholder={t('register.passwordPlaceholder')}
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -458,7 +459,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
           {/* Terms and Privacy Policy - Automatic Acceptance */}
           <View style={styles.termsContainer}>
             <Text variant='label.small' color='secondary' style={styles.termsText}>
-              By registering, you agree to our{' '}
+              {t('register.termsPrefix')}{' '}
               <Text
                 variant='label.small'
                 weight='semibold'
@@ -467,9 +468,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
                   void Linking.openURL('https://toofreshtowaste.com/en/terms-and-conditions')
                 }
               >
-                Terms
+                {t('register.terms')}
               </Text>
-              {' & '}
+              {' ' + t('register.and') + ' '}
               <Text
                 variant='label.small'
                 weight='semibold'
@@ -478,7 +479,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
                   void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy')
                 }
               >
-                Privacy Policy
+                {t('register.privacyPolicy')}
               </Text>
             </Text>
           </View>
@@ -495,14 +496,14 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
             style={styles.registerButton}
             testID='register-submit-button'
           >
-            Sign Up
+            {t('auth.signUp')}
           </Button>
 
           {/* Divider */}
           <View style={styles.divider}>
             <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
             <Text variant='body.small' color='secondary' style={styles.dividerText}>
-              OR
+              {t('common.or')}
             </Text>
             <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
           </View>
@@ -513,7 +514,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
           {/* Login Link */}
           <View style={[styles.loginContainer, { marginTop: 16 }]}>
             <Text variant='body.medium' color={theme.colors.onSurfaceVariant}>
-              Already have an account?{' '}
+              {t('auth.hasAccount')}{' '}
             </Text>
             <Pressable
               accessibilityRole='button'
@@ -526,7 +527,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
                 weight='semibold'
                 style={[styles.signInText, { textDecorationColor: theme.colors.primary }]}
               >
-                Sign In
+                {t('auth.signIn')}
               </Text>
             </Pressable>
           </View>

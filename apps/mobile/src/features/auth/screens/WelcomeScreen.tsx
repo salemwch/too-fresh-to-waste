@@ -11,6 +11,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Image, Dimensions, StatusBar, Pressable } from 'react-native';
 
 import BagImage from '@/assets/images/Bag.webp';
@@ -30,6 +31,7 @@ interface WelcomeScreenProps {
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [isNavigating, setIsNavigating] = useState(false);
 
   /**
@@ -58,10 +60,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
       {/* Title Text - at the top */}
       <View style={styles.titleContainer}>
         <Text variant='display.medium' weight='bold' style={styles.titleText}>
-          Save food
+          {t('welcome.saveFood')}
         </Text>
         <Text variant='display.medium' weight='bold' style={styles.titleText}>
-          Save money
+          {t('welcome.saveMoney')}
         </Text>
       </View>
 
@@ -96,12 +98,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
             weight='bold'
             style={[styles.appName, { color: theme.colors.primary }]}
           >
-            Too Fresh To Waste
+            {t('common.appName')}
           </Text>
 
           {/* Tagline */}
           <Text variant='body.large' style={[styles.tagline, { color: theme.colors.primary }]}>
-            Buy surplus food{'\n'}at lower prices
+            {t('welcome.tagline')}
           </Text>
 
           {/* Get Started Button */}
@@ -122,7 +124,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
             disabled={isNavigating}
             testID='welcome-get-started-button'
           >
-            Get Started
+            {t('welcome.getStarted')}
           </Button>
 
           {/* Sign Up Link */}
@@ -133,7 +135,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
                 weight='semibold'
                 style={[styles.signInText, { color: theme.colors.primary }]}
               >
-                Sign Up
+                {t('welcome.signUp')}
               </Text>
             </Pressable>
           </View>

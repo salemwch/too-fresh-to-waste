@@ -12,6 +12,7 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import React, { useState, useCallback, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -38,6 +39,7 @@ import type { ResetPasswordScreenProps } from '@/navigation/types';
  */
 export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   // Extract params from deep link
   const { email, token } = route.params;
@@ -83,7 +85,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
         email: !!email,
         token: !!token,
       });
-      setError('Invalid reset link. Missing email or token.');
+      setError(t('resetPassword.invalidLink'));
     }
 
     return () => {
@@ -101,7 +103,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
 
       // Validation checks
       if (!email || !token) {
-        setError('Invalid reset link. Please request a new password reset.');
+        setError(t('resetPassword.requestNewReset'));
         Logger.error('ResetPassword: Missing email or token');
         return;
       }
@@ -109,8 +111,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
       if (!isPasswordValid) {
         setFormError('password', {
           type: 'manual',
-          message:
-            'Password does not meet security requirements. Please check the requirements below.',
+          message: t('register.passwordSecurityRequirements'),
         });
         Logger.warn('ResetPassword: Weak password attempt');
         return;
@@ -144,9 +145,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
           errorMessage.toLowerCase().includes('expired') ||
           errorMessage.toLowerCase().includes('invalid token')
         ) {
-          setError(
-            'This reset link has expired or is invalid. Please request a new password reset link.',
-          );
+          setError(t('resetPassword.expiredLink'));
         } else if (
           errorMessage.toLowerCase().includes('password') &&
           (errorMessage.toLowerCase().includes('last') ||
@@ -154,9 +153,9 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             errorMessage.toLowerCase().includes('reuse'))
         ) {
           // Handle password reuse error - show under password field
-          setPasswordReuseError('You have used this password before, please enter a new password');
+          setPasswordReuseError(t('resetPassword.passwordReused'));
         } else if (errorType === ErrorType.NETWORK) {
-          setError('Network error. Please check your connection and try again.');
+          setError(t('resetPassword.networkError'));
         } else if (errorType === ErrorType.VALIDATION) {
           setError(
             errorMessage ||
@@ -268,7 +267,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
               align='center'
               style={styles.successTitle}
             >
-              Password Reset Successful
+              {t('resetPassword.successTitle')}
             </Text>
 
             {/* Success Message */}
@@ -279,8 +278,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
               align='center'
               style={styles.successMessage}
             >
-              Your password has been changed successfully. You can now log in with your new
-              password.
+              {t('resetPassword.successMessage')}
             </Text>
 
             {/* Security Note */}
@@ -292,7 +290,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
                 color={theme.colors.primary}
               />
               <Text variant='body' size='sm' color='secondary' style={styles.securityNoteText}>
-                For your security, all other active sessions have been logged out.
+                {t('resetPassword.sessionsLoggedOut')}
               </Text>
             </View>
 
@@ -304,7 +302,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
               style={styles.successButton}
               testID='go-to-login-button'
             >
-              Go to Login
+              {t('resetPassword.goToLogin')}
             </Button>
           </Card>
         </ScrollView>
@@ -333,13 +331,12 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
 
           {/* Title */}
           <Text variant='headline' size='lg' weight='semibold' align='center' style={styles.title}>
-            Create New Password
+            {t('resetPassword.title')}
           </Text>
 
           {/* Subtitle */}
           <Text variant='body' size='md' color='secondary' align='center' style={styles.subtitle}>
-            Enter a strong password for your account. Make sure it&apos;s at least 12 characters
-            long.
+            {t('resetPassword.description')}
           </Text>
 
           {/* Email Display */}

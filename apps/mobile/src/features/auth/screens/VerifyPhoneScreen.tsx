@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import Animated, {
   FadeInDown,
@@ -34,6 +35,7 @@ import type { VerifyPhoneScreenProps } from '@/navigation/types';
 
 export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { phoneNumber: paramPhoneNumber, fromEmailVerification } = route.params ?? {};
   const { tokens } = useAuth();
@@ -175,14 +177,14 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
     }
 
     if (!tokens?.accessToken) {
-      showErrorAlert('Error', 'Authentication required. Please log in again.');
+      showErrorAlert('Error', t('verifyPhone.authRequired'));
       navigation.navigate('Login');
       return;
     }
 
     setIsSendingCode(true);
     setError(null);
-    setCode(''); // Reset code
+    setCode('');
 
     try {
       const response = await authService.sendPhoneVerification(
@@ -197,18 +199,14 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
       setCanResend(false);
 
       showSuccessAlert(
-        'Code Sent!',
-        `A 6-digit verification code has been sent to ${phoneNumber}. ${
-          response.attemptsRemaining
-            ? `You have ${response.attemptsRemaining} attempts remaining.`
-            : ''
-        }`,
+        t('verifyPhone.codeSentTitle'),
+        t('verifyPhone.codeSentMessage', { phone: phoneNumber }) +
+          (response.attemptsRemaining
+            ? ' ' + t('verifyPhone.attemptsRemaining', { count: response.attemptsRemaining })
+            : ''),
       );
     } catch (err: unknown) {
-      const errorMessage = getErrorMessage(
-        err,
-        'Failed to send verification code. Please try again.',
-      );
+      const errorMessage = getErrorMessage(err, t('verifyPhone.sendFailed'));
 
       Logger.error('Failed to send phone verification code', { error: err });
 
@@ -239,12 +237,12 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
    */
   const handleVerifyCode = useCallback(async () => {
     if (code?.length !== 6) {
-      setError('Please enter a valid 6-digit code');
+      setError(t('verifyPhone.invalidCode'));
       return;
     }
 
     if (!tokens?.accessToken) {
-      showErrorAlert('Error', 'Authentication required. Please log in again.');
+      showErrorAlert('Error', t('verifyPhone.authRequired'));
       navigation.navigate('Login');
       return;
     }
@@ -257,22 +255,15 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
       Logger.info('Phone verified successfully', { phoneNumber });
 
-      // Success animation
       successScale.value = withSequence(
         withTiming(1.2, { duration: 300 }),
         withTiming(1, { duration: 200 }),
       );
 
-      // Navigate based on context
       setTimeout(() => {
         if (fromEmailVerification === true) {
-          // Coming from email verification, go to main app
-          showSuccessAlert(
-            'Verification Complete!',
-            'Your phone number has been verified. Welcome to the app!',
-          );
+          showSuccessAlert(t('verifyPhone.codeSentTitle'), t('verifyPhone.verificationComplete'));
 
-          // Navigate after showing success
           setTimeout(() => {
             navigation.reset({
               index: 0,
@@ -280,7 +271,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
             });
           }, 2000);
         } else {
-          showSuccessAlert('Phone Verified!', 'Your phone number has been successfully verified.');
+          showSuccessAlert(t('verifyPhone.codeSentTitle'), t('verifyPhone.phoneVerified'));
 
           // Navigate back after showing success
           setTimeout(() => {
@@ -289,10 +280,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
         }
       }, 500);
     } catch (err: unknown) {
-      const errorMessage = getErrorMessage(
-        err,
-        'Verification failed. Please check your code and try again.',
-      );
+      const errorMessage = getErrorMessage(err, t('verifyPhone.verifyFailed'));
 
       Logger.error('Phone verification failed', { error: err });
 
@@ -321,14 +309,14 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
     if (!canResend || resendCooldown > 0) return;
 
     if (!tokens?.accessToken) {
-      showErrorAlert('Error', 'Authentication required. Please log in again.');
+      showErrorAlert('Error', t('verifyPhone.authRequired'));
       navigation.navigate('Login');
       return;
     }
 
     setIsSendingCode(true);
     setError(null);
-    setCode(''); // Reset code
+    setCode('');
 
     try {
       const response = await authService.resendPhoneVerification(
@@ -339,18 +327,17 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
       Logger.info('Phone verification code resent', { phoneNumber });
 
       showSuccessAlert(
-        'Code Resent!',
-        `A new verification code has been sent to ${phoneNumber}. ${
-          response.attemptsRemaining
-            ? `You have ${response.attemptsRemaining} attempts remaining.`
-            : ''
-        }`,
+        t('verifyPhone.codeSentTitle'),
+        t('verifyPhone.codeSentMessage', { phone: phoneNumber }) +
+          (response.attemptsRemaining
+            ? ' ' + t('verifyPhone.attemptsRemaining', { count: response.attemptsRemaining })
+            : ''),
       );
 
       setResendCooldown(60);
       setCanResend(false);
     } catch (err: unknown) {
-      const errorMessage = getErrorMessage(err, 'Failed to resend code. Please try again.');
+      const errorMessage = getErrorMessage(err, t('verifyPhone.resendFailed'));
 
       Logger.error('Failed to resend phone verification code', { error: err });
 
@@ -367,12 +354,9 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
    */
   const handleBack = useCallback(() => {
     if (fromEmailVerification === true) {
-      showAlert(
-        'Verification Required',
-        'Phone verification is mandatory to complete your registration. You must verify your phone number before you can log in.',
-        undefined,
-        { type: 'warning' },
-      );
+      showAlert(t('verifyPhone.title'), t('verifyPhone.verificationRequired'), undefined, {
+        type: 'warning',
+      });
     } else {
       navigation.goBack();
     }
@@ -414,15 +398,15 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
         {/* Title and Description */}
         <Animated.View entering={FadeInUp.delay(200)} style={styles.titleContainer}>
           <Text variant='headline.large' style={styles.title}>
-            Verify Your Phone
+            {t('verifyPhone.title')}
           </Text>
           <Text
             variant='body.large'
             style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}
           >
             {hasCodeBeenSent
-              ? `Enter the 6-digit code sent to ${phoneNumber}`
-              : "We'll send you a verification code to confirm your phone number"}
+              ? t('verifyPhone.codePrompt', { phone: phoneNumber })
+              : t('verifyPhone.initialPrompt')}
           </Text>
         </Animated.View>
 
@@ -462,7 +446,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
               disabled={!phoneNumber || isSendingCode}
               style={styles.button}
             >
-              Send Verification Code
+              {t('verifyPhone.sendCode')}
             </Button>
           ) : (
             <>
@@ -474,7 +458,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
                 disabled={code.length !== 6 || isVerifying}
                 style={styles.button}
               >
-                {isVerifying ? 'Verifying...' : 'Verify Code'}
+                {isVerifying ? t('verifyPhone.verifying') : t('verifyPhone.verifyCode')}
               </Button>
 
               {/* Resend Button */}
@@ -483,7 +467,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
                   variant='body.medium'
                   style={[styles.resendText, { color: theme.colors.onSurfaceVariant }]}
                 >
-                  Didn&apos;t receive the code?
+                  {t('verifyPhone.didntReceive')}
                 </Text>
                 <Button
                   variant='text'
@@ -494,7 +478,9 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
                   loading={isSendingCode}
                   style={styles.resendButton}
                 >
-                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Code'}
+                  {resendCooldown > 0
+                    ? t('verifyPhone.resendCooldown', { seconds: resendCooldown })
+                    : t('verifyPhone.resendCode')}
                 </Button>
               </View>
             </>
@@ -508,7 +494,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
               disabled={isVerifying || isSendingCode}
               style={styles.backButton}
             >
-              Back
+              {t('common.back')}
             </Button>
           )}
         </Animated.View>
@@ -521,8 +507,8 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
             style={[styles.helpText, { color: theme.colors.onSurfaceVariant }]}
           >
             {fromEmailVerification === true
-              ? 'Phone verification is mandatory. Codes expire after 10 minutes. You have up to 5 attempts per code.'
-              : 'Verification codes expire after 10 minutes. You have up to 5 attempts per code.'}
+              ? t('verifyPhone.helpMandatory')
+              : t('verifyPhone.helpOptional')}
           </Text>
         </Animated.View>
       </ScrollView>

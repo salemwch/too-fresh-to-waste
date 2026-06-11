@@ -5,6 +5,7 @@
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
 import {
   View,
@@ -114,6 +115,7 @@ function parseBackendValidationError(error: unknown): Record<string, string> | n
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(selectAuthIsLoading);
@@ -225,7 +227,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
         // State-driven: RootNavigator switches to MainStack on AUTHENTICATED
         setLoginSuccess(true);
-        showSuccessToast(`Welcome back, ${result.user.firstName || 'User'}! 🎉`);
+        showSuccessToast(
+          result.user.firstName
+            ? t('auth.welcomeBackMessage', { name: result.user.firstName }) + ' 🎉'
+            : t('auth.welcomeMessage') + ' 🎉',
+        );
       } catch (err: unknown) {
         Logger.error('Login error', undefined, err instanceof Error ? err : undefined);
         const errorMessage = getErrorMessage(err, 'Invalid value');
@@ -375,7 +381,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               <View style={[styles.badge, unverifiedBadgeStyle]}>
                 <Icon name='close-circle' family='Ionicons' size='sm' color={theme.colors.error} />
                 <Text variant='label.small' weight='semibold' style={{ color: theme.colors.error }}>
-                  Unverified
+                  {t('auth.unverified')}
                 </Text>
               </View>
             </View>
@@ -385,7 +391,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           <View style={styles.welcomeHeader}>
             <View style={styles.welcomeTitleRow}>
               <Text variant='headline.large' weight='semibold'>
-                Welcome Back
+                {t('auth.welcomeBack')}
               </Text>
               <Image
                 source={WavingHand}
@@ -397,7 +403,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               />
             </View>
             <Text variant='body.medium' color='secondary' style={styles.welcomeSubtitle}>
-              Save food, save money, save the planet
+              {t('auth.subtitle')}
             </Text>
           </View>
 
@@ -424,7 +430,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               {isEmailUnverified && email && (
                 <View style={[styles.resendSection, resendSectionStyle]}>
                   <Text variant='body.small' color='secondary' style={styles.resendPrompt}>
-                    Didn&apos;t receive the email?
+                    {t('auth.didntReceiveEmail')}
                   </Text>
                   <Pressable
                     accessibilityRole='button'
@@ -443,7 +449,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                         color: resendingEmail ? theme.colors.outline : theme.colors.primary,
                       }}
                     >
-                      {resendingEmail ? 'Sending...' : 'Resend Verification Email'}
+                      {resendingEmail ? t('auth.sending') : t('auth.resendVerificationEmail')}
                     </Text>
                   </Pressable>
                 </View>
@@ -465,7 +471,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 weight='medium'
                 style={[styles.successText, { color: theme.colors.onPrimaryContainer }]}
               >
-                Verification email sent! Check your inbox.
+                {t('auth.verificationEmailSent')}
               </Text>
             </View>
           )}
@@ -497,8 +503,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             name='email'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='Email Address'
-                placeholder='Enter your email'
+                label={t('auth.emailLabel')}
+                placeholder={t('auth.emailPlaceholder')}
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -526,8 +532,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 ref={passwordRef}
-                label='Password'
-                placeholder='Enter your password'
+                label={t('auth.passwordLabel')}
+                placeholder={t('auth.passwordPlaceholder')}
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -597,7 +603,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     )}
                   </View>
                   <Text variant='body.small' color='secondary'>
-                    Remember me
+                    {t('auth.rememberMe')}
                   </Text>
                 </Pressable>
 
@@ -607,7 +613,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   disabled={isLoading}
                 >
                   <Text variant='body.small' color='primary' weight='medium'>
-                    Forgot Password?
+                    {t('auth.forgotPassword')}
                   </Text>
                 </Pressable>
               </View>
@@ -616,8 +622,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           {/* Login Button */}
           <MorphingButton
-            label='Sign In'
-            successLabel='Welcome!'
+            label={t('auth.signIn')}
+            successLabel={t('auth.welcomeMessage')}
             loading={isLoading}
             success={loginSuccess}
             onPress={() => {
@@ -629,14 +635,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           {/* Terms of Service */}
           <Text variant='body.small' color='secondary' align='center' style={styles.terms}>
-            By signing in, you agree to our Terms of Service and Privacy Policy
+            {t('auth.termsSignIn')}
           </Text>
 
           {/* Divider */}
           <View style={styles.divider}>
             <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
             <Text variant='body.small' color='secondary' style={styles.dividerText}>
-              OR
+              {t('common.or')}
             </Text>
             <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
           </View>
@@ -647,7 +653,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {/* Register Link */}
           <View style={styles.registerContainer}>
             <Text variant='body.medium' color={theme.colors.onSurfaceVariant}>
-              Don&apos;t have an account?{' '}
+              {t('auth.noAccount')}{' '}
             </Text>
             <Pressable
               accessibilityRole='button'
@@ -660,7 +666,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 weight='semibold'
                 style={[styles.signUpText, { textDecorationColor: theme.colors.primary }]}
               >
-                Sign Up
+                {t('auth.signUp')}
               </Text>
             </Pressable>
           </View>
@@ -668,7 +674,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {/* Resend Verification Link */}
           <View style={styles.verificationLinkContainer}>
             <Text variant='body.small' color={theme.colors.onSurfaceVariant}>
-              Need to verify email?{' '}
+              {t('auth.needVerifyEmail')}{' '}
             </Text>
             <Pressable
               accessibilityRole='button'
@@ -681,7 +687,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 weight='semibold'
                 style={[styles.verificationLinkText, { textDecorationColor: theme.colors.primary }]}
               >
-                Resend Link
+                {t('auth.resendLink')}
               </Text>
             </Pressable>
           </View>

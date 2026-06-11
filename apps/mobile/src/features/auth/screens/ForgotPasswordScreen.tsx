@@ -6,6 +6,7 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import React, { useState, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 
 import { Button, Input, Text, Card, Icon } from '@/design-system/components/atoms';
@@ -22,6 +23,7 @@ interface ForgotPasswordScreenProps {
 
 export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   // React Hook Form setup with Yup validation
   const {
@@ -104,7 +106,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
               align='center'
               style={styles.successTitle}
             >
-              Check Your Email
+              {t('forgotPassword.checkYourEmail')}
             </Text>
 
             <Text
@@ -114,7 +116,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
               align='center'
               style={styles.successMessage}
             >
-              We&apos;ve sent a password reset link to:
+              {t('forgotPassword.emailSentTo')}
             </Text>
 
             <Text variant='body' size='md' weight='semibold' align='center' style={styles.email}>
@@ -128,11 +130,11 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
               align='center'
               style={styles.instructions}
             >
-              Click the link in the email to reset your password. The link will expire in 1 hour.
+              {t('forgotPassword.linkExpiry')}
             </Text>
 
             <Button variant='primary' size='lg' onPress={handleBackToLogin} style={styles.button}>
-              Back to Login
+              {t('forgotPassword.backToLogin')}
             </Button>
 
             <Button
@@ -145,7 +147,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
               disabled={isLoading}
               style={styles.resendButton}
             >
-              Resend Email
+              {t('forgotPassword.resendEmail')}
             </Button>
 
             <View style={[styles.helpContainer, { borderTopColor: theme.colors.outlineVariant }]}>
@@ -156,7 +158,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
                 color={theme.colors.onSurfaceVariant}
               />
               <Text variant='body' size='xs' color='secondary' style={styles.helpText}>
-                Didn&apos;t receive the email? Check your spam folder or try resending.
+                {t('forgotPassword.checkSpam')}
               </Text>
             </View>
           </Card>
@@ -186,12 +188,11 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
           </View>
 
           <Text variant='headline' size='lg' weight='semibold' align='center' style={styles.title}>
-            Forgot Password?
+            {t('forgotPassword.title')}
           </Text>
 
           <Text variant='body' size='md' color='secondary' align='center' style={styles.subtitle}>
-            No worries! Enter your email address and we&apos;ll send you a link to reset your
-            password.
+            {t('forgotPassword.description')}
           </Text>
 
           {/* Email Input */}
@@ -200,8 +201,8 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
             name='email'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='Email Address'
-                placeholder='Enter your email'
+                label={t('auth.emailLabel')}
+                placeholder={t('auth.emailPlaceholder')}
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -232,7 +233,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
             style={styles.button}
             testID='forgot-password-submit-button'
           >
-            Send Reset Link
+            {t('forgotPassword.sendResetLink')}
           </Button>
 
           {/* Back to Login */}
@@ -243,7 +244,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
             disabled={isLoading}
             style={styles.backButton}
           >
-            Back to Login
+            {t('forgotPassword.backToLogin')}
           </Button>
         </Card>
 
@@ -256,8 +257,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
             color={theme.colors.onSurfaceVariant}
           />
           <Text variant='body' size='xs' color='secondary' style={styles.securityText}>
-            For security reasons, the reset link will expire in 1 hour. We&apos;ll never share your
-            email with anyone else.
+            {t('forgotPassword.securityNote')}
           </Text>
         </View>
       </ScrollView>

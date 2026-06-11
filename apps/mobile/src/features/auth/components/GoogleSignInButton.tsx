@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import * as Sentry from '@sentry/react-native';
@@ -19,6 +20,7 @@ interface GoogleSignInButtonProps {
 export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
   const dispatch = useAppDispatch();
   const theme = useTheme();
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,7 +35,7 @@ export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
       const idToken = userInfo.data?.idToken;
 
       if (!idToken) {
-        setError('Could not retrieve credentials. Please try again.');
+        setError(t('auth.googleCredentialsFailed'));
         return;
       }
 
@@ -41,7 +43,7 @@ export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
         googleSignInAsync({ idToken, ...(referralCode ? { referralCode } : {}) }),
       ).unwrap();
 
-      showSuccessToast('Welcome!');
+      showSuccessToast(t('auth.welcomeMessage'));
     } catch (err: unknown) {
       try {
         await GoogleSignin.signOut();
@@ -56,14 +58,14 @@ export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
       } else if (typed.code === statusCodes.IN_PROGRESS) {
         // Already in progress — ignore
       } else if (typed.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        setError('Google Play Services unavailable. Please update and try again.');
+        setError(t('auth.googlePlayUnavailable'));
       } else if (typed.code) {
         Logger.error('Google Sign-In failed', { code: typed.code }, err as Error);
         Sentry.captureException(
           err instanceof Error ? err : new Error(typed.message ?? 'Google Sign-In failed'),
           { tags: { flow: 'google_signin', code: typed.code } },
         );
-        setError('Could not sign in with Google. Please try again.');
+        setError(t('auth.googleSignInFailed'));
       }
     } finally {
       setIsLoading(false);
@@ -81,7 +83,7 @@ export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
           isLoading && styles.buttonLoading,
         ]}
         accessibilityRole='button'
-        accessibilityLabel='Continue with Google'
+        accessibilityLabel={t('auth.continueWithGoogle')}
         accessibilityHint='Sign in with your Google account'
         accessibilityState={{ busy: isLoading }}
       >
