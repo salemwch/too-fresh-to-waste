@@ -4,6 +4,7 @@
  */
 
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -28,14 +29,17 @@ interface CommunityBagGoalBannerProps {
 
 const COLORS = {
   brand: colorTokens.base.primary[500],
-  brandSurface: '#E0F2F1',
+  brandLight: colorTokens.base.primary[400],
+  brandDark: colorTokens.base.primary[700],
+  brandSurface: 'rgba(255,255,255,0.15)',
+  brandSurfaceSolid: 'rgba(255,255,255,0.20)',
   surface: '#FFFFFF',
   shadow: '#000',
-  textPrimary: '#1F2937',
-  textSecondary: '#6B7280',
-  textMuted: '#9CA3AF',
-  border: '#E5E7EB',
-  textInverse: '#FFFFFF',
+  textOnBrand: '#FFFFFF',
+  textOnBrandMuted: 'rgba(255,255,255,0.75)',
+  progressTrack: 'rgba(255,255,255,0.25)',
+  progressFill: '#4ADE80',
+  chipBg: 'rgba(255,255,255,0.18)',
 } as const;
 
 const PulsingDot = () => {
@@ -99,6 +103,7 @@ const ProgressBar = ({ percentage }: { percentage: number }) => {
 };
 
 const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerProps) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: stats, isLoading, isError } = useCommunityBagGoal();
 
@@ -116,6 +121,13 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
   }
 
   const { currentCount, targetCount, progressPercentage, remaining } = stats;
+  const seasonName = stats.seasonName ?? t('home.challengeDefault');
+  const rewardPoints = stats.rewardPoints ?? 0;
+  const participantCount = stats.participantCount ?? 0;
+
+  const daysLeft = stats.endDate
+    ? Math.max(0, Math.ceil((new Date(stats.endDate).getTime() - Date.now()) / 86_400_000))
+    : null;
 
   return (
     <View style={styles.container}>
@@ -123,8 +135,8 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
         style={styles.banner}
         onPress={toggleExpand}
         accessibilityRole='button'
-        accessibilityLabel={`Grand Prize unlocks at: ${currentCount.toLocaleString()} of ${targetCount.toLocaleString()} bags saved`}
-        accessibilityHint='Tap to expand for details'
+        accessibilityLabel={`${seasonName}: ${currentCount} of ${targetCount} bags`}
+        accessibilityHint={t('home.expandDetails')}
         testID='community-bag-goal-banner'
       >
         <View style={styles.collapsedContent}>
@@ -134,14 +146,17 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
 
           <View style={styles.textContainer}>
             <View style={styles.titleRow}>
-              <Text style={styles.title}>Grand Prize unlocks at</Text>
+              <Text style={styles.title}>{seasonName}</Text>
               <View style={styles.liveBadge}>
                 <PulsingDot />
-                <Text style={styles.liveText}>LIVE</Text>
+                <Text style={styles.liveText}>{t('home.live')}</Text>
               </View>
             </View>
             <Text style={styles.subtitle}>
-              {currentCount.toLocaleString()} / {targetCount.toLocaleString()} bags saved
+              {t('home.challengeProgress', {
+                current: currentCount.toLocaleString(),
+                target: targetCount.toLocaleString(),
+              })}
             </Text>
           </View>
 
@@ -157,11 +172,37 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
               <Text style={styles.counterSeparator}> / </Text>
               <Text style={styles.counterTarget}>{targetCount.toLocaleString()}</Text>
             </View>
-            <Text style={styles.counterLabel}>Bags Saved</Text>
+            <Text style={styles.counterLabel}>{t('home.bagsSavedLabel')}</Text>
 
             <View style={styles.progressContainer}>
               <ProgressBar percentage={progressPercentage} />
-              <Text style={styles.remainingText}>{remaining.toLocaleString()} remaining</Text>
+              <Text style={styles.remainingText}>
+                {t('home.remainingCount', { count: remaining })}
+              </Text>
+            </View>
+
+            <View style={styles.chipRow}>
+              {rewardPoints > 0 && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipText}>
+                    {t('home.challengeReward', { points: rewardPoints })}
+                  </Text>
+                </View>
+              )}
+              {participantCount > 0 && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipText}>
+                    {t('home.challengeParticipants', { count: participantCount })}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.chip}>
+                <Text style={styles.chipText}>
+                  {daysLeft !== null
+                    ? t('home.challengeDaysLeft', { count: daysLeft })
+                    : t('home.challengeNoDeadline')}
+                </Text>
+              </View>
             </View>
 
             {onSaveABag != null && (
@@ -169,11 +210,10 @@ const CommunityBagGoalBannerComponent = ({ onSaveABag }: CommunityBagGoalBannerP
                 style={styles.saveButton}
                 onPress={onSaveABag}
                 accessibilityRole='button'
-                accessibilityLabel='Save Food'
-                accessibilityHint='Starts the save a bag action'
+                accessibilityLabel={t('home.saveFood')}
                 testID='community-goal-save-a-bag'
               >
-                <Text style={styles.saveButtonText}>Save Food</Text>
+                <Text style={styles.saveButtonText}>{t('home.saveFood')}</Text>
               </Pressable>
             )}
           </View>
@@ -191,22 +231,24 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   banner: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
+    backgroundColor: COLORS.brand,
+    borderRadius: 20,
     padding: 16,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowColor: COLORS.brandDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   collapsedContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   iconContainer: {
-    width: 28,
-    height: 28,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.brandSurface,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -221,13 +263,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
+    fontWeight: '700',
+    color: COLORS.textOnBrand,
   },
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.brandSurface,
+    backgroundColor: COLORS.brandSurfaceSolid,
     borderRadius: 8,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -237,22 +279,22 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: COLORS.brand,
+    backgroundColor: COLORS.progressFill,
     marginRight: 4,
   },
   liveText: {
     fontSize: 10,
     fontWeight: '700',
-    color: COLORS.brand,
+    color: COLORS.textOnBrand,
     letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: COLORS.textOnBrandMuted,
   },
   expandIcon: {
     fontSize: 16,
-    color: COLORS.brand,
+    color: COLORS.textOnBrandMuted,
     marginLeft: 8,
   },
   expandedContent: {
@@ -260,7 +302,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: COLORS.border,
+    backgroundColor: COLORS.brandSurface,
     marginBottom: 16,
   },
   counterRow: {
@@ -271,21 +313,21 @@ const styles = StyleSheet.create({
   counterCurrent: {
     fontSize: 36,
     fontWeight: '700',
-    color: COLORS.brand,
+    color: COLORS.textOnBrand,
   },
   counterSeparator: {
     fontSize: 20,
-    color: COLORS.textMuted,
+    color: COLORS.textOnBrandMuted,
   },
   counterTarget: {
     fontSize: 20,
     fontWeight: '500',
-    color: COLORS.textSecondary,
+    color: COLORS.textOnBrandMuted,
   },
   counterLabel: {
     textAlign: 'center',
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: COLORS.textOnBrandMuted,
     marginBottom: 16,
   },
   progressContainer: {
@@ -293,33 +335,50 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 10,
-    backgroundColor: COLORS.border,
+    backgroundColor: COLORS.progressTrack,
     borderRadius: 5,
     overflow: 'hidden',
     marginBottom: 6,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: COLORS.brand,
+    backgroundColor: COLORS.progressFill,
     borderRadius: 5,
   },
   remainingText: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: COLORS.textOnBrandMuted,
     textAlign: 'right',
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  chip: {
+    backgroundColor: COLORS.chipBg,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  chipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textOnBrand,
   },
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.brand,
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     paddingVertical: 14,
     gap: 8,
   },
   saveButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textInverse,
+    fontWeight: '700',
+    color: COLORS.brand,
   },
 });
