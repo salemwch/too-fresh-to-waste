@@ -1,4 +1,5 @@
 import React, { memo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Modal, Linking } from 'react-native';
 
 import { useTheme } from '@/design-system/providers';
@@ -13,6 +14,7 @@ interface ForceUpdateModalProps {
 export const ForceUpdateModal = memo<ForceUpdateModalProps>(
   ({ visible, updateUrl, latestVersion }) => {
     const theme = useTheme();
+    const { t } = useTranslation();
 
     const handleUpdate = useCallback(() => {
       Linking.openURL(updateUrl);
@@ -42,16 +44,15 @@ export const ForceUpdateModal = memo<ForceUpdateModalProps>(
             </View>
 
             <Text variant='headline.medium' weight='semibold' align='center' style={styles.title}>
-              Update Required
+              {t('update.forceTitle')}
             </Text>
 
             <Text variant='body.medium' color='secondary' align='center' style={styles.description}>
-              A new version ({latestVersion}) is available with important improvements and security
-              fixes. Please update to continue using the app.
+              {t('update.forceDescription', { version: latestVersion })}
             </Text>
 
             <Button variant='primary' size='lg' onPress={handleUpdate} style={styles.button}>
-              Update Now
+              {t('update.forceButton')}
             </Button>
           </View>
         </View>

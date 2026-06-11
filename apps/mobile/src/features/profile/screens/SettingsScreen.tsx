@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -11,9 +12,12 @@ import {
   Switch,
   ActivityIndicator,
   InteractionManager,
+  Pressable,
 } from 'react-native';
 
 import { Text, Card } from '@/design-system/components/atoms';
+import { SUPPORTED_LANGUAGES, setStoredLanguage, getCurrentLanguage } from '@/i18n';
+import type { AppLanguage } from '@/i18n';
 import { useTheme } from '@/design-system/providers';
 import { Logger } from '@/utils/logger';
 
@@ -31,6 +35,18 @@ interface SettingsScreenProps {
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _navigation }) => {
   const theme = useTheme();
+  const { t, i18n } = useTranslation();
+  const [currentLang, setCurrentLang] = useState<AppLanguage>(getCurrentLanguage());
+
+  const handleLanguageChange = useCallback(
+    (lang: AppLanguage) => {
+      if (lang === currentLang) return;
+      setStoredLanguage(lang);
+      void i18n.changeLanguage(lang);
+      setCurrentLang(lang);
+    },
+    [currentLang, i18n],
+  );
 
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -138,7 +154,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
         {/* Notifications Section */}
         <Card style={styles.card}>
           <Text variant='headline.medium' weight='semibold' style={styles.sectionTitle}>
-            Notifications
+            {t('settings.notifications')}
           </Text>
 
           {isLoading ? (
@@ -149,10 +165,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
               <View style={[styles.row, { borderBottomColor: theme.colors.outlineVariant }]}>
                 <View style={styles.rowText}>
                   <Text variant='body.medium' weight='medium'>
-                    Push Notifications
+                    {t('settings.pushNotifications')}
                   </Text>
                   <Text variant='body.small' color='secondary' style={styles.rowSubtitle}>
-                    Enable or disable all push notifications
+                    {t('settings.pushDescription')}
                   </Text>
                 </View>
                 <Switch
@@ -175,10 +191,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
                     weight='medium'
                     style={!pushEnabled ? styles.disabledText : undefined}
                   >
-                    Favorite Store Offers
+                    {t('settings.favoriteStoreOffers')}
                   </Text>
                   <Text variant='body.small' color='secondary' style={styles.rowSubtitle}>
-                    Get notified when your favorite stores post new offers
+                    {t('settings.favoriteStoreDescription')}
                   </Text>
                 </View>
                 <Switch
@@ -194,6 +210,45 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
               </View>
             </>
           )}
+        </Card>
+
+        {/* Language Section */}
+        <Card style={[styles.card, styles.languageCard]}>
+          <Text variant='headline.medium' weight='semibold' style={styles.sectionTitle}>
+            {t('settings.language')}
+          </Text>
+
+          <View style={[styles.pillContainer, { backgroundColor: theme.colors.surfaceVariant }]}>
+            {(
+              Object.entries(SUPPORTED_LANGUAGES) as [
+                AppLanguage,
+                (typeof SUPPORTED_LANGUAGES)[AppLanguage],
+              ][]
+            ).map(([code, lang]) => {
+              const isSelected = currentLang === code;
+              return (
+                <Pressable
+                  key={code}
+                  style={[
+                    styles.languagePill,
+                    isSelected && { backgroundColor: theme.colors.primary },
+                  ]}
+                  onPress={() => handleLanguageChange(code)}
+                  accessibilityRole='radio'
+                  accessibilityState={{ selected: isSelected }}
+                  accessibilityLabel={`${lang.label} (${lang.nativeLabel})`}
+                >
+                  <Text
+                    variant='body.medium'
+                    weight={isSelected ? 'semibold' : 'medium'}
+                    style={{ color: isSelected ? '#FFFFFF' : theme.colors.onSurfaceVariant }}
+                  >
+                    {lang.nativeLabel}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </Card>
       </ScrollView>
     </View>
@@ -232,5 +287,21 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     opacity: 0.4,
+  },
+  languageCard: {
+    marginTop: 16,
+  },
+  pillContainer: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    padding: 4,
+    marginTop: 4,
+  },
+  languagePill: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
   },
 });

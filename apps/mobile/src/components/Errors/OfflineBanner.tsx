@@ -11,6 +11,7 @@
 
 import { addEventListener as addNetInfoListener } from '@react-native-community/netinfo';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Animated } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
@@ -22,6 +23,7 @@ interface OfflineBannerProps {
 
 export const OfflineBanner: React.FC<OfflineBannerProps> = ({ testID = 'offline-banner' }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [isOffline, setIsOffline] = useState(false);
   const [slideAnim] = useState(new Animated.Value(-100));
 
@@ -55,7 +57,7 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({ testID = 'offline-
       ]}
       testID={testID}
       accessibilityRole='alert'
-      accessibilityLabel='No internet connection'
+      accessibilityLabel={t('common.noInternetConnection')}
       accessibilityHint='App features may be limited until connectivity is restored'
       accessibilityLiveRegion='polite'
     >
@@ -73,7 +75,7 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({ testID = 'offline-
           weight='semibold'
           style={[styles.text, { color: theme.colors.onError }]}
         >
-          No Internet Connection
+          {t('common.noInternetConnection')}
         </Text>
       </View>
     </Animated.View>

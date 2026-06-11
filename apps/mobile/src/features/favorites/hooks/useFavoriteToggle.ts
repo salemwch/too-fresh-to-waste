@@ -12,6 +12,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Toast from 'react-native-toast-message';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -27,13 +28,13 @@ import { offlineManager } from '@/utils/offlineManager';
 import { favoritesService } from '../services';
 import { FavoriteType } from '../types';
 
-import type { TabNavigationProp } from '@/navigation/types';
 import type { RootState } from '@/store';
 
 export const useFavoriteToggle = (offerId: string, offerName?: string, offerImage?: string) => {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
-  const navigation = useNavigation<TabNavigationProp>();
+  const navigation = useNavigation();
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
   const isFavorite = useSelector((state: RootState) => selectIsFavorite(state, offerId));
@@ -79,8 +80,10 @@ export const useFavoriteToggle = (offerId: string, offerName?: string, offerImag
 
         Toast.show({
           type: 'info',
-          text1: !previousState ? 'Added to Favorites' : 'Removed from Favorites',
-          text2: 'Will sync when back online',
+          text1: !previousState
+            ? t('favorites.addedToFavorites')
+            : t('favorites.removedFromFavorites'),
+          text2: t('favorites.willSyncOnline'),
           visibilityTime: 3000,
         });
 
@@ -105,12 +108,15 @@ export const useFavoriteToggle = (offerId: string, offerName?: string, offerImag
       if (!previousState) {
         Toast.show({
           type: 'success',
-          text1: 'Added to Favorites',
-          text2: `${offerName ?? 'Offer'} saved. Tap to view.`,
+          text1: t('favorites.addedToFavorites'),
+          text2: t('favorites.savedTapToView', { name: offerName ?? 'Offer' }),
           visibilityTime: 4000,
           onPress: () => {
             Toast.hide();
-            navigation.navigate('Favorites');
+            navigation.dispatch({
+              type: 'NAVIGATE' as const,
+              payload: { name: 'MainTabs', params: { screen: 'Favorites' } },
+            });
           },
         });
       }
@@ -129,14 +135,14 @@ export const useFavoriteToggle = (offerId: string, offerName?: string, offerImag
 
       Toast.show({
         type: 'error',
-        text1: 'Failed to Update Favorite',
-        text2: 'Please check your connection and try again',
+        text1: t('favorites.failedToUpdate'),
+        text2: t('favorites.checkConnection'),
         visibilityTime: 4000,
       });
     } finally {
       setIsLoading(false);
     }
-  }, [dispatch, navigation, queryClient, offerId, offerName, offerImage, isFavorite, isLoading]);
+  }, [dispatch, navigation, queryClient, offerId, offerName, offerImage, isFavorite, isLoading, t]);
 
   return {
     isFavorite,

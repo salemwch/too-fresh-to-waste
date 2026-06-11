@@ -4,6 +4,7 @@
  */
 
 import React, { useCallback, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView, Alert, Switch, Pressable, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -122,6 +123,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { user, avatarUri, initials } = useUserProfile();
 
@@ -307,7 +309,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             accessibilityLabel='Edit profile'
             accessibilityHint='Opens profile editing screen to update your information'
           >
-            Edit Profile
+            {t('profile.editProfile')}
           </Button>
         </Card>
 
@@ -330,7 +332,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 style={styles.loyaltyCard}
               >
                 <View style={styles.loyaltyCardLeft}>
-                  <Text style={styles.loyaltyCardLabel}>My Points</Text>
+                  <Text style={styles.loyaltyCardLabel}>{t('profile.myPoints')}</Text>
                   <Text style={styles.loyaltyCardTitle}>
                     {availablePoints !== null ? availablePoints.toLocaleString() : '--'}
                   </Text>
@@ -376,9 +378,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             style={styles.leaderboardCard}
           >
             <View style={styles.leaderboardCardLeft}>
-              <Text style={styles.leaderboardCardLabel}>Community</Text>
-              <Text style={styles.leaderboardCardTitle}>Leaderboard</Text>
-              <Text style={styles.leaderboardCardSub}>See where you rank</Text>
+              <Text style={styles.leaderboardCardLabel}>{t('profile.community')}</Text>
+              <Text style={styles.leaderboardCardTitle}>{t('profile.leaderboard')}</Text>
+              <Text style={styles.leaderboardCardSub}>{t('profile.seeWhereYouRank')}</Text>
             </View>
             <View style={styles.leaderboardCardRight}>
               <Icon name='trophy' family='Ionicons' size={36} color='rgba(255,255,255,0.4)' />
@@ -399,24 +401,24 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         {/* Menu Sections */}
         <Card style={styles.menuCard}>
           <Text variant='title' size='md' weight='semibold' style={styles.menuTitle}>
-            Account
+            {t('profile.account')}
           </Text>
           <View style={styles.menuList}>
             <MenuItem
               icon='person-outline'
-              label='Personal Information'
+              label={t('profile.personalInfo')}
               onPress={handleEditProfile}
               accessibilityHint='Edit your personal details and contact information'
             />
             <MenuItem
               icon='shield-checkmark-outline'
-              label='Security'
+              label={t('profile.security')}
               onPress={handleNavigateToSecurity}
               accessibilityHint='Manage password and security settings'
             />
             <MenuItem
               icon='trophy-outline'
-              label='Leaderboard'
+              label={t('profile.leaderboard')}
               onPress={() => navigation.navigate('Leaderboard')}
               accessibilityHint='View the community loyalty points leaderboard'
             />
@@ -426,7 +428,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         {/* Security Settings */}
         <Card style={styles.menuCard}>
           <Text variant='title' size='md' weight='semibold' style={styles.menuTitle}>
-            Security Settings
+            {t('profile.securitySettings')}
           </Text>
           <View style={styles.menuList}>
             <MenuItem
@@ -436,7 +438,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   ? 'scan-outline'
                   : 'finger-print-outline'
               }
-              label={`${BiometricAuth.getBiometricTypeName(biometricType)} Login`}
+              label={t('profile.biometricLogin', {
+                type: BiometricAuth.getBiometricTypeName(biometricType),
+              })}
               switchValue={biometricEnabled}
               onSwitchChange={value => {
                 handleBiometricToggle(value).catch(() => undefined);
@@ -448,12 +452,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           </View>
           {!biometricSupported && !loadingBiometric && (
             <Text variant='body' size='xs' color='secondary' style={styles.biometricHint}>
-              Biometric authentication is not available on this device
+              {t('profile.biometricNotAvailable')}
             </Text>
           )}
           {biometricSupported && (
             <Text variant='body' size='xs' color='secondary' style={styles.biometricHint}>
-              Use {BiometricAuth.getBiometricTypeName(biometricType)} for quick and secure login
+              {t('profile.biometricHint', {
+                type: BiometricAuth.getBiometricTypeName(biometricType),
+              })}
             </Text>
           )}
         </Card>
@@ -461,12 +467,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         {/* Privacy Settings */}
         <Card style={styles.menuCard}>
           <Text variant='title' size='md' weight='semibold' style={styles.menuTitle}>
-            Privacy
+            {t('profile.privacy')}
           </Text>
           <View style={styles.menuList}>
             <MenuItem
               icon='eye-outline'
-              label='Use my real name'
+              label={t('profile.useRealName')}
               switchValue={showRealName}
               onSwitchChange={handleLeaderboardNameToggle}
               disabled={leaderboardConsentMutation.isPending}
@@ -476,20 +482,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             />
           </View>
           <Text variant='body' size='xs' color='secondary' style={styles.biometricHint}>
-            {showRealName
-              ? 'Your name and photo are visible on the community leaderboard'
-              : 'You appear as Anonymous on the community leaderboard'}
+            {showRealName ? t('profile.realNameVisible') : t('profile.realNameHidden')}
           </Text>
         </Card>
 
         <Card style={styles.menuCard}>
           <Text variant='title' size='md' weight='semibold' style={styles.menuTitle}>
-            Preferences
+            {t('profile.preferences')}
           </Text>
           <View style={styles.menuList}>
             <MenuItem
               icon='settings-outline'
-              label='Settings'
+              label={t('profile.settings')}
               onPress={handleNavigateToSettings}
               accessibilityHint='Access app settings and preferences'
             />
@@ -498,12 +502,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
         <Card style={styles.menuCard}>
           <Text variant='title' size='md' weight='semibold' style={styles.menuTitle}>
-            Support
+            {t('profile.support')}
           </Text>
           <View style={styles.menuList}>
             <MenuItem
               icon='chatbubble-outline'
-              label='Contact Support'
+              label={t('profile.contactSupport')}
               onPress={() => navigation.navigate('ContactSupport')}
               accessibilityHint='Get help from our support team'
             />
@@ -526,12 +530,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           accessibilityLabel='Logout'
           accessibilityHint='Sign out of your account'
         >
-          Logout
+          {t('profile.logout')}
         </Button>
 
         {/* App Version */}
         <Text variant='body' size='xs' color='secondary' align='center' style={styles.appVersion}>
-          Food Waste Marketplace v1.0.0
+          {t('profile.appVersion')}
         </Text>
       </ScrollView>
     </View>

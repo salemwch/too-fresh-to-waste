@@ -1,4 +1,5 @@
 import React, { memo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Pressable, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,6 +14,7 @@ interface SoftUpdateBannerProps {
 
 export const SoftUpdateBanner = memo<SoftUpdateBannerProps>(({ visible, updateUrl, onDismiss }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   const handleUpdate = useCallback(() => {
@@ -34,11 +36,11 @@ export const SoftUpdateBanner = memo<SoftUpdateBannerProps>(({ visible, updateUr
       <View style={styles.content}>
         <Icon name='arrow-up-circle' family='Ionicons' size='sm' color={theme.colors.primary} />
         <Text variant='body.small' weight='medium' style={styles.text} numberOfLines={1}>
-          New version available
+          {t('update.softMessage')}
         </Text>
         <Pressable onPress={handleUpdate} hitSlop={8}>
           <Text variant='label.medium' weight='semibold' color='primary'>
-            Update
+            {t('update.softButton')}
           </Text>
         </Pressable>
         <Pressable

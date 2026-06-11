@@ -5,6 +5,7 @@
 
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
 import {
   View,
@@ -46,52 +47,52 @@ interface CategoryFilter {
 }
 
 const CATEGORY_FILTERS: CategoryFilter[] = [
-  { id: 'all', label: 'All', icon: 'apps-outline', iconFamily: 'Ionicons' },
+  { id: 'all', label: 'favorites.all', icon: 'apps-outline', iconFamily: 'Ionicons' },
   {
     id: 'restaurant',
-    label: 'Restaurant',
+    label: 'favorites.restaurant',
     icon: 'restaurant-outline',
     iconFamily: 'Ionicons',
     establishmentType: 'restaurant',
   },
   {
     id: 'bakery',
-    label: 'Bakery',
+    label: 'favorites.bakery',
     icon: 'cafe-outline',
     iconFamily: 'Ionicons',
     establishmentType: 'bakery',
   },
   {
     id: 'grocery_store',
-    label: 'Grocery',
+    label: 'favorites.grocery',
     icon: 'cart-outline',
     iconFamily: 'Ionicons',
     establishmentType: 'grocery_store',
   },
   {
     id: 'cafe',
-    label: 'Cafe',
+    label: 'favorites.cafe',
     icon: 'wine-outline',
     iconFamily: 'Ionicons',
     establishmentType: 'cafe',
   },
   {
     id: 'fast_food',
-    label: 'Fast Food',
+    label: 'favorites.fastFood',
     icon: 'fast-food-outline',
     iconFamily: 'Ionicons',
     establishmentType: 'fast_food',
   },
   {
     id: 'supermarket',
-    label: 'Supermarket',
+    label: 'favorites.supermarket',
     icon: 'storefront-outline',
     iconFamily: 'Ionicons',
     establishmentType: 'supermarket',
   },
   {
     id: 'hotel',
-    label: 'Hotel',
+    label: 'favorites.hotel',
     icon: 'bed-outline',
     iconFamily: 'Ionicons',
     establishmentType: 'hotel',
@@ -199,6 +200,7 @@ const toOfferListItem = (offer: Offer | OfferListItem): OfferListItem => {
 
 export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const prefetchOffer = usePrefetchOffer();
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [establishmentType, setEstablishmentType] = useState<string | undefined>(undefined);
@@ -344,7 +346,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
           color={isSelected ? COLORS.textInverse : COLORS.textSecondary}
         />
         <Text style={[styles.filterChipText, isSelected && styles.filterChipTextActive]}>
-          {filter.label}
+          {t(filter.label)}
         </Text>
       </Pressable>
     );
@@ -386,13 +388,13 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
           <Card style={styles.errorCard}>
             <Icon name='alert-circle-outline' family='Ionicons' size={48} color={COLORS.danger} />
             <Text variant='title' size='md' weight='semibold' style={styles.errorTitle}>
-              Failed to Load Favorites
+              {t('favorites.failedToLoad')}
             </Text>
             <Text variant='body' size='sm' style={styles.errorSubtext}>
-              {'Something went wrong. Please try again.'}
+              {t('favorites.failedMessage')}
             </Text>
             <Button variant='primary' size='md' onPress={handleRetry}>
-              Try Again
+              {t('common.tryAgain')}
             </Button>
           </Card>
         )}
@@ -408,16 +410,13 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
               <Icon name='heart-outline' family='Ionicons' size={64} color={COLORS.success} />
             </LinearGradient>
 
-            <Text style={styles.emptyTitle}>No Favorites Yet</Text>
+            <Text style={styles.emptyTitle}>{t('favorites.noFavorites')}</Text>
 
-            <Text style={styles.emptyDescription}>
-              Save your favorite offers to quickly access them later. Tap the heart icon on any
-              offer to add it here.
-            </Text>
+            <Text style={styles.emptyDescription}>{t('favorites.noFavoritesDescription')}</Text>
 
             <Pressable style={styles.browseButton} onPress={handleBrowseOffers}>
               <Icon name='search-outline' family='Ionicons' size={20} color={COLORS.textInverse} />
-              <Text style={styles.browseButtonText}>Browse Offers</Text>
+              <Text style={styles.browseButtonText}>{t('favorites.browseOffers')}</Text>
             </Pressable>
 
             <View style={styles.tipCard}>
@@ -425,10 +424,8 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
                 <Icon name='bulb-outline' family='Ionicons' size={20} color={COLORS.warning} />
               </View>
               <View style={styles.tipContent}>
-                <Text style={styles.tipTitle}>Pro Tip</Text>
-                <Text style={styles.tipText}>
-                  Favorite offers you want to order from regularly to stay notified of new deals
-                </Text>
+                <Text style={styles.tipTitle}>{t('favorites.proTip')}</Text>
+                <Text style={styles.tipText}>{t('favorites.proTipText')}</Text>
               </View>
             </View>
           </View>
