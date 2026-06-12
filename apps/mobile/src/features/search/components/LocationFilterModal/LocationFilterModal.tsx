@@ -24,7 +24,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Text, Icon, Input, Button } from '@/design-system/components/atoms';
+import { Text, Icon, Input } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { useLocationSearch, type GeocodeResult } from '@/features/offers/hooks';
 
@@ -366,6 +366,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
                   keyboardShouldPersistTaps='handled'
                   showsVerticalScrollIndicator={false}
                   nestedScrollEnabled
+                  style={styles.searchResultsList}
                 />
               ) : (
                 <View style={styles.noResults}>
@@ -406,13 +407,6 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
             </View>
             <Icon name='chevron-forward' family='Ionicons' size={20} color={theme.colors.primary} />
           </Pressable>
-        </View>
-
-        {/* Apply Button */}
-        <View style={styles.footer}>
-          <Button variant='primary' size='lg' onPress={onClose} style={styles.applyButton}>
-            Apply Filters
-          </Button>
         </View>
       </Animated.View>
     </Modal>
@@ -518,7 +512,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderRadius: 12,
     overflow: 'hidden',
-    maxHeight: 240,
+  },
+  searchResultsList: {
+    maxHeight: 160,
   },
   searchResultItem: {
     flexDirection: 'row',
@@ -569,12 +565,5 @@ const styles = StyleSheet.create({
   },
   useLocationText: {
     flex: 1,
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-  },
-  applyButton: {
-    width: '100%',
   },
 });

@@ -25,7 +25,6 @@ import { useTheme } from '@/design-system/providers';
 
 import {
   ESTABLISHMENT_TYPE_OPTIONS,
-  CUISINE_TYPE_OPTIONS,
   CATEGORY_OPTIONS,
   OFFER_TYPE_OPTIONS,
 } from '../constants/filterOptions';
@@ -69,7 +68,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   const [localFilters, setLocalFilters] = useState<FilterState>(initialFilters);
   const accentTextStyle = { color: colors.accent };
   const onSurfaceTextStyle = { color: colors.onSurface };
-  const successTextStyle = { color: colors.success };
+  const primaryTextStyle = { color: colors.primary };
 
   // Sync local state when initial filters change
   useEffect(() => {
@@ -93,15 +92,6 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
       establishmentTypes: prev.establishmentTypes.includes(type)
         ? prev.establishmentTypes.filter(t => t !== type)
         : [...prev.establishmentTypes, type],
-    }));
-  }, []);
-
-  const toggleCuisineType = useCallback((cuisine: string) => {
-    setLocalFilters(prev => ({
-      ...prev,
-      cuisineTypes: prev.cuisineTypes.includes(cuisine)
-        ? prev.cuisineTypes.filter(c => c !== cuisine)
-        : [...prev.cuisineTypes, cuisine],
     }));
   }, []);
 
@@ -238,43 +228,6 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             </View>
           </View>
 
-          {/* Cuisine Type Section */}
-          <View style={styles.section}>
-            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
-              🍝 Cuisine Type
-            </Text>
-            <View style={styles.chipGrid}>
-              {CUISINE_TYPE_OPTIONS.map(option => {
-                const isSelected = localFilters.cuisineTypes.includes(option.value);
-                return (
-                  <Pressable
-                    accessibilityRole='button'
-                    key={option.value}
-                    style={[
-                      styles.flagChip,
-                      {
-                        backgroundColor: isSelected ? colors.accent : colors.surface,
-                        borderColor: isSelected ? colors.accent : colors.outline,
-                      },
-                    ]}
-                    onPress={() => toggleCuisineType(option.value)}
-                  >
-                    <Text style={styles.cuisineIcon}>{option.flag}</Text>
-                    <Text
-                      variant='caption'
-                      style={[
-                        styles.cuisineLabel,
-                        isSelected ? styles.selectedText : onSurfaceTextStyle,
-                      ]}
-                    >
-                      {option.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-
           {/* Food Categories Section */}
           <View style={styles.section}>
             <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
@@ -317,7 +270,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         <View style={[styles.footer, { borderTopColor: colors.outline }]}>
           <Pressable
             accessibilityRole='button'
-            style={[styles.applyButton, { backgroundColor: colors.success }]}
+            style={[styles.applyButton, { backgroundColor: colors.primary }]}
             onPress={handleApply}
           >
             {isLoading ? (
@@ -329,7 +282,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                 </Text>
                 {resultCount !== undefined && (
                   <View style={styles.resultBadge}>
-                    <Text variant='caption' style={[styles.resultBadgeText, successTextStyle]}>
+                    <Text variant='caption' style={[styles.resultBadgeText, primaryTextStyle]}>
                       {resultCount}
                     </Text>
                   </View>
@@ -443,22 +396,6 @@ const styles = StyleSheet.create({
   establishmentLabel: {
     fontSize: 11,
     textAlign: 'center',
-  },
-  flagChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 2,
-    marginBottom: 8,
-  },
-  cuisineIcon: {
-    fontSize: 20,
-    marginRight: 6,
-  },
-  cuisineLabel: {
-    fontSize: 12,
   },
   chipWrap: {
     flexDirection: 'row',

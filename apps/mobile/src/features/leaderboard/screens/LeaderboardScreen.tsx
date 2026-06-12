@@ -288,14 +288,12 @@ const MemoRow = memo(LeaderboardRow);
 interface PrizeModalProps {
   visible: boolean;
   onClose: () => void;
-  bagCount: number;
-  targetCount: number;
+  daysLeft: number | null;
 }
 
-const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, bagCount, targetCount }) => {
+const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) => {
   const insets = useSafeAreaInsets();
-  // Ensure enough breathing room above the device's gesture / nav bar
-  const sheetBottomPad = Math.max(insets.bottom, 16);
+  const sheetBottomPad = Math.max(insets.bottom, 24);
 
   return (
     <Modal
@@ -327,19 +325,19 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, bagCount, tar
           >
             <Text style={styles.modalTitle}>How the Grand Prize Works</Text>
 
-            {/* Bag goal progress line */}
+            {/* Countdown line */}
             <View style={styles.modalGoalRow}>
               <View style={styles.modalGoalDot} />
               <Text style={styles.modalGoalTxt}>
-                Prizes unlock when the community saves{' '}
-                <Text style={styles.modalGoalBold}>{targetCount.toLocaleString()} bags</Text>
-                {bagCount > 0 && (
+                {daysLeft != null && daysLeft > 0 ? (
                   <>
-                    {'  ·  '}
-                    <Text style={styles.modalGoalCurrent}>
-                      {bagCount.toLocaleString()} saved so far
+                    Prizes unlock in{' '}
+                    <Text style={styles.modalGoalBold}>
+                      {daysLeft} {daysLeft === 1 ? 'day' : 'days'}
                     </Text>
                   </>
+                ) : (
+                  <Text style={styles.modalGoalBold}>Prize drop is live!</Text>
                 )}
               </Text>
             </View>
@@ -589,8 +587,11 @@ export const LeaderboardScreen: React.FC<Props> = () => {
       <PrizeModal
         visible={showPrizeModal}
         onClose={() => setShowPrizeModal(false)}
-        bagCount={goal?.currentCount ?? 0}
-        targetCount={goal?.targetCount ?? 10_000}
+        daysLeft={
+          goal?.endDate
+            ? Math.max(0, Math.ceil((new Date(goal.endDate).getTime() - Date.now()) / 86_400_000))
+            : null
+        }
       />
       <FlashList
         data={allEntries}
@@ -918,13 +919,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: TEXT_TERTIARY,
     lineHeight: 19,
-    marginBottom: 24,
+    marginBottom: 12,
   },
   modalBtn: {
     backgroundColor: PRIMARY,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
+    marginBottom: 8,
   },
   modalBtnTxt: {
     fontSize: 15,
