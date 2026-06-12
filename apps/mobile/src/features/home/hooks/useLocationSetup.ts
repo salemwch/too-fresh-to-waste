@@ -202,13 +202,8 @@ export function useLocationSetup(
   /**
    * Handle location selection from LocationSelectionModal
    *
-   * Production flow for GPS:
-   * 1. Get GPS coordinates
-   * 2. Trigger reverse geocoding and WAIT for it
-   * 3. Close modal AFTER location name is ready
-   * 4. Sync to backend (fire-and-forget)
-   *
-   * Best Practice: Keep modal visible until location name is resolved
+   * GPS flow: get coords → close modal immediately → reverse geocode in background
+   * Header shows "Current Location" temporarily until city name resolves.
    */
   const handleLocationSelection = useCallback(
     async (coordinates: { latitude: number; longitude: number }, name: string) => {
@@ -217,38 +212,32 @@ export function useLocationSetup(
       // Check if GPS was requested (coordinates are 0,0 as signal)
       if (coordinates.latitude === 0 && coordinates.longitude === 0 && name === 'gps') {
         try {
-          // Step 1: Get GPS coordinates
           const result = await requestLocation();
 
           if (!result.success || !result.coordinates) {
-            // GPS failed, show error and keep modal open
             setLocationError(
               result.error ?? 'Failed to get your location. Please try another option.',
             );
             return;
           }
 
-          // Step 2: Trigger reverse geocoding and WAIT for it
-          Logger.debug('[useLocationSetup] GPS acquired, reverse geocoding...');
-
-          try {
-            await dispatch(reverseGeocodeAsync(result.coordinates)).unwrap();
-            Logger.info(
-              '[useLocationSetup] ✅ Reverse geocoding completed - location name resolved',
-            );
-          } catch (geocodeError) {
-            // Non-blocking: If reverse geocoding fails, still use GPS coordinates
-            // Header will show "Current Location" fallback
-            Logger.warn('[useLocationSetup] ⚠️ Reverse geocoding failed, using fallback', {
-              error: String(geocodeError),
-            });
-          }
-
-          // Step 3: Close modal AFTER location name is ready
+          // Close modal IMMEDIATELY — don't wait for reverse geocoding
           setShowLocationSelectionModal(false);
           await AsyncStorage.setItem(HOME_STORAGE_KEYS.LOCATION_SETUP_COMPLETED, 'true');
 
-          // Step 4: Sync location to backend (fire-and-forget)
+          // Reverse geocode in background (fire-and-forget)
+          void dispatch(reverseGeocodeAsync(result.coordinates))
+            .unwrap()
+            .then(() => {
+              Logger.info('[useLocationSetup] Reverse geocoding completed in background');
+            })
+            .catch((geocodeError: unknown) => {
+              Logger.warn('[useLocationSetup] Background reverse geocoding failed', {
+                error: String(geocodeError),
+              });
+            });
+
+          // Sync to backend (fire-and-forget)
           void (async () => {
             try {
               if (isAuthenticated && result.coordinates !== undefined) {
@@ -257,10 +246,9 @@ export function useLocationSetup(
                   longitude: result.coordinates.longitude,
                   source: 'gps',
                 });
-                Logger.debug('[useLocationSetup] ✅ Synced GPS location to backend');
+                Logger.debug('[useLocationSetup] Synced GPS location to backend');
               }
             } catch (error) {
-              // Non-blocking: log error but don't prevent local storage
               Logger.error(
                 '[useLocationSetup] Failed to sync GPS location to backend:',
                 {},

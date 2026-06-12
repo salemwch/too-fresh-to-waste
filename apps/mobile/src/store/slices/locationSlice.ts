@@ -23,14 +23,16 @@ import {
   type UnknownAction,
 } from '@reduxjs/toolkit';
 import { Platform } from 'react-native';
-import Geolocation, {
-  PositionError,
-  type GeoError,
-  type GeoPosition,
-} from 'react-native-geolocation-service';
+import Geolocation from '@react-native-community/geolocation';
 import { check, request, PERMISSIONS, RESULTS, type Permission } from 'react-native-permissions';
 
+import { getLastKnownLocation } from '@/native/LastKnownLocation';
 import { Logger } from '@/utils/logger';
+
+Geolocation.setRNConfiguration({
+  locationProvider: 'playServices',
+  skipPermissionRequests: true,
+});
 
 // ============================================================================
 // Types
@@ -120,11 +122,17 @@ const PROMPT_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 /** Geolocation request timeout: 30 seconds (longer for emulators/slow GPS) */
 const GEOLOCATION_TIMEOUT_MS = 30000;
 
-/** Maximum age for cached position: 5 minutes */
-const MAXIMUM_AGE_MS = 5 * 60 * 1000;
+/** Maximum age for cached position: 10 minutes */
+const MAXIMUM_AGE_MS = 10 * 60 * 1000;
 
 /** Default search radius in kilometers */
-const DEFAULT_RADIUS_KM = 25;
+const DEFAULT_RADIUS_KM = 5;
+
+/** Acceptable accuracy threshold for cached location (meters) */
+const CACHED_ACCURACY_THRESHOLD = 500;
+
+/** Maximum age for native cached location to be considered usable (ms) */
+const NATIVE_CACHE_MAX_AGE_MS = 10 * 60 * 1000;
 
 // ============================================================================
 // Initial State
@@ -220,22 +228,18 @@ function mapPermissionResult(result: string): PermissionStatus {
 }
 
 /**
- * Get user-friendly error message from GeoError code
+ * Get user-friendly error message from geolocation error code
  */
-function getErrorMessage(error: GeoError): string {
+function getErrorMessage(error: { code: number; message: string }): string {
   switch (error.code) {
-    case PositionError.PERMISSION_DENIED:
+    case 1:
       return 'Location permission denied. Please enable location access in your device settings.';
-    case PositionError.POSITION_UNAVAILABLE:
+    case 2:
       return 'Unable to determine location. Please check your device settings or search for your city.';
-    case PositionError.TIMEOUT:
+    case 3:
       return 'GPS signal not found. Please try again or search for your city.';
-    case PositionError.PLAY_SERVICE_NOT_AVAILABLE:
-      return 'Google Play services are unavailable. Please update your device services or use a manual location.';
-    case PositionError.SETTINGS_NOT_SATISFIED:
-      return 'Your location settings do not satisfy this request. Enable high-accuracy location or use a manual location.';
-    case PositionError.INTERNAL_ERROR:
-      return 'An internal location error occurred. Please try again or use a manual location.';
+    default:
+      return 'An unexpected location error occurred. Please try again or search for your city.';
   }
 }
 
@@ -264,13 +268,14 @@ export const checkPermissionAsync = createAsyncThunk<
 });
 
 /**
- * Request location permission and get current position
+ * Request location permission and get current position.
  *
- * This is the main entry point for getting user location.
- * It handles:
- * 1. Requesting permission (if not already granted)
- * 2. Getting current position via GPS
- * 3. Updating Redux state with result
+ * Three-tier acquisition for fastest perceived response:
+ * 1. Native OS cache (getLastLocation) — 0-50ms
+ * 2. Low-accuracy network fix (cell/WiFi) — 1-3s
+ * 3. Fallback: high-accuracy GPS — 5-15s
+ *
+ * Returns as soon as the fastest tier succeeds.
  */
 export const requestLocationAsync = createAsyncThunk<
   LocationResult,
@@ -278,7 +283,7 @@ export const requestLocationAsync = createAsyncThunk<
   { rejectValue: LocationResult }
 >('location/requestLocation', async (_, { rejectWithValue }) => {
   try {
-    // 1. Request permission
+    // ── 1. Request permission ─────────────────────────────────────────────
     const permission = getLocationPermission();
     const permResult = await request(permission);
     const permStatus = mapPermissionResult(permResult);
@@ -293,33 +298,87 @@ export const requestLocationAsync = createAsyncThunk<
       });
     }
 
-    // 2. Get current position
+    // ── 2. Try native cached location (0-50ms) ───────────────────────────
+    const cached = await getLastKnownLocation();
+    if (
+      cached != null &&
+      cached.accuracy <= CACHED_ACCURACY_THRESHOLD &&
+      Date.now() - cached.timestamp < NATIVE_CACHE_MAX_AGE_MS
+    ) {
+      Logger.info('Location acquired from native cache', {
+        accuracy: cached.accuracy,
+        age: Date.now() - cached.timestamp,
+      });
+      return {
+        success: true,
+        coordinates: { latitude: cached.latitude, longitude: cached.longitude },
+        accuracy: cached.accuracy,
+      };
+    }
+
+    // ── 3. Fast network fix + GPS fallback (parallel) ─────────────────────
     return new Promise<LocationResult>((resolve, reject) => {
+      let resolved = false;
+
+      // Phase A: Low accuracy, fast response (cell/WiFi, ~1-3s)
       Geolocation.getCurrentPosition(
-        (position: GeoPosition) => {
-          const result: LocationResult = {
-            success: true,
-            coordinates: {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-            },
-            accuracy: position.coords.accuracy,
-          };
-          Logger.info('Location acquired successfully');
-          resolve(result);
+        position => {
+          if (!resolved) {
+            resolved = true;
+            Logger.info('Location acquired via fast network fix', {
+              accuracy: position.coords.accuracy,
+            });
+            resolve({
+              success: true,
+              coordinates: {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              },
+              accuracy: position.coords.accuracy,
+            });
+          }
         },
-        (error: GeoError) => {
-          Logger.warn('Location acquisition failed', { code: error.code });
-          reject(
-            rejectWithValue({
-              success: false,
-              error: getErrorMessage(error),
-              errorCode: error.code,
-            }),
-          );
+        () => {
+          // Fast phase failed — Phase B will handle it
         },
         {
-          enableHighAccuracy: true, // Required for Android emulators and some devices
+          enableHighAccuracy: false,
+          timeout: 5000,
+          maximumAge: MAXIMUM_AGE_MS,
+        },
+      );
+
+      // Phase B: High accuracy fallback (GPS satellite, 5-15s)
+      Geolocation.getCurrentPosition(
+        position => {
+          if (!resolved) {
+            resolved = true;
+            Logger.info('Location acquired via GPS fix');
+            resolve({
+              success: true,
+              coordinates: {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              },
+              accuracy: position.coords.accuracy,
+            });
+          }
+        },
+        error => {
+          if (!resolved) {
+            resolved = true;
+            Logger.warn('All location phases failed', { code: error.code });
+            reject(
+              rejectWithValue({
+                success: false,
+                error: getErrorMessage(error),
+                errorCode: error.code,
+              }),
+            );
+          }
+        },
+        {
+          enableHighAccuracy: true,
           timeout: GEOLOCATION_TIMEOUT_MS,
           maximumAge: MAXIMUM_AGE_MS,
         },
