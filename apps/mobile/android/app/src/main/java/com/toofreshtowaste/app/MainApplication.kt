@@ -22,6 +22,7 @@ class MainApplication : Application(), ReactApplication {
             PackageList(this).packages.toMutableList().apply {
               add(NitroModulesPackage())
               add(ScreenCapturePackage())
+              add(LastKnownLocationPackage())
             }
 
         override fun getJSMainModuleName(): String = "index"
