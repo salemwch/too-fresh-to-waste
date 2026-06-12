@@ -11,7 +11,7 @@ import {
   StatusBar,
   ActivityIndicator,
 } from 'react-native';
-import Geolocation from 'react-native-geolocation-service';
+import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
 import MapView from 'react-native-maps';
 

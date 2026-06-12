@@ -100,7 +100,8 @@
   },
   "pnpm": {
     "patchedDependencies": {
-      "recyclerlistview@4.2.3": "patches/recyclerlistview@4.2.3.patch"
+      "recyclerlistview@4.2.3": "patches/recyclerlistview@4.2.3.patch",
+      "@react-native-community/geolocation@3.4.0": "patches/@react-native-community__geolocation@3.4.0.patch"
     },
     "overrides": {
       "@sentry/core": "10.48.0",

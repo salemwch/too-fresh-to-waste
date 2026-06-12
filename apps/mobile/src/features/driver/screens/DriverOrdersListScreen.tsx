@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 
-import Geolocation from 'react-native-geolocation-service';
+import Geolocation from '@react-native-community/geolocation';
 import { check, PERMISSIONS, request, RESULTS, openSettings } from 'react-native-permissions';
 
 import { colorTokens } from '@/design-system/tokens/colors';
