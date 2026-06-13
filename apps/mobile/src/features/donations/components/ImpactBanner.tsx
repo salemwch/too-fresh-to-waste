@@ -71,11 +71,11 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
         {/* Collapsed View */}
         <View style={styles.collapsedContent}>
           <View style={styles.iconContainer}>
-            <Image source={heartInHandsImg} style={{ width: 36, height: 36 }} />
+            <Image source={heartInHandsImg} style={styles.icon} />
           </View>
           <View style={styles.textContainer}>
             <Text style={styles.title}>{t('home.impactTitle')}</Text>
-            <Text style={styles.subtitle}>
+            <Text style={styles.subtitle} numberOfLines={1}>
               {t('home.impactSubtitle', {
                 contributors: contributorCount,
                 amount: totalDonations.toFixed(2),
@@ -160,11 +160,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconContainer: {
-    width: 28,
-    height: 28,
-    marginRight: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  icon: {
+    width: 28,
+    height: 28,
   },
   textContainer: {
     flex: 1,

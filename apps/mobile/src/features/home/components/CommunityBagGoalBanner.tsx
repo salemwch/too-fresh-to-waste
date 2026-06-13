@@ -159,7 +159,7 @@ const CommunityBagGoalBannerComponent = () => {
                 <Text style={styles.collapsedLiveText}>{t('home.live')}</Text>
               </View>
             </View>
-            <Text style={styles.collapsedSubtitle}>
+            <Text style={styles.collapsedSubtitle} numberOfLines={1}>
               {t('home.challengeProgress', {
                 current: currentCount.toLocaleString(),
                 target: targetCount.toLocaleString(),
