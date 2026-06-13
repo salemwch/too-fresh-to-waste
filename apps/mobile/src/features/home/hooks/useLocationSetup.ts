@@ -211,18 +211,23 @@ export function useLocationSetup(
 
       // Check if GPS was requested (coordinates are 0,0 as signal)
       if (coordinates.latitude === 0 && coordinates.longitude === 0 && name === 'gps') {
+        // Close modal BEFORE requesting permission — the Android system
+        // permission dialog is a separate Activity that conflicts with the
+        // RN Modal, causing the app to go to background on first tap.
+        setShowLocationSelectionModal(false);
+
         try {
           const result = await requestLocation();
 
           if (!result.success || !result.coordinates) {
+            // Re-open modal with error so user can retry or pick manual
+            setShowLocationSelectionModal(true);
             setLocationError(
               result.error ?? 'Failed to get your location. Please try another option.',
             );
             return;
           }
 
-          // Close modal IMMEDIATELY — don't wait for reverse geocoding
-          setShowLocationSelectionModal(false);
           await AsyncStorage.setItem(HOME_STORAGE_KEYS.LOCATION_SETUP_COMPLETED, 'true');
 
           // Reverse geocode in background (fire-and-forget)
@@ -258,6 +263,7 @@ export function useLocationSetup(
           })();
         } catch (error) {
           Logger.error('[useLocationSetup] Failed to get GPS location:', {}, error as Error);
+          setShowLocationSelectionModal(true);
           setLocationError('Failed to get your location. Please try another option.');
         }
       } else {
