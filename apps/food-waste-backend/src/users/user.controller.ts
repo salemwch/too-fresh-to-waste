@@ -847,7 +847,14 @@ export class UsersController {
     const rawHeader = req.headers['user-agent'] as string | string[] | undefined;
     const userAgentHeader: string | undefined = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
     const userAgent = userAgentHeader ?? 'unknown';
-    const user = await this.usersService.restore(id, { ipAddress, userAgent });
+    const user = await this.usersService.restore(
+      id,
+      { ipAddress, userAgent },
+      {
+        adminId: req.user.userId,
+        adminEmail: req.user.email,
+      },
+    );
     return { statusCode: HttpStatus.OK, message: 'User restored successfully', data: user };
   }
 

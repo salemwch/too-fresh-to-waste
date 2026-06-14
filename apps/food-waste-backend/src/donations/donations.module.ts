@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { DonationsAdminController } from './donations-admin.controller';
 import { DonationsController } from './donations.controller';
 import { DonationsService } from './donations.service';
+import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
 import { OrderEventsListener } from './listeners/order-events.listener';
 import { DonationProcessor } from './processors/donation.processor';
 import { DonationPool, DonationPoolSchema } from './schemas/donation-pool.schema';
@@ -41,6 +42,7 @@ import { UserDonation, UserDonationSchema } from './schemas/user-donation.schema
       useExisting: DonationsService,
     },
     OrderEventsListener,
+    AdminUserEventsListener,
     DonationProcessor,
   ],
   exports: [DonationsService, 'DonationsService', MongooseModule],

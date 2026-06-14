@@ -15,6 +15,7 @@ import { EmailModule } from '../email/email.module';
 import { EstablishmentsModule } from '../establishments/establishments.module';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
 import { ReviewEventListener } from '../listeners/review-event.listener';
+import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
 import { LoyaltyModule } from '../loyalty/loyalty.module';
 import { OffersModule } from '../offers/offers.module';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
@@ -110,6 +111,7 @@ import { Review, ReviewSchema } from './schemas/review.schema';
     ReviewAnalyticsProcessor,
     ReviewModerationProcessor,
     ReviewEventListener,
+    AdminUserEventsListener,
     // Guards and interceptors
     RateLimitGuard,
     GlobalExceptionFilter,

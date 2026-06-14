@@ -7,6 +7,7 @@ import { LeaderboardModule } from '../leaderboard/leaderboard.module';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 
+import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
 import { OrderEventsListener } from './listeners/order-events.listener';
 import { UserEventsListener } from './listeners/user-events.listener';
 import { LoyaltyController } from './loyalty.controller';
@@ -28,7 +29,13 @@ import { GamificationService } from './services/gamification.service';
     LeaderboardModule,
   ],
   controllers: [LoyaltyController],
-  providers: [LoyaltyService, GamificationService, UserEventsListener, OrderEventsListener],
+  providers: [
+    LoyaltyService,
+    GamificationService,
+    UserEventsListener,
+    OrderEventsListener,
+    AdminUserEventsListener,
+  ],
   exports: [LoyaltyService, GamificationService, MongooseModule],
 })
 export class LoyaltyModule {}

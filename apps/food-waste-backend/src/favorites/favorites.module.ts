@@ -7,6 +7,7 @@ import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 
 import { FavoritesController } from './favorites.controller';
 import { FavoritesService } from './favorites.service';
+import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
 import { FavoriteList, FavoriteListSchema } from './schemas/favorite-list.schema';
 import { Favorite, FavoriteSchema } from './schemas/favorite.schema';
 
@@ -21,7 +22,7 @@ import { Favorite, FavoriteSchema } from './schemas/favorite.schema';
     ]),
   ],
   controllers: [FavoritesController],
-  providers: [FavoritesService],
+  providers: [FavoritesService, AdminUserEventsListener],
   exports: [FavoritesService, MongooseModule],
 })
 export class FavoritesModule {}

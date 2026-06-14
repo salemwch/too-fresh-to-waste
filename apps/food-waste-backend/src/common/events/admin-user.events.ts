@@ -106,6 +106,22 @@ export class AdminUserDeletedEvent extends BaseAdminUserEvent {
 }
 
 /**
+ * Emitted when an admin restores a soft-deleted user account
+ * Triggers: loyalty reactivation, favorites restoration, notification re-enable
+ */
+export class AdminUserRestoredEvent extends BaseAdminUserEvent {
+  constructor(
+    userId: string,
+    adminId: string,
+    adminEmail: string,
+    reason?: string,
+    correlationId?: string,
+  ) {
+    super(userId, adminId, adminEmail, reason, correlationId);
+  }
+}
+
+/**
  * Emitted when an admin performs bulk user status updates
  * Triggers: async processing, batch notifications, analytics
  */

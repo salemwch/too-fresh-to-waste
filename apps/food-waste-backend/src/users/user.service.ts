@@ -18,7 +18,7 @@ import {
   USER_LOGIN_HISTORY_MAX,
   USER_LOCATION_HISTORY_MAX,
 } from '../common/constants/database-indexes.constant';
-import { AdminUserDeletedEvent } from '../common/events/admin-user.events';
+import { AdminUserDeletedEvent, AdminUserRestoredEvent } from '../common/events/admin-user.events';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { PhoneNumberService } from '../common/services/phone-number.service';
 import { CryptoUtil } from '../common/utils/crypto.util';
@@ -1321,7 +1321,11 @@ export class UsersService implements IUsersService {
     this.logger.log(`User soft deleted: ${id}, reason: ${reason}`);
   }
 
-  async restore(id: string, auditData: { ipAddress: string; userAgent: string }): Promise<User> {
+  async restore(
+    id: string,
+    auditData: { ipAddress: string; userAgent: string },
+    adminContext?: { adminId: string; adminEmail: string },
+  ): Promise<User> {
     const user = await this.userModel.findById(id);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -1346,7 +1350,7 @@ export class UsersService implements IUsersService {
                   timestamp: new Date(),
                   ipAddress: auditData.ipAddress,
                   userAgent: auditData.userAgent,
-                  details: { method: 'admin_restore' },
+                  details: { method: 'admin_restore', adminId: adminContext?.adminId },
                 },
               ],
               $slice: -USER_AUDIT_LOG_MAX,
@@ -1363,6 +1367,16 @@ export class UsersService implements IUsersService {
     if (!restoredUser) {
       throw new NotFoundException('User not found');
     }
+
+    await this.eventBus.emit(
+      'admin.user.restored',
+      new AdminUserRestoredEvent(
+        id,
+        adminContext?.adminId ?? 'system',
+        adminContext?.adminEmail ?? 'system',
+        'Account restored by admin',
+      ),
+    );
 
     return restoredUser;
   }

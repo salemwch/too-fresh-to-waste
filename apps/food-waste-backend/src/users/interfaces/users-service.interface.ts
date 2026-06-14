@@ -165,7 +165,11 @@ export interface IUsersService {
   /**
    * Restore soft-deleted user
    */
-  restore(id: string, auditData: { ipAddress: string; userAgent: string }): Promise<User>;
+  restore(
+    id: string,
+    auditData: { ipAddress: string; userAgent: string },
+    adminContext?: { adminId: string; adminEmail: string },
+  ): Promise<User>;
 }
 
 /**

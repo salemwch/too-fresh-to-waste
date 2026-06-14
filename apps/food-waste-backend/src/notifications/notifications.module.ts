@@ -7,6 +7,7 @@ import { CommonModule } from '../common/common.module';
 import { User, UserSchema } from '../users/schemas/user.schema';
 
 import { NotificationsController } from './controllers/notifications.controller';
+import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
 import { TrialExpiryListener } from './listeners/trial-expiry.listener';
 import {
   NotificationPreference,
@@ -53,6 +54,7 @@ import { TemplateService } from './services/template.service';
     PhoneValidatorService,
     OptOutManagerService,
     TrialExpiryListener,
+    AdminUserEventsListener,
   ],
   exports: [
     NotificationService,
