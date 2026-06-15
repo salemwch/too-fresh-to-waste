@@ -21,7 +21,7 @@ import {
   DistanceUnit,
   AddressInfo,
 } from '../interfaces/geolocation.interface';
-import { DistanceCalculator } from '../utils/distance.util';
+import { DistanceCalculator, EARTH_RADIUS } from '../utils/distance.util';
 
 export interface ProximitySearchOptions {
   includeEstablishments?: boolean | undefined;
@@ -140,8 +140,10 @@ export class ProximitySearchService {
       const pipeline: PipelineStage[] = [];
 
       // Convert radius from meters to radians for $centerSphere
-      // Earth's radius is ~6378.1 km = 6378100 meters
-      const radiusInRadians = searchDto.radius / 6378100;
+      // Must match EARTH_RADIUS.METERS (6371000) used by DistanceCalculator
+      // and the Haversine $addFields stage so the filter boundary aligns
+      // with the distance shown to the user.
+      const radiusInRadians = searchDto.radius / EARTH_RADIUS.METERS;
 
       // Match stage - filter by location and other criteria
       // Using $geoWithin with $centerSphere instead of $near (works in aggregation pipelines)
@@ -685,7 +687,7 @@ export class ProximitySearchService {
       );
 
       const centerPoint = DistanceCalculator.coordinateToPoint(searchDto.center);
-      const radiusInRadians = searchDto.radius / 6378100;
+      const radiusInRadians = searchDto.radius / EARTH_RADIUS.METERS;
       const now = new Date();
 
       // ── Match: geo + active ────────────────────────────────────────────
