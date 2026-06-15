@@ -1,12 +1,12 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CommonModule } from '../common/common.module';
 
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
-import { buildBullRedisOptions, getRedisConnectionConfig } from '../redis/redis.config';
+
 import { User, UserSchema } from '../users/schemas/user.schema';
 
 import { SearchProcessor } from './processors/search.processor';
@@ -31,30 +31,24 @@ import { SearchSuggestionService } from './services/search-suggestion.service';
       { name: SearchSuggestion.name, schema: SearchSuggestionSchema },
       { name: PopularSearch.name, schema: PopularSearchSchema },
     ]),
-    BullModule.registerQueueAsync({
-      name: 'search-indexing',
-      useFactory: (configService: ConfigService) => ({
-        redis: buildBullRedisOptions(getRedisConnectionConfig(configService)),
+    BullModule.registerQueue(
+      {
+        name: 'search-indexing',
         defaultJobOptions: {
           removeOnComplete: 10,
           removeOnFail: 5,
           attempts: 3,
         },
-      }),
-      inject: [ConfigService],
-    }),
-    BullModule.registerQueueAsync({
-      name: 'search-analytics',
-      useFactory: (configService: ConfigService) => ({
-        redis: buildBullRedisOptions(getRedisConnectionConfig(configService)),
+      },
+      {
+        name: 'search-analytics',
         defaultJobOptions: {
           removeOnComplete: 5,
           removeOnFail: 5,
           attempts: 2,
         },
-      }),
-      inject: [ConfigService],
-    }),
+      },
+    ),
   ],
   controllers: [SearchController],
   providers: [

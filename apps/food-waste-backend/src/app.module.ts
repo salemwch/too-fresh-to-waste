@@ -89,6 +89,10 @@ import { AppConfigModule } from './app-config/app-config.module';
     BullModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
         redis: buildBullRedisOptions(getRedisConnectionConfig(configService)),
+        settings: {
+          stalledInterval: 30000,
+          maxStalledCount: 1,
+        },
       }),
       inject: [ConfigService],
     }),
