@@ -21,7 +21,7 @@ import { Logger } from '@/utils/logger';
 import { localLocationService } from './LocalLocationService';
 import { remoteLocationService } from './RemoteLocationService';
 
-import type { ILocationResult } from '@/types/location.types';
+import type { ILocationResult, LocationCoords } from '@/types/location.types';
 
 /**
  * Hybrid search configuration
@@ -35,6 +35,8 @@ interface HybridSearchConfig {
   enableRemoteFallback?: boolean;
   /** Session token for Google Places API billing optimization */
   sessionToken?: string;
+  /** User coordinates for geo-ranking (nearest results first) */
+  userCoords?: LocationCoords;
 }
 
 /**
@@ -67,6 +69,7 @@ class HybridLocationService {
       maxResults = this.DEFAULT_MAX_RESULTS,
       enableRemoteFallback = true,
       sessionToken,
+      userCoords,
     } = config;
 
     try {
@@ -76,8 +79,8 @@ class HybridLocationService {
         return [];
       }
 
-      // STEP A: Local search (instant, no network)
-      const localResults = localLocationService.search(query, maxResults);
+      // STEP A: Local search (instant, no network) — geo-ranked when coords available
+      const localResults = localLocationService.search(query, maxResults, userCoords);
 
       Logger.debug(`HybridLocationService: Local search returned ${localResults.length} results`);
 
@@ -100,20 +103,15 @@ class HybridLocationService {
       );
 
       let remoteResults: ILocationResult[];
+      // Always request at least 3 from Google — fuzzy local noise must not zero this out
+      const remoteLimit = Math.max(3, maxResults - localResults.length);
 
       if (sessionToken) {
         // Cost-optimized path: autocomplete only (no place details per keystroke)
-        remoteResults = await remoteLocationService.autocomplete(
-          query,
-          sessionToken,
-          maxResults - localResults.length,
-        );
+        remoteResults = await remoteLocationService.autocomplete(query, sessionToken, remoteLimit);
       } else {
         // Legacy fallback: full search (autocomplete + details per keystroke)
-        remoteResults = await remoteLocationService.searchLocations(
-          query,
-          maxResults - localResults.length,
-        );
+        remoteResults = await remoteLocationService.searchLocations(query, remoteLimit);
       }
 
       Logger.debug(`HybridLocationService: Remote search returned ${remoteResults.length} results`);

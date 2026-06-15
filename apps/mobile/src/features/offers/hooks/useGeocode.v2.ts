@@ -42,7 +42,7 @@ import { useCallback, useRef } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { hybridLocationService } from '@/services/location/HybridLocationService';
 
-import type { ILocationResult } from '@/types/location.types';
+import type { ILocationResult, LocationCoords } from '@/types/location.types';
 
 // ============================================================================
 // Session Token Generator
@@ -74,8 +74,15 @@ const geocodeKeys = {
   /** Base key for all geocode queries */
   all: ['geocode', 'v2'] as const,
 
-  /** Key for hybrid location search */
-  search: (query: string) => [...geocodeKeys.all, 'search', query] as const,
+  /** Key for hybrid location search (includes coarse coords so cache updates on location change) */
+  search: (query: string, coords?: LocationCoords) =>
+    [
+      ...geocodeKeys.all,
+      'search',
+      query,
+      coords ? Math.round(coords.lat * 10) / 10 : null,
+      coords ? Math.round(coords.lng * 10) / 10 : null,
+    ] as const,
 };
 
 // ============================================================================
@@ -97,6 +104,8 @@ interface UseLocationSearchOptions {
   enableRemoteFallback?: boolean;
   /** Maximum results for useLocationSearch (v1 compat) */
   limit?: number;
+  /** User coordinates for geo-ranking (nearest results first) */
+  userCoords?: LocationCoords;
 }
 
 /**
@@ -123,6 +132,7 @@ export function useLocationSearch(query: string, options: UseLocationSearchOptio
     enabled = true,
     debounceDelay = 300,
     enableRemoteFallback = true,
+    userCoords,
   } = options;
 
   // Session token ref - persists across re-renders, reset on selection
@@ -134,13 +144,14 @@ export function useLocationSearch(query: string, options: UseLocationSearchOptio
   const isEnabled = enabled && debouncedQuery.length >= minLength;
 
   const queryResult = useQuery<ILocationResult[], Error>({
-    queryKey: geocodeKeys.search(debouncedQuery),
+    queryKey: geocodeKeys.search(debouncedQuery, userCoords),
     queryFn: () =>
       hybridLocationService.search(debouncedQuery, {
         maxResults,
         minLocalResults,
         enableRemoteFallback,
         sessionToken: sessionTokenRef.current,
+        ...(userCoords ? { userCoords } : {}),
       }),
     enabled: isEnabled,
     staleTime: 30 * 60 * 1000, // 30 minutes - location results rarely change

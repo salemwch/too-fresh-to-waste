@@ -19,7 +19,12 @@ import tunisianCitiesData from '@/assets/data/tunisian-cities.json';
 import { LocationAdapter } from '@/utils/location/locationAdapter';
 import { Logger } from '@/utils/logger';
 
-import type { ILocationResult, TunisianCity, TunisianDelegation } from '@/types/location.types';
+import type {
+  ILocationResult,
+  LocationCoords,
+  TunisianCity,
+  TunisianDelegation,
+} from '@/types/location.types';
 
 /**
  * Flattened searchable location entry
@@ -140,7 +145,7 @@ class LocalLocationService {
    * @param maxResults - Maximum results to return (default: 10)
    * @returns Array of matching locations
    */
-  search(query: string, maxResults: number = 10): ILocationResult[] {
+  search(query: string, maxResults: number = 10, userCoords?: LocationCoords): ILocationResult[] {
     if (!this.isInitialized) {
       Logger.warn('LocalLocationService.search() called before initialization');
       return [];
@@ -151,12 +156,12 @@ class LocalLocationService {
     }
 
     const normalizedQuery = this.normalizeText(query);
-    const maxEditDistance = Math.min(2, Math.max(1, Math.floor(normalizedQuery.length / 3)));
+    // Tighter fuzzy: divisor 5 so short queries (< 10 chars) stay at distance 1
+    const maxEditDistance = Math.max(1, Math.floor(normalizedQuery.length / 5));
 
     const exactMatches: SearchableLocation[] = [];
     const partialMatches: SearchableLocation[] = [];
     const fuzzyMatches: { location: SearchableLocation; distance: number }[] = [];
-    const matchedIds = new Set<string>();
 
     for (const location of this.searchableLocations) {
       const matchesLatin = location.searchTextLatin.includes(normalizedQuery);
@@ -171,19 +176,52 @@ class LocalLocationService {
         } else {
           partialMatches.push(location);
         }
-        matchedIds.add(location.delegation.Name);
         continue;
       }
 
-      // Fuzzy match: compare query against each word in the location name
       const bestDist = this.bestFuzzyDistance(normalizedQuery, location.searchTextLatin);
       if (bestDist <= maxEditDistance) {
         fuzzyMatches.push({ location, distance: bestDist });
-        matchedIds.add(location.delegation.Name);
       }
     }
 
     fuzzyMatches.sort((a, b) => a.distance - b.distance);
+
+    // Geo-rank: within each tier, sort nearest-first when user coords available
+    if (userCoords) {
+      const byDistance = (a: SearchableLocation, b: SearchableLocation) =>
+        this.haversineDistance(
+          userCoords.lat,
+          userCoords.lng,
+          a.delegation.Latitude,
+          a.delegation.Longitude,
+        ) -
+        this.haversineDistance(
+          userCoords.lat,
+          userCoords.lng,
+          b.delegation.Latitude,
+          b.delegation.Longitude,
+        );
+
+      exactMatches.sort(byDistance);
+      partialMatches.sort(byDistance);
+      fuzzyMatches.sort((a, b) =>
+        a.distance !== b.distance
+          ? a.distance - b.distance
+          : this.haversineDistance(
+              userCoords.lat,
+              userCoords.lng,
+              a.location.delegation.Latitude,
+              a.location.delegation.Longitude,
+            ) -
+            this.haversineDistance(
+              userCoords.lat,
+              userCoords.lng,
+              b.location.delegation.Latitude,
+              b.location.delegation.Longitude,
+            ),
+      );
+    }
 
     const allMatches = [...exactMatches, ...partialMatches, ...fuzzyMatches.map(m => m.location)];
 

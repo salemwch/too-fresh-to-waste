@@ -192,7 +192,37 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [locationSearchQuery, setLocationSearchQuery] = useState('');
   const [isCharitySheetVisible, setIsCharitySheetVisible] = useState(false);
 
-  // Hybrid location search hook with session token cost optimization
+  // ============================================================================
+  // Custom Hooks - Centralized Logic
+  // ============================================================================
+
+  /**
+   * Location hook - GPS and manual location management
+   * (Must be above useLocationSearch so coordinates are available for geo-ranking)
+   */
+  const {
+    coordinates,
+    hasLocation,
+    isLoading: isLocationLoading,
+    shouldShowPrompt,
+    requestLocation,
+    dismissLocationPrompt,
+    setManualLocationValue,
+    manualLocationName,
+    gpsLocationName,
+    source,
+  } = useLocation();
+
+  // Stable coords ref for geo-ranking (avoids re-triggering search on micro GPS drift)
+  const userCoords = useMemo(
+    () => (coordinates ? { lat: coordinates.latitude, lng: coordinates.longitude } : undefined),
+    [
+      coordinates ? Math.round(coordinates.latitude * 10) / 10 : null,
+      coordinates ? Math.round(coordinates.longitude * 10) / 10 : null,
+    ],
+  );
+
+  // Hybrid location search hook with session token cost optimization + geo-ranking
   const {
     data: locationResults,
     isLoading: isSearchingLocations,
@@ -203,35 +233,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     minLength: 2,
     maxResults: 10,
     enableRemoteFallback: true,
+    ...(userCoords ? { userCoords } : {}),
   });
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
-  // 🆕 Transform ILocationResult[] to LocationItem[] using centralized transformer (DRY)
-  // TODO: Detect user's preferred language for Arabic support
   const locationSearchResults = useMemo<LocationItem[]>(() => {
     if (!locationResults) return [];
-    return transformLocationResultsToItems(locationResults, false); // false = prefer Latin names
+    return transformLocationResultsToItems(locationResults, false);
   }, [locationResults]);
-
-  // ============================================================================
-  // Custom Hooks - Centralized Logic
-  // ============================================================================
-
-  /**
-   * Location hook - GPS and manual location management
-   */
-  const {
-    coordinates,
-    hasLocation,
-    isLoading: isLocationLoading,
-    shouldShowPrompt,
-    requestLocation,
-    dismissLocationPrompt,
-    setManualLocationValue,
-    manualLocationName, // ✅ Added for LocationPickerBottomSheet
-    gpsLocationName,
-    source,
-  } = useLocation();
 
   /**
    * Filters hook - Centralized filter state management
