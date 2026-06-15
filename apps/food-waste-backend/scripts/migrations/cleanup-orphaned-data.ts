@@ -1,4 +1,8 @@
+import * as dotenv from 'dotenv';
+import * as path from 'path';
 import mongoose from 'mongoose';
+
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const MONGODB_URI = process.env['DATABASE_URL'] || 'mongodb://localhost:27017/toofreshtowaste';
 
@@ -35,7 +39,7 @@ async function main(): Promise<void> {
   const now = new Date();
 
   const users = await db.collection('users').find({}, { projection: { _id: 1 } }).toArray();
-  const validUserIds = new Set(users.map(u => u._id.toString()));
+  const validUserIds = new Set(users.map(u => u['_id'].toString()));
   console.log(`\nFound ${validUserIds.size} users in the database.\n`);
 
   // 1. Loyalty accounts — deactivate orphans via isActive: false
@@ -48,10 +52,10 @@ async function main(): Promise<void> {
 
     const orphanIds = docs
       .filter(d => {
-        const id = safeToString(d.userId);
+        const id = safeToString(d['userId']);
         return !id || !validUserIds.has(id);
       })
-      .map(d => d._id);
+      .map(d => d['_id']);
 
     let cleaned = 0;
     if (orphanIds.length > 0 && !dryRun) {
@@ -76,10 +80,10 @@ async function main(): Promise<void> {
 
     const orphanIds = docs
       .filter(d => {
-        const id = safeToString(d.userId);
+        const id = safeToString(d['userId']);
         return !id || !validUserIds.has(id);
       })
-      .map(d => d._id);
+      .map(d => d['_id']);
 
     let cleaned = 0;
     if (orphanIds.length > 0 && !dryRun) {
@@ -111,10 +115,10 @@ async function main(): Promise<void> {
 
     const orphanIds = docs
       .filter(d => {
-        const id = safeToString(d.userId);
+        const id = safeToString(d['userId']);
         return !id || !validUserIds.has(id);
       })
-      .map(d => d._id);
+      .map(d => d['_id']);
 
     let cleaned = 0;
     if (orphanIds.length > 0 && !dryRun) {
@@ -139,10 +143,10 @@ async function main(): Promise<void> {
 
     const orphanIds = docs
       .filter(d => {
-        const id = safeToString(d.userId);
+        const id = safeToString(d['userId']);
         return !id || !validUserIds.has(id);
       })
-      .map(d => d._id);
+      .map(d => d['_id']);
 
     let cleaned = 0;
     if (orphanIds.length > 0 && !dryRun) {
@@ -167,10 +171,10 @@ async function main(): Promise<void> {
 
     const orphanIds = docs
       .filter(d => {
-        const id = safeToString(d.reviewerId);
+        const id = safeToString(d['reviewerId']);
         return !id || !validUserIds.has(id);
       })
-      .map(d => d._id);
+      .map(d => d['_id']);
 
     let cleaned = 0;
     if (orphanIds.length > 0 && !dryRun) {
@@ -202,10 +206,10 @@ async function main(): Promise<void> {
 
     const orphanIds = docs
       .filter(d => {
-        const id = safeToString(d.customerId);
+        const id = safeToString(d['customerId']);
         return !id || !validUserIds.has(id);
       })
-      .map(d => d._id);
+      .map(d => d['_id']);
 
     let cleaned = 0;
     if (orphanIds.length > 0 && !dryRun) {

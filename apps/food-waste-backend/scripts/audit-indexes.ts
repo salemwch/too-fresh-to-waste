@@ -1,4 +1,8 @@
+import * as dotenv from 'dotenv';
+import * as path from 'path';
 import mongoose from 'mongoose';
+
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const MONGODB_URI = process.env['DATABASE_URL'] || 'mongodb://localhost:27017/toofreshtowaste';
 
@@ -65,10 +69,12 @@ async function getIndexUsage(
       .toArray();
 
     for (const stat of stats) {
-      usageMap.set(stat.name as string, {
-        name: stat.name as string,
-        accesses: (stat.accesses?.ops as number) ?? 0,
-        since: (stat.accesses?.since as Date) ?? null,
+      const name = stat['name'] as string;
+      const accesses = stat['accesses'] as Record<string, unknown> | undefined;
+      usageMap.set(name, {
+        name,
+        accesses: (accesses?.['ops'] as number) ?? 0,
+        since: (accesses?.['since'] as Date) ?? null,
       });
     }
   } catch {

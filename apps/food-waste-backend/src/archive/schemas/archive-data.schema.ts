@@ -22,9 +22,9 @@ export type ArchivableCollection = (typeof ARCHIVABLE_COLLECTIONS)[number];
  * ArchiveData schema — single collection storing soft-deleted records
  * from all archivable entities after a 30-day retention window.
  *
- * Collection: `Archive_data` (already provisioned in Atlas)
+ * Collection: `archive_data` (renamed from Archive_data for naming consistency)
  */
-@Schema({ collection: 'Archive_data', timestamps: false })
+@Schema({ collection: 'archive_data', timestamps: false })
 export class ArchiveData {
   /**
    * Source collection name — discriminator for multi-entity archive.

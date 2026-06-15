@@ -353,19 +353,8 @@ export const OrderSchema = SchemaFactory.createForClass(Order);
  */
 OrderSchema.index({ customerId: 1, createdAt: -1 });
 
-/**
- * Merchant Order Management Index
- * - Enables merchants to filter orders by status
- * - Query pattern: find({ merchantId, status: 'pending' })
- */
-OrderSchema.index({ merchantId: 1, status: 1 });
-
-/**
- * Establishment Order Tracking Index
- * - Tracks orders per establishment location
- * - Query pattern: find({ establishmentId, status: 'confirmed' })
- */
-OrderSchema.index({ establishmentId: 1, status: 1 });
+// merchantId_1_status_1 removed — prefix-covered by merchantId_1_status_1_createdAt_-1
+// establishmentId_1_status_1 removed — prefix-covered by establishmentId_1_status_1_createdAt_-1
 
 /**
  * Establishment Last-Order Lookup Index

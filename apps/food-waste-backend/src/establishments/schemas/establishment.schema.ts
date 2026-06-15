@@ -397,12 +397,7 @@ EstablishmentSchema.index({ ownerId: 1, status: 1 });
  */
 EstablishmentSchema.index({ status: 1, type: 1 });
 
-/**
- * Active Verified Establishments Index
- * - Primary filter for public-facing establishment listings
- * - Query pattern: find({ isActive: true, isVerified: true })
- */
-EstablishmentSchema.index({ isActive: 1, isVerified: 1 });
+// isActive_1_isVerified_1 removed — prefix-covered by isActive_1_isVerified_1_status_1_averageRating_-1
 
 /**
  * Full-Text Search Index
