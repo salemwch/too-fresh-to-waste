@@ -5,7 +5,16 @@
 
 import React, { useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, ScrollView, Alert, Switch, Pressable, Platform } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Switch,
+  Pressable,
+  Platform,
+  Linking,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { Text, Button, Card, Avatar, Icon, Badge } from '@/design-system/components/atoms';
@@ -33,6 +42,40 @@ const WHITE = '#FFFFFF';
 const WHITE_70 = 'rgba(255,255,255,0.7)';
 const LEADERBOARD_SHADOW = '#5a42e0';
 const LEADERBOARD_SUBTEXT = 'rgba(224,214,255,0.85)';
+
+const SOCIAL_LINKS = [
+  {
+    key: 'facebook',
+    icon: 'logo-facebook',
+    color: '#1877F2',
+    url: 'https://www.facebook.com/profile.php?id=61585767061906',
+  },
+  {
+    key: 'instagram',
+    icon: 'logo-instagram',
+    color: '#E4405F',
+    url: 'https://www.instagram.com/toofreshtowaste/',
+  },
+  { key: 'x', icon: 'logo-twitter', color: '#000000', url: 'https://x.com/TooFresh2Waste' },
+  {
+    key: 'youtube',
+    icon: 'logo-youtube',
+    color: '#FF0000',
+    url: 'https://www.youtube.com/channel/UC_LqWpEBa-7wP5gDC2hz8Ew',
+  },
+  {
+    key: 'tiktok',
+    icon: 'musical-notes-outline',
+    color: '#000000',
+    url: 'https://www.tiktok.com/@toofreshtowaste',
+  },
+  {
+    key: 'linkedin',
+    icon: 'logo-linkedin',
+    color: '#0A66C2',
+    url: 'https://www.linkedin.com/company/too-fresh-to-waste/',
+  },
+] as const;
 
 interface MenuItemProps {
   icon: string;
@@ -514,6 +557,30 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           </View>
         </Card>
 
+        {/* Follow Us */}
+        <Card style={styles.menuCard}>
+          <Text variant='title' size='md' weight='semibold' style={styles.menuTitle}>
+            {t('profile.followUs', { defaultValue: 'Follow Us' })}
+          </Text>
+          <View style={styles.socialRow}>
+            {SOCIAL_LINKS.map(link => (
+              <Pressable
+                key={link.key}
+                style={[styles.socialIcon, { backgroundColor: link.color }]}
+                onPress={() => {
+                  Linking.openURL(link.url).catch(() => undefined);
+                }}
+                accessibilityRole='link'
+                accessibilityLabel={`Follow us on ${link.key}`}
+                accessibilityHint={`Opens ${link.key} in your browser or app`}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                <Icon name={link.icon} family='Ionicons' size={20} color={WHITE} />
+              </Pressable>
+            ))}
+          </View>
+        </Card>
+
         {/* Logout Button */}
         <Button
           variant='outline'
@@ -698,6 +765,20 @@ const styles = StyleSheet.create({
   biometricHint: {
     marginTop: 8,
     paddingHorizontal: 4,
+  },
+  socialRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 14,
+    marginTop: 12,
+    paddingVertical: 4,
+  },
+  socialIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logoutButton: {
     marginTop: 8,
