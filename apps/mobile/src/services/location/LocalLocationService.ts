@@ -134,56 +134,124 @@ class LocalLocationService {
    * Returns results sorted by relevance:
    * 1. Exact matches (starts with query)
    * 2. Partial matches (contains query)
+   * 3. Fuzzy matches (≤ 2 edit distance — handles typos/transpositions)
    *
    * @param query - Search query (minimum 2 characters)
    * @param maxResults - Maximum results to return (default: 10)
    * @returns Array of matching locations
    */
   search(query: string, maxResults: number = 10): ILocationResult[] {
-    // ✅ BEST PRACTICE: Validate initialization state
     if (!this.isInitialized) {
       Logger.warn('LocalLocationService.search() called before initialization');
       return [];
     }
 
-    // ✅ BEST PRACTICE: Validate input
     if (!query || query.trim().length < 2) {
       return [];
     }
 
     const normalizedQuery = this.normalizeText(query);
+    const maxEditDistance = Math.min(2, Math.max(1, Math.floor(normalizedQuery.length / 3)));
 
-    // Separate exact and partial matches for better ranking
     const exactMatches: SearchableLocation[] = [];
     const partialMatches: SearchableLocation[] = [];
+    const fuzzyMatches: { location: SearchableLocation; distance: number }[] = [];
+    const matchedIds = new Set<string>();
 
     for (const location of this.searchableLocations) {
       const matchesLatin = location.searchTextLatin.includes(normalizedQuery);
       const matchesArabic = location.searchTextArabic.includes(normalizedQuery);
 
-      if (!matchesLatin && !matchesArabic) {
+      if (matchesLatin || matchesArabic) {
+        const isExactLatin = location.searchTextLatin.startsWith(normalizedQuery);
+        const isExactArabic = location.searchTextArabic.startsWith(normalizedQuery);
+
+        if (isExactLatin || isExactArabic) {
+          exactMatches.push(location);
+        } else {
+          partialMatches.push(location);
+        }
+        matchedIds.add(location.delegation.Name);
         continue;
       }
 
-      // Check if it's an exact match (starts with query)
-      const isExactLatin = location.searchTextLatin.startsWith(normalizedQuery);
-      const isExactArabic = location.searchTextArabic.startsWith(normalizedQuery);
-
-      if (isExactLatin || isExactArabic) {
-        exactMatches.push(location);
-      } else {
-        partialMatches.push(location);
+      // Fuzzy match: compare query against each word in the location name
+      const bestDist = this.bestFuzzyDistance(normalizedQuery, location.searchTextLatin);
+      if (bestDist <= maxEditDistance) {
+        fuzzyMatches.push({ location, distance: bestDist });
+        matchedIds.add(location.delegation.Name);
       }
     }
 
-    // Combine exact first, then partial
-    const allMatches = [...exactMatches, ...partialMatches];
+    fuzzyMatches.sort((a, b) => a.distance - b.distance);
 
-    // Limit results
-    const limitedMatches = allMatches.slice(0, maxResults);
+    const allMatches = [...exactMatches, ...partialMatches, ...fuzzyMatches.map(m => m.location)];
 
-    // ✅ BEST PRACTICE: Always return array (prevents spread errors downstream)
-    return limitedMatches.map(match => match.result);
+    return allMatches.slice(0, maxResults).map(match => match.result);
+  }
+
+  /**
+   * Best fuzzy distance between query and any word (or sliding window) in text.
+   * Returns the minimum Levenshtein distance found.
+   */
+  private bestFuzzyDistance(query: string, text: string): number {
+    const words = text.split(/[\s(),-]+/).filter(w => w.length > 0);
+    let best = Infinity;
+
+    for (const word of words) {
+      if (Math.abs(word.length - query.length) > 2) continue;
+      const d = this.levenshteinDistance(query, word);
+      if (d < best) best = d;
+      if (best === 0) return 0;
+    }
+
+    // Also check if the query fuzzy-matches a substring of the full text
+    if (query.length <= text.length) {
+      for (let i = 0; i <= text.length - query.length + 1 && i <= text.length - 1; i++) {
+        const slice = text.substring(i, i + query.length + 1);
+        const d = this.levenshteinDistance(query, slice);
+        if (d < best) best = d;
+        if (best === 0) return 0;
+      }
+    }
+
+    return best;
+  }
+
+  /**
+   * Levenshtein edit distance with early termination.
+   */
+  private levenshteinDistance(a: string, b: string): number {
+    if (a === b) return 0;
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+
+    const lenA = a.length;
+    const lenB = b.length;
+
+    // Full matrix approach for strict TS compatibility
+    const matrix: number[][] = [];
+
+    for (let i = 0; i <= lenA; i++) {
+      matrix[i] = new Array<number>(lenB + 1);
+      matrix[i]![0] = i;
+    }
+    for (let j = 0; j <= lenB; j++) {
+      matrix[0]![j] = j;
+    }
+
+    for (let i = 1; i <= lenA; i++) {
+      for (let j = 1; j <= lenB; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        matrix[i]![j] = Math.min(
+          matrix[i - 1]![j]! + 1,
+          matrix[i]![j - 1]! + 1,
+          matrix[i - 1]![j - 1]! + cost,
+        );
+      }
+    }
+
+    return matrix[lenA]![lenB]!;
   }
 
   /**

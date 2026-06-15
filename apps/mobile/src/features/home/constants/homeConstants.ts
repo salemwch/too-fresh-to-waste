@@ -23,7 +23,7 @@ export const HOME_API_CONFIG = {
   /** Maximum number of hottest deals to fetch */
   HOTTEST_DEALS_LIMIT: 10,
   /** Maximum distance for hottest deals geolocation (in meters) */
-  HOTTEST_DEALS_MAX_DISTANCE: 5000,
+  HOTTEST_DEALS_MAX_DISTANCE: 15000,
   /** Maximum number of pickup today offers to fetch */
   PICKUP_TODAY_LIMIT: 20,
   /** Maximum number of pickup tomorrow offers to fetch */

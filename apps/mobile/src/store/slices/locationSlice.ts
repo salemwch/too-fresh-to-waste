@@ -126,7 +126,7 @@ const GEOLOCATION_TIMEOUT_MS = 30000;
 const MAXIMUM_AGE_MS = 10 * 60 * 1000;
 
 /** Default search radius in kilometers */
-const DEFAULT_RADIUS_KM = 5;
+const DEFAULT_RADIUS_KM = 15;
 
 /** Acceptable accuracy threshold for cached location (meters) */
 const CACHED_ACCURACY_THRESHOLD = 500;

@@ -105,23 +105,30 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
   const { item, geoData } = establishment;
   const markerBorderStyle = { borderColor: isSelected ? theme.colors.primary : MARKER_BORDER };
 
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   // Android: tracksViewChanges must start true so the native layer captures
-  // the correct view on first render. After a short delay we switch to false
-  // for performance. Without this, the marker snapshot is taken before JS
-  // paints the circle → marker appears invisible until tapped.
+  // the correct view on first render. Keep it true until the profile image
+  // has loaded (or errored/absent) so the snapshot includes the actual image,
+  // with a max-timeout fallback to avoid indefinite re-renders.
   const [tracksViewChanges, setTracksViewChanges] = useState(Platform.OS === 'android');
+  const profileImageUri = item.profileImage?.trim() || null;
+  const hasProfileUrl = profileImageUri !== null;
+
   useEffect(() => {
     if (!tracksViewChanges) return;
-    const t = setTimeout(() => setTracksViewChanges(false), 1000);
+    // If no image to wait for, stop tracking after initial paint
+    const delay = hasProfileUrl ? 4000 : 800;
+    const t = setTimeout(() => setTracksViewChanges(false), delay);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [imageError, setImageError] = useState(false);
   const reSnapshot = () => {
     if (Platform.OS === 'android') {
       setTracksViewChanges(true);
-      setTimeout(() => setTracksViewChanges(false), 500);
+      setTimeout(() => setTracksViewChanges(false), 600);
     }
   };
   const handleImageError = () => {
@@ -129,6 +136,7 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
     reSnapshot();
   };
   const handleImageLoad = () => {
+    setImageLoaded(true);
     reSnapshot();
   };
 
@@ -165,9 +173,10 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
       ? `${MAX_DISPLAY_COUNT}+`
       : String(item.activeOfferCount);
   const initial = item.name.charAt(0).toUpperCase();
-  // Treat empty string same as null — FastImage with uri="" crashes silently
-  const profileImageUri = item.profileImage?.trim() || null;
-  const showProfileImage = profileImageUri !== null && !imageError;
+  // Show profile image only once actually loaded — until then, show the
+  // count/initial fallback so the marker is never an empty circle.
+  const showProfileImage = hasProfileUrl && !imageError;
+  const imageReady = showProfileImage && imageLoaded;
 
   return (
     <Marker
@@ -192,13 +201,15 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
             style={[
               styles.circle,
               hasOffers
-                ? showProfileImage
+                ? imageReady
                   ? [styles.offerImageBorder, isSelected && styles.selectedOfferBorder]
                   : [styles.offerCircle, isSelected && styles.selectedOfferBorder]
                 : [{ backgroundColor: theme.colors.primaryContainer }, markerBorderStyle],
             ]}
           >
-            {(!showProfileImage || !hasOffers) && (
+            {/* Fallback text: count (offers) or initial (no offers).
+                Shown while the image loads so the marker is never empty. */}
+            {(!imageReady || !hasOffers) && (
               <Text
                 variant='label'
                 size={hasOffers ? 'sm' : 'md'}
@@ -208,16 +219,18 @@ const EstablishmentMarkerComponent: React.FC<EstablishmentMarkerProps> = ({
                 {hasOffers ? displayCount : initial}
               </Text>
             )}
+            {/* Always mount FastImage when URL exists so it starts loading.
+                It only becomes visible once imageReady flips true. */}
             {showProfileImage && (
               <FastImage
-                source={{ uri: profileImageUri!, priority: FastImage.priority.normal }}
-                style={styles.profileImageOverlay}
+                source={{ uri: profileImageUri!, priority: FastImage.priority.high }}
+                style={[styles.profileImageOverlay, !imageReady && styles.hiddenImage]}
                 onError={handleImageError}
                 onLoad={handleImageLoad}
                 accessibilityIgnoresInvertColors
               />
             )}
-            {hasOffers && showProfileImage && (
+            {hasOffers && imageReady && (
               <View style={styles.offerBadge}>
                 <Text variant='label' size='xs' weight='bold' style={styles.badgeText}>
                   {displayCount}
@@ -294,6 +307,9 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderRadius: MARKER_SIZE / 2,
+  },
+  hiddenImage: {
+    opacity: 0,
   },
   countText: {
     color: WHITE,

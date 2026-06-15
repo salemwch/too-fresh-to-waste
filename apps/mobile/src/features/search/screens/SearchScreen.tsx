@@ -74,7 +74,7 @@ const DEFAULT_LOCATION = {
   longitude: environment.geolocation.defaultLongitude,
 };
 
-const INITIAL_RADIUS_KM = 5;
+const INITIAL_RADIUS_KM = 15;
 const TRANSPARENT = 'transparent';
 const MAP_LOADING_OVERLAY = 'rgba(255, 255, 255, 0.7)';
 const SURFACE_SHADOW = '#000';
