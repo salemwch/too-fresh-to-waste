@@ -25,8 +25,10 @@ import {
   DonatePointsResponseDto,
   UpdateLeaderboardConsentDto,
 } from './dto/loyalty-account.dto';
+import { ClaimDiscountDto } from './dto/prize-claim.dto';
 import { LoyaltyService } from './loyalty.service';
 import { GamificationService } from './services/gamification.service';
+import { PrizeClaimService } from './services/prize-claim.service';
 
 /**
  * LoyaltyController
@@ -40,6 +42,7 @@ export class LoyaltyController {
   constructor(
     private readonly loyaltyService: LoyaltyService,
     private readonly gamificationService: GamificationService,
+    private readonly prizeClaimService: PrizeClaimService,
   ) {}
 
   // =============================================================================
@@ -245,5 +248,50 @@ export class LoyaltyController {
       message: 'Leaderboard consent saved successfully',
       data: { showRealName: dto.showRealName },
     };
+  }
+
+  // =============================================================================
+  // PRIZE CLAIMS
+  // =============================================================================
+
+  @Get('prize-claim/status')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get prize claim status',
+    description:
+      'Check whether the user is eligible to claim a prize and whether they already have.',
+  })
+  @ApiResponse({ status: 200, description: 'Prize claim status retrieved' })
+  async getPrizeClaimStatus(@GetUser('id') userId: string) {
+    const data = await this.prizeClaimService.getClaimStatus(userId);
+    return { message: 'Prize claim status retrieved', data };
+  }
+
+  @Post('prize-claim/smartphone')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Claim smartphone prize (top 5 only)',
+    description: 'Top 5 leaderboard users claim their smartphone. Triggers admin notification.',
+  })
+  @ApiResponse({ status: 201, description: 'Smartphone prize claimed' })
+  @ApiResponse({ status: 400, description: 'Not eligible or challenge not ended' })
+  @ApiResponse({ status: 409, description: 'Already claimed' })
+  async claimSmartphone(@GetUser('id') userId: string) {
+    const data = await this.prizeClaimService.claimSmartphone(userId);
+    return { message: 'Smartphone prize claimed successfully', data };
+  }
+
+  @Post('prize-claim/discount')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Claim discount prize (rank 6+)',
+    description: 'Rank 6+ users choose a partner business to receive their 10% discount from.',
+  })
+  @ApiResponse({ status: 201, description: 'Discount prize claimed' })
+  @ApiResponse({ status: 400, description: 'Not eligible or challenge not ended' })
+  @ApiResponse({ status: 409, description: 'Already claimed' })
+  async claimDiscount(@GetUser('id') userId: string, @Body() dto: ClaimDiscountDto) {
+    const data = await this.prizeClaimService.claimDiscount(userId, dto.establishmentId);
+    return { message: 'Discount prize claimed successfully', data };
   }
 }

@@ -44,6 +44,7 @@ export enum NotificationTrigger {
   ESTABLISHMENT_TRIAL_EXPIRING_SOON = 'establishment_trial_expiring_soon',
   ESTABLISHMENT_TRIAL_EXPIRED = 'establishment_trial_expired',
   NEW_REVIEW = 'new_review',
+  PRIZE_CLAIMED = 'prize_claimed',
 }
 
 export interface NotificationPayload {
