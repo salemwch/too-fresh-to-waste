@@ -7,8 +7,7 @@
  *  3. Top 5 Champions — avatars + medals, visual pyramid
  *  4. Single unified ranked list:
  *       rank 1–5  → gold left-border   (Smartphone prize)
- *       rank 6–10 → silver left-border (Smart Watch prize)
- *       rank 11+  → neutral
+ *       rank 6+   → neutral            (10% Discount)
  *  5. PrivacyConsentModal gates participation on first visit
  */
 
@@ -34,8 +33,11 @@ import { useCommunityBagGoal } from '@/features/home/hooks/useCommunityBagGoal';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { getOptimizedImageUrl, IMAGE_PRESETS } from '@/utils/imageTransform';
 
+import { DiscountClaimModal } from '../components/DiscountClaimModal';
 import { PrivacyConsentModal } from '../components/PrivacyConsentModal';
+import { WinnerCelebrationModal } from '../components/WinnerCelebrationModal';
 import { useLeaderboard } from '../hooks/useLeaderboard';
+import { usePrizeClaimStatus, useClaimSmartphone, useClaimDiscount } from '../hooks/usePrizeClaim';
 
 import type { LeaderboardEntry } from '../types/leaderboard.types';
 import type { MainStackNavigationProp } from '@/navigation/types';
@@ -62,15 +64,13 @@ const INVERSE_TEXT_MUTED = 'rgba(255,255,255,0.65)';
 const INVERSE_TEXT_SOFT = 'rgba(255,255,255,0.85)';
 const INVERSE_SURFACE = 'rgba(255,255,255,0.15)';
 const PHONE_MAX = 5; // ranks 1–5 win Smartphone
-const WATCH_MAX = 10; // ranks 6–10 win Smart Watch
 
 // ─── Tier helper ─────────────────────────────────────────────────────────────
-type RowTier = 'phone' | 'watch' | 'other';
+type RowTier = 'phone' | 'discount';
 
 function getRowTier(rank: number): RowTier {
   if (rank <= PHONE_MAX) return 'phone';
-  if (rank <= WATCH_MAX) return 'watch';
-  return 'other';
+  return 'discount';
 }
 
 // ─── Greeting helper ─────────────────────────────────────────────────────────
@@ -237,12 +237,11 @@ interface RowProps {
 const LeaderboardRow: React.FC<RowProps> = ({ entry }) => {
   const tier = getRowTier(entry.rank);
   const isPhone = tier === 'phone';
-  const isWatch = tier === 'watch';
 
-  const leftColor = isPhone ? GOLD : isWatch ? SILVER : '#F1F5F9';
-  const rankColor = isPhone ? GOLD : isWatch ? SILVER : '#9CA3AF';
-  const pillBg = isPhone ? `${GOLD}15` : isWatch ? `${SILVER}15` : '#F1F5F9';
-  const pillTxt = isPhone ? GOLD_TEXT : isWatch ? '#4B5563' : '#374151';
+  const leftColor = isPhone ? GOLD : '#F1F5F9';
+  const rankColor = isPhone ? GOLD : '#9CA3AF';
+  const pillBg = isPhone ? `${GOLD}15` : '#F1F5F9';
+  const pillTxt = isPhone ? GOLD_TEXT : '#374151';
 
   return (
     <View style={[styles.row, { borderLeftColor: leftColor }, entry.isCurrentUser && styles.rowMe]}>
@@ -344,45 +343,31 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) =
 
             <View style={styles.modalDivider} />
 
-            {/* Tier 1 */}
+            {/* Tier 1 — Smartphone */}
             <View style={styles.modalTier}>
               <View style={[styles.modalTierIcon, { backgroundColor: `${PRIMARY}12` }]}>
                 <Text style={styles.modalTierEmoji}>📱</Text>
               </View>
               <View style={styles.modalTierInfo}>
                 <Text style={styles.modalTierTitle}>Smartphone</Text>
-                <Text style={styles.modalTierRank}>Rank 1 – 5 · 5 winners</Text>
+                <Text style={styles.modalTierRank}>Top 5 · 5 winners</Text>
                 <Text style={styles.modalTierDesc}>
-                  The top 5 point earners each receive a smartphone when the goal is reached.
+                  The top 5 point earners each win a smartphone when the challenge ends.
                 </Text>
               </View>
             </View>
 
-            {/* Tier 2 */}
-            <View style={styles.modalTier}>
-              <View style={[styles.modalTierIcon, { backgroundColor: `${PRIMARY}0C` }]}>
-                <Text style={styles.modalTierEmoji}>⌚</Text>
-              </View>
-              <View style={styles.modalTierInfo}>
-                <Text style={styles.modalTierTitle}>Smart Watch</Text>
-                <Text style={styles.modalTierRank}>Rank 6 – 10 · 5 winners</Text>
-                <Text style={styles.modalTierDesc}>
-                  Ranks 6 through 10 each receive a smart watch.
-                </Text>
-              </View>
-            </View>
-
-            {/* Tier 3 */}
+            {/* Tier 2 — Discount */}
             <View style={styles.modalTier}>
               <View style={[styles.modalTierIcon, styles.modalTierIconDiscount]}>
                 <Text style={styles.modalTierEmoji}>🎁</Text>
               </View>
               <View style={styles.modalTierInfo}>
-                <Text style={styles.modalTierTitle}>15% Discount</Text>
-                <Text style={styles.modalTierRank}>Rank 11 and above</Text>
+                <Text style={styles.modalTierTitle}>10% Discount</Text>
+                <Text style={styles.modalTierRank}>Rank 6 and above</Text>
                 <Text style={styles.modalTierDesc}>
-                  Every other participant earns a 15% discount at any partner business — hotels,
-                  restaurants, bakeries and more. You choose where to use it.
+                  Every other participant earns a 10% discount at a partner business of their choice
+                  — hotels, restaurants, bakeries and more.
                 </Text>
               </View>
             </View>
@@ -423,6 +408,12 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     useLeaderboard();
   const { data: goal } = useCommunityBagGoal();
 
+  // Prize claim — only query when the challenge has ended
+  const challengeEnded = goal?.endDate ? new Date(goal.endDate).getTime() <= Date.now() : false;
+  const { data: claimStatus } = usePrizeClaimStatus(challengeEnded);
+  const claimSmartphone = useClaimSmartphone();
+  const claimDiscount = useClaimDiscount();
+
   const greeting = getGreeting();
   const firstName = user?.firstName ?? '';
   const lastName = user?.lastName ?? '';
@@ -448,9 +439,32 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     () => data?.pages[0]?.currentUserEntry ?? allEntries.find(e => e.isCurrentUser) ?? null,
     [data, allEntries],
   );
-  const userTier = userEntry != null ? getRowTier(userEntry.rank) : 'other';
+  const userTier = userEntry != null ? getRowTier(userEntry.rank) : 'discount';
 
   const [showPrizeModal, setShowPrizeModal] = useState(false);
+  const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [showDiscountModal, setShowDiscountModal] = useState(false);
+  const prizeModalShown = useRef(false);
+
+  // Auto-show prize claim modal when challenge ends and user hasn't claimed
+  useEffect(() => {
+    if (!challengeEnded || !claimStatus || prizeModalShown.current) return;
+    if (claimStatus.hasClaimed) return;
+
+    prizeModalShown.current = true;
+
+    if (claimStatus.eligiblePrizeType === 'smartphone') {
+      setShowWinnerModal(true);
+    } else if (claimStatus.eligiblePrizeType === 'discount') {
+      setShowDiscountModal(true);
+    }
+  }, [challengeEnded, claimStatus]);
+
+  // Derive claimed state (optimistic — shows success before query re-fetches)
+  const smartphoneClaimed = (claimStatus?.hasClaimed ?? false) || claimSmartphone.isSuccess;
+  const discountClaimed = (claimStatus?.hasClaimed ?? false) || claimDiscount.isSuccess;
+  const smartphoneClaimData = claimStatus?.claim ?? claimSmartphone.data ?? null;
+  const discountClaimData = claimStatus?.claim ?? claimDiscount.data ?? null;
 
   const handleRetry = useCallback(() => {
     refetch().catch(() => undefined);
@@ -498,31 +512,22 @@ export const LeaderboardScreen: React.FC<Props> = () => {
           </Pressable>
         </View>
 
-        {/* Prize strip — 3 tiles showing what each tier wins */}
+        {/* Prize strip — 2 tiles showing what each tier wins */}
         <View style={styles.prizeStrip}>
           {/* Smartphone — rank 1-5 */}
           <View style={[styles.stripTile, userTier === 'phone' && styles.stripTileActive]}>
             <Icon name='phone-portrait-outline' family='Ionicons' size={22} color={GOLD_TEXT} />
             <Text style={styles.stripPrize}>Smartphone</Text>
-            <Text style={styles.stripTierTxt}>Rank 1 – 5</Text>
+            <Text style={styles.stripTierTxt}>Top 5</Text>
           </View>
 
           <View style={styles.stripDivider} />
 
-          {/* Smart Watch — rank 6-10 */}
-          <View style={[styles.stripTile, userTier === 'watch' && styles.stripTileActive]}>
-            <Icon name='watch-outline' family='Ionicons' size={22} color={SILVER} />
-            <Text style={styles.stripPrize}>Smart Watch</Text>
-            <Text style={styles.stripTierTxt}>Rank 6 – 10</Text>
-          </View>
-
-          <View style={styles.stripDivider} />
-
-          {/* 15% discount — everyone else */}
-          <View style={[styles.stripTile, userTier === 'other' && styles.stripTileActive]}>
+          {/* 10% discount — everyone else */}
+          <View style={[styles.stripTile, userTier === 'discount' && styles.stripTileActive]}>
             <Icon name='gift-outline' family='Ionicons' size={22} color={SUCCESS} />
-            <Text style={styles.stripPrize}>15% Discount</Text>
-            <Text style={styles.stripTierTxt}>Rank 11+</Text>
+            <Text style={styles.stripPrize}>10% Discount</Text>
+            <Text style={styles.stripTierTxt}>Rank 6+</Text>
           </View>
         </View>
 
@@ -592,6 +597,27 @@ export const LeaderboardScreen: React.FC<Props> = () => {
             ? Math.max(0, Math.ceil((new Date(goal.endDate).getTime() - Date.now()) / 86_400_000))
             : null
         }
+      />
+      <WinnerCelebrationModal
+        visible={showWinnerModal}
+        onClose={() => setShowWinnerModal(false)}
+        rank={claimStatus?.rank ?? 0}
+        hasClaimed={smartphoneClaimed}
+        claimData={smartphoneClaimData}
+        onClaim={() => claimSmartphone.mutate()}
+        isClaiming={claimSmartphone.isPending}
+        error={claimSmartphone.error instanceof Error ? claimSmartphone.error.message : null}
+      />
+      <DiscountClaimModal
+        visible={showDiscountModal}
+        onClose={() => setShowDiscountModal(false)}
+        rank={claimStatus?.rank ?? 0}
+        hasClaimed={discountClaimed}
+        claimData={discountClaimData}
+        onClaim={(establishmentId: string) => claimDiscount.mutate(establishmentId)}
+        isClaiming={claimDiscount.isPending}
+        error={claimDiscount.error instanceof Error ? claimDiscount.error.message : null}
+        firstName={firstName}
       />
       <FlashList
         data={allEntries}
