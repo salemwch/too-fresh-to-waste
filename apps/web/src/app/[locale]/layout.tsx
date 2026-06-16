@@ -179,6 +179,9 @@ export async function generateMetadata({
     // Verification (add codes when available)
     verification: {
       google: seoConfig.verification.google,
+      other: {
+        'msvalidate.01': seoConfig.verification.bing ?? '',
+      },
     },
 
     // Category

@@ -160,6 +160,7 @@
       ]
     },
     "onlyBuiltDependencies": [
+      "esbuild",
       "@firebase/util",
       "@mongodb-js/zstd",
       "@nestjs/core",
