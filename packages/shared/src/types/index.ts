@@ -18,5 +18,7 @@ export type {
   OrganizationInvitation,
 } from './organization.types';
 
+export * from './prize-claim.types';
+
 // Auto-generated types from backend OpenAPI spec
 export * from './generated';
