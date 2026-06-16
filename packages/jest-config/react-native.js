@@ -15,6 +15,7 @@ const RN_ESM_PACKAGES = [
   '@react-native',
   '@react-native-community',
   '@react-navigation',
+  '@sentry',
   '@testing-library/react-native',
   'react-native-haptic-feedback',
   'react-native-linear-gradient',
@@ -25,6 +26,7 @@ const RN_ESM_PACKAGES = [
   'react-native-fast-image',
   'react-native-vector-icons',
   'react-native-mmkv',
+  'react-native-config',
 ].join('|');
 
 /** @type {import('jest').Config} */
@@ -40,6 +42,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@foodwaste/shared$': '<rootDir>/../../packages/shared/src',
+    '^@react-native-vector-icons/(.*)$': '<rootDir>/jest.vectorIconsStub.js',
     // Binary assets stub — prevents transform errors for images/fonts
     '\\.(ttf|otf|png|jpg|jpeg|gif|webp|svg)$': '<rootDir>/jest.assetStub.js',
   },

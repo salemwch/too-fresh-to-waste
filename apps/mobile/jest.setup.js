@@ -71,18 +71,8 @@ jest.mock('react-native-mmkv', () => ({
 // Reanimated mock
 jest.mock('react-native-reanimated', () => jest.requireActual('react-native-reanimated/mock'));
 
-// Vector icons — stub out all icon families to avoid font loading
-jest.mock('@react-native-vector-icons/ant-design', () => 'AntDesign');
-jest.mock('@react-native-vector-icons/entypo', () => 'Entypo');
-jest.mock('@react-native-vector-icons/evil-icons', () => 'EvilIcons');
-jest.mock('@react-native-vector-icons/feather', () => 'Feather');
-jest.mock('@react-native-vector-icons/fontawesome', () => 'FontAwesome');
-jest.mock('@react-native-vector-icons/fontawesome5', () => 'FontAwesome5');
-jest.mock('@react-native-vector-icons/fontisto', () => 'Fontisto');
-jest.mock('@react-native-vector-icons/foundation', () => 'Foundation');
-jest.mock('@react-native-vector-icons/ionicons', () => 'Ionicons');
-jest.mock('@react-native-vector-icons/material-design-icons', () => 'MaterialDesignIcons');
-jest.mock('@react-native-vector-icons/material-icons', () => 'MaterialIcons');
-jest.mock('@react-native-vector-icons/octicons', () => 'Octicons');
-jest.mock('@react-native-vector-icons/simple-line-icons', () => 'SimpleLineIcons');
-jest.mock('@react-native-vector-icons/zocial', () => 'Zocial');
+// react-native-config — stub with empty config for tests
+jest.mock('react-native-config', () => ({ Config: {} }));
+
+// Vector icons — handled by moduleNameMapper in jest config
+// (maps @react-native-vector-icons/* to jest.vectorIconsStub.js)
