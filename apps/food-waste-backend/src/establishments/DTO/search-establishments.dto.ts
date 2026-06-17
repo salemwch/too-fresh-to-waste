@@ -45,10 +45,10 @@ export class SearchEstablishmentsDto implements SearchEstablishmentsInput {
   minRating?: number | undefined;
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true')
+  @Transform(({ value }) => (value === undefined || value === null ? undefined : value === 'true'))
   isVerified?: boolean | undefined;
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true')
+  @Transform(({ value }) => (value === undefined || value === null ? undefined : value === 'true'))
   acceptsReservations?: boolean | undefined;
 }
