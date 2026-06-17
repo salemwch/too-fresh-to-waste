@@ -4,14 +4,14 @@
  *
  * UX states:
  *  1. Loading — skeleton placeholder cards while establishments load
- *  2. Selecting — scrollable list with selection highlight
+ *  2. Selecting — search + paginated list with selection highlight
  *  3. Claiming — button disabled with ActivityIndicator
- *  4. Claimed (hasClaimed=true) — voucher card with details
+ *  4. Claimed (hasClaimed=true) — voucher card with code + establishment name
  *  5. Error — red banner above the CTA button
  *  6. Empty — no partner businesses available
  */
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import {
   Pressable,
   ScrollView,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -45,6 +46,12 @@ const INVERSE_TEXT = '#FFFFFF';
 const ERROR = '#DC2626';
 const AMBER_BG = '#FEF3C7';
 const AMBER_TEXT = '#92400E';
+const SUCCESS_BG = '#F0FDF4';
+const SUCCESS_TEXT = '#166534';
+const DELIVERED_BG = '#EFF6FF';
+const DELIVERED_TEXT = '#1E40AF';
+
+const PAGE_SIZE = 5;
 
 // ─── Local type for establishment list items ────────────────────────────────
 interface EstablishmentItem {
@@ -57,12 +64,9 @@ interface EstablishmentItem {
   };
 }
 
-interface EstablishmentListResponse {
-  data: EstablishmentItem[];
+interface EstablishmentPage {
+  establishments: EstablishmentItem[];
   total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
 }
 
 // ─── Props ──────────────────────────────────────────────────────────────────
@@ -76,6 +80,16 @@ interface DiscountClaimModalProps {
   isClaiming: boolean;
   error: string | null;
   firstName: string;
+}
+
+// ─── Debounce hook ──────────────────────────────────────────────────────────
+function useDebouncedValue(value: string, delayMs: number): string {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(id);
+  }, [value, delayMs]);
+  return debounced;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -93,33 +107,72 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
   const insets = useSafeAreaInsets();
   const sheetBottomPad = Math.max(insets.bottom, 24);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState('');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const searchInputRef = useRef<TextInput>(null);
 
-  // Fetch active establishments
-  const { data: establishmentResult, isLoading } = useQuery({
-    queryKey: ['establishments', 'active'],
+  const debouncedSearch = useDebouncedValue(searchText, 300);
+
+  // Reset visible count when search changes
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+    setSelectedId(null);
+  }, [debouncedSearch]);
+
+  // Reset state when modal opens
+  useEffect(() => {
+    if (visible && !hasClaimed) {
+      setSearchText('');
+      setVisibleCount(PAGE_SIZE);
+      setSelectedId(null);
+    }
+  }, [visible, hasClaimed]);
+
+  // Fetch active establishments with search + pagination
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ['establishments', 'active', debouncedSearch, visibleCount],
     queryFn: async ({ signal }) => {
-      const response = await apiClient.get<BackendApiResponse<EstablishmentListResponse>>(
+      const params = {
+        status: 'active' as const,
+        page: 1,
+        limit: visibleCount,
+        ...(debouncedSearch.trim().length > 0 ? { search: debouncedSearch.trim() } : {}),
+      };
+      const response = await apiClient.get<BackendApiResponse<EstablishmentItem[]>>(
         '/establishments',
-        { params: { status: 'active', limit: 50 }, signal },
+        { params, signal },
       );
-      return unwrapBackendResponse(response, 'establishments');
+      const establishments = unwrapBackendResponse(
+        response,
+        'establishments',
+      ) as EstablishmentItem[];
+      const total = (response.data?.meta?.total as number) ?? establishments.length;
+      return { establishments, total } as EstablishmentPage;
     },
     enabled: visible && !hasClaimed,
-    staleTime: 5 * 60_000,
+    staleTime: 60_000,
+    placeholderData: prev => prev,
   });
 
-  const establishments = establishmentResult?.data ?? [];
+  const establishments = data?.establishments ?? [];
+  const total = data?.total ?? 0;
+  const hasMore = visibleCount < total;
 
   // Derive the selected establishment name for the button label
   const selectedName = establishments.find(e => e._id === selectedId)?.name;
 
-  // Status label for claimed voucher
-  const statusLabel =
-    claimData?.status === 'verified'
-      ? 'Verified'
-      : claimData?.status === 'delivered'
-        ? 'Delivered'
-        : 'Pending';
+  // Status label + colors for claimed voucher
+  const statusConfig = useMemo(() => {
+    if (claimData?.status === 'verified') {
+      return { label: 'Verified', bg: SUCCESS_BG, text: SUCCESS_TEXT };
+    }
+    if (claimData?.status === 'delivered') {
+      return { label: 'Delivered', bg: DELIVERED_BG, text: DELIVERED_TEXT };
+    }
+    return { label: 'Pending', bg: AMBER_BG, text: AMBER_TEXT };
+  }, [claimData?.status]);
+
+  const handleShowMore = useCallback(() => setVisibleCount(c => c + PAGE_SIZE), []);
 
   return (
     <Modal
@@ -148,29 +201,71 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
             {hasClaimed ? 'Your Discount Voucher' : 'Choose a Business'}
           </Text>
 
+          {/* Search bar — only when selecting */}
+          {!hasClaimed && (
+            <View style={styles.searchContainer}>
+              <Icon name='search-outline' family='Ionicons' size={18} color={TEXT_TERTIARY} />
+              <TextInput
+                ref={searchInputRef}
+                style={styles.searchInput}
+                placeholder='Search businesses...'
+                placeholderTextColor={TEXT_TERTIARY}
+                value={searchText}
+                onChangeText={setSearchText}
+                autoCorrect={false}
+                returnKeyType='search'
+              />
+              {searchText.length > 0 && (
+                <Pressable
+                  onPress={() => setSearchText('')}
+                  hitSlop={8}
+                  accessibilityRole='button'
+                  accessibilityLabel='Clear search'
+                >
+                  <Icon name='close-circle' family='Ionicons' size={18} color={TEXT_TERTIARY} />
+                </Pressable>
+              )}
+            </View>
+          )}
+
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps='handled'
           >
             {hasClaimed ? (
               /* ── Claimed voucher card ── */
               <View style={styles.voucherCard}>
+                <View style={styles.voucherIconCircle}>
+                  <Icon name='gift-outline' family='Ionicons' size={28} color={PRIMARY} />
+                </View>
+                <Text style={styles.voucherDiscount}>10% Discount</Text>
                 <Text style={styles.voucherEstName}>
                   {claimData?.establishmentName ?? 'Partner Business'}
                 </Text>
-                <Text style={styles.voucherDiscount}>10% Discount</Text>
+
+                {/* Voucher code */}
+                {claimData?.voucherCode != null && (
+                  <View style={styles.voucherCodeBox}>
+                    <Text style={styles.voucherCodeLabel}>VOUCHER CODE</Text>
+                    <Text style={styles.voucherCode}>{claimData.voucherCode}</Text>
+                  </View>
+                )}
+
                 <Text style={styles.voucherUser}>{firstName}</Text>
-                <View style={styles.statusBadge}>
-                  <Text style={styles.statusBadgeText}>{statusLabel}</Text>
+                <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
+                  <Text style={[styles.statusBadgeText, { color: statusConfig.text }]}>
+                    {statusConfig.label}
+                  </Text>
                 </View>
                 <Text style={styles.voucherNote}>
-                  Present this to the establishment to redeem your discount.
+                  Show this voucher code at the establishment to redeem your discount.
                 </Text>
               </View>
             ) : isLoading ? (
               /* ── Loading skeletons ── */
               <>
-                {[1, 2, 3, 4].map(i => (
+                {[1, 2, 3, 4, 5].map(i => (
                   <View key={i} style={styles.skeletonRow}>
                     <View style={styles.skeletonAvatar} />
                     <View style={styles.skeletonTextGroup}>
@@ -184,14 +279,25 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
               /* ── Empty state ── */
               <View style={styles.emptyState}>
                 <Icon name='storefront-outline' family='Ionicons' size={48} color={TEXT_TERTIARY} />
-                <Text style={styles.emptyHeading}>No partner businesses available</Text>
+                <Text style={styles.emptyHeading}>
+                  {debouncedSearch.length > 0
+                    ? 'No results found'
+                    : 'No partner businesses available'}
+                </Text>
                 <Text style={styles.emptySubtext}>
-                  Please check back later for eligible establishments.
+                  {debouncedSearch.length > 0
+                    ? 'Try a different search term.'
+                    : 'Please check back later for eligible establishments.'}
                 </Text>
               </View>
             ) : (
               /* ── Establishment list ── */
               <>
+                {/* Result count */}
+                <Text style={styles.resultCount}>
+                  {total} {total === 1 ? 'business' : 'businesses'} found
+                </Text>
+
                 {establishments.map(est => {
                   const isSelected = selectedId === est._id;
                   const imageUri =
@@ -245,6 +351,31 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                     </Pressable>
                   );
                 })}
+
+                {/* Show more button */}
+                {hasMore && (
+                  <Pressable
+                    style={styles.showMoreBtn}
+                    onPress={handleShowMore}
+                    disabled={isFetching}
+                    accessibilityRole='button'
+                    accessibilityLabel='Show more businesses'
+                  >
+                    {isFetching ? (
+                      <ActivityIndicator size='small' color={PRIMARY} />
+                    ) : (
+                      <>
+                        <Text style={styles.showMoreText}>Show more</Text>
+                        <Icon
+                          name='chevron-down-outline'
+                          family='Ionicons'
+                          size={16}
+                          color={PRIMARY}
+                        />
+                      </>
+                    )}
+                  </Pressable>
+                )}
               </>
             )}
           </ScrollView>
@@ -291,7 +422,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
               {isClaiming ? (
                 <ActivityIndicator size='small' color={INVERSE_TEXT} />
               ) : (
-                <Text style={styles.modalBtnTxt}>
+                <Text style={styles.modalBtnTxt} numberOfLines={1}>
                   {selectedName != null
                     ? `Claim 10% Discount at ${selectedName}`
                     : 'Select a Business'}
@@ -340,6 +471,33 @@ const styles = StyleSheet.create({
     color: TEXT_PRIMARY,
     textAlign: 'center',
     marginBottom: 16,
+  },
+
+  // ── Search bar ──
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: TEXT_PRIMARY,
+    paddingVertical: 0,
+  },
+
+  // ── Result count ──
+  resultCount: {
+    fontSize: 12,
+    color: TEXT_TERTIARY,
+    marginBottom: 8,
   },
 
   // ── Establishment row ──
@@ -403,6 +561,22 @@ const styles = StyleSheet.create({
   estCity: {
     fontSize: 12,
     color: TEXT_SECONDARY,
+  },
+
+  // ── Show more ──
+  showMoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: `${PRIMARY}08`,
+    gap: 4,
+  },
+  showMoreText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: PRIMARY,
   },
 
   // ── Loading skeletons ──
@@ -469,19 +643,51 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 8,
   },
-  voucherEstName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: TEXT_PRIMARY,
-    textAlign: 'center',
-    marginBottom: 8,
+  voucherIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: `${PRIMARY}12`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
   voucherDiscount: {
     fontSize: 28,
     fontWeight: '800',
     color: GOLD_TEXT,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
+  },
+  voucherEstName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  voucherCodeBox: {
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
+  voucherCodeLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: TEXT_TERTIARY,
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  voucherCode: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: PRIMARY,
+    letterSpacing: 2,
   },
   voucherUser: {
     fontSize: 14,
@@ -490,7 +696,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   statusBadge: {
-    backgroundColor: AMBER_BG,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 6,
@@ -499,7 +704,6 @@ const styles = StyleSheet.create({
   statusBadgeText: {
     fontSize: 13,
     fontWeight: '600',
-    color: AMBER_TEXT,
   },
   voucherNote: {
     fontSize: 13,
@@ -531,6 +735,7 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY,
     borderRadius: 14,
     paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
     marginBottom: 8,
   },

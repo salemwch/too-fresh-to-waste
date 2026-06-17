@@ -52,6 +52,7 @@ interface WinnerCelebrationModalProps {
   onClaim: () => void;
   isClaiming: boolean;
   error: string | null;
+  firstName?: string;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
   onClaim,
   isClaiming,
   error,
+  firstName,
 }) => {
   const insets = useSafeAreaInsets();
   const sheetBottomPad = Math.max(insets.bottom, 24);
@@ -103,7 +105,7 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
             contentContainerStyle={styles.modalScrollContent}
           >
             {hasClaimed ? (
-              /* ── Claimed state ── */
+              /* ── Claimed state — ticket card ── */
               <>
                 <View style={styles.iconWrapper}>
                   <Icon name='checkmark-circle' family='Ionicons' size={64} color={SUCCESS} />
@@ -111,14 +113,16 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
 
                 <Text style={styles.heading}>Prize Claimed!</Text>
 
-                <Text style={styles.body}>
-                  Your smartphone prize is pending verification. Our team will contact you within 48
-                  hours.
-                </Text>
-
-                <View style={styles.statusBadge}>
-                  <Text style={styles.statusBadgeText}>{statusLabel}</Text>
+                <View style={styles.ticketCard}>
+                  <Text style={styles.ticketPrize}>Smartphone</Text>
+                  {firstName != null && <Text style={styles.ticketName}>{firstName}</Text>}
+                  <Text style={styles.ticketRank}>Rank #{rank}</Text>
+                  <View style={styles.statusBadge}>
+                    <Text style={styles.statusBadgeText}>{statusLabel}</Text>
+                  </View>
                 </View>
+
+                <Text style={styles.body}>Our team will call you to get the prize.</Text>
               </>
             ) : (
               /* ── Initial / Claiming / Error state ── */
@@ -138,7 +142,7 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
                   </View>
                 )}
 
-                <Text style={styles.note}>Our team will verify your rank before shipping</Text>
+                <Text style={styles.note}>Our team will call you to get the prize</Text>
               </>
             )}
           </ScrollView>
@@ -253,7 +257,40 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 
-  // ── Status badge (claimed state) ──
+  // ── Ticket card (claimed state) ──
+  ticketCard: {
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: BORDER,
+    borderStyle: 'dashed',
+    borderRadius: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+    alignSelf: 'stretch',
+  },
+  ticketPrize: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: GOLD_TEXT,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  ticketName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: TEXT_PRIMARY,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  ticketRank: {
+    fontSize: 14,
+    color: TEXT_SECONDARY,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+
+  // ── Status badge ──
   statusBadge: {
     backgroundColor: AMBER_BG,
     borderRadius: 20,
