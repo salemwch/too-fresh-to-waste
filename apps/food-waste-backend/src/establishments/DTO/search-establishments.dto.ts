@@ -6,6 +6,19 @@ import { EstablishmentType, EstablishmentStatus } from '../schemas/establishment
 
 export class SearchEstablishmentsDto implements SearchEstablishmentsInput {
   @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  page?: number | undefined;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  limit?: number | undefined;
+
+  @IsOptional()
   @IsString()
   search?: string | undefined;
 
