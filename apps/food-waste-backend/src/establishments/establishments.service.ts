@@ -321,7 +321,11 @@ export class EstablishmentsService {
     const filter: FilterQuery<EstablishmentDocument> = {};
 
     if (filters.search) {
-      filter['$text'] = { $search: filters.search };
+      // Use $regex instead of $text — the pre('aggregate') soft-delete middleware
+      // unshifts a $match stage, which breaks MongoDB's requirement that $text
+      // must be the first pipeline stage.
+      const escaped = filters.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter['name'] = { $regex: escaped, $options: 'i' };
     }
     if (filters.type !== null && filters.type !== undefined) {
       filter['type'] = filters.type;
