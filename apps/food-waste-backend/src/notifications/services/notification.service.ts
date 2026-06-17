@@ -356,6 +356,8 @@ export class NotificationService {
       [NotificationTrigger.PERSONALIZED_PROMOTION]: NotificationChannel.MARKETING,
       [NotificationTrigger.SECURITY_ALERT]: NotificationChannel.SECURITY,
       [NotificationTrigger.ESTABLISHMENT_APPROVED]: NotificationChannel.ADMIN,
+      [NotificationTrigger.LEADERBOARD_UNDER_ATTACK]: NotificationChannel.LEADERBOARD,
+      [NotificationTrigger.LEADERBOARD_DETHRONED]: NotificationChannel.LEADERBOARD,
     };
 
     return triggerChannelMap[trigger] ?? NotificationChannel.ADMIN;

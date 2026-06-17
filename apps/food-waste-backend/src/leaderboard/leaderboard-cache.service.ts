@@ -12,6 +12,8 @@ const LOYALTY_SCORES = 'leaderboard:loyalty:scores';
 const MERCHANT_WARMED = 'leaderboard:merchant:warmed';
 const LOYALTY_WARMED = 'leaderboard:loyalty:warmed';
 const WARM_TTL_SECONDS = 3600;
+const CHAMPION_CACHE_KEY = 'leaderboard:loyalty:champion';
+const CHAMPION_TTL_SECONDS = 300;
 
 @Injectable()
 export class LeaderboardCacheService implements OnModuleInit {
@@ -268,6 +270,77 @@ export class LeaderboardCacheService implements OnModuleInit {
       return await client.zCard(LOYALTY_SCORES);
     } catch {
       return null;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Loyalty neighborhood — ±N users around the caller
+  // ---------------------------------------------------------------------------
+
+  async getLoyaltyNeighborhood(
+    userId: string,
+    radius = 5,
+  ): Promise<{
+    entries: { userId: string; totalPoints: number }[];
+    rank: number;
+    total: number;
+  } | null> {
+    try {
+      const client = await this.redisService.getClient();
+      const [revRank, total] = await Promise.all([
+        client.zRevRank(LOYALTY_SCORES, userId),
+        client.zCard(LOYALTY_SCORES),
+      ]);
+
+      if (revRank === null) {
+        return null;
+      }
+
+      const rank = revRank + 1;
+      const start = Math.max(0, revRank - radius);
+      const stop = Math.min(total - 1, revRank + radius);
+
+      const results = await client.zRangeWithScores(LOYALTY_SCORES, start, stop, { REV: true });
+
+      return {
+        entries: results.map(r => ({ userId: r.value, totalPoints: r.score })),
+        rank,
+        total,
+      };
+    } catch (error) {
+      this.logger.warn(`Failed to get loyalty neighborhood: ${(error as Error).message}`);
+      return null;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Champion cache — lightweight #1 user
+  // ---------------------------------------------------------------------------
+
+  async getCachedChampion(): Promise<string | null> {
+    try {
+      const client = await this.redisService.getClient();
+      return await client.get(CHAMPION_CACHE_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  async setCachedChampion(json: string): Promise<void> {
+    try {
+      const client = await this.redisService.getClient();
+      await client.set(CHAMPION_CACHE_KEY, json, { EX: CHAMPION_TTL_SECONDS });
+    } catch (error) {
+      this.logger.warn(`Failed to set champion cache: ${(error as Error).message}`);
+    }
+  }
+
+  async invalidateChampionCache(): Promise<void> {
+    try {
+      const client = await this.redisService.getClient();
+      await client.del(CHAMPION_CACHE_KEY);
+    } catch (error) {
+      this.logger.warn(`Failed to invalidate champion cache: ${(error as Error).message}`);
     }
   }
 }

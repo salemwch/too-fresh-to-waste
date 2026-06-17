@@ -207,6 +207,32 @@ export class LoyaltyController {
   // LEADERBOARD
   // =============================================================================
 
+  @Get('leaderboard/neighborhood')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get leaderboard neighborhood',
+    description:
+      'Returns ±5 users around the caller on the leaderboard. Useful for users ranked beyond the browsable top 200.',
+  })
+  @ApiResponse({ status: 200, description: 'Neighborhood retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'User not found on leaderboard' })
+  async getNeighborhood(@GetUser('id') userId: string) {
+    const data = await this.loyaltyService.getNeighborhood(userId);
+    return { message: 'Neighborhood retrieved successfully', data };
+  }
+
+  @Get('leaderboard/champion')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get current leaderboard champion',
+    description: 'Returns lightweight data for the #1 ranked user. Cached for 5 minutes.',
+  })
+  @ApiResponse({ status: 200, description: 'Champion retrieved successfully' })
+  async getChampion() {
+    const data = await this.loyaltyService.getChampion();
+    return { message: 'Champion retrieved successfully', data };
+  }
+
   @Get('leaderboard')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

@@ -29,6 +29,7 @@ import {
   PointTransaction,
   LoyaltyAccount,
 } from './schemas/loyalty-account.schema';
+import { LeaderboardNotificationService } from './services/leaderboard-notification.service';
 
 interface TotalBagsResult {
   totalBags: number;
@@ -64,6 +65,7 @@ export interface LeaderboardEntry {
   currentTier: string;
   totalPoints: number;
   isCurrentUser: boolean;
+  percentile?: number;
 }
 
 /**
@@ -97,6 +99,7 @@ export class LoyaltyService {
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
     @Inject(forwardRef(() => DonationsService)) private readonly donationsService: DonationsService,
     private readonly leaderboardCache: LeaderboardCacheService,
+    private readonly leaderboardNotification: LeaderboardNotificationService,
   ) {}
 
   /**
@@ -306,7 +309,16 @@ export class LoyaltyService {
       await this.checkAndAwardBadges(updatedAccount);
 
       if (updatedAccount.leaderboardConsent?.given) {
+        const previousRankData = await this.leaderboardCache.getLoyaltyRankData(userId);
         await this.leaderboardCache.setLoyaltyScore(userId, updatedAccount.totalPoints);
+
+        void this.leaderboardNotification
+          .checkRankChangeNotifications(
+            userId,
+            updatedAccount.totalPoints,
+            previousRankData?.rank ?? null,
+          )
+          .catch(() => {});
       }
 
       this.logger.log(
@@ -513,8 +525,10 @@ export class LoyaltyService {
     entries: LeaderboardEntry[];
     currentUserEntry: LeaderboardEntry | null;
     total: number;
+    hasMore: boolean;
     hasSetConsent: boolean;
   }> {
+    const MAX_BROWSABLE = 200;
     const currentUserObjectId = new Types.ObjectId(currentUserId);
 
     const callerAccount = await this.loyaltyModel
@@ -528,14 +542,19 @@ export class LoyaltyService {
       const cachedTotal = await this.leaderboardCache.getLoyaltyTotal();
       const entries = await this.hydrateLoyaltyEntries(cached, offset, currentUserObjectId);
       const total = cachedTotal ?? cached.length;
+      const hasMore = offset + entries.length < Math.min(total, MAX_BROWSABLE);
 
       let currentUserEntry: LeaderboardEntry | null = null;
       const isCurrentUserInTop = entries.some(e => e.isCurrentUser);
       if (!isCurrentUserInTop && hasSetConsent) {
-        currentUserEntry = await this.resolveCurrentUserEntry(currentUserId, currentUserObjectId);
+        currentUserEntry = await this.resolveCurrentUserEntry(
+          currentUserId,
+          currentUserObjectId,
+          total,
+        );
       }
 
-      return { entries, currentUserEntry, total, hasSetConsent };
+      return { entries, currentUserEntry, total, hasMore, hasSetConsent };
     }
 
     // ── Fallback: MongoDB aggregation ────────────────────────────────────────
@@ -611,6 +630,7 @@ export class LoyaltyService {
   private async resolveCurrentUserEntry(
     userId: string,
     currentUserObjectId: Types.ObjectId,
+    total?: number,
   ): Promise<LeaderboardEntry | null> {
     const cachedRank = await this.leaderboardCache.getLoyaltyRankData(userId);
     if (cachedRank) {
@@ -621,6 +641,8 @@ export class LoyaltyService {
       );
       if (entries[0]) {
         entries[0].rank = cachedRank.rank;
+        const resolvedTotal = total ?? (await this.leaderboardCache.getLoyaltyTotal()) ?? 1;
+        entries[0].percentile = this.computePercentile(cachedRank.rank, resolvedTotal);
         return entries[0];
       }
     }
@@ -651,7 +673,11 @@ export class LoyaltyService {
       ...consentFilter,
       totalPoints: { $gt: ownEntry.totalPoints },
     });
-    return this.mapToLeaderboardEntry(ownEntry, aboveCount + 1, currentUserObjectId);
+    const rank = aboveCount + 1;
+    const resolvedTotal = total ?? (await this.loyaltyModel.countDocuments(consentFilter));
+    const entry = this.mapToLeaderboardEntry(ownEntry, rank, currentUserObjectId);
+    entry.percentile = this.computePercentile(rank, resolvedTotal);
+    return entry;
   }
 
   private async getLeaderboardFromDb(
@@ -664,8 +690,10 @@ export class LoyaltyService {
     entries: LeaderboardEntry[];
     currentUserEntry: LeaderboardEntry | null;
     total: number;
+    hasMore: boolean;
     hasSetConsent: boolean;
   }> {
+    const MAX_BROWSABLE = 200;
     const userProjection = { firstName: 1, lastName: 1, profileImage: 1, avatar: 1 };
     const consentFilter = { isActive: true, 'leaderboardConsent.given': true };
 
@@ -693,14 +721,20 @@ export class LoyaltyService {
       this.mapToLeaderboardEntry(doc, offset + index + 1, currentUserObjectId),
     );
 
+    const hasMore = offset + entries.length < Math.min(total, MAX_BROWSABLE);
+
     const isCurrentUserInTop = entries.some(e => e.isCurrentUser);
     let currentUserEntry: LeaderboardEntry | null = null;
 
     if (!isCurrentUserInTop && hasSetConsent) {
-      currentUserEntry = await this.resolveCurrentUserEntry(currentUserId, currentUserObjectId);
+      currentUserEntry = await this.resolveCurrentUserEntry(
+        currentUserId,
+        currentUserObjectId,
+        total,
+      );
     }
 
-    return { entries, currentUserEntry, total, hasSetConsent };
+    return { entries, currentUserEntry, total, hasMore, hasSetConsent };
   }
 
   /**
@@ -748,5 +782,90 @@ export class LoyaltyService {
       totalPoints: doc.totalPoints ?? 0,
       isCurrentUser: doc.userId.equals(currentUserObjectId),
     };
+  }
+
+  private computePercentile(rank: number, total: number): number {
+    if (total <= 1) {
+      return 100;
+    }
+    return Math.round(((total - rank) / total) * 100);
+  }
+
+  // ===========================================================================
+  // NEIGHBORHOOD
+  // ===========================================================================
+
+  async getNeighborhood(
+    currentUserId: string,
+    radius = 5,
+  ): Promise<{
+    entries: (LeaderboardEntry & { isAnchor: boolean })[];
+    anchorRank: number;
+    total: number;
+  }> {
+    const currentUserObjectId = new Types.ObjectId(currentUserId);
+
+    const cached = await this.leaderboardCache.getLoyaltyNeighborhood(currentUserId, radius);
+    if (!cached) {
+      throw new NotFoundException('User not found on leaderboard');
+    }
+
+    const startRank = Math.max(1, cached.rank - radius);
+    const hydrated = await this.hydrateLoyaltyEntries(
+      cached.entries,
+      startRank - 1,
+      currentUserObjectId,
+    );
+
+    const entries = hydrated.map(entry => ({
+      ...entry,
+      isAnchor: entry.userId === currentUserId,
+    }));
+
+    return { entries, anchorRank: cached.rank, total: cached.total };
+  }
+
+  // ===========================================================================
+  // CHAMPION (#1)
+  // ===========================================================================
+
+  async getChampion(): Promise<{
+    userId: string;
+    firstName: string;
+    lastName: string;
+    profileImage: string | null;
+    totalPoints: number;
+    currentTier: string;
+    currentBadge: string | null;
+  } | null> {
+    const cachedJson = await this.leaderboardCache.getCachedChampion();
+    if (cachedJson) {
+      return JSON.parse(cachedJson);
+    }
+
+    const top = await this.leaderboardCache.getTopLoyalty(1, 0);
+    if (!top || top.length === 0) {
+      return null;
+    }
+
+    const dummyObjectId = new Types.ObjectId();
+    const hydrated = await this.hydrateLoyaltyEntries(top, 0, dummyObjectId);
+    const champion = hydrated[0];
+    if (!champion) {
+      return null;
+    }
+
+    const result = {
+      userId: champion.userId,
+      firstName: champion.firstName,
+      lastName: champion.lastName,
+      profileImage: champion.profileImage,
+      totalPoints: champion.totalPoints,
+      currentTier: champion.currentTier,
+      currentBadge: champion.currentBadge,
+    };
+
+    await this.leaderboardCache.setCachedChampion(JSON.stringify(result));
+    return result;
   }
 }

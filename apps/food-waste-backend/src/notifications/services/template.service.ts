@@ -264,6 +264,26 @@ export class TemplateService {
         isActive: true,
         version: '1.0',
       },
+      {
+        name: 'leaderboard_under_attack_push',
+        trigger: 'leaderboard_under_attack',
+        type: 'push',
+        subject: 'Your Crown is Under Attack! 🚨',
+        body: 'Look out! {{challengerName}} is right behind you and about to take your crown. Log in now to protect your streak!',
+        isActive: true,
+        version: '1.0',
+        pushConfig: { clickAction: 'OPEN_LEADERBOARD' },
+      },
+      {
+        name: 'leaderboard_dethroned_push',
+        trigger: 'leaderboard_dethroned',
+        type: 'push',
+        subject: "You've Been Dethroned! 👑",
+        body: "You've been dethroned! {{challengerName}} is now the #1 King. Tap to reclaim your throne!",
+        isActive: true,
+        version: '1.0',
+        pushConfig: { clickAction: 'OPEN_LEADERBOARD' },
+      },
     ];
 
     for (const templateData of defaultTemplates) {

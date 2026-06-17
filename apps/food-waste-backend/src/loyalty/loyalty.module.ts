@@ -23,6 +23,7 @@ import { LoyaltyAccount, LoyaltyAccountSchema } from './schemas/loyalty-account.
 import { PrizeClaim, PrizeClaimSchema } from './schemas/prize-claim.schema';
 import { ReferredIdentity, ReferredIdentitySchema } from './schemas/referred-identity.schema';
 import { GamificationService } from './services/gamification.service';
+import { LeaderboardNotificationService } from './services/leaderboard-notification.service';
 import { PrizeClaimService } from './services/prize-claim.service';
 
 @Module({
@@ -47,6 +48,7 @@ import { PrizeClaimService } from './services/prize-claim.service';
     LoyaltyService,
     GamificationService,
     PrizeClaimService,
+    LeaderboardNotificationService,
     UserEventsListener,
     OrderEventsListener,
     AdminUserEventsListener,

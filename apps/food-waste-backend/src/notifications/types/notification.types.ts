@@ -12,6 +12,7 @@ export enum NotificationChannel {
   SECURITY = 'security',
   OFFERS = 'offers',
   ADMIN = 'admin',
+  LEADERBOARD = 'leaderboard',
 }
 
 export enum NotificationStatus {
@@ -45,6 +46,8 @@ export enum NotificationTrigger {
   ESTABLISHMENT_TRIAL_EXPIRED = 'establishment_trial_expired',
   NEW_REVIEW = 'new_review',
   PRIZE_CLAIMED = 'prize_claimed',
+  LEADERBOARD_UNDER_ATTACK = 'leaderboard_under_attack',
+  LEADERBOARD_DETHRONED = 'leaderboard_dethroned',
 }
 
 export interface NotificationPayload {
