@@ -23,6 +23,8 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
+
+import { SkeletonLeaderboardScreen } from '../components/SkeletonLeaderboardScreen';
 import FastImage from 'react-native-fast-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -444,6 +446,12 @@ export const LeaderboardScreen: React.FC<Props> = () => {
   const [showPrizeModal, setShowPrizeModal] = useState(false);
   const [showWinnerModal, setShowWinnerModal] = useState(false);
   const [showDiscountModal, setShowDiscountModal] = useState(false);
+
+  // DEV-ONLY: force-show modals for visual testing
+  const [debugWinner, setDebugWinner] = useState(false);
+  const [debugWinnerClaimed, setDebugWinnerClaimed] = useState(false);
+  const [debugDiscount, setDebugDiscount] = useState(false);
+  const [debugDiscountClaimed, setDebugDiscountClaimed] = useState(false);
   const prizeModalShown = useRef(false);
 
   // Auto-show prize claim modal when challenge ends and user hasn't claimed
@@ -531,6 +539,40 @@ export const LeaderboardScreen: React.FC<Props> = () => {
           </View>
         </View>
 
+        {/* DEV-ONLY: Debug buttons to preview prize modals */}
+        {__DEV__ && (
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 16 }}
+          >
+            <Pressable
+              onPress={() => setDebugWinner(true)}
+              style={{
+                backgroundColor: '#F59E0B',
+                borderRadius: 8,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+              }}
+            >
+              <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 12 }}>
+                Test Winner Modal
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setDebugDiscount(true)}
+              style={{
+                backgroundColor: '#22C55E',
+                borderRadius: 8,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+              }}
+            >
+              <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 12 }}>
+                Test Discount Modal
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
         {/* Top 5 */}
         {allEntries.length >= 1 && <Top5Champions entries={allEntries} />}
 
@@ -539,12 +581,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
           <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>All Rankings</Text>
         </View>
 
-        {/* Initial load states */}
-        {isLoading && (
-          <View style={styles.centerState}>
-            <ActivityIndicator size='large' color={PRIMARY} />
-          </View>
-        )}
+        {/* Error state (skeleton replaces the old spinner for loading) */}
         {isError && (
           <Pressable
             style={styles.centerState}
@@ -561,7 +598,6 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     ),
     [
       allEntries,
-      isLoading,
       isError,
       firstName,
       lastName,
@@ -607,6 +643,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         onClaim={() => claimSmartphone.mutate()}
         isClaiming={claimSmartphone.isPending}
         error={claimSmartphone.error instanceof Error ? claimSmartphone.error.message : null}
+        firstName={firstName}
       />
       <DiscountClaimModal
         visible={showDiscountModal}
@@ -619,18 +656,82 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         error={claimDiscount.error instanceof Error ? claimDiscount.error.message : null}
         firstName={firstName}
       />
-      <FlashList
-        data={allEntries}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        estimatedItemSize={68}
-        ListHeaderComponent={ListHeader}
-        ListFooterComponent={ListFooter}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.5}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-      />
+      {/* DEV-ONLY: Debug modals for visual testing */}
+      {__DEV__ && (
+        <>
+          <WinnerCelebrationModal
+            visible={debugWinner}
+            onClose={() => {
+              setDebugWinner(false);
+              setDebugWinnerClaimed(false);
+            }}
+            rank={2}
+            hasClaimed={debugWinnerClaimed}
+            claimData={
+              debugWinnerClaimed
+                ? {
+                    id: 'debug',
+                    userId: 'debug',
+                    prizeType: 'smartphone' as never,
+                    status: 'pending' as never,
+                    rank: 2,
+                    totalPoints: 4200,
+                    cycleNumber: 1,
+                    createdAt: new Date().toISOString(),
+                  }
+                : null
+            }
+            onClaim={() => setDebugWinnerClaimed(true)}
+            isClaiming={false}
+            error={null}
+            firstName={firstName || 'Salem'}
+          />
+          <DiscountClaimModal
+            visible={debugDiscount}
+            onClose={() => {
+              setDebugDiscount(false);
+              setDebugDiscountClaimed(false);
+            }}
+            rank={8}
+            hasClaimed={debugDiscountClaimed}
+            claimData={
+              debugDiscountClaimed
+                ? {
+                    id: 'debug',
+                    userId: 'debug',
+                    prizeType: 'discount' as never,
+                    status: 'pending' as never,
+                    rank: 8,
+                    totalPoints: 1200,
+                    cycleNumber: 1,
+                    establishmentName: 'Selected Business',
+                    createdAt: new Date().toISOString(),
+                  }
+                : null
+            }
+            onClaim={() => setDebugDiscountClaimed(true)}
+            isClaiming={false}
+            error={null}
+            firstName={firstName || 'Salem'}
+          />
+        </>
+      )}
+      {isLoading ? (
+        <SkeletonLeaderboardScreen />
+      ) : (
+        <FlashList
+          data={allEntries}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          estimatedItemSize={68}
+          ListHeaderComponent={ListHeader}
+          ListFooterComponent={ListFooter}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.5}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
     </View>
   );
 };
