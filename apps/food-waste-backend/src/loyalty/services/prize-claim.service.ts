@@ -1,3 +1,5 @@
+import { randomBytes } from 'crypto';
+
 import {
   Injectable,
   Logger,
@@ -116,6 +118,8 @@ export class PrizeClaimService {
     const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
     const totalPoints = account?.totalPoints ?? 0;
 
+    const voucherCode = await this.generateVoucherCode();
+
     const claim = await this.prizeClaimModel.create({
       userId: new Types.ObjectId(userId),
       prizeType: PrizeType.DISCOUNT,
@@ -125,6 +129,7 @@ export class PrizeClaimService {
       cycleNumber: goal.cycleNumber,
       establishmentId: new Types.ObjectId(establishmentId),
       establishmentName: establishment.name,
+      voucherCode,
     });
 
     this.logger.log(
@@ -218,6 +223,18 @@ export class PrizeClaimService {
     }
   }
 
+  private async generateVoucherCode(): Promise<string> {
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const code = `TFW-${randomBytes(3).toString('hex').toUpperCase()}`;
+      const exists = await this.prizeClaimModel.exists({ voucherCode: code });
+      if (!exists) {
+        return code;
+      }
+    }
+    const fallback = `TFW-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+    return fallback;
+  }
+
   private toResponse(doc: PrizeClaimDocument) {
     return {
       id: doc._id.toString(),
@@ -229,6 +246,7 @@ export class PrizeClaimService {
       cycleNumber: doc.cycleNumber,
       ...(doc.establishmentId ? { establishmentId: doc.establishmentId.toString() } : {}),
       ...(doc.establishmentName ? { establishmentName: doc.establishmentName } : {}),
+      ...(doc.voucherCode ? { voucherCode: doc.voucherCode } : {}),
       ...(doc.adminNotes ? { adminNotes: doc.adminNotes } : {}),
       ...(doc.verifiedAt ? { verifiedAt: doc.verifiedAt.toISOString() } : {}),
       ...(doc.deliveredAt ? { deliveredAt: doc.deliveredAt.toISOString() } : {}),

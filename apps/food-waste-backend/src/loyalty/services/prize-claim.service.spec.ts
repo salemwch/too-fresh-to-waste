@@ -35,6 +35,7 @@ const buildMocks = () => {
   const prizeClaimModel = {
     findOne: jest.fn().mockResolvedValue(null),
     create: jest.fn().mockImplementation(async data => makeClaim(data)),
+    exists: jest.fn().mockResolvedValue(null),
   };
 
   const loyaltyModel = {

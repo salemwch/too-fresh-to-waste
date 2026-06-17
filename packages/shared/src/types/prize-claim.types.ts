@@ -20,6 +20,7 @@ export interface PrizeClaimResponse {
   cycleNumber: number;
   establishmentId?: string;
   establishmentName?: string;
+  voucherCode?: string;
   adminNotes?: string;
   verifiedAt?: string;
   deliveredAt?: string;

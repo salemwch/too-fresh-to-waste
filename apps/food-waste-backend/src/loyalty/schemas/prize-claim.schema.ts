@@ -41,6 +41,9 @@ export class PrizeClaim {
   @Prop({ type: String })
   establishmentName?: string;
 
+  @Prop({ type: String, unique: true, sparse: true })
+  voucherCode?: string;
+
   @Prop({ type: String, maxlength: 500 })
   adminNotes?: string;
 

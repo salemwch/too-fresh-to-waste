@@ -21,6 +21,7 @@ export class PrizeClaimResponseDto {
   @ApiProperty() cycleNumber!: number;
   @ApiPropertyOptional() establishmentId?: string;
   @ApiPropertyOptional() establishmentName?: string;
+  @ApiPropertyOptional() voucherCode?: string;
   @ApiPropertyOptional() adminNotes?: string;
   @ApiPropertyOptional() verifiedAt?: string;
   @ApiPropertyOptional() deliveredAt?: string;
