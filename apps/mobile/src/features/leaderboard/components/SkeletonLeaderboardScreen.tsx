@@ -5,7 +5,7 @@ import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/at
 import { useTheme } from '@/design-system/providers';
 
 const SURFACE = '#FFFFFF';
-const BORDER = '#E5E7EB';
+const BORDER = '#E8EEEF';
 
 const SkeletonLeaderboardComponent: React.FC = () => {
   const theme = useTheme();

@@ -1,17 +1,14 @@
 /**
- * LeaderboardScreen — Community Milestone Challenge
+ * LeaderboardScreen — Grand Prize Community Challenge
  *
- * Layout:
- *  1. Greeting header — avatar + "Morning/Afternoon/Evening, [firstName]!"
- *  2. Prize tier strip — highlights the user's current tier
- *  3. Top 5 Champions — avatars + medals, visual pyramid
- *  4. Single unified ranked list:
- *       rank 1–5  → gold left-border   (Smartphone prize)
- *       rank 6+   → neutral            (10% Discount)
- *  5. PrivacyConsentModal gates participation on first visit
+ * Layout (dark premium theme):
+ *  Block 1: "Grand Prize" header + countdown timer (days:hrs:mins:secs)
+ *  Block 2: Prize cards (Smartphone / Discount) with "winning" indicator
+ *  Block 3: Top 5 podium (order: 5, 3, 1, 2, 4 — natural rise-and-fall)
+ *  Block 4: Clean ranked list
  */
 
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, type ViewToken } from '@shopify/flash-list';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
@@ -29,58 +26,72 @@ import FastImage from 'react-native-fast-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/design-system/components/atoms';
-import { useTheme } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { useCommunityBagGoal } from '@/features/home/hooks/useCommunityBagGoal';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { getOptimizedImageUrl, IMAGE_PRESETS } from '@/utils/imageTransform';
 
 import { DiscountClaimModal } from '../components/DiscountClaimModal';
+import { FloatingPositionBar } from '../components/FloatingPositionBar';
+import { NeighborhoodSection } from '../components/NeighborhoodSection';
 import { PrivacyConsentModal } from '../components/PrivacyConsentModal';
 import { WinnerCelebrationModal } from '../components/WinnerCelebrationModal';
 import { useLeaderboard } from '../hooks/useLeaderboard';
+import { useNeighborhood } from '../hooks/useNeighborhood';
 import { usePrizeClaimStatus, useClaimSmartphone, useClaimDiscount } from '../hooks/usePrizeClaim';
 
 import type { LeaderboardEntry } from '../types/leaderboard.types';
 import type { MainStackNavigationProp } from '@/navigation/types';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ─── Dark Premium Palette ────────────────────────────────────────────────────
 const PRIMARY = colorTokens.base.primary[500];
-const GOLD = '#F59E0B';
-const GOLD_TEXT = '#B45309';
-const SILVER = '#9CA3AF';
-const SUCCESS = '#22C55E';
-const SUCCESS_SOFT = '#F0FDF4';
-const SURFACE = '#FFFFFF';
-const SURFACE_MUTED = '#F1F5F9';
-const BORDER = '#E5E7EB';
-const BORDER_SUBTLE = '#F3F4F6';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6B7280';
-const TEXT_TERTIARY = '#9CA3AF';
-const TEXT_MUTED = '#4B5563';
-const SHADOW = '#000';
+const CHAMPION_GOLD = '#c4a25a';
+const GOLD_15 = 'rgba(196,162,90,0.15)';
+const GOLD_10 = 'rgba(196,162,90,0.1)';
+const GOLD_06 = 'rgba(196,162,90,0.06)';
+const GOLD_04 = 'rgba(196,162,90,0.04)';
+
+const BG_DARK = '#0a1e20';
+const BG_CARD = 'rgba(255,255,255,0.02)';
+const BG_CARD_TOP5 = 'rgba(196,162,90,0.02)';
+const BORDER_CARD = 'rgba(255,255,255,0.035)';
+const BORDER_CARD_TOP5 = 'rgba(196,162,90,0.06)';
+const BORDER_GOLD = 'rgba(196,162,90,0.3)';
+
+const TEXT_WHITE = '#ffffff';
+const TEXT_85 = 'rgba(255,255,255,0.85)';
+const TEXT_60 = 'rgba(255,255,255,0.6)';
+const TEXT_40 = 'rgba(255,255,255,0.4)';
+const TEXT_30 = 'rgba(255,255,255,0.3)';
+const TEXT_25 = 'rgba(255,255,255,0.25)';
+
 const OVERLAY = 'rgba(0,0,0,0.45)';
-const INVERSE_TEXT = '#FFFFFF';
-const INVERSE_TEXT_MUTED = 'rgba(255,255,255,0.65)';
-const INVERSE_TEXT_SOFT = 'rgba(255,255,255,0.85)';
-const INVERSE_SURFACE = 'rgba(255,255,255,0.15)';
-const PHONE_MAX = 5; // ranks 1–5 win Smartphone
+const SURFACE = '#FFFFFF';
+const BORDER_SUBTLE = '#F3F4F6';
+const TEXT_PRIMARY = '#0F2628';
+const TEXT_SECONDARY = '#4B6264';
+const TEXT_TERTIARY = '#8FA6A9';
+
+const PHONE_MAX = 5;
 
 // ─── Tier helper ─────────────────────────────────────────────────────────────
 type RowTier = 'phone' | 'discount';
-
 function getRowTier(rank: number): RowTier {
-  if (rank <= PHONE_MAX) return 'phone';
-  return 'discount';
+  return rank <= PHONE_MAX ? 'phone' : 'discount';
 }
 
-// ─── Greeting helper ─────────────────────────────────────────────────────────
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return 'Morning';
-  if (h < 17) return 'Afternoon';
-  return 'Evening';
+// ─── Countdown helper ────────────────────────────────────────────────────────
+function getCountdown(
+  endDate: string | undefined,
+): { days: number; hours: number; mins: number; secs: number } | null {
+  if (!endDate) return null;
+  const diff = new Date(endDate).getTime() - Date.now();
+  if (diff <= 0) return null;
+  const days = Math.floor(diff / 86_400_000);
+  const hours = Math.floor((diff % 86_400_000) / 3_600_000);
+  const mins = Math.floor((diff % 3_600_000) / 60_000);
+  const secs = Math.floor((diff % 60_000) / 1000);
+  return { days, hours, mins, secs };
 }
 
 // ─── Reusable avatar ─────────────────────────────────────────────────────────
@@ -115,115 +126,61 @@ const UserAvatar: React.FC<AvatarProps> = ({ uri, firstName, lastName, size, bor
   );
 };
 
-// ─── Top 5 champions ─────────────────────────────────────────────────────────
-// Display order: #4 | #2 | #1 | #3 | #5 (visual pyramid, highest in center)
+// ─── Top 5 Podium (order: 5, 3, 1, 2, 4) ───────────────────────────────────
 interface Top5Props {
   entries: LeaderboardEntry[];
 }
 
-interface SlotConfig {
-  entry: LeaderboardEntry;
-  size: number;
-  bottomPad: number;
-  borderColor: string;
-  badge: React.ReactNode;
-  pillBg: string;
-  pillTxt: string;
-}
-
-const BRONZE = '#B45309';
-
 const Top5Champions: React.FC<Top5Props> = ({ entries }) => {
-  if (entries.length === 0) return null;
+  if (entries.length < 2) return null;
 
-  // Build slot configs for each visible rank slot (1–5)
-  const slot = (rank: number): SlotConfig | null => {
-    const e = entries[rank - 1];
-    if (e == null) return null;
-
-    const configs: Record<number, Omit<SlotConfig, 'entry'>> = {
-      1: {
-        size: 60,
-        bottomPad: 0,
-        borderColor: GOLD,
-        badge: <Text style={styles.crownEmoji}>👑</Text>,
-        pillBg: `${GOLD}20`,
-        pillTxt: GOLD_TEXT,
-      },
-      2: {
-        size: 50,
-        bottomPad: 12,
-        borderColor: SILVER,
-        badge: <Text style={styles.medalEmoji}>🥈</Text>,
-        pillBg: `${SILVER}18`,
-        pillTxt: SILVER,
-      },
-      3: {
-        size: 50,
-        bottomPad: 12,
-        borderColor: BRONZE,
-        badge: <Text style={styles.medalEmoji}>🥉</Text>,
-        pillBg: `${BRONZE}12`,
-        pillTxt: BRONZE,
-      },
-      4: {
-        size: 42,
-        bottomPad: 22,
-        borderColor: `${GOLD}60`,
-        badge: (
-          <View style={styles.rankBadge}>
-            <Text style={[styles.rankBadgeTxt, { color: GOLD_TEXT }]}>4</Text>
-          </View>
-        ),
-        pillBg: `${GOLD}10`,
-        pillTxt: GOLD_TEXT,
-      },
-      5: {
-        size: 42,
-        bottomPad: 22,
-        borderColor: `${GOLD}60`,
-        badge: (
-          <View style={styles.rankBadge}>
-            <Text style={[styles.rankBadgeTxt, { color: GOLD_TEXT }]}>5</Text>
-          </View>
-        ),
-        pillBg: `${GOLD}10`,
-        pillTxt: GOLD_TEXT,
-      },
-    };
-
-    return { entry: e, ...configs[rank]! };
-  };
-
-  // Visual order: 4, 2, 1, 3, 5
-  const slots = [slot(4), slot(2), slot(1), slot(3), slot(5)];
+  const getEntry = (rank: number) => entries[rank - 1];
+  const order = [5, 3, 1, 2, 4];
 
   return (
-    <View style={styles.top3Wrapper}>
-      {slots.map((s, i) => {
-        if (s == null) return null;
-        const isCenter = i === 2;
+    <View style={styles.podiumBlock}>
+      {order.map(rank => {
+        const e = getEntry(rank);
+        if (e == null) return <View key={rank} style={styles.podiumItem} />;
+
+        const isChampion = rank === 1;
+        const isMedal = rank === 2 || rank === 3;
+        const avatarSize = isChampion ? 68 : isMedal ? 52 : 42;
+        const borderColor = isChampion
+          ? CHAMPION_GOLD
+          : isMedal
+            ? 'rgba(196,162,90,0.35)'
+            : 'rgba(255,255,255,0.08)';
+
         return (
-          <View
-            key={s.entry.userId}
-            style={[styles.top3Item, { paddingBottom: s.bottomPad }, isCenter && styles.top3Center]}
-          >
-            {s.badge}
+          <View key={e.userId} style={[styles.podiumItem, isChampion && styles.podiumItemChampion]}>
+            {/* Top icon: crown for #1, medals for #2/#3, number for #4/#5 */}
+            {isChampion && <Text style={styles.podiumCrown}>👑</Text>}
+            {rank === 2 && <Text style={styles.podiumMedal}>🥈</Text>}
+            {rank === 3 && <Text style={styles.podiumMedal}>🥉</Text>}
+            {rank >= 4 && (
+              <View style={styles.podiumNumBadge}>
+                <Text style={styles.podiumNumText}>{rank}</Text>
+              </View>
+            )}
+
             <UserAvatar
-              uri={s.entry.profileImage}
-              firstName={s.entry.firstName}
-              lastName={s.entry.lastName}
-              size={s.size}
-              borderColor={s.borderColor}
+              uri={e.profileImage}
+              firstName={e.firstName}
+              lastName={e.lastName}
+              size={avatarSize}
+              borderColor={borderColor}
             />
-            <Text style={[styles.top3Name, isCenter && styles.top3NameCenter]} numberOfLines={1}>
-              {s.entry.firstName}
+
+            <Text
+              style={[styles.podiumName, isChampion && styles.podiumNameChampion]}
+              numberOfLines={1}
+            >
+              {e.firstName}
             </Text>
-            <View style={[styles.top3Pill, { backgroundColor: s.pillBg }]}>
-              <Text style={[styles.top3PillText, { color: s.pillTxt }]}>
-                {s.entry.totalPoints.toLocaleString()} pt
-              </Text>
-            </View>
+            <Text style={[styles.podiumPts, isChampion && styles.podiumPtsChampion]}>
+              {e.totalPoints.toLocaleString()}
+            </Text>
           </View>
         );
       })}
@@ -231,36 +188,27 @@ const Top5Champions: React.FC<Top5Props> = ({ entries }) => {
   );
 };
 
-// ─── Single leaderboard row ───────────────────────────────────────────────────
+// ─── Single leaderboard row ──────────────────────────────────────────────────
 interface RowProps {
   entry: LeaderboardEntry;
 }
 
 const LeaderboardRow: React.FC<RowProps> = ({ entry }) => {
-  const tier = getRowTier(entry.rank);
-  const isPhone = tier === 'phone';
-
-  const leftColor = isPhone ? GOLD : '#F1F5F9';
-  const rankColor = isPhone ? GOLD : '#9CA3AF';
-  const pillBg = isPhone ? `${GOLD}15` : '#F1F5F9';
-  const pillTxt = isPhone ? GOLD_TEXT : '#374151';
+  const isTop5 = entry.rank <= PHONE_MAX;
 
   return (
-    <View style={[styles.row, { borderLeftColor: leftColor }, entry.isCurrentUser && styles.rowMe]}>
-      {/* Rank */}
-      <View style={styles.rankCol}>
-        <Text style={[styles.rankNum, { color: rankColor }]}>{entry.rank}</Text>
+    <View style={[styles.row, isTop5 && styles.rowTop5, entry.isCurrentUser && styles.rowMe]}>
+      <View style={[styles.rankCol, isTop5 && styles.rankColTop5]}>
+        <Text style={[styles.rankNum, isTop5 && styles.rankNumTop5]}>{entry.rank}</Text>
       </View>
 
-      {/* Avatar */}
       <UserAvatar
         uri={entry.profileImage}
         firstName={entry.firstName}
         lastName={entry.lastName}
-        size={42}
+        size={36}
       />
 
-      {/* Name + badge */}
       <View style={styles.nameCol}>
         <Text style={[styles.fullName, entry.isCurrentUser && styles.fullNameMe]} numberOfLines={1}>
           {entry.firstName} {entry.lastName}
@@ -272,20 +220,22 @@ const LeaderboardRow: React.FC<RowProps> = ({ entry }) => {
         )}
       </View>
 
-      {/* Points pill */}
-      <View style={[styles.ptsPill, { backgroundColor: pillBg }]}>
-        <Text style={[styles.ptsText, { color: pillTxt }]}>
-          {entry.totalPoints.toLocaleString()} pt
-        </Text>
-      </View>
+      <Text
+        style={[
+          styles.ptsText,
+          isTop5 && styles.ptsTextTop5,
+          entry.isCurrentUser && styles.ptsTextMe,
+        ]}
+      >
+        {entry.totalPoints.toLocaleString()} pt
+      </Text>
     </View>
   );
 };
 
-// ─── Memoised row (prevents re-renders on new pages loading) ─────────────────
 const MemoRow = memo(LeaderboardRow);
 
-// ─── Prize info modal ─────────────────────────────────────────────────────────
+// ─── Prize info modal ────────────────────────────────────────────────────────
 interface PrizeModalProps {
   visible: boolean;
   onClose: () => void;
@@ -304,29 +254,18 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) =
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <Pressable
-        style={styles.modalOverlay}
-        onPress={onClose}
-        accessibilityRole='button'
-        accessibilityLabel='Close'
-        accessibilityHint='Closes the prize information sheet'
-      >
-        {/* Inner Pressable stops tap-through closing when tapping inside sheet */}
+      <Pressable style={styles.modalOverlay} onPress={onClose}>
         <Pressable
           style={[styles.modalSheet, { paddingBottom: sheetBottomPad }]}
-          accessibilityRole='none'
           onPress={() => undefined}
         >
           <View style={styles.modalHandle} />
-
-          {/* Scrollable content — button intentionally kept outside so it never scrolls away */}
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.modalScrollContent}
           >
             <Text style={styles.modalTitle}>How the Grand Prize Works</Text>
 
-            {/* Countdown line */}
             <View style={styles.modalGoalRow}>
               <View style={styles.modalGoalDot} />
               <Text style={styles.modalGoalTxt}>
@@ -345,7 +284,6 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) =
 
             <View style={styles.modalDivider} />
 
-            {/* Tier 1 — Smartphone */}
             <View style={styles.modalTier}>
               <View style={[styles.modalTierIcon, { backgroundColor: `${PRIMARY}12` }]}>
                 <Text style={styles.modalTierEmoji}>📱</Text>
@@ -359,7 +297,6 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) =
               </View>
             </View>
 
-            {/* Tier 2 — Discount */}
             <View style={styles.modalTier}>
               <View style={[styles.modalTierIcon, styles.modalTierIconDiscount]}>
                 <Text style={styles.modalTierEmoji}>🎁</Text>
@@ -368,28 +305,20 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) =
                 <Text style={styles.modalTierTitle}>10% Discount</Text>
                 <Text style={styles.modalTierRank}>Rank 6 and above</Text>
                 <Text style={styles.modalTierDesc}>
-                  Every other participant earns a 10% discount at a partner business of their choice
-                  — hotels, restaurants, bakeries and more.
+                  Every other participant earns a 10% discount at a partner business of their
+                  choice.
                 </Text>
               </View>
             </View>
 
             <View style={styles.modalDivider} />
-
             <Text style={styles.modalNote}>
               Rankings are based on total loyalty points. Points are awarded each time you save a
               bag.
             </Text>
           </ScrollView>
 
-          {/* Fixed action button — always visible regardless of scroll position */}
-          <Pressable
-            style={styles.modalBtn}
-            onPress={onClose}
-            accessibilityRole='button'
-            accessibilityLabel='Got it'
-            accessibilityHint='Dismisses the prize information'
-          >
+          <Pressable style={styles.modalBtn} onPress={onClose}>
             <Text style={styles.modalBtnTxt}>Got it!</Text>
           </Pressable>
         </Pressable>
@@ -404,39 +333,32 @@ interface Props {
 }
 
 export const LeaderboardScreen: React.FC<Props> = () => {
-  const theme = useTheme();
-  const { user, avatarUri } = useUserProfile();
+  const { user } = useUserProfile();
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useLeaderboard();
   const { data: goal } = useCommunityBagGoal();
 
-  // Prize claim — only query when the challenge has ended
   const challengeEnded = goal?.endDate ? new Date(goal.endDate).getTime() <= Date.now() : false;
   const { data: claimStatus } = usePrizeClaimStatus(challengeEnded);
   const claimSmartphone = useClaimSmartphone();
   const claimDiscount = useClaimDiscount();
 
-  const greeting = getGreeting();
   const firstName = user?.firstName ?? '';
-  const lastName = user?.lastName ?? '';
 
-  // Flatten all pages into one array
   const allEntries = useMemo(() => data?.pages.flatMap(p => p.entries) ?? [], [data]);
 
-  // Consent gate — default true while loading so modal doesn't flash before data arrives
+  // Consent gate
   const hasSetConsent = data?.pages[0]?.hasSetConsent ?? true;
   const [consentModalVisible, setConsentModalVisible] = useState(false);
   const consentChecked = useRef(false);
 
   useEffect(() => {
-    // Trigger once after data loads; never re-open after the user has acted
     if (!isLoading && !consentChecked.current) {
       consentChecked.current = true;
       if (!hasSetConsent) setConsentModalVisible(true);
     }
   }, [isLoading, hasSetConsent]);
 
-  // Used only for prize-strip tier highlighting
   const userEntry = useMemo(
     () => data?.pages[0]?.currentUserEntry ?? allEntries.find(e => e.isCurrentUser) ?? null,
     [data, allEntries],
@@ -447,20 +369,16 @@ export const LeaderboardScreen: React.FC<Props> = () => {
   const [showWinnerModal, setShowWinnerModal] = useState(false);
   const [showDiscountModal, setShowDiscountModal] = useState(false);
 
-  // DEV-ONLY: force-show modals for visual testing
   const [debugWinner, setDebugWinner] = useState(false);
   const [debugWinnerClaimed, setDebugWinnerClaimed] = useState(false);
   const [debugDiscount, setDebugDiscount] = useState(false);
   const [debugDiscountClaimed, setDebugDiscountClaimed] = useState(false);
   const prizeModalShown = useRef(false);
 
-  // Auto-show prize claim modal when challenge ends and user hasn't claimed
   useEffect(() => {
     if (!challengeEnded || !claimStatus || prizeModalShown.current) return;
     if (claimStatus.hasClaimed) return;
-
     prizeModalShown.current = true;
-
     if (claimStatus.eligiblePrizeType === 'smartphone') {
       setShowWinnerModal(true);
     } else if (claimStatus.eligiblePrizeType === 'discount') {
@@ -468,159 +386,213 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     }
   }, [challengeEnded, claimStatus]);
 
-  // Derive claimed state (optimistic — shows success before query re-fetches)
   const smartphoneClaimed = (claimStatus?.hasClaimed ?? false) || claimSmartphone.isSuccess;
   const discountClaimed = (claimStatus?.hasClaimed ?? false) || claimDiscount.isSuccess;
   const smartphoneClaimData = claimStatus?.claim ?? claimSmartphone.data ?? null;
   const discountClaimData = claimStatus?.claim ?? claimDiscount.data ?? null;
 
+  // Countdown
+  const [countdown, setCountdown] = useState(getCountdown(goal?.endDate));
+  useEffect(() => {
+    if (!goal?.endDate) return;
+    setCountdown(getCountdown(goal.endDate));
+    const interval = setInterval(() => setCountdown(getCountdown(goal.endDate)), 1000);
+    return () => clearInterval(interval);
+  }, [goal?.endDate]);
+
   const handleRetry = useCallback(() => {
     refetch().catch(() => undefined);
   }, [refetch]);
-  const handleEndReached = useCallback(() => {
+  const handleViewMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage().catch(() => undefined);
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const keyExtractor = useCallback((item: (typeof allEntries)[0]) => item.userId, []);
+  // Floating position bar + neighborhood
+  const flashListRef = useRef<FlashList<LeaderboardEntry>>(null);
+  const [userRowVisible, setUserRowVisible] = useState(false);
+  const [showNeighborhood, setShowNeighborhood] = useState(false);
+  const viewabilityReported = useRef(false);
 
-  const renderItem = useCallback(
-    ({ item }: { item: (typeof allEntries)[0] }) => <MemoRow entry={item} />,
+  const userIsInList = useMemo(() => allEntries.some(e => e.isCurrentUser), [allEntries]);
+  const showFloatingBar =
+    userEntry != null && !userRowVisible && !isLoading && viewabilityReported.current;
+
+  const userRankWithin200 = userEntry != null && userEntry.rank <= 200;
+  const neighborhoodEnabled = showNeighborhood && !userRankWithin200;
+  const { data: neighborhoodData, isLoading: neighborhoodLoading } =
+    useNeighborhood(neighborhoodEnabled);
+
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      viewabilityReported.current = true;
+      const isVisible = viewableItems.some(token => (token.item as LeaderboardEntry).isCurrentUser);
+      setUserRowVisible(isVisible);
+    },
     [],
   );
 
-  // ── List header — rendered once above the virtualized rows ────────────────
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
+
+  const handleFloatingBarPress = useCallback(() => {
+    if (userRankWithin200 && userIsInList) {
+      const idx = allEntries.findIndex(e => e.isCurrentUser);
+      if (idx >= 0) flashListRef.current?.scrollToIndex({ index: idx, animated: true });
+    } else {
+      setShowNeighborhood(prev => !prev);
+    }
+  }, [userRankWithin200, userIsInList, allEntries]);
+
+  const keyExtractor = useCallback((item: LeaderboardEntry) => item.userId, []);
+  const renderItem = useCallback(
+    ({ item }: { item: LeaderboardEntry }) => <MemoRow entry={item} />,
+    [],
+  );
+
+  // ── List header ────────────────────────────────────────────────────────────
   const ListHeader = useMemo(
     () => (
       <View>
-        {/* Greeting + info icon */}
-        <View style={styles.greeting}>
-          <View style={styles.greetingLeft}>
+        {/* Block 1: Header + Countdown */}
+        <View style={styles.headerBlock}>
+          <View style={styles.headerTop}>
             <View>
-              <UserAvatar
-                uri={avatarUri ?? null}
-                firstName={firstName}
-                lastName={lastName}
-                size={52}
-              />
-              <View style={styles.onlineDot} />
+              <Text style={styles.headerTitle}>Grand Prize</Text>
+              <Text style={styles.headerSubtitle}>Community Milestone Challenge</Text>
             </View>
-            <Text style={styles.greetingText}>
-              {greeting},{'\n'}
-              <Text style={styles.greetingName}>{firstName}!</Text>
+            <Pressable
+              style={styles.infoBtn}
+              onPress={() => setShowPrizeModal(true)}
+              accessibilityRole='button'
+              accessibilityLabel='Show prize information'
+            >
+              <Icon name='information-circle-outline' family='Ionicons' size={22} color={TEXT_40} />
+            </Pressable>
+          </View>
+
+          {countdown != null && (
+            <View style={styles.countdownRow}>
+              <View style={styles.cdSegment}>
+                <Text style={styles.cdNum}>{countdown.days}</Text>
+                <Text style={styles.cdLabel}>DAYS</Text>
+              </View>
+              <Text style={styles.cdColon}>:</Text>
+              <View style={styles.cdSegment}>
+                <Text style={styles.cdNum}>{countdown.hours}</Text>
+                <Text style={styles.cdLabel}>HOURS</Text>
+              </View>
+              <Text style={styles.cdColon}>:</Text>
+              <View style={styles.cdSegment}>
+                <Text style={styles.cdNum}>{countdown.mins}</Text>
+                <Text style={styles.cdLabel}>MINS</Text>
+              </View>
+              <Text style={styles.cdColon}>:</Text>
+              <View style={styles.cdSegment}>
+                <Text style={styles.cdNum}>{countdown.secs}</Text>
+                <Text style={styles.cdLabel}>SECS</Text>
+              </View>
+            </View>
+          )}
+
+          {goal?.endDate && (
+            <Text style={styles.endDate}>
+              Ends{' '}
+              <Text style={styles.endDateBold}>
+                {new Date(goal.endDate).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </Text>
             </Text>
-          </View>
-          <Pressable
-            style={styles.infoBtn}
-            onPress={() => setShowPrizeModal(true)}
-            accessibilityRole='button'
-            accessibilityLabel='Show prize information'
-            accessibilityHint='Displays prize details for each leaderboard tier'
-          >
-            <Icon name='information-circle-outline' family='Ionicons' size={26} color={PRIMARY} />
-          </Pressable>
+          )}
         </View>
 
-        {/* Prize strip — 2 tiles showing what each tier wins */}
-        <View style={styles.prizeStrip}>
-          {/* Smartphone — rank 1-5 */}
-          <View style={[styles.stripTile, userTier === 'phone' && styles.stripTileActive]}>
-            <Icon name='phone-portrait-outline' family='Ionicons' size={22} color={GOLD_TEXT} />
-            <Text style={styles.stripPrize}>Smartphone</Text>
-            <Text style={styles.stripTierTxt}>Top 5</Text>
+        {/* Block 2: Prize Cards */}
+        <View style={styles.prizesBlock}>
+          <View style={[styles.prizeCard, userTier === 'phone' && styles.prizeCardWinning]}>
+            {userTier === 'phone' && <Text style={styles.prizeYouBadge}>✓ You</Text>}
+            <Text style={styles.prizeIcon}>📱</Text>
+            <Text style={[styles.prizeName, userTier === 'phone' && styles.prizeNameGold]}>
+              Smartphone
+            </Text>
+            <Text style={styles.prizeTier}>Top 5 Winners</Text>
           </View>
-
-          <View style={styles.stripDivider} />
-
-          {/* 10% discount — everyone else */}
-          <View style={[styles.stripTile, userTier === 'discount' && styles.stripTileActive]}>
-            <Icon name='gift-outline' family='Ionicons' size={22} color={SUCCESS} />
-            <Text style={styles.stripPrize}>10% Discount</Text>
-            <Text style={styles.stripTierTxt}>Rank 6+</Text>
+          <View style={[styles.prizeCard, userTier === 'discount' && styles.prizeCardWinning]}>
+            {userTier === 'discount' && <Text style={styles.prizeYouBadge}>✓ You</Text>}
+            <Text style={styles.prizeIcon}>🎁</Text>
+            <Text style={[styles.prizeName, userTier === 'discount' && styles.prizeNameGold]}>
+              10% Discount
+            </Text>
+            <Text style={styles.prizeTier}>Rank 6+</Text>
           </View>
         </View>
 
-        {/* DEV-ONLY: Debug buttons to preview prize modals */}
-        {__DEV__ && (
-          <View
-            style={{ flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 16 }}
-          >
-            <Pressable
-              onPress={() => setDebugWinner(true)}
-              style={{
-                backgroundColor: '#F59E0B',
-                borderRadius: 8,
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-              }}
-            >
-              <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 12 }}>
-                Test Winner Modal
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setDebugDiscount(true)}
-              style={{
-                backgroundColor: '#22C55E',
-                borderRadius: 8,
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-              }}
-            >
-              <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 12 }}>
-                Test Discount Modal
-              </Text>
-            </Pressable>
-          </View>
-        )}
+        {/* Block 3: Podium */}
+        {allEntries.length >= 2 && <Top5Champions entries={allEntries} />}
 
-        {/* Top 5 */}
-        {allEntries.length >= 1 && <Top5Champions entries={allEntries} />}
-
-        {/* Section header */}
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>All Rankings</Text>
+        {/* Section header for list */}
+        <View style={styles.listHeader}>
+          <Text style={styles.listTitle}>Rankings</Text>
+          <Text style={styles.listMeta}>
+            {data?.pages[0]?.total ?? allEntries.length} participants
+          </Text>
         </View>
 
-        {/* Error state (skeleton replaces the old spinner for loading) */}
+        {/* Error state */}
         {isError && (
-          <Pressable
-            style={styles.centerState}
-            onPress={handleRetry}
-            accessibilityRole='button'
-            accessibilityLabel='Retry loading'
-            accessibilityHint='Reloads the leaderboard'
-          >
-            <Icon name='refresh-outline' family='Ionicons' size={28} color='#6B7280' />
+          <Pressable style={styles.centerState} onPress={handleRetry}>
+            <Icon name='refresh-outline' family='Ionicons' size={28} color={TEXT_40} />
             <Text style={styles.errorText}>Tap to retry</Text>
           </Pressable>
         )}
       </View>
     ),
-    [
-      allEntries,
-      isError,
-      firstName,
-      lastName,
-      avatarUri,
-      greeting,
-      theme.colors.onSurface,
-      handleRetry,
-      userTier,
-    ],
+    [allEntries, countdown, goal?.endDate, isError, handleRetry, userTier, data],
   );
 
-  // ── List footer — load-more spinner only ─────────────────────────────────
+  // ── List footer ────────────────────────────────────────────────────────────
   const ListFooter = useMemo(() => {
-    if (!isFetchingNextPage) return null;
-    return (
-      <View style={styles.loadMoreSpinner}>
-        <ActivityIndicator size='small' color={PRIMARY} />
-      </View>
-    );
-  }, [isFetchingNextPage]);
+    const parts: React.ReactNode[] = [];
+
+    if (isFetchingNextPage) {
+      parts.push(
+        <View key='spinner' style={styles.loadMoreSpinner}>
+          <ActivityIndicator size='small' color={CHAMPION_GOLD} />
+        </View>,
+      );
+    } else if (hasNextPage) {
+      parts.push(
+        <Pressable key='viewmore' style={styles.viewMoreBtn} onPress={handleViewMore}>
+          <Text style={styles.viewMoreTxt}>View More</Text>
+          <Icon name='chevron-down-outline' family='Ionicons' size={16} color={CHAMPION_GOLD} />
+        </Pressable>,
+      );
+    }
+
+    if (showNeighborhood && !userRankWithin200) {
+      parts.push(
+        <NeighborhoodSection
+          key='neighborhood'
+          entries={neighborhoodData?.entries ?? []}
+          isLoading={neighborhoodLoading}
+        />,
+      );
+    }
+
+    if (parts.length === 0) return null;
+    return <>{parts}</>;
+  }, [
+    isFetchingNextPage,
+    hasNextPage,
+    handleViewMore,
+    showNeighborhood,
+    userRankWithin200,
+    neighborhoodData,
+    neighborhoodLoading,
+  ]);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={styles.container}>
       <PrivacyConsentModal
         visible={consentModalVisible}
         onConsentSaved={() => setConsentModalVisible(false)}
@@ -656,7 +628,6 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         error={claimDiscount.error instanceof Error ? claimDiscount.error.message : null}
         firstName={firstName}
       />
-      {/* DEV-ONLY: Debug modals for visual testing */}
       {__DEV__ && (
         <>
           <WinnerCelebrationModal
@@ -720,255 +691,304 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         <SkeletonLeaderboardScreen />
       ) : (
         <FlashList
+          ref={flashListRef}
           data={allEntries}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          estimatedItemSize={68}
+          estimatedItemSize={56}
           ListHeaderComponent={ListHeader}
           ListFooterComponent={ListFooter}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.5}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
+          onViewableItemsChanged={userIsInList ? onViewableItemsChanged : undefined}
+          viewabilityConfig={userIsInList ? viewabilityConfig : undefined}
+        />
+      )}
+      {showFloatingBar && userEntry != null && (
+        <FloatingPositionBar
+          entry={userEntry}
+          visible={showFloatingBar}
+          onPress={handleFloatingBarPress}
         />
       )}
     </View>
   );
 };
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+// ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  listContent: { paddingBottom: 32 },
+  container: { flex: 1, backgroundColor: BG_DARK },
+  listContent: { paddingBottom: 80 },
 
-  // ── Greeting ──
-  greeting: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  // ── Block 1: Header ──
+  headerBlock: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: 16,
+    paddingBottom: 20,
   },
-  greetingLeft: {
+  headerTop: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    flex: 1,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 18,
   },
-  onlineDot: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: SUCCESS,
-    borderWidth: 2,
-    borderColor: SURFACE,
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: TEXT_WHITE,
+    letterSpacing: -0.5,
   },
-  greetingText: { fontSize: 16, color: TEXT_SECONDARY, fontWeight: '400', lineHeight: 22 },
-  greetingName: { fontSize: 20, color: TEXT_PRIMARY, fontWeight: '700' },
+  headerSubtitle: {
+    fontSize: 12,
+    color: TEXT_30,
+    fontWeight: '500',
+    marginTop: 3,
+  },
   infoBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: `${PRIMARY}0F`,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     justifyContent: 'center',
     alignItems: 'center',
   },
 
-  // ── Prize strip ──
-  prizeStrip: {
+  // Countdown
+  countdownRow: {
     flexDirection: 'row',
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
-    backgroundColor: SURFACE,
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: SHADOW,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-      },
-      android: { elevation: 2 },
-    }),
+    alignItems: 'center',
+    gap: 6,
   },
-  stripTile: {
+  cdSegment: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 6,
-    gap: 3,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(196,162,90,0.12)',
   },
-  stripTileActive: {
-    backgroundColor: `${PRIMARY}09`,
+  cdNum: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: CHAMPION_GOLD,
+    letterSpacing: -0.5,
   },
-  stripDivider: {
-    width: 1,
-    backgroundColor: BORDER,
-    marginVertical: 12,
+  cdLabel: {
+    fontSize: 8,
+    color: TEXT_30,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginTop: 3,
   },
-  stripPrize: { fontSize: 12, fontWeight: '700', color: TEXT_PRIMARY, textAlign: 'center' },
-  stripTierTxt: { fontSize: 10, color: TEXT_TERTIARY, textAlign: 'center' },
+  cdColon: {
+    fontSize: 20,
+    color: 'rgba(196,162,90,0.25)',
+    fontWeight: '800',
+    paddingBottom: 10,
+  },
+  endDate: {
+    textAlign: 'center',
+    marginTop: 10,
+    fontSize: 10,
+    color: TEXT_25,
+    fontWeight: '500',
+  },
+  endDateBold: { color: TEXT_40 },
 
-  // ── Progress bar (kept — used in user card) ──
-  progressTrack: {
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
+  // ── Block 2: Prizes ──
+  prizesBlock: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 20,
     marginBottom: 8,
   },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
+  prizeCard: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    backgroundColor: BG_CARD,
+    borderWidth: 1,
+    borderColor: BORDER_CARD,
   },
+  prizeCardWinning: {
+    borderColor: BORDER_GOLD,
+    backgroundColor: GOLD_04,
+    ...Platform.select({
+      ios: {
+        shadowColor: CHAMPION_GOLD,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      android: { elevation: 3 },
+    }),
+  },
+  prizeYouBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 8,
+    fontSize: 8,
+    fontWeight: '700',
+    color: CHAMPION_GOLD,
+    backgroundColor: GOLD_10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  prizeIcon: { fontSize: 24, marginBottom: 6 },
+  prizeName: { fontSize: 12, fontWeight: '700', color: TEXT_WHITE },
+  prizeNameGold: { color: CHAMPION_GOLD },
+  prizeTier: { fontSize: 9, color: TEXT_30, marginTop: 3, fontWeight: '600' },
 
-  // ── Top 3 ──
-  top3Wrapper: {
+  // ── Block 3: Podium ──
+  podiumBlock: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'flex-end',
+    justifyContent: 'center',
     paddingHorizontal: 16,
-    marginBottom: 24,
-    gap: 8,
+    paddingTop: 24,
+    paddingBottom: 20,
+    gap: 6,
   },
-  top3Item: { alignItems: 'center', flex: 1, gap: 5 },
-  top3Center: { paddingBottom: 0 },
-  medalEmoji: { fontSize: 18 },
-  crownEmoji: { fontSize: 20 },
-  rankBadge: {
+  podiumItem: {
+    flex: 1,
+    maxWidth: 72,
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 6,
+  },
+  podiumItemChampion: { marginBottom: 16 },
+  podiumCrown: {
+    fontSize: 18,
+    ...Platform.select({
+      ios: {
+        shadowColor: CHAMPION_GOLD,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.4,
+        shadowRadius: 4,
+      },
+      android: {},
+    }),
+  },
+  podiumMedal: { fontSize: 16 },
+  podiumNumBadge: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: `${GOLD}20`,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: `${GOLD}50`,
   },
-  rankBadgeTxt: { fontSize: 11, fontWeight: '700' },
-  top3Name: {
-    fontSize: 12,
+  podiumNumText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: TEXT_40,
+  },
+  podiumName: {
+    fontSize: 10,
     fontWeight: '600',
-    color: TEXT_PRIMARY,
+    color: TEXT_60,
+    maxWidth: 62,
     textAlign: 'center',
   },
-  top3NameCenter: { fontSize: 14, fontWeight: '700' },
-  top3Pill: { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
-  top3PillText: { fontSize: 11, fontWeight: '600' },
+  podiumNameChampion: { color: CHAMPION_GOLD, fontSize: 11, fontWeight: '700' },
+  podiumPts: { fontSize: 9, color: TEXT_25, fontWeight: '500' },
+  podiumPtsChampion: { color: 'rgba(196,162,90,0.6)' },
 
-  // ── List ──
-  sectionHeader: {
+  // ── Block 4: List ──
+  listHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: 12,
+    alignItems: 'center',
     paddingHorizontal: 20,
+    marginBottom: 12,
+    marginTop: 4,
   },
-  sectionTitle: { fontSize: 20, fontWeight: '700', letterSpacing: -0.3 },
+  listTitle: { fontSize: 15, fontWeight: '700', color: TEXT_85 },
+  listMeta: { fontSize: 10, color: TEXT_25, fontWeight: '500' },
 
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: SURFACE,
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 8,
-    marginHorizontal: 20,
-    borderTopWidth: 1,
-    borderRightWidth: 1,
-    borderBottomWidth: 1,
-    borderLeftWidth: 3,
-    borderTopColor: SURFACE_MUTED,
-    borderRightColor: SURFACE_MUTED,
-    borderBottomColor: SURFACE_MUTED,
     gap: 10,
-    ...Platform.select({
-      ios: {
-        shadowColor: SHADOW,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 4,
-      },
-      android: { elevation: 1 },
-    }),
+    padding: 10,
+    marginHorizontal: 16,
+    marginBottom: 5,
+    borderRadius: 12,
+    backgroundColor: BG_CARD,
+    borderWidth: 1,
+    borderColor: BORDER_CARD,
+  },
+  rowTop5: {
+    backgroundColor: BG_CARD_TOP5,
+    borderColor: BORDER_CARD_TOP5,
   },
   rowMe: {
-    borderTopColor: `${PRIMARY}30`,
-    borderRightColor: `${PRIMARY}30`,
-    borderBottomColor: `${PRIMARY}30`,
-    borderLeftColor: `${PRIMARY}30`,
-    backgroundColor: `${PRIMARY}06`,
+    borderColor: BORDER_GOLD,
+    backgroundColor: GOLD_06,
   },
 
-  rankCol: { width: 22, alignItems: 'center' },
-  rankNum: { fontSize: 14, fontWeight: '700' },
+  rankCol: {
+    width: 26,
+    height: 26,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  rankColTop5: { backgroundColor: GOLD_10 },
+  rankNum: { fontSize: 11, fontWeight: '700', color: TEXT_30 },
+  rankNumTop5: { color: CHAMPION_GOLD },
 
-  nameCol: { flex: 1 },
-  fullName: { fontSize: 14, fontWeight: '500', color: TEXT_PRIMARY },
-  fullNameMe: { color: PRIMARY, fontWeight: '600' },
-  badgeLabel: { fontSize: 11, color: TEXT_TERTIARY, marginTop: 1 },
+  nameCol: { flex: 1, minWidth: 0 },
+  fullName: { fontSize: 13, fontWeight: '600', color: TEXT_85 },
+  fullNameMe: { color: CHAMPION_GOLD, fontWeight: '700' },
+  badgeLabel: { fontSize: 10, color: TEXT_25, marginTop: 1 },
 
-  ptsPill: { borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4 },
-  ptsText: { fontSize: 12, fontWeight: '600' },
+  ptsText: { fontSize: 12, fontWeight: '700', color: TEXT_40 },
+  ptsTextTop5: { color: 'rgba(196,162,90,0.8)' },
+  ptsTextMe: { color: CHAMPION_GOLD },
+
   avatarFallback: {
-    backgroundColor: `${PRIMARY}20`,
+    backgroundColor: 'rgba(196,162,90,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarInitials: {
     fontWeight: '700',
-    color: PRIMARY,
+    color: CHAMPION_GOLD,
   },
-
-  // ── User card ──
-  userCard: {
-    marginHorizontal: 20,
-    marginTop: 16,
-    backgroundColor: PRIMARY,
-    borderRadius: 16,
-    padding: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: PRIMARY,
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-      },
-      android: { elevation: 6 },
-    }),
-  },
-  userCardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 10,
-  },
-  userCardInfo: { flex: 1 },
-  userCardName: { fontSize: 15, fontWeight: '600', color: INVERSE_TEXT },
-  userCardSub: { fontSize: 13, color: INVERSE_TEXT_MUTED, marginTop: 2 },
-  userTierBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: INVERSE_SURFACE,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  userTierIcon: { fontSize: 18 },
-  userCardMsg: { fontSize: 13, color: INVERSE_TEXT_SOFT, marginBottom: 8 },
 
   // ── States ──
   centerState: { alignItems: 'center', paddingVertical: 40, gap: 8 },
-  errorText: { fontSize: 14, color: TEXT_SECONDARY },
+  errorText: { fontSize: 14, color: TEXT_40 },
   loadMoreSpinner: { alignItems: 'center', paddingVertical: 16 },
+  viewMoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    gap: 6,
+    backgroundColor: GOLD_06,
+    borderWidth: 1,
+    borderColor: GOLD_15,
+  },
+  viewMoreTxt: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: CHAMPION_GOLD,
+  },
 
-  // ── Prize modal ──
+  // ── Prize modal (keeps light theme for readability) ──
   modalOverlay: {
     flex: 1,
     backgroundColor: OVERLAY,
@@ -981,16 +1001,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 12,
     maxHeight: '85%',
-    // paddingBottom is set dynamically via useSafeAreaInsets
   },
-  modalScrollContent: {
-    paddingBottom: 16,
-  },
+  modalScrollContent: { paddingBottom: 16 },
   modalHandle: {
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: BORDER,
+    backgroundColor: '#E8EEEF',
     alignSelf: 'center',
     marginBottom: 20,
   },
@@ -1013,9 +1030,8 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY,
     marginTop: 6,
   },
-  modalGoalTxt: { flex: 1, fontSize: 14, color: TEXT_MUTED, lineHeight: 20 },
+  modalGoalTxt: { flex: 1, fontSize: 14, color: TEXT_SECONDARY, lineHeight: 20 },
   modalGoalBold: { fontWeight: '700', color: TEXT_PRIMARY },
-  modalGoalCurrent: { color: PRIMARY, fontWeight: '600' },
   modalDivider: {
     height: 1,
     backgroundColor: BORDER_SUBTLE,
@@ -1034,30 +1050,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalTierIconDiscount: {
-    backgroundColor: SUCCESS_SOFT,
-  },
+  modalTierIconDiscount: { backgroundColor: '#F0FDF4' },
   modalTierEmoji: { fontSize: 22 },
   modalTierInfo: { flex: 1 },
   modalTierTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 2 },
   modalTierRank: { fontSize: 12, color: PRIMARY, fontWeight: '600', marginBottom: 4 },
   modalTierDesc: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 19 },
-  modalNote: {
-    fontSize: 13,
-    color: TEXT_TERTIARY,
-    lineHeight: 19,
-    marginBottom: 12,
-  },
+  modalNote: { fontSize: 13, color: TEXT_TERTIARY, lineHeight: 19, marginBottom: 12 },
   modalBtn: {
-    backgroundColor: PRIMARY,
+    backgroundColor: BG_DARK,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
     marginBottom: 8,
   },
-  modalBtnTxt: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: INVERSE_TEXT,
-  },
+  modalBtnTxt: { fontSize: 15, fontWeight: '700', color: TEXT_WHITE },
 });

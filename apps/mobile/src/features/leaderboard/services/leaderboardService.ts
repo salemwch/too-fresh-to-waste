@@ -2,7 +2,10 @@ import axios from 'axios';
 
 import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
 
-import type { LeaderboardResponse } from '../types/leaderboard.types';
+import type {
+  LeaderboardResponse,
+  LeaderboardNeighborhoodResponse,
+} from '../types/leaderboard.types';
 
 interface LeaderboardApiError {
   message?: string;
@@ -32,6 +35,18 @@ export const leaderboardService = {
         { ...(signal !== undefined && { signal }) },
       );
       return unwrapBackendResponse(response, 'leaderboard');
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+
+  async getNeighborhood(signal?: AbortSignal): Promise<LeaderboardNeighborhoodResponse> {
+    try {
+      const response = await apiClient.get<BackendApiResponse<LeaderboardNeighborhoodResponse>>(
+        '/loyalty/leaderboard/neighborhood',
+        { ...(signal !== undefined && { signal }) },
+      );
+      return unwrapBackendResponse(response, 'neighborhood');
     } catch (error) {
       throw handleApiError(error);
     }

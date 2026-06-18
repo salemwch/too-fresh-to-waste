@@ -6,7 +6,7 @@ import type { LeaderboardResponse } from '../types/leaderboard.types';
 
 const LEADERBOARD_QUERY_KEY = ['loyalty', 'leaderboard'] as const;
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 50;
 
 export function useLeaderboard(limit = PAGE_SIZE) {
   return useInfiniteQuery<LeaderboardResponse, Error>({
@@ -15,12 +15,12 @@ export function useLeaderboard(limit = PAGE_SIZE) {
       leaderboardService.getLeaderboard(limit, (pageParam as number) ?? 0, signal),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage.hasMore) return undefined;
       const loaded = allPages.reduce((sum, p) => sum + p.entries.length, 0);
-      // No more pages when we've loaded everything or got fewer than requested
       return loaded < lastPage.total && lastPage.entries.length === limit ? loaded : undefined;
     },
-    staleTime: 60 * 1000, // 1 min
-    gcTime: 5 * 60 * 1000, // 5 min
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
     retry: 2,
   });
 }
