@@ -59,7 +59,7 @@ buildscript {
         // Kotlin and Firebase versions for native module compilation
         kotlinVersion = findProperty('kotlinVersion') ?: "2.0.21"
         googleServicesVersion = "4.4.2"
-        firebaseBomVersion = "33.7.0"
+        firebaseBomVersion = "33.16.0"
     }
 
     repositories {
@@ -139,6 +139,27 @@ allprojects {
                     .using(module("com.facebook.react:react-android:0.81.0"))
                     .because("React Native 0.70+ renamed react-native to react-android")
             }
+
+            // ================================================================
+            // SECURITY: Force vulnerable transitive dependencies to patched versions
+            // Fixes Snyk-flagged io.netty, protobuf, and junit vulnerabilities
+            // from AGP test infrastructure and Firebase/gRPC transitive deps.
+            // ================================================================
+            force("io.netty:netty-codec-http2:4.1.135.Final")
+            force("io.netty:netty-codec-http:4.1.135.Final")
+            force("io.netty:netty-codec:4.1.135.Final")
+            force("io.netty:netty-handler:4.1.135.Final")
+            force("io.netty:netty-handler-proxy:4.1.135.Final")
+            force("io.netty:netty-common:4.1.135.Final")
+            force("io.netty:netty-transport:4.1.135.Final")
+            force("io.netty:netty-transport-native-unix-common:4.1.135.Final")
+            force("io.netty:netty-buffer:4.1.135.Final")
+            force("io.netty:netty-resolver:4.1.135.Final")
+            force("com.google.protobuf:protobuf-java:3.25.5")
+            force("junit:junit:4.13.2")
+            force("org.jetbrains.kotlin:kotlin-stdlib:2.0.21")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.21")
         }
 
         // Exclude deprecated Firebase Instance ID (firebase-iid)

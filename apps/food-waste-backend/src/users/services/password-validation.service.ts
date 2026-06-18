@@ -2,12 +2,24 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as argon2 from 'argon2';
 import { Model } from 'mongoose';
-import zxcvbn from 'zxcvbn';
+import { ZxcvbnFactory, type ZxcvbnResult, type OptionsGraph } from '@zxcvbn-ts/core';
+import * as zxcvbnEnPackage from '@zxcvbn-ts/language-en';
 
 import { USER_AUDIT_LOG_MAX } from '../../common/constants/database-indexes.constant';
 import { User, UserDocument } from '../schemas/user.schema';
 
-type ZxcvbnResult = ReturnType<typeof zxcvbn>;
+// language-common main entry has a CJS decompress bug — load adjacency graphs directly
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const adjacencyGraphs =
+  require('@zxcvbn-ts/language-common/dist/adjacencyGraphs.json.cjs') as OptionsGraph;
+
+const zxcvbnFactory = new ZxcvbnFactory({
+  translations: zxcvbnEnPackage.translations,
+  graphs: adjacencyGraphs,
+  dictionary: {
+    ...zxcvbnEnPackage.dictionary,
+  },
+});
 
 export interface PasswordStrengthResult {
   score: number; // 0-4 (0 = very weak, 4 = very strong)
@@ -331,7 +343,7 @@ export class PasswordValidationService {
     result: PasswordStrengthResult,
   ): void {
     const userInputs = this.buildUserInputsForZxcvbn(userInfo);
-    const zxcvbnResult = zxcvbn(password, userInputs);
+    const zxcvbnResult = zxcvbnFactory.check(password, userInputs);
     this.applyZxcvbnResults(zxcvbnResult, result);
   }
 
@@ -349,9 +361,7 @@ export class PasswordValidationService {
 
   private applyZxcvbnResults(zxcvbnResult: ZxcvbnResult, result: PasswordStrengthResult): void {
     result.score = zxcvbnResult.score;
-    result.crackTimeDisplay = String(
-      zxcvbnResult.crack_times_display.offline_slow_hashing_1e4_per_second,
-    );
+    result.crackTimeDisplay = zxcvbnResult.crackTimes.offlineSlowHashingXPerSecond.display;
 
     if (
       typeof zxcvbnResult.feedback.warning === 'string' &&

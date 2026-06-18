@@ -12,7 +12,21 @@ import {
 import * as crypto from 'crypto';
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import zxcvbn from 'zxcvbn';
+import { ZxcvbnFactory, type OptionsGraph } from '@zxcvbn-ts/core';
+import * as zxcvbnEnPackage from '@zxcvbn-ts/language-en';
+
+// language-common main entry has a CJS decompress bug — load adjacency graphs directly
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const adjacencyGraphs =
+  require('@zxcvbn-ts/language-common/dist/adjacencyGraphs.json.cjs') as OptionsGraph;
+
+const zxcvbnFactory = new ZxcvbnFactory({
+  translations: zxcvbnEnPackage.translations,
+  graphs: adjacencyGraphs,
+  dictionary: {
+    ...zxcvbnEnPackage.dictionary,
+  },
+});
 
 import {
   IPasswordPolicyService,
@@ -140,7 +154,7 @@ export class PasswordPolicyService implements IPasswordPolicyService {
 
       // Use zxcvbn for advanced password strength analysis
       const userInputs = this.buildUserInputs(context);
-      const strengthAnalysis = zxcvbn(password, userInputs);
+      const strengthAnalysis = zxcvbnFactory.check(password, userInputs);
 
       if (strengthAnalysis.score < policy.minScore) {
         feedback.push(`Password strength is too weak (score: ${strengthAnalysis.score}/${4})`);
@@ -158,12 +172,14 @@ export class PasswordPolicyService implements IPasswordPolicyService {
         score: strengthAnalysis.score,
         feedback,
         isValid: isValid && strengthAnalysis.score >= policy.minScore,
-        warning: strengthAnalysis.feedback.warning,
+        ...(strengthAnalysis.feedback.warning
+          ? { warning: strengthAnalysis.feedback.warning }
+          : {}),
         suggestions,
         crackTime: this.formatCrackTime(
-          String(strengthAnalysis.crack_times_display.offline_slow_hashing_1e4_per_second),
+          strengthAnalysis.crackTimes.offlineSlowHashingXPerSecond.display,
         ),
-        guessesLog10: strengthAnalysis.guesses_log10,
+        guessesLog10: strengthAnalysis.guessesLog10,
       };
 
       this.logger.debug(`Password validation result`, {
