@@ -687,22 +687,23 @@ export const LeaderboardScreen: React.FC<Props> = () => {
           />
         </>
       )}
-      {isLoading ? (
-        <SkeletonLeaderboardScreen />
-      ) : (
-        <FlashList
-          ref={flashListRef}
-          data={allEntries}
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          estimatedItemSize={56}
-          ListHeaderComponent={ListHeader}
-          ListFooterComponent={ListFooter}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-          onViewableItemsChanged={userIsInList ? onViewableItemsChanged : undefined}
-          viewabilityConfig={userIsInList ? viewabilityConfig : undefined}
-        />
+      <FlashList
+        ref={flashListRef}
+        data={allEntries}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        estimatedItemSize={56}
+        ListHeaderComponent={isLoading ? undefined : ListHeader}
+        ListFooterComponent={isLoading ? undefined : ListFooter}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
+        onViewableItemsChanged={userIsInList ? onViewableItemsChanged : undefined}
+        viewabilityConfig={userIsInList ? viewabilityConfig : undefined}
+      />
+      {isLoading && (
+        <View style={styles.skeletonOverlay}>
+          <SkeletonLeaderboardScreen />
+        </View>
       )}
       {showFloatingBar && userEntry != null && (
         <FloatingPositionBar
@@ -718,6 +719,10 @@ export const LeaderboardScreen: React.FC<Props> = () => {
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG_DARK },
+  skeletonOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: BG_DARK,
+  },
   listContent: { paddingBottom: 80 },
 
   // ── Block 1: Header ──

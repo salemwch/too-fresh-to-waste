@@ -1,66 +1,71 @@
 import React, { memo } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
-import { useTheme } from '@/design-system/providers';
 
-const SURFACE = '#FFFFFF';
-const BORDER = '#E8EEEF';
+const BG_DARK = '#0a1e20';
+const SHIMMER_BASE = 'rgba(255,255,255,0.04)';
+const SHIMMER_HIGHLIGHT = 'rgba(255,255,255,0.08)';
+const COLORS: [string, string, string] = [SHIMMER_BASE, SHIMMER_HIGHLIGHT, SHIMMER_BASE];
 
 const SkeletonLeaderboardComponent: React.FC = () => {
-  const theme = useTheme();
   const anim = useShimmerAnimation();
-  const colors: [string, string, string] = [
-    theme.colors.surfaceVariant,
-    theme.colors.surface,
-    theme.colors.surfaceVariant,
-  ];
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {/* Greeting row */}
-      <View style={styles.greetingRow}>
-        <View style={styles.greetingLeft}>
-          <ShimmerBlock animValue={anim} colors={colors} style={styles.avatar} />
-          <View style={styles.greetingText}>
-            <ShimmerBlock animValue={anim} colors={colors} style={styles.greetingLine1} />
-            <ShimmerBlock animValue={anim} colors={colors} style={styles.greetingLine2} />
+    <View style={styles.container}>
+      {/* Block 1: Header + Countdown */}
+      <View style={styles.headerBlock}>
+        <View style={styles.headerTop}>
+          <View>
+            <ShimmerBlock animValue={anim} colors={COLORS} style={styles.titleBar} />
+            <ShimmerBlock animValue={anim} colors={COLORS} style={styles.subtitleBar} />
           </View>
+          <ShimmerBlock animValue={anim} colors={COLORS} style={styles.infoBtn} />
         </View>
-        <ShimmerBlock animValue={anim} colors={colors} style={styles.infoBtn} />
+
+        <View style={styles.countdownRow}>
+          {[0, 1, 2, 3].map(i => (
+            <React.Fragment key={i}>
+              {i > 0 && <View style={styles.cdColonSpace} />}
+              <ShimmerBlock animValue={anim} colors={COLORS} style={styles.cdSegment} />
+            </React.Fragment>
+          ))}
+        </View>
+
+        <ShimmerBlock animValue={anim} colors={COLORS} style={styles.endDateBar} />
       </View>
 
-      {/* Prize strip */}
-      <View style={styles.prizeStrip}>
-        <ShimmerBlock animValue={anim} colors={colors} style={styles.stripTile} />
-        <View style={styles.stripDivider} />
-        <ShimmerBlock animValue={anim} colors={colors} style={styles.stripTile} />
+      {/* Block 2: Prize Cards */}
+      <View style={styles.prizesBlock}>
+        <ShimmerBlock animValue={anim} colors={COLORS} style={styles.prizeCard} />
+        <ShimmerBlock animValue={anim} colors={COLORS} style={styles.prizeCard} />
       </View>
 
-      {/* Top 5 champions area */}
-      <View style={styles.top5Row}>
-        <ShimmerBlock animValue={anim} colors={colors} style={styles.top5Side} />
-        <ShimmerBlock animValue={anim} colors={colors} style={styles.top5Side} />
-        <ShimmerBlock animValue={anim} colors={colors} style={styles.top5Center} />
-        <ShimmerBlock animValue={anim} colors={colors} style={styles.top5Side} />
-        <ShimmerBlock animValue={anim} colors={colors} style={styles.top5Side} />
+      {/* Block 3: Top 5 Podium */}
+      <View style={styles.podiumBlock}>
+        <ShimmerBlock animValue={anim} colors={COLORS} style={styles.podiumSmall} />
+        <ShimmerBlock animValue={anim} colors={COLORS} style={styles.podiumMedium} />
+        <ShimmerBlock animValue={anim} colors={COLORS} style={styles.podiumLarge} />
+        <ShimmerBlock animValue={anim} colors={COLORS} style={styles.podiumMedium} />
+        <ShimmerBlock animValue={anim} colors={COLORS} style={styles.podiumSmall} />
       </View>
 
-      {/* Section header */}
-      <View style={styles.sectionHeader}>
-        <ShimmerBlock animValue={anim} colors={colors} style={styles.sectionTitle} />
+      {/* Block 4: Rankings header */}
+      <View style={styles.listHeader}>
+        <ShimmerBlock animValue={anim} colors={COLORS} style={styles.listTitleBar} />
+        <ShimmerBlock animValue={anim} colors={COLORS} style={styles.listMetaBar} />
       </View>
 
-      {/* Rank rows */}
+      {/* Block 4: Rank rows */}
       {[0, 1, 2, 3, 4, 5, 6].map(i => (
         <View key={i} style={styles.row}>
-          <ShimmerBlock animValue={anim} colors={colors} style={styles.rankNum} />
-          <ShimmerBlock animValue={anim} colors={colors} style={styles.rowAvatar} />
+          <ShimmerBlock animValue={anim} colors={COLORS} style={styles.rankBadge} />
+          <ShimmerBlock animValue={anim} colors={COLORS} style={styles.rowAvatar} />
           <View style={styles.rowNameCol}>
-            <ShimmerBlock animValue={anim} colors={colors} style={styles.rowName} />
-            <ShimmerBlock animValue={anim} colors={colors} style={styles.rowBadge} />
+            <ShimmerBlock animValue={anim} colors={COLORS} style={styles.rowName} />
+            <ShimmerBlock animValue={anim} colors={COLORS} style={styles.rowBadgeLabel} />
           </View>
-          <ShimmerBlock animValue={anim} colors={colors} style={styles.rowPill} />
+          <ShimmerBlock animValue={anim} colors={COLORS} style={styles.rowPts} />
         </View>
       ))}
     </View>
@@ -70,83 +75,103 @@ const SkeletonLeaderboardComponent: React.FC = () => {
 export const SkeletonLeaderboardScreen = memo(SkeletonLeaderboardComponent);
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: BG_DARK },
 
-  greetingRow: {
+  // Block 1: Header
+  headerBlock: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 18,
+  },
+  titleBar: { width: 130, height: 22, borderRadius: 6 },
+  subtitleBar: { width: 180, height: 12, borderRadius: 4, marginTop: 6 },
+  infoBtn: { width: 36, height: 36, borderRadius: 18 },
+
+  // Countdown
+  countdownRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
+    gap: 6,
   },
-  greetingLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  avatar: { width: 52, height: 52, borderRadius: 26 },
-  greetingText: { gap: 6 },
-  greetingLine1: { width: 80, height: 14, borderRadius: 6 },
-  greetingLine2: { width: 110, height: 18, borderRadius: 6 },
-  infoBtn: { width: 40, height: 40, borderRadius: 20 },
-
-  prizeStrip: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 16,
+  cdSegment: {
+    flex: 1,
+    height: 58,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: BORDER,
-    backgroundColor: SURFACE,
-    overflow: 'hidden',
-    height: 72,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-      },
-      android: { elevation: 2 },
-    }),
+    borderColor: 'rgba(196,162,90,0.12)',
   },
-  stripTile: { flex: 1, height: '100%', borderRadius: 0 },
-  stripDivider: { width: 1, backgroundColor: BORDER, marginVertical: 12 },
+  cdColonSpace: { width: 6 },
+  endDateBar: {
+    width: 140,
+    height: 10,
+    borderRadius: 4,
+    alignSelf: 'center',
+    marginTop: 10,
+  },
 
-  top5Row: {
+  // Block 2: Prize Cards
+  prizesBlock: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    marginBottom: 24,
-    gap: 8,
+    gap: 10,
+    paddingHorizontal: 20,
+    marginBottom: 8,
   },
-  top5Center: { width: 60, height: 90, borderRadius: 14 },
-  top5Side: { width: 42, height: 70, borderRadius: 12 },
+  prizeCard: {
+    flex: 1,
+    height: 90,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.035)',
+  },
 
-  sectionHeader: { paddingHorizontal: 20, marginBottom: 12 },
-  sectionTitle: { width: 130, height: 22, borderRadius: 8 },
+  // Block 3: Podium
+  podiumBlock: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 20,
+    gap: 6,
+  },
+  podiumLarge: { width: 68, height: 110, borderRadius: 14 },
+  podiumMedium: { width: 52, height: 85, borderRadius: 12 },
+  podiumSmall: { width: 42, height: 65, borderRadius: 10 },
+
+  // Block 4: Rankings
+  listHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  listTitleBar: { width: 80, height: 15, borderRadius: 6 },
+  listMetaBar: { width: 90, height: 10, borderRadius: 4 },
 
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: SURFACE,
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 8,
-    marginHorizontal: 20,
     gap: 10,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 4,
-      },
-      android: { elevation: 1 },
-    }),
+    padding: 10,
+    marginHorizontal: 16,
+    marginBottom: 5,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.035)',
   },
-  rankNum: { width: 22, height: 16, borderRadius: 4 },
-  rowAvatar: { width: 38, height: 38, borderRadius: 19 },
+  rankBadge: { width: 26, height: 26, borderRadius: 7 },
+  rowAvatar: { width: 36, height: 36, borderRadius: 18 },
   rowNameCol: { flex: 1, gap: 4 },
-  rowName: { width: '70%', height: 14, borderRadius: 6 },
-  rowBadge: { width: '40%', height: 11, borderRadius: 4 },
-  rowPill: { width: 60, height: 26, borderRadius: 14 },
+  rowName: { width: '65%', height: 13, borderRadius: 5 },
+  rowBadgeLabel: { width: '35%', height: 10, borderRadius: 4 },
+  rowPts: { width: 50, height: 12, borderRadius: 4 },
 });
