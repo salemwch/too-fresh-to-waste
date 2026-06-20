@@ -10,9 +10,6 @@
 import type { LocationItem } from '@/navigation/components';
 import type { ILocationResult } from '@/types/location.types';
 
-const hasText = (value: string | undefined): value is string =>
-  typeof value === 'string' && value.trim().length > 0;
-
 /**
  * Transform ILocationResult[] to LocationItem[] (for UI components)
  *
@@ -51,93 +48,4 @@ export function transformLocationResultsToItems(
       ...(result.googlePlaceId !== undefined && { googlePlaceId: result.googlePlaceId }),
     };
   });
-}
-
-/**
- * Transform a single ILocationResult to LocationItem
- *
- * Useful for individual location selections.
- *
- * @param result - Single location result
- * @param preferArabic - Whether to prefer Arabic name
- * @returns Transformed location item
- */
-export function transformLocationResultToItem(
-  result: ILocationResult,
-  preferArabic: boolean = false,
-): LocationItem {
-  const displayName = preferArabic ? result.nameAr : result.name;
-
-  return {
-    id: result.id,
-    name: result.name,
-    city: displayName,
-    fullAddress: result.subtext,
-    latitude: result.coords.lat,
-    longitude: result.coords.lng,
-    ...(result.googlePlaceId !== undefined && { googlePlaceId: result.googlePlaceId }),
-  };
-}
-
-/**
- * Extract coordinates from LocationItem (with null safety)
- *
- * @param item - Location item
- * @returns Coordinates object or null if missing
- */
-export function extractCoordinatesFromLocationItem(
-  item: LocationItem,
-): { latitude: number; longitude: number } | null {
-  if (item.latitude === undefined || item.longitude === undefined) {
-    return null;
-  }
-
-  return {
-    latitude: item.latitude,
-    longitude: item.longitude,
-  };
-}
-
-/**
- * Get display name from LocationItem (with fallbacks)
- *
- * Priority: city → name → "Unknown Location"
- *
- * @param item - Location item
- * @returns Display name
- */
-export function getLocationDisplayName(item: LocationItem): string {
-  if (hasText(item.city)) {
-    return item.city;
-  }
-
-  if (hasText(item.name)) {
-    return item.name;
-  }
-
-  return 'Unknown Location';
-}
-
-/**
- * Get full address from LocationItem (with fallbacks)
- *
- * Priority: fullAddress → city → name → "Unknown Location"
- *
- * @param item - Location item
- * @returns Full address string
- */
-export function getLocationFullAddress(item: LocationItem): string {
-  if (hasText(item.fullAddress)) {
-    return item.fullAddress;
-  }
-
-  if (hasText(item.city)) {
-    return item.city;
-  }
-
-  if (hasText(item.name)) {
-    return item.name;
-  }
-
-  return 'Unknown Location';
 }

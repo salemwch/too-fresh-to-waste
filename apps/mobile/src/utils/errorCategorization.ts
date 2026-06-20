@@ -278,23 +278,3 @@ function sanitizeErrorMessage(raw: string): string {
 
   return raw;
 }
-
-/**
- * Check if error should trigger offline mode
- *
- * @param error - Categorized error
- * @returns True if app should enter offline mode
- */
-export function shouldEnterOfflineMode(error: CategorizedError): boolean {
-  return error.category === ErrorCategory.NETWORK_ERROR && error.shouldRetry;
-}
-
-/**
- * Check if error should clear auth state
- *
- * @param error - Categorized error
- * @returns True if app should logout user
- */
-export function shouldClearAuth(error: CategorizedError): boolean {
-  return error.category === ErrorCategory.AUTH_FAILURE && error.shouldLogout;
-}

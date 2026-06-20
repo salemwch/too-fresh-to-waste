@@ -136,30 +136,7 @@ export const persistor = persistStore(store, undefined, () => {
 
 export type RootState = RootStateFromReducer;
 export type AppDispatch = ThunkDispatch<RootState, unknown, UnknownAction>;
-export type AppStore = typeof store;
-const CLEAR_ALL_LOCATION_ACTION: UnknownAction = { type: 'location/clearAll' };
-
-export const clearPersistedStore = async (): Promise<void> => {
-  try {
-    await persistor.purge();
-    Logger.info('[Redux Persist] MMKV cache cleared');
-  } catch (error) {
-    Logger.error('[Redux Persist] Failed to clear MMKV cache', {}, error as Error);
-  }
-};
-
-export const resetStore = (): void => {
-  store.dispatch({ type: 'RESET_STORE' });
-  Logger.info('[Redux] Store reset to initial state');
-};
-
-export const clearPersistedLocation = (): void => {
-  store.dispatch(CLEAR_ALL_LOCATION_ACTION);
-  Logger.info('[Redux] Persisted location data cleared', {
-    coordinates: store.getState().location.coordinates,
-    userId: store.getState().location.userId,
-  });
-};
+type AppStore = typeof store;
 
 interface DebugGlobal {
   __STORE__?: AppStore;

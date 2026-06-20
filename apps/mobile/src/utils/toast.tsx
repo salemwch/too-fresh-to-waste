@@ -200,24 +200,3 @@ export const showInfoToast = (message: string, description?: string) => {
     topOffset: 60,
   });
 };
-
-/**
- * Show warning toast notification
- */
-export const showWarningToast = (message: string, description?: string) => {
-  Toast.show({
-    type: 'warning',
-    text1: message,
-    ...(description && { text2: description }),
-    position: 'top',
-    visibilityTime: 4000,
-    topOffset: 60,
-  });
-};
-
-/**
- * Hide all toast notifications
- */
-export const hideToast = () => {
-  Toast.hide();
-};

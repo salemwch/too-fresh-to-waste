@@ -78,7 +78,6 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-native": "^5.0.0",
-    "eslint-plugin-security": "^3.0.1",
     "husky": "^9.1.7",
     "knip": "^6.17.1",
     "lint-staged": "^16.4.0",

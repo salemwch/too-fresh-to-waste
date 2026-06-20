@@ -6,17 +6,5 @@
 // ============================================================================
 // Shared types — re-exported from @foodwaste/shared (single source of truth)
 // ============================================================================
-export type { DonationStats, UserDonationStats, OrderWithDonation } from '@foodwaste/shared';
-
-// ============================================================================
-// Mobile-only types
-// ============================================================================
-
-/**
- * API response wrapper (mobile-specific generic)
- */
-export interface DonationApiResponse<T> {
-  data: T;
-  success: boolean;
-  message?: string;
-}
+export type { DonationStats, UserDonationStats } from '@foodwaste/shared';
+// OrderWithDonation — import directly from @foodwaste/shared if needed

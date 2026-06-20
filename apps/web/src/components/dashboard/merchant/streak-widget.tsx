@@ -151,6 +151,6 @@ export function StreakWidget({ onListOffer }: StreakWidgetProps) {
   );
 }
 
-export function StreakWidgetSkeleton() {
+function StreakWidgetSkeleton() {
   return <div className='glass rounded-2xl shadow-soft h-[80px] animate-pulse bg-white/30' />;
 }

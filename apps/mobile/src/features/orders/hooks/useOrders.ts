@@ -21,7 +21,7 @@ import type { Order, PaginatedOrdersResponse } from '../types/order.types';
 const ORDERS_QUERY_KEY = ['orders', 'my-orders'] as const;
 
 /** Order detail query key — kept in sync with OrderDetailsScreen */
-export const orderDetailQueryKey = (orderId: string) => ['orders', 'detail', orderId] as const;
+const orderDetailQueryKey = (orderId: string) => ['orders', 'detail', orderId] as const;
 
 export function useOrders() {
   const queryClient = useQueryClient();

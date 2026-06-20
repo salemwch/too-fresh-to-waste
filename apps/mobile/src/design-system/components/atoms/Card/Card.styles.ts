@@ -97,25 +97,3 @@ export const createCardStyles = (
     },
   });
 };
-
-// Pressed state styles for pressable cards
-export const createPressedCardStyles = (theme: ThemeContextValue, variant: CardVariant) => {
-  const { colors, shadows } = theme;
-
-  const pressedVariantStyles = {
-    default: {
-      ...shadows.component.card.pressed,
-    },
-    elevated: {
-      ...shadows.component.card.pressed,
-    },
-    outlined: {
-      backgroundColor: colors.surfaceVariant,
-    },
-    filled: {
-      backgroundColor: colors.surfaceContainer,
-    },
-  };
-
-  return pressedVariantStyles[variant];
-};

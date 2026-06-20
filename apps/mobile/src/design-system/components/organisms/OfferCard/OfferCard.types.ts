@@ -9,22 +9,22 @@ import type { ViewStyle, ImageStyle } from 'react-native';
 /**
  * Card variant determines visual emphasis and badge display
  */
-export type OfferCardVariant = 'nearby' | 'featured' | 'surprise' | 'default';
+type OfferCardVariant = 'nearby' | 'featured' | 'surprise' | 'default';
 
 /**
  * Card layout determines overall structure and sizing
  */
-export type OfferCardLayout = 'compact' | 'standard' | 'detailed';
+type OfferCardLayout = 'compact' | 'standard' | 'detailed';
 
 /**
  * Card orientation for flexible layouts
  */
-export type OfferCardOrientation = 'vertical' | 'horizontal';
+type OfferCardOrientation = 'vertical' | 'horizontal';
 
 /**
  * Badge configuration for overlay indicators
  */
-export interface OfferBadge {
+interface OfferBadge {
   label: string;
   variant?: 'default' | 'success' | 'warning' | 'error' | 'info';
   icon?: React.ReactNode;
@@ -263,45 +263,5 @@ export const formatStartTime = (availableFrom: string): string | null => {
     });
   } catch {
     return null;
-  }
-};
-
-/**
- * Helper function to check if offer is expiring soon (< 2 hours)
- *
- * IMPORTANT: Stored times are "display times" (Tunisia local), NOT actual UTC.
- * We compare using Tunisia local time for consistency.
- */
-export const isExpiringSoon = (availableUntil: string): boolean => {
-  try {
-    // Get current time in Tunisia timezone
-    const nowTunisia = new Date().toLocaleString('en-US', { timeZone: 'Africa/Tunis' });
-    const nowDate = new Date(nowTunisia);
-
-    // Stored time is "display time" - extract UTC components as Tunisia local
-    const until = new Date(availableUntil);
-
-    // Create comparable timestamps (treating UTC values as Tunisia local)
-    const untilTime = Date.UTC(
-      until.getUTCFullYear(),
-      until.getUTCMonth(),
-      until.getUTCDate(),
-      until.getUTCHours(),
-      until.getUTCMinutes(),
-      until.getUTCSeconds(),
-    );
-    const nowTime = Date.UTC(
-      nowDate.getFullYear(),
-      nowDate.getMonth(),
-      nowDate.getDate(),
-      nowDate.getHours(),
-      nowDate.getMinutes(),
-      nowDate.getSeconds(),
-    );
-
-    const hoursRemaining = (untilTime - nowTime) / (1000 * 60 * 60);
-    return hoursRemaining > 0 && hoursRemaining < 2;
-  } catch {
-    return false;
   }
 };

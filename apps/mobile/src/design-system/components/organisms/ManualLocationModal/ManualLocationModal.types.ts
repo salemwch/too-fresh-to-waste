@@ -4,7 +4,7 @@
 
 import type { ViewStyle } from 'react-native';
 
-export interface LocationCoordinates {
+interface LocationCoordinates {
   latitude: number;
   longitude: number;
 }

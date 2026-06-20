@@ -181,37 +181,3 @@ export const createButtonStyles = (
     },
   });
 };
-
-// Pressed state styles
-export const createPressedStyles = (theme: ThemeContextValue, variant: ButtonVariant) => {
-  const { colors } = theme;
-
-  const pressedVariantStyles = {
-    primary: {
-      backgroundColor: colors.primaryContainer,
-    },
-    secondary: {
-      backgroundColor: colors.secondaryContainer,
-    },
-    tertiary: {
-      backgroundColor: colors.surfaceVariant,
-    },
-    ghost: {
-      backgroundColor: `${colors.primary}15`,
-    },
-    outline: {
-      backgroundColor: `${colors.primary}10`,
-    },
-    danger: {
-      backgroundColor: `${colors.error}80`,
-    },
-    success: {
-      backgroundColor: `${colors.success}80`,
-    },
-    text: {
-      backgroundColor: `${colors.primary}10`,
-    },
-  };
-
-  return pressedVariantStyles[variant];
-};

@@ -12,7 +12,7 @@ import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native';
 
 export type IconSize = ComponentSize | number;
 
-export type IconVariant = 'default' | 'filled' | 'outlined' | 'rounded' | 'sharp';
+type IconVariant = 'default' | 'filled' | 'outlined' | 'rounded' | 'sharp';
 
 export interface IconProps
   extends

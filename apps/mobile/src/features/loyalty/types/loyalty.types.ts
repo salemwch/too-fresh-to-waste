@@ -12,14 +12,9 @@
 export { BadgeType } from '@foodwaste/shared';
 
 export type {
-  PointTransactionType,
   TierName,
   Badge,
   PointTransaction,
-  LoginStreak,
-  PurchaseStreak,
-  ReviewTracking,
-  LeaderboardConsent,
   LoyaltyAccount,
   GamificationStats,
   LoginStreakResponse,

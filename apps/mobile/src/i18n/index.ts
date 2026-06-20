@@ -19,7 +19,7 @@ export const SUPPORTED_LANGUAGES = {
 
 export type AppLanguage = keyof typeof SUPPORTED_LANGUAGES;
 
-export function getStoredLanguage(): AppLanguage | undefined {
+function getStoredLanguage(): AppLanguage | undefined {
   const stored = mmkvStorage.getString(STORAGE_KEY);
   if (stored && stored in SUPPORTED_LANGUAGES) {
     return stored as AppLanguage;
@@ -50,10 +50,6 @@ export function getCurrentLanguage(): AppLanguage {
   return (i18next.language as AppLanguage) ?? 'en';
 }
 
-export function isRTL(): boolean {
-  return getCurrentLanguage() === 'ar';
-}
-
 const initialLanguage = getStoredLanguage() ?? detectDeviceLanguage();
 
 const shouldBeRTL = initialLanguage === 'ar';
@@ -73,5 +69,3 @@ i18next.use(initReactI18next).init({
   interpolation: { escapeValue: false },
   react: { useSuspense: false },
 });
-
-export default i18next;

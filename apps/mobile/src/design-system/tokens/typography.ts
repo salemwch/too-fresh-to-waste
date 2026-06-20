@@ -305,10 +305,3 @@ export const typographyTokens = {
   styles: typographyStyles,
   platform: platformTypography,
 } as const;
-
-// Type definitions
-export type FontFamily = typeof fontFamily;
-export type FontWeight = typeof fontWeight;
-export type FontSize = typeof fontSize;
-export type TypographyStyles = typeof typographyStyles;
-export type TypographyTokens = typeof typographyTokens;

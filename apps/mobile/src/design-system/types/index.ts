@@ -7,8 +7,6 @@ import type { designTokens } from '../tokens';
 import type { ComponentShadows } from '../tokens/shadows';
 import type {
   ViewStyle,
-  TextStyle,
-  ImageStyle,
   AccessibilityRole,
   AccessibilityState,
   AccessibilityValue,
@@ -23,31 +21,22 @@ export type ThemeShadows = Record<ShadowLevel, ViewStyle> & {
 };
 
 // Re-export icon types
-export type { IconFamily, IconComponent } from './icon.types';
+export type { IconFamily } from './icon.types';
 
 // Component size variants
 export type ComponentSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-
-// Component variants
-// Note: ButtonVariant and InputVariant are exported from their respective component modules
-// to avoid duplicate exports. Import them from '@/design-system/components/atoms/Button'
-// and '@/design-system/components/atoms/Input' respectively.
-export type CardVariant = 'default' | 'elevated' | 'outlined';
 
 // Theme types
 export type ThemeMode = 'light' | 'dark' | 'auto';
 export type ColorScheme = 'light' | 'dark';
 
-// Platform types
-export type Platform = 'ios' | 'android' | 'web';
-
 // Spacing types
-export type SpacingValue = keyof typeof designTokens.spacing.base;
-export type RadiusValue = keyof typeof designTokens.spacing.radius;
+type SpacingValue = keyof typeof designTokens.spacing.base;
+type RadiusValue = keyof typeof designTokens.spacing.radius;
 
 // Color types
-export type ColorValue = string;
-export type ThemeColorKey = keyof typeof designTokens.colors.light;
+type ColorValue = string;
+type ThemeColorKey = keyof typeof designTokens.colors.light;
 
 // Typography types
 export type TypographyVariant =
@@ -150,27 +139,6 @@ export interface StyleSystemProps {
   zIndex?: number;
 }
 
-// Animation types
-type AnimationType =
-  | 'fade'
-  | 'scale'
-  | 'slide'
-  | 'bounce'
-  | 'elastic'
-  | 'slideUp'
-  | 'slideDown'
-  | 'slideLeft'
-  | 'slideRight';
-
-export interface AnimationConfig {
-  type: AnimationType;
-  duration?: number;
-  delay?: number;
-  easing?: string;
-  repeat?: number;
-  repeatReverse?: boolean;
-}
-
 // Theme context types
 export interface ThemeContextValue {
   mode: ThemeMode;
@@ -185,57 +153,5 @@ export interface ThemeContextValue {
   toggleTheme: () => void;
 }
 
-// Component style types
-type ComponentStyle = ViewStyle | TextStyle | ImageStyle;
-
-export interface ThemedStyle {
-  light: ComponentStyle;
-  dark: ComponentStyle;
-}
-
 // Hook return types
 export type UseThemeReturn = ThemeContextValue;
-
-export interface UseStylesReturn<T = Record<string, ComponentStyle>> {
-  styles: T;
-  theme: ThemeContextValue;
-}
-
-// Food-specific types
-export type FreshnessLevel = 'fresh' | 'moderate' | 'urgent' | 'expired';
-export type FoodCategory =
-  | 'bakery'
-  | 'produce'
-  | 'dairy'
-  | 'meat'
-  | 'prepared'
-  | 'beverages'
-  | 'desserts'
-  | 'other';
-export type DietaryType = 'vegan' | 'vegetarian' | 'glutenFree' | 'organic' | 'kosher' | 'halal';
-export type OrderStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'preparing'
-  | 'ready'
-  | 'pickedUp'
-  | 'completed'
-  | 'cancelled'
-  | 'expired'
-  | 'refunded';
-
-// Component ref types
-export type ComponentRef<T = unknown> = React.RefObject<T> | ((instance: T | null) => void) | null;
-
-// Responsive types
-export type ResponsiveValue<T> = T | { mobile?: T; tablet?: T; desktop?: T };
-
-// Breakpoint types
-export type Breakpoint = 'mobile' | 'tablet' | 'desktop';
-
-// Export utility type helpers
-export type ExtractTokenValue<T> = T extends Record<string, infer U> ? U : never;
-export type TokenKeys<T> = keyof T;
-export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
-};

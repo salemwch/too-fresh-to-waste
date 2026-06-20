@@ -28,7 +28,6 @@ import {
   type NearbyOffersParams,
   type ProximitySearchResult,
   type NearbyOffer,
-  type NearbyEstablishment,
   type MapEstablishment,
 } from '../services/nearbyOffersService';
 
@@ -47,14 +46,6 @@ const nearbyOffersKeys = {
   /** Key for offer search with specific params */
   offers: (params: NearbyOffersParams | null) =>
     [...nearbyOffersKeys.all, 'offers', params] as const,
-
-  /** Key for establishment search */
-  establishments: (params: NearbyOffersParams | null) =>
-    [...nearbyOffersKeys.all, 'establishments', params] as const,
-
-  /** Key for quick search */
-  quickSearch: (lat: number, lng: number, radius: number) =>
-    [...nearbyOffersKeys.all, 'quick', { lat, lng, radius }] as const,
 
   /** Key for map establishments (with embedded offers) */
   mapEstablishments: (params: NearbyOffersParams | null) =>
@@ -113,82 +104,6 @@ export function useNearbyOffers(
       enabled: isEnabled,
       staleTime,
       gcTime: 60 * 60 * 1000, // 1 hour cache
-    },
-    refetchOnFocus,
-  );
-}
-
-// ============================================================================
-// useNearbyEstablishments Hook
-// ============================================================================
-
-/**
- * Fetch nearby establishments (public endpoint, no auth required).
- *
- * @param params - Search parameters (null to disable query)
- * @param options - Query options
- * @returns TanStack Query result with establishments data
- */
-export function useNearbyEstablishments(
-  params: NearbyOffersParams | null,
-  options: UseNearbyOffersOptions = {},
-) {
-  const { enabled = true, staleTime = 5 * 60 * 1000, refetchOnFocus = true } = options;
-
-  const isEnabled = enabled && !!params;
-
-  return useQueryWithFocus<ProximitySearchResult<NearbyEstablishment>[], Error>(
-    nearbyOffersKeys.establishments(params),
-    async () => {
-      if (!params) {
-        throw new Error('Missing required parameters');
-      }
-      return nearbyOffersService.searchEstablishments(params);
-    },
-    {
-      enabled: isEnabled,
-      staleTime,
-      gcTime: 60 * 60 * 1000,
-    },
-    refetchOnFocus,
-  );
-}
-
-// ============================================================================
-// useQuickSearch Hook
-// ============================================================================
-
-/**
- * Quick search for nearby establishments (public endpoint).
- *
- * @param latitude - Center latitude (null to disable)
- * @param longitude - Center longitude (null to disable)
- * @param radius - Search radius in meters
- * @param options - Query options
- * @returns TanStack Query result with establishments
- */
-export function useQuickSearch(
-  latitude: number | null,
-  longitude: number | null,
-  radius: number,
-  options: UseNearbyOffersOptions = {},
-) {
-  const { enabled = true, staleTime = 5 * 60 * 1000, refetchOnFocus = true } = options;
-
-  const isEnabled = enabled && latitude !== null && longitude !== null;
-
-  return useQueryWithFocus<ProximitySearchResult<NearbyEstablishment>[], Error>(
-    nearbyOffersKeys.quickSearch(latitude ?? 0, longitude ?? 0, radius),
-    async () => {
-      if (latitude === null || longitude === null) {
-        throw new Error('Missing coordinates');
-      }
-      return nearbyOffersService.quickSearch(latitude, longitude, radius);
-    },
-    {
-      enabled: isEnabled,
-      staleTime,
-      gcTime: 60 * 60 * 1000,
     },
     refetchOnFocus,
   );

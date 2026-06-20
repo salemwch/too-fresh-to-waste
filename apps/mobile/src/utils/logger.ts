@@ -230,46 +230,6 @@ class LoggerService {
   }
 }
 
-// Performance logging utilities
-export class PerformanceLogger {
-  private static readonly timers: Map<string, number> = new Map();
-
-  public static startTimer(label: string): void {
-    this.timers.set(label, Date.now());
-    Logger.debug(`Performance timer started: ${label}`);
-  }
-
-  public static endTimer(label: string): number {
-    const startTime = this.timers.get(label);
-    if (!startTime) {
-      Logger.warn(`Performance timer not found: ${label}`);
-      return 0;
-    }
-
-    const duration = Date.now() - startTime;
-    this.timers.delete(label);
-
-    Logger.info(`Performance timer ended: ${label}`, { duration });
-    return duration;
-  }
-
-  public static measureAsync<T>(label: string, fn: () => Promise<T>): Promise<T> {
-    this.startTimer(label);
-    return fn().finally(() => {
-      this.endTimer(label);
-    });
-  }
-
-  public static measure<T>(label: string, fn: () => T): T {
-    this.startTimer(label);
-    try {
-      return fn();
-    } finally {
-      this.endTimer(label);
-    }
-  }
-}
-
 // Network logging utilities
 export class NetworkLogger {
   public static logRequest(url: string, method: string, headers?: Record<string, string>): void {

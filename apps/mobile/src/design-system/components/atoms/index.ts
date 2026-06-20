@@ -17,9 +17,4 @@ export { Icon } from './Icon';
 export { Input } from './Input';
 // Text
 export { Text } from './Text';
-// DistanceBadge
-export { DistanceBadge } from './DistanceBadge';
-// LocationStatusBadge
-export { LocationStatusBadge } from './LocationStatusBadge';
-
 // ShimmerBlock (skeleton loading primitives)

@@ -12,7 +12,7 @@
  * - LOCAL: From bundled tunisian-cities.json
  * - GOOGLE: From Google Places API via backend proxy
  */
-export type LocationSource = 'LOCAL' | 'GOOGLE';
+type LocationSource = 'LOCAL' | 'GOOGLE';
 
 /**
  * Geographic coordinates

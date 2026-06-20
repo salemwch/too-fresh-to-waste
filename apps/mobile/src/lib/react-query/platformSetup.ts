@@ -9,10 +9,7 @@
  * - Automatic refetch on app focus
  */
 
-import {
-  addEventListener as addNetInfoEventListener,
-  fetch as fetchNetInfoState,
-} from '@react-native-community/netinfo';
+import { addEventListener as addNetInfoEventListener } from '@react-native-community/netinfo';
 import { onlineManager, focusManager } from '@tanstack/react-query';
 import { AppState, Platform } from 'react-native';
 
@@ -116,21 +113,6 @@ export const initializePlatformManagers = () => {
   // Return cleanup function for all managers
   return () => {
     cleanupFocusManager();
-  };
-};
-
-/**
- * Get current network state
- * Utility function to check network status
- */
-export const getNetworkState = async () => {
-  const state = await fetchNetInfoState();
-
-  return {
-    isConnected: state.isConnected === true,
-    isInternetReachable: state.isInternetReachable,
-    type: state.type,
-    details: state.details,
   };
 };
 

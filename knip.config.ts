@@ -4,23 +4,21 @@ const config: KnipConfig = {
   // ─── Binaries available via devDependencies but unresolvable in pnpm
   // hoisted monorepo, or installed globally / via npx on CI/servers
   ignoreBinaries: [
-    'audit-ci', // Invoked via npx — downloaded on demand
-    'jest', // jest
-    'pm2', // Production process manager — installed globally on servers
-    'dot', // Graphviz binary used by dependency-cruiser diagrams
-    'gradlew', // Android Gradle wrapper — not a Node binary
-    'pod', // CocoaPods — iOS native dependency manager
-    'fastlane', // iOS/Android release automation — installed via Ruby gem
+    'audit-ci',
+    'pm2',
+    'dot',
+    'gradlew',
+    'pod',
+    'fastlane',
+    'semgrep',
   ],
 
-  // ─── ESLint config presets — loaded by name, not imported
   ignoreDependencies: [
-    '@typescript-eslint/eslint-plugin',
-    '@typescript-eslint/parser',
-    'eslint-config-prettier',
-    'eslint-import-resolver-typescript',
-    'eslint-plugin-prettier',
     '@react-native/eslint-config',
+    '@types/multer',
+    '@foodwaste/jest-config',
+    '@foodwaste/tsconfig',
+    'tslib',
   ],
 
   workspaces: {

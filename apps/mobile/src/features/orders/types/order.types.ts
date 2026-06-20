@@ -9,23 +9,14 @@
 export { OrderStatus } from '@foodwaste/shared';
 
 export type {
-  OrderItemDto,
-  PickupTimeSlotDto,
   CreateOrderDto,
-  PopulatedOffer,
-  PopulatedEstablishment,
   Order,
   ConfirmPickupDto,
   PickupErrorCode,
   PaginatedOrdersResponse,
 } from '@foodwaste/shared';
 
-// Backward-compatible alias: mobile uses PaymentMethod, shared uses OrderPaymentMethod
-export type { OrderPaymentMethod as PaymentMethod } from '@foodwaste/shared';
-
 export {
-  isActiveOrderStatus,
-  isHistoryOrderStatus,
   getEstablishmentName,
   getEstablishmentImage,
   getOfferImage,

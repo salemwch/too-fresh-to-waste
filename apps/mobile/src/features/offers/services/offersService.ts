@@ -41,7 +41,7 @@ import type { GeoCoordinates } from '@foodwaste/shared';
 /**
  * Nearby offers parameters
  */
-export interface NearbyOffersParams {
+interface NearbyOffersParams {
   longitude: number;
   latitude: number;
   maxDistance?: number; // In meters, default 5000

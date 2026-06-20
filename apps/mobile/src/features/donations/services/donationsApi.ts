@@ -11,7 +11,6 @@
 import axios, { type AxiosError } from 'axios';
 
 import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
-import { Logger } from '@/utils/logger';
 
 import type { DonationStats, UserDonationStats } from '../../../types/donations';
 
@@ -93,16 +92,4 @@ export const donationsApi = {
       throw handleApiError(error);
     }
   },
-};
-
-/**
- * @deprecated No longer needed - centralized apiClient handles token management
- * This function is kept for backward compatibility but does nothing
- */
-export const setDonationsApiAuthToken = (_token: string | null): void => {
-  // No-op: centralized apiClient automatically injects tokens
-  // Token refresh is handled by apiClient interceptors
-  Logger.warn(
-    '[donationsApi] setDonationsApiAuthToken is deprecated. Token management is automatic via centralized apiClient.',
-  );
 };

@@ -5,9 +5,6 @@ import type {
   EstablishmentType,
 } from '@foodwaste/shared';
 
-// Re-export envelope types from dashboard — same pattern, no duplication
-export type { BackendEnvelope, PaginationMeta } from './dashboard';
-
 // ─── Enums (string literals mirroring backend) ───────────────────────────────
 
 export type AdminAction =
@@ -35,13 +32,13 @@ export type AdminAction =
   | 'login'
   | 'logout';
 
-export type AuditTargetType = 'user' | 'establishment' | 'order' | 'review' | 'offer' | 'system';
+type AuditTargetType = 'user' | 'establishment' | 'order' | 'review' | 'offer' | 'system';
 
 export type AnalyticsPeriod = 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom';
 
-export type ReportType = 'user' | 'establishment' | 'offer' | 'order' | 'review';
+type ReportType = 'user' | 'establishment' | 'offer' | 'order' | 'review';
 
-export type ReportReason =
+type ReportReason =
   | 'spam'
   | 'harassment'
   | 'inappropriate_content'
@@ -68,7 +65,7 @@ export type ModerationActionType =
 
 export type ModerationSeverity = 'minor' | 'moderate' | 'severe' | 'critical';
 
-export type PayoutFrequency = 'daily' | 'weekly' | 'monthly';
+type PayoutFrequency = 'daily' | 'weekly' | 'monthly';
 
 // ─── Platform Analytics ───────────────────────────────────────────────────────
 
@@ -82,7 +79,7 @@ export interface PlatformAnalytics {
   period: AnalyticsPeriodInfo;
 }
 
-export interface UserAnalytics {
+interface UserAnalytics {
   totalUsers: number;
   activeUsers: number;
   newUsersToday: number;
@@ -94,7 +91,7 @@ export interface UserAnalytics {
   averageSessionDuration: number;
 }
 
-export interface EstablishmentAnalytics {
+interface EstablishmentAnalytics {
   totalEstablishments: number;
   activeEstablishments: number;
   pendingApproval: number;
@@ -105,7 +102,7 @@ export interface EstablishmentAnalytics {
   topPerformingEstablishments: EstablishmentPerformance[];
 }
 
-export interface EstablishmentPerformance {
+interface EstablishmentPerformance {
   id: string;
   name: string;
   type: string;
@@ -115,7 +112,7 @@ export interface EstablishmentPerformance {
   completionRate: number;
 }
 
-export interface OrderAnalytics {
+interface OrderAnalytics {
   totalOrders: number;
   completedOrders: number;
   cancelledOrders: number;
@@ -126,13 +123,13 @@ export interface OrderAnalytics {
   orderTrends: OrderTrend[];
 }
 
-export interface OrderTrend {
+interface OrderTrend {
   date: string;
   orders: number;
   revenue: number;
 }
 
-export interface OfferAnalytics {
+interface OfferAnalytics {
   totalOffers: number;
   activeOffers: number;
   expiredOffers: number;
@@ -142,7 +139,7 @@ export interface OfferAnalytics {
   wasteReductionImpact: WasteReductionMetrics;
 }
 
-export interface CategoryStats {
+interface CategoryStats {
   category: string;
   count: number;
   totalRevenue: number;
@@ -151,14 +148,14 @@ export interface CategoryStats {
   averageDiscount?: number;
 }
 
-export interface WasteReductionMetrics {
+interface WasteReductionMetrics {
   totalKgSaved: number;
   totalMealsSaved: number;
   co2ReductionKg: number;
   estimatedValue: number;
 }
 
-export interface ReviewAnalytics {
+interface ReviewAnalytics {
   totalReviews: number;
   averageRating: number;
   ratingDistribution: Record<string, number>;
@@ -167,7 +164,7 @@ export interface ReviewAnalytics {
   responseRate: number;
 }
 
-export interface RevenueAnalytics {
+interface RevenueAnalytics {
   totalRevenue: number;
   revenueToday: number;
   revenueThisWeek: number;
@@ -179,7 +176,7 @@ export interface RevenueAnalytics {
   revenueGrowthRate: number;
 }
 
-export interface EstablishmentRevenue {
+interface EstablishmentRevenue {
   establishmentId: string;
   establishmentName: string;
   revenue: number;
@@ -187,7 +184,7 @@ export interface EstablishmentRevenue {
   commission: number;
 }
 
-export interface AnalyticsPeriodInfo {
+interface AnalyticsPeriodInfo {
   startDate: string;
   endDate: string;
   periodType: AnalyticsPeriod;
@@ -403,14 +400,6 @@ export interface ModerationReport {
   };
 }
 
-export interface ModerationReportListResponse {
-  reports: ModerationReport[];
-  total: number;
-  totalPages: number;
-  page: number;
-  limit: number;
-}
-
 export interface ModerationDashboardStats {
   totalReports: number;
   pendingReports: number;
@@ -527,7 +516,7 @@ export interface AuditLogSearchParams {
 
 export type HealthStatus = 'up' | 'down' | 'unknown';
 
-export interface HealthIndicator {
+interface HealthIndicator {
   status: HealthStatus;
   responseTime?: number;
   message?: string;
@@ -724,7 +713,7 @@ export interface UserOverview {
 
 // ─── User Activity ────────────────────────────────────────────────────────────
 
-export interface UserActivityEvent {
+interface UserActivityEvent {
   type: 'login' | 'status_change' | 'profile_update' | 'security_event' | 'admin_action';
   description: string;
   timestamp: string;
@@ -732,7 +721,7 @@ export interface UserActivityEvent {
   metadata?: Record<string, unknown>;
 }
 
-export interface UserAuditTrailEvent {
+interface UserAuditTrailEvent {
   id: string;
   action: string;
   timestamp: string;

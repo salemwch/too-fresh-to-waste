@@ -127,32 +127,3 @@ export const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
     };
   },
 };
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Build a custom-scheme deep link (dev / QR codes). */
-export const buildDeepLink = (screen: string, params?: Record<string, string | number>): string => {
-  let url = `foodwaste://${screen}`;
-  if (params) {
-    const qs = Object.entries(params)
-      .map(([k, v]) => `${k}=${v}`)
-      .join('&');
-    if (qs) url += `?${qs}`;
-  }
-  return url;
-};
-
-/** Build a Universal Link (shareable, works on web + opens app if installed). */
-export const buildUniversalLink = (
-  screen: string,
-  params?: Record<string, string | number>,
-): string => {
-  let url = `https://toofreshtowaste.com/${screen}`;
-  if (params) {
-    const qs = Object.entries(params)
-      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-      .join('&');
-    if (qs) url += `?${qs}`;
-  }
-  return url;
-};

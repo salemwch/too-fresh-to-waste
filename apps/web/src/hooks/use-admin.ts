@@ -10,7 +10,6 @@ import type {
   EstablishmentSearchParams,
   ReportSearchParams,
   UpdateUserStatusPayload,
-  BulkUserActionPayload,
   ApproveEstablishmentPayload,
   UpdateEstablishmentStatusPayload,
   ExtendTrialPayload,
@@ -26,7 +25,7 @@ import type {
 
 // ─── Query key factory ────────────────────────────────────────────────────────
 
-export const adminKeys = {
+const adminKeys = {
   all: ['admin'] as const,
 
   // Analytics
@@ -95,15 +94,6 @@ export function useRecentActivity(hours = 24, limit = 20) {
   });
 }
 
-export function useAuditLogs(params: AuditLogSearchParams = {}) {
-  return useQuery({
-    queryKey: adminKeys.auditLogs(params),
-    queryFn: () => adminService.getAuditLogs(params).then(r => r.data.data),
-    staleTime: 2 * 60 * 1000,
-    placeholderData: prev => prev,
-  });
-}
-
 // ─── User hooks ───────────────────────────────────────────────────────────────
 
 export function useUserSearch(params: UserSearchParams) {
@@ -133,17 +123,6 @@ export function useUpdateUserStatus() {
       void qc.invalidateQueries({ queryKey: adminKeys.userDetail(userId) });
       void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'user-search'] });
       void qc.invalidateQueries({ queryKey: adminKeys.platformAnalytics('week') });
-    },
-  });
-}
-
-export function useBulkUserAction() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: BulkUserActionPayload) =>
-      adminService.bulkUserAction(payload).then(r => r.data.data),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'user-search'] });
     },
   });
 }

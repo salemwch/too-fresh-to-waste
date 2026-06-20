@@ -121,5 +121,3 @@ export interface PasswordStrengthIndicatorProps {
    */
   testID?: string;
 }
-
-export type PasswordStrengthState = 'initial' | 'weak' | 'fair' | 'good' | 'excellent';

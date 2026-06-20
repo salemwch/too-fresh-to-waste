@@ -24,6 +24,3 @@ export const designTokens = {
   motion: motionTokens,
   shadows: shadowTokens,
 } as const;
-
-// Type definition for the complete design token system
-export type DesignTokens = typeof designTokens;

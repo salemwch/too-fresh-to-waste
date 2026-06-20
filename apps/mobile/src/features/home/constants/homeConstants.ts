@@ -65,46 +65,6 @@ export const HOME_STORAGE_KEYS = {
 } as const;
 
 // ============================================================================
-// Categories Configuration
-// ============================================================================
-
-/**
- * Browse by category configuration
- * Each category has an ID, display name, and emoji icon
- */
-export const HOME_CATEGORIES = [
-  {
-    id: 'bakery',
-    name: 'Bakery',
-    icon: '🥖',
-    description: 'Fresh bread, pastries, and baked goods',
-  },
-  {
-    id: 'restaurant',
-    name: 'Restaurant',
-    icon: '🍽️',
-    description: 'Hot meals and dining experiences',
-  },
-  {
-    id: 'grocery',
-    name: 'Grocery',
-    icon: '🛒',
-    description: 'Fresh produce and grocery items',
-  },
-  {
-    id: 'cafe',
-    name: 'Cafe',
-    icon: '☕',
-    description: 'Coffee, drinks, and light snacks',
-  },
-] as const;
-
-/**
- * Type-safe category ID union
- */
-export type HomeCategoryId = (typeof HOME_CATEGORIES)[number]['id'];
-
-// ============================================================================
 // Offer Section Configuration
 // ============================================================================
 
@@ -147,11 +107,6 @@ export const OFFER_SECTIONS = {
   },
 } as const;
 
-/**
- * Type-safe offer section key union
- */
-type OfferSectionKey = keyof typeof OFFER_SECTIONS;
-
 // ============================================================================
 // Analytics Event Names
 // ============================================================================
@@ -176,32 +131,3 @@ export const HOME_ANALYTICS_EVENTS = {
 // ============================================================================
 // Error Messages
 // ============================================================================
-
-// ============================================================================
-// Type Exports
-// ============================================================================
-
-/**
- * Type-safe accessor for API config values
- */
-export type HomeApiConfig = typeof HOME_API_CONFIG;
-
-/**
- * Type-safe accessor for UI config values
- */
-export type HomeUiConfig = typeof HOME_UI_CONFIG;
-
-/**
- * Type-safe accessor for storage keys
- */
-export type HomeStorageKeys = typeof HOME_STORAGE_KEYS;
-
-/**
- * Type-safe accessor for categories
- */
-export type HomeCategory = (typeof HOME_CATEGORIES)[number];
-
-/**
- * Type-safe accessor for offer sections
- */
-export type OfferSectionConfig = (typeof OFFER_SECTIONS)[OfferSectionKey];

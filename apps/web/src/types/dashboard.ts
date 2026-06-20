@@ -40,20 +40,6 @@ export const PRESET_CONFIG: Record<DatePreset, PresetConfig> = {
   '12m': { granularity: 'month', value: 12, label: '1Y' },
 };
 
-/** Presets grouped by granularity — drives the two-level date-filter UI. */
-export const PRESETS_BY_GRANULARITY: Record<ChartGranularity, DatePreset[]> = {
-  day: ['7d', '14d', '30d'],
-  week: ['4w', '8w', '12w'],
-  month: ['3m', '6m', '9m', '12m'],
-};
-
-/** Which preset to select automatically when the user switches granularity tabs. */
-export const GRANULARITY_DEFAULT_PRESET: Record<ChartGranularity, DatePreset> = {
-  day: '14d',
-  week: '8w',
-  month: '9m',
-};
-
 // ─── Backend response envelope ──────────────────────────────────────────────
 // The TransformInterceptor wraps all responses in { status, message?, data, meta?, timestamp }
 
@@ -101,7 +87,7 @@ export interface PopulatedUser {
   profileImage?: string;
 }
 
-export interface PopulatedEstablishment {
+interface PopulatedEstablishment {
   _id: string;
   name: string;
   address?: {
@@ -116,7 +102,7 @@ export interface PopulatedEstablishment {
   averageRating?: number;
 }
 
-export interface OrderItem {
+interface OrderItem {
   offerId: string;
   offerTitle: string;
   quantity: number;
@@ -126,7 +112,7 @@ export interface OrderItem {
   discountAmount: number;
 }
 
-export interface OrderPricing {
+interface OrderPricing {
   subtotal: number;
   discountAmount: number;
   taxAmount: number;
@@ -167,7 +153,7 @@ export interface MerchantOrder {
 
 // ─── Business Metrics (Analytics) ───────────────────────────────────────────
 
-export interface MetricValue {
+interface MetricValue {
   value: number;
   previousValue?: number;
   changePercentage?: number;
@@ -250,6 +236,7 @@ export interface DocumentMetadata {
   notes?: string;
 }
 
+/** @public — used via inline import() type in establishment page */
 export interface LegalDocuments {
   siret?: string;
   license?: string;
@@ -316,7 +303,7 @@ export interface CreatedOfferResponse {
 
 // ─── Surprise Bag creation ───────────────────────────────────────────────────
 
-export interface SurpriseBagPickupSlot {
+interface SurpriseBagPickupSlot {
   startTime: string; // "18:00"
   endTime: string; // "19:00"
 }
@@ -343,7 +330,7 @@ export interface CreateSurpriseBagPayload {
 
 // ─── Merchant Offers ────────────────────────────────────────────────────────
 
-export interface OfferPricing {
+interface OfferPricing {
   originalPrice: number;
   discountedPrice: number;
   discountPercentage: number;
@@ -400,7 +387,7 @@ export type DonationPoolStatus = 'active' | 'funded' | 'distributed' | 'archived
 
 export type DonationGoalCategory = 'TSHIRTS' | 'PANTS' | 'SHOES' | 'CHILDREN_STUDIES' | 'MEDICINE';
 
-export interface CategoryProgress {
+interface CategoryProgress {
   category: DonationGoalCategory;
   percent: number;
   totalItems: number;
@@ -450,7 +437,7 @@ export interface CommunityBagGoalStats {
 
 // ─── Sustainability ──────────────────────────────────────────────────────────
 
-export interface EsgTierInfo {
+interface EsgTierInfo {
   name: string;
   label: string;
   badge: string | null;

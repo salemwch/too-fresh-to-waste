@@ -815,7 +815,6 @@ export const {
   resetPromptDismissal,
   clearLocation,
   clearError,
-  clearAll: clearAllLocation,
 } = locationSlice.actions;
 
 export default locationSlice.reducer;

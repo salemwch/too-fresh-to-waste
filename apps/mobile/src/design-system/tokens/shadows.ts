@@ -214,8 +214,4 @@ export const shadowTokens = {
 } as const;
 
 // Type definitions
-export type IosShadows = typeof iosShadows;
-export type AndroidElevations = typeof androidElevations;
-export type Shadows = typeof shadows;
 export type ComponentShadows = typeof componentShadows;
-export type ShadowTokens = typeof shadowTokens;

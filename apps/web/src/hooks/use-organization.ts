@@ -47,22 +47,6 @@ export function useCreateOrganization() {
 }
 
 /**
- * Update organization name (owner only).
- * Backend: PATCH /organizations/:id
- * Invalidates: mine
- */
-export function useUpdateOrganization() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { name?: string } }) =>
-      organizationService.update(id, data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: organizationKeys.mine() });
-    },
-  });
-}
-
-/**
  * Invite a member to the organization by email.
  * Backend: POST /organizations/:orgId/invitations
  * Invalidates: invitations for this org

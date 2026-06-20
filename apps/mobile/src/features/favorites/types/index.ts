@@ -10,9 +10,7 @@
 export { FavoriteType } from '@foodwaste/shared';
 
 export type {
-  FavoritePreference,
   Favorite,
-  FavoriteOffer,
   FavoritesResponse,
   FavoriteStats,
   AddFavoriteRequest,

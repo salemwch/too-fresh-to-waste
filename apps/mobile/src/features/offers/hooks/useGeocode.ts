@@ -18,12 +18,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import {
-  nearbyOffersService,
-  type GeocodeResult,
-  type GeoCoordinates,
-  type AddressInfo,
-} from '../services/nearbyOffersService';
+import { nearbyOffersService, type GeocodeResult } from '../services/nearbyOffersService';
 
 // ============================================================================
 // Query Key Factory
@@ -35,10 +30,6 @@ const geocodeKeys = {
 
   /** Key for forward geocode (search) */
   search: (query: string) => [...geocodeKeys.all, 'search', query] as const,
-
-  /** Key for reverse geocode */
-  reverse: (coords: GeoCoordinates) =>
-    [...geocodeKeys.all, 'reverse', coords.latitude, coords.longitude] as const,
 };
 
 // ============================================================================
@@ -75,48 +66,6 @@ export function useLocationSearch(query: string, options: UseLocationSearchOptio
     staleTime: 30 * 60 * 1000, // 30 minutes - geocode results rarely change
     gcTime: 60 * 60 * 1000, // 1 hour cache
     retry: 1, // Only retry once for geocoding
-  });
-}
-
-// ============================================================================
-// useReverseGeocode Hook
-// ============================================================================
-
-interface UseReverseGeocodeOptions {
-  /** Preferred language for results (default: 'en') */
-  language?: string;
-  /** Whether query is enabled */
-  enabled?: boolean;
-}
-
-/**
- * Get address from coordinates (reverse geocoding).
- * Useful for displaying user's current location name.
- *
- * @param coordinates - Lat/lng to reverse geocode (null to disable)
- * @param options - Query options
- * @returns TanStack Query result with address information
- */
-export function useReverseGeocode(
-  coordinates: GeoCoordinates | null,
-  options: UseReverseGeocodeOptions = {},
-) {
-  const { language = 'en', enabled = true } = options;
-
-  const isEnabled = enabled && coordinates !== null;
-
-  return useQuery<AddressInfo, Error>({
-    queryKey: coordinates ? geocodeKeys.reverse(coordinates) : ['geocode', 'reverse', 'disabled'],
-    queryFn: () => {
-      if (!coordinates) {
-        throw new Error('Coordinates required');
-      }
-      return nearbyOffersService.reverseGeocode(coordinates, language);
-    },
-    enabled: isEnabled,
-    staleTime: 60 * 60 * 1000, // 1 hour - location names don't change
-    gcTime: 24 * 60 * 60 * 1000, // 24 hour cache
-    retry: 1,
   });
 }
 

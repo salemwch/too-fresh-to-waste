@@ -301,10 +301,3 @@ export const motionTokens = {
   gestures,
   platform: platformMotion,
 } as const;
-
-// Type definitions
-export type Duration = typeof duration;
-export type Easing = typeof easing;
-export type Spring = typeof spring;
-export type Animations = typeof animations;
-export type MotionTokens = typeof motionTokens;

@@ -14,9 +14,9 @@
  * @see https://react-redux.js.org/using-react-redux/usage-with-typescript
  */
 
-import { useDispatch, useSelector, useStore } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import type { RootState, AppDispatch, AppStore } from '@/store';
+import type { RootState, AppDispatch } from '@/store';
 
 /**
  * Typed version of useDispatch hook
@@ -40,15 +40,3 @@ export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
  * const user = useAppSelector(state => state.auth.user); // Type-safe!
  */
 export const useAppSelector = useSelector.withTypes<RootState>();
-
-/**
- * Typed version of useStore hook
- *
- * Use this hook if you need direct access to the store.
- * Generally, prefer useAppSelector and useAppDispatch instead.
- *
- * @example
- * const store = useAppStore();
- * const state = store.getState(); // Type-safe!
- */
-export const useAppStore = useStore.withTypes<AppStore>();

@@ -18,5 +18,3 @@ const requireAppStore = (): StoreLike => {
 };
 
 export const getAppDispatch = <TDispatch>(): TDispatch => requireAppStore().dispatch as TDispatch;
-
-export const getAppState = <TState>(): TState => requireAppStore().getState() as TState;

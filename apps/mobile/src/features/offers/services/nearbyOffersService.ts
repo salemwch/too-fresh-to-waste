@@ -34,10 +34,6 @@ import type {
 // ============================================================================
 export type {
   GeoCoordinates,
-  AddressInfo,
-  DistanceInfo,
-  GeoData,
-  GeoOfferPricing,
   NearbyOffer,
   NearbyEstablishment,
   ProximitySearchResult,
@@ -45,9 +41,6 @@ export type {
   MapEstablishment,
   GeocodeResult,
 } from '@foodwaste/shared';
-
-// Backward-compatible alias: mobile used OfferPricing, shared uses GeoOfferPricing
-export type { GeoOfferPricing as OfferPricing } from '@foodwaste/shared';
 
 // ============================================================================
 // Mobile-only types

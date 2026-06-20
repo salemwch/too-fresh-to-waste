@@ -14,9 +14,6 @@ export type InputVariant = 'default' | 'filled' | 'outlined';
 export type InputSize = ComponentSize;
 export type InputState = 'default' | 'focused' | 'error' | 'disabled';
 
-// Re-export IconFamily for convenience
-export type { IconFamily };
-
 export interface InputProps
   extends
     Omit<

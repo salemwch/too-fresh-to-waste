@@ -22,7 +22,6 @@ import { environment } from '@/config/environment';
 import { getCurrentLanguage } from '@/i18n';
 import { refreshTokenSafe } from '@/services/authRefresh';
 import {
-  cancelInflightRequests as cancelTrackedRequests,
   createTrackedAbortController,
   releaseTrackedAbortController,
 } from '@/services/requestCancellation';
@@ -32,10 +31,7 @@ import { Logger, NetworkLogger } from '@/utils/logger';
 import { decodeEntitiesDeep } from '@/utils/strings';
 
 import type { AppDispatch } from '@/store';
-import type { ApiResponse, PaginationMeta } from '@foodwaste/shared';
-
-// Re-export shared types for backward compatibility
-export type { PaginationMeta };
+import type { ApiResponse } from '@foodwaste/shared';
 
 /**
  * Extended request config with timing metadata
@@ -160,49 +156,6 @@ export function unwrapBackendResponse<T>(
 
   return data;
 }
-
-/**
- * ✅ SAFE UNWRAPPING WITH DEFAULT FALLBACK
- *
- * Same as unwrapBackendResponse but returns a default value instead of throwing.
- * Useful for optional/nullable endpoints.
- *
- * @param response - Axios response
- * @param defaultValue - Value to return if unwrapping fails
- * @param context - Optional context for logging
- * @returns Unwrapped data or default value
- *
- * @example
- * ```typescript
- * const settings = unwrapBackendResponseSafe(response, {}, 'user settings');
- * ```
- */
-export function unwrapBackendResponseSafe<T>(
-  response: { data: BackendApiResponse<T> },
-  defaultValue: T,
-  context?: string,
-): T {
-  try {
-    return unwrapBackendResponse(response, context);
-  } catch (error) {
-    Logger.warn('Response unwrapping failed, using default value', {
-      context,
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return defaultValue;
-  }
-}
-
-/**
- * Cancel all inflight requests
- * Called on logout to prevent orphaned requests from re-triggering auth flows
- *
- * Refresh single-flight now lives in services/authRefresh.ts and is shared
- * with the session middleware — no local refreshLock / failedQueue here.
- */
-export const cancelInflightRequests = (): void => {
-  cancelTrackedRequests();
-};
 
 /**
  * Create axios instance with base configuration

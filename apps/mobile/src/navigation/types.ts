@@ -162,7 +162,7 @@ export type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<
   'ForgotPassword'
 >;
 
-export type ResetPasswordScreenNavigationProp = NativeStackNavigationProp<
+type ResetPasswordScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
   'ResetPassword'
 >;
@@ -172,10 +172,7 @@ export type VerifyEmailScreenNavigationProp = NativeStackNavigationProp<
   'VerifyEmail'
 >;
 
-export type VerifyPhoneScreenNavigationProp = NativeStackNavigationProp<
-  AuthStackParamList,
-  'VerifyPhone'
->;
+type VerifyPhoneScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'VerifyPhone'>;
 
 export type MFAVerificationScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
@@ -186,43 +183,6 @@ export type MFAVerificationScreenNavigationProp = NativeStackNavigationProp<
  * Navigation Props for Main Stack Screens
  */
 export type MainStackNavigationProp = NativeStackNavigationProp<MainStackParamList>;
-
-type OfferDetailsScreenNavigationProp = NativeStackNavigationProp<
-  MainStackParamList,
-  'OfferDetails'
->;
-
-/**
- * Navigation Props for OrdersStack Screens (nested inside Orders tab)
- */
-export type OrdersListScreenNavigationProp = CompositeNavigationProp<
-  NativeStackNavigationProp<OrdersStackParamList, 'OrdersList'>,
-  CompositeNavigationProp<
-    BottomTabNavigationProp<TabParamList, 'Orders'>,
-    NativeStackNavigationProp<MainStackParamList>
-  >
->;
-
-type OrderDetailsFromOrdersStackNavigationProp = CompositeNavigationProp<
-  NativeStackNavigationProp<OrdersStackParamList, 'OrderDetails'>,
-  CompositeNavigationProp<
-    BottomTabNavigationProp<TabParamList, 'Orders'>,
-    NativeStackNavigationProp<MainStackParamList>
-  >
->;
-
-type CheckoutScreenNavigationProp = NativeStackNavigationProp<MainStackParamList, 'Checkout'>;
-
-/**
- * Navigation Props for Tab Screens
- * Composite navigation prop for accessing parent navigators
- */
-
-/**
- * Generic Tab Navigation Prop
- * Used for components that need to navigate between tabs (e.g., LocationHeader)
- */
-export type TabNavigationProp = BottomTabNavigationProp<TabParamList>;
 
 export type HomeScreenNavigationProp = CompositeNavigationProp<
   NativeStackNavigationProp<HomeStackParamList, 'HomeMain'>,
@@ -272,14 +232,6 @@ export type EditProfileScreenNavigationProp = CompositeNavigationProp<
   >
 >;
 
-export type ContactSupportScreenNavigationProp = CompositeNavigationProp<
-  NativeStackNavigationProp<ProfileStackParamList, 'ContactSupport'>,
-  CompositeNavigationProp<
-    BottomTabNavigationProp<TabParamList, 'Profile'>,
-    NativeStackNavigationProp<MainStackParamList>
-  >
->;
-
 /**
  * Navigation Props for Driver Stack Screens
  */
@@ -301,14 +253,10 @@ export type DriverActiveOrderNavigationProp = NativeStackNavigationProp<
 /**
  * Route Props for Screens with Parameters
  */
-export type ResetPasswordRouteProp = RouteProp<AuthStackParamList, 'ResetPassword'>;
+type ResetPasswordRouteProp = RouteProp<AuthStackParamList, 'ResetPassword'>;
 export type VerifyEmailRouteProp = RouteProp<AuthStackParamList, 'VerifyEmail'>;
-export type VerifyPhoneRouteProp = RouteProp<AuthStackParamList, 'VerifyPhone'>;
+type VerifyPhoneRouteProp = RouteProp<AuthStackParamList, 'VerifyPhone'>;
 export type MFAVerificationRouteProp = RouteProp<AuthStackParamList, 'MFAVerification'>;
-type OfferDetailsRouteProp = RouteProp<MainStackParamList, 'OfferDetails'>;
-type OrderDetailsRouteProp = RouteProp<OrdersStackParamList, 'OrderDetails'>;
-type CheckoutRouteProp = RouteProp<MainStackParamList, 'Checkout'>;
-export type EstablishmentDetailsRouteProp = RouteProp<MainStackParamList, 'EstablishmentDetails'>;
 export type DriverOrderDetailRouteProp = RouteProp<DriverStackParamList, 'DriverOrderDetail'>;
 export type DriverActiveOrderRouteProp = RouteProp<DriverStackParamList, 'DriverActiveOrder'>;
 
@@ -321,45 +269,7 @@ export interface ResetPasswordScreenProps {
   route: ResetPasswordRouteProp;
 }
 
-export interface VerifyEmailScreenProps {
-  navigation: VerifyEmailScreenNavigationProp;
-  route: VerifyEmailRouteProp;
-}
-
 export interface VerifyPhoneScreenProps {
   navigation: VerifyPhoneScreenNavigationProp;
   route: VerifyPhoneRouteProp;
 }
-
-export interface MFAVerificationScreenProps {
-  navigation: MFAVerificationScreenNavigationProp;
-  route: MFAVerificationRouteProp;
-}
-
-export interface OfferDetailsScreenProps {
-  navigation: OfferDetailsScreenNavigationProp;
-  route: OfferDetailsRouteProp;
-}
-
-export interface OrderDetailsScreenProps {
-  navigation: OrderDetailsFromOrdersStackNavigationProp;
-  route: OrderDetailsRouteProp;
-}
-
-export interface CheckoutScreenProps {
-  navigation: CheckoutScreenNavigationProp;
-  route: CheckoutRouteProp;
-}
-
-/**
- * Navigation Utilities
- */
-export type NavigateFunction = <T extends keyof MainStackParamList>(
-  screen: T,
-  params?: MainStackParamList[T],
-) => void;
-
-export type AuthNavigateFunction = <T extends keyof AuthStackParamList>(
-  screen: T,
-  params?: AuthStackParamList[T],
-) => void;

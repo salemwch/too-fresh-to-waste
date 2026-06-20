@@ -39,7 +39,7 @@ interface ErrorWithMessage {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object';
 
-export const isErrorWithMessage = (error: unknown): error is ErrorWithMessage =>
+const isErrorWithMessage = (error: unknown): error is ErrorWithMessage =>
   (error instanceof Error && error.message !== '') ||
   (isRecord(error) && typeof error['message'] === 'string' && error['message'] !== '');
 

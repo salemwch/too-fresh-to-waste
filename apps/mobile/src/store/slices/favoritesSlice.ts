@@ -391,37 +391,12 @@ export const { addFavoriteOptimistic, removeFavoriteOptimistic, clearFavorites }
 // Selectors
 // ============================================================================
 
-/** Select favorites state */
-export const selectFavoritesState = (state: RootState) => state.favorites;
+const selectFavoritesState = (state: RootState) => state.favorites;
 
 /** Check if item is favorited */
 export const selectIsFavorite = createSelector(
   [selectFavoritesState, (_state: RootState, itemId: string) => itemId],
   (favoritesState, itemId) => favoritesState.favoriteMap[itemId] ?? false,
-);
-
-/** Select recent favorites */
-export const selectRecentFavorites = createSelector(
-  [selectFavoritesState],
-  favoritesState => favoritesState.recentFavorites,
-);
-
-/** Select loading state */
-export const selectFavoritesLoading = createSelector(
-  [selectFavoritesState],
-  favoritesState => favoritesState.isLoading,
-);
-
-/** Select error */
-export const selectFavoritesError = createSelector(
-  [selectFavoritesState],
-  favoritesState => favoritesState.error,
-);
-
-/** Select total favorites count */
-export const selectFavoritesCount = createSelector(
-  [selectFavoritesState],
-  favoritesState => Object.values(favoritesState.favoriteMap).filter(Boolean).length,
 );
 
 // ============================================================================

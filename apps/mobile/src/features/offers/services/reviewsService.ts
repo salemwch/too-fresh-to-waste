@@ -1,6 +1,6 @@
 import { apiClient, unwrapBackendResponse } from '@/services/apiClient';
 
-import type { ReviewSummary, CreateReviewRequest, Review, ReviewType } from '@foodwaste/shared';
+import type { ReviewSummary, CreateReviewRequest, Review } from '@foodwaste/shared';
 
 export const reviewsService = {
   async getEstablishmentSummary(establishmentId: string): Promise<ReviewSummary> {
@@ -13,5 +13,3 @@ export const reviewsService = {
     return unwrapBackendResponse<Review>(response);
   },
 };
-
-export type { ReviewType };

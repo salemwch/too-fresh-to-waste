@@ -4,7 +4,7 @@
 
 import type { ViewStyle } from 'react-native';
 
-export type LocationPromptBannerVariant = 'compact' | 'expanded';
+type LocationPromptBannerVariant = 'compact' | 'expanded';
 
 export interface LocationPromptBannerProps {
   /** Called when user taps "Enable" button */

@@ -884,20 +884,3 @@ export const authSessionMiddleware: Middleware<object, RootState, AppDispatch> =
 
     return result;
   };
-
-/**
- * Cleanup utility for testing
- * Exposed for test teardown to prevent timer leaks
- */
-export const cleanupSessionManager = (): void => {
-  stopSessionManager();
-  sessionManagerState.logoutLock = null;
-};
-
-/**
- * Get session manager state for debugging
- * Exposed for development/debugging purposes
- */
-export const getSessionManagerState = (): Readonly<SessionManagerState> => ({
-  ...sessionManagerState,
-});

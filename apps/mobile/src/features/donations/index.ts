@@ -8,9 +8,6 @@ export { ImpactMoment } from './components/ImpactMoment';
 export { ImpactBanner } from './components/ImpactBanner';
 export { DonationImpactCard } from './components/DonationImpactCard';
 
-// Screens
-export { DonationImpactScreen } from './screens/DonationImpactScreen';
-
 // Hooks
 export { useDonationStats } from './hooks/useDonations';
 

@@ -90,45 +90,6 @@ export function useOrderStats(startDate?: Date) {
 }
 
 /**
- * Recent merchant orders (paginated) — not date-scoped (always shows latest).
- * Backend: GET /orders/merchant-orders
- */
-export function useMerchantRecentOrders(page = 1, limit = 6) {
-  const activeEstablishmentId = useAuthStore(s => s.activeEstablishmentId);
-  return useQuery({
-    queryKey: [...dashboardKeys.recentOrders(page, limit), activeEstablishmentId ?? 'all'] as const,
-    queryFn: async (): Promise<MerchantOrdersResult> => {
-      const response = await dashboardService.getMerchantOrders(
-        page,
-        limit,
-        activeEstablishmentId ?? undefined,
-      );
-      return {
-        orders: response.data.data,
-        meta: response.data.meta,
-      };
-    },
-    staleTime: 60 * 1000,
-  });
-}
-
-/**
- * Count of ACTIVE offers only — for the KPI stat card.
- * Backend: GET /offers/my-offers?status=active&limit=1
- */
-export function useActiveOfferCount() {
-  const estId = useAuthStore(s => s.activeEstablishmentId);
-  return useQuery({
-    queryKey: dashboardKeys.activeOfferCount(estId ?? undefined),
-    queryFn: async (): Promise<number> => {
-      const response = await dashboardService.getMerchantOffers(1, 1, 'active', estId ?? undefined);
-      return response.data.meta?.total ?? 0;
-    },
-    staleTime: 2 * 60 * 1000,
-  });
-}
-
-/**
  * Revenue chart data for day / week / month granularity.
  * `granularity` and `value` are derived from the selected DatePreset via PRESET_CONFIG.
  * Backend: GET /orders/merchant-revenue-chart?granularity=&value=
@@ -377,20 +338,6 @@ export function useMonthlyGoal() {
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useUpdateMonthlyGoal() {
-  const queryClient = useQueryClient();
-  const estId = useAuthStore(s => s.activeEstablishmentId);
-  return useMutation({
-    mutationFn: (targetBagsPerMonth: number) =>
-      dashboardService.updateMonthlyGoal(targetBagsPerMonth, estId ?? undefined),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: dashboardKeys.monthlyGoal(estId ?? undefined),
-      });
-    },
   });
 }
 

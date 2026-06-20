@@ -97,15 +97,3 @@ export const useAuth = () => {
     refreshAuthState: loadAuthState,
   };
 };
-
-/**
- * Get access token directly from Keychain.
- * Delegates to SecureStorage — tokens are never stored in AsyncStorage.
- */
-export const getAccessToken = (): Promise<string | null> => SecureStorage.getAccessToken();
-
-/**
- * Get refresh token directly from Keychain.
- * Delegates to SecureStorage — tokens are never stored in AsyncStorage.
- */
-export const getRefreshToken = (): Promise<string | null> => SecureStorage.getRefreshToken();

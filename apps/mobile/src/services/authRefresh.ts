@@ -120,11 +120,3 @@ export function refreshTokenSafe(dispatch: AppDispatch): Promise<RefreshResult> 
 
   return sharedLock;
 }
-
-/**
- * Test / teardown helper. Resets the lock without waiting for any in-flight
- * refresh. Only useful in unit tests and hard-reset paths.
- */
-export function __resetRefreshLockForTests(): void {
-  sharedLock = null;
-}

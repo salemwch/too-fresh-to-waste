@@ -363,10 +363,3 @@ export const colorTokens = {
   light: lightThemeColors,
   dark: darkThemeColors,
 } as const;
-
-// Type definitions for TypeScript intellisense
-export type BaseColors = typeof baseColors;
-export type FoodColors = typeof foodColors;
-export type StatusColors = typeof statusColors;
-export type ThemeColors = typeof lightThemeColors;
-export type ColorTokens = typeof colorTokens;

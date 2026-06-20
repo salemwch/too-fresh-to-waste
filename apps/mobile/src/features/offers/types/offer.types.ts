@@ -12,16 +12,10 @@ export { OfferStatus, OfferType, CtaState, EstablishmentType } from '@foodwaste/
 import { OfferStatus } from '@foodwaste/shared';
 
 export type {
-  PickupTimeSlot,
-  NutritionalInfo,
-  PriceInfo,
-  RecurringDays,
   Offer,
   OfferListItem,
   OfferSearchParams,
   OffersResponse,
-  OfferResponse,
-  FeaturedOffersResponse,
   ReserveQuantityRequest,
 } from '@foodwaste/shared';
 

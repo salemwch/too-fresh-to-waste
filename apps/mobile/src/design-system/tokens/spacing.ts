@@ -229,11 +229,3 @@ export const spacingTokens = {
   motion,
   unit: SPACING_UNIT,
 } as const;
-
-// Type definitions
-export type Spacing = typeof spacing;
-export type SemanticSpacing = typeof semanticSpacing;
-export type Radius = typeof radius;
-export type Elevation = typeof elevation;
-export type Sizing = typeof sizing;
-export type SpacingTokens = typeof spacingTokens;

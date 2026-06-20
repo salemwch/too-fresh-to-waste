@@ -43,11 +43,6 @@ export { useQueryWithFocus } from './hooks';
  *
  * ✅ Custom Hooks
  * - useQueryWithFocus (screen focus refetch)
- * - useMutationWithOptimistic (optimistic updates)
- * - useNetworkAwareQuery (network-aware caching)
- * - useInvalidateQueries (type-safe invalidation)
- * - usePrefetchQuery (prefetching)
- * - useQuerySubscription (background sync)
  *
  * Quick Start:
  *

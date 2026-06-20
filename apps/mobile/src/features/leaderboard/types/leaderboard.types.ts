@@ -7,5 +7,4 @@ export type {
   LeaderboardResponse,
   LeaderboardNeighborhoodEntry,
   LeaderboardNeighborhoodResponse,
-  LeaderboardChampionResponse,
 } from '@foodwaste/shared';

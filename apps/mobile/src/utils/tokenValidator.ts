@@ -138,68 +138,6 @@ export const validateTokenLocally = (
 };
 
 /**
- * Check if error is a network error (not an auth error)
- *
- * Network errors (ECONNABORTED, timeout, etc.) should NOT log users out
- * Auth errors (401, 403) indicate invalid tokens and should log users out
- *
- * @param error - Error object from network request
- * @returns True if this is a network connectivity issue
- */
-export const isNetworkError = (error: unknown): boolean => {
-  if (error === null || typeof error !== 'object') return false;
-
-  // Check for axios error response status
-  const err = error as { response?: { status?: number }; code?: string; message?: string };
-
-  // If there's an HTTP status, it's not a network error (server responded)
-  if (err.response?.status !== undefined) {
-    return false;
-  }
-
-  // Check error message for network-related keywords
-  const message =
-    typeof err.message === 'string' && err.message !== '' ? err.message : String(error);
-  const networkKeywords = [
-    'network',
-    'timeout',
-    'ECONNABORTED',
-    'ENOTFOUND',
-    'ECONNREFUSED',
-    'ETIMEDOUT',
-    'connection',
-    'offline',
-  ];
-
-  return networkKeywords.some(keyword => message.toLowerCase().includes(keyword.toLowerCase()));
-};
-
-/**
- * Check if error is a fatal auth error (token invalid/revoked)
- *
- * @param error - Error object from network request
- * @returns True if this is a permanent auth failure
- */
-export const isFatalAuthError = (error: unknown): boolean => {
-  if (error === null || typeof error !== 'object') return false;
-
-  const err = error as { response?: { status?: number }; message?: string };
-  const httpStatus = err.response?.status;
-  const message =
-    typeof err.message === 'string' && err.message !== '' ? err.message : String(error);
-
-  // Fatal HTTP status codes
-  const fatalStatuses = [401, 403, 422];
-  if (httpStatus !== undefined && fatalStatuses.includes(httpStatus)) {
-    return true;
-  }
-
-  // Fatal error messages
-  const fatalKeywords = ['invalid', 'revoked', 'expired', 'malformed'];
-  return fatalKeywords.some(keyword => message.toLowerCase().includes(keyword.toLowerCase()));
-};
-
-/**
  * ✅ BEST PRACTICE: Check if auth state is ready for API calls
  *
  * This function validates that:

@@ -6,9 +6,6 @@
 export { UserRole } from '@foodwaste/shared';
 
 export type {
-  UserResponse,
-  UserAddress,
-  UserLocationPreferences,
   AuthTokens,
   LoginRequest,
   RegisterRequest,
@@ -100,78 +97,4 @@ export interface AuthState {
   // ProtectedRoute defers the email-verification gate until this is true
   // so stale Keychain data doesn't falsely block the user.
   readonly isUserSynced: boolean;
-}
-
-export interface BiometricAuthState {
-  readonly isEnabled: boolean;
-  readonly isSupported: boolean;
-  readonly biometricType?: 'TouchID' | 'FaceID' | 'Fingerprint';
-}
-
-// Form Validation Types
-export interface LoginFormData {
-  email: string;
-  password: string;
-  rememberMe: boolean;
-}
-
-export interface RegisterFormData {
-  email: string;
-  password: string;
-  confirmPassword: string;
-  firstName: string;
-  lastName: string;
-  // phoneNumber removed - deferred to order placement
-  // role removed - hardcoded to 'consumer' (merchants register via website)
-  // Terms and privacy automatically accepted on registration
-}
-
-interface ValidationError {
-  readonly field: string;
-  readonly message: string;
-}
-
-export interface FormState<T> {
-  readonly data: T;
-  readonly errors: ValidationError[];
-  readonly isValid: boolean;
-  readonly isSubmitting: boolean;
-}
-
-// Social Auth Types
-enum SocialProvider {
-  GOOGLE = 'google',
-  FACEBOOK = 'facebook',
-  APPLE = 'apple',
-}
-
-export interface SocialAuthRequest {
-  readonly provider: SocialProvider;
-  readonly token: string;
-}
-
-// Session Management Types
-export interface Session {
-  readonly id: string;
-  readonly deviceInfo: DeviceInfo;
-  readonly lastActivity: string;
-  readonly createdAt: string;
-  readonly isActive: boolean;
-}
-
-interface DeviceInfo {
-  readonly platform: string;
-  readonly version: string;
-  readonly deviceId: string;
-  readonly appVersion: string;
-}
-
-// Security Types
-export interface SecuritySettings {
-  readonly isMFAEnabled: boolean;
-  readonly isBiometricEnabled: boolean;
-  readonly loginAttempts: number;
-  readonly lastFailedLogin?: string;
-  readonly accountLocked: boolean;
-  readonly lockoutExpiresAt?: string;
 }
