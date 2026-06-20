@@ -14,7 +14,7 @@ import type { UserRole, UserStatus } from '@foodwaste/shared';
 /**
  * Minimal privacy settings safe for client
  */
-export interface SafePrivacySettings {
+interface SafePrivacySettings {
   /** Tunisian data processing consent */
   dataProcessingConsent: boolean;
   /** Location tracking consent */

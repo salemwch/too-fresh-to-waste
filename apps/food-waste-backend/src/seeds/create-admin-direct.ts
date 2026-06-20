@@ -12,10 +12,18 @@ import { MongoClient, ObjectId } from 'mongodb';
 async function main() {
   const mongoUrl = process.env['DATABASE_URL'];
   const adminEmail = process.env['ADMIN_EMAIL'] ?? 'admin@example.com';
-  const adminPassword = process.env['ADMIN_PASSWORD'] ?? 'ChangeMe123!';
+  const adminPassword = process.env['ADMIN_PASSWORD'];
 
   if (!mongoUrl) {
     console.error('❌  DATABASE_URL not found in .env');
+    process.exit(1);
+  }
+
+  if (!adminPassword) {
+    console.error('❌  ADMIN_PASSWORD env var is required');
+    console.error(
+      '   Example: ADMIN_PASSWORD="YourSecurePass!" npx ts-node src/seeds/create-admin-direct.ts',
+    );
     process.exit(1);
   }
 
