@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@foodwaste/tsconfig": "workspace:*",
+    "@react-email/preview-server": "3.0.6",
     "@types/react": "^19.1.0",
     "react-email": "3.0.6",
     "rimraf": "^5.0.5",
