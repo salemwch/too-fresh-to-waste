@@ -50,6 +50,7 @@ import { WebSocketModule } from './websocket/websocket.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { EnterpriseModule } from './enterprise/enterprise.module';
 import { AppConfigModule } from './app-config/app-config.module';
+import { VotingModule } from './voting/voting.module';
 //import { SocialModule } from './social/social.module';
 
 @Module({
@@ -163,6 +164,7 @@ import { AppConfigModule } from './app-config/app-config.module';
     WaitlistModule,
     EnterpriseModule,
     AppConfigModule,
+    VotingModule,
   ],
   controllers: [],
   providers: [],
