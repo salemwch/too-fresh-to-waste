@@ -56,6 +56,9 @@ export class PointTransaction {
 
   @Prop({ type: Date })
   expiresAt?: Date | undefined;
+
+  @Prop({ type: Number })
+  bagCount?: number | undefined;
 }
 
 @Schema({ _id: false })

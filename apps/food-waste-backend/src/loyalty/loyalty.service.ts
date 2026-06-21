@@ -270,6 +270,7 @@ export class LoyaltyService {
         expiresAt: addPointsDto.expiresAt
           ? new Date(addPointsDto.expiresAt)
           : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year default
+        ...(addPointsDto.bagCount ? { bagCount: addPointsDto.bagCount } : {}),
       };
 
       // Only increment order/bag counters for actual order completions (identified by orderId)
