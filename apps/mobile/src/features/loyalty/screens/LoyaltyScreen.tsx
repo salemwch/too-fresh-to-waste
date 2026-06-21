@@ -23,6 +23,7 @@ import { StreakCard } from '../components/StreakCard';
 import { useLoginStreak } from '../hooks/useLoginStreak';
 import { useLoyalty } from '../hooks/useLoyalty';
 import { ReferralBottomSheet } from '../components/ReferralBottomSheet';
+import { VotingCard } from '../../voting/components/VotingCard';
 
 export const LoyaltyScreen: React.FC = () => {
   const theme = useTheme();
@@ -92,6 +93,9 @@ export const LoyaltyScreen: React.FC = () => {
 
         {/* Impact Stats — uses totalBagsSaved; falls back to totalOrdersCount for legacy accounts */}
         <ImpactStatsRow totalBagsSaved={account.totalBagsSaved || account.totalOrdersCount} />
+
+        {/* Voting Card — shows only when an active cycle exists */}
+        <VotingCard />
 
         {/* How You Earn */}
         <HowYouEarnGrid onReferPress={handleReferPress} />
