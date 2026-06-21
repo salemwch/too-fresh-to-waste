@@ -8,6 +8,8 @@ import { Vote, VoteSchema } from './schemas/vote.schema';
 import { VotingAuditLog, VotingAuditLogSchema } from './schemas/voting-audit-log.schema';
 import { VotingCycle, VotingCycleSchema } from './schemas/voting-cycle.schema';
 import { VotingEligibility, VotingEligibilitySchema } from './schemas/voting-eligibility.schema';
+import { VotingAdminController } from './voting-admin.controller';
+import { VotingController } from './voting.controller';
 import { VotingCron } from './voting.cron';
 import { VotingService } from './voting.service';
 
@@ -22,6 +24,7 @@ import { VotingService } from './voting.service';
     ]),
     LoyaltyModule,
   ],
+  controllers: [VotingController, VotingAdminController],
   providers: [VotingService, VotingCron],
   exports: [VotingService],
 })
